@@ -56,6 +56,129 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/no9_golem.h"
 
+/// Body animation slots selected by the handlers below.
+///
+/// Event requests use their request index plus 0x1B. Slots 0x1C and 0x1D
+/// leave the prop's previous visibility intact; 0x1E reveals it and 0x1F tosses it.
+enum {
+    ACTOR_510900_ANIM_PATROL_IDLE            = 1,
+    ACTOR_510900_ANIM_WALK_START             = 2,
+    ACTOR_510900_ANIM_WALK                   = 3,
+    ACTOR_510900_ANIM_WALK_FIRE              = 4,
+    ACTOR_510900_ANIM_BACKSTEP               = 5,
+    ACTOR_510900_ANIM_CATCH_UP               = 6,
+    ACTOR_510900_ANIM_SLASH_FIRST            = 8,
+    ACTOR_510900_ANIM_SLASH_SECOND           = 9,
+    ACTOR_510900_ANIM_SLASH_WINDUP           = 10,
+    ACTOR_510900_ANIM_DASH_START             = 11,
+    ACTOR_510900_ANIM_DASH_RUN               = 12,
+    ACTOR_510900_ANIM_DASH_STRIKE            = 13,
+    ACTOR_510900_ANIM_FLAME_WINDUP           = 14,
+    ACTOR_510900_ANIM_FLAME_LUNGE            = 15,
+    ACTOR_510900_ANIM_RECOIL                 = 16,
+    ACTOR_510900_ANIM_SHOTGUN_RESPONSE_START = 21,
+    ACTOR_510900_ANIM_SHOTGUN_RESPONSE_WALK  = 22,
+    ACTOR_510900_ANIM_SHOTGUN_RESPONSE_END   = 23,
+    ACTOR_510900_ANIM_DEATH                  = 24,
+    ACTOR_510900_ANIM_SLASH_RECOVER          = 25,
+    ACTOR_510900_ANIM_GRENADE_THROW          = 27,
+    ACTOR_510900_ANIM_EVENT_1                = 28,
+    ACTOR_510900_ANIM_EVENT_2                = 29,
+    ACTOR_510900_ANIM_EVENT_PROP_REVEAL      = 30,
+    ACTOR_510900_ANIM_EVENT_PROP_TOSS        = 31,
+};
+
+/// Steps within the selected combat state; values are stored as signed halfwords.
+enum {
+    ACTOR_510900_OPENING_INTRO                 = 0,
+    ACTOR_510900_OPENING_WINDUP                = 1,
+    ACTOR_510900_OPENING_FIRST_SLASH           = 2,
+    ACTOR_510900_OPENING_SECOND_SLASH          = 3,
+    ACTOR_510900_OPENING_LUNGE                 = 4,
+    ACTOR_510900_PATROL_WAIT                   = 0,
+    ACTOR_510900_PATROL_WALK_START             = 1,
+    ACTOR_510900_PATROL_WALK                   = 2,
+    ACTOR_510900_PATROL_WALK_FIRE              = 3,
+    ACTOR_510900_PATROL_CATCH_UP               = 4,
+    ACTOR_510900_PATROL_SHOTGUN_RESPONSE_START = 5,
+    ACTOR_510900_PATROL_SHOTGUN_RESPONSE_WALK  = 6,
+    ACTOR_510900_PATROL_SHOTGUN_RESPONSE_END   = 7,
+    ACTOR_510900_PATROL_BACKSTEP               = 8,
+    ACTOR_510900_SLASH_WINDUP                  = 0,
+    ACTOR_510900_SLASH_FIRST                   = 1,
+    ACTOR_510900_SLASH_SECOND                  = 2,
+    ACTOR_510900_SLASH_RECOVER                 = 3,
+    ACTOR_510900_FLAME_LUNGE_WINDUP            = 0,
+    ACTOR_510900_FLAME_LUNGE_CHARGE            = 1,
+    ACTOR_510900_DASH_START                    = 0,
+    ACTOR_510900_DASH_RUN                      = 1,
+    ACTOR_510900_DASH_STRIKE                   = 2,
+    ACTOR_510900_RECOIL_ENTER                  = 0,
+    ACTOR_510900_RECOIL_PLAY                   = 1,
+};
+
+/// Attack-table indices packed into both weapon and forearm collision keys.
+enum {
+    ACTOR_510900_ATTACK_DASH        = 0,
+    ACTOR_510900_ATTACK_FLAME_LUNGE = 1,
+    ACTOR_510900_ATTACK_SLASH       = 2,
+    ACTOR_510900_ATTACK_IGNITION    = 5,
+};
+
+/// Script keys before the placement index is packed into bits 8..11.
+enum {
+    ACTOR_510900_SOUND_SHOTGUN_RESPONSE = 0x40780003,
+    ACTOR_510900_SOUND_RECOIL           = 0x40780005,
+    ACTOR_510900_SOUND_WINDUP           = 0x40780006,
+    ACTOR_510900_SOUND_FLAME_STRIKE     = 0x40780007,
+    ACTOR_510900_SOUND_BACKSTEP         = 0x40780008,
+    ACTOR_510900_SOUND_SLASH_RECOVER    = 0x4078000A,
+    ACTOR_510900_SOUND_SLASH            = 0x4078000B,
+    ACTOR_510900_SOUND_DASH_STRIKE      = 0x4078000C,
+    ACTOR_510900_SOUND_FLAME_LOOP       = 0x4078000D,
+    ACTOR_510900_SOUND_FIRE             = 0x4078000E,
+    ACTOR_510900_SOUND_DASH_START       = 0x4078000F,
+};
+
+/// Lap and range thresholds in world units; speeds are world units per frame.
+enum {
+    ACTOR_510900_LIGHT_0_SLASH_DISTANCE = 0x4B00,
+    ACTOR_510900_LIGHT_1_SLASH_DISTANCE = 0x7F00,
+    ACTOR_510900_LIGHT_SLASH_WINDOW     = 0x120,
+    ACTOR_510900_LAST_ATTACK_DISTANCE   = 0xAE9C,
+    ACTOR_510900_LETHAL_ATTACK_DISTANCE = 0xB477,
+    ACTOR_510900_PATROL_END_DISTANCE    = 0xB478,
+    ACTOR_510900_SLASH_RANGE            = 0xAF0,
+    ACTOR_510900_FLAME_LUNGE_RANGE      = 0xED8,
+    ACTOR_510900_MIXED_ATTACK_RANGE     = 0x12C0,
+    ACTOR_510900_PATROL_WALK_SPEED      = 0x1D,
+    ACTOR_510900_DASH_SPEED             = 0x84,
+    ACTOR_510900_MAX_LUNGE_DISTANCE     = 0x1388,
+};
+
+/// The latch's two positive values select helipad light 0 or 1 for a slash.
+enum {
+    ACTOR_510900_LIGHT_SLASH_NONE    = 0,
+    ACTOR_510900_LIGHT_SLASH_LIGHT_0 = 1,
+    ACTOR_510900_LIGHT_SLASH_LIGHT_1 = 2,
+};
+
+/// The ammunition row interval that triggers the patrol's shotgun response.
+enum {
+    ACTOR_510900_SHOTGUN_FIRST_AMMO_ROW = 10,
+    ACTOR_510900_SHOTGUN_AMMO_ROW_COUNT = 3,
+};
+
+/// The three attached models have initialization and update states only.
+enum {
+    ACTOR_510900_ATTACHMENT_INIT        = 0,
+    ACTOR_510900_ATTACHMENT_UPDATE      = 1,
+    ACTOR_510900_ATTACHMENT_STATE_COUNT = 2,
+    ACTOR_510900_WEAPON_PART            = 8,
+    ACTOR_510900_CHEST_PART             = 3,
+    ACTOR_510900_PROP_HAND_PART         = 12,
+};
+
 s32 func_actor_510900_801391B8(Task*, s32, s32, s32);
 
 s32 func_actor_510900_8013BD5C(Task*, s32, s32, s32);
@@ -235,7 +358,7 @@ extern u16 D_actor_510900_801679F0[];
 /// `gRandomLcgState` draw the same way `D_actor_510900_801679F0` is.
 extern u16 D_actor_510900_801679D0[];
 
-/// Per-cycle threshold the patrol walk in `func_actor_510900_80136B70` compares
+/// Per-cycle threshold the patrol walk in `_actor510900TickSlash` compares
 /// a 4-bit `gRandomLcgState` draw against, indexed by the `stateCounter` cycle counter;
 /// a draw above the entry ends the walk.
 extern s16 D_actor_510900_80167A10[];
@@ -317,7 +440,7 @@ extern SVECTOR D_actor_510900_80167C68[4];
 /// `Gp_GridParams->faces[3]`.
 extern WorldCollisionGridFace D_actor_510900_80167C88;
 
-static s32  func_actor_510900_8013691C(Task* arg0);
+static s32  _actor510900TrySelectAttack(Task* task);
 static void func_actor_510900_8013864C(Task* arg0);
 static void func_actor_510900_801387F4(Task* arg0);
 static void func_actor_510900_80138978(Task* arg0);
@@ -342,13 +465,13 @@ static void func_actor_510900_8013C430(Task* arg0);
 extern s16 D_actor_510900_80167990[];
 extern s16 D_actor_510900_801679B0[];
 
-void func_actor_510900_8013B3D0(Task*);
-void func_actor_510900_8013BE98(Task*);
-void func_actor_510900_8013BF90(Task*);
-void func_actor_510900_8013C090(Task*);
-void func_actor_510900_8013C190(Task*);
-void func_actor_510900_8013C1EC(Task*);
-void func_actor_510900_8013C3DC(Task*);
+void        func_actor_510900_8013B3D0(Task*);
+static void _actor510900PropTask(Task* task);
+static void _actor510900WeaponTask(Task* task);
+static void _actor510900ChestModelTask(Task* task);
+void        func_actor_510900_8013C190(Task*);
+void        func_actor_510900_8013C1EC(Task*);
+void        func_actor_510900_8013C3DC(Task*);
 
 DamageAttack D_actor_510900_8016796C[5] = {
     { 24, 6 },
@@ -445,9 +568,9 @@ s16 D_actor_510900_80167A10[4] = {
 
 TaskDesc D_actor_510900_80167A18[7] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013B3D0, { .model = &gActor510900No9GolemAkropolisBody } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013BE98, { .model = &gActor510900No9GolemAkropolisProp } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013BF90, { .model = &gActor510900Model0FE60 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C090, { .model = &gActor510900Model10468 } },
+    { { { TASK_BODY_TMD, 96 } }, _actor510900PropTask, { .model = &gActor510900No9GolemAkropolisProp } },
+    { { { TASK_BODY_TMD, 96 } }, _actor510900WeaponTask, { .model = &gActor510900Model0FE60 } },
+    { { { TASK_BODY_TMD, 96 } }, _actor510900ChestModelTask, { .model = &gActor510900Model10468 } },
     { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C190, { .model = &gActor510900GolemGrenade } },
     { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C1EC, { .model = &gActor510900Model10C8C } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_510900_8013C3DC, { .value = 0 } },
@@ -771,33 +894,33 @@ extern u16 D_actor_510900_80167CEC[][4];
 
 static void func_actor_510900_8013B658(Enemy* arg0, Task* arg1);
 
-static void func_actor_510900_8013BEEC(Enemy* enemy, Task* task);
+static void _actor510900InitProp(Enemy* enemy, Task* task);
 
-static void func_actor_510900_8013BFE4(Enemy* enemy, Task* task);
+static void _actor510900InitWeapon(Enemy* enemy, Task* task);
 
-static void func_actor_510900_8013C034(Enemy* enemy, Task* task);
+static void _actor510900UpdateWeapon(Enemy* enemy, Task* task);
 
-static void func_actor_510900_8013C0E4(Enemy* enemy, Task* task);
+static void _actor510900InitChestModel(Enemy* enemy, Task* task);
 
-static void func_actor_510900_8013C134(Enemy* enemy, Task* task);
+static void _actor510900UpdateChestModel(Enemy* enemy, Task* task);
 
 /// The three views a helipad light is visible in, indexed by its
 /// `_Actor510900HelipadLightWork::lightIndex`.
 extern u16 D_actor_510900_80167CD8[][3];
 
 static void func_actor_510900_80135744(Task* arg0);
-static void func_actor_510900_80135E90(Task* arg0);
-static void func_actor_510900_80136184(Task* arg0);
-static void func_actor_510900_80136B70(Task* arg0);
-static void func_actor_510900_80137008(Task* arg0);
+static void _actor510900TickOpening(Task* task);
+static void _actor510900TickPatrol(Task* task);
+static void _actor510900TickSlash(Task* task);
+static void _actor510900TickFlameLunge(Task* task);
 static void func_actor_510900_801373B8(Task* arg0);
-static void func_actor_510900_801375D8(Task* arg0);
+static void _actor510900TickDash(Task* task);
 static void func_actor_510900_80137868(Task* arg0);
-static void func_actor_510900_80137E20(Task* arg0);
+static void _actor510900TickRecoil(Task* task);
 static void func_actor_510900_80137FBC(Task* arg0);
 static void func_actor_510900_80138250(Task* arg0);
 static void func_actor_510900_801384C4(Task* arg0);
-static void func_actor_510900_801395AC(Enemy* enemy, Task* task);
+static void _actor510900UpdateProp(Enemy* enemy, Task* task);
 static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1);
 static void func_actor_510900_80139C10(Enemy* enemy, Task* task);
 static void func_actor_510900_8013A100(Enemy* enemy, Task* task);
@@ -805,6 +928,28 @@ static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task);
 static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1);
 static void func_actor_510900_8013AD90(Enemy* enemy, Task* task);
 static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1);
+
+/// Enables the paired attack spheres and gives both the selected attack key.
+static __inline__ void _actor510900ArmAttack(Actor510900Work* work, s32 attackIndex)
+{
+    s32 attackKey;
+
+    work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    attackKey                  = damagePackAttackKey(&D_actor_510900_80167968, attackIndex);
+    work->weaponAttack.key     = attackKey;
+    work->forearmAttack.key    = attackKey;
+}
+
+/// Restores the prop's identity placement in the off-hand coordinate.
+static __inline__ void _actor510900AttachProp(GfxCoord* propCoord, GfxCoord* handCoord)
+{
+    gfxSetRotIdentity(&propCoord->coord);
+    propCoord->coord.t[0] = 0;
+    propCoord->coord.t[1] = 0;
+    propCoord->coord.t[2] = 0;
+    propCoord->parent     = handCoord;
+}
 
 /// Applies this frame's hits from the three `bodyContacts` collision records. A
 /// type-2 id lands only while the `hitCooldown` cooldown is clear: its damage
@@ -1044,262 +1189,257 @@ static void func_actor_510900_80135744(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// State 0 (animations 0xA/8/0x19): the idle-to-walk start. Sub-state 0 queues
-/// the step cue at animation frame 0xA and past 0x64 hands sub-state 1 the animation 0xA;
-/// sub-state 1 enables both attack spheres with the
-/// animation 8 past frame 0x14. Sub-states 2 and 3 are the two walk cycles:
-/// each feeds `lapSpeed` 0x38 over a 0x13-frame window, mutes it while
-/// `attackLanded` is latched, queues the footfall cue, and at the end of the cycle
-/// either hands on to the next one or - when `attackLanded` is set - disables both
-/// attack spheres and restarts the cycle with the animation 0x19. Sub-state 4
-/// leaves for state 3 with the animation 0xF.
-static void func_actor_510900_80135E90(Task* arg0)
+/// Runs the fight's opening slash pair and hands off to the flame charge.
+///
+/// The opening uses attack index 2. A player hit interrupts either slash into
+/// slash recovery; otherwise the flame-lunge state starts directly at its charge.
+static void _actor510900TickOpening(Task* task)
 {
     Actor510900Work* work;
-    GfxCoord*        coord;
-    s32              snd;
-    s32              pair;
+    GfxCoord*        bodyCoord;
+    s32              soundKey;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case 0:
+        case ACTOR_510900_OPENING_INTRO:
             if (work->animationFrame == 0xA) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780006;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_WINDUP;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x64) {
-                work->subState    = 1;
-                work->animationId = 0xA;
+                work->subState    = ACTOR_510900_OPENING_WINDUP;
+                work->animationId = ACTOR_510900_ANIM_SLASH_WINDUP;
             }
             break;
-        case 1:
+        case ACTOR_510900_OPENING_WINDUP:
             if (work->animationFrame >= 0x14) {
-                work->subState             = 2;
-                work->animationId          = 8;
-                work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 2);
-                work->weaponAttack.key     = pair;
-                work->forearmAttack.key    = pair;
+                work->subState    = ACTOR_510900_OPENING_FIRST_SLASH;
+                work->animationId = ACTOR_510900_ANIM_SLASH_FIRST;
+                _actor510900ArmAttack(work, ACTOR_510900_ATTACK_SLASH);
             }
             break;
-        case 2:
+        case ACTOR_510900_OPENING_FIRST_SLASH:
             work->lapSpeed = ((u32)((u16)work->animationFrame - 9) < 0x13U) ? 0x38 : 0;
             if (work->attackLanded != 0) {
                 work->lapSpeed = 0;
             }
             if (work->animationFrame == 0xA) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000B;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_SLASH;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x1D) {
                 if (work->attackLanded != 0) {
                     work->state                = ACTOR_510900_STATE_SLASH;
-                    work->subState             = 3;
-                    work->animationId          = 0x19;
+                    work->subState             = ACTOR_510900_SLASH_RECOVER;
+                    work->animationId          = ACTOR_510900_ANIM_SLASH_RECOVER;
                     work->attackLanded         = 0;
                     work->flameFrames          = 0;
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    work->subState    = 3;
-                    work->animationId = 9;
+                    work->subState    = ACTOR_510900_OPENING_SECOND_SLASH;
+                    work->animationId = ACTOR_510900_ANIM_SLASH_SECOND;
                 }
             }
             break;
-        case 3:
+        case ACTOR_510900_OPENING_SECOND_SLASH:
             work->lapSpeed = ((u32)((u16)work->animationFrame - 5) < 0x13U) ? 0x38 : 0;
             if (work->attackLanded != 0) {
                 work->lapSpeed = 0;
             }
             if (work->animationFrame == 6) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000B;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_SLASH;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x27) {
                 if (work->attackLanded != 0) {
                     work->state                = ACTOR_510900_STATE_SLASH;
-                    work->subState             = 3;
-                    work->animationId          = 0x19;
+                    work->subState             = ACTOR_510900_SLASH_RECOVER;
+                    work->animationId          = ACTOR_510900_ANIM_SLASH_RECOVER;
                     work->attackLanded         = 0;
                     work->flameFrames          = 0;
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    work->subState = 4;
+                    work->subState = ACTOR_510900_OPENING_LUNGE;
                 }
             }
             break;
-        case 4:
-            work->animationId = 0xF;
+        case ACTOR_510900_OPENING_LUNGE:
+            work->animationId = ACTOR_510900_ANIM_FLAME_LUNGE;
             work->state       = ACTOR_510900_STATE_FLAME_LUNGE;
-            work->subState    = 1;
+            work->subState    = ACTOR_510900_FLAME_LUNGE_CHARGE;
             break;
     }
 }
 
-/// Sub-state machine on `subState`. Off the corner (`lapSide` != `playerSide`)
-/// a player range `sideRemaining` of 0xBB8 or more forces sub-state 4, except from
-/// 8. Sub-state 0 counts `stateCounter` down and, unless
-/// `func_actor_510900_8013691C` hands over, picks 1 or 5 from that range;
-/// 2, 3 and 6 drain `stateCounter` by 0x1D a frame (3 also spawns an effect every
-/// 0x28 frames through `shotCountdown`). Each reload of `stateCounter` is a 4-bit
-/// `gRandomLcgState` draw from `D_actor_510900_80167990` or `D_actor_510900_801679B0`.
-static void func_actor_510900_80136184(Task* arg0)
+/// Walks the lap, fires from the weapon and selects attacks between walks.
+///
+/// `stateCounter` counts waiting frames or remaining walk distance, depending
+/// on the step. A targeted player using shotgun ammunition triggers the separate
+/// response walk. Catch-up and backstep movement remain inside the current side.
+static void _actor510900TickPatrol(Task* task)
 {
+    enum {
+        ACTOR_510900_PATROL_WALK_WITHOUT_FIRE    = 0,
+        ACTOR_510900_PATROL_WALK_WITH_FIRE       = 1,
+        ACTOR_510900_PATROL_FIRST_SHOT_FRAMES    = 29,
+        ACTOR_510900_PATROL_SHOT_INTERVAL_FRAMES = 40,
+    };
     Actor510900Work* work;
-    GfxCoord*        coord;
-    EffectWork*      eff;
-    s32              snd;
-    s32              rng;
-    s16              speed;
+    GfxCoord*        bodyCoord;
+    EffectWork*      muzzleFlash;
+    s32              soundKey;
+    s16              catchUpSpeed;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->playerSide != work->lapSide && work->subState != 8 && work->sideRemaining >= 0xBB8) {
-        work->subState = 4;
+    work      = task->work;
+    bodyCoord = task->extra.tmd->coords;
+    if (work->playerSide != work->lapSide && work->subState != ACTOR_510900_PATROL_BACKSTEP && work->sideRemaining >= 0xBB8) {
+        work->subState = ACTOR_510900_PATROL_CATCH_UP;
     }
     switch (work->subState) {
-        case 0:
+        // Pick an attack only at a wait boundary; otherwise prepare another walk.
+        case ACTOR_510900_PATROL_WAIT:
             work->lapSpeed     = 0;
             work->attackLanded = 0;
             if (--work->stateCounter <= 0) {
                 if (work->flameMode == ACTOR_510900_FLAME_BLAST) {
                     work->flameMode = ACTOR_510900_FLAME_BURNING;
                 }
-                if (func_actor_510900_8013691C(arg0) == 0) {
+                if (_actor510900TrySelectAttack(task) == 0) {
                     if (work->sideRemaining < 0x7D0) {
-                        work->subState     = 1;
-                        work->animationId  = 2;
-                        work->stateCounter = 0;
-                    } else if (((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - 0xA) < 3U) {
-                        work->subState    = 5;
-                        work->animationId = 0x15;
-                        snd               = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780003;
-                        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                                 (s8)worldCoordGetOriginAudioDepth(coord));
+                        work->subState     = ACTOR_510900_PATROL_WALK_START;
+                        work->animationId  = ACTOR_510900_ANIM_WALK_START;
+                        work->stateCounter = ACTOR_510900_PATROL_WALK_WITHOUT_FIRE;
+                    } else if (((Enemy*)task->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - ACTOR_510900_SHOTGUN_FIRST_AMMO_ROW) < (u32)ACTOR_510900_SHOTGUN_AMMO_ROW_COUNT) {
+                        work->subState    = ACTOR_510900_PATROL_SHOTGUN_RESPONSE_START;
+                        work->animationId = ACTOR_510900_ANIM_SHOTGUN_RESPONSE_START;
+                        soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_SHOTGUN_RESPONSE;
+                        sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                                 (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                     } else {
-                        work->subState     = 1;
-                        work->animationId  = 2;
-                        work->stateCounter = 1;
+                        work->subState     = ACTOR_510900_PATROL_WALK_START;
+                        work->animationId  = ACTOR_510900_ANIM_WALK_START;
+                        work->stateCounter = ACTOR_510900_PATROL_WALK_WITH_FIRE;
                     }
                 }
             }
             break;
-        case 1:
+        case ACTOR_510900_PATROL_WALK_START:
             work->lapSpeed = 0;
             if (work->animationFrame >= 0xD) {
-                if (work->stateCounter == 0) {
-                    work->subState    = 2;
-                    work->animationId = 3;
+                if (work->stateCounter == ACTOR_510900_PATROL_WALK_WITHOUT_FIRE) {
+                    work->subState    = ACTOR_510900_PATROL_WALK;
+                    work->animationId = ACTOR_510900_ANIM_WALK;
                 } else {
-                    work->subState      = 3;
-                    work->animationId   = 4;
-                    work->shotCountdown = 0x1D;
+                    work->subState      = ACTOR_510900_PATROL_WALK_FIRE;
+                    work->animationId   = ACTOR_510900_ANIM_WALK_FIRE;
+                    work->shotCountdown = ACTOR_510900_PATROL_FIRST_SHOT_FRAMES;
                 }
                 work->stateCounter = D_actor_510900_80167990[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             break;
-        case 2:
-            work->lapSpeed      = 0x1D;
-            work->stateCounter -= 0x1D;
-            if (work->stateCounter <= 0 || work->lapDistance > 0xB478U) {
-                work->animationId  = 1;
-                work->subState     = 0;
+        case ACTOR_510900_PATROL_WALK:
+            work->lapSpeed      = ACTOR_510900_PATROL_WALK_SPEED;
+            work->stateCounter -= ACTOR_510900_PATROL_WALK_SPEED;
+            if (work->stateCounter <= 0 || work->lapDistance > (u32)ACTOR_510900_PATROL_END_DISTANCE) {
+                work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
+                work->subState     = ACTOR_510900_PATROL_WAIT;
                 work->stateCounter = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
-            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= 0xAE9CU &&
-                work->lapDistance > 0xB477U) {
-                work->subState     = 0;
-                work->animationId  = 1;
+            // The binary retains this empty lap-distance interval.
+            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE &&
+                work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
+                work->subState     = ACTOR_510900_PATROL_WAIT;
+                work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
             break;
-        case 3:
-            work->lapSpeed      = 0x1D;
-            work->stateCounter -= 0x1D;
+        case ACTOR_510900_PATROL_WALK_FIRE:
+            work->lapSpeed      = ACTOR_510900_PATROL_WALK_SPEED;
+            work->stateCounter -= ACTOR_510900_PATROL_WALK_SPEED;
             if (--work->shotCountdown == 0) {
-                eff = effectSpawn((EFFECT_NO9_MUZZLE_FLASH | EFFECT_SPAWN_UNLIMITED), &arg0->extra.tmd->coords[8], 0, NULL);
-                if (eff != NULL) {
-                    taskReparent(arg0, eff->task);
+                muzzleFlash = effectSpawn((EFFECT_NO9_MUZZLE_FLASH | EFFECT_SPAWN_UNLIMITED), &task->extra.tmd->coords[ACTOR_510900_WEAPON_PART], 0, NULL);
+                if (muzzleFlash != NULL) {
+                    taskReparent(task, muzzleFlash->task);
                 }
-                work->shotCountdown = 0x28;
-                snd                 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                work->shotCountdown = ACTOR_510900_PATROL_SHOT_INTERVAL_FRAMES;
+                soundKey            = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_FIRE;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if (((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - 0xA) < 3U) {
-                work->subState    = 6;
-                work->animationId = 0x15;
-                snd               = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780003;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+            if (((Enemy*)task->spawnArg2.pointer)->node.state.parts.targeted == 1 && (u32)(gPlayerStatus.weaponSlotItem - ACTOR_510900_SHOTGUN_FIRST_AMMO_ROW) < (u32)ACTOR_510900_SHOTGUN_AMMO_ROW_COUNT) {
+                work->subState    = ACTOR_510900_PATROL_SHOTGUN_RESPONSE_WALK;
+                work->animationId = ACTOR_510900_ANIM_SHOTGUN_RESPONSE_START;
+                soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_SHOTGUN_RESPONSE;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if (work->stateCounter <= 0 || work->lapDistance > 0xB478U) {
-                work->animationId  = 1;
-                work->subState     = 0;
+            if (work->stateCounter <= 0 || work->lapDistance > (u32)ACTOR_510900_PATROL_END_DISTANCE) {
+                work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
+                work->subState     = ACTOR_510900_PATROL_WAIT;
                 work->stateCounter = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
-            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= 0xAE9CU &&
-                work->lapDistance > 0xB477U) {
-                work->subState     = 0;
-                work->animationId  = 1;
+            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE &&
+                work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
+                work->subState     = ACTOR_510900_PATROL_WAIT;
+                work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
             break;
-        case 4:
-            speed             = 0;
-            work->animationId = 6;
+        case ACTOR_510900_PATROL_CATCH_UP:
+            catchUpSpeed      = 0;
+            work->animationId = ACTOR_510900_ANIM_CATCH_UP;
             if (work->animationFrame >= 8) {
-                speed = 0xA0;
+                catchUpSpeed = 0xA0;
             }
-            work->lapSpeed = speed;
+            work->lapSpeed = catchUpSpeed;
             if (work->sideRemaining < 0x5DC) {
-                work->subState     = 0;
-                work->animationId  = 1;
+                work->subState     = ACTOR_510900_PATROL_WAIT;
+                work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
-            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= 0xAE9CU &&
-                work->lapDistance > 0xB477U) {
-                work->subState     = 0;
-                work->animationId  = 1;
+            if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE &&
+                work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
+                work->subState     = ACTOR_510900_PATROL_WAIT;
+                work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
             break;
-        case 5:
+        case ACTOR_510900_PATROL_SHOTGUN_RESPONSE_START:
             if (work->animationFrame >= 0xF) {
-                work->subState     = 6;
-                work->animationId  = 0x16;
+                work->subState     = ACTOR_510900_PATROL_SHOTGUN_RESPONSE_WALK;
+                work->animationId  = ACTOR_510900_ANIM_SHOTGUN_RESPONSE_WALK;
                 work->stateCounter = D_actor_510900_80167990[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             break;
-        case 6:
-            work->lapSpeed      = 0x1D;
-            work->stateCounter -= 0x1D;
-            if (work->stateCounter <= 0 || work->lapDistance > 0xB478U ||
-                (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= 0xAE9CU)) {
-                work->subState    = 7;
-                work->animationId = 0x17;
+        case ACTOR_510900_PATROL_SHOTGUN_RESPONSE_WALK:
+            work->lapSpeed      = ACTOR_510900_PATROL_WALK_SPEED;
+            work->stateCounter -= ACTOR_510900_PATROL_WALK_SPEED;
+            if (work->stateCounter <= 0 || work->lapDistance > (u32)ACTOR_510900_PATROL_END_DISTANCE ||
+                (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE)) {
+                work->subState    = ACTOR_510900_PATROL_SHOTGUN_RESPONSE_END;
+                work->animationId = ACTOR_510900_ANIM_SHOTGUN_RESPONSE_END;
             }
             break;
-        case 7:
+        case ACTOR_510900_PATROL_SHOTGUN_RESPONSE_END:
             work->lapSpeed = 0;
             if (work->animationFrame >= 0xD) {
-                work->subState    = 0;
-                work->animationId = 1;
-                if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= 0xAE9CU &&
-                    work->lapDistance > 0xB477U) {
+                work->subState    = ACTOR_510900_PATROL_WAIT;
+                work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
+                if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE &&
+                    work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
                     work->stateCounter = 0;
                 } else {
                     work->stateCounter = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
                 }
             }
             break;
-        case 8:
+        case ACTOR_510900_PATROL_BACKSTEP:
             if (work->sideTravelled < 0xC8 || work->playerSide != work->lapSide || work->animationFrame < 0xB ||
                 work->animationFrame >= 0x18) {
                 work->lapSpeed = 0;
@@ -1307,347 +1447,325 @@ static void func_actor_510900_80136184(Task* arg0)
                 work->lapSpeed = -0xA7;
             }
             if (work->animationFrame == 0x19) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780008;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_BACKSTEP;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x32) {
                 work->state        = ACTOR_510900_STATE_PATROL;
-                work->subState     = 0;
-                work->animationId  = 1;
+                work->subState     = ACTOR_510900_PATROL_WAIT;
+                work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->stateCounter = 0;
             }
             break;
     }
 }
 
-/// Picks the handler the patrol hands over to, from the distance `lapDistance`
-/// walked around the patrol square and the player's facing. Two spots on the
-/// lap - 0x4B00 and 0x7F00, each with a 0x120 window - fire once apiece through
-/// the `slashedLight` latch and send the actor into state 2; past 0xB477 the lap is
-/// over and state 6 takes it. Otherwise, only on the frame the corner has been
-/// reached (`lapSide` == `playerSide`), the player's range `playerDistance` and
-/// whether they face the actor choose between states 2..5, each with the
-/// animation the handler starts on. Returns 1 when a handler was selected.
-static s32 func_actor_510900_8013691C(Task* arg0)
+/// Selects an attack from lap progress, player range and relative facing.
+///
+/// Returns 1 after setting the next state, step and animation, or 0 to continue
+/// patrolling. The light-slash latch permits one scripted light slash until the
+/// light consumes it. Range choices apply only on the player's side of the lap;
+/// the end-of-lap lethal attack takes precedence over them.
+static s32 _actor510900TrySelectAttack(Task* task)
 {
+    enum { ACTOR_510900_ATTACK_INITIAL_STEP = 0 };
     Actor510900Work* work;
-    GfxCoord*        coord;
-    s32              diff;
-    s32              ret;
-    s16              dist;
+    GfxCoord*        bodyCoord;
+    s32              lightDistanceError;
+    s32              selected;
+    s16              playerDistance;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (work->slashedLight == 0) {
-        diff = work->lapDistance - 0x4B00;
-        if (diff < 0) {
-            diff = -diff;
+    work      = task->work;
+    bodyCoord = task->extra.tmd->coords;
+    // Scripted light strikes and the lethal attack precede range-based choices.
+    if (work->slashedLight == ACTOR_510900_LIGHT_SLASH_NONE) {
+        lightDistanceError = work->lapDistance - ACTOR_510900_LIGHT_0_SLASH_DISTANCE;
+        if (lightDistanceError < 0) {
+            lightDistanceError = -lightDistanceError;
         }
-        if (diff < 0x120) {
-            work->slashedLight = 1;
+        if (lightDistanceError < ACTOR_510900_LIGHT_SLASH_WINDOW) {
+            work->slashedLight = ACTOR_510900_LIGHT_SLASH_LIGHT_0;
             work->state        = ACTOR_510900_STATE_SLASH;
-            work->subState     = 0;
-            work->animationId  = 0xA;
+            work->subState     = ACTOR_510900_SLASH_WINDUP;
+            work->animationId  = ACTOR_510900_ANIM_SLASH_WINDUP;
             return 1;
         }
-        diff = work->lapDistance - 0x7F00;
-        if (diff < 0) {
-            diff = -diff;
+        lightDistanceError = work->lapDistance - ACTOR_510900_LIGHT_1_SLASH_DISTANCE;
+        if (lightDistanceError < 0) {
+            lightDistanceError = -lightDistanceError;
         }
-        if (diff < 0x120) {
-            work->slashedLight = 2;
+        if (lightDistanceError < ACTOR_510900_LIGHT_SLASH_WINDOW) {
+            work->slashedLight = ACTOR_510900_LIGHT_SLASH_LIGHT_1;
             work->state        = ACTOR_510900_STATE_SLASH;
-            work->subState     = 0;
-            work->animationId  = 0xA;
+            work->subState     = ACTOR_510900_SLASH_WINDUP;
+            work->animationId  = ACTOR_510900_ANIM_SLASH_WINDUP;
             return 1;
         }
     }
-    if (work->lapDistance > 0xB477U) {
+    if (work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
         work->state       = ACTOR_510900_STATE_LETHAL_ATTACK;
-        work->subState    = 0;
-        work->animationId = 0xE;
+        work->subState    = ACTOR_510900_ATTACK_INITIAL_STEP;
+        work->animationId = ACTOR_510900_ANIM_FLAME_WINDUP;
         return 1;
     }
-    if (work->lapDistance > 0xAE9CU) {
+    if (work->lapDistance > (u32)ACTOR_510900_LAST_ATTACK_DISTANCE) {
         return 0;
     }
     if (work->lapSide != work->playerSide) {
         return 0;
     }
-    if (gPlayerStatus.coordMtx->m[0][2] * coord->coord.m[0][2] +
-            gPlayerStatus.coordMtx->m[2][2] * coord->coord.m[2][2] <
+    // A negative forward-axis dot product means the player faces the golem.
+    if (gPlayerStatus.coordMtx->m[0][2] * bodyCoord->coord.m[0][2] +
+            gPlayerStatus.coordMtx->m[2][2] * bodyCoord->coord.m[2][2] <
         0) {
-        dist = work->playerDistance;
-        if (dist < 0xAF0) {
-            ret               = 1;
+        playerDistance = work->playerDistance;
+        if (playerDistance < ACTOR_510900_SLASH_RANGE) {
+            selected          = 1;
             work->state       = ACTOR_510900_STATE_SLASH;
-            work->subState    = 0;
-            work->animationId = 0xA;
-        } else if (dist < 0xED8) {
-            ret               = 1;
+            work->subState    = ACTOR_510900_SLASH_WINDUP;
+            work->animationId = ACTOR_510900_ANIM_SLASH_WINDUP;
+        } else if (playerDistance < ACTOR_510900_FLAME_LUNGE_RANGE) {
+            selected          = 1;
             work->state       = ACTOR_510900_STATE_FLAME_LUNGE;
-            work->subState    = 0;
-            work->animationId = 0xE;
-        } else if (dist < 0x12C0) {
+            work->subState    = ACTOR_510900_FLAME_LUNGE_WINDUP;
+            work->animationId = ACTOR_510900_ANIM_FLAME_WINDUP;
+        } else if (playerDistance < ACTOR_510900_MIXED_ATTACK_RANGE) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 0x10) & 1) {
                 work->state       = ACTOR_510900_STATE_FLAME_LUNGE;
-                work->subState    = 0;
-                work->animationId = 0xE;
+                work->subState    = ACTOR_510900_FLAME_LUNGE_WINDUP;
+                work->animationId = ACTOR_510900_ANIM_FLAME_WINDUP;
             } else {
                 work->state       = ACTOR_510900_STATE_GRENADE;
-                work->subState    = 0;
-                work->animationId = 0x1B;
+                work->subState    = ACTOR_510900_ATTACK_INITIAL_STEP;
+                work->animationId = ACTOR_510900_ANIM_GRENADE_THROW;
             }
-            ret = 1;
+            selected = 1;
         } else {
-            ret = 0;
+            selected = 0;
             if (work->grenadeLive == 0) {
-                ret               = 1;
+                selected          = 1;
                 work->state       = ACTOR_510900_STATE_GRENADE;
-                work->subState    = 0;
-                work->animationId = 0x1B;
+                work->subState    = ACTOR_510900_ATTACK_INITIAL_STEP;
+                work->animationId = ACTOR_510900_ANIM_GRENADE_THROW;
             }
         }
     } else {
-        if (work->playerDistance < 0xAF0) {
+        if (work->playerDistance < ACTOR_510900_SLASH_RANGE) {
             work->state       = ACTOR_510900_STATE_SLASH;
-            work->subState    = 0;
-            work->animationId = 0xA;
+            work->subState    = ACTOR_510900_SLASH_WINDUP;
+            work->animationId = ACTOR_510900_ANIM_SLASH_WINDUP;
         } else {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 0x10) & 0xF) < 0xAU) {
                 work->state       = ACTOR_510900_STATE_GRENADE;
-                work->subState    = 0;
-                work->animationId = 0x1B;
+                work->subState    = ACTOR_510900_ATTACK_INITIAL_STEP;
+                work->animationId = ACTOR_510900_ANIM_GRENADE_THROW;
             } else {
                 work->state       = ACTOR_510900_STATE_DASH;
-                work->subState    = 0;
-                work->animationId = 0xB;
+                work->subState    = ACTOR_510900_DASH_START;
+                work->animationId = ACTOR_510900_ANIM_DASH_START;
             }
         }
-        ret = 1;
+        selected = 1;
     }
-    return ret;
+    return selected;
 }
 
-/// State 2 (sub-states 0..3): the patrol walk. Sub-state 0 stops the actor and
-/// hands sub-state 1 the animation 8 past animation frame 0x14. Sub-states 1 and 2 are
-/// the two walk cycles: each feeds `lapSpeed` 0x38 over a 0x13-frame window,
-/// mutes it while `attackLanded` is latched and queues the footfall cue; sub-state
-/// 1 also sets `lightSlashStruck` when `slashedLight` names a light and enables both
-/// attack spheres at frame 9. At the end of a cycle a
-/// 4-bit `gRandomLcgState` draw against `D_actor_510900_80167A10[stateCounter]`
-/// decides whether to walk another cycle - bumping `stateCounter`, which sub-state
-/// 2 caps at three - or to leave for state 1 with a fresh `stateCounter` from
-/// `D_actor_510900_801679D0`. A latched `attackLanded` instead sends sub-state 3,
-/// the turn, with the animation 0x19; it queues its cue at frame 0x2D and past
-/// 0x5A leaves the same way.
-static void func_actor_510900_80136B70(Task* arg0)
+/// Advances alternating slash cycles and their recovery after a player hit.
+///
+/// Movement is confined to each slash's animation window. The first stroke
+/// also signals a selected helipad light. Random continuation thresholds are
+/// indexed by cycle count 0..3, after which the golem returns to patrol.
+static void _actor510900TickSlash(Task* task)
 {
     Actor510900Work* work;
-    GfxCoord*        coord;
-    s32              snd;
-    s32              pair;
+    GfxCoord*        bodyCoord;
+    s32              soundKey;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case 0:
+        case ACTOR_510900_SLASH_WINDUP:
             work->lapSpeed = 0;
             if (work->animationFrame >= 0x14) {
-                work->subState     = 1;
-                work->animationId  = 8;
+                work->subState     = ACTOR_510900_SLASH_FIRST;
+                work->animationId  = ACTOR_510900_ANIM_SLASH_FIRST;
                 work->stateCounter = 0;
             }
             break;
-        case 1:
+        case ACTOR_510900_SLASH_FIRST:
             work->lapSpeed = ((u32)((u16)work->animationFrame - 9) < 0x13U) ? 0x38 : 0;
             if (work->attackLanded != 0) {
                 work->lapSpeed = 0;
             }
             if (work->animationFrame == 0xA) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000B;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_SLASH;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if ((work->slashedLight > 0) && (work->animationFrame == 8)) {
+            if ((work->slashedLight > ACTOR_510900_LIGHT_SLASH_NONE) && (work->animationFrame == 8)) {
                 work->lightSlashStruck = 1;
             }
             if (work->animationFrame == 9) {
-                work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 2);
-                work->weaponAttack.key     = pair;
-                work->forearmAttack.key    = pair;
+                _actor510900ArmAttack(work, ACTOR_510900_ATTACK_SLASH);
             }
             if (work->animationFrame >= 0x1D) {
                 if (work->attackLanded != 0) {
-                    work->subState             = 3;
-                    work->animationId          = 0x19;
+                    work->subState             = ACTOR_510900_SLASH_RECOVER;
+                    work->animationId          = ACTOR_510900_ANIM_SLASH_RECOVER;
                     work->attackLanded         = 0;
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (D_actor_510900_80167A10[work->stateCounter] < (s32)((gRandomLcgState >> 0x10) & 0xF)) {
-                        u16* tbl                   = D_actor_510900_801679D0;
+                        u16* patrolWaitFrames      = D_actor_510900_801679D0;
                         work->state                = ACTOR_510900_STATE_PATROL;
-                        work->animationId          = 1;
-                        work->subState             = 0;
+                        work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
+                        work->subState             = ACTOR_510900_PATROL_WAIT;
                         gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->stateCounter         = tbl[(gRandomLcgState >> 0x10) & 0xF];
+                        work->stateCounter         = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     } else {
-                        work->subState    = 2;
-                        work->animationId = 9;
+                        work->subState    = ACTOR_510900_SLASH_SECOND;
+                        work->animationId = ACTOR_510900_ANIM_SLASH_SECOND;
                         work->stateCounter++;
                     }
                 }
             }
             break;
-        case 2:
+        case ACTOR_510900_SLASH_SECOND:
             work->lapSpeed = ((u32)((u16)work->animationFrame - 5) < 0x13U) ? 0x38 : 0;
             if (work->attackLanded != 0) {
                 work->lapSpeed = 0;
             }
             if (work->animationFrame == 6) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000B;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_SLASH;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x27) {
                 if (work->attackLanded != 0) {
-                    work->subState             = 3;
-                    work->animationId          = 0x19;
+                    work->subState             = ACTOR_510900_SLASH_RECOVER;
+                    work->animationId          = ACTOR_510900_ANIM_SLASH_RECOVER;
                     work->attackLanded         = 0;
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
                     if ((D_actor_510900_80167A10[work->stateCounter] <
                          (s32)(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF)) ||
-                        (work->stateCounter >= 3)) {
-                        u16* tbl                   = D_actor_510900_801679D0;
+                        (work->stateCounter >= (s32)ARRAY_SIZE(D_actor_510900_80167A10) - 1)) {
+                        u16* patrolWaitFrames      = D_actor_510900_801679D0;
                         work->state                = ACTOR_510900_STATE_PATROL;
-                        work->subState             = 0;
-                        work->animationId          = 1;
+                        work->subState             = ACTOR_510900_PATROL_WAIT;
+                        work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
                         gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        work->stateCounter         = tbl[(gRandomLcgState >> 0x10) & 0xF];
+                        work->stateCounter         = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     } else {
                         work->stateCounter++;
-                        work->subState    = 1;
-                        work->animationId = 8;
+                        work->subState    = ACTOR_510900_SLASH_FIRST;
+                        work->animationId = ACTOR_510900_ANIM_SLASH_FIRST;
                     }
                 }
             }
             break;
-        case 3:
+        case ACTOR_510900_SLASH_RECOVER:
             if (work->animationFrame == 0x2D) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000A;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_SLASH_RECOVER;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x5A) {
-                u16* tbl           = D_actor_510900_801679D0;
-                work->state        = ACTOR_510900_STATE_PATROL;
-                work->subState     = 0;
-                work->animationId  = 1;
-                gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->stateCounter = tbl[(gRandomLcgState >> 0x10) & 0xF];
+                u16* patrolWaitFrames = D_actor_510900_801679D0;
+                work->state           = ACTOR_510900_STATE_PATROL;
+                work->subState        = ACTOR_510900_PATROL_WAIT;
+                work->animationId     = ACTOR_510900_ANIM_PATROL_IDLE;
+                gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                work->stateCounter    = patrolWaitFrames[(gRandomLcgState >> 0x10) & 0xF];
             }
             break;
     }
 }
 
-/// State 3 (sub-state 0/1): the wind-up. Sub-state 0 queues the two-part
-/// charge sound at animation frame 0x39 - setting `flameMode`/`flameFrames` and enabling
-/// both attack spheres - a second cue at 0x41, and past
-/// 0x5A hands sub-state 1 the animation 0xF. Sub-state 1 converts `playerDistance`
-/// into the `stateCounter` speed at frame 0xE, feeds `lapSpeed` from it over
-/// frames 0x17..0x2F, queues two more cues, and past 0x46 leaves for either
-/// state 8 (when `attackLanded` is set) or state 1 with a fresh `stateCounter`,
-/// disabling both attack spheres on the way out.
-static void func_actor_510900_80137008(Task* arg0)
+/// Ignites the weapon, charges toward the player and recovers into patrol.
+///
+/// The charge speed is (min(player distance, 5000) - 1200) / 24 world units
+/// per frame, narrowed to `stateCounter`. A player hit selects patrol's backstep;
+/// a miss selects its wait. Both exits disable the weapon and forearm attacks.
+static void _actor510900TickFlameLunge(Task* task)
 {
     Actor510900Work* work;
-    GfxCoord*        coord;
-    s32              snd;
-    s32              pair;
-    s32              val;
-    s32              cur;
-    u32              rng;
+    GfxCoord*        bodyCoord;
+    s32              soundKey;
+    s32              lungeDistance;
+    s32              playerDistance;
+    u32              randomState;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case 0:
+        case ACTOR_510900_FLAME_LUNGE_WINDUP:
             work->lapSpeed = 0;
             if (work->animationFrame == 0x39) {
                 work->flameMode   = ACTOR_510900_FLAME_BURNING;
                 work->flameFrames = 0x55;
-                snd               = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
-                work->flameSound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000D;
-                sndEvtRequestScriptStart(work->flameSound, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
-                work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 5);
-                work->weaponAttack.key     = pair;
-                work->forearmAttack.key    = pair;
+                soundKey          = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_FIRE;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
+                work->flameSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_FLAME_LOOP;
+                sndEvtRequestScriptStart(work->flameSound, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
+                _actor510900ArmAttack(work, ACTOR_510900_ATTACK_IGNITION);
             }
             if (work->animationFrame == 0x41) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780006;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_WINDUP;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x5A) {
-                work->animationId = 0xF;
-                work->subState    = 1;
+                work->animationId = ACTOR_510900_ANIM_FLAME_LUNGE;
+                work->subState    = ACTOR_510900_FLAME_LUNGE_CHARGE;
             }
             break;
-        case 1:
+        case ACTOR_510900_FLAME_LUNGE_CHARGE:
             if (work->animationFrame == 0xE) {
-                cur = work->playerDistance;
-                val = 0x1388;
-                if (cur < 0x1389) {
-                    val = cur;
+                // Keep the raw distance separate from the default clamp result.
+                playerDistance = work->playerDistance;
+                lungeDistance  = ACTOR_510900_MAX_LUNGE_DISTANCE;
+                if (playerDistance < ACTOR_510900_MAX_LUNGE_DISTANCE + 1) {
+                    lungeDistance = playerDistance;
                 }
-                work->stateCounter = (val - 0x4B0) / 24;
+                work->stateCounter = (lungeDistance - 0x4B0) / 24;
             }
             work->lapSpeed = ((u32)((u16)work->animationFrame - 0x17) < 0x19U) ? work->stateCounter : 0;
             if (work->animationFrame == 0x19) {
-                work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 1);
-                work->weaponAttack.key     = pair;
-                work->forearmAttack.key    = pair;
-                snd                        = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780007;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                _actor510900ArmAttack(work, ACTOR_510900_ATTACK_FLAME_LUNGE);
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_FLAME_STRIKE;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame == 0x2F) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780008;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_BACKSTEP;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x46) {
                 if (work->attackLanded != 0) {
                     work->state        = ACTOR_510900_STATE_PATROL;
-                    work->subState     = 8;
+                    work->subState     = ACTOR_510900_PATROL_BACKSTEP;
                     work->attackLanded = 0;
-                    work->animationId  = 5;
+                    work->animationId  = ACTOR_510900_ANIM_BACKSTEP;
                 } else {
                     work->state        = ACTOR_510900_STATE_PATROL;
-                    work->animationId  = 1;
-                    work->subState     = 0;
-                    work->stateCounter = D_actor_510900_801679D0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
-                    gRandomLcgState    = rng;
+                    work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
+                    work->subState     = ACTOR_510900_PATROL_WAIT;
+                    work->stateCounter = D_actor_510900_801679D0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                    gRandomLcgState    = randomState;
                 }
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1732,72 +1850,64 @@ static void func_actor_510900_801373B8(Task* arg0)
     }
 }
 
-/// State 5 (animation 0xB): the actor rears up, holds, then either drops back
-/// to state 1 or commits. Sub-state 0 ramps `lapSpeed` at animation frame 0x47, queues
-/// the rear-up sound at 0x4A and hands sub-state 1 the animation 0xC at 0x52.
-/// Sub-state 1 enables both attack spheres while
-/// `playerDistance` is short; otherwise it bleeds `stateCounter` down by 0x84 a frame
-/// and, once that runs out (or `sideRemaining` drops below 0x384), returns to
-/// state 1 with a fresh `gRandomLcgState` draw. Sub-state 2 queues the landing
-/// sound at frame 0xE and leaves for sub-state 8 of state 1 past 0x3B.
-static void func_actor_510900_801375D8(Task* arg0)
+/// Dashes along the lap until the player is close enough for a strike.
+///
+/// The run consumes a distance budget at 132 world units per frame and aborts
+/// near a corner. A completed strike enters patrol's backstep; an aborted run
+/// returns to its wait. Both exits disable the two attack spheres.
+static void _actor510900TickDash(Task* task)
 {
     Actor510900Work* work;
-    GfxCoord*        coord;
-    s32              snd;
-    s32              pair;
-    s32              val;
+    GfxCoord*        bodyCoord;
+    s32              soundKey;
+    s32              patrolWaitFrames;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case 0:
-            work->lapSpeed = (work->animationFrame < 0x47) ? 0 : 0x84;
+        case ACTOR_510900_DASH_START:
+            work->lapSpeed = (work->animationFrame < 0x47) ? 0 : ACTOR_510900_DASH_SPEED;
             if (work->animationFrame == 0x4A) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000F;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_DASH_START;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x52) {
-                work->animationId  = 0xC;
-                work->subState     = 1;
+                work->animationId  = ACTOR_510900_ANIM_DASH_RUN;
+                work->subState     = ACTOR_510900_DASH_RUN;
                 work->stateCounter = 0xEA6;
             }
             break;
-        case 1:
-            work->lapSpeed = 0x84;
+        case ACTOR_510900_DASH_RUN:
+            work->lapSpeed = ACTOR_510900_DASH_SPEED;
             if (work->playerDistance < 0x514) {
-                work->subState             = 2;
-                work->animationId          = 0xD;
-                work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 0);
-                work->weaponAttack.key     = pair;
-                work->forearmAttack.key    = pair;
+                work->subState    = ACTOR_510900_DASH_STRIKE;
+                work->animationId = ACTOR_510900_ANIM_DASH_STRIKE;
+                _actor510900ArmAttack(work, ACTOR_510900_ATTACK_DASH);
             } else {
-                work->stateCounter -= 0x84;
+                work->stateCounter -= ACTOR_510900_DASH_SPEED;
                 if (work->stateCounter < 0 || work->sideRemaining < 0x384) {
                     work->state                = ACTOR_510900_STATE_PATROL;
-                    work->subState             = 0;
-                    work->animationId          = 1;
+                    work->subState             = ACTOR_510900_PATROL_WAIT;
+                    work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
                     gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    val                        = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
+                    patrolWaitFrames           = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    work->stateCounter         = val;
+                    work->stateCounter         = patrolWaitFrames;
                 }
             }
             break;
-        case 2:
+        case ACTOR_510900_DASH_STRIKE:
             work->lapSpeed = 0;
             if (work->animationFrame == 0xE) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000C;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_DASH_STRIKE;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x3B) {
-                work->subState             = 8;
-                work->animationId          = 5;
+                work->subState             = ACTOR_510900_PATROL_BACKSTEP;
+                work->animationId          = ACTOR_510900_ANIM_BACKSTEP;
                 work->state                = ACTOR_510900_STATE_PATROL;
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1970,28 +2080,33 @@ static void func_actor_510900_80137868(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-static void func_actor_510900_80137E20(Task* arg0)
+/// Steps the hit-recoil animation backward along the current lap side.
+///
+/// Retreat requires at least 200 world units already travelled on the player's
+/// side. At the animation's end, zero HP selects death; otherwise patrol resumes
+/// with a random waiting time in frames.
+static void _actor510900TickRecoil(Task* task)
 {
     Actor510900Work* work;
     Enemy*           enemy;
-    GfxCoord*        coord;
-    s32              snd;
-    s32              pan;
-    s32              rng;
+    GfxCoord*        bodyCoord;
+    s32              soundKey;
+    s32              audioPan;
+    s32              randomState;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    enemy     = task->spawnArg2.pointer;
+    bodyCoord = task->extra.tmd->coords;
     switch (work->subState) {
-        case 0:
-            work->animationId = 0x10;
+        case ACTOR_510900_RECOIL_ENTER:
+            work->animationId = ACTOR_510900_ANIM_RECOIL;
             work->lapSpeed    = 0;
-            work->subState    = 1;
-            snd               = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780005;
-            pan               = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            work->subState    = ACTOR_510900_RECOIL_PLAY;
+            soundKey          = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_RECOIL;
+            audioPan          = (s8)worldCoordGetOriginAudioPan(bodyCoord);
+            sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             break;
-        case 1:
+        case ACTOR_510900_RECOIL_PLAY:
             if (work->sideTravelled >= 0xC8 && work->playerSide == work->lapSide) {
                 if ((u16)work->animationFrame >= 3 && (u16)work->animationFrame < 13) {
                     work->lapSpeed = -0x2C;
@@ -2007,14 +2122,14 @@ static void func_actor_510900_80137E20(Task* arg0)
                 if (enemy->hp <= 0) {
                     work->state       = ACTOR_510900_STATE_DEATH;
                     work->subState    = 0;
-                    work->animationId = 0x18;
+                    work->animationId = ACTOR_510900_ANIM_DEATH;
                 } else {
                     work->state       = ACTOR_510900_STATE_PATROL;
-                    work->animationId = 1;
-                    work->subState    = 0;
+                    work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
+                    work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->stateCounter =
-                        D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
-                    gRandomLcgState = rng;
+                        D_actor_510900_801679F0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                    gRandomLcgState = randomState;
                 }
             }
             break;
@@ -2654,91 +2769,72 @@ s32 func_actor_510900_801391B8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// Frame handler of the muzzle-flash child task, dispatched from
-/// `func_actor_510900_8013BE98` once the spawn has run. The parent's animation
-/// id (`animationId`) selects the behaviour: below 0x1C the model is hidden,
-/// 0x1C/0x1D hold, 0x1E unhides it once `animationFrame` reaches 0xC8, and 0x1F
-/// drives the coordinate. There the frame's position within its 40-frame cycle
-/// picks between an identity frame parented to the body's coordinate 12 (with
-/// frame 0xE storing that coordinate's world transform in `propTossMtx`) and that
-/// matrix parented to the view, lifted along y by `3*(n - 0xC)^2 - 0x1B0`.
-/// Frame 0x52 restores the parented identity frame.
-static void func_actor_510900_801395AC(Enemy* enemy, Task* task)
+/// Reveals and tosses the off-hand prop during the parent's event animations.
+///
+/// `task->parent` must own a live nineteen-part golem model and work block.
+/// The prop borrows that work without allocating its own. Each 40-frame toss
+/// captures the hand transform relative to the view at frame 14, follows a
+/// parabola in that frame, then reattaches to the hand. The enemy argument is
+/// unused but retains the two-argument enemy-state callback contract.
+static void _actor510900UpdateProp(Enemy* enemy, Task* task)
 {
-    TmdObject*        obj;
-    Actor510900Work*  work;
-    GfxCoord*         coord;
-    GfxCoord*         parentCoord;
-    GfxRotationWords* mat;
-    GfxRotationWords* mat2;
-    s16               blend;
-    s16               r;
-    s32               dy;
+    // The reserved 32-byte scratch frame has no directly accessed object here.
+    enum { ACTOR_510900_PROP_SCRATCH_BYTES = 0x20 };
+    TmdObject*       propModel;
+    Actor510900Work* parentWork;
+    GfxCoord*        propCoord;
+    GfxCoord*        handCoord;
+    s16              animationFrame;
+    s16              tossFrame;
+    s32              heightOffset;
 
-    work  = task->parent->work;
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    if (work->animationId < 0x1C) {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    parentWork = task->parent->work;
+    propModel  = task->extra.tmd;
+    propCoord  = propModel->coords;
+    if (parentWork->animationId < ACTOR_510900_ANIM_EVENT_1) {
+        propModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    SCRATCH_STACK_RESERVE_BYTES(0x20);
-    switch (work->animationId) {
-        case 0x1C:
-        case 0x1D:
+    SCRATCH_STACK_RESERVE_BYTES(ACTOR_510900_PROP_SCRATCH_BYTES);
+    switch (parentWork->animationId) {
+        case ACTOR_510900_ANIM_EVENT_1:
+        case ACTOR_510900_ANIM_EVENT_2:
             break;
 
-        case 0x1E:
-            if (work->animationFrame == 0xC8) {
-                obj->flags = 0;
+        case ACTOR_510900_ANIM_EVENT_PROP_REVEAL:
+            if (parentWork->animationFrame == 0xC8) {
+                propModel->flags = 0;
             }
             break;
 
-        case 0x1F:
-            parentCoord = &task->parent->extra.tmd->coords[12];
-            blend       = work->animationFrame;
-            if (blend < 0x50) {
-                r = blend % 40;
-                if (r < 0xF) {
-                    mat               = (GfxRotationWords*)&coord->coord;
-                    mat->m00M01       = ONE;
-                    mat->m11M12       = ONE;
-                    mat->m22          = ONE;
-                    mat->m02M10       = 0;
-                    mat->m20M21       = 0;
-                    coord->coord.t[0] = 0;
-                    coord->coord.t[1] = 0;
-                    coord->coord.t[2] = 0;
-                    coord->parent     = parentCoord;
-                    if (r == 0xE) {
-                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &work->propTossMtx);
+        case ACTOR_510900_ANIM_EVENT_PROP_TOSS:
+            handCoord      = &task->parent->extra.tmd->coords[ACTOR_510900_PROP_HAND_PART];
+            animationFrame = parentWork->animationFrame;
+            if (animationFrame < 0x50) {
+                tossFrame = animationFrame % 40;
+                if (tossFrame < 0xF) {
+                    _actor510900AttachProp(propCoord, handCoord);
+                    if (tossFrame == 0xE) {
+                        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &handCoord->workm, &parentWork->propTossMtx);
                     }
                 } else {
-                    r                  = r - 0xF;
-                    dy                 = ((r - 0xC) * (r - 0xC) * 3) - 0x1B0;
-                    coord->coord       = work->propTossMtx;
-                    coord->parent      = &gGfxViewCoord;
-                    coord->coord.t[1] += dy;
+                    // Release into the view frame from the cached hand transform.
+                    tossFrame              = tossFrame - 0xF;
+                    heightOffset           = ((tossFrame - 0xC) * (tossFrame - 0xC) * 3) - 0x1B0;
+                    propCoord->coord       = parentWork->propTossMtx;
+                    propCoord->parent      = &gGfxViewCoord;
+                    propCoord->coord.t[1] += heightOffset;
                 }
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-            } else if (blend == 0x52) {
-                mat2                = (GfxRotationWords*)&coord->coord;
-                mat2->m00M01        = ONE;
-                mat2->m02M10        = 0;
-                mat2->m11M12        = ONE;
-                mat2->m20M21        = 0;
-                mat2->m22           = ONE;
-                coord->coord.t[0]   = 0;
-                coord->coord.t[1]   = 0;
-                coord->coord.t[2]   = 0;
-                coord->parent       = parentCoord;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
+                propCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(propCoord);
+            } else if (animationFrame == 0x52) {
+                _actor510900AttachProp(propCoord, handCoord);
+                propCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(propCoord);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_510900_PROP_SCRATCH_BYTES);
 }
 
 /// Spawn state of the child effect task: allocates its `_Actor510900GrenadeWork`
@@ -3761,22 +3857,22 @@ static void func_actor_510900_8013B870(Task* arg0)
     temp_v1 = ((Actor510900Work*)arg0->work)->state;
     switch (temp_v1) {
         case ACTOR_510900_STATE_OPENING:
-            func_actor_510900_80135E90(arg0);
+            _actor510900TickOpening(arg0);
             return;
         case ACTOR_510900_STATE_PATROL:
-            func_actor_510900_80136184(arg0);
+            _actor510900TickPatrol(arg0);
             return;
         case ACTOR_510900_STATE_SLASH:
-            func_actor_510900_80136B70(arg0);
+            _actor510900TickSlash(arg0);
             return;
         case ACTOR_510900_STATE_FLAME_LUNGE:
-            func_actor_510900_80137008(arg0);
+            _actor510900TickFlameLunge(arg0);
             return;
         case ACTOR_510900_STATE_GRENADE:
             func_actor_510900_801373B8(arg0);
             return;
         case ACTOR_510900_STATE_DASH:
-            func_actor_510900_801375D8(arg0);
+            _actor510900TickDash(arg0);
             return;
         case ACTOR_510900_STATE_LETHAL_ATTACK:
             func_actor_510900_80137868(arg0);
@@ -3788,7 +3884,7 @@ static void func_actor_510900_8013B870(Task* arg0)
             func_actor_510900_8013BA58(arg0);
             return;
         case ACTOR_510900_STATE_RECOIL:
-            func_actor_510900_80137E20(arg0);
+            _actor510900TickRecoil(arg0);
             return;
         case ACTOR_510900_STATE_SPARK_RECOIL:
             func_actor_510900_80137FBC(arg0);
@@ -3976,83 +4072,115 @@ s32 func_actor_510900_8013BE84(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
     return ((Actor510900Work*)arg0->work)->present;
 }
 
-void func_actor_510900_8013BE98(Task* task)
+/// Dispatches initialization or update of the golem's off-hand prop model.
+///
+/// `task->state` must be 0 (initialize) or 1 (update). The parent model and its
+/// work block must remain live; the child borrows their coordinate and lighting.
+static void _actor510900PropTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = { func_actor_510900_8013BEEC, func_actor_510900_801395AC };
+    EnemyTaskFunc states[ACTOR_510900_ATTACHMENT_STATE_COUNT] = { _actor510900InitProp, _actor510900UpdateProp };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    states[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_510900_8013BEEC(Enemy* enemy, Task* task)
+/// Attaches the initially hidden prop to the off hand and borrows body lighting.
+///
+/// Advances its palette by two rows and rebuilds both model buffer halves.
+/// Requires the live parent golem model and work block. The enemy argument is unused.
+static void _actor510900InitProp(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
-    Actor510900Work* work;
-    GfxCoord*        coord;
+    TmdObject*       propModel;
+    Actor510900Work* parentWork;
+    GfxCoord*        propCoord;
 
-    obj                 = task->extra.tmd;
-    work                = task->parent->work;
-    coord               = obj->coords;
-    obj->clutRowOffset += 2;
-    tmdBuildBufferHalf(obj);
-    tmdBuildBufferHalf(obj);
-    coord->parent       = &task->parent->extra.tmd->coords[12];
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    obj->lightMtx       = &work->light;
-    obj->colorMtx       = &work->color;
-    task->state         = 1;
+    propModel                 = task->extra.tmd;
+    parentWork                = task->parent->work;
+    propCoord                 = propModel->coords;
+    propModel->clutRowOffset += 2;
+    tmdBuildBufferHalf(propModel);
+    tmdBuildBufferHalf(propModel);
+    propCoord->parent       = &task->parent->extra.tmd->coords[ACTOR_510900_PROP_HAND_PART];
+    propCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    propModel->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    propModel->lightMtx     = &parentWork->light;
+    propModel->colorMtx     = &parentWork->color;
+    task->state             = ACTOR_510900_ATTACHMENT_UPDATE;
 }
 
-void func_actor_510900_8013BF90(Task* task)
+/// Dispatches initialization or update of the golem's attached weapon model.
+///
+/// `task->state` must be 0 (initialize) or 1 (update). The parent model and work
+/// block must remain live; the weapon borrows their coordinate and lighting.
+static void _actor510900WeaponTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = { func_actor_510900_8013BFE4, func_actor_510900_8013C034 };
+    EnemyTaskFunc states[ACTOR_510900_ATTACHMENT_STATE_COUNT] = { _actor510900InitWeapon, _actor510900UpdateWeapon };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    states[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_510900_8013BFE4(Enemy* enemy, Task* task)
+/// Attaches the hidden weapon to body part 8 and borrows body lighting.
+///
+/// Requires the live parent golem model and work block. No child work is allocated;
+/// the enemy argument is unused. The task advances to the attachment update state.
+static void _actor510900InitWeapon(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
-    Actor510900Work* work;
+    TmdObject*       weaponModel;
+    Actor510900Work* parentWork;
 
-    obj                 = task->extra.tmd;
-    work                = task->parent->work;
-    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    obj->coords->parent = &task->parent->extra.tmd->coords[8];
-    obj->lightMtx       = &work->light;
-    obj->colorMtx       = &work->color;
-    task->state         = 1;
+    weaponModel                 = task->extra.tmd;
+    parentWork                  = task->parent->work;
+    weaponModel->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    weaponModel->coords->parent = &task->parent->extra.tmd->coords[ACTOR_510900_WEAPON_PART];
+    weaponModel->lightMtx       = &parentWork->light;
+    weaponModel->colorMtx       = &parentWork->color;
+    task->state                 = ACTOR_510900_ATTACHMENT_UPDATE;
 }
 
-static void func_actor_510900_8013C034(Enemy* enemy, Task* task)
+/// Copies body visibility to the weapon and composes its attached coordinate.
+///
+/// Requires the live parent model established at initialization; the enemy
+/// argument is unused. All model flags are copied, not just the hidden bit.
+static void _actor510900UpdateWeapon(Enemy* enemy, Task* task)
 {
     task->extra.tmd->flags                = task->parent->extra.tmd->flags;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
 }
 
-void func_actor_510900_8013C090(Task* task)
+/// Dispatches initialization or update of the golem's attached chest model.
+///
+/// `task->state` must be 0 (initialize) or 1 (update). The parent model and work
+/// block must remain live; the child borrows their coordinate and lighting.
+static void _actor510900ChestModelTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = { func_actor_510900_8013C0E4, func_actor_510900_8013C134 };
+    EnemyTaskFunc states[ACTOR_510900_ATTACHMENT_STATE_COUNT] = { _actor510900InitChestModel, _actor510900UpdateChestModel };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    states[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_510900_8013C0E4(Enemy* enemy, Task* task)
+/// Attaches the hidden chest model to body part 3 and borrows body lighting.
+///
+/// Requires the live parent golem model and work block. No child work is allocated;
+/// the enemy argument is unused. The task advances to the attachment update state.
+static void _actor510900InitChestModel(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
-    Actor510900Work* work;
+    TmdObject*       chestModel;
+    Actor510900Work* parentWork;
 
-    obj                 = task->extra.tmd;
-    work                = task->parent->work;
-    obj->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    obj->coords->parent = &task->parent->extra.tmd->coords[3];
-    obj->lightMtx       = &work->light;
-    obj->colorMtx       = &work->color;
-    task->state         = 1;
+    chestModel                 = task->extra.tmd;
+    parentWork                 = task->parent->work;
+    chestModel->flags          = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    chestModel->coords->parent = &task->parent->extra.tmd->coords[ACTOR_510900_CHEST_PART];
+    chestModel->lightMtx       = &parentWork->light;
+    chestModel->colorMtx       = &parentWork->color;
+    task->state                = ACTOR_510900_ATTACHMENT_UPDATE;
 }
 
-static void func_actor_510900_8013C134(Enemy* enemy, Task* task)
+/// Copies body visibility to the chest model and composes its attached coordinate.
+///
+/// Requires the live parent model established at initialization; the enemy
+/// argument is unused. All model flags are copied, not just the hidden bit.
+static void _actor510900UpdateChestModel(Enemy* enemy, Task* task)
 {
     task->extra.tmd->flags                = task->parent->extra.tmd->flags;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

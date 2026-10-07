@@ -9732,7 +9732,7 @@ table its own unit and the table itself lands right, but the zero word the
 original has *after* it does not: GCC emits `.align 3` only *before* a table, so
 the generated `.rodata` ends flush at the table's last word, and the next
 symbol - still assembly, arriving with the following function's `INCLUDE_ASM` -
-butts against it 4 bytes early. `func_actor_510900_80135E90` matched at 100.00%
+butts against it 4 bytes early. `_actor510900TickOpening` matched at 100.00%
 and the overlay still failed with exactly 16 bytes wrong from `0x70` on, all of
 them the table shifted by one word.
 
@@ -46324,9 +46324,9 @@ matrix at 0x43C is handed to `TmdObject::colorMtx`, the light matrix at 0x45C to
 
 Read a suspicious whole-immediate as `n * sizeof(base type)` before touching the
 C: `0x22E0 / 8 = 0x45C`. Function
-`func_actor_510900_8013C0E4 1 attempt, base_1.c 100.00%`.
+`_actor510900InitChestModel 1 attempt, base_1.c 100.00%`.
 
-The handler next door, `func_actor_510900_8013BFE4`, is that body exactly - same
+The handler next door, `_actor510900InitWeapon`, is that body exactly - same
 work-block pair, same `flags = TMD_OBJECT_SKIP_ACTIVE_DRAW`, same `task->state = 1` - except its
 `addiu` on `TmdObject::coords` is `0x280`, i.e. `coords[8]`, where the sibling
 has `coords[3]` / `0xF0`. So a matched sibling one immediate away is a reason to
@@ -46334,7 +46334,7 @@ recompute that immediate for *this* target (`0x280 / 0x50 = 8`), not to copy the
 sibling's index: pasting the sibling body scores 99.5% with a `regs` penalty of
 2 and a diff of two `addiu`s, which reads like an allocation problem and is not.
 The index is the actor's part number in the parent's coord array, so it differs
-per handler. `func_actor_510900_8013BFE4 1 attempt, base_1.c 100.00%`.
+per handler. `_actor510900InitWeapon 1 attempt, base_1.c 100.00%`.
 
 The same two-`addiu` signature appears with a different base type, so check what
 divides the wrong immediate rather than assuming the one above. `WorldCollisionBody` is 0x20
@@ -49513,7 +49513,7 @@ the table long before believing the argument count. Input: `base_1.i`
 
 The scratch prelude carries no `Task`, so m2c invents field names for the pointer
 argument from its own heuristics, and they need not agree with
-`include/main/task.h`. `func_actor_510900_8013C134` came back reading
+`include/main/task.h`. `_actor510900UpdateChestModel` came back reading
 `task->extra` at 0x8 and `task->parent` at 0x2C — the project's `Task` with the
 two names exchanged (`parent` is 0x8, `extra` is 0x2C). The chain is right and
 the offsets are right; only the names lie:
@@ -75612,7 +75612,7 @@ almost at once, and its low priority parks it behind the whole higher-priority
 chain until the first free cycle, which is usually the delay slot the target
 wants it in.
 
-`func_actor_510900_8013BEEC`:
+`_actor510900InitProp`:
 
 ```c
 coord->composeStamp = 0;
@@ -95845,7 +95845,7 @@ so its position in the source decides which latency it fills.
 
 Inputs: `base_1.i` (99.041%), `base_2.i` (100%).
 
-## A temp between two calls costs a callee-saved register; inlining it as an argument does not (func_actor_510900_801375D8, 2026-09-16)
+## A temp between two calls costs a callee-saved register; inlining it as an argument does not (_actor510900TickDash, 2026-09-16)
 
 The overlay's sound idiom is three calls, the first two sharing one pointer
 argument:
@@ -96153,7 +96153,7 @@ the target does not have is a hint about the block, not a candidate to port.
 
 ## A clamp that keeps `move $v1, $a0` needs the load in its *own* local
 
-`func_actor_510900_80137008` clamps a field to 0x1388 and the ROM keeps the
+`_actor510900TickFlameLunge` clamps a field to 0x1388 and the ROM keeps the
 loaded value in a second register:
 
     lh    $a0, 0x5AC($s1)
@@ -96252,7 +96252,7 @@ distinct by giving its constant a home.
 
 ## One pointer variable reused in two exclusive branches loses a `reload_cse` base rewrite
 
-`func_actor_510900_801395AC` (actors/actor_510900) splats an identity rotation
+`_actor510900UpdateProp` (actors/actor_510900) splats an identity rotation
 through a word-wise `MATRIX` view in two mutually exclusive arms. Writing both
 arms through the same local
 
@@ -96293,7 +96293,7 @@ is two live ranges in the original, not one.
 
 ## A join label at the merge point lets cross-jumping keep going; a mid-block one stops it
 
-`func_actor_510900_8013691C` (actors/actor_510900) ends five of its arms with
+`_actor510900TrySelectAttack` (actors/actor_510900) ends five of its arms with
 `work->subState = 0; work->animationId = <anim>;`. Factoring that pair out of the
 arms — writing it once after the inner `if`/`else`, which is the obvious C — got
 to 95.97% with one arm too few: the `li $v0,4; sh $v0,0x58E; j tail; li $v0,0x1B`
