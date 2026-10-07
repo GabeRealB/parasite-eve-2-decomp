@@ -274,7 +274,7 @@ static _FontGlyph _gFontGlyphsSmall[FONT_GLYPH_SMALL_COUNT] = {
 };
 
 static UiObjectDesc Ui_OverlayLoadingDesc[] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 0x120, 0x90 }, 0x38, 0, TASK_BODY_NONE, 0xC0, Ui_WaitCdThenOverlay, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 0x120, 0x90 }, 0x38, 0, TASK_BODY_NONE, 0xC0, uiUpdateOptionsAfterLoadTask, 0 },
 };
 
 void taskNoopCallback(Task* unusedTask)

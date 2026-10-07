@@ -371,7 +371,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 48, 1 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemCmdMenuTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -100, -80, 198, 158 }, 8, 0, TASK_BODY_NONE, 192, func_800CFA60, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 144 }, 56, 0, TASK_BODY_NONE, 192, Ui_WaitCdThenOverlay, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 144 }, 56, 0, TASK_BODY_NONE, 192, uiUpdateOptionsAfterLoadTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { -100, -80, 144, 78 }, 12, 0, TASK_BODY_NONE, 192, Gp_AmmoListTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -40, 144, 78 }, 8, 0, TASK_BODY_NONE, 192, Gp_ReloadPromptTask, 0 },

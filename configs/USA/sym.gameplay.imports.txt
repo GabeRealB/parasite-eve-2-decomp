@@ -359,7 +359,7 @@ D_map_dryfield_80179E00 = 0x80179E00; // absolute:True owner=map_dryfield
 D_map_dryfield_full_80179D10 = 0x80179D10; // absolute:True owner=map_dryfield_full
 D_map_shelter_80179FA4 = 0x80179FA4; // absolute:True owner=map_shelter
 D_map_neo_ark_8017A110 = 0x8017A110; // absolute:True owner=map_neo_ark
-Ui_WaitCdThenOverlay = 0x80049A8C; // type:func absolute:True
+uiUpdateOptionsAfterLoadTask = 0x80049A8C; // type:func absolute:True
 D_map_akropolis_8017C0DC = 0x8017C0DC; // absolute:True owner=map_akropolis
 D_map_dryfield_8017BCE4 = 0x8017BCE4; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017D0B8 = 0x8017D0B8; // absolute:True

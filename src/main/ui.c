@@ -3184,16 +3184,17 @@ void uiDrawFlatCaret(const UiPanel* panel, s32 tipX, s32 tipY, u32 colorRgb, s32
     addPrim(&orderingTable[panel->otIndex.signedValue + USER_INTERFACE_CARET_OT_OFFSET], caret);
 }
 
-void Ui_WaitCdThenOverlay(Task* task)
+void uiUpdateOptionsAfterLoadTask(Task* owningTask)
 {
-    UiPanel* temp_s0;
+    UiObject* object;
 
-    temp_s0 = task->spawnArg2.pointer;
+    object = owningTask->spawnArg2.pointer;
     if (cdCmdIsIdle() != 0) {
-        optionsUpdateMenuTask(task);
+        optionsUpdateMenuTask(owningTask);
         return;
     }
-    temp_s0->animationTicks += gDisplayState.frameTicks;
+    // Opening subtracts these ticks after content returns, holding the panel during loading.
+    object->panel.animationTicks += gDisplayState.frameTicks;
 }
 
 /// Draws one linked option and publishes confirm/cancel for the active row.
@@ -3236,23 +3237,20 @@ static void _uiDrawOptionDialogRow(UiList* list, UiObject* object)
     }
 }
 
-/// Detaches an option dialog's descendants before marking its owner closing.
+/// Detaches and starts closing an option dialog and all its descendants.
 ///
-/// Borrows the live UI object and its task tree. Each child holds a UiObject
-/// in spawnArg2; closing children must already be detached. No storage is freed.
+/// Borrows the live object and its acyclic task tree. Each descendant task owns
+/// a live `UiObject` in spawnArg2; its owner must identify that task. Already-closing
+/// descendants must be detached so each closing request removes the child head.
+/// Descendants close before the dialog. An already-closing dialog keeps its
+/// parent link; otherwise it detaches before entering closing. Animation ticks,
+/// task execution links and resources survive for later lifecycle/exit updates.
 static inline void _uiCloseOptionDialogTree(UiObject* object)
 {
     Task* owner;
-    Task* childTask;
 
-    owner     = object->owner;
-    childTask = owner->firstChild;
-    if (childTask != NULL) {
-        do {
-            uiStartTreeClosing(childTask->spawnArg2.pointer, childTask);
-            childTask = owner->firstChild;
-        } while (childTask != NULL);
-    }
+    owner = object->owner;
+    _uiStartChildObjectsClosing(owner);
     if (object->panel.state != USER_INTERFACE_PANEL_CLOSING) {
         taskDetachFromParent(owner);
         object->panel.state = USER_INTERFACE_PANEL_CLOSING;

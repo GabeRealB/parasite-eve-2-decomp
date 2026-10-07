@@ -414,7 +414,17 @@ void uiDrawRecessedRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 
 /// requirements are those of `uiDrawBeveledRect`.
 void uiDrawRaisedRect(const UiPanel* panel, s32 left, s32 top, s32 width, s32 height, u32 colorWord);
 
-void Ui_WaitCdThenOverlay(Task* task);
+/// Runs options-menu content when the CD command queue is idle.
+///
+/// `owningTask` owns a live `UiObject` in spawnArg2 and is dispatched through its
+/// panel lifecycle. The caller must arrange loading of the options overlay and
+/// keep it loaded whenever the queue is idle; this callback does not load it.
+/// Idle updates follow `optionsUpdateMenuTask`'s payload and drawing contract.
+/// Otherwise no options code runs, and the signed-halfword animation counter
+/// gains elapsed nominal 60-Hz ticks, retaining its low 16 bits. During opening
+/// this offsets the lifecycle's subsequent decrement, holding the opening scale
+/// until loading completes. The idle branch does not access the object afterwards.
+void uiUpdateOptionsAfterLoadTask(Task* owningTask);
 
 /// Direction flags accepted by `uiDrawFlatCaret`; any nonzero value points down.
 enum {
