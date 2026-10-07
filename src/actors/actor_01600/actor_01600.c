@@ -3797,11 +3797,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     }
     // Turn the probe's length about Y to its yaw; the turned length is the capsule's far end.
     rotation                       = &scratch->rotation;
-    rotation->rotationWords.m00M01 = ONE;
-    rotation->rotationWords.m02M10 = 0;
-    rotation->rotationWords.m11M12 = ONE;
-    rotation->rotationWords.m20M21 = 0;
-    rotation->rotationWords.m22    = ONE;
+    gfxSetRotIdentity(&rotation->mat);
     RotMatrixY(work->probeYaw, &rotation->mat);
     farEnd = &scratch->farEnd;
     gte_SetRotMatrix(&rotation->mat);
