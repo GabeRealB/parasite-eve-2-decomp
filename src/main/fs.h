@@ -346,14 +346,38 @@ void Fs_SetupBootLoad(void);
 
 void Fs_BootImageMachine(void* primaryTim, void* secondaryTim);
 
-/// CD ready callback used while streaming bank data (src/main/cdvol.c).
-void Fs_StreamReadyCb(u8 status, u8* result);
+/// Validates and feeds whole CD sectors to the active sound-bank sequence load.
+///
+/// Install after `sndLoadBeginSectorLoad`, with `Fs_ReqSector` set to the first
+/// absolute sector. The borrowed payload buffer must be word-aligned, writable
+/// for 2048 bytes and remain live until its SPU DMA finishes. Selects polling
+/// uploads. Every interrupt except CdlDiskError reads a 12-byte header then the
+/// payload. Position mismatch, drive error or feeder failure pauses delivery,
+/// increments the wrapping byte error count and requests restart (0x80).
+/// DONE pauses delivery, installs the sequence and reports completion (0xFF),
+/// even if installation fails. Removes the ready callback on either outcome.
+/// SDK result bytes are unused; CD command and buffer use must be serialized.
+void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult);
 
-void CdVol_CacheFromSpu(void);
+/// Starts the fade cursor at the retained left CD gain's seven-bit level.
+///
+/// Reads software attributes last applied by this module; does not query or
+/// change hardware. Call before `cdVolStepFadeOut` when fading an active movie.
+void cdVolBeginFadeOut(void);
 
-void CdVol_ApplyFromTable(u16 index);
+/// Applies a movie's CD volume preset equally to both SPU CD inputs.
+///
+/// `presetIndex` selects 0..39; all other u16 values select silent preset zero.
+/// Stores the selected seven-bit level in the fade cursor as well. One level
+/// unit is 256 SPU register units; other common output settings are retained.
+void cdVolApplyMoviePreset(u16 presetIndex);
 
-s32 CdVol_StepDown(void);
+/// Lowers the fade cursor by eight levels, clamps at zero and applies both gains.
+///
+/// Returns the remaining level (0..127), with zero indicating silence. The
+/// cursor must have been initialized by `cdVolBeginFadeOut` or a movie preset.
+/// Each call advances one step; the caller controls the cadence.
+s32 cdVolStepFadeOut(void);
 
 /// Returns 1 for an idle queue or a scene-audio-family opcode at its head.
 ///

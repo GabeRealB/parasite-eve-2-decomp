@@ -637,7 +637,13 @@ s32 Snd_ReverbWarmupCb(s32* arg0);
 
 s32 Snd_InitBanks(u32);
 
-void Spu_ResetCommonAttr(void);
+/// Restores direct master gain and silences CD and external SPU inputs.
+///
+/// Master gains are 0x3FFF. CD mixing stays enabled with reverb off; external
+/// mixing and reverb are disabled. Applies the retained common-attribute record
+/// with the SDK's all-attributes mask.
+/// Used during sound-system initialization/reset; requires serialized SPU setup.
+void spuResetCommonOutput(void);
 
 /// Samples hardware key status and releases completed voices once per audio tick.
 ///

@@ -112,7 +112,7 @@ segments:
       - [0x3880, o, libcd/c_011, .rdata]
       - [0x38a0, .rodata, bootload] # jtbls: 21A20, 21B28, 21D8C + 2207C + abs(2226C)
       - [0x3a74, .rodata, fs] # LoadFile / ProcessChunkData jtbls + ScanIso strings + jtbl
-      - [0x3b58, .rodata, cdvol] # jtbl from Cd_InitStateMachine
+      - [0x3b58, .rodata, cdvol] # jtbl from _cdSyncPollDiscInit
       - [0x3b74, o, libspu/s_sca, .rdata]
       - [0x3bb4, o, libspu/spu, .rdata]
       - [0x3c04, .rodata, gamemain] # GameMain_PauseText ("PAUSE!")
@@ -214,7 +214,7 @@ segments:
       - [0x160f4, o, libgpu/break] # BreakDraw, IsIdleGPU, ContinueDraw
       - [0x16314, o, libapi/c159] # SetMem
       - [0x16324, o, libapi/counter] # SetRCnt, GetRCnt, StartRCnt, StopRCnt, ResetRCnt
-      - [0x16494, c, cdvol] # CdVol / CD mix / Cd_InitStateMachine
+      - [0x16494, c, cdvol] # CdVol / CD mix / _cdSyncPollDiscInit
       - [0x16b14, o, libspu/s_sca] # SpuSetCommonAttr
       - [0x16e94, o, libspu/spu] # _spu_init, _spu_FiDMA, _spu_Fr_, _spu_t, _spu_Fw, _spu_Fr, _spu_FsetRXX, _spu_FsetRXXa, _spu_FgetRXXa, _spu_FsetPCR, _spu_Fw1ts
       - [0x179d4, c, gamemain] # GameMain entry + gDisplayState setup

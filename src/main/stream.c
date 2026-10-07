@@ -726,7 +726,7 @@ static void Mdec_DecodeFrame(void)
 
     header = (StHEADER*)headerWords;
     if (header->frameCount >= (u32)D_8006AC0C) {
-        CdVol_ApplyFromTable(0);
+        cdVolApplyMoviePreset(0);
         p->movieAtEnd = 1;
         p->movieStep  = CD_COMMAND_MOVIE_PAUSE;
     }
@@ -770,7 +770,7 @@ static __inline__ void _streamStartDecode(void)
     StClearRing();
     Wip_SysFlags.movieStreamActive = 1;
     DecDCToutCallback(_mdecMovieOutputCallback);
-    CdVol_ApplyFromTable(0);
+    cdVolApplyMoviePreset(0);
     queue->mdecOutputPending = 0;
     D_8006AC1A               = 0;
 }
@@ -833,7 +833,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
             CdIntToPos(sector, &scratch.location);
             ready = Stream_SeekPosition(&scratch.location);
             if (ready & 0xFFFF) {
-                CdVol_ApplyFromTable((u8)D_8006AC58);
+                cdVolApplyMoviePreset((u8)D_8006AC58);
                 if (!(_streamStartRead() & 0xFFFF)) {
                     D_8006AC20       = 1;
                     state->movieStep = CD_COMMAND_MOVIE_RETRY_READ;
@@ -931,7 +931,7 @@ s32 Stream_PollPlayback(u16 resume, s32 sectorOffset)
                     return 0;
                 }
                 _streamStartDecode();
-                CdVol_ApplyFromTable((u8)D_8006AC58);
+                cdVolApplyMoviePreset((u8)D_8006AC58);
                 state->movieDiskRecoveryActive = 0;
                 state->cdOperationPending      = 0;
                 state->movieStep               = CD_COMMAND_MOVIE_DECODE;

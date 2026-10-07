@@ -694,7 +694,7 @@ static void CdCmd_ProcessPhase1(void)
             switch (*statePtr) {
                 case CD_COMMAND_CANCEL_BEGIN:
                     if (D_8006AC58 != 0) {
-                        CdVol_CacheFromSpu();
+                        cdVolBeginFadeOut();
                         p->cancelStep = p->cancelStep + 1;
                     } else {
                         p->cancelStep = CD_COMMAND_CANCEL_FINISH;
@@ -702,7 +702,7 @@ static void CdCmd_ProcessPhase1(void)
                     }
                     /* fallthrough */
                 case CD_COMMAND_CANCEL_WAIT:
-                    if (CdVol_StepDown() == 0) {
+                    if (cdVolStepFadeOut() == 0) {
                         *statePtr = *statePtr + 1;
                     }
                     CdCmd_HandleStreamDecode();
@@ -838,7 +838,7 @@ static void CdCmd_ProcessPhase2(void)
             switch (*statePtr) {
                 case 0:
                     if (D_8006AC58 != 0) {
-                        CdVol_CacheFromSpu();
+                        cdVolBeginFadeOut();
                         p->suspendResumeStep = p->suspendResumeStep + 1;
                     } else {
                         p->suspendResumeStep = 2;
@@ -846,7 +846,7 @@ static void CdCmd_ProcessPhase2(void)
                     }
                     /* fallthrough */
                 case 1:
-                    if (CdVol_StepDown() == 0) {
+                    if (cdVolStepFadeOut() == 0) {
                         *statePtr = *statePtr + 1;
                     }
                     CdCmd_HandleStreamDecode();

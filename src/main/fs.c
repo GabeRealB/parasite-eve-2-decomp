@@ -2068,7 +2068,7 @@ static void Fs_ReadNSyncCb(u8 status, u8* result)
             CdReadyCallback(_fsChunkReadyCallback);
         } else {
             sndLoadBeginSectorLoad(&Fs_CdSector);
-            CdReadyCallback(Fs_StreamReadyCb);
+            CdReadyCallback(fsSoundBankReadyCallback);
         }
 
         Fs_VBlank = VSync(-1);

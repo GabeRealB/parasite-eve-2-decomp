@@ -8518,14 +8518,14 @@ where the dest is already a parameter.
 `global = func(...)` after a call can need the local-pointer form when the
 target saves `$s0`, does `lui s0,%hi(global)` / `sh v0,%lo(global)(s0)`, then
 restores `$s0`. A bare store picks `$v1` and drops the save/restore
-(`CdVol_RegisterCallbacks` / `D_8006EBF2`):
+(`_cdSyncQueueDiscInit` / `D_8006EBF2`):
 
 ```c
-s16 *ptr;
+s16 *handle;
 
-ptr = &D_8006EBF2;
+handle = &D_8006EBF2;
 /* ... fill stack args ... */
-*ptr = asyncCbEnqueue(&sp);
+*handle = asyncCbEnqueue(&callbacks);
 ```
 
 **Order: pointer first, then the shared constant.** When the target does
@@ -12962,15 +12962,15 @@ Force the target order by reading the incremented global into a local first so
 its address is materialised before the other store:
 
 ```c
-u8 errCount;
+u8 errorCount;
 
-errCount        = Fs_CdErrorCount; /* lui a3,%hi(ErrorCount) first */
+errorCount      = Fs_CdErrorCount; /* lui a3,%hi(ErrorCount) first */
 Fs_CdOpStatus   = 0x80;            /* lui a2,%hi(OpStatus) second */
-Fs_CdErrorCount = errCount + 1;    /* delay-slot store of count */
+Fs_CdErrorCount = errorCount + 1;  /* delay-slot store of count */
 CdControlF(CdlPause, NULL);
 ```
 
-`Fs_StreamReadyCb` is the pure example (sector-mismatch soft-error path).
+`fsSoundBankReadyCallback` is the pure example (sector-mismatch soft-error path).
 
 ## Two consecutive values: write `== a || == a+1`, not `(u32)(x-a) < 2`
 
@@ -20774,7 +20774,7 @@ switch (b) {
 
 Without the pins, GCC still dual-loads but elides `andi` before `sb`. Without
 `volatile`, it collapses to one `lw` + `move`. `_cdStreamPollDiscInit` (CD init state
-machine, sibling of `Cd_InitStateMachine`) is the pure example — also needs
+machine, sibling of `_cdSyncPollDiscInit`) is the pure example — also needs
 `CdStreamState.settleCounter` as `u16` for the case-7 retry counter.
 
 ## Entry pointer in `$a0` for load-then-store of a `u8` field
@@ -36946,7 +36946,7 @@ slots around the POLY_FT4 XY stores).
 function in C and `sym.*.txt` does not refresh those objects. objdiff then
 shows the old auto-name (`F179D4_ClearOTag`, `F16494_ResetSpuAttr`,
 `F04CF8_800148A0`, …) at 0% beside the compiled name (`gpuClearFrameOrderingTable`,
-`Spu_ResetCommonAttr`, `Boot_WaitCdAudioReady`), even though the linked
+`spuResetCommonOutput`, `Boot_WaitCdAudioReady`), even though the linked
 binary still matches.
 
 Fix: `python3 ninja_config.py -obj` (re-splat + assemble `expected/`),

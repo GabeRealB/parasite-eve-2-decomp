@@ -406,12 +406,12 @@ static inline void Spu_InitSystemLocked(s32 arg0)
             SpuInit();
             D58028_SpuTimerEnabled = false;
             D_800680BC             = 0;
-            Spu_ResetCommonAttr();
+            spuResetCommonOutput();
             break;
         case 1:
             SpuIsTransferCompleted(1);
             D_800680BC = 0;
-            Spu_ResetCommonAttr();
+            spuResetCommonOutput();
             break;
         case 2:
             break;

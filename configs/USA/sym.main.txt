@@ -593,19 +593,19 @@ ResetRCnt                   = 0x80025C5C;
 //--------------------------------------------------------------------
 //--- PA: 0x16494   VA: 0x80025C94   subsegment: c, 16494
 //--------------------------------------------------------------------
-Fs_StreamReadyCb               = 0x80025C94; // type:func
-Cd_InitStateMachine               = 0x80025DD8; // type:func
-Spu_ResetCommonAttr         = 0x8002604C; // type:func
+fsSoundBankReadyCallback               = 0x80025C94; // type:func
+_cdSyncPollDiscInit               = 0x80025DD8; // type:func
+spuResetCommonOutput         = 0x8002604C; // type:func
 sndOutputSetStereo               = 0x800260B0; // type:func
 sndOutputIsStereo               = 0x80026138; // type:func
-CdVol_CacheFromSpu               = 0x80026148; // type:func
-CdVol_RegisterCallbacks               = 0x80026178; // type:func
-CdVol_ClearCallbackSlot               = 0x800261C8; // type:func
+cdVolBeginFadeOut               = 0x80026148; // type:func
+_cdSyncQueueDiscInit               = 0x80026178; // type:func
+_cdSyncCompleteDiscInit               = 0x800261C8; // type:func
 _cdSyncCancelDiscInit               = 0x800261D4; // type:func
-CdVol_Get               = 0x800261F4; // type:func
-CdVol_ApplyFromTable               = 0x80026218; // type:func
-CdVol_Set               = 0x80026268; // type:func
-CdVol_StepDown               = 0x800262A8; // type:func
+_cdVolGetLevel               = 0x800261F4; // type:func
+cdVolApplyMoviePreset               = 0x80026218; // type:func
+_cdVolSetLevel               = 0x80026268; // type:func
+cdVolStepFadeOut               = 0x800262A8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x16B14   VA: 0x80026314   subsegment: o, libspu/s_sca
