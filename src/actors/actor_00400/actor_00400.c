@@ -1472,7 +1472,7 @@ static void Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2)
    actor's work block.
 
    `prevRootPos` snapshots the actor's own root translation. The
-   second coordinate of the model (`coord[1]`) is taken into view space and
+   second coordinate's origin (`coord[1]`) is taken into world space and
    each slot's root translation measured against it; the closer of the two
    lands in `targetPos` with its XZ distance in `targetDistance`. The chosen
    offset is then normalised and turned into a yaw relative to the actor's
@@ -1487,7 +1487,7 @@ static void Actor00400_Fn01454(Task* arg0)
     GfxCoord*        joint;
     SVECTOR          delta0;
     SVECTOR          delta1;
-    SVECTOR          view;
+    SVECTOR          jointWorldPosition;
     s32              dist0;
     s32              dist1;
 
@@ -1499,14 +1499,14 @@ static void Actor00400_Fn01454(Task* arg0)
     work->prevRootPos.vy = coord->coord.t[1];
     work->prevRootPos.vz = coord->coord.t[2];
     if (player != NULL) {
-        c0      = player->extra.tmd->coords;
-        view.vx = 0;
-        view.vy = 0;
-        view.vz = 0;
-        coordLocalToWorld(joint, &view);
-        delta0.vx = c0->coord.t[0] - view.vx;
-        delta0.vy = c0->coord.t[1] - view.vy;
-        delta0.vz = c0->coord.t[2] - view.vz;
+        c0                    = player->extra.tmd->coords;
+        jointWorldPosition.vx = 0;
+        jointWorldPosition.vy = 0;
+        jointWorldPosition.vz = 0;
+        _actorRenderTransformPointToWorld(joint, &jointWorldPosition);
+        delta0.vx = c0->coord.t[0] - jointWorldPosition.vx;
+        delta0.vy = c0->coord.t[1] - jointWorldPosition.vy;
+        delta0.vz = c0->coord.t[2] - jointWorldPosition.vz;
         dist0     = SquareRoot0(delta0.vx * delta0.vx + delta0.vz * delta0.vz);
         if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] == NULL) {
             work->targetPos.vx   = c0->coord.t[0];
@@ -1515,9 +1515,9 @@ static void Actor00400_Fn01454(Task* arg0)
             work->targetDistance = dist0;
         } else {
             c1        = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
-            delta1.vx = c1->coord.t[0] - view.vx;
-            delta1.vy = c1->coord.t[1] - view.vy;
-            delta1.vz = c1->coord.t[2] - view.vz;
+            delta1.vx = c1->coord.t[0] - jointWorldPosition.vx;
+            delta1.vy = c1->coord.t[1] - jointWorldPosition.vy;
+            delta1.vz = c1->coord.t[2] - jointWorldPosition.vz;
             dist1     = SquareRoot0(delta1.vx * delta1.vx + delta1.vz * delta1.vz);
             if (dist1 < dist0) {
                 work->targetPos.vx = c1->coord.t[0];
@@ -3272,7 +3272,7 @@ static inline void _actor00400UpdateLockable(Task* task)
     pos.vx = 0;
     pos.vy = 0;
     pos.vz = 0;
-    coordLocalToWorld(coord, &pos);
+    _actorRenderTransformPointToWorld(coord, &pos);
     if (work->waterLevel + 0x190 < pos.vy) {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else {
@@ -3841,14 +3841,14 @@ static inline void Actor00400_SpawnMarker(Task* arg0)
             tip.vx  = 0;
             tip.vy  = 0;
             tip.vz  = height;
-            coordLocalToWorld(span, &base);
-            coordLocalToWorld(span, &tip);
+            _actorRenderTransformPointToWorld(span, &base);
+            _actorRenderTransformPointToWorld(span, &tip);
             task->work = shot;
             dst        = task->extra.tmd->coords;
             pos.vx     = 0;
             pos.vy     = 0;
             pos.vz     = 0;
-            coordLocalToWorld(origin, &pos);
+            _actorRenderTransformPointToWorld(origin, &pos);
             dst->coord.t[0]   = pos.vx;
             dst->coord.t[1]   = pos.vy;
             dst->coord.t[2]   = pos.vz;

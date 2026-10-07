@@ -116,7 +116,7 @@ D_neo_ark_submarine_gallery_801818BC = 0x801818BC; // absolute:True owner=neo_ar
 
 D_neo_ark_submarine_gallery_8018590C = 0x8018590C; // absolute:True owner=neo_ark_submarine_gallery shared=rooms
 screenWaveTask = 0x80149ED0; // type:func
-coordLocalToWorld = 0x8014F030; // type:func
+_actorRenderTransformPointToWorld = 0x8014F030; // type:func
 _diverImpactBurst = 0x8014A70C; // type:func
 _diverDrawSpark = 0x8014AB3C; // type:func
 _diverTurnJoint = 0x8014BEC4; // type:func

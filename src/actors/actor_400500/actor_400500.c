@@ -2804,7 +2804,7 @@ static void func_actor_400500_801348D8(Task* arg0, s32 arg1)
         pos.vx = 0x160;
         pos.vy = 0x148;
         pos.vz = 0x2C0;
-        coordLocalToWorld(joint, &pos);
+        _actorRenderTransformPointToWorld(joint, &pos);
         if ((arg1 << 0x10) == 0) {
             player->coord.t[0] = pos.vx;
             player->coord.t[2] = pos.vz;

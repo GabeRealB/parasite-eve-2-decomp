@@ -38,7 +38,6 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
 
 /// Values of `_Actor210600Work::animRequest` and `_Actor210600Work::blendRequest`.
@@ -434,7 +433,7 @@ static void func_actor_210600_8014B2C0(Task* task)
 /// Rebuilds the model's root part rotation around the yaw it already faces and
 /// rescales it uniformly through an `ActorScaleRotScratch` block borrowed from
 /// the scratch stack, which is handed back once the rotation has been copied
-/// onto the coordinate. The same code as `coordSetYawScale`,
+/// onto the coordinate. The same yaw rebuild as `_actorRenderSetYawScale`,
 /// expanded in place where the update body calls it.
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale)
 {

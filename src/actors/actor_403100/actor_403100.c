@@ -3619,9 +3619,9 @@ static void func_actor_403100_80132064(Task* arg0, SVECTOR* arg1, SVECTOR* arg2,
             random                                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState                       = random;
             D_actor_403100_80155814[i].spriteStep = (s16)((random >> 0x10) & 0xF);
-            coordLocalToWorld(joint, arg1);
+            _actorRenderTransformPointToWorld(joint, arg1);
             identity = &matrix;
-            coordLocalToWorld(joint, &end);
+            _actorRenderTransformPointToWorld(joint, &end);
             D_actor_403100_80155814[i].velocity.vx           = (s16)(end.vx - arg1->vx);
             D_actor_403100_80155814[i].velocity.vy           = (s16)(end.vy - arg1->vy);
             D_actor_403100_80155814[i].velocity.vz           = (s16)(end.vz - arg1->vz);
@@ -3744,7 +3744,7 @@ static void func_actor_403100_80132528(Task* arg0)
     pos.vx = -0x290;
     pos.vy = 0x1E8;
     pos.vz = 0x220;
-    coordLocalToWorld(joint, &pos);
+    _actorRenderTransformPointToWorld(joint, &pos);
     _actor403100GetWorldRotation(joint, &matrix);
     gfxExtractEulerAngles(&matrix, &rotation);
     player->rotation.vx = rotation.vx;
@@ -3981,7 +3981,7 @@ static void func_actor_403100_801331D4(Task* arg0)
         dz                                         = (u16)playerCoord->coord.t[2] - (u16)coords->coord.t[2];
         pos.vz                                     = dz;
         D_actor_403100_80155808->playerDistance    = SquareRoot0((dx * dx) + (dz * dz));
-        coordLocalToWorld(joint, &pos);
+        _actorRenderTransformPointToWorld(joint, &pos);
         dx2                                  = (u16)playerCoord->coord.t[0] - (u16)pos.vx;
         pos.vx                               = dx2;
         pos.vy                               = (u16)playerCoord->coord.t[1] - pos.vy;
@@ -4449,12 +4449,12 @@ static void func_actor_403100_801342B4(Task* arg0)
     pos1.vy = offset1.vy = 0x148;
     i                    = 3;
     pos1.vz = offset1.vz = 0x2C0;
-    coordLocalToWorld(coord1, &pos1);
+    _actorRenderTransformPointToWorld(coord1, &pos1);
     coord2  = &coords[7];
     pos2.vx = offset2.vx = 0;
     pos2.vy = offset2.vy = 0;
     pos2.vz = offset2.vz = 0;
-    coordLocalToWorld(coord2, &pos2);
+    _actorRenderTransformPointToWorld(coord2, &pos2);
     for (; i < 9; i++) {
         if (Actor403100_FindRegion(pos1.vx, pos1.vz) == i) {
             if (D_actor_403100_80155808->sectionDamaged[i] == 0) {

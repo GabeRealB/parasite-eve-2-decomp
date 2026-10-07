@@ -1792,14 +1792,14 @@ static inline void _actor206100SpawnShot(Task* task)
             tip.vx  = 0;
             tip.vy  = 0;
             tip.vz  = ACTOR_206100_SHOT_SPEED;
-            coordLocalToWorld(head, &base);
-            coordLocalToWorld(head, &tip);
+            _actorRenderTransformPointToWorld(head, &base);
+            _actorRenderTransformPointToWorld(head, &tip);
             shotTask->work = shot;
             shotCoord      = shotTask->extra.tmd->coords;
             pos.vx         = 0;
             pos.vy         = 0;
             pos.vz         = ACTOR_206100_SHOT_MUZZLE_DISTANCE;
-            coordLocalToWorld(head, &pos);
+            _actorRenderTransformPointToWorld(head, &pos);
             shotCoord->coord.t[0] = pos.vx;
             shotCoord->coord.t[1] = pos.vy;
             shotCoord->coord.t[2] = pos.vz;
@@ -1818,9 +1818,9 @@ static inline void _actor206100SpawnShot(Task* task)
 /// `ACTOR_206100_LOCKABLE_DEPTH` below `_Actor206100Work::waterLevel`, and
 /// puts it back above that.
 ///
-/// The part's origin is carried up the parent chain to the view coordinate as
-/// `coordLocalToWorld` does it. A chain that ends before the view leaves the
-/// position at zero, which counts as above the water.
+/// The part's origin is carried into world space by the same parent walk as
+/// `_actorRenderTransformPointToWorld`. A chain that ends before the view
+/// leaves the position at zero, which counts as above the water.
 static inline void _actor206100UpdateLockable(Task* task, u8 part)
 {
     _Actor206100Work* work;

@@ -52,7 +52,6 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/coord_math.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_contacts.h"
 #include "../../shared/boss_stranger.h"
@@ -1239,8 +1238,8 @@ static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
 /// three longs become its translation, the Euler angles go through
 /// `gfxRotMatrixX`, `gfxRotMatrixY` and `gfxRotMatrixZ`), then rebuilds and rescales that coordinate
 /// from the actor's own heading and caches the resulting yaw in the work
-/// block's `placedYaw`. The rescale `coordSetYawScale` performs is
-/// inlined behind the placement.
+/// block's `placedYaw`. The same yaw rebuild as `_actorRenderSetYawScale` is
+/// inlined after the placement.
 s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
 {
     _Actor110600Work* work;

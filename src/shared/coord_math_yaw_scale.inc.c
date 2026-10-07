@@ -1,39 +1,35 @@
 /* Part of the coord math library; see coord_math.h. */
 
-/// Rebuilds `coord`'s rotation as its current yaw alone, uniformly scaled by
-/// `scale`, working in a block borrowed from the scratch stack, and marks the
-/// coordinate dirty.
-void coordSetYawScale(GfxCoord* coord, s16 scale)
+/// Replaces a coordinate's rotation with its current yaw at a uniform scale.
+///
+/// `coord` must be live, writable and word-aligned. Heading is extracted from
+/// its local horizontal Z-axis terms, in 4096 units per turn. `uniformScale`
+/// is signed with 12 fractional bits (`ONE` is 1.0). Pitch, roll and previous
+/// scale are discarded; zero collapses the basis and negative scale reverses
+/// its axes. Translation, parent and stored Euler angles stay intact, and the
+/// composition cache is marked dirty.
+///
+/// Requires an initialized scratch stack with 0x58 free aligned bytes for one
+/// `ActorScaleRotScratch` and the nested yaw-matrix workspace. Both reservations
+/// are released before return; no pointer is retained.
+static void _actorRenderSetYawScale(GfxCoord* coord, s16 uniformScale)
 {
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
+    ActorScaleRotScratch* yawScratch;
+    s16                   yaw;
 
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
+    yawScratch = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleRotScratch);
 
-    ang      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->yaw = ang;
-    gfxRotMatrixY(&blk->rotation, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->rotation, &blk->scale);
+    // Rebuild from the heading so the requested scale replaces the old scale.
+    yaw             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    yawScratch->yaw = yaw;
+    gfxRotMatrixY(&yawScratch->rotation, yaw, GRAPHICS_ROTATION_REPLACE);
+    yawScratch->scale.vz = uniformScale;
+    yawScratch->scale.vy = uniformScale;
+    yawScratch->scale.vx = uniformScale;
+    ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
-    coord->coord.m[0][0] = (u16)(head - 1)->rotation.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->rotation.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->rotation.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->rotation.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->rotation.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->rotation.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->rotation.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->rotation.m[2][1];
-    m22                  = (u16)blk->rotation.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
+    // Install only rotation coefficients, preserving the coordinate's translation.
+    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

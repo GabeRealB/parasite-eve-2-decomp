@@ -47,7 +47,6 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/anim_driver.h"
 #include "../../shared/actor_contacts.h"

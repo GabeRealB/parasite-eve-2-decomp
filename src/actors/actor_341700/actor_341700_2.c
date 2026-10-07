@@ -36,7 +36,6 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_dumping_hole.h"
-#include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
 
 /// Values of `_Actor341700PropWork::state`.

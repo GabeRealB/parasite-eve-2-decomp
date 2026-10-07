@@ -1,9 +1,7 @@
-/* Small GfxCoord helpers actors carry privately: one rebuilds a coordinate's
- * rotation as its bare yaw at a uniform scale, the other carries a point from
- * a coordinate's local space up its parent chain into world space.
+/* Actor-render point transform with a static instance in each carrier.
  *
- * Include this header in the prologue and each fragment at its function's
- * position.
+ * Include this header in the prologue and coord_math_local_to_world.inc.c at
+ * the function's position. The uncalled yaw-scale fragment needs no prototype.
  */
 
 #ifndef SRC_SHARED_COORD_MATH_H
@@ -16,7 +14,6 @@
 
 #include "main/coord.h"
 
-void coordSetYawScale(GfxCoord* coord, s16 scale);
-s32  coordLocalToWorld(GfxCoord* coord, SVECTOR* pos);
+static s32 _actorRenderTransformPointToWorld(const GfxCoord* startCoord, SVECTOR* point);
 
 #endif /* SRC_SHARED_COORD_MATH_H */

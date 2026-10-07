@@ -405,6 +405,15 @@ The included world-yaw joint update in
 `src/shared/actor_contacts.h` declares its static per-carrier interface beside
 the contact routines it is carried with.
 
+The coordinate fragments `src/shared/coord_math_local_to_world.inc.c` and
+`src/shared/coord_math_yaw_scale.inc.c` also belong to `actorRender`, with
+static per-carrier instances. The point transform walks local matrices up to
+the excluded view node, narrowing to signed halfwords at each parent and
+committing the result only when it reaches the view. Its private implementation
+interface is `src/shared/coord_math.h`. The yaw rebuild has no callers and
+needs only its definition, while retaining the standalone body present in
+each carrier's image.
+
 The common walker frame state in `src/shared/walker_frame.inc.c` also belongs
 to `actorRender`: it composes the model root, samples lighting, calls the
 carrier's motion/animation update and draws its selected ground shadow.

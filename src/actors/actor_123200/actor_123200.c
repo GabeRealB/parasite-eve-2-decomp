@@ -41,7 +41,6 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/coord_math.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/anim_driver.h"
 

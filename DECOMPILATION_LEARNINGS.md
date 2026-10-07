@@ -93487,7 +93487,7 @@ joint  = &coord[1];          /* dead when player == NULL, and still hoisted */
 work->prevRootPos.vx = coord->coord.t[0];
 ...
 if (player != NULL) {
-    ActorCoordToView(joint, &view);
+    _actorRenderTransformPointToWorld(joint, &jointWorldPosition);
 ```
 
 GCC 2.8.1 has no sinking pass, so the speculative address just stays. This
