@@ -4671,8 +4671,6 @@ static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1)
     GfxCoord*        workCoord;
     GfxCoord*        coord;
     Actor403600Work* work;
-    MATRIX*          matrix;
-    MATRIX*          matrix2;
 
     coord = arg1->extra.tmd->coords;
     work  = memCalloc(sizeof(*work), false);
@@ -4683,23 +4681,13 @@ static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1)
 
     arg1->work                    = work;
     work->worldCoord.parent       = &gGfxViewCoord;
-    matrix                        = &work->worldCoord.coord;
-    MATRIX_PAIR(matrix, 0, 0)     = 0x1000;
-    MATRIX_PAIR(matrix, 0, 2)     = 0;
-    MATRIX_PAIR(matrix, 1, 1)     = 0x1000;
-    MATRIX_PAIR(matrix, 2, 0)     = 0;
-    matrix->m[2][2]               = 0x1000;
+    gfxSetRotIdentity(&work->worldCoord.coord);
     work->worldCoord.coord.t[0]   = coord->coord.t[0];
     work->worldCoord.coord.t[1]   = coord->coord.t[1];
     workCoord                     = &work->worldCoord;
     work->worldCoord.coord.t[2]   = coord->coord.t[2];
-    matrix2                       = &coord->coord;
     coord->parent                 = workCoord;
-    MATRIX_PAIR(matrix2, 0, 0)    = 0x1000;
-    MATRIX_PAIR(matrix2, 0, 2)    = 0;
-    MATRIX_PAIR(matrix2, 1, 1)    = 0x1000;
-    MATRIX_PAIR(matrix2, 2, 0)    = 0;
-    matrix2->m[2][2]              = 0x1000;
+    gfxSetRotIdentity(&coord->coord);
     coord->coord.t[1]             = 0x690;
     coord->coord.t[0]             = 0;
     coord->coord.t[2]             = 0x5DC;
