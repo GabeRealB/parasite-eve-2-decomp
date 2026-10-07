@@ -160,7 +160,7 @@ static void                 _actor460200SelectCaptionFile(s32 dataResourceOrdina
 static void                 func_actor_460200_80132124(void);
 static void                 _actor460200SetSceneEvent(s8 sceneEvent);
 
-void                                             func_actor_460200_80131E24(Task*);
+void func_actor_460200_80131E24(Task*);
 
 static AnimationSet _gActor460200Animation1C038;
 static AnimationSet _gActor460200Animation1C304;
