@@ -137519,7 +137519,7 @@ within this non-QI-store/fixed-scalar-load scope; no broader rule is proposed.
 The 99.720% retry seed had two independent register differences. For child
 spawn arguments, assigning 2/3 to a temporary before a compare makes that
 value global and live while the compare's local quantity owns v0. Following
-matched sibling ActorsShared80136c80, writing the store in each branch removes
+matched sibling _actor07000SlouchProjectileFly, writing the store in each branch removes
 that conflict; late cross-jumping and delay filling recover the shared store
 and the constant 2 in the branch slot (base_1, 99.840%).
 
@@ -145123,7 +145123,7 @@ loop. Written as the real loop, it also let loop.c hoist `&scratch->delta` while
 leaving `&scratch->normal` in the body, because the hoist threshold drops by 3
 for every invariant already moved.
 
-## `SCHED_BARRIER`s around a branch-selector local are per-arm field stores (Actor07000_Fn046B8, 2026-09-26)
+## `SCHED_BARRIER`s around a branch-selector local are per-arm field stores (_actor07000SlouchPickAction, 2026-09-26)
 
 An if-chain choosing a value written once at the join (`s16 branch; … branch = 2;
 if (!hit) branch = 1; work->field = branch;`) needed two `SCHED_BARRIER`s: jump
