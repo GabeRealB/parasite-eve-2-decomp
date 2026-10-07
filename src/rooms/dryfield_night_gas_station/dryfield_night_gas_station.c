@@ -2796,21 +2796,13 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
     u16        x2;
     SVECTOR*   vec;
     s32        val;
-    s32        one;
-    GfxMatrix* m;
     TILE*      tile;
     TILE_1*    tile1;
     LINE_G2*   line;
     DR_TPAGE*  dr;
 
     off                      = D_dryfield_night_gas_station_8017D650;
-    one                      = ONE;
-    m                        = &mtx;
-    mtx.rotationWords.m00M01 = one;
-    mtx.rotationWords.m02M10 = 0;
-    m->rotationWords.m11M12  = one;
-    mtx.rotationWords.m20M21 = 0;
-    m->rotationWords.m22     = one;
+    gfxSetRotIdentity(&mtx.mat);
     RotMatrixY((s16)(-0x262), &mtx.mat);
     vec = &D_dryfield_night_gas_station_80188580[arg0];
     ApplyMatrixSV(&mtx.mat, vec, &pos);
@@ -2847,11 +2839,7 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         setRGB0(tile1, 0xFF, 0, 0);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tile1);
 
-        mtx.rotationWords.m00M01 = one;
-        mtx.rotationWords.m02M10 = 0;
-        m->rotationWords.m11M12  = one;
-        mtx.rotationWords.m20M21 = 0;
-        m->rotationWords.m22     = one;
+        gfxSetRotIdentity(&mtx.mat);
         val                      = -0x262;
         RotMatrixY((s16)(val), &mtx.mat);
         ApplyMatrixSV(&mtx.mat, vec, &pos);
