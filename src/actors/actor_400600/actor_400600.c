@@ -3001,11 +3001,7 @@ static void func_actor_400600_801356E0(Task* arg0)
         coord->coord.t[1]        = 0;
         coord->coord.t[2]        = 0;
         pm                       = &m;
-        pm->rotationWords.m00M01 = ONE;
-        pm->rotationWords.m02M10 = 0;
-        pm->rotationWords.m11M12 = ONE;
-        pm->rotationWords.m20M21 = 0;
-        pm->rotationWords.m22    = ONE;
+        gfxSetRotIdentity(&pm->mat);
         RotMatrixY(-0x180, &pm->mat);
         mdst                   = &coord->coord;
         mdst->m[0][0]          = pm->mat.m[0][0];
@@ -3046,11 +3042,7 @@ static void func_actor_400600_801356E0(Task* arg0)
             tmdBuildBufferHalf(dst);
         }
         pm2                       = &m;
-        pm2->rotationWords.m00M01 = ONE;
-        pm2->rotationWords.m02M10 = 0;
-        pm2->rotationWords.m11M12 = ONE;
-        pm2->rotationWords.m20M21 = 0;
-        pm2->rotationWords.m22    = ONE;
+        gfxSetRotIdentity(&pm2->mat);
         RotMatrixY(0x180, &pm2->mat);
         mdst          = &coord->coord;
         mdst->m[0][0] = pm2->mat.m[0][0];
