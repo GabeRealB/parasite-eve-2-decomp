@@ -4451,7 +4451,7 @@ distinct global pseudos. Full evidence: `COMPILER_ANALYSIS.md`, UI case.
 
 ## Local quantity priority can determine which register reload reserves
 
-In `func_800A57B0`, moving each polygon y2 store next to its y3 store changes
+In `hudDrawStatusBlock`, moving each polygon y2 store next to its y3 store changes
 lower-Y's local quantity from 5 refs / 212 half-instructions (priority 471)
 to 5 / 188 (531). Its competitor stays at 520. Neither has a suggestion.
 The actual local allocator consequently changes lower-Y from t7 to t6.
@@ -28736,7 +28736,7 @@ store:
 after_uv:
 ```
 
-`func_800A63B4` is the example. `if (kind != 1) { … slti … } else { u = 0xA8; }`
+`hudDrawRadarMarker` is the example. `if (kind != 1) { … slti … } else { u = 0xA8; }`
 was 98.3% — same tests, but default landed before case 1.
 
 ## Assign the loop compare constant before the item-table switch
@@ -30818,20 +30818,21 @@ lbu   v0, 0x4e(v1)
 
 One pointer (`obj = container_of(...); obj->field |= 0x80;` plus
 `func(obj, ...)`) allocates the address straight to `$t0` and leaves a
-`nop` in the `beq` delay slot. Keep two typed views of the same object
+`nop` in the `beq` delay slot. Keep two typed pointers to the same object
 so GCC emits the subtract into `$v1` and the copy into `$t0`:
 
 ```c
-enemy = (Enemy*)((u8*)node - OFFSET_OF(Enemy, node));
-obj54 = (GpObj54*)enemy;
-if (arg0 == 0) {
-    enemy->colorMode |= 0x80;
+enemy = GP_NODE_ENEMY(node);
+contactEnemy = enemy;
+if (release == 0) {
+    enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
 } else {
-    attachmentAddTargetContact(obj54, payload);
+    attackKey = _attachmentCurrentAttackKey();
+    attachmentAddTargetContact(contactEnemy, attackKey);
 }
 ```
 
-`func_800A4904` is the example.
+`attachmentTargetAll` is the example.
 
 ## Subtract globals in one expression so the pointer stays in `$a0`
 
@@ -36566,7 +36567,7 @@ t <<= 16;
 t >>= 20;
 ```
 
-`Gp_InitSlot18` is the example.
+`attachmentTargetEllipsoid` is the example.
 
 ## Pin `$t2` / `$v1` together so `sw ra` sits after `ori` of the scratch head
 
@@ -41089,9 +41090,9 @@ static __inline__ void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR
 }
 ```
 
-`Gp_DrawAimCircle` is the example (98.7% -> 99.7% from this alone). The same
+`attachmentDrawAreaWireframe` is the example (98.7% -> 99.7% from this alone). The same
 trick helps whenever two loops repeat an identical block: factoring the
-`LINE_F2` + `addPrim` tail of `Gp_DrawAimCircle` into a second `static
+`LINE_F2` + `addPrim` tail of `attachmentDrawAreaWireframe` into a second `static
 __inline__` helper also changed loop-invariant motion so the `0xFFFFFF`
 `setaddr` mask hoisted out of the *outer* loop the way the target does
 (99.7% -> 99.96%).
@@ -57667,7 +57668,7 @@ shape; add the missing arity there rather than declaring a bare array.
 The same test can come out the other way, and then the wrapper type is the
 scaffold. The HP/MP HUD's seven status-icon masks sat in gameplay as a
 `const` struct-of-`u16[7]` global defined in `attachment_stats.c` and copied by
-`func_800A57B0` in `linked_actors.c`. Their rodata offset (`0x9C`) follows the
+`hudDrawStatusBlock` in `linked_actors.c`. Their rodata offset (`0x9C`) follows the
 labels of an earlier text unit and precedes the label of a later one, with no
 gap either side, so nothing contradicts the copying function owning them: the
 source is a block-scope `u16 iconStatusMasks[7] = { ... }`. In a hand-written
@@ -65907,7 +65908,7 @@ slot. Wrapping only the retry test did not have this effect.
 
 ## Reusing a pointer across disjoint blocks can inherit a call-argument register preference
 
-`func_800A5574` reached 99.580% with only `regs=12`: a local scratch-head
+`attachmentTargetCylinder` reached 99.580% with only `regs=12`: a local scratch-head
 address took `$v0`, its loaded head took `$v1`, and `gWorldTargetListHead`'s high address
 took `$a0`. The target wanted `$a0`, `$v0`, `$v1`, respectively. Inlining the
 scratch address did not change the allocation.
@@ -67200,7 +67201,7 @@ that patch before compensating in C for a missing `nop` between a reload and
 target still score as register differences against `%lo(gGpuPrimCursor)`;
 linking at the original addresses verifies all 3716 original instruction bytes.
 
-## `func_800A57B0`: statement order picks local-quantity spans, resident constants and store placement
+## `hudDrawStatusBlock`: statement order picks local-quantity spans, resident constants and store placement
 
 The party HP/MP HUD sat at 97.5% for 45 builds of register nudging; every
 remaining difference was a ranking or a scheduler tie decided by *where a
@@ -83669,7 +83670,7 @@ The reload is still emitted at the switch label on both paths — merging the
 variables does not CSE it away, because the label is also reached straight from
 the switch.
 
-**Generalisation.** This is the same mechanism as the `func_800A5574` entry
+**Generalisation.** This is the same mechanism as the `attachmentTargetCylinder` entry
 above, from the other side: there a hand-written body had to start *reusing* a
 pointer, here m2c's split has to be undone. Either way the tell is a `regs`
 penalty where one *value* is wrong in every operand, and the decision procedure
@@ -145434,7 +145435,7 @@ and split the read into a non-volatile `*(s16*)&g` and a volatile copy. The
 same function's pins on the `0x140` constant (`t7`) and on the return value
 (`v0`) went away with an `s16` step parameter and an early `return 1` in the
 finished case; no pin or cast was needed.
-## Overlapping stack buffers can be inline frames, not a function-scope union (func_800A57B0, 2026-09-26)
+## Overlapping stack buffers can be inline frames, not a function-scope union (hudDrawStatusBlock, 2026-09-26)
 
 A HUD function's 0x50-byte scratch was modelled as a union (`buf`/`req` for two
 number draws, `label`/`req`/`obj` for the captions, `rect`/status masks
@@ -145442,16 +145443,16 @@ later), and it needed `DEF_REG` after each call: with one union, CSE keeps
 `&loc.req` in an `$s` register across calls, while the target recomputes
 `addiu a0,sp,0x28` before each one. The overlap came from `static inline`
 helpers instead. An inline expansion's frame is a temp slot, it is released
-after the call, and its locals are addressed per expansion, so `&req` is never
-CSE'd across calls. One helper with `buf` and `req` draws both numbers. A
-block-scope `UiObject obj` comes next and takes a fresh slot. Its address is
+after the call, and its locals are addressed per expansion, so `&request` is never
+CSE'd across calls. One helper with `digits` and `request` draws both numbers. A
+block-scope `UiObject labelPanel` comes next and takes a fresh slot. Its address is
 never taken, so it is freed at the block's end. A second helper declares both
-captions' requests and takes `&obj`. The final `rect` block then reuses the
+captions' requests and takes `&labelPanel.panel`. The final `rect` block then reuses the
 merged free run at the bottom. Address-taken block locals would not work here:
 they stay allocated (see `preserve_temp_slots` above), so `rect` would land
-past them. A caption reading `obj->baseX` right after the stores folds to the
+past them. A caption reading `panel->contentOriginX.unsignedValue` right after the stores folds to the
 constant, and the one after the call reloads it from the stack. That
-asymmetry means one obj-relative draw was used twice, not two differently
+asymmetry means one panel-relative draw was used twice, not two differently
 written draws.
 
 ## A block-local `x++` on a global can never put the count in `$a0` while its `%hi` sits in `$v1` (_cdAudioReadHeaderDriver, 2026-09-26)
@@ -150786,7 +150787,7 @@ constant).
   (`_stageSpawnModeTask`) pivots on the third of `1 3 4 ...`, so two single
   values or one range sat above 4 (a range counts twice in
   `balance_case_nodes`). `beq 2; sltiu x,3 -> default; beq 3; bne 4`
-  (`_playerActorRecordHazardContact`) and `beq 1; slti x,2 -> default; bnez` (`func_800A63B4`)
+  (`_playerActorRecordHazardContact`) and `beq 1; slti x,2 -> default; bnez` (`hudDrawRadarMarker`)
   are four and three nodes with one no-op node whose test was deleted in
   front of the jump to the same label. The value of such a node is not
   recoverable; it is marked as a placeholder in the source.

@@ -381,7 +381,7 @@ void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
                 }
                 break;
             case ATTACHMENT_AREA_ELLIPSOID:
-                Gp_InitSlot18(arg0, radiusWorld, extentWorld, area->ahead);
+                attachmentTargetEllipsoid(arg0, radiusWorld, extentWorld, area->ahead);
                 if (hud != NULL) {
                     ahead               = area->ahead;
                     hud->radarRange     = radiusWorld;
@@ -389,7 +389,7 @@ void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
                 }
                 break;
             case ATTACHMENT_AREA_CYLINDER:
-                func_800A5574(arg0, radiusWorld, extentWorld, area->ahead);
+                attachmentTargetCylinder(arg0, radiusWorld, extentWorld, area->ahead);
                 if (hud != NULL) {
                     ahead               = area->ahead;
                     hud->radarRange     = radiusWorld;
@@ -397,7 +397,7 @@ void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
                 }
                 break;
             case ATTACHMENT_AREA_ALL:
-                func_800A4904(arg0);
+                attachmentTargetAll(arg0);
                 if (hud != NULL) {
                     hud->radarRangeIcon = HUD_RADAR_RANGE_AROUND;
                     hud->radarRange     = 0x3FFF;
@@ -1693,7 +1693,7 @@ void Gp_HudTask(HudState* hud)
             }
             if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY) {
                 if (gGameSession->hideHud == 0) {
-                    func_800A57B0(hud);
+                    hudDrawStatusBlock(hud);
                     if (equipmentHasEffect(EQUIPMENT_EFFECT_MOTION_DETECTOR) != 0) {
                         if (gGameSession->sceneUpdatesPaused == 0) {
                             Gp_DrawHudSprites(hud);
@@ -1729,7 +1729,7 @@ void Gp_HudTask(HudState* hud)
                 attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
                 hud->suppression         = HUD_SUPPRESS_ALL;
             } else if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY && gGameSession->hideHud == 0) {
-                func_800A57B0(hud);
+                hudDrawStatusBlock(hud);
             } else {
                 hud->suppression = HUD_SUPPRESS_ALL;
             }

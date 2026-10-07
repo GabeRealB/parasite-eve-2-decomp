@@ -81,7 +81,7 @@ segments:
       - [0x28, .rodata, model_lighting] # play-clock punctuation
       - [0x30, .rodata, ending] # play-clock state table and battle-result labels
       - [0x78, .rodata, attachment_stats] # jtbl from Gp_ApplyAttachStats, then the prompt labels
-      - [0x9C, .rodata, linked_actors] # status-icon mask initializer of func_800A57B0
+      - [0x9C, .rodata, linked_actors] # status-icon mask initializer of hudDrawStatusBlock
       - [0xAC, .rodata, hud_sprites] # hidden-amount label
       - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
       - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from menuMapGetMarkerState
@@ -118,7 +118,7 @@ segments:
       - [0xDD58, c, attachments] # Gp_GetAttachParam
       - [0xDE34, c, attachment_stats] # Gp_ApplyAttachStats
       - [0x10DF0, c, attach_combo] # Gp_UpdateAttachCombo
-      - [0x11104, c, linked_actors] # func_800A4904
+      - [0x11104, c, linked_actors] # attachmentTargetAll
       - [0x12C80, c, hud_sprites] # Gp_DrawHudSprites
       - [0x15810, c, view_load] # Gp_ViewBeginLoad
       - [0x159CC, c, view_image] # Gp_ViewLoadImage

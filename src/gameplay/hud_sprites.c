@@ -380,7 +380,7 @@ void Gp_DrawHudSprites(HudState* hud)
     y -= gDisplayState.vramYOffset;
     cx = x + 0x23;
     cy = y + 0x23;
-    func_800A63B4(cx, cy, 0);
+    hudDrawRadarMarker(cx, cy, HUD_RADAR_MARKER_PLAYER);
     node  = gWorldTargetListHead;
     block = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
     mode  = equipmentHasEffect(EQUIPMENT_EFFECT_ARMOR_MOTION_DETECTOR);
@@ -421,9 +421,9 @@ void Gp_DrawHudSprites(HudState* hud)
             vz                 = (s16)(block->position.vz + 0x80) >> 8;
             block->position.vz = vz;
             if (node->state.parts.targeted != 0) {
-                func_800A63B4(cx + block->position.vx, cy - vz, 2);
+                hudDrawRadarMarker(cx + block->position.vx, cy - vz, HUD_RADAR_MARKER_TARGETED);
             } else {
-                func_800A63B4(cx + block->position.vx, cy - vz, 1);
+                hudDrawRadarMarker(cx + block->position.vx, cy - vz, HUD_RADAR_MARKER_ENEMY);
             }
         }
     }
@@ -1017,7 +1017,7 @@ void func_800A77B4(Task* arg0)
 void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg0 == 0) {
-        Gp_DrawAimCircle(0, arg1, arg2, 5);
+        attachmentDrawAreaWireframe(0, arg1, arg2, ATTACHMENT_AREA_WIREFRAME_CYLINDER | ATTACHMENT_AREA_WIREFRAME_PROJECTILE);
     }
 }
 

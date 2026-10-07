@@ -188,8 +188,8 @@ unmatched; the analysis establishes the responsible pass, not a final source fix
 
 ## HUD: local ranking determines the register reload later reserves
 
-Function: `func_800A57B0`. Compare `base_26` and `base_29` from
-`tools/giveups/func_800A57B0/sessions/0e45e381017a4bfcbbc172cb77813a37/aa351635f2f7f19031b3/`.
+Function: `hudDrawStatusBlock`. Compare `base_26` and `base_29` from
+`tools/giveups/hudDrawStatusBlock/sessions/0e45e381017a4bfcbbc172cb77813a37/aa351635f2f7f19031b3/`.
 
 The source change places each polygon's y2 store immediately after its y3
 store. In block 46 it changes the death of lower-Y's local quantity:
