@@ -230,7 +230,7 @@ s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1)
 {
     InventoryItemRow* tmp;
     InventoryItemRow* table;
-    InventoryItemRow* rec;
+    InventoryItemRow* row;
     s32               i;
     s32               acc;
     s32               count;
@@ -260,13 +260,13 @@ s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1)
     if (count != 0) {
         limit = count;
 
-        rec = gpItemRowAt(table, start);
+        row = gpItemRowAt(table, start);
         do {
-            if (rec->itemId == arg1) {
-                acc += rec->qty;
+            if (row->itemId == arg1) {
+                acc += row->qty;
             }
             i++;
-            rec++;
+            row++;
         } while (i < limit);
     }
     return acc;
@@ -559,19 +559,19 @@ static void Gp_SetPlayerScan(s32 arg0)
 void Gp_SyncHeldRelated(void)
 {
     PlayerStatus* p;
-    s32           idx;
-    u8            item;
+    s32           weaponItemId;
+    u8            primaryItemId;
 
     p = &gPlayerStatus;
     if (p->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
         p->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
     } else {
-        idx  = p->weapon + 0x7F;
-        item = gpItemSlot(idx)->primaryItemId;
-        if (item == 0) {
+        weaponItemId  = p->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+        primaryItemId = _equipmentGetWeaponLoad(weaponItemId)->primaryItemId;
+        if (primaryItemId == INVENTORY_ITEM_NONE) {
             p->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
         } else {
-            p->weaponSlotItem = item + 0x61;
+            p->weaponSlotItem = primaryItemId + 0x61;
         }
     }
     func_801061F0();

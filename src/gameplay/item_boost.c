@@ -690,21 +690,21 @@ void Gp_InitModeEquip(void)
     InventoryItemRange* scan;
     InventoryItemRow*   tmp;
     InventoryItemRow*   table;
-    InventoryItemRow*   rec;
+    InventoryItemRow*   row;
     s32                 i;
     s32                 acc;
     s32                 count;
     s32                 start;
     s32                 limit;
 
-    s32 item;
-    u8  slotItem;
+    s32 weaponItemId;
+    u8  primaryItemId;
 
     cfg = &gPlayerStatus;
     acc = 0;
     if (cfg->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
-        scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-        item = 0x81;
+        scan         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+        weaponItemId = 0x81;
         switch (scan->tableId) {
             case INVENTORY_ITEM_TABLE_AREA_GRANTS:
                 tmp = Gp_ItemTable2;
@@ -723,13 +723,13 @@ void Gp_InitModeEquip(void)
         if (count != 0) {
             limit = count;
 
-            rec = gpItemRowAt(table, start);
+            row = gpItemRowAt(table, start);
             do {
-                if (rec->itemId == item) {
-                    acc += rec->qty;
+                if (row->itemId == weaponItemId) {
+                    acc += row->qty;
                 }
                 i++;
-                rec++;
+                row++;
             } while (i < limit);
         }
         if (acc != 0) {
@@ -737,9 +737,9 @@ void Gp_InitModeEquip(void)
         }
     }
     if (cfg->weapon == 2) {
-        item     = 0x81;
-        slotItem = gpItemSlot(item)->primaryItemId;
-        if ((slotItem == 0) || (slotItem == 0xA0)) {
+        weaponItemId  = 0x81;
+        primaryItemId = _equipmentGetWeaponLoad(weaponItemId)->primaryItemId;
+        if ((primaryItemId == INVENTORY_ITEM_NONE) || (primaryItemId == 0xA0)) {
             Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 0xA0, -1);
         }
     }
@@ -859,7 +859,7 @@ s32 Gp_CountScanItems(InventoryItemRange* arg0)
 {
     InventoryItemRow* tmp;
     InventoryItemRow* table;
-    InventoryItemRow* rec;
+    InventoryItemRow* row;
     s32               i;
     s32               ret;
     s32               count;
@@ -885,13 +885,13 @@ s32 Gp_CountScanItems(InventoryItemRange* arg0)
     if (count != 0) {
         limit = count;
 
-        rec = gpItemRowAt(table, start);
+        row = gpItemRowAt(table, start);
         do {
-            if (rec->itemId != INVENTORY_ITEM_NONE) {
+            if (row->itemId != INVENTORY_ITEM_NONE) {
                 ret++;
             }
             i++;
-            rec++;
+            row++;
         } while (i < limit);
     }
     return ret;
@@ -905,11 +905,11 @@ EquipmentWeaponLoad* equipmentGetWeaponLoad(s32 weaponItemId)
 s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
 {
     InventoryItemRow*    table;
-    EquipmentWeaponLoad* slot;
+    EquipmentWeaponLoad* weaponLoad;
     s32                  count;
     s32                  i;
     s32                  end;
-    s32                  itemId;
+    s32                  weaponItemId;
 
     table = inventoryGetRangeTable(arg0);
     count = 0;
@@ -918,14 +918,14 @@ s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1)
         end = i + arg0->rowCount;
         if (i < end) {
             for (; i < arg0->firstRow + arg0->rowCount; i++) {
-                itemId = table[i].itemId;
-                if ((u32)(itemId - 0x80) < 0x20) {
-                    slot = gpItemSlot(itemId);
-                    if (slot->primaryItemId == arg1) {
-                        count += slot->primaryQty;
+                weaponItemId = table[i].itemId;
+                if ((u32)(weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems)) {
+                    weaponLoad = _equipmentGetWeaponLoad(weaponItemId);
+                    if (weaponLoad->primaryItemId == arg1) {
+                        count += weaponLoad->primaryQty;
                     }
-                    if (slot->secondaryItemId == arg1) {
-                        count += slot->secondaryQty;
+                    if (weaponLoad->secondaryItemId == arg1) {
+                        count += weaponLoad->secondaryQty;
                     }
                 }
             }

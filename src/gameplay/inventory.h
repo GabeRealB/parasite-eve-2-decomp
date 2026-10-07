@@ -45,23 +45,29 @@ typedef struct {
 } ArmorStats;
 STATIC_ASSERT_SIZEOF(ArmorStats, 0x8);
 
-/// The element an accessor was handed. An inlined function's argument is
-/// expanded as an address, scaled index first, which is the order the
-/// callers' element addresses have (see `gpAreaPlaceRef`).
-static inline InventoryItemRow* gpItemRowRef(InventoryItemRow* row)
+/// Returns the supplied inventory-row pointer without accessing the row.
+///
+/// The result aliases `row`; ownership and lifetime stay with its table.
+/// Sorting or transferring items can replace the contents at that address.
+static inline InventoryItemRow* _inventoryRowRef(InventoryItemRow* row)
 {
+    // Keeping the indexed address in the argument preserves offset-first addition.
     return row;
 }
 
 /// Row `index` elements after `rows`.
 /// The result borrows `rows`; `index` must name a row in that table.
-#define gpItemRowAt(rows, index) gpItemRowRef(&(rows)[index])
+#define gpItemRowAt(rows, index) _inventoryRowRef(&(rows)[index])
 
-/// Inline form of `equipmentGetWeaponLoad`: weapon `item`'s entry in the save's
-/// per-weapon equipment table.
-static inline EquipmentWeaponLoad* gpItemSlot(s32 item)
+/// Borrows the live save's writable load record for a weapon item id.
+///
+/// `weaponItemId` must be 0x80..0x9F; there is no bounds check or none sentinel.
+/// The record is indexed by item id, independently of inventory position or
+/// which weapon is equipped. Loading or resetting the live save can replace
+/// its contents. This is the inline form of `equipmentGetWeaponLoad`.
+static inline EquipmentWeaponLoad* _equipmentGetWeaponLoad(s32 weaponItemId)
 {
-    return &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[item - EQUIPMENT_WEAPON_ITEM_FIRST];
+    return &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
 }
 
 #endif // GAMEPLAY_PRIVATE_INVENTORY_H

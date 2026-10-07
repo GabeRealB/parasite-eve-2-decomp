@@ -383,7 +383,7 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
 {
     InventoryItemRow*         tmp;
     InventoryItemRow*         table;
-    InventoryItemRow*         rec;
+    InventoryItemRow*         row;
     s32                       i;
     s32                       occupied;
     s32                       count;
@@ -392,7 +392,7 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
     s32                       used;
     s32                       found;
     InventoryItemRow*         table2;
-    InventoryItemRow*         walker;
+    InventoryItemRow*         stackRow;
     s32                       count2;
     s32                       start2;
     InventoryConsumableStack* stacks;
@@ -418,13 +418,13 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
     occupied = i;
     if (count != 0) {
         limit = count;
-        rec   = gpItemRowAt(table, start);
+        row   = gpItemRowAt(table, start);
         do {
-            if (rec->itemId != INVENTORY_ITEM_NONE) {
+            if (row->itemId != INVENTORY_ITEM_NONE) {
                 occupied++;
             }
             i++;
-            rec++;
+            row++;
         } while (i < limit);
     }
 
@@ -454,20 +454,20 @@ static s32 Gp_CanAddItemQty(InventoryItemRange* arg0, s32 arg1, s32 arg2)
         i      = 0;
         count2 = arg0->rowCount;
         if (count2 != 0) {
-            stacks = Gp_StackLimits;
-            idx    = arg1 - 0xA0;
-            stack  = gpStackLimitAt(stacks, idx);
-            walker = gpItemRowAt(table2, start2);
+            stacks   = Gp_StackLimits;
+            idx      = arg1 - 0xA0;
+            stack    = gpStackLimitAt(stacks, idx);
+            stackRow = gpItemRowAt(table2, start2);
             do {
-                if (walker->itemId == arg1) {
+                if (stackRow->itemId == arg1) {
                     found = 2;
-                    if (stack->maxHeld >= walker->qty + arg2) {
+                    if (stack->maxHeld >= stackRow->qty + arg2) {
                         found = 1;
                     }
                     break;
                 }
                 i++;
-                walker++;
+                stackRow++;
             } while (i < count2);
         }
 
@@ -487,7 +487,7 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
 {
     InventoryItemRow*         tmp;
     InventoryItemRow*         table;
-    InventoryItemRow*         rec;
+    InventoryItemRow*         row;
     s32                       i;
     s32                       occupied;
     s32                       count;
@@ -496,7 +496,7 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
     s32                       used;
     s32                       found;
     InventoryItemRow*         table2;
-    InventoryItemRow*         walker;
+    InventoryItemRow*         stackRow;
     s32                       count2;
     s32                       start2;
     InventoryConsumableStack* stacks;
@@ -522,13 +522,13 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
     occupied = i;
     if (count != 0) {
         limit = count;
-        rec   = gpItemRowAt(table, start);
+        row   = gpItemRowAt(table, start);
         do {
-            if (rec->itemId != INVENTORY_ITEM_NONE) {
+            if (row->itemId != INVENTORY_ITEM_NONE) {
                 occupied++;
             }
             i++;
-            rec++;
+            row++;
         } while (i < limit);
     }
 
@@ -555,13 +555,13 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
         i      = 0;
         count2 = arg0->rowCount;
         if (count2 != 0) {
-            stacks = Gp_StackLimits;
-            idx    = arg1 - 0xA0;
-            stack  = gpStackLimitAt(stacks, idx);
-            walker = gpItemRowAt(table2, start2);
+            stacks   = Gp_StackLimits;
+            idx      = arg1 - 0xA0;
+            stack    = gpStackLimitAt(stacks, idx);
+            stackRow = gpItemRowAt(table2, start2);
             do {
-                if (walker->itemId == arg1) {
-                    if (walker->qty < stack->maxHeld) {
+                if (stackRow->itemId == arg1) {
+                    if (stackRow->qty < stack->maxHeld) {
                         found = 1;
                     } else {
                         found = 2;
@@ -569,7 +569,7 @@ s32 Gp_CanAddItem(InventoryItemRange* arg0, s32 arg1)
                     break;
                 }
                 i++;
-                walker++;
+                stackRow++;
             } while (i < count2);
         }
 

@@ -78,20 +78,20 @@ void Gp_ApplyItemMap(void)
 {
     s32                    i;
     EquipmentWeaponSupply* supply;
-    EquipmentWeaponLoad*   slot;
+    EquipmentWeaponLoad*   weaponLoad;
     s32                    weaponItemId;
 
     // Install each built-in supply at its load's capacity.
     for (i = 0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
         supply       = &Gp_ItemMaps[i];
         weaponItemId = supply->weaponItemId;
-        slot         = gpItemSlot(weaponItemId);
+        weaponLoad   = _equipmentGetWeaponLoad(weaponItemId);
         if (supply->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
-            slot->primaryItemId = supply->supplyItemId;
-            slot->primaryQty    = _gpRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+            weaponLoad->primaryItemId = supply->supplyItemId;
+            weaponLoad->primaryQty    = _gpRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
         } else {
-            slot->secondaryItemId = supply->supplyItemId;
-            slot->secondaryQty    = _gpRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+            weaponLoad->secondaryItemId = supply->supplyItemId;
+            weaponLoad->secondaryQty    = _gpRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
         }
     }
 }
