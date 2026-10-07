@@ -1073,7 +1073,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017F140, { NULL } },                                    // 0x214
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_savanna_zone_8017ED58, { NULL } },                                     // 0x215
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_south_promenade_8017EA6C, { NULL } },                                  // 0x216
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_shrine_801811EC, { NULL } },                                           // 0x217
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkShrineRoomVisualEffectsSparkBurstTask, { NULL } },                            // 0x217
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_nursery_80184074, { NULL } },                                       // 0x218
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_801812D0, { NULL } },                                           // 0x219
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pyramid_8017EF9C, { NULL } },                                          // 0x21A

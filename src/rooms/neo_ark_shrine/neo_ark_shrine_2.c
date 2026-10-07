@@ -81,6 +81,76 @@ typedef struct {
 } _NeoArkShrineFallingPropWork;
 STATIC_ASSERT_SIZEOF(_NeoArkShrineFallingPropWork, 0x48);
 
+/// Puzzle state destinations, room selectors and transition timing used below.
+enum {
+    NEO_ARK_SHRINE_PUZZLE_STATE_IDLE           = 2,
+    NEO_ARK_SHRINE_PUZZLE_STATE_COMMAND_RESULT = 4,
+    NEO_ARK_SHRINE_LAYOUT_BASE                 = 1,
+    NEO_ARK_SHRINE_LAYOUT_ACTIVE               = 2,
+    NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL    = 4,
+    NEO_ARK_SHRINE_LAYOUT_ACTIVE_AFTER_REVEAL  = 5,
+    NEO_ARK_SHRINE_LAYOUT_ENEMIES_RELEASED     = 6,
+    NEO_ARK_SHRINE_ROOM_VIEW                   = 10,
+    NEO_ARK_SHRINE_LAYOUT_WAIT_FRAMES          = 30,
+    NEO_ARK_SHRINE_LAYOUT_RUMBLE_FRAMES        = 18,
+    NEO_ARK_SHRINE_LAYOUT_RUMBLE_START         = 48,
+    NEO_ARK_SHRINE_LAYOUT_RUMBLE_END           = 144,
+};
+
+/// Starts a puzzle layout transition and its motor ramp with a fresh frame timer.
+///
+/// `task` must be a stable, live `Task*` with owned `NeoArkShrinePuzzleWork`;
+/// it is evaluated three times. `active` is evaluated once and must be 0 or 1.
+/// Borrows port 0's action prompt and requires the puzzle drawing resources.
+/// Expands to a braced block with locals `prompt` and `work`; arguments must
+/// not name either local. Invoke inside a braced statement context.
+#define NEO_ARK_SHRINE_BEGIN_LAYOUT(task, active)                                                              \
+    {                                                                                                          \
+        ActionPrompt*           prompt = D_80114D28;                                                           \
+        NeoArkShrinePuzzleWork* work   = (task)->work;                                                         \
+                                                                                                               \
+        padScriptSpawnVariableMotorRamp(NEO_ARK_SHRINE_LAYOUT_RUMBLE_FRAMES,                                   \
+                                        NEO_ARK_SHRINE_LAYOUT_RUMBLE_START, NEO_ARK_SHRINE_LAYOUT_RUMBLE_END); \
+        D_neo_ark_shrine_80186868 = (active);                                                                  \
+        prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;                                                 \
+        prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;                                               \
+        neoArkShrineDrawPuzzleFrame((task));                                                                   \
+        work->timer = 0;                                                                                       \
+        (task)->state++;                                                                                       \
+    }
+
+/// Waits thirty puzzle frames, publishes the selected layout and returns to idle.
+///
+/// `task` must be a stable, live `Task*` with owned `NeoArkShrinePuzzleWork`;
+/// it is evaluated twice, or three times when returning to idle. Its u16 timer
+/// counts puzzle frames with wraparound. The two layout arguments must be
+/// stable byte-valued room selectors; only the selected one is evaluated, twice.
+/// Borrows port 0's action prompt and requires the puzzle drawing resources.
+/// Expands to a braced block with locals `prompt` and `work`; arguments must
+/// not name either local. Invoke inside a braced statement context.
+#define NEO_ARK_SHRINE_WAIT_LAYOUT(task, beforeRevealLayout, afterRevealLayout)                    \
+    {                                                                                              \
+        ActionPrompt*           prompt = D_80114D28;                                               \
+        NeoArkShrinePuzzleWork* work   = (task)->work;                                             \
+                                                                                                   \
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;                                           \
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;                                         \
+        work->timer         = work->timer + 1;                                                     \
+        neoArkShrineDrawPuzzleFrame((task));                                                       \
+        if (work->timer >= NEO_ARK_SHRINE_LAYOUT_WAIT_FRAMES) {                                    \
+            /* Update both locations in each branch before requesting the object rebuild. */       \
+            if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {                                           \
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = (beforeRevealLayout); \
+                gGameSession->location.loc.room                            = (beforeRevealLayout); \
+            } else {                                                                               \
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = (afterRevealLayout);  \
+                gGameSession->location.loc.room                            = (afterRevealLayout);  \
+            }                                                                                      \
+            gGameSession->roomObjsDirty = true;                                                    \
+            (task)->state               = NEO_ARK_SHRINE_PUZZLE_STATE_IDLE;                        \
+        }                                                                                          \
+    }
+
 static void _actionPromptResetDefault(Task* task);
 static void _neoArkShrineUpdateFallingPropLighting(Task* task);
 static void _neoArkShrineDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -100,19 +170,19 @@ extern SVECTOR D_neo_ark_shrine_80182704[];
 /// Offset of the beam's far end from the effect's parent coordinate.
 
 static void func_neo_ark_shrine_8017ECC4(Task* task);
-static void func_neo_ark_shrine_8017EDAC(Task* task);
-static void func_neo_ark_shrine_8017EDE0(Task* task);
+static void _neoArkShrinePreparePuzzleCursor(Task* task);
+static void _neoArkShrineOpenPuzzleCommands(Task* task);
 static void func_neo_ark_shrine_8017EE44(Task* task);
-static void func_neo_ark_shrine_8017EED4(Task* task);
-static void func_neo_ark_shrine_8017EF68(Task* task);
-static void func_neo_ark_shrine_8017EFE4(Task* task);
-static void func_neo_ark_shrine_8017F094(Task* task);
+static void _neoArkShrineClosePuzzle(Task* task);
+static void _neoArkShrineBeginPuzzleLayoutActivation(Task* task);
+static void _neoArkShrineWaitPuzzleLayoutActivation(Task* task);
+static void _neoArkShrineBeginPuzzleEnemyRelease(Task* task);
 static void func_neo_ark_shrine_8017F0F0(Task* task);
 static void func_neo_ark_shrine_8017F178(Task* task);
-static void func_neo_ark_shrine_8017F21C(Task* task);
-static void func_neo_ark_shrine_8017F274(Task* task);
-static void func_neo_ark_shrine_8017F320(Task* task);
-static void func_neo_ark_shrine_8017F398(Task* task);
+static void _neoArkShrineWaitPuzzleEnemyReveal(Task* task);
+static void _neoArkShrineFinishPuzzleEnemyRelease(Task* task);
+static void _neoArkShrineBeginPuzzleLayoutRestoration(Task* task);
+static void _neoArkShrineWaitPuzzleLayoutRestoration(Task* task);
 static void _neoArkShrineInitializeFirstFallingProp(Task* task);
 static void func_neo_ark_shrine_8017F578(Task* task);
 static void func_neo_ark_shrine_8017F640(Task* task);
@@ -123,21 +193,21 @@ static void func_neo_ark_shrine_8017F738(Task* task);
 static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
     {
         func_neo_ark_shrine_8017ECC4,
-        func_neo_ark_shrine_8017EDAC,
+        _neoArkShrinePreparePuzzleCursor,
         func_neo_ark_shrine_8017D9A0,
-        func_neo_ark_shrine_8017EDE0,
+        _neoArkShrineOpenPuzzleCommands,
         func_neo_ark_shrine_8017EE44,
-        func_neo_ark_shrine_8017EED4,
+        _neoArkShrineClosePuzzle,
         func_neo_ark_shrine_8017DB10,
-        func_neo_ark_shrine_8017EF68,
-        func_neo_ark_shrine_8017EFE4,
-        func_neo_ark_shrine_8017F094,
+        _neoArkShrineBeginPuzzleLayoutActivation,
+        _neoArkShrineWaitPuzzleLayoutActivation,
+        _neoArkShrineBeginPuzzleEnemyRelease,
         func_neo_ark_shrine_8017F0F0,
         func_neo_ark_shrine_8017F178,
-        func_neo_ark_shrine_8017F21C,
-        func_neo_ark_shrine_8017F274,
-        func_neo_ark_shrine_8017F320,
-        func_neo_ark_shrine_8017F398,
+        _neoArkShrineWaitPuzzleEnemyReveal,
+        _neoArkShrineFinishPuzzleEnemyRelease,
+        _neoArkShrineBeginPuzzleLayoutRestoration,
+        _neoArkShrineWaitPuzzleLayoutRestoration,
     },
 };
 /// State table of the shrine's first falling prop, indexed by `Task::state`.
@@ -1054,18 +1124,14 @@ NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16] = { 0 };
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
-/// Task callback of the action-prompt cursor: state 0 resets both prompt slots,
-/// state 1 moves the cursor from the pad every frame after.
-void func_neo_ark_shrine_8017EA70(Task* task)
+void neoArkShrinePuzzleCursorTask(Task* task)
 {
     TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }
 
-/// Per-frame helper of the cap script: animates and draws the sliding-tile
-/// puzzle.
-void func_neo_ark_shrine_8017EAC0()
+void neoArkShrineDrawPuzzleFrame()
 {
     neoArkShrineAnimateAndDrawPuzzle();
 }
@@ -1080,9 +1146,7 @@ void func_neo_ark_shrine_8017EAE0(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Task callback of the shrine's first falling prop: dispatches `Task::state`
-/// through a copy of the prop's state table.
-void func_neo_ark_shrine_8017EB54(Task* task)
+void neoArkShrineFirstFallingPropTask(Task* task)
 {
     TaskFuncTable4 states;
 
@@ -1090,14 +1154,12 @@ void func_neo_ark_shrine_8017EB54(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Task callback of the shrine's second falling prop: dispatches `Task::state`
-/// through a copy of the prop's state table.
-void func_neo_ark_shrine_8017EBB8(Task* task)
+void neoArkShrineSecondFallingPropTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_neo_ark_shrine_8017D620;
-    sp.funcs[task->state](task);
+    states = D_neo_ark_shrine_8017D620;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/action_prompt_hit_test.inc.c"
@@ -1134,9 +1196,11 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
     gGameSession->eventState   = 1;
 }
 
-/// Cap script state 1: arms the first action prompt at `ACTION_PROMPT_SPEED_AIM`
-/// with the idle cursor, zeroes its on-screen position, and steps the script on.
-static void func_neo_ark_shrine_8017EDAC(Task* task)
+/// Centers and enables the puzzle cursor, then enters the idle state.
+///
+/// State 1 borrows port 0's action prompt; positions are display-centred pixels.
+/// The cursor task has already reset both ports and needs no puzzle work here.
+static void _neoArkShrinePreparePuzzleCursor(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
 
@@ -1147,20 +1211,21 @@ static void func_neo_ark_shrine_8017EDAC(Task* task)
     task->state         = task->state + 1;
 }
 
-/// Spawns the action prompt for the script's current step: runs the shrine's
-/// per-step helper, hides the cursor and stops it, then re-spawns the
-/// prompt at the coordinates the gameplay side left in `D_80114D28` with the
-/// Examine/Push action this step picked, and advances the task to state 4.
-static void func_neo_ark_shrine_8017EDE0(Task* task)
+/// Opens the confirmed hotspot's commands and waits for their result.
+///
+/// State 3 requires the owned puzzle work with a latched prompt kind. Draws one
+/// puzzle frame before hiding and stopping port 0's cursor; the command menu
+/// opens at that cursor's display-centred pixel position.
+static void _neoArkShrineOpenPuzzleCommands(Task* task)
 {
     ActionPrompt*           prompt = D_80114D28;
     NeoArkShrinePuzzleWork* work   = task->work;
 
-    func_neo_ark_shrine_8017EAC0(task);
+    neoArkShrineDrawPuzzleFrame(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
+    task->state = NEO_ARK_SHRINE_PUZZLE_STATE_COMMAND_RESULT;
 }
 
 /// Hides the action prompt's cursor, stops it, and runs the shrine's per-step
@@ -1175,7 +1240,7 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_neo_ark_shrine_8017EAC0(task);
+    neoArkShrineDrawPuzzleFrame(task);
     if (itemMenuIsHotspotActionConfirmed() == 0) {
         task->state = 2;
         return;
@@ -1190,78 +1255,71 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
     task->state = 2;
 }
 
-static void func_neo_ark_shrine_8017EED4(Task* task)
+/// Restores player control, HUD, event gates and the room view after the puzzle.
+///
+/// Requires the puzzle's acquired menu display hold. Releases that hold and
+/// resumes automatic player drawing; task completion is left to the caller.
+static inline void _neoArkShrineResumeRoomFromPuzzle(void)
 {
-    D_80114D08 = 0xA;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xA;
-    /* Without this the scheduler hoists the `spawnArg2` load above the
-       `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store, which then fills `taskKill`'s delay slot. */
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_ROOM_VIEW;
+}
+
+/// Closes the puzzle, restores room control and reports a zero completion result.
+///
+/// State 5 requires a live cursor task in `spawnArg2.pointer`. That task is
+/// killed immediately; this puzzle task and its owned work stay live until
+/// the room's waiting task polls the stop request. Manual direction actions
+/// are inhibited for ten eligible input ticks after closing.
+static void _neoArkShrineClosePuzzle(Task* task)
+{
+    enum { NEO_ARK_SHRINE_EXIT_ACTION_COOLDOWN_TICKS = 10 };
+
+    D_80114D08 = NEO_ARK_SHRINE_EXIT_ACTION_COOLDOWN_TICKS;
+    _neoArkShrineResumeRoomFromPuzzle();
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, 0);
 }
 
-/// Same as `func_neo_ark_shrine_8017F320`, but it latches the script's pad
-/// mode on rather than off.
-static void func_neo_ark_shrine_8017EF68(Task* task)
-{
-    ActionPrompt*           prompt = D_80114D28;
-    NeoArkShrinePuzzleWork* work   = task->work;
-
-    padScriptSpawnVariableMotorRamp(0x12, 0x30, 0x90);
-    D_neo_ark_shrine_80186868 = 1;
-    prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;
-    prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;
-    func_neo_ark_shrine_8017EAC0(task);
-    work->timer = 0;
-    task->state++;
-}
-
-/// The script step that runs while the shrine's pad is idle: it re-clears the
-/// prompt, ticks the step's timer, and once the step has run 0x1E frames latches
-/// the shrine's mode — 2, or 5 when flag 0xE9 is set — into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` and the
-/// session, which makes the room rebuild its objects, and enters state 2.
+/// Starts the active-layout transition with controller vibration.
 ///
-/// The same literal is stored in both arms on purpose: `gGameSession` is read
-/// per arm, and jump_optimize's cross-jumping (post-sched2) merges the arms'
-/// identical `sb` pairs into the join. Written with one shared `var_v0` the
-/// stores are one pair too but the constant's `li` precedes the address, the
-/// merge swallows the `gGameSession` load as well, and the function comes out
-/// four insns short.
-static void func_neo_ark_shrine_8017EFE4(Task* task)
+/// State 7 latches the active layout, hides and stops the cursor, draws one
+/// puzzle frame, clears the owned work's frame timer and enters state 8.
+/// The 18-frame motor ramp starts at intensity 48 and targets 144.
+static void _neoArkShrineBeginPuzzleLayoutActivation(Task* task)
 {
-    ActionPrompt*           prompt = D_80114D28;
-    NeoArkShrinePuzzleWork* work   = task->work;
-
-    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    work->timer         = work->timer + 1;
-    func_neo_ark_shrine_8017EAC0(task);
-    if (work->timer >= 0x1E) {
-        if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-            gGameSession->location.loc.room                            = 2;
-        } else {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 5;
-            gGameSession->location.loc.room                            = 5;
-        }
-        gGameSession->roomObjsDirty = 1;
-        task->state                 = 2;
-    }
+    NEO_ARK_SHRINE_BEGIN_LAYOUT(task, true);
 }
 
-static void func_neo_ark_shrine_8017F094(Task* task)
+/// Draws the puzzle until the active-layout transition reaches thirty frames.
+///
+/// State 8 requires the owned puzzle work, with its timer cleared on entry.
+/// Keeps the cursor hidden and stopped; at the threshold selects layout 2, or
+/// 5 after the first enemy reveal, in both the saved and live location.
+/// Requests an object rebuild and returns to puzzle idle.
+static void _neoArkShrineWaitPuzzleLayoutActivation(Task* task)
+{
+    NEO_ARK_SHRINE_WAIT_LAYOUT(task, NEO_ARK_SHRINE_LAYOUT_ACTIVE, NEO_ARK_SHRINE_LAYOUT_ACTIVE_AFTER_REVEAL);
+}
+
+/// Begins the enemy-release sequence and retires the puzzle cursor.
+///
+/// State 9 requires owned puzzle work and a live cursor task in
+/// `spawnArg2.pointer`. Sets the pending base-layout restore request, draws
+/// one puzzle frame, kills the cursor, clears the timer and enters the
+/// first falling-prop delay. The restore request is consumed by a later tile move.
+static void _neoArkShrineBeginPuzzleEnemyRelease(Task* task)
 {
     NeoArkShrinePuzzleWork* work;
 
     work                      = task->work;
-    D_neo_ark_shrine_8018686A = 1;
-    func_neo_ark_shrine_8017EAC0();
+    D_neo_ark_shrine_8018686A = true;
+    neoArkShrineDrawPuzzleFrame();
     taskKill(task->spawnArg2.pointer);
     work->timer = 0;
     task->state++;
@@ -1273,7 +1331,7 @@ static void func_neo_ark_shrine_8017F0F0(Task* task)
     u16                     timer;
 
     work = task->work;
-    func_neo_ark_shrine_8017EAC0();
+    neoArkShrineDrawPuzzleFrame();
     timer       = work->timer + 1;
     work->timer = timer;
     if (timer >= 0x1EU) {
@@ -1309,116 +1367,87 @@ static void func_neo_ark_shrine_8017F178(Task* task)
     }
 }
 
-static void func_neo_ark_shrine_8017F21C(Task* task)
+/// Signals the first enemy reveal at frame thirty and leaves at frame sixty.
+///
+/// State 12 requires owned puzzle work with its timer reset by the preceding
+/// state. The u16 timer increments with wraparound. Reveal makes the shrine
+/// enemies visible and repeatedly resets their startup delay until state 13
+/// switches the signal to released.
+static void _neoArkShrineWaitPuzzleEnemyReveal(Task* task)
 {
-    NeoArkShrinePuzzleWork* work;
-    u16                     timer;
+    enum { NEO_ARK_SHRINE_ENEMY_REVEAL_FRAME        = 30,
+           NEO_ARK_SHRINE_ENEMY_RELEASE_READY_FRAME = 60 };
 
-    work        = task->work;
-    timer       = work->timer + 1;
-    work->timer = timer;
-    if (timer == 0x1E) {
+    NeoArkShrinePuzzleWork* work;
+    u16                     elapsedFrames;
+
+    work          = task->work;
+    elapsedFrames = work->timer + 1;
+    work->timer   = elapsedFrames;
+    if (elapsedFrames == NEO_ARK_SHRINE_ENEMY_REVEAL_FRAME) {
         gSceneCombatState.shrineEnemyPhase = SCENE_COMBAT_SHRINE_REVEALED;
     }
-    if (work->timer >= 0x3CU) {
+    if (work->timer >= (u32)NEO_ARK_SHRINE_ENEMY_RELEASE_READY_FRAME) {
         task->state++;
     }
 }
 
-static void func_neo_ark_shrine_8017F274(Task* task)
+/// Releases the shrine enemies, restores room control and reports completion.
+///
+/// State 13 selects room layout 6 in both locations and requests an object
+/// rebuild. The cursor has already been killed by state 9. Stops this puzzle
+/// task with result zero; the waiting room task later polls it and frees the
+/// owned work. Enemy startup delays now count down toward normal behavior.
+static void _neoArkShrineFinishPuzzleEnemyRelease(Task* task)
 {
     gSceneCombatState.shrineEnemyPhase                         = SCENE_COMBAT_SHRINE_RELEASED;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
-    gGameSession->location.loc.room                            = 6;
-    gGameSession->roomObjsDirty                                = 1;
-    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-    displayReleaseMenuHold();
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xA;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_SHRINE_LAYOUT_ENEMIES_RELEASED;
+    gGameSession->location.loc.room                            = NEO_ARK_SHRINE_LAYOUT_ENEMIES_RELEASED;
+    gGameSession->roomObjsDirty                                = true;
+    _neoArkShrineResumeRoomFromPuzzle();
     taskRequestKill(task, 0);
 }
 
-/// Runs the shrine's per-step helper and restarts the work block's `timer`:
-/// raises a pad lerp, hides the cursor and stops it, and advances the
-/// task to the next state.
-static void func_neo_ark_shrine_8017F320(Task* task)
+/// Starts the base-layout transition with controller vibration.
+///
+/// State 14 clears the active-layout latch, hides and stops the cursor, draws
+/// one puzzle frame, clears the owned work's frame timer and enters state 15.
+/// The 18-frame motor ramp starts at intensity 48 and targets 144.
+static void _neoArkShrineBeginPuzzleLayoutRestoration(Task* task)
 {
-    ActionPrompt*           prompt = D_80114D28;
-    NeoArkShrinePuzzleWork* work   = task->work;
-
-    padScriptSpawnVariableMotorRamp(0x12, 0x30, 0x90);
-    D_neo_ark_shrine_80186868 = 0;
-    prompt->mode              = ACTION_PROMPT_MODE_HIDDEN;
-    prompt->cursorSpeed       = ACTION_PROMPT_SPEED_STOPPED;
-    func_neo_ark_shrine_8017EAC0(task);
-    work->timer = 0;
-    task->state++;
+    NEO_ARK_SHRINE_BEGIN_LAYOUT(task, false);
 }
 
-/// Same as `func_neo_ark_shrine_8017EFE4`, but the mode it latches is 1, or 4
-/// when flag 0xE9 is set.
-static void func_neo_ark_shrine_8017F398(Task* task)
-{
-    ActionPrompt*           prompt = D_80114D28;
-    NeoArkShrinePuzzleWork* work   = task->work;
+#undef NEO_ARK_SHRINE_BEGIN_LAYOUT
 
-    prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-    prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    work->timer         = work->timer + 1;
-    func_neo_ark_shrine_8017EAC0(task);
-    if (work->timer >= 0x1E) {
-        if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-            gGameSession->location.loc.room                            = 1;
-        } else {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 4;
-            gGameSession->location.loc.room                            = 4;
-        }
-        gGameSession->roomObjsDirty = 1;
-        task->state                 = 2;
+/// Draws the puzzle until the base-layout transition reaches thirty frames.
+///
+/// State 15 requires the owned puzzle work, with its timer cleared on entry.
+/// Keeps the cursor hidden and stopped; at the threshold selects layout 1, or
+/// 4 after the first enemy reveal, in both the saved and live location.
+/// Requests an object rebuild and returns to puzzle idle.
+static void _neoArkShrineWaitPuzzleLayoutRestoration(Task* task)
+{
+    NEO_ARK_SHRINE_WAIT_LAYOUT(task, NEO_ARK_SHRINE_LAYOUT_BASE, NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL);
+}
+
+#undef NEO_ARK_SHRINE_WAIT_LAYOUT
+
+void neoArkShrineResetPuzzle(void)
+{
+    s32 tileIndex;
+    s32 cellIndex;
+
+    D_neo_ark_shrine_8018686A = false;
+    D_neo_ark_shrine_80186868 = false;
+    // Restore per-tile drawn positions before reseeding the cell-to-tile board.
+    for (tileIndex = 0; tileIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_8018688C); tileIndex++) {
+        D_neo_ark_shrine_8018688C[tileIndex].x = D_neo_ark_shrine_8018256C[tileIndex].x;
+        D_neo_ark_shrine_8018688C[tileIndex].y = D_neo_ark_shrine_8018256C[tileIndex].y;
     }
-}
-
-/// Resets the shrine's 16-slot arrangement puzzle to its starting state: clears
-/// the two puzzle flags, puts every tile's drawn position back at its starting
-/// origin, and re-seeds the slot arrangement with the room's starting order.
-void func_neo_ark_shrine_8017F448(void)
-{
-    NeoArkShrineTileOrigin* dstOrigin;
-    NeoArkShrineTileOrigin* srcOrigin;
-    s16*                    dstOrder;
-    u16*                    srcOrder;
-    s32                     i;
-    s16                     y;
-    u16                     order;
-
-    i                         = 0;
-    dstOrigin                 = D_neo_ark_shrine_8018688C;
-    srcOrigin                 = D_neo_ark_shrine_8018256C;
-    D_neo_ark_shrine_8018686A = 0;
-    D_neo_ark_shrine_80186868 = 0;
-    do {
-        i++;
-        dstOrigin->x = srcOrigin->x;
-        y            = srcOrigin->y;
-        srcOrigin++;
-        dstOrigin->y = y;
-        dstOrigin++;
-    } while (i < 0x10);
-
-    i        = 0;
-    dstOrder = D_neo_ark_shrine_8018686C;
-    srcOrder = D_neo_ark_shrine_80182410;
-    do {
-        order = *srcOrder;
-        srcOrder++;
-        i++;
-        *dstOrder = order;
-        dstOrder++;
-    } while (i < 0x10);
+    for (cellIndex = 0; cellIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_8018686C); cellIndex++) {
+        D_neo_ark_shrine_8018686C[cellIndex] = D_neo_ark_shrine_80182410[cellIndex];
+    }
 }
 
 /// Creates a falling prop's owned lighting work and places its model above the floor.
@@ -1762,7 +1791,7 @@ void neoArkShrineRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_shrine_801811EC(Task* task)
+void neoArkShrineRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

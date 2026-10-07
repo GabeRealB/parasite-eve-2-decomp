@@ -1939,7 +1939,7 @@ func_shelter_b1_elevator_hall_80182064 = 0x80182064; // type:func absolute:True 
 
 func_shelter_b1_south_maintenance_walkway_8017FAAC = 0x8017FAAC; // type:func absolute:True owner=shelter_b1_south_maintenance_walkway shared=rooms
 
-func_neo_ark_shrine_801811EC = 0x801811EC; // type:func absolute:True owner=neo_ark_shrine shared=rooms
+neoArkShrineRoomVisualEffectsSparkBurstTask = 0x801811EC; // type:func absolute:True owner=neo_ark_shrine shared=rooms
 
 shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask = 0x8017EC34; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 

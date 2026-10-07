@@ -86,24 +86,53 @@ extern NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16];
 /// for fifteen `POLY_FT4` packets. Packets remain borrowed until GPU completion.
 void neoArkShrineAnimateAndDrawPuzzle(void);
 
-/// Per-frame helper of the cap script, declared without a parameter list
-/// because some callers pass it their `task`: the extra argument setup is what
-/// their generated code needs, and the helper ignores it.
-void func_neo_ark_shrine_8017EAC0();
+/// Advances tile animation and draws one frame of the sliding-tile puzzle.
+///
+/// Has `neoArkShrineAnimateAndDrawPuzzle`'s board, texture and GPU requirements.
+/// The parameter list remains unspecified: callers supply either no argument
+/// or their task, which is ignored; their argument setup is present in the binary.
+void neoArkShrineDrawPuzzleFrame();
 
-void func_neo_ark_shrine_8017F448(void);
+/// Restores the starting tile origins and cell-to-tile order and clears both layout latches.
+///
+/// Resets all sixteen drawn origins and board cells, including tile zero (the
+/// gap). The next drawing frame reconstructs target origins from this board.
+/// Requires the room's writable arrays and initial tables to remain loaded;
+/// it neither allocates resources nor changes the saved or live room selectors.
+void neoArkShrineResetPuzzle(void);
 
 void func_neo_ark_shrine_8017D9A0(Task* task);
 
 void func_neo_ark_shrine_8017DB10(Task* arg0);
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_neo_ark_shrine_8017EA70(Task*);
+/// Resets and updates the sliding-tile puzzle's action cursors.
+///
+/// Requires a live bodyless task with state 0 (reset both ports) or 1 (move,
+/// classify presses and draw). No work is allocated. `spawnArg1.value` selects
+/// port 0 with 1, port 1 with 2, and both otherwise; the puzzle spawns it with 1.
+/// Requires writable gameplay prompt slots, pad state and cursor drawing resources.
+/// Reset advances to state 1; updates continue until the puzzle kills this task.
+void neoArkShrinePuzzleCursorTask(Task* task);
 
 void func_neo_ark_shrine_8017EAE0(Task*);
 
-void func_neo_ark_shrine_8017EB54(Task*);
+/// Runs the first falling prop of the puzzle's enemy-release sequence.
+///
+/// Requires the first prop's TMD body and state 0..3: allocate and place above
+/// the floor, accelerate downward to the floor, wait for the pending layout
+/// restore request to clear, then kill. State 0 starts with null work; success
+/// owns its drop state and model lighting matrices until teardown. Dispatch
+/// copies the callback table by value and does not check the state bound.
+void neoArkShrineFirstFallingPropTask(Task* task);
 
-void func_neo_ark_shrine_8017EBB8(Task*);
+/// Runs the second falling prop on the first enemy-release sequence.
+///
+/// Requires the second prop's TMD body and state 0..2: allocate and place above
+/// the floor, accelerate downward to the floor, then kill. State 0 starts with
+/// null work; success owns its drop state and model lighting matrices until
+/// teardown. Dispatch copies the callback table by value and does not check
+/// the state bound. Unlike the first prop, it has no layout-restore wait state.
+void neoArkShrineSecondFallingPropTask(Task* task);
 
 #endif // SRC_ROOMS_NEO_ARK_SHRINE_NEO_ARK_SHRINE_PRIVATE_H

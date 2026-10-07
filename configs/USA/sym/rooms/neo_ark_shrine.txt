@@ -132,7 +132,7 @@ neoArkShrineRoomVisualEffectsFlashTask = 0x8017FEA0; // type:func
 
 neoArkShrineRoomVisualEffectsTwinTrailTask = 0x80180904; // type:func
 
-func_neo_ark_shrine_801811EC = 0x801811EC; // type:func
+neoArkShrineRoomVisualEffectsSparkBurstTask = 0x801811EC; // type:func
 _roomVisualEffectsDrawFlashRing = 0x80180144; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x80180570; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x80180DF4; // type:func
@@ -151,3 +151,18 @@ _neoArkShrineRoomIdle = 0x8017d940; // type:func
 neoArkShrineRoomTask = 0x8017d948; // type:func
 neoArkShrineAnimateAndDrawPuzzle = 0x8017df7c; // type:func
 _neoArkShrineCheckPuzzleArrangement = 0x8017e254; // type:func
+neoArkShrineDrawPuzzleFrame = 0x8017eac0; // type:func
+neoArkShrinePuzzleCursorTask = 0x8017ea70; // type:func
+neoArkShrineFirstFallingPropTask = 0x8017eb54; // type:func
+neoArkShrineSecondFallingPropTask = 0x8017ebb8; // type:func
+_neoArkShrinePreparePuzzleCursor = 0x8017edac; // type:func
+_neoArkShrineOpenPuzzleCommands = 0x8017ede0; // type:func
+_neoArkShrineClosePuzzle = 0x8017eed4; // type:func
+_neoArkShrineBeginPuzzleLayoutActivation = 0x8017ef68; // type:func
+_neoArkShrineWaitPuzzleLayoutActivation = 0x8017efe4; // type:func
+_neoArkShrineBeginPuzzleEnemyRelease = 0x8017f094; // type:func
+_neoArkShrineWaitPuzzleEnemyReveal = 0x8017f21c; // type:func
+_neoArkShrineFinishPuzzleEnemyRelease = 0x8017f274; // type:func
+_neoArkShrineBeginPuzzleLayoutRestoration = 0x8017f320; // type:func
+_neoArkShrineWaitPuzzleLayoutRestoration = 0x8017f398; // type:func
+neoArkShrineResetPuzzle = 0x8017f448; // type:func

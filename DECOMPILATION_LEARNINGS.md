@@ -4681,7 +4681,7 @@ same fix applies wherever a sequence state picks a slot set.
 
 ## A global read in *both* arms is how a cross-jumped store pair looks
 
-`func_neo_ark_shrine_8017EFE4` reads `gGameSession` in each arm and stores the
+`_neoArkShrineWaitPuzzleLayoutActivation` reads `gGameSession` in each arm and stores the
 resolved byte twice in the join:
 
 ```
@@ -72233,7 +72233,7 @@ RTL dump), which is what identified the boost: `;; ready list at T-3: 52 (1) 63
 (7f000001)` next to the same line in a sibling that had plain `(1)`s.
 
 **Fix.** Give the register a second set that emits no code. Here the
-argument-less helper is declared K&R (`void func_neo_ark_shrine_8017EAC0();`),
+argument-less helper is declared K&R (`void neoArkShrineDrawPuzzleFrame();`),
 so calling it the way `neo_ark_shrine_6.c` documents - `(task)` - adds an
 `$a0` set at sched1 while the copy itself is redundant (`$a0` still holds
 `task` at entry) and is dropped by the allocator: 100% with no instruction
@@ -87609,7 +87609,7 @@ Inputs: `base.i`
 `9feb35919f7a7407c565378a31b855a45b6247b721337c5348187a572692e9c7` (99.4%,
 `regs=3`), `base_1.i`
 `1dce15224cead24faad31a7bb9df1f5414baaa585c2c95487679ec7c69f9a19a` (100%).
-## Target `jal`+`nop`: the argument load is hoisted above a byte store's address pair, and reorg fills the slot (func_neo_ark_shrine_8017EED4, 2026-09-15)
+## Target `jal`+`nop`: the argument load is hoisted above a byte store's address pair, and reorg fills the slot (_neoArkShrineClosePuzzle, 2026-09-15)
 
 The room-script tail `displayReleaseMenuHold(); gGameSession->eventState/0x68/0x66 = 0;
 D_8007216C = N; taskKill(task->spawnArg2);` recurs across rooms: the shared
@@ -87640,9 +87640,9 @@ target wants the `nop`. Contrast the fixed-scalar entry, where the target hoists
 the `%hi` into the load-delay slot and a barrier is a wrong remedy — read which
 side of the pair the target pins before reaching for one.
 
-## A same-body room twin with `$s1`/`$s2` swapped is a local-alloc `refs` race, not a CFG difference (func_neo_ark_shrine_8017EDE0, 2026-09-15)
+## A same-body room twin with `$s1`/`$s2` swapped is a local-alloc `refs` race, not a CFG difference (_neoArkShrineOpenPuzzleCommands, 2026-09-15)
 
-`func_neo_ark_shrine_8017EDE0` (25 insns) is the same body as the already-matched
+`_neoArkShrineOpenPuzzleCommands` (25 insns) is the same body as the already-matched
 `func_shelter_b1_underground_parking_80184594` — leading per-step helper, prompt
 reset, `itemMenuOpenHotspotCommands` re-spawn, `task->state = 4` — and the two targets are
 identical insn for insn except that the shrine puts `task` in `$s1` and the
@@ -87664,7 +87664,7 @@ colours them):
 `task` falls to `$s2`. Raising `task`'s reference count is the whole fix:
 
 ```c
-    func_neo_ark_shrine_8017EAC0();
+    neoArkShrineDrawPuzzleFrame();
     SOFT_TOUCH_REG(task);
 ```
 
@@ -87791,11 +87791,11 @@ Inputs: `base.i` `5530d1a052123f45a3a374f80f584ad5b1de658a6801d4d36476bf9dfa5149
 `base_1.i` `6ed8c845d12741477a0eb213b9dafcf4cb5d33971c4d01cf7ff3870c5516acc1`,
 `base_2.i` `c4d07d60bac36d9fc3ebab0ab6d279680db23fafe2336a79931e66a818db3123`.
 
-## A `jal` that loads the argument register before calling a helper the rest of the TU calls with none (func_neo_ark_shrine_8017F320, 2026-09-15)
+## A `jal` that loads the argument register before calling a helper the rest of the TU calls with none (_neoArkShrineBeginPuzzleLayoutRestoration, 2026-09-15)
 
-`func_neo_ark_shrine_8017F320` is 30 insns. Its second call has an explicit
+`_neoArkShrineBeginPuzzleLayoutRestoration` is 30 insns. Its second call has an explicit
 `addu $a0,$s1,$zero` immediately before the `jal`, yet the callee
-(`func_neo_ark_shrine_8017EAC0`) takes no arguments - its decompiled body is one
+(`neoArkShrineDrawPuzzleFrame`) takes no arguments - its decompiled body is one
 call to `neoArkShrineAnimateAndDrawPuzzle` and it never reads `$a0` - and the three
 other call sites in the same unit load nothing into `$a0` (their `.s` under
 `asm/USA/rooms/matchings/neo_ark_shrine/neo_ark_shrine_6/` show the `jal` with a
@@ -87811,7 +87811,7 @@ three matched call sites are unaffected:
 ```c
 /* No parameter list: 8017F320 passes `task` (the target loads `$a0` before
    that call) while every other caller here passes nothing. */
-void func_neo_ark_shrine_8017EAC0();
+void neoArkShrineDrawPuzzleFrame();
 ```
 
 This is not a niche spelling for a missing prototype: the tree already carries
@@ -96881,7 +96881,7 @@ assigned immediately above the `if` that guards its loop.
 
 Input: `base_1.i`
 `f5da0f387b1d4ffa3f573ef3d46e963ad5bcdfba68bd643fd655061b1296ecdc`.
-## A local quantity's def takes a register away from every live allocno (func_neo_ark_shrine_8017F398, 2026-09-16)
+## A local quantity's def takes a register away from every live allocno (_neoArkShrineWaitPuzzleLayoutRestoration, 2026-09-16)
 
 **Problem.** A tail whose target register assignment looks arbitrary:
 
@@ -118683,7 +118683,7 @@ displacement, and biv elimination rewrites the exit test to
 `addiu v0,s2,0x48` / `slt v0,s1,v0` - the signature to read as an index loop.
 With the loop real, every `USE_REG` priority hack the goto form needed became
 unnecessary; the match is plain C apart from the two-variable depth clamp.
-## An m2c walking pointer steps by the *square* of its element size: fix the seed's increments before touching the allocator (func_neo_ark_shrine_8017F448, 2026-09-17)
+## An m2c walking pointer steps by the *square* of its element size: fix the seed's increments before touching the allocator (neoArkShrineResetPuzzle, 2026-09-17)
 
 Symptom: the seed scores 99.35% with `regs=4` and **no** `stack`/`branch`/`reorder`,
 and the object dump differs from the target only in the pointer-increment

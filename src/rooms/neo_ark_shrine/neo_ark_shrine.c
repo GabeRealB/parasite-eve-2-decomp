@@ -153,7 +153,7 @@ static TmdSource _gNeoArkShrineModel04C6C = {
 };
 
 TaskDesc D_neo_ark_shrine_80182404[1] = {
-    { { { TASK_BODY_NONE, 192 } }, func_neo_ark_shrine_8017EA70, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, neoArkShrinePuzzleCursorTask, { .value = 0 } },
 };
 
 u16 D_neo_ark_shrine_80182410[16] = {
@@ -198,8 +198,8 @@ ActionPromptHotspot D_neo_ark_shrine_80182430[18] = {
 
 TaskDesc D_neo_ark_shrine_80182508[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_neo_ark_shrine_8017EAE0, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EB54, { .model = &_gNeoArkShrineModel049E8 } },
-    { { { TASK_BODY_TMD, 192 } }, func_neo_ark_shrine_8017EBB8, { .model = &_gNeoArkShrineModel04C6C } },
+    { { { TASK_BODY_TMD, 192 } }, neoArkShrineFirstFallingPropTask, { .model = &_gNeoArkShrineModel049E8 } },
+    { { { TASK_BODY_TMD, 192 } }, neoArkShrineSecondFallingPropTask, { .model = &_gNeoArkShrineModel04C6C } },
 };
 
 NeoArkShrineTileOrigin D_neo_ark_shrine_8018252C[16] = {
@@ -366,7 +366,7 @@ static void func_neo_ark_shrine_8017D8F4(Task* task)
 {
     task->msgTable = D_neo_ark_shrine_80181E34;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    func_neo_ark_shrine_8017F448();
+    neoArkShrineResetPuzzle();
     task->state++;
 }
 
@@ -415,7 +415,7 @@ void func_neo_ark_shrine_8017D9A0(Task* task)
     NeoArkShrinePuzzleWork* work   = task->work;
     u16                     id;
 
-    func_neo_ark_shrine_8017EAC0(task);
+    neoArkShrineDrawPuzzleFrame(task);
     gGameSession->hideHud = 1;
     if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
@@ -497,7 +497,7 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
 
     work    = arg0->work;
     swapped = 0;
-    func_neo_ark_shrine_8017EAC0();
+    neoArkShrineDrawPuzzleFrame();
     for (i = 0; i < 5; i++) {
         state = D_neo_ark_shrine_801825EC[work->selection][i];
         if (state == 0xFF) {
