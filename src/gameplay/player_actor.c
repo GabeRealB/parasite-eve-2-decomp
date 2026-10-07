@@ -3557,12 +3557,10 @@ void effectSpriteTaskA7(Task* task)
     EffectWork*             work;
     GfxCoord*               coord;
     GfxCoord*               parentCoord;
-    MATRIX*                 localMatrix;
     EffectBillboardScratch* scratch;
     POLY_FT4*               quad;
     s16                     effectControl;
     s32                     randomState;
-    s32                     fixedOne;
     s16                     ticksPerFrame;
     s16                     nextVelocityY;
 
@@ -3602,14 +3600,8 @@ void effectSpriteTaskA7(Task* task)
         work->angle                      = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
         parentCoord                      = work->parent;
         work->move.vy                    = -(work->scale & 7);
-        fixedOne                         = ONE;
-        MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
         coord->parent                    = parentCoord;
-        localMatrix                      = &coord->coord;
-        MATRIX_PAIR(localMatrix, 0, 2)   = 0;
-        MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
-        MATRIX_PAIR(localMatrix, 2, 0)   = 0;
-        localMatrix->m[2][2]             = fixedOne;
+        gfxSetRotIdentity(&coord->coord);
         coord->coord.t[2]                = 0;
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
