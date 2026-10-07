@@ -418,7 +418,7 @@ TaskDesc D_actor_135400_8013A4AC[3] = {
 };
 
 TaskMessageEntry D_actor_135400_8013A4D0[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor135400GaryDouglasSetDrawMode },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor135400GaryDouglasApplyCommand },
@@ -711,11 +711,11 @@ static void func_actor_135400_80132064(Task* arg0)
     _actor135400GaryDouglasSetDrawMode(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) <= 0) {
         actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.beforeEvent, 0);
-        actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[0], 0);
+        _actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[0], 0);
         func_dryfield_night_garage_80180414(0);
     } else {
         actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.afterEvent, 0);
-        actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[1], 0);
+        _actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[1], 0);
     }
     arg0->exitCallback = _actor135400GaryDouglasExit;
     arg0->state       += 1;

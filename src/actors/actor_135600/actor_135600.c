@@ -113,10 +113,10 @@ static const TaskFuncTable3 D_actor_135600_80131E3C = { {
 /// `KyleMadiganWalkerWork::walk.motionStep`: turn to face `target`, start walking forward,
 /// walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_135600_80131E48 = { {
-    actorMotionFaceTarget,
+    _actorMotionFaceTarget,
     _actor135600BeginKyleMadiganWalk,
-    actorMotionArrive,
-    actorMotionTurnToYaw,
+    _actorMotionArrive,
+    _actorMotionTurnToYaw,
 } };
 
 /// The constant local-space offset `_actor135600BeginKyleMadiganWalk` rotates:
@@ -635,10 +635,10 @@ TaskDesc D_actor_135600_8013B0C4[4] = {
 };
 
 TaskMessageEntry D_actor_135600_8013B0F4[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor135600SetKyleMadiganDrawMode },
-    { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
+    { ACTOR_MESSAGE_WALK_TO, _actorMotionStartWalk },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor135600IgnoreKyleMadiganCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -827,7 +827,7 @@ static void func_actor_135600_80132234(Task* task)
     preset.source.index = 0;
     preset.animationId  = 2;
     preset.blend        = ANIMATION_BLEND_RESET;
-    actorMotionPlayAnim(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+    _actorMotionPlayAnim(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
 
     _actor135600SetKyleMadiganDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
 

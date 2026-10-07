@@ -52,7 +52,7 @@ static const TaskFuncTable3 D_actor_350500_80161E24 = { {
 static const TaskFuncTable4 D_actor_350500_80161E30 = { {
     reverseWalkFaceTarget,
     reverseWalkBeginMove,
-    actorMotionArrive19,
+    _actorMotionArrive19,
     reverseWalkTurnToYaw,
 } };
 

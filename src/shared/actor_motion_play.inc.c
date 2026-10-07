@@ -1,36 +1,26 @@
 /* Part of the actor motion library; see actor_motion.h. */
 
-/// Applies the requested animation bank and clip to this actor's rig.
+#include "actor_motion_play_helpers.h"
+
+/// Starts the requested clip on the carrier's twenty-part model, even if repeated.
 ///
-/// A changed bank installs its set table. The requested clip is applied to the slots.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 actorMotionPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` on a live TMD task whose work opens
+/// as `ActorMotionPlayWork` does. Initialize `model.bank` to
+/// `ACTOR_MODEL_STATE_NONE` before the first request so the rig is bound.
+/// Bank and clip must index loaded entries of `gActorMotionAnimBanks` and fit
+/// nonnegative signed bytes. The request is borrowed through dispatch and must
+/// not overlap playback storage; model coordinates, work-owned slots/poses and
+/// clip tables remain borrowed while playback uses them. Slots 1..19 blend for
+/// `blendFrames` whole frames (normally 0..2047) if already ticking and requested,
+/// or reset otherwise, then tick once. Ignores message ID, collision choice and
+/// fourth argument. Returns 0; subsequent frame ticking belongs to the carrier.
+static s32 _actorMotionPlayAnim(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     ActorMotionPlayWork* work;
-    TmdObject*           ext;
-    s32                  i;
+    TmdObject*           model;
 
-    work = (ActorMotionPlayWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank = msg->source.index;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, work->rig.poses,
-                             work->rig.slots);
-    }
-    work->model.animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-        }
-    } else {
-        for (i = 1; i < 0x14; i++) {
-            animationResetSlot(&work->rig.anim, i, work->model.animId);
-        }
-    }
-    for (i = 1; i < 0x14; i++) {
-        animationTickSlot(&work->rig.anim, i);
-    }
-    work->model.ticking = 1;
+    work  = task->work;
+    model = task->extra.tmd;
+    _actorMotionApplyAnimationRequest(work, model, request);
     return 0;
 }

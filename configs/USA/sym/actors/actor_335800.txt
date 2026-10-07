@@ -121,12 +121,12 @@ D_actor_335800_80172E9C = 0x80172E9C; // size:0xC defined:True
 D_actor_335800_80172EA8 = 0x80172EA8; // size:0x30 defined:True
 
 D_dryfield_night_motel_balcony_80182834 = 0x80182834; // absolute:True owner=dryfield_night_motel_balcony shared=rooms
-actorMotionArrive = 0x80162B3C; // type:func
-actorMotionFaceTarget = 0x80163064; // type:func
-actorMotionTurnToYaw = 0x801631A4; // type:func
-actorMotionPlayAnim = 0x801632A4; // type:func
-actorMotionStartWalk = 0x80162C80; // type:func
-actorMotionArrive19 = 0x8016373C; // type:func
+_actorMotionArrive = 0x80162B3C; // type:func
+_actorMotionFaceTarget = 0x80163064; // type:func
+_actorMotionTurnToYaw = 0x801631A4; // type:func
+_actorMotionPlayAnim = 0x801632A4; // type:func
+_actorMotionStartWalk = 0x80162C80; // type:func
+_actorMotionArrive19 = 0x8016373C; // type:func
 _actor335800FlintPlayAnimation = 0x80163E20; // type:func
 actorMsgPlaceEuler = 0x801633C0; // type:func
 _actorMsgPlaceEuler = 0x80163F3C; // type:func

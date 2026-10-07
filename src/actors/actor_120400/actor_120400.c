@@ -97,10 +97,10 @@ static const TaskFuncTable3 D_actor_120400_80131E30 = { {
 /// `ActorWalkState::motionStep`: turn to face `target`, start walking
 /// forward, walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_120400_80131E3C = { {
-    actorMotionFaceTarget,
+    _actorMotionFaceTarget,
     _actor120400BeginKyleMadiganWalk,
-    actorMotionArrive,
-    actorMotionTurnToYaw,
+    _actorMotionArrive,
+    _actorMotionTurnToYaw,
 } };
 
 /// The constant local-space offset the walk rotates into its velocity:
@@ -872,7 +872,7 @@ TaskDesc D_actor_120400_8013E748[3] = {
 };
 
 TaskMessageEntry D_actor_120400_8013E76C[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor120400SetKyleMadiganDrawMode },
     { ACTOR_MESSAGE_WALK_TO, _actor120400StartKyleMadiganWalk },

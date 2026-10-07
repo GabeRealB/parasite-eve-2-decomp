@@ -49,7 +49,7 @@ extern TaskMessageEntry gReverseWalkMessages[];
 /// The `TaskDesc`s `func_actor_350700_80162B30` spawns its child tasks from,
 /// and the message table it points the parent's `Task::msgTable` at: ids
 /// 0x7D3/0x7D4/0x7D5/0x7DD/0x7DB against the handlers starting
-/// `actorMotionPlayAnim`, terminated by `TASK_MESSAGE_TABLE_END`.
+/// `_actorMotionPlayAnim`, terminated by `TASK_MESSAGE_TABLE_END`.
 extern TaskDesc         D_actor_350700_801708DC[];
 extern TaskMessageEntry D_actor_350700_8017090C[];
 
@@ -77,7 +77,7 @@ static const TaskFuncTable3 D_actor_350700_80161E24 = { {
 static const TaskFuncTable4 D_actor_350700_80161E30 = { {
     reverseWalkFaceTarget,
     reverseWalkBeginMove,
-    actorMotionArrive19,
+    _actorMotionArrive19,
     reverseWalkTurnToYaw,
 } };
 
@@ -105,10 +105,10 @@ static const TaskFuncTable3 D_actor_350700_80161E5C = { {
 /// `ActorWalkState::motionStep`: turn to face `target`, start walking
 /// forward, walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_350700_80161E68 = { {
-    actorMotionFaceTarget,
+    _actorMotionFaceTarget,
     _actor350700KyleMadiganWalkerBeginMove,
-    actorMotionArrive,
-    actorMotionTurnToYaw,
+    _actorMotionArrive,
+    _actorMotionTurnToYaw,
 } };
 
 /// The parent's copy of the forward offset, rotated by
@@ -530,10 +530,10 @@ TaskDesc D_actor_350700_801708DC[4] = {
 };
 
 TaskMessageEntry D_actor_350700_8017090C[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor350700KyleMadiganWalkerSetDrawModeMsg },
-    { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
+    { ACTOR_MESSAGE_WALK_TO, _actorMotionStartWalk },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor350700KyleMadiganWalkerIgnoreCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table

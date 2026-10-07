@@ -79,7 +79,7 @@ D_actor_135400_8013F8C4 = 0x8013F8C4; // size:0x10 defined:True
 D_actor_135400_8013F8D4 = 0x8013F8D4; // size:0x4 defined:True
 
 func_dryfield_night_garage_80180414 = 0x80180414; // type:func absolute:True owner=dryfield_night_garage
-actorMotionPlayAnim = 0x80132650; // type:func
+_actorMotionPlayAnim = 0x80132650; // type:func
 actorMsgPlaceEuler = 0x8013276C; // type:func
 _actorMsgPlaceEuler = 0x80132E40; // type:func
 _modelPlacementAttachPartTask = 0x80132450; // type:func

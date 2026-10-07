@@ -187,10 +187,10 @@ static const TaskFuncTable3 D_actor_335800_80161E30 = { {
 /// `ActorWalkState::motionStep`: turn to face `target`, start walking
 /// forward, walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_335800_80161E3C = { {
-    actorMotionFaceTarget,
+    _actorMotionFaceTarget,
     func_actor_335800_80163124,
-    actorMotionArrive,
-    actorMotionTurnToYaw,
+    _actorMotionArrive,
+    _actorMotionTurnToYaw,
 } };
 
 /// The constant local-space offset `func_actor_335800_80163124` rotates for
@@ -210,7 +210,7 @@ static const TaskFuncTable3 D_actor_335800_80161E5C = { {
 static const TaskFuncTable4 D_actor_335800_80161E68 = { {
     _actor335800FlintFaceTarget,
     _actor335800FlintBeginApproach,
-    actorMotionArrive19,
+    _actorMotionArrive19,
     _actor335800FlintTurnToYaw,
 } };
 
@@ -871,10 +871,10 @@ TaskDesc D_actor_335800_8016EADC[3] = {
 };
 
 TaskMessageEntry D_actor_335800_8016EB00[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_335800_8016343C },
-    { ACTOR_MESSAGE_WALK_TO, actorMotionStartWalk },
+    { ACTOR_MESSAGE_WALK_TO, _actorMotionStartWalk },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_335800_8016354C },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

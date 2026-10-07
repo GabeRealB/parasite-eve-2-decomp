@@ -4,7 +4,7 @@
  * The play handler serves any actor whose work block opens with a rig and a
  * model state, whether or not it walks. It rebinds the rig when the requested
  * bank changes, then blends or resets the slots into the requested clip and
- * ticks them. actorMotionPlayAnim drives a twenty-part rig,
+ * ticks them. _actorMotionPlayAnim drives a twenty-part rig,
  * _actorMotionPlayAnim19 a nineteen-part one.
  *
  * The walk additionally needs the walk state directly after those two
@@ -13,12 +13,12 @@
  * distance stops shrinking (then play the queued next clip), and turn 0x40 a
  * frame to the placement yaw before returning to idle. The step that sets
  * the actor moving is the package's own. Of the nineteen-part walk only the
- * arrival step, actorMotionArrive19, is here.
+ * arrival step, _actorMotionArrive19, is here.
  *
  * Include this header in the prologue and each fragment at its function's
  * position. The package defines the animation bank tables the handlers index:
  * gActorMotionAnimBanks for the twenty-part handlers, gActorMotionAnimBanks19
- * for the nineteen-part ones. actorMotionArrive19 plays its next clip through
+ * for the nineteen-part ones. _actorMotionArrive19 plays its next clip through
  * the nineteen-part play handler. A package with different restart semantics
  * binds ACTOR_MOTION_PLAY19_HANDLER to its own handler before including this
  * header and the arrival fragment.
@@ -39,7 +39,7 @@
 /// plays.
 ///
 /// It is a view of the front of a larger block, never an object of its own.
-/// Every package that installs `actorMotionPlayAnim` opens its work block
+/// Every package that installs `_actorMotionPlayAnim` opens its work block
 /// with these two members, and the handler reaches nothing after them. What
 /// follows is the package's own: a walker that runs the library's walk keeps
 /// its walk state directly after (`ActorMotionWalkWork`), while an actor that
@@ -61,9 +61,9 @@ STATIC_ASSERT_SIZEOF(ActorMotionPlayWork, 0x4B8);
 /// head of a scripted walker, `ActorMotionPlayWork` with the walk state
 /// directly after it.
 ///
-/// `actorMotionStartWalk` and the steps `actorMotionFaceTarget`,
-/// `actorMotionArrive` and `actorMotionTurnToYaw` run on it. The walk's clips
-/// are played by `actorMotionPlayAnim`, which views the same block as
+/// `_actorMotionStartWalk` and the steps `_actorMotionFaceTarget`,
+/// `_actorMotionArrive` and `_actorMotionTurnToYaw` run on it. The walk's clips
+/// are played by `_actorMotionPlayAnim`, which views the same block as
 /// `ActorMotionPlayWork`, so the first two members are laid out as that
 /// type's. What follows `walk` is the package's own.
 typedef struct {
@@ -88,7 +88,7 @@ typedef struct {
 } ActorMotion19PlayWork;
 STATIC_ASSERT_SIZEOF(ActorMotion19PlayWork, 0x480);
 
-/// What `actorMotionArrive19` needs of the work block at `Task::work`: the
+/// What `_actorMotionArrive19` needs of the work block at `Task::work`: the
 /// head of a nineteen-part scripted walker, `ActorMotion19PlayWork` with the
 /// walk state directly after it.
 ///
@@ -103,12 +103,19 @@ typedef struct {
 } ActorMotion19WalkWork;
 STATIC_ASSERT_SIZEOF(ActorMotion19WalkWork, 0x4C4);
 
-void actorMotionArrive(Task* arg0);
-void actorMotionFaceTarget(Task* task);
-void actorMotionTurnToYaw(Task* arg0);
-s32  actorMotionPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
-s32  actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim);
-void actorMotionArrive19(Task* arg0);
+/// Bank and transition choices used by the scripted walk's generated requests.
+enum {
+    ACTOR_MOTION_WALK_ANIMATION_BANK = 0,
+    ACTOR_MOTION_WALK_BLEND_FRAMES   = 5,
+    ACTOR_MOTION_WALK_FIRST_STEP     = 0,
+};
+
+static void _actorMotionArrive(Task* task);
+static void _actorMotionFaceTarget(Task* task);
+static void _actorMotionTurnToYaw(Task* task);
+static s32  _actorMotionPlayAnim(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _actorMotionStartWalk(Task* task, s32 messageId, const ActorTransform* placement, const ActorMotionWalkAnim* walkAnim);
+static void _actorMotionArrive19(Task* task);
 /// Selects a package's alternative nineteen-part play handler for arrival.
 ///
 /// When defined before this header, the carrier must declare the function with

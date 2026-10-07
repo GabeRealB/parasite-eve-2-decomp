@@ -5,7 +5,7 @@
  * the rig, draws a ground shadow under part 1, relights from that part and
  * counts down to freeing its model buffers. The rest is its spawn-walk
  * message, spawn state and a four-mode visibility message. It builds on
- * actor_motion (actorMotionArrive19, _actorMotionPlayAnim19,
+ * actor_motion (_actorMotionArrive19, _actorMotionPlayAnim19,
  * gActorMotionAnimBanks19).
  *
  * Include this header in the prologue and each fragment at its function's

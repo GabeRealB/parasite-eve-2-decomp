@@ -198,7 +198,7 @@ static const TaskFuncTable3 D_actor_141000_80131E4C = { {
 static const TaskFuncTable4 D_actor_141000_80131E58 = { {
     func_actor_141000_80133A68,
     func_actor_141000_80133B28,
-    actorMotionArrive19,
+    _actorMotionArrive19,
     func_actor_141000_80133BD8,
 } };
 

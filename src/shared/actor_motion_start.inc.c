@@ -1,61 +1,50 @@
 /* Part of the actor motion library; see actor_motion.h. */
 
-/// The 0x7DD entry of `D_actor_135600_8013B0F4`: starts the motion sequence,
-/// storing the placement position as `target` and its rotation in
-/// `walk.targetRot`, then applies a start preset -- `anim`'s
-/// `animationId` and `nextAnimId`, or animation 0xD and next id 1 when `anim`
-/// is absent -- with the body of
-/// `func_actor_135600_801330A8` written out inline. Returns 0.
-s32 actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
+#include "actor_motion_play_helpers.h"
+
+/// Starts the carrier's twenty-part scripted walk toward a borrowed destination.
+///
+/// Handles `ACTOR_MESSAGE_WALK_TO` on a live TMD task with initialized
+/// `ActorMotionWalkWork`. Copies XYZ position in the root parent's coordinate
+/// frame and Euler angles in 4096 units per turn; the closing step uses yaw only.
+/// The optional borrowed clips select bank-0 start and closing animations;
+/// without them the defaults are 13 and 1. Both must exist in the carrier's
+/// loaded bank and fit nonnegative signed bytes. Starts at the facing step,
+/// then blends an already ticking rig for five whole frames or resets it.
+/// Leaves velocity, previous gaps and fractional carry for the walk's later
+/// steps. Neither payload is retained. Ignores message ID and returns 0.
+static s32 _actorMotionStartWalk(Task* task, s32 messageId, const ActorTransform* placement, const ActorMotionWalkAnim* walkAnim)
 {
-    ActorMotionPlayWork*  work;
-    ActorMotionWalkWork*  w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
+    ActorMotionPlayWork* playWork;
+    ActorMotionWalkWork* walkWork;
+    AnimationPlayRequest startRequest;
+    enum {
+        ACTOR_MOTION_WALK_DEFAULT_START_CLIP   = 13,
+        ACTOR_MOTION_WALK_DEFAULT_CLOSING_CLIP = 1,
+    };
 
-    w                    = (ActorMotionWalkWork*)task->work;
-    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
-    w->walk.motionStep   = 0;
-    w->walk.target.vx    = place->pos.vx;
-    w->walk.target.vy    = place->pos.vy;
-    w->walk.target.vz    = place->pos.vz;
-    w->walk.targetRot.vx = place->rot.vx;
-    w->walk.targetRot.vy = place->rot.vy;
-    w->walk.targetRot.vz = place->rot.vz;
-    preset.source.index  = 0;
-    if (anim != NULL) {
-        preset.animationId  = anim->animationId;
-        w->model.nextAnimId = anim->nextAnimId;
+    walkWork                    = task->work;
+    walkWork->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    walkWork->walk.motionStep   = ACTOR_MOTION_WALK_FIRST_STEP;
+    walkWork->walk.target.vx    = placement->pos.vx;
+    walkWork->walk.target.vy    = placement->pos.vy;
+    walkWork->walk.target.vz    = placement->pos.vz;
+    walkWork->walk.targetRot.vx = placement->rot.vx;
+    walkWork->walk.targetRot.vy = placement->rot.vy;
+    walkWork->walk.targetRot.vz = placement->rot.vz;
+    startRequest.source.index   = ACTOR_MOTION_WALK_ANIMATION_BANK;
+    if (walkAnim != NULL) {
+        startRequest.animationId   = walkAnim->animationId;
+        walkWork->model.nextAnimId = walkAnim->nextAnimId;
     } else {
-        preset.animationId  = 0xD;
-        w->model.nextAnimId = 1;
+        startRequest.animationId   = ACTOR_MOTION_WALK_DEFAULT_START_CLIP;
+        walkWork->model.nextAnimId = ACTOR_MOTION_WALK_DEFAULT_CLOSING_CLIP;
     }
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+    startRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+    startRequest.blendFrames          = ACTOR_MOTION_WALK_BLEND_FRAMES;
+    startRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
-    msg  = &preset;
-    work = (ActorMotionPlayWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank = msg->source.index;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], ext, work->rig.poses, work->rig.slots);
-    }
-    work->model.animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x14; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-        }
-    } else {
-        for (i = 1; i < 0x14; i++) {
-            animationResetSlot(&work->rig.anim, i, work->model.animId);
-        }
-    }
-    for (i = 1; i < 0x14; i++) {
-        animationTickSlot(&work->rig.anim, i);
-    }
-    work->model.ticking = 1;
+    playWork = task->work;
+    _actorMotionApplyAnimationRequest(playWork, task->extra.tmd, &startRequest);
     return 0;
 }

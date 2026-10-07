@@ -593,6 +593,16 @@ is `ActorLimbShadowScratch` in `include/actors/actor.h`, public because
 `actor_00100` and `actor_400600` draw the same quad with drawers of their own,
 the latter on a wall rather than the floor.
 
+`actorMotion` owns the included animation-request handlers and scripted-walk
+steps in `src/shared/actor_motion.h`. Playback serves actors whose work opens
+with a nineteen- or twenty-part rig and model state; walk steps additionally
+need destination, velocity and motion state. Each carrier keeps static function
+instances marked `_`. The twenty-part handler restarts repeated clips; the
+nineteen-part handler skips them unless a carrier selects its own arrival-play
+handler through `ACTOR_MOTION_PLAY19_HANDLER`. Constants use `ACTOR_MOTION_`.
+The resident `animation` API owns slot playback rather than this request and
+walk sequencing.
+
 `reverseWalk` owns the included nineteen-part scripted walker that can back
 toward its target, shared by `actor_350500` and `actor_350700`. Its
 implementation interface is `src/shared/reversing_walker.h`, which declares the
