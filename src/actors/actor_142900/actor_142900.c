@@ -764,22 +764,28 @@ s32 D_actor_142900_801382A8;
 
 s32 D_actor_142900_801382AC;
 
-/// Steps the active fade and returns its reduced vertical offset in pixels.
+/// Advances the elevator scene's shake fade and returns its scaled vertical offset.
 ///
-/// The shared countdown must be in [1, 20] and `task` must be live, with its
-/// signed 16-bit phase counter in `killCountdown`. The last step selects
-/// STOPPED so the caller clears the display instead of applying this result.
-static inline s32 _actor142900FadeScreenShake(Task* task, s32 offsetY)
+/// Call once per shake-task callback while FADING, with one live shake task and
+/// `unfadedOffsetY` in [-4, 4] pixels. The shared remaining-callback count must
+/// be in [1, ACTOR_142900_SCREEN_SHAKE_FADE_TICKS]. Scale by the count before
+/// decrementing it, rounding toward zero, then advance the task's sine phase
+/// by five counts, retaining the signed 16-bit wrap in `killCountdown`.
+/// Reaching zero selects STOPPED; the caller clears the display and ends the
+/// task without applying the final result.
+static inline s32 _actor142900FadeScreenShake(Task* task, s32 unfadedOffsetY)
 {
     enum { ACTOR_142900_SCREEN_SHAKE_FADE_PHASE_STEP = 5 };
 
-    offsetY                 = offsetY * D_actor_142900_801382A8 / ACTOR_142900_SCREEN_SHAKE_FADE_TICKS;
-    D_actor_142900_801382A8 = D_actor_142900_801382A8 - 1;
-    task->killCountdown     = task->killCountdown + ACTOR_142900_SCREEN_SHAKE_FADE_PHASE_STEP;
+    s32 fadedOffsetY;
+
+    fadedOffsetY = unfadedOffsetY * D_actor_142900_801382A8 / ACTOR_142900_SCREEN_SHAKE_FADE_TICKS;
+    D_actor_142900_801382A8--;
+    task->killCountdown += ACTOR_142900_SCREEN_SHAKE_FADE_PHASE_STEP;
     if (D_actor_142900_801382A8 == 0) {
         D_actor_142900_801382AC = ACTOR_142900_SCREEN_SHAKE_STOPPED;
     }
-    return offsetY;
+    return fadedOffsetY;
 }
 
 /// Applies the elevator scene's vertical shake and ends its task when stopped.

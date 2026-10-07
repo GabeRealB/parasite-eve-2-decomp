@@ -129063,7 +129063,7 @@ serves both divisors at different shifts, because `mfhi` leaves the high half of
 >> 3` at face value and writing `/ 10` produced the right magic with the wrong shift
 (`sra v0,a3,0x2`), one instruction off in the middle of an otherwise exact 78-instruction
 function. Read the shift operand off the target and write the division in C as
-`offsetY * D_actor_142900_801382A8 / ACTOR_142900_SCREEN_SHAKE_FADE_TICKS`; GCC
+`unfadedOffsetY * D_actor_142900_801382A8 / ACTOR_142900_SCREEN_SHAKE_FADE_TICKS`; GCC
 regenerates magic and shift together.
 ## A 100.00% score is normalized text: two `j`s can still name the wrong label, and only the checksum catches it (func_actor_120500_8013241C, 2026-09-17)
 
