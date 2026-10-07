@@ -735,7 +735,6 @@ static void func_actor_503500_8013AD64(Task* arg0)
     Enemy*                           enemy;
     Task*                            parent;
     GfxCoord*                        coord;
-    MATRIX*                          mtx;
     WorldCollisionContact*           rec;
     _Actor503500LargeOrbEmitterWork* work;
     s32                              idx;
@@ -750,13 +749,8 @@ static void func_actor_503500_8013AD64(Task* arg0)
     work->side = idx;
 
     coord->parent                    = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[idx]];
-    MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-    mtx                              = &coord->coord;
-    MATRIX_PAIR(mtx, 0, 2)           = 0;
-    MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
-    MATRIX_PAIR(mtx, 2, 0)           = 0;
-    mtx->m[2][2]                     = 0x1000;
-    enemy->field_4                   = mtx;
+    gfxSetRotIdentity(&coord->coord);
+    enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
