@@ -23,8 +23,6 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-/// This carrier supplies its own private blend with a fixed eight-frame duration.
-#define SCRIPTED_WALK_BLEND_ANIM _actor420700BlendAnimation
 #include "../../shared/scripted_walk.h"
 
 /// The animation request and the head turn the actor keeps right after its
@@ -97,6 +95,7 @@ extern Task* D_actor_420700_8013EFEC;
 
 static void _actor420700Exit(Task* task);
 static void _actor420700UpdateAnimation(Task* task);
+static void _actor420700BlendAnimation(void);
 
 enum {
     ACTOR_420700_ATTACHMENT_INIT     = 0,

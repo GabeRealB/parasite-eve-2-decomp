@@ -147157,7 +147157,7 @@ and `pacedWalkPlace` declare their block as `PACED_WALK_WORK_T`, which defaults
 to `PacedWalkWork` and which
 `actor_161500`, `actor_450800` and `actor_460200`'s second walker bind to the
 type that walker allocates, rather than viewing every block through a separate
-struct that repeats its leading members. `scriptedWalkUpdate` and
+struct that repeats its leading members. `_scriptedWalkUpdate` and
 `scriptedWalkTo` do the same through `SCRIPTED_WALK_WORK_T`. A copy
 the file already declared `static` keeps internal linkage, since a later
 definition without a storage class inherits it. Where every copy is private to

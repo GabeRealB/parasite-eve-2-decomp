@@ -1124,7 +1124,7 @@ static void func_actor_461800_80132390(Enemy* enemy, Task* task)
     _gScriptedWalkWork->st.travel  = 0;
     _gScriptedWalkWork->turnFrames = 0;
     task->msgTable                 = D_actor_461800_80139F5C;
-    scriptedWalkUpdate(task);
+    _scriptedWalkUpdate(task);
     task->state++;
 }
 
@@ -1145,7 +1145,7 @@ void func_actor_461800_801329B0(Task* task)
 }
 
 #define walkerFrame      func_actor_461800_80132A0C
-#define walkerUpdate     scriptedWalkUpdate
+#define walkerUpdate     _scriptedWalkUpdate
 #define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1223,7 +1223,7 @@ s32 func_actor_461800_80132D84(Task* task, s32 arg1, AnimationPlayRequest* prese
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkWork->st.field_6 = 0;
-        scriptedWalkUpdate(D_actor_461800_80143898);
+        _scriptedWalkUpdate(D_actor_461800_80143898);
         return 0;
     }
     return -1;

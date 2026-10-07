@@ -1451,7 +1451,7 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
 #include "../../shared/scripted_walk_update.inc.c"
 #undef SCRIPTED_WALK_UPDATE
-#define SCRIPTED_WALK_UPDATE scriptedWalkUpdate
+#define SCRIPTED_WALK_UPDATE _scriptedWalkUpdate
 #undef SCRIPTED_WALK_TICK_ANIM
 #undef SCRIPTED_WALK_RESET_ANIM
 #define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim

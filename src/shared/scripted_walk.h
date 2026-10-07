@@ -146,7 +146,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 
 #ifndef SCRIPTED_WALK_WORK_T
-/// Type `scriptedWalkUpdate` and `scriptedWalkTo` take the block at
+/// Type `_scriptedWalkUpdate` and `scriptedWalkTo` take the block at
 /// `Task::work` as.
 ///
 /// The walkers' blocks are their packages' own types, so each includer binds
@@ -205,8 +205,6 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 ///
 /// The default serves the sole or first walker in the four blend carriers;
 /// actor_143900 binds its second copy to `_scriptedWalkBlendSecondAnim`.
-/// actor_420700 carries only the tick and reset fragments and selects its
-/// own fixed-duration blend function for this declaration.
 /// This identifier alias takes no arguments and captures no local variables.
 #define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendAnim
 #endif
@@ -214,8 +212,9 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 #ifndef SCRIPTED_WALK_UPDATE
 /// Selects the scripted walk update's function identifier for one instance.
 ///
-/// Bind to a `void name(Task* task)` function identifier before including the
-/// update fragment. Its work type, published work pointer, mode, blend duration
+/// Bind to a TU-private `void name(Task* task)` function identifier before
+/// including the update fragment. The header and fragment declare it `static`.
+/// Its work type, published work pointer, mode, blend duration
 /// and tick/reset/blend helpers must all select the same walker. The default
 /// names the sole or first update in actor_143900, actor_260400 and actor_461800.
 /// actor_146300 and actor_420700 carry no update fragment.
@@ -224,10 +223,10 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 /// around its fragment and restore the first binding afterwards. actor_143900
 /// selects `_scriptedWalkUpdateSecond` this way. This identifier alias has no
 /// arguments, captures no locals and evaluates no objects.
-#define SCRIPTED_WALK_UPDATE scriptedWalkUpdate
+#define SCRIPTED_WALK_UPDATE _scriptedWalkUpdate
 #endif
 
-void SCRIPTED_WALK_UPDATE(Task* task);
+static void SCRIPTED_WALK_UPDATE(Task* task);
 
 /// Advances the selected walker's non-root animation slots and applies their poses.
 ///

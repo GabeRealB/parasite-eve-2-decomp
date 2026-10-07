@@ -682,7 +682,7 @@ function, carried by `actor_143900` (two walkers), `actor_146300`,
 is the whole block of a walker that carries two attachment tasks, the first
 walker of `actor_461800` and the second of `actor_143900`; the other walkers'
 blocks are their packages' own. The two fragments that take the block from the
-task, `scriptedWalkUpdate` and `scriptedWalkTo`, declare it as
+task, `_scriptedWalkUpdate` and `scriptedWalkTo`, declare it as
 `SCRIPTED_WALK_WORK_T`, which each carrier binds to the type its walker
 allocates. `SCRIPTED_WALK_WORK` selects that walker's borrowed work pointer
 for the animation and placement fragments. `SCRIPTED_WALK_MODE` selects its
@@ -692,8 +692,9 @@ selects the private slot-tick instance and its update calls.
 `SCRIPTED_WALK_RESET_ANIM` selects the private track-restart instance and its
 update calls, with the same published work binding at both sites. A carrier with
 two walkers selects its update definition with `SCRIPTED_WALK_UPDATE`, which
-defaults to `scriptedWalkUpdate`; `actor_143900` binds its additional private
-instance to `_scriptedWalkUpdateSecond`. The same instance's work, mode,
+defaults to the private `_scriptedWalkUpdate`; its header and fragment declare
+each instance `static`. `actor_143900` binds its additional private instance to
+`_scriptedWalkUpdateSecond`. The same instance's work, mode,
 duration and animation-helper bindings accompany the update binding.
 An additional walker also selects its child-track blend definition and update call with
 `SCRIPTED_WALK_BLEND_ANIM`, defaulting to the private `_scriptedWalkBlendAnim`.
@@ -702,8 +703,8 @@ latch, in whole normal-rate frames, defaulting to `_gScriptedWalkBlendFrames`.
 Each carrier keeps that storage private; a play request narrows the duration
 to its low signed halfword. A carrier rebinds both around each additional
 fragment instance and restores its first walker's bindings afterwards.
-`actor_420700` carries only the tick and reset fragments and selects its own
-private fixed-duration blend function for the shared header's declaration.
+`actor_420700` carries only the tick and reset fragments; its private
+fixed-duration blend function is declared directly in the carrier's prologue.
 
 `pacedWalk` owns the included twenty-part cutscene NPC walk whose work block
 is kept at `Task::work`, and the animation-slot tick, reset, blend and placement

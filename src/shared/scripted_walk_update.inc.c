@@ -15,8 +15,9 @@
 /// ten-frame blend for the next update and still ticks the old clip. The caller
 /// must provide clip 13 if travel can finish. Clip 3 consumes scheduled turns
 /// independently of freezing, adding 51/4096 turns with signed-halfword
+/// narrowing. Both countdowns test for nonzero and decrement with signed-halfword
 /// narrowing. Other request states do nothing. No pointer is retained.
-void SCRIPTED_WALK_UPDATE(Task* task)
+static void SCRIPTED_WALK_UPDATE(Task* task)
 {
     enum {
         SCRIPTED_WALK_ANIM_WALK_2           = 2,
