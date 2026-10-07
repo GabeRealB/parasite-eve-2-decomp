@@ -116,7 +116,6 @@ void func_healing_8012EF34(Task* arg0)
     EffectWork*       mem;
     GfxCoord*         coord;
     AttachmentState*  state;
-    GfxRotationWords* rot;
     EffectWork*       spawned;
     s32               pan;
     s32               bright;
@@ -138,13 +137,8 @@ void func_healing_8012EF34(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            rot                 = (GfxRotationWords*)&coord->coord;
             coord->parent       = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            rot->m00M01         = ONE;
-            rot->m02M10         = 0;
-            rot->m11M12         = ONE;
-            rot->m20M21         = 0;
-            rot->m22            = ONE;
+            gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = 0;
             coord->coord.t[1]   = -0x400;
             coord->coord.t[2]   = 0;
