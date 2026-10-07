@@ -64,7 +64,7 @@ static void _actor350700KyleMadiganWalkerRunStep(Task* task);
 static void _actor350700KyleMadiganWalkerBeginMove(Task* task);
 
 /// Spawn, tick and exit handlers of the enemy actor, dispatched by
-/// `func_actor_350700_80162398`.
+/// `_actor350700ReverseWalkTask`.
 static const TaskFuncTable3 D_actor_350700_80161E24 = { {
     _reverseWalkSpawn,
     _reverseWalkUpdate,
@@ -125,8 +125,8 @@ static s32       _actor350700KyleMadiganWalkerIgnoreCommandMsg(Task* task, s32 m
 static void      _actor350700KyleMadiganAttachmentTask(Task* task);
 static void      _actor350700KyleMadiganWalkerTask(Task* task);
 
-static s32 _actor350700ReverseWalkCommandMsg(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
-void       func_actor_350700_80162398(Task*);
+static s32  _actor350700ReverseWalkCommandMsg(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
+static void _actor350700ReverseWalkTask(Task* task);
 
 static TmdBone _gActor350700EveBreaMaskedBodySkeleton[19] = {
 #include "assets/eve_brea_masked_body_skeleton.inc"
@@ -260,7 +260,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_350700_80169CF8,
 };
 
-TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350700_80162398, { .model = &_gActor350700EveBreaMaskedBody } };
+TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700ReverseWalkTask, { .model = &_gActor350700EveBreaMaskedBody } };
 
 TaskMessageEntry gReverseWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
@@ -543,16 +543,19 @@ TaskMessageEntry D_actor_350700_8017090C[6] = {
 
 #include "../../shared/reversing_walker_start.inc.c"
 
-/// Per-frame dispatcher of the enemy actor: runs its spawn, tick or exit state
-/// from `D_actor_350700_80161E24`, skipping the frame while the global freeze
-/// byte is set.
-void func_actor_350700_80162398(Task* task)
+/// Runs the nineteen-part reversing walker's task while scene actors are running.
+///
+/// Requires a live TMD task with state 0 (spawn), 1 (update) or 2 (exit);
+/// the state index is unchecked. Spawn and exit require its owned `Enemy`
+/// in `spawnArg2.pointer`; update requires initialized `ReverseWalkWork`.
+/// Actor-control values other than `SCENE_COMBAT_ACTORS_RUNNING` suspend
+/// all three states. Spawn failure or exit may release the task and resources.
+static void _actor350700ReverseWalkTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    const TaskFuncTable3 stateHandlers = D_actor_350700_80161E24;
 
-    sp = D_actor_350700_80161E24;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
 
@@ -735,10 +738,14 @@ static void func_actor_350700_80162B30(Task* arg0)
     arg0->state       += 1;
 }
 
-/// Applies signed 16.16 walk velocity to a root's integer translation.
+/// Applies Kyle Madigan's walk velocity to his root's integer translation.
 ///
-/// Both objects must be live and writable. Keeps each axis's low-half fraction
-/// for the next tick and invalidates the composed transform.
+/// Work and root must be separate, live and writable. Velocity is signed
+/// 16.16 displacement in the root's parent frame, in coordinate units per
+/// update. Adds the signed integer halves to XYZ and retains each unsigned
+/// fractional half (0..65535) for the next update, including negative motion.
+/// Marks composition dirty even for zero velocity; rotation is unchanged.
+/// Neither pointer is retained, and the caller keeps ownership of both objects.
 static inline void _actor350700KyleMadiganWalkerIntegrateVelocity(KyleMadiganWalkerWork* work, GfxCoord* rootCoord)
 {
     work->walk.carry[0].word += work->walk.velocity.vx;
