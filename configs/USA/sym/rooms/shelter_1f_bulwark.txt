@@ -40,7 +40,10 @@ D_actor_102300_80147AB8 = 0x80147AB8; // absolute:True owner=actor_102300
 D_actor_205700_801611F8 = 0x801611F8; // absolute:True owner=actor_205700
 D_map_neo_ark_8017AF00 = 0x8017AF00; // absolute:True owner=map_neo_ark
 RoomFx_TrailOffsets = 0x801803A0; // size:0x10 defined:True
-D_shelter_1f_bulwark_80180ECC = 0x80180ECC; // size:0x4 defined:True
+D_shelter_1f_bulwark_80180ECC = 0x80180ECC; // size:0x1 defined:True
+D_shelter_1f_bulwark_80180ECD = 0x80180ECD; // size:0x1 defined:True
+D_shelter_1f_bulwark_80180ECE = 0x80180ECE; // size:0x1 defined:True
+D_shelter_1f_bulwark_80180ECF = 0x80180ECF; // size:0x1 defined:True
 gRoomEventLatched = 0x80180ED0; // size:0xC defined:True
 
 shelter1fBulwarkRoomVisualEffectsFlashTask = 0x8017E38C; // type:func

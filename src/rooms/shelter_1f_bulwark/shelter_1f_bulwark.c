@@ -63,11 +63,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern s8 D_shelter_1f_bulwark_80180ECC[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern s8 D_shelter_1f_bulwark_80180ECC_value __asm__("D_shelter_1f_bulwark_80180ECC");
+extern s8 D_shelter_1f_bulwark_80180ECC;
 
 extern TaskDesc         D_shelter_1f_bulwark_80180320;
 extern TaskMessageEntry D_shelter_1f_bulwark_8018032C[];
@@ -301,12 +297,14 @@ ScreenFade D_shelter_1f_bulwark_80180EC0 = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_1f_bulwark_80180ECC[4] = {
-    0,
-    33,
-    -78,
-    -119,
-};
+s8 D_shelter_1f_bulwark_80180ECC = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_1f_bulwark_80180ECD = 33;
+
+u8 D_shelter_1f_bulwark_80180ECE = 178;
+
+u8 D_shelter_1f_bulwark_80180ECF = 137;
 
 RoomLatchedEvent gRoomEventLatched;
 
@@ -316,7 +314,7 @@ static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
 
 static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_1f_bulwark_80180ECC_value = 0;
+    D_shelter_1f_bulwark_80180ECC = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -325,7 +323,7 @@ static __inline__ s32 Bulwark_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_shelter_1f_bulwark_80180320, 0, 0, 0);
-            D_shelter_1f_bulwark_80180ECC_value = 1;
+            D_shelter_1f_bulwark_80180ECC = 1;
         }
         return 2;
     }
