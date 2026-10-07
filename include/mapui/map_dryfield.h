@@ -50,7 +50,7 @@ extern AreaObjectRoom D_map_dryfield_8017A564[];
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
 extern TaskDesc D_map_dryfield_8017A6A4[];
 
-/// This stage's flag table for `Gp_LookupStageFlag`.
+/// This stage's flag table for `menuMapGetMarkerState`.
 extern u16 D_map_dryfield_8017A824[];
 
 /// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_WarpTables`,

@@ -47,7 +47,7 @@ extern AreaObjectRoom D_map_shelter_8017A998[];
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
 extern TaskDesc D_map_shelter_8017AB30[];
 
-/// This stage's flag table for `Gp_LookupStageFlag`.
+/// This stage's flag table for `menuMapGetMarkerState`.
 extern u16 D_map_shelter_8017AD88[];
 
 /// Mine/Shelter model-lighting arrays indexed by `GameLocationKey.area - 1`.

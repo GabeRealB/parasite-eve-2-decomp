@@ -1234,49 +1234,49 @@ enum {
     /// stage sound). Set to 1 when the latched one-shot event starts; while set the
     /// transition goes through with no event.
     GAME_FLAG_PAVILION_TO_SUB_TUNNEL_SCENE = 0x17E,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter table entry 26 (0x800
     /// variant); set to 2 at first arrival in the Shelter 1F tent (flag 0x109).
     GAME_FLAG_MAP_MARK_SHELTER_1AE = 0x1AE,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter table entry 24 (0x800
     /// variant); set to 2 at first arrival in the Shelter 1F tent.
     GAME_FLAG_MAP_MARK_SHELTER_1B0 = 0x1B0,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Neo Ark entry 6; cleared when
     /// Neo Ark power plant 1 is activated (0xDE, 0xF6 set).
     GAME_FLAG_MAP_MARK_POWER_PLANT_1 = 0x1B2,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 22 (0x800
     /// variant); set to 2 at first arrival in the Shelter 1F tent.
     GAME_FLAG_MAP_MARK_SHELTER_1B3 = 0x1B3,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 21 / Neo Ark entry
     /// 5; set to 2 by B1 underground parking warp 0xA (room < 7), cleared by its later
     /// event (0xF4 -> 2).
     GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING = 0x1B4,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entries 20 and 28; the
     /// B1/B2 pod access tunnels set 2 when the pod CAP ends on key 1 and clear it when
     /// the pod ride is taken (key 0xA); the 1F tent clears it on arrival.
     GAME_FLAG_MAP_MARK_POD = 0x1B6,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Neo Ark entry 3; cleared when
     /// the Neo Ark altar tile sequence is solved (0xDC set).
     GAME_FLAG_MAP_MARK_ALTAR = 0x1B7,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Neo Ark entry 2; cleared when
     /// the Neo Ark shrine arrangement puzzle completes (0xDB set).
     GAME_FLAG_MAP_MARK_SHRINE = 0x1B8,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter-stage entry 19; cleared
     /// in the mine cavern when the CAP ends on key 0x15 (0xBB set).
@@ -1285,65 +1285,65 @@ enum {
     /// map-marker flags, but no stage map table lists it (the shelter table lists 0x1BB
     /// twice).
     GAME_FLAG_SHELTER_1F_TENT_1BA = 0x1BA,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entries 17, 18 and 29;
     /// set to 2 at first arrival in the Shelter 1F tent.
     GAME_FLAG_MAP_MARK_SHELTER_1BB = 0x1BB,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Neo Ark entry 1 (0x800 variant);
     /// cleared when Neo Ark power plant 2 is activated (0xDF, 0xB9 set).
     GAME_FLAG_MAP_MARK_POWER_PLANT_2 = 0x1BC,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Reused across stages: Dryfield
     /// entry 28 set to 2 by examining the water hole (day/night, CAP 2); Shelter entry
     /// 16 set to 2 at the B4 water-supply valve; cleared on entering mine mesa and when
     /// the B4 upper sewer event sets 0xB8.
     GAME_FLAG_MAP_MARK_WATER = 0x1BD,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 15 (0x800
     /// variant); set to 2 by the B4 reservoir event that sets 0xB6/0xB7.
     GAME_FLAG_MAP_MARK_RESERVOIR_1BE = 0x1BE,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 14 (0x800
     /// variant); set to 2 by the same B4 reservoir event.
     GAME_FLAG_MAP_MARK_RESERVOIR_1BF = 0x1BF,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 12; cleared when
     /// the B1 pod ride to the pod service gantry is taken (0xB4 set).
     GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY = 0x1C1,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 11; cleared by the
     /// B2 laboratory event that sets 0xD0=3 and 0xB3.
     GAME_FLAG_MAP_MARK_B2_LABORATORY = 0x1C2,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 9 / Neo Ark entry
     /// 0; cleared by the B2 main corridor event (0xD3, 0xAE set); the shelter_r47
     /// terminal sets 2 at its step 4 and 0 at step 5.
     GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR = 0x1C4,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 7; the shelter_r47
     /// terminal sets 2 at its step 0 and 0 at step 1.
     GAME_FLAG_MAP_MARK_SHELTER_R47_1C6 = 0x1C6,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 6; cleared by
     /// actor_450900's event (0xAB set, 0x155 -> 8).
     GAME_FLAG_MAP_MARK_SHELTER_1C7 = 0x1C7,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Shelter entry 0 (forced to the
     /// 0x800 sprite while 0x7A is 6); set to 2 at first arrival in the Shelter 1F tent.
     GAME_FLAG_MAP_MARK_SHELTER_1CD = 0x1CD,
-    /// Map marker: listed in the stage map-marker tables read by Gp_LookupStageFlag;
+    /// Map marker: listed in the stage map-marker tables read by menuMapGetMarkerState;
     /// func_800D0C34 draws a marker icon while the value is 2 (alternate sprite when
     /// the table entry carries bit 0x800), 0 hides it. Akropolis entry 4; cleared in
     /// the Akropolis security room's event task.

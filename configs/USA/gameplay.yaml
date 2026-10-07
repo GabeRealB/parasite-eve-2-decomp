@@ -84,7 +84,7 @@ segments:
       - [0x9C, .rodata, linked_actors] # status-icon mask initializer of func_800A57B0
       - [0xAC, .rodata, hud_sprites] # hidden-amount label
       - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
-      - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from Gp_LookupStageFlag
+      - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from menuMapGetMarkerState
       - [0x1BC, .rodata, scene_runtime] # jtbls from streamReadSceneImageSector and Gp_StepCdAudioCmd, then its strings and state tables
       - [0x268, .rodata, equipment] # jtbl from inventoryIsItemLimitReached, then Gp_StrNotice2
       - [0x4CC, .rodata, item_menu] # jtbls: Gp_ItemMoveChild + strings/tables + _itemMenuHandlePaneChildResult

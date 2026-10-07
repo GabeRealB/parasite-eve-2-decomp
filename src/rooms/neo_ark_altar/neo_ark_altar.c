@@ -165,7 +165,7 @@ s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 
 /// Handler for message `0x13EF` in the room's `(msgId, handler)` table - the
-/// direction record `Gp_PostMsg13EF` posts. When the record's `field_2` is 1 and
+/// direction record `_directionDispatchRoomAction` posts. When the record's `field_2` is 1 and
 /// agrees with the current view (`GameSession.location.loc.room`) the altar runs CAP
 /// command 3; on any other view the same byte starts the overlay's
 /// cutscene-driver task through `D_neo_ark_altar_8017EF8C`. Any other byte is

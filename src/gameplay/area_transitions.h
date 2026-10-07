@@ -12,13 +12,14 @@
 
 extern const DirectionActionTable Gp_DirActionFns;
 
-/// Per-stage flag-nibble lookup. `idx` indexes a u16 table selected by
-/// `gGameSession->location.loc.stage` (1..5). Low 11 bits are the `gameFlagGetNibble`
-/// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
-/// index returns -1.
-s16 Gp_LookupStageFlag(s16 idx);
-
-s32 Gp_YawToPosXZ(Task* arg0, SVECTOR* arg1);
+/// Returns the yaw from a model task's root translation toward a point in its parent frame.
+///
+/// Requires a live TMD body and root coordinate. Borrows both inputs without
+/// composing transforms; `targetPoint` must use the root's parent coordinate
+/// frame and whole game-coordinate units. Ignores Y, narrows the X/Z differences
+/// modulo 65536 into signed halfwords, then normalizes them before measuring.
+/// Returns 0..4095, with +Z at zero and +X at a quarter turn.
+s32 actorAngleTaskYawTowardPoint(const Task* modelTask, const SVECTOR* targetPoint);
 
 void Gp_SetCurAreaFlag4(void);
 

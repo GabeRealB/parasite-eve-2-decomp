@@ -15,6 +15,7 @@
 #include "direction_input.h"
 #include "gameplay/loading.h"
 #include "loading.h"
+#include "menu_map.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
@@ -139,9 +140,9 @@ static const _DirectionFacingPhaseTable D_80093990;
 
 static inline s32 _gpGetAreaFlag4(GameLocationKey* key);
 
-static inline s16 _gpStageFlagNibble(u16* table, s16 idx);
+static inline s16 _menuMapReadMarkerState(const u16* flagEntries, s16 markerIndex);
 
-static void Gp_InitDirState(Task* arg0);
+static void _directionInitTask(Task* task);
 
 static void Gp_DirTaskState1(Task* task);
 
@@ -149,23 +150,23 @@ static u8 Gp_GetViewCountLo(void);
 
 static void Gp_DirAction0(void);
 
-static void Gp_DirAction1(void);
+static void _directionUpdateStairAction(void);
 
-static void Gp_ClearDirCursor(void);
+static void _directionClearAction(void);
 
-static void Gp_PostMsg13EF(void);
+static void _directionDispatchRoomAction(void);
 
 static void Gp_SpawnEvt1IfCapIdle(void);
 
-static void Gp_FadeDirAdvance(void);
+static void _directionHoldWarpFrame(void);
 
 static void Gp_CommitSaveLoc(void);
 
-static void Gp_MsgPlayer3EE(void);
+static void _directionStartStairTurn(void);
 
-static void Gp_MsgPlayer3F0(void);
+static void _directionAwaitStairTurn(void);
 
-static void Gp_MsgPlayer3EF(void);
+static void _directionStartStairClimb(void);
 
 static void Gp_ApplyAreaFlag4List(s16 arg0, _AreaMapMarkRec* entry);
 
@@ -444,82 +445,98 @@ void Gp_RebuildAreaIdBits(void)
 /// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
 /// bit 0x800 is added onto that nibble's value.
 const TaskFuncTable3 Gp_DirTaskStates = { {
-    Gp_InitDirState,
+    _directionInitTask,
     Gp_DirTaskState1,
     taskKill,
 } };
 
 const DirectionActionTable Gp_DirActionFns = { {
     [WORLD_COLLISION_TRIGGER_ACTION_WARP]       = Gp_DirAction0,
-    [WORLD_COLLISION_TRIGGER_ACTION_FACING]     = Gp_DirAction1,
+    [WORLD_COLLISION_TRIGGER_ACTION_FACING]     = _directionUpdateStairAction,
     [WORLD_COLLISION_TRIGGER_ACTION_CAP]        = directionDispatchCapInteraction,
     [WORLD_COLLISION_TRIGGER_ACTION_CALLBACK]   = Gp_RunDirAction,
-    [WORLD_COLLISION_TRIGGER_ACTION_CLEAR]      = Gp_ClearDirCursor,
-    [WORLD_COLLISION_TRIGGER_ACTION_ROOM]       = Gp_PostMsg13EF,
+    [WORLD_COLLISION_TRIGGER_ACTION_CLEAR]      = _directionClearAction,
+    [WORLD_COLLISION_TRIGGER_ACTION_ROOM]       = _directionDispatchRoomAction,
     [WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON] = Gp_SpawnEvt1IfCapIdle,
 } };
 
 static const _DirectionWarpPhaseTable Gp_WarpPhaseFns = { {
     [DIRECTION_WARP_PHASE_QUERY]       = Gp_SetupDirWarp,
     [DIRECTION_WARP_PHASE_AWAIT_TURN]  = Gp_FadeDirWaitMsg,
-    [DIRECTION_WARP_PHASE_HOLD]        = Gp_FadeDirAdvance,
+    [DIRECTION_WARP_PHASE_HOLD]        = _directionHoldWarpFrame,
     [DIRECTION_WARP_PHASE_RESOLVE]     = Gp_CommitWarp,
     [DIRECTION_WARP_PHASE_AWAIT_SOUND] = Gp_WarpPhase4,
     [DIRECTION_WARP_PHASE_LEAVE]       = Gp_CommitSaveLoc,
 } };
 
 static const _DirectionFacingPhaseTable D_80093990 = { {
-    [DIRECTION_FACING_PHASE_TURN]        = Gp_MsgPlayer3EE,
-    [DIRECTION_FACING_PHASE_AWAIT_TURN]  = Gp_MsgPlayer3F0,
-    [DIRECTION_FACING_PHASE_CLIMB]       = Gp_MsgPlayer3EF,
+    [DIRECTION_FACING_PHASE_TURN]        = _directionStartStairTurn,
+    [DIRECTION_FACING_PHASE_AWAIT_TURN]  = _directionAwaitStairTurn,
+    [DIRECTION_FACING_PHASE_CLIMB]       = _directionStartStairClimb,
     [DIRECTION_FACING_PHASE_AWAIT_CLIMB] = directionAwaitStairClimb,
     [DIRECTION_FACING_PHASE_WARP]        = directionCommitStairWarp,
 } };
 
-static inline s16 _gpStageFlagNibble(u16* table, s16 idx)
+/// Reads a map marker's flag nibble and preserves its alternate-picture bit.
+///
+/// Borrows a loaded packed u16 table: the low 11 bits select a game-flag nibble,
+/// and bit 11 selects the alternate picture. `markerIndex` must be within the
+/// table's extent; there is no bounds check or terminator.
+static inline s16 _menuMapReadMarkerState(const u16* flagEntries, s16 markerIndex)
 {
-    return gameFlagGetNibble(table[idx] & 0x7FF) + (table[idx] & 0x800);
+    return gameFlagGetNibble(flagEntries[markerIndex] & MENU_MAP_MARKER_FLAG_ID_MASK) + (flagEntries[markerIndex] & MENU_MAP_MARKER_ALTERNATE_PICTURE);
 }
 
-s16 Gp_LookupStageFlag(s16 idx)
+s16 menuMapGetMarkerState(s16 markerIndex)
 {
+    enum {
+        MENU_MAP_ACROPOLIS_MARKER_COUNT            = 14,
+        MENU_MAP_DRYFIELD_MARKER_COUNT             = 29,
+        MENU_MAP_DRYFIELD_NIGHT_MARKER_COUNT       = 30,
+        MENU_MAP_SHELTER_MARKER_COUNT              = 30,
+        MENU_MAP_NEO_ARK_MARKER_COUNT              = 9,
+        MENU_MAP_DRYFIELD_NIGHT_STORY_MARKER       = 29,
+        MENU_MAP_SHELTER_ALTERNATE_PICTURE_CHAPTER = 6
+    };
+
     switch (gGameSession->location.loc.stage) {
         case GAME_STAGE_ACROPOLIS:
-            if (idx >= 0xE) {
+            if (markerIndex >= MENU_MAP_ACROPOLIS_MARKER_COUNT) {
                 break;
             }
-            return _gpStageFlagNibble(D_map_akropolis_8017AA0C, idx);
+            return _menuMapReadMarkerState(D_map_akropolis_8017AA0C, markerIndex);
         case GAME_STAGE_DRYFIELD:
-            if (idx >= 0x1D) {
+            if (markerIndex >= MENU_MAP_DRYFIELD_MARKER_COUNT) {
                 break;
             }
-            return _gpStageFlagNibble(D_map_dryfield_8017A824, idx);
+            return _menuMapReadMarkerState(D_map_dryfield_8017A824, markerIndex);
         case GAME_STAGE_DRYFIELD_NIGHT:
-            if (idx >= 0x1E) {
+            if (markerIndex >= MENU_MAP_DRYFIELD_NIGHT_MARKER_COUNT) {
                 break;
             }
-            if (idx == 0x1D) {
+            // This marker is controlled directly by story progress, not its table word.
+            if (markerIndex == MENU_MAP_DRYFIELD_NIGHT_STORY_MARKER) {
                 if (gameFlagGetNibble(GAME_FLAG_07F) == 0) {
                     return 0;
                 }
-                return 0x802;
+                return MENU_MAP_MARKER_STATE_VISIBLE + MENU_MAP_MARKER_ALTERNATE_PICTURE;
             }
-            return _gpStageFlagNibble(D_map_dryfield_full_8017A738, idx);
+            return _menuMapReadMarkerState(D_map_dryfield_full_8017A738, markerIndex);
         case GAME_STAGE_MINE_SHELTER:
-            if (idx >= 0x1E) {
+            if (markerIndex >= MENU_MAP_SHELTER_MARKER_COUNT) {
                 break;
             }
-            if (idx == 0 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == 6) {
-                return gameFlagGetNibble(D_map_shelter_8017AD88[0] & 0x7FF) + 0x800;
+            if (markerIndex == 0 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == MENU_MAP_SHELTER_ALTERNATE_PICTURE_CHAPTER) {
+                return gameFlagGetNibble(D_map_shelter_8017AD88[0] & MENU_MAP_MARKER_FLAG_ID_MASK) + MENU_MAP_MARKER_ALTERNATE_PICTURE;
             }
-            return _gpStageFlagNibble(D_map_shelter_8017AD88, idx);
+            return _menuMapReadMarkerState(D_map_shelter_8017AD88, markerIndex);
         case GAME_STAGE_SHELTER_NEO_ARK:
-            if (idx >= 9) {
+            if (markerIndex >= MENU_MAP_NEO_ARK_MARKER_COUNT) {
                 break;
             }
-            return _gpStageFlagNibble(D_map_neo_ark_8017A9A0, idx);
+            return _menuMapReadMarkerState(D_map_neo_ark_8017A9A0, markerIndex);
     }
-    return -1;
+    return MENU_MAP_MARKER_STATE_UNAVAILABLE;
 }
 
 void Gp_ClearAreaFlag4(GameLocationKey* key)
@@ -536,9 +553,16 @@ void Gp_ClearAreaFlag4(GameLocationKey* key)
     }
 }
 
-static void Gp_InitDirState(Task* arg0)
+/// Resets direction action history and the area map-mark cache, then enables per-frame updates.
+///
+/// Runs once for a new direction task. Interaction activation is held off for
+/// ten direction updates. The legacy D_80114CE0 initialization is retained;
+/// that value has no observed reader.
+static void _directionInitTask(Task* task)
 {
-    D_80114CDE       = 0;
+    enum { DIRECTION_INITIAL_INTERACTION_DELAY_UPDATES = 10 };
+
+    D_80114CDE       = SCENE_COMBAT_BATTLE_IDLE;
     D_80114CDD       = 0;
     Gp_DirFlags      = 0;
     D_80114CD0       = 0;
@@ -550,8 +574,8 @@ static void Gp_InitDirState(Task* arg0)
     D_80114CE0       = 1;
     Gp_AreaIdBits[0] = 0;
     Gp_AreaIdBits[1] = 0;
-    D_80114D08       = 0xA;
-    arg0->state++;
+    D_80114D08       = DIRECTION_INITIAL_INTERACTION_DELAY_UPDATES;
+    task->state++;
 }
 
 static void Gp_DirTaskState1(Task* task)
@@ -560,28 +584,29 @@ static void Gp_DirTaskState1(Task* task)
     func_800AD6BC();
 }
 
-s32 Gp_YawToPosXZ(Task* arg0, SVECTOR* arg1)
+s32 actorAngleTaskYawTowardPoint(const Task* modelTask, const SVECTOR* targetPoint)
 {
-    SVECTOR   vec;
-    GfxCoord* coord;
+    SVECTOR         delta;
+    const GfxCoord* rootCoord;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = arg1->vx - coord->coord.t[0];
-    vec.vy = 0;
-    vec.vz = arg1->vz - coord->coord.t[2];
-    VectorNormalSS(&vec, &vec);
-    return ratan2(vec.vx, vec.vz) & 0xFFF;
+    // Narrow before normalization so offsets retain the signed halfword wrap.
+    rootCoord = modelTask->extra.tmd->coords;
+    delta.vx  = targetPoint->vx - rootCoord->coord.t[0];
+    delta.vy  = 0;
+    delta.vz  = targetPoint->vz - rootCoord->coord.t[2];
+    VectorNormalSS(&delta, &delta);
+    return ratan2(delta.vx, delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
 }
 
-void func_800AEE8C(Task* arg0)
+void directionTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
     Task*          playerTask;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    sp         = Gp_DirTaskStates;
+    states     = Gp_DirTaskStates;
     if (playerTask != NULL) {
-        sp.funcs[arg0->state](arg0);
+        states.funcs[task->state](task);
     }
 }
 
@@ -603,13 +628,19 @@ static void Gp_DirAction0(void)
     phaseTable.handlers[(s16)Gp_DirPhase]();
 }
 
-static void Gp_DirAction1(void)
+/// Runs the current stair phase and holds the battle-end delay until the action finishes.
+///
+/// Requires a latched stair trigger and a phase in 0..4. A battle ending during
+/// the action latches its engaged phase; subsequent frames refresh the end delay.
+/// The turn, wait, climb and climb-wait phases advance at most once; the final
+/// warp phase ends the action without advancing, keeping dispatch in bounds.
+static void _directionUpdateStairAction(void)
 {
     _DirectionFacingPhaseTable phaseTable;
 
     phaseTable = D_80093990;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
-        if (D_80114CDE == 1) {
+        if (D_80114CDE == SCENE_COMBAT_BATTLE_ENGAGED) {
             D_80114CDD = D_80114CDE;
         }
     }
@@ -619,7 +650,8 @@ static void Gp_DirAction1(void)
     phaseTable.handlers[(s16)Gp_DirPhase]();
 }
 
-static void Gp_ClearDirCursor(void)
+/// Discards both latched trigger parameters without changing action activity.
+static inline void _directionClearTriggerParameters(void)
 {
     Gp_DirNibble    = 0;
     Gp_DirByte      = 0;
@@ -627,10 +659,24 @@ static void Gp_ClearDirCursor(void)
     Gp_DirAltNibble = 0;
     Gp_DirAlt       = 0;
     D_80114CD4      = 0;
-    D_80114CF8      = 0;
 }
 
-static void Gp_PostMsg13EF(void)
+/// Ends the active direction action and discards both latched trigger hits.
+///
+/// Leaves the session busy flag for the next direction update to release.
+static void _directionClearAction(void)
+{
+    _directionClearTriggerParameters();
+    D_80114CF8 = 0;
+}
+
+/// Dispatches a room action while events and CAP playback are idle, then consumes it.
+///
+/// Requires a live room task when the gates permit dispatch. The room borrows
+/// the four-byte request only during synchronous dispatch; the second word is
+/// zero and the reply is ignored. Blocked requests are also discarded. A newly
+/// entered trigger keeps the session busy flag until the next direction update.
+static void _directionDispatchRoomAction(void)
 {
     DirectionActionRequest request;
     Task*                  roomTask;
@@ -644,13 +690,9 @@ static void Gp_PostMsg13EF(void)
             TASK_MESSAGE_DISPATCH_POINTER(roomTask, DIRECTION_MESSAGE_ROOM_ACTION, &request, 0);
         }
     }
-    Gp_DirNibble    = 0;
-    Gp_DirByte      = 0;
-    Gp_DirFlags     = 0;
-    Gp_DirAltNibble = 0;
-    Gp_DirAlt       = 0;
-    D_80114CD4      = 0;
-    D_80114CF8      = 0;
+    // Consume the request even when an event or CAP playback blocks dispatch.
+    _directionClearTriggerParameters();
+    D_80114CF8 = 0;
     if (D_80114CDC == 0) {
         gGameSession->dirActionBusy = 0;
     }
@@ -672,18 +714,36 @@ static void Gp_SpawnEvt1IfCapIdle(void)
     D_80114CD4      = 0;
 }
 
-static void Gp_FadeDirAdvance(void)
+/// Draws the active departure fade before stepping its shade toward full subtraction.
+///
+/// Uses the low byte as the shade and preserves the signed-halfword zero gate
+/// of this phase. The active ramp starts at 30 and stays within 30..255.
+static inline void _directionStepDepartureFade(void)
 {
-    u8 fade;
+    enum { DIRECTION_DEPARTURE_FADE_STEP = 30,
+           DIRECTION_DEPARTURE_FADE_MAX  = 255 };
+    u8  fadeShade;
+    s16 activeShade;
 
-    if (*(s16*)&Gp_DirFadeLevel != 0) {
-        fade = *(u8*)&Gp_DirFadeLevel;
-        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-        Gp_DirFadeLevel += 0x1E;
-        if ((s16)Gp_DirFadeLevel >= 0x100) {
-            Gp_DirFadeLevel = 0xFF;
+    activeShade = (s16)Gp_DirFadeLevel;
+    if (activeShade != 0) {
+        fadeShade = (u8)Gp_DirFadeLevel;
+        fadeDrawOverlay(fadeShade, fadeShade, fadeShade, GPU_BLEND_SUBTRACT);
+        Gp_DirFadeLevel += DIRECTION_DEPARTURE_FADE_STEP;
+        if ((s16)Gp_DirFadeLevel >= DIRECTION_DEPARTURE_FADE_MAX + 1) {
+            Gp_DirFadeLevel = DIRECTION_DEPARTURE_FADE_MAX;
         }
     }
+}
+
+/// Draws and steps the departure fade, then hands the warp to its resolve phase next frame.
+///
+/// This hold phase advances unconditionally, adding one frame after the turn
+/// finishes. A nonzero fade draws its current low byte before increasing by
+/// 30 toward 255; zero leaves the fade disabled.
+static void _directionHoldWarpFrame(void)
+{
+    _directionStepDepartureFade();
     Gp_DirPhase++;
 }
 
@@ -705,45 +765,62 @@ static void Gp_CommitSaveLoc(void)
     Gp_DirFlags  = 0;
 }
 
-static void Gp_MsgPlayer3EE(void)
+/// Starts the player's scripted turn to the stair trigger's byte-encoded yaw.
+///
+/// Requires a live player. The trigger yaw uses 256 units per turn and is
+/// expanded to 4096 units for a synchronously borrowed ActorTransform. Only
+/// rotation is initialized because the turn handler does not read position.
+/// An active event instead discards the action and its battle-finished latch.
+static void _directionStartStairTurn(void)
 {
-    ActorTransform sp;
+    enum { DIRECTION_STAIR_YAW_SHIFT = 4 };
+    ActorTransform facing;
     Task*          playerTask;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gGameSession->eventState != 0) {
-        D_80114CF8      = 0;
-        Gp_DirNibble    = 0;
-        Gp_DirByte      = 0;
-        Gp_DirFlags     = 0;
-        Gp_DirAltNibble = 0;
-        Gp_DirAlt       = 0;
-        D_80114CD4      = 0;
-        D_80114CDD      = 0;
+        D_80114CF8 = 0;
+        _directionClearTriggerParameters();
+        D_80114CDD = 0;
     } else {
-        sp.rot.vx = 0;
-        sp.rot.vz = 0;
-        sp.rot.vy = Gp_DirNibble << 4;
-        TASK_MESSAGE_DISPATCH_POINTER(playerTask, 0x3EE, &sp, 0);
+        facing.rot.vx = 0;
+        facing.rot.vz = 0;
+        facing.rot.vy = Gp_DirNibble << DIRECTION_STAIR_YAW_SHIFT;
+        TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &facing, 0);
         Gp_DirPhase++;
     }
 }
 
-static void Gp_MsgPlayer3F0(void)
+/// Waits for the player's scripted turn to settle before starting the stair climb.
+///
+/// Requires the player used by the preceding turn phase. Takes no payload and
+/// advances one phase only when scripted motion is no longer pending.
+static void _directionAwaitStairTurn(void)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
         Gp_DirPhase++;
     }
 }
 
-static void Gp_MsgPlayer3EF(void)
+/// Starts the player's stair climb and clears secondary hits before tracking the flight.
+///
+/// Requires the preceding turn to have finished. The trigger's first parameter
+/// supplies a positive low-nibble step count (1..15); control bit 8 selects
+/// descent. The player copies both words synchronously and keeps no request
+/// pointer. Surface selection still uses the retained primary parameters.
+static void _directionStartStairClimb(void)
 {
+    enum {
+        DIRECTION_STAIR_DESCEND_SHIFT   = 8,
+        DIRECTION_STAIR_DESCEND_MASK    = 1,
+        DIRECTION_STAIR_STEP_COUNT_MASK = 0xF
+    };
     GameActorStairClimb climb;
     Task*               playerTask;
 
     playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    climb.descend   = (Gp_DirFlags >> 8) & 1;
-    climb.stepCount = Gp_DirByte & 0xF;
+    climb.descend   = (Gp_DirFlags >> DIRECTION_STAIR_DESCEND_SHIFT) & DIRECTION_STAIR_DESCEND_MASK;
+    climb.stepCount = Gp_DirByte & DIRECTION_STAIR_STEP_COUNT_MASK;
     TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
     Gp_DirAltNibble = 0;
     Gp_DirAlt       = 0;

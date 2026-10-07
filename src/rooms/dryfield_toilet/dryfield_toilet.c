@@ -180,7 +180,7 @@ s32 func_dryfield_toilet_8017D8C0(Task* task, s32 messageId, s32 firstArg, s32 s
 }
 
 /// Handler for message `0x13EF` in the room's `(msgId, handler)` table - the
-/// direction record `Gp_PostMsg13EF` posts. On the visit whose sub-id
+/// direction record `_directionDispatchRoomAction` posts. On the visit whose sub-id
 /// (`warp`) is 1, that agrees with the session's own sub-id
 /// (`gGameSession::location.loc.variant`) and that has not yet latched nibble 0x60, the
 /// toilet starts its cutscene pair and latches the nibble. The outgoing record

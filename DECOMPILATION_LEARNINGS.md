@@ -25850,7 +25850,7 @@ sp[1] = ...;
 func(playerTask, cmd, (s32)sp, 0);
 ```
 
-`Gp_MsgPlayer3EF` is the example.
+`_directionStartStairClimb` is the example.
 
 ## Second local so a post-call pointer reload lands in `$v0`
 
@@ -27481,7 +27481,7 @@ in the other register (`addiu v1, %lo` / `addu s0, v1, s0`). The two
 statement form keeps both the shift and the later add on `$s0`.
 `*(u16*)((u8*)table + index)` is `addu s0, v0, s0`.
 
-`Gp_LookupStageFlag` is the example. Shared `table[index]` stuck at 97.2% with
+`menuMapGetMarkerState` is the example. Shared `table[index]` stuck at 97.2% with
 only the raw arm's three-instruction join missing.
 
 ## Index `rec[i].field[j]`, not `(&rec[i].field_0)[j]`
@@ -36738,7 +36738,7 @@ expression:
 {
     s32 idx;
     idx = i;
-    val = Gp_LookupStageFlag((u8)idx);
+    val = menuMapGetMarkerState((u8)idx);
 }
 rec2 = recs + (u8)i;
 ```
@@ -55120,7 +55120,7 @@ breaks the *other* overlay carrying the body, so run the bare
 
 `gen_overlay_configs.py` derives an overlay's `.text` span from the first
 `addiu $sp, $sp, -N`. GCC 2.8.1 routinely schedules the `lui`/`lw` of a global
-that the first statement reads *above* the stack adjustment (`Gp_LookupStageFlag`
+that the first statement reads *above* the stack adjustment (`menuMapGetMarkerState`
 and a dozen other matched gameplay functions open that way). When the overlay's
 very first function does that, the detector starts the span one or two
 instructions late, and those instructions are stranded at the end of the leading
@@ -90415,7 +90415,7 @@ indexed by global message ids whose payloads are unrelated to each other:
 `0x13F2` is dispatched as `(Gp_CapTable[...].trigger.soundAndTextFlags >> 1)`, a plain
 integer, which is why `Room_Snd01` reads `arg2` as an `s32` and never
 dereferences it. Grepping the immediate finds the id's one producer - here
-`addiu $a1, $zero, 0x13EF` occurs exactly once in `asm/USA/`, in `Gp_PostMsg13EF`
+`addiu $a1, $zero, 0x13EF` occurs exactly once in `asm/USA/`, in `_directionDispatchRoomAction`
 - and that function posts `(s32)&request` where `request` is a 4-byte `DirectionActionRequest`
 (`actionId = Gp_DirByte`). So the third parameter is `DirectionActionRequest*` and the fourth
 `s32 arg3`:
@@ -113158,11 +113158,11 @@ plain 32-bit translation reads into its `SVECTOR` differences: its former
 explicit `(u16)` casts were redundant. A narrow destination explains the narrow
 load by itself.
 
-It covers a `short` *operand* as well. `Gp_YawToPosXZ` subtracts a `long`
+It covers a `short` *operand* as well. `actorAngleTaskYawTowardPoint` subtracts a `long`
 translation from an `SVECTOR` point into an `SVECTOR` and the target loads both
 with `lhu`, the signed point included: the narrowed subtraction reads its `short`
 operand in HImode too, so no sign extension is asked for. It matches as
-`vec.vx = arg1->vx - coord->coord.t[0]` on a plain `SVECTOR*`; an unsigned
+`delta.vx = targetPoint->vx - rootCoord->coord.t[0]` on a plain `const SVECTOR*`; an unsigned
 `u16` overlay of the point, with a cast at each caller, was this mistake.
 
 The match needed nothing else: `_actor356100HeadTurn` is
@@ -143869,8 +143869,8 @@ Same function: `(u8)i` not CSE'd across a call (`andi a0,s2,0xff` in the delay
 slot and again after it) was the callee's `s16` parameter. The argument goes
 through `(sign_extend (zero_extend:HI ...))`, a different expression from the
 index's `zero_extend`, and combine only folds both to `andi` later. The callee
-(`Gp_LookupStageFlag`) had been matched with an `s32` parameter, `arg0 =
-(s16)arg0` in each case and pointer arithmetic on an int; with `s16 idx` it
+(`menuMapGetMarkerState`) had been matched with an `s32` parameter, `arg0 =
+(s16)arg0` in each case and pointer arithmetic on an int; with `s16 markerIndex` it
 matches as a switch whose cases each `return` an inline lookup of their own
 table. The extension each case keeps in `s0`, and the one case that re-extends
 with `sll 16; sra 15`, come from those per-case copies, which jump2 then

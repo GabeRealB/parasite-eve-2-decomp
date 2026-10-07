@@ -14,7 +14,14 @@
 /// in the setter.
 void Gp_ClearAreaFlag4(GameLocationKey* key);
 
-void func_800AEE8C(Task* arg0);
+/// Runs the direction trigger task while a player task exists.
+///
+/// Bank 0 slot 0x14 starts this bodyless task in state 0. Initialization resets
+/// direction state and advances to state 1, which consumes view-boundary hits
+/// and updates the current action each frame; state 2 kills the task. The state
+/// must remain in 0..2. Without a player, every state waits, including kill.
+/// Uses global direction state; spawn arguments are unused.
+void directionTask(Task* task);
 
 /// Applies placement layouts and map marks from a saved-area update list.
 ///

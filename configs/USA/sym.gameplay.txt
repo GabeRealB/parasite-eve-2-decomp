@@ -245,23 +245,23 @@ Gp_RebuildAreaIdBits = 0x800AE9B0; // type:func
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/area_transitions.c) — file-split 0x1B3A4
 // ---------------------------------------------------------------------------
-Gp_LookupStageFlag = 0x800AEBA4; // type:func
+menuMapGetMarkerState = 0x800AEBA4; // type:func
 Gp_ClearAreaFlag4 = 0x800AED24; // type:func
-Gp_InitDirState = 0x800AED80; // type:func
+_directionInitTask = 0x800AED80; // type:func
 Gp_DirTaskState1 = 0x800AEE00; // type:func
-Gp_YawToPosXZ = 0x800AEE28; // type:func
-func_800AEE8C = 0x800AEE8C; // type:func
+actorAngleTaskYawTowardPoint = 0x800AEE28; // type:func
+directionTask = 0x800AEE8C; // type:func
 Gp_GetViewCountLo = 0x800AEEFC; // type:func
 Gp_DirAction0 = 0x800AEF4C; // type:func
-Gp_DirAction1 = 0x800AEFBC; // type:func
-Gp_ClearDirCursor = 0x800AF070; // type:func
-Gp_PostMsg13EF = 0x800AF0AC; // type:func
+_directionUpdateStairAction = 0x800AEFBC; // type:func
+_directionClearAction = 0x800AF070; // type:func
+_directionDispatchRoomAction = 0x800AF0AC; // type:func
 Gp_SpawnEvt1IfCapIdle = 0x800AF180; // type:func
-Gp_FadeDirAdvance = 0x800AF208; // type:func
+_directionHoldWarpFrame = 0x800AF208; // type:func
 Gp_CommitSaveLoc = 0x800AF284; // type:func
-Gp_MsgPlayer3EE = 0x800AF314; // type:func
-Gp_MsgPlayer3F0 = 0x800AF3D0; // type:func
-Gp_MsgPlayer3EF = 0x800AF41C; // type:func
+_directionStartStairTurn = 0x800AF314; // type:func
+_directionAwaitStairTurn = 0x800AF3D0; // type:func
+_directionStartStairClimb = 0x800AF41C; // type:func
 Gp_SetCurAreaFlag4 = 0x800AF498; // type:func
 Gp_ApplyAreaFlag4List = 0x800AF500; // type:func
 

@@ -326,7 +326,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `11` | `28` | `func_800AC0F0` | Pad-gated 3-way dispatcher. Gameflow / area code spawn this |
 | `12` | `10` | `mcSaveDialogTask` | Same as `0A` |
 | `13` | `10` | `mcLoadDialogTask` | Same as `0B` |
-| `14` | `1F` | `func_800AEE8C` | Area / dir helper (`1A8.c`, matched) |
+| `14` | `1F` | `directionTask` | Direction trigger task (`area_transitions.c`, matched) |
 | `15` | `C0` | `taskKill` | Unused |
 | `16` | `30` | `viewTransitionGateTask` | Monitor saved-view changes, admit view loading and gate readiness with a two-update menu hold |
 | `17` | `2F` | `spriteAllocateViewCachedPacketsTask` | Allocate and initialize both cached room-view sprite buffers, then kill self; spawned when view-image loading finishes |

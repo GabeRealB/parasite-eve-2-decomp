@@ -79,7 +79,7 @@ extern AreaObjectRoom D_map_akropolis_8017A7FC[];
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
 extern TaskDesc D_map_akropolis_8017A8AC[];
 
-/// This stage's flag table for `Gp_LookupStageFlag`.
+/// This stage's flag table for `menuMapGetMarkerState`.
 extern u16 D_map_akropolis_8017AA0C[];
 
 /// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_RoomObjTables`,

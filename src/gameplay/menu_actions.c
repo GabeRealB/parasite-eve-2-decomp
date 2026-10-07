@@ -23,6 +23,7 @@
 #include "gameplay/items.h"
 #include "items.h"
 #include "loading.h"
+#include "menu_map.h"
 #include "gameplay/map.h"
 #include "gameplay/planar_reflection.h"
 
@@ -1449,7 +1450,7 @@ static void func_800D0C34(Task* arg0)
     u8                     i;
     s16                    which;
     s32                    bit;
-    u16                    state;
+    u16                    markerState;
     u8                     stage;
     u8                     area;
 
@@ -1483,12 +1484,12 @@ static void func_800D0C34(Task* arg0)
                 continue;
             }
         }
-        state = Gp_LookupStageFlag(i);
+        markerState = menuMapGetMarkerState(i);
         if (markers[i].page != (s8)Gp_MapRoomId) {
             i++;
             continue;
         }
-        if (state == 2 || state == 0x802) {
+        if (markerState == MENU_MAP_MARKER_STATE_VISIBLE || markerState == (MENU_MAP_MARKER_STATE_VISIBLE + MENU_MAP_MARKER_ALTERNATE_PICTURE)) {
             centre           = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapCentreScratch);
             centre->field_14 = 0;
             centre->field_12 = 0;
@@ -1499,11 +1500,11 @@ static void func_800D0C34(Task* arg0)
             centre->y        = markers[i].y;
             setlen(p, 3);
             setcode(p, 0x7F);
-            if (state == 2) {
+            if (markerState == MENU_MAP_MARKER_STATE_VISIBLE) {
                 p->clut = GetClut(0x30, 0x101);
                 p->u0   = 0x60;
                 p->v0   = 0;
-            } else if (state == 0x802) {
+            } else if (markerState == (MENU_MAP_MARKER_STATE_VISIBLE + MENU_MAP_MARKER_ALTERNATE_PICTURE)) {
                 p->clut = GetClut(0x60, 0x101);
                 p->u0   = 0x90;
                 p->v0   = 0;

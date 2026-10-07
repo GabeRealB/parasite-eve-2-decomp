@@ -52,7 +52,7 @@ extern AreaObjectRoom D_map_neo_ark_8017A6EC[];
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
 extern TaskDesc D_map_neo_ark_8017A804[];
 
-/// This stage's flag table for `Gp_LookupStageFlag`.
+/// This stage's flag table for `menuMapGetMarkerState`.
 extern u16 D_map_neo_ark_8017A9A0[];
 
 /// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_WarpTables`,
