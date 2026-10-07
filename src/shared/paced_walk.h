@@ -157,10 +157,10 @@ s32         pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
 
 s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 
-void pacedWalkFrame(Enemy* enemy, Task* task);
-void pacedWalkSpawn(Enemy* enemy, Task* task);
-s32  pacedWalkPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
-s32  pacedWalkShowPair(Task* task, s32 arg1, s32 flags, s32 arg3);
+void       pacedWalkFrame(Enemy* enemy, Task* task);
+void       pacedWalkSpawn(Enemy* enemy, Task* task);
+static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+s32        pacedWalkShowPair(Task* task, s32 arg1, s32 flags, s32 arg3);
 
 /* Defined by each package. */
 void pacedWalkExit(Task* task);

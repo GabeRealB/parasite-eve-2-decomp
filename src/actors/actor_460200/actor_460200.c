@@ -1295,7 +1295,7 @@ static AnimationSet _gActor460200Animation0DE08 = {
 };
 
 TaskMessageEntry gPacedWalkMsgTable[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, pacedWalkPlayAnim },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, pacedWalkShowPair },
     { ACTOR_MESSAGE_PLACE, PACED_WALK_PLACE },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80132C8C },

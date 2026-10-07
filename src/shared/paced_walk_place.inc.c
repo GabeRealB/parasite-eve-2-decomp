@@ -2,17 +2,20 @@
 
 #ifndef SRC_SHARED_PACED_WALK_PLACE_ROOT
 #define SRC_SHARED_PACED_WALK_PLACE_ROOT
-/// Replaces a model root's rotation and translation in its existing parent's space.
+/// Sets a model root's parent-space position and unit-scale yaw.
 ///
-/// Borrows a writable root and a readable placement for this call. `yaw` is
-/// the signed heading already recorded in the receiver's work, in 1/4096 turns.
-/// Replaces pitch, roll and scale with unit-scale yaw and invalidates composition.
-static inline void _pacedWalkPlaceRoot(GfxCoord* rootCoord, const ActorTransform* placement, s16 yaw)
+/// Borrows a writable, word-aligned root and readable position through this call.
+/// XYZ are signed whole parent-coordinate units; the vector's fourth word is
+/// ignored. `yaw` is signed, with 4096 units per turn. Replaces pitch, roll and
+/// scale, preserves the parent link and stored Euler parameters, and marks the
+/// composed matrix stale. Requires the rotation helper's initialized scratch
+/// stack with room for 0x24 bytes. Retains neither pointer.
+static inline void _pacedWalkPlaceRoot(GfxCoord* rootCoord, const VECTOR* position, s16 yaw)
 {
     gfxRotMatrixY(&rootCoord->coord, yaw, GRAPHICS_ROTATION_REPLACE);
-    rootCoord->coord.t[0]   = placement->pos.vx;
-    rootCoord->coord.t[1]   = placement->pos.vy;
-    rootCoord->coord.t[2]   = placement->pos.vz;
+    rootCoord->coord.t[0]   = position->vx;
+    rootCoord->coord.t[1]   = position->vy;
+    rootCoord->coord.t[2]   = position->vz;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 #endif
@@ -37,6 +40,6 @@ s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement,
     work         = task->work;
     yaw          = placement->rot.vy;
     work->st.yaw = yaw;
-    _pacedWalkPlaceRoot(rootCoord, placement, yaw);
+    _pacedWalkPlaceRoot(rootCoord, &placement->pos, yaw);
     return 0;
 }

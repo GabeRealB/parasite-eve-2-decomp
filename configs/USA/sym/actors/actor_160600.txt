@@ -214,6 +214,6 @@ _actorRenderDrawFixedWalkerGroundShadow = 0x80132378; // type:func
 pacedWalkPlace = 0x80132614; // type:func
 pacedWalkFrame = 0x80131E68; // type:func
 pacedWalkSpawn = 0x80132208; // type:func
-pacedWalkPlayAnim = 0x8013252C; // type:func
+_pacedWalkPlayAnimation = 0x8013252C; // type:func
 pacedWalkShowPair = 0x80132598; // type:func
 pacedWalkExit = 0x80132350; // type:func
