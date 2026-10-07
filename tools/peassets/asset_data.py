@@ -5668,6 +5668,8 @@ EMBEDDED_ASSETS = {
     'rupert_broderick_hurt_body': {"source": 'actor_113000.pe2pkg', "vram": 0x80133D80, "size": 0x3B60, "ext": '.tmd', "type": 'model'},
     'creeping_stranger_burst_arm': {"source": 'actor_207200.pe2pkg', "vram": 0x80150D68, "size": 0x30C, "ext": '.tmd', "type": 'model'},
     'creeping_stranger_burst_leg': {"source": 'actor_207200.pe2pkg', "vram": 0x80150AD8, "size": 0xF4, "ext": '.tmd', "type": 'model'},
+    'dryfield_toilet_morph_053C0': {"source": 'dryfield_toilet.pe2pkg', "vram": 0x80182980, "size": 0xA28, "ext": '.morph', "type": 'morph_deltas', "include": 'u16'},
+    'dryfield_toilet_morph_05DE8': {"source": 'dryfield_toilet.pe2pkg', "vram": 0x801833A8, "size": 0x3228, "ext": '.morph', "type": 'morph_normals', "include": 'u16'},
     'gray_stalker_burst_leg_left': {"source": 'actor_400500.pe2pkg', "vram": 0x801441BC, "size": 0x468, "ext": '.tmd', "type": 'model'},
     'no9_golem_dryfield_gunblade': {"source": 'actor_521100.pe2pkg', "vram": 0x80141B80, "size": 0x518, "ext": '.tmd', "type": 'model'},
     'acropolis_bridge_model_0AD9C': {"source": 'acropolis_bridge.pe2pkg', "vram": 0x8018835C, "size": 0xACC, "ext": '.tmd', "type": 'model'},
