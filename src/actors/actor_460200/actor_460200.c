@@ -2466,12 +2466,18 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
 ///
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
-#define ACTOR_RENDER_WALKER_FRAME              _actorRenderWalkerFrame
-#define walkerUpdate                           _pacedWalkUpdateSoldierC
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER             _pacedWalkUpdateSoldierC
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawThirdFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 static void func_actor_460200_80133A88(Task* task)

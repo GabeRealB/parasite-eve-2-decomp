@@ -63,23 +63,13 @@ STATIC_ASSERT_SIZEOF(_Actor260500AnimationBankExtensionStorage, 140);
 
 extern _Actor260500AnimationBankExtensionStorage D_actor_260500_8014CAF4;
 
-/// The work block, published by the spawn routine and by the task handler
-/// `func_actor_260500_8014A460` on every frame, so the message handlers and
-/// the animation loops reach it without the task.
-extern FootstepWalkQuietWork* gFootstepWalkWork;
+static FootstepWalkQuietWork* _gFootstepWalkWork;
 
 /// The actor's own task, published by the spawn routine: the play-animation
 /// handler runs the update on it and the visibility handler reaches its model.
 extern Task* D_actor_260500_80159E50;
 
-/// Reset argument the blended reseed forwards: the play-animation handler
-/// latches the preset's `field_C` here, and the update sets it to 10 when a
-/// walk ends.
-extern s16 gFootstepWalkBlendFrames;
-
-/// Approach mode the last `func_actor_260500_8014A83C` call selected; the
-/// update picks its step length from it.
-extern s16 gFootstepWalkMode;
+static s16 _gFootstepWalkMode;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -1345,7 +1335,13 @@ static TmdSource _gActor260500JodieBouquetBody2 = {
     _gActor260500JodieBouquetBody2Stream,
 };
 
-s16 gFootstepWalkBlendFrames = 8;
+/// Duration of the next animation blend, in whole normal-rate frames.
+///
+/// Starts at eight frames. Play requests narrow their duration to this
+/// signed halfword; travel completion sets ten frames for the idle blend.
+/// Reset requests leave it unchanged. Blending accepts 0..2047 without
+/// validation; this latch is a duration, never a remaining-frame count.
+static s16 _gFootstepWalkBlendFrames = FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_260500_80159D80[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_260500_8014A6C4 },
@@ -1505,11 +1501,25 @@ u8 D_actor_260500_80159DBC[144] = {
     0,
 };
 
-FootstepWalkQuietWork* gFootstepWalkWork = NULL;
+/// Borrowed pointer to the quiet walker's task-owned work block.
+///
+/// Spawn publishes the zeroed allocation also held by `Task::work` and
+/// the dispatcher refreshes this pointer before each task-state call.
+/// Animation and singleton message handlers require the same live block.
+/// The model borrows its lighting matrices and the rig borrows its slots
+/// and poses. Task teardown releases the block without clearing this
+/// pointer; it confers no ownership and must not be used after teardown.
+static FootstepWalkQuietWork* _gFootstepWalkWork = NULL;
 
 Task* D_actor_260500_80159E50;
 
-s16 gFootstepWalkMode;
+/// Travel mode selected by the last walk-target request.
+///
+/// Stored as a signed halfword: 0 moves forward 60, 1 backward 15, and
+/// 2 forward 25 parent-coordinate units per moving update. Backward
+/// requests face away from the target. This selects distance independently
+/// of the animation clip; request values narrow to 16 bits without checking.
+static s16 _gFootstepWalkMode;
 
 void        func_actor_260500_80149E80(void);
 void        func_actor_260500_80149EBC(void);
@@ -1566,7 +1576,7 @@ void func_actor_260500_80149EBC(void)
 }
 
 /// Spawn routine (state 0 of `func_actor_260500_8014A460`): allocates the work
-/// block and publishes it in `gFootstepWalkWork` and the task's `work`
+/// block and publishes it in `_gFootstepWalkWork` and the task's `work`
 /// slot, binds the model to the view and hands it the block's light and colour
 /// matrices, publishes the task in `D_actor_260500_80159E50`, relights the
 /// model from a point 0x320 above its translation and binds the animation
@@ -1579,11 +1589,11 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
     TmdObject* obj;
     void*      work;
 
-    obj               = task->extra.tmd;
-    coord             = obj->coords;
-    work              = memCalloc(sizeof(FootstepWalkQuietWork), 0);
-    gFootstepWalkWork = work;
-    task->work        = work;
+    obj                = task->extra.tmd;
+    coord              = obj->coords;
+    work               = memCalloc(sizeof(FootstepWalkQuietWork), 0);
+    _gFootstepWalkWork = work;
+    task->work         = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -1595,20 +1605,20 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     obj->otOffset                    = 1;
-    obj->lightMtx                    = &gFootstepWalkWork->light;
-    obj->colorMtx                    = &gFootstepWalkWork->color;
+    obj->lightMtx                    = &_gFootstepWalkWork->light;
+    obj->colorMtx                    = &_gFootstepWalkWork->color;
     vec.vx                           = coord->workm.t[0];
     vec.vy                           = coord->workm.t[1] - 0x320;
     D_actor_260500_80159E50          = task;
     vec.vz                           = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&gFootstepWalkWork->rig.anim, (AnimationSet**)D_actor_260500_80159DBC, obj,
-                         gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
-    gFootstepWalkWork->st.animId  = 4;
-    gFootstepWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
-    gFootstepWalkWork->st.travel  = 0;
-    gFootstepWalkWork->turnFrames = 0;
-    task->msgTable                = D_actor_260500_80159D80;
+    animationInitContext(&_gFootstepWalkWork->rig.anim, (AnimationSet**)D_actor_260500_80159DBC, obj,
+                         _gFootstepWalkWork->rig.poses, _gFootstepWalkWork->rig.slots);
+    _gFootstepWalkWork->st.animId  = 4;
+    _gFootstepWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
+    _gFootstepWalkWork->st.travel  = 0;
+    _gFootstepWalkWork->turnFrames = 0;
+    task->msgTable                 = D_actor_260500_80159D80;
     _footstepWalkQuietUpdate(task);
     task->state++;
 }
@@ -1616,7 +1626,7 @@ static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
 #include "../../shared/footstep_walk_quiet_update.inc.c"
 
 /// Two-state task handler: publishes the task's work block in
-/// `gFootstepWalkWork` on the way through, then calls the spawn routine
+/// `_gFootstepWalkWork` on the way through, then calls the spawn routine
 /// or the per-frame state, whichever `Task::state` selects from a table built
 /// on the stack.
 void func_actor_260500_8014A460(Task* task)
@@ -1626,7 +1636,7 @@ void func_actor_260500_8014A460(Task* task)
         _actorRenderWalkerFrame,
     };
 
-    gFootstepWalkWork = task->work;
+    _gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1635,12 +1645,18 @@ void func_actor_260500_8014A460(Task* task)
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
 #define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
-#define walkerUpdate              _footstepWalkQuietUpdate
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER _footstepWalkQuietUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
@@ -1664,14 +1680,14 @@ static void func_actor_260500_8014A540(Task* task)
 s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
 {
     if (preset->animationId < 0x24) {
-        gFootstepWalkWork->st.animId = preset->animationId;
+        _gFootstepWalkWork->st.animId = preset->animationId;
         if (preset->blend != ANIMATION_BLEND_RESET) {
-            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gFootstepWalkBlendFrames    = preset->blendFrames;
+            _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
+            _gFootstepWalkBlendFrames    = preset->blendFrames;
         } else {
-            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
+            _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
-        gFootstepWalkWork->st.field_6 = 0;
+        _gFootstepWalkWork->st.field_6 = 0;
         _footstepWalkQuietUpdate(D_actor_260500_80159E50);
         return 0;
     }
@@ -1703,14 +1719,14 @@ s32 func_actor_260500_8014A754(Task* task, s32 arg1, s32 arg2, s32 arg3)
 s32 func_actor_260500_8014A818(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
 {
     if (msg->command == 0) {
-        gFootstepWalkWork->turnFrames = 0x14;
+        _gFootstepWalkWork->turnFrames = 0x14;
     }
     return 0;
 }
 
 /// Approach handler: turns the model to face `target` -- away from it in mode
 /// 1, where the update then walks it backwards -- keeps the mode in
-/// `gFootstepWalkMode`, and stores the number of steps the walk takes:
+/// `_gFootstepWalkMode`, and stores the number of steps the walk takes:
 /// the planar distance over the mode's step length, 60 in mode 0, 15 in mode 1
 /// and 25 in mode 2.
 s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
@@ -1723,28 +1739,28 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     s32                    dist;
     s32                    angle;
 
-    steps             = 0;
-    coord             = task->extra.tmd->coords;
-    work              = task->work;
-    gFootstepWalkMode = mode;
-    dx                = target->vx - coord->coord.t[0];
-    dz                = target->vz - coord->coord.t[2];
-    angle             = ratan2(dx, dz);
-    work->st.yaw      = angle;
-    if (gFootstepWalkMode == 1) {
+    steps              = 0;
+    coord              = task->extra.tmd->coords;
+    work               = task->work;
+    _gFootstepWalkMode = mode;
+    dx                 = target->vx - coord->coord.t[0];
+    dz                 = target->vz - coord->coord.t[2];
+    angle              = ratan2(dx, dz);
+    work->st.yaw       = angle;
+    if (_gFootstepWalkMode == FOOTSTEP_WALK_MODE_BACKWARD) {
         work->st.yaw = angle + 0x800;
     }
     gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
     dist = SquareRoot0(dx * dx + dz * dz);
-    switch (gFootstepWalkMode) {
-        case 0:
-            steps = 0x3C;
+    switch (_gFootstepWalkMode) {
+        case FOOTSTEP_WALK_MODE_FORWARD:
+            steps = FOOTSTEP_WALK_FORWARD_DISTANCE;
             break;
-        case 1:
-            steps = 0xF;
+        case FOOTSTEP_WALK_MODE_BACKWARD:
+            steps = FOOTSTEP_WALK_BACKWARD_DISTANCE;
             break;
-        case 2:
-            steps = 0x19;
+        case FOOTSTEP_WALK_MODE_SLOW_FORWARD:
+            steps = FOOTSTEP_WALK_SLOW_FORWARD_DISTANCE;
             break;
     }
     work->st.travel = dist / steps;

@@ -51,11 +51,6 @@ static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest*
 static s32  _pairWalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg);
 static void _pairWalkSubModelTask(Task* task);
 
-/// Reset argument the first enemy's "play animation" opcode leaves behind:
-/// `_footstepWalkBlendAnim` forwards it to every reseeded slot, and the
-/// runner sets it to 10 when a walk ends.
-extern s16 gFootstepWalkBlendFrames;
-
 /// Blackout countdown. `_actor535700SetBlackoutFrames` seeds it from its argument and
 /// spawns the blackout task from `D_actor_535700_8013346C`; that task
 /// (`_actor535700BlackoutTask`) draws a full-screen black `TILE` into
@@ -63,16 +58,13 @@ extern s16 gFootstepWalkBlendFrames;
 /// reaches zero, and decrements the count every frame.
 extern s32 D_actor_535700_80146840;
 
-/// The first enemy's work block, published by its spawn handler.
-extern FootstepWalkWork* gFootstepWalkWork;
+static FootstepWalkWork* _gFootstepWalkWork;
 
 /// The first enemy's task, published by its spawn handler so the message
 /// handlers can reach its model.
 extern Task* gFootstepWalkTask;
 
-/// Picks the distance `_footstepWalkUpdate` walks the model each frame:
-/// 0 steps 0x3C forward, 1 steps 0xF back, 2 steps 0x19 forward.
-extern s16 gFootstepWalkMode;
+static s16 _gFootstepWalkMode;
 
 /// Descriptor of the blackout task `_actor535700BlackoutTask`.
 extern TaskDesc D_actor_535700_8013346C;
@@ -741,7 +733,13 @@ static AnimationSet _gActor535700Animation0BC60 = {
     { NULL, _gActor535700Animation0BC60Bank1, NULL, NULL, _gActor535700Animation0BC60Bank4, NULL, NULL, NULL },
 };
 
-s16 gFootstepWalkBlendFrames = 8;
+/// Duration of the next animation blend, in whole normal-rate frames.
+///
+/// Starts at eight frames. Play requests narrow their duration to this
+/// signed halfword; travel completion sets ten frames for the idle blend.
+/// Reset requests leave it unchanged. Blending accepts 0..2047 without
+/// validation; this latch is a duration, never a remaining-frame count.
+static s16 _gFootstepWalkBlendFrames = FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry gFootstepWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkPlayAnimation },
@@ -1114,11 +1112,25 @@ u8 gPairWalkAnimParams[24] = {
 
 s32 D_actor_535700_80146840;
 
-FootstepWalkWork* gFootstepWalkWork;
+/// Borrowed pointer to the sound walker's task-owned work block.
+///
+/// Spawn publishes the zeroed allocation also held by `Task::work` and
+/// the dispatcher refreshes this pointer before each task-state call.
+/// Animation and singleton message handlers require the same live block.
+/// The model borrows its lighting matrices and the rig borrows its slots
+/// and poses. Task teardown releases the block without clearing this
+/// pointer; it confers no ownership and must not be used after teardown.
+static FootstepWalkWork* _gFootstepWalkWork;
 
 Task* gFootstepWalkTask;
 
-s16 gFootstepWalkMode;
+/// Travel mode selected by the last walk-target request.
+///
+/// Stored as a signed halfword: 0 moves forward 60, 1 backward 15, and
+/// 2 forward 25 parent-coordinate units per moving update. Backward
+/// requests face away from the target. This selects distance independently
+/// of the animation clip; request values narrow to 16 bits without checking.
+static s16 _gFootstepWalkMode;
 
 /// Queues the scene's opaque black cover in the current frame's packet arena.
 ///
@@ -1216,7 +1228,7 @@ static void _actor535700FinishScene(void)
 #include "../../shared/footstep_walk_update.inc.c"
 
 /// The first enemy's task body: publishes the task's work block in
-/// `gFootstepWalkWork`, then runs the handler for the task's state from
+/// `_gFootstepWalkWork`, then runs the handler for the task's state from
 /// a table built on the stack - the spawn handler `_footstepWalkSpawn`,
 /// then the per-frame `_actorRenderWalkerFrame`.
 void func_actor_535700_80132478(Task* task)
@@ -1226,7 +1238,7 @@ void func_actor_535700_80132478(Task* task)
         _actorRenderWalkerFrame,
     };
 
-    gFootstepWalkWork = task->work;
+    _gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1235,12 +1247,18 @@ void func_actor_535700_80132478(Task* task)
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
 #define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
-#define walkerUpdate              _footstepWalkUpdate
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER _footstepWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Releases the walker's enemy and begins teardown of its task and model.
@@ -1295,7 +1313,7 @@ static s32 _actor535700SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 f
 
 /// Applies turn or footstep commands to the published walker.
 ///
-/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` with live `gFootstepWalkWork` and a
+/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` with live `_gFootstepWalkWork` and a
 /// command borrowed only for this call. Command 0 schedules twenty turning
 /// updates while the turn clip plays; it does not select that clip. Command 1
 /// enables footstep sounds until work teardown. Other commands do nothing.
@@ -1313,10 +1331,10 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
     commandId = command->command;
     switch (commandId) {
         case ACTOR_535700_WALKER_COMMAND_TURN:
-            gFootstepWalkWork->turnFrames = ACTOR_535700_WALKER_TURN_UPDATES;
+            _gFootstepWalkWork->turnFrames = ACTOR_535700_WALKER_TURN_UPDATES;
             break;
         case ACTOR_535700_WALKER_COMMAND_ENABLE_FOOTSTEPS:
-            gFootstepWalkWork->playFootsteps = commandId;
+            _gFootstepWalkWork->playFootsteps = commandId;
             break;
     }
     return 0;
@@ -1353,12 +1371,18 @@ void func_actor_535700_80132F20(Task* task)
 ///
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
-#define ACTOR_RENDER_WALKER_FRAME              _actorRenderWalkerFrameSecond
-#define walkerUpdate                           _pairWalkUpdate
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrameSecond
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER             _pairWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/pair_walk_exit.inc.c"

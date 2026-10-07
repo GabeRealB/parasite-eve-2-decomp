@@ -10,8 +10,11 @@
  * Further copies need their own static prototypes in the carrier's prologue.
  * Room-shaded instances use actor_render_walker_shadow.inc.c and its separate
  * ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW definition binding.
- * walker_frame.inc.c also requires ACTOR_RENDER_WALKER_FRAME and walkerUpdate
- * bindings; its frame-state contract is documented beside the definition.
+ * walker_frame.inc.c also requires ACTOR_RENDER_WALKER_FRAME and
+ * ACTOR_RENDER_UPDATE_WALKER. Bind the latter to the declared static void(Task*)
+ * motion/animation update for that frame's task and work block, then undefine
+ * it after inclusion. The frame calls it once between lighting and shadow
+ * drawing; the identifier alias captures no locals and constructs no tokens.
  */
 
 #ifndef SRC_SHARED_WALKER_H

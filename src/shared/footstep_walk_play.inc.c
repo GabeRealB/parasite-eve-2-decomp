@@ -3,7 +3,7 @@
 /// Starts the published walker's requested animation synchronously.
 ///
 /// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` through `gFootstepWalkTask` and
-/// `gFootstepWalkWork`; the receiver argument, message ID and second payload
+/// `_gFootstepWalkWork`; the receiver argument, message ID and second payload
 /// are ignored. A nonzero blend uses `request->blendFrames` in whole frames
 /// (0..2047); reset ignores that duration. The request is borrowed only for
 /// this call, but selected clips and rig storage must stay live for playback.
@@ -17,14 +17,14 @@ static s32 _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const Ani
     enum { FOOTSTEP_WALK_CLIP_ID_LIMIT = 35 };
 
     if (request->animationId < FOOTSTEP_WALK_CLIP_ID_LIMIT) {
-        gFootstepWalkWork->st.animId = request->animationId;
+        _gFootstepWalkWork->st.animId = request->animationId;
         if (request->blend != ANIMATION_BLEND_RESET) {
-            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            gFootstepWalkBlendFrames    = request->blendFrames;
+            _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
+            _gFootstepWalkBlendFrames    = request->blendFrames;
         } else {
-            gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
+            _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
-        gFootstepWalkWork->st.field_6 = 0;
+        _gFootstepWalkWork->st.field_6 = 0;
         _footstepWalkUpdate(gFootstepWalkTask);
         return 0;
     }

@@ -19,16 +19,23 @@
  * The walker's state belongs to the package, which defines it at
  * its own positions under these names:
  *
- *   FootstepWalkWork* gFootstepWalkWork         the published work block; a
+ *   FootstepWalkWork* _gFootstepWalkWork        the borrowed task-owned block; a
  *                                               package whose walker plays no
  *                                               step sounds carries the quiet
  *                                               update and declares this a
  *                                               FootstepWalkQuietWork*
  *   Task*             gFootstepWalkTask         the walker's task
- *   s16               gFootstepWalkMode         the mode of the last walk
- *   s16               gFootstepWalkBlendFrames  the blend the next reseed uses
+ *   s16               _gFootstepWalkMode       last walk's signed-halfword mode
+ *   s16               _gFootstepWalkBlendFrames whole frames for the next blend
  *   the native animation-set pointer table and message table the spawn state
  *   installs, as gFootstepWalkAnims and gFootstepWalkMsgTable
+ *
+ * These three state objects are static per-carrier instances. Early work and
+ * mode declarations retain the BSS first-declaration order; the initialized
+ * duration stays at its data position. Document each at its definition.
+ * Spawn and task dispatch publish the work borrowed by singleton message
+ * handlers. Teardown does not clear that pointer, so the handlers must stop
+ * using it when the task releases its allocation.
  */
 
 #ifndef SRC_SHARED_FOOTSTEP_WALK_H
@@ -75,12 +82,15 @@ enum {
     FOOTSTEP_WALK_IDLE_BLEND_FRAMES     = 10
 };
 
+/// Initial whole-frame blend duration of each carrier's duration latch.
+enum { FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES = 8 };
+
 /// Preliminary rate in sixteenths of a frame, overwritten by slot reset's normal rate.
 enum { FOOTSTEP_WALK_PRE_RESET_RATE = 1 };
 
 /// Work block of a footstep walker that plays no step sounds, allocated
 /// zeroed at its full size by the walker's spawn state and kept both at
-/// `Task::work` and in the walker's `gFootstepWalkWork`.
+/// `Task::work` and in the walker's `_gFootstepWalkWork`.
 ///
 /// It is also what `FootstepWalkWork` opens with. The model object borrows `light`
 /// and `color` for as long as the block lives.
@@ -95,7 +105,7 @@ STATIC_ASSERT_SIZEOF(FootstepWalkQuietWork, 0x4B8);
 
 /// Work block of a footstep walker, allocated zeroed at its full size by the
 /// walker's spawn state and kept both at `Task::work` and in the walker's
-/// `gFootstepWalkWork`.
+/// `_gFootstepWalkWork`.
 ///
 /// It opens as `FootstepWalkQuietWork` does and adds the step sounds' state.
 /// The model object borrows `light` and `color` for as long as the block

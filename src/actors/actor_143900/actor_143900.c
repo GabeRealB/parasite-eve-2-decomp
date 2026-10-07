@@ -1276,12 +1276,18 @@ void func_actor_143900_80132324(Task* task)
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
 #define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
-#define walkerUpdate              SCRIPTED_WALK_UPDATE
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER SCRIPTED_WALK_UPDATE
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// `Task::exitCallback` of the first variant: hands the task's `Enemy`
@@ -1490,12 +1496,18 @@ void func_actor_143900_80132DEC(Task* task)
 ///
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
-#define ACTOR_RENDER_WALKER_FRAME              _actorRenderWalkerFrameSecond
-#define walkerUpdate                           _scriptedWalkUpdateSecond
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrameSecond
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER             _scriptedWalkUpdateSecond
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// `Task::exitCallback` of the second variant: hands the task's `Enemy`

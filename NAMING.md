@@ -411,7 +411,10 @@ carrier's motion/animation update and draws its selected ground shadow.
 `ACTOR_RENDER_WALKER_FRAME` selects each static `EnemyTaskFunc` instance;
 carriers declare it in their prologues and bind it around each inclusion.
 Further instances in one carrier retain the subsystem prefix and `_` marker.
-The bound walk update keeps the identity of its own movement subsystem.
+`ACTOR_RENDER_UPDATE_WALKER` selects the declared static `void(Task*)` motion
+and animation update called between lighting and shadow drawing. Both bindings
+are undefined after each frame-fragment inclusion. The bound walk update keeps
+the identity of its own movement subsystem.
 
 `actorMovement` owns the shared coordinate steps used by actor packages:
 translation along a normalized local axis, subject to the live actor-freeze
@@ -844,7 +847,11 @@ its work block in a global and can sound its steps, carried by `actor_151000`,
 quiet update, which plays none. Its implementation interface is
 `src/shared/footstep_walk.h`. `FootstepWalkQuietWork` is the quiet walker's
 whole block and the head `FootstepWalkWork` opens with; a package declares
-`gFootstepWalkWork` with the type its walker allocates.
+`_gFootstepWalkWork` with the type its walker allocates. Each carrier keeps that
+borrowed pointer, its signed-halfword `_gFootstepWalkMode`, and its whole-frame
+`_gFootstepWalkBlendFrames` duration private with static linkage. Task dispatch
+publishes the live work for singleton message and animation handlers; task
+teardown releases the block without clearing the published pointer.
 
 The player detection tests enemies include - line of sight, reach and the
 segment-versus-wall query - have `src/shared/player_detection.h` as their

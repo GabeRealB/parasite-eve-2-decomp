@@ -4,6 +4,12 @@
 #error "Bind ACTOR_RENDER_WALKER_FRAME before including this fragment"
 #endif
 
+/* ACTOR_RENDER_UPDATE_WALKER selects a declared static void(Task*) update.
+ * Lighting runs first; the shadow then sees the root cache left by this call. */
+#ifndef ACTOR_RENDER_UPDATE_WALKER
+#error "Bind ACTOR_RENDER_UPDATE_WALKER before including this fragment"
+#endif
+
 /* ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW is an object-like binding to a
  * declared static void(Task*) drawer. The call evaluates task once. */
 #ifndef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -18,8 +24,13 @@
 ///
 /// Borrows a live model with a writable root and lighting matrices. The XYZ
 /// sample retains the root's composition frame and subtracts 800 units from Y.
-/// Requires the composition and lighting helpers' initialized scratch/GTE state;
-/// the sample is consumed synchronously and no pointer to it is retained.
+/// A root beneath the view includes that view transform in its sample; this
+/// helper does not convert it to world space. The lighting query reads all
+/// twelve sample bytes synchronously and retains no pointer.
+/// Requires live, acyclic coordinate ancestors and initialized composition,
+/// room-light, view, scratch-stack and GTE state. Borrowed coordinates and
+/// lighting matrices must be disjoint from scratch; lighting needs 124 scratch
+/// bytes plus up to 68 nested bytes, released before return.
 static inline void _actorRenderLightWalkerRoot(const TmdObject* model)
 {
     enum {
@@ -57,13 +68,13 @@ static inline void _actorRenderLightWalkerRoot(const TmdObject* model)
 /// Bind `ACTOR_RENDER_WALKER_FRAME` to a function identifier declared
 /// `static void (Enemy* unusedEnemy, Task* task)` in the carrier's prologue.
 /// This object-like alias has no arguments, captures no locals and uses no
-/// stringification or token pasting. Bind `walkerUpdate` to a declared
+/// stringification or token pasting. Bind `ACTOR_RENDER_UPDATE_WALKER` to a declared
 /// `void (Task*)` update and `ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW` to its
 /// shadow drawer for the same task. Undefine all three after each inclusion;
 /// multiple walkers require distinct frame identifiers and matching helpers.
 static void ACTOR_RENDER_WALKER_FRAME(Enemy* unusedEnemy, Task* task)
 {
     _actorRenderLightWalkerRoot(task->extra.tmd);
-    walkerUpdate(task);
+    ACTOR_RENDER_UPDATE_WALKER(task);
     ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW(task);
 }

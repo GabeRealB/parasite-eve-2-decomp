@@ -128,12 +128,12 @@ _gActor461800Animation11970Bank4 = 0x80143584; // size:0x6C defined:True
 _gActor461800Animation11970Records = 0x801435F0; // size:0x178 defined:True
 _gActor461800Animation11970Indices = 0x80143768; // size:0x28 defined:True
 _gActor461800Animation11970 = 0x80143790; // size:0x28 defined:True
-gFootstepWalkBlendFrames = 0x801437B8; // size:0x2 defined:True
+_gFootstepWalkBlendFrames = 0x801437B8; // size:0x2 defined:True
 gFootstepWalkMsgTable = 0x801437BC; // size:0x30 defined:True
 D_actor_461800_801437EC = 0x801437EC; // size:0xC defined:True
 gFootstepWalkAnims = 0x801437F8; // size:0x8C defined:True
 _gScriptedWalkModeStorage = 0x8014389C; // size:0x4 defined:True
-gFootstepWalkWork = 0x801438A0; // size:0x4 defined:True
+_gFootstepWalkWork = 0x801438A0; // size:0x4 defined:True
 gFootstepWalkTask = 0x801438A4; // size:0x4 defined:True
 _gActor461800Animation0206CBank1 = 0x80133C34; // size:0x24 defined:True
 _gActor461800Animation0206CBank4 = 0x80133C58; // size:0x6C defined:True
@@ -156,7 +156,7 @@ D_actor_461800_80133F80 = 0x80133F80; // size:0x8 defined:True
 D_actor_461800_80133F88 = 0x80133F88; // size:0x6 defined:True
 D_actor_461800_80133F90 = 0x80133F90; // size:0x4E0 defined:True
 D_actor_461800_80134470 = 0x80134470; // size:0xC0 defined:True
-gFootstepWalkMode = 0x801438A8; // size:0x2 defined:True
+_gFootstepWalkMode = 0x801438A8; // size:0x2 defined:True
 
 D_neo_ark_r31_8017DC54 = 0x8017DC54; // absolute:True owner=neo_ark_r31 shared=rooms
 _footstepWalkSpawn = 0x8013307C; // type:func

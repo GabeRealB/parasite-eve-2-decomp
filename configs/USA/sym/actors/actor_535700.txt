@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_535700.
 gFootstepWalkAnims = 0x8013DAE8; // size:0x8C defined:True
 D_actor_535700_8013DADC = 0x8013DADC; // size:0xC defined:True
-gFootstepWalkBlendFrames = 0x8013DAA8; // size:0x2 defined:True
+_gFootstepWalkBlendFrames = 0x8013DAA8; // size:0x2 defined:True
 gFootstepWalkMsgTable = 0x8013DAAC; // size:0x30 defined:True
 _gActor535700PawnGolemBodySkeleton = 0x8013DB74; // size:0x2AC defined:True
 _gActor535700PawnGolemBodyPartVerts = 0x8013DE20; // size:0x4C defined:True
@@ -130,7 +130,7 @@ gPairWalkMessages = 0x801467E0; // size:0x30 defined:True
 gActor535700PairWalkTasks = 0x80146810; // size:0x18 defined:True
 gPairWalkAnimParams = 0x80146828; // size:0x18 defined:True
 D_actor_535700_80146840 = 0x80146840; // size:0x4 defined:True
-gFootstepWalkWork = 0x80146844; // size:0x4 defined:True
+_gFootstepWalkWork = 0x80146844; // size:0x4 defined:True
 gFootstepWalkTask = 0x80146848; // size:0x4 defined:True
 D_actor_535700_801341E0 = 0x801341E0; // size:0xD8 defined:True
 D_actor_535700_80133860 = 0x80133860; // size:0x18 defined:True
@@ -175,7 +175,7 @@ D_actor_535700_8013346C = 0x8013346C; // size:0xC defined:True
 D_actor_535700_80133478 = 0x80133478; // size:0x14 defined:True
 D_actor_535700_8013348C = 0x8013348C; // size:0x4 defined:True
 D_actor_535700_80133490 = 0x80133490; // size:0x14 defined:True
-gFootstepWalkMode = 0x8014684C; // size:0x2 defined:True
+_gFootstepWalkMode = 0x8014684C; // size:0x2 defined:True
 _footstepWalkSpawn = 0x80131FA0; // type:func
 _footstepWalkUpdate = 0x80132108; // type:func
 _footstepWalkPlayStepSound = 0x80132580; // type:func

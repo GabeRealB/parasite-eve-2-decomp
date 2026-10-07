@@ -24,20 +24,20 @@ static s32 _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* t
     s32                   planarDistance;
     s32                   targetYaw;
 
-    rootCoord         = task->extra.tmd->coords;
-    work              = task->work;
-    gFootstepWalkMode = mode;
-    deltaX            = target->vx - rootCoord->coord.t[0];
-    deltaZ            = target->vz - rootCoord->coord.t[2];
-    targetYaw         = ratan2(deltaX, deltaZ);
-    work->st.yaw      = targetYaw;
-    if (gFootstepWalkMode == FOOTSTEP_WALK_MODE_BACKWARD) {
+    rootCoord          = task->extra.tmd->coords;
+    work               = task->work;
+    _gFootstepWalkMode = mode;
+    deltaX             = target->vx - rootCoord->coord.t[0];
+    deltaZ             = target->vz - rootCoord->coord.t[2];
+    targetYaw          = ratan2(deltaX, deltaZ);
+    work->st.yaw       = targetYaw;
+    if (_gFootstepWalkMode == FOOTSTEP_WALK_MODE_BACKWARD) {
         work->st.yaw = targetYaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     }
     gfxRotMatrixY(&rootCoord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
     // Travel counts updates, rather than distance units or animation records.
     planarDistance = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ);
-    switch (gFootstepWalkMode) {
+    switch (_gFootstepWalkMode) {
         case FOOTSTEP_WALK_MODE_FORWARD:
             stepDistance = FOOTSTEP_WALK_FORWARD_DISTANCE;
             break;

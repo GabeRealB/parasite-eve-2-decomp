@@ -3,7 +3,7 @@
 /// Binds the published sound walker's rig and queues clip 1 for a reset.
 ///
 /// `model` must be a live nineteen-part object returned by `tmdCreateModel`,
-/// and `gFootstepWalkWork` must name its writable `FootstepWalkWork`. The
+/// and `_gFootstepWalkWork` must name its writable `FootstepWalkWork`. The
 /// carrier's `gFootstepWalkAnims` supplies a word-aligned native set-pointer
 /// table with clip 1 loaded and tracks 1 through 18 available. The context
 /// borrows the model allocation's coordinates, table, slots and encoded-pose
@@ -16,14 +16,14 @@ static __inline__ void _footstepWalkPrepareAnimation(TmdObject* model)
 {
     enum { FOOTSTEP_WALK_STARTUP_ANIM_ID = 1 };
 
-    animationInitContext(&gFootstepWalkWork->rig.anim, (AnimationSet**)gFootstepWalkAnims, model,
-                         gFootstepWalkWork->rig.poses, gFootstepWalkWork->rig.slots);
-    gFootstepWalkWork->st.animId     = FOOTSTEP_WALK_STARTUP_ANIM_ID;
-    gFootstepWalkWork->st.state      = ACTOR_ENEMY_ANIM_RESET;
-    gFootstepWalkWork->st.travel     = 0;
-    gFootstepWalkWork->turnFrames    = 0;
-    gFootstepWalkWork->stepRecord    = NULL;
-    gFootstepWalkWork->playFootsteps = false;
+    animationInitContext(&_gFootstepWalkWork->rig.anim, (AnimationSet**)gFootstepWalkAnims, model,
+                         _gFootstepWalkWork->rig.poses, _gFootstepWalkWork->rig.slots);
+    _gFootstepWalkWork->st.animId     = FOOTSTEP_WALK_STARTUP_ANIM_ID;
+    _gFootstepWalkWork->st.state      = ACTOR_ENEMY_ANIM_RESET;
+    _gFootstepWalkWork->st.travel     = 0;
+    _gFootstepWalkWork->turnFrames    = 0;
+    _gFootstepWalkWork->stepRecord    = NULL;
+    _gFootstepWalkWork->playFootsteps = false;
 }
 
 /// Initializes the sound-enabled NPC walker's model and playback in task state 0.
@@ -54,11 +54,11 @@ static void _footstepWalkSpawn(Enemy* enemy, Task* task)
     TmdObject*        model;
     GfxCoord*         rootCoord;
 
-    model             = task->extra.tmd;
-    rootCoord         = model->coords;
-    allocatedWork     = memCalloc(sizeof(*allocatedWork), false);
-    gFootstepWalkWork = allocatedWork;
-    task->work        = allocatedWork;
+    model              = task->extra.tmd;
+    rootCoord          = model->coords;
+    allocatedWork      = memCalloc(sizeof(*allocatedWork), false);
+    _gFootstepWalkWork = allocatedWork;
+    task->work         = allocatedWork;
     if (allocatedWork == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -72,8 +72,8 @@ static void _footstepWalkSpawn(Enemy* enemy, Task* task)
     enemy->node.state.parts.targeted = false;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     model->otOffset                  = FOOTSTEP_WALK_OT_ENTRY_OFFSET;
-    model->lightMtx                  = &gFootstepWalkWork->light;
-    model->colorMtx                  = &gFootstepWalkWork->color;
+    model->lightMtx                  = &_gFootstepWalkWork->light;
+    model->colorMtx                  = &_gFootstepWalkWork->color;
 
     // Sample all light rows at the existing cached root position, offset in Y.
     lightSamplePosition.vx = rootCoord->workm.t[0];

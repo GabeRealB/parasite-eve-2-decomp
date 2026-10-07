@@ -68,7 +68,7 @@ static ScriptedWalkAttachmentsWork* _gScriptedWalkWork;
 /// `func_actor_461800_80132390` alongside it.
 extern Task* D_actor_461800_80143898;
 
-extern FootstepWalkWork* gFootstepWalkWork;
+static FootstepWalkWork* _gFootstepWalkWork;
 
 /// The second variant's task, published by its spawn routine
 /// `_footstepWalkSpawn` so the handlers can reach its model.
@@ -95,11 +95,7 @@ extern s32 D_actor_461800_80143890;
 extern TaskMessageEntry gFootstepWalkMsgTable[6];
 extern AnimationSet*    gFootstepWalkAnims[35];
 
-/// Reset argument the second variant forwards to every reseeded slot.
-extern s16 gFootstepWalkBlendFrames;
-
-/// Approach mode the last `_footstepWalkSetWalkTarget` call selected.
-extern s16 gFootstepWalkMode;
+static s16 _gFootstepWalkMode;
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actor461800ExitScriptedWalker(Task* task);
@@ -861,7 +857,13 @@ static AnimationSet _gActor461800Animation11970 = {
     { NULL, _gActor461800Animation11970Bank1, NULL, NULL, _gActor461800Animation11970Bank4, NULL, NULL, NULL },
 };
 
-s16 gFootstepWalkBlendFrames = 8;
+/// Duration of the next animation blend, in whole normal-rate frames.
+///
+/// Starts at eight frames. Play requests narrow their duration to this
+/// signed halfword; travel completion sets ten frames for the idle blend.
+/// Reset requests leave it unchanged. Blending accepts 0..2047 without
+/// validation; this latch is a duration, never a remaining-frame count.
+static s16 _gFootstepWalkBlendFrames = FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry gFootstepWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkPlayAnimation },
@@ -939,11 +941,25 @@ static s16 _gScriptedWalkModeStorage[2] = {
     -0x3658,
 };
 
-FootstepWalkWork* gFootstepWalkWork;
+/// Borrowed pointer to the sound walker's task-owned work block.
+///
+/// Spawn publishes the zeroed allocation also held by `Task::work` and
+/// the dispatcher refreshes this pointer before each task-state call.
+/// Animation and singleton message handlers require the same live block.
+/// The model borrows its lighting matrices and the rig borrows its slots
+/// and poses. Task teardown releases the block without clearing this
+/// pointer; it confers no ownership and must not be used after teardown.
+static FootstepWalkWork* _gFootstepWalkWork;
 
 Task* gFootstepWalkTask;
 
-s16 gFootstepWalkMode;
+/// Travel mode selected by the last walk-target request.
+///
+/// Stored as a signed halfword: 0 moves forward 60, 1 backward 15, and
+/// 2 forward 25 parent-coordinate units per moving update. Backward
+/// requests face away from the target. This selects distance independently
+/// of the animation clip; request values narrow to 16 bits without checking.
+static s16 _gFootstepWalkMode;
 
 static void func_actor_461800_80132390(Enemy* enemy, Task* task);
 
@@ -1254,12 +1270,18 @@ void func_actor_461800_801329B0(Task* task)
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
 #define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
-#define walkerUpdate              _scriptedWalkUpdate
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER _scriptedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Begins teardown of the scripted walker and its two attachment tasks.
@@ -1422,7 +1444,7 @@ static s32 _actor461800ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageI
 #include "../../shared/footstep_walk_update.inc.c"
 
 /// Two-state dispatcher whose handler table is built on the stack, publishing
-/// the task's work block in `gFootstepWalkWork` on the way through so the
+/// the task's work block in `_gFootstepWalkWork` on the way through so the
 /// rest of the overlay can reach it without the task.
 void func_actor_461800_80133554(Task* task)
 {
@@ -1431,7 +1453,7 @@ void func_actor_461800_80133554(Task* task)
         _actorRenderWalkerFrameSecond,
     };
 
-    gFootstepWalkWork = task->work;
+    _gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1439,12 +1461,18 @@ void func_actor_461800_80133554(Task* task)
 ///
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
-#define ACTOR_RENDER_WALKER_FRAME              _actorRenderWalkerFrameSecond
-#define walkerUpdate                           _footstepWalkUpdate
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrameSecond
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER             _footstepWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Releases the walker's enemy and begins teardown of its task and model.
@@ -1494,7 +1522,7 @@ static s32 _actor461800SetFootstepWalkerModelDraw(Task* unusedTask, s32 messageI
 
 /// Applies scheduled turning or footstep enablement to the published sound walker.
 ///
-/// Requires live `gFootstepWalkWork` and a command borrowed through dispatch.
+/// Requires live `_gFootstepWalkWork` and a command borrowed through dispatch.
 /// Command 0 schedules twenty updates while turn clip 3 plays, without selecting
 /// that clip. Command 1 enables footstep sounds until work teardown; other
 /// commands do nothing. Context tags, receiver, message ID and second payload
@@ -1506,10 +1534,10 @@ static s32 _actor461800ApplyFootstepWalkerCommand(Task* unusedTask, s32 messageI
     commandId = request->command;
     switch (commandId) {
         case ACTOR_461800_WALKER_COMMAND_TURN:
-            gFootstepWalkWork->turnFrames = ACTOR_461800_WALKER_TURN_UPDATES;
+            _gFootstepWalkWork->turnFrames = ACTOR_461800_WALKER_TURN_UPDATES;
             break;
         case ACTOR_461800_WALKER_COMMAND_ENABLE_FOOTSTEPS:
-            gFootstepWalkWork->playFootsteps = commandId;
+            _gFootstepWalkWork->playFootsteps = commandId;
             break;
     }
     return 0;

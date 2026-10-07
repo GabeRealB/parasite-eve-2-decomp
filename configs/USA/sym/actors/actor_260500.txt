@@ -1,9 +1,9 @@
 // Overlay-local symbols for actor_260500.
 D_actor_260500_80159DBC = 0x80159DBC; // size:0x90 defined:True
-gFootstepWalkWork = 0x80159E4C; // size:0x4 defined:True
+_gFootstepWalkWork = 0x80159E4C; // size:0x4 defined:True
 D_actor_260500_80159E50 = 0x80159E50; // size:0x4 defined:True
 D_actor_260500_80159DB0 = 0x80159DB0; // size:0xC defined:True
-gFootstepWalkBlendFrames = 0x80159D7C; // size:0x2 defined:True
+_gFootstepWalkBlendFrames = 0x80159D7C; // size:0x2 defined:True
 D_actor_260500_80159D80 = 0x80159D80; // size:0x30 defined:True
 _gActor260500JodieBouquetBody2Skeleton = 0x80154140; // size:0x2AC defined:True
 _gActor260500JodieBouquetBody2PartVerts = 0x801543EC; // size:0x4C defined:True
@@ -256,7 +256,7 @@ _gActor260500Animation02A18Records = 0x8014C668; // size:0x1A8 defined:True
 _gActor260500Animation02A18Indices = 0x8014C810; // size:0x28 defined:True
 _gActor260500Animation02A18 = 0x8014C838; // size:0x28 defined:True
 D_actor_260500_8014C860 = 0x8014C860; // size:0x14 defined:True
-gFootstepWalkMode = 0x80159E54; // size:0x2 defined:True
+_gFootstepWalkMode = 0x80159E54; // size:0x2 defined:True
 _footstepWalkTickAnim = 0x8014A568; // type:func
 _actorRenderDrawFixedWalkerGroundShadow = 0x8014A99C; // type:func
 _footstepWalkPlace = 0x8014A79C; // type:func

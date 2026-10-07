@@ -2927,11 +2927,15 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
     task->state++;
 }
 
-/// Advances one scheduled turn, narrowing the heading to its signed halfword.
+/// Advances Kyle's scheduled turn by 51/4096 of a turn and consumes one update.
 ///
-/// Borrows live work and the model root after the caller's clip/countdown test.
-/// Replaces rotation at unit scale, retains translation, marks composition
-/// dirty and consumes one turn frame. Angles use 4096 units per turn.
+/// Borrows writable work and its live model root. The caller must select the
+/// turn clip and check the nonzero countdown; this helper does neither.
+/// Narrows the new heading to signed 16 bits before applying it in the root's
+/// parent space. Replaces rotation at unit scale, retains translation and
+/// marks composition dirty without composing the root.
+/// Requires an initialized scratch stack with 0x24 free word-aligned bytes
+/// disjoint from both arguments; the rotation releases them before returning.
 static inline void _actor450800StepKyleMadiganTurn(_Actor450800KyleMadiganWork* work, GfxCoord* rootCoord)
 {
     enum { ACTOR_450800_KYLE_TURN_ANGLE_STEP = 51 };
@@ -3015,12 +3019,18 @@ void func_actor_450800_80132790(Task* task)
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
 #define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
-#define walkerUpdate              _actor450800UpdateKyleMadigan
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER _actor450800UpdateKyleMadigan
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Releases Kyle's enemy and actor task, then kills the two hands and gun tasks.
@@ -3287,12 +3297,18 @@ void func_actor_450800_80133264(Task* task)
 ///
 /// Bind to a static void(Enemy*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
-#define ACTOR_RENDER_WALKER_FRAME              _actorRenderWalkerFrameSecond
-#define walkerUpdate                           _pairWalkUpdate
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrameSecond
+/// Selects this frame instance's motion and animation update.
+///
+/// Bind to a declared static void(Task*) function for the same task and work.
+/// The frame calls it once after lighting and before drawing the shadow.
+/// This object-like identifier alias captures no locals or constructed tokens;
+/// undefine it after each inclusion of walker_frame.inc.c.
+#define ACTOR_RENDER_UPDATE_WALKER             _pairWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
-#undef walkerUpdate
+#undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/pair_walk_exit.inc.c"
