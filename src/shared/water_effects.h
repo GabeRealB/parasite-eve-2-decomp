@@ -42,6 +42,28 @@ static void _waterDrawSplash(const GfxCoord* coord, s32 halfSize, s32 brightness
 static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radiusScale);
 #endif
+/// Redraws clipped water bands with vertically displaced framebuffer scanlines.
+///
+/// Active only in configured views of the Neo Ark submarine tunnel and gallery;
+/// gallery view 5 emits two bands. Coordinates use pixels centred on (160,120)
+/// of a 320x240 frame. A Q12 sine/cosine sum supplies a downward pixel offset,
+/// faded over the last sixteen rows and reflected at the texture's row limits.
+/// Emits at most 226 opaque raw-textured `POLY_FT4` packets per call, sorted
+/// one OT tag nearer per row from the quantized far-depth tag. The current OT
+/// and depth shift must provide up to 113 preceding tags.
+///
+/// Packet storage has two banks, selected by `otBuffer`. Tunnel variant 3
+/// uses the eight-byte-aligned tail of the 0x30000-byte actor arena starting
+/// at buffer 0, split in half by byte count; a pending or invalid output size
+/// must not reach this path. It requires room for 976 packets across both
+/// halves. Other variants use two 488-packet banks in buffer 2 after a prefix
+/// of 976 packets reserved for refraction. These ranges must be writable and
+/// remain intact through DMA, as must the sampled `otBuffer` framebuffer.
+///
+/// The first active call seeds the signed-halfword `killCountdown` phase from
+/// `rand()`; each active call advances it once while actors run. Stores wrap
+/// to the low sixteen bits, with 4096 angle units per turn. Requires 64 free
+/// scratch-stack bytes, releases them on return and retains no task work.
 void waterDistortBandTask(Task* task);
 
 /// Redraws the Neo Ark water surfaces as vertically displaced framebuffer scanlines.

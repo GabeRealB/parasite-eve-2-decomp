@@ -1,70 +1,65 @@
 /* Part of the streamed scene library; see streamed_scene.h. */
 
-/// Streamed-scene task. It blanks the display and queues CD command 0x61 on
-/// the stream slot of the current location with its view replaced by 0x64,
-/// then shows the display once the command queue signals it. The scene runs
-/// until the CD is idle or a Start press aborts it, which is recorded in
-/// `spawnArg1`. After the stream state is restored an aborted scene kills the
-/// task at once, and a finished one after 0x3D more ticks; either way the
-/// session image memory is restored and presentation returns to the game loop.
-void streamedScenePlayThenHold(Task* task)
+void streamedScenePlayThenHold(Task* movieTask)
 {
-    u8          slotParam[4];
-    GameLoc     key;
+    u8          commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLoc     movieLocation;
     CdCmdQueue* queue;
 
     queue = &gCdCmdQueue;
-    switch (task->state) {
-        case 0:
+    switch (movieTask->state) {
+        case STREAMED_SCENE_PREPARE:
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
-            task->state++;
+            movieTask->state++;
             break;
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state++;
+        case STREAMED_SCENE_QUEUE_MOVIE:
+            movieLocation          = gGameSession->location;
+            movieLocation.loc.view = STREAMED_SCENE_MOVIE_ID;
+            // This opcode consumes only the slot byte of the four-byte argument block.
+            commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
+            movieTask->state++;
             break;
-        case 2:
+        case STREAMED_SCENE_WAIT_READY:
             if (queue->movieReady != 0) {
                 SetDispMask(1);
-                task->state++;
+                movieTask->state++;
             }
             break;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        case STREAMED_SCENE_PLAYING:
+            if (cdCmdIsIdle()) {
                 SetDispMask(0);
-                task->spawnArg1.value = 0;
-                task->state++;
+                movieTask->spawnArg1.value = 0;
+                movieTask->state++;
             } else if (padIsStartPressed() != 0) {
                 SetDispMask(0);
                 cdCmdRequestCancel();
-                task->spawnArg1.value = 1;
-                task->state++;
+                movieTask->spawnArg1.value = 1;
+                movieTask->state++;
             }
             break;
-        case 4:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        // Restore game resources only after playback or cancellation has drained the CD queue.
+        case STREAMED_SCENE_WAIT_IDLE:
+            if (cdCmdIsIdle()) {
                 streamResetGameRestore();
-                task->state++;
+                movieTask->state++;
             }
             break;
-        case 5:
-            if (streamPollGameRestore(0, 1) & 0xFFFF) {
-                if (task->spawnArg1.value != 0) {
-                    taskKill(task);
+        case STREAMED_SCENE_RESTORE_GAME:
+            if (streamPollGameRestore(0, 1)) {
+                if (movieTask->spawnArg1.value != 0) {
+                    taskKill(movieTask);
                     displayResumeGameLoop();
                 } else {
-                    task->state++;
+                    movieTask->state++;
                 }
             }
             break;
-        case 6:
-            task->killCountdown++;
-            if (task->killCountdown >= 0x3D) {
-                taskKill(task);
+        case STREAMED_SCENE_HOLD:
+            movieTask->killCountdown++;
+            if (movieTask->killCountdown >= STREAMED_SCENE_HOLD_TICKS) {
+                taskKill(movieTask);
                 displayResumeGameLoop();
             }
             break;

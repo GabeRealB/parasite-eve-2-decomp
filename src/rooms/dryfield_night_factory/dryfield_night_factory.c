@@ -51,6 +51,10 @@
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/factory_lift.h"
 
+static void _factoryHatchInit(Task* task);
+static void _factoryHatchUpdate(Task* task);
+static void _factoryLiftNotifyPanel(Task* panelTask);
+
 /// State handlers of the factory model task: set-up, the per-frame state and
 /// `taskKill`.
 static const TaskFuncTable3 _gFactoryLiftStates = {
@@ -60,7 +64,7 @@ static const TaskFuncTable3 _gFactoryLiftStates = {
 /// State handlers of the cutscene task: set-up, the cutscene sequence and
 /// `taskKill`.
 static const TaskFuncTable3 _gFactoryHatchTaskStates = {
-    { factoryHatchInit, factoryHatchUpdate, taskKill },
+    { _factoryHatchInit, _factoryHatchUpdate, taskKill },
 };
 
 /// The cutscene sequence's handler table: the flag watcher of state 0 and the

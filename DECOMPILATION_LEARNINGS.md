@@ -139339,9 +139339,9 @@ uninitialized stack slot. Check a large permuter gain for that before trusting i
 Input `base_6.spanIndex` SHA256
 `a9b5dc8370e1fa2e0c925fccedd419f4053bc52b97ce6a286256006dfeefd00e`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A value computed before a call but used after it keeps a callee-saved home even when sched1 sinks it (func_neo_ark_woodland_path_8017E2E8, 2026-09-23)
+## A value computed before a call but used after it keeps a callee-saved home even when sched1 sinks it (waterDistortBandTask, 2026-09-23)
 
-The target computed `y0 = y - 0x78` in `$s0` *after* the loop's `rsin`/`rcos`
+The target computed `centeredRowY = rowY - 0x78` in `$s0` *after* the loop's `rsin`/`rcos`
 calls, sharing `$s0` with the local `rsin` result. Writing the statement after
 the calls put it in `$a3` and shifted every caller-saved home after it.
 Writing it as the first statement of the loop body, before `rsin`, matched.
@@ -139355,7 +139355,7 @@ without visibly crossing a call, try moving its statement above the call.
 ## A spilled value's subreg reload is pinned behind every earlier store by a `(use (mem))` (same function)
 
 Reloading a `(subreg:HI)` of a spilled SImode pseudo, here a loop-invariant
-`getTPage` value stored with `prim->tpage = ...`, emits
+`getTPage` value stored with `strip->tpage = ...`, emits
 `(use (mem:SI slot))` before the load. sched2 makes that USE depend on every
 earlier store in the block. So the `lhu` could not be issued ahead of them, and
 a `nop` filled its load delay. The target issued the `lhu` right after the four
@@ -140348,9 +140348,9 @@ Check a candidate with gdb on the bundled cc1: break on `alter_reg` and
 `--stack-diffs`; the router's runs could never see this difference.
 
 **Same routine elsewhere.** The neo_ark rooms carry a copy of this ripple loop
-(`func_neo_ark_woodland_path_8017E2E8` and six siblings), and it has the same
-orphan slot. The same construct closed it: `sinArg += 0x1F + (spare >> 16);`,
-with `u16 spare` declared last among the locals. A retry had stalled at 99.86%
+(`waterDistortBandTask` in woodland path and six siblings), and it has the same
+orphan slot. The same construct closed it: `sinePhase += WATER_DISTORT_SINE_ROW_STEP + (unusedFrameSlot >> 16);`,
+with `u16 unusedFrameSlot` declared last among the locals. A retry had stalled at 99.86%
 for 69 attempts while it looked for a spilled temporary instead.
 
 ## `do { } while (0)` raises flow's loop weight for the references inside it (_actor361100DrawStreamRefraction, 2026-09-23)

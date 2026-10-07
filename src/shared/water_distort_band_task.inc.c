@@ -1,91 +1,125 @@
 /* Part of the water effects library; see water_effects.h. */
 
-/// Draws a wavy screen-distortion band for some views of areas 12 and 30 and
-/// returns at once for every other view. Each screen row between the view's
-/// start and end rows gets one or two raw-textured `POLY_FT4` strips that
-/// sample the other display buffer shifted vertically by a `rsin` / `rcos`
-/// wave, faded out over the band's last 16 rows; the strips are linked into
-/// `gGpuCurrentOt` one depth nearer per row. One view of area 30 draws a second
-/// band. The wave phases derive from `Task::killCountdown`, seeded from
-/// `rand()` on the first call and advanced every call while `gSceneCombatState.actorControl` is
-/// clear.
+/// Completes one raw framebuffer strip and links its caller-owned packet.
 ///
-/// Matching note: `spare` is never assigned, so `spare >> 16` is always zero;
-/// it stands in for the stack slot the retail frame carries, which the
-/// register allocator needs to see.
+/// Screen X/Y, U coordinates and the texture page must already be initialized.
+/// Source rows include the sixteen-texel framebuffer gap; `otIndex` selects a
+/// valid current ordering-table tag. Packet storage must survive GPU drawing.
+static inline void _waterFinishDistortionStrip(POLY_FT4* strip, s32 sourceRow, s32 sourceBufferIndex, s32 otIndex)
+{
+    enum {
+        WATER_DISTORT_BUFFER_V_GAP = 16,
+        WATER_DISTORT_PACKET_WORDS = sizeof(POLY_FT4) / sizeof(u32) - 1,
+        WATER_DISTORT_RAW_FT4_CODE = 0x2C | 0x01,
+    };
+    strip->v1 = sourceRow + sourceBufferIndex * WATER_DISTORT_BUFFER_V_GAP;
+    strip->v0 = sourceRow + sourceBufferIndex * WATER_DISTORT_BUFFER_V_GAP;
+    strip->v3 = sourceRow + sourceBufferIndex * WATER_DISTORT_BUFFER_V_GAP + 1;
+    strip->v2 = sourceRow + sourceBufferIndex * WATER_DISTORT_BUFFER_V_GAP + 1;
+    setlen(strip, WATER_DISTORT_PACKET_WORDS);
+    strip->code = WATER_DISTORT_RAW_FT4_CODE;
+    addPrim(&gGpuCurrentOt[otIndex], strip);
+}
+
 void waterDistortBandTask(Task* task)
 {
-    s32              xLeft  = -0xA0;
-    s32              xRight = 0xA0;
-    s32              buf    = gDisplayState.otBuffer;
-    s32              passes = 1;
-    GameLocationKey* loc    = &gGameSession->location.loc;
-    s32              area   = loc->area;
-    s32              start;
-    s32              end;
-    POLY_FT4*        prim;
-    u8*              base;
-    s32              size;
-    s32              sinArg;
-    s32              cosArg;
-    s32              otz;
-    s32              pass;
-    s32              y;
-    s32              y0;
-    s32              wave;
-    s32              sinv;
-    s32              cosv;
-    s32              v;
-    s32              x0;
-    s32              x1;
-    u16              spare;
+    enum {
+        WATER_DISTORT_PACKETS_PER_BUFFER        = 488,
+        WATER_DISTORT_REFRACTION_PREFIX_PACKETS = 976,
+        WATER_DISTORT_ACTOR_ARENA_BYTES         = 0x30000,
+        WATER_DISTORT_SCRATCH_BYTES             = 0x40,
+        WATER_DISTORT_HALF_WIDTH                = 160,
+        WATER_DISTORT_HALF_HEIGHT               = 120,
+        WATER_DISTORT_LAST_SAMPLE_ROW           = 239,
+        WATER_DISTORT_SAMPLE_REFLECTION_SUM     = 476,
+        WATER_DISTORT_DEPTH_MASK                = 0x3FFF,
+        WATER_DISTORT_FADE_ROWS                 = 16,
+        WATER_DISTORT_FADE_SHIFT                = 4,
+        WATER_DISTORT_WAVE_TO_PIXELS_SHIFT      = 10,
+        WATER_DISTORT_WAVE_DC_BIAS              = 2 << 12,
+        WATER_DISTORT_COSINE_PHASE_BIAS         = 308,
+        WATER_DISTORT_SINE_FRAME_SHIFT          = 5,
+        WATER_DISTORT_COSINE_FRAME_SHIFT        = 4,
+        WATER_DISTORT_SINE_ROW_STEP             = 31,
+        WATER_DISTORT_COSINE_ROW_STEP           = 197,
+        WATER_DISTORT_TEXTURE_16_BIT            = 2,
+        WATER_DISTORT_TEXTURE_PAGE_Y_SHIFT      = 8,
+        WATER_DISTORT_TEXTURE_RIGHT_PAGE_X      = 128,
+        WATER_DISTORT_TEXTURE_U_RIGHT_BIAS      = 32,
+        WATER_DISTORT_TEXTURE_U_LEFT_BIAS       = 96,
+    };
+    s32              xLeft             = -WATER_DISTORT_HALF_WIDTH;
+    s32              xRight            = WATER_DISTORT_HALF_WIDTH;
+    s32              sourceBufferIndex = gDisplayState.otBuffer;
+    s32              bandCount         = 1;
+    GameLocationKey* location          = &gGameSession->location.loc;
+    s32              areaId            = location->area;
+    s32              firstRow;
+    s32              rowEnd;
+    POLY_FT4*        strip;
+    u8*              packetBytes;
+    s32              freeBytes;
+    s32              sinePhase;
+    s32              cosinePhase;
+    s32              otIndex;
+    s32              bandIndex;
+    s32              rowY;
+    s32              centeredRowY;
+    s32              waveOffset;
+    s32              sineValue;
+    s32              cosineValue;
+    s32              sourceRow;
+    s32              rightPageLeftX;
+    s32              leftPageRightX;
+    u16              unusedFrameSlot;
 
-    if (area == 12) {
+    // Select screen-pixel clipping for the current room view.
+    if (areaId == GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL) {
         switch (gGameSession->location.loc.view) {
             case 2:
-                start = 1;
-                end   = 0x3F;
+                firstRow = 1;
+                rowEnd   = 0x3F;
                 break;
             case 3:
-                start = 1;
-                end   = 0x49;
+                firstRow = 1;
+                rowEnd   = 0x49;
                 break;
             case 4:
-                start = 1;
-                end   = 0x49;
+                firstRow = 1;
+                rowEnd   = 0x49;
                 break;
             case 5:
-                start = 1;
-                end   = 0x3F;
+                firstRow = 1;
+                rowEnd   = 0x3F;
                 break;
             case 8:
-                start = 1;
-                end   = 0x72;
+                firstRow = 1;
+                rowEnd   = 0x72;
                 break;
             case 9:
-                start = 1;
-                end   = 0x45;
+                firstRow = 1;
+                rowEnd   = 0x45;
                 break;
             default:
                 return;
         }
-    } else if (area == 30) {
+    } else if (areaId == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY) {
         switch (gGameSession->location.loc.view) {
             case 2:
-                start  = 1;
-                end    = 0x40;
-                xRight = -0x50;
+                firstRow = 1;
+                rowEnd   = 0x40;
+                xRight   = -0x50;
                 break;
             case 4:
-                start  = 0x3B;
-                end    = 0x55;
-                xRight = -0x67;
+                firstRow = 0x3B;
+                rowEnd   = 0x55;
+                xRight   = -0x67;
                 break;
             case 5:
-                start  = 0x22;
-                end    = 0x4A;
-                xRight = -0x4E;
-                passes = 2;
+                firstRow  = 0x22;
+                rowEnd    = 0x4A;
+                xRight    = -0x4E;
+                bandCount = 2;
                 break;
             default:
                 return;
@@ -100,113 +134,106 @@ void waterDistortBandTask(Task* task)
         task->state++;
     }
 
-    if (area == 12 && loc->variant == 3) {
-        size  = 0x30000 - Fs_ChunkOutputSizes[0];
-        size &= ~7;
-        base  = (u8*)Fs_ActorLoadBase0 - (size - 0x30000);
-        if (size < sizeof(POLY_FT4) * 976) {
+    // Variant 3 uses the unloaded tail of actor arena 0; other views follow
+    // the two refraction banks in actor arena 2. The dynamic split is in bytes.
+    if (areaId == GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL && location->variant == 3) {
+        freeBytes   = WATER_DISTORT_ACTOR_ARENA_BYTES - Fs_ChunkOutputSizes[0];
+        freeBytes  &= ~7;
+        packetBytes = (u8*)Fs_ActorLoadBase0 - (freeBytes - WATER_DISTORT_ACTOR_ARENA_BYTES);
+        if (freeBytes < sizeof(POLY_FT4) * WATER_DISTORT_PACKETS_PER_BUFFER * 2) {
             return;
         }
         if (gDisplayState.otBuffer != 0) {
-            base += size >> 1;
+            packetBytes += freeBytes >> 1;
         }
-        prim = (POLY_FT4*)base - 1;
+        strip = (POLY_FT4*)packetBytes - 1;
     } else {
-        prim = (POLY_FT4*)((u8*)Fs_ActorLoadBase2 + 0x9880);
+        strip = (POLY_FT4*)Fs_ActorLoadBase2 + WATER_DISTORT_REFRACTION_PREFIX_PACKETS;
         if (gDisplayState.otBuffer != 0) {
-            prim += 488;
+            strip += WATER_DISTORT_PACKETS_PER_BUFFER;
         }
-        prim--;
+        strip--;
     }
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         task->killCountdown++;
     }
-    sinArg = task->killCountdown << 5;
-    cosArg = task->killCountdown << 4;
-    SCRATCH_STACK_RESERVE_BYTES(0x40);
-    otz = ((0x3FFF << gDisplayState.otDepthShift) & 0x3FFF) >> 4;
+    sinePhase   = task->killCountdown << WATER_DISTORT_SINE_FRAME_SHIFT;
+    cosinePhase = task->killCountdown << WATER_DISTORT_COSINE_FRAME_SHIFT;
+    SCRATCH_STACK_RESERVE_BYTES(WATER_DISTORT_SCRATCH_BYTES);
+    otIndex = ((WATER_DISTORT_DEPTH_MASK << gDisplayState.otDepthShift) & WATER_DISTORT_DEPTH_MASK) >> 4;
 
-    for (pass = 0; pass < passes; pass++) {
-        if (pass == 1) {
-            start  = 0x2E;
-            end    = 0x54;
-            xLeft  = 1;
-            xRight = 0x55;
+    for (bandIndex = 0; bandIndex < bandCount; bandIndex++) {
+        if (bandIndex == 1) {
+            firstRow = 0x2E;
+            rowEnd   = 0x54;
+            xLeft    = 1;
+            xRight   = 0x55;
         }
-        for (y = start; y < end; y++) {
-            y0     = y - 0x78;
-            sinv   = rsin(sinArg);
-            cosv   = rcos(cosArg + 0x134);
-            sinv  += 0x2000;
-            wave   = cosv + sinv;
-            wave >>= 10;
-            if (end - 0x10 < y) {
-                wave = (wave * (end - y)) >> 4;
+        // Fade the vertical sampling displacement over the final sixteen rows.
+        for (rowY = firstRow; rowY < rowEnd; rowY++) {
+            centeredRowY = rowY - WATER_DISTORT_HALF_HEIGHT;
+            sineValue    = rsin(sinePhase);
+            cosineValue  = rcos(cosinePhase + WATER_DISTORT_COSINE_PHASE_BIAS);
+            sineValue   += WATER_DISTORT_WAVE_DC_BIAS;
+            waveOffset   = cosineValue + sineValue;
+            waveOffset >>= WATER_DISTORT_WAVE_TO_PIXELS_SHIFT;
+            if (rowEnd - WATER_DISTORT_FADE_ROWS < rowY) {
+                waveOffset = (waveOffset * (rowEnd - rowY)) >> WATER_DISTORT_FADE_SHIFT;
             }
-            cosv = wave + 0x79;
-            v    = y0 + cosv;
-            otz--;
-            if (v >= 0xEF) {
-                v = 0x1DC - v;
+            cosineValue = waveOffset + WATER_DISTORT_HALF_HEIGHT + 1;
+            sourceRow   = centeredRowY + cosineValue;
+            otIndex--;
+            if (sourceRow >= WATER_DISTORT_LAST_SAMPLE_ROW) {
+                sourceRow = WATER_DISTORT_SAMPLE_REFLECTION_SUM - sourceRow;
             }
-            if (v < 0) {
-                v = -v;
+            if (sourceRow < 0) {
+                sourceRow = -sourceRow;
             }
+            // Split the row at the two framebuffer texture pages.
             if (xRight > 0) {
-                x0 = xLeft < 0 ? 0 : xLeft;
-                prim++;
-                prim->y1    = y0;
-                prim->y0    = y0;
-                prim->y3    = y - 0x77;
-                prim->y2    = y - 0x77;
-                prim->tpage = getTPage(2, 0, 0x80, buf << 8);
-                prim->x2    = x0;
-                prim->x0    = x0;
-                prim->u2    = x0 + 0x20;
-                prim->u0    = x0 + 0x20;
-                prim->x3    = xRight;
-                prim->x1    = xRight;
-                prim->u3    = xRight + 0x20;
-                prim->u1    = xRight + 0x20;
-                prim->v1    = v + buf * 16;
-                prim->v0    = v + buf * 16;
-                prim->v3    = v + buf * 16 + 1;
-                prim->v2    = v + buf * 16 + 1;
-                setlen(prim, 9);
-                prim->code = 0x2D;
-                addPrim(&gGpuCurrentOt[otz], prim);
+                rightPageLeftX = xLeft < 0 ? 0 : xLeft;
+                strip++;
+                strip->y1    = centeredRowY;
+                strip->y0    = centeredRowY;
+                strip->y3    = rowY - (WATER_DISTORT_HALF_HEIGHT - 1);
+                strip->y2    = rowY - (WATER_DISTORT_HALF_HEIGHT - 1);
+                strip->tpage = getTPage(WATER_DISTORT_TEXTURE_16_BIT, GPU_BLEND_AVERAGE, WATER_DISTORT_TEXTURE_RIGHT_PAGE_X, sourceBufferIndex << WATER_DISTORT_TEXTURE_PAGE_Y_SHIFT);
+                strip->x2    = rightPageLeftX;
+                strip->x0    = rightPageLeftX;
+                strip->u2    = rightPageLeftX + WATER_DISTORT_TEXTURE_U_RIGHT_BIAS;
+                strip->u0    = rightPageLeftX + WATER_DISTORT_TEXTURE_U_RIGHT_BIAS;
+                strip->x3    = xRight;
+                strip->x1    = xRight;
+                strip->u3    = xRight + WATER_DISTORT_TEXTURE_U_RIGHT_BIAS;
+                strip->u1    = xRight + WATER_DISTORT_TEXTURE_U_RIGHT_BIAS;
+                _waterFinishDistortionStrip(strip, sourceRow, sourceBufferIndex, otIndex);
             }
             if (xLeft < 0) {
-                x1 = xRight;
-                if (x1 > 0) {
-                    x1 = 0;
+                leftPageRightX = xRight;
+                if (leftPageRightX > 0) {
+                    leftPageRightX = 0;
                 }
-                prim++;
-                prim->y1    = y0;
-                prim->y0    = y0;
-                prim->y3    = y - 0x77;
-                prim->y2    = y - 0x77;
-                prim->tpage = getTPage(2, 0, 0, buf << 8);
-                prim->u2    = xLeft - 0x60;
-                prim->u0    = xLeft - 0x60;
-                prim->u3    = x1 - 0x60;
-                prim->u1    = x1 - 0x60;
-                prim->x2    = xLeft;
-                prim->x0    = xLeft;
-                prim->x3    = x1;
-                prim->x1    = x1;
-                prim->v1    = v + buf * 16;
-                prim->v0    = v + buf * 16;
-                prim->v3    = v + buf * 16 + 1;
-                prim->v2    = v + buf * 16 + 1;
-                setlen(prim, 9);
-                prim->code = 0x2D;
-                addPrim(&gGpuCurrentOt[otz], prim);
+                strip++;
+                strip->y1    = centeredRowY;
+                strip->y0    = centeredRowY;
+                strip->y3    = rowY - (WATER_DISTORT_HALF_HEIGHT - 1);
+                strip->y2    = rowY - (WATER_DISTORT_HALF_HEIGHT - 1);
+                strip->tpage = getTPage(WATER_DISTORT_TEXTURE_16_BIT, GPU_BLEND_AVERAGE, 0, sourceBufferIndex << WATER_DISTORT_TEXTURE_PAGE_Y_SHIFT);
+                strip->u2    = xLeft - WATER_DISTORT_TEXTURE_U_LEFT_BIAS;
+                strip->u0    = xLeft - WATER_DISTORT_TEXTURE_U_LEFT_BIAS;
+                strip->u3    = leftPageRightX - WATER_DISTORT_TEXTURE_U_LEFT_BIAS;
+                strip->u1    = leftPageRightX - WATER_DISTORT_TEXTURE_U_LEFT_BIAS;
+                strip->x2    = xLeft;
+                strip->x0    = xLeft;
+                strip->x3    = leftPageRightX;
+                strip->x1    = leftPageRightX;
+                _waterFinishDistortionStrip(strip, sourceRow, sourceBufferIndex, otIndex);
             }
-            sinArg += 0x1F + (spare >> 16);
-            cosArg += 0xC5;
+            // The compiler folds this pre-existing use; removing it shifts retail spill offsets.
+            sinePhase   += WATER_DISTORT_SINE_ROW_STEP + (unusedFrameSlot >> 16);
+            cosinePhase += WATER_DISTORT_COSINE_ROW_STEP;
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x40);
+    SCRATCH_STACK_RELEASE_BYTES(WATER_DISTORT_SCRATCH_BYTES);
 }

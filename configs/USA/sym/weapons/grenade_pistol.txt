@@ -3,4 +3,4 @@
 grenadeShellSpawn = 0x8011D3A0; // type:func
 grenadeShellFly = 0x8011D6FC; // type:func
 grenadeShellBlast = 0x8011DB60; // type:func
-grenadeShellExit = 0x8011DB8C; // type:func
+_grenadeShellExit = 0x8011DB8C; // type:func

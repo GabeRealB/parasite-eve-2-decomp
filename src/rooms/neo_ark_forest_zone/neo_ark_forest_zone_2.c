@@ -41,6 +41,9 @@
 #include "../../shared/room_events.h"
 #include "../../shared/roaming_enemies.h"
 
+static s32  _roamerAmbushMsg(Task* task, s32 messageId, struct ActorCommand* msg, s32 unusedArg);
+static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg);
+
 /// Enemy parameters shared by the spawn-slot controllers.
 extern EnemyParams  gRoamerParams;
 extern DamageAttack D_neo_ark_forest_zone_80182D04[6];
@@ -527,7 +530,7 @@ s16 gRoamerReleasePending = 0;
 
 TaskMessageEntry gRoamerMsgTableA[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolA },
-    { ROOM_MESSAGE_ACTOR_EVENT, roamerBankRetreat },
+    { ROOM_MESSAGE_ACTOR_EVENT, _roamerBankRetreat },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_neo_ark_forest_zone_801813BC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -547,7 +550,7 @@ s16 gRoamerPrevBattleRefs = 0;
 TaskMessageEntry gRoamerMsgTableB[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolB },
     { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_forest_zone_80181494 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _roamerAmbushMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

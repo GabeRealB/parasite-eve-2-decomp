@@ -40,6 +40,8 @@
 #include "weapons/weapon.h"
 #include "../../shared/grenade_shell.h"
 
+static void _grenadeShellExit(Task* task);
+
 #define GRENADE_WEAPON (0xB + GRENADE_VARIANT)
 
 /// Which weapon this build is: 0 for the Grenade Pistol, 1 for the MM1. The two
@@ -115,7 +117,7 @@ static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
     grenadeShellSpawn,
     grenadeShellFly,
     grenadeShellBlast,
-    grenadeShellExit,
+    _grenadeShellExit,
 } };
 
 void func_grenade_pistol_8011DBD0(Task* arg0)

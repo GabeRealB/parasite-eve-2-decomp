@@ -269,8 +269,6 @@ void factoryWhiteoutScene(Task* task);
 void factoryBarrierCollision(Task* task);
 void factoryLiftUpdate(Task* task);
 void factoryLiftBindLighting(Task* task);
-void factoryHatchInit(Task* task);
-void factoryHatchUpdate(Task* task);
 void factoryLampScene(Task* task);
 void factoryHatchScene(Task* task);
 void factoryRoomInit(Task* arg0);
@@ -288,7 +286,6 @@ void factoryPanelExit(Task* arg0);
 void factoryPanelWaitMove(Task* task);
 
 void factoryLiftExit(Task* task);
-void factoryLiftNotifyPanel(Task* arg0);
 void factoryLiftRun(Task* task);
 void factoryHatchRun(Task* task);
 void factoryCapScene(Task* arg0);

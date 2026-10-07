@@ -33,6 +33,8 @@
 #include "weapons/weapon.h"
 #include "../../shared/grenade_shell.h"
 
+static void _grenadeShellExit(Task* task);
+
 #include "../../shared/grenade_shell_spawn.inc.c"
 
 #include "../../shared/grenade_shell_fly.inc.c"
@@ -47,7 +49,7 @@ void func_kyle_800102_801682B4(Task* task)
         grenadeShellSpawn,
         grenadeShellFly,
         grenadeShellBlast,
-        grenadeShellExit,
+        _grenadeShellExit,
     };
 
     states[task->state](task);

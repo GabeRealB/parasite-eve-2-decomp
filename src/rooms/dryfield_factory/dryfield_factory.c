@@ -58,6 +58,10 @@
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/factory_lift.h"
 
+static void _factoryHatchInit(Task* task);
+static void _factoryHatchUpdate(Task* task);
+static void _factoryLiftNotifyPanel(Task* panelTask);
+
 /// The pending event message and request the gate latched, the flag saying
 /// one was latched, and the descriptor of the task the gate spawns to play it.
 extern RoomEventMsg gRoomEventMsg;
@@ -735,7 +739,7 @@ static const TaskFuncTable3 _gFactoryLiftStates = {
 /// State handlers of the cutscene task: set-up, the cutscene sequence and
 /// `taskKill`.
 static const TaskFuncTable3 _gFactoryHatchTaskStates = {
-    { factoryHatchInit, factoryHatchUpdate, taskKill },
+    { _factoryHatchInit, _factoryHatchUpdate, taskKill },
 };
 
 /// The cutscene sequence's handlers: the flag watcher of state 0 and the two

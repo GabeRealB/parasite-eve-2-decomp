@@ -24,6 +24,8 @@
 #define gViewFigureTasks gActor110800ViewFigureTasks
 #include "../../shared/view_figure.h"
 
+static void _viewFigureStepAnim(Task* task);
+
 /// The block above, published by `func_actor_110800_801322A0` from the task's
 /// `Task::work`.
 extern ViewFigureWork* gViewFigureWork;
@@ -310,7 +312,7 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
 
     coord = task->extra.tmd->coords;
     obj   = task->extra.tmd;
-    viewFigureStepAnim(task);
+    _viewFigureStepAnim(task);
     switch (gViewFigureWork->st.animId) {
         case 4:
             if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC8) {

@@ -1,45 +1,63 @@
 /* Part of the roaming enemies library; see roaming_enemies.h. */
 
-/// 0x7DB handler of the second arming state's message table, for messages
-/// from sender 0xB05: command 0 stops the countdown at -1, command 2 hands
-/// spawn slot 0 to placed actor 0, sends it message 0x7DB and places it
-/// at (5, 0, -0x320) facing 0x400, restarting the countdown. Answers 1 only
-/// for command 2.
-s32 roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3)
+/// Revives the first placed enemy from reserve slot zero at the ambush position.
+///
+/// Uses the prepared shared command and keeps repeated actor lookups around
+/// synchronous dispatch. No reserve HP is consumed when the enemy work is absent.
+static inline void _roamerReviveAmbushEnemy(void)
 {
-    s32    result;
-    u16    cmd;
-    Enemy* obj;
+    Enemy* enemy;
 
+    if (sceneFindPlacedActor(0) != 0) {
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY,
+                                      &gRoamerCommand, 0);
+        enemy                                                  = sceneFindPlacedActor(0)->spawnArg2.pointer;
+        sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[0] = 5;
+        sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[1] = 0;
+        sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[2] = -0x320;
+        if (enemy != 0) {
+            enemy->hp            = gRoamerReserveHp[0];
+            gRoamerReserveHp[0]  = 0;
+            enemy->reactionFlags = 0;
+        }
+        gfxRotMatrixY(&sceneFindPlacedActor(0)->extra.tmd->coords->coord,
+                      ACTOR_TRANSFORM_ANGLE_TURN / 4, GRAPHICS_ROTATION_REPLACE);
+        _gRoamerCooldownFrames = ROAMER_ACTION_COOLDOWN_FRAMES;
+    }
+}
+
+/// Handles the forest pool's pause and placed-enemy ambush commands.
+///
+/// Installed for `ACTOR_COMMAND_MESSAGE_APPLY`; borrows `msg` through dispatch.
+/// Accepts only the Neo Ark forest-zone namespace. Command 0 pauses the shared
+/// cooldown; command 2 requests actor 0's ambush, transfers reserve slot 0's
+/// HP if its enemy exists, places its root and restarts the cooldown.
+/// Returns 1 for command 2 even when the actor is absent, otherwise 0.
+/// The receiver, message ID and second payload are unused.
+static s32 _roamerAmbushMsg(Task* task, s32 messageId, struct ActorCommand* msg, s32 unusedArg)
+{
+    enum {
+        ROAMER_AMBUSH_CONTEXT       = (GAME_AREA_NEO_ARK_FOREST_ZONE << 8) | GAME_STAGE_SHELTER_NEO_ARK,
+        ROAMER_AMBUSH_COMMAND_PAUSE = 0,
+        ROAMER_AMBUSH_COMMAND_START = 2,
+        ROAMER_AMBUSH_ENEMY_COMMAND = 12,
+    };
+    s32 result;
+    u16 command;
     result = 0;
-    if (msg->context.key == 0xB05) {
-        cmd = msg->command;
-        switch (cmd) {
-            case 0:
+    if (msg->context.key == ROAMER_AMBUSH_CONTEXT) {
+        command = msg->command;
+        switch (command) {
+            case ROAMER_AMBUSH_COMMAND_PAUSE:
                 _gRoamerCooldownFrames = ROAMER_COOLDOWN_PAUSED;
                 result                 = 0;
                 return result;
-            case 2:
-                gRoamerCommand.context.loc.stage = 5;
-                gRoamerCommand.context.loc.area  = 0xB;
-                gRoamerCommand.command           = 0xC;
+            case ROAMER_AMBUSH_COMMAND_START:
+                gRoamerCommand.context.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+                gRoamerCommand.context.loc.area  = GAME_AREA_NEO_ARK_FOREST_ZONE;
+                gRoamerCommand.command           = ROAMER_AMBUSH_ENEMY_COMMAND;
                 result                           = 1;
-                if (sceneFindPlacedActor(0) != 0) {
-                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY,
-                                                  &gRoamerCommand, 0);
-                    obj                                                    = sceneFindPlacedActor(0)->spawnArg2.pointer;
-                    sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[0] = 5;
-                    sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[1] = 0;
-                    sceneFindPlacedActor(0)->extra.tmd->coords->coord.t[2] = -0x320;
-                    if (obj != 0) {
-                        obj->hp             = gRoamerReserveHp[0];
-                        gRoamerReserveHp[0] = 0;
-                        obj->reactionFlags  = 0;
-                    }
-                    gfxRotMatrixY(&sceneFindPlacedActor(0)->extra.tmd->coords->coord,
-                                  0x400, 1);
-                    _gRoamerCooldownFrames = ROAMER_ACTION_COOLDOWN_FRAMES;
-                }
+                _roamerReviveAmbushEnemy();
                 return result;
             default:
                 return 0;

@@ -33,7 +33,7 @@ void grenadeShellSpawn(Task* arg0)
         return;
     }
     arg0->work         = work;
-    arg0->exitCallback = grenadeShellExit;
+    arg0->exitCallback = _grenadeShellExit;
     arg0->state++;
     memFillBytes(work, 0, sizeof(WeaponGrenadeWork));
     blk->vx              = gGrenadeShellMuzzleOffsets[idx].vx;

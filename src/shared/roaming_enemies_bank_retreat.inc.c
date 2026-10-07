@@ -1,22 +1,27 @@
 /* Part of the roaming enemies library; see roaming_enemies.h. */
 
-/// 0x13F4 handler of the first arming state's message table: a positive
-/// `arg2` fills the first free spawn slot with 110% of it, clamped to the
-/// room's ceiling, and releases the `gSceneCombatState` reference (or marks it for
-/// release once that is allowed). The countdown is bumped by 0x5A unless every
-/// slot was already full.
-void roamerBankRetreat(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Banks a retreating enemy's HP in the first free reserve slot.
+///
+/// Installed for `ROOM_MESSAGE_ACTOR_EVENT`; `hp` is the reported hit-point
+/// count. Positive HP is scaled to 110 percent, narrowed to a signed halfword,
+/// then capped at the pool's maximum. A stored retreat releases a battle
+/// reference, or defers its release while fewer than two references remain.
+/// A stored retreat or nonpositive report adds the action cooldown; a full
+/// reserve leaves it unchanged. Defines no result; message ID and final
+/// payload are unused. Signed word scaling must remain in range.
+static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg)
 {
-    s16 i;
-    s16 v;
+    enum { ROAMER_RETREAT_HP_PERCENT = 110 };
+    s16 slotIndex;
+    s16 bankedHp;
 
-    if (arg2 > 0) {
-        for (i = 0; i < 5; i++) {
-            if (((s16*)gRoamerReserveHp)[i] == 0) {
-                v                           = arg2 * 0x6E / 100;
-                ((s16*)gRoamerReserveHp)[i] = v;
-                if (gRoamerParams.hpMax < v) {
-                    ((s16*)gRoamerReserveHp)[i] = gRoamerParams.hpMax;
+    if (hp > 0) {
+        for (slotIndex = 0; slotIndex < ARRAY_SIZE(gRoamerReserveHp); slotIndex++) {
+            if (((s16*)gRoamerReserveHp)[slotIndex] == 0) {
+                bankedHp                    = hp * ROAMER_RETREAT_HP_PERCENT / 100;
+                gRoamerReserveHp[slotIndex] = bankedHp;
+                if (gRoamerParams.hpMax < bankedHp) {
+                    gRoamerReserveHp[slotIndex] = gRoamerParams.hpMax;
                 }
                 if (gSceneCombatState.battleRefs >= 2) {
                     sceneReleaseBattleRef(task, 0xD);

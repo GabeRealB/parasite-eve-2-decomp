@@ -12,7 +12,7 @@ s32 viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args, s32 
         actor                       = gActorSelfTask;
         gViewFigureWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
         gViewFigureWork->st.field_6 = 0;
-        viewFigureStepAnim(actor);
+        _viewFigureStepAnim(actor);
         return 0;
     }
     return -1;

@@ -37,7 +37,7 @@ void viewFigureSpawnState(Enemy* enemy, Task* task)
                          gViewFigureWork->rig.poses, gViewFigureWork->rig.slots);
     gViewFigureWork->st.animId = 1;
     gViewFigureWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    viewFigureStepAnim(task);
+    _viewFigureStepAnim(task);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];

@@ -48,7 +48,7 @@ s32 factoryLiftJamTurnBack(Task* task)
                 work->position = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | FACTORY_LIFT_POSITION_TURNED;
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
                 work->yaw.word = FACTORY_LIFT_YAW_TURNED;
-                factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
+                _factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
@@ -68,7 +68,7 @@ s32 factoryLiftJamTurnBack(Task* task)
         work->position = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | FACTORY_LIFT_POSITION_TURNED;
         gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, work->position);
         work->yaw.word = FACTORY_LIFT_YAW_TURNED;
-        factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
+        _factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));

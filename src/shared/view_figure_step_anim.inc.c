@@ -1,9 +1,14 @@
 /* Part of the view figure library; see view_figure.h. */
 
-/// Advances the animation per the work block's `st.state`: step 1 reseeds the
-/// slots through `animationSeekSlotWithBlend`, step 2 resets them outright, and either moves
-/// on to step 3, which ticks them. The argument is never read.
-void viewFigureStepAnim(Task* task)
+/// Applies a pending figure animation request or ticks its playing body tracks.
+///
+/// Uses the live published `gViewFigureWork`, independently of the unread task
+/// argument. BLEND captures and blends slots 1..19 over eight normal-rate
+/// frames; RESET restarts them. Both select TICK and return before an ordinary
+/// slot tick. TICK advances those tracks; other request states do nothing.
+/// The twenty-part rig, loaded clips and pose storage must remain live, with
+/// the scratch stack initialized for the animation helpers. Overwrites GTE state.
+static void _viewFigureStepAnim(Task* task)
 {
     if (gViewFigureWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         _viewFigureReseedAnim();

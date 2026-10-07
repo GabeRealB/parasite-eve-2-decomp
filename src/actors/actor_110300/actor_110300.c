@@ -23,6 +23,8 @@
 #define gViewFigureTasks gActor110300ViewFigureTasks
 #include "../../shared/view_figure.h"
 
+static void _viewFigureStepAnim(Task* task);
+
 /// The block above, published by `func_actor_110300_80131F9C` from the task's
 /// `Task::work`.
 extern ViewFigureWork* gViewFigureWork;
@@ -333,7 +335,7 @@ static void func_actor_110300_80132020(Enemy* enemy, Task* task)
 
     obj   = task->extra.tmd;
     coord = obj->coords;
-    viewFigureStepAnim(task);
+    _viewFigureStepAnim(task);
     vec.vx = coord->workm.t[0];
     vec.vy = coord->workm.t[1];
     vec.vz = coord->workm.t[2];

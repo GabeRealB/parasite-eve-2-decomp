@@ -39,7 +39,7 @@ s32 factoryLiftTurnOut(Task* task)
             }
             work->yaw.word += work->yawVelocity;
             if (work->yaw.word <= FACTORY_LIFT_YAW_TURNED) {
-                factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
+                _factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
@@ -57,7 +57,7 @@ s32 factoryLiftTurnOut(Task* task)
     }
 
     if ((u8)(work->yawStep - 1) < 3 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0 && work->moveFrames >= FACTORY_LIFT_SKIP_FRAMES) {
-        factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
+        _factoryLiftNotifyPanel(*(Task**)task->spawnArg2.pointer);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
             sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));

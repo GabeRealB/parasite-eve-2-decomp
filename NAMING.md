@@ -827,6 +827,17 @@ by `actor_110300` and `actor_110800`. Its implementation interface is
 `ViewFigureWork`. Other figures can reuse its helper-model exit fragment
 independently of that work block and the twenty-part animation rig.
 
+`streamedScene` owns the included room movie tasks in
+`src/shared/streamed_scene.h`. They take display presentation through playback,
+cancellation and game-resource restoration, optionally holding the blank
+display after normal completion. The resident `stream` and `cdCmd` APIs own
+decoding and CD requests; these tasks own the room's playback sequence.
+
+`grenadeShell` owns the included grenade-projectile spawn, flight, blast and
+teardown fragments in `src/shared/grenade_shell.h`. Each weapon or actor carrier
+retains its own collision bodies and task lifecycle; helpers reached only
+inside a carrier keep static linkage and the private marker.
+
 Scratch blocks that packages reserve in functions of their own stay in
 `include/actors/actor.h`. `ActorContactDeltaScratch`,
 `ActorContactDeltaWideScratch` and `ActorContactOverlapPushScratch` open with

@@ -6,7 +6,9 @@
 /// units, while projection distance and row coordinates use pixels. Translation
 /// narrows to signed halfwords before rotation through the transposed Q12 view
 /// basis. The caller supplies each centred row Y, rotates that ray and divides
-/// by its positive world Y component. Overwrites GTE state; allocates nothing.
+/// by its positive world Y component. Projection distance must fit a signed
+/// halfword for the row ray; the signed plane-distance sum and product must
+/// fit a word. Storage stays caller-owned. Overwrites GTE state; allocates nothing.
 static inline void _waterPrepareRefractionProjection(WaterRefractionScratch* scratch, const DisplayState* display, s32 planeWorldY)
 {
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->transposedView);

@@ -47,20 +47,23 @@
 #include "../../shared/falling_leaves.h"
 #include "../../shared/roaming_enemies.h"
 
+static s32  _roamerAmbushMsg(Task* task, s32 messageId, struct ActorCommand* msg, s32 unusedArg);
+static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg);
+
 #define ABS_DIFF(a, b) ((a) - (b) >= 0 ? (a) - (b) : (b) - (a))
 
 /// The distance between `a` and `b`, spelled as a conditional subtraction.
 
 extern ActorCommand gRoamerCommand;
 
-/// The room's five spawn slots: `roamerBankRetreat` fills the
-/// first free one with a countdown and `roamerAmbushMsg`
+/// The room's five spawn slots: `_roamerBankRetreat` fills the
+/// first free one with a countdown and `_roamerAmbushMsg`
 /// hands slot 0 to the spawn it triggers and clears it. Read as `lhu` by the
 /// handler and as `lh` by the slot filler, so each site names the view it uses
 /// (`[0]` here, an `s16*` cast there).
 extern u16 gRoamerReserveHp[5];
 
-/// Ceiling `roamerBankRetreat` clamps a spawn slot to
+/// Ceiling `_roamerBankRetreat` clamps a spawn slot to
 /// (0x1A4, 420 frames). Only the first halfword is this unit's; the run
 /// continues into the room's parameter block, so the extent is splat's.
 
@@ -88,7 +91,7 @@ extern u8 gRoamerArmCountsB[];
 /// The message-handler table `roamerArmPoolB` parks in
 /// `Task::msgTable`: a placement request (0x13EF,
 /// `_roamerLatchSpawnRequestPoolB`), a countdown bump (0x13F4) and the
-/// 0x7DB command handler `roamerAmbushMsg`.
+/// 0x7DB command handler `_roamerAmbushMsg`.
 extern TaskMessageEntry gRoamerMsgTableB[];
 
 /// The same gate for the arm-state one step earlier: `func_...80180568` tests
@@ -100,7 +103,7 @@ extern u8 gRoamerArmCountsA[];
 /// `func_...80180568`'s own message-handler table, parked in `Task::msgTable`
 /// as `D_...849F4` is by `func_...80180C6C`: the same three ids, answered by
 /// the placement request `_roamerLatchSpawnRequestPoolA`, the spawn-slot
-/// filler `roamerBankRetreat` and a 0x7DB handler that
+/// filler `_roamerBankRetreat` and a 0x7DB handler that
 /// ignores the message.
 extern TaskMessageEntry gRoamerMsgTableA[];
 
@@ -209,7 +212,7 @@ s16 gRoamerReleasePending = 0;
 
 TaskMessageEntry gRoamerMsgTableA[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolA },
-    { ROOM_MESSAGE_ACTOR_EVENT, roamerBankRetreat },
+    { ROOM_MESSAGE_ACTOR_EVENT, _roamerBankRetreat },
     { ACTOR_COMMAND_MESSAGE_APPLY, _neoArkWoodlandPathIgnoreRoamerCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -229,7 +232,7 @@ s16 gRoamerPrevBattleRefs = 0;
 TaskMessageEntry gRoamerMsgTableB[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolB },
     { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_woodland_path_8018154C },
-    { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _roamerAmbushMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

@@ -38,7 +38,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ViewFigureWork, 0x55C);
 
 void viewFigureSpawnState(Enemy* enemy, Task* task);
-void viewFigureStepAnim(Task* task);
 s32  viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 
 static void _viewFigureExit(Task* task);

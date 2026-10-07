@@ -1,10 +1,12 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Runs the current state of the room's cutscene sequence, copying the room's
-/// three handlers onto the stack first so the call goes through a local table
-/// rather than through `.rodata`. A handler returning non-zero has finished its
-/// part of the scene, which drops the sequence back to the shared state 0.
-void factoryHatchUpdate(Task* task)
+/// Dispatches the hatch's watch, open or close state and returns settled swings to watching.
+///
+/// Requires a live hatch model and `FactoryHatchWork` whose selector names a
+/// `FACTORY_HATCH_STATE_` handler. Copies the complete handler table to the
+/// stack, then calls the selected slot without a range check. A zero result
+/// preserves the handler's selected state; nonzero selects WATCH next frame.
+static void _factoryHatchUpdate(Task* task)
 {
     FactoryHatchWork*          work = task->work;
     FactoryHatchStateFuncTable states;

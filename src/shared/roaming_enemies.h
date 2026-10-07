@@ -55,10 +55,8 @@ typedef struct {
 } RoamerSpawnPoint;
 STATIC_ASSERT_SIZEOF(RoamerSpawnPoint, 8);
 
-void roamerBankRetreat(Task* task, s32 arg1, s32 arg2, s32 arg3);
 void roamerArmPoolA(Task* task);
 void roamerTickPoolA(Task* task);
-s32  roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3);
 void roamerArmPoolB(Task* task);
 
 #endif /* SRC_SHARED_ROAMING_ENEMIES_H */

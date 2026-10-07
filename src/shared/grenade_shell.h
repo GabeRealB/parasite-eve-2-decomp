@@ -23,6 +23,5 @@
 void grenadeShellSpawn(Task* arg0);
 void grenadeShellFly(Task* arg0);
 void grenadeShellBlast(Task* task);
-void grenadeShellExit(Task* task);
 
 #endif /* SRC_SHARED_GRENADE_SHELL_H */

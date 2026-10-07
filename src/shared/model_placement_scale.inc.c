@@ -3,8 +3,11 @@
 /// Rebuilds a root matrix from a saved matrix and prepared per-axis scale factors.
 ///
 /// `scratch` is a live `ActorScaleScratch` with its scale vector initialized.
-/// Its matrix translation is unused. Copies the saved translation and retains
-/// the root's parent; composition must refresh its invalidated cache before use.
+/// Each signed scale factor has twelve fractional bits (`ONE` is unity).
+/// Requires a readable full saved matrix and a writable root, with scratch
+/// disjoint from both. Scratch matrix translation is unused. Copies the saved
+/// translation and retains the root's parent; composition must refresh its
+/// invalidated cache before use. Borrows all storage and overwrites GTE state.
 static inline void _modelPlacementApplyRootScale(GfxCoord* rootCoord, const MATRIX* unscaledMatrix, ActorScaleScratch* scratch)
 {
     rootCoord->coord = *unscaledMatrix;

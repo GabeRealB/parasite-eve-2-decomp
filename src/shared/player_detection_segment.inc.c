@@ -1,6 +1,11 @@
 /* Part of the player detection library; see player_detection.h. */
 
-/// Writes end-minus-start normalized to 4096 per unit; inputs stay unchanged.
+/// Writes the segment's unit direction with twelve fractional bits.
+///
+/// Endpoints share a coordinate frame and remain unchanged. Their difference
+/// must fit signed halfwords, with squared length in 1..0x7FFFFFFF for SDK
+/// normalization. `direction` is writable caller-owned storage; its fourth
+/// word is untouched. Overwrites GTE state and retains no pointers.
 static inline void _playerDetectionNormalizeSegment(const SVECTOR* segmentStart, const SVECTOR* segmentEnd, VECTOR* direction)
 {
     direction->vx = segmentEnd->vx - segmentStart->vx;

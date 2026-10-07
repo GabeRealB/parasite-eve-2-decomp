@@ -41,6 +41,8 @@
 #include "../../shared/grenade_shell.h"
 #include "types.h"
 
+static void _grenadeShellExit(Task* task);
+
 /// Scratch-stack block the flight state holds for one frame.
 ///
 /// The block is reserved on entry and released on every way out, so nothing
@@ -228,7 +230,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
         return;
     }
     arg0->work         = work;
-    arg0->exitCallback = grenadeShellExit;
+    arg0->exitCallback = _grenadeShellExit;
     arg0->state++;
     memFillBytes(work, 0, sizeof(WeaponGrenadeWork));
     blk->vx              = 0;
@@ -397,7 +399,7 @@ void func_m4a1_grenade_8011DE68(Task* task)
         func_m4a1_grenade_8011D654,
         func_m4a1_grenade_8011D994,
         grenadeShellBlast,
-        grenadeShellExit,
+        _grenadeShellExit,
     };
 
     states[task->state](task);

@@ -1,52 +1,52 @@
 /* Part of the streamed scene library; see streamed_scene.h. */
 
-/// Plays the location's streamed scene (see streamed_scene.h) and kills the
-/// task as soon as the stream state is restored.
-void streamedScenePlay(Task* task)
+void streamedScenePlay(Task* movieTask)
 {
-    u8          slotParam[4];
-    GameLoc     key;
+    u8          commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLoc     movieLocation;
     CdCmdQueue* queue;
 
     queue = &gCdCmdQueue;
-    switch (task->state) {
-        case 0:
+    switch (movieTask->state) {
+        case STREAMED_SCENE_PREPARE:
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
-            task->state++;
+            movieTask->state++;
             break;
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state++;
+        case STREAMED_SCENE_QUEUE_MOVIE:
+            movieLocation          = gGameSession->location;
+            movieLocation.loc.view = STREAMED_SCENE_MOVIE_ID;
+            // This opcode consumes only the slot byte of the four-byte argument block.
+            commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
+            movieTask->state++;
             break;
-        case 2:
+        case STREAMED_SCENE_WAIT_READY:
             if (queue->movieReady != 0) {
                 SetDispMask(1);
-                task->state++;
+                movieTask->state++;
             }
             break;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        case STREAMED_SCENE_PLAYING:
+            if (cdCmdIsIdle()) {
                 SetDispMask(0);
-                task->state++;
+                movieTask->state++;
             } else if (padIsStartPressed() != 0) {
                 SetDispMask(0);
                 cdCmdRequestCancel();
-                task->state++;
+                movieTask->state++;
             }
             break;
-        case 4:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        // Restore game resources only after playback or cancellation has drained the CD queue.
+        case STREAMED_SCENE_WAIT_IDLE:
+            if (cdCmdIsIdle()) {
                 streamResetGameRestore();
-                task->state++;
+                movieTask->state++;
             }
             break;
-        case 5:
-            if (streamPollGameRestore(0, 1) & 0xFFFF) {
-                taskKill(task);
+        case STREAMED_SCENE_RESTORE_GAME:
+            if (streamPollGameRestore(0, 1)) {
+                taskKill(movieTask);
                 displayResumeGameLoop();
             }
             break;
