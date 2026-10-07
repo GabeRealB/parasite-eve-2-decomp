@@ -1925,7 +1925,7 @@ static void func_actor_800300_80162658(Task* arg0)
             sndEvtRequestScriptStart(sound, pan, depth);
         }
     }
-    Gp_TickActorAnimState(arg0);
+    playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     playerActorUpdateFacing(arg0);
     playerActorStepMovement(arg0);
@@ -1995,7 +1995,7 @@ static void func_actor_800300_801628D0(Task* arg0)
     vec = MATRIX_TRANS(&target->coord);
     func_8010BD88(arg0, vec);
     func_8010BE5C(arg0, vec);
-    func_80105ED4(arg0);
+    playerActorPlayFootstepCue(arg0);
 }
 
 static void func_actor_800300_80162A98(Task* arg0)
@@ -2053,7 +2053,7 @@ static void func_actor_800300_80162A98(Task* arg0)
             break;
     }
     func_8010BE5C(arg0, MATRIX_TRANS(&src->coord));
-    func_80105ED4(arg0);
+    playerActorPlayFootstepCue(arg0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
@@ -2095,7 +2095,7 @@ static void func_actor_800300_80162C98(Task* arg0)
         }
     }
     func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
-    func_80105ED4(arg0);
+    playerActorPlayFootstepCue(arg0);
 }
 
 static void func_actor_800300_80162D74(Task* arg0)
@@ -2143,7 +2143,7 @@ static void func_actor_800300_80162D74(Task* arg0)
     }
     func_8010BD88(arg0, vec);
     func_8010BE5C(arg0, vec);
-    func_80105ED4(arg0);
+    playerActorPlayFootstepCue(arg0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 

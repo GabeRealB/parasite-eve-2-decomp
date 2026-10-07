@@ -742,7 +742,7 @@ static void func_8010AAB4(Task* arg0)
     p                  = &gPlayerStatus;
     inner              = arg0->work;
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    func_80106350(arg0, p->weapon, 0);
+    playerActorResetWeaponAttack(arg0, p->weapon, 0);
     if (p->hp > 0) {
         inner->mode           = GAME_ACTOR_MODE_DAMAGE;
         inner->movementMode   = 0;
@@ -1280,7 +1280,7 @@ Task* Gp_SetupAllyWeapon(void)
                     (EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, (s32)(val1), 0);
                 if (eff != NULL) {
                     actor->weaponEffectTask = eff->task;
-                    func_80106350(work, val1, 0);
+                    playerActorResetWeaponAttack(work, val1, 0);
                 }
             }
         }
@@ -1338,7 +1338,7 @@ void func_8010B9A4(Task* arg0)
     if ((s8)actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
         actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     }
-    func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     anim = 0x11;
     if ((u16)actor->hitRegion == 1) {
         anim = 0x10;
@@ -1575,11 +1575,11 @@ void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1)
             if (arg1 != 1) {
                 val = 0x380;
             }
-            Gp_AimYawToLock(arg0, val);
+            playerActorAimYawToLock(arg0, val);
         }
         if (arg1 & 2) {
             if (D_80113388[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] != 0) {
-                Gp_AimPitchToLock(arg0);
+                playerActorAimPitchToLock(arg0);
             } else {
                 Gp_AimPitchRec(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0x380);
             }
@@ -1703,7 +1703,7 @@ static void func_8010C46C(Task* arg0)
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
 }
 
 s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg)
@@ -1726,7 +1726,7 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     // Select the animation table before resetting or blending its slots.
     actor->state = 1;
     if (actor->animationSets != Gp_AnimBlkTbl[request->source.index]->table.sets) {
@@ -1756,7 +1756,7 @@ s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
 
     playerStatus            = &gPlayerStatus;
     savedInteractionPressed = playerStatus->interactionPressed;
-    func_80104B54(task, msgId, request, unusedSecondArg);
+    playerActorInstallScriptedAnimation(task, msgId, request, unusedSecondArg);
     playerStatus->interactionPressed = savedInteractionPressed;
     return 0;
 }
@@ -1768,7 +1768,7 @@ s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3)
 
     p                       = &gPlayerStatus;
     savedInteractionPressed = p->interactionPressed;
-    func_80104E00(arg0, arg1, transform, arg3);
+    playerActorTurnToYaw(arg0, arg1, transform, arg3);
     p->interactionPressed = savedInteractionPressed;
     return 0;
 }
@@ -1780,7 +1780,7 @@ s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
 
     p                       = &gPlayerStatus;
     savedInteractionPressed = p->interactionPressed;
-    Gp_SetActorDest(arg0, arg1, transform, moveAnim);
+    playerActorMoveTo(arg0, arg1, transform, moveAnim);
     p->interactionPressed = savedInteractionPressed;
     return 0;
 }
@@ -1794,7 +1794,7 @@ s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
     p                       = &gPlayerStatus;
     actor                   = arg0->work;
     savedInteractionPressed = p->interactionPressed;
-    Gp_SetActorDest(arg0, arg1, transform, moveAnim);
+    playerActorMoveTo(arg0, arg1, transform, moveAnim);
     p->interactionPressed = savedInteractionPressed;
     actor->state          = 8;
     return 0;
@@ -1821,7 +1821,7 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, s32 unus
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     actor->state       = 6;
     actor->stateTimer  = arg2->pressCount;
     actor->actionValue = 0;

@@ -26,7 +26,7 @@ void func_m93r_8011D1C4(Task* arg0);
 /// per two frames - consuming ammo 0x81, playing the muzzle report and spawning
 /// the flash effect - and re-acquires the lock-on target on the off frame and
 /// again once the burst runs dry. Case 3 runs out the grace counter and hands
-/// back to `func_80106550`, parking `field_940` at 10 when the player is still
+/// back to `playerActorFinishWeaponAttack`, parking `field_940` at 10 when the player is still
 /// holding the fire button after the grace expired and at 0 otherwise.
 void func_m93r_8011D1C4(Task* arg0)
 {
@@ -87,7 +87,7 @@ void func_m93r_8011D1C4(Task* arg0)
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     equipmentConsumeWeaponLoad(0x81, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                    if (func_80106264(1) == 0) {
+                    if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
                     worldCoordPlaySound(arg0->extra.tmd->coords, 0x20020004, 1);
@@ -133,7 +133,7 @@ void func_m93r_8011D1C4(Task* arg0)
                 } else {
                     actor->attackControl.cooldownTicks = 0;
                 }
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

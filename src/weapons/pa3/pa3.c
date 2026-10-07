@@ -44,7 +44,7 @@ void func_pa3_8011D1DC(Task* arg0);
 /// flash. Case 3 re-acquires the lock-on target, sourcing the impact sound from
 /// the actor's own contact point on the 0xE variant. Case 4 runs out the
 /// `field_934` delay before playing the pump-action sound, and case 5 runs out
-/// the `field_979` grace and otherwise hands back to `func_80106550`.
+/// the `field_979` grace and otherwise hands back to `playerActorFinishWeaponAttack`.
 void func_pa3_8011D1DC(Task* arg0)
 {
     GameActor* actor;
@@ -130,7 +130,7 @@ void func_pa3_8011D1DC(Task* arg0)
             if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = 1;
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

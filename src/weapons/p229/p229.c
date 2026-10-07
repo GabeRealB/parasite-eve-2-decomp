@@ -158,7 +158,7 @@ void func_p229_8011DDA0(Task* arg0)
                     frames = 0xC;
                 }
                 actor->attackControl.cooldownTicks = frames;
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

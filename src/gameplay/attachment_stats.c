@@ -1608,7 +1608,7 @@ void Gp_HudTask(HudState* hud)
                             hud->battleStep = hud->battleStep + 1;
                         } else {
                             work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                            func_80106350(work, gPlayerStatus.weapon, 0);
+                            playerActorResetWeaponAttack(work, gPlayerStatus.weapon, 0);
                             if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
                                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                             }

@@ -569,7 +569,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 if (mode == 0 || mode == 2) {
                     if (D_801156CD != 0) {
                         gPlayerStatus.weapon = D_801156EC;
-                        Gp_SpawnWeaponEff();
+                        playerActorRestoreEquipment();
                         D_801156CD = 0;
                     }
                 }

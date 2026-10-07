@@ -580,7 +580,7 @@ void Gp_MenuRootTask(Task* arg0)
                 taskSetActiveList(&gTaskDefaultList);
                 // Rebuild the weapon bodies now; allocate their buffers after the view reload.
                 gTaskDeferModelBufferAllocation = true;
-                Gp_SpawnWeaponEff();
+                playerActorRestoreEquipment();
                 if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                     playerActorEnterAim(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 5);
                 }

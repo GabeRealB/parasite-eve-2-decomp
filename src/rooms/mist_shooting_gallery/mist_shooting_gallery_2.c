@@ -2929,7 +2929,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                     work->phase++;
                     func_800E9BDC(5, 0xA);
                     xform.rot.vy = 0xC00;
-                    func_80104E00(
+                    playerActorTurnToYaw(
                         gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, &xform, 0);
                 }
                 work->captionStep++;

@@ -454,5 +454,5 @@ void func_actor_143000_8013452C(u8 arg0)
 
 void func_actor_143000_80134538(void)
 {
-    Gp_SpawnWeaponEff();
+    playerActorRestoreEquipment();
 }

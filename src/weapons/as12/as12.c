@@ -32,7 +32,7 @@ void func_as12_8011D1DC(Task* arg0);
 /// and case 4 re-acquires the lock-on target, sourcing the impact sound from
 /// the actor's own contact point on the 0xE variant. Case 5 runs out the
 /// `field_979` grace, re-fires while the trigger is held and otherwise hands
-/// back to `func_80106550`.
+/// back to `playerActorFinishWeaponAttack`.
 void func_as12_8011D1DC(Task* arg0)
 {
     GameActor* actor;
@@ -109,7 +109,7 @@ void func_as12_8011D1DC(Task* arg0)
             }
             /* fallthrough */
         case 5:
-            if (playerActorReadAttackButton(arg0) != 0 && func_80106264(1) > 0 && actor->attackControl.cooldownTicks == 0) {
+            if (playerActorReadAttackButton(arg0) != 0 && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0 && actor->attackControl.cooldownTicks == 0) {
                 goto fire;
             }
             if (actor->attackCancelTicks != 0) {
@@ -117,7 +117,7 @@ void func_as12_8011D1DC(Task* arg0)
             }
             if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

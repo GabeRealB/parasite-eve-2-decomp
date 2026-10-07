@@ -69,7 +69,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0);
 /// playing `0x201B0004` and spawning the muzzle flash, and picks the lock-on
 /// target on the frame after. States 4/5 pick the target once, then state 5
 /// walks the animation, emitting `0x201B0008 + field_93E` on every record whose
-/// `flags` has both 0x10 and 0x20, and hands back to `func_80106550` when the
+/// `flags` has both 0x10 and 0x20, and hands back to `playerActorFinishWeaponAttack` when the
 /// clip is done or the recoil timer has run out.
 void func_m4a1_grenade_8011D1EC(Task* arg0)
 {
@@ -148,7 +148,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     equipmentConsumeWeaponLoad(0x9A, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                    if (func_80106264(1) == 0) {
+                    if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
                     worldCoordPlaySound(arg0->extra.tmd->coords,
@@ -193,7 +193,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
             if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = 0xC;
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

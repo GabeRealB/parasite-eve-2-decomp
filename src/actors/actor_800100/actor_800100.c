@@ -1246,7 +1246,7 @@ static void func_actor_800100_80163214(Task* arg0)
                 if (eff != NULL) {
                     actor->weaponEffectTask = eff->task;
                     taskReparent(arg0, eff->task);
-                    func_80106350(arg0, idx, 0);
+                    playerActorResetWeaponAttack(arg0, idx, 0);
                 }
             }
         }
@@ -1599,7 +1599,7 @@ static void func_actor_800100_80163F04(Task* arg0)
         companion->decisionTimer--;
     }
     sp.funcs[actor->state](arg0);
-    if ((u32)(func_80105ED4(arg0) + 0xEFFFFF77) < 4) {
+    if ((u32)(playerActorPlayFootstepCue(arg0) + 0xEFFFFF77) < 4) {
         actor->effectTimer.waterDripTicks = 0x78;
         sp40.vx                           = 0;
         sp40.vy                           = (u16)gGameSession->waterY - (u16)coord->coord.t[1];
@@ -1626,7 +1626,7 @@ static void func_actor_800100_80163F04(Task* arg0)
             sndEvtRequestScriptStart(((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant - 1) << 16) + 0x4065000A, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
     }
-    Gp_TickActorAnimState(arg0);
+    playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     playerActorUpdateFacing(arg0);
     playerActorStepMovement(arg0);
@@ -1912,7 +1912,7 @@ static void func_actor_800100_80164710(Task* arg0)
                 actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_DECAY;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 if ((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant == 4) {
-                    func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+                    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
                 }
                 actor3                 = arg0->work;
                 actor3->mode           = GAME_ACTOR_MODE_NORMAL;
@@ -2585,7 +2585,7 @@ static void func_actor_800100_80165850(Task* arg0)
 
     handlers = D_actor_800100_80161E88;
     actor    = arg0->work;
-    Gp_TickActorAnimState(arg0);
+    playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     handlers.funcs[(u16)actor->hitRegion](arg0);
     playerActorUpdateFacing(arg0);
@@ -3305,7 +3305,7 @@ static void func_actor_800100_80166E14(Task* arg0)
     actor->statePhase       = 0;
     actor->targetNode       = NULL;
     actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-    func_80106350(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
     playerActorPlayChildSlotsWithBlend(arg0, 8, 1, 6);
 }
 

@@ -106,12 +106,42 @@ void playerActorPlayChildSlotsWithBlend(Task* task, s32 setIndex, s32 unusedArgu
 
 Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-Task* Gp_SpawnWeaponEff(void);
+/// Rebuilds the player's equipped weapon model and restores native playback.
+///
+/// Requires a live task in the player session slot and character ID 1..2;
+/// NULL work returns NULL.
+/// Spawns a weapon model under attachment 1 when present and initializes its
+/// collision body. Hypervelocity, Hammer and Pyke also create a missing owned
+/// persistent effect, parented to the player task; only a successful new effect
+/// resets attack effects here. Restores the character/weapon animation bank,
+/// enters locomotion, clears reload-effect suppression and enables collision
+/// updates and view triggers even when allocation fails. Returns equipment slot
+/// 1, which may be NULL. Call after removing old equipment; an existing model
+/// is not released before its slot is replaced. Loaded model, animation and
+/// weapon-overlay resources must remain live until their tasks are removed.
+Task* playerActorRestoreEquipment(void);
 
-void func_80106350(Task* arg0, s32 arg1, s32 arg2);
+/// Resets weapon attack effects, requests aim decay and disables weapon collision.
+///
+/// Requires live GameActor work and a valid weapon index (0 no weapon, 1..32).
+/// Hypervelocity cancels its charge and stops all charge sounds; Hammer chooses
+/// off/idle glow from its secondary load; Pyke resets firing to off/idle and
+/// stops the player or companion fire tail when its persistent effect exists.
+/// Remaining-load checks use the live saved weapon supplies without spending
+/// them. Existing effect tasks are borrowed and must be live; none is freed.
+/// The final argument is ignored and retained for the calling convention.
+void playerActorResetWeaponAttack(Task* task, s32 weaponId, s32 unusedArgument);
 
-/// Message 1006; the fourth dispatch argument is unused.
-s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg3);
+/// Starts a scripted turn toward a borrowed transform's yaw.
+///
+/// Reads only `rot.vy`, in 4096 units per turn, and copies it as the target yaw.
+/// Clears movement signs, aim offsets and attack effects, enters scripted
+/// state 2, marks motion pending and queues collision disablement. Starts clip
+/// 5 for a negative shortest turn or clip 6 otherwise, capturing the old pose
+/// with zero blend time. Requires live GameActor work, native animation/model
+/// resources and initialized scratch state. The transform is borrowed only for
+/// this call; the second payload is unused. Returns 0.
+s32 playerActorTurnToYaw(Task* task, s32 unusedMessageId, const ActorTransform* transform, s32 unusedSecondArg);
 
 /// Marks the nearest eligible room contact with the equipped weapon's impact effect.
 ///
@@ -172,7 +202,13 @@ void playerActorSetWeaponAttackFlags(Task* task, s32 attachmentAttack, s32 alter
 /// follow `animationResetSlot`; this wrapper performs no validation.
 void playerActorResetChildSlots(Task* task, s32 setIndex);
 
-void func_80106550(Task* arg0);
+/// Returns a completed weapon attack to scripted attack waiting or ordinary aiming.
+///
+/// The scripted aim-request bit re-enters scripted state 10 after clearing
+/// movement and attack effects; otherwise enters normal aim locomotion with a
+/// three-frame pose blend. Requires live GameActor, session, equipment effects
+/// and native model/animation resources under the corresponding entry contracts.
+void playerActorFinishWeaponAttack(Task* task);
 
 /// Advances the player or companion actor's child animation slots and applies their poses.
 ///
@@ -185,7 +221,21 @@ void func_80106550(Task* arg0);
 /// live during playback; no bounds are checked and no pointer is retained here.
 void playerActorTickChildSlots(Task* task);
 
-s32 func_80106264(s32 arg0);
+/// Channels and halfword packing used by `playerActorQueryWeaponLoads`.
+enum {
+    PLAYER_ACTOR_WEAPON_LOAD_PRIMARY         = 1,
+    PLAYER_ACTOR_WEAPON_LOAD_SECONDARY       = 2,
+    PLAYER_ACTOR_WEAPON_LOAD_SECONDARY_SHIFT = 16,
+};
+
+/// Returns selected remaining loads of the equipped weapon without consuming them.
+///
+/// `loadMask` selects primary (bit 0) and secondary (bit 1); other bits are
+/// ignored. The primary quantity occupies the low 16 bits and secondary the
+/// high 16 bits; an unselected channel contributes zero. Requires a live equipped
+/// weapon index 1..32 and initialized saved supplies. Returns zero for an empty
+/// selection or empty selected loads and makes no inventory change.
+s32 playerActorQueryWeaponLoads(s32 loadMask);
 
 /// Enters ordinary player locomotion using the current movement and turn inputs.
 ///
@@ -289,7 +339,16 @@ s32 playerActorPlanarLength(s32 x, s32 z);
 /// `playerActorPlayChildSlotsWithBlend`, with `blendFrames` fixed at zero.
 void playerActorPlayChildSlots(Task* task, s32 setIndex, s32 unusedArgument);
 
-void Gp_TickActorAnimState(Task* arg0);
+/// Applies animation-boundary transitions to the player or companion's action state.
+///
+/// Samples slot 1 without ticking playback. Aim entry waits for every child
+/// slot to settle, then blends to holding clip 9 over five normal-rate frames.
+/// Other controllers return to locomotion/aim, advance the action phase or set
+/// its completion marker according to the slot's linear-run and boundary flags.
+/// Requires live GameActor/model/native-bank resources and an initialized slot
+/// 1; the active child-slot prefix must fit storage. Child-slot blending follows
+/// its playback contract. No resource is allocated or pointer retained.
+void playerActorTickAnimationState(Task* task);
 
 void Gp_TrackLockTarget(Task* arg0);
 
@@ -338,7 +397,20 @@ void Gp_PlayerWorkTask(Task* arg0);
 /// stack with 16 free bytes, released before return; no pointer is retained.
 s32 playerActorPlanarDistance(const VECTOR3* firstPoint, const VECTOR3* secondPoint);
 
-s32 func_80105ED4(Task* arg0);
+/// Emits a new surface footstep cue and returns its adjusted sound-event ID.
+///
+/// Processes each non-NULL slot-1 record identity once, retaining that identity
+/// in `lastCueRecord`. Cue 1 selects base+1; cue 2 selects base. Scripted stair
+/// climbing selects the stair entry, running selects the run entry and latches
+/// the footstep action signal, otherwise the walk entry is used. Companions add
+/// 100 to a non-silent event. Returns zero for no new audible cue, and returns
+/// the chosen ID even if sound enqueueing fails. A surface-sound record also
+/// permits optional room dust at model parts 15/18 (player) or 16/19 (companion).
+/// Requires live actor playback/model coordinates, initialized current-stage,
+/// area and surface tables, sound/effect state and loaded cue records. Model
+/// parts used by sound and dust must exist. Sound and effect allocation results
+/// do not change the consumed-record guard.
+s32 playerActorPlayFootstepCue(Task* task);
 
 void Gp_PlayerMode2State0(Task* arg0);
 

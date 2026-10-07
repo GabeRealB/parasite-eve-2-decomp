@@ -49,6 +49,22 @@
 
 #include "main/task_types.h"
 
+/// Equipped weapon indices used by the persistent attack effects.
+enum {
+    PLAYER_ACTOR_WEAPON_HYPERVELOCITY = 22,
+    PLAYER_ACTOR_WEAPON_HAMMER        = 25,
+    PLAYER_ACTOR_WEAPON_PYKE          = 28,
+};
+
+/// Scripted states entered by the movement, animation and attack messages.
+enum {
+    PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE      = 1,
+    PLAYER_ACTOR_SCRIPTED_TURN_STATE           = 2,
+    PLAYER_ACTOR_SCRIPTED_MOVE_TO_STATE        = 4,
+    PLAYER_ACTOR_SCRIPTED_ATTACK_STATE         = 10,
+    PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_ATTACK = 1024,
+};
+
 /// Number of `PlayerStatus::weapon` indices. 0 is no weapon; 1..32 are the weapons.
 #define PLAYER_ACTOR_WEAPON_COUNT 33
 
@@ -297,7 +313,7 @@ extern u16 D_80112E20[];
 /// `D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
-/// u16 turn-rate rows indexed by `gPlayerStatus.weapon`. `Gp_AimYawToLock`
+/// u16 turn-rate rows indexed by `gPlayerStatus.weapon`. `playerActorAimYawToLock`
 /// clamps the wrapped yaw delta to this value (or 1.5x when
 /// `equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE)` is set).
 extern u16 D_80112E30[];
@@ -311,7 +327,7 @@ extern GpuImageUpload** D_80112EB4[];
 
 /// Per-item flag byte indexed by `gPlayerStatus.weapon`. Nonzero makes
 /// `Gp_PlayerNormalState2` / `Gp_PlayerMode2StateA` pass `GameActor.attackButton` (the current
-/// primary/secondary fire-input selector) to `func_80106264` instead of the default 1.
+/// primary/secondary fire-input selector) to `playerActorQueryWeaponLoads` instead of the default 1.
 extern u8 D_80112EF8[];
 
 /// 2-wide rows indexed by `gPlayerStatus.weapon`. Zero at `[i][0]`
@@ -368,7 +384,7 @@ static const TaskFuncTable12 Gp_PlayerMode2States;
 /// `msgId` and `unusedArg3` are unused, including for direct initialization.
 s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedArg3);
 
-s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+static s32 _playerActorEnterScriptedAttack(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 static void Gp_DrawEffSprite81(Task* arg0);
 
@@ -411,9 +427,7 @@ static inline MATRIX* _playerActorInvalidatePartMatrix(Task* task, s32 partIndex
 
 static inline s16 _playerActorShortestTurn(s16 currentAngle, s16 targetAngle);
 
-/// Turns `actor` toward its lock target once the target is farther than
-/// `thresh` in the ground plane, by at most the equipped weapon's turn rate.
-static inline void _gpAimYawAt(GameActor* actor, _PlayerActorAimYawScratch* block, s16 thresh);
+static inline void _playerActorAimYawAtLock(GameActor* actor, _PlayerActorAimYawScratch* scratch, s16 minGroundDistance);
 
 static inline void _playerActorPlaceAimPitchOrigin(_PlayerActorAimPitchScratch* scratch, GfxCoord* source, const SVECTOR* localOffset);
 
@@ -452,10 +466,7 @@ static void func_80104AAC(Task* arg0);
 /// Replaces player animation playback without clearing the current scripted state.
 s32 func_80104CAC(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg);
 
-/// Puts the player in `mode` mode 2 (`Gp_TickPlayerMode2`): clears the
-/// movement state and the HUD flag, re-applies the equipped weapon, and during
-/// an event clears flag 0x2000 on the actor's first object.
-static inline void _gpSwitchToPlayerMode2(Task* arg0);
+static inline void _playerActorEnterScriptedMode(Task* task);
 
 s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb, s32 unusedSecondArg);
 
@@ -973,13 +984,13 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { 1003, func_80104508 },
     { 1004, func_80104508 },
     { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
-    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_80104E00 },
+    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, playerActorTurnToYaw },
     { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_80104F5C },
     { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, playerActorIsScriptedMotionPending },
     { GAME_ACTOR_MESSAGE_END_SCRIPTED, Gp_EnterActorMode2 },
-    { GAME_ACTOR_MESSAGE_MOVE_TO, Gp_SetActorDest },
+    { GAME_ACTOR_MESSAGE_MOVE_TO, playerActorMoveTo },
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, playerActorSetModelDraw },
-    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_80104B54 },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, playerActorInstallScriptedAnimation },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
     { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyPlayerAnim },
@@ -991,7 +1002,7 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
     { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorBy },
     { ANIMATION_MESSAGE_REPLACE_AND_PLAY, func_80104CAC },
-    { 1024, func_801055D4 },
+    { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_ATTACK, _playerActorEnterScriptedAttack },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
     { 1026, func_80105754 },
     { -1, NULL },
@@ -4803,7 +4814,7 @@ static void Gp_InitPlayerWork(Task* arg0)
     actor->attachmentTasks[1] = task;
     if (task != NULL) {
         Gp_SyncHeldRelated();
-        Gp_SpawnWeaponEff();
+        playerActorRestoreEquipment();
     }
     if (kind == 2) {
         sp.blendFrames          = 0;
@@ -5127,95 +5138,119 @@ void Gp_UpdatePlayerMove(void)
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-void Gp_TickActorAnimState(Task* arg0)
+/// Blends the active child slots into an aim-holding clip at the actor's playback rate.
+static inline void _playerActorBlendAimHoldSlots(Task* task, s32 slotIndex, s32 setIndex, s32 blendFrames)
 {
+    GameActor* actor;
+
+    actor = task->work;
+    if (slotIndex < actor->animationSlotCount) {
+        do {
+            animationPlaySlotWithBlend(&actor->animationContext, slotIndex, 0, setIndex, 0, 0, blendFrames, actor->animationSets);
+            actor->animationSlots[slotIndex].rate = actor->animationRate;
+            slotIndex++;
+        } while (slotIndex < actor->animationSlotCount);
+    }
+}
+
+void playerActorTickAnimationState(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_ANIMATION_AIM_ENTRY                      = 2,
+        PLAYER_ACTOR_ANIMATION_RETURN_TO_LOCOMOTION           = 4,
+        PLAYER_ACTOR_ANIMATION_RETURN_TO_AIM                  = 5,
+        PLAYER_ACTOR_ANIMATION_RETURN_TO_LOCOMOTION_ALTERNATE = 6,
+        PLAYER_ACTOR_ANIMATION_ADVANCE_ACTION_PHASE           = 7,
+        PLAYER_ACTOR_ANIMATION_BOUNDARY_RETURN_TO_LOCOMOTION  = 8,
+        PLAYER_ACTOR_ANIMATION_PARASITE_ENERGY_PHASE          = 9,
+        PLAYER_ACTOR_ANIMATION_MARK_ACTION_COMPLETE           = 10,
+        PLAYER_ACTOR_ANIMATION_AIM_HOLD_SET                   = 9,
+        PLAYER_ACTOR_ANIMATION_AIM_HOLD_BLEND_FRAMES          = 5,
+        PLAYER_ACTOR_ANIMATION_RETURN_TO_AIM_BLEND_FRAMES     = 3,
+        PLAYER_ACTOR_ANIMATION_PHASE_COMPLETE                 = 1000,
+    };
     GameActor*             actor;
-    const AnimationRecord* rec;
-    s32                    i;
-    s32                    anim;
-    s32                    extra;
+    const AnimationRecord* record;
+    s32                    slotIndex;
+    s32                    setIndex;
+    s32                    blendFrames;
     u16                    flags;
 
-    actor = arg0->work;
-    rec   = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
+    actor  = task->work;
+    record = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
     switch (actor->animationState) {
         case 0:
         case 1:
             break;
-        case 2:
+        case PLAYER_ACTOR_ANIMATION_AIM_ENTRY:
             if (actor->statePhase != 0) {
                 break;
             }
-            if (playerActorIsAnimationPlaying(arg0, 0, 0, 0) != 0) {
+            if (playerActorIsAnimationPlaying(task, 0, 0, 0) != 0) {
                 break;
             }
-            anim               = 9;
-            extra              = 5;
-            i                  = 1;
-            actor->statePhase += i;
-            actor              = arg0->work;
-            if (i < actor->animationSlotCount) {
-                do {
-                    animationPlaySlotWithBlend(&actor->animationContext, i, 0, anim, 0, 0, extra,
-                                               actor->animationSets);
-                    actor->animationSlots[i].rate = actor->animationRate;
-                    i++;
-                } while (i < actor->animationSlotCount);
-            }
+            // Keep clip, blend and slot locals live across the phase update.
+            setIndex           = PLAYER_ACTOR_ANIMATION_AIM_HOLD_SET;
+            blendFrames        = PLAYER_ACTOR_ANIMATION_AIM_HOLD_BLEND_FRAMES;
+            slotIndex          = 1;
+            actor->statePhase += slotIndex;
+            _playerActorBlendAimHoldSlots(task, slotIndex, setIndex, blendFrames);
             break;
         case 3:
             break;
-        case 5:
-            if (rec != NULL) {
-                if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                    _playerActorEnterAimLocomotion(arg0, 3);
+        case PLAYER_ACTOR_ANIMATION_RETURN_TO_AIM:
+            if (record != NULL) {
+                if (playerActorIsSlotAdvancingLinearly(task, 1, 0, 0) == 0) {
+                    _playerActorEnterAimLocomotion(task, PLAYER_ACTOR_ANIMATION_RETURN_TO_AIM_BLEND_FRAMES);
                 }
             }
             break;
-        case 4:
-        case 6:
-            if (rec != NULL) {
-                if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                    playerActorEnterLocomotion(arg0, 0);
+        case PLAYER_ACTOR_ANIMATION_RETURN_TO_LOCOMOTION:
+        case PLAYER_ACTOR_ANIMATION_RETURN_TO_LOCOMOTION_ALTERNATE:
+            if (record != NULL) {
+                if (playerActorIsSlotAdvancingLinearly(task, 1, 0, 0) == 0) {
+                    playerActorEnterLocomotion(task, 0);
                 }
             }
             break;
-        case 7:
-        case 9:
-            if (rec != NULL) {
-                if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
+        case PLAYER_ACTOR_ANIMATION_ADVANCE_ACTION_PHASE:
+        case PLAYER_ACTOR_ANIMATION_PARASITE_ENERGY_PHASE:
+            if (record != NULL) {
+                if (playerActorIsSlotAdvancingLinearly(task, 1, 0, 0) == 0) {
                     actor->statePhase++;
                 }
             }
             break;
-        case 8:
-            if (rec != NULL) {
+        case PLAYER_ACTOR_ANIMATION_BOUNDARY_RETURN_TO_LOCOMOTION:
+            if (record != NULL) {
                 flags = actor->animationSlots[1].status.fields.flags;
                 if ((flags & ANIMATION_SLOT_REACHED_BOUNDARY) || (flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
                     actor->statePhase++;
-                    playerActorEnterLocomotion(arg0, 0);
+                    playerActorEnterLocomotion(task, 0);
                 }
             }
             break;
-        case 10:
-            if (rec != NULL) {
-                if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                    actor->statePhase = 0x3E8;
+        case PLAYER_ACTOR_ANIMATION_MARK_ACTION_COMPLETE:
+            if (record != NULL) {
+                if (playerActorIsSlotAdvancingLinearly(task, 1, 0, 0) == 0) {
+                    actor->statePhase = PLAYER_ACTOR_ANIMATION_PHASE_COMPLETE;
                 }
             }
             break;
     }
 }
 
-/// Derives root displacement from the normalized forward axis and the actor's speed row.
+/// Sets horizontal root displacement from its normalized local forward axis.
 ///
-/// The live root's axis must meet SDK normalization requirements. Movement
-/// mode selects a nonzero divisor in rows 1..7; direction uses Q12 and velocity
-/// uses game-coordinate units. Scratch belongs to the caller; no pointer is retained.
-static inline void _playerActorSetForwardVelocity(GameActor* actor, GfxCoord* coord, _PlayerActorMoveStepScratch* scratch)
+/// Movement modes 1..7 select a nonzero speed-row divisor; `movementSign`
+/// selects forward/backward/stopped direction. The SDK axis is Q12, while X/Z
+/// velocity is game-coordinate units per tick and Y is cleared. The live root
+/// must meet SDK normalization requirements. Borrows the caller's movement
+/// scratch without retaining it or changing the root translation.
+static inline void _playerActorSetForwardVelocity(GameActor* actor, GfxCoord* rootCoord, _PlayerActorMoveStepScratch* scratch)
 {
     scratch->speedDivisor = D_80112E10[(u16)actor->movementMode];
-    gfxReadMatrixZAxis(&coord->coord, &scratch->direction);
+    gfxReadMatrixZAxis(&rootCoord->coord, &scratch->direction);
     VectorNormalSS(&scratch->direction, &scratch->direction);
     actor->velocity.vx = scratch->direction.vx * actor->movementSign / scratch->speedDivisor;
     actor->velocity.vy = 0;
@@ -5393,60 +5428,78 @@ static inline s16 _playerActorShortestTurn(s16 currentAngle, s16 targetAngle)
     return currentAngle;
 }
 
-/// Turns `actor` toward its lock target once the target is farther than
-/// `thresh` in the ground plane, by at most the equipped weapon's turn rate.
-static inline void _gpAimYawAt(GameActor* actor, _PlayerActorAimYawScratch* block, s16 thresh)
+/// Returns the planar length of signed XZ components in game-coordinate units.
+///
+/// Absolute values, squares and their sum must fit s32. Uses `SquareRoot0`
+/// without scale conversion or overflow checks; retains no pointers.
+static inline s32 _playerActorAimPlanarLength(s32 x, s32 z)
 {
-    SVECTOR*  offset;
-    GfxCoord* src;
-    VECTOR3*  lock;
-    s32       dx;
-    s32       dz;
-    s32       limit;
+    x = ABS(x);
+    x = x * x;
+    z = ABS(z);
+    z = z * z;
+    return SquareRoot0(x + z);
+}
+
+/// Places the yaw aim origin from a borrowed local weapon offset.
+///
+/// Copies XYZ to the caller's yaw scratch before placing its coordinate node.
+/// Coordinate, GTE and lifetime requirements follow `actorRenderPlaceCoordOffset`.
+static inline void _playerActorPlaceAimYawOrigin(_PlayerActorAimYawScratch* scratch, GfxCoord* weaponCoord, const SVECTOR* localOffset)
+{
+    scratch->originOffset.vx = localOffset->vx;
+    scratch->originOffset.vy = localOffset->vy;
+    scratch->originOffset.vz = localOffset->vz;
+    actorRenderPlaceCoordOffset(weaponCoord, &scratch->originCoord, &scratch->originOffset);
+}
+
+/// Turns body yaw toward a live lock beyond a signed ground-distance threshold.
+///
+/// Borrows the caller's yaw scratch and the actor/weapon coordinates; no pointer
+/// is retained. Distances use game units and angles use 4096 units per turn.
+/// Requires a valid weapon row and initialized GTE/scratch state. The planar
+/// absolute values, squares and sum must fit s32. A missing target is a no-op.
+static inline void _playerActorAimYawAtLock(GameActor* actor, _PlayerActorAimYawScratch* scratch, s16 minGroundDistance)
+{
+    SVECTOR*  localOffset;
+    GfxCoord* weaponCoord;
+    VECTOR3*  targetDelta;
+    s32       turnLimit;
 
     if (actor->targetNode != NULL) {
-        offset                 = &D_801131B4[gPlayerStatus.weapon];
-        src                    = actor->equipmentTasks[1]->extra.tmd->coords;
-        block->originOffset.vx = offset->vx;
-        block->originOffset.vy = offset->vy;
-        block->originOffset.vz = offset->vz;
-        actorRenderPlaceCoordOffset(src, &block->originCoord, &block->originOffset);
-        lock = &block->targetDelta;
-        worldTargetGetBodyPosition(actor->targetNode, lock);
-        lock->vx -= block->originCoord.coord.t[0];
-        lock->vy -= block->originCoord.coord.t[1];
-        lock->vz -= block->originCoord.coord.t[2];
-        dx        = block->targetDelta.vx;
-        dx        = ABS(dx);
-        dx        = dx * dx;
-        dz        = block->targetDelta.vz;
-        dz        = ABS(dz);
-        dz        = dz * dz;
-        if (SquareRoot0(dx + dz) > thresh) {
-            block->yaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-            block->yaw = _playerActorShortestTurn(actor->rotation.vy, block->yaw);
-            limit      = (s16)D_80112E30[gPlayerStatus.weapon];
+        localOffset = &D_801131B4[gPlayerStatus.weapon];
+        weaponCoord = actor->equipmentTasks[1]->extra.tmd->coords;
+        _playerActorPlaceAimYawOrigin(scratch, weaponCoord, localOffset);
+        targetDelta = &scratch->targetDelta;
+        worldTargetGetBodyPosition(actor->targetNode, targetDelta);
+        targetDelta->vx -= scratch->originCoord.coord.t[0];
+        targetDelta->vy -= scratch->originCoord.coord.t[1];
+        targetDelta->vz -= scratch->originCoord.coord.t[2];
+        if (_playerActorAimPlanarLength(scratch->targetDelta.vx, scratch->targetDelta.vz) > minGroundDistance) {
+            scratch->yaw = ratan2(scratch->targetDelta.vx, scratch->targetDelta.vz);
+            scratch->yaw = _playerActorShortestTurn(actor->rotation.vy, scratch->yaw);
+            turnLimit    = (s16)D_80112E30[gPlayerStatus.weapon];
             if (equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE) != 0) {
-                limit += limit >> 1;
+                turnLimit += turnLimit >> 1;
             }
-            if (block->yaw > limit) {
-                block->yaw = limit;
-            } else if (block->yaw < -limit) {
-                block->yaw = -limit;
+            if (scratch->yaw > turnLimit) {
+                scratch->yaw = turnLimit;
+            } else if (scratch->yaw < -turnLimit) {
+                scratch->yaw = -turnLimit;
             }
-            actor->rotation.vy = (actor->rotation.vy + block->yaw) & 0xFFF;
+            actor->rotation.vy = (actor->rotation.vy + scratch->yaw) & ACTOR_TRANSFORM_ANGLE_MASK;
         }
     }
 }
 
-void Gp_AimYawToLock(Task* arg0, s32 arg1)
+void playerActorAimYawToLock(Task* task, s32 minGroundDistance)
 {
     GameActor*                 actor;
-    _PlayerActorAimYawScratch* block;
+    _PlayerActorAimYawScratch* scratch;
 
-    actor = arg0->work;
-    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimYawScratch);
-    _gpAimYawAt(actor, block, arg1);
+    actor   = task->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimYawScratch);
+    _playerActorAimYawAtLock(actor, scratch, minGroundDistance);
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimYawScratch);
 }
 
@@ -5461,16 +5514,6 @@ static inline void _playerActorPlaceAimPitchOrigin(_PlayerActorAimPitchScratch* 
     scratch->originOffset.vy = localOffset->vy;
     scratch->originOffset.vz = localOffset->vz;
     actorRenderPlaceCoordOffset(source, &scratch->originCoord, &scratch->originOffset);
-}
-
-/// Returns the game-unit planar length of signed XZ components without overflow checks.
-static inline s32 _playerActorAimPitchPlanarLength(s32 x, s32 z)
-{
-    x = ABS(x);
-    x = x * x;
-    z = ABS(z);
-    z = z * z;
-    return SquareRoot0(x + z);
 }
 
 /// Stages the lock target's position and aim-origin displacement, returning its planar length.
@@ -5490,53 +5533,62 @@ static inline s32 _playerActorGetAimPitchTargetDelta(const GameActor* actor, _Pl
     targetDelta->vx = targetPosition->vx - scratch->originCoord.coord.t[0];
     targetDelta->vy = targetPosition->vy - scratch->originCoord.coord.t[1];
     targetDelta->vz = targetPosition->vz - scratch->originCoord.coord.t[2];
-    return _playerActorAimPitchPlanarLength(scratch->targetDelta.vx, scratch->targetDelta.vz);
+    return _playerActorAimPlanarLength(scratch->targetDelta.vx, scratch->targetDelta.vz);
 }
 
-void Gp_AimPitchToLock(Task* arg0)
+void playerActorAimPitchToLock(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_LOCK_PITCH_STEP        = 0x30,
+        PLAYER_ACTOR_LOCK_PART2_PITCH_LIMIT = 0x120,
+        PLAYER_ACTOR_LOCK_PART3_PITCH_LIMIT = 0x100,
+        PLAYER_ACTOR_LOCK_PART2_ORIGIN_Y    = -0x400,
+    };
     GameActor*                   actor;
-    _PlayerActorAimPitchScratch* block;
-    GfxCoord*                    src;
+    _PlayerActorAimPitchScratch* scratch;
+    GfxCoord*                    modelCoords;
 
-    actor = arg0->work;
-    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
+/// Clamps and applies a lock-pitch step, deriving roll for an accepted angle.
+///
+/// Arguments must be stable, side-effect-free lvalues/values: scratch and partPitch
+/// are evaluated repeatedly. Uses this function's PLAYER_ACTOR_LOCK_PITCH_STEP.
+#define PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch, partPitch, partRoll, pitchLimit, rollWeight) \
+    do {                                                                                    \
+        if ((scratch)->pitch > PLAYER_ACTOR_LOCK_PITCH_STEP) {                              \
+            (scratch)->pitch = PLAYER_ACTOR_LOCK_PITCH_STEP;                                \
+        } else if ((scratch)->pitch < -PLAYER_ACTOR_LOCK_PITCH_STEP) {                      \
+            (scratch)->pitch = -PLAYER_ACTOR_LOCK_PITCH_STEP;                               \
+        }                                                                                   \
+        if (ABS((partPitch) + (scratch)->pitch) <= (pitchLimit)) {                          \
+            (partPitch) += (scratch)->pitch;                                                \
+            (partRoll)   = ((partPitch) / 5) * (rollWeight);                                \
+        }                                                                                   \
+    } while (0)
+
+    actor   = task->work;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
     if (actor->targetNode != NULL) {
-        src                    = arg0->extra.tmd->coords;
-        block->originOffset.vx = 0;
-        block->originOffset.vy = -0x400;
-        block->originOffset.vz = 0;
-        actorRenderPlaceCoordOffset(&src[2], &block->originCoord, &block->originOffset);
-        block->groundDistance   = _playerActorGetAimPitchTargetDelta(actor, block);
-        block->targetDelta.vy >>= 1;
-        block->pitch            = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
-        block->pitch           -= actor->part2Pitch;
-        if (block->pitch > 0x30) {
-            block->pitch = 0x30;
-        } else if (block->pitch < -0x30) {
-            block->pitch = -0x30;
-        }
-        if (ABS(actor->part2Pitch + block->pitch) <= 0x120) {
-            actor->part2Pitch += block->pitch;
-            actor->part2Roll   = (actor->part2Pitch / 5) * 3;
-        }
+        // Measure torso elevation above part 2, then from the weapon aim origin.
+        modelCoords              = task->extra.tmd->coords;
+        scratch->originOffset.vx = 0;
+        scratch->originOffset.vy = PLAYER_ACTOR_LOCK_PART2_ORIGIN_Y;
+        scratch->originOffset.vz = 0;
+        actorRenderPlaceCoordOffset(&modelCoords[2], &scratch->originCoord, &scratch->originOffset);
+        scratch->groundDistance   = _playerActorGetAimPitchTargetDelta(actor, scratch);
+        scratch->targetDelta.vy >>= 1;
+        scratch->pitch            = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
+        scratch->pitch           -= actor->part2Pitch;
+        PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch, actor->part2Pitch, actor->part2Roll, PLAYER_ACTOR_LOCK_PART2_PITCH_LIMIT, 3);
 
-        _playerActorPlaceAimPitchOrigin(block, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
-        block->groundDistance = _playerActorGetAimPitchTargetDelta(actor, block);
-        block->pitch          = ratan2(-block->targetDelta.vy, block->groundDistance) / 7 * 4;
-        block->pitch         -= actor->part3Pitch;
-        if (block->pitch > 0x30) {
-            block->pitch = 0x30;
-        } else if (block->pitch < -0x30) {
-            block->pitch = -0x30;
-        }
-        if (ABS(actor->part3Pitch + block->pitch) <= 0x100) {
-            actor->part3Pitch += block->pitch;
-            actor->part3Roll   = (actor->part3Pitch / 5) * 2;
-        }
+        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
+        scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
+        scratch->pitch          = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
+        scratch->pitch         -= actor->part3Pitch;
+        PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch, actor->part3Pitch, actor->part3Roll, PLAYER_ACTOR_LOCK_PART3_PITCH_LIMIT, 2);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
+#undef PLAYER_ACTOR_APPLY_LOCK_PITCH
 
 static void Gp_AimPitchToLockAlt(Task* arg0)
 {
@@ -5777,79 +5829,86 @@ inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterI
     return weaponTask;
 }
 
-Task* Gp_SpawnWeaponEff(void)
+Task* playerActorRestoreEquipment(void)
 {
-    Task*         work;
+    enum {
+        PLAYER_ACTOR_HYPERVELOCITY_PERSISTENT_EFFECT = EFFECT_SPAWN_UNLIMITED | EFFECT_ID(EFFECT_TASK_BANK, 0x24),
+        PLAYER_ACTOR_HAMMER_PERSISTENT_EFFECT        = EFFECT_SPAWN_UNLIMITED | EFFECT_ID(EFFECT_TASK_BANK, 0x29),
+        PLAYER_ACTOR_PYKE_PERSISTENT_EFFECT          = EFFECT_SPAWN_UNLIMITED | EFFECT_ID(EFFECT_TASK_BANK, 0x2A),
+    };
+    Task*         playerTask;
     GameActor*    actor;
-    Task*         parent;
-    Task*         task;
-    PlayerStatus* cfg;
-    s32           id;
-    s32           arg2;
-    TmdObject*    extra;
-    GfxCoord*     coord;
-    EffectWork*   eff;
-    GameActor*    inner;
-    TmdObject*    anim;
+    Task*         attachmentTask;
+    Task*         weaponTask;
+    PlayerStatus* playerStatus;
+    s32           weaponId;
+    s32           effectId;
+    s32           effectArgument;
+    TmdObject*    weaponModel;
+    GfxCoord*     weaponCoord;
+    EffectWork*   weaponEffect;
+    GameActor*    playbackActor;
+    TmdObject*    playerModel;
 
-    work  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    actor = work->work;
-    if (!work | !actor) {
-        return 0;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    actor      = playerTask->work;
+    if (!playerTask | !actor) {
+        return NULL;
     }
 
-    parent = actor->attachmentTasks[1];
-    if (parent != NULL) {
-        task                     = _playerActorSpawnEquippedWeapon(parent, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, gPlayerStatus.weapon);
-        actor->equipmentTasks[1] = task;
-        if (task != NULL) {
-            cfg = &gPlayerStatus;
-            playerActorInitWeaponCollision(work, cfg->weapon, cfg->weaponSlotItem);
+    attachmentTask = actor->attachmentTasks[1];
+    if (attachmentTask != NULL) {
+        weaponTask               = _playerActorSpawnEquippedWeapon(attachmentTask, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, gPlayerStatus.weapon);
+        actor->equipmentTasks[1] = weaponTask;
+        if (weaponTask != NULL) {
+            playerStatus = &gPlayerStatus;
+            playerActorInitWeaponCollision(playerTask, playerStatus->weapon, playerStatus->weaponSlotItem);
             if (actor->weaponEffectTask == NULL) {
-                extra = actor->equipmentTasks[1]->extra.tmd;
-                id    = cfg->weapon;
-                coord = extra->coords;
-                if (id != 0x16) {
-                    goto check_19;
+                weaponModel = actor->equipmentTasks[1]->extra.tmd;
+                weaponId    = playerStatus->weapon;
+                weaponCoord = weaponModel->coords;
+                if (weaponId != PLAYER_ACTOR_WEAPON_HYPERVELOCITY) {
+                    goto selectAttachmentEffect;
                 }
-                id   = 0x80060024;
-                arg2 = 0;
-                goto do_call;
+                effectId       = PLAYER_ACTOR_HYPERVELOCITY_PERSISTENT_EFFECT;
+                effectArgument = 0;
+                goto spawnPersistentEffect;
 
-            do_success:
-                actor->weaponEffectTask = eff->task;
-                taskReparent(work, eff->task);
-                func_80106350(work, gPlayerStatus.weapon, 0);
-                goto done;
+            attachPersistentEffect:
+                actor->weaponEffectTask = weaponEffect->task;
+                taskReparent(playerTask, weaponEffect->task);
+                playerActorResetWeaponAttack(playerTask, gPlayerStatus.weapon, 0);
+                goto restorePlayback;
 
-            check_19:
-                if (id == 0x19) {
-                    id = 0x80060029;
+            selectAttachmentEffect:
+                if (weaponId == PLAYER_ACTOR_WEAPON_HAMMER) {
+                    effectId = PLAYER_ACTOR_HAMMER_PERSISTENT_EFFECT;
                 } else {
-                    if (id != 0x1C) {
-                        goto done;
+                    if (weaponId != PLAYER_ACTOR_WEAPON_PYKE) {
+                        goto restorePlayback;
                     }
-                    id = 0x8006002A;
+                    effectId = PLAYER_ACTOR_PYKE_PERSISTENT_EFFECT;
                 }
-                arg2 = cfg->weapon;
-            do_call:
-                eff = effectSpawn(id, coord, arg2, 0);
-                if (eff != NULL) {
-                    goto do_success;
+                effectArgument = playerStatus->weapon;
+            spawnPersistentEffect:
+                weaponEffect = effectSpawn(effectId, weaponCoord, effectArgument, 0);
+                if (weaponEffect != NULL) {
+                    goto attachPersistentEffect;
                 }
             }
         }
     }
 
-done:
-    actor->reloadEffectSuppressed = 0;
-    inner                         = work->work;
-    anim                          = work->extra.tmd;
-    inner->animationBankIndex     = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-    inner->animationSets          = Gp_PlayerAnimBlkTbl[inner->animationBankIndex]->table.sets;
-    animationInitContext(&inner->animationContext, inner->animationSets, anim, inner->poseBuffer,
-                         inner->animationSlots);
-    playerActorEnterLocomotion(work, 1);
+restorePlayback:
+    // Restore the native animation bank even if model or effect allocation failed.
+    actor->reloadEffectSuppressed     = 0;
+    playbackActor                     = playerTask->work;
+    playerModel                       = playerTask->extra.tmd;
+    playbackActor->animationBankIndex = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+    playbackActor->animationSets      = Gp_PlayerAnimBlkTbl[playbackActor->animationBankIndex]->table.sets;
+    animationInitContext(&playbackActor->animationContext, playbackActor->animationSets, playerModel, playbackActor->poseBuffer,
+                         playbackActor->animationSlots);
+    playerActorEnterLocomotion(playerTask, 1);
     actor->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
     return actor->equipmentTasks[1];
@@ -6151,11 +6210,11 @@ void Gp_TrackLockTarget(Task* arg0)
         } else {
             val = 0x180;
         }
-        Gp_AimYawToLock(arg0, val);
+        playerActorAimYawToLock(arg0, val);
         if (p->weapon == 0x17) {
             Gp_AimPitchToLockAlt(arg0);
         } else {
-            Gp_AimPitchToLock(arg0);
+            playerActorAimPitchToLock(arg0);
         }
     }
 }
@@ -6360,7 +6419,7 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(task, playerStatus->weapon, 0);
+    playerActorResetWeaponAttack(task, playerStatus->weapon, 0);
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
@@ -6564,20 +6623,25 @@ static void func_80104AAC(Task* arg0)
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
+    playerActorResetWeaponAttack(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
 }
 
-s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg)
+/// Clears movement and aim state and enters scripted player control.
+///
+/// Resets phase, signs, aim angles, pending hit and the interaction press latch,
+/// then resets weapon attack effects. During an event it also disables the
+/// root body's view triggers. Does not select a scripted state or clip and does
+/// not clear turn-rate or movement-mode indices. Requires live actor, session,
+/// equipped-effect and saved-supply state; retains no new pointers.
+static inline void _playerActorEnterScriptedMode(Task* task)
 {
     GameActor*    actor;
-    TmdObject*    extra;
     PlayerStatus* playerStatus;
 
     actor                                                 = task->work;
-    extra                                                 = task->extra.tmd;
     playerStatus                                          = &gPlayerStatus;
     actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
     actor->statePhase                                     = 0;
@@ -6594,17 +6658,27 @@ s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(task, playerStatus->weapon, 0);
+    playerActorResetWeaponAttack(task, playerStatus->weapon, 0);
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
+}
+
+s32 playerActorInstallScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
+{
+    GameActor* actor;
+    TmdObject* model;
+
+    actor = task->work;
+    model = task->extra.tmd;
+    _playerActorEnterScriptedMode(task);
     // Select the animation table before resetting or blending its slots.
-    actor->state              = 1;
+    actor->state              = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
     actor->animationSets      = request->source.sets;
     actor->animationBankIndex = PLAYER_ACTOR_DIRECT_ANIMATION_BANK;
     actor->animationRate      = ANIMATION_RATE_ONE;
     if (request->blend == ANIMATION_BLEND_RESET) {
-        animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+        animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
         playerActorResetChildSlots(task, request->animationId);
     } else {
@@ -6671,62 +6745,36 @@ s32 playerActorPlace(Task* task, s32 unusedMessageId, const ActorTransform* tran
     return 0;
 }
 
-/// Puts the player in `mode` mode 2 (`Gp_TickPlayerMode2`): clears the
-/// movement state and the HUD flag, re-applies the equipped weapon, and during
-/// an event clears flag 0x2000 on the actor's first object.
-static inline void _gpSwitchToPlayerMode2(Task* arg0)
+s32 playerActorTurnToYaw(Task* task, s32 unusedMessageId, const ActorTransform* transform, s32 unusedSecondArg)
 {
-    GameActor*    actor;
-    PlayerStatus* p;
-
-    actor                                                 = arg0->work;
-    p                                                     = &gPlayerStatus;
-    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-    actor->statePhase                                     = 0;
-    actor->movementSign                                   = 0;
-    actor->turnSign                                       = 0;
-    p->interactionPressed                                 = 0;
-    actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_OFF;
-    actor->part3Pitch                                     = 0;
-    actor->part2Pitch                                     = 0;
-    actor->part3Roll                                      = 0;
-    actor->part2Roll                                      = 0;
-    actor->aimYaw                                         = 0;
-    actor->field_68                                       = 0;
-    actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->eventState != 0) {
-        actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
-    }
-}
-
-s32 func_80104E00(Task* arg0, s32 arg1, ActorTransform* transform, s32 unusedArg3)
-{
+    enum {
+        PLAYER_ACTOR_TURN_SCRATCH_BYTES   = 16,
+        PLAYER_ACTOR_TURN_NEGATIVE_SET    = 5,
+        PLAYER_ACTOR_TURN_NONNEGATIVE_SET = 6,
+    };
     GameActor* actor;
-    s32*       head;
-    s32        val;
-    s32        mode;
-    s16        angle;
+    s32*       turnScratch;
+    s32        turnDelta;
+    s32        setIndex;
+    s16        targetYaw;
 
-    actor                      = arg0->work;
-    head                       = SCRATCH_STACK_CURSOR(s32);
-    SCRATCH_STACK_CURSOR(void) = head - 4;
-    _gpSwitchToPlayerMode2(arg0);
+    actor       = task->work;
+    turnScratch = SCRATCH_STACK_RESERVE_BYTES(PLAYER_ACTOR_TURN_SCRATCH_BYTES);
+    _playerActorEnterScriptedMode(task);
     actor->scriptedMotionPending   = 1;
-    actor->state                   = 2;
-    actor->pendingCollisionUpdates = 0x38;
-    angle                          = transform->rot.vy;
-    actor->scriptMotion.targetYaw  = angle;
-    val                            = playerActorShortestTurn(actor->rotation.vy, angle);
-    head[-4]                       = val;
-    mode                           = 6;
-    if (val < 0) {
-        mode = 5;
+    actor->state                   = PLAYER_ACTOR_SCRIPTED_TURN_STATE;
+    actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
+    targetYaw                      = transform->rot.vy;
+    actor->scriptMotion.targetYaw  = targetYaw;
+    turnDelta                      = playerActorShortestTurn(actor->rotation.vy, targetYaw);
+    // The binary retains the turn word in this 16-byte reservation.
+    turnScratch[0] = turnDelta;
+    setIndex       = PLAYER_ACTOR_TURN_NONNEGATIVE_SET;
+    if (turnDelta < 0) {
+        setIndex = PLAYER_ACTOR_TURN_NEGATIVE_SET;
     }
-    playerActorPlayChildSlots(arg0, mode, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    playerActorPlayChildSlots(task, setIndex, 0);
+    SCRATCH_STACK_RELEASE_BYTES(PLAYER_ACTOR_TURN_SCRATCH_BYTES);
     return 0;
 }
 
@@ -6753,7 +6801,7 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb, s32 unusedSe
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
+    playerActorResetWeaponAttack(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
@@ -6770,35 +6818,15 @@ s32 func_80104F5C(Task* arg0, s32 arg1, GameActorStairClimb* climb, s32 unusedSe
     return 0;
 }
 
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim)
+s32 playerActorMoveTo(Task* task, s32 unusedMessageId, const ActorTransform* transform, const GameActorMoveAnim* moveAnim)
 {
-    GameActor*    actor;
-    PlayerStatus* p;
+    GameActor* actor;
 
-    actor                                                 = arg0->work;
-    p                                                     = &gPlayerStatus;
-    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-    actor->statePhase                                     = 0;
-    actor->movementSign                                   = 0;
-    actor->turnSign                                       = 0;
-    p->interactionPressed                                 = 0;
-    actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_OFF;
-    actor->part3Pitch                                     = 0;
-    actor->part2Pitch                                     = 0;
-    actor->part3Roll                                      = 0;
-    actor->part2Roll                                      = 0;
-    actor->aimYaw                                         = 0;
-    actor->field_68                                       = 0;
-    actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->eventState != 0) {
-        actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
-    }
-    actor->state                   = 4;
+    actor = task->work;
+    _playerActorEnterScriptedMode(task);
+    actor->state                   = PLAYER_ACTOR_SCRIPTED_MOVE_TO_STATE;
     actor->scriptedMotionPending   = 1;
-    actor->pendingCollisionUpdates = 0x38;
+    actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     actor->destination.vx          = transform->pos.vx;
     actor->destination.vy          = transform->pos.vy;
     actor->destination.vz          = transform->pos.vz;
@@ -6835,7 +6863,7 @@ s32 func_80105190(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMove
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
+    playerActorResetWeaponAttack(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
@@ -6879,7 +6907,7 @@ s32 func_801052B8(Task* arg0, s32 arg1, GameActorWalkSteps* walkSteps, s32 unuse
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
+    playerActorResetWeaponAttack(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
@@ -6916,7 +6944,7 @@ s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecond
         actor->part6Pitch                                     = 0;
         actor->hitRegion                                      = 0;
         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        func_80106350(arg0, p->weapon, 0);
+        playerActorResetWeaponAttack(arg0, p->weapon, 0);
         if (gGameSession->eventState != 0) {
             actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
         }
@@ -6956,7 +6984,7 @@ s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, s32 unus
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
+    playerActorResetWeaponAttack(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
@@ -6967,34 +6995,20 @@ s32 func_801054D8(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, s32 unus
     return 0;
 }
 
-s32 func_801055D4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Enters scripted state 10, waiting for fire input with world collision disabled.
+///
+/// Clears movement/aim/attack state through the scripted-mode entry reset and
+/// queues collision disablement. Leaves the current animation and lock target
+/// intact. Requires live actor, session and equipment state. The message ID
+/// and both payload words are unused; returns 0.
+static s32 _playerActorEnterScriptedAttack(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    GameActor*    actor;
-    PlayerStatus* p;
+    GameActor* actor;
 
-    actor                                                 = arg0->work;
-    p                                                     = &gPlayerStatus;
-    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-    actor->statePhase                                     = 0;
-    actor->movementSign                                   = 0;
-    actor->turnSign                                       = 0;
-    p->interactionPressed                                 = 0;
-    actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_OFF;
-    actor->part3Pitch                                     = 0;
-    actor->part2Pitch                                     = 0;
-    actor->part3Roll                                      = 0;
-    actor->part2Roll                                      = 0;
-    actor->aimYaw                                         = 0;
-    actor->field_68                                       = 0;
-    actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
-    if (gGameSession->eventState != 0) {
-        actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
-    }
-    actor->state                   = 0xA;
-    actor->pendingCollisionUpdates = 0x38;
+    actor = task->work;
+    _playerActorEnterScriptedMode(task);
+    actor->state                   = PLAYER_ACTOR_SCRIPTED_ATTACK_STATE;
+    actor->pendingCollisionUpdates = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     return 0;
 }
 
@@ -7020,7 +7034,7 @@ s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     actor->part6Pitch                                     = 0;
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    func_80106350(arg0, p->weapon, 0);
+    playerActorResetWeaponAttack(arg0, p->weapon, 0);
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
@@ -7054,7 +7068,7 @@ s32 func_80105754(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unuse
         actor->part6Pitch                                     = 0;
         actor->hitRegion                                      = 0;
         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        func_80106350(arg0, p->weapon, ret);
+        playerActorResetWeaponAttack(arg0, p->weapon, ret);
         if (gGameSession->eventState != 0) {
             actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
         }
@@ -7323,70 +7337,79 @@ s32 playerActorSpawnWeaponImpact(const WorldCollisionContact* contacts, const Gf
     return impactMarked;
 }
 
-s32 func_80105ED4(Task* arg0)
+s32 playerActorPlayFootstepCue(Task* task)
 {
     // Actor mode is the low halfword and state the high halfword of this selector.
     enum {
-        PLAYER_ACTOR_FOOTSTEP_SCRIPTED_JUMP_MODE_STATE = (3 << 16) | GAME_ACTOR_MODE_SCRIPTED
+        PLAYER_ACTOR_FOOTSTEP_STAIR_CLIMB_MODE_STATE = (3 << 16) | GAME_ACTOR_MODE_SCRIPTED
     };
     enum { PLAYER_ACTOR_FOOTSTEP_RUNNING_MOVEMENT_MODE = 3 };
-    // The loaded surface-sound bank keeps companion entries 100 slots after the player's.
+    // The loaded surface-soundEvent bank keeps companion entries 100 slots after the player's.
     enum { PLAYER_ACTOR_FOOTSTEP_COMPANION_ENTRY_OFFSET = 100 };
 
+    enum {
+        PLAYER_ACTOR_FOOTSTEP_PLAYER_CUE2_PART    = 18,
+        PLAYER_ACTOR_FOOTSTEP_COMPANION_CUE2_PART = 19,
+        PLAYER_ACTOR_FOOTSTEP_CUE1_PART_OFFSET    = 3,
+        // Size 0x300, two ticks per sprite frame, with optional child puffs.
+        PLAYER_ACTOR_FOOTSTEP_DUST_ARGUMENT = (s32)0x80000000 | (2 << 12) | 0x300,
+    };
+
     GameActor*                          actor;
-    const AnimationRecord*              rec;
-    GfxCoord*                           obj;
-    s32                                 sound;
+    const AnimationRecord*              record;
+    GfxCoord*                           audioCoord;
+    s32                                 soundEvent;
     s8                                  cueBits;
-    s32                                 pan;
-    s32                                 index;
+    s32                                 audioPan;
+    s32                                 footPartIndex;
     const WorldCollisionFootstepSounds* footstepSounds;
 
-    sound = WORLD_COLLISION_FOOTSTEP_SILENT;
-    actor = arg0->work;
-    obj   = arg0->extra.tmd->coords + 1;
-    rec   = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-    if (rec != NULL && rec != actor->lastCueRecord) {
-        actor->lastCueRecord = rec;
-        switch (cueBits = rec->flags & ANIMATION_RECORD_CUE_MASK) {
+    soundEvent = WORLD_COLLISION_FOOTSTEP_SILENT;
+    actor      = task->work;
+    audioCoord = task->extra.tmd->coords + 1;
+    record     = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
+    // A cue is consumed once per record identity, including silent surfaces.
+    if (record != NULL && record != actor->lastCueRecord) {
+        actor->lastCueRecord = record;
+        switch (cueBits = record->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
                 footstepSounds = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass]->footstepSounds;
                 if (footstepSounds != NULL) {
-                    if (*(s32*)&actor->mode == PLAYER_ACTOR_FOOTSTEP_SCRIPTED_JUMP_MODE_STATE) {
-                        sound = footstepSounds->scriptedJump;
+                    if (*(s32*)&actor->mode == PLAYER_ACTOR_FOOTSTEP_STAIR_CLIMB_MODE_STATE) {
+                        soundEvent = footstepSounds->scriptedJump;
                     } else if ((u16)actor->movementMode == PLAYER_ACTOR_FOOTSTEP_RUNNING_MOVEMENT_MODE) {
-                        sound = footstepSounds->run;
+                        soundEvent = footstepSounds->run;
                         sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_FOOTSTEP);
                     } else {
-                        sound = footstepSounds->walk;
+                        soundEvent = footstepSounds->walk;
                     }
                     // Select the paired cue and companion entry only for a non-silent base.
-                    if (sound != WORLD_COLLISION_FOOTSTEP_SILENT) {
+                    if (soundEvent != WORLD_COLLISION_FOOTSTEP_SILENT) {
                         if (cueBits == ANIMATION_RECORD_CUE_1) {
-                            sound++;
+                            soundEvent++;
                         }
                         if (actor->companionWork != NULL) {
-                            sound += PLAYER_ACTOR_FOOTSTEP_COMPANION_ENTRY_OFFSET;
+                            soundEvent += PLAYER_ACTOR_FOOTSTEP_COMPANION_ENTRY_OFFSET;
                         }
-                        pan = (s8)worldCoordGetOriginAudioPan(obj);
-                        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(obj));
+                        audioPan = (s8)worldCoordGetOriginAudioPan(audioCoord);
+                        sndEvtRequestScriptStart(soundEvent, audioPan, (s8)worldCoordGetOriginAudioDepth(audioCoord));
                     }
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        index = 0x12;
+                        footPartIndex = PLAYER_ACTOR_FOOTSTEP_PLAYER_CUE2_PART;
                         if (actor->companionWork != NULL) {
-                            index = 0x13;
+                            footPartIndex = PLAYER_ACTOR_FOOTSTEP_COMPANION_CUE2_PART;
                         }
                         if (cueBits == ANIMATION_RECORD_CUE_1) {
-                            index -= 3;
+                            footPartIndex -= PLAYER_ACTOR_FOOTSTEP_CUE1_PART_OFFSET;
                         }
-                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[index], 0x80002300, NULL);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[footPartIndex], PLAYER_ACTOR_FOOTSTEP_DUST_ARGUMENT, NULL);
                     }
                 }
                 break;
         }
     }
-    return sound;
+    return soundEvent;
 }
 
 s8 playerActorReadAttackButton(Task* task)
@@ -7492,20 +7515,20 @@ void playerActorSetWeaponAttackFlags(Task* task, s32 attachmentAttack, s32 alter
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & PLAYER_ACTOR_WEAPON_ATTACK_KEEP_MASK) | (((attachmentAttack << 1) | alternateAttack) << PLAYER_ACTOR_WEAPON_ATTACK_SELECTOR_SHIFT);
 }
 
-s32 func_80106264(s32 arg0)
+s32 playerActorQueryWeaponLoads(s32 loadMask)
 {
-    s32 item;
-    s32 ret;
+    s32 weaponItemId;
+    s32 loads;
 
-    item = gPlayerStatus.weapon + 0x7F;
-    ret  = 0;
-    if (arg0 & 1) {
-        ret = equipmentConsumeWeaponLoad(item, EQUIPMENT_WEAPON_LOAD_QUERY_PRIMARY);
+    weaponItemId = gPlayerStatus.weapon + EQUIPMENT_WEAPON_ITEM_FIRST - 1;
+    loads        = 0;
+    if (loadMask & PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) {
+        loads = equipmentConsumeWeaponLoad(weaponItemId, EQUIPMENT_WEAPON_LOAD_QUERY_PRIMARY);
     }
-    if (arg0 & 2) {
-        ret |= equipmentConsumeWeaponLoad(item, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) << 16;
+    if (loadMask & PLAYER_ACTOR_WEAPON_LOAD_SECONDARY) {
+        loads |= equipmentConsumeWeaponLoad(weaponItemId, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) << PLAYER_ACTOR_WEAPON_LOAD_SECONDARY_SHIFT;
     }
-    return ret;
+    return loads;
 }
 
 static s32 func_801062DC(Task* arg0, s32 arg1)
@@ -7524,37 +7547,44 @@ static s32 func_801062DC(Task* arg0, s32 arg1)
     return ret;
 }
 
-void func_80106350(Task* arg0, s32 arg1, s32 arg2)
+void playerActorResetWeaponAttack(Task* task, s32 weaponId, s32 unusedArgument)
 {
+    enum {
+        PLAYER_ACTOR_HYPERVELOCITY_CANCEL_CHARGE = -1,
+        PLAYER_ACTOR_PYKE_GLOW_IDLE              = 1,
+        PLAYER_ACTOR_PYKE_GLOW_FIRING            = 2,
+        PLAYER_ACTOR_PYKE_GLOW_RESET_IDLE        = 3,
+        PLAYER_ACTOR_PYKE_GLOW_RESET_OFF_SHIFT   = 2,
+    };
     GameActor* actor;
-    s32        value;
+    s32        pykeRequest;
 
-    actor = arg0->work;
-    if (arg1 == 0x16) {
+    actor = task->work;
+    if (weaponId == PLAYER_ACTOR_WEAPON_HYPERVELOCITY) {
         if (actor->weaponEffectTask != NULL) {
-            actor->weaponEffectTask->spawnArg1.value = -1;
+            actor->weaponEffectTask->spawnArg1.value = PLAYER_ACTOR_HYPERVELOCITY_CANCEL_CHARGE;
         }
         sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_NO_FADE);
         sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_CANCEL, SOUND_SCRIPT_STOP_NO_FADE);
         sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_NO_FADE);
-    } else if (arg1 == 0x19) {
+    } else if (weaponId == PLAYER_ACTOR_WEAPON_HAMMER) {
         if (actor->weaponEffectTask != NULL) {
-            if (equipmentConsumeWeaponLoad(0x98, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) != 0) {
+            if (equipmentConsumeWeaponLoad(EQUIPMENT_WEAPON_ITEM_FIRST - 1 + PLAYER_ACTOR_WEAPON_HAMMER, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) != 0) {
                 actor->weaponEffectTask->spawnArg1.value = M4A1_HAMMER_GLOW_IDLE;
             } else {
                 actor->weaponEffectTask->spawnArg1.value = M4A1_HAMMER_GLOW_OFF;
             }
         }
-    } else if (arg1 == 0x1C) {
+    } else if (weaponId == PLAYER_ACTOR_WEAPON_PYKE) {
         if (actor->weaponEffectTask != NULL) {
-            if (equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) != 0) {
-                value = 1;
-                if (actor->weaponEffectTask->spawnArg1.value == 2) {
-                    value = 3;
+            if (equipmentConsumeWeaponLoad(EQUIPMENT_WEAPON_ITEM_FIRST - 1 + PLAYER_ACTOR_WEAPON_PYKE, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) != 0) {
+                pykeRequest = PLAYER_ACTOR_PYKE_GLOW_IDLE;
+                if (actor->weaponEffectTask->spawnArg1.value == PLAYER_ACTOR_PYKE_GLOW_FIRING) {
+                    pykeRequest = PLAYER_ACTOR_PYKE_GLOW_RESET_IDLE;
                 }
-                actor->weaponEffectTask->spawnArg1.value = value;
+                actor->weaponEffectTask->spawnArg1.value = pykeRequest;
             } else {
-                actor->weaponEffectTask->spawnArg1.value = (actor->weaponEffectTask->spawnArg1.value == 2) << 2;
+                actor->weaponEffectTask->spawnArg1.value = (actor->weaponEffectTask->spawnArg1.value == PLAYER_ACTOR_PYKE_GLOW_FIRING) << PLAYER_ACTOR_PYKE_GLOW_RESET_OFF_SHIFT;
             }
             if (actor->companionWork == NULL) {
                 sndEvtRequestScriptStop(SOUND_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_NO_FADE);
@@ -7563,6 +7593,7 @@ void func_80106350(Task* arg0, s32 arg1, s32 arg2)
             }
         }
     }
+    // Ease the pose back and disable the weapon body after resetting its effect.
     actor->aimTrackingState                               = GAME_ACTOR_AIM_TRACKING_DECAY;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
 }
@@ -7589,12 +7620,15 @@ void weaponRecordUse(s32 weaponId)
     }
 }
 
-void func_80106550(Task* arg0)
+void playerActorFinishWeaponAttack(Task* task)
 {
-    if (((GameActor*)arg0->work)->aimControl & GAME_ACTOR_AIM_REQUEST_SCRIPTED) {
-        func_801055D4(arg0, 0, 0, 0);
+    enum { PLAYER_ACTOR_ATTACK_FINISH_BLEND_FRAMES = 3 };
+    GameActor* actor = task->work;
+
+    if (actor->aimControl & GAME_ACTOR_AIM_REQUEST_SCRIPTED) {
+        _playerActorEnterScriptedAttack(task, 0, 0, 0);
     } else {
-        _playerActorEnterAimLocomotion(arg0, 3);
+        _playerActorEnterAimLocomotion(task, PLAYER_ACTOR_ATTACK_FINISH_BLEND_FRAMES);
     }
 }
 
@@ -7785,7 +7819,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
                 playerActorClearLockTarget(arg0);
                 inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
-                func_80106350(arg0, p->weapon, 0);
+                playerActorResetWeaponAttack(arg0, p->weapon, 0);
                 playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
             }
         }
@@ -7793,7 +7827,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
     sp.funcs[actor->state](arg0);
     func_80109FC4(arg0);
     Gp_PlayerStepSfx(arg0);
-    Gp_TickActorAnimState(arg0);
+    playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     playerActorUpdateFacing(arg0);
     playerActorStepMovement(arg0);
@@ -7828,7 +7862,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
             animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) != NULL &&
             actor->attackControl.cooldownTicks == 0) {
             dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->attackButton : 1;
-            res = func_80106264(dir);
+            res = playerActorQueryWeaponLoads(dir);
             if (res > 0 ||
                 (item = actor->attackButton,
                  D_80112F1C[gPlayerStatus.weapon][(u8)(item - 1)] != 0)) {
@@ -7854,7 +7888,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
             }
         }
     }
-    func_80105ED4(arg0);
+    playerActorPlayFootstepCue(arg0);
 }
 
 static void Gp_PlayerNormalState5(Task* arg0)
@@ -8365,7 +8399,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
             actor->velocity.vz = blockAlias->direction.vz / blockAlias->speedDivisor;
             break;
         case 1:
-            if (func_80105ED4(arg0) != 0) {
+            if (playerActorPlayFootstepCue(arg0) != 0) {
                 delay = 0xA;
                 if (actor->scriptMotion.jumpSteps == 1) {
                     delay = 0xB;
@@ -8396,7 +8430,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
             }
             break;
         case 2:
-            func_80105ED4(arg0);
+            playerActorPlayFootstepCue(arg0);
             if (actor->stateTimer > 0) {
                 actor->stateTimer--;
                 coord->coord.t[0] += actor->velocity.vx;
@@ -8411,7 +8445,7 @@ static void Gp_PlayerMode2State3(Task* arg0)
             }
             break;
         case 3:
-            if (func_80105ED4(arg0) != 0) {
+            if (playerActorPlayFootstepCue(arg0) != 0) {
                 if (actor->scriptMotion.jumpSteps == 1) {
                     gfxReadMatrixZAxis(&coord->coord, &block->direction);
                     VectorNormalSS(&block->direction, &block->direction);
@@ -8501,7 +8535,7 @@ void Gp_PlayerMode2State4(Task* arg0)
             }
             actor->movementSign = 1;
             playerActorStepMovement(arg0);
-            func_80105ED4(arg0);
+            playerActorPlayFootstepCue(arg0);
             break;
     }
     playerActorTickChildSlots(arg0);
@@ -8534,7 +8568,7 @@ static void Gp_PlayerMode2StateA(Task* arg0)
                                              actor->animationSlots + 1) != NULL &&
                    actor->attackControl.cooldownTicks == 0) {
             dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? (s8)actor->attackButton : 1;
-            res = func_80106264(dir);
+            res = playerActorQueryWeaponLoads(dir);
             if (res > 0 ||
                 (item = actor->attackButton,
                  D_80112F1C[gPlayerStatus.weapon][(u8)(item - 1)] != 0)) {
@@ -8877,7 +8911,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
 
     inner = arg0->work;
     if (arg2 == 2) {
-        if (func_80106264(arg1) != 0) {
+        if (playerActorQueryWeaponLoads(arg1) != 0) {
             if (D_80112F1C[gPlayerStatus.weapon][0] == 0) {
                 inner->statePhase = 0x3E8;
                 return;
@@ -8904,7 +8938,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
     inner->statePhase    = 0;
     inner->stateAux      = arg1;
     inner->actionValue   = arg2;
-    func_80106350(arg0, gPlayerStatus.weapon, 0);
+    playerActorResetWeaponAttack(arg0, gPlayerStatus.weapon, 0);
     playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
 }
 
@@ -8961,20 +8995,20 @@ static void func_80108AD4(Task* arg0)
     playerActorClearLockTarget(arg0);
     inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
-    func_80106350(arg0, gPlayerStatus.weapon, 0);
+    playerActorResetWeaponAttack(arg0, gPlayerStatus.weapon, 0);
     playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
 }
 
 void Gp_PlayerMode2State0(Task* arg0)
 {
     func_80105B0C(arg0);
-    func_80105ED4(arg0);
+    playerActorPlayFootstepCue(arg0);
 }
 
 void Gp_PlayerMode2State1(Task* arg0)
 {
     playerActorTickChildSlots(arg0);
-    func_80105ED4(arg0);
+    playerActorPlayFootstepCue(arg0);
 }
 
 void Gp_PlayerMode2State2(Task* arg0)
@@ -9103,7 +9137,7 @@ static void Gp_TickPlayerMode1(Task* arg0)
 
     handlers = Gp_PlayerMode1States;
     handlers.funcs[(u16)((GameActor*)arg0->work)->hitRegion](arg0);
-    Gp_TickActorAnimState(arg0);
+    playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     playerActorUpdateFacing(arg0);
     playerActorStepMovement(arg0);
@@ -9144,7 +9178,7 @@ static void func_80108FA0(Task* arg0)
 {
     func_801065A8(arg0);
     func_80109290(arg0);
-    func_80105ED4(arg0);
+    playerActorPlayFootstepCue(arg0);
 }
 
 static void Gp_PlayerNormalState1(Task* arg0)
@@ -9368,7 +9402,7 @@ static void Gp_PlayerMode2State5(Task* arg0)
             }
             playerActorPlayChildSlots(arg0, mode, arg2);
         case 1:
-            if (func_80105ED4(arg0) != 0) {
+            if (playerActorPlayFootstepCue(arg0) != 0) {
                 inner->actionValue--;
                 if (inner->actionValue <= 0) {
                     inner->scriptedMotionPending = 0;

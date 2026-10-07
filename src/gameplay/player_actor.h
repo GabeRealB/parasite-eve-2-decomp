@@ -33,7 +33,7 @@ enum {
 enum { PLAYER_ACTOR_DIRECT_ANIMATION_BANK = 0x7FFF };
 
 /// u8 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`. Non-zero selects
-/// `Gp_AimPitchToLock`; zero uses `D_actor_800100_80167218` with `Gp_AimPitchRec`.
+/// `playerActorAimPitchToLock`; zero uses `D_actor_800100_80167218` with `Gp_AimPitchRec`.
 extern u8 D_80113388[];
 
 extern TaskDesc D_80113340[2];
@@ -79,7 +79,17 @@ void func_800FF710(Task* arg0);
 
 void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
 
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
+/// Starts scripted movement to a borrowed transform's position.
+///
+/// Copies XYZ destination in the model root's parent frame, in game-coordinate
+/// units; transform rotation is ignored. Clears movement signs, aim offsets and
+/// attack effects, enters scripted state 4 and requests collision disablement.
+/// `moveAnim` may be NULL; its approach/arrival IDs narrow to u16, with zero
+/// selecting each default clip. Payloads need live readable storage only for
+/// this call. Requires live GameActor work, weapon effects and session state;
+/// the later approach tick requires a live model and animation bank. Returns 0;
+/// the message ID is unused.
+s32 playerActorMoveTo(Task* task, s32 unusedMessageId, const ActorTransform* transform, const GameActorMoveAnim* moveAnim);
 
 s32 Gp_MoveActorBy(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecondArg);
 
@@ -87,8 +97,16 @@ Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 ar
 
 void func_801061F0(void);
 
-/// Installs a borrowed set table and enters scripted player animation playback.
-s32 func_80104B54(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg);
+/// Installs a borrowed animation-set table and enters scripted playback.
+///
+/// Clears movement signs, aim offsets and attack effects, selects scripted
+/// state 1 and the direct-bank sentinel, and sets normal playback rate. The
+/// request selects a reset or a blend for whole normal-rate frames and queues
+/// world-collision enablement or disablement. The request is borrowed for this
+/// call; its set table, records and the actor's live model/pose storage must
+/// remain valid during playback under the child-slot playback contracts.
+/// Returns 0. The message ID and second payload word are unused.
+s32 playerActorInstallScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 
 /// Enters the player's normal-mode aim-entry state and starts its child-slot clip.
 ///
@@ -107,9 +125,28 @@ void Gp_EffCtlTask07(Task* arg0);
 
 void Gp_EffCtlTask7F(Task* arg0);
 
-void Gp_AimYawToLock(Task* arg0, s32 arg1);
+/// Turns the actor's body yaw toward its lock target beyond a planar dead zone.
+///
+/// `minGroundDistance` narrows to s16 and uses game-coordinate units; callers
+/// pass 0..896. The target must lie strictly farther from the weapon aim origin.
+/// Limits each turn to the equipped weapon's rate, increased by half for Quick
+/// Fire, and wraps yaw to 0..4095 units per turn. A missing target is a no-op.
+/// Requires live actor/weapon models, a valid weapon index, initialized scratch
+/// and GTE state, and a borrowed target in the world frame beneath the view. The planar
+/// absolute values, squares and sum must fit s32. Retains no pointers.
+void playerActorAimYawToLock(Task* task, s32 minGroundDistance);
 
-void Gp_AimPitchToLock(Task* arg0);
+/// Eases the actor's part-2 and part-3 aim pitch toward its selected lock target.
+///
+/// Angles use 4096 units per turn. Each call limits change to 48 units and
+/// absolute pitch to 288/256 units, deriving roll as 3/5 and 2/5 of pitch.
+/// Part 2 measures above its local origin with vertical displacement halved;
+/// part 3 measures from the equipped weapon's aim origin. A missing target
+/// changes nothing. Requires live actor work, model part 2, equipped model 1,
+/// a valid live weapon index and a borrowed target in the world frame beneath the view.
+/// Scratch/GTE state and the target-delta arithmetic must meet the aim helpers'
+/// contracts. No resource is allocated or pointer retained.
+void playerActorAimPitchToLock(Task* task);
 
 void Gp_AimPitchRec(Task* arg0, s32 arg1, s32 arg2);
 

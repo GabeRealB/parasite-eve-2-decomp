@@ -198,7 +198,7 @@ void func_gunblade_8011E040(Task* arg0)
             }
             if (actor->statePhase == 4 && playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
                 actor->statePhase = 5;
-                if (func_80106264(1) != 0) {
+                if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) != 0) {
                     if (gPlayerStatus.weaponSlotItem < 0xF) {
                         lvl = gPlayerStatus.weaponSlotItem + 0xB;
                     } else {
@@ -241,7 +241,7 @@ void func_gunblade_8011E040(Task* arg0)
         case 7:
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

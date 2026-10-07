@@ -935,7 +935,7 @@ live_length`. Dropping the local from 5 refs (pri 1369) to 3 refs over 73 insns
 pointer was placed first and took `$s3` instead of `$s4`. The margin is a few
 points of integer priority: a wrong-width local can flip two long-lived values
 between adjacent callee-saved registers without changing a single instruction
-shape. `func_80105ED4` in `src/gameplay/3FB8.c` is the same body with `s8 flags`
+shape. `playerActorPlayFootstepCue` in `src/gameplay/player_actor.c` is the same body with `s8 cueBits`
 and the same two copies — a matched sibling is the cheapest place to read the
 original's declared types off.
 
@@ -7269,7 +7269,7 @@ does not fix the coloring.
 A named temp that matches in a shorter sibling (`flag = arg->field;
 if (flag == 0) flag = 0x38; else flag = 7; dest = flag`) can flip the
 same phi to `$v1` once extra callee-saved regs are live (`s3` for
-`extra` in `func_80104B54`). Writing both constants onto the destination
+`model` in `playerActorInstallScriptedAnimation`). Writing both constants onto the destination
 field recovers `$v0`.
 
 ```c
@@ -11333,7 +11333,7 @@ scores 76%, while hoisting the pointer matches at 100%:
 
     handlers = D_actor_800200_80161EB8;
     actor = arg0->actor;          /* must precede the two ticks */
-    Gp_TickActorAnimState(arg0);
+    playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     handlers.funcs[(u16)actor->hitRegion](arg0);
 ```
@@ -24827,9 +24827,9 @@ Declaring that same callee `void` frees `$v0` immediately, so you get
 `li v0,K` instead — a one-register miss on an otherwise identical body.
 
 ```c
-s32 Gp_SetActorDest(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
+s32 playerActorMoveTo(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
-Gp_SetActorDest(arg0, arg1, transform, moveAnim); /* jal; nop — $v0 still "holds" the return */
+playerActorMoveTo(arg0, arg1, transform, moveAnim); /* jal; nop — $v0 still "holds" the return */
 actor->state = 8;    /* li v1,8; sh v1,0x956(s2) */
 return 0;                /* move v0,zero after the restores */
 ```
@@ -26980,7 +26980,7 @@ if (i < actor->animationSlotCount) {
 `anim` / `extra` live at the increment force a 5-s-reg coloring (`s4`/`s3`/`s1`)
 so `i` is not rematerialized. The scheduler then parks `li s1, 1` in the poll
 `bnez` delay, `li s4, 9` in the `lw actor` delay, and `li s3, 5` in the loop
-`beqz` delay. `Gp_TickActorAnimState` is the example.
+`beqz` delay. `playerActorTickAnimationState` is the example.
 
 ## Assign `&global` at the top so the address lives in `$sN` from the prologue
 
@@ -27186,7 +27186,7 @@ if (actor->weaponEffectTask->spawnArg1 == 2) {
 actor->weaponEffectTask->spawnArg1 = value;
 ```
 
-`func_80106350` is the example. A shared `task` local stuck at 99.4% with
+`playerActorResetWeaponAttack` is the example. A shared `task` local stuck at 99.4% with
 only `$a0`/`$a1` swapped on that path and `$a0` on the 0x16 NULL check.
 
 ## Rematerialize `index` into `$a0` before a store+jal so the store fills the delay
@@ -28926,7 +28926,7 @@ Pass that local, not a fresh `0`:
 ret = 0;
 if (actor->mode != 2) {
     /* ... */
-    func_80106350(arg0, p->field_21, ret);
+    playerActorResetWeaponAttack(arg0, p->field_21, ret);
     /* ... */
 } else {
     ret = 1;
@@ -28934,7 +28934,7 @@ if (actor->mode != 2) {
 return ret;
 ```
 
-`func_80105754` is the example. `func_80106350(..., 0)` stuck with only
+`func_80105754` is the example. `playerActorResetWeaponAttack(..., 0)` stuck with only
 that delay-slot source different.
 
 ## Put a `found:` label between switch cases so the load sits in the gap
@@ -32503,7 +32503,7 @@ j       join
 `inline static` a small helper that `return NULL` on `item == 0` and on
 `taskSpawn` failure. The inlined `return` is `task = 0; goto join`, and
 the 3rd helper arg (`item`) is allocated to `$t0` because `taskSpawn`
-needs `$a2`. `Gp_SpawnWeaponEff` is the example.
+needs `$a2`. `playerActorRestoreEquipment` is the example.
 
 ## Put the `if (call != NULL)` body in the gap between if/else arms
 
@@ -32527,7 +32527,7 @@ check_19:
 Three separate calls, or a single call with temps, both emit
 `beqz` and place the then-block *after* the jal. Write the layout with
 gotos so the success label sits in that gap and the call's `if (eff !=
-NULL) goto success`. `Gp_SpawnWeaponEff` is the example.
+NULL) goto success`. `playerActorRestoreEquipment` is the example.
 
 ## Split SPRT `y` from text `y`; copy stack color so it takes `$s2`
 
@@ -36258,7 +36258,9 @@ if (ABS(a) < ABS(b) && ABS(a) < ABS(c)) {
 ```
 
 A single `flag = 0x2000` after the `if` lets `-fschedule-insns` steal the
-delays for the next independent `lui`. `Gp_AimYawToLock` is the example.
+delays for the next independent `lui`. This was an earlier
+`playerActorAimYawToLock` implementation; its current inline shortest-turn
+helper and direct equipment-effect query supersede the repeated flag assignments.
 
 ## Overwrite-form `SCRATCH_STACK_CURSOR_SLOT` load via `lui` then `p + 0x3FC`
 
@@ -36277,7 +36279,9 @@ val += 0xC;
 
 The dummy `"r"(dep)` pins the `lui` after an earlier load (e.g. `lbu`)
 so it cannot hoist into a previous delay. Same `lui` / `ori 0x3FC` split
-as `Gp_AimPitchRec`'s prologue. `Gp_AimYawToLock` is the example.
+as `Gp_AimPitchRec`'s prologue. This was an earlier `playerActorAimYawToLock`
+implementation; its current inline shortest-turn helper uses the scratch-stack
+reservation and release macros without an assembly cursor load.
 
 ## Keep `right` live so the next `lhu` takes `$a1`, not `$v1`
 
@@ -41184,7 +41188,7 @@ The reuse also moves a result that is *global* (set in several arms of an
 if/else chain). Reassigning the parameter makes the result the same pseudo as
 the parameter, so its allocno includes the parameter's first live range and
 conflicts with everything live there - typically the other parameter, already
-placed in `$v0` by local-alloc. `Gp_AimYawToLock`'s inlined shortest-turn
+placed in `$v0` by local-alloc. `playerActorAimYawToLock`'s inlined shortest-turn
 helper takes `(s16 from, s16 to)`; the target loads `to` into `$v0`, `from`
 into `$v1`, and each arm's chosen candidate into `$v1` again. A separate `ret`
 local (or a ternary) got `$v0` in every arm - its only conflicts were
@@ -44503,8 +44507,10 @@ sw   $18, 0($3)
 
 `gfxMakeRelativeTransform` and `Gp_DrawMapCursor` want that register form and write
 `scratch = SCRATCH_STACK_CURSOR_SLOT; head = *scratch; ... *scratch = blk;`. When
-the target keeps both absolute, hide the load's address from CSE the way
-`Gp_AimYawToLock` does, and leave the store as the plain macro:
+the target keeps both absolute, an earlier `playerActorAimYawToLock`
+implementation hid the load's address from CSE and left the store as the plain
+macro below. The current inline shortest-turn helper supersedes that assembly
+load with the scratch-stack reservation and release macros:
 
 ```c
 register u8* h;
@@ -119526,15 +119532,15 @@ compiler SHA256
 Scratch `nonmatchings/func_mine_refuge_8017FA08-vacuum`.
 ## A `lui` in a branch delay slot is not a call argument: m2c invents the parameter from a split address (func_dryfield_warehouse_8017DA58, 2026-09-17)
 
-The seed for this room message handler declared `M2C_UNK Gp_SpawnWeaponEff(u8 *)`
-and called it as `Gp_SpawnWeaponEff(&D_80073BA9)`. The callee takes no arguments
-at all (`s32 Gp_SpawnWeaponEff(void)`, `include/gameplay/3FB8.h`), and the
+The seed for this room message handler declared `M2C_UNK playerActorRestoreEquipment(u8 *)`
+and called it as `playerActorRestoreEquipment(&D_80073BA9)`. The callee takes no arguments
+at all (`Task* playerActorRestoreEquipment(void)`, `include/gameplay/player_actor.h`), and the
 argument was read out of this target shape:
 
 ```
 beqz   $v0, .L8017DAE0
   lui    $a0, %hi(D_80073BA9)   /* delay slot */
-jal    Gp_SpawnWeaponEff
+jal    playerActorRestoreEquipment
   nop
 sh     $zero, 0xC($s0)
 jal    playerActorSetScriptedControl
@@ -123871,7 +123877,7 @@ genuine `j`-target miss can score a perfect 100.000%.
 ## `overlay_dup_index find` cannot see a near-twin that differs by one call; `similar` is what finds it, and its *source* is the whole match (func_actor_800300_80162A98, 2026-09-17)
 
 `func_actor_800300_80162A98` is `func_actor_800100_801643F4`'s body with a
-single extra `func_80105ED4(index)` call before the scratch restore - 101
+single extra `playerActorPlayFootstepCue(index)` call before the scratch restore - 101
 instructions against the twin's 98. One extra call is enough to defeat the
 same-body test, so `find` reported only the function itself ("1 copies,
 identical bytes: 1", its own entry) and the exact-copy route - promote into
@@ -146496,7 +146502,7 @@ block macro used for all three fields - matches with no hack. The same body as
 an inline function taking `&s->f` does not: the later fields' addresses become
 their own pseudos (`addiu a0,s0,4`).
 
-## `lw sA,off(task); move sB,sA` with the halves used by different code: two reads of the pointer separated by a scratch push (func_80104E00, 2026-09-27)
+## `lw sA,off(task); move sB,sA` with the halves used by different code: two reads of the pointer separated by a scratch push (playerActorTurnToYaw, 2026-09-27)
 
 **Shape.** One load of `task->work` into `$s1`, an immediate `move $s0,$s1`,
 the leading block of field writes (a sequence several sibling commands repeat)
@@ -149230,7 +149236,7 @@ put the last copy where the image has the block:
   is moved), and an inline returning 0/1 for "culled" is not threaded
   (`li v0,1; beqz v0`).
 
-Not converted: `Gp_SpawnWeaponEff` keeps the *earlier* copy of its success
+Not converted: `playerActorRestoreEquipment` keeps the *earlier* copy of its success
 block and reaches it with a backward `bnez` from the shared call, like
 `Gp_PlayerMode2State3`; an if/else chain with the call and success in each arm
 puts the success after the call and also turns the reload of `cfg->weapon`

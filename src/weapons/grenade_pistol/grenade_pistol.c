@@ -97,7 +97,7 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
             break;
         case 3:
             if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

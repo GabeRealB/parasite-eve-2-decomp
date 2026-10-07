@@ -2532,7 +2532,7 @@ static void func_actor_800200_80164C54(Task* arg0)
             }
             actor->movementSign = 1;
             playerActorStepMovement(arg0);
-            func_80105ED4(arg0);
+            playerActorPlayFootstepCue(arg0);
             break;
     }
     playerActorTickChildSlots(arg0);
@@ -3104,7 +3104,7 @@ static void func_actor_800200_80165B84(Task* arg0)
             sndEvtRequestScriptStart(SOUND_ACTOR_800200_HURT, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
     }
-    Gp_TickActorAnimState(arg0);
+    playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     playerActorUpdateFacing(arg0);
     playerActorStepMovement(arg0);
@@ -3168,7 +3168,7 @@ static void func_actor_800200_80165E90(Task* arg0)
 
     handlers = D_actor_800200_80161EB8;
     actor    = arg0->work;
-    Gp_TickActorAnimState(arg0);
+    playerActorTickAnimationState(arg0);
     playerActorTickChildSlots(arg0);
     handlers.funcs[(u16)actor->hitRegion](arg0);
     playerActorUpdateFacing(arg0);

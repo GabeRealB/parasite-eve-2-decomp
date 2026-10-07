@@ -446,7 +446,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130004, 0);
             }
             if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
         case 5:
@@ -456,7 +456,7 @@ void func_tonfa_baton_8011DBFC(Task* arg0)
                 actor->stateTimer   = actor->stateTimer - 1;
             }
             if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

@@ -723,7 +723,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             shared     = D_dryfield_gas_station_80184BD4;
             sharedWork = shared->work;
             if (sharedWork->playerEffectsSuppressed != 0) {
-                Gp_SpawnWeaponEff();
+                playerActorRestoreEquipment();
                 sharedWork->playerEffectsSuppressed = 0;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
@@ -843,7 +843,7 @@ void func_dryfield_gas_station_80180A60(void)
     task = D_dryfield_gas_station_80184BD4;
     work = task->work;
     if (work->playerEffectsSuppressed != 0) {
-        Gp_SpawnWeaponEff();
+        playerActorRestoreEquipment();
         work->playerEffectsSuppressed = 0;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }

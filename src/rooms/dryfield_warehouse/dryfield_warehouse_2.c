@@ -508,7 +508,7 @@ void func_dryfield_warehouse_8017DA58(s32 arg0)
             SetDispMask(1);
             work = D_dryfield_warehouse_801821BC->work;
             if (work->playerEffectsSuppressed != 0) {
-                Gp_SpawnWeaponEff();
+                playerActorRestoreEquipment();
                 work->playerEffectsSuppressed = 0;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
@@ -595,7 +595,7 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
             // The restore goes through the published cutscene task's block.
             sharedWork = D_dryfield_warehouse_801821BC->work;
             if (sharedWork->playerEffectsSuppressed != 0) {
-                Gp_SpawnWeaponEff();
+                playerActorRestoreEquipment();
                 sharedWork->playerEffectsSuppressed = 0;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }

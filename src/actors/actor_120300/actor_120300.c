@@ -2325,7 +2325,7 @@ void func_actor_120300_80133E94(void)
     _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
     if (work->playerEquipmentRemoved != 0) {
-        Gp_SpawnWeaponEff();
+        playerActorRestoreEquipment();
         work->playerEquipmentRemoved = 0;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }

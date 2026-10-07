@@ -262,7 +262,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                    if (func_80106264(1) == 0) {
+                    if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
                     worldCoordPlaySound(arg0->extra.tmd->coords, 0x201C0004, 1);
@@ -291,7 +291,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
             break;
         case 5:
             if (actor->actionValue == 0) {
-                spent = func_80106264(2);
+                spent = playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_SECONDARY);
                 if (playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY && spent != 0) {
                     actor->actionValue = 0x14;
                     equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
@@ -315,7 +315,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
             if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = 0xC;
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }

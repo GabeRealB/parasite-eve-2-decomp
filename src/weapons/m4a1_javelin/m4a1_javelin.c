@@ -733,7 +733,7 @@ void m4a1JavelinContactFlashTask(Task* task)
 /// before parking in state 7. States 5 and 6 run the flight timer and feed the
 /// tracked point to `_m4a1JavelinSetTrackedImpactPoint` (or clear it when nothing is
 /// in range) so the guide line is drawn. State 7 runs the recoil timer down and
-/// hands back to `func_80106550` once `playerActorIsSlotAdvancingLinearly` is done or the timer has
+/// hands back to `playerActorFinishWeaponAttack` once `playerActorIsSlotAdvancingLinearly` is done or the timer has
 /// run out.
 ///
 /// `gPlayerStatus.weaponSlotItem` is the low byte `func_801061F0` packs into
@@ -819,7 +819,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     equipmentConsumeWeaponLoad(0x9C, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                    if (func_80106264(1) == 0) {
+                    if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
                     worldCoordPlaySound(arg0->extra.tmd->coords, 0x201D0004, 1);
@@ -880,7 +880,7 @@ void func_m4a1_javelin_8011F5D4(Task* arg0)
             if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = 0xC;
-                func_80106550(arg0);
+                playerActorFinishWeaponAttack(arg0);
             }
             break;
     }
