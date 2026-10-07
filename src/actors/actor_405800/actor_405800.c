@@ -3319,16 +3319,32 @@ static s32 func_actor_405800_801373E0(Task* arg0)
     return 0;
 }
 
+/// Replaces the rotation of `coord` with the one `RotMatrixY` applies to an
+/// identity matrix for `angle`.
+static inline void _actor405800SetCoordRotation(GfxCoord* coord, s16 angle)
+{
+    GfxMatrix rot;
+    MATRIX*   dst;
+
+    gfxSetRotIdentity(&rot.mat);
+    RotMatrixY(angle, &rot.mat);
+    dst          = &coord->coord;
+    dst->m[0][0] = rot.mat.m[0][0];
+    dst->m[0][1] = rot.mat.m[0][1];
+    dst->m[0][2] = rot.mat.m[0][2];
+    dst->m[1][0] = rot.mat.m[1][0];
+    dst->m[1][1] = rot.mat.m[1][1];
+    dst->m[1][2] = rot.mat.m[1][2];
+    dst->m[2][0] = rot.mat.m[2][0];
+    dst->m[2][1] = rot.mat.m[2][1];
+    dst->m[2][2] = rot.mat.m[2][2];
+}
+
 static void func_actor_405800_801375C4(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
     Task*                         child;
-    TmdObject*                    extra;
-    GfxMatrix                     rot;
-    GfxMatrix*                    m;
-    GfxMatrix*                    m2;
     s16                           angle;
-    MATRIX*                       local;
 
     work = (_Actor405800IvoryStalkerWork*)task->work;
     if (work->rightArmOut != 0) {
@@ -3336,24 +3352,7 @@ static void func_actor_405800_801375C4(Task* task)
         work->armSwingAngles[1]  = angle;
         child                    = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1];
         child->extra.tmd->flags  = 0;
-        extra                    = child->extra.tmd;
-        local                    = &extra->coords->coord;
-        m                        = &rot;
-        rot.rotationWords.m00M01 = ONE;
-        rot.rotationWords.m02M10 = 0;
-        m->rotationWords.m11M12  = ONE;
-        rot.rotationWords.m20M21 = 0;
-        m->rotationWords.m22     = ONE;
-        RotMatrixY(angle, &m->mat);
-        local->m[0][0] = rot.mat.m[0][0];
-        local->m[0][1] = rot.mat.m[0][1];
-        local->m[0][2] = rot.mat.m[0][2];
-        local->m[1][0] = rot.mat.m[1][0];
-        local->m[1][1] = rot.mat.m[1][1];
-        local->m[1][2] = rot.mat.m[1][2];
-        local->m[2][0] = rot.mat.m[2][0];
-        local->m[2][1] = rot.mat.m[2][1];
-        local->m[2][2] = rot.mat.m[2][2];
+        _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
     } else {
         work->rightArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->rightArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3364,24 +3363,7 @@ static void func_actor_405800_801375C4(Task* task)
         } else {
             child                    = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1];
             child->extra.tmd->flags  = 0;
-            extra                    = child->extra.tmd;
-            local                    = &extra->coords->coord;
-            m                        = &rot;
-            rot.rotationWords.m00M01 = ONE;
-            rot.rotationWords.m02M10 = 0;
-            m->rotationWords.m11M12  = ONE;
-            rot.rotationWords.m20M21 = 0;
-            m->rotationWords.m22     = ONE;
-            RotMatrixY(angle, &m->mat);
-            local->m[0][0] = rot.mat.m[0][0];
-            local->m[0][1] = rot.mat.m[0][1];
-            local->m[0][2] = rot.mat.m[0][2];
-            local->m[1][0] = rot.mat.m[1][0];
-            local->m[1][1] = rot.mat.m[1][1];
-            local->m[1][2] = rot.mat.m[1][2];
-            local->m[2][0] = rot.mat.m[2][0];
-            local->m[2][1] = rot.mat.m[2][1];
-            local->m[2][2] = rot.mat.m[2][2];
+            _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
         }
     }
 
@@ -3391,24 +3373,7 @@ static void func_actor_405800_801375C4(Task* task)
         child                    = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0];
         angle                    = -angle;
         child->extra.tmd->flags  = 0;
-        extra                    = child->extra.tmd;
-        local                    = &extra->coords->coord;
-        m                        = &rot;
-        rot.rotationWords.m00M01 = ONE;
-        rot.rotationWords.m02M10 = 0;
-        m->rotationWords.m11M12  = ONE;
-        rot.rotationWords.m20M21 = 0;
-        m->rotationWords.m22     = ONE;
-        RotMatrixY(angle, &m->mat);
-        local->m[0][0] = rot.mat.m[0][0];
-        local->m[0][1] = rot.mat.m[0][1];
-        local->m[0][2] = rot.mat.m[0][2];
-        local->m[1][0] = rot.mat.m[1][0];
-        local->m[1][1] = rot.mat.m[1][1];
-        local->m[1][2] = rot.mat.m[1][2];
-        local->m[2][0] = rot.mat.m[2][0];
-        local->m[2][1] = rot.mat.m[2][1];
-        local->m[2][2] = rot.mat.m[2][2];
+        _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
     } else {
         work->leftArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3419,24 +3384,7 @@ static void func_actor_405800_801375C4(Task* task)
         } else {
             child                    = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0];
             child->extra.tmd->flags  = 0;
-            extra                    = child->extra.tmd;
-            local                    = &extra->coords->coord;
-            m2                       = &rot;
-            rot.rotationWords.m00M01 = ONE;
-            rot.rotationWords.m02M10 = 0;
-            m2->rotationWords.m11M12 = ONE;
-            rot.rotationWords.m20M21 = 0;
-            m2->rotationWords.m22    = ONE;
-            RotMatrixY((s16)-angle, &m2->mat);
-            local->m[0][0] = rot.mat.m[0][0];
-            local->m[0][1] = rot.mat.m[0][1];
-            local->m[0][2] = rot.mat.m[0][2];
-            local->m[1][0] = rot.mat.m[1][0];
-            local->m[1][1] = rot.mat.m[1][1];
-            local->m[1][2] = rot.mat.m[1][2];
-            local->m[2][0] = rot.mat.m[2][0];
-            local->m[2][1] = rot.mat.m[2][1];
-            local->m[2][2] = rot.mat.m[2][2];
+            _actor405800SetCoordRotation(child->extra.tmd->coords, -angle);
         }
     }
 
