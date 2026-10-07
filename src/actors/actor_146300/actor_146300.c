@@ -1658,26 +1658,32 @@ void func_actor_146300_801326CC(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Samples the full model lighting 800 world units above a composed actor root.
+/// Relights an actor or its attachment from an offset of the actor's cached origin.
 ///
-/// Root and output matrices must remain live and satisfy the lighting query's
-/// scratch and GTE requirements; the temporary point is borrowed only by the call.
-static inline void _actor146300RelightFromRoot(TmdObject* model, const GfxCoord* actorRoot)
+/// Samples 800 game-coordinate units along view-space negative Y, requesting
+/// all three model-light rows. `actorRoot->workm` must already include the
+/// current view transform; this helper neither composes nor changes the root.
+/// `model` may be the attachment rather than the actor supplying the root.
+/// Both inputs and the model's borrowed writable light/colour matrices must
+/// remain live. Scratch and GTE requirements follow `worldCoordSetModelLighting`;
+/// the sample's three signed words are consumed synchronously, retaining no pointer.
+static inline void _actor146300RelightFromRoot(const TmdObject* model, const GfxCoord* actorRoot)
 {
     enum { ACTOR146300_LIGHT_SAMPLE_HEIGHT = 800 };
-    VECTOR lightPosition;
+    VECTOR3 lightPosition;
 
     lightPosition.vx = actorRoot->workm.t[0];
     lightPosition.vy = actorRoot->workm.t[1] - ACTOR146300_LIGHT_SAMPLE_HEIGHT;
     lightPosition.vz = actorRoot->workm.t[2];
-    worldCoordSetModelLighting(model, &lightPosition, 0, 3);
+    worldCoordSetModelLighting(model, &lightPosition, 0, ARRAY_SIZE(model->lightMtx->m));
 }
 
 /// Composes and relights the actor model before updating its child-part animation.
 ///
 /// Running state 1 requires a live TMD task, a root parented to the view and the
 /// receiver's initialized work published in `_gScriptedWalkWork`. Samples all
-/// three lights 800 world units above the composed root. `unusedEnemy` is ignored.
+/// three light rows at the root's view-space negative-Y offset of 800 units.
+/// `unusedEnemy` is ignored.
 static void _actor146300UpdateModel(Enemy* unusedEnemy, Task* task)
 {
     TmdObject* model;
@@ -1779,8 +1785,9 @@ static s32 _actor146300IgnoreCommand(Task* unusedTask, s32 messageId, const Acto
 /// Requires this live TMD task and `gActorSelfTask` with its twenty coordinates;
 /// both models remain live while attached. State 0 replaces the companion root's
 /// parent, marks composition dirty, enables drawing and enters state 1. Later
-/// ticks sample all three lights 800 world units above the actor's cached world
-/// root, which the actor's frame state must compose; this task does not compose it.
+/// ticks sample all three light rows at the actor root's view-space negative-Y
+/// offset of 800 units. The actor's frame state must compose that root; this task
+/// does not compose it.
 static void _actor146300AttachmentTask(Task* task)
 {
     enum {
