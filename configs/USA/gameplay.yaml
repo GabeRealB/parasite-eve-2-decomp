@@ -115,7 +115,7 @@ segments:
       - [0x7790, c, model_lighting] # tmdXformStreamVertsEnvLayer
       - [0xCF18, c, ending] # Gp_EndingTask
       - [0xD90C, c, area_entry] # Gp_AreaEnterTask
-      - [0xDD58, c, attachments] # Gp_GetAttachParam
+      - [0xDD58, c, attachments] # attachmentGetActiveLevelValue
       - [0xDE34, c, attachment_stats] # Gp_ApplyAttachStats
       - [0x10DF0, c, attach_combo] # Gp_UpdateAttachCombo
       - [0x11104, c, linked_actors] # attachmentTargetAll
@@ -140,7 +140,7 @@ segments:
       - [0x24D88, c, item_sort] # inventorySortItems
       - [0x25D4C, c, item_boost] # itemMenuApplyPouchPanel
       - [0x27E68, c, item_collect] # inventoryGetCollectedItemId
-      - [0x28D0C, c, item_move_check] # Gp_CanMoveItems
+      - [0x28D0C, c, item_move_check] # itemMenuCanMoveAllItems
       - [0x28E34, c, item_menu] # Gp_ItemMoveChild
       - [0x2C1FC, c, menu_root] # Gp_MenuRootTask
       - [0x2CAA0, c, menu_prompt] # Gp_UiPromptDispatch

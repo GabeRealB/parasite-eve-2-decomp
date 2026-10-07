@@ -462,7 +462,7 @@ const DirectionActionTable Gp_DirActionFns = { {
 
 static const _DirectionWarpPhaseTable Gp_WarpPhaseFns = { {
     [DIRECTION_WARP_PHASE_QUERY]       = Gp_SetupDirWarp,
-    [DIRECTION_WARP_PHASE_AWAIT_TURN]  = Gp_FadeDirWaitMsg,
+    [DIRECTION_WARP_PHASE_AWAIT_TURN]  = directionAwaitWarpTurn,
     [DIRECTION_WARP_PHASE_HOLD]        = _directionHoldWarpFrame,
     [DIRECTION_WARP_PHASE_RESOLVE]     = Gp_CommitWarp,
     [DIRECTION_WARP_PHASE_AWAIT_SOUND] = Gp_WarpPhase4,
@@ -701,28 +701,6 @@ static void Gp_SpawnEvt1IfCapIdle(void)
     Gp_DirAltNibble = 0;
     Gp_DirAlt       = 0;
     D_80114CD4      = 0;
-}
-
-/// Draws the active departure fade before stepping its shade toward full subtraction.
-///
-/// Uses the low byte as the shade and preserves the signed-halfword zero gate
-/// of this phase. The active ramp starts at 30 and stays within 30..255.
-static inline void _directionStepDepartureFade(void)
-{
-    enum { DIRECTION_DEPARTURE_FADE_STEP = 30,
-           DIRECTION_DEPARTURE_FADE_MAX  = 255 };
-    u8  fadeShade;
-    s16 activeShade;
-
-    activeShade = (s16)Gp_DirFadeLevel;
-    if (activeShade != 0) {
-        fadeShade = (u8)Gp_DirFadeLevel;
-        fadeDrawOverlay(fadeShade, fadeShade, fadeShade, GPU_BLEND_SUBTRACT);
-        Gp_DirFadeLevel += DIRECTION_DEPARTURE_FADE_STEP;
-        if ((s16)Gp_DirFadeLevel >= DIRECTION_DEPARTURE_FADE_MAX + 1) {
-            Gp_DirFadeLevel = DIRECTION_DEPARTURE_FADE_MAX;
-        }
-    }
 }
 
 /// Draws and steps the departure fade, then hands the warp to its resolve phase next frame.

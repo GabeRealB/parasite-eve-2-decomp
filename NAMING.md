@@ -292,7 +292,7 @@ in a row identify different responsibilities in the same source group.
 | `boot`, `gameMain` | Initialization and main loop | `main.c`, `boot.c`, `gamemain.c` | `src/main/boot.h`, `src/main/gamemain.h`, `include/main/gamemain.h` |
 | `gameFlow`, `fade` | Session flow and screen fades | `gameflow.c`, `bootload.c` | `include/main/gameflow.h`, `src/main/gameflow.h` |
 | `playClock` | Resetting the resident partial-minute play-time accumulator after a save load; gameplay advances it | `gameflow.c` | `src/main/session.h` |
-| `gameDebug` | Resident diagnostic controls, input overrides/replay and session-load status shared with gameplay | `stage.c` (resident storage), `gamemain.c` (reset), gameplay consumers | `include/main/game_debug_types.h` (state type); pointer currently declared in `include/main/pad.h` |
+| `gameDebug` | Resident diagnostic controls, input overrides/replay and session-load status shared with gameplay | `stage.c` (resident storage), `gamemain.c` (reset), gameplay consumers | `include/main/game_debug_types.h` (state type), `include/gameplay/game_debug.h` (gameplay input-override export); pointer currently declared in `include/main/pad.h` |
 | `loadUi` | Loading and disk-swap presentation | `loadui.c` | `include/main/loadui.h` |
 | `stage` | Stage mode tasks, view/file transitions, their grey fade and guarded graphics resources, and music selection | `stage.c`, `stage_music.c` | `include/main/stage.h`, `include/main/stage_types.h`, `src/main/stage.h` |
 | `display`, `gpu` | Frame presentation, display state and ordering tables | `gamemain.c`, `displaymode.c`, `otutil.c` | `include/main/display.h`, `include/main/display_types.h`, `src/main/display.h` |

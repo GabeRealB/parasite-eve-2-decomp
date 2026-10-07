@@ -136,6 +136,14 @@ u8 Gp_BtnMap2Alt[16] = {
 };
 
 /// Publishes remapped input, applying suppression and an additional logical mask.
+///
+/// All three samples use active-high physical pad bits. The borrowed live
+/// player selects the saved layout's mapping; it must remain valid throughout
+/// the three remap calls. `keepMask` selects logical output bits (all bits for
+/// the normal publish, all except Triangle during wheel suppression). Each
+/// output truncates to the session's u16 mask after both filters. Samples are
+/// mapped independently, so the published edges are not recomputed from held
+/// buttons. No pointer is retained and suppression state is not changed.
 static inline void _padInputPublishButtons(const GameActor* player, u16 heldButtons, u16 pressedButtons, u16 releasedButtons, s32 keepMask)
 {
     gGameSession->padHeld     = _padInputRemapButtons(player, heldButtons) & ~Gp_PadSuppressMask & keepMask;

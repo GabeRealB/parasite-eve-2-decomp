@@ -350,20 +350,12 @@ void Gp_SetupDirWarp(void)
     }
 }
 
-void Gp_FadeDirWaitMsg(void)
+void directionAwaitWarpTurn(void)
 {
     Task* playerTask;
-    u8    fade;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (*(s16*)&Gp_DirFadeLevel != 0) {
-        fade = *(u8*)&Gp_DirFadeLevel;
-        fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-        Gp_DirFadeLevel += 0x1E;
-        if ((s16)Gp_DirFadeLevel >= 0x100) {
-            Gp_DirFadeLevel = 0xFF;
-        }
-    }
+    _directionStepDepartureFade();
     if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
         if (D_80114CF4 != 0) {
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;

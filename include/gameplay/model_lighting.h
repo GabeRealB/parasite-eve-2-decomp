@@ -5,8 +5,6 @@
 
 #include "main/tmd_types.h"
 
-void Gp_ApplyPadReplay(s32 arg0, u16* arg1);
-
 /// Sets the shared material greys used by environment-layer model drawing.
 ///
 /// `layerIntensity` is clamped to 0..255 and copied to the layer's three RGB

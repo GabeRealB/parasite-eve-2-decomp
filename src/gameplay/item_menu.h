@@ -1004,11 +1004,11 @@ void Gp_DrawRemoveArmorRow(UiList* prompt, UiObject* obj);
 
 void Gp_EquipSelectMenuTask(Task* arg0);
 
-/// Source item-table scan (`Gp_CanMoveItems` / item-move UI). field_0 is the
+/// Source item-table scan (`itemMenuCanMoveAllItems` / item-move UI). field_0 is the
 /// start index, field_1 the entry count, field_2 the table id.
 extern InventoryItemRange Gp_MoveScanSrc;
 
-/// Dest item-table scan immediately after `Gp_MoveScanSrc` (`Gp_CanMoveItems`).
+/// Dest item-table scan immediately after `Gp_MoveScanSrc` (`itemMenuCanMoveAllItems`).
 extern InventoryItemRange Gp_MoveScanDst;
 
 /// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
@@ -1036,7 +1036,14 @@ extern char Gp_StrMaxCapacity[];
 
 extern char Gp_StrSwitch[];
 
-s32 Gp_CanMoveItems(void);
+/// Returns whether the transfer destination has rows for every source item.
+///
+/// Returns 0 for an empty source, otherwise 0 or 1 from the row-capacity check.
+/// Both singleton ranges must fit their loaded tables. Each occupied source
+/// row needs a new row except a consumable (0xA0..0xBF) already present at the
+/// destination. Quantities, stack limits and equipped-item restrictions are
+/// not checked. No range or inventory contents are changed.
+s32 itemMenuCanMoveAllItems(void);
 
 /// Runs the carried-weapon choice list, optionally filtered by a consumable.
 ///

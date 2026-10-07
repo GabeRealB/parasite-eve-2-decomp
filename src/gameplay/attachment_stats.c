@@ -106,7 +106,7 @@ static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1);
 
 static __inline__ s32 getAttachWheelLevel(s32 idx);
 
-/// Inline copy of `Gp_GetAttachParam` for an explicit slot: parameter `field`
+/// Inline copy of `attachmentGetActiveLevelValue` for an explicit slot: parameter `field`
 /// of the `Gp_IdParamHi` row for `slot` at its current level.
 static __inline__ u16 getAttachWheelParam(s32 slot, s32 field);
 
@@ -647,7 +647,7 @@ static void Gp_SetAttachState(s32 arg0)
     attachment              = &Gp_StateC08;
     attachment->attachId    = attachId;
     attachment->effectPhase = ATTACHMENT_EFFECT_HELD;
-    duration                = Gp_GetAttachParam(ATTACHMENT_LEVEL_ATP_LOSS);
+    duration                = attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_ATP_LOSS);
     attachment->duration    = duration;
     if (duration <= 0) {
         attachment->duration = ATTACHMENT_DURATION_MIN;
@@ -777,7 +777,7 @@ static __inline__ s32 getAttachWheelLevel(s32 idx)
     return lvl;
 }
 
-/// Inline copy of `Gp_GetAttachParam` for an explicit slot: parameter `field`
+/// Inline copy of `attachmentGetActiveLevelValue` for an explicit slot: parameter `field`
 /// of the `Gp_IdParamHi` row for `slot` at its current level.
 static __inline__ u16 getAttachWheelParam(s32 slot, s32 field)
 {
@@ -982,7 +982,7 @@ static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2)
     s32       cat;
     s32       order;
 
-    n = Gp_GetAttachParam(ATTACHMENT_LEVEL_ATP_LOSS);
+    n = attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_ATP_LOSS);
     if (Gp_StateC08.activeIndex < 0xD) {
         if (Gp_StateC08.duration > 0) {
             tile           = gGpuPrimCursor;
@@ -1285,12 +1285,12 @@ static void Gp_UseItemTask(HudState* hud)
                 Gp_ItemGrantCooldown           = 0x14;
                 cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
                 if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
-                    cfg->hp -= Gp_GetAttachParam(ATTACHMENT_LEVEL_CAST_COST) * 2;
+                    cfg->hp -= attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_CAST_COST) * 2;
                     if (cfg->hp <= 0) {
                         cfg->hp = 1;
                     }
                 } else {
-                    cfg->mp -= Gp_GetAttachParam(ATTACHMENT_LEVEL_CAST_COST);
+                    cfg->mp -= attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_CAST_COST);
                     if (cfg->mp < 0) {
                         cfg->mp = 0;
                     }

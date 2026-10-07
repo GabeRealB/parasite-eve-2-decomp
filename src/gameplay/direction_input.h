@@ -5,6 +5,8 @@
 
 #include "gameplay/direction.h"
 
+#include "main/gameflow.h"
+
 // Direction input state, action dispatch and warp handling.
 
 /// Direction and warp state shared within gameplay.
@@ -51,6 +53,29 @@ extern RoomEventMsg Gp_WarpLoc;
 
 extern u16 Gp_DirFadeLevel;
 
+/// Draws and advances the active warp departure shade by one frame.
+///
+/// Zero disables the fade. Active shades start at 30 and saturate at 255;
+/// drawing uses the current low byte before the increment. The signed local
+/// preserves this ramp's halfword load. Each gameplay TU uses an inline copy.
+static inline void _directionStepDepartureFade(void)
+{
+    enum { DIRECTION_DEPARTURE_FADE_STEP = 30,
+           DIRECTION_DEPARTURE_FADE_MAX  = 255 };
+    u8  fadeShade;
+    s16 activeShade;
+
+    activeShade = (s16)Gp_DirFadeLevel;
+    if (activeShade != 0) {
+        fadeShade = (u8)Gp_DirFadeLevel;
+        fadeDrawOverlay(fadeShade, fadeShade, fadeShade, GPU_BLEND_SUBTRACT);
+        Gp_DirFadeLevel += DIRECTION_DEPARTURE_FADE_STEP;
+        if ((s16)Gp_DirFadeLevel >= DIRECTION_DEPARTURE_FADE_MAX + 1) {
+            Gp_DirFadeLevel = DIRECTION_DEPARTURE_FADE_MAX;
+        }
+    }
+}
+
 /// Dual area-id bitmask (1–32 / 33–64), rebuilt from the area bit-2 flags.
 extern s32 Gp_AreaIdBits[2];
 
@@ -60,7 +85,12 @@ extern s8 Gp_AreaIdCounts[];
 
 void Gp_SetupDirWarp(void);
 
-void Gp_FadeDirWaitMsg(void);
+/// Steps the departure fade while awaiting the player's scripted turn.
+///
+/// Requires the live player task and the latched warp query result. When
+/// scripted motion ends, a nonzero result pauses scene actors and the warp
+/// advances to its one-frame hold phase; a zero result also advances.
+void directionAwaitWarpTurn(void);
 
 void Gp_CommitWarp(void);
 

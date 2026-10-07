@@ -35,7 +35,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "gameplay/model_lighting.h"
+#include "gameplay/game_debug.h"
 
 #include "title/title.h"
 
@@ -732,7 +732,7 @@ void Pad_UpdatePort0(void)
                         pad->stickAxes[PAD_STICK_RIGHT_X] = 0;
                         pad->stickAxes[PAD_STICK_LEFT_Y]  = 0;
                         pad->stickAxes[PAD_STICK_LEFT_X]  = 0;
-                        Gp_ApplyPadReplay(Pad_RemapState->inputOverrideMode, &scratch->buttons);
+                        gameDebugApplyInputOverride(Pad_RemapState->inputOverrideMode, &scratch->buttons);
                     }
                 }
             }

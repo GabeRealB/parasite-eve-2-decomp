@@ -45,38 +45,39 @@ UiListRowCallback Gp_ItemActionFns[3] = {
     NULL,
 };
 
-s32 Gp_CanMoveItems(void)
+s32 itemMenuCanMoveAllItems(void)
 {
-    InventoryItemRange* src;
-    InventoryItemRow*   table;
-    s32                 row;
-    s32                 count;
-    s32                 blocked;
-    s32                 ret;
-    s32                 i;
+    const InventoryItemRange* sourceRange;
+    const InventoryItemRow*   sourceRows;
+    s32                       sourceRow;
+    s32                       requiredRows;
+    s32                       alwaysZero;
+    s32                       canMoveAll;
+    s32                       rowOffset;
 
-    src     = &Gp_MoveScanSrc;
-    ret     = 0;
-    table   = inventoryGetRangeTable(src);
-    row     = src->firstRow;
-    count   = inventoryCountOccupiedRows(src + 1);
-    blocked = 0; /* nothing sets it, yet the original still tests it */
-    if (inventoryCountOccupiedRows(src) > 0) {
-        for (i = 0; i < src->rowCount; i++, row++) {
-            if (table[row].itemId != INVENTORY_ITEM_NONE) {
-                /* 0xA0-0xBF items need no new row if the destination already holds one */
-                if ((u8)(table[row].itemId + 0x60) < 0x20) {
-                    if (inventoryFindLastItemRowInRange(table[row].itemId, &Gp_MoveScanDst) == 0) {
-                        count++;
+    sourceRange  = &Gp_MoveScanSrc;
+    canMoveAll   = 0;
+    sourceRows   = inventoryGetRangeTable(sourceRange);
+    sourceRow    = sourceRange->firstRow;
+    requiredRows = inventoryCountOccupiedRows(sourceRange + 1);
+    // The binary retains this zero-valued guard across the inventory calls.
+    alwaysZero = 0;
+    if (inventoryCountOccupiedRows(sourceRange) > 0) {
+        // Existing destination consumables reuse their stack's row.
+        for (rowOffset = 0; rowOffset < sourceRange->rowCount; rowOffset++, sourceRow++) {
+            if (sourceRows[sourceRow].itemId != INVENTORY_ITEM_NONE) {
+                if ((u8)(sourceRows[sourceRow].itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                    if (inventoryFindLastItemRowInRange(sourceRows[sourceRow].itemId, &Gp_MoveScanDst) == NULL) {
+                        requiredRows++;
                     }
                 } else {
-                    count++;
+                    requiredRows++;
                 }
             }
         }
-        if (blocked == 0 && Gp_MoveScanDst.rowCount >= count) {
-            ret = 1;
+        if (alwaysZero == 0 && Gp_MoveScanDst.rowCount >= requiredRows) {
+            canMoveAll = 1;
         }
     }
-    return ret;
+    return canMoveAll;
 }

@@ -54,7 +54,15 @@ extern s32 D_80114C34;
 /// Read position in the recorded demo pad stream: button/count pairs.
 extern u16* Gp_ReplayCursor;
 
-u16 Gp_GetAttachParam(s32 arg0);
+/// Returns one level parameter of the active spell or item attachment.
+///
+/// `column` selects an `ATTACHMENT_LEVEL_*` halfword in 0..7. The active
+/// ability index must be 0..17. Spells (0..11) use saved learned levels, or
+/// training levels in stage 1 area 20 with player resource variant 4. Zero
+/// becomes level 1; berserker raises levels below 3 by one. Item attachments
+/// (12..17) always use level 1 and receive no berserker level increase.
+/// Learned levels must be 0..3; no bounds checks or table writes occur.
+u16 attachmentGetActiveLevelValue(s32 column);
 
 /// Word cleared by `_worldCoordInitPlayerLighting`. Also written by `Gp_UpdateAttachCombo` and
 /// read/cleared by `_worldCoordUpdatePlayerLighting`.

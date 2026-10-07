@@ -71,8 +71,10 @@ static inline void _hudDrawHpMpLabels(const UiPanel* panel, s32 offsetX, s32 off
 /// Converts the current decimal PE id to its category-2 attachment attack key.
 ///
 /// Hundreds select element 1..6, tens select energy 1..3 and ones select level
-/// 1..3, producing rows 1..54. Keep the unsigned digit arithmetic and additive
-/// encoding; no lookup or validation occurs.
+/// 1..3, producing rows 1..54. Requires those decimal digit ranges in the live
+/// attachment id. The result combines the attack category, attachment marker
+/// and level-row number. Unsigned digit arithmetic is retained; no lookup,
+/// validation or state change occurs.
 static inline s32 _attachmentCurrentAttackKey(void)
 {
     u16 attachmentId;
@@ -89,6 +91,8 @@ static inline s32 _attachmentCurrentAttackKey(void)
 /// Advances a displayed stat by one point toward its live value, in either direction.
 ///
 /// Borrows one writable widened HP/MP value; it retains no pointer.
+/// Equal values cause no store. The caller selects the update rate: the HUD
+/// calls once per visible draw, rather than scaling the step by frame ticks.
 static inline void _hudStepDisplayedStat(s32* displayed, s32 live)
 {
     if (live < *displayed) {

@@ -29188,7 +29188,7 @@ return *(u16*)off;
 ```
 
 `return recs[idx * 3 + ret].field[index]` stuck at 99.4% with only those
-last three instructions using `$v0` instead of `$v1`. `Gp_GetAttachParam`
+last three instructions using `$v0` instead of `$v1`. `attachmentGetActiveLevelValue`
 is the example.
 
 ## Assign `i = ret` before `if (ret < n)` so it fills the `beqz` delay
@@ -29219,7 +29219,7 @@ if (ret < src->rowCount) {
 `&global` as the later call argument hoists `lui %hi` *after* the rec
 address calc (and often reuses the table's `$s5`). Materializing the hi
 as a constant first pins `$s6` and keeps `addiu a1, s6, %lo` in the jal
-delay. `Gp_CanMoveItems` is the example.
+delay. `itemMenuCanMoveAllItems` is the example.
 
 ## Extra store before the shared assignment so `sh` merges
 
@@ -30842,7 +30842,7 @@ later:
 
 ```c
 rec    = Gp_ReplayCursor;
-offset = (s32)rec - (s32)D_8005C374;
+cursorOffsetBytes = (u8*)rec - (u8*)Fs_ActorLoadBase2;
 ```
 
 loads the two globals sequentially (`lw a2, ptr` then `lui`/`lw` of the
@@ -30851,22 +30851,22 @@ expression so the two `%hi`/`lw` pairs interleave and CSE keeps the
 pointer in `$a0`:
 
 ```c
-offset = (s32)Gp_ReplayCursor - (s32)D_8005C374;
-if (gDisplayState.demoScene == 0x10) {
-    offset = (s32)Gp_ReplayCursor + 0x7F9FFF00;
+cursorOffsetBytes = (u8*)Gp_ReplayCursor - (u8*)Fs_ActorLoadBase2;
+if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
+    cursorOffsetBytes = (u8*)Gp_ReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
 }
 /* later: Gp_ReplayCursor[0] */
 ```
 
 ```
 lui   v0, %hi(Gp_ReplayCursor)
-lui   v1, %hi(D_8005C374)
+lui   v1, %hi(Fs_ActorLoadBase2)
 lw    a0, %lo(Gp_ReplayCursor)(v0)
-lw    v0, %lo(D_8005C374)(v1)
+lw    v0, %lo(Fs_ActorLoadBase2)(v1)
 subu  a2, a0, v0
 ```
 
-`Gp_ApplyPadReplay` is the example.
+`gameDebugApplyInputOverride` is the example.
 
 ## A load kept below a fixed-address pointer store is a plain `*p`, not a struct field
 
@@ -30901,7 +30901,7 @@ if (*next == 0xFFFF) {
 
 Reading the pointer into a local *before* the `cached` store matters too: it
 creates `%hi(ptr)` first, which is what gives it `$a1` and `%hi(cached)` `$v1`.
-`Gp_ApplyPadReplay` is the example.
+`gameDebugApplyInputOverride` is the example.
 
 ## Assign an `s16` index to `s32` before `& mask` so the load stays `lh`
 
@@ -36989,7 +36989,7 @@ expected objects also have the raw immediate. Overlay `rom:` is
 C still emits as a real reloc (the D4 `gCdCmdQueue` `lhu` is only the
 `%lo`).
 
-`Gp_LoadWaitStage` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `Gp_CanMoveItems`
+`Gp_LoadWaitStage` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `itemMenuCanMoveAllItems`
 are the examples.
 
 The entry is state that belongs to the faked address, so it has to come out
@@ -144085,7 +144085,7 @@ and jump2 cross-jumps the identical tails into the join the target shows.
 folds the member into the load displacement; the hand-built
 `off = row * 16; TOUCH_REG(off); off += 4; off += base` was forcing
 `(row*16 + 4) + base`. That shape is `field[k]` with `k` an *inline helper
-parameter* - the sibling `Gp_GetAttachParam(k)` takes the field index as an
+parameter* - the sibling `attachmentGetActiveLevelValue(k)` takes the field index as an
 argument. Written as a literal `field[(row)*8 + 2]` instead, combine turns the
 add into `ori` because the shifted index has no low bits set.
 
@@ -146692,7 +146692,7 @@ with `s16* xy = &ws->texCoord.vx`. The increment is the second set; combine
 folds it into the next load's displacement (`lh v0,2(t1)`), so no `addiu`
 appears.
 
-## `base + (col*2 + row*16)` with the column scaled first: a byte offset built in statements, not `rec[row].field[col]` (Gp_GetAttachParam, 2026-09-27)
+## `base + (col*2 + row*16)` with the column scaled first: a byte offset built in statements, not `rec[row].field[col]` (attachmentGetActiveLevelValue, 2026-09-27)
 
 **Shape.** The target does `sll v1,a3,1` (column) before reloading the row
 index, then `addu v1,v1,v0` (column + row offset) and only then

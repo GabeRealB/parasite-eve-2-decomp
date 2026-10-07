@@ -89,14 +89,14 @@ modelLightingReserveStreamPrimG4 = 0x8009FC44; // type:func
 modelLightingReserveStreamPrimG3 = 0x8009FC90; // type:func
 _tmdReserveStreamPackets20 = 0x8009FCDC; // type:func
 _tmdReserveStreamPackets24 = 0x8009FD28; // type:func
-Gp_ApplyPadReplay = 0x8009FD74; // type:func
+gameDebugApplyInputOverride = 0x8009FD74; // type:func
 Gp_InitPlayClock = 0x8009FEDC; // type:func
 Gp_TickPlayClock = 0x800A0094; // type:func
 Gp_RestartSessionTask = 0x800A0504; // type:func
 Gp_EndingTask = 0x800A0718; // type:func
 func_800A087C = 0x800A087C; // type:func
 Gp_AreaEnterTask = 0x800A110C; // type:func
-Gp_GetAttachParam = 0x800A1558; // type:func
+attachmentGetActiveLevelValue = 0x800A1558; // type:func
 Gp_ApplyAttachStats = 0x800A1634; // type:func
 Gp_DrawItemPrompt = 0x800A18BC; // type:func
 Gp_CheckAttachThreshold = 0x800A1CD0; // type:func
@@ -231,7 +231,7 @@ _spriteInitViewBackgroundTask = 0x800AD620; // type:func
 _spriteLinkViewCachedPacketsTask = 0x800AD65C; // type:func
 func_800AD6BC = 0x800AD6BC; // type:func
 Gp_SetupDirWarp = 0x800ADA04; // type:func
-Gp_FadeDirWaitMsg = 0x800ADE74; // type:func
+directionAwaitWarpTurn = 0x800ADE74; // type:func
 Gp_CommitWarp = 0x800ADF3C; // type:func
 Gp_WarpPhase4 = 0x800AE150; // type:func
 directionAwaitStairClimb = 0x800AE1F0; // type:func
@@ -460,7 +460,7 @@ inventoryHasAttachedItem = 0x800BC3F8; // type:func
 inventoryResetCarriedRange = 0x800BC490; // type:func
 func_800BC4BC = 0x800BC4BC; // type:func
 func_800BC4E4 = 0x800BC4E4; // type:func
-Gp_CanMoveItems = 0x800BC50C; // type:func
+itemMenuCanMoveAllItems = 0x800BC50C; // type:func
 
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/item_menu.c) — file-split 0x28E34

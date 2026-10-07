@@ -87,50 +87,49 @@ AttachmentLevelTable Gp_IdParamHi = { .rows = {
                                           { { 0, 0, 0, 0, 0, 0, 0, 0 } },
                                       } };
 
-u16 Gp_GetAttachParam(s32 arg0)
+u16 attachmentGetActiveLevelValue(s32 column)
 {
-    PlayerStatus* p;
-    s32           cond;
-    s32           ret;
-    u8*           table;
-    s32           idx;
-    u8*           recs;
-    s32           off;
+    enum {
+        ATTACHMENT_ACTIVE_LEVEL_MIN          = 1,
+        ATTACHMENT_ACTIVE_LEVEL_MAX          = 3,
+        ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4
+    };
+    const PlayerStatus* playerStatus;
+    s32                 usesTrainingLevels;
+    s32                 level;
+    const u8*           learnedLevels;
+    s32                 abilityIndex;
+    const u8*           levelTableBytes;
+    s32                 valueOffsetBytes;
 
-    recs = Gp_IdParamHi.bytes;
-    idx  = Gp_StateC08.activeIndex;
-    if (idx >= 0xC) {
-        ret = 1;
+    levelTableBytes = Gp_IdParamHi.bytes;
+    abilityIndex    = Gp_StateC08.activeIndex;
+    if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
+        level = ATTACHMENT_ACTIVE_LEVEL_MIN;
     } else {
-        p = &gPlayerStatus;
+        playerStatus = &gPlayerStatus;
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-            cond = 0;
+            usesTrainingLevels = 0;
         } else {
-            cond = p->resourceVariant == 4;
+            usesTrainingLevels = playerStatus->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
         }
-        if (cond == 0) {
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
+        if (usesTrainingLevels == 0) {
+            learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
         } else {
-            table = Gp_DebugAttachLevels;
+            learnedLevels = Gp_DebugAttachLevels;
         }
-        ret = table[idx];
-        if (ret == 0) {
-            ret = 1;
+        level = learnedLevels[abilityIndex];
+        if (level == 0) {
+            level = ATTACHMENT_ACTIVE_LEVEL_MIN;
         }
-        if (p->statusFlags & PLAYER_STATUS_BERSERKER) {
-            if (ret < 3) {
-                ret++;
+        if (playerStatus->statusFlags & PLAYER_STATUS_BERSERKER) {
+            if (level < ATTACHMENT_ACTIVE_LEVEL_MAX) {
+                level++;
             }
         }
     }
-    off  = arg0 * sizeof(u16);
-    off += (Gp_StateC08.activeIndex * 3 + ret) * sizeof(AttachmentLevelRow);
-    {
-        union {
-            u8*  bytes;
-            u16* value;
-        } param;
-        param.bytes = recs + off;
-        return *param.value;
-    }
+    // Select one aligned halfword; column scaling precedes row scaling.
+    valueOffsetBytes  = column * sizeof(u16);
+    valueOffsetBytes += (Gp_StateC08.activeIndex * ATTACHMENT_ACTIVE_LEVEL_MAX + level) * sizeof(AttachmentLevelRow);
+    return *(const u16*)(levelTableBytes + valueOffsetBytes);
 }

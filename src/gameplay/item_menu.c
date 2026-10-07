@@ -331,7 +331,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
             work->panes[work->focusedPane]->owner->state     = 1;
             work->panes[work->focusedPane ^ 1]->owner->state = 1;
             if ((arg0->result != 0x26) && flag) {
-                val = Gp_CanMoveItems();
+                val = itemMenuCanMoveAllItems();
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 work->focusedPane = 0;
                 uiSpawnObject(&D_8010D6F4[9], val, 1, 1, work->panes[0]);
@@ -475,7 +475,7 @@ void Gp_ItemMoveTask(Task* arg0)
         } while (i < 2);
         inventorySortItems(&Gp_MoveScanSrc, 0);
         if (arg0->spawnArg1.value == 1) {
-            val               = Gp_CanMoveItems();
+            val               = itemMenuCanMoveAllItems();
             work->focusedPane = 0;
             work->panes[0]    = uiSpawnObject(D_8010D6F4, 0x100, 0, 1, obj);
             work->panes[1]    = uiSpawnObject(D_8010D6F4 + 1, 0x101, 0, 1, obj);
