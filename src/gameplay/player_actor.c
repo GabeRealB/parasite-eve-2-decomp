@@ -3800,12 +3800,9 @@ void Gp_EffCtlTask7F(Task* arg0)
 {
     EffectWork* mem;
     GfxCoord*   coord;
-    GfxCoord*   parent;
-    MATRIX*     m;
     s16         flag;
     s16         step;
     s32         temp;
-    s32         one;
     s32         span;
     s16         divisor;
     s16         half;
@@ -3823,15 +3820,8 @@ void Gp_EffCtlTask7F(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        parent               = mem->parent;
-        one                  = ONE;
-        *(s32*)&coord->coord = one;
-        coord->parent        = parent;
-        m                    = &coord->coord;
-        MATRIX_PAIR(m, 0, 2) = 0;
-        MATRIX_PAIR(m, 1, 1) = one;
-        MATRIX_PAIR(m, 2, 0) = 0;
-        m->m[2][2]           = one;
+        coord->parent = mem->parent;
+        gfxSetRotIdentity(&coord->coord);
         coord->coord.t[0]    = mem->pos.vx;
         coord->coord.t[1]    = mem->pos.vy;
         coord->coord.t[2]    = mem->pos.vz;
