@@ -77675,7 +77675,7 @@ The already-matched sibling is the fastest way to this: the body here is
 byte-for-byte `func_actor_143900_801325A4` at a different link address, so
 copying that source and swapping the two symbols matched on the first build
 with no dump work. (That body carries yet another copy in its own overlay,
-`func_actor_143900_80133144`, over a third work block -- `overlay_dup_index.py
+`_scriptedWalkBlendSecondAnim`, over a third work block -- `overlay_dup_index.py
 promote` refuses all of them: every copy reads its own overlay's work-block
 pointer, so no single object can serve them.)
 

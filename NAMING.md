@@ -675,7 +675,9 @@ forward, backward and short forward distances. `SCRIPTED_WALK_TICK_ANIM`
 selects the private slot-tick instance and its update calls.
 `SCRIPTED_WALK_RESET_ANIM` selects the private track-restart instance and its
 update calls, with the same published work binding at both sites. A carrier with
-two walkers rebinds these around each additional fragment instance and
+two walkers also selects its child-track blend definition and update call with
+`SCRIPTED_WALK_BLEND_ANIM`, alongside that walker's blend-frame value. It
+rebinds these around each additional fragment instance and
 restores its first walker's bindings afterwards.
 
 `pacedWalk` owns the included twenty-part cutscene NPC walk whose work block

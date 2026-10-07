@@ -12,7 +12,7 @@ void scriptedWalkUpdate(Task* task)
     SCRIPTED_WALK_WORK_T* work  = task->work;
 
     if (SCRIPTED_WALK_WORK->st.state == ACTOR_ENEMY_ANIM_BLEND) {
-        scriptedWalkBlendAnim();
+        SCRIPTED_WALK_BLEND_ANIM();
         SCRIPTED_WALK_WORK->st.state = ACTOR_ENEMY_ANIM_TICK;
     } else if (SCRIPTED_WALK_WORK->st.state == ACTOR_ENEMY_ANIM_RESET) {
         SCRIPTED_WALK_RESET_ANIM();

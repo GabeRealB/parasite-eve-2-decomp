@@ -123,7 +123,7 @@ static void func_actor_143900_80132ECC(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 static void _scriptedWalkTickSecondAnim(void);
 static void _scriptedWalkResetSecondAnim(void);
-static void func_actor_143900_80133144(void);
+static void _scriptedWalkBlendSecondAnim(void);
 
 static TmdSource _gActor143900Body2;
 static TmdSource _gActor143900Model173A8;
@@ -1418,7 +1418,11 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 ///
 /// The reset fragment uses this function binding and the same live work block.
 #define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetSecondAnim
-#define scriptedWalkBlendAnim    func_actor_143900_80133144
+#undef SCRIPTED_WALK_BLEND_ANIM
+/// Routes the second walker's update to its private `void(void)` child-track blend.
+///
+/// The blend fragment uses this function, work block and blend-frame binding.
+#define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendSecondAnim
 #undef SCRIPTED_WALK_WORK
 /// Selects the second walker's allocation for this fragment instance.
 #define SCRIPTED_WALK_WORK       _gScriptedWalkSecondWork
@@ -1433,7 +1437,8 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #undef SCRIPTED_WALK_TICK_ANIM
 #undef SCRIPTED_WALK_RESET_ANIM
 #define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim
-#undef scriptedWalkBlendAnim
+#undef SCRIPTED_WALK_BLEND_ANIM
+#define SCRIPTED_WALK_BLEND_ANIM scriptedWalkBlendAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 #undef gScriptedWalkBlendFrames
@@ -1534,13 +1539,15 @@ void func_actor_143900_80132FB0(Task* task)
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 
-/// The second walker's copy.
-#define scriptedWalkBlendAnim func_actor_143900_80133144
+#undef SCRIPTED_WALK_BLEND_ANIM
+/// Defines the private child-track blend selected by the second walker's update.
+#define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendSecondAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK       _gScriptedWalkSecondWork
 #define gScriptedWalkBlendFrames D_actor_143900_80149630
 #include "../../shared/scripted_walk_blend_anim.inc.c"
-#undef scriptedWalkBlendAnim
+#undef SCRIPTED_WALK_BLEND_ANIM
+#define SCRIPTED_WALK_BLEND_ANIM scriptedWalkBlendAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 #undef gScriptedWalkBlendFrames

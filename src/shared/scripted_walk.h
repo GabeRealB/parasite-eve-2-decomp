@@ -155,6 +155,23 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 #define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim
 #endif
 
+#ifndef SCRIPTED_WALK_BLEND_ANIM
+/// Selects the function that blends this walker's requested child-part tracks.
+///
+/// Bind to a `void name(void)` function identifier before this header. The
+/// blend fragment defines it; the update fragment calls it for
+/// `ACTOR_ENEMY_ANIM_BLEND`, then advances the state to `ACTOR_ENEMY_ANIM_TICK`.
+/// Both inclusions must select the same initialized, live `SCRIPTED_WALK_WORK`
+/// and whole-frame `gScriptedWalkBlendFrames` value. An additional private
+/// instance needs a static prototype in the carrier prologue before its caller.
+/// Rebind around both fragments and restore the first walker's binding afterwards.
+///
+/// The default serves the sole or first walker in the four blend carriers;
+/// actor_143900 binds its second copy to `_scriptedWalkBlendSecondAnim`.
+/// This identifier alias takes no arguments and captures no local variables.
+#define SCRIPTED_WALK_BLEND_ANIM scriptedWalkBlendAnim
+#endif
+
 void scriptedWalkUpdate(Task* task);
 
 /// Advances the selected walker's non-root animation slots and applies their poses.
@@ -168,7 +185,7 @@ void scriptedWalkUpdate(Task* task);
 static void SCRIPTED_WALK_TICK_ANIM(void);
 
 static void SCRIPTED_WALK_RESET_ANIM(void);
-void        scriptedWalkBlendAnim(void);
+void        SCRIPTED_WALK_BLEND_ANIM(void);
 s32         scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 
 s32 scriptedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
