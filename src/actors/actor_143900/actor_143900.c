@@ -1601,18 +1601,25 @@ static void _actor143900ExitSecondScriptedWalker(Task* task)
 #include "../../shared/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-/// Initializes a drawable attachment root beneath a borrowed live walker part.
+/// Attaches a carried model to a walker part with a +15-entry ordering-table offset.
 ///
-/// `model` owns `root`; the coordinate parent must remain live until model
-/// teardown. Clears all model flags and sets the attachment's OT-entry offset.
-static __inline__ void _actor143900AttachWalkerModel(TmdObject* model, GfxCoord* root, GfxCoord* parentPart)
+/// Requires a live model with at least one coordinate; `attachmentRoot` is its
+/// preloaded `attachmentModel->coords`. Its local transform becomes relative to
+/// the walker part, and its cached composition is marked stale. `walkerPart` is
+/// borrowed and must remain live while the attachment is composed; its parent
+/// chain must not reach `attachmentRoot`.
+/// Clearing all model flags permits active drawing and automatic allocation of
+/// a missing primitive buffer. Depth indices including the +15-entry offset must
+/// fit the active ordering table. Model, buffer, lighting and task ownership stay
+/// with their existing owners; the caller handles attachment teardown separately.
+static __inline__ void _actor143900AttachModelToWalkerPart(TmdObject* attachmentModel, GfxCoord* attachmentRoot, GfxCoord* walkerPart)
 {
     enum { ACTOR_143900_ATTACHMENT_OT_OFFSET = 15 };
 
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    model->flags       = 0;
-    model->otOffset    = ACTOR_143900_ATTACHMENT_OT_OFFSET;
-    root->parent       = parentPart;
+    attachmentRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    attachmentModel->flags       = 0;
+    attachmentModel->otOffset    = ACTOR_143900_ATTACHMENT_OT_OFFSET;
+    attachmentRoot->parent       = walkerPart;
 }
 
 /// Parents a model to the second scripted walker and refreshes its room lighting.
@@ -1639,7 +1646,7 @@ static void _actor143900ScriptedWalkerAttachmentTask(Task* task)
 
     switch (task->state) {
         case ACTOR_143900_ATTACHMENT_INITIALIZE:
-            _actor143900AttachWalkerModel(attachmentModel, attachmentRoot, parentPart);
+            _actor143900AttachModelToWalkerPart(attachmentModel, attachmentRoot, parentPart);
             task->state++;
             break;
         case ACTOR_143900_ATTACHMENT_LIGHT:
