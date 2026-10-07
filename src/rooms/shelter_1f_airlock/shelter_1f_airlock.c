@@ -37,9 +37,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-#define D_shelter_1f_airlock_8017E4C4 (D_shelter_1f_airlock_8017E4BC + 1)
-#define D_shelter_1f_airlock_8017E4D4 (D_shelter_1f_airlock_8017E4BC + 3)
-
 /// The room's message table, handed to its event task in state 0.
 extern TaskMessageEntry D_shelter_1f_airlock_8017E494[];
 
@@ -506,13 +503,13 @@ void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask)
     // Each view selects its visible discs and pairs of capsule endpoints.
     switch (mappedViewIndex) {
         case SHELTER_1F_AIRLOCK_GLOW_VIEW_3:
-            _shelter1fAirlockDrawDiscPair(D_shelter_1f_airlock_8017E4C4, SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[3], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[5], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[7], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[9], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[11], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
-            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4C4[17], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _shelter1fAirlockDrawDiscPair(&D_shelter_1f_airlock_8017E4BC[1], SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[4], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[6], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[8], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[10], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[12], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
+            _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[18], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
             break;
         case SHELTER_1F_AIRLOCK_GLOW_VIEW_4:
             _shelter1fAirlockDrawDiscPair(D_shelter_1f_airlock_8017E4BC, SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_GREY_FACTORS);
@@ -530,7 +527,7 @@ void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask)
             _glowDrawCapsule(&D_shelter_1f_airlock_8017E4BC[26], SHELTER_1F_AIRLOCK_CAPSULE_RADIUS_SCALE, SHELTER_1F_AIRLOCK_CAPSULE_CYAN_FLICKER);
             break;
         case SHELTER_1F_AIRLOCK_GLOW_VIEW_5:
-            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4D4[0], SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_RED_FACTORS);
+            _glowDrawFactorDisc(&D_shelter_1f_airlock_8017E4BC[3], SHELTER_1F_AIRLOCK_DISC_RADIUS_SCALE, SHELTER_1F_AIRLOCK_DISC_RED_FACTORS);
             break;
     }
 }
