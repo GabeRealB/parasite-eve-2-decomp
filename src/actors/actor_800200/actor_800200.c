@@ -27,6 +27,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/random.h"
 #include "main/gfx.h"
@@ -44,6 +45,12 @@ enum { COMPANION_ROUTE_COMPLETE = 1 };
 
 /// Normal behavior selectors and animation choices used by the route entries.
 enum {
+    ACTOR_800200_STATE_PLAYER_FOLLOW       = 1,
+    ACTOR_800200_STATE_REST                = 7,
+    ACTOR_800200_ANIMATION_REST            = 7,
+    ACTOR_800200_ANIMATION_REST_HOLD       = 9,
+    ACTOR_800200_ACTION_PLAYER             = 0,
+    ACTOR_800200_ACTION_TARGET             = 1,
     ACTOR_800200_STATE_TARGET_TURN         = 2,
     ACTOR_800200_STATE_ACTION_BURST        = 4,
     ACTOR_800200_STATE_APPROACH            = 8,
@@ -106,22 +113,22 @@ extern _Actor800200Waypoint D_actor_800200_8016A130[];
 
 static void func_actor_800200_801626A0(Task* task);
 static void func_actor_800200_801652EC(Task* arg0);
-static void func_actor_800200_80165380(Task* arg0);
+static void _actor800200EnterPlayerFollow(Task* task);
 static void _actor800200EnterTargetTurn(Task* task);
-static void func_actor_800200_801653C0(Task* arg0);
+static void _actor800200EnterRest(Task* task);
 static void _actor800200EnterApproach(Task* task, s32 movementMode);
 static void _actor800200EnterActionBurst(Task* task, s16 targetVariant);
 static void _actor800200StartActionBurst(Task* task, s8 repeatsRemaining);
 static void _actor800200EnterTimedWait(Task* task, s32 unusedArgument);
 static void _actor800200EnterRouteAnimation(Task* task);
-static void func_actor_800200_80165580(Task* arg0);
-static void func_actor_800200_80165644(Task* arg0);
-static void func_actor_800200_80165708(Task* arg0);
-static void func_actor_800200_80165814(Task* arg0);
-static void func_actor_800200_801658E0(Task* arg0);
-static void func_actor_800200_8016599C(Task* arg0);
-static void func_actor_800200_801659CC(Task* arg0);
-static void func_actor_800200_80165ACC(Task* arg0);
+static void _actor800200TickSchedule1Route(Task* task);
+static void _actor800200TickSchedule7Route(Task* task);
+static void _actor800200TickSchedules8To10Route(Task* task);
+static void _actor800200TickArea24Route1(Task* task);
+static void _actor800200TickArea25Route1(Task* task);
+static void _actor800200CompleteArea25Route7(Task* task);
+static void _actor800200TickArea3Route(Task* task);
+static void _actor800200TickArea24Route10(Task* task);
 static void func_actor_800200_80165B84(Task* arg0);
 static void func_actor_800200_80165CB4(Task* arg0);
 static void func_actor_800200_80165D44(Task* arg0);
@@ -131,7 +138,7 @@ static void func_actor_800200_80165F28(Task* arg0);
 static void func_actor_800200_80165F48(Task* arg0);
 static void func_actor_800200_80165F50(Task* arg0);
 static void func_actor_800200_80165FF0(Task* arg0);
-static s32  _actor800200GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY);
+static s32  _actor800200GetContactDistance(const GfxCoord* coord, const WorldCollisionContact* contact, u16* contactZY);
 
 static AnimationSet _gActor800200Animation08644;
 static AnimationSet _gActor800200Animation08CC0;
@@ -892,10 +899,10 @@ AnimationBank D_actor_800200_8016F208 = { { {
 static void func_actor_800200_80162088(Task* arg0);
 static void func_actor_800200_801622B0(Task* arg0);
 static void func_actor_800200_80162694(Task* arg0);
-static void func_actor_800200_80162750(Task* arg0);
+static void _actor800200TickFreeIdle(Task* task);
 static void _actor800200TickArea26Route(Task* task);
 static void _actor800200TickArea23Route1(Task* task);
-static void func_actor_800200_80162E0C(Task* arg0);
+static void _actor800200TickSchedule3Route(Task* task);
 static void _actor800200TickArea23Route7(Task* task);
 static void _actor800200TickArea22Route(Task* task);
 static void _actor800200TickArea20Route7(Task* task);
@@ -904,8 +911,8 @@ static void _actor800200TickArea2Route(Task* task);
 static void _actor800200TickArea5Route(Task* task);
 static void _actor800200TickArea1Route(Task* task);
 static void _actor800200TickArea20Route8To10(Task* task);
-static void func_actor_800200_80163CCC(Task* arg0);
-static void func_actor_800200_80163E14(Task* arg0);
+static void _actor800200TickArea19Route(Task* task);
+static void _actor800200TickArea15Route(Task* task);
 static void func_actor_800200_80163F5C(Task* arg0);
 static void func_actor_800200_80164180(Task* arg0);
 static void func_actor_800200_8016436C(Task* arg0);
@@ -1143,75 +1150,98 @@ void func_actor_800200_801626EC(Task* task)
     states.funcs[task->state](task);
 }
 
-static void func_actor_800200_80162750(Task* arg0)
+/// Chooses unscripted idle behavior for companion schedules 0, 2, 4, 5 and 6.
+///
+/// Requires a live companion model and player in the same root-parent frame.
+/// During engaged combat, borrows
+/// a lock node and chooses approach, an action burst, or player-follow behavior
+/// from four distance-weighted rows. Otherwise follows at least 1536 planar game
+/// units away, turns at least 512 angle units (4096 per turn), or starts resting at
+/// a newly sampled 150..277 idle-update threshold. Reserves sixteen scratch bytes
+/// for a twelve-byte XYZ position/delta view; the last four bytes are untouched.
+static void _actor800200TickFreeIdle(Task* task)
 {
+    enum {
+        ACTOR_800200_IDLE_KEEP                    = 0,
+        ACTOR_800200_IDLE_APPROACH_TARGET         = 1,
+        ACTOR_800200_IDLE_ACTION_BURST            = 2,
+        ACTOR_800200_IDLE_FOLLOW_PLAYER           = 3,
+        ACTOR_800200_IDLE_SCRATCH_BYTES           = 16,
+        ACTOR_800200_COMBAT_DISTANCE_BUCKET_UNITS = 1024,
+        ACTOR_800200_COMBAT_DISTANCE_BUCKET_COUNT = ARRAY_SIZE(D_actor_800200_80169FD0),
+        ACTOR_800200_COMBAT_CHOICE_MASK           = 0xF,
+        ACTOR_800200_COMBAT_REPEAT_MASK           = 3,
+        ACTOR_800200_IDLE_FOLLOW_DISTANCE         = 0x600,
+        ACTOR_800200_IDLE_TURN_ANGLE              = 0x200,
+        ACTOR_800200_IDLE_RANDOM_DELAY_MASK       = 0x7F,
+        ACTOR_800200_IDLE_REST_MIN_TICKS          = 150
+    };
     GameActor*       actor;
     CompanionWork*   companion;
-    GfxCoord*        coord;
-    GfxCoord*        target;
-    u8*              head;
-    VECTOR3*         vec;
-    WorldTargetNode* lock;
-    u32              state;
-    u8*              tbl;
-    s32              dist;
-    s32              turnDelta;
+    const GfxCoord*  rootCoord;
+    const GfxCoord*  playerCoord;
+    VECTOR3*         targetDelta;
+    WorldTargetNode* targetNode;
+    u32              decision;
+    const u8*        decisionWeights;
+    s32              distanceBucket;
+    s32              playerTurnMagnitude;
 
-    coord                    = arg0->extra.tmd->coords;
-    target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    vec                      = (VECTOR3*)(head - 0x10);
-    SCRATCH_STACK_CURSOR(u8) = head - 0x10;
-    actor                    = arg0->work;
-    actor->actionValue      += 1;
-    companion                = actor->companionWork;
+    rootCoord           = task->extra.tmd->coords;
+    playerCoord         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    targetDelta         = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(ACTOR_800200_IDLE_SCRATCH_BYTES);
+    actor               = task->work;
+    actor->actionValue += 1;
+    companion           = actor->companionWork;
+    // Combat samples one of sixteen weighted choices in a clamped distance bucket.
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-        state             = 0;
-        lock              = worldTargetFindLockNode(arg0);
-        actor->targetNode = lock;
-        if (lock != NULL) {
-            worldTargetGetBodyPosition(lock, vec);
-            playerActorGetPointDelta(coord, vec, vec);
-            dist  = playerActorPlanarLength(((VECTOR3*)(head - 0x10))->vx, vec->vz);
-            dist /= 1024;
-            if (dist >= 4) {
-                dist = 3;
+        decision          = ACTOR_800200_IDLE_KEEP;
+        targetNode        = worldTargetFindLockNode(task);
+        actor->targetNode = targetNode;
+        if (targetNode != NULL) {
+            worldTargetGetBodyPosition(targetNode, targetDelta);
+            playerActorGetPointDelta(rootCoord, targetDelta, targetDelta);
+            distanceBucket  = playerActorPlanarLength(targetDelta->vx, targetDelta->vz);
+            distanceBucket /= ACTOR_800200_COMBAT_DISTANCE_BUCKET_UNITS;
+            if (distanceBucket >= ACTOR_800200_COMBAT_DISTANCE_BUCKET_COUNT) {
+                distanceBucket = ACTOR_800200_COMBAT_DISTANCE_BUCKET_COUNT - 1;
             }
-            tbl   = D_actor_800200_80169FD0[dist];
-            state = *(tbl + (rand() & 0xF));
+            decisionWeights = D_actor_800200_80169FD0[distanceBucket];
+            decision        = decisionWeights[rand() & ACTOR_800200_COMBAT_CHOICE_MASK];
         }
-        switch (state) {
-            case 0:
+        switch (decision) {
+            case ACTOR_800200_IDLE_KEEP:
                 break;
-            case 1:
+            case ACTOR_800200_IDLE_APPROACH_TARGET:
                 worldTargetGetBodyPosition(actor->targetNode, &actor->destination);
-                _actor800200EnterApproach(arg0, 6);
+                _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
                 break;
-            case 2:
-                companion->activity.combat.repeatsRemaining = (rand() & 3) + 1;
-                _actor800200EnterActionBurst(arg0, 1);
+            case ACTOR_800200_IDLE_ACTION_BURST:
+                companion->activity.combat.repeatsRemaining = (rand() & ACTOR_800200_COMBAT_REPEAT_MASK) + 1;
+                _actor800200EnterActionBurst(task, ACTOR_800200_ACTION_TARGET);
                 break;
-            case 3:
-                func_actor_800200_80165380(arg0);
+            case ACTOR_800200_IDLE_FOLLOW_PLAYER:
+                _actor800200EnterPlayerFollow(task);
                 break;
         }
     } else {
-        if (companionGetPlayerPlanarDistance(coord) >= 0x600) {
-            func_actor_800200_80165380(arg0);
+        // Outside combat, follow, face the player, or settle into a resting pose.
+        if (companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800200_IDLE_FOLLOW_DISTANCE) {
+            _actor800200EnterPlayerFollow(task);
         } else {
-            turnDelta = playerActorGetTurnToPoint(arg0, MATRIX_TRANS(&target->coord));
-            if (turnDelta < 0) {
-                turnDelta = -turnDelta;
+            playerTurnMagnitude = playerActorGetTurnToPoint(task, MATRIX_TRANS(&playerCoord->coord));
+            if (playerTurnMagnitude < 0) {
+                playerTurnMagnitude = -playerTurnMagnitude;
             }
-            if (turnDelta >= 0x200) {
+            if (playerTurnMagnitude >= ACTOR_800200_IDLE_TURN_ANGLE) {
                 actor->targetNode = NULL;
-                _actor800200EnterTargetTurn(arg0);
-            } else if (actor->actionValue >= ((rand() & 0x7F) + 0x96)) {
-                func_actor_800200_801653C0(arg0);
+                _actor800200EnterTargetTurn(task);
+            } else if (actor->actionValue >= ((rand() & ACTOR_800200_IDLE_RANDOM_DELAY_MASK) + ACTOR_800200_IDLE_REST_MIN_TICKS)) {
+                _actor800200EnterRest(task);
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_IDLE_SCRATCH_BYTES);
 }
 
 /// Sets a route stop in X/Z while retaining the root's current translation Y.
@@ -1377,70 +1407,88 @@ static void _actor800200TickArea23Route1(Task* task)
     }
 }
 
-static void func_actor_800200_80162E0C(Task* arg0)
+/// Advances the three-stop Dryfield route selected by companion schedule 3.
+///
+/// Requires a live model/player and waypoint index 0..2. Retains current Y,
+/// runs toward the selected stop, and waits for a distant player until within
+/// 2560 planar game units or beyond the companion in X. Waiting starts single
+/// player-directed actions at random intervals. The last stop requests rest
+/// animation, enters approach, then awaits a nonzero behavior phase before holding
+/// pose 9; it does not set the route-completion latch.
+static void _actor800200TickSchedule3Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    GfxCoord*      target;
-    s32            delay;
+    enum {
+        ACTOR_800200_SCHEDULE3_TRAVEL            = 0,
+        ACTOR_800200_SCHEDULE3_WAIT_PLAYER       = 1,
+        ACTOR_800200_SCHEDULE3_UNUSED_PHASE      = 2,
+        ACTOR_800200_SCHEDULE3_AWAIT_PHASE       = 3,
+        ACTOR_800200_SCHEDULE3_HOLD_POSE         = 4,
+        ACTOR_800200_SCHEDULE3_FINISHED          = 5,
+        ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_80169FE0) - 1,
+        ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xE00,
+        ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0xA01
+    };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* rootCoord;
+    const GfxCoord* playerCoord;
+    s32             actionDelay;
 
-    coord     = arg0->extra.tmd->coords;
-    target    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    actor     = arg0->work;
-    companion = actor->companionWork;
+    rootCoord   = task->extra.tmd->coords;
+    playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    actor       = task->work;
+    companion   = actor->companionWork;
     switch (actor->stateAux) {
-        case 0:
-            actor->destination.vx = D_actor_800200_80169FE0[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_80169FE0[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 2) {
-                    actor->stateAux       = 3;
+        case ACTOR_800200_SCHEDULE3_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_80169FE0, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
+                    // Keep the original animation request followed by approach entry.
+                    actor->stateAux       = ACTOR_800200_SCHEDULE3_AWAIT_PHASE;
                     actor->statePhase     = 0;
-                    actor->animationState = 7;
-                    playerActorPlayChildSlotsWithBlend(arg0, 7, 0, 3);
-                    _actor800200EnterApproach(arg0, 6);
+                    actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_ONCE;
+                    playerActorPlayChildSlotsWithBlend(task, ACTOR_800200_ANIMATION_REST, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
+                    _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
                     return;
                 }
-                if (companionGetPlayerPlanarDistance(coord) >= 0xE00) {
-                    actor->stateAux   = 1;
+                if (companionGetPlayerPlanarDistance(rootCoord) >= ACTOR_800200_ROUTE_WAIT_DISTANCE) {
+                    actor->stateAux   = ACTOR_800200_SCHEDULE3_WAIT_PLAYER;
                     actor->stateTimer = 0;
-                    actor->targetNode = 0;
-                    _actor800200EnterTargetTurn(arg0);
+                    actor->targetNode = NULL;
+                    _actor800200EnterTargetTurn(task);
                     return;
                 }
                 companion->waypointIndex++;
             }
-            _actor800200EnterApproach(arg0, 6);
+            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
             return;
-        case 1:
-            if ((companionGetPlayerPlanarDistance(coord) < 0xA01) || (coord->coord.t[0] < target->coord.t[0])) {
+        case ACTOR_800200_SCHEDULE3_WAIT_PLAYER:
+            if ((companionGetPlayerPlanarDistance(rootCoord) < ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT) || (rootCoord->coord.t[0] < playerCoord->coord.t[0])) {
                 companion->waypointIndex++;
-                actor->stateAux = 0;
+                actor->stateAux = ACTOR_800200_SCHEDULE3_TRAVEL;
                 return;
             }
-            delay             = actor->stateTimer - 1;
-            actor->stateTimer = delay;
-            if (delay <= 0) {
+            actionDelay       = actor->stateTimer - 1;
+            actor->stateTimer = actionDelay;
+            if (actionDelay <= 0) {
                 companion->activity.combat.repeatsRemaining = 1;
-                actor->stateTimer                           = rand() & 0x7F;
-                _actor800200EnterActionBurst(arg0, 0);
+                actor->stateTimer                           = rand() & ACTOR_800200_ROUTE_RANDOM_DELAY_MASK;
+                _actor800200EnterActionBurst(task, ACTOR_800200_ACTION_PLAYER);
             }
             return;
-        case 3:
+        case ACTOR_800200_SCHEDULE3_AWAIT_PHASE:
             if (actor->statePhase != 0) {
                 actor->stateAux++;
             }
             return;
-        case 4:
-            actor->animationState = 0;
+        case ACTOR_800200_SCHEDULE3_HOLD_POSE:
+            actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
             actor->stateAux++;
-            playerActorResetChildSlots(arg0, 9);
+            playerActorResetChildSlots(task, ACTOR_800200_ANIMATION_REST_HOLD);
             return;
         default:
-        case 2:
-        case 5:
+        case ACTOR_800200_SCHEDULE3_UNUSED_PHASE:
+        case ACTOR_800200_SCHEDULE3_FINISHED:
             return;
     }
 }
@@ -1907,95 +1955,98 @@ static void _actor800200TickArea20Route8To10(Task* task)
     }
 }
 
-#undef ACTOR_800200_SET_ROUTE_DESTINATION
-
-static void func_actor_800200_80163CCC(Task* arg0)
+/// Advances the four-stop Shelter B1 access-tunnel route of schedule 10.
+///
+/// Requires a live model and waypoint index 0..3. Tests the final stop on entry,
+/// runs between X/Z stops at current Y, and plays a route animation at each
+/// intermediate arrival. Final arrival latches completion and enters timed wait.
+static void _actor800200TickArea19Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            flag;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A108) - 1 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* rootCoord;
+    u16             routePhase;
+    s32             initialRoutePhase;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            flag                  = 1;
-            actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A108[3].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A108[3].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    rootCoord  = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
+            actor->stateAux   = initialRoutePhase;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A108, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A108[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A108[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 3) {
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A108, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    _actor800200EnterTimedWait(arg0, 0);
+                    _actor800200EnterTimedWait(task, 0);
                     return;
                 }
                 companion->waypointIndex++;
-                _actor800200EnterRouteAnimation(arg0);
+                _actor800200EnterRouteAnimation(task);
                 return;
             }
-            _actor800200EnterApproach(arg0, 6);
+            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
             return;
         default:
             return;
     }
 }
 
-static void func_actor_800200_80163E14(Task* arg0)
+/// Advances the five-stop Shelter B1 main-corridor route of schedule 10.
+///
+/// Requires a live model and waypoint index 0..4. Tests the final stop on entry,
+/// retains current Y, and plays a route animation at every arrival. Walks toward
+/// stop 1 and runs on other legs; final arrival also latches route completion.
+static void _actor800200TickArea15Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u16            state;
-    s32            flag;
-    s32            mode;
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A130) - 1,
+           ACTOR_800200_ROUTE_WALK_WAYPOINT = 1 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* rootCoord;
+    u16             routePhase;
+    s32             initialRoutePhase;
+    s32             movementMode;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            flag                  = 1;
-            actor->stateAux       = flag;
-            actor->destination.vx = D_actor_800200_8016A130[4].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A130[4].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    rootCoord  = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_ROUTE_CHECK_END:
+            initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
+            actor->stateAux   = initialRoutePhase;
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A130, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
-        case 1:
-            actor->destination.vx = D_actor_800200_8016A130[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A130[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x201) {
-                if (companion->waypointIndex == 4) {
+        case ACTOR_800200_ROUTE_TRAVEL:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A130, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
+                if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-                    _actor800200EnterRouteAnimation(arg0);
+                    _actor800200EnterRouteAnimation(task);
                     return;
                 }
                 companion->waypointIndex++;
-                _actor800200EnterRouteAnimation(arg0);
+                _actor800200EnterRouteAnimation(task);
                 return;
             }
-            mode = 6;
-            if (companion->waypointIndex == 1) {
-                mode = 5;
+            movementMode = ACTOR_800200_MOVEMENT_RUN;
+            if (companion->waypointIndex == ACTOR_800200_ROUTE_WALK_WAYPOINT) {
+                movementMode = ACTOR_800200_MOVEMENT_WALK;
             }
-            _actor800200EnterApproach(arg0, mode);
+            _actor800200EnterApproach(task, movementMode);
             return;
         default:
             return;
@@ -2396,7 +2447,7 @@ static void func_actor_800200_801649D8(Task* arg0)
 
     actor     = arg0->work;
     companion = actor->companionWork;
-    distance  = _actor800200GetContactDistance(arg0->extra.tmd->coords, companion->probe.contacts, 0);
+    distance  = _actor800200GetContactDistance(arg0->extra.tmd->coords, companion->probe.contacts, NULL);
     value     = actor->statePhase;
     one       = 1;
     switch (value) {
@@ -2623,17 +2674,17 @@ static const TaskFuncTable12 D_actor_800200_80161E5C = { {
 /// Handlers `func_actor_800200_80165CB4` runs, indexed by the low nibble of
 /// the task's `spawnArg1`.
 static const TaskFuncTable11 D_actor_800200_80161E8C = { {
-    func_actor_800200_80162750,
-    func_actor_800200_80165580,
-    func_actor_800200_80162750,
-    func_actor_800200_80162E0C,
-    func_actor_800200_80162750,
-    func_actor_800200_80162750,
-    func_actor_800200_80162750,
-    func_actor_800200_80165644,
-    func_actor_800200_80165708,
-    func_actor_800200_80165708,
-    func_actor_800200_80165708,
+    _actor800200TickFreeIdle,
+    _actor800200TickSchedule1Route,
+    _actor800200TickFreeIdle,
+    _actor800200TickSchedule3Route,
+    _actor800200TickFreeIdle,
+    _actor800200TickFreeIdle,
+    _actor800200TickFreeIdle,
+    _actor800200TickSchedule7Route,
+    _actor800200TickSchedules8To10Route,
+    _actor800200TickSchedules8To10Route,
+    _actor800200TickSchedules8To10Route,
 } };
 
 /// Handlers `func_actor_800200_80165E90` runs, indexed by `hitRegion`.
@@ -2738,14 +2789,19 @@ static void func_actor_800200_801652EC(Task* arg0)
     actor->usesPushbackDirection = 0;
 }
 
-static void func_actor_800200_80165380(Task* arg0)
+/// Enters normal behavior that follows the player with distance-dependent speed.
+///
+/// Requires live companion work/model and player. Resets the follow phase and
+/// animation controller but retains movement mode, target and route progress;
+/// the following update chooses movement and can switch to obstruction scanning.
+static void _actor800200EnterPlayerFollow(Task* task)
 {
-    GameActor* actor = arg0->work;
+    GameActor* actor = task->work;
 
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->state          = 1;
-    actor->turnRateIndex  = 0;
-    actor->animationState = 0;
+    actor->state          = ACTOR_800200_STATE_PLAYER_FOLLOW;
+    actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
+    actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
     actor->statePhase     = 0;
 }
 
@@ -2765,17 +2821,23 @@ static void _actor800200EnterTargetTurn(Task* task)
     actor->statePhase     = 0;
 }
 
-static void func_actor_800200_801653C0(Task* arg0)
+/// Stops and blends into the companion's resting behavior.
+///
+/// Requires live model and initialized child animation slots. Plays set 7 with
+/// a three-frame blend and one-shot completion tracking. The rest handler holds
+/// set 9, then plays set 8 when the player moves away or combat engages. Retains
+/// target and route progress.
+static void _actor800200EnterRest(Task* task)
 {
-    GameActor* actor = arg0->work;
+    GameActor* actor = task->work;
 
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->state          = 7;
-    actor->movementMode   = 0;
-    actor->turnRateIndex  = 0;
-    actor->animationState = 7;
+    actor->state          = ACTOR_800200_STATE_REST;
+    actor->movementMode   = ACTOR_800200_MOVEMENT_STOPPED;
+    actor->turnRateIndex  = ACTOR_800200_TURN_DISABLED;
+    actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_ONCE;
     actor->statePhase     = 0;
-    playerActorPlayChildSlotsWithBlend(arg0, 7, 0, 3);
+    playerActorPlayChildSlotsWithBlend(task, ACTOR_800200_ANIMATION_REST, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
 }
 
 /// Enters normal behavior that turns and moves toward the stored destination.
@@ -2797,7 +2859,11 @@ static void _actor800200EnterApproach(Task* task, s32 movementMode)
     actor->stateTimer     = movementMode;
 }
 
-/// Resets normal stationary behavior without changing the retained route progress.
+/// Initializes a stopped normal behavior while preserving target and route progress.
+///
+/// `actor` must be live task work. `state` is action burst (4) or timed wait (9)
+/// for the current callers. Stops movement/turning, disables animation tracking
+/// and resets only the behavior phase; callers initialize their own action data.
 static inline void _actor800200EnterStationaryState(GameActor* actor, u16 state)
 {
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
@@ -2881,204 +2947,249 @@ static void _actor800200EnterRouteAnimation(Task* task)
     playerActorPlayChildSlotsWithBlend(task, ACTOR_800200_ANIMATION_ROUTE, 0, ACTOR_800200_ENTRY_BLEND_FRAMES);
 }
 
-static void func_actor_800200_80165580(Task* arg0)
+/// Runs the current Dryfield area route for companion schedule 1.
+///
+/// Requires a live companion task/model. A completed route enters timed wait;
+/// otherwise dispatches the junk yard, garage, factory or driveway route.
+/// Area loading supplies fresh, zeroed route progress for each room.
+static void _actor800200TickSchedule1Route(Task* task)
 {
-    u8 temp_v1;
+    GameActor* actor = task->work;
+    u8         areaId;
 
-    if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
-        _actor800200EnterTimedWait(arg0, 0);
+    if (actor->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
+        _actor800200EnterTimedWait(task, 0);
         return;
     }
-    temp_v1 = gGameSession->location.loc.area;
-    switch (temp_v1) {
-        case 26:
-            _actor800200TickArea26Route(arg0);
+    areaId = gGameSession->location.loc.area;
+    switch (areaId) {
+        case GAME_AREA_DRYFIELD_JUNK_YARD:
+            _actor800200TickArea26Route(task);
             return;
-        case 24:
-            func_actor_800200_80165814(arg0);
+        case GAME_AREA_DRYFIELD_GARAGE:
+            _actor800200TickArea24Route1(task);
             return;
-        case 23:
-            _actor800200TickArea23Route1(arg0);
+        case GAME_AREA_DRYFIELD_FACTORY:
+            _actor800200TickArea23Route1(task);
             return;
-        case 25:
-            func_actor_800200_801658E0(arg0);
+        case GAME_AREA_DRYFIELD_DRIVEWAY:
+            _actor800200TickArea25Route1(task);
             return;
     }
 }
 
-static void func_actor_800200_80165644(Task* arg0)
+/// Runs the current Dryfield-night area route for companion schedule 7.
+///
+/// Requires a live companion task/model. The driveway completes immediately;
+/// factory, breezeway and water tower advance their own routes. A completed
+/// route enters timed wait; route progress starts zeroed on each area load.
+static void _actor800200TickSchedule7Route(Task* task)
 {
-    u8 temp_v1;
+    GameActor* actor = task->work;
+    u8         areaId;
 
-    if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
-        _actor800200EnterTimedWait(arg0, 0);
+    if (actor->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
+        _actor800200EnterTimedWait(task, 0);
         return;
     }
-    temp_v1 = gGameSession->location.loc.area;
-    switch (temp_v1) {
-        case 25:
-            func_actor_800200_8016599C(arg0);
+    areaId = gGameSession->location.loc.area;
+    switch (areaId) {
+        case GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY:
+            _actor800200CompleteArea25Route7(task);
             return;
-        case 23:
-            _actor800200TickArea23Route7(arg0);
+        case GAME_AREA_DRYFIELD_NIGHT_FACTORY:
+            _actor800200TickArea23Route7(task);
             return;
-        case 22:
-            _actor800200TickArea22Route(arg0);
+        case GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY:
+            _actor800200TickArea22Route(task);
             return;
-        case 20:
-            _actor800200TickArea20Route7(arg0);
+        case GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER:
+            _actor800200TickArea20Route7(task);
             return;
     }
 }
 
-static void func_actor_800200_80165708(Task* arg0)
+/// Runs the current Shelter area route for companion schedules 8, 9 and 10.
+///
+/// Requires a live companion task/model. Schedule 8 selects the Shelter/Neo Ark
+/// stage's heliport; schedule 9 selects its areas 1..5. Schedule 10 selects
+/// Mine/Shelter stage areas 15, 19, 20
+/// and 24. Area 16 has no route handler. Completed routes enter timed wait;
+/// each area load creates fresh route progress.
+static void _actor800200TickSchedules8To10Route(Task* task)
 {
-    u8 temp_v0;
+    GameActor* actor = task->work;
+    u8         areaId;
 
-    if (((GameActor*)arg0->work)->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
-        _actor800200EnterTimedWait(arg0, 0);
+    if (actor->companionWork->routeComplete == COMPANION_ROUTE_COMPLETE) {
+        _actor800200EnterTimedWait(task, 0);
         return;
     }
-    temp_v0 = gGameSession->location.loc.area;
-    switch (temp_v0) {
-        case 1:
-            _actor800200TickArea1Route(arg0);
+    areaId = gGameSession->location.loc.area;
+    switch (areaId) {
+        case GAME_AREA_SHELTER_1F_PARKING_GARAGE:
+            _actor800200TickArea1Route(task);
             return;
-        case 2:
-            _actor800200TickArea2Route(arg0);
+        case GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK:
+            _actor800200TickArea2Route(task);
             return;
-        case 3:
-            func_actor_800200_801659CC(arg0);
+        case GAME_AREA_SHELTER_1F_BULWARK:
+            _actor800200TickArea3Route(task);
             return;
-        case 4:
-            _actor800200TickArea4Route(arg0);
+        case GAME_AREA_SHELTER_1F_HELIPORT:
+            _actor800200TickArea4Route(task);
             return;
-        case 5:
-            _actor800200TickArea5Route(arg0);
+        case GAME_AREA_SHELTER_1F_AIRLOCK:
+            _actor800200TickArea5Route(task);
             return;
-        case 15:
-            func_actor_800200_80163E14(arg0);
+        case GAME_AREA_SHELTER_B1_MAIN_CORRIDOR:
+            _actor800200TickArea15Route(task);
             return;
-        case 19:
-            func_actor_800200_80163CCC(arg0);
+        case GAME_AREA_SHELTER_B1_ACCESS_TUNNEL:
+            _actor800200TickArea19Route(task);
             return;
-        case 20:
-            _actor800200TickArea20Route8To10(arg0);
+        case GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING:
+            _actor800200TickArea20Route8To10(task);
             return;
-        case 24:
-            func_actor_800200_80165ACC(arg0);
+        case GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL:
+            _actor800200TickArea24Route10(task);
             return;
     }
 }
 
-static void func_actor_800200_80165814(Task* arg0)
+/// Runs to the single Dryfield-garage stop for companion schedule 1.
+///
+/// Requires a live model and waypoint index zero, supplied by area spawning.
+/// Retains current Y and runs until within 1024 planar game units, then latches
+/// completion and enters timed wait. Keeps the original index-2 walk override,
+/// although normal area initialization and this handler never select index 2.
+static void _actor800200TickArea24Route1(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    s32            arg;
+    enum { ACTOR_800200_ROUTE_WALK_OVERRIDE_INDEX = 2 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* rootCoord;
+    s32             movementMode;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
     companion = actor->companionWork;
-    if (actor->stateAux == 0) {
-        actor->destination.vx = D_actor_800200_8016A018[companion->waypointIndex].x;
-        actor->destination.vy = coord->coord.t[1];
-        actor->destination.vz = D_actor_800200_8016A018[companion->waypointIndex].z;
-        if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
+        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A018, companion->waypointIndex);
+        if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-            _actor800200EnterTimedWait(arg0, 0);
+            _actor800200EnterTimedWait(task, 0);
             return;
         }
-        arg = 6;
-        if (companion->waypointIndex == 2) {
-            arg = 5;
+        movementMode = ACTOR_800200_MOVEMENT_RUN;
+        if (companion->waypointIndex == ACTOR_800200_ROUTE_WALK_OVERRIDE_INDEX) {
+            movementMode = ACTOR_800200_MOVEMENT_WALK;
         }
-        _actor800200EnterApproach(arg0, arg);
+        _actor800200EnterApproach(task, movementMode);
     }
 }
 
-static void func_actor_800200_801658E0(Task* arg0)
+/// Runs to the single Dryfield-driveway stop for companion schedule 1.
+///
+/// Requires a live model and waypoint index zero. Retains current Y and runs
+/// until within 1024 planar game units, then latches completion and enters timed
+/// wait. Area spawning zeroes the index; this handler never advances it.
+static void _actor800200TickArea25Route1(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* rootCoord;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
     companion = actor->companionWork;
-    if (actor->stateAux == 0) {
-        actor->destination.vx = D_actor_800200_8016A040[companion->waypointIndex].x;
-        actor->destination.vy = coord->coord.t[1];
-        actor->destination.vz = D_actor_800200_8016A040[companion->waypointIndex].z;
-        if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
+        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A040, companion->waypointIndex);
+        if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-            _actor800200EnterTimedWait(arg0, 0);
+            _actor800200EnterTimedWait(task, 0);
             return;
         }
-        _actor800200EnterApproach(arg0, 6);
+        _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
     }
 }
 
-static void func_actor_800200_8016599C(Task* arg0)
+/// Completes the schedule-7 route immediately in the Dryfield-night driveway.
+///
+/// Requires live companion work/model and initialized child slots. No waypoint
+/// is read or moved to; latches completion and starts the stationary timed wait.
+static void _actor800200CompleteArea25Route7(Task* task)
 {
-    ((GameActor*)arg0->work)->companionWork->routeComplete = COMPANION_ROUTE_COMPLETE;
-    _actor800200EnterTimedWait(arg0, 0);
+    GameActor* actor = task->work;
+
+    actor->companionWork->routeComplete = COMPANION_ROUTE_COMPLETE;
+    _actor800200EnterTimedWait(task, 0);
 }
 
-static void func_actor_800200_801659CC(Task* arg0)
+/// Runs to the single Shelter 1F bulwark stop for companion schedule 9.
+///
+/// Requires a live model and waypoint index zero, supplied by area spawning.
+/// Retains current Y and runs until within 1024 planar game units. Arrival plays
+/// a route animation unless already complete; the next idle update latches
+/// completion and enters timed wait.
+static void _actor800200TickArea3Route(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
-    u32            state;
+    enum { ACTOR_800200_BULWARK_APPROACH = 0,
+           ACTOR_800200_BULWARK_COMPLETE = 1 };
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* rootCoord;
+    u32             routePhase;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    state     = actor->stateAux;
-    companion = actor->companionWork;
-    switch (state) {
-        case 0:
-            actor->destination.vx = D_actor_800200_8016A090[companion->waypointIndex].x;
-            actor->destination.vy = coord->coord.t[1];
-            actor->destination.vz = D_actor_800200_8016A090[companion->waypointIndex].z;
-            if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    actor      = task->work;
+    rootCoord  = task->extra.tmd->coords;
+    routePhase = actor->stateAux;
+    companion  = actor->companionWork;
+    switch (routePhase) {
+        case ACTOR_800200_BULWARK_APPROACH:
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A090, companion->waypointIndex);
+            if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 actor->stateAux++;
                 if (companion->routeComplete != COMPANION_ROUTE_COMPLETE) {
-                    _actor800200EnterRouteAnimation(arg0);
+                    _actor800200EnterRouteAnimation(task);
                 }
                 return;
             }
-            _actor800200EnterApproach(arg0, 6);
+            _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
             return;
-        case 1:
-            companion->routeComplete = state;
-            _actor800200EnterTimedWait(arg0, 0);
+        case ACTOR_800200_BULWARK_COMPLETE:
+            companion->routeComplete = routePhase;
+            _actor800200EnterTimedWait(task, 0);
             break;
     }
 }
 
-static void func_actor_800200_80165ACC(Task* arg0)
+/// Runs to the single Shelter B1 transfer-tunnel stop for schedule 10.
+///
+/// Requires a live model and waypoint index zero. Retains current Y and runs
+/// until within 1024 planar game units, then latches completion and plays one
+/// route animation. Area spawning zeroes the index; this handler never advances it.
+static void _actor800200TickArea24Route10(Task* task)
 {
-    GameActor*     actor;
-    CompanionWork* companion;
-    GfxCoord*      coord;
+    GameActor*      actor;
+    CompanionWork*  companion;
+    const GfxCoord* rootCoord;
 
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
     companion = actor->companionWork;
-    if (actor->stateAux == 0) {
-        actor->destination.vx = D_actor_800200_8016A128[companion->waypointIndex].x;
-        actor->destination.vy = coord->coord.t[1];
-        actor->destination.vz = D_actor_800200_8016A128[companion->waypointIndex].z;
-        if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < 0x401) {
+    if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
+        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A128, companion->waypointIndex);
+        if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
-            _actor800200EnterRouteAnimation(arg0);
+            _actor800200EnterRouteAnimation(task);
             return;
         }
-        _actor800200EnterApproach(arg0, 6);
+        _actor800200EnterApproach(task, ACTOR_800200_MOVEMENT_RUN);
     }
 }
+
+#undef ACTOR_800200_SET_ROUTE_DESTINATION
 
 static void func_actor_800200_80165B84(Task* arg0)
 {
@@ -3236,12 +3347,15 @@ static void func_actor_800200_80165FF0(Task* arg0)
     playerActorTickChildSlots(arg0);
 }
 
-/// Planar distance from the coordinate origin to a nonempty contact, or 0.
+/// Measures a recorded probe contact from an already composed coordinate origin.
 ///
-/// Distances use world units. Optional `contactZY` needs two halfwords and
-/// receives the signed coordinate bits (Z, Y). The original X, Y, Z stores
-/// deliberately retain their order, with Z overwriting X.
-static s32 _actor800200GetContactDistance(GfxCoord* coord, WorldCollisionContact* contact, u16* contactZY)
+/// Borrows one contact and reads the cached world translation without composing
+/// it. Returns planar world-game units, or zero for an empty key; a coincident
+/// contact also returns zero. Horizontal differences, their squares and their
+/// sum must fit s32. Optional `contactZY` must provide two writable
+/// halfwords and receives the signed coordinate bits as (Z, Y). The original
+/// X, Y, Z write order is retained, so Z overwrites X in the first halfword.
+static s32 _actor800200GetContactDistance(const GfxCoord* coord, const WorldCollisionContact* contact, u16* contactZY)
 {
     s32 distance;
 

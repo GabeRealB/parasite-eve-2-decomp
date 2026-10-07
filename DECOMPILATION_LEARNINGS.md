@@ -3331,7 +3331,7 @@ sb     v1, 0xD0(s1)
 
 Same reasoning as the section above, from the other side: there a wider local
 was needed to force a conversion at the assignment, here to stop the assignment
-from forcing one. `func_actor_800200_801659CC` — `u32` 100%, `u16` 94.6%, direct
+from forcing one. `_actor800200TickArea3Route` — `u32` 100%, `u16` 94.6%, direct
 field read 94.4%. Inputs: `base_4.i`
 `fa45ea1e4c43aa1c01a7cfa434352445aab61b5d698eb5bc3df6f8c3021dc0b4`,
 `base_3.i`
@@ -12006,7 +12006,7 @@ prototype) or `too few arguments` at every bare `f()` call site, which the
 already-matched callers rely on:
 
 ```
-jal   func_actor_800200_80165ACC
+jal   _actor800200TickArea24Route10
 nop                                   ← target passes no $a0 at all
 ```
 
@@ -12023,7 +12023,7 @@ have — the same mechanism as the `taskMessageDispatch` entry. A K&R *definitio
 be a prototype; here the definition is fine and only the declaration matters.
 
 `include/actors/actor_800200.h` already carried this for
-`func_actor_800200_8016599C()`; `func_actor_800200_80165ACC` is the worked
+`_actor800200CompleteArea25Route7()`; `_actor800200TickArea24Route10` is the worked
 example (matched 100% on the first typed attempt, 80.283% as the m2c seed, whose
 `M2C_ERROR` for the unset `$a0` had cost the whole `$s1` frame).
 
@@ -12032,12 +12032,12 @@ translation unit.** The worked example is the file's last function, so nothing
 downstream of it sees the prototype; unprototyping the header really is enough.
 For a function whose *definition* precedes its caller — the normal case in an
 address-ordered file, `_actor800200TickArea23Route7` (matched 100% on the first
-typed attempt at `0x80163044`) against its caller `func_actor_800200_80165644`
+typed attempt at `0x80163044`) against its caller `_actor800200TickSchedule7Route`
 (`0x80165644`) — the definition's own prototype is already in scope at the call
 and the old-style header declaration cannot undo it. The bare `f()` is a hard
 `too few arguments` again, and dropping the `void` from the header changes
-nothing. There the two options are passing `index` (what the sibling
-`func_actor_800200_80163CCC` does; `$a0` already holds it, so the call still
+nothing. There the two options are passing `task` (what the sibling
+`_actor800200TickArea19Route` does; `$a0` already holds it, so the call still
 assembles to the target's `jal` + `nop`, confirmed by the unscoped build) or a
 K&R definition from the entry above. Reading a call site's `nop` delay slot as
 proof that the target passed no argument is the trap: it only shows the argument
@@ -43828,8 +43828,8 @@ jal   f
 ```
 
 Symptom: ~99.9% with `regs=1`, object dump `move a0, zero` vs target `move a1, zero`.
-`func_actor_800200_80165644` is the example. Sibling calls of the same helper
-(`func_actor_800200_8016599C`) also pass `a1 = 0`.
+`_actor800200TickSchedule7Route` is the example. Sibling calls of the same helper
+(`_actor800200CompleteArea25Route7`) also pass `a1 = 0`.
 
 ## Keep the switch selector out of a case body: `SOFT_TOUCH_REG` on the arg
 
@@ -44743,7 +44743,7 @@ thing in leading rodata, and not enough when another GCC `.align 3` table
 follows. A still-asm jump table after it does not have that pad, so a
 forward `rodata` + `units` cut is unnecessary.
 
-`func_actor_800200_80165708`'s 24-entry table sits at overlay `0x1F4`,
+`_actor800200TickSchedules8To10Route`'s 24-entry table sits at overlay `0x1F4`,
 4-mod-8, with `jtbl_…_80162074` (still `INCLUDE_ASM`) immediately after at
 `0x254`. `rodata_head = "0x1F4"` puts `0x0..0x1F4` in `actor_800200_hdr`
 and lets unit 1's `.rodata` start at the generated table; the later
@@ -49566,7 +49566,7 @@ for the real four-argument `void playerActorPlayChildSlotsWithBlend(Task*, s32, 
 The tell is a call whose emitted argument count is one short of the prototype's
 while `$a0` has no definition between the prologue and the `jal`. Restore the
 leading argument and it matches on the first build; the matched sibling in the
-same TU (`func_actor_800200_801653C0`, `playerActorPlayChildSlotsWithBlend(index, 7, 0, 3)`)
+same TU (`_actor800200EnterRest`, `playerActorPlayChildSlotsWithBlend(task, 7, 0, 3)`)
 shows the true arity.
 
 It is not a one-off in that TU: `_actor800200EnterRouteAnimation`, the very next
@@ -75818,8 +75818,8 @@ the function itself defeated m2c — it can mean the *context* failed to parse.
 `src/actors/actor_800200/actor_800200_2.c` carried one K&R-style definition:
 
 ```c
-void func_actor_800200_8016599C(arg0)
-    Task* arg0;
+void _actor800200CompleteArea25Route7(task)
+    Task* task;
 {
 ```
 
@@ -75830,11 +75830,11 @@ re-running m2c yourself (the error is explicit):
 
 ```sh
 python3 tools/m2ctx.py src/actors/actor_800200/actor_800200_2.c
-python3 tools/m2c/m2c.py --target mipsel-gcc-c -f func_actor_800200_80165380 \
-    --context ctx.c asm/USA/actors/nonmatchings/actor_800200/actor_800200_2/func_actor_800200_80165380.s
+python3 tools/m2c/m2c.py --target mipsel-gcc-c -f _actor800200EnterPlayerFollow \
+    --context ctx.c asm/USA/actors/nonmatchings/actor_800200/actor_800200_2/_actor800200EnterPlayerFollow.s
 ```
 
-Rewriting the definition ANSI-style (`void func_actor_800200_8016599C(Task* index)`)
+Rewriting the definition ANSI-style (`void _actor800200CompleteArea25Route7(Task* task)`)
 restores m2c for the whole TU and leaves the overlay checksum unchanged — the
 parameter type is explicit in both spellings, so the compiled body is identical.
 Worth doing whenever a TU's seed is blank: it unblocks every remaining function
@@ -106318,7 +106318,7 @@ data run has to join a *neighbouring C unit's* span rather than become a unit.
 
 `actor_800200` is the worked case: `jtbl_actor_800200_80161E44` at `0x24`, then
 four dispatch tables `[0x3C, 0xCC)`, then `jtbl_80161EEC` (unmatched) and the two
-tables of the already-matched `func_actor_800200_80165708` / `_80165D44`:
+tables of the already-matched `_actor800200TickSchedules8To10Route` / `_80165D44`:
 
 ```toml
 actor_800200 = { units = ["0x1224"],
@@ -106396,7 +106396,7 @@ second argument, and the first pass (`jump_optimize (insns, 0, 0, 1)`) does not
 cross-jump at all.
 
 Consequence for reading a target: one `jal` reached from two paths does not mean
-the source called once. `func_actor_800200_80163E14` (`actor_800200`) shows a
+the source called once. `_actor800200TickArea15Route` (`actor_800200`) shows a
 single `jal _actor800200EnterRouteAnimation`, entered both by its `arrived` label
 (case 0's `< 0x401` test, and case 1's `waypointIndex == 4`) and by the `waypointIndex++`
 path, with the `routeComplete = 1` store in the `j`'s delay slot. The sibling bodies
@@ -106494,9 +106494,9 @@ sibling `_actor800200TickArea2Route` (`mode = 6; if (companion->waypointIndex ==
 "A stale `(void)` prototype can be renamed around in the scratch env" gives the
 scratch-env workaround. When the match lands, the shared header does have to get
 the real prototype and the call site does have to pass the argument - and that
-second edit is safe: in `func_actor_800200_80165580` the changed call still
+second edit is safe: in `_actor800200TickSchedule1Route` the changed call still
 compiles to `jal _actor800200TickArea23Route1` + `nop`, byte-identical to the ROM,
-because `index` is that caller's own parameter, never written, and so already
+because `task` is that caller's own parameter, never written, and so already
 lives in `$a0`; GCC drops the self-move. Check the caller's prologue for a write
 to `$a0` before assuming the same, and confirm in the built object
 (`mipsel-linux-gnu-objdump -dr <obj> | grep <callee>`) rather than trusting the
@@ -106531,13 +106531,13 @@ twins in the same overlay differ exactly here: `_actor800200TickArea23Route1` co
 materialise `2` at the store. Reach for the `s32` local only when the stored constant has no other reader
 in the arm's extended basic block.
 
-## An unsigned switch index replaces the decision tree's range check with `beqz` (func_actor_800200_80162750, 2026-09-16)
+## An unsigned switch index replaces the decision tree's range check with `beqz` (_actor800200TickFreeIdle, 2026-09-16)
 
 "`case 0: break;` is visible in the decision tree" reads a `slt`/`slti` bound test ahead of the equality
 compares as an unwritten empty case. The *shape* of that bound test also names the switch index's type,
 and getting the type wrong costs two instructions and the whole dispatch order.
 
-A four-case `switch (state) { case 0: ... case 3: ... }` on an `int` splits the range for the lowest arm
+A four-case `switch (decision) { case 0: ... case 3: ... }` on an `int` splits the range for the lowest arm
 (90.959%, `branch=6`):
 
 ```
@@ -106579,18 +106579,18 @@ same tree falls to the `GT`/`slti` split instead.
 So a `beqz` guarding the lowest case body is evidence that the *switch index* is unsigned even when every
 other value in the function is signed, and even though the value arrives via `lbu`: a `u8` index would
 instead put an `andi v1,s0,0xff` in front of each compare, and the case-0 body existing at all is what the
-`state = 0` initialiser above the `switch` says (the random tables only ever hold 1, 2 and 3).
+`decision = 0` initialiser above the `switch` says (the random tables only ever hold 1, 2 and 3).
 
 Inputs: `base_3.i` (the `u32` variant), `base_4.i`.
 
-## A call in one operand of `+` is expanded before the other: load the table row in its own statement (func_actor_800200_80162750, 2026-09-16)
+## A call in one operand of `+` is expanded before the other: load the table row in its own statement (_actor800200TickFreeIdle, 2026-09-16)
 
 "A field lhs whose rhs calls" gives `expr.c`'s `preexpand_calls` for a `MODIFY_EXPR` lhs. The same call
 sits at the `binop:` label, so *any* call inside either operand of a `+` is expanded before both operands,
 including the one written first. The seed
 
 ```c
-state = *(u8*)(D_actor_800200_80169FD0[dist] + (rand() & 0xF));
+decision = *(u8*)(D_actor_800200_80169FD0[distanceBucket] + (rand() & 0xF));
 ```
 
 expands the call first — in `.rtl` the `jal rand` is insn 128, the table's `high`/`lo_sum` 131/132 and the
@@ -106606,12 +106606,12 @@ target's stolen `lui`. Loading the row in its own statement fixes order, homes a
 100%, every penalty 0:
 
 ```c
-tbl   = D_actor_800200_80169FD0[dist];
-state = *(u8*)(tbl + (rand() & 0xF));
+decisionWeights = D_actor_800200_80169FD0[distanceBucket];
+decision = decisionWeights[rand() & ACTOR_800200_COMBAT_CHOICE_MASK];
 ```
 
 The `$s0` the target holds across the `rand` call is that row pointer: it is live across the call, so
-`global.c` gives it a callee-saved register, and the `dist` feeding it dies before the call — which is
+`global.c` gives it a callee-saved register, and the `distanceBucket` feeding it dies before the call — which is
 also why the two arms of the enclosing if/else need two variables, not one (see "One `reg/v` pseudo with
 two definitions blocks the register the target reuses"): the then-arm's bucket and the else-arm's angle
 test read as one `val` there and hard-conflict with `$v0`/`$a0` for the same reason.
@@ -106619,21 +106619,21 @@ test read as one `val` there and hard-conflict with `$v0`/`$a0` for the same rea
 Inputs: `base_6.i` (96.414%, one shared `val`), `base_7.i` (100%)
 `aa5629f93a6552506b41a95c99ce455a13da79d677e6581b5305f786028a2c84`.
 
-## A signed `/` by a power of two is the statement, not the expression, when `move a0,v0` must survive (func_actor_800200_80162750, 2026-09-16)
+## A signed `/` by a power of two is the statement, not the expression, when `move a0,v0` must survive (_actor800200TickFreeIdle, 2026-09-16)
 
 `if (x < 0) x += 0x3FF; x >>= 10;` is `expmed.c`'s signed `/ 1024` expansion (`EXACT_POWER_OF_2_OR_ZERO_P`,
 `BRANCH_COST < 3`), which is why the bias add takes its own register: `copy_to_mode_reg (op0)` for `t1`,
 then `bge`/`expand_inc`/`sra`. One statement still misses the target:
 
 ```c
-dist = playerActorPlanarLength(...) / 1024;     /* `bgez v0`, no copy: op0 is the call's result pseudo */
+distanceBucket = playerActorPlanarLength(...) / 1024;     /* `bgez v0`, no copy: op0 is the call's result pseudo */
 ```
 
 versus the two-statement form that matches:
 
 ```c
-dist  = playerActorPlanarLength(((VECTOR3*)(head - 0x10))->vx, vec->vz);
-dist /= 1024;
+distanceBucket  = playerActorPlanarLength(targetDelta->vx, targetDelta->vz);
+distanceBucket /= ACTOR_800200_COMBAT_DISTANCE_BUCKET_UNITS;
 ```
 
 ```
@@ -150494,7 +150494,7 @@ attempts; left as it was.
   its `beq` goes straight there. The 1 the compare tree needs is shared with
   the `flags = 1` store by cse on its own.
 - **`case 3: goto call;` into the then-arm of an `if`/`else` after the switch**
-  (`func_actor_800200_80162750`) is the call written in the case; first try.
+  (`_actor800200TickFreeIdle`) is the call written in the case; first try.
 - **`value = A; goto store;` into `if (value < MIN) { value = MIN; store:
   timer = value; }`** (`func_actor_800200_801647A8`) is a `static inline void`
   that stores `timer = A` and returns early, and otherwise `timer = value; if
@@ -150642,9 +150642,9 @@ constant).
   (`func_actor_800200_8016436C`: the goto went, the local stays). The `flag`
   locals of the companion route functions in the same file are the same thing.
 - **`goto fail` where the dispatch constant is live in the jumping block stays
-  a goto**: in `func_actor_800200_80163CCC`/`_80163E14` the arrival block
+  a goto**: in `_actor800200TickArea19Route`/`_actor800200TickArea15Route` the arrival block
   stores 1 and the jumping block sits in the extended basic block of the
-  `state == 1` compare, so a written-out copy reuses that register across a
+  `routePhase == 1` compare, so a written-out copy reuses that register across a
   call (`li s4,1`, as recorded for `_actor800200TickArea23Route7`); the block after the switch
   reached by `break` gets the registers right and the block order wrong.
   `_sndLoadInstallScriptBank`'s `fail` is the same with -1 (`addu v0,v0,s2`
