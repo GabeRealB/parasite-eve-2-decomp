@@ -1,3 +1,5 @@
+#include "actors/actor_450800.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -117,6 +119,13 @@ enum {
     ACTOR_450800_WALK_SLOW     = 2, // Faces the target and advances 25 units a frame
 };
 
+/// Kyle's parent-coordinate distance per travel frame in each walk mode.
+enum {
+    ACTOR_450800_KYLE_FAST_STRIDE     = 60,
+    ACTOR_450800_KYLE_BACKWARD_STRIDE = 15,
+    ACTOR_450800_KYLE_SLOW_STRIDE     = 25,
+};
+
 /// Work block of the package's Kyle Madigan actor, allocated zeroed at its
 /// full size by the actor's spawn state and kept at `Task::work`.
 ///
@@ -148,7 +157,7 @@ typedef struct {
 } _Actor450800KyleMadiganWork;
 STATIC_ASSERT_SIZEOF(_Actor450800KyleMadiganWork, 0x504);
 
-/// Spawn offset `func_actor_450800_80132108` copies into a local and hands to
+/// Spawn offset `_actor450800SpawnNurseryImpactSpark` copies into a local and hands to
 /// `effectSpawn` as the effect's position.
 static const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
 
@@ -182,10 +191,9 @@ extern EvsCommand           D_actor_450800_8013ACFC[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void func_actor_450800_80132448(Task* task);
+static void _actor450800UpdateKyleMadigan(Task* task);
 static void func_actor_450800_801327E4(Enemy* enemy, Task* task);
-static void func_actor_450800_80132868(Task* task);
-static void func_actor_450800_80132AE0(Task* task);
+static void _actor450800ExitKyleMadigan(Task* task);
 static void func_actor_450800_801332B8(Enemy* enemy, Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
@@ -196,24 +204,24 @@ static TmdSource _gActor450800KyleMadiganHandRight;
 static TmdSource _gActor450800KyleMadiganHandLeft;
 static TmdSource _gActor450800KyleMadiganGun;
 void             func_actor_450800_80132790(Task*);
-void             func_actor_450800_80132958(Task*);
+static void      _actor450800KyleMadiganAttachmentTask(Task* task);
 
-s32 func_actor_450800_80132B44(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_450800_80132BB0(Task*, s32, s32, s32);
-s32 func_actor_450800_80132CE0(Task* task, s32 msgId, ActorCommand* msg, s32);
-s32 func_actor_450800_80132D74(Task*, s32, VECTOR*, s32);
+static s32 _actor450800PlayKyleMadiganAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32 _actor450800SetKyleMadiganDrawFlags(Task* task, s32 messageId, s32 flags, s32 unusedArgument);
+s32        func_actor_450800_80132CE0(Task* task, s32 msgId, ActorCommand* msg, s32);
+static s32 _actor450800SetKyleMadiganWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
 static TmdSource _gActor450800PawnGolemBody;
 static TmdSource _gActor450800GolemBeamSword;
-s32              func_actor_450800_80133670(Task*, s32, s32, s32);
+static s32       _actor450800IgnorePawnGolemCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 void             func_actor_450800_80133264(Task*);
 
 extern AnimationPlayRequest D_actor_450800_80139560;
 extern AnimationPlayRequest D_actor_450800_80139628;
 extern AnimationPlayRequest D_actor_450800_80139894;
 extern ActorTransform       D_actor_450800_8013994C;
-void                        func_actor_450800_80131F28(s32);
-void                        func_actor_450800_80132080(void);
+static void                 _actor450800SetNurseryCaptions(s32 useNurseryCaptions);
+static void                 _actor450800EnterGrowthRoom(void);
 
 extern AnimationPlayRequest     D_actor_450800_80139458;
 extern AnimationPlayRequest     D_actor_450800_8013946C;
@@ -239,10 +247,8 @@ extern AnimationBankCopyRequest D_actor_450800_801398D8;
 extern ActorTransform           D_actor_450800_8013AE30;
 extern ActorTransform           D_actor_450800_8013AE48;
 extern ActorTransform           D_actor_450800_8013AE60;
-void                            func_actor_450800_80131F28(s32);
-void                            func_actor_450800_80132080(void);
-void                            func_actor_450800_801320E8(s32);
-void                            func_actor_450800_80132108(void);
+static void                     _actor450800SetNurseryView13SpriteHidden(s32 hidden);
+static void                     _actor450800SpawnNurseryImpactSpark(void);
 
 extern AnimationPlayRequest D_actor_450800_80139390;
 extern AnimationPlayRequest D_actor_450800_801393A4;
@@ -271,9 +277,8 @@ extern AnimationPlayRequest D_actor_450800_80139754;
 extern AnimationPlayRequest D_actor_450800_80139768;
 extern AnimationPlayRequest D_actor_450800_8013977C;
 extern AnimationPlayRequest D_actor_450800_80139790;
-void                        func_actor_450800_80131F28(s32);
 void                        func_actor_450800_80131F70(u32);
-void                        func_actor_450800_80131F98(s32);
+static void                 _actor450800StartNurseryRepeatDialogue(s32 dialogueSelector);
 
 static AnimationPackedPose _gActor450800Animation01B20Bank1[2] = {
 #include "assets/actor_450800_animation_01B20_bank1.inc"
@@ -1040,7 +1045,7 @@ ActorTransform D_actor_450800_80139934 = { { 6770, 0, 900, 0 }, { 0, -1137, 0, 0
 ActorTransform D_actor_450800_8013994C = { { 6650, 0, 401, 0 }, { 0, -1024, 0, 0 } };
 
 EvsCommand D_actor_450800_80139964[105] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
@@ -1143,7 +1148,7 @@ EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC, { .value = 25 }, { .value = 1 }, { .value = 1 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1169,12 +1174,12 @@ EvsCommand D_actor_450800_8013A33C[23] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450800_8013A564[12] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
@@ -1184,32 +1189,32 @@ EvsCommand D_actor_450800_8013A564[12] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_8013986C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450800_8013A684[10] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F98 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396C8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396DC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450800_8013A774[9] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F98 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139790 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1233,7 +1238,7 @@ EvsCommand D_actor_450800_8013A8DC[7] = {
 };
 
 EvsCommand D_actor_450800_8013A984[21] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
@@ -1252,12 +1257,12 @@ EvsCommand D_actor_450800_8013A984[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801397A4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450800_8013AB7C[16] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450800_801398D8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
@@ -1271,20 +1276,20 @@ EvsCommand D_actor_450800_8013AB7C[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139704 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450800_8013ACFC[10] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F98 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800StartNurseryRepeatDialogue }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_801396F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_80139704 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1338,7 +1343,7 @@ PadScriptVibrationSegment D_actor_450800_8013AF84[2] = {
 };
 
 EvsCommand D_actor_450800_8013AF8C[117] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_450800_8013AF68 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801398A8 }, { .value = 0 } },
@@ -1388,8 +1393,8 @@ EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_8013981C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_450800_801398E0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450800_80132108 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_801320E8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450800SpawnNurseryImpactSpark }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryView13SpriteHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_450800_8013AF70 }, { .vibrationSegments = D_actor_450800_8013AF84 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_450800_8013981C } }, { .value = 0 } },
@@ -1448,12 +1453,12 @@ EvsCommand D_actor_450800_8013AF8C[117] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450800_80132080 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450800EnterGrowthRoom }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1461,7 +1466,7 @@ EvsCommand D_actor_450800_8013BA84[20] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450800_80132080 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450800EnterGrowthRoom }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1476,7 +1481,7 @@ EvsCommand D_actor_450800_8013BA84[20] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450800_80131F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450800SetNurseryCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -2301,20 +2306,20 @@ static TmdSource _gActor450800KyleMadiganGun = {
 };
 
 TaskMessageEntry D_actor_450800_8014AC58[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_450800_80132B44 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_450800_80132BB0 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor450800PlayKyleMadiganAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor450800SetKyleMadiganDrawFlags },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_450800_80132CE0 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_450800_80132D74 },
+    { ACTOR_MESSAGE_WALK_TO, _actor450800SetKyleMadiganWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_450800_8014AC88[5] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132790, { .model = &_gActor450800KyleMadiganBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132958, { .model = &_gActor450800KyleMadiganHandLeft } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132958, { .model = &_gActor450800KyleMadiganHandRight } },
+    { { { TASK_BODY_TMD, 192 } }, _actor450800KyleMadiganAttachmentTask, { .model = &_gActor450800KyleMadiganHandLeft } },
+    { { { TASK_BODY_TMD, 192 } }, _actor450800KyleMadiganAttachmentTask, { .model = &_gActor450800KyleMadiganHandRight } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_450800_80132790, { .model = &_gActor450800Body } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132958, { .model = &_gActor450800KyleMadiganGun } },
+    { { { TASK_BODY_TMD, 192 } }, _actor450800KyleMadiganAttachmentTask, { .model = &_gActor450800KyleMadiganGun } },
 };
 
 u8 D_actor_450800_8014ACC4[124] = {
@@ -2622,7 +2627,7 @@ TaskMessageEntry gPairWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pairWalkPlay },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
     { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_450800_80133670 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor450800IgnorePawnGolemCommand },
     { ACTOR_MESSAGE_WALK_TO, _pairWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -2660,8 +2665,6 @@ u8 gPairWalkAnimParams[24] = {
 };
 
 void               func_actor_450800_80131E2C(void);
-void               func_actor_450800_80132000(void);
-void               func_actor_450800_80132028(void);
 static inline void _actor450800TintModel(Task* spawned, Task* actor);
 static void        func_actor_450800_80132160(Enemy* enemy, Task* task);
 
@@ -2700,15 +2703,24 @@ void func_actor_450800_80131E2C(void)
     }
 }
 
-/// Callback the overlay's event scripts name: a non-zero `arg0` clears
-/// `Gp_CapFile`, loads capture file 2 and hands 0x340 to `capSetTexturePage`; zero
-/// resets the capture state instead.
-void func_actor_450800_80131F28(s32 arg0)
+/// Selects the nursery scene's CAP resource and text texture, or restores defaults.
+///
+/// Nonzero `useNurseryCaptions` selects loaded data resource ordinal 2 with
+/// text at VRAM (832, 0). The resource must be loaded and writable for CAP
+/// relocation, and remain live through playback. Zero resets CAP playback
+/// state and selects the default resource and texture.
+static void _actor450800SetNurseryCaptions(s32 useNurseryCaptions)
 {
-    if (arg0 != 0) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(2);
-        capSetTexturePage(0x340, 0);
+    enum {
+        ACTOR_450800_NURSERY_CAP_RESOURCE = 2,
+        ACTOR_450800_NURSERY_TEXT_VRAM_X  = 832,
+        ACTOR_450800_NURSERY_TEXT_VRAM_Y  = 0,
+    };
+
+    if (useNurseryCaptions != 0) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(ACTOR_450800_NURSERY_CAP_RESOURCE);
+        capSetTexturePage(ACTOR_450800_NURSERY_TEXT_VRAM_X, ACTOR_450800_NURSERY_TEXT_VRAM_Y);
         return;
     }
     capReset();
@@ -2719,65 +2731,98 @@ void func_actor_450800_80131F70(u32 arg0)
     func_shelter_b6_nursery_80182D14(arg0 >> 16, arg0 & 0xFFFF);
 }
 
-/// Two call sites, not one: `capStartSequenceSlot` is written out in both arms of
-/// the outer test. The tail-call cross-jump in `jump.c` merges them only from
-/// the `jal` onward, because sched2 hoists the `a1`/`a2` setup away from the
-/// call in the first arm before that pass runs - which is why the object sets
-/// `$a1`/`$a2` twice and shares one `jal`.
+/// Starts the CAP sequence for a repeat nursery interaction.
 ///
-/// The global is an `s32` (see `func_actor_450800_80131E2C`, which increments
-/// it whole), but this arm only wants its low half, which is the `lhu`.
-void func_actor_450800_80131F98(s32 arg0)
+/// Requires the nursery CAP resource to be selected. Selector 1 uses the low
+/// half of the interaction counter plus 2; other selectors use sequence 8
+/// when the saved scene count is 2, and sequence 9 otherwise. Starts ordinary
+/// playback with variant key 0; the CAP start result is ignored.
+static void _actor450800StartNurseryRepeatDialogue(s32 dialogueSelector)
 {
-    s16 var_a0;
+    enum {
+        ACTOR_450800_DIALOGUE_FROM_INTERACTION_COUNT = 1,
+        ACTOR_450800_INTERACTION_SEQUENCE_BASE       = 2,
+        ACTOR_450800_SECOND_REPEAT_SCENE_COUNT       = 2,
+        ACTOR_450800_SECOND_REPEAT_SEQUENCE          = 8,
+        ACTOR_450800_LATER_REPEAT_SEQUENCE           = 9,
+    };
+    s16 sequenceIndex;
 
-    if (arg0 == 1) {
-        var_a0 = (u16)D_actor_450800_8013930C + 2;
-        capStartSequenceSlot(var_a0, 0, 0);
+    // Separate call sites preserve the two arms' argument setup in the binary.
+    if (dialogueSelector == ACTOR_450800_DIALOGUE_FROM_INTERACTION_COUNT) {
+        sequenceIndex = (u16)D_actor_450800_8013930C + ACTOR_450800_INTERACTION_SEQUENCE_BASE;
+        capStartSequenceSlot(sequenceIndex, 0, 0);
     } else {
-        if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) == 2) {
-            var_a0 = 8;
+        if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) == ACTOR_450800_SECOND_REPEAT_SCENE_COUNT) {
+            sequenceIndex = ACTOR_450800_SECOND_REPEAT_SEQUENCE;
         } else {
-            var_a0 = 9;
+            sequenceIndex = ACTOR_450800_LATER_REPEAT_SEQUENCE;
         }
-        capStartSequenceSlot(var_a0, 0, 0);
+        capStartSequenceSlot(sequenceIndex, 0, 0);
     }
 }
 
-void func_actor_450800_80132000(void)
+void actor450800StartNurseryCompanionDialogue(void)
 {
     evsStartScript(D_actor_450800_8013A564, EVENT_SCRIPT_HUD_HIDE_RESTORE);
 }
 
-void func_actor_450800_80132028(void)
+void actor450800PrepareNurseryKyleMadigan(void)
 {
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D3, &D_actor_450800_801397A4, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D4, &D_actor_450800_801398EC, 0);
+    enum { ACTOR_450800_NURSERY_KYLE_SCENE_ACTOR = 0 };
+
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACTOR_450800_NURSERY_KYLE_SCENE_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_450800_801397A4, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACTOR_450800_NURSERY_KYLE_SCENE_ACTOR), ACTOR_MESSAGE_PLACE, &D_actor_450800_801398EC, 0);
 }
 
-void func_actor_450800_80132080(void)
+/// Restarts play in growth room 1 through arrival 1 after the nursery scene.
+///
+/// Attract demo scene 9 suppresses the restart. Otherwise updates the live
+/// save's destination and selects sprite variant 1 before spawning the
+/// resident session-restart task; its spawn result is ignored.
+static void _actor450800EnterGrowthRoom(void)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+    enum {
+        ACTOR_450800_NURSERY_DEMO_SCENE    = 9,
+        ACTOR_450800_GROWTH_ROOM_ARRIVAL   = 1,
+        ACTOR_450800_GROWTH_ROOM           = 1,
+        ACTOR_450800_GROWTH_SPRITE_VARIANT = 1,
+        ACTOR_450800_SESSION_TASK_BANK     = 0,
+        ACTOR_450800_SESSION_RESTART_TASK  = 17,
+    };
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_450800_NURSERY_DEMO_SCENE) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B6_GROWTH_ROOM;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant                                 = 1;
-        taskSpawn(0, 0x11, 0, 0);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACTOR_450800_GROWTH_ROOM_ARRIVAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACTOR_450800_GROWTH_ROOM;
+        gDisplayState.spriteVariant                                 = ACTOR_450800_GROWTH_SPRITE_VARIANT;
+        taskSpawn(ACTOR_450800_SESSION_TASK_BANK, ACTOR_450800_SESSION_RESTART_TASK, 0, 0);
     }
 }
 
-void func_actor_450800_801320E8(s32 arg0)
+/// Forwards the script argument's low byte to the nursery's view-13 sprite visibility.
+///
+/// Requires the nursery sprite tables to be loaded. Low byte 0 shows the
+/// sprite and 1 hides it; other low-byte values leave visibility unchanged.
+static void _actor450800SetNurseryView13SpriteHidden(s32 hidden)
 {
-    shelterB6NurserySetView13SpriteHidden(arg0 & 0xFF);
+    shelterB6NurserySetView13SpriteHidden(hidden & 0xFF);
 }
 
-void func_actor_450800_80132108(void)
+/// Spawns the nursery scene's world-space impact flash and six sparks.
+///
+/// Placement is copied synchronously from a stack vector. The factory also
+/// records that vector's address, but the impact task never reads it after
+/// spawning; it uses the resulting coordinate. The flash's depth-scaled size
+/// is 512. Spawn failure is ignored.
+static void _actor450800SpawnNurseryImpactSpark(void)
 {
-    SVECTOR pos;
+    enum { ACTOR_450800_NURSERY_IMPACT_FLASH_SIZE = 512 };
+    SVECTOR worldPosition;
 
-    pos = D_actor_450800_80131E24;
-    effectSpawn(EFFECT_IMPACT_SPARK, NULL, 0x200, &pos);
+    worldPosition = D_actor_450800_80131E24;
+    effectSpawn(EFFECT_IMPACT_SPARK, NULL, ACTOR_450800_NURSERY_IMPACT_FLASH_SIZE, &worldPosition);
 }
 
 /// Gives a freshly spawned helper model the texture page and palette of the
@@ -2831,7 +2876,7 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_450800_80132868;
+    task->exitCallback               = _actor450800ExitKyleMadigan;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
@@ -2877,47 +2922,81 @@ static void func_actor_450800_80132160(Enemy* enemy, Task* task)
     work->turnFrames  = 0;
     work->gunShown    = 0;
     task->msgTable    = D_actor_450800_8014AC58;
-    func_actor_450800_80132448(task);
+    _actor450800UpdateKyleMadigan(task);
     task->state++;
 }
 
-static void func_actor_450800_80132448(Task* task)
+/// Advances one scheduled turn, narrowing the heading to its signed halfword.
+///
+/// Borrows live work and the model root after the caller's clip/countdown test.
+/// Replaces rotation at unit scale, retains translation, marks composition
+/// dirty and consumes one turn frame. Angles use 4096 units per turn.
+static inline void _actor450800StepKyleMadiganTurn(_Actor450800KyleMadiganWork* work, GfxCoord* rootCoord)
 {
-    GfxCoord*                    coord = task->extra.tmd->coords;
-    _Actor450800KyleMadiganWork* work  = task->work;
+    enum { ACTOR_450800_KYLE_TURN_ANGLE_STEP = 51 };
 
+    work->st.yaw += ACTOR_450800_KYLE_TURN_ANGLE_STEP;
+    gfxRotMatrixY(&rootCoord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->turnFrames--;
+}
+
+/// Reseeds Kyle's animation or advances one frame of his scripted travel and turn.
+///
+/// Requires a live TMD task with `_Actor450800KyleMadiganWork` and a loaded
+/// twenty-slot rig. Reset and blend requests reseed slots 1..19 and enter
+/// normal ticking without consuming travel. In ticking state, clips 2, 14
+/// and 15 consume one remaining travel frame, even when actor freezing
+/// suppresses movement. Fast, backward and slow strides are 60, -15 and 25
+/// parent-coordinate units; other modes count frames without moving.
+/// Arrival queues idle clip 13 with a ten-frame blend for the next update.
+///
+/// Clip 3 advances a nonzero turn countdown by 51/4096 of a turn per frame.
+/// This package never seeds that countdown. Slot ticking follows movement
+/// and turning; scratch/GTE requirements follow the movement and slot helpers.
+static void _actor450800UpdateKyleMadigan(Task* task)
+{
+    enum {
+        ACTOR_450800_KYLE_ANIM_TRAVEL_2     = 2,
+        ACTOR_450800_KYLE_ANIM_TURN         = 3,
+        ACTOR_450800_KYLE_ANIM_IDLE         = 13,
+        ACTOR_450800_KYLE_ANIM_TRAVEL_14    = 14,
+        ACTOR_450800_KYLE_ANIM_TRAVEL_15    = 15,
+        ACTOR_450800_KYLE_IDLE_BLEND_FRAMES = 10,
+    };
+    GfxCoord*                    rootCoord = task->extra.tmd->coords;
+    _Actor450800KyleMadiganWork* work      = task->work;
+
+    // A reseed occupies the frame; ordinary playback moves only in ticking state.
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
-        func_actor_450800_80132AE0(task);
+        PACED_WALK_BLEND_ANIM(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
     } else if (work->st.state == ACTOR_ENEMY_ANIM_RESET) {
         PACED_WALK_RESET_ANIM(task);
         work->st.state = ACTOR_ENEMY_ANIM_TICK;
     } else if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
-        if (work->st.animId == 0xE || work->st.animId == 2 || work->st.animId == 0xF) {
+        if (work->st.animId == ACTOR_450800_KYLE_ANIM_TRAVEL_14 || work->st.animId == ACTOR_450800_KYLE_ANIM_TRAVEL_2 || work->st.animId == ACTOR_450800_KYLE_ANIM_TRAVEL_15) {
             if (work->st.travel != 0) {
                 switch (work->walkMode) {
                     case ACTOR_450800_WALK_FAST:
-                        _actorMovementStepModelForward(task, 0x3C);
+                        _actorMovementStepModelForward(task, ACTOR_450800_KYLE_FAST_STRIDE);
                         break;
                     case ACTOR_450800_WALK_BACKWARD:
-                        _actorMovementStepModelForward(task, -0xF);
+                        _actorMovementStepModelForward(task, -ACTOR_450800_KYLE_BACKWARD_STRIDE);
                         break;
                     case ACTOR_450800_WALK_SLOW:
-                        _actorMovementStepModelForward(task, 0x19);
+                        _actorMovementStepModelForward(task, ACTOR_450800_KYLE_SLOW_STRIDE);
                         break;
                 }
                 if (--work->st.travel == 0) {
                     work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-                    work->blendFrames = 0xA;
-                    work->st.animId   = 0xD;
+                    work->blendFrames = ACTOR_450800_KYLE_IDLE_BLEND_FRAMES;
+                    work->st.animId   = ACTOR_450800_KYLE_ANIM_IDLE;
                 }
             }
         }
-        if (work->st.animId == 3 && work->turnFrames != 0) {
-            work->st.yaw += 0x33;
-            gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->turnFrames--;
+        if (work->st.animId == ACTOR_450800_KYLE_ANIM_TURN && work->turnFrames != 0) {
+            _actor450800StepKyleMadiganTurn(work, rootCoord);
         }
         _pacedWalkTickAnim(task);
     }
@@ -2931,7 +3010,7 @@ void func_actor_450800_80132790(Task* task)
 }
 
 #define walkerFrame  func_actor_450800_801327E4
-#define walkerUpdate func_actor_450800_80132448
+#define walkerUpdate _actor450800UpdateKyleMadigan
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
@@ -2939,10 +3018,17 @@ void func_actor_450800_80132790(Task* task)
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-static void func_actor_450800_80132868(Task* task)
+/// Releases Kyle's enemy and actor task, then kills the two hands and gun tasks.
+///
+/// Requires a live enemy at `spawnArg2.pointer` and all three helper tasks.
+/// The retained teardown order reads the helper pointers from the freed
+/// `_Actor450800KyleMadiganWork`; those reads depend on its released storage
+/// remaining intact until the helper kills finish.
+static void _actor450800ExitKyleMadigan(Task* task)
 {
     _Actor450800KyleMadiganWork* work = task->work;
 
+    // The binary frees actor work before reading its three helper pointers.
     enemyDestroy(task->spawnArg2.pointer, task);
     taskKill(work->handLeftTask);
     taskKill(work->handRightTask);
@@ -2957,37 +3043,44 @@ static void func_actor_450800_80132868(Task* task)
 #include "../../shared/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-/// State handler of one of the actor's model tasks: the spawn tick hangs this
-/// task's own coordinate frame off part `spawnArg1` of the actor's model and
-/// every later tick hands that part's world translation, dropped by 0x320 in y,
-/// to `worldCoordSetModelLighting` for the part colour matrix. The parts come from
-/// `task->parent`, the actor task that spawned this one
-/// (`func_actor_450800_80132160`, which also tests the same halfword on itself).
+/// Attaches Kyle's hand or gun model to a body part and refreshes its room lighting.
 ///
-/// The model flags are cleared only for spawn variant 1: the high half of the
-/// parent's `spawnArg1`.
-void func_actor_450800_80132958(Task* task)
+/// Requires a live parent TMD task and a valid parent coordinate index in
+/// `spawnArg1`. This package supplies part 8 for the left hand and gun, and
+/// part 12 for the right hand. Initialization borrows that coordinate until
+/// teardown; parent spawn variant 1 clears the attachment's draw flags.
+/// Later frames sample lighting 800 world-coordinate units above the body's
+/// root, rather than at the selected attachment part. The parent's composed
+/// root transform must be current before those frames run.
+static void _actor450800KyleMadiganAttachmentTask(Task* task)
 {
-    TmdObject* extra = task->extra.tmd;
-    GfxCoord*  coord = extra->coords;
-    GfxCoord*  parts = task->parent->extra.tmd->coords;
-    GfxCoord*  part  = parts + task->spawnArg1.value;
-    VECTOR     vec;
+    enum {
+        ACTOR_450800_ATTACHMENT_INITIALIZE                = 0,
+        ACTOR_450800_ATTACHMENT_LIGHT                     = 1,
+        ACTOR_450800_ATTACHMENT_CLEAR_FLAGS_SPAWN_VARIANT = 1,
+        ACTOR_450800_ATTACHMENT_LIGHT_HEIGHT              = 800,
+        ACTOR_450800_ATTACHMENT_LIGHT_COUNT               = 3,
+    };
+    TmdObject* model           = task->extra.tmd;
+    GfxCoord*  rootCoord       = model->coords;
+    GfxCoord*  bodyCoords      = task->parent->extra.tmd->coords;
+    GfxCoord*  attachmentCoord = bodyCoords + task->spawnArg1.value;
+    VECTOR     lightSamplePosition;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            if ((s16)(task->parent->spawnArg1.value >> 16) == 1) {
-                extra->flags = 0;
+        case ACTOR_450800_ATTACHMENT_INITIALIZE:
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            if ((s16)(task->parent->spawnArg1.value >> 16) == ACTOR_450800_ATTACHMENT_CLEAR_FLAGS_SPAWN_VARIANT) {
+                model->flags = 0;
             }
-            coord->parent = part;
+            rootCoord->parent = attachmentCoord;
             task->state++;
             break;
-        case 1:
-            vec.vx = parts->workm.t[0];
-            vec.vy = parts->workm.t[1] - 0x320;
-            vec.vz = parts->workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
+        case ACTOR_450800_ATTACHMENT_LIGHT:
+            lightSamplePosition.vx = bodyCoords->workm.t[0];
+            lightSamplePosition.vy = bodyCoords->workm.t[1] - ACTOR_450800_ATTACHMENT_LIGHT_HEIGHT;
+            lightSamplePosition.vz = bodyCoords->workm.t[2];
+            worldCoordSetModelLighting(model, &lightSamplePosition, 0, ACTOR_450800_ATTACHMENT_LIGHT_COUNT);
             break;
     }
 }
@@ -2996,52 +3089,62 @@ void func_actor_450800_80132958(Task* task)
 
 #include "../../shared/paced_walk_reset_anim.inc.c"
 
-static void func_actor_450800_80132AE0(Task* task)
-{
-    _Actor450800KyleMadiganWork* work;
-    s32                          i;
+#include "../../shared/paced_walk_blend_anim.inc.c"
 
-    work = task->work;
-    i    = 1;
-    do {
-        animationSeekSlotWithBlend(&work->rig.anim, i, work->st.animId, 0, work->blendFrames);
-        i++;
-    } while (i < 0x14);
-    work->st.appliedAnimId = work->st.animId;
-}
-
-/// Starts the actor's scripted animation selected by the request.
+/// Records Kyle's animation reseed request without advancing his playing slots.
 ///
-/// Rejects ids 0x1F and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 func_actor_450800_80132B44(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Both pointers are borrowed for the call. The caller must supply a loaded
+/// clip; the ID and blend duration narrow to signed halfwords. Reset leaves
+/// the prior duration intact. Clears `st.field_6`, whose role is unproven.
+static inline void _actor450800ApplyKyleMadiganAnimationRequest(_Actor450800KyleMadiganWork* work, const AnimationPlayRequest* request)
 {
-    _Actor450800KyleMadiganWork* work;
-
-    work = task->work;
-    if (args->animationId < 0x1F) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
-            work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-            work->blendFrames = args->blendFrames;
-        } else {
-            work->st.state = ACTOR_ENEMY_ANIM_RESET;
-        }
-        work->st.field_6 = 0;
-        func_actor_450800_80132448(task);
-        return 0;
+    work->st.animId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET) {
+        work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
+        work->blendFrames = request->blendFrames;
+    } else {
+        work->st.state = ACTOR_ENEMY_ANIM_RESET;
     }
-    return -1;
+    work->st.field_6 = 0;
 }
 
-/// Message handler 0x7D5 of `D_actor_450800_8014AC58`: sets `TmdObject::flags`
-/// on this actor's own model and on the hands' and the gun's at once.
+/// Immediately reseeds Kyle's non-root animation tracks from a scripted request.
 ///
-/// `arg2` bit 0 selects 0 rather than 0x80, and bit 1 ORs 4 in.
-/// `_Actor450800KyleMadiganWork::gunShown` overrides the last of them: while
-/// it is 0 the gun keeps the 0x84 handler 0x7DB's mode 2 gave it, instead of
-/// the flags just computed.
-s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Requires a live `_Actor450800KyleMadiganWork` and its loaded clips 1..30.
+/// The signed check rejects only IDs >=31; callers must exclude negative IDs
+/// and unloaded ID 0. Borrows the aligned request through dispatch without
+/// retaining it. Nonzero blend selects a buffered blend, narrowing its whole
+/// frame duration to a signed halfword; 0..2047 avoids a negative slot countdown.
+/// Reset ignores the duration. Reseeds slots 1..19, leaving the root and travel
+/// count unchanged. The bank selector, collision choice, message ID and last
+/// argument are ignored. Returns 0 after reseeding or -1 on rejection.
+static s32 _actor450800PlayKyleMadiganAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
+{
+    enum {
+        ACTOR_450800_KYLE_ANIMATION_ID_LIMIT         = 31,
+        ACTOR_450800_KYLE_ANIMATION_REQUEST_APPLIED  = 0,
+        ACTOR_450800_KYLE_ANIMATION_REQUEST_REJECTED = -1,
+    };
+    _Actor450800KyleMadiganWork* work;
+
+    work = task->work;
+    if (request->animationId < ACTOR_450800_KYLE_ANIMATION_ID_LIMIT) {
+        _actor450800ApplyKyleMadiganAnimationRequest(work, request);
+        _actor450800UpdateKyleMadigan(task);
+        return ACTOR_450800_KYLE_ANIMATION_REQUEST_APPLIED;
+    }
+    return ACTOR_450800_KYLE_ANIMATION_REQUEST_REJECTED;
+}
+
+/// Replaces draw flags on Kyle's body, hands and gun, retaining the gun's hidden latch.
+///
+/// Requires all three helper tasks and their models to be live. Bit 0 clears
+/// all model flags; without it, flags become active-draw exclusion. Bit 1 adds
+/// automatic-buffer exclusion; other request bits are ignored. A zero
+/// `gunShown` forces both exclusions on the gun regardless of the request.
+/// No buffers are allocated or freed. Message ID and last argument are ignored.
+/// Returns 0.
+static s32 _actor450800SetKyleMadiganDrawFlags(Task* task, s32 messageId, s32 flags, s32 unusedArgument)
 {
     _Actor450800KyleMadiganWork* work;
     TmdObject*                   self;
@@ -3055,7 +3158,7 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2, s32 arg3)
     handRight = work->handRightTask->extra.tmd;
     gun       = work->gunTask->extra.tmd;
 
-    if (arg2 & 1) {
+    if (flags & ACTOR_MESSAGE_PAIR_SHOW) {
         self->flags      = 0;
         handLeft->flags  = 0;
         handRight->flags = 0;
@@ -3066,7 +3169,7 @@ s32 func_actor_450800_80132BB0(Task* task, s32 arg1, s32 arg2, s32 arg3)
         handRight->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         gun->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (arg2 & 2) {
+    if (flags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
         self->flags      |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         handLeft->flags  |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         handRight->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -3112,51 +3215,55 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
     return 0;
 }
 
-/// Message handler 0x7DD of `D_actor_450800_8014AC58`, the payload's first two
-/// words being the target position: turns the actor's model to face it -- away
-/// from it in mode 1 -- and latches the per-step distance over the step count
-/// the mode selects, 60 in mode 0, 15 in mode 1 and 25 otherwise. The mode and
-/// both results are kept on the work block.
+/// Aims Kyle at a borrowed target and records the remaining travel frames.
 ///
-/// The mode store sits after the two differences on purpose. Its place in the
-/// source sets its RTL uid, and the uid is what the scheduler's ready-list
-/// tie-break compares once `-O2` has CSE'd the constant 1 into a register and
-/// every candidate carries the same priority; from before them the whole entry
-/// block comes out in a different order and on different registers.
-s32 func_actor_450800_80132D74(Task* task, s32 arg1, VECTOR* target, s32 mode)
+/// Requires a live TMD model and `_Actor450800KyleMadiganWork`. Reads only X
+/// and Z of the aligned target, in the model root parent's coordinate units;
+/// retains no pointer. Mode narrows to a signed halfword: 0 faces forward
+/// with stride 60, 1 faces away with backward stride 15, and 2 faces forward
+/// with stride 25. Other
+/// modes record the slow-stride count but the update makes no translation.
+/// Angles use 4096 units per turn and narrow to signed halfwords. The XZ
+/// distance divided by stride truncates to whole frames and narrows to a
+/// signed halfword; callers must keep the squared-distance arithmetic in range
+/// and the resulting count in 0..32767. Does not start a travel clip or dirty
+/// composition. The frame driver composes and draws the model separately.
+/// Message ID is ignored. Returns 0.
+static s32 _actor450800SetKyleMadiganWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode)
 {
     _Actor450800KyleMadiganWork* work;
     GfxCoord*                    coord;
-    s32                          dx;
-    s32                          dz;
-    s32                          steps;
-    s32                          dist;
-    s32                          angle;
+    s32                          deltaX;
+    s32                          deltaZ;
+    s32                          stride;
+    s32                          distance;
+    s32                          yaw;
 
-    coord          = task->extra.tmd->coords;
-    work           = task->work;
-    dx             = target->vx - coord->coord.t[0];
-    dz             = target->vz - coord->coord.t[2];
+    coord  = task->extra.tmd->coords;
+    work   = task->work;
+    deltaX = target->vx - coord->coord.t[0];
+    deltaZ = target->vz - coord->coord.t[2];
+    // Keep this store after the differences to preserve entry-block scheduling.
     work->walkMode = mode;
-    angle          = ratan2(dx, dz);
-    work->st.yaw   = angle;
+    yaw            = ratan2(deltaX, deltaZ);
+    work->st.yaw   = yaw;
     if (work->walkMode == ACTOR_450800_WALK_BACKWARD) {
-        work->st.yaw = angle + 0x800;
+        work->st.yaw = yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     }
-    gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
-    dist  = SquareRoot0(dx * dx + dz * dz);
-    steps = 0x19;
+    gfxRotMatrixY(&coord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
+    distance = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ);
+    stride   = ACTOR_450800_KYLE_SLOW_STRIDE;
     switch (work->walkMode) {
         case ACTOR_450800_WALK_FAST:
-            steps = 0x3C;
+            stride = ACTOR_450800_KYLE_FAST_STRIDE;
             break;
         case ACTOR_450800_WALK_BACKWARD:
-            steps = 0xF;
+            stride = ACTOR_450800_KYLE_BACKWARD_STRIDE;
             break;
         case ACTOR_450800_WALK_SLOW:
             break;
     }
-    work->st.travel = dist / steps;
+    work->st.travel = distance / stride;
     return 0;
 }
 
@@ -3179,13 +3286,7 @@ void func_actor_450800_80133264(Task* task)
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Exit callback of the enemy's task, set by its spawn handler
-/// `pairWalkSpawn`: releases the enemy slot the task was spawned
-/// for.
-void pairWalkExit(Task* task)
-{
-    enemyDestroy(task->spawnArg2.pointer, task);
-}
+#include "../../shared/pair_walk_exit.inc.c"
 
 /// Selects this overlay's private second-walker ground-shadow drawer.
 ///
@@ -3207,7 +3308,11 @@ void pairWalkExit(Task* task)
 
 #include "../../shared/pair_walk_place.inc.c"
 
-s32 func_actor_450800_80133670(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores every actor-command message delivered to the package's pawn golem.
+///
+/// The receiver and both payloads are unused; no command storage is read or
+/// retained. Returns 0 without changing the golem or its carried model.
+static s32 _actor450800IgnorePawnGolemCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
     return 0;
 }

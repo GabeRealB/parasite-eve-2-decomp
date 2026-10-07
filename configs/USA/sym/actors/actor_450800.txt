@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_450800.
-func_actor_450800_80131F28 = 0x80131F28; // type:func
+_actor450800SetNurseryCaptions = 0x80131F28; // type:func
 D_actor_450800_8014ACC4 = 0x8014ACC4; // size:0x7C defined:True
 D_actor_450800_8014AC88 = 0x8014AC88; // size:0x3C defined:True
 D_actor_450800_8014AC58 = 0x8014AC58; // size:0x30 defined:True
@@ -482,5 +482,19 @@ _pairWalkSubModelTask = 0x80133740; // type:func
 _pairWalkUpdate = 0x801330AC; // type:func
 pairWalkSpawn = 0x80132E9C; // type:func
 _pairWalkTo = 0x80133678; // type:func
-pairWalkExit = 0x8013333C; // type:func
+_pairWalkExit = 0x8013333C; // type:func
 _actorRenderDrawSecondWalkerGroundShadow = 0x80133364; // type:func
+_pacedWalkBlendAnim = 0x80132ae0; // type:func
+_actor450800UpdateKyleMadigan = 0x80132448; // type:func
+_actor450800ExitKyleMadigan = 0x80132868; // type:func
+_actor450800KyleMadiganAttachmentTask = 0x80132958; // type:func
+_actor450800StartNurseryRepeatDialogue = 0x80131f98; // type:func
+actor450800StartNurseryCompanionDialogue = 0x80132000; // type:func
+actor450800PrepareNurseryKyleMadigan = 0x80132028; // type:func
+_actor450800EnterGrowthRoom = 0x80132080; // type:func
+_actor450800SetNurseryView13SpriteHidden = 0x801320e8; // type:func
+_actor450800SpawnNurseryImpactSpark = 0x80132108; // type:func
+_actor450800PlayKyleMadiganAnimation = 0x80132b44; // type:func
+_actor450800SetKyleMadiganDrawFlags = 0x80132bb0; // type:func
+_actor450800SetKyleMadiganWalkTarget = 0x80132d74; // type:func
+_actor450800IgnorePawnGolemCommand = 0x80133670; // type:func

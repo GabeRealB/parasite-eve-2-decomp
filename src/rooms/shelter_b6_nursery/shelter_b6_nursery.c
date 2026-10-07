@@ -9,6 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor_450800.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/direction_input.h"
@@ -99,8 +100,6 @@ s32 rsin(s32);
 s32 rcos(s32);
 
 extern void func_actor_450800_80131E2C(void);
-extern void func_actor_450800_80132000(void);
-extern void func_actor_450800_80132028(void);
 
 extern UiObjectDesc D_800611E4;
 
@@ -911,7 +910,7 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
             D_shelter_b6_nursery_80187980.rec.skipScene = flag;
             taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0x19,
                                &D_shelter_b6_nursery_80187980.rec);
-            func_actor_450800_80132028();
+            actor450800PrepareNurseryKyleMadigan();
             func_shelter_b6_nursery_80182D14(0, 0);
             return 0;
         }
@@ -1001,7 +1000,7 @@ s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionReque
         func_actor_450800_80131E2C();
     }
     if (msg->actionId == 2) {
-        func_actor_450800_80132000();
+        actor450800StartNurseryCompanionDialogue();
     }
     if (msg->actionId == 3 && gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
         evsStartScriptWithSkip(D_actor_450800_8013AF8C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013BA84);

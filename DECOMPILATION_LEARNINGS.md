@@ -20882,7 +20882,7 @@ there. That is why the duplicated pair is a stable feature of the object and
 not a scheduling accident to be argued away: the two arms' argument setups are
 no longer adjacent to their `jal` when the comparison happens.
 
-`func_actor_450800_80131F98` is the worked example; the value in arm A is the
+`_actor450800StartNurseryRepeatDialogue` is the worked example; the value in arm A is the
 low half of an `s32` global the sibling function reads whole, so the `lhu` is a
 `(u16)` cast rather than a different symbol. Matching it: 43.96% as one call
 site with the value parked in `$s0`, 100% with two.
@@ -75462,7 +75462,7 @@ input `base_1.i`
 **Same cause, symptom nowhere near the signature.** The register the missing
 parameter frees does not stay free: some unrelated quantity takes it, and the
 report then looks like an allocation problem with no argument mismatch to see.
-`func_actor_450800_80132B44` seeded as `f(void* index, void* arg2)` scored 84.296%
+`_actor450800PlayKyleMadiganAnimation` seeded as `f(void* index, void* arg2)` scored 84.296%
 at `stack=3 branch=1 regs=4 insert=2 delete=2`, carrying its return value in
 `$a2` (`li $a2,-1` … `move $v0,$a2`) where the ROM has `addiu $v0,$zero,-1` and
 no exit copy. The return pseudo is live from the out-of-range branch to the
@@ -83628,7 +83628,7 @@ when the wrong register is an argument register, merging is.
 `b64957a7cf24af2473820868d18d520b76d36ad69e214f4598867c14370ec144`).
 ## m2c's two-pseudo `f(i++)` makes the argument copy an entry-block insn, one line from a `reorder` penalty
 
-**Problem.** `func_actor_450800_80132AE0` opened at 97.598% with `reorder=1` and
+**Problem.** `_pacedWalkBlendAnim` opened at 97.598% with `reorder=1` and
 exactly one differing line. The `addu $a1,$s0,$zero` that seeds the loop's
 argument was emitted one slot early — between `li $s0,1` and the `sw $ra`/`sw $s1`
 register saves — where the target has it after the saves and the
@@ -85088,7 +85088,7 @@ linker resolves the raw name and the target object's relocation carries it
 The function itself is the standard "story trigger unless the demo is running"
 shape: `if (gMcSaveData.demoScene != 9)` — 9 is the `taskSpawn` bank the
 `Gp_StrDemoWait` / `Gp_StrDemoPause` prompts key off — then arm the scene event
-byte `field_5C5` and spawn the table's task. `func_actor_450800_80132080` and
+byte `field_5C5` and spawn the table's task. `_actor450800EnterGrowthRoom` and
 `func_shelter_r36_8017D738` are the same shape with `taskSpawn` instead.
 
 Inputs: `base.i` (seed retyped to `extern TaskDesc D_8017DA00;`, 100.000% with
@@ -98096,7 +98096,7 @@ Inputs: `base_2.i`
 
 ## m2c's separate scalars for one struct local let GCC delete the stores it never reads
 
-`func_actor_450800_80132958` fills a `VECTOR` for its callee from three words of
+`_actor450800KyleMadiganAttachmentTask` fills a `VECTOR` for its callee from three words of
 one `GfxCoord`. m2c models that as three independent locals and passes the
 address of the first with a cast:
 
@@ -103206,11 +103206,11 @@ void _actor420700HeadHatTask(Task* task)
 102 unmatched actor functions call `worldCoordSetModelLighting` and 58 of them carry the
 `-0x320` drop, so this whole family is copy-and-substitute work. Matched
 carriers to read: `_actor461800ScriptedWalkerAttachmentTask` (fields score 0.95, cflow 1.00)
-and `func_actor_450800_80132958`. The copies vary in exactly two places:
+and `_actor450800KyleMadiganAttachmentTask`. The copies vary in exactly two places:
 
 * **How the actor's own model task is reached.** `D_actor_420700_8013EFE4` /
   `D_actor_461800_80143898` are `Task*` globals the shared state-0 handler
-  publishes; `func_actor_450800_80132958` uses `task->parent` instead, which
+  publishes; `_actor450800KyleMadiganAttachmentTask` uses `task->parent` instead, which
   shows in the object as `lw $v1, 0x8($a2)` rather than `lui`/`lw` of a global.
 * **The part index.** `task->spawnArg1` costs a `sll`/`addu`/`sll` multiply by
   the 0x50 `GfxCoord` stride. A **constant** index instead is a bare
@@ -122005,7 +122005,7 @@ Here `actor_450800`'s `func_actor_450800_801330AC` occupies file 0x128C..0x1444
 and the next unit began at 0x1544, so 0x1444..0x1544 became new unit `_4` (over
 `func_actor_450800_80133264`, a matched C body still sitting in `_3`) and the old
 `_4`/`_5`/`_6` became `_5`/`_6`/`_7`. `_7` did not exist, so splat created it
-holding `INCLUDE_ASM(func_actor_450800_80133670)` - a function already matched in
+holding `INCLUDE_ASM(_actor450800IgnorePawnGolemCommand)` - a function already matched in
 the file that had just been renumbered away from it.
 
 Unlike the `git mv` staleness this one is *loud*: `tools/check_lost_matches.py`
@@ -125286,7 +125286,7 @@ Inputs: scratch `nonmatchings/func_actor_450800_80132E9C-vacuum`, `base.c`
 register), `base_2.c` 100.000%. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A store the schedule never touches still picks the entry block's order and registers: its source position sets its RTL uid (func_actor_450800_80132D74, 2026-09-17)
+## A store the schedule never touches still picks the entry block's order and registers: its source position sets its RTL uid (_actor450800SetKyleMadiganWalkTarget, 2026-09-17)
 
 **Symptom.** 93.77% with `regs=20`, `insert=2`, `delete=1`, `reorder=1`, and the
 only structural difference is the entry block of a 74-insn function whose every
@@ -125345,7 +125345,7 @@ scheduler priorities the emitted order *is* the RTL order" rule: when a block's
 leftover is a permutation of independent insns plus its register homes, look for
 a statement whose position in the source is free to move.
 
-Inputs: scratch `nonmatchings/func_actor_450800_80132D74-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor450800SetKyleMadiganWalkTarget-vacuum`, `base.c`
 74.067% (m2c seed), `base_1.c` 93.773% (`regs=20`), `base_3.c` 100.000%.
 Source SHA256 `9922fe240af2f61d798981be2fe3b67923488cbd2c6362f06660e71f9b1e337d`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.

@@ -6,7 +6,7 @@
  * _pairWalkUpdate has two variants: pair_walk_update.inc.c advances the root
  * by 17 parent-coordinate units per travel tick; pair_walk_update_model.inc.c
  * advances the model root by 12. The latter carriers also include the spawn
- * and walk-to fragments and define pairWalkExit themselves.
+ * and walk-to fragments, plus the private exit callback fragment.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -66,7 +66,6 @@ static s32  _pairWalkPlace(Task* task, s32 messageId, const ActorTransform* plac
 
 void pairWalkSpawn(Enemy* enemy, Task* task);
 
-/* Defined by each package. */
-void pairWalkExit(Task* task);
+static void _pairWalkExit(Task* task);
 
 #endif /* SRC_SHARED_PAIR_WALK_H */

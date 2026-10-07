@@ -1353,12 +1353,7 @@ void func_actor_535700_80132F20(Task* task)
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Exit callback the second enemy's spawn handler installs on its task: tears
-/// down the enemy the task was spawned for.
-void pairWalkExit(Task* task)
-{
-    enemyDestroy(task->spawnArg2.pointer, task);
-}
+#include "../../shared/pair_walk_exit.inc.c"
 
 /// Selects this overlay's private second-walker ground-shadow drawer.
 ///

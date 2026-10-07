@@ -20,7 +20,7 @@ void pairWalkSpawn(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = pairWalkExit;
+    task->exitCallback               = _pairWalkExit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
