@@ -495,21 +495,30 @@ static __inline__ s16 overlayBearingXZ(SVECTOR3* p, SVECTOR3* eye)
     return ratan2(delta->vx, delta->vz);
 }
 
-/// Bearing of `p` from `eye` on the XY plane, the form the steering walk uses
-/// while the coordinate's facing column is close to vertical. The offset is
-/// staged as in `overlayBearingXZ`.
-static __inline__ s16 overlayBearingXY(SVECTOR3* p, SVECTOR3* eye)
+/// Measures the XY bearing from `origin` to `point` for actor steering.
+///
+/// Both inputs are signed 16-bit positions in the same coordinate frame and
+/// units. Returns a signed angle in 4096 units per turn: zero along +Y,
+/// positive toward +X, and zero when the XY positions coincide. Subtraction
+/// retains the full 32-bit difference; the inputs are neither changed nor
+/// retained. `point` uses the SDK vector layout, while `origin` is packed.
+///
+/// Requires an initialized, word-aligned scratch cursor with room for one
+/// `VECTOR` (16 bytes). All three offsets are staged, although only X and Y
+/// determine the angle; the vector's `pad` is untouched.
+static __inline__ s16 _actorAngleBearingXY(const SVECTOR* point, const SVECTOR3* origin)
 {
-    VECTOR* head;
+    VECTOR* scratchHead;
     VECTOR* delta;
 
-    head                         = SCRATCH_STACK_CURSOR(VECTOR);
-    delta                        = head - 1;
-    delta->vx                    = p->vx - eye->vx;
+    scratchHead                  = SCRATCH_STACK_CURSOR(VECTOR);
+    delta                        = scratchHead - 1;
+    delta->vx                    = point->vx - origin->vx;
     SCRATCH_STACK_CURSOR(VECTOR) = delta;
-    delta->vy                    = p->vy - eye->vy;
-    delta->vz                    = p->vz - eye->vz;
-    SCRATCH_STACK_CURSOR(VECTOR) = head;
+    delta->vy                    = point->vy - origin->vy;
+    delta->vz                    = point->vz - origin->vz;
+    // Read the released block before anything can reserve scratch again.
+    SCRATCH_STACK_CURSOR(VECTOR) = scratchHead;
     return ratan2(delta->vx, delta->vy);
 }
 

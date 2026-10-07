@@ -52,7 +52,7 @@ void bossStrangerAvoidContacts(BossStrangerWalker* work)
                 overlayBearingXZ((SVECTOR3*)&work->avoidRecs[s->i].point, &s->origin);
         } else {
             s->bearing[s->count] =
-                overlayBearingXY((SVECTOR3*)&work->avoidRecs[s->i].point, &s->origin);
+                _actorAngleBearingXY(&work->avoidRecs[s->i].point, &s->origin);
         }
         s->kept[s->count] = 1;
         s->count++;

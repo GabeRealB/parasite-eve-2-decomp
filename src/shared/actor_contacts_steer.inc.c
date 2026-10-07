@@ -54,7 +54,7 @@ static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldColli
         if (ABS(s->dir.vz) < 0x818) {
             s->bearing[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->origin);
         } else {
-            s->bearing[s->count] = overlayBearingXY((SVECTOR3*)&recs[s->i].point, &s->origin);
+            s->bearing[s->count] = _actorAngleBearingXY(&recs[s->i].point, &s->origin);
         }
         s->kept[s->count] = 1;
         s->count++;
