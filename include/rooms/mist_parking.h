@@ -32,7 +32,20 @@ extern SpriteView D_mist_parking_8019399C[];
 
 extern WorldCollisionSurfaceProperties* D_mist_parking_801952F0[];
 
-void func_mist_parking_80183BAC(s32 arg0);
+/// Placement choices for the collision patch controlled with Pierce's visibility.
+enum {
+    MIST_PARKING_PIERCE_PATCH_RESTORED = 0,
+    MIST_PARKING_PIERCE_PATCH_LOWERED  = 1
+};
+
+/// Restores Pierce's collision patch, optionally lowering it by 2000 world Y units.
+///
+/// Zero restores its original position; every nonzero `lowerPatch` applies the
+/// positive Y offset. Re-copies two normals/faces and six XYZ vertices into the
+/// live room grid before translating, so repeated calls never accumulate offsets.
+/// Vector fourth halfwords, the rest of the grid and its cell table are untouched.
+/// Requires the mist_parking overlay and its writable live grid to remain loaded.
+void mistParkingSetPierceCollisionPatchLowered(s32 lowerPatch);
 
 void func_mist_parking_80181468(Task* task);
 

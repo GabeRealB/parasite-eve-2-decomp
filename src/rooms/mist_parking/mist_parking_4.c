@@ -6,6 +6,7 @@
 #include "types.h"
 
 #include "mist_parking_private.h"
+#include "mist_parking_head_aim.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
@@ -34,7 +35,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-void              func_mist_parking_801846A4(s32 arg0);
+static void       _mistParkingSelectShopDialogueResource(s32 resourceOrdinal);
 extern EvsCommand D_mist_parking_80190C74[];
 extern EvsCommand D_mist_parking_80190D64[];
 extern EvsCommand D_mist_parking_80190E84[];
@@ -42,11 +43,11 @@ extern EvsCommand D_mist_parking_80191034[];
 
 extern s8 D_mist_parking_801908C8[];
 
-void func_mist_parking_80183D58(Task*);
-void func_mist_parking_80183EAC(Task*);
-void func_mist_parking_801842DC(Task*);
-void func_mist_parking_8018451C(Task*);
-void func_mist_parking_80184668(Task*);
+static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task);
+void        func_mist_parking_80183EAC(Task*);
+void        func_mist_parking_801842DC(Task*);
+void        func_mist_parking_8018451C(Task*);
+static void _mistParkingDelayShopDisplayModeExitTask(Task* task);
 
 extern AnimationPlayRequest D_mist_parking_801908A0;
 extern AnimationPlayRequest D_mist_parking_801908B4;
@@ -55,19 +56,25 @@ extern AnimationPlayRequest D_mist_parking_801909F8;
 extern ActorCommand         D_mist_parking_80190BA4;
 extern ActorCommand         D_mist_parking_80190BA8;
 
-void func_mist_parking_80184408(s32);
-void func_mist_parking_80184428(s32);
-void func_mist_parking_80184468(s32);
-void func_mist_parking_801844EC(void);
-void func_mist_parking_8018459C(void);
-void func_mist_parking_801845D0(s32);
-void func_mist_parking_80184624(s32);
-void func_mist_parking_801846A4(s32);
+void        func_mist_parking_80184408(s32);
+void        func_mist_parking_80184428(s32);
+void        func_mist_parking_80184468(s32);
+void        func_mist_parking_801844EC(void);
+void        func_mist_parking_8018459C(void);
+static void _mistParkingControlShopPlayerHeadAim(s32 mode);
+void        func_mist_parking_80184624(s32);
+
+/// Ordinals of the already-loaded CAP resources used by the variant-1 talks.
+enum {
+    MIST_PARKING_SHOP_DIALOGUE_DEFAULT = 0,
+    MIST_PARKING_SHOP_DIALOGUE_MENU    = 1,
+    MIST_PARKING_SHOP_DIALOGUE_PRIZES  = 2
+};
 
 TaskDesc D_mist_parking_80190824[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018451C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_mist_parking_80183D58, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80184668, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _mistParkingAimPlayerHeadAtShopPartnerTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingDelayShopDisplayModeExitTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80183EAC, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801842DC, { .value = 0 } },
 };
@@ -300,7 +307,7 @@ EvsCommand D_mist_parking_80190D64[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_801909F8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_801845D0 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingControlShopPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908B4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_80190BA8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -321,7 +328,7 @@ EvsCommand D_mist_parking_80190E84[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_801846A4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectShopDialogueResource }, { .value = MIST_PARKING_SHOP_DIALOGUE_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184428 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -344,77 +351,89 @@ EvsCommand D_mist_parking_80191034[12] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-void func_mist_parking_80183BAC(s32 arg0)
+void mistParkingSetPierceCollisionPatchLowered(s32 lowerPatch)
 {
-    WorldCollisionGrid* dst;
-    WorldCollisionGrid* src;
-    SVECTOR             d;
-    s32                 i;
+    enum {
+        MIST_PARKING_PIERCE_PATCH_FACE_COUNT   = 2,
+        MIST_PARKING_PIERCE_PATCH_VERTEX_COUNT = 6,
+        MIST_PARKING_PIERCE_PATCH_LOWER_Y      = 2000
+    };
+    WorldCollisionGrid*       liveGrid;
+    const WorldCollisionGrid* sourcePatch;
+    SVECTOR                   translation;
+    s32                       elementIndex;
 
-    dst = &D_mist_parking_80192204;
-    src = &D_mist_parking_8018FCB8;
+    liveGrid    = &D_mist_parking_80192204;
+    sourcePatch = &D_mist_parking_8018FCB8;
 
-    for (i = 0; i < 2; i++) {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
+    // Rebuild the reserved grid prefix without overwriting vector fourth halfwords.
+    for (elementIndex = 0; elementIndex < MIST_PARKING_PIERCE_PATCH_FACE_COUNT; elementIndex++) {
+        liveGrid->normals[elementIndex].vx = sourcePatch->normals[elementIndex].vx;
+        liveGrid->normals[elementIndex].vy = sourcePatch->normals[elementIndex].vy;
+        liveGrid->normals[elementIndex].vz = sourcePatch->normals[elementIndex].vz;
+        liveGrid->faces[elementIndex]      = sourcePatch->faces[elementIndex];
     }
 
-    for (i = 0; i < 6; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
+    for (elementIndex = 0; elementIndex < MIST_PARKING_PIERCE_PATCH_VERTEX_COUNT; elementIndex++) {
+        liveGrid->vertices[elementIndex].vx = sourcePatch->vertices[elementIndex].vx;
+        liveGrid->vertices[elementIndex].vy = sourcePatch->vertices[elementIndex].vy;
+        liveGrid->vertices[elementIndex].vz = sourcePatch->vertices[elementIndex].vz;
     }
 
-    if (arg0 == 0) {
-        d.vx = 0;
-        d.vy = 0;
+    if (lowerPatch == MIST_PARKING_PIERCE_PATCH_RESTORED) {
+        translation.vx = 0;
+        translation.vy = 0;
     } else {
-        d.vx = 0;
-        d.vy = 0x7D0;
+        translation.vx = 0;
+        translation.vy = MIST_PARKING_PIERCE_PATCH_LOWER_Y;
     }
-    d.vz = 0;
+    translation.vz = 0;
 
-    for (i = 0; i < 6; i++) {
-        dst->vertices[i].vx += d.vx;
-        dst->vertices[i].vy += d.vy;
-        dst->vertices[i].vz += d.vz;
+    /// Translates the restored six-vertex prefix in world-coordinate units.
+    ///
+    /// Captures liveGrid and translation and resets/advances elementIndex to six.
+    /// Takes no arguments; XYZ additions retain 16 bits and fourth halfwords stay intact.
+#define MIST_PARKING_TRANSLATE_PIERCE_PATCH()                                                       \
+    for (elementIndex = 0; elementIndex < MIST_PARKING_PIERCE_PATCH_VERTEX_COUNT; elementIndex++) { \
+        liveGrid->vertices[elementIndex].vx += translation.vx;                                      \
+        liveGrid->vertices[elementIndex].vy += translation.vy;                                      \
+        liveGrid->vertices[elementIndex].vz += translation.vz;                                      \
     }
+    MIST_PARKING_TRANSLATE_PIERCE_PATCH();
+#undef MIST_PARKING_TRANSLATE_PIERCE_PATCH
 }
 
-void func_mist_parking_80183D58(Task* task)
+/// Ramps the player's head aim toward the variant-1 shop/departure talk partner.
+///
+/// State 0 updates; every other state releases the task. Event-script suspension
+/// pauses both paths. A nonzero `spawnArg1.value` forces aiming; otherwise slot
+/// 1's next animation selects flags at extension indices 1..3. Other indices
+/// disable animation aim. `killCountdown` starts at zero and stores a 1/4096
+/// blend clamped to 0..4096, stepped by 256 per active callback. Requires live
+/// player work, the installed four-word extension bank and the stage/area's
+/// index-zero partner, both with the expected head-joint model layout.
+static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task)
 {
-    GameActor* actor;
-    Enemy*     enemy;
-    s32        idx;
-    s32        flag;
-    u16        tick;
+    const GameActor* player;
+    Enemy*           talkPartner;
+    s32              extensionIndex;
+    s32              animationRequestsAim;
 
-    actor = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     if (D_801156F9 == 0) {
-        idx = actor->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
-        if ((idx > 0) && (idx < D_mist_parking_80190870.wordCount)) {
-            flag = D_mist_parking_801908C8[idx];
+        // Extension index zero has no aim flag; the copied bank bounds the lookup.
+        extensionIndex = player->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
+        if ((extensionIndex > 0) && (extensionIndex < D_mist_parking_80190870.wordCount)) {
+            animationRequestsAim = D_mist_parking_801908C8[extensionIndex];
         } else {
-            flag = 0;
+            animationRequestsAim = 0;
         }
-        if (task->state == 0) {
-            if ((flag != 0) || (task->spawnArg1.value != 0)) {
-                tick                = task->killCountdown + 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick >= 0x1001) {
-                    task->killCountdown = 0x1000;
-                }
-            } else {
-                tick                = task->killCountdown - 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick < 0) {
-                    task->killCountdown = 0;
-                }
-            }
-            enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x200, 0x100, task->killCountdown);
+        if (task->state == MIST_PARKING_HEAD_AIM_UPDATE) {
+            _mistParkingRampPlayerHeadAimBlend(task, animationRequestsAim);
+            // Placement index zero supplies the talk partner for this stage and area.
+            talkPartner = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), talkPartner->task,
+                                   MIST_PARKING_HEAD_AIM_MAX_YAW, MIST_PARKING_HEAD_AIM_MAX_PITCH, task->killCountdown);
         } else {
             taskKill(task);
         }
@@ -434,7 +453,7 @@ void func_mist_parking_80183EAC(Task* task)
     switch (task->state) {
         case 0:
             memFillBytes(talk, 0, sizeof(*talk));
-            func_mist_parking_801846A4(1);
+            _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_MENU);
             evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
             capRunCommand(6, CAP_PLAYBACK_IN_PLACE);
             task->state++;
@@ -455,7 +474,7 @@ void func_mist_parking_80183EAC(Task* task)
             task->state = 6;
             break;
         case 2:
-            func_mist_parking_801846A4(2);
+            _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_PRIZES);
             evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
             capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
             talk->businessDone = 1;
@@ -520,7 +539,7 @@ void func_mist_parking_80183EAC(Task* task)
             tick                = task->killCountdown + 1;
             task->killCountdown = tick;
             if ((s16)tick == 0xA) {
-                func_mist_parking_801846A4(1);
+                _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_MENU);
                 capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
                 task->killCountdown = 0;
                 task->state++;
@@ -580,7 +599,7 @@ void func_mist_parking_80183EAC(Task* task)
             break;
         case 10:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            func_mist_parking_801846A4(0);
+            _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_DEFAULT);
             taskKill(task);
             break;
     }
@@ -592,7 +611,7 @@ void func_mist_parking_801842DC(Task* task)
 
     switch (task->state) {
         case 0:
-            func_mist_parking_801846A4(1);
+            _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_MENU);
             evsStartScript(D_mist_parking_80190C74, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
@@ -623,7 +642,7 @@ void func_mist_parking_801842DC(Task* task)
             if (task->spawnArg1.value == 1) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
-            func_mist_parking_801846A4(0);
+            _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_DEFAULT);
             taskKill(task);
             break;
     }
@@ -681,19 +700,22 @@ void func_mist_parking_8018459C(void)
     D_mist_parking_8019532C.task = taskSpawnFromTable(D_mist_parking_80190824, 1, 0, 0);
 }
 
-/// Hands `phase` (0 or 1) to the task in `D_mist_parking_8019532C.task` as its
-/// `spawnArg1`; any other value kills the task and drops the handle.
-void func_mist_parking_801845D0(s32 phase)
+/// Controls the existing head-aim task used by the variant-1 conversations.
+///
+/// FOLLOW_ANIMATION selects animation-driven aiming, FORCE keeps it enabled;
+/// every other mode kills the task and clears its handle. A non-NULL handle
+/// must refer to a live task. Does nothing when absent and never spawns a task.
+static void _mistParkingControlShopPlayerHeadAim(s32 mode)
 {
-    Task* t = D_mist_parking_8019532C.task;
+    Task* task = D_mist_parking_8019532C.task;
 
-    if (t == NULL) {
+    if (task == NULL) {
         return;
     }
-    switch (phase) {
-        case 0:
-        case 1:
-            t->spawnArg1.value = phase;
+    switch (mode) {
+        case MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION:
+        case MIST_PARKING_HEAD_AIM_FORCE:
+            task->spawnArg1.value = mode;
             break;
         default:
             taskKill(D_mist_parking_8019532C.task);
@@ -707,31 +729,49 @@ void func_mist_parking_80184624(s32 arg0)
     displayQueueModeTask(taskGetDescAt(D_mist_parking_80190824, 2U), arg0, 0, STAGE_ENTRY_RELOAD);
 }
 
-void func_mist_parking_80184668(Task* arg0)
+/// Counts down callback ticks before releasing the variant-1 talk's display mode.
+///
+/// `spawnArg1.value` is a signed word, decremented before testing. An initial
+/// nonnegative N exits on callback N + 1. Requires a live modal task; teardown
+/// precedes the mode-exit request, and no work or body is allocated by this callback.
+static void _mistParkingDelayShopDisplayModeExitTask(Task* task)
 {
-    s32 temp_v0;
+    s32 ticksLeft;
 
-    temp_v0               = arg0->spawnArg1.value - 1;
-    arg0->spawnArg1.value = temp_v0;
-    if (temp_v0 < 0) {
-        taskKill(arg0);
+    ticksLeft             = task->spawnArg1.value - 1;
+    task->spawnArg1.value = ticksLeft;
+    if (ticksLeft < 0) {
+        taskKill(task);
         stageRequestModeTaskExit();
     }
 }
 
-void func_mist_parking_801846A4(s32 arg0)
+/// Selects already-loaded CAP data and its font page for the variant-1 conversations.
+///
+/// Resets CAP first: ordinal 1 selects the shop/departure menu, 2 the prizes,
+/// and every other value retains the default selected by reset. Playback must
+/// have stopped; bundle CAP data and font images must already be loaded and
+/// remain live through their use. No files are loaded and no resource is owned.
+static void _mistParkingSelectShopDialogueResource(s32 resourceOrdinal)
 {
+    enum {
+        MIST_PARKING_SHOP_MENU_FONT_VRAM_X  = 320,
+        MIST_PARKING_SHOP_MENU_FONT_VRAM_Y  = 256,
+        MIST_PARKING_SHOP_PRIZE_FONT_VRAM_X = 704,
+        MIST_PARKING_SHOP_PRIZE_FONT_VRAM_Y = 0
+    };
+
     capReset();
-    switch (arg0) {
-        case 1:
-            Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x140, 0x100);
+    switch (resourceOrdinal) {
+        case MIST_PARKING_SHOP_DIALOGUE_MENU:
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(MIST_PARKING_SHOP_DIALOGUE_MENU);
+            capSetTexturePage(MIST_PARKING_SHOP_MENU_FONT_VRAM_X, MIST_PARKING_SHOP_MENU_FONT_VRAM_Y);
             break;
-        case 2:
-            Gp_CapFile = 0;
-            capSelectLoadedFile(2);
-            capSetTexturePage(0x2C0, 0);
+        case MIST_PARKING_SHOP_DIALOGUE_PRIZES:
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(MIST_PARKING_SHOP_DIALOGUE_PRIZES);
+            capSetTexturePage(MIST_PARKING_SHOP_PRIZE_FONT_VRAM_X, MIST_PARKING_SHOP_PRIZE_FONT_VRAM_Y);
             break;
     }
 }

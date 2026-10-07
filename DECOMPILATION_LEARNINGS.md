@@ -38610,7 +38610,7 @@ what made `s16` look right.
 ## An extra callee-saved copy of an argument means the parameter is `s32`, not `u8`
 
 The complement of the `sll/sra 0x10` entry above: here the widening is *invisible*,
-and the tell is register pressure. `func_mist_parking_80182750` conditionally adds
+and the tell is register pressure. `_mistParkingSelectChapterRoom` conditionally adds
 2 to its argument and then stores it with `sb`, so `u8` looked like the obvious
 parameter type. GCC 2.8.1 then keeps the incoming SImode argument and the QImode
 result as two pseudos that never coalesce, costing a second callee-saved register
@@ -51295,25 +51295,25 @@ the global (`lui $s0` in the first branch's delay slot, `lw` at the label)
 rather than keeping the first load live across both paths:
 
 ```c
-Task* t = D_mist_parking_8019532C;
+Task* task = D_mist_parking_8019532C.task;
 
-if (t == NULL) {
+if (task == NULL) {
     return;
 }
-if (arg0 >= 2) {
+if (mode >= 2) {
     goto kill;
 }
-if (arg0 < 0) {
+if (mode < 0) {
     goto kill;
 }
-t->spawnArg1 = arg0;
+task->spawnArg1.value = mode;
 return;
 kill:
-    taskKill(D_mist_parking_8019532C);
-    D_mist_parking_8019532C = NULL;
+    taskKill(D_mist_parking_8019532C.task);
+    D_mist_parking_8019532C.task = NULL;
 ```
 
-`func_mist_parking_801845D0` matched on the first attempt with this shape after
+`_mistParkingControlShopPlayerHeadAim` matched on the first attempt with this shape after
 the `&&` form scored 52%. Six other room/actor overlays carry the same body, but
 each references its own overlay's task pointer, so it cannot be promoted to a
 shared unit.
@@ -51559,7 +51559,7 @@ if (flag != 0) { ... }
 
 The target's `lb` says the original stored the byte in a **word** local, so the
 extension had to happen at the load. Widen the local to `s32` (or `s16`); do not
-add a cast, which folds away again. `func_mist_parking_80183D58`, the last
+add a cast, which folds away again. `_mistParkingAimPlayerHeadAtShopPartnerTask`, the last
 instruction of the function.
 
 ## Keep an allocation's null test on `$v0` so `move sN,v0` fills the delay slot

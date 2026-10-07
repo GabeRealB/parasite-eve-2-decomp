@@ -7,6 +7,7 @@
 #include "common.h"
 
 #include "mist_parking_private.h"
+#include "mist_parking_head_aim.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
@@ -143,12 +144,12 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xE2"
 #include "../../shared/shop.h"
 
-s32  func_mist_parking_801823F8(Task*, s32, s32, s32);
-s32  func_mist_parking_801826B8(Task*, s32, s32, s32);
-s32  func_mist_parking_801826C0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
-void func_mist_parking_80182750(s32);
-void func_mist_parking_801827A0(s32);
+s32         func_mist_parking_801823F8(Task*, s32, s32, s32);
+static s32  _mistParkingRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32  _mistParkingCopyRoomEventReply(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+s32         func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
+static void _mistParkingSelectChapterRoom(s32 roomId);
+void        func_mist_parking_801827A0(s32);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -189,9 +190,9 @@ static AnimationSet _gMistParkingAnimation095D0 = {
 // Message-table callbacks use the argument views required by this TU.
 
 TaskMessageEntry D_mist_parking_80186BB8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_parking_801826C0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mistParkingCopyRoomEventReply },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_parking_801826E8 },
-    { 5105, func_mist_parking_801826B8 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mistParkingRefuseKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_mist_parking_801823F8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -221,7 +222,7 @@ EvsCommand D_mist_parking_80186C5C[15] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_parking_80186BE0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80182750 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectChapterRoom }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -237,7 +238,7 @@ EvsCommand D_mist_parking_80186DC4[13] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_parking_80186BF8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80182750 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectChapterRoom }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -944,7 +945,7 @@ extern EvsCommand D_mist_parking_80186EFC[];
 
 static void func_mist_parking_801827C0(Task* arg0);
 
-static void func_mist_parking_80182888(Task* task);
+static void _mistParkingIdleRoomState(Task* task);
 
 extern TaskMessageEntry D_mist_parking_80186BB8[5];
 
@@ -1031,24 +1032,28 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 static const TaskFuncTable3 D_mist_parking_8017D7DC = {
     {
         func_mist_parking_801827C0,
-        func_mist_parking_80182888,
+        _mistParkingIdleRoomState,
         taskKill,
     },
 };
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// Handler that answers 0.
-s32 func_mist_parking_801826B8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request without changing the room or inventory.
+///
+/// All arguments are ignored; returns `ROOM_KEY_ITEM_USE_REFUSED` to the item menu.
+static s32 _mistParkingRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Message handler that copies the location record it is given onto the
-/// reply record and answers 1.
-s32 func_mist_parking_801826C0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Accepts a room-transition request with its destination selectors unchanged.
+///
+/// Copies the complete eight-byte request into the reply and returns 1.
+/// Both pointers must be live and may alias. The receiver and message ID are ignored.
+static s32 _mistParkingCopyRoomEventReply(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
+    *reply = *request;
     return 1;
 }
 
@@ -1064,13 +1069,19 @@ s32 func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* re
     return 1;
 }
 
-void func_mist_parking_80182750(s32 arg0)
+/// Selects the parking room for the current story chapter and requests its objects again.
+///
+/// The scripts supply room 1 or 2. A nonzero chapter selects rooms 3 or 4;
+/// both the live session and saved location receive the low byte of the result.
+static void _mistParkingSelectChapterRoom(s32 roomId)
 {
+    enum { MIST_PARKING_LATER_CHAPTER_ROOM_OFFSET = 2 };
+
     if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
-        arg0 += 2;
+        roomId += MIST_PARKING_LATER_CHAPTER_ROOM_OFFSET;
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
-    gGameSession->location.loc.room                            = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomId;
+    gGameSession->location.loc.room                            = roomId;
     gGameSession->roomObjsDirty                                = 1;
 }
 
@@ -1096,10 +1107,12 @@ static void func_mist_parking_801827C0(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// The empty per-frame state of `D_mist_parking_8017D7DC`.
-static void func_mist_parking_80182888(Task* task)
+/// Keeps the room's message receiver alive between setup and teardown.
+///
+/// The otherwise empty callback retains its original 16-byte stack frame.
+static void _mistParkingIdleRoomState(Task* task)
 {
-    char pad[0x10];
+    char stackReservation[0x10];
 }
 
 /// Runs the handler for the task's state from a stack copy of
@@ -1112,38 +1125,28 @@ void func_mist_parking_80182898(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_mist_parking_801828F0(Task* task)
+void mistParkingAimPlayerHeadAtTalkPartnerTask(Task* task)
 {
-    GameActor* actor;
-    Enemy*     enemy;
-    s32        idx;
-    s32        flag;
-    u16        tick;
+    const GameActor* player;
+    Enemy*           talkPartner;
+    s32              extensionIndex;
+    s32              animationRequestsAim;
 
-    actor = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     if (D_801156F9 == 0) {
-        idx = actor->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
-        if ((idx > 0) && (idx < D_mist_parking_8018D82C.wordCount)) {
-            flag = D_mist_parking_8018DA28[idx];
+        // Extension index zero has no aim flag; the copied bank bounds the lookup.
+        extensionIndex = player->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
+        if ((extensionIndex > 0) && (extensionIndex < D_mist_parking_8018D82C.wordCount)) {
+            animationRequestsAim = D_mist_parking_8018DA28[extensionIndex];
         } else {
-            flag = 0;
+            animationRequestsAim = 0;
         }
-        if (task->state == 0) {
-            if ((flag != 0) || (task->spawnArg1.value != 0)) {
-                tick                = task->killCountdown + 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick >= 0x1001) {
-                    task->killCountdown = 0x1000;
-                }
-            } else {
-                tick                = task->killCountdown - 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick < 0) {
-                    task->killCountdown = 0;
-                }
-            }
-            enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
-            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x200, 0x100, task->killCountdown);
+        if (task->state == MIST_PARKING_HEAD_AIM_UPDATE) {
+            _mistParkingRampPlayerHeadAimBlend(task, animationRequestsAim);
+            // Placement index zero supplies the talk partner for this stage and area.
+            talkPartner = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), talkPartner->task,
+                                   MIST_PARKING_HEAD_AIM_MAX_YAW, MIST_PARKING_HEAD_AIM_MAX_PITCH, task->killCountdown);
         } else {
             taskKill(task);
         }

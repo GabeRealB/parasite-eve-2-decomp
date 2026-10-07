@@ -48,11 +48,11 @@ extern s32        D_mist_parking_8018FBFC[];
 extern s32        D_mist_parking_8018FC10[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
-static void func_mist_parking_801833F8(Task* task);
+static void _mistParkingWaitOptionDialogAnswer(Task* task);
 
 static void func_mist_parking_801830F8(Task* task);
 static void func_mist_parking_80183304(Task* task);
-static void func_mist_parking_80183434(Task* arg0);
+static void _mistParkingExitOptionDialogTask(Task* task);
 
 /// State handlers of the same shape for a task that attaches a model to a
 /// parent's part and then idles; nothing in the room reads this table.
@@ -67,8 +67,8 @@ static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
 static const TaskFuncTable3 D_mist_parking_8017D7F4 = {
     {
         func_mist_parking_80183304,
-        func_mist_parking_801833F8,
-        func_mist_parking_80183434,
+        _mistParkingWaitOptionDialogAnswer,
+        _mistParkingExitOptionDialogTask,
     },
 };
 
@@ -79,13 +79,16 @@ extern AnimationPlayRequest D_mist_parking_8018DEB0;
 extern AnimationPlayRequest D_mist_parking_8018DEC4;
 extern AnimationPlayRequest D_mist_parking_8018DED8;
 
-void func_mist_parking_80182A44(Task*);
-void func_mist_parking_80182F60(Task*);
-void func_mist_parking_80183100(s32);
-void func_mist_parking_8018312C(s32);
-void func_mist_parking_8018316C(s32);
-void func_mist_parking_801831F0(s32);
-void func_mist_parking_8018326C(s32);
+void        func_mist_parking_80182A44(Task*);
+void        func_mist_parking_80182F60(Task*);
+void        func_mist_parking_80183100(s32);
+void        func_mist_parking_8018312C(s32);
+void        func_mist_parking_8018316C(s32);
+void        func_mist_parking_801831F0(s32);
+static void _mistParkingReleaseCutsceneModel(s32 descriptorIndex);
+
+/// Descriptor selected by the arrival conversation's model-release callback.
+enum { MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX = 0 };
 void func_mist_parking_801832AC(Task*);
 void func_mist_parking_801834D4(Task*);
 void func_mist_parking_8018354C(void);
@@ -97,7 +100,7 @@ TaskDesc D_mist_parking_8018D75C[9] = {
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801832AC, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018345C, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018357C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_mist_parking_801828F0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, mistParkingAimPlayerHeadAtTalkPartnerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, mistParkingDelayDisplayModeExitTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801834D4, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80182A44, { .value = 0 } },
@@ -406,7 +409,7 @@ EvsCommand D_mist_parking_8018DF34[155] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D884 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_8018326C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingReleaseCutsceneModel }, { .value = MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_parking_8018DA74 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_8018D898 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -532,7 +535,7 @@ EvsCommand D_mist_parking_8018DF34[155] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80183BAC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingSetPierceCollisionPatchLowered }, { .value = MIST_PARKING_PIERCE_PATCH_RESTORED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_mist_parking_8018DDBC } }, { .message = { .pointer = &D_mist_parking_8018DE04 } } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_8018DE20 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -550,9 +553,9 @@ EvsCommand D_mist_parking_8018EDBC[23] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_8018326C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingReleaseCutsceneModel }, { .value = MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80183BAC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingSetPierceCollisionPatchLowered }, { .value = MIST_PARKING_PIERCE_PATCH_RESTORED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_parking_8018DA5C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1011,9 +1014,13 @@ void func_mist_parking_801831F0(s32 arg0)
     }
 }
 
-void func_mist_parking_8018326C(s32 arg0)
+/// Releases the arrival conversation's model task and forgets its handle.
+///
+/// Descriptor 0 selects the model; every other index is ignored. A non-NULL
+/// handle must identify a live task. Model-body release follows normal task teardown.
+static void _mistParkingReleaseCutsceneModel(s32 descriptorIndex)
 {
-    if (arg0 == 0) {
+    if (descriptorIndex == MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX) {
         if (D_mist_parking_80195320 != NULL) {
             taskKill(D_mist_parking_80195320);
         }
@@ -1036,7 +1043,7 @@ void func_mist_parking_801832AC(Task* task)
 /// (killing the task if that fails), parks it at `Task::work`, labels its two
 /// options from the pair chosen by `spawnArg1` (the second pair when it is 1,
 /// the first otherwise), passes the request to `uiSpawnOptionDialog` and steps
-/// the task on. Cancelling is not permitted. `func_mist_parking_80183434` is
+/// the task on. Cancelling is not permitted. `_mistParkingExitOptionDialogTask` is
 /// set as the exit callback.
 static void func_mist_parking_80183304(Task* task)
 {
@@ -1057,7 +1064,7 @@ static void func_mist_parking_80183304(Task* task)
     mode               = 1;
     line               = D_mist_parking_8018DF24;
     task->work         = dialog;
-    task->exitCallback = func_mist_parking_80183434;
+    task->exitCallback = _mistParkingExitOptionDialogTask;
 
     for (; i < ARRAY_SIZE(dialog->options); i++) {
         if (task->spawnArg1.value == mode) {
@@ -1079,27 +1086,34 @@ static void func_mist_parking_80183304(Task* task)
     task->state++;
 }
 
-/// Waits for the option dialog to answer the `RoomOptionDialog` parked at
-/// `Task::work`, stores the answer (1 or 2, the chosen option) through
-/// `Task::spawnArg2` and steps the task on.
-static void func_mist_parking_801833F8(Task* task)
+/// Publishes the dialog's one-based option number and advances to exit.
+///
+/// `work` owns a live `RoomOptionDialog`; `spawnArg2.pointer` borrows a writable,
+/// word-aligned `s32` through this wait. Zero leaves both destination and state
+/// untouched. A nonzero signed-halfword result is widened before storing; normal
+/// answers are 1 or 2 because cancellation is disabled. The destination is borrowed.
+static void _mistParkingWaitOptionDialogAnswer(Task* task)
 {
-    RoomOptionDialog* dialog;
-    s16               result;
+    const RoomOptionDialog* dialog;
+    s16                     choiceResult;
 
-    dialog = task->work;
-    result = dialog->request.result;
-    if (result != 0) {
-        *(s32*)task->spawnArg2.pointer = result;
-        task->state                    = task->state + 1;
+    dialog       = task->work;
+    choiceResult = dialog->request.result;
+    if (choiceResult != USER_INTERFACE_RESULT_NONE) {
+        s32* choiceDestination = task->spawnArg2.pointer;
+
+        *choiceDestination = choiceResult;
+        task->state        = task->state + 1;
     }
 }
 
-/// Exit callback of the two-option choice task: kills it and calls
-/// `stageRequestModeTaskExit`.
-static void func_mist_parking_80183434(Task* arg0)
+/// Releases the room's option-dialog request task and requests modal exit.
+///
+/// Used as both the final state and exit callback. The task must be live;
+/// task teardown frees its dialog work before the mode-exit request is posted.
+static void _mistParkingExitOptionDialogTask(Task* task)
 {
-    taskKill(arg0);
+    taskKill(task);
     stageRequestModeTaskExit();
 }
 

@@ -1276,7 +1276,7 @@ static void func_actor_113100_80131E58(Task* task)
     worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
 
     task->msgTable = D_actor_113100_80144338;
-    func_mist_parking_80183BAC(1);
+    mistParkingSetPierceCollisionPatchLowered(MIST_PARKING_PIERCE_PATCH_LOWERED);
     _actor113100SetModelDraw(task, 0, ACTOR_113100_DRAW_HIDE, 0);
     task->exitCallback = _actor113100Exit;
     task->state       += 1;
@@ -1796,7 +1796,7 @@ static void func_actor_113100_80132F40(Task* arg0)
     flag = gameFlagGetNibble(GAME_FLAG_0ED);
     if (flag > 0 && work->lastAppearFlag == 0) {
         _actor113100SetModelDraw(arg0, 0, ACTOR_113100_DRAW_SHOW, 0);
-        func_mist_parking_80183BAC(0);
+        mistParkingSetPierceCollisionPatchLowered(MIST_PARKING_PIERCE_PATCH_RESTORED);
     }
     work->lastAppearFlag = flag;
 }

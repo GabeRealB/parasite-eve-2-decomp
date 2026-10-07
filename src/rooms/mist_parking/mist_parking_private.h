@@ -217,8 +217,16 @@ void mistParkingResetCutsceneTaskHandles(s32 unused);
 
 void func_mist_parking_8018471C(s32 arg0);
 
-// Callbacks referenced by the overlay's shared data tables.
-void func_mist_parking_801828F0(Task*);
+/// Ramps the player's head aim toward the stage/area's index-zero talk partner.
+///
+/// State 0 updates; every other state releases the task. Event-script suspension
+/// pauses both paths. `spawnArg1.value` is zero for animation-controlled aiming,
+/// nonzero to force it; `killCountdown` starts at zero and stores a 1/4096 blend
+/// weight clamped to 0..4096, stepped by 256 per active callback. Slot 1's next
+/// set selects extension flags 1..24; every other index disables animation aim.
+/// Requires the live player work, installed parking animation bank and a live
+/// index-zero partner with the head-joint model layout. Borrows both models.
+void mistParkingAimPlayerHeadAtTalkPartnerTask(Task* task);
 
 /// Controls the existing task that turns the player's head toward the room's talk partner.
 ///

@@ -32,12 +32,12 @@
 
 extern ActorTransform D_mist_parking_8018FC3C;
 
-void func_mist_parking_801837B8(Task*);
-void func_mist_parking_8018397C(Task*);
+static void _mistParkingPlayDepartureMovieTask(Task* task);
+static void _mistParkingStartDepartureMovieTask(Task* task);
 
 TaskDesc D_mist_parking_8018FC24[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018397C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801837B8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingStartDepartureMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingPlayDepartureMovieTask, { .value = 0 } },
 };
 
 ActorTransform D_mist_parking_8018FC3C = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
@@ -143,6 +143,11 @@ enum {
 };
 
 /// Applies the previous shared placement while recording this callback's pitch.
+///
+/// Requires a live TMD task; `killCountdown` is a signed angle in 4096 units
+/// per turn. Copy the complete placement before changing its pitch so the
+/// model receives the preceding update. The placement call borrows the snapshot
+/// synchronously, and the shared placement retains the new pitch for the next call.
 static inline void _mistParkingApplyPreviousCutsceneModelPlacement(Task* task)
 {
     ActorTransform previousPlacement = D_mist_parking_8018FC3C;
@@ -222,42 +227,63 @@ void mistParkingResetCutsceneTaskHandles(s32 unused)
     D_mist_parking_80195324 = NULL;
 }
 
-void func_mist_parking_801837B8(Task* task)
+/// Plays one of the two departure movies and restores game presentation.
+///
+/// `spawnArg1.value` selects stream 100 when zero, 101 otherwise, in the current
+/// room. The matching slot (0..14) must already be loaded. Requires state 0..5
+/// and exclusive display presentation while movie workspace replaces image memory.
+/// Start requests cancellation; both paths wait for CD idle before restoring
+/// saved VRAM images and model buffers, clearing the resident image workspace,
+/// releasing the task and resuming the game loop. No work allocation is retained.
+static void _mistParkingPlayDepartureMovieTask(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    CdCmdQueue* queue;
-    s16         slot;
+    enum {
+        MIST_PARKING_MOVIE_PREPARE                = 0,
+        MIST_PARKING_MOVIE_QUEUE                  = 1,
+        MIST_PARKING_MOVIE_WAIT_READY             = 2,
+        MIST_PARKING_MOVIE_PLAY                   = 3,
+        MIST_PARKING_MOVIE_WAIT_IDLE              = 4,
+        MIST_PARKING_MOVIE_RESTORE                = 5,
+        MIST_PARKING_DEPARTURE_MOVIE_ID           = 100,
+        MIST_PARKING_ALTERNATE_DEPARTURE_MOVIE_ID = 101,
+        MIST_PARKING_MOVIE_MUSIC_FADE_TICKS       = 10
+    };
+    u8          commandArgs[4];
+    GameLoc     movieKey;
+    CdCmdQueue* cdQueue;
+    s16         movieSlot;
 
-    queue = &gCdCmdQueue;
+    cdQueue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
-            stageMusicRequestAreaStop(0xA);
+        case MIST_PARKING_MOVIE_PREPARE:
+            // Save the displaced VRAM images before reserving movie workspace.
+            stageMusicRequestAreaStop(MIST_PARKING_MOVIE_MUSIC_FADE_TICKS);
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             return;
-        case 1:
-            key = gGameSession->location;
+        case MIST_PARKING_MOVIE_QUEUE:
+            movieKey = gGameSession->location;
             if (task->spawnArg1.value != 0) {
-                key.loc.view = 0x65;
+                movieKey.loc.view = MIST_PARKING_ALTERNATE_DEPARTURE_MOVIE_ID;
             } else {
-                key.loc.view = 0x64;
+                movieKey.loc.view = MIST_PARKING_DEPARTURE_MOVIE_ID;
             }
-            slot         = streamFindMovieSlot(&key.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            movieSlot = streamFindMovieSlot(&movieKey.loc, 0, 0);
+            // PLAY_STREAM uses byte zero; the other argument bytes are left untouched.
+            commandArgs[0] = movieSlot;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
             task->state = task->state + 1;
             return;
-        case 2:
-            if (queue->movieReady == 0) {
+        case MIST_PARKING_MOVIE_WAIT_READY:
+            if (cdQueue->movieReady == 0) {
                 return;
             }
             SetDispMask(1);
             task->state = task->state + 1;
             return;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
+        case MIST_PARKING_MOVIE_PLAY:
+            if (cdCmdIsIdle()) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 return;
@@ -269,15 +295,16 @@ void func_mist_parking_801837B8(Task* task)
             cdCmdRequestCancel();
             task->state = task->state + 1;
             return;
-        case 4:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        case MIST_PARKING_MOVIE_WAIT_IDLE:
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             streamResetGameRestore();
             task->state = task->state + 1;
             return;
-        case 5:
-            if ((streamPollGameRestore(0, 0) & 0xFFFF) == 0) {
+        case MIST_PARKING_MOVIE_RESTORE:
+            // Restore before giving the image workspace and display back to gameplay.
+            if (streamPollGameRestore(0, 0) == 0) {
                 return;
             }
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
@@ -288,14 +315,17 @@ void func_mist_parking_801837B8(Task* task)
     }
 }
 
-/// Spawns the display task `D_mist_parking_8018FC24` with the task's
-/// `spawnArg1`, sets `gDisplayState.control.flags.flipMode`, respawns the view tasks and kills itself.
-void func_mist_parking_8018397C(Task* arg0)
+/// Transfers the departure movie selector to a display task and releases the launcher.
+///
+/// The room launcher supplies `spawnArg1.value` (zero selects stream 100,
+/// nonzero stream 101). Switches to task-only flipping and queues the current
+/// camera and packets before teardown. Requires the room's live display resources.
+static void _mistParkingStartDepartureMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_mist_parking_8018FC24, 1, arg0->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(D_mist_parking_8018FC24, 1, task->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+    taskKill(task);
 }
 
 /// Shows and places the conversation's model, then seeds the delayed pitch progression.
