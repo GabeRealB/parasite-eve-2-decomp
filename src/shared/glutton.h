@@ -84,27 +84,6 @@
 #include "main/gfx_types.h"
 #include "main/task_types.h"
 
-/// Graphics coordinate node with packed word access to its local rotation.
-///
-/// `node` is the transform node itself: what composition, parenting and every
-/// `GfxCoord` consumer take. `packed` views the same storage with the local
-/// matrix as a `GfxMatrix`, so its 3x3 can be written as whole words; an
-/// identity is four word stores and one halfword store. Both views are live at
-/// once and neither owns anything the other does not.
-///
-/// The Glutton uses this wherever it builds a node's rotation in place: the
-/// host's free coordinate, the coordinate hung beneath its part 4, the node a
-/// rain blob's attack body rides, and the frame-local node under a falling
-/// rain blob's ground shadow.
-typedef union {
-    GfxCoord node;
-    struct {
-        u32       composeStamp; // `node.composeStamp`
-        GfxMatrix coord;        // `node.coord`, with word access to its coefficients
-    } packed;
-} GluttonCoord;
-STATIC_ASSERT_SIZEOF(GluttonCoord, 0x50);
-
 /// Allocation holding a button-press hold the Glutton sends the player, and
 /// the eight bytes after it.
 ///
@@ -199,7 +178,7 @@ typedef struct {
         VECTOR3 landing;                     // Rain blob: floor point it drops onto, in the view coordinate's space; `vy` is 0
     } aim;                                   // Where the projectile is headed, in the form its states use
     byte                  unknown_C[0x4];    // Never accessed; role unproven
-    GluttonCoord          bodyCoord;         // Unrotated node under the view coordinate that the rain blob's attack body rides, moved onto the blob every tick
+    GfxCoord              bodyCoord;         // Unrotated node under the view coordinate that the rain blob's attack body rides, moved onto the blob every tick
     GfxCoord              shadowCoord;       // Node under the view coordinate, kept on the floor below the thrown sphere; its ground shadow is drawn there
     WorldCollisionBody    attackBody;        // Pair-tested sphere keyed with one of the owner's attacks, riding the model or, for the rain blob, `bodyCoord`. The rain blob's is tested only from the top of its climb, and widens from 0x100 to 0x380 as the blob splats
     WorldCollisionBody    gridBody;          // Sphere riding the model that is tested against the room grid, so a wall stops the chunk
@@ -355,7 +334,7 @@ typedef struct {
     WorldCollisionContact swipeContacts[5];            // Its contact table; a player contact starts the catch
     MATRIX                lightMtx;                    // Light-direction matrix lent to the host's and every escort's model
     MATRIX                colorMtx;                    // Light-colour matrix lent to the same models
-    GluttonCoord          swipeCoord;                  // Node under the host's root that `swipeBody` rides, re-yawed to `neckYaw` as a swipe starts
+    GfxCoord              swipeCoord;                  // Node under the host's root that `swipeBody` rides, re-yawed to `neckYaw` as a swipe starts
     s16                   group0Cooldown;              // Ticks before the group-0 hit handler runs again
     s16                   groups3To5Cooldown;          // Ticks before the handler of groups 3 to 5 runs again
     s16                   groups6To8Cooldown;          // Ticks before the handler of groups 6 to 8 runs again

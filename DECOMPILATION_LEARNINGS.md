@@ -72841,6 +72841,13 @@ to an `$fp`-based address — so if a union is unavailable, a nonzero word index
 off the enclosing object is the same fix. Index 0 does not work: `fold` removes
 `+ 0` and the `PLUS_EXPR` with it.
 
+*2026-10-07:* the union is gone. Once the identity became
+`gfxSetRotIdentity(&coord.coord)`, nothing read `packed` any more, and the
+function matches with the local declared as a plain `GfxCoord`: `GluttonCoord`
+was replaced by `GfxCoord` everywhere (a field, a static and this frame local in
+each Glutton image) with both objects byte-identical. The mechanism above still
+holds for stores written out by hand.
+
 The same function needed `t[1] + (bias + 0x258)` rather than
 `t[1] + 0x258 + bias`: `fold`'s `associate` case splits `(VAR + CON) +- ARG1`
 into `VAR +- (ARG1 +- CON)` (`fold-const.c:4313`), so the `addiu` lands on the

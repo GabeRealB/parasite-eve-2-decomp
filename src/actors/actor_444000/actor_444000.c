@@ -309,7 +309,7 @@ extern SVECTOR gGluttonSpinnerTarget;
 
 /// Shared coordinate `func_actor_444000_80140BBC` rebuilds when the fight
 /// reaches sub-state 0x2D of state 9, parented to the host model's fifth part.
-extern GluttonCoord D_actor_444000_801618B8;
+extern GfxCoord D_actor_444000_801618B8;
 
 /// Which of the three shared debris coordinates below the next launch uses,
 /// cycled 0/1/2 by `func_actor_444000_801404C0`.
@@ -2708,7 +2708,7 @@ SVECTOR gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 
 GluttonButtonPressHoldStorage gGluttonGrabQuery = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-GluttonCoord D_actor_444000_801618B8 = { .node = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL } };
+GfxCoord D_actor_444000_801618B8 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
 
 _Actor444000TransformStorage D_actor_444000_80161908 = { { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
@@ -4371,11 +4371,11 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->escorts[3]->param         = &D_actor_444000_80144A58;
     work->escorts[3]->recs          = work->hits[1].contacts;
 
-    freeCoord                    = &work->swipeCoord.node;
-    work->swipeCoord.node.parent = task->extra.tmd->coords;
-    gfxSetRotIdentity(&work->swipeCoord.node.coord);
-    work->swipeCoord.node.coord.t[0] = work->swipeCoord.node.coord.t[1] = work->swipeCoord.node.coord.t[2] = 0;
-    work->swipeCoord.node.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
+    freeCoord                    = &work->swipeCoord;
+    work->swipeCoord.parent = task->extra.tmd->coords;
+    gfxSetRotIdentity(&work->swipeCoord.coord);
+    work->swipeCoord.coord.t[0] = work->swipeCoord.coord.t[1] = work->swipeCoord.coord.t[2] = 0;
+    work->swipeCoord.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(freeCoord);
 
     work->swipeCapsule.ends[1].vz   = 0x1B58;
@@ -5476,9 +5476,9 @@ static void func_actor_444000_8013FB74(Task* arg0)
         work->neckPitchEnabled = 0;
         work->hostExposed      = 1;
         work->limbPoseEnabled  = 1;
-        gfxRotMatrixY(&work->swipeCoord.node.coord, work->neckYaw, 1);
-        work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&work->swipeCoord.node);
+        gfxRotMatrixY(&work->swipeCoord.coord, work->neckYaw, 1);
+        work->swipeCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&work->swipeCoord);
         work->wallDistanceTarget = 0xC80;
 
         resetId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
@@ -5487,14 +5487,14 @@ static void func_actor_444000_8013FB74(Task* arg0)
                                  (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
 
-    coord                              = &work->swipeCoord.node;
-    work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
+    coord                              = &work->swipeCoord;
+    work->swipeCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
 
     if (work->animId == 4 && (frame = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC &&
         work->prevSwipeCue != frame) {
-        gfxRotMatrixY(&work->swipeCoord.node.coord, work->neckYaw, 1);
-        work->swipeCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
+        gfxRotMatrixY(&work->swipeCoord.coord, work->neckYaw, 1);
+        work->swipeCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
         work->shakeLevel       = GLUTTON_SHAKE_LONG;
         work->swipeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -5837,14 +5837,14 @@ static void func_actor_444000_80140BBC(Task* arg0)
     }
     if (work->animId == 9 && work->stateTicks == 0x2D) {
         coords = arg0->extra.tmd->coords;
-        node   = &D_actor_444000_801618B8.node;
+        node   = &D_actor_444000_801618B8;
         gfxSetRotIdentity(&node->coord);
-        D_actor_444000_801618B8.node.coord.t[1]   = -0x64;
-        D_actor_444000_801618B8.node.coord.t[0]   = 0;
-        D_actor_444000_801618B8.node.coord.t[2]   = 0x64;
-        D_actor_444000_801618B8.node.composeStamp = GRAPHICS_COORD_DIRTY;
-        D_actor_444000_801618B8.node.parent       = &coords[4];
-        actorRenderComposeCoord(&D_actor_444000_801618B8.node);
+        D_actor_444000_801618B8.coord.t[1]   = -0x64;
+        D_actor_444000_801618B8.coord.t[0]   = 0;
+        D_actor_444000_801618B8.coord.t[2]   = 0x64;
+        D_actor_444000_801618B8.composeStamp = GRAPHICS_COORD_DIRTY;
+        D_actor_444000_801618B8.parent       = &coords[4];
+        actorRenderComposeCoord(&D_actor_444000_801618B8);
     }
     if (work->animId == 0x14 && (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->animId   = 0xD;

@@ -14,7 +14,7 @@ static void _gluttonRainFall(Enemy* enemy, Task* task)
            GLUTTON_RAIN_DROP_SPEED        = 600,
            GLUTTON_RAIN_EFFECT_BURST      = 2 };
     GluttonProjectileWork* work;
-    GluttonCoord           shadowCoord;
+    GfxCoord               shadowCoord;
     Enemy*                 owner;
     s32                    soundId;
     s32                    audioPan;
@@ -27,18 +27,18 @@ static void _gluttonRainFall(Enemy* enemy, Task* task)
     }
 
     work->stateTicks++;
-    shadowCoord.node.parent = &gGfxViewCoord;
-    gfxSetRotIdentity(&shadowCoord.node.coord);
-    gfxRotMatrixY(&shadowCoord.node.coord, 0, GRAPHICS_ROTATION_REPLACE);
+    shadowCoord.parent = &gGfxViewCoord;
+    gfxSetRotIdentity(&shadowCoord.coord);
+    gfxRotMatrixY(&shadowCoord.coord, 0, GRAPHICS_ROTATION_REPLACE);
 
-    shadowCoord.node.coord.t[0]   = task->extra.coordBody->coord->coord.t[0];
-    shadowCoord.node.coord.t[1]   = 0;
-    shadowCoord.node.coord.t[2]   = task->extra.coordBody->coord->coord.t[2];
-    shadowCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&shadowCoord.node);
+    shadowCoord.coord.t[0]   = task->extra.coordBody->coord->coord.t[0];
+    shadowCoord.coord.t[1]   = 0;
+    shadowCoord.coord.t[2]   = task->extra.coordBody->coord->coord.t[2];
+    shadowCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&shadowCoord);
 
     // Warn of the landing point while the blob waits overhead.
-    effectDrawGroundShadow(MATRIX_TRANS(&shadowCoord.node.workm), (s16)(work->stateTicks * 8 + 0x80),
+    effectDrawGroundShadow(MATRIX_TRANS(&shadowCoord.workm), (s16)(work->stateTicks * 8 + 0x80),
                            gRoomEffectState->groundShadowShade);
 
     if (work->stateTicks >= GLUTTON_RAIN_SHADOW_LEAD_TICKS) {
@@ -61,9 +61,9 @@ static void _gluttonRainFall(Enemy* enemy, Task* task)
     task->extra.coordBody->coord->composeStamp = GRAPHICS_COORD_DIRTY;
     worldCollisionClearContacts(work->attackContacts);
     // Carry the attack body along with the blob.
-    work->bodyCoord.node.coord.t[0]   = task->extra.coordBody->coord->coord.t[0];
-    work->bodyCoord.node.coord.t[1]   = task->extra.coordBody->coord->coord.t[1];
-    work->bodyCoord.node.coord.t[2]   = task->extra.coordBody->coord->coord.t[2];
-    work->bodyCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&work->bodyCoord.node);
+    work->bodyCoord.coord.t[0]   = task->extra.coordBody->coord->coord.t[0];
+    work->bodyCoord.coord.t[1]   = task->extra.coordBody->coord->coord.t[1];
+    work->bodyCoord.coord.t[2]   = task->extra.coordBody->coord->coord.t[2];
+    work->bodyCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&work->bodyCoord);
 }

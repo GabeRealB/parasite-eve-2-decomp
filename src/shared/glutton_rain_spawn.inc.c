@@ -124,11 +124,11 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
 
     // The attack body rides a node of its own, which the later states keep on
     // the blob.
-    work->bodyCoord.node.parent = &gGfxViewCoord;
-    gfxSetRotIdentity(&work->bodyCoord.node.coord);
-    gfxRotMatrixY(&work->bodyCoord.node.coord, 0, 1);
+    work->bodyCoord.parent = &gGfxViewCoord;
+    gfxSetRotIdentity(&work->bodyCoord.coord);
+    gfxRotMatrixY(&work->bodyCoord.coord, 0, 1);
 
-    actorLinkWorkObj(&work->bodyCoord.node, &work->attackBody, work->attackContacts, &vec, 0x100, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
+    actorLinkWorkObj(&work->bodyCoord, &work->attackBody, work->attackContacts, &vec, 0x100, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
                      ARRAY_SIZE(work->attackContacts));
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 

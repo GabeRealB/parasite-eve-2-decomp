@@ -28,9 +28,9 @@ void gluttonRainSplat(Enemy* enemy, Task* task)
         task->state++;
     }
 
-    work->bodyCoord.node.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
-    work->bodyCoord.node.coord.t[1]   = task->extra.tmd->coords->coord.t[1];
-    work->bodyCoord.node.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
-    work->bodyCoord.node.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&work->bodyCoord.node);
+    work->bodyCoord.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
+    work->bodyCoord.coord.t[1]   = task->extra.tmd->coords->coord.t[1];
+    work->bodyCoord.coord.t[2]   = task->extra.tmd->coords->coord.t[2];
+    work->bodyCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&work->bodyCoord);
 }
