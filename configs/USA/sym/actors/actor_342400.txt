@@ -262,5 +262,6 @@ madChaserDangleStart = 0x8016A4FC; // type:func
 _madChaserPlaceRoot = 0x80169620; // type:func
 madChaserStatusHoldStart = 0x80169CF8; // type:func
 _madChaserAdvanceBehaviorState = 0x8016AA9C; // type:func
+_madChaserDespawnState = 0x80169880; // type:func
 madChaserStartDespawn = 0x8016A9AC; // type:func
 madChaserToAlertState = 0x80169968; // type:func

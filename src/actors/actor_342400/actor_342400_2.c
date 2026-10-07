@@ -71,7 +71,7 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 static void func_actor_342400_80168394(Task* arg0);
-static void func_actor_342400_80169880(Task* arg0);
+static void _madChaserDespawnState(Task* task);
 static void func_actor_342400_8016997C(Task* arg0);
 static void func_actor_342400_80169990(Task* arg0);
 static void func_actor_342400_80169A98(Task* arg0);
@@ -94,7 +94,7 @@ static const TaskFuncTable6 gMadChaserTaskStates = { {
     madChaserDangleFrame,
     madChaserCombatTick,
     madChaserDeathTick,
-    func_actor_342400_80169880,
+    _madChaserDespawnState,
 } };
 
 /// Ten task-state handlers of the second enemy form, dispatched by
@@ -105,7 +105,7 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     madChaserDangleFrame,
     madChaserCombatTick,
     madChaserDeathTick,
-    func_actor_342400_80169880,
+    _madChaserDespawnState,
     madChaserEmergeTick,
     madChaserVanishState,
     madChaserDropDeathTick,
@@ -971,14 +971,10 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_task.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserVanishState func_actor_342400_80169880
-#define _madChaserVanish     _madChaserAdvanceBehaviorState
-#define _madChaserVanishFree _madChaserDespawn
-#include "../../shared/mad_chaser_vanish_state.inc.c"
-#undef madChaserVanishState
-#undef _madChaserVanish
-#undef _madChaserVanishFree
+/// Selects this carrier's static void(Task*) task-state-5 dispatcher.
+#define MAD_CHASER_DESPAWN_STATE _madChaserDespawnState
+#include "../../shared/mad_chaser_despawn_state.inc.c"
+#undef MAD_CHASER_DESPAWN_STATE
 
 #include "../../shared/mad_chaser_turn_to_player.inc.c"
 

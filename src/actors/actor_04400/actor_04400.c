@@ -73,7 +73,7 @@ static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table madCha
 
 static void Actor04400_Fn03538(Task* arg0);
 static void Actor04400_Fn05260(Task* arg0);
-static void Actor04400_Fn0674C(Task* arg0);
+static void _madChaserDespawnState(Task* task);
 static void Actor04400_Fn06848(Task* arg0);
 static void Actor04400_Fn0685C(Task* arg0);
 static void Actor04400_Fn06964(Task* arg0);
@@ -760,7 +760,7 @@ static const TaskFuncTable6 gMadChaserTaskStates = { {
     madChaserDangleFrame,
     madChaserCombatTick,
     madChaserDeathTick,
-    Actor04400_Fn0674C,
+    _madChaserDespawnState,
 } };
 
 /// Task-state handlers of the second enemy form, dispatched by
@@ -771,7 +771,7 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     madChaserDangleFrame,
     madChaserCombatTick,
     madChaserDeathTick,
-    Actor04400_Fn0674C,
+    _madChaserDespawnState,
     madChaserEmergeTick,
     madChaserVanishState,
     madChaserDropDeathTick,
@@ -1293,14 +1293,10 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_task.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserVanishState Actor04400_Fn0674C
-#define _madChaserVanish     _madChaserAdvanceBehaviorState
-#define _madChaserVanishFree _madChaserDespawn
-#include "../../shared/mad_chaser_vanish_state.inc.c"
-#undef madChaserVanishState
-#undef _madChaserVanish
-#undef _madChaserVanishFree
+/// Selects this carrier's static void(Task*) task-state-5 dispatcher.
+#define MAD_CHASER_DESPAWN_STATE _madChaserDespawnState
+#include "../../shared/mad_chaser_despawn_state.inc.c"
+#undef MAD_CHASER_DESPAWN_STATE
 
 #include "../../shared/mad_chaser_turn_to_player.inc.c"
 

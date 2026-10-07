@@ -49518,7 +49518,7 @@ void (*states[2])(Task*) = { Actor04400_Fn07A38, Actor04400_Fn03390 };
 states[(s16)work->field_422](arg0);
 ```
 
-Exact on the second build. Same overlay family twice over — `Actor04400_Fn0674C`
+Exact on the second build. Same overlay family twice over — `_madChaserDespawnState`
 is this shape too — so treat a `lui/addiu`-then-`sw` pair into `0x10($sp)` as
 the table long before believing the argument count. Input: `base_1.i`
 `8ed84e325fc0e09f2abd287d2cd84d95ad0235d4e66b420122fd25d77f05d35f`.
@@ -77185,7 +77185,7 @@ void func_actor_206100_8014F608(Task* task)
 
 `func_actor_206100_8014F608` went 50.238% -> 100% on this one rewrite, and the
 actors family already had the same body matched twice more
-(`func_actor_341700_80168124`, `func_actor_341700_8016859C`) - check those
+(`func_actor_341700_80168124`, `_madChaserDespawnState`) - check those
 siblings first, since the `(s16)` cast on the index belongs to the load
 (`lh`), not to the source field's declared type.
 
