@@ -30,8 +30,6 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-void func_replay_bonus_801176A8(UiList* prompt, UiObject* obj);
-
 extern u8           D_replay_bonus_801157A8[];
 extern u8           D_replay_bonus_801157B0[];
 extern u8           D_replay_bonus_801157C4[];
@@ -58,279 +56,317 @@ enum {
     REPLAY_BONUS_PICTURE_HEIGHT = 176, // Picture height in pixels
 };
 
+/// Credits RGB modulation, byte fade amounts and worker state values.
+enum {
+    REPLAY_BONUS_CREDITS_MAX_BRIGHTNESS = 127,
+    REPLAY_BONUS_CREDITS_FADE_MAX       = 255,
+    REPLAY_BONUS_CREDITS_FADE_SHIFT     = 1,
+    REPLAY_BONUS_FADE_INITIALIZE        = 0,
+    REPLAY_BONUS_FADE_RUN               = 1,
+};
+
 static void func_replay_bonus_80117E04(void);
 static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds);
-static void func_replay_bonus_80118F00(s32 arg0);
+static void _replayBonusSelectCreditsResource(s32 dataResourceIndex);
 
-static void        func_replay_bonus_80117194(Task* arg0);
-static s32         func_replay_bonus_801173A8(void);
-static s16         func_replay_bonus_80117484(s32 arg0, s32 arg1);
-static s32         func_replay_bonus_80117598(s32 arg0);
-static s16         func_replay_bonus_801175D0(UiList* list, UiObject* ctx, s32 index);
-static s32         func_replay_bonus_801175F0(UiList* list, UiObject* ctx);
-static inline void _replayBonusDrawItemRow(UiList* prompt, UiObject* obj, s32 id);
-static s32         func_replay_bonus_801177A0(void);
-static void        func_replay_bonus_80117848(Task* arg0);
-static void        func_replay_bonus_801178C0(Task* arg0);
-static void        func_replay_bonus_80117924(Task* arg0);
-void               func_replay_bonus_8011797C(Task* arg0);
-void               func_replay_bonus_80117A08(Task* arg0);
-static void        func_replay_bonus_80117DE0(u8 arg0);
-static s32         func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index);
-void               func_replay_bonus_80118C64(Task* arg0);
-void               func_replay_bonus_80118D7C(Task* arg0);
-void               func_replay_bonus_80118E3C(Task* arg0);
+static void func_replay_bonus_801178C0(Task* arg0);
+void        func_replay_bonus_8011797C(Task* arg0);
+void        func_replay_bonus_80117A08(Task* arg0);
+void        func_replay_bonus_80118C64(Task* arg0);
 
-static void func_replay_bonus_80117194(Task* arg0)
+/// Advances the replay-award panels and the cleared-save confirmation sequence.
+///
+/// States 2..9 borrow the live UI object in spawn argument 2. A panel result
+/// closes its tree before the next panel opens. Completed saving skips the quit
+/// warning; declining to quit retries saving. Keeps the final restart delayed
+/// by sixteen callback ticks while any panel is still open.
+static void _replayBonusAdvanceAwardScreen(Task* task)
 {
-    UiObject* obj;
-    Task*     owner;
-    s32       copied;
-    s16       flag;
+    enum {
+        REPLAY_BONUS_SCREEN_COMPLETE_ITEMS   = 2,
+        REPLAY_BONUS_SCREEN_BALANCE          = 3,
+        REPLAY_BONUS_SCREEN_FIRST_SHOP_ITEM  = 4,
+        REPLAY_BONUS_SCREEN_SECOND_SHOP_ITEM = 5,
+        REPLAY_BONUS_SCREEN_LAST_AWARD       = 6,
+        REPLAY_BONUS_SCREEN_SAVE             = 7,
+        REPLAY_BONUS_SCREEN_QUIT_WARNING     = 8,
+        REPLAY_BONUS_RESTART_DELAY_TICKS     = 16,
+    };
+    UiObject* object;
+    Task*     panelTask;
+    s32       commandResult;
+    s16       uiResult;
 
-    obj  = arg0->spawnArg2.pointer;
-    flag = obj->result;
-    if ((flag == USER_INTERFACE_RESULT_CANCEL) || (flag == USER_INTERFACE_RESULT_CONFIRM)) {
-        owner  = obj->owner;
-        copied = obj->resultValue;
-        uiStartTreeClosing(obj, owner);
-        switch (arg0->state) {
-            case 2:
-                arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_8011918C, 0, 1, 1, NULL);
+    object   = task->spawnArg2.pointer;
+    uiResult = object->result;
+    if ((uiResult == USER_INTERFACE_RESULT_CANCEL) || (uiResult == USER_INTERFACE_RESULT_CONFIRM)) {
+        // Capture the child command before its closing lifecycle resumes.
+        panelTask     = object->owner;
+        commandResult = object->resultValue;
+        uiStartTreeClosing(object, panelTask);
+        switch (task->state) {
+            case REPLAY_BONUS_SCREEN_COMPLETE_ITEMS:
+                task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_8011918C, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 break;
-            case 3:
+            case REPLAY_BONUS_SCREEN_BALANCE:
                 if (D_replay_bonus_80119274.shopTier < 0) {
-                    arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191FC, 0, 1, 1, NULL);
-                    arg0->state             = arg0->state + 2;
+                    task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191FC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                    task->state             = task->state + 2;
                 } else {
-                    arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191C4, 0, 1, 1, NULL);
+                    task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191C4, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 }
                 break;
-            case 4:
-                arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191E0, 1, 1, 1, NULL);
+            case REPLAY_BONUS_SCREEN_FIRST_SHOP_ITEM:
+                task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191E0, 1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 break;
-            case 5:
-                arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191C4, 2, 1, 1, NULL);
+            case REPLAY_BONUS_SCREEN_SECOND_SHOP_ITEM:
+                task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_801191C4, 2, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 break;
-            case 6:
+            case REPLAY_BONUS_SCREEN_LAST_AWARD:
                 displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 replayBonusPrepareClearedSave();
                 gDisplayState.gameMode  = DISPLAY_GAME_MODAL;
-                arg0->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 0, 1, 1, NULL);
+                task->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 0, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                 break;
-            case 7:
-                if (copied == 0x33) {
-                    arg0->spawnArg2.pointer = itemMenuSpawnNotice(NULL, ITEM_MENU_NOTICE_SAVE_COMPLETE, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
-                    arg0->state             = arg0->state + 1;
+            case REPLAY_BONUS_SCREEN_SAVE:
+                if (commandResult == USER_INTERFACE_LIST_COMMAND_YES) {
+                    task->spawnArg2.pointer = itemMenuSpawnNotice(NULL, ITEM_MENU_NOTICE_SAVE_COMPLETE, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
+                    task->state             = task->state + 1;
                 } else {
-                    arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119170, 0, 1, 2, NULL);
+                    task->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119170, 0, USER_INTERFACE_PANEL_ACTIVE, 2, NULL);
                 }
                 break;
-            case 8:
-                if (copied == 0x33) {
-                    arg0->spawnArg2.pointer = itemMenuSpawnNotice(NULL, ITEM_MENU_NOTICE_SAVE_CANCELLED, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
+            case REPLAY_BONUS_SCREEN_QUIT_WARNING:
+                if (commandResult == USER_INTERFACE_LIST_COMMAND_YES) {
+                    task->spawnArg2.pointer = itemMenuSpawnNotice(NULL, ITEM_MENU_NOTICE_SAVE_CANCELLED, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                 } else {
-                    arg0->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 1, 1, 1, NULL);
-                    arg0->state             = arg0->state - 2;
+                    task->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                    task->state             = task->state - 2;
                 }
                 break;
         }
-        arg0->state = arg0->state + 1;
+        task->state = task->state + 1;
         return;
     }
-    arg0->killCountdown = 0x10;
+    task->killCountdown = REPLAY_BONUS_RESTART_DELAY_TICKS;
 }
 
-static s32 func_replay_bonus_801173A8(void)
+/// Computes this clear's cyclic shop-tier choice without changing saved unlocks.
+static inline s32 _replayBonusResolveShopTier(void)
 {
-    ShopTier*   p;
-    u32         spend;
-    s32         idx;
-    s32         i;
-    McSaveData* save;
-    s32         mask;
-    s32         one;
+    const ShopTier*   tierRow;
+    u32               totalExp;
+    s32               tierIndex;
+    s32               tiersChecked;
+    const McSaveData* saveData;
+    s32               unlockedTiers;
+    s32               tierBit;
+    s32               selectedTier;
 
-    spend = replayBonusGetTotalExp();
-    p     = D_replay_bonus_80118F78;
-    idx   = 0;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
-        return -1;
-    }
-    for (i = 0; i < 0xD; i++, p++) {
-        if (!(p->expCeiling < spend)) {
-            idx = i;
-            break;
-        }
-    }
-
-    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    idx += save->state.gameMode;
-    i    = 0;
-    if (idx >= 0xD) {
-        idx = 0xC;
-    }
-    one  = 1;
-    mask = save->state.shopTiers;
-    do {
-        if ((mask & (one << idx)) == 0) {
-            return idx;
-        }
-        idx += 1;
-        if (idx >= 0xD) {
-            idx -= 0xD;
-        }
-        i += 1;
-    } while (i < 0xD);
-    return idx;
-}
-
-static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
-{
-    ShopTier*   p;
-    u32         spend;
-    s32         idx;
-    s32         i;
-    McSaveData* save;
-    s32         mask;
-    s32         one;
-    s32         result;
-
-    spend = replayBonusGetTotalExp();
-    p     = D_replay_bonus_80118F78;
-    idx   = 0;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
-        result = -1;
+    totalExp  = replayBonusGetTotalExp();
+    tierRow   = D_replay_bonus_80118F78;
+    tierIndex = 0;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == SHOP_TIER_ALL_MASK) {
+        selectedTier = -1;
     } else {
-        for (i = 0; i < 0xD; i++, p++) {
-            if (!(p->expCeiling < spend)) {
-                idx = i;
+        // Apply the EXP ceiling and mode boost before searching for an unlock.
+        for (tiersChecked = 0; tiersChecked < SHOP_TIER_COUNT; tiersChecked++, tierRow++) {
+            if (tierRow->expCeiling >= totalExp) {
+                tierIndex = tiersChecked;
                 break;
             }
         }
 
-        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        idx += save->state.gameMode;
-        i    = 0;
-        if (idx >= 0xD) {
-            idx = 0xC;
+        saveData     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        tierIndex   += saveData->state.gameMode;
+        tiersChecked = 0;
+        if (tierIndex >= SHOP_TIER_COUNT) {
+            tierIndex = SHOP_TIER_COUNT - 1;
         }
-        one  = 1;
-        mask = save->state.shopTiers;
-        for (; i < 0xD; i++) {
-            if ((mask & (one << idx)) == 0) {
+        // Skip unlocked tiers cyclically.
+        tierBit       = 1;
+        unlockedTiers = saveData->state.shopTiers;
+        for (; tiersChecked < SHOP_TIER_COUNT; tiersChecked++) {
+            if ((unlockedTiers & (tierBit << tierIndex)) == 0) {
                 break;
             }
-            idx += 1;
-            if (idx >= 0xD) {
-                idx -= 0xD;
+            tierIndex += 1;
+            if (tierIndex >= SHOP_TIER_COUNT) {
+                tierIndex -= SHOP_TIER_COUNT;
             }
         }
-        result = idx;
+        selectedTier = tierIndex;
     }
-    if (result < 0) {
-        return 0;
-    }
-    return D_replay_bonus_80118F78[result].items[arg1];
+    return selectedTier;
 }
 
-static s32 func_replay_bonus_80117598(s32 arg0)
+/// Selects the shop tier unlocked by this clear, or -1 if all are unlocked.
+///
+/// Starts at the first inclusive EXP ceiling, adds saved mode (0..3), caps at
+/// the last tier and searches cyclically past unlocked tiers. Reads the live
+/// save and catalogue without changing their unlocks. An EXP value beyond
+/// every ceiling retains the initial tier zero before the mode boost.
+static s32 _replayBonusSelectShopTier(void)
 {
-    u16* p;
-    s32  i;
+    return _replayBonusResolveShopTier();
+}
 
-    p = D_replay_bonus_8011908C;
-    i = 0;
+/// Returns one item of the shop tier unlocked by this clear.
+///
+/// `itemColumn` is 0..2; the first argument is unused. Returns
+/// `INVENTORY_ITEM_NONE` when every tier is unlocked. Reads the completed run's
+/// EXP and saved unlocks using the same policy as `_replayBonusSelectShopTier`.
+static s16 _replayBonusGetUnlockedShopItem(s32 unusedArgument, s32 itemColumn)
+{
+    s32 selectedTier = _replayBonusResolveShopTier();
+
+    if (selectedTier < 0) {
+        return INVENTORY_ITEM_NONE;
+    }
+    return D_replay_bonus_80118F78[selectedTier].items[itemColumn];
+}
+
+/// Returns 1 when an item id belongs to the Complete Bonus whitelist, otherwise 0.
+///
+/// Checks the 78 stored ids, excluding the trailing terminator. This tests
+/// eligibility alone, without checking possession, quantity or identification.
+static s32 _replayBonusIsListedItem(s32 itemId)
+{
+    enum { REPLAY_BONUS_ITEM_WHITELIST_COUNT = 78 };
+    const u16* whitelistItem;
+    s32        whitelistIndex;
+
+    whitelistItem  = D_replay_bonus_8011908C;
+    whitelistIndex = 0;
     do {
-        i++;
-        if (*p != arg0) {
-            p++;
+        whitelistIndex++;
+        if (*whitelistItem != itemId) {
+            whitelistItem++;
         } else {
             return 1;
         }
-    } while (i < 0x4E);
+    } while (whitelistIndex < REPLAY_BONUS_ITEM_WHITELIST_COUNT);
     return 0;
 }
 
-static s16 func_replay_bonus_801175D0(UiList* list, UiObject* ctx, s32 index)
+/// Returns the signed item id at `rowIndex` in the Complete Bonus list.
+///
+/// The first argument is unused. The object's live owner borrows an allocated
+/// `s16` item-id array; the caller supplies a nonnegative index below its item
+/// count. Performs no bounds check and does not take ownership of the storage.
+static s16 _replayBonusGetListItemId(const UiList* unusedList, const UiObject* object, s32 rowIndex)
 {
-    s16* p = ((s16*)ctx->owner->work) + index;
+    const s16* itemIds = object->owner->work;
+    const s16* itemId  = &itemIds[rowIndex];
 
-    return *p;
+    return *itemId;
 }
 
-static s32 func_replay_bonus_801175F0(UiList* list, UiObject* ctx)
+/// Returns the BP balance plus credits for the displayed list suffix.
+///
+/// Sums from the first visible item through the list's end and caps at eight
+/// decimal digits. The owner's live work is a borrowed `s16` item-id array;
+/// the row range must fit it and each id must meet `_replayBonusItemBp`'s
+/// catalogue bounds. Neither inventory nor the BP balance is changed.
+static s32 _replayBonusGetListTotalBp(const UiList* list, const UiObject* object)
 {
-    s32           i;
-    s32           sum;
-    PlayerStatus* cfg;
+    enum { REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP = 99999999 };
+    s32                 itemIndex;
+    s32                 totalBp;
+    const PlayerStatus* playerStatus;
 
-    cfg = &gPlayerStatus;
-    sum = 0;
-    for (i = list->firstVisibleItemIndex.signedValue; i < list->itemCount; i++) {
-        sum += _replayBonusItemBp(((s16*)ctx->owner->work)[i]);
+    playerStatus = &gPlayerStatus;
+    totalBp      = 0;
+    for (itemIndex = list->firstVisibleItemIndex.signedValue; itemIndex < list->itemCount; itemIndex++) {
+        const s16* itemIds = object->owner->work;
+
+        totalBp += _replayBonusItemBp(itemIds[itemIndex]);
     }
-    sum += cfg->bp;
-    if (sum > 99999999) {
-        sum = 99999999;
+    totalBp += playerStatus->bp;
+    if (totalBp > REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP) {
+        totalBp = REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP;
     }
-    return sum;
+    return totalBp;
 }
 
-/// Draws one row of the replay-bonus item list: marks the item as seen, then
-/// draws its label at the prompt's position and its BP value at the mirrored x.
-static inline void _replayBonusDrawItemRow(UiList* prompt, UiObject* obj, s32 id)
+/// Draws a Complete Bonus item's name and half-price BP credit, identifying it.
+///
+/// Requires a live list and UI object and a whitelisted catalogue id. Row
+/// coordinates are panel-relative pixels: the name uses the left X, and the
+/// BP text is right-aligned at its mirrored X. Identification persists in
+/// the live save; drawing does not consume the item or grant BP.
+static inline void _replayBonusDrawItemRow(const UiList* list, const UiObject* object, s32 itemId)
 {
-    u8 buf[0x20];
+    enum { REPLAY_BONUS_ITEM_ROW_TEXT_COLOR         = 0x606060,
+           REPLAY_BONUS_ITEM_ROW_NO_ATTACHMENT_MARK = 0 };
+    u8 bpText[0x20];
 
-    itemSetIdentified(id, 1);
-    itemMenuDrawItemRow(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, id, 0x606060, 0);
-    textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, textItoaSigned(buf, _replayBonusItemBp(id)), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
+    itemSetIdentified(itemId, true);
+    itemMenuDrawItemRow(object, list->rowTextX.signedValue, list->rowTextY.signedValue, itemId, REPLAY_BONUS_ITEM_ROW_TEXT_COLOR, REPLAY_BONUS_ITEM_ROW_NO_ATTACHMENT_MARK);
+    textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, textItoaSigned(bpText, _replayBonusItemBp(itemId)), REPLAY_BONUS_ITEM_ROW_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED,
                    TEXT_ALIGNMENT_RIGHT);
 }
 
-void func_replay_bonus_801176A8(UiList* prompt, UiObject* obj)
+/// Draws and identifies the Complete Bonus list's current item.
+///
+/// A `UiListRowCallback`: the current index must address the owner's borrowed
+/// `s16` item-id array. Draws its name and BP credit at the supplied row position.
+static void _replayBonusDrawCurrentItemRow(UiList* list, UiObject* object)
 {
-    s16* p;
+    const s16* itemIds;
+    const s16* itemId;
 
-    p = &((s16*)obj->owner->work)[prompt->currentItemIndex];
-    _replayBonusDrawItemRow(prompt, obj, *p);
+    itemIds = object->owner->work;
+    itemId  = &itemIds[list->currentItemIndex];
+    _replayBonusDrawItemRow(list, object, *itemId);
 }
 
-static s32 func_replay_bonus_801177A0(void)
+/// Totals full purchase prices of every shop-tier entry, rounded up to 100000 BP.
+///
+/// Counts all three items of every tier, including any repeated catalogue id.
+/// Requires the gameplay item catalogue to remain loaded; grants no currency.
+static s32 _replayBonusGetShopCatalogueBp(void)
 {
-    ShopTier* tier;
-    s32       j;
-    s32       sum;
-    s32       i;
+    enum { REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT = 100000 };
+    const ShopTier* tier;
+    s32             itemColumn;
+    s32             totalBp;
+    s32             tierIndex;
 
-    sum  = 0;
-    tier = D_replay_bonus_80118F78;
-    i    = sum;
+    totalBp   = 0;
+    tier      = D_replay_bonus_80118F78;
+    tierIndex = totalBp;
     do {
-        j = 0;
+        itemColumn = 0;
         do {
-            sum += Gp_ItemDescs[tier->items[j]].price;
-            j++;
-        } while (j < 3);
-        i++;
+            totalBp += Gp_ItemDescs[tier->items[itemColumn]].price;
+            itemColumn++;
+        } while (itemColumn < ARRAY_SIZE(tier->items));
+        tierIndex++;
         tier++;
-    } while (i < 0xD);
-    sum += 0x1869F;
-    sum  = sum / 100000;
-    return sum * 0x186A0;
+    } while (tierIndex < SHOP_TIER_COUNT);
+    totalBp += REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT - 1;
+    totalBp  = totalBp / REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT;
+    return totalBp * REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT;
 }
 
-static void func_replay_bonus_80117848(Task* arg0)
+/// Waits 120 callback ticks, then queues the replay-award UI resource.
+///
+/// Starts with a zero countdown. Opens session UI, selects one-vblank timing
+/// and advances to the resource-load wait state after queuing file 20162.
+static void _replayBonusWaitToLoadAwardUi(Task* task)
 {
-    u16 timer = arg0->killCountdown + 1;
+    enum { REPLAY_BONUS_AWARD_UI_WAIT_TICKS    = 120,
+           REPLAY_BONUS_AWARD_UI_FILE_HUNDREDS = 1,
+           REPLAY_BONUS_AWARD_UI_FILE_INDEX    = 62 };
+    u16 elapsedTicks = task->killCountdown + 1;
 
-    arg0->killCountdown = timer;
-    if ((s16)timer >= 0x78) {
-        gGameSession->uiOpen = 1;
+    task->killCountdown = elapsedTicks;
+    if ((s16)elapsedTicks >= REPLAY_BONUS_AWARD_UI_WAIT_TICKS) {
+        gGameSession->uiOpen = true;
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-        cdCmdEnqueueDisplayResource(1, 0x3E, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
-        arg0->state = arg0->state + 1;
+        cdCmdEnqueueDisplayResource(REPLAY_BONUS_AWARD_UI_FILE_HUNDREDS, REPLAY_BONUS_AWARD_UI_FILE_INDEX, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
+        task->state = task->state + 1;
     }
 }
 
@@ -343,15 +379,22 @@ static void func_replay_bonus_801178C0(Task* arg0)
     }
 }
 
-static void func_replay_bonus_80117924(Task* arg0)
+/// Ends the award controller after its countdown and requests a game restart.
+///
+/// The countdown is tested as a signed halfword after decrement, so zero
+/// gets one last callback. Closes session UI and calls the task's exit handler.
+/// The resident restart then resets both heaps, retiring surviving credits
+/// allocations, including the pictures' auxiliary-heap VLC table.
+static void _replayBonusRestartAfterAwards(Task* task)
 {
-    u16 remaining = arg0->killCountdown - 1;
+    u16 remaining = task->killCountdown - 1;
 
-    arg0->killCountdown = remaining;
+    task->killCountdown = remaining;
     if ((s16)remaining < 0) {
         gDisplayState.gameMode = DISPLAY_GAME_ACTIVE;
-        gGameSession->uiOpen   = 0;
-        taskCallExit(arg0);
+        gGameSession->uiOpen   = false;
+        // Finish the controller before the resident loop resets task and heap storage.
+        taskCallExit(task);
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
 }
@@ -359,17 +402,17 @@ static void func_replay_bonus_80117924(Task* arg0)
 void func_replay_bonus_8011797C(Task* arg0)
 {
     TaskFunc states[11] = {
-        func_replay_bonus_80117848,
+        _replayBonusWaitToLoadAwardUi,
         func_replay_bonus_801178C0,
-        func_replay_bonus_80117194,
-        func_replay_bonus_80117194,
-        func_replay_bonus_80117194,
-        func_replay_bonus_80117194,
-        func_replay_bonus_80117194,
-        func_replay_bonus_80117194,
-        func_replay_bonus_80117194,
-        func_replay_bonus_80117194,
-        func_replay_bonus_80117924,
+        _replayBonusAdvanceAwardScreen,
+        _replayBonusAdvanceAwardScreen,
+        _replayBonusAdvanceAwardScreen,
+        _replayBonusAdvanceAwardScreen,
+        _replayBonusAdvanceAwardScreen,
+        _replayBonusAdvanceAwardScreen,
+        _replayBonusAdvanceAwardScreen,
+        _replayBonusAdvanceAwardScreen,
+        _replayBonusRestartAfterAwards,
     };
 
     states[arg0->state](arg0);
@@ -402,7 +445,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             D_replay_bonus_80119228           = NULL;
             D_replay_bonus_80119225           = 0;
             D_replay_bonus_801192BC->vlcTable = temp_v0;
-            func_replay_bonus_80118F00(0);
+            _replayBonusSelectCreditsResource(0);
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             SetDispMask(1);
             displayConfigureFramebuffers(DISPLAY_SETUP_INTERLACED_640X480);
@@ -507,11 +550,16 @@ void func_replay_bonus_80117A08(Task* arg0)
     }
 }
 
-static void func_replay_bonus_80117DE0(u8 arg0)
+/// Converts a credits fade amount into shared text and picture brightness.
+///
+/// `fadeAmount` is 0..255: zero gives RGB modulation 127 and 255 gives black.
+/// Integer halving makes adjacent fade amounts share a brightness level.
+static void _replayBonusSetCreditsFade(u8 fadeAmount)
 {
-    char pad[0x10];
+    // Unused storage retains the leaf routine's sixteen-byte stack frame.
+    char unusedStackBytes[0x10];
 
-    D_replay_bonus_801192AC = 0x7F - (arg0 >> 1);
+    D_replay_bonus_801192AC = REPLAY_BONUS_CREDITS_MAX_BRIGHTNESS - (fadeAmount >> REPLAY_BONUS_CREDITS_FADE_SHIFT);
 }
 
 static void func_replay_bonus_80117E04(void)
@@ -869,32 +917,41 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
     }
 }
 
-static s32 func_replay_bonus_80118B6C(ReplayBonusStfFile* file, s32 index)
+/// Relocates a writable STF credits file in place and publishes its drawing tables.
+///
+/// Returns 0 for a non-STF magic prefix, 1 otherwise; the resource-slot argument
+/// is unused. Requires complete, aligned tables and valid file-relative byte
+/// offsets in PS1 RAM. A positive glyph-table word marks an unrelocated file;
+/// relocated pointers are negative signed words. Publishes the line count on
+/// initial relocation only, so reusing a relocated file requires that count
+/// still to describe it. The file must outlive every drawing-table pointer.
+static s32 _replayBonusRelocateCreditsFile(ReplayBonusStfFile* file, s32 unusedResourceSlot)
 {
-    ReplayBonusStfLine* rec;
-    s32                 i;
+    ReplayBonusStfLine* line;
+    s32                 lineIndex;
 
     if (strncmp(file->magic, "STF", 3) != 0) {
         return 0;
     }
 
+    // Convert serialized byte offsets to PS1 address words exactly once.
     if (file->glyphs.offset > 0) {
         file->glyphs.offset    += (s32)file;
         file->params.offset    += (s32)file;
         file->lineTable.offset += (s32)file;
         file->sprites.offset   += (s32)file;
-        D_replay_bonus_80119298 = (file->lineTable.pointer)->lines;
-        D_replay_bonus_801192A0 = (file->lineTable.pointer)->count;
-        for (i = 0; i < D_replay_bonus_801192A0; i++) {
-            rec                     = D_replay_bonus_80119298;
-            D_replay_bonus_80119298 = rec + 1;
-            rec->cmds.offset       += (s32)file;
+        D_replay_bonus_80119298 = file->lineTable.pointer->lines;
+        D_replay_bonus_801192A0 = file->lineTable.pointer->count;
+        for (lineIndex = 0; lineIndex < D_replay_bonus_801192A0; lineIndex++) {
+            line                    = D_replay_bonus_80119298;
+            D_replay_bonus_80119298 = line + 1;
+            line->cmds.offset      += (s32)file;
         }
     }
 
     D_replay_bonus_80119290 = file->glyphs.pointer;
     D_replay_bonus_80119294 = file->params.pointer;
-    D_replay_bonus_80119298 = (file->lineTable.pointer)->lines;
+    D_replay_bonus_80119298 = file->lineTable.pointer->lines;
     D_replay_bonus_8011929C = file->sprites.pointer;
     return 1;
 }
@@ -935,74 +992,93 @@ void func_replay_bonus_80118C64(Task* arg0)
     }
 }
 
-void func_replay_bonus_80118D7C(Task* arg0)
+/// Fades the credits from black to their full text and picture brightness.
+///
+/// Spawn argument 1 is a positive duration of at most 32767 callback ticks.
+/// Initializes the remaining countdown, then decrements it through zero and
+/// kills the worker. Updates shared brightness even on its final callback;
+/// only one fade worker may control that brightness at a time.
+static void _replayBonusFadeCreditsInTask(Task* task)
 {
-    s32 temp_v1;
-    u16 temp_v0;
+    enum { REPLAY_BONUS_COUNTDOWN_SIGN_SHIFT = 16 };
+    s32 fadeState;
+    u16 remainingTicks;
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
-            arg0->killCountdown = (u16)arg0->spawnArg1.value;
-            arg0->state        += 1;
+    fadeState = task->state;
+    switch (fadeState) {
+        case REPLAY_BONUS_FADE_INITIALIZE:
+            task->killCountdown = (u16)task->spawnArg1.value;
+            task->state        += 1;
             break;
-        case 1:
-            temp_v0             = arg0->killCountdown - 1;
-            arg0->killCountdown = temp_v0;
-            if ((temp_v0 << 0x10) <= 0) {
-                taskKill(arg0);
+        case REPLAY_BONUS_FADE_RUN:
+            remainingTicks      = task->killCountdown - 1;
+            task->killCountdown = remainingTicks;
+            if ((remainingTicks << REPLAY_BONUS_COUNTDOWN_SIGN_SHIFT) <= 0) {
+                taskKill(task);
             }
             break;
     }
-    func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1.value) & 0xFF);
+    _replayBonusSetCreditsFade(((s32)(task->killCountdown * REPLAY_BONUS_CREDITS_FADE_MAX) / (s32)task->spawnArg1.value) & REPLAY_BONUS_CREDITS_FADE_MAX);
 }
 
-void func_replay_bonus_80118E3C(Task* arg0)
+/// Fades the credits' text and pictures to black over the requested duration.
+///
+/// Spawn argument 1 is a positive duration of at most 32767 callback ticks.
+/// Initializes an elapsed countdown at zero, then increments to the duration
+/// and kills the worker. Updates shared brightness on the final callback;
+/// only one fade worker may control that brightness at a time.
+static void _replayBonusFadeCreditsOutTask(Task* task)
 {
-    s32 temp_v1;
-    u16 temp_v0;
+    s32 fadeState;
+    u16 elapsedTicks;
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
-            arg0->killCountdown = 0;
-            arg0->state        += 1;
+    fadeState = task->state;
+    switch (fadeState) {
+        case REPLAY_BONUS_FADE_INITIALIZE:
+            task->killCountdown = 0;
+            task->state        += 1;
             break;
-        case 1:
-            temp_v0             = arg0->killCountdown + 1;
-            arg0->killCountdown = temp_v0;
-            if ((s16)temp_v0 >= arg0->spawnArg1.value) {
-                taskKill(arg0);
+        case REPLAY_BONUS_FADE_RUN:
+            elapsedTicks        = task->killCountdown + 1;
+            task->killCountdown = elapsedTicks;
+            if ((s16)elapsedTicks >= task->spawnArg1.value) {
+                taskKill(task);
             }
             break;
     }
-    func_replay_bonus_80117DE0(((s32)(arg0->killCountdown * 0xFF) / (s32)arg0->spawnArg1.value) & 0xFF);
+    _replayBonusSetCreditsFade(((s32)(task->killCountdown * REPLAY_BONUS_CREDITS_FADE_MAX) / (s32)task->spawnArg1.value) & REPLAY_BONUS_CREDITS_FADE_MAX);
 }
 
-static void func_replay_bonus_80118F00(s32 arg0)
+/// Selects a loaded data resource by ordinal and initializes its credits tables.
+///
+/// `dataResourceIndex` is zero-based among data-kind slots, rather than an
+/// absolute resource-slot index. The caller supplies a writable STF resource
+/// that remains loaded throughout credits drawing. A missing ordinal leaves
+/// the current file and tables intact; the relocation result is ignored.
+static void _replayBonusSelectCreditsResource(s32 dataResourceIndex)
 {
-    FsResourceSlot*     slot;
-    s32                 count;
-    s32                 i;
+    FsResourceSlot*     resourceSlot;
+    s32                 dataResourcesSeen;
+    s32                 slotIndex;
     s32                 resourceKind;
-    ReplayBonusStfFile* stfFile;
+    ReplayBonusStfFile* file;
 
-    count        = 0;
-    i            = count;
-    resourceKind = FILE_SYSTEM_RESOURCE_DATA;
+    dataResourcesSeen = 0;
+    slotIndex         = dataResourcesSeen;
+    resourceKind      = FILE_SYSTEM_RESOURCE_DATA;
     do {
-        slot = &D_8006C338[i];
-        if (slot->kind == resourceKind) {
-            if (count == arg0) {
-                stfFile                 = slot->data;
-                D_replay_bonus_8011928C = stfFile;
-                func_replay_bonus_80118B6C(stfFile, i);
+        resourceSlot = &D_8006C338[slotIndex];
+        if (resourceSlot->kind == resourceKind) {
+            if (dataResourcesSeen == dataResourceIndex) {
+                file                    = resourceSlot->data;
+                D_replay_bonus_8011928C = file;
+                _replayBonusRelocateCreditsFile(file, slotIndex);
                 return;
             }
-            count++;
+            dataResourcesSeen++;
         }
-        i++;
-    } while (i < ARRAY_SIZE(D_8006C338));
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(D_8006C338));
 }
 
 /* The package's data, in address order. */
@@ -1114,7 +1190,7 @@ u16 D_replay_bonus_8011908C[80] = {
     0x0,
 };
 
-UiListRowCallback D_replay_bonus_8011912C[1] = { func_replay_bonus_801176A8 };
+UiListRowCallback D_replay_bonus_8011912C[1] = { _replayBonusDrawCurrentItemRow };
 
 UiList D_replay_bonus_80119130 = { D_replay_bonus_8011912C, 1, { 1 }, 0, 0xF };
 
@@ -1146,8 +1222,8 @@ Task* D_replay_bonus_80119228 = NULL;
 
 TaskDesc D_replay_bonus_8011922C[4] = {
     { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80117A08, { NULL } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80118D7C, { NULL } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80118E3C, { NULL } },
+    { { { TASK_BODY_NONE, 0x20 } }, _replayBonusFadeCreditsInTask, { NULL } },
+    { { { TASK_BODY_NONE, 0x20 } }, _replayBonusFadeCreditsOutTask, { NULL } },
     { { { TASK_BODY_NONE, 0x20 } }, func_replay_bonus_80118C64, { NULL } },
 };
 

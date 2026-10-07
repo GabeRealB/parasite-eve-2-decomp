@@ -188,7 +188,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ReplayBonusTotals, 0x18);
 
 /// Replay-bonus item-id table (`0x4E` ids, then a `0xFFFF` terminator).
-/// `func_replay_bonus_80117598` tests membership; `_replayBonusBuildItemList`
+/// `_replayBonusIsListedItem` tests membership; `_replayBonusBuildItemList`
 /// walks the same list when filling the owner task's `s16` item-id array.
 extern u16 D_replay_bonus_8011908C[];
 

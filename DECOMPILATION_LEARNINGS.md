@@ -5104,7 +5104,7 @@ reload's home. The same body exists at 0x474 in `actor_110300` and 0x4B4 in
 
 ## `SCHED_BARRIER` after an inlined helper's `jal` so its post-call `lui` / `move` survive a larger block
 
-A matched sibling (`func_replay_bonus_80117484`) does
+A matched sibling (`_replayBonusGetUnlockedShopItem`) does
 
 ```
 jal   replayBonusGetTotalExp
@@ -5445,7 +5445,7 @@ if (item < 0x100) {
 price = *(u16*)(off + table);
 ```
 
-`func_replay_bonus_801176A8` is the example. Pair with `SOFT_TOUCH_REG(idx)`
+`_replayBonusDrawCurrentItemRow` is the example. Pair with `SOFT_TOUCH_REG(idx)`
 as the first statement of the `< 0x100` arm so `idx = item` fills the `beqz`
 delay (`move s1, s0`) rather than sitting before `DrawItemLabel`.
 
@@ -5484,7 +5484,7 @@ if (slot->kind == resourceKind) {
 ```
 
 Index the table (`slot = &arr[i]`) rather than a walking pointer so the
-store's `%hi` is hoisted before the array address. `func_replay_bonus_80118F00`
+store's `%hi` is hoisted before the array address. `_replayBonusSelectCreditsResource`
 is the example.
 
 ## Write `prim->r0` first so a reused RGB constant loads next to `setcode`
@@ -46633,7 +46633,7 @@ if ((s16)remaining < 0) { ... }
 Note the load stays `lhu` even though `killCountdown` is declared `s16`:
 assigning it into a `u16` local means only the low half is live, so GCC drops
 the sign-extending load and re-extends at the comparison instead. Reading the
-field into an `s16` local flips it back to `lh`. `func_replay_bonus_80117924`.
+field into an `s16` local flips it back to `lh`. `_replayBonusRestartAfterAwards`.
 
 Where the local has to stay `s16` - the value is both compared and assigned
 back, as a task's underflowing countdown - cast the read instead and keep the
@@ -63901,7 +63901,7 @@ return 0;
 ```
 
 Indexing `table[i]` also inverts the branch and swaps the pointer/`i`
-registers. `func_replay_bonus_80117598` is the example.
+registers. `_replayBonusIsListedItem` is the example.
 
 ## `li t0, N` before a loop `div` reused by `addu p, p, t0` is two spilled constants, not one local
 
@@ -81086,7 +81086,7 @@ It is the plain `count = 0;` of a `for`-loop preamble — `s32 count; s32 i;` th
 `count = 0;` and `i = 0` in the `for`. GCC 2.8.1 materialises the second zero as
 a *copy from the register already known to hold 0* rather than a second
 `addu $a3, $zero, $zero`, so the copy says nothing about the source. The matched
-sibling `func_replay_bonus_80118F00` (aya) really does write `i = count;` and
+sibling `_replayBonusSelectCreditsResource` (aya) really does write `slotIndex = dataResourcesSeen;` and
 compiles to a byte-identical preamble, which is what makes this a trap: the
 `~`-related shape search will offer both, and the wrong reading costs a
 rebuild.
@@ -143273,7 +143273,7 @@ branch's delay slot, with only the `else` arm reading `a0`.
   Passing an already-loaded local gives the parameter no copy at all.
 
 The whole sum, `+ gPlayerStatus.bp` through a `cfg` local and the 99999999
-clamp, is also the out-of-line `func_replay_bonus_801175F0`; inlined twice
+clamp, is also the out-of-line `_replayBonusGetListTotalBp`; inlined twice
 here, it needed no pins.
 ## Pins on a scratch frame stood for references that only exist until reload (Actor00700_Fn00334, 2026-09-26)
 
@@ -144582,7 +144582,7 @@ the value and reloads with `lhu`.
 at 100.000% against a target storing b, g, r from the same register; the full
 build failed on those two bytes. Byte-compare the overlay against its package
 when the build fails on a function the scratch calls matched.
-## `lhu`, then `sra` in the call's delay slot with no loop around it: `x >>= 1` on the variable both arms set (func_replay_bonus_801176A8, 2026-09-26)
+## `lhu`, then `sra` in the call's delay slot with no loop around it: `x >>= 1` on the variable both arms set (_replayBonusDrawCurrentItemRow, 2026-09-26)
 
 An if/else sets `price` from a `u16` field in each arm and the halved value is
 passed straight to a call. `f(price >> 1)` gives `srl`: combine folds the shift
@@ -145227,7 +145227,7 @@ instead. Likewise `packedLuminance = (packedLuminance >> 3) & M;
 packedLuminance = M - packedLuminance;` as two statements adds refs to
 `packedLuminance` and changes its global rank relative to its neighbours.
 
-## `p = gPtr++` adds a copy that `p = gPtr; gPtr = p + 1;` does not (func_replay_bonus_80118B6C, 2026-09-26)
+## `p = gPtr++` adds a copy that `p = gPtr; gPtr = p + 1;` does not (_replayBonusRelocateCreditsFile, 2026-09-26)
 
 A loop walking a global cursor (`rec = gLines; gLines = rec + 1; rec->x += base;`)
 loads the global straight into the register `rec` lives in. Written as a
@@ -149474,10 +149474,10 @@ attempts; left as it was.
   is `break` when the jump's own condition (`remaining == 0`) makes that test
   false; jump threading removes the second test (`func_mine_mesa_80181358`).
 - **`(mask & (1 << idx)) == 0` is folded to `((mask >> idx) & 1) == 0`** (`srav;
-  andi`), so the `one = 1` local of `func_replay_bonus_80117484` stays; a
+  andi`), so the `tierBit = 1` local in `_replayBonusResolveShopTier` stays; a
   `static inline` returning `1 << tier` keeps the `sllv` but emits the mask load
   one insn early. Its two `do { L: ...; goto L; } while (0)` scans are plain
-  `for` loops with `break`; the second needs `i = 0;` written before the clamp
+  `for` loops with `break`; the second needs `tiersChecked = 0;` written before the clamp
   that precedes the loop (`for (; i < 0xD; i++)`), or `save` and `i` trade
   registers.
 - Not converted: `func_mp5a5_8011DDA4`'s `goto fire` from state 6 back into

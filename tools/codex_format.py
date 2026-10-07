@@ -2,7 +2,7 @@
 """Render `codex exec --json` JSONL as readable log lines.
 
 Plain `codex exec` echoes every command it runs *and that command's entire
-stdout*. For a matching agent that is ruinous: one `func_replay_bonus_80118B6C`
+stdout*. For a matching agent that is ruinous: one `_replayBonusRelocateCreditsFile`
 iteration wrote a 355KB log, 91% of which was GCC RTL dumps and register
 allocation traces the agent pulled to reason about scheduling. Those dumps are
 the agent working correctly - it should keep reading them - but the log only
