@@ -186,7 +186,6 @@ void func_hypervelocity_8011D1E8(Task* task)
     EffectWork*                    eff;
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          slot;
-    GfxRotationWords*              dstm;
     s32                            pan;
 
     work      = task->spawnArg2.pointer;
@@ -205,13 +204,8 @@ void func_hypervelocity_8011D1E8(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case 0:
-            dstm                = (GfxRotationWords*)&coord->coord;
             coord->parent       = work->parent;
-            dstm->m00M01        = ONE;
-            dstm->m02M10        = 0;
-            dstm->m11M12        = ONE;
-            dstm->m20M21        = 0;
-            dstm->m22           = ONE;
+            gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = D_hypervelocity_8011FB74.vx;
             coord->coord.t[1]   = D_hypervelocity_8011FB74.vy;
             coord->coord.t[2]   = D_hypervelocity_8011FB74.vz;
