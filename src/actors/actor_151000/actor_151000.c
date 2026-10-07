@@ -41,36 +41,6 @@ static s32  _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const An
 static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 static s32  _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
-/// The clips the package's scene adds to the player's animation bank, with the
-/// play requests stored after them.
-///
-/// The longer of the package's two event scripts sends the player a copy
-/// request for this storage before it plays any of the clips; that request is
-/// a separate object. The copy takes `ANIMATION_BANK_EXTENSION_CAPACITY` words
-/// from the start of the storage, which is more than the clip table holds: the
-/// three set pointers occupy extended ids 47-49, and the first 29 words of the
-/// play requests are written into the bank after them. The scripts' requests
-/// to the player select ids 47-49 and the bank's own id 1 only, so none of
-/// those request words is played as a clip.
-///
-/// The play requests open the run of requests the package keeps for its
-/// scripts, and are part of this object only because the copied span reaches
-/// into the sixth; the rest of the run follows as separate objects. The run
-/// mixes the two receivers: the scripts play the second to fourth on the
-/// player and send the sixth to the package's walker, the character the
-/// scripts walk around, which reads the animation id as an index into its own
-/// clip table and ignores the bank selector.
-typedef union {
-    struct {
-        AnimationSet*        sets[3];         // Player clips for extended ids 47-49
-        AnimationPlayRequest playRequests[6]; // Resets for ids 47, 47, 48, 49, 0 and 16: the second to fourth play the extended clips on the player, the sixth plays the walker's clip 16; nothing references the first or the fifth
-    } data;                                   // The records by name
-    s32 words[33];                            // The same storage as the copy reads it; the last word lies beyond the copied span
-} _Actor151000AnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_Actor151000AnimationBankExtensionStorage, 132);
-
-extern _Actor151000AnimationBankExtensionStorage D_actor_151000_8013336C;
-
 /// The scripts switch `_actor151000BlackoutTask` on and off through
 /// `_actor151000SetBlackout`.
 extern s32 D_actor_151000_8013D378;
@@ -177,7 +147,36 @@ static AnimationSet _gActor151000Animation01518 = {
 
 TaskDesc D_actor_151000_80133360 = { { { TASK_BODY_NONE, 192 } }, _actor151000BlackoutTask, { .value = 0 } };
 
-_Actor151000AnimationBankExtensionStorage D_actor_151000_8013336C = { .data = { { &_gActor151000Animation00ED8, &_gActor151000Animation012A0, &_gActor151000Animation01518 }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
+/// Player clips for extended ids 47-49.
+///
+/// The longer of the package's two event scripts sends the player its copy
+/// request before it plays any of these clips. `D_actor_151000_801334E4` copies
+/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
+/// player's bank, which is 29 words past the end of this array: the read runs
+/// on through `D_actor_151000_80133378`, `D_actor_151000_8013338C`,
+/// `D_actor_151000_801333A0`, `D_actor_151000_801333B4`,
+/// `D_actor_151000_801333C8` and the first four words of
+/// `D_actor_151000_801333DC`. That overrun is the original's and is kept as it
+/// is: the request carries the bank's fixed capacity, while the table was
+/// stored with only its own entries. The scripts' requests to the player select
+/// ids 47-49 and the bank's own id 1 only, so none of the words installed after
+/// the three clips is played as one.
+AnimationSet* D_actor_151000_8013336C[3] = { &_gActor151000Animation00ED8, &_gActor151000Animation012A0, &_gActor151000Animation01518 };
+
+// The run of requests the package keeps for its scripts starts here; it mixes the two receivers. This one is not referenced.
+AnimationPlayRequest D_actor_151000_80133378 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_actor_151000_8013338C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_actor_151000_801333A0 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_actor_151000_801333B4 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+// Not referenced.
+AnimationPlayRequest D_actor_151000_801333C8 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+// Sent to the package's walker, the character the scripts walk around, which reads the animation id as an index into its own clip table and ignores the bank selector.
+AnimationPlayRequest D_actor_151000_801333DC = { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_actor_151000_801333F0 = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -204,7 +203,7 @@ ActorTransform D_actor_151000_801334B4 = { { -4900, 0, -0x3CBE, 0 }, { 0, 0, 0, 
 
 ActorTransform D_actor_151000_801334CC = { { -3600, 0, -0x30D4, 0 }, { 0, 0, 0, 0 } };
 
-AnimationBankCopyRequest D_actor_151000_801334E4 = { { .words = D_actor_151000_8013336C.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
+AnimationBankCopyRequest D_actor_151000_801334E4 = { { .sets = D_actor_151000_8013336C }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 EvsCommand D_actor_151000_801334EC[47] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -218,8 +217,8 @@ EvsCommand D_actor_151000_801334EC[47] = {
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_8013336C.data.playRequests[1] }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_8013336C.data.playRequests[5] } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_8013338C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_801333DC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x550F0007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x550F0008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -233,10 +232,10 @@ EvsCommand D_actor_151000_801334EC[47] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_801333F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_8013336C.data.playRequests[2] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_801333A0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_151000_80133484 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_8013336C.data.playRequests[3] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_801333B4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_151000_801334B4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_80133440 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_actor_151000_801334CC } }, { .value = 0 } },
@@ -246,7 +245,7 @@ EvsCommand D_actor_151000_801334EC[47] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_8013336C.data.playRequests[5] } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_801333DC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_80133454 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -262,7 +261,7 @@ EvsCommand D_actor_151000_80133954[15] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_8013336C.data.playRequests[5] } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_801333DC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_80133454 }, { .value = 0 } },
