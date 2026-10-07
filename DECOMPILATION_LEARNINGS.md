@@ -21230,8 +21230,8 @@ compares in the object mean the source had nested `if`s") — so the 69.9%
 baseline needed both fixes at once.
 
 The prologue `move` can point the *other* way, and then the same trap reads as
-`insert` rather than a wrong register. `func_actor_461800_80132E14` sits in the
-same `(id, handler)` table as `func_actor_461800_80132F20` — which already reads
+`insert` rather than a wrong register. `_actor461800SetScriptedWalkerModelDraw` sits in the
+same `(id, handler)` table as `_actor461800ApplyScriptedWalkerCommand` — which already reads
 its payload from `$a2` — but m2c emitted the one-parameter `s32 f(s32 arg2)`, so
 the flag arrived in `$a0` and the seed scored 96.297% with `insert=1 regs=7`: an
 extra `move a3,a0`, both `andi`s comparing `$a3` instead of `$a2`, and the second
@@ -62760,7 +62760,7 @@ grep -rn "0x4EC\|field_4EC" src/ | head
 ```
 
 That landed on `D_actor_461800_80143894->field_4EC = 0x14;` in
-`actor_461800`'s matched `func_actor_461800_80132F20` - also nine instructions,
+`actor_461800`'s matched `_actor461800ApplyScriptedWalkerCommand` - also nine instructions,
 and byte-identical to ours but for `%hi(D_actor_461800_80143894)` where we have
 `%hi(ActorsShared80131f9cWork)`: same opcodes, same `$a2`, same `0x4EC`
 displacement, same `0x14`. Porting that body with the global renamed scored
@@ -75468,7 +75468,7 @@ return on `$v0`, and only the branch arm left over. Note the `stack=3` cleared
 without touching a local, so it was part of the same symptom rather than a frame
 to shrink. The twins of this opcode all declare the unused slot:
 `func_actor_150400_801326A4`, `func_actor_460200_80132B2C`,
-`func_actor_461800_80132D84`.
+`_actor461800PlayScriptedWalkerAnimation`.
 
 ## A promoted `shared` span that lands on existing cuts renumbers nothing
 
@@ -77561,7 +77561,7 @@ full four-parameter signature with the payload typed by its own overlay
 in the same overlay, is the quick cross-check: it uses `$a0` as a `Task*`
 (`Task::work` at 0x1C, `Task::extra` at 0x2C) alongside `$a2` and `$a3`.
 
-Example: `func_actor_461800_80132F20`, 99.78% -> 100.00% on the first build.
+Example: `_actor461800ApplyScriptedWalkerCommand`, 99.78% -> 100.00% on the first build.
 Preprocessed SHA256: `base_1.i`
 `8a2e792dab22f5f05d12956ad11345f8f24860a753fc3d4be26bacde5f5fee71`.
 
@@ -77599,7 +77599,7 @@ byte-identical to the target's -- nothing to split and nothing to shrink.
 
 Do not chase a `stack` penalty when the prologue/epilogue already match: diff
 the normalized dumps first, and if the only differences are `$aN` operands,
-the defect is the parameter list, not the frame. `func_actor_461800_80132D84`
+the defect is the parameter list, not the frame. `_actor461800PlayScriptedWalkerAnimation`
 had hit the same thing one function earlier, and `regs` differing by one line
 while `stack` differs by an even number is the signature.
 
@@ -77767,7 +77767,7 @@ expression twice -- `case 1: D->field_4BC = msg->field_2;` -- makes
 One `s32` temp used by both the switch and the byte store gives one load and the
 register reuse.
 
-`func_actor_461800_801339EC` is the worked example: m2c's `u16 temp_v1` scored
+`_actor461800ApplyFootstepWalkerCommand` is the worked example: m2c's `u16 temp_v1` scored
 68.30%, a direct field switch with a repeated load 89.91%, and the `s32` temp
 100.00%. Preprocessed SHA256: `base_3.i`
 `7442db7dfc3fa7ff643d26c202bdd7b24dce6a2c8c6600d508553b9f605c856b`.
@@ -77775,7 +77775,7 @@ register reuse.
 ## An address that is both a `D_` symbol and a struct field: the two spellings are *different code*, not just different labels
 
 `D_8007218B` is `gMcSaveData.demoScene` (`gMcSaveData = 0x80072168`), so the
-guard in `func_actor_461800_8013229C` can be written either way, and a matched
+guard in `_actor461800FinishScene` can be written either way, and a matched
 sibling in the same family (`func_shelter_r36_8017D738`) writes the field form.
 Both assemble to the same immediate, but they do not compile the same:
 
@@ -77881,8 +77881,8 @@ Preprocessed SHA256 of the matching input: `base_1.i`
 
 ## An argument m2c dropped is still part of the match: the wrong `$a0` user delays a call's setup
 
-`func_actor_461800_80132D84` is a four-argument handler
-`(Task*, s32, AnimationPlayRequest*, s32)` whose m2c seed read only the third
+`_actor461800PlayScriptedWalkerAnimation` is a four-argument handler
+`(Task*, s32, const AnimationPlayRequest*, s32)` whose m2c seed read only the third
 one, so m2c emitted `s32 f(void* arg2)`. GCC then placed the pointer in `$a0`,
 and the function's tail calls `func_actor_461800_80132660(D_actor_461800_80143898)`
 — whose own first argument also wants `$a0`. The false write-after-read
@@ -97743,27 +97743,27 @@ Example: `func_actor_204000_801507B4`. Inputs: `base_1.i`
 
 ## A field read twice through one pointer reloads after the store between them; name it before the switch
 
-`func_actor_461800_80132B74` writes two fields of the same coordinate frame and a
+`_actor461800ScriptedWalkerAttachmentTask` writes two fields of the same coordinate frame and a
 third through the same pointer, and the reference loads that pointer once, in the
 entry block, above the switch:
 
 ```
-lw     a0,0x2c(a2)        /* task->extra */
-addu   a3,v1,v0           /* parts + spawnArg1 * 0x50 */
-lw     v0,8(a0)           /* extra->coords  -- one load, above the branch */
+lw     a0,0x2c(a2)        /* task->extra.tmd */
+addu   a3,v1,v0           /* walkerCoords + spawnArg1 * 0x50 */
+lw     v0,8(a0)           /* attachmentModel->coords  -- one load, above the branch */
 beqz   a1,Lcase0
 nop
 ...
 Lcase0:
-sw     zero,0(v0)         /* coord->composeStamp  */
-sh     zero,0xc(a0)       /* extra->flags */
-sw     a3,0x4c(v0)        /* coord->parent  -- same register, no reload */
+sw     zero,0(v0)         /* attachmentRoot->composeStamp  */
+sh     zero,0xc(a0)       /* attachmentModel->flags */
+sw     a3,0x4c(v0)        /* attachmentRoot->parent  -- same register, no reload */
 ```
 
-Spelling the same body as two dereferences of the field — `extra->coords->composeStamp = 0;`
-… `extra->coords->parent = part;` — reads 93.87% and puts *two* loads in the case
+Spelling the same body as two dereferences of the field — `attachmentModel->coords->composeStamp = 0;`
+… `attachmentModel->coords->parent = parentPart;` — reads 93.87% and puts *two* loads in the case
 block, because `sw zero,0(v0)` is a store through the same base and nothing proves
-it cannot alias `extra + 8`. That is CSE doing its job, not a codegen failure, and
+it cannot alias `attachmentModel + 8`. That is CSE doing its job, not a codegen failure, and
 no scheduler knob recovers it: the reference's single load sits above the branch,
 so the front end produced it there. The fix is a named local for each pointer the
 arm reads twice, and — same rule as the `if` case in the previous entry — the
@@ -97771,16 +97771,14 @@ address arithmetic goes above the switch too, since `base + index * 0x50` is in 
 reference's entry block as well:
 
 ```c
-    TmdObject*     extra = task->extra;
-    GfxCoord* coord = extra->coords;
-    GfxCoord* parts = ((TmdObject*)D_actor_461800_80143898->extra)->coords;
-    GfxCoord* part  = parts + task->spawnArg1;
+    TmdObject*     attachmentModel = task->extra.tmd;
+    GfxCoord* attachmentRoot = attachmentModel->coords;
+    GfxCoord* walkerCoords = D_actor_461800_80143898->extra.tmd->coords;
+    GfxCoord* parentPart  = walkerCoords + task->spawnArg1.value;
 
     switch (task->state) {
     case 0:
-        coord->composeStamp     = 0;
-        extra->flags = 0;
-        coord->parent     = part;
+        _actor461800AttachWalkerModel(attachmentModel, attachmentRoot, parentPart);
 ```
 
 The hoist also restores the `beqz` delay slot: with the load demoted into the case
@@ -97800,7 +97798,7 @@ not fire and the promotion would proceed to write the span and the shared symbol
 into every carrier's map. The link is where it then fails, in the overlays that do
 not define the name, after the manifest has already been touched.
 
-`func_actor_461800_80132B74` / `func_actor_260400_8014A6F8` are the worked case:
+`_actor461800ScriptedWalkerAttachmentTask` / `func_actor_260400_8014A6F8` are the worked case:
 byte-equal bodies modulo the link address whose only difference is *which*
 overlay's task global they read (`D_actor_461800_80143898` against
 `D_actor_260400_80154C74`). Two distinct variables, so one shared object cannot
@@ -98114,14 +98112,14 @@ The dropped stores also shrink the frame, 0x28 to 0x20, which is most of the
 penalty mix (`stack=11 regs=23 insert=6 delete=11`).
 
 Addressing the whole object fixes it, and is how the same handler is written in
-`func_actor_461800_80132B74`:
+`_actor461800ScriptedWalkerAttachmentTask`:
 
 ```c
-VECTOR vec;
-vec.vx = parts->workm.t[0];
-vec.vy = parts->workm.t[1] - 0x320;
-vec.vz = parts->workm.t[2];
-worldCoordSetModelLighting(extra, &vec, 0, 3);
+VECTOR lightSample;
+lightSample.vx = walkerCoords->workm.t[0];
+lightSample.vy = walkerCoords->workm.t[1] - ACTOR_461800_ATTACHMENT_LIGHT_HEIGHT;
+lightSample.vz = walkerCoords->workm.t[2];
+worldCoordSetModelLighting(attachmentModel, &lightSample, 0, ACTOR_461800_ATTACHMENT_LIGHT_COUNT);
 ```
 
 100% with every penalty zero, preprocessed input `base_1.i`.
@@ -100963,7 +100961,7 @@ Inputs: `base.i`
 
 `func_actor_143900_80132FB0` seeds at 58.196% (`regs=19 delete=11 insert=6
 stack=6 branch=2 reorder=2`) and matches at 100% with the body of
-`func_actor_461800_80132B74`, its twin (see the worked example below). The one
+`_actor461800ScriptedWalkerAttachmentTask`, its twin (see the worked example below). The one
 delta that carried the score is a placement rule, and it is worth checking on
 any m2c seed whose target has an instruction sitting in a branch's delay slot.
 
@@ -103200,7 +103198,7 @@ void _actor420700HeadHatTask(Task* task)
 
 102 unmatched actor functions call `worldCoordSetModelLighting` and 58 of them carry the
 `-0x320` drop, so this whole family is copy-and-substitute work. Matched
-carriers to read: `func_actor_461800_80132B74` (fields score 0.95, cflow 1.00)
+carriers to read: `_actor461800ScriptedWalkerAttachmentTask` (fields score 0.95, cflow 1.00)
 and `func_actor_450800_80132958`. The copies vary in exactly two places:
 
 * **How the actor's own model task is reached.** `D_actor_420700_8013EFE4` /
