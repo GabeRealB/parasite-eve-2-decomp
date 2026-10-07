@@ -149,7 +149,7 @@ static void func_dryfield_gas_station_8017FF84(Task* task);
 
 void func_dryfield_gas_station_8017EA90(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

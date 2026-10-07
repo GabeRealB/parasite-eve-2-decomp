@@ -1,6 +1,6 @@
 /* Telephone/save menu and play-data, weapon and PE statistics panels.
  *
- * MenuTask is a static-inline implementation called by an ordinary overlay
+ * _telephoneMenuTask is a static-inline implementation called by an ordinary overlay
  * entry point. Private functions and data have the same names in every TU.
  * TELEPHONE_TITLE_BYTES preserves the 12-byte title allocation, including its
  * terminator and two retained trailing bytes; visible text is shared.
@@ -17,6 +17,6 @@
 
 /* Interface for the including source. */
 
-static inline void Telephone_MenuTask(Task* task);
+static inline void _telephoneMenuTask(Task* task);
 
 #endif /* SRC_SHARED_TELEPHONE_H */

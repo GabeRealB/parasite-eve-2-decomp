@@ -861,7 +861,7 @@ static inline s32 Shop_AddItemCount(s32 item, s32 count);
 
 void func_dryfield_night_trailer_coach_8018138C(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

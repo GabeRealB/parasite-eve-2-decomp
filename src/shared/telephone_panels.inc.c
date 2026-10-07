@@ -1,228 +1,240 @@
 /* Continue telephone.inc.c after the preceding overlay wrappers. */
 
-/// Task body of a prompt window: on its first frame it becomes the UI holder and
-/// installs `Telephone_ClosePrompt` as its exit callback; every
-/// frame it draws the prompt lines.
-static void Telephone_PromptTask(Task* task)
+/// Draws the telephone help panel registered as the current prompt holder.
+///
+/// The task owns its UI object in `spawnArg2.pointer`; its first payload is the
+/// borrowed text or packed P.E. item passed to the menu prompt renderer. First
+/// update installs the holder and its clearing exit callback. The task and any
+/// borrowed text must remain live until prompt drawing and teardown finish.
+static void _telephonePromptTask(Task* task)
 {
-    UiObject* obj;
+    UiObject* object;
 
-    obj         = task->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (task->state == 0) {
-        Wip_UiHolder       = obj;
-        task->exitCallback = Telephone_ClosePrompt;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == TELEPHONE_PANEL_INITIALIZE) {
+        Wip_UiHolder       = object;
+        task->exitCallback = _telephonePromptTaskExit;
         task->state       += 1;
     }
-    itemMenuDrawTaskPrompt(obj, task);
+    itemMenuDrawTaskPrompt(object, task);
 }
 
-/// Inserts a '.' into a digit string so `decimals` characters sit after the
-/// point. Walks to the NUL, then shifts the last `min(len, decimals)` bytes
-/// one to the right to open a slot. No-op when `decimals <= 0`.
-static void Telephone_InsertDecimalPoint(u8* str, s32 decimals)
+/// Inserts a decimal point before the requested trailing digits.
+///
+/// `digits` is a writable NUL-terminated digit string with one extra byte of
+/// capacity, including the terminator. Positive `fractionalDigits` is clamped
+/// to the string length; a shorter string receives a leading point, not zeros.
+/// Nonpositive counts leave the string unchanged. The digit cursor walks back
+/// one byte before the string when all digits move, without dereferencing it.
+static void _telephoneInsertDecimalPoint(u8* digits, s32 fractionalDigits)
 {
-    s32 len = 0;
-    s32 i;
+    s32 digitCount = 0;
+    s32 shiftIndex;
 
-    if (decimals > 0) {
-        while (*str != 0) {
-            str++;
-            len++;
-        }
-        if (len < decimals) {
-            decimals = len;
-        }
-        decimals++;
-        for (i = 0; i < decimals; i++) {
-            str[1] = str[0];
-            str--;
-        }
-        str[1] = '.';
+    if (fractionalDigits > 0) {
+        TELEPHONE_SHIFT_DECIMAL_DIGITS(digits, digitCount, fractionalDigits, shiftIndex);
     }
 }
 
-/// Format `value` as a percentage with `decimals` fractional digits into `buf`:
-/// print the integer with at least `decimals + 1` digits when it is small enough
-/// (so "5" with two decimals becomes "0.05"), otherwise print it unpadded, then
-/// shift the last `decimals` digits right by one and drop a '.' in front of
-/// them. Appends "%" and returns `buf`.
-static u8* Telephone_FormatPercentage(u8* buf, s32 value, s32 decimals)
+/// Formats a decimal-scaled percentage and returns the caller's buffer.
+///
+/// `scaledPercent` is nonnegative and measured in 10^fractionalDigits units per
+/// percent. `fractionalDigits` is 0..8, keeping the decimal threshold in s32.
+/// Small values are zero-padded to keep a whole digit before the point; a percent
+/// suffix follows. The buffer must hold the formatted digits, optional point,
+/// percent sign and NUL (12 bytes suffice for the stated domain). Unsigned
+/// decimal conversion saturates at 999999999. No storage is allocated or retained.
+static u8* _telephoneFormatPercentage(u8* buffer, s32 scaledPercent, s32 fractionalDigits)
 {
-    s32 limit;
-    s32 i;
-    s32 len;
-    s32 n;
-    u8* p;
+    s32 wholePercentThreshold;
+    s32 powerIndex;
+    s32 digitCount;
+    s32 shiftBytes;
+    u8* digitEnd;
 
-    limit = 1;
-    for (i = decimals; i > 0; i--) {
-        limit *= 10;
+    wholePercentThreshold = 1;
+    for (powerIndex = fractionalDigits; powerIndex > 0; powerIndex--) {
+        wholePercentThreshold *= 10;
     }
 
-    if (value < limit) {
-        textItoaPadded(buf, value, decimals + 1);
+    if (scaledPercent < wholePercentThreshold) {
+        textItoaPadded(buffer, scaledPercent, fractionalDigits + 1);
     } else {
-        textItoaUnsigned(buf, value);
+        textItoaUnsigned(buffer, scaledPercent);
     }
 
-    n   = decimals;
-    p   = buf;
-    len = 0;
-    if (n > 0) {
-        while (*p != 0) {
-            p++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            p[1] = p[0];
-            p--;
-        }
-        p[1] = '.';
+    shiftBytes = fractionalDigits;
+    digitEnd   = buffer;
+    digitCount = 0;
+    if (shiftBytes > 0) {
+        TELEPHONE_SHIFT_DECIMAL_DIGITS(digitEnd, digitCount, shiftBytes, digitCount);
     }
 
-    textAppendString(buf, Telephone_Data_80181A78);
-    return buf;
+    textAppendString(buffer, Telephone_Data_80181A78);
+    return buffer;
 }
 
-/// Task body of the play-data panel: on its first frame it spawns
-/// `Telephone_Data_80181C90` and lays out the list; every frame it
-/// draws the title, updates the list and closes on cancel.
-static void Telephone_PlayDataTask(Task* task)
+#undef TELEPHONE_SHIFT_DECIMAL_DIGITS
+
+/// Updates the nine-row play-data panel and closes it on active cancel.
+///
+/// The task owns its UI object in `spawnArg2.pointer`. Its first frame opens an
+/// inactive help panel, fits the shared list and reserves five extra pixels for
+/// the extermination separator. Cancel publishes Confirm for the telephone
+/// controller to reopen its menu; ordinary UI teardown owns object release.
+static void _telephonePlayDataTask(Task* task)
 {
-    UiObject* obj;
+    UiObject* object;
     UiList*   list;
 
-    list        = &Telephone_Data_80181C44;
-    obj         = task->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Telephone_Data_8017D610);
-    if (task->state == 0) {
-        uiSpawnObject(&Telephone_Data_80181C90, 0, 0, 1, obj);
-        uiFitPanelToList(list, &(obj)->panel);
-        obj->panel.bounds.unsignedRect.h += 5;
-        list->flags                       = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+    list           = &Telephone_Data_80181C44;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&(object)->panel, Telephone_Data_8017D610);
+    if (task->state == TELEPHONE_PANEL_INITIALIZE) {
+        uiSpawnObject(&Telephone_Data_80181C90, 0, USER_INTERFACE_PANEL_INACTIVE, 1, object);
+        uiFitPanelToList(list, &(object)->panel);
+        object->panel.bounds.unsignedRect.h += 5;
+        list->flags                          = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         uiSetListSystemCursorSound(list, 1);
         task->state += 1;
     }
-    uiUpdateList(list, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-        obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    uiUpdateList(list, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
+        object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 
-/// Queues a gouraud-shaded rectangle into the current OT one slot past the
-/// panel's draw order. Origin is `field_20`/`field_22` plus (`arg1`, `arg2`);
-/// `arg3`/`arg4` are width and height. Left vertices take `arg5`, right vertices
-/// take `arg6`. A zero color or width < 2 draws nothing.
-static void Telephone_DrawGauge(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5, s32 arg6)
+/// Queues the opaque horizontal gradient inside a telephone gauge.
+///
+/// Pixel offsets are relative to the borrowed panel's content origin. Vertices
+/// span (offsetX+1, offsetY+1) to (offsetX+width, offsetY+height), narrowed to s16;
+/// coordinate arithmetic must fit s32 and height is unchecked. Zero `leftRgb`
+/// or width below two skips drawing. Colors
+/// are RGB in bits 0..23; the left top byte is replaced by the POLY_G4 command,
+/// and the other top bytes are retained. Requires one aligned POLY_G4 of writable
+/// primitive space and a writable panel OT index+1; retain it until GPU completion.
+/// The caller draws the surrounding bevel separately.
+static void _telephoneDrawGaugeFill(const UiPanel* panel, s32 offsetX, s32 offsetY, s32 width, s32 height, u32 leftRgb, u32 rightRgb)
 {
-    POLY_G4* prim;
-    s16      x;
-    s32      y;
-    s16      bottom;
+    enum { TELEPHONE_GAUGE_PACKET_CODE = 0x38 };
+    POLY_G4* primitive;
+    s16      edgeX;
+    s32      topY;
+    s16      bottomY;
 
-    if ((arg5 != 0) && (arg3 >= 2)) {
-        prim           = gGpuPrimCursor;
-        x              = arg0->contentOriginX.unsignedValue + arg1 + 1;
-        prim->x2       = x;
-        prim->x0       = x;
-        y              = arg0->contentOriginY.unsignedValue;
-        gGpuPrimCursor = prim + 1;
-        setlen(prim, 8);
-        GPU_PRIMITIVE_COLOR_WORD(prim, 0) = arg5;
-        setcode(prim, 0x38);
-        GPU_PRIMITIVE_COLOR_WORD(prim, 2) = arg5;
-        GPU_PRIMITIVE_COLOR_WORD(prim, 3) = arg6;
-        GPU_PRIMITIVE_COLOR_WORD(prim, 1) = arg6;
-        y                                += arg2;
-        y++;
-        x        = prim->x0 + arg3 - 1;
-        prim->y1 = y;
-        prim->y0 = y;
-        prim->x3 = x;
-        prim->x1 = x;
-        bottom   = y + arg4 - 1;
-        prim->y3 = bottom;
-        prim->y2 = bottom;
-        addPrim(gGpuCurrentOt + arg0->otIndex.signedValue + 1, prim);
+    if ((leftRgb != 0) && (width >= 2)) {
+        primitive      = gGpuPrimCursor;
+        edgeX          = panel->contentOriginX.unsignedValue + offsetX + 1;
+        primitive->x2  = edgeX;
+        primitive->x0  = edgeX;
+        topY           = panel->contentOriginY.unsignedValue;
+        gGpuPrimCursor = primitive + 1;
+        setlen(primitive, sizeof(*primitive) / sizeof(u32) - 1);
+        GPU_PRIMITIVE_COLOR_WORD(primitive, 0) = leftRgb;
+        setcode(primitive, TELEPHONE_GAUGE_PACKET_CODE);
+        GPU_PRIMITIVE_COLOR_WORD(primitive, 2) = leftRgb;
+        GPU_PRIMITIVE_COLOR_WORD(primitive, 3) = rightRgb;
+        GPU_PRIMITIVE_COLOR_WORD(primitive, 1) = rightRgb;
+        topY                                  += offsetY;
+        topY++;
+        edgeX         = primitive->x0 + width - 1;
+        primitive->y1 = topY;
+        primitive->y0 = topY;
+        primitive->x3 = edgeX;
+        primitive->x1 = edgeX;
+        bottomY       = topY + height - 1;
+        primitive->y3 = bottomY;
+        primitive->y2 = bottomY;
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, primitive);
     }
 }
 
-/// The telephone menu's "Save" row: confirmed while the CD is idle, it spawns
-/// `D_800611E4` and moves the owning task to state 1.
-static void Telephone_SaveRow(UiList* prompt, UiObject* obj)
+/// Draws the Save menu row and opens the save dialog on active confirmation.
+///
+/// Requires a live menu list/object and an idle CD command queue to accept input.
+/// Confirmation selects modal display, opens the save child, disables menu input
+/// and publishes Confirm to hide the menu. The owner's phase becomes wait-save;
+/// the child answer later selects the saved/cancelled notice.
+static void _telephoneSaveMenuRow(UiList* list, UiObject* object)
 {
-    s32 sel;
+    s32 rowInputEnabled;
 
-    textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_801819F8, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    sel = prompt->rowInputEnabled;
-    if (sel == 1 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0 && cdCmdIsIdle() != 0) {
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_801819F8, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    rowInputEnabled = list->rowInputEnabled;
+    if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0 && cdCmdIsIdle() != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         gDisplayState.gameMode = DISPLAY_GAME_MODAL;
-        uiSpawnObject(&D_800611E4, 1, 0, 0, obj);
-        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        obj->result             = USER_INTERFACE_RESULT_CONFIRM;
-        obj->owner->state       = sel;
+        uiSpawnObject(&D_800611E4, 1, USER_INTERFACE_PANEL_INACTIVE, 0, object);
+        object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        object->result             = USER_INTERFACE_RESULT_CONFIRM;
+        object->owner->state       = rowInputEnabled;
     }
 }
 
-/// The telephone menu's "Play Data" row: confirmed, it opens
-/// `Telephone_Data_80181CAC` and moves the owning task to state 2.
-static void Telephone_PlayDataRow(UiList* prompt, UiObject* obj)
+/// Draws the Play Data menu row and opens its statistics panel on confirmation.
+///
+/// Requires a live list/object and the selected active row. Confirmation opens
+/// the child panel, disables the menu and publishes Confirm to hide it. The
+/// owner waits for statistics dismissal, which reopens the telephone menu.
+static void _telephonePlayDataMenuRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_80181A00, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A00, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        uiSpawnObject(&Telephone_Data_80181CAC, 0, 1, 1, obj);
-        obj->result             = USER_INTERFACE_RESULT_CONFIRM;
-        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        obj->owner->state       = 2;
+        uiSpawnObject(&Telephone_Data_80181CAC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        object->result             = USER_INTERFACE_RESULT_CONFIRM;
+        object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        object->owner->state       = TELEPHONE_MENU_WAIT_STATISTICS;
     }
 }
 
-/// The telephone menu's "Weapon Data" row: confirmed, it opens the usage panel
-/// `Telephone_Data_80181CC8` for weapons and moves the owning task to
-/// state 2.
-static void Telephone_WeaponDataRow(UiList* prompt, UiObject* obj)
+/// Draws the Weapon Data menu row and opens its statistics panel on confirmation.
+///
+/// Requires a live list/object and the selected active row. Confirmation opens
+/// the child panel, disables the menu and publishes Confirm to hide it. The
+/// owner waits for statistics dismissal, which reopens the telephone menu.
+static void _telephoneWeaponDataMenuRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_80181A0C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A0C, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        uiSpawnObject(&Telephone_Data_80181CC8, 0, 1, 1, obj);
-        obj->result             = USER_INTERFACE_RESULT_CONFIRM;
-        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        obj->owner->state       = 2;
+        uiSpawnObject(&Telephone_Data_80181CC8, TELEPHONE_USAGE_WEAPONS, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        object->result             = USER_INTERFACE_RESULT_CONFIRM;
+        object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        object->owner->state       = TELEPHONE_MENU_WAIT_STATISTICS;
     }
 }
 
-/// The telephone menu's "PE Data" row: confirmed, it opens the usage panel
-/// `Telephone_Data_80181CC8` for Parasite Energy and moves the owning
-/// task to state 2.
-static void Telephone_PeDataRow(UiList* prompt, UiObject* obj)
+/// Draws the PE Data menu row and opens its statistics panel on confirmation.
+///
+/// Requires a live list/object and the selected active row. Confirmation opens
+/// the child panel, disables the menu and publishes Confirm to hide it. The
+/// owner waits for statistics dismissal, which reopens the telephone menu.
+static void _telephonePeDataMenuRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Telephone_Data_80181A18, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A18, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        uiSpawnObject(&Telephone_Data_80181CC8, 1, 1, 1, obj);
-        obj->result             = USER_INTERFACE_RESULT_CONFIRM;
-        obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-        obj->owner->state       = 2;
+        uiSpawnObject(&Telephone_Data_80181CC8, TELEPHONE_USAGE_PARASITE_ENERGY, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        object->result             = USER_INTERFACE_RESULT_CONFIRM;
+        object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        object->owner->state       = TELEPHONE_MENU_WAIT_STATISTICS;
     }
 }
 
-/// Task exit callback for the save-prompt UI: if this task still owns
-/// `Wip_UiHolder`, clear it, then free the spawned UI object and kill the task.
-static void Telephone_ClosePrompt(Task* task)
+/// Releases a telephone help panel and clears its prompt-holder ownership.
+///
+/// The task owns the UI object in its second spawn argument. Only a holder that
+/// still points at this object is cleared; a newer prompt remains registered.
+/// Normal UI teardown releases the object and task, invalidating both pointers.
+static void _telephonePromptTaskExit(Task* task)
 {
-    UiObject* holder;
+    UiObject* object;
 
-    holder = task->spawnArg2.pointer;
-    if (Wip_UiHolder == holder) {
+    object = task->spawnArg2.pointer;
+    if (Wip_UiHolder == object) {
         Wip_UiHolder = NULL;
     }
     uiObjectTaskExit(task);

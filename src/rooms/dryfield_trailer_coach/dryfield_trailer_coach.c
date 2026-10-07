@@ -1583,7 +1583,7 @@ static void func_dryfield_trailer_coach_801826A0(Task* task);
 
 void func_dryfield_trailer_coach_80181364(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

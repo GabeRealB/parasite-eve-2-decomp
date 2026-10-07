@@ -1378,7 +1378,7 @@ void acropolisSquarePlayerReflectionTask(Task* reflectionTask)
 
 void func_acropolis_square_80180804(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

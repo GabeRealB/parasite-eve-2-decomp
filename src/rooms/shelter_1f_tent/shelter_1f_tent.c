@@ -146,7 +146,7 @@ static void func_shelter_1f_tent_8017FDA8(Task* task);
 
 void func_shelter_1f_tent_8017EA60(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

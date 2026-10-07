@@ -872,7 +872,7 @@ static const char Telephone_Data_8017D638[];
 
 void func_dryfield_night_motel_room_6_8017EA74(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

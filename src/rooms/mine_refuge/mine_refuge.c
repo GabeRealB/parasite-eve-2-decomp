@@ -537,7 +537,7 @@ static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radi
 
 void func_mine_refuge_8017EA78(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

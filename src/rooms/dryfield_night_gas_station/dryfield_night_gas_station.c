@@ -2538,7 +2538,7 @@ static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radi
 
 void func_dryfield_night_gas_station_8017E9F8(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

@@ -146,7 +146,7 @@ static void func_shelter_b3_incinerator_control_room_8017FCA8(Task* task);
 
 void func_shelter_b3_incinerator_control_room_8017EA64(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

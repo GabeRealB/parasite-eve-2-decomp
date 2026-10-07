@@ -606,7 +606,7 @@ RoomCutsceneRec D_acropolis_fire_escape_80183048;
 
 void func_acropolis_fire_escape_8017EA68(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

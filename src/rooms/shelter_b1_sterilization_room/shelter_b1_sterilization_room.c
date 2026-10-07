@@ -484,7 +484,7 @@ _ShelterB1SterilizationRoomDoorDestination D_shelter_b1_sterilization_room_80188
 
 void func_shelter_b1_sterilization_room_8017EB2C(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

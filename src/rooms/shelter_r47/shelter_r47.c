@@ -520,7 +520,7 @@ static const char Telephone_Data_8017D638[];
 
 void func_shelter_r47_8017EC04(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

@@ -1,15 +1,15 @@
 /* Private per-instance storage. Include at the original data position.
  * The configuration contract is documented in telephone.h. */
 
-static void Telephone_DrawPlayDataRow(UiList* arg0, UiObject* arg1);
+static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object);
 static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1);
-static void Telephone_UsageTask(Task* task);
-static void Telephone_PromptTask(Task* task);
-static void Telephone_PlayDataTask(Task* task);
-static void Telephone_SaveRow(UiList* prompt, UiObject* obj);
-static void Telephone_PlayDataRow(UiList* prompt, UiObject* obj);
-static void Telephone_WeaponDataRow(UiList* prompt, UiObject* obj);
-static void Telephone_PeDataRow(UiList* prompt, UiObject* obj);
+static void _telephoneUsageTask(Task* task);
+static void _telephonePromptTask(Task* task);
+static void _telephonePlayDataTask(Task* task);
+static void _telephoneSaveMenuRow(UiList* list, UiObject* object);
+static void _telephonePlayDataMenuRow(UiList* list, UiObject* object);
+static void _telephoneWeaponDataMenuRow(UiList* list, UiObject* object);
+static void _telephonePeDataMenuRow(UiList* list, UiObject* object);
 
 static u8 Telephone_Data_801819F8[8] = {
     83,
@@ -668,7 +668,7 @@ static u8 Telephone_Data_80181C08[56] = {
 };
 
 static UiListRowCallback Telephone_Data_80181C40[1] = {
-    Telephone_DrawPlayDataRow,
+    _telephoneDrawPlayDataRow,
 };
 
 static UiList Telephone_Data_80181C44 = { Telephone_Data_80181C40, 9, { .unsignedValue = 9 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
@@ -679,17 +679,17 @@ static UiListRowCallback Telephone_Data_80181C68[1] = {
 
 static UiList Telephone_Data_80181C6C = { Telephone_Data_80181C68, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-static UiObjectDesc Telephone_Data_80181C90 = { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, Telephone_PromptTask, 0 };
+static UiObjectDesc Telephone_Data_80181C90 = { 3, { -144, 64, 288, 40 }, 56, 0, TASK_BODY_NONE, 192, _telephonePromptTask, 0 };
 
-static UiObjectDesc Telephone_Data_80181CAC = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 120 }, 40, 0, TASK_BODY_NONE, 192, Telephone_PlayDataTask, 0 };
+static UiObjectDesc Telephone_Data_80181CAC = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 120 }, 40, 0, TASK_BODY_NONE, 192, _telephonePlayDataTask, 0 };
 
-static UiObjectDesc Telephone_Data_80181CC8 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 168 }, 40, 0, TASK_BODY_NONE, 192, Telephone_UsageTask, 0 };
+static UiObjectDesc Telephone_Data_80181CC8 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 168 }, 40, 0, TASK_BODY_NONE, 192, _telephoneUsageTask, 0 };
 
 static UiListRowCallback Telephone_Data_80181CE4[4] = {
-    Telephone_SaveRow,
-    Telephone_PlayDataRow,
-    Telephone_WeaponDataRow,
-    Telephone_PeDataRow,
+    _telephoneSaveMenuRow,
+    _telephonePlayDataMenuRow,
+    _telephoneWeaponDataMenuRow,
+    _telephonePeDataMenuRow,
 };
 
 static UiList Telephone_Data_80181CF4 = { Telephone_Data_80181CE4, 4, { .unsignedValue = 4 }, 1, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };

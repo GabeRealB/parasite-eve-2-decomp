@@ -871,7 +871,7 @@ static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 r
 
 void func_shelter_b6_nursery_8017EAC4(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"

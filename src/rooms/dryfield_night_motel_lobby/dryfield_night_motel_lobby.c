@@ -163,7 +163,7 @@ static void func_dryfield_night_motel_lobby_8017FDE8(Task* task);
 
 void func_dryfield_night_motel_lobby_8017EAE0(Task* task)
 {
-    Telephone_MenuTask(task);
+    _telephoneMenuTask(task);
 }
 
 #include "../../shared/telephone_panels.inc.c"
