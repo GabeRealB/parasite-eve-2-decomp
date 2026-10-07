@@ -518,12 +518,10 @@ enum {
     SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_REMOVE_DEBRIS  = 7,
 };
 
-/// Receiver-specific model modes used by the debris event's script callbacks.
+/// Glutton model modes used by the debris event's placement-0 callback.
 enum {
     SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET_ALLOCATE = 0,
     SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET          = 2,
-    SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SHOW_ALLOCATE       = 1,
-    SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SKIP_AUTO_BUFFER    = 2,
 };
 
 /// Actor command resuming the dumping-hole battle in the active stage/area namespace.
@@ -805,14 +803,14 @@ EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PREPARE_ANIMATION_47 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_PLACE_ACTOR1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor0DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_shelter_b3_dumping_hole_80188638 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleDebrisEventStageAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleDebrisEventEnqueuePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SHOW_ALLOCATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = ACTOR_MESSAGE_VISIBILITY_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_48 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -826,7 +824,7 @@ EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_HIDE_MODEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor0DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET_ALLOCATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_CREATE_DEBRIS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3168,6 +3166,7 @@ static void _shelterB3DumpingHoleDebrisEventSetActor0DrawMode(s32 drawMode)
 
 /// Sets the debris event's placement-1 prop model draw/buffer mode.
 ///
+/// Uses `ACTOR_MESSAGE_VISIBILITY_*` without changing the prop's behavior state.
 /// Requires a live debris director and prop. Mode 0 hides and allocates;
 /// 1 shows and allocates; 2 disables automatic buffer allocation while retaining
 /// visibility; 3 shows with automatic allocation disabled.

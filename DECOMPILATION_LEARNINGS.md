@@ -141592,7 +141592,7 @@ draws before anything else.
 
 ## A narrow constant store takes an earlier compare's register: cse's wider-mode search, and killing the class with output-only asm (func_shelter_b3_garbage_incinerator_8017E158, 2026-09-24)
 
-**Symptom.** After `if ((id & 0x7FFF) == 5 && kind == 1) { calls...; if (r < 4)
+**Symptom.** After `if ((control & 0x7FFF) == 5 && (s8)actionId == 1) { calls...; if (r < 4)
 {...} else { room = 5; D = 5; } }`, the target's else arm has its own `li v1,5`
 and the compare's `5` is a `li v1,5` right before it. The candidate stores the
 byte from the compare's register instead (`andi` result or the compare's
@@ -141624,15 +141624,15 @@ there at dbr time, only the lost equivalence.
 definitions right after the compare with output-only asm:
 
 ```c
-t    = id & 0x7FFF;
+t    = control & 0x7FFF;
 want = 5;
 if (t != want) break;
 DEF_REG(t);      /* "=r": invalidates t's class entry in cse1 and cse2 */
 DEF_REG(want);   /* want replaces the force_reg temp, so it can be killed too */
-if (kind == 1) { ... room = 5; ... }
+if ((s8)actionId == 1) { ... room = 5; ... }
 ```
 
-Emits nothing, survives both cse passes (volatile), and leaves `kind == 1` in
+Emits nothing, survives both cse passes (volatile), and leaves `(s8)actionId == 1` in
 its class, which the arms' `1` stores need. `TOUCH_REG2(t, want)` does not
 work: after the compare the two inputs are equivalent, cse feeds one register to
 both and reload emits `move v1,v0`. Assigning `t` a new value in C does not work
@@ -148914,7 +148914,7 @@ the source's second set was is not known. Not it: a `switch` (five cases over
   `rowIndex += 2, j++, rowIndex--` there is a steering form of its own.
 - `func_shelter_b3_garbage_incinerator_8017E158` (two `DEF_REG`). Nothing new
   beyond the entry of 2026-09-24: the 5-class has to be gone at the else arm
-  while the `kind == 1` class survives, so the break is between the two
+  while the `(s8)actionId == 1` class survives, so the break is between the two
   compares. A label there that only jump2 removes would do it; no source form
   with a second jump to that point was found.
   *Note 2026-10-07:* resolved without a boundary; see the last section of this
@@ -151991,14 +151991,14 @@ on a path cse follows are already one.
 
 ### A byte store of a constant that an earlier compare also holds: the wider-mode search takes a 16-bit register first (func_shelter_b3_garbage_incinerator_8017E158, 2026-10-07)
 
-**Was.** `t = id & 0x7FFF; want = 5; if (t != want) break; DEF_REG(t);
+**Was.** `t = control & 0x7FFF; want = 5; if (t != want) break; DEF_REG(t);
 DEF_REG(want);` so that a later `room = 5` (two `sb`) in the else arm of
 `if (room < 4)` loads its own `li v1,5` instead of storing the compare's
 register. The entry of 2026-09-24 concluded the SImode class of 5 had to be
 emptied between the two tests.
 
 **What the image says.** In the same else arm `roomObjsDirty = 1` is
-`sh s0` - the register of the `kind == 1` test. So the cse path from both
+`sh s0` - the register of the `(s8)actionId == 1` test. So the cse path from both
 compares to that arm is intact, nothing was invalidated, and no block boundary
 vanished. Only the 5 escapes, and the 1 does not.
 
@@ -152026,8 +152026,8 @@ static inline void _shelterB3GarbageIncineratorSetRoom(s16 room)
 }
 ```
 
-and the test is the plain `(id & 0x7FFF) != 5`. `room - 1` folds to a byte
-constant, so `eventRoomIndex = 1` still takes the `kind` register (no 16-bit 1
+and the test is the plain `(control & 0x7FFF) != 5`. `room - 1` folds to a byte
+constant, so `eventRoomIndex = 1` still takes the `actionId` register (no 16-bit 1
 exists yet at that point) and the arms keep their other constants.
 
 **Measured, one build each.**
