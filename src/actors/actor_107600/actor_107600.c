@@ -2097,7 +2097,7 @@ static void func_actor_107600_80134920(Task* arg0)
     enemyDestroy(arg0->spawnArg2.pointer, arg0);
 }
 
-/// Links this actor's display node the way `func_8010C980` does for the
+/// Links this actor's display node the way `worldCollisionBindEnemySphere` does for the
 /// gameplay objects: the node's collision table is the `WorldCollisionContact` run at
 /// `work->contacts`, and its radius is 0x220 on an
 /// `ACTOR_107600_MOUNT_HANGING` mount and 0x190 otherwise.

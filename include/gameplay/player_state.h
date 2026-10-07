@@ -30,7 +30,17 @@ s32 playerStateSpendMp(s32 amount);
 /// clearing requires only the live player status. Retains no pointers.
 void playerStateSetStatusEffects(s32 clearEffects, s32 statusMask);
 
-void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2);
+/// Initializes and links a companion's forward obstacle-scan capsule.
+///
+/// Copies the live model root into the probe's independent coordinate. The
+/// endpoints share `nearEndpoint`'s X/Y, with Z taken from that vector and
+/// `farEndpointZ` (narrowed to s16). Offsets and the fixed 128-unit radii use
+/// local game coordinates; the capsule origin is shifted -160 along Z.
+/// Requires live GameActor/CompanionWork/model storage and an unlinked probe.
+/// Initializes its full contact array, then enables one-contact grid and pair
+/// scans on the player-attack list with category 6. The vector is borrowed only
+/// for this call; task-owned probe storage stays live until the body is unlinked.
+void companionBindCollisionProbe(Task* task, const SVECTOR3* nearEndpoint, s32 farEndpointZ);
 
 /// Returns a companion to its normal idle behavior and selects idle animation set 1.
 ///
@@ -41,7 +51,15 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2);
 /// `playerActorResetChildSlots` / `playerActorPlayChildSlotsWithBlend` contracts.
 void companionEnterIdle(Task* task, s16 resetAnimation);
 
-void Gp_StopPlayerAnim(Task* arg0, s32 arg1);
+/// Enters the player or companion's stopped damage-mode pose used at zero HP.
+///
+/// Selects native set 18 and hit selector 3, whose callback does not recover.
+/// Zero `blendFrames` resets the child slots; otherwise blends with controller 0
+/// for that many whole normal-rate frames under the child-slot blend contract.
+/// Stops the movement/turn controllers, releases lock-on and queues disabling
+/// the two body grid passes. Requires live GameActor/model/native playback;
+/// it does not alter HP or remove the task, and animation ticks still run.
+void playerActorEnterStoppedPose(Task* task, s32 blendFrames);
 
 /// Sets the companion's delay before its next idle decision, in active behavior ticks.
 ///
@@ -67,17 +85,63 @@ void companionSetDecisionDelay(Task* task, s32 baseTicks, s32 randomMask);
 /// Borrows the contacts for this call and leaves their contents intact.
 void playerActorResolveBodyContacts(Task* task, const WorldCollisionContact* contacts);
 
-void func_8010BFCC(Task* arg0);
+/// Initializes companion playback from the live save's native animation bank.
+///
+/// The saved family selects a base bank and the variant adds to it. They must
+/// select a loaded non-NULL bank in 1..7. Requires live GameActor/model, pose
+/// buffer and slots satisfying `animationInitContext`; installs the borrowed
+/// set table and initializes slot state, without selecting a clip or rate.
+/// Bank and clip resources remain live throughout playback.
+void companionInitNativeAnimation(Task* task);
 
-void func_8010B9A4(Task* arg0);
+/// Applies a companion's pending contact damage and starts its hit reaction.
+///
+/// Enters damage mode, stops movement/turning and selects the clip-end phase
+/// controller. Only saved family 1 loses HP, and only with cheat mode off.
+/// Subtraction retains its low halfword, interpreted as s16 for the event
+/// survival test; an active event keeps lethal HP at 1. Other families still
+/// react. Disables the weapon's grid/pair tests, resets its attack and decays
+/// tracked aim, then blends set 16 for hit selector 1 or set 17 otherwise over
+/// three normal-rate frames. Requires live native model/weapon resources and
+/// valid saved selectors; retains the pending hit until recovery clears it.
+void companionEnterDamageReaction(Task* task);
 
-void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1);
+/// Aim axes selected by `companionTrackLockTarget`.
+enum {
+    COMPANION_LOCK_TRACK_YAW   = 1,
+    COMPANION_LOCK_TRACK_PITCH = 2
+};
 
-void Gp_EndPlayerActorTask(Task* arg0);
+/// Steps the companion's aim toward its live, lockable selected target.
+///
+/// A missing or non-lockable target clears the pointer and requests aim decay.
+/// Otherwise only TARGET tracking steps the requested axes. Yaw alone uses
+/// zero planar dead zone; any other mask including yaw uses 896 game units.
+/// Pitch uses the variant's joint choice and native weapon: parts 2/3, or
+/// part 6 beyond a 896-unit dead zone. Requires the aim helpers' live target,
+/// model, scratch/GTE and valid saved-variant contracts. Retains no new pointer.
+void companionTrackLockTarget(Task* task, s32 trackingAxes);
+
+/// Removes the companion's weapon model and weapon-effect task.
+///
+/// When equipment slot 1 is occupied, kills it, restores native playback,
+/// resets idle set 1, then returns to normal idle with a four-frame blend.
+/// Without that model, leaves behavior and playback intact. Independently
+/// kills any weapon effect and clears both removed-task pointers. Requires
+/// live GameActor/model/native bank resources; keeps the companion task alive.
+void companionRemoveEquipment(Task* task);
 
 void func_8010A9D0(Task* arg0);
 
-s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Applies an attack-key damage message to the live save's companion HP.
+///
+/// Cheat mode leaves HP intact and returns 0. Otherwise uses
+/// `damageComputeReceived`'s companion HP/difficulty/key contract, subtracts
+/// into signed-halfword HP, and returns 1 if the resulting HP is nonpositive.
+/// That path synchronously broadcasts `ACTOR_MESSAGE_RELEASE_HOLD` through
+/// the live scene task. Does not clamp HP or apply the event survival floor.
+/// The receiver, message ID and second payload are unused message-ABI words.
+s32 companionApplyDamage(Task* unusedTask, s32 unusedMessageId, s32 attackKey, s32 unusedSecondArg);
 
 void func_8010B2A0(s32 arg0, s32 arg1);
 
@@ -96,9 +160,20 @@ enum {
 /// to band 2 for a nonnegative maximum.
 s32 companionGetHealthBand(void);
 
-void func_8010C180(Task* arg0);
+/// Clears a companion's pending hit and blends back to normal idle.
+///
+/// Arms 18 active recovery ticks, resets idle behavior and blends native set 1
+/// over four normal-rate frames. Requires live GameActor/native model playback;
+/// it does not apply HP damage or change equipment and retains no new pointer.
+void companionRecoverToIdle(Task* task);
 
-void func_8010ABD4(Task* arg0);
+/// Recovers a player or companion whose damage clip has completed phase 1.
+///
+/// Other phases are unchanged. Clears the pending hit, arms 18 recovery ticks
+/// and returns to normal aim with a 12-frame blend when the retained state is
+/// nonzero, or normal locomotion with its ordinary blend when it is zero.
+/// Requires live GameActor/native model playback under those entry contracts.
+void playerActorFinishDamageReaction(Task* task);
 
 /// Returns the XZ distance from a coordinate's local translation to the live player.
 ///
@@ -140,8 +215,6 @@ void playerActorTurnBodyTowardPoint(Task* task, const VECTOR3* targetPoint);
 /// bytes plus 48 for the relative-transform helper (152 free bytes at peak).
 /// XYZ differences must fit s32. Borrows the point for this call.
 void playerActorTurnAimTowardPoint(Task* task, const VECTOR3* targetPoint);
-
-void func_8010C980(void* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3, s32 arg4, s32 arg5);
 
 // Message handlers addressed by the companion overlays' dispatch tables.
 /// Takes scripted companion control and plays a clip from an indexed bank.
@@ -203,8 +276,31 @@ s32 companionInstallScriptedAnimation(Task* task, s32 unusedMessageId, const Ani
 /// Copies forward and does not start playback; copied clip data remains borrowed.
 /// The task, message ID and second payload are unused but retain the message ABI.
 s32 animationCopyCompanionBankExtension(Task* unusedTask, s32 unusedMessageId, const AnimationBankCopyRequest* request, s32 unusedSecondArg);
-s32 func_8010C75C(Task* task, s32 msgId, GameActorButtonPressHold*, s32 unusedSecondArg);
-s32 Gp_MoveActorByKeep(Task* task, s32 msgId, GameActorMoveBy*, s32 unusedSecondArg);
-s32 func_8010C708(Task* task, s32 msgId, ActorTransform* transform, GameActorMoveAnim* moveAnim);
+/// Starts a companion hold that completes after the requested button presses.
+///
+/// A nonzero signed-byte recovery timer refuses with 1 and changes nothing.
+/// Otherwise enters scripted state 6, stops motion/aim offsets and weapon
+/// attacks, copies `request->pressCount` into the signed-halfword state timer
+/// and clears the counted presses. The count must fit 0..32767; zero completes
+/// on the first tick. Only the count is read, through synchronous dispatch.
+/// Requires a receiver implementing state 6 and live native weapon resources.
+/// Leaves the player's interaction latch intact; returns 0 on acceptance.
+s32 companionAwaitButtonPresses(Task* task, s32 unusedMessageId, const GameActorButtonPressHold* request, s32 unusedSecondArg);
+
+/// Applies companion displacement while preserving the player's interaction press latch.
+///
+/// Forwards the borrowed request and both ABI words to `playerActorMoveBy`,
+/// restoring the latch afterwards and forwarding its wall-contact result.
+/// Coordinate, collision-mask, bounds and lifetime contracts follow that helper.
+s32 companionMoveBy(Task* task, s32 unusedMessageId, const GameActorMoveBy* move, s32 unusedSecondArg);
+
+/// Starts scripted companion running while preserving the player's interaction press latch.
+///
+/// Uses `playerActorMoveTo`'s destination/optional-clip contract, then selects
+/// state 8 instead of the walking state. Requires a receiver whose scripted
+/// dispatcher implements that state and live player/native weapon resources.
+/// Transform and clips are read only through dispatch; stored destination and
+/// clip IDs drive subsequent ticks. Restores the latch and returns 0.
+s32 companionRunTo(Task* task, s32 unusedMessageId, const ActorTransform* transform, const GameActorMoveAnim* moveAnim);
 
 #endif // GAMEPLAY_PLAYER_STATE_H

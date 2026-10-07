@@ -7849,7 +7849,7 @@ static void Gp_TickPlayerNormal(Task* arg0)
     playerActorUpdateFacing(arg0);
     playerActorStepMovement(arg0);
     if (gPlayerStatus.hp <= 0) {
-        Gp_StopPlayerAnim(arg0, 4);
+        playerActorEnterStoppedPose(arg0, 4);
     }
 }
 
@@ -9218,7 +9218,7 @@ static void Gp_TickPlayerMode2(Task* arg0)
     playerActorUpdateFacing(arg0);
     if (gPlayerStatus.hp <= 0 && inner->state != 0xA) {
         Gp_BindActorAnim(arg0);
-        Gp_StopPlayerAnim(arg0, 4);
+        playerActorEnterStoppedPose(arg0, 4);
     }
 }
 
@@ -9296,7 +9296,7 @@ static void Gp_PlayerMode1State0(Task* arg0)
         case 9:
         case 10:
         case 11:
-            func_8010ABD4(arg0);
+            playerActorFinishDamageReaction(arg0);
             break;
         case 5:
             func_8010AC54(arg0);

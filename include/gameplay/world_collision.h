@@ -212,6 +212,19 @@ void worldCollisionUnlinkTrigger(s32 unusedListIndex, WorldCollisionTrigger* tri
 /// is ignored and retained for the exported interface; callers pass 0.
 void worldCollisionInitContacts(WorldCollisionContact* contacts, s32 count, s32 unused);
 
+/// Initializes and links an enemy hit sphere with a caller-owned contact table.
+///
+/// Places its centre at `coord`'s origin, tags it with
+/// `WORLD_COLLISION_CONTACT_ENEMY_BODY | bodyId`, and enables pair tests on
+/// `WORLD_COLLISION_LIST_ENEMY_BODIES`. `bodyId` supplies only low-halfword
+/// identity bits; `radius` uses game-coordinate units and narrows to u16.
+/// Replaces flags before linking; the body must be absent from all lists.
+/// The contact count narrows to s16 and must then be positive (1..32767).
+/// Clears exactly that many writable elements and marks the last entry.
+/// Keep body, coordinate and contacts live until unlinking; allocates nothing.
+void worldCollisionBindEnemySphere(GfxCoord* coord, WorldCollisionBody* body, WorldCollisionContact* contacts,
+                                   s32 contactCount, s32 bodyId, s32 radius);
+
 /// Initializes and links a sphere body with a caller-owned contact table.
 ///
 /// `body` must be non-NULL and absent from all lists; `listIndex` selects a

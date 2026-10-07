@@ -88,11 +88,15 @@ typedef struct {
 } _PlayerActorAimScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorAimScratch, 0x68);
 
-/// Pending collision-hit region selectors shared by the contact handlers.
+/// Recovery delay shared by the player and companion hit-completion paths.
+enum { PLAYER_ACTOR_HIT_RECOVERY_TICKS = 18 };
+
+/// Damage-dispatch selectors shared by contact hits and the stopped pose.
 enum {
     PLAYER_ACTOR_HIT_REGION_NONE       = 0,
     PLAYER_ACTOR_HIT_REGION_PART4      = 1,
-    PLAYER_ACTOR_HIT_REGION_OTHER_BODY = 2
+    PLAYER_ACTOR_HIT_REGION_OTHER_BODY = 2,
+    PLAYER_ACTOR_HIT_REGION_STOPPED    = 3
 };
 
 /// Packed contact categories accepted by the player/companion response scan.
@@ -109,7 +113,7 @@ extern u16 D_80113F9C[70];
 
 extern const TaskFuncTable4 D_80097AB0;
 
-static inline void _gpResumeBaseState(Task* arg0);
+static inline void _playerActorResumeAfterHit(Task* task);
 
 static void func_8010AAB4(Task* arg0);
 
@@ -145,23 +149,22 @@ static void _modelObjectKillChildTask(Task* task);
 
 static void func_8010C46C(Task* arg0);
 
-s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
-
-s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, s32 unusedSecondArg);
-
-s32 Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecondArg);
-
-static inline void _gpResumeBaseState(Task* arg0)
+/// Clears a pending hit and blends back to aim or locomotion with 18 recovery ticks.
+///
+/// Requires live actor/native animation storage. The retained normal-state
+/// selector chooses aim for any nonzero value, locomotion for zero.
+static inline void _playerActorResumeAfterHit(Task* task)
 {
-    GameActor* inner;
+    enum { PLAYER_ACTOR_RECOVERY_AIM_BLEND_FRAMES = 12 };
+    GameActor* actor;
 
-    inner = arg0->work;
-    playerActorClearPendingHit(arg0);
-    inner->recoveryTicks = 0x12;
-    if (inner->state != 0) {
-        playerActorEnterAim(arg0, 0xC);
+    actor = task->work;
+    playerActorClearPendingHit(task);
+    actor->recoveryTicks = PLAYER_ACTOR_HIT_RECOVERY_TICKS;
+    if (actor->state != 0) {
+        playerActorEnterAim(task, PLAYER_ACTOR_RECOVERY_AIM_BLEND_FRAMES);
     } else {
-        playerActorEnterLocomotion(arg0, 0);
+        playerActorEnterLocomotion(task, 0);
     }
 }
 
@@ -238,16 +241,21 @@ u16 D_80113F9C[70] = {
     0,
 };
 
-/// Measures a receiving body's centre minus a contact point in their cached composition space.
-static inline void _playerActorMeasureContactSeparation(WorldCollisionBody* body, const WorldCollisionContact* contact, _PlayerActorPushbackScratch* block)
+/// Measures a receiving body's centre minus a contact point in cached view space.
+///
+/// Rotates the local centre using the body's composed basis, adds its cached
+/// translation, then subtracts the signed-halfword contact point. Requires live
+/// composed transforms and initialized GTE state; writes only the supplied
+/// scratch position/separation XYZ and retains no pointers.
+static inline void _playerActorMeasureContactSeparation(const WorldCollisionBody* body, const WorldCollisionContact* contact, _PlayerActorPushbackScratch* block)
 {
     gte_SetRotMatrix(&body->coord->workm);
     gte_ldv0(&body->pos);
     gte_rtv0();
     gte_stlvnl(&block->separation);
-    block->position.vx   = (body->coord)->workm.t[0] + block->separation.vx;
-    block->position.vy   = (body->coord)->workm.t[1] + block->separation.vy;
-    block->position.vz   = (body->coord)->workm.t[2] + block->separation.vz;
+    block->position.vx   = body->coord->workm.t[0] + block->separation.vx;
+    block->position.vy   = body->coord->workm.t[1] + block->separation.vy;
+    block->position.vz   = body->coord->workm.t[2] + block->separation.vz;
     block->separation.vx = block->position.vx - contact->point.vx;
     block->separation.vy = block->position.vy - contact->point.vy;
     block->separation.vz = block->position.vz - contact->point.vz;
@@ -744,24 +752,30 @@ void func_8010A9D0(Task* arg0)
     playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
 }
 
-void Gp_StopPlayerAnim(Task* arg0, s32 arg1)
+void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
 {
-    GameActor* inner;
+    enum {
+        PLAYER_ACTOR_STOPPED_ANIMATION_SET             = 18,
+        PLAYER_ACTOR_STOPPED_MOVEMENT                  = 0,
+        PLAYER_ACTOR_STOPPED_TURN_DISABLED             = 0,
+        PLAYER_ACTOR_STOPPED_ANIMATION_CONTROLLER_NONE = 0
+    };
+    GameActor* actor;
 
-    inner                 = arg0->work;
-    inner->mode           = GAME_ACTOR_MODE_DAMAGE;
-    inner->movementMode   = 0;
-    inner->turnRateIndex  = 0;
-    inner->animationState = 0;
-    inner->statePhase     = 0;
-    inner->hitRegion      = 3;
-    if (arg1 == 0) {
-        playerActorResetChildSlots(arg0, 0x12);
+    actor                 = task->work;
+    actor->mode           = GAME_ACTOR_MODE_DAMAGE;
+    actor->movementMode   = PLAYER_ACTOR_STOPPED_MOVEMENT;
+    actor->turnRateIndex  = PLAYER_ACTOR_STOPPED_TURN_DISABLED;
+    actor->animationState = PLAYER_ACTOR_STOPPED_ANIMATION_CONTROLLER_NONE;
+    actor->statePhase     = 0;
+    actor->hitRegion      = PLAYER_ACTOR_HIT_REGION_STOPPED;
+    if (blendFrames == 0) {
+        playerActorResetChildSlots(task, PLAYER_ACTOR_STOPPED_ANIMATION_SET);
     } else {
-        playerActorPlayChildSlotsWithBlend(arg0, 0x12, 0, arg1);
+        playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_STOPPED_ANIMATION_SET, 0, blendFrames);
     }
-    playerActorClearLockTarget(arg0);
-    inner->pendingCollisionUpdates |= (GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
+    playerActorClearLockTarget(task);
+    actor->pendingCollisionUpdates |= (GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
 }
 
 static void func_8010AAB4(Task* arg0)
@@ -791,23 +805,19 @@ static void func_8010AAB4(Task* arg0)
 
 static void func_8010AB70(Task* arg0)
 {
-    _gpResumeBaseState(arg0);
+    _playerActorResumeAfterHit(arg0);
 }
 
-void func_8010ABD4(Task* arg0)
+void playerActorFinishDamageReaction(Task* task)
 {
-    GameActor* inner;
+    enum { PLAYER_ACTOR_DAMAGE_CLIP_FINISHED_PHASE = 1 };
+    GameActor* actor;
 
-    inner = arg0->work;
-    if (inner->statePhase != 0) {
-        if (inner->statePhase == 1) {
-            playerActorClearPendingHit(arg0);
-            inner->recoveryTicks = 0x12;
-            if (inner->state != 0) {
-                playerActorEnterAim(arg0, 0xC);
-            } else {
-                playerActorEnterLocomotion(arg0, 0);
-            }
+    actor = task->work;
+    // Animation controller 7 advances phase 0 to 1 when its child clip finishes.
+    if (actor->statePhase != 0) {
+        if (actor->statePhase == PLAYER_ACTOR_DAMAGE_CLIP_FINISHED_PHASE) {
+            _playerActorResumeAfterHit(task);
         }
     }
 }
@@ -881,7 +891,7 @@ void func_8010AD64(Task* arg0)
         case 1:
             break;
         case 2:
-            _gpResumeBaseState(arg0);
+            _playerActorResumeAfterHit(arg0);
             break;
     }
     SCRATCH_STACK_RELEASE_BYTES(8);
@@ -1251,42 +1261,56 @@ void modelObjectChildTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-void Gp_EndPlayerActorTask(Task* arg0)
+void companionRemoveEquipment(Task* task)
 {
+    enum {
+        COMPANION_REMOVE_EQUIPMENT_IDLE_SET          = 1,
+        COMPANION_REMOVE_EQUIPMENT_IDLE_BLEND_FRAMES = 4
+    };
     GameActor* actor;
-    GameActor* inner;
-    GameActor* next;
-    TmdObject* extra;
-    Task*      task;
+    GameActor* animationActor;
+    GameActor* idleActor;
+    TmdObject* model;
+    Task*      equipmentTask;
 
-    actor = arg0->work;
-    task  = actor->equipmentTasks[1];
-    if (task != NULL) {
-        taskKill(task);
-        actor->equipmentTasks[1]  = NULL;
-        extra                     = arg0->extra.tmd;
-        inner                     = arg0->work;
-        inner->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-        inner->animationSets      = Gp_AnimBlkTbl[inner->animationBankIndex]->table.sets;
-        animationInitContext(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
-                             inner->animationSlots);
-        playerActorResetChildSlots(arg0, 1);
-        next                 = arg0->work;
-        next->mode           = GAME_ACTOR_MODE_NORMAL;
-        next->state          = 0;
-        next->movementMode   = 0;
-        next->turnRateIndex  = 0;
-        next->animationState = 0;
-        next->statePhase     = 0;
-        next->idleTicks      = 0;
-        next->actionValue    = 0;
-        next->movementSign   = 0;
-        next->turnSign       = 0;
-        playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
+    actor         = task->work;
+    equipmentTask = actor->equipmentTasks[1];
+    // Restore native idle playback only when a weapon model was attached.
+    if (equipmentTask != NULL) {
+        taskKill(equipmentTask);
+        actor->equipmentTasks[1]           = NULL;
+        model                              = task->extra.tmd;
+        animationActor                     = task->work;
+        animationActor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+        animationActor->animationSets      = Gp_AnimBlkTbl[animationActor->animationBankIndex]->table.sets;
+        animationInitContext(&animationActor->animationContext, animationActor->animationSets, model, animationActor->poseBuffer,
+                             animationActor->animationSlots);
+        playerActorResetChildSlots(task, COMPANION_REMOVE_EQUIPMENT_IDLE_SET);
+        idleActor = task->work;
+        /// Returns the surviving companion to normal idle after equipment removal.
+        ///
+        /// Requires a live GameActor pointer expression without side effects;
+        /// each store evaluates it. Playback is selected after this reset.
+#define COMPANION_REMOVE_EQUIPMENT_RESET_IDLE(actor)      \
+    {                                                     \
+        (actor)->mode           = GAME_ACTOR_MODE_NORMAL; \
+        (actor)->state          = 0;                      \
+        (actor)->movementMode   = 0;                      \
+        (actor)->turnRateIndex  = 0;                      \
+        (actor)->animationState = 0;                      \
+        (actor)->statePhase     = 0;                      \
+        (actor)->idleTicks      = 0;                      \
+        (actor)->actionValue    = 0;                      \
+        (actor)->movementSign   = 0;                      \
+        (actor)->turnSign       = 0;                      \
     }
-    task = actor->weaponEffectTask;
-    if (task != NULL) {
-        taskKill(task);
+        COMPANION_REMOVE_EQUIPMENT_RESET_IDLE(idleActor);
+#undef COMPANION_REMOVE_EQUIPMENT_RESET_IDLE
+        playerActorPlayChildSlotsWithBlend(task, COMPANION_REMOVE_EQUIPMENT_IDLE_SET, 0, COMPANION_REMOVE_EQUIPMENT_IDLE_BLEND_FRAMES);
+    }
+    equipmentTask = actor->weaponEffectTask;
+    if (equipmentTask != NULL) {
+        taskKill(equipmentTask);
         actor->weaponEffectTask = NULL;
     }
 }
@@ -1357,17 +1381,41 @@ Task* Gp_SetupAllyWeapon(void)
     return ret;
 }
 
-void func_8010B9A4(Task* arg0)
+/// Applies pending companion damage to saved family 1, retaining its event survival floor.
+///
+/// Cheat mode and other families leave HP intact. Borrows the actor and live
+/// save for this call; subtraction keeps its low halfword and tests it as s16.
+static inline void _companionApplyPendingHitDamage(McSaveData* save, const GameActor* actor)
 {
+    enum { COMPANION_DAMAGE_HP_FAMILY = 1 };
+    s32 companionType;
+    u16 remainingHpBits;
+
+    // Keep halfword HP arithmetic and the event survival floor for family 1.
+    if (save->state.cheatMode == 0 && (companionType = save->state.companionType) == COMPANION_DAMAGE_HP_FAMILY) {
+        remainingHpBits         = save->state.companionHp - actor->pendingDamage;
+        save->state.companionHp = remainingHpBits;
+        if ((s16)remainingHpBits <= 0 && gGameSession->eventState != 0) {
+            save->state.companionHp = companionType;
+        }
+    }
+}
+
+void companionEnterDamageReaction(Task* task)
+{
+    enum {
+        COMPANION_DAMAGE_ANIMATION_CONTROLLER = 7,
+        COMPANION_DAMAGE_PART4_SET            = 16,
+        COMPANION_DAMAGE_OTHER_BODY_SET       = 17,
+        COMPANION_DAMAGE_BLEND_FRAMES         = 3
+    };
     GameActor*  actor;
     McSaveData* save;
-    s32         field13;
-    u16         temp;
-    u16         anim;
+    u16         animationSet;
 
-    actor                 = arg0->work;
+    actor                 = task->work;
     actor->mode           = GAME_ACTOR_MODE_DAMAGE;
-    actor->animationState = 7;
+    actor->animationState = COMPANION_DAMAGE_ANIMATION_CONTROLLER;
     save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     actor->movementMode   = 0;
     actor->turnRateIndex  = 0;
@@ -1375,23 +1423,17 @@ void func_8010B9A4(Task* arg0)
     actor->stateAux       = 0;
     actor->movementSign   = 0;
     actor->turnSign       = 0;
-    if (save->state.cheatMode == 0 && (field13 = save->state.companionType) == 1) {
-        temp                    = save->state.companionHp - actor->pendingDamage;
-        save->state.companionHp = temp;
-        if ((s16)temp <= 0 && gGameSession->eventState != 0) {
-            save->state.companionHp = field13;
-        }
-    }
+    _companionApplyPendingHitDamage(save, actor);
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     if ((s8)actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
         actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     }
-    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
-    anim = 0x11;
-    if ((u16)actor->hitRegion == 1) {
-        anim = 0x10;
+    playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+    animationSet = COMPANION_DAMAGE_OTHER_BODY_SET;
+    if ((u16)actor->hitRegion == PLAYER_ACTOR_HIT_REGION_PART4) {
+        animationSet = COMPANION_DAMAGE_PART4_SET;
     }
-    playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 3);
+    playerActorPlayChildSlotsWithBlend(task, animationSet, 0, COMPANION_DAMAGE_BLEND_FRAMES);
 }
 
 Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options)
@@ -1583,16 +1625,16 @@ void companionSetDecisionDelay(Task* task, s32 baseTicks, s32 randomMask)
     actor->companionWork->decisionTimer = baseTicks + randomTicks;
 }
 
-void func_8010BFCC(Task* arg0)
+void companionInitNativeAnimation(Task* task)
 {
     GameActor* actor;
-    TmdObject* extra;
+    TmdObject* model;
 
-    actor                     = arg0->work;
-    extra                     = arg0->extra.tmd;
+    actor                     = task->work;
+    model                     = task->extra.tmd;
     actor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
     actor->animationSets      = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
-    animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+    animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                          actor->animationSlots);
 }
 
@@ -1610,90 +1652,94 @@ s32 companionGetHealthBand(void)
     return healthBand;
 }
 
-void Gp_TrackAllyLockTarget(Task* arg0, s32 arg1)
+void companionTrackLockTarget(Task* task, s32 trackingAxes)
 {
+    enum { COMPANION_LOCK_MIN_GROUND_DISTANCE = 896 };
     GameActor*       actor;
-    WorldTargetNode* node;
-    s32              val;
+    WorldTargetNode* target;
+    s32              minGroundDistance;
 
-    actor = arg0->work;
-    node  = actor->targetNode;
-    if (node == NULL || (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+    actor  = task->work;
+    target = actor->targetNode;
+    if (target == NULL || (target->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
         actor->targetNode       = NULL;
         actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     } else if ((s8)actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
-        if (arg1 & 1) {
-            val = 0;
-            if (arg1 != 1) {
-                val = 0x380;
+        if (trackingAxes & COMPANION_LOCK_TRACK_YAW) {
+            minGroundDistance = 0;
+            if (trackingAxes != COMPANION_LOCK_TRACK_YAW) {
+                minGroundDistance = COMPANION_LOCK_MIN_GROUND_DISTANCE;
             }
-            playerActorAimYawToLock(arg0, val);
+            playerActorAimYawToLock(task, minGroundDistance);
         }
-        if (arg1 & 2) {
+        if (trackingAxes & COMPANION_LOCK_TRACK_PITCH) {
             if (D_80113388[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] != 0) {
-                playerActorAimPitchToLock(arg0);
+                playerActorAimPitchToLock(task);
             } else {
-                playerActorAimPart6PitchToLock(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0x380);
+                playerActorAimPart6PitchToLock(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], COMPANION_LOCK_MIN_GROUND_DISTANCE);
             }
         }
     }
 }
 
-void func_8010C180(Task* arg0)
+void companionRecoverToIdle(Task* task)
 {
-    GameActor* inner;
+    enum {
+        COMPANION_RECOVERY_IDLE_SET          = 1,
+        COMPANION_RECOVERY_IDLE_BLEND_FRAMES = 4
+    };
+    GameActor* hitActor;
     GameActor* actor;
 
-    inner = arg0->work;
-    playerActorClearPendingHit(arg0);
-    inner->recoveryTicks  = 0x12;
-    actor                 = arg0->work;
-    actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->state          = 0;
-    actor->movementMode   = 0;
-    actor->turnRateIndex  = 0;
-    actor->animationState = 0;
-    actor->statePhase     = 0;
-    actor->idleTicks      = 0;
-    actor->actionValue    = 0;
-    actor->movementSign   = 0;
-    actor->turnSign       = 0;
-    playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
+    hitActor = task->work;
+    playerActorClearPendingHit(task);
+    hitActor->recoveryTicks = PLAYER_ACTOR_HIT_RECOVERY_TICKS;
+    actor                   = task->work;
+    _companionResetIdleState(actor);
+    playerActorPlayChildSlotsWithBlend(task, COMPANION_RECOVERY_IDLE_SET, 0, COMPANION_RECOVERY_IDLE_BLEND_FRAMES);
 }
 
-void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
+void companionBindCollisionProbe(Task* task, const SVECTOR3* nearEndpoint, s32 farEndpointZ)
 {
-    GfxCoord*              src;
+    enum {
+        COMPANION_PROBE_ORIGIN_Z    = -160,
+        COMPANION_PROBE_CONTACT_KEY = 0x60000,
+        COMPANION_PROBE_RADIUS      = 128
+    };
+    GameActor*             actor;
+    GfxCoord*              rootCoord;
     CompanionWork*         companion;
-    WorldCollisionBody*    obj;
-    WorldCollisionCapsule* rec;
-    s16                    vz;
+    WorldCollisionBody*    body;
+    WorldCollisionCapsule* capsule;
+    s16                    nearEndpointZ;
 
-    companion              = ((GameActor*)arg0->work)->companionWork;
-    src                    = arg0->extra.tmd->coords;
-    obj                    = &companion->probe.body;
-    rec                    = &companion->probe.shape;
-    companion->probe.coord = *src;
-    obj->coord             = &companion->probe.coord;
-    obj->pos.vz            = -0xA0;
-    obj->key               = 0x60000;
-    obj->context.capsule   = rec;
-    obj->pos.vx            = 0;
-    obj->pos.vy            = 0;
-    obj->flags             = WORLD_COLLISION_BODY_CAPSULE;
-    rec->ends[1].vx        = arg1->vx;
-    rec->ends[1].vy        = arg1->vy;
-    vz                     = arg1->vz;
-    rec->ends[0].vz        = arg2;
-    rec->ends[0].vx        = rec->ends[1].vx;
-    rec->end1Radius        = 0x80;
-    rec->end0Radius        = 0x80;
-    rec->contacts          = companion->probe.contacts;
-    rec->ends[1].vz        = vz;
-    rec->ends[0].vy        = rec->ends[1].vy;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, obj);
-    worldCollisionInitContacts(rec->contacts, ARRAY_SIZE(companion->probe.contacts), 0);
-    obj->flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    actor                  = task->work;
+    companion              = actor->companionWork;
+    rootCoord              = task->extra.tmd->coords;
+    body                   = &companion->probe.body;
+    capsule                = &companion->probe.shape;
+    companion->probe.coord = *rootCoord;
+    body->coord            = &companion->probe.coord;
+    body->pos.vz           = COMPANION_PROBE_ORIGIN_Z;
+    body->key              = COMPANION_PROBE_CONTACT_KEY;
+    body->context.capsule  = capsule;
+    body->pos.vx           = 0;
+    body->pos.vy           = 0;
+    body->flags            = WORLD_COLLISION_BODY_CAPSULE;
+    capsule->ends[1].vx    = nearEndpoint->vx;
+    capsule->ends[1].vy    = nearEndpoint->vy;
+    nearEndpointZ          = nearEndpoint->vz;
+    capsule->ends[0].vz    = farEndpointZ;
+    capsule->ends[0].vx    = capsule->ends[1].vx;
+    capsule->end1Radius    = COMPANION_PROBE_RADIUS;
+    capsule->end0Radius    = COMPANION_PROBE_RADIUS;
+    capsule->contacts      = companion->probe.contacts;
+    capsule->ends[1].vz    = nearEndpointZ;
+    capsule->ends[0].vy    = capsule->ends[1].vy;
+    // Link the shape before enabling its one-contact grid and pair scans.
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, body);
+    worldCollisionInitContacts(capsule->contacts, ARRAY_SIZE(companion->probe.contacts), 0);
+    body->flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
 s32 companionEndScriptedMotion(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
@@ -1761,6 +1807,12 @@ static void func_8010C46C(Task* arg0)
 }
 
 /// Stops companion motion and aim offsets and disables its weapon attack for scripted control.
+///
+/// Requires live GameActor work and the saved variant's native weapon resources.
+/// Clears the pending hit selector and requests scripted dispatch; the caller
+/// chooses the state and playback. Preserves the player's interaction latch and
+/// the companion's selected lock target. The task and actor must describe the
+/// same companion; no pointers are retained.
 static inline void _companionEnterScriptedMode(Task* task, GameActor* actor)
 {
     actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
@@ -1774,7 +1826,7 @@ static inline void _companionEnterScriptedMode(Task* task, GameActor* actor)
     actor->aimYaw                                         = 0;
     actor->field_68                                       = 0;
     actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
+    actor->hitRegion                                      = PLAYER_ACTOR_HIT_REGION_NONE;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
 }
@@ -1846,59 +1898,48 @@ s32 companionMoveTo(Task* task, s32 unusedMessageId, const ActorTransform* trans
     return 0;
 }
 
-s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim)
+s32 companionRunTo(Task* task, s32 unusedMessageId, const ActorTransform* transform, const GameActorMoveAnim* moveAnim)
 {
-    PlayerStatus* p;
+    enum { COMPANION_SCRIPTED_RUN_TO_STATE = 8 };
+    PlayerStatus* playerStatus;
     u8            savedInteractionPressed;
     GameActor*    actor;
 
-    p                       = &gPlayerStatus;
-    actor                   = arg0->work;
-    savedInteractionPressed = p->interactionPressed;
-    playerActorMoveTo(arg0, arg1, transform, moveAnim);
-    p->interactionPressed = savedInteractionPressed;
-    actor->state          = 8;
+    playerStatus            = &gPlayerStatus;
+    actor                   = task->work;
+    savedInteractionPressed = playerStatus->interactionPressed;
+    playerActorMoveTo(task, unusedMessageId, transform, moveAnim);
+    playerStatus->interactionPressed = savedInteractionPressed;
+    actor->state                     = COMPANION_SCRIPTED_RUN_TO_STATE;
     return 0;
 }
 
-s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, s32 unusedSecondArg)
+s32 companionAwaitButtonPresses(Task* task, s32 unusedMessageId, const GameActorButtonPressHold* request, s32 unusedSecondArg)
 {
+    enum { COMPANION_SCRIPTED_PRESS_HOLD_STATE = 6 };
     GameActor* actor;
 
-    actor = arg0->work;
+    actor = task->work;
     if ((s8)actor->recoveryTicks != 0) {
         return 1;
     }
-    actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
-    actor->statePhase                                     = 0;
-    actor->movementSign                                   = 0;
-    actor->turnSign                                       = 0;
-    actor->part3Pitch                                     = 0;
-    actor->part2Pitch                                     = 0;
-    actor->part3Roll                                      = 0;
-    actor->part2Roll                                      = 0;
-    actor->aimYaw                                         = 0;
-    actor->field_68                                       = 0;
-    actor->part6Pitch                                     = 0;
-    actor->hitRegion                                      = 0;
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
-    actor->state       = 6;
-    actor->stateTimer  = arg2->pressCount;
+    _companionEnterScriptedMode(task, actor);
+    actor->state       = COMPANION_SCRIPTED_PRESS_HOLD_STATE;
+    actor->stateTimer  = request->pressCount;
     actor->actionValue = 0;
     return 0;
 }
 
-s32 Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecondArg)
+s32 companionMoveBy(Task* task, s32 unusedMessageId, const GameActorMoveBy* move, s32 unusedSecondArg)
 {
-    PlayerStatus* p;
+    PlayerStatus* playerStatus;
     u8            savedInteractionPressed;
     s32           result;
 
-    p                       = &gPlayerStatus;
-    savedInteractionPressed = p->interactionPressed;
-    result                  = playerActorMoveBy(arg0, arg1, move, unusedSecondArg);
-    p->interactionPressed   = savedInteractionPressed;
+    playerStatus                     = &gPlayerStatus;
+    savedInteractionPressed          = playerStatus->interactionPressed;
+    result                           = playerActorMoveBy(task, unusedMessageId, move, unusedSecondArg);
+    playerStatus->interactionPressed = savedInteractionPressed;
     return result;
 }
 
@@ -1923,34 +1964,36 @@ s32 animationCopyCompanionBankExtension(Task* unusedTask, s32 unusedMessageId, c
     return 0;
 }
 
-s32 Gp_HurtAlly(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 companionApplyDamage(Task* unusedTask, s32 unusedMessageId, s32 attackKey, s32 unusedSecondArg)
 {
-    s32 ret;
+    enum { COMPANION_DAMAGE_RECEIVER = 1 };
+    s32 fatal;
 
-    ret = 0;
+    fatal = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp -= damageComputeReceived(arg2, 0, 0, 1);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp -= damageComputeReceived(attackKey, 0, NULL, COMPANION_DAMAGE_RECEIVER);
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
-            ret = 1;
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, 0, ACTOR_MESSAGE_RELEASE_HOLD);
+            fatal = 1;
         }
     }
-    return ret;
+    return fatal;
 }
 
-void func_8010C980(void* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3, s32 arg4, s32 arg5)
+void worldCollisionBindEnemySphere(GfxCoord* coord, WorldCollisionBody* body, WorldCollisionContact* contacts, s32 contactCount, s32 bodyId, s32 radius)
 {
-    arg1->coord            = arg0;
-    arg1->context.contacts = arg2;
-    arg1->pos.vx           = 0;
-    arg1->pos.vy           = 0;
-    arg1->pos.vz           = 0;
-    arg1->flags            = WORLD_COLLISION_BODY_SPHERE;
-    arg1->key              = arg4 | 0x30000;
-    arg1->radius           = arg5;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, arg1);
-    arg1->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(arg1->context.contacts, (s16)arg3, 0);
+    body->coord            = coord;
+    body->context.contacts = contacts;
+    body->pos.vx           = 0;
+    body->pos.vy           = 0;
+    body->pos.vz           = 0;
+    body->flags            = WORLD_COLLISION_BODY_SPHERE;
+    body->key              = bodyId | WORLD_COLLISION_CONTACT_ENEMY_BODY;
+    body->radius           = radius;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
+    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    // The exported count is narrowed to a signed halfword before clearing.
+    worldCollisionInitContacts(body->context.contacts, (s16)contactCount, 0);
 }
 
 const TaskFuncTable4 D_80097AB0 = { {

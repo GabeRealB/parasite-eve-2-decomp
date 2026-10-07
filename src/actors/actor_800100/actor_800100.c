@@ -222,13 +222,13 @@ TaskMessageEntry D_actor_800100_80167130[26] = {
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
     { GAME_ACTOR_MESSAGE_WALK_STEPS, playerActorWalkSteps },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
-    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_8010C75C },
-    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_HurtAlly },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionAwaitButtonPresses },
+    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionApplyDamage },
     { 1018, companionPlayScriptedAnimation },
     { 1019, companionPlayScriptedAnimation },
     { 1020, companionPlayScriptedAnimation },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
-    { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorByKeep },
+    { GAME_ACTOR_MESSAGE_MOVE_BY, companionMoveBy },
     { ANIMATION_MESSAGE_REPLACE_AND_PLAY, companionEndScriptedMotion },
     { 1024, companionEndScriptedMotion },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
@@ -758,7 +758,7 @@ static void func_actor_800100_80163214(Task* arg0)
     coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
     extra->flags                                   = 0;
     RotMatrix(&actor->rotation, &coord->coord);
-    func_8010BFCC(arg0);
+    companionInitNativeAnimation(arg0);
     actor->animationRate = ANIMATION_RATE_ONE;
     playerActorResetChildSlots(arg0, actor->actionArgument);
     playerActorTickChildSlots(arg0);
@@ -851,7 +851,7 @@ static void func_actor_800100_80163214(Task* arg0)
     scratch->vx = 0;
     scratch->vy = -0x200;
     scratch->vz = 0;
-    Gp_BindActorD4(arg0, scratch, 0x1000);
+    companionBindCollisionProbe(arg0, scratch, 0x1000);
     companionSetDecisionDelay(arg0, 0x3C, 0x7F);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
@@ -1218,7 +1218,7 @@ static void func_actor_800100_80163F04(Task* arg0)
     if ((s8)actor->recoveryTicks == 0) {
         playerActorResolveBodyContacts(arg0, actor->collisionContacts);
         if ((u16)actor->hitRegion != 0) {
-            func_8010B9A4(arg0);
+            companionEnterDamageReaction(arg0);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant - 1) << 16) + 0x4065000A, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
@@ -1228,7 +1228,7 @@ static void func_actor_800100_80163F04(Task* arg0)
     playerActorUpdateFacing(arg0);
     playerActorStepMovement(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-        Gp_StopPlayerAnim(arg0, 0);
+        playerActorEnterStoppedPose(arg0, 0);
     }
 }
 
@@ -1410,7 +1410,7 @@ static inline s32 _actor800100LockTargetTurn(Task* task, GameActor* actor, VECTO
 /// `the scratch stack - 0x10` (`worldTargetGetBodyPosition`, or `worldTargetFindLockNodeFromPad` when
 /// `targetNode` is flagged) and measures the yaw turn to it with
 /// `playerActorGetTurnToPoint`. Close enough latches `statePhase` to 1 and plays the slot-7
-/// child animation; otherwise the target is handed to `Gp_TrackAllyLockTarget`
+/// child animation; otherwise the target is handed to `companionTrackLockTarget`
 /// with 1. `statePhase` 2/3 waits for the chain to reach 3, which resets the
 /// move fields and plays the slots 9/6 pair.
 static void func_actor_800100_80164580(Task* arg0)
@@ -1435,7 +1435,7 @@ static void func_actor_800100_80164580(Task* arg0)
             if (actor->targetNode == NULL || _actor800100LockTargetTurn(arg0, actor, pos) < 0x201) {
                 actor->statePhase = flag;
             } else {
-                Gp_TrackAllyLockTarget(arg0, 1);
+                companionTrackLockTarget(arg0, COMPANION_LOCK_TRACK_YAW);
                 break;
             }
             /* fallthrough */
@@ -1447,7 +1447,7 @@ static void func_actor_800100_80164580(Task* arg0)
             /* fallthrough */
         case 2:
         case 3:
-            Gp_TrackAllyLockTarget(arg0, 3);
+            companionTrackLockTarget(arg0, COMPANION_LOCK_TRACK_YAW | COMPANION_LOCK_TRACK_PITCH);
             if (actor->statePhase == 3) {
                 GameActor* actor2      = arg0->work;
                 actor2->mode           = GAME_ACTOR_MODE_NORMAL;
@@ -1478,7 +1478,7 @@ static void func_actor_800100_80164710(Task* arg0)
     actor     = arg0->work;
     block     = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
     companion = actor->companionWork;
-    Gp_TrackAllyLockTarget(arg0, 3);
+    companionTrackLockTarget(arg0, COMPANION_LOCK_TRACK_YAW | COMPANION_LOCK_TRACK_PITCH);
     switch (actor->statePhase) {
         case 0:
             lock = actor->targetNode;
@@ -2200,7 +2200,7 @@ static void func_actor_800100_801658E8(Task* arg0)
         return;
     }
     if (value == 1) {
-        func_8010C180(arg0);
+        companionRecoverToIdle(arg0);
     }
 }
 
@@ -2234,8 +2234,8 @@ static void func_actor_800100_80165930(Task* arg0)
     sp.funcs[(u16)actor->state](arg0);
     playerActorUpdateFacing(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-        func_8010BFCC(arg0);
-        Gp_StopPlayerAnim(arg0, 0);
+        companionInitNativeAnimation(arg0);
+        playerActorEnterStoppedPose(arg0, 0);
     }
 }
 

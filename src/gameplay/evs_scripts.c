@@ -592,7 +592,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     D_801156CE = 1;
                     slot       = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
                     if (slot != NULL) {
-                        Gp_EndPlayerActorTask(slot);
+                        companionRemoveEquipment(slot);
                         companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     }
                 }

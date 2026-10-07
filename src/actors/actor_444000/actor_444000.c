@@ -4166,7 +4166,7 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work)
 ///
 /// The host takes collision groups 0..2 (group 0's record table doubles as its
 /// own `Enemy::recs`), escort 0 takes 3..5 and escort 1 takes 6..8; each
-/// group is armed through `func_8010C980` on one of the model's part
+/// group is armed through `worldCollisionBindEnemySphere` on one of the model's part
 /// coordinates. Escorts 2..5 are parented to a part coordinate at a fixed
 /// offset and nothing else, and escort 6 is only spawned when the high half of
 /// `Task::spawnArg1` is clear. Escort 3 is the one the colour updates treat as
@@ -4231,9 +4231,9 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->neckYawTarget = work->neckYaw = 0;
     work->animRate = work->field_7B8 = 0x10;
 
-    func_8010C980(&task->extra.tmd->coords[4], &work->hits[0].body, work->hits[0].contacts, ARRAY_SIZE(work->hits[0].contacts), 0x20, 0x300);
-    func_8010C980(&task->extra.tmd->coords[4], &work->hits[1].body, work->hits[1].contacts, ARRAY_SIZE(work->hits[1].contacts), 0x20, 0x300);
-    func_8010C980(&task->extra.tmd->coords[1], &work->hits[2].body, work->hits[2].contacts, ARRAY_SIZE(work->hits[2].contacts), 0x20, 0xBB8);
+    worldCollisionBindEnemySphere(&task->extra.tmd->coords[4], &work->hits[0].body, work->hits[0].contacts, ARRAY_SIZE(work->hits[0].contacts), 0x20, 0x300);
+    worldCollisionBindEnemySphere(&task->extra.tmd->coords[4], &work->hits[1].body, work->hits[1].contacts, ARRAY_SIZE(work->hits[1].contacts), 0x20, 0x300);
+    worldCollisionBindEnemySphere(&task->extra.tmd->coords[1], &work->hits[2].body, work->hits[2].contacts, ARRAY_SIZE(work->hits[2].contacts), 0x20, 0xBB8);
 
     work->hits[1].body.pos.vx = 0;
     work->hits[1].body.pos.vy = 0;
@@ -4306,12 +4306,12 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->groups3To5Pool            = D_actor_444000_80144A38.hpMax;
     work->escorts[0]->param         = &D_actor_444000_80144A38;
     work->escorts[0]->recs          = work->hits[3].contacts;
-    func_8010C980(&work->escorts[0]->task->extra.tmd->coords[1], &work->hits[3].body, work->hits[3].contacts, ARRAY_SIZE(work->hits[3].contacts),
-                  0x20, 0x300);
-    func_8010C980(&work->escorts[0]->task->extra.tmd->coords[2], &work->hits[4].body, work->hits[4].contacts, ARRAY_SIZE(work->hits[4].contacts),
-                  0x20, 0x300);
-    func_8010C980(&work->escorts[0]->task->extra.tmd->coords[3], &work->hits[5].body, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts),
-                  0x20, 0x300);
+    worldCollisionBindEnemySphere(&work->escorts[0]->task->extra.tmd->coords[1], &work->hits[3].body, work->hits[3].contacts, ARRAY_SIZE(work->hits[3].contacts),
+                                  0x20, 0x300);
+    worldCollisionBindEnemySphere(&work->escorts[0]->task->extra.tmd->coords[2], &work->hits[4].body, work->hits[4].contacts, ARRAY_SIZE(work->hits[4].contacts),
+                                  0x20, 0x300);
+    worldCollisionBindEnemySphere(&work->escorts[0]->task->extra.tmd->coords[3], &work->hits[5].body, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts),
+                                  0x20, 0x300);
 
     esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 1, 0, task->spawnArg2.pointer);
     work->escorts[1]                                      = esc;
@@ -4336,12 +4336,12 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->groups6To8Pool            = D_actor_444000_80144A48.hpMax;
     work->escorts[1]->param         = &D_actor_444000_80144A48;
     work->escorts[1]->recs          = work->hits[6].contacts;
-    func_8010C980(&work->escorts[1]->task->extra.tmd->coords[1], &work->hits[6].body, work->hits[6].contacts, ARRAY_SIZE(work->hits[6].contacts),
-                  0x20, 0x300);
-    func_8010C980(&work->escorts[1]->task->extra.tmd->coords[2], &work->hits[7].body, work->hits[7].contacts, ARRAY_SIZE(work->hits[7].contacts),
-                  0x20, 0x300);
-    func_8010C980(&work->escorts[1]->task->extra.tmd->coords[3], &work->hits[8].body, work->hits[8].contacts, ARRAY_SIZE(work->hits[8].contacts),
-                  0x20, 0x300);
+    worldCollisionBindEnemySphere(&work->escorts[1]->task->extra.tmd->coords[1], &work->hits[6].body, work->hits[6].contacts, ARRAY_SIZE(work->hits[6].contacts),
+                                  0x20, 0x300);
+    worldCollisionBindEnemySphere(&work->escorts[1]->task->extra.tmd->coords[2], &work->hits[7].body, work->hits[7].contacts, ARRAY_SIZE(work->hits[7].contacts),
+                                  0x20, 0x300);
+    worldCollisionBindEnemySphere(&work->escorts[1]->task->extra.tmd->coords[3], &work->hits[8].body, work->hits[8].contacts, ARRAY_SIZE(work->hits[8].contacts),
+                                  0x20, 0x300);
 
     esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 2, 0, task->spawnArg2.pointer);
     work->escorts[2]                                      = esc;

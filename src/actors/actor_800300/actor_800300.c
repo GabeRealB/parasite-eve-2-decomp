@@ -123,12 +123,12 @@ TaskMessageEntry D_actor_800300_80168880[26] = {
     { GAME_ACTOR_MESSAGE_WALK_STEPS, playerActorWalkSteps },
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
-    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_HurtAlly },
+    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionApplyDamage },
     { 1018, companionPlayScriptedAnimation },
-    { 1019, func_8010C708 },
+    { 1019, companionRunTo },
     { 1020, companionPlayScriptedAnimation },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
-    { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorByKeep },
+    { GAME_ACTOR_MESSAGE_MOVE_BY, companionMoveBy },
     { ANIMATION_MESSAGE_REPLACE_AND_PLAY, companionEndScriptedMotion },
     { 1024, companionEndScriptedMotion },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
@@ -565,7 +565,7 @@ static void func_actor_800300_80161E80(Task* arg0)
     coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
     extra->flags                                   = 0;
     RotMatrix(&actor->rotation, &coord->coord);
-    func_8010BFCC(arg0);
+    companionInitNativeAnimation(arg0);
     actor->animationRate = ANIMATION_RATE_ONE;
     playerActorResetChildSlots(arg0, actor->actionArgument);
     recs                                       = actor->collisionContacts;
@@ -875,7 +875,7 @@ static void func_actor_800300_80162658(Task* arg0)
                 actor->statePhase       = 0;
                 actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
                 worldCoordPlaySound(obj, (rand() & 1) + 0x55170005, 0);
-                if (Gp_HurtAlly(arg0, 0, 0x40010, 0) != 0) {
+                if (companionApplyDamage(arg0, 0, 0x40010, 0) != 0) {
                     return;
                 }
                 anim = 0x10;
@@ -890,7 +890,7 @@ static void func_actor_800300_80162658(Task* arg0)
     if ((s8)actor->recoveryTicks == 0) {
         playerActorResolveBodyContacts(arg0, &actor->collisionContacts[0]);
         if ((u16)actor->hitRegion != 0) {
-            func_8010B9A4(arg0);
+            companionEnterDamageReaction(arg0);
             pan   = (s8)worldCoordGetOriginAudioPan(obj);
             depth = (s8)worldCoordGetOriginAudioDepth(obj);
             sound = 7;
@@ -905,7 +905,7 @@ static void func_actor_800300_80162658(Task* arg0)
     playerActorUpdateFacing(arg0);
     playerActorStepMovement(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-        Gp_StopPlayerAnim(arg0, 0);
+        playerActorEnterStoppedPose(arg0, 0);
     }
 }
 
@@ -1172,7 +1172,7 @@ static void func_actor_800300_80162F98(Task* arg0)
     sp.funcs[(u16)actor->state](arg0);
     playerActorUpdateFacing(arg0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-        Gp_StopPlayerAnim(arg0, 0);
+        playerActorEnterStoppedPose(arg0, 0);
     }
 }
 

@@ -297,7 +297,7 @@ enum {
     /// that do not implement the hold read `animation` through the generic
     /// animation handler and always return 0.
     GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES = 0x3F8,
-    /// Applies damage to the receiver (`Gp_ApplyPlayerDamage`, `Gp_HurtAlly`).
+    /// Applies damage to the receiver (`Gp_ApplyPlayerDamage`, `companionApplyDamage`).
     GAME_ACTOR_MESSAGE_APPLY_DAMAGE = 0x3F9,
     /// Player: selects walking speed for zero first argument, running speed for
     /// every nonzero value, without taking scripted control or changing the clip.

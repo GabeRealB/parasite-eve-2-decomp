@@ -377,7 +377,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
         companionWriteAnimationBankIndex(&D_dryfield_night_garage_80181C68.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_dryfield_night_garage_80181C68, 0);
         func_dryfield_night_garage_80180604(0);
-        Gp_EndPlayerActorTask(player);
+        companionRemoveEquipment(player);
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN) == 0) {
             Gp_FillAllyHp();
             gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN, 1);

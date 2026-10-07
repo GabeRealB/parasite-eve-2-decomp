@@ -212,7 +212,7 @@ TaskMessageEntry D_actor_800200_80169EF0[20] = {
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionPlayScriptedAnimation },
     { 1018, companionPlayScriptedAnimation },
-    { 1019, func_8010C708 },
+    { 1019, companionRunTo },
 };
 
 u8 D_actor_800200_80169F90[16] = {
@@ -953,7 +953,7 @@ static void func_actor_800200_80162088(Task* arg0)
     coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
     extra->flags                                   = 0;
     RotMatrix(&actor->rotation, &coord->coord);
-    func_8010BFCC(arg0);
+    companionInitNativeAnimation(arg0);
     actor->animationRate = ANIMATION_RATE_ONE;
     playerActorResetChildSlots(arg0, actor->actionArgument);
     playerActorTickChildSlots(arg0);
@@ -1003,7 +1003,7 @@ static void func_actor_800200_80162088(Task* arg0)
     ((SVECTOR3*)(head - 8))->vx = 0;
     scratch->vy                 = -0x100;
     scratch->vz                 = 0x200;
-    Gp_BindActorD4(arg0, scratch, 0x600);
+    companionBindCollisionProbe(arg0, scratch, 0x600);
     SCRATCH_STACK_RELEASE_BYTES(8);
 }
 
@@ -3210,7 +3210,7 @@ static void func_actor_800200_80165B84(Task* arg0)
     if ((s8)actor->recoveryTicks == 0) {
         playerActorResolveBodyContacts(arg0, actor->collisionContacts);
         if ((u16)actor->hitRegion != 0) {
-            func_8010B9A4(arg0);
+            companionEnterDamageReaction(arg0);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(SOUND_ACTOR_800200_HURT, pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
@@ -3288,7 +3288,7 @@ static void func_actor_800200_80165E90(Task* arg0)
 
 static void func_actor_800200_80165F28(Task* arg0)
 {
-    func_8010ABD4(arg0);
+    playerActorFinishDamageReaction(arg0);
 }
 
 static void func_actor_800200_80165F48(Task* arg0)

@@ -7483,7 +7483,7 @@ A 0x50-byte struct copy that the target does as five aligned 16-byte
 `u8 data[0x50]` has alignment 1, so GCC emits an `or`/`andi 3` check plus
 an `lwl`/`lwr` fallback. Keep the object 4-aligned.
 
-`Gp_BindActorD4` is the example (`CompanionWork.probe.coord = *extra->coords`).
+`companionBindCollisionProbe` is the example (`CompanionWork.probe.coord = *rootCoord`).
 
 ## A 0x20-byte MATRIX assign is two groups of four `lw`/`sw`
 
@@ -7703,7 +7703,7 @@ call. Overwriting the original saved `actor` puts the second reload in
 `$s0` instead.
 
 The target wants the first reload in `$a3` (it becomes
-`inner->poseBuffer`, the 4th arg) and the second in `$v0` (store-only
+`animationActor->poseBuffer`, the 4th arg) and the second in `$v0` (store-only
 scratch before `playerActorPlayChildSlotsWithBlend`):
 
 ```
@@ -7721,21 +7721,21 @@ for the later `weaponEffectTask` kill, one local that dies at `animationInitCont
 and a third that exists only for the post-`playerActorResetChildSlots` stores:
 
 ```c
-actor = arg0->actor;
+actor = task->work;
 /* taskKill(actor->equipmentTasks[1]); actor->equipmentTasks[1] = NULL; */
-inner            = arg0->actor;
-inner->animationBankIndex = table[idx] + addend;
-inner->animationSets = ptrs[inner->animationBankIndex]->table.sets;
-animationInitContext(..., inner->poseBuffer, ...);
-playerActorResetChildSlots(arg0, 1);
-next            = arg0->actor;
-next->mode = 0;
+animationActor            = task->work;
+animationActor->animationBankIndex = table[idx] + addend;
+animationActor->animationSets = ptrs[animationActor->animationBankIndex]->table.sets;
+animationInitContext(..., animationActor->poseBuffer, ...);
+playerActorResetChildSlots(task, 1);
+idleActor       = task->work;
+idleActor->mode = 0;
 /* ... */
-playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 4);
+playerActorPlayChildSlotsWithBlend(task, 1, 0, 4);
 /* taskKill(actor->weaponEffectTask); */
 ```
 
-`Gp_EndPlayerActorTask` is the example. One reused reload stuck at 98.8%
+`companionRemoveEquipment` is the example. One reused reload stuck at 98.8%
 (`$t0`); overwriting `actor` stuck at 99.3% (`$s0` for the stores).
 
 ## Capture `list->rowCallbacks` before writing both callback slots
@@ -24048,14 +24048,14 @@ That extra zero test is a *separate* compare, not CSE of `== 1`. Write it as
 two nested checks so the first branch only needs the loaded value:
 
 ```c
-if (inner->statePhase != 0) {
-    if (inner->statePhase == 1) {
+if (actor->statePhase != 0) {
+    if (actor->statePhase == 1) {
         /* body */
     }
 }
 ```
 
-`func_8010ABD4` is the example — it is `func_8010AB70` behind that guard.
+`playerActorFinishDamageReaction` is the example — it is `func_8010AB70` behind that guard.
 
 ## Do not pre-assign a later call argument that is live across an earlier call
 
@@ -24831,17 +24831,17 @@ Declaring that same callee `void` frees `$v0` immediately, so you get
 `li v0,K` instead — a one-register miss on an otherwise identical body.
 
 ```c
-s32 playerActorMoveTo(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
+s32 playerActorMoveTo(Task* task, s32 unusedMessageId, const ActorTransform* transform, const GameActorMoveAnim* moveAnim);
 
-playerActorMoveTo(arg0, arg1, transform, moveAnim); /* jal; nop — $v0 still "holds" the return */
+playerActorMoveTo(task, unusedMessageId, transform, moveAnim); /* jal; nop — $v0 still "holds" the return */
 actor->state = 8;    /* li v1,8; sh v1,0x956(s2) */
 return 0;                /* move v0,zero after the restores */
 ```
 
-`func_8010C708` is the example. Pair with assigning the callee-saved
-pointer *before* the saved byte (`actor = index->actor; saved = p->field_24`)
+`companionRunTo` is the example. Pair with assigning the callee-saved
+pointer *before* the saved byte (`actor = task->work; savedInteractionPressed = playerStatus->interactionPressed`)
 so the target's `lw s2` / `lbu s1` order is preserved; declaration order
-still assigns `saved` to `$s1` and `actor` to `$s2`.
+still assigns `savedInteractionPressed` to `$s1` and `actor` to `$s2`.
 
 ## Keep the `i * sizeof(slot)` overlay inside the loop body
 
@@ -25869,22 +25869,22 @@ lw   v0, 0x1C(s0)    /* reload into $v0, not $s1 */
 sh   zero, ...(v0)
 ```
 
-reassigning the same local (`inner = index->actor`) coalesces the reload into
+reassigning the same local (`hitActor = task->work`) coalesces the reload into
 `$s1` and every later store uses `off(s1)`. A second local is a different
 pseudo-register, so the allocator parks the reload in `$v0`:
 
 ```c
-GameActor* inner;
+GameActor* hitActor;
 GameActor* actor;
 
-inner            = arg0->actor;
-playerActorClearPendingHit(arg0);
-inner->recoveryTicks = 0x12; /* sb K, off(s1) */
-actor            = arg0->actor; /* lw v0, 0x1C(s0) */
+hitActor            = task->work;
+playerActorClearPendingHit(task);
+hitActor->recoveryTicks = 0x12; /* sb K, off(s1) */
+actor            = task->work; /* lw v0, 0x1C(s0) */
 actor->mode = 0;    /* sh zero, off(v0) */
 ```
 
-`func_8010C180` is the example. A single `inner` reused for both groups stuck
+`companionRecoverToIdle` is the example. A single `hitActor` reused for both groups stuck
 at 98% with only the reload register wrong.
 
 ## `s32 val = field & K; return val != 0` keeps `andi` + `sltu`
@@ -30228,17 +30228,17 @@ Assign the byte *inside* the `&&` so the load stays after the first
 branch and `v` is not replaced by the constant:
 
 ```c
-if (save->field_5C2 == 0 && (field13 = save->field_13) == 1) {
-    save->field_6C8 -= actor->pendingDamage;
-    if ((s16)save->field_6C8 <= 0 && gGameSession->eventState != 0) {
-        save->field_6C8 = field13; /* sh a1, not li 1 */
+if (save->state.cheatMode == 0 && (companionType = save->state.companionType) == 1) {
+    save->state.companionHp -= actor->pendingDamage;
+    if ((s16)save->state.companionHp <= 0 && gGameSession->eventState != 0) {
+        save->state.companionHp = companionType; /* sh a1, not li 1 */
     }
 }
 ```
 
-Assigning `field13` before the `if` also avoids the fold but hoists
-`lb id` above the `field_5C2` check. A nested `if` after an inner
-assign folds. `func_8010B9A4` is the example.
+Assigning `companionType` before the `if` also avoids the fold but hoists
+`lb id` above the `state.cheatMode` check. A nested `if` after an inner
+assign folds. `companionEnterDamageReaction` is the example.
 
 ## Scratch `head = head - K` then `+r`(vec) so VectorNormal takes `$s1`
 
@@ -76330,7 +76330,7 @@ beqz  v1, L
 li    v0, 1
 bne   v1, v0, L
 nop
-jal   func_8010C180
+jal   companionRecoverToIdle
 .L:
 ```
 
@@ -76355,7 +76355,7 @@ if (value == 0) {
     return;
 }
 if (value == 1) {
-    func_8010C180(arg0);
+    companionRecoverToIdle(arg0);
 }
 ```
 
@@ -110182,7 +110182,7 @@ references it needs. 100.00% with all-zero penalties.
 ## The if/else emission order cannot place a merged tail, and cross-jumping keeps the later copy (func_actor_800100_80164580, 2026-09-16)
 
 **Symptom:** the oracle's case-0 store block sits *between* the distance test and
-the `Gp_TrackAllyLockTarget(index, 1)` block, and ends with `j case-1`:
+the `companionTrackLockTarget(index, 1)` block, and ends with `j case-1`:
 
 ```
 slti  $v0,$v0,0x201
@@ -110190,10 +110190,10 @@ beqz  $v0,.L64654        ; >= 0x201 -> the hand-off block
 addu  $a0,$s2,$0
 j     .L64664            ; the store's jump over the hand-off
 sh    $s3,0x95E($s0)     ; delay slot
-.L64654: jal Gp_TrackAllyLockTarget
+.L64654: jal companionTrackLockTarget
 ```
 
-The natural C (`if (val >= 0x201) { Gp_TrackAllyLockTarget(index, 1); break; }`
+The natural C (`if (val >= 0x201) { companionTrackLockTarget(index, 1); break; }`
 then `actor->statePhase = flag;`) emits the *then* arm first, so the store lands
 after the hand-off block and the test inverts to `bnez $v0,<store>`.
 
@@ -110223,7 +110223,7 @@ makes its block end in a jump:
             actor->statePhase = flag;
             goto caseOne;
         track:
-            Gp_TrackAllyLockTarget(arg0, 1);
+            companionTrackLockTarget(arg0, 1);
             break;
         caseOne:
         case 1:
@@ -123985,7 +123985,7 @@ wrote.
 
 ## `addu $a3,$a1,$zero` in a `jal` delay slot says the callee takes a 4th argument, even though the decompiled body ignores it (func_actor_800300_80162658, 2026-09-17)
 
-The target called `Gp_HurtAlly` with an `a3` setup the tree's prototype did not
+The target called `companionApplyDamage` with an `a3` setup the tree's prototype did not
 account for:
 
 ```
@@ -123993,7 +123993,7 @@ account for:
     move  $a1,$zero
     lui   $a2,0x4
     ori   $a2,$a2,0x10
-    jal   Gp_HurtAlly
+    jal   companionApplyDamage
      addu $a3,$a1,$zero        ; a3 = a1 = 0
 ```
 
@@ -124010,7 +124010,7 @@ void t(S* p) { f(p, 0, 0x40010); }      /* no $7 setup        */
 void u(S* p) { g(p, 0, 0x40010, 0); }   /* move $7,$5; jal g  */
 ```
 
-`Gp_HurtAlly`'s body uses only `arg2`, so the 3-parameter prototype had been
+`companionApplyDamage`'s body uses only `attackKey`, so the 3-parameter prototype had been
 inferred from the body and the fourth was invisible until this caller. The fix
 belongs in the shared header *and* the definition; an unused trailing parameter
 adds nothing to the callee's code, so adding it does not disturb a match.
