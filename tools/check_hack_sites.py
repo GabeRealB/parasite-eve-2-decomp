@@ -39,7 +39,7 @@ STMT = re.compile(r'\b(?:__asm__|asm)\s*(?:volatile|__volatile__)?\s*\(\s*("(?:[
 MACRO = re.compile(r'\b(SCHED_BARRIER|SOFT_BARRIER|SOFT_COMPILER_BARRIER|COMPILER_BARRIER'
                    r'|SOFT_TOUCH_REG\d?(?:_USE\d?)?|TOUCH_REG\d?(?:_MEM|_USE\d?)?|TOUCH_REG2_MEM'
                    r'|SOFT_DEF_REG|DEF_REG|SOFT_USE_REG\d?|USE_REG\d?|CLOBBER_REG'
-                   r'|TOUCH_MEM|SOFT_MOVE_ZERO|MOVE_ZERO|COPY_REG(?:_EC)?)\s*\(')
+                   r'|TOUCH_MEM|SOFT_MOVE_ZERO|MOVE_ZERO|COPY_REG(?:_EC)?|CSE_STEER)\s*\(')
 # `extern T name __asm__("symbol+offset");`: a declaration bound to another symbol's storage.
 ALIAS = re.compile(r'^[^=(]*\b(?:asm|__asm__)\s*\(\s*"[A-Za-z_.$][\w.$]*(?:\s*\+\s*\w+)?"\s*\)\s*;')
 COMMENT = re.compile(r'//[^\n]*|/\*.*?\*/', re.S)
