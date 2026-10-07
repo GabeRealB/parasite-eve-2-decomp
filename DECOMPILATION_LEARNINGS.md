@@ -141645,6 +141645,14 @@ Inputs: `base_7.i` `e44ad76ab7968cfb55649883e6dabbb3d3a6f103989904ff4be48c07d696
 (match), label probe `base_5.i`
 `cae185cdd1f37583be625a47f8fbdd591600e07abbe643f8c808796aa8d23e39` (99.64%).
 
+*Note 2026-10-07:* the two `DEF_REG` are gone; the 5 class did not have to be
+killed. See "A byte store of a constant that an earlier compare also holds: the
+wider-mode search takes a 16-bit register first" at the end of this file. One
+correction to the mechanism above: `(subreg:QI (reg))` costs 1, not 0. It wins
+because the store's own byte pseudo is in the table (so `src` is dropped) and
+`src_related` is tried before table entries of equal cost; the constant itself
+costs 0 but is not a valid source for a MIPS store.
+
 ### Buy `do{}while(0)` ref weight on a *use* in a later block, not on the join that sets the pseudo (_shelterR48WaterRefractionTask, 2026-09-24)
 
 A spilled `waveOffset` needed 11 loop-weighted refs to rank between two other
@@ -148909,6 +148917,8 @@ the source's second set was is not known. Not it: a `switch` (five cases over
   while the `kind == 1` class survives, so the break is between the two
   compares. A label there that only jump2 removes would do it; no source form
   with a second jump to that point was found.
+  *Note 2026-10-07:* resolved without a boundary; see the last section of this
+  file ("A byte store of a constant that an earlier compare also holds").
 
 ## Goto leftovers and the structured form each stands for (sample of 15 functions, 2026-10-05)
 
@@ -151978,3 +151988,72 @@ deletes the QI set. The explicit `first` only wrote out what cse builds.
 **Use.** Before adding a copy to give a constant "one use in a later block",
 count the uses after cse, not in the source: two widenings of one narrow local
 on a path cse follows are already one.
+
+### A byte store of a constant that an earlier compare also holds: the wider-mode search takes a 16-bit register first (func_shelter_b3_garbage_incinerator_8017E158, 2026-10-07)
+
+**Was.** `t = id & 0x7FFF; want = 5; if (t != want) break; DEF_REG(t);
+DEF_REG(want);` so that a later `room = 5` (two `sb`) in the else arm of
+`if (room < 4)` loads its own `li v1,5` instead of storing the compare's
+register. The entry of 2026-09-24 concluded the SImode class of 5 had to be
+emptied between the two tests.
+
+**What the image says.** In the same else arm `roomObjsDirty = 1` is
+`sh s0` - the register of the `kind == 1` test. So the cse path from both
+compares to that arm is intact, nothing was invalidated, and no block boundary
+vanished. Only the 5 escapes, and the 1 does not.
+
+**Mechanism** (`cse_insn`, "CONST_INT that is already in a register in a wider
+mode"). The loop starts at the next wider mode and stops at the first mode
+whose class of the constant has a REG: for a QImode store it asks HImode, then
+SImode. The compare's registers are SImode. A 16-bit pseudo that holds the
+constant is found first, and when that pseudo is the store's own source nothing
+changes. Its own set `(set (reg:HI n) (const_int 5))` keeps the constant
+because a constant costs 0 and `(subreg:HI (reg:SI t))` costs 1. `.cse` of the
+match: `(set (reg/v:HI 199) (const_int 5))`, then both stores read
+`(subreg:QI (reg/v:HI 199))`; the natural form had `(subreg:QI (reg:SI 161))`
+(the `andi` result) in both.
+
+**Fix.** The room number goes through a 16-bit value. Landed as a helper for
+the four-store sequence the task has at four places:
+
+```c
+static inline void _shelterB3GarbageIncineratorSetRoom(s16 room)
+{
+    gGameSession->location.loc.room                            = room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
+    gGameSession->eventRoomIndex                               = room - 1;
+    gGameSession->roomObjsDirty                                = 1;
+}
+```
+
+and the test is the plain `(id & 0x7FFF) != 5`. `room - 1` folds to a byte
+constant, so `eventRoomIndex = 1` still takes the `kind` register (no 16-bit 1
+exists yet at that point) and the arms keep their other constants.
+
+**Measured, one build each.**
+
+| form | result |
+|---|---|
+| parameter `s16` or `u16` | match |
+| parameter `s32` | 30 lines: `(set (reg:SI n) 5)` joins the compare's quantity and `canon_reg` rewrites `n` to the `andi` result |
+| parameter `u8` | same 30 lines: the QImode pseudo is in the table, `src_related` (the SImode register) is preferred to it at equal cost |
+| no helper, `{ s16 room = 5; ... }` in the one arm, literals elsewhere | match |
+| `s32 want = 5;` at function scope, `!= want` | the stores are right (cse does not know the value of a register set before the `switch`), but `li s0,5` stays in the prologue: `update_equiv_regs` moves a set-once constant to its single use only when that use is an `INSN`, and a compare's use is a `JUMP_INSN` |
+| `u8 want = 5;` at function scope | same: combine folds the widening into the branch (`nonzero_bits` of a set-once register), so the use is the jump again |
+
+**What is fitted.** The 16-bit width is measured (both other widths fail). That
+the original had a helper is not: a 16-bit local in the one arm gives the same
+bytes, and the image cannot tell them apart.
+
+**Use.**
+- A narrow store that reloads a constant although a compare on the same path
+  holds it in a register: before looking for a lost equivalence, check whether
+  *another* constant on that path does take a compare's register. If one does,
+  the path is whole and the question is the mode of the value being stored,
+  not the control flow.
+- The rule in one line: a byte store takes the narrowest wider register that
+  holds its constant. `u8`/literal and `s32` sources end at the SImode compare
+  register; a 16-bit source ends at itself.
+- A halfword store has no mode between itself and SImode, so this does not
+  rescue an `sh` of a compared constant.
+
