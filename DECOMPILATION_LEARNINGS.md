@@ -12645,7 +12645,7 @@ return ret;            /* move v1,zero; move v0,v1 — mismatch */
 
 Bare early `return 1;` / `return 0;` can also fail: the compiler may sink the
 `return 1` path after the work block instead of filling the branch delay slot.
-`CdAudio_PrepareNextEntry` is the pure example.
+`_cdAudioFadeOutTableTrack` is the pure example.
 
 ## Ternary keeps a second `return 1` from merging with an early exit
 

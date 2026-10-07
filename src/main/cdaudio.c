@@ -55,6 +55,12 @@ enum { CD_AUDIO_SYNC_POLL = 1 };
 /// CD-audio fade duration in main-loop audio-driver updates.
 enum { CD_AUDIO_FADE_OUT_UPDATES = 32 };
 
+/// SPU voice range reserved for the CD stream and polled before opening a track.
+enum {
+    CD_AUDIO_RESERVED_VOICE_FIRST = 22,
+    CD_AUDIO_RESERVED_VOICE_COUNT = 2,
+};
+
 /// Serialized lead skipped before the first sector's wave samples.
 ///
 /// Only the sector count, sample length and destination selector are interpreted.
@@ -284,7 +290,7 @@ static s32 _cdAudioLoadWavesDriver(void);
 
 static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult);
 
-static u8 CdAudio_GetState(void);
+static u8 _cdAudioGetDriver(void);
 
 static s32 CdAudio_Reset(s32 arg0);
 
@@ -294,7 +300,7 @@ static s32 CdAudio_SeekRelative(s32 arg0);
 
 static s32 CdAudio_RequestStopA(void);
 
-static s32 CdAudio_PrepareNextEntry(void);
+static s32 _cdAudioFadeOutTableTrack(void);
 
 static s32 _cdAudioResetTrack(s32 baseSector);
 
@@ -302,7 +308,7 @@ static s32 _cdAudioOpenTrackIfPresent(s32 startSector);
 
 static void CdAudio_SetLocBase(s32 arg0);
 
-static s32 CdAudio_LoadSectorEntry(s32 arg0);
+static s32 _cdAudioSelectHeaderTrack(s32 trackIndex);
 
 static s32 _cdAudioOpenTrackAtSector(s32 startSector);
 
@@ -412,17 +418,14 @@ s32 cdAudioCancel(void)
     return CD_AUDIO_CANCEL_FADE_STARTED;
 }
 
-/// Queues key-off for the reserved streaming voices and returns their cumulative key status.
+/// Queues key-off for the reserved streaming voices and returns their sampled status sum.
 ///
-/// Polls the last sampled statuses of voices 22 and 23; a zero sum means both
-/// are silent. The signed-byte sum retains each nonzero status while key-offs
-/// wait for the next SPU flush.
+/// The result is 0..6: zero means both cached statuses are `SPU_OFF`.
+/// Any other status, including `SPU_ON_ENV_OFF`, keeps opening waiting for
+/// another audio tick. Key-offs take effect at the next SPU flush; this call
+/// neither refreshes hardware status nor releases the voices' allocations.
 static inline s8 _cdAudioSilenceReservedVoices(void)
 {
-    enum {
-        CD_AUDIO_RESERVED_VOICE_FIRST = 22,
-        CD_AUDIO_RESERVED_VOICE_COUNT = 2,
-    };
     s8 voiceIdx;
     s8 keyStatusSum = 0;
 
@@ -512,6 +515,12 @@ static s32 _cdAudioOpenDriver(void)
 }
 
 /// Steps the stream's volume ramp and requests shutdown once it reaches silence.
+///
+/// Borrows writable progress for the active player, once per fade-driver update.
+/// The player's ramp must already target zero. Playback is marked done on every
+/// call; reaching the target sets zero gain before requesting asynchronous
+/// shutdown and selecting the voice-release step. Until then the normalized
+/// ramp scales the track's SPU gain, narrowed to the stream's signed halfword.
 static inline void _cdAudioAdvanceStopFade(volatile CdAudioProgress* progress)
 {
     LinInterp* ramp = (LinInterp*)&_gCdAudioState.ramp;
@@ -737,6 +746,11 @@ s32        (*CdAudio_DriveFns[])(void) = {
 };
 
 /// Installs the header-sector receiver and starts reading with fresh wait and error state.
+///
+/// Requires the drive location and mode to be set, and the player's allocated
+/// header buffer to remain writable until reception ends. Replaces the libcd
+/// ready callback without saving it. The driver polls command acceptance on
+/// later ticks; issuing the read here does not establish that a sector arrived.
 static inline void _cdAudioStartHeaderSectorRead(void)
 {
     CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_WAIT_READ;
@@ -860,6 +874,10 @@ error:
 }
 
 /// Requests double-speed 2340-byte sectors, including their location header, and starts the mode wait.
+///
+/// Used both on entry to a wave upload and on a retry. The mode byte is borrowed
+/// by libcd only during this call. Command acceptance and the settling delay are
+/// handled on subsequent driver ticks; this does not start a sector read.
 static inline void _cdAudioSetWaveReadMode(void)
 {
     u8 driveMode;
@@ -1097,34 +1115,41 @@ static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult
     CdAudio_Tbl.waveLoadNextSector += 1;
 }
 
-void CdAudio_Init(void)
+/// Repeats a clear of one word without advancing to the rest of the control block.
+///
+/// `firstWord` must be word-aligned writable storage. At least one store occurs,
+/// even for a zero repetition count; the pointer is borrowed only for the call.
+static inline void _cdAudioRepeatFirstWordClear(s32* firstWord, u32 repetitions)
 {
-    u32  i;
-    s32* p;
+    u32 stores = 0;
 
-    p = (s32*)&CdAudio_Phase;
-    i = 0;
     do {
-        i++;
-        *p = 0;
-    } while (i < 2U);
+        stores++;
+        *firstWord = 0;
+    } while (stores < repetitions);
+}
 
-    p = (s32*)&_gCdAudioState;
-    i = 0;
-    do {
-        i++;
-        *p = 0;
-    } while (i < sizeof(_gCdAudioState) / sizeof(*p));
+void cdAudioInit(void)
+{
+    enum { CD_AUDIO_DEFAULT_STREAM_SPU_BASE_BYTES = 0x51010 };
+
+    // Retain the repeated first-word stores; these loops never clear whole blocks.
+    _cdAudioRepeatFirstWordClear((s32*)&CdAudio_Phase, 2U);
+    _cdAudioRepeatFirstWordClear((s32*)&_gCdAudioState, sizeof(_gCdAudioState) / sizeof(s32));
 
     D_8008277C                      = 0;
-    CdAudio_SectorBuffer            = 0;
-    _gCdAudioState.playback.spuBase = 0x51010;
-    spuSetVoiceRange(SPU_VOICE_RANGE_CD_STREAM, 22, 2);
+    CdAudio_SectorBuffer            = NULL;
+    _gCdAudioState.playback.spuBase = CD_AUDIO_DEFAULT_STREAM_SPU_BASE_BYTES;
+    spuSetVoiceRange(SPU_VOICE_RANGE_CD_STREAM, CD_AUDIO_RESERVED_VOICE_FIRST, CD_AUDIO_RESERVED_VOICE_COUNT);
     cdStreamReset();
     sndOutputSetStereo(SOUND_OUTPUT_STEREO);
 }
 
-static u8 CdAudio_GetState(void)
+/// Returns the player's current driver dispatch code; retained without callers.
+///
+/// Returns the stored byte unchanged, normally a `CD_AUDIO_DRIVER_*` value.
+/// This does not poll the stream or report completion of any operation.
+static u8 _cdAudioGetDriver(void)
 {
     return _gCdAudioState.playback.driver;
 }
@@ -1179,7 +1204,7 @@ static s32 CdAudio_SeekRelative(s32 arg0)
 
     temp_s0 = arg0 & 0xFF;
     if (temp_s0 != 0) {
-        _cdAudioOpenTrackAtSector(_gCdAudioState.playback.baseSector + CdAudio_LoadSectorEntry((arg0 - 1) & 0xFF));
+        _cdAudioOpenTrackAtSector(_gCdAudioState.playback.baseSector + _cdAudioSelectHeaderTrack((arg0 - 1) & 0xFF));
     }
     return temp_s0;
 }
@@ -1189,23 +1214,40 @@ static s32 CdAudio_RequestStopA(void)
     return _cdAudioRequestPlay();
 }
 
-static s32 CdAudio_PrepareNextEntry(void)
+/// Selects a table-derived header track's gain and starts a fixed-duration fade-out.
+///
+/// Returns -1 before opening completes, 1 when any stop step is already selected,
+/// or 0 after requesting the fade. The selected sector offset is discarded:
+/// this changes the active stream's gain rather than opening another track.
+/// The table must contain the indexed entry and its successor, and the header
+/// and its slot table must remain readable. This retained routine has no caller;
+/// nothing sets its table pointer, and the table's meaning is unproven.
+static s32 _cdAudioFadeOutTableTrack(void)
 {
-    _CdAudioTableEntry* entry;
-    s32                 ret;
+    enum {
+        CD_AUDIO_TABLE_FADE_NOT_OPEN     = -1,
+        CD_AUDIO_TABLE_FADE_STARTED      = 0,
+        CD_AUDIO_TABLE_FADE_STOP_PENDING = 1,
+        CD_AUDIO_TABLE_TRACK_INDEX_MASK  = 0xFF,
+    };
+    const _CdAudioTableEntry* tableEntry;
+    s32                       trackIndex;
+    s32                       result;
 
     if (CdAudio_Phase.openStep != CD_AUDIO_OPEN_STEP_DONE) {
-        return -1;
+        return CD_AUDIO_TABLE_FADE_NOT_OPEN;
     }
     if (CdAudio_Phase.stopStep != CD_AUDIO_STOP_STEP_NONE) {
-        ret = 1;
+        result = CD_AUDIO_TABLE_FADE_STOP_PENDING;
     } else {
-        entry = CdAudio_TblEntries + CdAudio_Tbl.field_2;
-        CdAudio_LoadSectorEntry((entry[1].field_3 - entry->field_3 - 1) & 0xFF);
+        // The byte difference wraps to a track index; only the selected metadata is used.
+        tableEntry = CdAudio_TblEntries + CdAudio_Tbl.field_2;
+        trackIndex = (tableEntry[1].field_3 - tableEntry->field_3 - 1) & CD_AUDIO_TABLE_TRACK_INDEX_MASK;
+        _cdAudioSelectHeaderTrack(trackIndex);
         _cdAudioStartFadeOut(CD_AUDIO_FADE_OUT_UPDATES);
-        ret = 0;
+        result = CD_AUDIO_TABLE_FADE_STARTED;
     }
-    return ret;
+    return result;
 }
 
 s32 cdAudioOpenTrack(s32 startSector, s32 volumeIndex)
@@ -1306,17 +1348,34 @@ void cdStreamAllocVoices(s8* leftVoiceIdx, s8* rightVoiceIdx)
     spuDisableVoiceReverb(*rightVoiceIdx);
 }
 
-static s32 CdAudio_LoadSectorEntry(s32 arg0)
+/// Loads a header track's gain, raw flag and slot value, returning its relative sector offset.
+///
+/// Only trackIndex's low byte is used, added to the player's entry base. That
+/// effective index must select a track before the header's slot table; no track
+/// count or bounds check is available. Both tables borrow the buffered header
+/// and must remain readable. The returned 0..65535 offset is in disc sectors
+/// relative to the header's base sector. The flag and slot value are stored
+/// only; their meanings are unproven. No live path reads a header in this build.
+static s32 _cdAudioSelectHeaderTrack(s32 trackIndex)
 {
-    u32                 temp_v0;
-    _CdAudioHeaderSlot* slots;
+    enum { CD_AUDIO_HEADER_TRACK_INDEX_MASK = 0xFF };
+    union {
+        u32 word;
+        struct {
+            u32 sectorOffset : 16; // Disc sectors relative to the header's base sector
+            u32 slotIndex    : 8;  // Index into the header's four-byte slot table
+            u32 volumeLevel  : 7;  // Initial gain level, 0..127
+            u32 trackFlag    : 1;  // Stored flag; meaning unproven
+        } bits;
+    } entry;
+    const _CdAudioHeaderSlot* slots;
 
-    temp_v0                        = CdAudio_SectorEntries[D_80082754 + (arg0 & 0xFF)];
-    _gCdAudioState.playback.volume = (temp_v0 >> 17) & 0x3F80;
-    CdAudio_Tbl.trackFlag          = temp_v0 >> 31;
+    entry.word                     = CdAudio_SectorEntries[D_80082754 + (trackIndex & CD_AUDIO_HEADER_TRACK_INDEX_MASK)];
+    _gCdAudioState.playback.volume = entry.bits.volumeLevel << CD_AUDIO_VOLUME_LEVEL_SHIFT;
+    CdAudio_Tbl.trackFlag          = entry.bits.trackFlag;
     slots                          = CdAudio_Tbl.slotTable;
-    CdAudio_Tbl.trackSlotValue     = slots[(temp_v0 >> 16) & 0xFF].value;
-    return temp_v0 & 0xFFFF;
+    CdAudio_Tbl.trackSlotValue     = slots[entry.bits.slotIndex].value;
+    return entry.bits.sectorOffset;
 }
 
 /// Selects the opening driver for an absolute sector when playback is inactive.

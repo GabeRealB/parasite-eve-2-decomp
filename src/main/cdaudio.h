@@ -29,7 +29,15 @@ enum {
 /// `CdAudio_Phase.stopStep` for `CD_AUDIO_STOP_STEP_DONE` before reusing the stream.
 s32 cdAudioCancel(void);
 
-void CdAudio_Init(void);
+/// Initializes the CD-audio control word, streaming voice range and stereo output.
+///
+/// Clears only the first four progress steps and the player's driver, start
+/// report and volume; the repeated clear stores never advance past those words.
+/// Selects the default stream ring at SPU byte address 0x51010 and voices 22..23,
+/// then resets the stream's software state. Use before reads or playback: this
+/// does not stop hardware, retire callbacks or free voices. Drops the header
+/// buffer pointer without freeing the allocation or clearing its table aliases.
+void cdAudioInit(void);
 
 void CdAudio_Tick(void);
 

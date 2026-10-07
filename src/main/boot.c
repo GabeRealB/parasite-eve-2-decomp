@@ -289,7 +289,7 @@ void Boot_WaitCdAudioReady(void)
 
 void Boot_InitCdAudio(void)
 {
-    CdAudio_Init();
+    cdAudioInit();
 }
 
 void gfxCaptureAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex, s32 auxHeapOffsetBytes)
@@ -337,7 +337,7 @@ void Boot_InitCd(void)
     CdInit();
     param[0] = CdlModeSpeed;
     CdControlB(CdlSetmode, param, NULL);
-    CdAudio_Init();
+    cdAudioInit();
     cdCmdResetState();
 }
 
