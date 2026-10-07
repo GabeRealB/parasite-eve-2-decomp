@@ -2,16 +2,21 @@
 
 /* Part of the Glutton library; see glutton.h. */
 
-/// Ascent state that precedes the descent above: lift the model by 0x1F4 plus
-/// `speedJitter` a step until it passes -0x4E20, then clamp it there, move it
-/// over `work->aim.landing`, restart `stateTicks`, reroll `speedJitter` to
-/// 0..0x1F for the drop, enable pair tests on `attackBody` and step the task
-/// on. Either way `bodyCoord` is left tracking the model. Bails to
-/// `enemyDestroy` when the overlay is shutting down.
-void gluttonRainRise(Enemy* enemy, Task* task)
+/// Raises a rain blob out of view, then positions it over its landing point.
+///
+/// Moves its task coordinate upward by 500 plus `speedJitter` world units per
+/// tick. Crossing y = -20000 clamps there, selects the landing x/z, clears the
+/// state timer, rerolls drop jitter to 0..31 and enables the attack body before
+/// advancing to descent. The body's independent coordinate follows the blob.
+/// Requires a live coordinate body and initialized `GluttonProjectileWork`;
+/// encounter shutdown unlinks the attack body and destroys the enemy.
+static void _gluttonRainRise(Enemy* enemy, Task* task)
 {
+    enum { GLUTTON_RAIN_CLIMB_SPEED      = 500,
+           GLUTTON_RAIN_TOP_Y            = -20000,
+           GLUTTON_RAIN_DROP_JITTER_MASK = 31 };
     GluttonProjectileWork* work;
-    s32                    y;
+    s32                    nextY;
 
     work = task->work;
     if (gGluttonEnded == 1) {
@@ -20,23 +25,24 @@ void gluttonRainRise(Enemy* enemy, Task* task)
         return;
     }
 
-    y                                   = task->extra.tmd->coords->coord.t[1] - 0x1F4;
-    task->extra.tmd->coords->coord.t[1] = y - work->speedJitter;
-    if (task->extra.tmd->coords->coord.t[1] < -0x4E20) {
+    nextY                                    = task->extra.coordBody->coord->coord.t[1] - GLUTTON_RAIN_CLIMB_SPEED;
+    task->extra.coordBody->coord->coord.t[1] = nextY - work->speedJitter;
+    // Start collision tests only after moving over the chosen floor point.
+    if (task->extra.coordBody->coord->coord.t[1] < GLUTTON_RAIN_TOP_Y) {
         task->state++;
-        task->extra.tmd->coords->coord.t[0] = work->aim.landing.vx;
-        task->extra.tmd->coords->coord.t[2] = work->aim.landing.vz;
-        gRandomLcgState                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        task->extra.tmd->coords->coord.t[1] = -0x4E20;
-        work->stateTicks                    = 0;
-        work->speedJitter                   = (gRandomLcgState >> 16) & 0x1F;
-        work->attackBody.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        task->extra.coordBody->coord->coord.t[0] = work->aim.landing.vx;
+        task->extra.coordBody->coord->coord.t[2] = work->aim.landing.vz;
+        gRandomLcgState                          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        task->extra.coordBody->coord->coord.t[1] = GLUTTON_RAIN_TOP_Y;
+        work->stateTicks                         = 0;
+        work->speedJitter                        = (gRandomLcgState >> 16) & GLUTTON_RAIN_DROP_JITTER_MASK;
+        work->attackBody.flags                  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->bodyCoord.node.coord.t[0]       = task->extra.tmd->coords->coord.t[0];
-    work->bodyCoord.node.coord.t[1]       = task->extra.tmd->coords->coord.t[1];
-    work->bodyCoord.node.coord.t[2]       = task->extra.tmd->coords->coord.t[2];
-    work->bodyCoord.node.composeStamp     = GRAPHICS_COORD_DIRTY;
+    task->extra.coordBody->coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->bodyCoord.node.coord.t[0]            = task->extra.coordBody->coord->coord.t[0];
+    work->bodyCoord.node.coord.t[1]            = task->extra.coordBody->coord->coord.t[1];
+    work->bodyCoord.node.coord.t[2]            = task->extra.coordBody->coord->coord.t[2];
+    work->bodyCoord.node.composeStamp          = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&work->bodyCoord.node);
 }

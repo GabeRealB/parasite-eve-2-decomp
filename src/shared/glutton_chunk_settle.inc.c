@@ -1,20 +1,19 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Settling state that follows the bounce: the step counter drives the whole
-/// thing. When the dispatcher flags a state change the horizontal velocity is
-/// cut to a ninth, both light modes are reset and the two display nodes drop
-/// the draw flags the descent raised. Past x 0x4B65 in room 0x0427 the x
-/// velocity is killed outright; for the first eight steps what is left of it
-/// moves the model and is halved again each step. Steps 1, 2, 4, 8 and 20 puff
-/// a `0x600A5` effect out of the model's coordinate, and 4 and 8 also switch
-/// the light mode. After 0x51 steps both nodes are unlinked and the task steps
-/// on; until then the two collision-record tables are wiped each step. The
-/// model's own `workm` translation is handed to `worldCoordUpdateActorColor`.
-void gluttonChunkSettle(Enemy* enemy, Task* task)
+/// Slides and darkens a landed debris chunk before advancing to teardown.
+///
+/// Entry disables both collision tests and reduces travel to one ninth. Ticks
+/// 1 through 7 move it and halve that travel; the dumping-hole arena's x limit
+/// stops x. Burn effects appear on ticks 1, 2, 4, 8 and 20, with black lighting
+/// from tick 4. Tick 81 unlinks both bodies and advances to teardown. Contacts
+/// are cleared only before that tick. Shutdown destroys the enemy immediately.
+/// Requires the live chunk's TMD body and initialized `GluttonProjectileWork`.
+static void _gluttonChunkSettle(Enemy* enemy, Task* task)
 {
+    enum { GLUTTON_CHUNK_SETTLE_TICKS = 81 };
     GluttonProjectileWork* work = task->work;
-    VECTOR                 pos;
-    s16                    step;
+    VECTOR                 worldPosition;
+    s16                    settleTickIndex;
 
     if (gGluttonEnded == 1) {
         worldCollisionUnlinkBody(&work->attackBody);
@@ -36,8 +35,8 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
 
     work->stateTicks++;
 
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 39, 0, 0) &&
-        task->extra.tmd->coords->coord.t[0] >= 0x4B65) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 0, 0) &&
+        task->extra.tmd->coords->coord.t[0] >= GLUTTON_CHUNK_DUMPING_HOLE_STOP_X) {
         work->aim.travel.vx = 0;
     }
 
@@ -49,8 +48,8 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 
-    step = work->stateTicks - 1;
-    switch (step) {
+    settleTickIndex = work->stateTicks - 1;
+    switch (settleTickIndex) {
         case 3:
         case 7:
             effectSpawn(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 1, NULL);
@@ -63,19 +62,19 @@ void gluttonChunkSettle(Enemy* enemy, Task* task)
             break;
     }
 
-    if (work->stateTicks >= 0x51) {
+    if (work->stateTicks >= GLUTTON_CHUNK_SETTLE_TICKS) {
         worldCollisionUnlinkBody(&work->attackBody);
         worldCollisionUnlinkBody(&work->gridBody);
         task->state++;
     }
 
-    if (work->stateTicks < 0x51) {
+    if (work->stateTicks < GLUTTON_CHUNK_SETTLE_TICKS) {
         worldCollisionClearContacts(work->gridContacts);
         worldCollisionClearContacts(work->attackContacts);
     }
 
-    pos.vx = task->extra.tmd->coords->workm.t[0];
-    pos.vy = task->extra.tmd->coords->workm.t[1];
-    pos.vz = task->extra.tmd->coords->workm.t[2];
-    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &worldPosition, 0, 0);
 }

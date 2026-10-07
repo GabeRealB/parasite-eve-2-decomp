@@ -57,51 +57,63 @@ static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalS
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
-/// Horizontal gap from `coord` to the player's coordinate matrix `gPlayerStatus.coordMtx`, as an
-/// `SVECTOR` the caller supplies.
-static __inline__ void gluttonGapToCamera(GfxCoord* coord, SVECTOR* out)
+/// Writes the three-axis offset from a coordinate to the live player.
+///
+/// Both translations must use the same parent coordinate frame. Components
+/// use world units and narrow to signed halfwords; `playerOffset->pad` is
+/// untouched. The coordinate and player matrix are borrowed only for the call.
+static __inline__ void _gluttonGetPlayerOffset(const GfxCoord* sourceCoord, SVECTOR* playerOffset)
 {
-    out->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    out->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    out->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    playerOffset->vx = gPlayerStatus.coordMtx->t[0] - sourceCoord->coord.t[0];
+    playerOffset->vy = gPlayerStatus.coordMtx->t[1] - sourceCoord->coord.t[1];
+    playerOffset->vz = gPlayerStatus.coordMtx->t[2] - sourceCoord->coord.t[2];
 }
 
-/// The first of the leading `count` contact records whose kind is 0x20000:
-/// copies its point to `pos` and returns its key, or returns 0 when none is
-/// found before an empty record or the end.
-static __inline__ s32 _gluttonFindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+/// Returns the first attack key in a contact-table prefix and copies its point.
+///
+/// `contactCount` counts elements, from 0 to 32767, in a readable table.
+/// A zero key ends the scan even if later entries are occupied. A miss returns
+/// zero and leaves the output untouched; a hit copies the three world-position
+/// components, leaving `pad` untouched. Neither pointer is retained.
+static __inline__ s32 _gluttonFindHit(SVECTOR* contactPointOut, const WorldCollisionContact* contacts, s16 contactCount)
 {
-    s16 i;
+    s16 contactIndex;
 
-    for (i = 0; i < count; i++) {
-        if (records[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            contactPointOut->vx = contacts[contactIndex].point.vx;
+            contactPointOut->vy = contacts[contactIndex].point.vy;
+            contactPointOut->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
 }
 
-/// Scans a hit group's contacts for an attack and records its key and point
-/// in `sc`. Returns the key, or 0 when nothing landed.
-static __inline__ s32 _gluttonScanGroup(GluttonHitScratch* sc, GluttonHitGroup* group)
+/// Records the first attack in a hit group's five contacts and returns its key.
+///
+/// A miss clears `scratch->attackKey` to zero and leaves its contact point
+/// unchanged. Requires a writable scratch block and a readable group; neither
+/// pointer is retained.
+static __inline__ s32 _gluttonScanGroup(GluttonHitScratch* scratch, const GluttonHitGroup* group)
 {
-    s32 id;
+    s32 attackKey;
 
-    id            = _gluttonFindHit(&sc->contactPoint, group->contacts, ARRAY_SIZE(group->contacts));
-    sc->attackKey = id;
-    return id;
+    attackKey          = _gluttonFindHit(&scratch->contactPoint, group->contacts, ARRAY_SIZE(group->contacts));
+    scratch->attackKey = attackKey;
+    return attackKey;
 }
 
-/// Spawns the impact effect for the attack recorded in `sc` on the group's
-/// part. Returns whether the attack key is still set afterwards.
-static __inline__ s32 _gluttonHitLanded(GluttonHitScratch* sc, GluttonHitGroup* group)
+/// Spawns the recorded attack's impact effect on the hit group's coordinate.
+///
+/// Requires a nonzero player attack key, a live group coordinate and scratch
+/// capacity for the nested effect call. Returns whether the scratch key is
+/// nonzero after that call; it does not search for another contact.
+static __inline__ s32 _gluttonSpawnGroupHitEffect(GluttonHitScratch* scratch, const GluttonHitGroup* group)
 {
-    _gluttonHitEffect(group->body.coord, sc->attackKey);
-    return sc->attackKey != 0;
+    _gluttonHitEffect(group->body.coord, scratch->attackKey);
+    return scratch->attackKey != 0;
 }

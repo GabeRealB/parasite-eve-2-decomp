@@ -1,20 +1,25 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Exit callback of the boss task: when its work block exists, send each of the
-/// seven escorts to state 2, unlink every collision group but the third, and
-/// detach the enemy's contact records, then tear the enemy down.
-void gluttonExit(Task* arg0)
+/// Releases the host enemy after sending its surviving escorts to teardown.
+///
+/// When host work exists, requests state 2 on every surviving escort, unlinks
+/// hit bodies 0, 1 and 3..8, and detaches the enemy contact table. Group 2 is
+/// not unlinked here; its teardown ownership is unproven.
+/// Requires the task's live enemy in `spawnArg2.pointer`. `enemyDestroy` releases
+/// that enemy and starts task teardown; neither may be accessed afterwards.
+static void _gluttonExit(Task* task)
 {
+    enum { GLUTTON_ESCORT_TEARDOWN_STATE = 2 };
     GluttonWork* work;
     Enemy*       enemy;
-    s16          i;
+    s16          escortIndex;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work != NULL) {
-        for (i = 0; i < ARRAY_SIZE(work->escorts); i++) {
-            if (work->escorts[i] != NULL) {
-                work->escorts[i]->task->state = 2;
+        for (escortIndex = 0; escortIndex < ARRAY_SIZE(work->escorts); escortIndex++) {
+            if (work->escorts[escortIndex] != NULL) {
+                work->escorts[escortIndex]->task->state = GLUTTON_ESCORT_TEARDOWN_STATE;
             }
         }
         worldCollisionUnlinkBody(&work->hits[0].body);
@@ -25,7 +30,7 @@ void gluttonExit(Task* arg0)
         worldCollisionUnlinkBody(&work->hits[6].body);
         worldCollisionUnlinkBody(&work->hits[7].body);
         worldCollisionUnlinkBody(&work->hits[8].body);
-        enemy->recs = 0;
+        enemy->recs = NULL;
     }
-    enemyDestroy(enemy, arg0);
+    enemyDestroy(enemy, task);
 }

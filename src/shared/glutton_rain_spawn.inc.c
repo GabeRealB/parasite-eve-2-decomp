@@ -50,7 +50,7 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->coords->parent = &gGfxViewCoord;
     work->fallStep                  = 0;
 
-    gluttonGapToCamera(task->extra.tmd->coords, &vec);
+    _gluttonGetPlayerOffset(task->extra.tmd->coords, &vec);
 
     if ((u16)task->spawnArg1.value == 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -72,7 +72,7 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
         }
     }
 
-    gluttonGapToCamera(parent->extra.tmd->coords, &vec);
+    _gluttonGetPlayerOffset(parent->extra.tmd->coords, &vec);
     dist  = vec.vx * vec.vx;
     dist += vec.vy * vec.vy;
     dist += vec.vz * vec.vz;

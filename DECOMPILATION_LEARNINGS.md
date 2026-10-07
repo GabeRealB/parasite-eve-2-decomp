@@ -3539,7 +3539,7 @@ Inputs: `base_1.i`
 
 ### The same weighting breaks a *one-reference* tie between two long-lived pointers
 
-`gluttonHitGroups1To2` (`actor_403200`) stalled at 99.057% with
+`_gluttonHitGroups1To2` (`actor_403200`) stalled at 99.057% with
 `Structure: match` and every one of its 365 penalised lines the same `$s1` <->
 `$s2` swap: `sc` (the scratch frame) and `work` (the work block). Both are
 298/299 insns long and cross 13 calls, so the only thing separating them is
@@ -73383,7 +73383,7 @@ slti v0,a0,3 / beqz  -> [3]
 li   v0,1 / beq a0,v0 -> case1
 ```
 
-`gluttonShakeTick` instead tests 1 first and then an *ordered* bound:
+`_gluttonShakeTick` instead tests 1 first and then an *ordered* bound:
 
 ```
 beq  a0,a1 -> case1        # a1 == 1
@@ -73420,7 +73420,7 @@ that a switch compares in the promoted index type, so it yields `slti`; the same
 `work->shakeFramesRemaining--` followed by `work->shakeFramesRemaining & K` in several later blocks
 compiles to *no* load: cse1 records the store's value for that MEM, follows the
 dispatch branch into each case (`-fcse-follow-jumps`) and substitutes, so the
-`andi` reads the decrement's register. `gluttonShakeTick` reloads
+`andi` reads the decrement's register. `_gluttonShakeTick` reloads
 `lbu v0,0xEAE($s0)` at the head of all three cases, and the only difference is
 how the byte is read:
 
@@ -74031,8 +74031,8 @@ Two details of that shape matter beyond the loop form:
 - Statement order in the preamble is what sched1 ties on. `recs` assigned
   before `sc` reorders the whole prologue.
 
-`gluttonHitGroup0` is the worked example (85.7% -> 92.9% -> 97.3% ->
-99.2% -> 100%); the sibling scan in `gluttonHitGroups1To2` has the same
+`_gluttonHitGroup0` is the worked example (85.7% -> 92.9% -> 97.3% ->
+99.2% -> 100%); the sibling scan in `_gluttonHitGroups1To2` has the same
 shape. See also "Mid-loop unlink: `goto` resists loop rotation", which is the
 same `goto`-instead-of-loop move for a different loop.c/stmt.c transformation -
 `expand_end_loop` rolling the leading test to the bottom. Both apply here: the
@@ -74040,7 +74040,7 @@ angle-wrapping `while` loops in the same function are top-tested with a `j`
 back, which is the unrolled form, so they are `goto` loops too.
 
 **Read the target before picking the form: the sibling wanted the opposite
-one.** `gluttonHitGroups1To2` runs that identical scan twice - group 1,
+one.** `_gluttonHitGroups1To2` runs that identical scan twice - group 1,
 then group 2 if group 1 caught nothing - and there both match arms *are* parked
 out of line, so both scans are ordinary `for (i = 0; i < 5; i++)` loops with a
 `goto` out of the match arm. The `goto` form scored 92.3% with the arms inline;
@@ -83255,7 +83255,7 @@ on whether the function that references it landed in the same subsegment.
 `actor_403200` had ten jump tables and two pointer runs in one leading rodata
 subsegment, all emitted as standalone `<sym>.s` files holding only
 `.section .rodata` + `dlabel` (the carrier functions live in *other* units).
-`gluttonShakeTick`'s table is GCC-generated and sits at `0x11C`, so
+`_gluttonShakeTick`'s table is GCC-generated and sits at `0x11C`, so
 the block had to be cut there:
 
 ```toml
@@ -105989,7 +105989,7 @@ one fresh value, not the loop variable: writing the wrap as
 `sc->angle = WrapAngle(angle); func(value, sc->angle, sc->id);` gave 100%. The
 inline's parameter copy is also what explains the target's `move a1,s0` before
 the `bgez s0` sign test. The goto-loop hit scan in the same function is the
-`gluttonHitGroup0` shape ("loop.c relocates a loop block that ends in
+`_gluttonHitGroup0` shape ("loop.c relocates a loop block that ends in
 a jump out"); `(s8)` on a `s32 pan` local moves the extension before the second
 call, matching `sll s1,v0,24; sra s1,s1,24`.
 
@@ -112162,7 +112162,7 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_403200_8013E5A8-vacuum`.
 
-## A run of `p->f = v` stores through separate loaded pointers shares one register unless the addresses are evaluated first (gluttonHitGroup0, 2026-09-16)
+## A run of `p->f = v` stores through separate loaded pointers shares one register unless the addresses are evaluated first (_gluttonHitGroup0, 2026-09-16)
 
 The group-0 hit handler mirrors the host's remaining HP onto three escorts:
 
@@ -112209,7 +112209,7 @@ the source: split the assignment. The `.lreg` dump tells you which it was -
 `REG_DEAD (reg:SI N)` on the store's base plus a `REG_DEP_OUTPUT` chain between
 consecutive stores is one-register reuse.
 
-Scratch `nonmatchings/gluttonHitGroup0-vacuum`,
+Scratch `nonmatchings/_gluttonHitGroup0-vacuum`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 ## Two `&local` call arguments: cse merges the frame address into one call-crossing pseudo (gluttonEscortState, 2026-09-16)
@@ -150053,9 +150053,9 @@ attempts; left as it was.
 
 ### Goto removal, batch 21: a call site shared by two scans, constant locals behind a switch ladder (2026-10-06)
 
-- **Two scans that `goto` one shared call (`coord = hits[6].coord; goto hit;`
-  ... `coord = hits[7].coord; hit: effect(coord, id);`)** in
-  `gluttonHitGroups6To8` did not convert, and the reason is layout, not the
+- **Two scans that `goto` one shared call (`hitCoord = hits[6].body.coord; goto hit;`
+  ... `hitCoord = hits[7].body.coord; hit: effect(hitCoord, attackKey);`)** in
+  `_gluttonHitGroups6To8` did not convert, and the reason is layout, not the
   call. Each scan is an inlined `for` whose match arm leaves the loop, and
   loop.c parks such an arm after the nearest barrier in front of it: the
   image has all three arms behind the first group's `j hit`. Three forms were
@@ -150071,16 +150071,16 @@ attempts; left as it was.
   - the same with `if (key != 0) return 1; return 0;` is folded back to
     `sltu` and changes nothing.
   A value-returning inline folds into its caller's branch only when every
-  path computes the value the same way (`_gluttonHitLanded`), or the miss
+  path computes the value the same way (`_gluttonSpawnGroupHitEffect`), or the miss
   path skips the call altogether (`scan && landed`). What is left is the
   `goto hit` and the `goto body` after it; the other eleven went.
 - **The same scan through one more inline level changes registers in the
-  second copy only.** With `id = _gluttonScanGroup(sc, &work->hits[7])`
+  second copy only.** With `attackKey = _gluttonScanGroup(scratch, &work->hits[7])`
   (which calls `_gluttonFindHit`, stores the key and returns it) group 7's
   scan put the record pointer in `$v1` and the point in `$a1` where the image
   has `$a1` / `$a2`; group 6's scan, written the same way, matched. Calling
   `_gluttonFindHit` directly and storing the key in the caller
-  (`id = _gluttonFindHit(...); sc->attackKey = id;`) matches both: the extra
+  (`attackKey = _gluttonFindHit(...); scratch->attackKey = attackKey;`) matches both: the extra
   copy of the result is one more pseudo competing in that block.
 - **`one = 1; if (state == one) goto case1; if (state >= 2) goto ge2; if
   (state == 0) goto case0;`** (`ratIdle`, `ratStagger`; `ratHurt` used
@@ -150674,15 +150674,17 @@ constant).
   exclusive test** (`Gp_ConsumeSlotQty`) is `if (a && b && c) { ... } else if
   (d) { ... }`; with the fields named at their uses the `count` and `save`
   alias locals of both arms were not needed.
-- `gluttonHitGroups1To2`: both scans are `_gluttonFindHit` with the key stored
+- `_gluttonHitGroups1To2`: both scans are `_gluttonFindHit` with the key stored
   by the caller (through `_gluttonScanGroup` the second scan trades four
-  registers, as in `gluttonHitGroups6To8`), the shared effect call follows an
-  `if / else` that picks `coord`, and the nothing-landed path releases the
+  registers, as in `_gluttonHitGroups6To8`), the shared effect call follows an
+  `if / else` that picks `hitCoord`, and the nothing-landed path releases the
   scratch block and returns. The `||` of two scan-and-land pairs is 5 insns
   longer. The dumping-hole build still needs its `do { } while (0)` around the
-  angle wrap for the `sc` / `work` ranking, and with `_actorAngleNormalizeYaw` inside
-  it the first `contactYaw` store moves one insn later, so the two wrap
-  `goto`s stay there.
+  angle wrap for the `scratch` / `work` ranking, and with `_actorAngleNormalizeYaw` inside
+  it the first `contactYaw` store moves one insn later. The pre-wrap scratch
+  store and explicit top-tested loops now form `_gluttonRecordContactYaw`,
+  inlined at one level; the two wrap `goto`s are gone, with the outer wrapper
+  retained.
 - Not converted: `func_800CC41C` (`slot = K; goto store;` over a second
   computation of `slot`). The image keeps the result in `slot`'s register at
   the join. An inline with two `return`s puts the result in the return

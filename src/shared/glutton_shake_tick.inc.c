@@ -1,36 +1,35 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Screen-shake driver for the enemy task: `gluttonSetShakeLevel` writes a
-/// level into `shakeLevel`, and a change from the armed level in `armedShakeLevel`
-/// starts a shake of 5, 10 or 22 frames -- any other level is ignored. Each tick
-/// spends one frame and drives `displaySetShakeY` off the frame counter's
-/// low bits, so `GLUTTON_SHAKE_SHORT` alternates 0 / 2, `GLUTTON_SHAKE_MEDIUM`
-/// walks a four-frame 0 / 2 / 3 / 2 pattern and `GLUTTON_SHAKE_LONG` an
-/// eight-frame ramp that peaks at 4. The shake clears
-/// itself once the counter runs out. The dumping-hole build also checks for
-/// a NULL work block before updating the shake.
-void gluttonShakeTick(Task* arg0)
+/// Advances the host's requested vertical screen shake by one frame.
+///
+/// A changed supported level arms 5, 10 or 22 frames; the post-decrement count
+/// selects the short, medium or long pixel-offset pattern. Completion clears
+/// both levels and the display offset on the following tick. An unsupported
+/// changed level returns without arming or clearing the current display offset.
+/// The dumping-hole encounter tolerates NULL work; the incinerator requires
+/// live `GluttonWork`.
+static void _gluttonShakeTick(Task* task)
 {
-    GluttonWork* work = arg0->work;
+    GluttonWork* work = task->work;
     s32          phase;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
 
-    work = arg0->work;
     if (work == NULL) {
         return;
     }
 #endif
 
+    // Only a changed supported request restarts the frame count.
     if (work->shakeLevel != work->armedShakeLevel) {
         switch (work->shakeLevel) {
             case GLUTTON_SHAKE_SHORT:
                 work->shakeFramesRemaining = 5;
                 break;
             case GLUTTON_SHAKE_MEDIUM:
-                work->shakeFramesRemaining = 0xA;
+                work->shakeFramesRemaining = 10;
                 break;
             case GLUTTON_SHAKE_LONG:
-                work->shakeFramesRemaining = 0x16;
+                work->shakeFramesRemaining = 22;
                 break;
             case GLUTTON_SHAKE_NONE:
             default:

@@ -3880,8 +3880,8 @@ static const EnemyTaskFuncTable5 gGluttonGlobStates = {
 static const EnemyTaskFuncTable4 gGluttonChunkStates = {
     {
         gluttonChunkSpawn,
-        gluttonChunkFall,
-        gluttonChunkSettle,
+        _gluttonChunkFall,
+        _gluttonChunkSettle,
         enemyDestroy,
     },
 };
@@ -3891,8 +3891,8 @@ static const EnemyTaskFuncTable4 gGluttonChunkStates = {
 static const EnemyTaskFuncTable5 gGluttonRainStates = {
     {
         gluttonRainSpawn,
-        gluttonRainRise,
-        gluttonRainFall,
+        _gluttonRainRise,
+        _gluttonRainFall,
         gluttonRainSplat,
         enemyDestroy,
     },
@@ -4216,7 +4216,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     }
 
     (sceneAcquireBattleRef)(0);
-    task->exitCallback = gluttonExit;
+    task->exitCallback = _gluttonExit;
 
     enemy->field_4    = &task->extra.tmd->coords->coord;
     enemy->field_48   = 0;
@@ -4499,7 +4499,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 
 #include "../../shared/glutton_hit_groups1to2.inc.c"
 
-/// The hit handler for collision groups 3, 4 and 5 -- `gluttonHitGroups1To2`
+/// The hit handler for collision groups 3, 4 and 5 -- `_gluttonHitGroups1To2`
 /// done three times, the next group only scanned when the previous one landed
 /// nothing and the part it hit reported no attack id back. Unlike groups 1 and 2
 /// this one runs no `damageGetPlayerAttackReaction` switch: the call is made and its kind
@@ -6579,12 +6579,12 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
             if (work->groups1To2Cooldown > 0) {
                 work->groups1To2Cooldown--;
             } else {
-                gluttonHitGroups1To2(task);
+                _gluttonHitGroups1To2(task);
             }
             if (work->group0Cooldown > 0) {
                 work->group0Cooldown--;
             } else {
-                gluttonHitGroup0(task);
+                _gluttonHitGroup0(task);
             }
             if (work->groups3To5Cooldown > 0) {
                 work->groups3To5Cooldown--;
@@ -6594,7 +6594,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
             if (work->groups6To8Cooldown > 0) {
                 work->groups6To8Cooldown--;
             } else {
-                gluttonHitGroups6To8(task);
+                _gluttonHitGroups6To8(task);
             }
         }
     }
@@ -6718,7 +6718,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     worldCollisionClearContacts(work->swipeContacts);
 
     if (work->state != 5) {
-        gluttonShakeTick(task);
+        _gluttonShakeTick(task);
     }
 
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
@@ -6751,7 +6751,7 @@ static inline void _actor444000ResetFloorQuads(void)
 /// until the two are within 0x33 of each other. `wallDrop` is the companion
 /// height the floor-marker helpers take.
 ///
-/// Most states hand that pair to `gluttonBuildWall`, which rebuilds
+/// Most states hand that pair to `_gluttonBuildWall`, which rebuilds
 /// grid quad 6 as a wall in front of the boss. The exception is pattern 1 in state 9: it uses
 /// `func_actor_444000_801371E8` instead, floors the player's own x at 0x2CEC,
 /// and pushes the player back by the boss part's view-space depth less 0x7D0 --
@@ -6851,7 +6851,7 @@ void func_actor_444000_80142F28(Task* arg0)
                             }
                         }
                     } else {
-                        gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
+                        _gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
                     }
 
                     if (work->phase == 0 || (work->phase == 1 && work->state != 9)) {
@@ -6891,7 +6891,7 @@ void func_actor_444000_80142F28(Task* arg0)
 
         state = work->state;
         if (state == 5) {
-            gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
+            _gluttonBuildWall(arg0, work->wallDistance, work->wallDrop, 6);
         }
     }
 

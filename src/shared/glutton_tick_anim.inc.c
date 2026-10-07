@@ -1,6 +1,12 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Restarts all driving slots of the host and escorts 0 and 1.
+/// Restarts the host's driving clip and the matching clips on escorts 0 and 1.
+///
+/// Requires live host work and initialized driving rigs. Applies `animId` and
+/// `animRate` (signed sixteenths of a frame per tick) to host slots 1..7 and
+/// escort slots 0..3, narrowing each rate to s8, then records `appliedAnimId`.
+/// Host slot 0 is untouched;
+/// blend rigs, clip cues and elapsed ticks are managed by the caller.
 static __inline__ void _gluttonRestartDrivingRigs(Task* task)
 {
     GluttonWork* rigWork = task->work;
@@ -20,7 +26,12 @@ static __inline__ void _gluttonRestartDrivingRigs(Task* task)
     rigWork->appliedAnimId = rigWork->animId;
 }
 
-/// Advances all driving slots of the host and escorts 0 and 1.
+/// Advances the host's driving clip and the clips on escorts 0 and 1 once.
+///
+/// Requires live host work and initialized driving rigs. Refreshes `animRate`
+/// (signed sixteenths of a frame per tick) before ticking host slots 1..7 and
+/// escort slots 0..3, narrowing each rate to s8. Host slot 0 and all blend
+/// rigs remain untouched.
 static __inline__ void _gluttonAdvanceDrivingRigs(Task* task)
 {
     GluttonWork* rigWork = task->work;

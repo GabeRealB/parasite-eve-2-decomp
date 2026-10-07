@@ -244,6 +244,9 @@ typedef struct {
 } GluttonSpinnerWork;
 STATIC_ASSERT_SIZEOF(GluttonSpinnerWork, 0xA0);
 
+/// View-coordinate x limit that stops debris travel in the dumping-hole arena.
+enum { GLUTTON_CHUNK_DUMPING_HOLE_STOP_X = 19301 };
+
 /// Parts of the limb the pose driver walks: coordinates 0 to 6 of escort 4's
 /// model, each with a pitch and a target in `GluttonWork`.
 enum { GLUTTON_LIMB_PARTS = 7 };
@@ -264,6 +267,22 @@ enum {
     GLUTTON_SHAKE_SHORT  = 1, // 5 frames alternating 0 and 2 pixels
     GLUTTON_SHAKE_MEDIUM = 2, // 10 frames of a four-frame 0, 2, 3, 2 pattern
     GLUTTON_SHAKE_LONG   = 3, // 22 frames of an eight-frame ramp peaking at 4 pixels
+};
+
+/// Fight states and clip used by the contact handlers in both encounters.
+///
+/// Values index each carrier's own handler table; this is the subset relevant
+/// to damage reactions, rather than the complete state domain.
+enum {
+    GLUTTON_STATE_INHALE       = 3,
+    GLUTTON_STATE_RETRACT_LIMB = 8,
+    GLUTTON_STATE_ADVANCE      = 9,
+    GLUTTON_STATE_SWIPE        = 11,
+    GLUTTON_STATE_DEATH        = 13,
+    GLUTTON_STATE_SUMMON       = 14,
+    GLUTTON_STATE_HEAL         = 15,
+    GLUTTON_STATE_REENTER      = -1, // `prevState`: force the next tick to flag entry
+    GLUTTON_ANIM_SWIPE         = 4,
 };
 
 /// Work block of the Glutton itself, allocated zeroed at this size by its
@@ -386,7 +405,7 @@ typedef struct {
 } GluttonWork;
 STATIC_ASSERT_SIZEOF(GluttonWork, 0xF24);
 
-void        gluttonBuildWall(Task* task, s16 scale, s16 drop, s16 index);
+static void _gluttonBuildWall(Task* task, s16 distance, s16 drop, s16 faceIndex);
 static void _gluttonPoseLimb(Task* task);
 static void _gluttonTurnNeck(Task* task, s16 yawTarget);
 static void _gluttonPitchNeck(Task* task, s16 pitchTarget);
@@ -402,22 +421,22 @@ static void _gluttonGlobFall(Enemy* enemy, Task* task);
 void        gluttonGlobEngulf(Enemy* enemy, Task* task);
 static void _gluttonGlobHold(Enemy* enemy, Task* task);
 void        gluttonChunkSpawn(Enemy* enemy, Task* task);
-void        gluttonChunkFall(Enemy* enemy, Task* task);
-void        gluttonChunkSettle(Enemy* enemy, Task* task);
+static void _gluttonChunkFall(Enemy* enemy, Task* task);
+static void _gluttonChunkSettle(Enemy* enemy, Task* task);
 void        gluttonRainSpawn(Enemy* enemy, Task* task);
-void        gluttonRainRise(Enemy* enemy, Task* task);
-void        gluttonRainFall(Enemy* enemy, Task* task);
+static void _gluttonRainRise(Enemy* enemy, Task* task);
+static void _gluttonRainFall(Enemy* enemy, Task* task);
 void        gluttonRainSplat(Enemy* enemy, Task* task);
 static void _gluttonSpinnerSpawn(Enemy* enemy, Task* task);
 void        gluttonSpinnerChase(Enemy* enemy, Task* task);
-void        gluttonExit(Task* arg0);
+static void _gluttonExit(Task* task);
 void        gluttonPropSetup(Enemy* enemy, Task* task);
 static void _gluttonPropTick(Enemy* enemy, Task* task);
 static void _gluttonSpinnerWait(Enemy* enemy, Task* task);
 
 static inline void _actorRenderRescaleYawHalf(GfxCoord* coord);
 static inline void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalScale, s32 verticalScale);
-static inline void gluttonGapToCamera(GfxCoord* coord, SVECTOR* out);
+static inline void _gluttonGetPlayerOffset(const GfxCoord* sourceCoord, SVECTOR* playerOffset);
 
 void gluttonGlobTask(Task* arg0);
 void gluttonChunkTask(Task* arg0);

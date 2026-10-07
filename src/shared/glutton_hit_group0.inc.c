@@ -1,137 +1,119 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// The group-0 hit handler: takes at most one hit this frame and turns it into
-/// damage.
+/// Applies one group-0 attack contact and the host's damage-over-time tick.
 ///
-/// It carves a 0x30-byte `GluttonHitScratch` off the scratchpad stack and
-/// scans the five `WorldCollisionContact` records of `hits[0]` for the first whose `key`
-/// high halfword is attack kind 2 -- the contact point goes into the block's
-/// `contactPoint` and the key into `attackKey`. A record with `key` 0 ends the scan with no
-/// hit. The scan is `_gluttonScanGroup`.
-///
-/// A hit spawns the impact effect on the part's coordinate, publishes
-/// `damageGetPlayerAttackHitCooldown` of the attack id to all four per-group slots at 0xE8C, and
-/// then takes the damage off the host: the player-relative offset to the part
-/// gives the `playerDistance` `damageComputePlayerAttack` scales `damage` by, quadrupled when
-/// `damageRollCriticalHit` fires. The contact point is re-read relative to the
-/// part's world translation and `ratan2` of the pair against the part's facing
-/// gives the yaw `contactYaw`, wrapped to +/-0x800. The damage is doubled,
-/// credits Life Drain healing through `damageAccumulateLifeDrainHp`, updates
-/// the readout through `worldTargetAddReadoutAmount`, and is taken from the host's HP, which is
-/// mirrored onto the three escorts sharing its pool.
-///
-/// The second arm runs the same tick when `reactionFlags` has damage over time
-/// set, which `damageTickEnemyDamageOverTime` turns into damage of its own; that one only comes off the
-/// host.
-///
-/// `esc3` / `esc0` / `esc1` and the `hp` load are not spare: read as three
-/// separate assignments the loaded pointers all share one register, and the
-/// stores then interleave with their loads (the scheduler cannot hoist a load
-/// past a store through an unknown pointer). Evaluating the three addresses
-/// first is what puts them in `a0` / `a1` / `v1`, and the `hp` load has to sit
-/// between the escort 3 and escort 0 ones to land where the original has it.
-void gluttonHitGroup0(Task* arg0)
+/// Attack damage is scaled by player distance, quadrupled on a critical hit,
+/// then doubled before Life Drain credit, host HP subtraction and the readout.
+/// The dumping-hole encounter arms all four hit cooldowns and mirrors HP onto
+/// escorts 0, 1 and 3. The incinerator arms only group 0 and keeps the neck's
+/// yaw during the swipe clip. Damage over time affects only host HP; only the
+/// dumping-hole encounter also credits its nonzero ticks to Life Drain.
+/// Requires live host work and model coordinates, initialized contacts and
+/// scratch capacity for `GluttonHitScratch` plus nested damage/effect calls.
+/// The dumping-hole instance additionally requires live escorts 0, 1 and 3.
+static void _gluttonHitGroup0(Task* task)
 {
-    GluttonHitScratch* sc;
+    GluttonHitScratch* scratch;
     GluttonWork*       work;
-    Enemy*             enemy;
-    PlayerStatus*      cfg;
-    s32                id;
-    s32                dx2;
-    s32                dy2;
-    s32                dz2;
-    s16                angle;
-    s16                param;
-    u16                hp;
-    Enemy*             esc3;
-    Enemy*             esc0;
-    Enemy*             esc1;
+    Enemy*             host;
+    PlayerStatus*      playerStatus;
+    s32                attackKey;
+    s32                playerDxSquared;
+    s32                playerDySquared;
+    s32                playerDzSquared;
+    s16                contactYaw;
+    s16                hitCooldown;
+    u16                hostHp;
+    Enemy*             escort3;
+    Enemy*             escort0;
+    Enemy*             escort1;
 
-    cfg   = &gPlayerStatus;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
-    id    = _gluttonScanGroup(sc, &work->hits[0]);
+    playerStatus = &gPlayerStatus;
+    host         = task->spawnArg2.pointer;
+    work         = task->work;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
+    attackKey    = _gluttonScanGroup(scratch, &work->hits[0]);
 
-    if (id != 0) {
-        _gluttonHitEffect(work->hits[0].body.coord, id);
+    // Contacts are consumed in group order; only one attack is applied.
+    if (attackKey != 0) {
+        _gluttonHitEffect(work->hits[0].body.coord, attackKey);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        param                    = damageGetPlayerAttackHitCooldown(sc->attackKey);
-        work->groups6To8Cooldown = param;
-        work->groups3To5Cooldown = param;
-        work->group0Cooldown     = param;
-        work->groups1To2Cooldown = param;
+        hitCooldown              = damageGetPlayerAttackHitCooldown(scratch->attackKey);
+        work->groups6To8Cooldown = hitCooldown;
+        work->groups3To5Cooldown = hitCooldown;
+        work->group0Cooldown     = hitCooldown;
+        work->groups1To2Cooldown = hitCooldown;
 #else
-        work->group0Cooldown = damageGetPlayerAttackHitCooldown(sc->attackKey);
+        work->group0Cooldown = damageGetPlayerAttackHitCooldown(scratch->attackKey);
 #endif
-        damageGetPlayerAttackReaction(sc->attackKey);
+        damageGetPlayerAttackReaction(scratch->attackKey);
 
-        sc->toPlayer.vx    = cfg->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-        dx2                = sc->toPlayer.vx * sc->toPlayer.vx;
-        sc->toPlayer.vy    = cfg->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-        dy2                = sc->toPlayer.vy * sc->toPlayer.vy;
-        sc->toPlayer.vz    = cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-        dz2                = sc->toPlayer.vz * sc->toPlayer.vz;
-        sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
-        sc->damage         = damageComputePlayerAttack(sc->attackKey, sc->playerDistance, 0, 0);
-        if (damageRollCriticalHit(enemy, sc->attackKey, 0) != 0) {
-            sc->damage *= 4;
+        scratch->toPlayer.vx    = playerStatus->coordMtx->t[0] - task->extra.tmd->coords->coord.t[0];
+        playerDxSquared         = scratch->toPlayer.vx * scratch->toPlayer.vx;
+        scratch->toPlayer.vy    = playerStatus->coordMtx->t[1] - task->extra.tmd->coords->coord.t[1];
+        playerDySquared         = scratch->toPlayer.vy * scratch->toPlayer.vy;
+        scratch->toPlayer.vz    = playerStatus->coordMtx->t[2] - task->extra.tmd->coords->coord.t[2];
+        playerDzSquared         = scratch->toPlayer.vz * scratch->toPlayer.vz;
+        scratch->playerDistance = SquareRoot0(playerDxSquared + playerDySquared + playerDzSquared);
+        scratch->damage         = damageComputePlayerAttack(scratch->attackKey, scratch->playerDistance, 0, 0);
+        if (damageRollCriticalHit(host, scratch->attackKey, 0) != 0) {
+            scratch->damage *= 4;
         }
-        if (sc->damage != 0) {
-            sc->offset.vy = GLUTTON_GROUP0_HIT_FX_Y;
-            sc->offset.vx = 0;
-            sc->offset.vz = GLUTTON_GROUP0_HIT_FX_Z;
-            effectSpawn(EFFECT_CRITICAL_HIT, &enemy->task->extra.tmd->coords[3], 3, &sc->offset);
+        if (scratch->damage != 0) {
+            scratch->offset.vy = GLUTTON_GROUP0_HIT_FX_Y;
+            scratch->offset.vx = 0;
+            scratch->offset.vz = GLUTTON_GROUP0_HIT_FX_Z;
+            effectSpawn(EFFECT_CRITICAL_HIT, &host->task->extra.tmd->coords[3], 3, &scratch->offset);
         }
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(arg0->extra.tmd->coords);
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(task->extra.tmd->coords);
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
-        sc->offset.vx = arg0->extra.tmd->coords->workm.t[0];
-        sc->offset.vy = arg0->extra.tmd->coords->workm.t[1];
-        sc->offset.vz = arg0->extra.tmd->coords->workm.t[2];
+        scratch->offset.vx = task->extra.tmd->coords->workm.t[0];
+        scratch->offset.vy = task->extra.tmd->coords->workm.t[1];
+        scratch->offset.vz = task->extra.tmd->coords->workm.t[2];
 #endif
-        sc->offset.vx = sc->contactPoint.vx - arg0->extra.tmd->coords->workm.t[0];
-        sc->offset.vy = sc->contactPoint.vy - arg0->extra.tmd->coords->workm.t[1];
-        sc->offset.vz = sc->contactPoint.vz - arg0->extra.tmd->coords->workm.t[2];
-        angle         = ratan2(sc->offset.vx, sc->offset.vz) -
-                ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
-                       arg0->extra.tmd->coords->workm.m[2][2]);
-        sc->contactYaw = angle;
-        sc->contactYaw = _actorAngleNormalizeYaw(angle);
+        scratch->offset.vx = scratch->contactPoint.vx - task->extra.tmd->coords->workm.t[0];
+        scratch->offset.vy = scratch->contactPoint.vy - task->extra.tmd->coords->workm.t[1];
+        scratch->offset.vz = scratch->contactPoint.vz - task->extra.tmd->coords->workm.t[2];
+        contactYaw         = ratan2(scratch->offset.vx, scratch->offset.vz) -
+                     ratan2(-task->extra.tmd->coords->workm.m[2][0],
+                            task->extra.tmd->coords->workm.m[2][2]);
+        scratch->contactYaw = contactYaw;
+        scratch->contactYaw = _actorAngleNormalizeYaw(contactYaw);
 
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
-        if (work->animId != 4) {
+        if (work->animId != GLUTTON_ANIM_SWIPE) {
 #endif
             work->neckYaw       = 0;
             work->neckYawTarget = 0;
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
         }
 #endif
-        sc->damage *= 2;
-        damageAccumulateLifeDrainHp(enemy, sc->attackKey, sc->damage, 0);
-        enemy->hp -= sc->damage;
-        worldTargetAddReadoutAmount(&enemy->node, sc->damage, 0);
+        scratch->damage *= 2;
+        damageAccumulateLifeDrainHp(host, scratch->attackKey, scratch->damage, 0);
+        host->hp -= scratch->damage;
+        worldTargetAddReadoutAmount(&host->node, scratch->damage, 0);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        esc3     = work->escorts[3];
-        hp       = enemy->hp;
-        esc0     = work->escorts[0];
-        esc1     = work->escorts[1];
-        esc3->hp = hp;
-        esc1->hp = hp;
-        esc0->hp = hp;
+        escort3     = work->escorts[3];
+        hostHp      = host->hp;
+        escort0     = work->escorts[0];
+        escort1     = work->escorts[1];
+        escort3->hp = hostHp;
+        escort1->hp = hostHp;
+        escort0->hp = hostHp;
 #endif
     }
 
-    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        sc->damage = damageTickEnemyDamageOverTime(enemy);
-        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
-            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
+    if (host->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        scratch->damage = damageTickEnemyDamageOverTime(host);
+        if (damageIsEnemyDamageOverTimeExpired(host) != 0) {
+            host->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
-        if (sc->damage != 0) {
-            damageAccumulateLifeDrainHp(enemy, sc->attackKey, sc->damage, 0);
+        if (scratch->damage != 0) {
+            damageAccumulateLifeDrainHp(host, scratch->attackKey, scratch->damage, 0);
 #endif
-            enemy->hp -= sc->damage;
+            host->hp -= scratch->damage;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         }
 #endif

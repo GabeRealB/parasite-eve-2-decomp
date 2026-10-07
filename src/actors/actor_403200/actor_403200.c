@@ -3667,8 +3667,8 @@ static const EnemyTaskFuncTable5 gGluttonGlobStates = {
 static const EnemyTaskFuncTable4 gGluttonChunkStates = {
     {
         gluttonChunkSpawn,
-        gluttonChunkFall,
-        gluttonChunkSettle,
+        _gluttonChunkFall,
+        _gluttonChunkSettle,
         enemyDestroy,
     },
 };
@@ -3686,8 +3686,8 @@ static const EnemyTaskFuncTable4 gGluttonChunkStates = {
 static const EnemyTaskFuncTable5 gGluttonRainStates = {
     {
         gluttonRainSpawn,
-        gluttonRainRise,
-        gluttonRainFall,
+        _gluttonRainRise,
+        _gluttonRainFall,
         gluttonRainSplat,
         enemyDestroy,
     },
@@ -3954,7 +3954,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     }
 
     (sceneAcquireBattleRef)(0);
-    task->exitCallback = gluttonExit;
+    task->exitCallback = _gluttonExit;
 
     enemy->field_4    = &task->extra.tmd->coords->coord;
     enemy->field_48   = 0;
@@ -4219,7 +4219,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 
 #include "../../shared/glutton_hit_groups1to2.inc.c"
 
-/// The hit handler for collision groups 3, 4 and 5 -- `gluttonHitGroups1To2`
+/// The hit handler for collision groups 3, 4 and 5 -- `_gluttonHitGroups1To2`
 /// done three times over the parts it does not cover, each group only scanned
 /// when the previous one landed nothing and the part it hit reported no attack
 /// id back. Like the sibling actor's `func_actor_444000_8013CA60`, this one runs
@@ -4236,7 +4236,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 /// unless `gSceneCombatState.battleRefs` is 1.
 ///
 /// Each group's scan is `_gluttonScanGroup`, and the effect with the re-read of
-/// the key `_gluttonHitLanded`. `esc3` / `esc0` / `esc1` and
+/// the key `_gluttonSpawnGroupHitEffect`. `esc3` / `esc0` / `esc1` and
 /// the `hp` load are the sibling's arrangement, but evaluated before
 /// `worldTargetAddReadoutAmount` so `host->field_40` is still in a register and the three
 /// stores reuse it; the pool subtraction after them carries the same `field_40`
@@ -4264,9 +4264,9 @@ static void func_actor_403200_8013A4A0(Task* arg0)
     host = (Enemy*)arg0->spawnArg2.pointer;
     work = arg0->work;
     sc   = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
-    if ((_gluttonScanGroup(sc, &work->hits[3]) != 0 && _gluttonHitLanded(sc, &work->hits[3])) ||
-        (_gluttonScanGroup(sc, &work->hits[4]) != 0 && _gluttonHitLanded(sc, &work->hits[4])) ||
-        (_gluttonScanGroup(sc, &work->hits[5]) != 0 && _gluttonHitLanded(sc, &work->hits[5]))) {
+    if ((_gluttonScanGroup(sc, &work->hits[3]) != 0 && _gluttonSpawnGroupHitEffect(sc, &work->hits[3])) ||
+        (_gluttonScanGroup(sc, &work->hits[4]) != 0 && _gluttonSpawnGroupHitEffect(sc, &work->hits[4])) ||
+        (_gluttonScanGroup(sc, &work->hits[5]) != 0 && _gluttonSpawnGroupHitEffect(sc, &work->hits[5]))) {
         param                    = damageGetPlayerAttackHitCooldown(sc->attackKey);
         work->groups6To8Cooldown = param;
         work->groups3To5Cooldown = param;
@@ -6308,12 +6308,12 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
             if (work->groups1To2Cooldown > 0) {
                 work->groups1To2Cooldown = (s16)((u16)work->groups1To2Cooldown - 1);
             } else {
-                gluttonHitGroups1To2(arg1);
+                _gluttonHitGroups1To2(arg1);
             }
             if (work->group0Cooldown > 0) {
                 work->group0Cooldown = (s16)((u16)work->group0Cooldown - 1);
             } else {
-                gluttonHitGroup0(arg1);
+                _gluttonHitGroup0(arg1);
             }
             if (work->groups3To5Cooldown > 0) {
                 work->groups3To5Cooldown = (s16)((u16)work->groups3To5Cooldown - 1);
@@ -6323,7 +6323,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
             if (work->groups6To8Cooldown > 0) {
                 work->groups6To8Cooldown = (s16)((u16)work->groups6To8Cooldown - 1);
             } else {
-                gluttonHitGroups6To8(arg1);
+                _gluttonHitGroups6To8(arg1);
             }
         }
     }
@@ -6461,7 +6461,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
     }
 
     _gluttonClearContacts(work);
-    gluttonShakeTick(arg1);
+    _gluttonShakeTick(arg1);
 
     if (work->viewLocked == 0 && work->state != 0) {
         scratch->view = D_actor_403200_8015E6E8[work->viewSelector](arg1, work->phase);
