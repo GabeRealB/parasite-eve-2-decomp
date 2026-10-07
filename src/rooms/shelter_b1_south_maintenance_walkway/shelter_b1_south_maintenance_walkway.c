@@ -59,11 +59,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern s8 D_shelter_b1_south_maintenance_walkway_80183644[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern s8 D_shelter_b1_south_maintenance_walkway_80183644_value __asm__("D_shelter_b1_south_maintenance_walkway_80183644");
+extern s8 D_shelter_b1_south_maintenance_walkway_80183644;
 
 /// Descriptor of the event task the message handler spawns.
 extern TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC;
@@ -429,12 +425,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_b1_south_maintenance_walkway_80183644[4] = {
-    0,
-    26,
-    67,
-    -36,
-};
+s8 D_shelter_b1_south_maintenance_walkway_80183644 = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_b1_south_maintenance_walkway_80183645 = 26;
+
+u8 D_shelter_b1_south_maintenance_walkway_80183646 = 67;
+
+u8 D_shelter_b1_south_maintenance_walkway_80183647 = 220;
 
 RoomLatchedEvent gRoomEventLatched;
 
@@ -467,7 +465,7 @@ static inline void _shelterB1SouthMaintenanceWalkwayBindEffects(void)
 static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
     RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_b1_south_maintenance_walkway_80183644_value = 0;
+    D_shelter_b1_south_maintenance_walkway_80183644 = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -476,7 +474,7 @@ static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_shelter_b1_south_maintenance_walkway_801822FC, 0, 0, 0);
-            D_shelter_b1_south_maintenance_walkway_80183644_value = 1;
+            D_shelter_b1_south_maintenance_walkway_80183644 = 1;
         }
         return 2;
     }

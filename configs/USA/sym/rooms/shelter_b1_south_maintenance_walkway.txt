@@ -50,7 +50,10 @@ D_actor_202600_801528D4 = 0x801528D4; // absolute:True owner=actor_202600
 Actor02000_D15FD0 = 0x8015FDF0; // absolute:True owner=actor_202000
 RoomFx_TrailOffsets = 0x801823D8; // size:0x10 defined:True
 gRoomEventStagedMsg = 0x8018363C; // size:0x8 defined:True
-D_shelter_b1_south_maintenance_walkway_80183644 = 0x80183644; // size:0x4 defined:True
+D_shelter_b1_south_maintenance_walkway_80183644 = 0x80183644; // size:0x1 defined:True
+D_shelter_b1_south_maintenance_walkway_80183645 = 0x80183645; // size:0x1 defined:True
+D_shelter_b1_south_maintenance_walkway_80183646 = 0x80183646; // size:0x1 defined:True
+D_shelter_b1_south_maintenance_walkway_80183647 = 0x80183647; // size:0x1 defined:True
 gRoomEventLatched = 0x80183648; // size:0xC defined:True
 
 shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x8017E760; // type:func
