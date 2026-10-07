@@ -1,23 +1,38 @@
 /* Part of the actor contacts library; see actor_contacts.h. */
 
-/// Adds a signed distance along a parent-frame yaw to the coordinate and total.
+/// Applies one horizontal avoidance step and adds it to the running correction.
 ///
-/// Yaw uses 4096 units per turn; distance uses game-coordinate units. The
-/// normalized direction is scaled through the GTE, then only XZ is accumulated.
-/// Borrows the caller's live steering block without reserving scratch itself.
-static inline void _actorContactAccumulateAvoidanceStep(GfxCoord* coord, ActorContactSteerScratch* scratch, s16 yaw, s32 distance, SVECTOR* pushDelta)
+/// `parentYaw` uses 4096 units per turn, from +Z toward +X in `coord`'s
+/// parent frame. `signedDistance` uses game-coordinate units; a negative value
+/// moves opposite that yaw. The normalized axis has 12 fractional bits, and
+/// the step retains the GTE's 12-bit product shift and signed-halfword saturation.
+///
+/// Borrows the caller's live `steerScratch` block, overwriting only `rot.m`
+/// and `dir`'s XYZ components; neither needs initialized contents.
+/// The block, `coord` and `pushDelta` must be disjoint.
+/// `pushDelta` must already hold the running correction: XZ additions narrow
+/// to signed halfwords, while the coordinate's XZ translation stays 32-bit.
+/// Both Y components and `pushDelta->pad` are untouched. The caller must mark
+/// the changed coordinate dirty before composing its cached matrix again.
+///
+/// Borrows all storage for this call. The yaw builder requires an initialized
+/// scratch stack; this helper reserves no block of its own and changes GTE state.
+static inline void _actorContactAccumulateAvoidanceStep(GfxCoord* coord, ActorContactSteerScratch* steerScratch, s16 parentYaw, s16 signedDistance, SVECTOR* pushDelta)
 {
-    gfxRotMatrixY(&scratch->rot, yaw, GRAPHICS_ROTATION_REPLACE);
-    gfxReadMatrixZAxis(&scratch->rot, &scratch->dir);
-    VectorNormalSS(&scratch->dir, &scratch->dir);
-    gte_lddp(distance);
-    gte_ldsv(&scratch->dir);
+    // Scale the normalized parent-frame yaw axis into a signed step.
+    gfxRotMatrixY(&steerScratch->rot, parentYaw, GRAPHICS_ROTATION_REPLACE);
+    gfxReadMatrixZAxis(&steerScratch->rot, &steerScratch->dir);
+    VectorNormalSS(&steerScratch->dir, &steerScratch->dir);
+    gte_lddp(signedDistance);
+    gte_ldsv(&steerScratch->dir);
     gte_gpf12();
-    gte_stsv(&scratch->dir);
-    pushDelta->vx     += scratch->dir.vx;
-    pushDelta->vz     += scratch->dir.vz;
-    coord->coord.t[0] += scratch->dir.vx;
-    coord->coord.t[2] += scratch->dir.vz;
+    gte_stsv(&steerScratch->dir);
+
+    // Accumulate the same horizontal step at each destination's integer width.
+    pushDelta->vx     += steerScratch->dir.vx;
+    pushDelta->vz     += steerScratch->dir.vz;
+    coord->coord.t[0] += steerScratch->dir.vx;
+    coord->coord.t[2] += steerScratch->dir.vz;
 }
 
 /// Applies short avoidance pushes away from player and enemy body contacts.
