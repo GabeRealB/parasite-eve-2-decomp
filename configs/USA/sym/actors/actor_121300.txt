@@ -99,3 +99,7 @@ _actor121300RestoreStreamImageMode = 0x80134270; // type:func
 _actor121300SetDoubleDrawMode = 0x80134334; // type:func
 _actor121300StageSceneAudioStart = 0x80134364; // type:func
 _actor121300QueueScenePlayback = 0x80134384; // type:func
+_actor121300SpawnLampDebrisTask = 0x80133064; // type:func
+_actor121300SetTextureSequence = 0x80134224; // type:func
+_actor121300StartFadeIn = 0x801342d4; // type:func
+_actor121300StartFadeOut = 0x80134304; // type:func

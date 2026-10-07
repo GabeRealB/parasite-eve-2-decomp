@@ -48,9 +48,9 @@
 
 /// The overlay's spawn table: entries 1 and 2 are spawned by the one-line
 /// spawners the scene script calls, 3 by the lamp shattering for each lamp
-/// that goes out, 4 to 8 are the debris variants `func_actor_121300_80133064`
+/// that goes out, 4 to 8 are the debris variants `_actor121300SpawnLampDebrisTask`
 /// scatters around a lamp, 9 is spawned once the session event has
-/// ended, and 0xA by `func_actor_121300_80134224`.
+/// ended, and 0xA by `_actor121300SetTextureSequence`.
 extern TaskDesc D_actor_121300_8013D390[];
 
 /// Scene step of Aya's double, stored in `_Actor121300AyaBreaWork::step`.
@@ -224,7 +224,9 @@ extern ScreenWaveOscillator gScreenWaveColumns[13];
 
 extern ScreenWaveOscillator gScreenWaveRows[30];
 
-s32 func_actor_121300_80134224(Task*, s32, s32, s32);
+enum { ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE = 2016 };
+
+static s32 _actor121300SetTextureSequence(Task* task, s32 unusedMessageId, s32 textureSequence, s32 unusedArg);
 
 static TmdSource _gActor121300AyaBreaBody;
 static TmdSource _gActor121300Model07E84;
@@ -234,7 +236,7 @@ static TmdSource _gActor121300Model08580;
 static TmdSource _gActor121300Model08768;
 static void      _actor121300FadeInTask(Task* task);
 static void      _actor121300LampDebrisTask(Task* task);
-void             func_actor_121300_80133064(Task*);
+static void      _actor121300SpawnLampDebrisTask(Task* task);
 static void      _actor121300UploadTexturesTask(Task* task);
 void             func_actor_121300_80133D98(Task*);
 static void      _actor121300FadeOutTask(Task* task);
@@ -242,8 +244,8 @@ static void      _actor121300BlackoutTask(Task* task);
 static void      _actor121300SelectSceneStep(s16 step);
 static void      _actor121300RestoreStreamImageMode(void);
 void             func_actor_121300_8013427C(void);
-void             func_actor_121300_801342D4(s32);
-void             func_actor_121300_80134304(s32);
+static void      _actor121300StartFadeIn(s32 intensityStep);
+static void      _actor121300StartFadeOut(s32 intensityStep);
 static void      _actor121300SetDoubleDrawMode(s32 drawMode);
 static void      _actor121300StageSceneAudioStart(void);
 static void      _actor121300QueueScenePlayback(void);
@@ -1591,7 +1593,7 @@ _Actor121300Lamp D_actor_121300_8013CC20[13] = {
 TaskMessageEntry D_actor_121300_8013CC88[3] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
-    { 2016, func_actor_121300_80134224 },
+    { ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE, _actor121300SetTextureSequence },
 };
 
 ActorTransform D_actor_121300_8013CCA0 = { { 5140, -140, 3010, 0 }, { 0, 0, 0, 0 } };
@@ -1658,7 +1660,7 @@ EvsCommand D_actor_121300_8013CE08[52] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300QueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_801342D4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_PLAY_SET_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1675,26 +1677,26 @@ EvsCommand D_actor_121300_8013CE08[52] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_SHATTER_LAMPS_WAVE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134304 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300SetDoubleDrawMode }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_END_SHATTER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_HOLD_ON_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_801342D4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_SPRITES_DWINDLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_PLAY_SET_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134304 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300SetDoubleDrawMode }, { .value = ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_801342D4 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_RAISED_RING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_121300_80134304 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300RestoreStreamImageMode }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_121300_801343A4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1717,7 +1719,7 @@ TaskDesc D_actor_121300_8013D390[11] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_121300_80133D98, { .model = &_gActor121300AyaBreaBody } },
     { { { TASK_BODY_NONE, 192 } }, _actor121300FadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor121300FadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_121300_80133064, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor121300SpawnLampDebrisTask, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model07E84 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model080F0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model0834C } },
@@ -1862,18 +1864,23 @@ checkSettled:
     return 0;
 }
 
-/// Draws a signed angular increment (-127..127) from two ordered LCG samples.
+/// Rolls one lamp fragment's angular velocity at full scene speed.
+///
+/// Returns -127..127 in 4096-units-per-turn angles per update. Advances the
+/// shared unsigned LCG twice: bit 16 of the first sample chooses the sign
+/// (set is positive), and bits 16..22 of the second give the magnitude.
 static inline s16 _actor121300RollDebrisSpin(void)
 {
+    enum { ACTOR_121300_DEBRIS_SPIN_MAGNITUDE_MASK = 127 };
     s16 spin;
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        spin            = (gRandomLcgState >> 16) & 0x7F;
+        spin            = (gRandomLcgState >> 16) & ACTOR_121300_DEBRIS_SPIN_MAGNITUDE_MASK;
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        spin            = -((gRandomLcgState >> 16) & 0x7F);
+        spin            = -((gRandomLcgState >> 16) & ACTOR_121300_DEBRIS_SPIN_MAGNITUDE_MASK);
     }
     return spin;
 }
@@ -2045,41 +2052,87 @@ static void _actor121300LampDebrisTask(Task* task)
     worldCoordSetModelLighting(lightingModel, &lightingPosition, 0, ARRAY_SIZE(work->colorMtx.m[0]));
 }
 
-/// Spawns the fifteen debris variants for one lamp, then releases this task.
-void func_actor_121300_80133064(Task* task)
+/// Scatters three copies of each debris model through the lamp's fifteen placements.
+///
+/// Copies the real lamp index (0..11) from the spawner's first argument.
+/// Placements offset world X/Y by 50, 80 or 120 units; 0, 9 and 14 stay centred.
+/// Each spawn is independent; allocation failure leaves that piece absent.
+static inline void _actor121300ScatterLampDebris(Task* task)
 {
-    void* alloc;
+    enum {
+        ACTOR_121300_DEBRIS_MODEL_FIRST                      = 4,
+        ACTOR_121300_DEBRIS_MODEL_SECOND                     = 5,
+        ACTOR_121300_DEBRIS_MODEL_THIRD                      = 6,
+        ACTOR_121300_DEBRIS_MODEL_FOURTH                     = 7,
+        ACTOR_121300_DEBRIS_MODEL_FIFTH                      = 8,
+        ACTOR_121300_DEBRIS_PLACEMENT_CENTER_FIRST           = 0,
+        ACTOR_121300_DEBRIS_PLACEMENT_INNER_PLUS_X_PLUS_Y    = 1,
+        ACTOR_121300_DEBRIS_PLACEMENT_INNER_MINUS_X_PLUS_Y   = 2,
+        ACTOR_121300_DEBRIS_PLACEMENT_INNER_PLUS_X_MINUS_Y   = 3,
+        ACTOR_121300_DEBRIS_PLACEMENT_INNER_MINUS_X_MINUS_Y  = 4,
+        ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_PLUS_X_PLUS_Y   = 5,
+        ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_MINUS_X_PLUS_Y  = 6,
+        ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_PLUS_X_MINUS_Y  = 7,
+        ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_MINUS_X_MINUS_Y = 8,
+        ACTOR_121300_DEBRIS_PLACEMENT_CENTER_MIDDLE          = 9,
+        ACTOR_121300_DEBRIS_PLACEMENT_OUTER_PLUS_X_PLUS_Y    = 10,
+        ACTOR_121300_DEBRIS_PLACEMENT_OUTER_MINUS_X_PLUS_Y   = 11,
+        ACTOR_121300_DEBRIS_PLACEMENT_OUTER_PLUS_X_MINUS_Y   = 12,
+        ACTOR_121300_DEBRIS_PLACEMENT_OUTER_MINUS_X_MINUS_Y  = 13,
+        ACTOR_121300_DEBRIS_PLACEMENT_CENTER_LAST            = 14,
+    };
+
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_FIRST);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_PLUS_X_PLUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_MINUS_X_PLUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_PLUS_X_MINUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_MINUS_X_MINUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_PLUS_X_PLUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_MINUS_X_PLUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_PLUS_X_MINUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_MINUS_X_MINUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_MIDDLE);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_PLUS_X_PLUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_MINUS_X_PLUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_PLUS_X_MINUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_MINUS_X_MINUS_Y);
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_LAST);
+}
+
+/// Spawns fifteen model fragments from one shattered lamp, then ends itself.
+///
+/// Start at state 0 with no body. `spawnArg1.value` is a real lamp index (0..11).
+/// The first update owns and clears an eight-byte primary-heap work allocation;
+/// its contents are never accessed and their role is unproven. The next update
+/// scatters the fragments. Allocation failure or a cleared scene debris flag
+/// ends the task; default teardown frees the work. Spawned pieces are independent
+/// tasks; this overlay and their model data must remain loaded until they end.
+static void _actor121300SpawnLampDebrisTask(Task* task)
+{
+    enum {
+        ACTOR_121300_DEBRIS_SPAWNER_INITIALIZE = 0,
+        ACTOR_121300_DEBRIS_SPAWNER_SCATTER    = 1,
+        ACTOR_121300_DEBRIS_SPAWNER_WORK_BYTES = 8,
+    };
+    void* reservedWork;
 
     if (D_actor_121300_8013D41C == 0) {
         taskKill(task);
         return;
     }
     switch (task->state) {
-        case 0:
-            alloc      = memMalloc(8, false);
-            task->work = alloc;
-            if (alloc != NULL) {
-                memFillBytes(alloc, 0, 8);
+        case ACTOR_121300_DEBRIS_SPAWNER_INITIALIZE:
+            // Preserve the work reservation and the update before scattering.
+            reservedWork = memMalloc(ACTOR_121300_DEBRIS_SPAWNER_WORK_BYTES, false);
+            task->work   = reservedWork;
+            if (reservedWork != NULL) {
+                memFillBytes(reservedWork, 0, ACTOR_121300_DEBRIS_SPAWNER_WORK_BYTES);
                 task->state += 1;
                 return;
             }
             break;
-        case 1:
-            taskSpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 0);
-            taskSpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 1);
-            taskSpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 2);
-            taskSpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 3);
-            taskSpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 4);
-            taskSpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 5);
-            taskSpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 6);
-            taskSpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 7);
-            taskSpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 8);
-            taskSpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 9);
-            taskSpawnFromTable(D_actor_121300_8013D390, 4, task->spawnArg1, 0xA);
-            taskSpawnFromTable(D_actor_121300_8013D390, 5, task->spawnArg1, 0xB);
-            taskSpawnFromTable(D_actor_121300_8013D390, 6, task->spawnArg1, 0xC);
-            taskSpawnFromTable(D_actor_121300_8013D390, 7, task->spawnArg1, 0xD);
-            taskSpawnFromTable(D_actor_121300_8013D390, 8, task->spawnArg1, 0xE);
+        case ACTOR_121300_DEBRIS_SPAWNER_SCATTER:
+            _actor121300ScatterLampDebris(task);
             break;
         default:
             return;
@@ -2089,26 +2142,29 @@ void func_actor_121300_80133064(Task* task)
 
 /// Uploads one image at the double's relocated texture page.
 ///
-/// Borrows the live parent through the child payload. X and width are VRAM
-/// words; Y and height are rows. Image data must survive the GPU transfer.
-static inline void _actor121300UploadTexture(Task* task, s32 baseX, s16 row,
+/// `task->spawnArg2.pointer` borrows a live double task with initialized work.
+/// The parent's signed page offset adds 64 VRAM words per column to `baseXWords`;
+/// the final X narrows to a signed halfword. X and width count 16-bit VRAM words,
+/// Y and height count rows. The relocated rectangle must fit VRAM (1024 by 512).
+/// `imageData` borrows word-aligned packed pixels, two VRAM words per `u_long`,
+/// covering the rectangle area rounded up to a whole `u_long`. Keep the pixels
+/// readable and unchanged until GPU transfer finishes; the SDK copies the RECT.
+static inline void _actor121300UploadTexture(Task* task, s32 baseXWords, s16 row,
                                              s16 widthWords, s16 heightRows, u_long* imageData)
 {
-    enum { ACTOR_121300_TEXTURE_PAGE_WORD_SHIFT = 6 };
+    enum { ACTOR_121300_TEXTURE_PAGE_WIDTH_WORDS = 64 };
     RECT                     uploadRect;
-    s32                      imageX;
+    s32                      relocatedXWords;
     Task*                    parentTask;
     _Actor121300AyaBreaWork* parentWork;
 
-    parentTask   = task->spawnArg2.pointer;
-    parentWork   = parentTask->work;
-    imageX       = parentWork->texturePageOffset;
-    imageX     <<= ACTOR_121300_TEXTURE_PAGE_WORD_SHIFT;
-    imageX      += baseX;
-    uploadRect.x = imageX;
-    uploadRect.y = row;
-    uploadRect.w = widthWords;
-    uploadRect.h = heightRows;
+    parentTask      = task->spawnArg2.pointer;
+    parentWork      = parentTask->work;
+    relocatedXWords = parentWork->texturePageOffset * ACTOR_121300_TEXTURE_PAGE_WIDTH_WORDS + baseXWords;
+    uploadRect.x    = relocatedXWords;
+    uploadRect.y    = row;
+    uploadRect.w    = widthWords;
+    uploadRect.h    = heightRows;
     LoadImage(&uploadRect, imageData);
 }
 
@@ -2659,9 +2715,18 @@ static void _actor121300BlackoutTask(Task* task)
 
 #include "../../shared/actor_messages_draw_mode.inc.c"
 
-s32 func_actor_121300_80134224(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts a child to upload the double's requested texture sequence.
+///
+/// The first payload selects 0 (initial), 1 (two replacements), 2 (replace then
+/// restore), or 4/5 (small replacement); 3 and unsupported values leave an idle
+/// child alive. The message ID and second payload are ignored. The child borrows
+/// this live task and its initialized work; neither may end before the child.
+/// Returns the spawned child's address as a message word, or zero on failure.
+static s32 _actor121300SetTextureSequence(Task* task, s32 unusedMessageId, s32 textureSequence, s32 unusedArg)
 {
-    taskSpawnFromTable(D_actor_121300_8013D390, 0xA, arg2, arg0);
+    enum { ACTOR_121300_TEXTURE_UPLOAD_TASK_INDEX = 10 };
+
+    return (s32)taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_TEXTURE_UPLOAD_TASK_INDEX, textureSequence, task);
 }
 
 /// Selects the double's scene step and resets its progress for the next update.
@@ -2693,16 +2758,30 @@ void func_actor_121300_8013427C(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-/// Spawns entry 1 of the overlay's spawn table with `arg0` as its argument.
-void func_actor_121300_801342D4(s32 arg0)
+/// Starts a fade that reveals the scene after three black updates.
+///
+/// `intensityStep` supplies intensity removed per update from its unsigned
+/// low halfword, with signed-halfword narrowing and no clamping. The script uses
+/// 4 or 9; zero never completes the ramp. Spawns an independent task on the
+/// selected execution list and ignores allocation failure.
+static void _actor121300StartFadeIn(s32 intensityStep)
 {
-    taskSpawnFromTable(D_actor_121300_8013D390, 1, arg0, 0);
+    enum { ACTOR_121300_FADE_IN_TASK_INDEX = 1 };
+
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_FADE_IN_TASK_INDEX, intensityStep, 0);
 }
 
-/// Spawns entry 2 of the overlay's spawn table with `arg0` as its argument.
-void func_actor_121300_80134304(s32 arg0)
+/// Starts a fade that darkens the scene and disables display output.
+///
+/// `intensityStep` supplies intensity added per update from its unsigned
+/// low halfword, with signed-halfword narrowing and no clamping. The script uses
+/// 4; zero never completes the ramp. Spawns an independent task on the
+/// selected execution list and ignores allocation failure.
+static void _actor121300StartFadeOut(s32 intensityStep)
 {
-    taskSpawnFromTable(D_actor_121300_8013D390, 2, arg0, 0);
+    enum { ACTOR_121300_FADE_OUT_TASK_INDEX = 2 };
+
+    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_FADE_OUT_TASK_INDEX, intensityStep, 0);
 }
 
 /// Sets the double model's draw mode from an event-script callback.

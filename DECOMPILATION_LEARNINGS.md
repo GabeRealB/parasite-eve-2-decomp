@@ -137957,7 +137957,7 @@ Full controlled sources, dumps, predictions and rejected return-type mutations
 are retained under tools/permuter_findings/func_actor_143000_80132D10/.
 
 
-### A narrow ra dependency preserves entry scheduling without fencing a branch delay slot (func_actor_121300_80133064, 2026-09-20)
+### A narrow ra dependency preserves entry scheduling without fencing a branch delay slot (_actor121300SpawnLampDebrisTask, 2026-09-20)
 
 The 98.947% seed needed an incoming task alias in a0 for its disabled-path
 kill and a saved task pointer in s1 for its switch. A redundant a0=s1 copy
