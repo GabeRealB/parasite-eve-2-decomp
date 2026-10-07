@@ -170,44 +170,123 @@ void spuCalcPanVolumes(SpuVolume* volumes, s16 pan, s32 volume);
 /// the saved options-menu value, whose mono/stereo encoding is reversed.
 u8 sndOutputIsStereo(void);
 
-void AsyncCb_Cancel(s32 arg0);
+/// Cancels the queued job identified by a one-based slot handle.
+///
+/// Zero does nothing. A nonzero handle must be 1..4 and still identify the
+/// caller's pending job: handles have no generation counter. The job stops
+/// normal polling immediately; the queue retires it in order, invoking its
+/// cancel callback only if polling had started. Its done callback is skipped.
+void asyncCbCancel(s16 handle);
 
-/// Queues asynchronous callbacks and returns a one-based cancellation handle, or zero when full.
-s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks);
+/// Queues a job's three handlers and returns its one-based cancellation handle.
+///
+/// The four-slot ring holds at most three jobs; zero means full. Only pollFn,
+/// doneFn and cancelFn are copied, so the caller's entry may be temporary.
+/// pollFn must be non-NULL; the other handlers may be NULL. Callbacks receive
+/// the queue-owned entry, initialized with firstPoll set and pollState zero.
+s16 asyncCbEnqueue(const AsyncCbEntry* callbacks);
 
-s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2);
+/// Takes a hardware voice from an ordered list of registered voice-range indices.
+///
+/// rangeCount counts readable s16 indices into the four registered ranges;
+/// each range must stay within voices 0..23. Nonpositive counts return -1.
+/// priority is a nonnegative allocation priority. A free voice whose cached
+/// key status is SPU_OFF or SPU_ON_ENV_OFF is returned immediately; otherwise
+/// the scan considers held voices at or below the requested priority. Returns
+/// the selected voice index, or -1 when no candidate is found.
+///
+/// Reassignment notifies the previous owner when both callback and context
+/// are non-NULL. It retains that registration and any pending hardware changes;
+/// the new owner must replace or clear the callback before the next audio tick.
+s32 spuAllocVoice(const s16* rangeIndices, s32 rangeCount, s32 priority);
 
-void Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback callback, void* context);
+/// Registers one owner's release notification and borrowed context for a voice.
+///
+/// voiceIdx must be 0..23. Notification on reassignment or detected completion
+/// requires both callback and context to be non-NULL; either NULL disables it.
+/// The context must remain live until the registration is replaced or cleared.
+void spuSetVoiceCallback(u32 voiceIdx, SpuVoiceCallback callback, void* context);
 
 s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2);
 
-s32 Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1);
+/// Gets a voice's attributes in the batch waiting for the next SPU flush.
+///
+/// voiceIdx must be 0..23 and ref must be writable. Returns 1 for an existing
+/// entry, preserving its edits, or 0 after appending one with an empty mask.
+/// Only a new entry clears ref's three unknown bytes. Select changed attributes
+/// with SPU_VOICE_* mask bits; ref->attr is valid only until the next flush.
+s32 spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref);
 
-u8 Spu_GetVoiceStatus(u32 voiceIdx);
+/// Returns a voice's key status sampled at the last audio tick.
+///
+/// voiceIdx must be 0..23. Values are SPU_OFF, SPU_ON, SPU_OFF_ENV_ON and
+/// SPU_ON_ENV_OFF; this reads cached state without querying the hardware.
+u8 spuGetVoiceKeyStatus(u32 voiceIdx);
 
-void Spu_ClearVoiceCallbacks(u32 voiceIdx);
+/// Removes a voice's release callback and context without releasing its slot.
+///
+/// voiceIdx must be 0..23. Key state and queued hardware updates are untouched.
+void spuClearVoiceCallback(u32 voiceIdx);
 
-void Spu_KeyOn(u32 voiceIdx);
+/// Queues a sound voice's key-on for the next SPU flush.
+///
+/// voiceIdx must be 0..23. Restarts the five-tick completion grace period,
+/// cancels a pending key-off and removes the silent-block mark. The flush
+/// records this voice for reset onto the silent block when playback ends.
+void spuKeyOn(u32 voiceIdx);
 
 void Spu_ArmKeyOn(u32 voiceIdx);
 
-void Spu_KeyOff(u32 voiceIdx);
+/// Queues a voice's key-off and withdraws both kinds of pending key-on.
+///
+/// voiceIdx must be 0..23. Applied at the next SPU flush; allocation and the
+/// owner's callback registration remain until separately released or completed.
+/// The retained no-voice byte 0xFF selects bit 31 on the MIPS target rather
+/// than one of the 24 hardware voices.
+void spuKeyOff(u32 voiceIdx);
 
-u16 Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Converts a key and tuning offset to a 14-bit SPU pitch register value.
+///
+/// key and rootKey are semitones; pitchOffset is signed 1/256-semitone units,
+/// and fineTune is added in 1/128-semitone units. The lookup coordinate is
+/// pitchOffset + (key - rootKey) * 256 + fineTune * 2 + 72 * 256, wrapped to
+/// 16 bits. Its high byte must index the 96-entry semitone table (0..95);
+/// the fractional lookup discards the low bit. No bounds check is performed.
+/// The low half of the scaled product saturates at 0x3FFF; 0x1000 is unity pitch.
+u16 spuCalcPitch(s32 key, s32 pitchOffset, s32 rootKey, s32 fineTune);
 
-SndBankLayer* Snd_GetNote(SndBank* bank, u8 group, u8 layer);
+/// Returns a bank-owned sample layer selected by program and layer indices.
+///
+/// A NULL bank returns NULL. Otherwise the bank must be fully loaded,
+/// group < bank->groupCount and layer < bank->groups[group].layerCount.
+/// The unchecked lookup returns storage valid until the bank is released
+/// or reloaded; callers do not own it.
+SndBankLayer* sndBankGetLayer(SndBank* bank, u8 group, u8 layer);
 
 void Spu_FlushVoiceUpdates(void);
 
-s32 Spu_ReleaseVoiceSlot(u32 voiceIdx);
+/// Returns a voice's allocation slot to the pool without changing hardware state.
+///
+/// voiceIdx must be 0..23. Clears allocation, priority and age, retaining the
+/// callback, key status and pending updates. Returns 0 on release and -1 when
+/// the narrowed index fails the retained guard, which also admits index 24.
+s32 spuReleaseVoiceSlot(u32 voiceIdx);
 
 void Spu_ConfigReverb(s32 mode);
 
 void Spu_SetReverbDepth(s16 depth);
 
-void Spu_EnableReverbVoice(u32 voiceIdx);
+/// Queues reverb routing on for one voice at the next SPU flush.
+///
+/// voiceIdx must be 0..23. Withdraws a pending disable for this voice;
+/// this request does not change the cached hardware reverb status.
+void spuEnableVoiceReverb(u32 voiceIdx);
 
-void Spu_DisableReverbVoice(u32 voiceIdx);
+/// Queues reverb routing off for one voice at the next SPU flush.
+///
+/// voiceIdx must be 0..23. Withdraws a pending enable for this voice;
+/// this request does not change the cached hardware reverb status.
+void spuDisableVoiceReverb(u32 voiceIdx);
 
 void SndEvt_Process(void);
 

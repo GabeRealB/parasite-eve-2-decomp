@@ -1392,7 +1392,7 @@ static s32 SndVoice_DriveSlots(s32* unused)
                             p->mixDirty = 1;
                         }
                         if (p->mixDirty == 1) {
-                            Spu_GetVoiceRef(node->spuVoice, &ref);
+                            spuGetVoiceRef(node->spuVoice, &ref);
                             attr = ref.attr;
                             _sndVoiceCalcMixVolumes(p->panOffset, p->attenuation, node, &p->volumeRamp, &panVolumes);
                             attr->volume.left   = panVolumes.left;
@@ -1563,11 +1563,11 @@ void SndVoice_KeyOffMatching(void)
                 node = head;
                 if ((type == SOUND_SCRIPT_REQUEST_TYPE_1) || (type == 0x50000000)) {
                     do {
-                        Spu_GetVoiceRef(p->voices->spuVoice, &ref);
+                        spuGetVoiceRef(p->voices->spuVoice, &ref);
                         ref.attr->adsr2  = (ref.attr->adsr2 & 0xFFE0) | 0xB;
                         ref.attr->adsr2 |= 0x20;
                         ref.attr->mask  |= SPU_VOICE_ADSR_ADSR2;
-                        Spu_KeyOff(node->spuVoice);
+                        spuKeyOff(node->spuVoice);
                         node = node->next;
                     } while (node != NULL);
                     p->state   = SOUND_SCRIPT_IDLE;
@@ -1721,16 +1721,16 @@ static s32 SndScript_Exec(_SndScript* script)
                     if (bank == 0) {
                         // Not loaded yet: release the voice and retry this command.
                         voice->allocated = 0;
-                        Spu_ReleaseVoiceSlot(voice->spuVoice);
-                        Spu_ClearVoiceCallbacks(voice->spuVoice);
+                        spuReleaseVoiceSlot(voice->spuVoice);
+                        spuClearVoiceCallback(voice->spuVoice);
                         voice->spuVoice = 0;
                         return 0;
                     }
                 } else {
                     bank = bankSlot->bank;
                 }
-                Spu_GetVoiceRef(voice->spuVoice, &voiceRef);
-                bankLayer    = Snd_GetNote(bank, (u8)note->program, note->layer);
+                spuGetVoiceRef(voice->spuVoice, &voiceRef);
+                bankLayer    = sndBankGetLayer(bank, (u8)note->program, note->layer);
                 attr         = voiceRef.attr;
                 masterVolume = D_80082748;
                 attr->addr   = bankLayer->waveAddr;
@@ -1766,12 +1766,12 @@ static s32 SndScript_Exec(_SndScript* script)
                 }
                 // Script pitch is a Q7 offset from the layer's minimum key.
                 pitchValue = pitch = note->pitchOffset + (bankLayer->keyMin << SOUND_BANK_KEY_FRACTION_BITS);
-                attr->pitch        = Spu_CalcVolume((u32)(pitch & 0xFFFF) >> SOUND_BANK_KEY_FRACTION_BITS, (pitchValue & 0x7F) * 2, bankLayer->rootKey, bankLayer->fineTune);
+                attr->pitch        = spuCalcPitch((u32)(pitch & 0xFFFF) >> SOUND_BANK_KEY_FRACTION_BITS, (pitchValue & 0x7F) * 2, bankLayer->rootKey, bankLayer->fineTune);
                 if (_sndScriptUseReverb(note) == 0) {
-                    Spu_DisableReverbVoice(voice->spuVoice);
+                    spuDisableVoiceReverb(voice->spuVoice);
                     voice->field_1 = 1;
                 } else {
-                    Spu_EnableReverbVoice(voice->spuVoice);
+                    spuEnableVoiceReverb(voice->spuVoice);
                     voice->field_1 = 1;
                 }
                 _sndVoiceCalcMixVolumes(script->panOffset, script->attenuation, voice, &script->volumeRamp, &panVolumes);
@@ -1780,7 +1780,7 @@ static s32 SndScript_Exec(_SndScript* script)
                 attr->volmode.left  = 0;
                 attr->volmode.right = 0;
                 attr->mask          = 0x6009F;
-                Spu_KeyOn(voice->spuVoice);
+                spuKeyOn(voice->spuVoice);
                 voice->note      = note;
                 countdown        = note->gateTicks == 0 ? SOUND_SCRIPT_NOTE_HELD : note->gateTicks << 16;
                 voice->gateClock = countdown;
@@ -1903,10 +1903,10 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
         default:
             return;
     }
-    Spu_GetVoiceRef(voice->spuVoice, &voiceRef);
+    spuGetVoiceRef(voice->spuVoice, &voiceRef);
     attr = voiceRef.attr;
     attr->pitch =
-        Spu_CalcVolume((pitch >> 8) & 0xFFFF, pitch & 0xFF, player->rootKey, player->fineTune);
+        spuCalcPitch((pitch >> 8) & 0xFFFF, pitch & 0xFF, player->rootKey, player->fineTune);
     attr->mask |= SPU_VOICE_PITCH;
 }
 
@@ -2231,10 +2231,10 @@ static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* sl
     node     = p->voices;
     if (node != NULL) {
         do {
-            Spu_KeyOff(node->spuVoice);
+            spuKeyOff(node->spuVoice);
             node->allocated = 0;
-            Spu_ClearVoiceCallbacks(node->spuVoice);
-            Spu_ReleaseVoiceSlot(node->spuVoice);
+            spuClearVoiceCallback(node->spuVoice);
+            spuReleaseVoiceSlot(node->spuVoice);
             node->spuVoice = 0;
             node           = node->next;
         } while (node != NULL);
@@ -2391,14 +2391,14 @@ static _SndVoice* SndVoice_Alloc(s32 arg0)
     s32        voiceIdx;
     _SndVoice* ptr;
 
-    voiceIdx = (s8)Spu_AllocVoice(SndScript_VoiceRanges, 2, arg0 & 0xFFFF);
+    voiceIdx = (s8)spuAllocVoice(SndScript_VoiceRanges, 2, arg0 & 0xFFFF);
     if (voiceIdx < 0) {
         return NULL;
     }
     /* Ranges 1 and 2 cover hardware voices 16..23. */
     ptr           = &SndScript_Voices[voiceIdx - 16];
     ptr->spuVoice = voiceIdx;
-    Spu_SetVoiceCallbacks(voiceIdx, _sndVoiceDetach, ptr);
+    spuSetVoiceCallback(voiceIdx, _sndVoiceDetach, ptr);
     ptr->allocated = 1;
     return ptr;
 }
@@ -2440,7 +2440,7 @@ static s32 SndVoice_Tick(_SndVoice* voice)
     temp = voice->gateClock;
     if (temp <= 0) {
         voice->gateClock = 0;
-        Spu_KeyOff(voice->spuVoice);
+        spuKeyOff(voice->spuVoice);
         if (voice->envelope.active != 0) {
             if (voice->envelope.releaseRequest == SOUND_VOICE_ENVELOPE_HELD) {
                 voice->envelope.releaseRequest = SOUND_VOICE_ENVELOPE_RELEASE_PENDING;
@@ -2481,19 +2481,19 @@ static s32 SndScript_TickVoices(_SndScript* script)
             if (node->spuVoice >= 0) {
                 // Keep the voice's ADSR only for an explicit keep-release stop.
                 if (script->keepRelease != SOUND_SCRIPT_KEEP_RELEASE) {
-                    status = Spu_GetVoiceStatus(node->spuVoice);
-                    if (status != 0) {
-                        Spu_GetVoiceRef(node->spuVoice, &voiceRef);
+                    status = spuGetVoiceKeyStatus(node->spuVoice);
+                    if (status != SPU_OFF) {
+                        spuGetVoiceRef(node->spuVoice, &voiceRef);
                         temp                 = voiceRef.attr->adsr2;
                         temp                 = (temp & 0xFFE0) | 5;
                         voiceRef.attr->adsr2 = temp;
                         voiceRef.attr->mask |= SPU_VOICE_ADSR_ADSR2;
-                        if (status != 2) {
-                            Spu_KeyOff(node->spuVoice);
+                        if (status != SPU_OFF_ENV_ON) {
+                            spuKeyOff(node->spuVoice);
                         }
                     }
                 } else {
-                    Spu_KeyOff(node->spuVoice);
+                    spuKeyOff(node->spuVoice);
                 }
                 if (node->envelope.active != 0) {
                     count                        += 1;

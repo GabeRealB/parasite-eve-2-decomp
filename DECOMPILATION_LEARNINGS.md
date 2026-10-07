@@ -8520,7 +8520,7 @@ s16 *ptr;
 
 ptr = &D_8006EBF2;
 /* ... fill stack args ... */
-*ptr = func_8004DE18(&sp);
+*ptr = asyncCbEnqueue(&sp);
 ```
 
 **Order: pointer first, then the shared constant.** When the target does
@@ -11829,7 +11829,7 @@ return NULL;
 
 The inverted early-exit form (`if (index == NULL) return NULL; return ...;`)
 produces `beqz` with the null epilogue at the end of the function — same
-semantics, wrong layout. `Snd_GetNote` only matches with the `!= NULL`
+semantics, wrong layout. `sndBankGetLayer` only matches with the `!= NULL`
 shape.
 
 ## Null-check polarity, the other direction: `== NULL` first for an *out-of-line* failure arm
@@ -11861,7 +11861,7 @@ penalties zero.
 
 So the polarity is not a property of the body but of where the target put the
 arm it branches to: `!= NULL` when `bnez` targets the body with the null return
-falling through (`Snd_GetNote`), `== NULL` when `beqz` targets the null arm with
+falling through (`sndBankGetLayer`), `== NULL` when `beqz` targets the null arm with
 the body falling through. Read the branch's *destination* in the target before
 choosing.
 
@@ -12256,9 +12256,9 @@ When a function sets a bit in one global and clears it from two others
    to the `sw` of A:
    - Target has `nor` *after* `sw` of A → write `~channel` twice inline:
      `B &= ~channel; C &= ~channel;`. A shared temp (`inv = ~channel`) moves
-     `nor` too early. (`Spu_KeyOff`)
+     `nor` too early. (`spuKeyOff`)
    - Target has `nor` *before* `sw` of A → assign into the channel temp:
-     `channel = ~channel; B &= channel; C &= channel;`. (`Spu_KeyOn`,
+     `channel = ~channel; B &= channel; C &= channel;`. (`spuKeyOn`,
      where B is a struct field via the same local pointer as other accesses)
 
 3. **Source order of the two `&=` is not store order.** Writing
@@ -12267,10 +12267,10 @@ When a function sets a bit in one global and clears it from two others
    statements until that symbol is the early one — the final store order still
    ends up matching because of scheduling.
 
-`Spu_KeyOff` is the pure late-`nor` example: pointer on `Spu_KeyOffMask`,
-then `Spu_KeyOnMask &= ~channel` before `Spu_KeyOnMaskExtra &= ~channel` so
-that EBAC is the early-loaded `$a2` value. `Spu_KeyOn` is the pure
-early-`nor` counterpart: pointer on the `|=` target plus `channel = ~channel`
+`spuKeyOff` is the pure late-`nor` example: pointer on `Spu_KeyOffMask`,
+then `Spu_KeyOnMask &= ~voiceMask` before `Spu_KeyOnMaskExtra &= ~voiceMask` so
+that EBAC is the early-loaded `$a2` value. `spuKeyOn` is the pure
+early-`nor` counterpart: pointer on the `|=` target plus `voiceMask = ~voiceMask`
 before the two clears.
 
 `Spu_ArmKeyOn` is late-`nor` with an extra struct-field clear in the middle
@@ -14418,7 +14418,7 @@ reused). Force the double-reload and the `v1`/`a0` split by:
 ```c
 u16 temp;
 
-Spu_GetVoiceRef(idx, &voiceRef);
+spuGetVoiceRef(idx, &voiceRef);
 temp = voiceRef.attr->adsr2;
 temp = (temp & 0xFFE0) | 5;
 voiceRef.attr->adsr2 = temp;
@@ -15070,8 +15070,8 @@ Reuse the lo-index local for the multiply result so the product/`0x3FFF` clamp
 lands in `$v1` (the register that held the second table address) instead of
 `$a0`. Use `u32` temps so `>>` is `srl`, not `sra`.
 
-`Spu_CalcVolume` is the example (volume-style lookup: `D_80068BB8[hi] *
-D_80068C78[lo] >> 8`, clamp to `0x3FFF`).
+`spuCalcPitch` is the example (pitch-register lookup: `Spu_SemitonePitchTable[semitoneIndex] *
+Spu_FinePitchTable[fineIndexAndPitch] >> 8`, clamp to `0x3FFF`).
 
 ## Early halfword temp so `lh` stays live across intervening stores
 
@@ -16277,7 +16277,7 @@ u8 t = arg0 & 0xF;
 for (i = 0; i < 0x12; i++) {
     if (arg2->voiceSlots[i].key == param &&
         arg2->voiceSlots[i].channel == t) {
-        Spu_KeyOff(arg2->voiceSlots[i].voice);
+        spuKeyOff(arg2->voiceSlots[i].voice);
     }
 }
 ```
@@ -17706,7 +17706,7 @@ Keep large constants (e.g. `0x7008FU` for a `mask` field) as *literals* at the
 store site, not loop-invariant locals — otherwise GCC pins them in a callee-
 saved reg (`s3`) instead of interleaving `lui`/`ori` into `$a1` delay slots.
 
-`Spu_InitVoices` is the pure example (voice-attr init after `Spu_GetVoiceRef`).
+`Spu_InitVoices` is the pure example (voice-attr init after `spuGetVoiceRef`).
 
 ## Empty asm after pinned arg copies for prologue `li sN` order
 
@@ -20133,12 +20133,12 @@ but the real prototype is `u8 foo(...)`, a direct call inserts the zero-extend
 return as SImode:
 
 ```c
-temp = acc + ((s32 (*)(s32))Spu_GetVoiceStatus)(voice);
+temp = acc + ((s32 (*)(s32))spuGetVoiceKeyStatus)(voice);
 ```
 
 Safe only when the callee already returns a clean low byte (e.g. via `lbu`).
 Do not change the shared `u8` declaration — other matched callers may depend on
-the `andi`. `CdAudio_DriveStream` needs this for `Spu_GetVoiceStatus`.
+the `andi`. `CdAudio_DriveStream` needs this for `spuGetVoiceKeyStatus`.
 
 ## Jump-table mult: load order vs `mult` operand order
 
@@ -23126,7 +23126,7 @@ exit with tab-noreorder `j label; move $2,s1`, land with a unique asm label, and
 clear `imageBuffer` via `*(volatile s32*)&p->imageBuffer = 0` so the store is not
 stolen into an earlier delay slot. `SndLoad_Complete` is the pure example.
 
-## Spu_GetVoiceRef: dual `lhu`/`lh` count + keep `$a0` for `sb`
+## spuGetVoiceRef: dual `lhu`/`lh` count + keep `$a0` for `sb`
 
 Leaf that looks up or allocates into `Spu_LVoiceTable` (stride `0x44` =
 `sizeof(SpuLVoiceAttr)`). Target keeps the voice id in `$a0` for every
@@ -23136,7 +23136,7 @@ either renames `$a0` early or turns the second load into `lhu`+`sll`/`sra`.
 A single tab-noreorder block matching the target is the reliable match;
 `slotByVoice` is at decimal offset 1636 (`0x664`).
 
-## Spu_GetVoiceRef hybrid C (not full-function asm)
+## spuGetVoiceRef hybrid C (not full-function asm)
 
 Most of the leaf is ordinary C with s-reg pins (`t1` base, `a2` slot/count,
 `a3` sign-ext index, `t2` ret, `v0`/`v1` scratch). Three small asm pockets:
@@ -65579,7 +65579,7 @@ position. A matched sibling's pin need not carry over: first split a reused
 pointer and rescore.
 
 
-## func_8004DE18: signed ring index and callback-copy scheduling
+## asyncCbEnqueue: signed ring index and callback-copy scheduling
 
 The callback enqueue matched without pins using the existing `AsyncCbEntry` and
 `_AsyncCbQueue` layouts. One statement per status bit, in the order
@@ -65965,15 +65965,15 @@ that penalty as register allocation.
 
 ## func_8004E200: inline voice lookup matches in C with an s32 slot/count
 
-The inlined `Spu_GetVoiceRef` body reached 100% without pins or asm. Use one
-`s32 slot` for both `list->slotByVoice[voiceIdx]` (an `s8` element, read
-with `lb`) and `list->count`.
-In the allocation arm, write `slot = list->count; list->count++;` as
-separate statements. The `s16 count = list->count++` version emitted an
+The inlined `spuGetVoiceRef` body reached 100% without pins or asm. Use one
+`s32 slot` for both `updates->slotByVoice[voiceIdx]` (an `s8` element, read
+with `lb`) and `updates->count`.
+In the allocation arm, write `slot = updates->count; updates->count++;` as
+separate statements. The `s16 count = updates->count++` version emitted an
 `lhu` followed by sign-extension shifts; the s32 version emits the target's
-separate `lhu` and `lh`. Keep `_SpuVoiceUpdateList* list = &Spu_LVoiceTable`
+separate `lhu` and `lh`. Keep `_SpuVoiceUpdateList* updates = &Spu_LVoiceTable`
 local to the inline helper. In the existing-slot arm, stage
-`entry = &list->attrs[slot]` then use `&(entry - 1)->attr`; direct
+`queuedEntry = &updates->attrs[slot - 1]` then use `&queuedEntry->attr`; direct
 `&Spu_LVoiceTable.attrs[slot - 1].attr` hoisted extra base addresses across
 the outer loop and grew the saved-register set.
 
@@ -65982,7 +65982,7 @@ local s8 is checked as `(u8)sVoiceIdx > 24U` before indexing. Casting the
 argument to s8 at the call inserted an extra sign extension before the
 unsigned range check. Explicit s8 casts remain on the external key calls
 and the voice-reference helper call. Verified by the full build in the
-func_8004E200 worktree; the standalone Spu_GetVoiceRef leaf was not changed.
+func_8004E200 worktree; the standalone spuGetVoiceRef leaf was not changed.
 
 ## A dead scan-pointer initialization can prevent loop-invariant hoisting
 

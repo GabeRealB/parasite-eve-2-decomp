@@ -124,7 +124,7 @@ static u8 Spu_InitialAdpcmBlock[];
 
 static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx);
 
-static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref);
+static inline s32 _spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref);
 
 static void Spu_QueryReverbVoices(void);
 
@@ -134,7 +134,7 @@ static bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx);
 
 static void Spu_ApplyReverbConfig(void);
 
-static void Spu_KeyOnClearOff(u32 voiceIdx);
+static void _spuKeyOnSilentBlock(u32 voiceIdx);
 
 static u8 Spu_InitialAdpcmBlock[] = {
 #include "assets/spu_voice_block.inc"
@@ -195,21 +195,21 @@ void AsyncCb_Reset(void)
     } while (i < sizeof(AsyncCb_Queue) / sizeof(*ptr));
 }
 
-s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
+s16 asyncCbEnqueue(const AsyncCbEntry* callbacks)
 {
     AsyncCbEntry* entry;
-    s32           next;
-    s32           current;
+    s32           nextWriteIdx;
+    s32           queueIndex;
     s8            writeIdx;
 
-    writeIdx = AsyncCb_Queue.writeIdx;
-    current  = AsyncCb_Queue.readIdx;
-    next     = writeIdx;
-    next++;
-    if (next >= ARRAY_SIZE(AsyncCb_Queue.entries)) {
-        next = 0;
+    writeIdx     = AsyncCb_Queue.writeIdx;
+    queueIndex   = AsyncCb_Queue.readIdx;
+    nextWriteIdx = writeIdx;
+    nextWriteIdx++;
+    if (nextWriteIdx >= ARRAY_SIZE(AsyncCb_Queue.entries)) {
+        nextWriteIdx = 0;
     }
-    if (next == current) {
+    if (nextWriteIdx == queueIndex) {
         return 0;
     } else {
         entry           = &AsyncCb_Queue.entries[writeIdx];
@@ -222,18 +222,18 @@ s16 AsyncCb_Enqueue(AsyncCbEntry* callbacks)
         entry->status.cancelPending = 0;
         entry->status.pollState     = 0;
         entry->status.firstPoll     = 1;
-        current                     = AsyncCb_Queue.writeIdx;
-        AsyncCb_Queue.writeIdx      = next;
-        return current + 1;
+        queueIndex                  = AsyncCb_Queue.writeIdx;
+        AsyncCb_Queue.writeIdx      = nextWriteIdx;
+        return queueIndex + 1;
     }
 }
 
-void AsyncCb_Cancel(s32 arg0)
+void asyncCbCancel(s16 handle)
 {
     AsyncCbEntry* entry;
 
-    if ((arg0 << 0x10) != 0) {
-        entry = &AsyncCb_Queue.entries[(s16)(arg0 - 1)];
+    if ((handle << 0x10) != 0) {
+        entry = &AsyncCb_Queue.entries[(s16)(handle - 1)];
         if (entry->status.active) {
             entry->status.active    = 0;
             entry->status.cancelled = 1;
@@ -276,7 +276,7 @@ void Spu_InitVoices(void)
     i = 0;
     do {
         sVoiceIdx = i;
-        Spu_GetVoiceRef(sVoiceIdx, &voiceRef);
+        spuGetVoiceRef(sVoiceIdx, &voiceRef);
 
         {
             SpuVoiceAttr* attr = voiceRef.attr;
@@ -310,85 +310,99 @@ void Spu_InitVoices(void)
             attr->voice        = 1 << i;
         }
 
-        Spu_KeyOnClearOff(sVoiceIdx);
+        _spuKeyOnSilentBlock(sVoiceIdx);
         i++;
     } while (i < 0x18);
 
     Spu_SetVoiceRange(2, 0x10, 2);
 }
 
-s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
+/// Notifies a voice's previous owner when both handler and borrowed context are present.
+///
+/// state must remain live and voiceIdx must be 0..23. The registration is
+/// retained so the allocating caller can replace it after taking ownership.
+static inline void _spuNotifyVoiceOwner(const _SpuVoiceState* state, s8 voiceIdx)
 {
-    _SpuVoiceRange*  range;
-    s32              oldestAge;
-    s32              bestPriority;
-    s32              i;
-    s32              j;
-    s8               bestVoice;
-    u8               voice;
-    u8               keyStatus;
-    u32              heldPriority;
-    s32              age;
     SpuVoiceCallback callback;
     void*            context;
-    _SpuVoiceState*  state;
 
-    oldestAge    = 0;
-    bestPriority = arg2;
-    bestVoice    = -1;
-    i            = 0;
-    state        = &Spu_VoiceState;
+    callback = state->callbacks[voiceIdx];
+    if (callback != NULL) {
+        context = state->callbackContexts[voiceIdx];
+        if (context != NULL) {
+            callback(context);
+        }
+    }
+}
 
-    if (arg1 > 0) {
+s32 spuAllocVoice(const s16* rangeIndices, s32 rangeCount, s32 priority)
+{
+    enum { SPU_VOICE_NONE = -1 };
+    const _SpuVoiceRange* range;
+    s32                   oldestComparedAge;
+    s32                   candidatePriority;
+    s32                   rangeIndex;
+    s32                   rangeVoiceIndex;
+    s8                    candidateVoiceIdx;
+    s8                    voiceIdx;
+    u8                    cachedKeyStatus;
+    u32                   heldPriority;
+    s32                   voiceAge;
+    _SpuVoiceState*       state;
+
+    oldestComparedAge = 0;
+    candidatePriority = priority;
+    candidateVoiceIdx = SPU_VOICE_NONE;
+    rangeIndex        = 0;
+    state             = &Spu_VoiceState;
+
+    // Prefer the first free, inactive voice in the caller's range order.
+    if (rangeCount > 0) {
         do {
-            range = &Spu_VoiceRanges[*arg0];
-            voice = range->first;
-            j     = 0;
+            range           = &Spu_VoiceRanges[*rangeIndices];
+            voiceIdx        = range->first;
+            rangeVoiceIndex = 0;
             if (range->count > 0) {
                 do {
-                    if (state->allocated[(s8)voice] == false) {
-                        keyStatus = state->keyStatus[(s8)voice];
-                        if ((keyStatus == SPU_OFF) || (keyStatus == SPU_ON_ENV_OFF)) {
-                            state->priorities[(s8)voice] = arg2;
-                            state->allocated[(s8)voice]  = true;
-                            state->ages[(s8)voice]       = 0;
-                            return (s8)voice;
+                    if (state->allocated[voiceIdx] == false) {
+                        cachedKeyStatus = state->keyStatus[voiceIdx];
+                        if ((cachedKeyStatus == SPU_OFF) || (cachedKeyStatus == SPU_ON_ENV_OFF)) {
+                            state->priorities[voiceIdx] = priority;
+                            state->allocated[voiceIdx]  = true;
+                            state->ages[voiceIdx]       = 0;
+                            return voiceIdx;
                         }
                     } else {
-                        heldPriority = state->priorities[(s8)voice];
-                        if (heldPriority < (u32)bestPriority) {
-                            bestPriority = heldPriority;
-                            bestVoice    = voice;
-                        } else if (bestPriority == (s32)heldPriority) {
-                            age = state->ages[(s8)voice];
-                            if (oldestAge < age) {
-                                oldestAge = age;
-                                bestVoice = voice;
+                        heldPriority = state->priorities[voiceIdx];
+                        if (heldPriority < (u32)candidatePriority) {
+                            candidatePriority = heldPriority;
+                            candidateVoiceIdx = voiceIdx;
+                        } else if (candidatePriority == (s32)heldPriority) {
+                            // The age maximum is retained even when a lower priority replaces the candidate.
+                            voiceAge = state->ages[voiceIdx];
+                            if (oldestComparedAge < voiceAge) {
+                                oldestComparedAge = voiceAge;
+                                candidateVoiceIdx = voiceIdx;
                             }
                         }
                     }
-                    j++;
-                    voice++;
-                } while (j < range->count);
+                    rangeVoiceIndex++;
+                    voiceIdx++;
+                } while (rangeVoiceIndex < range->count);
             }
-            i++;
-            arg0++;
-        } while (i < arg1);
+            rangeIndex++;
+            rangeIndices++;
+        } while (rangeIndex < rangeCount);
     }
 
-    if (bestVoice >= 0) {
-        callback = state->callbacks[bestVoice];
-        if (callback != NULL) {
-            context = state->callbackContexts[bestVoice];
-            if (context != NULL) {
-                callback(context);
-            }
-        }
-        state->priorities[bestVoice] = arg2;
-        state->ages[bestVoice]       = 0;
-        state->keyStatus[bestVoice]  = SPU_ON;
+    // Ownership changes here; the new owner replaces the retained notification.
+    if (candidateVoiceIdx >= 0) {
+        _spuNotifyVoiceOwner(state, candidateVoiceIdx);
+        state->priorities[candidateVoiceIdx] = priority;
+        state->ages[candidateVoiceIdx]       = 0;
+        state->keyStatus[candidateVoiceIdx]  = SPU_ON;
     }
-    return bestVoice;
+    return candidateVoiceIdx;
 }
 
 static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx)
@@ -403,31 +417,35 @@ static inline s32 Spu_ReleaseVoiceSlotInline(u32 voiceIdx)
     return 0;
 }
 
-static inline s32 Spu_GetVoiceRefInline(s8 voiceIdx, SpuVoiceRef* ref)
+/// Implements the queued-attribute lookup used by `spuGetVoiceRef` and the voice tick.
+///
+/// Requires voiceIdx in 0..23 and writable ref. Returns 1 for an existing entry
+/// or 0 for a new entry; the attribute pointer expires at the next flush.
+static inline s32 _spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref)
 {
     s32                  slot;
-    _SpuVoiceUpdateList* list;
-    SpuLVoiceAttr*       entry;
-    list = &Spu_LVoiceTable;
-    slot = list->slotByVoice[voiceIdx];
+    _SpuVoiceUpdateList* updates;
+    SpuLVoiceAttr*       queuedEntry;
+    updates = &Spu_LVoiceTable;
+    slot    = updates->slotByVoice[voiceIdx];
     if (slot != 0) {
         // Already queued: the stored slot is one past the voice's entry.
-        entry         = &list->attrs[slot];
+        queuedEntry   = &updates->attrs[slot - 1];
         ref->voiceIdx = voiceIdx;
-        ref->attr     = &(entry - 1)->attr;
+        ref->attr     = &queuedEntry->attr;
         return 1;
     } else {
         // Append an entry for the voice, with nothing selected for update yet.
-        slot = list->count;
-        list->count++;
-        list->attrs[slot].voiceNum  = voiceIdx;
-        list->slotByVoice[voiceIdx] = slot + 1;
-        ref->voiceIdx               = voiceIdx;
-        ref->attr                   = &list->attrs[slot].attr;
-        ref->attr->mask             = 0;
-        ref->field_1                = 0;
-        ref->field_3                = 0;
-        ref->field_2                = 0;
+        slot = updates->count;
+        updates->count++;
+        updates->attrs[slot].voiceNum  = voiceIdx;
+        updates->slotByVoice[voiceIdx] = slot + 1;
+        ref->voiceIdx                  = voiceIdx;
+        ref->attr                      = &updates->attrs[slot].attr;
+        ref->attr->mask                = 0;
+        ref->field_1                   = 0;
+        ref->field_3                   = 0;
+        ref->field_2                   = 0;
         return 0;
     }
 }
@@ -458,7 +476,7 @@ void Spu_TickVoices(void)
                 continue;
             }
             if ((state->startedVoices >> i) & 1) {
-                Spu_KeyOff((s8)i);
+                spuKeyOff((s8)i);
             }
         }
         Spu_ReleaseVoiceSlotInline(i);
@@ -472,7 +490,7 @@ void Spu_TickVoices(void)
             }
         }
         if ((state->startedVoices >> i) & 1) {
-            Spu_GetVoiceRefInline((s8)i, &ref);
+            _spuGetVoiceRef((s8)i, &ref);
             {
                 SpuVoiceAttr* attr = ref.attr;
                 attr->loop_addr    = 0x7B440;
@@ -486,7 +504,7 @@ void Spu_TickVoices(void)
             ref.attr->adsr1 = 0x80FF;
             ref.attr->adsr2 = 0xFFE0;
             ref.attr->mask |= 0x70083;
-            Spu_KeyOnClearOff((s8)i);
+            _spuKeyOnSilentBlock((s8)i);
         }
     }
 }
@@ -531,20 +549,20 @@ void Spu_FlushVoiceUpdates(void)
     }
 }
 
-void Spu_SetVoiceCallbacks(u32 voiceIdx, SpuVoiceCallback callback, void* context)
+void spuSetVoiceCallback(u32 voiceIdx, SpuVoiceCallback callback, void* context)
 {
-    s8 sVoiceIdx = (s8)voiceIdx;
+    s8 voiceIndex = (s8)voiceIdx;
 
-    Spu_VoiceState.callbacks[sVoiceIdx]        = callback;
-    Spu_VoiceState.callbackContexts[sVoiceIdx] = context;
+    Spu_VoiceState.callbacks[voiceIndex]        = callback;
+    Spu_VoiceState.callbackContexts[voiceIndex] = context;
 }
 
-void Spu_ClearVoiceCallbacks(u32 voiceIdx)
+void spuClearVoiceCallback(u32 voiceIdx)
 {
-    s8 sVoiceIdx = (s8)voiceIdx;
+    s8 voiceIndex = (s8)voiceIdx;
 
-    Spu_VoiceState.callbacks[sVoiceIdx]        = NULL;
-    Spu_VoiceState.callbackContexts[sVoiceIdx] = NULL;
+    Spu_VoiceState.callbacks[voiceIndex]        = NULL;
+    Spu_VoiceState.callbackContexts[voiceIndex] = NULL;
 }
 
 s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
@@ -559,60 +577,60 @@ s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1)
+s32 spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref)
 {
-    return Spu_GetVoiceRefInline(arg0, arg1);
+    return _spuGetVoiceRef(voiceIdx, ref);
 }
 
-s32 Spu_ReleaseVoiceSlot(u32 voiceIdx)
+s32 spuReleaseVoiceSlot(u32 voiceIdx)
 {
-    s8 sVoiceIdx = (s8)voiceIdx;
-    if (sVoiceIdx > (u32)ARRAY_SIZE(Spu_VoiceState.allocated)) {
+    s8 voiceIndex = (s8)voiceIdx;
+    if (voiceIndex > (u32)ARRAY_SIZE(Spu_VoiceState.allocated)) {
         return -1;
     }
 
-    Spu_VoiceState.allocated[sVoiceIdx]  = false;
-    Spu_VoiceState.priorities[sVoiceIdx] = 0;
-    Spu_VoiceState.ages[sVoiceIdx]       = 0;
+    Spu_VoiceState.allocated[voiceIndex]  = false;
+    Spu_VoiceState.priorities[voiceIndex] = 0;
+    Spu_VoiceState.ages[voiceIndex]       = 0;
     return 0;
 }
 
-u8 Spu_GetVoiceStatus(u32 voiceIdx)
+u8 spuGetVoiceKeyStatus(u32 voiceIdx)
 {
-    s8 sVoiceIdx = (s8)voiceIdx;
+    s8 voiceIndex = (s8)voiceIdx;
 
-    return Spu_VoiceState.keyStatus[sVoiceIdx];
+    return Spu_VoiceState.keyStatus[voiceIndex];
 }
 
-void Spu_KeyOn(u32 voiceIdx)
+void spuKeyOn(u32 voiceIdx)
 {
     _SpuVoiceState* state;
-    u32*            pKeyOn;
-    u32             channel;
+    u32*            keyOnMask;
+    u32             voiceMask;
 
     state                            = &Spu_VoiceState;
-    pKeyOn                           = &Spu_KeyOnMask;
+    keyOnMask                        = &Spu_KeyOnMask;
     voiceIdx                         = (s8)voiceIdx;
     state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
-    channel                          = SPU_VOICECH(voiceIdx);
-    *pKeyOn                         |= channel;
-    channel                          = ~channel;
-    state->silentKeyOnVoices        &= channel;
-    Spu_KeyOffMask                  &= channel;
+    voiceMask                        = SPU_VOICECH(voiceIdx);
+    *keyOnMask                      |= voiceMask;
+    voiceMask                        = ~voiceMask;
+    state->silentKeyOnVoices        &= voiceMask;
+    Spu_KeyOffMask                  &= voiceMask;
 }
 
-void Spu_KeyOff(u32 voiceIdx)
+void spuKeyOff(u32 voiceIdx)
 {
-    u32* pKeyOff;
-    u32  channel;
+    u32* keyOffMask;
+    u32  voiceMask;
 
-    pKeyOff  = &Spu_KeyOffMask;
-    voiceIdx = (s8)voiceIdx;
+    keyOffMask = &Spu_KeyOffMask;
+    voiceIdx   = (s8)voiceIdx;
 
-    channel             = SPU_VOICECH(voiceIdx);
-    *pKeyOff           |= channel;
-    Spu_KeyOnMask      &= ~channel;
-    Spu_KeyOnMaskExtra &= ~channel;
+    voiceMask           = SPU_VOICECH(voiceIdx);
+    *keyOffMask        |= voiceMask;
+    Spu_KeyOnMask      &= ~voiceMask;
+    Spu_KeyOnMaskExtra &= ~voiceMask;
 }
 
 static void Spu_QueryReverbVoices(void)
@@ -657,26 +675,26 @@ static void Spu_SetReverbMode(u32 mode)
     }
 }
 
-void Spu_EnableReverbVoice(u32 voiceIdx)
+void spuEnableVoiceReverb(u32 voiceIdx)
 {
-    u32 channel;
+    u32 voiceMask;
     voiceIdx = (s8)voiceIdx;
 
     Spu_ReverbCfg.isDirty        = true;
-    channel                      = SPU_VOICECH(voiceIdx);
-    Spu_ReverbCfg.enableVoices  |= channel;
-    Spu_ReverbCfg.disableVoices &= ~channel;
+    voiceMask                    = SPU_VOICECH(voiceIdx);
+    Spu_ReverbCfg.enableVoices  |= voiceMask;
+    Spu_ReverbCfg.disableVoices &= ~voiceMask;
 }
 
-void Spu_DisableReverbVoice(u32 voiceIdx)
+void spuDisableVoiceReverb(u32 voiceIdx)
 {
-    u32 channel;
+    u32 voiceMask;
     voiceIdx = (s8)voiceIdx;
 
     Spu_ReverbCfg.isDirty        = true;
-    channel                      = SPU_VOICECH(voiceIdx);
-    Spu_ReverbCfg.disableVoices |= channel;
-    Spu_ReverbCfg.enableVoices  &= ~channel;
+    voiceMask                    = SPU_VOICECH(voiceIdx);
+    Spu_ReverbCfg.disableVoices |= voiceMask;
+    Spu_ReverbCfg.enableVoices  &= ~voiceMask;
 }
 
 static bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx)
@@ -706,38 +724,45 @@ static void Spu_ApplyReverbConfig(void)
     Spu_ReverbCfg.attr.mask = 0;
 }
 
-u16 Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+u16 spuCalcPitch(s32 key, s32 pitchOffset, s32 rootKey, s32 fineTune)
 {
-    u32  temp;
-    u32  hi;
-    u32  lo;
-    u32  offset;
-    u16* base;
+    enum {
+        SPU_PITCH_FRACTION_BITS   = 8,
+        SPU_PITCH_TABLE_UNITY_KEY = 72,
+        SPU_PITCH_PRODUCT_SHIFT   = 8, // Q10 table factors to Q12 SPU pitch
+        SPU_PITCH_REGISTER_MAX    = 0x3FFF
+    };
+    u32        pitchCoordinate;
+    u32        semitoneIndex;
+    u32        fineIndexAndPitch;
+    u32        semitoneByteOffset;
+    const u16* semitonePitches;
 
-    temp  = arg1 + (arg0 << 8);
-    temp  = temp - ((arg2 << 8) - (arg3 << 1));
-    temp += 0x4800;
+    // Translate the note and layer tuning into the table's Q8 coordinate.
+    pitchCoordinate  = pitchOffset + (key << SPU_PITCH_FRACTION_BITS);
+    pitchCoordinate  = pitchCoordinate - ((rootKey << SPU_PITCH_FRACTION_BITS) - (fineTune << 1));
+    pitchCoordinate += SPU_PITCH_TABLE_UNITY_KEY << SPU_PITCH_FRACTION_BITS;
 
-    lo     = (temp & 0xFF) >> 1;
-    offset = 0;
-    hi     = temp & 0xFFFF;
+    // The fine table uses 1/128-semitone steps; the low coordinate bit is discarded.
+    fineIndexAndPitch  = (pitchCoordinate & 0xFF) >> 1;
+    semitoneByteOffset = 0;
+    semitoneIndex      = pitchCoordinate & 0xFFFF;
     do {
-        base = Spu_SemitonePitchTable;
-        hi >>= 8;
-        if (hi != 0) {
-            offset = hi << 1;
+        semitonePitches = Spu_SemitonePitchTable;
+        semitoneIndex >>= SPU_PITCH_FRACTION_BITS;
+        if (semitoneIndex != 0) {
+            semitoneByteOffset = semitoneIndex << 1;
         }
     } while (0);
-    /* The table is indexed by a byte offset: shifting the index inside the
-     * branch is what the original does, and indexing `base` moves the shift. */
-    lo = ((u32) * (u16*)((u8*)base + offset) * (u32)Spu_FinePitchTable[lo]) >> 8;
-    if ((lo & 0xFFFF) >= 0x4000) {
-        lo = 0x3FFF;
+    // The compiled lookup scales the semitone index in bytes before loading a u16.
+    fineIndexAndPitch = ((u32) * (const u16*)((const u8*)semitonePitches + semitoneByteOffset) * (u32)Spu_FinePitchTable[fineIndexAndPitch]) >> SPU_PITCH_PRODUCT_SHIFT;
+    if ((fineIndexAndPitch & 0xFFFF) >= SPU_PITCH_REGISTER_MAX + 1) {
+        fineIndexAndPitch = SPU_PITCH_REGISTER_MAX;
     }
-    return lo;
+    return fineIndexAndPitch;
 }
 
-SndBankLayer* Snd_GetNote(SndBank* bank, u8 group, u8 layer)
+SndBankLayer* sndBankGetLayer(SndBank* bank, u8 group, u8 layer)
 {
     if (bank != NULL) {
         return &bank->layers[bank->groupFirstLayer[group] + layer];
@@ -745,20 +770,25 @@ SndBankLayer* Snd_GetNote(SndBank* bank, u8 group, u8 layer)
     return NULL;
 }
 
-static void Spu_KeyOnClearOff(u32 voiceIdx)
+/// Queues key-on for a voice whose attributes already select the silent ADPCM block.
+///
+/// Requires voiceIdx in 0..23. Starts the five-tick grace period and cancels
+/// pending key-off. The silent mark excludes this key-on from startedVoices,
+/// preventing the voice tick from resetting an already silent voice again.
+static void _spuKeyOnSilentBlock(u32 voiceIdx)
 {
     _SpuVoiceState* state;
-    u32*            pKeyOn;
-    u32             channel;
+    u32*            keyOnMask;
+    u32             voiceMask;
 
     state                            = &Spu_VoiceState;
-    pKeyOn                           = &Spu_KeyOnMask;
+    keyOnMask                        = &Spu_KeyOnMask;
     voiceIdx                         = (s8)voiceIdx;
     state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
-    channel                          = SPU_VOICECH(voiceIdx);
-    *pKeyOn                         |= channel;
-    state->silentKeyOnVoices        |= channel;
-    Spu_KeyOffMask                  &= ~channel;
+    voiceMask                        = SPU_VOICECH(voiceIdx);
+    *keyOnMask                      |= voiceMask;
+    state->silentKeyOnVoices        |= voiceMask;
+    Spu_KeyOffMask                  &= ~voiceMask;
 }
 
 void Spu_ArmKeyOn(u32 voiceIdx)

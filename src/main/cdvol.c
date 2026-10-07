@@ -244,7 +244,7 @@ static void CdVol_RegisterCallbacks(void)
     sp.pollFn   = Cd_InitStateMachine;
     sp.doneFn   = CdVol_ClearCallbackSlot;
     sp.cancelFn = _cdSyncCancelDiscInit;
-    *ptr        = AsyncCb_Enqueue(&sp);
+    *ptr        = asyncCbEnqueue(&sp);
 }
 
 static void CdVol_ClearCallbackSlot(AsyncCbEntry* unused)

@@ -1396,15 +1396,15 @@ static void Midi_KeyOffVoices(_MidiSong* song)
     slot = song->voiceSlots;
     do {
         if (slot->voice >= 0) {
-            status = Spu_GetVoiceStatus(slot->voice);
-            if (status != 0) {
-                Spu_GetVoiceRef(slot->voice, &voiceRef);
+            status = spuGetVoiceKeyStatus(slot->voice);
+            if (status != SPU_OFF) {
+                spuGetVoiceRef(slot->voice, &voiceRef);
                 temp                 = voiceRef.attr->adsr2;
                 temp                 = (temp & 0xFFE0) | 5;
                 voiceRef.attr->adsr2 = temp;
                 voiceRef.attr->mask |= SPU_VOICE_ADSR_ADSR2;
-                if (status != 2) {
-                    Spu_KeyOff(slot->voice);
+                if (status != SPU_OFF_ENV_ON) {
+                    spuKeyOff(slot->voice);
                 }
             }
         }
@@ -1517,7 +1517,7 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
                 vol             = (u32)(volume * slot->volumeScale * product) / (u32)MIDI_VOICE_GAIN_DIVISOR;
                 pan             = channelControls->pan - MIDI_CHANNEL_PAN_CENTER;
                 spuCalcPanVolumes(&panVolumes, slot->pan + pan, vol);
-                Spu_GetVoiceRef(voice, &voiceRef);
+                spuGetVoiceRef(voice, &voiceRef);
                 if (D_800820E9 == 1 && song->sequenceId != 0x5A) {
                     voiceRef.attr->volume.left  = 0;
                     voiceRef.attr->volume.right = 0;
@@ -1556,7 +1556,7 @@ static inline u8* _midiNoteOff(s32 status, u8* data, _MidiSong* song)
     }
     for (i = 0; i < ARRAY_SIZE(song->voiceSlots); i++) {
         if ((song->voiceSlots[i].key == key) && (song->voiceSlots[i].channel == channel)) {
-            Spu_KeyOff(song->voiceSlots[i].voice);
+            spuKeyOff(song->voiceSlots[i].voice);
         }
     }
     return ptr + 2;
@@ -1600,7 +1600,7 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
         program   = song->channels.entries[channel].program;
         group     = &song->groups[program];
         key       = arg1[1];
-        bankLayer = Snd_GetNote(song->bank, program, 0);
+        bankLayer = sndBankGetLayer(song->bank, program, 0);
         for (layer = 0; layer < group->layerCount; layer++, bankLayer++) {
             priority = bankLayer->priority;
             if (key >= bankLayer->keyMin && bankLayer->keyMax >= key) {
@@ -1611,12 +1611,12 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
                     priorities[0] = 0;
                     priorities[1] = 2;
                 }
-                voice = Spu_AllocVoice(priorities, 2, priority);
+                voice = spuAllocVoice(priorities, 2, priority);
                 if (voice >= 0) {
                     slot                       = &song->voiceSlots[voice];
                     song->volumeDirtyChannels |= 1 << channel;
-                    Spu_SetVoiceCallbacks(voice, _midiOnVoiceReleased, slot);
-                    Spu_GetVoiceRef(voice, &ref);
+                    spuSetVoiceCallback(voice, _midiOnVoiceReleased, slot);
+                    spuGetVoiceRef(voice, &ref);
                     slot->voice       = voice;
                     slot->channel     = channel;
                     slot->velocity    = velocity;
@@ -1636,10 +1636,10 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
                     slot->layer   = layer;
                     reverb        = bankLayer->reverb;
                     if (reverb == SPU_ON) {
-                        Spu_EnableReverbVoice(slot->voice);
+                        spuEnableVoiceReverb(slot->voice);
                         slot->reverbEnabled = reverb;
                     } else {
-                        Spu_DisableReverbVoice(slot->voice);
+                        spuDisableVoiceReverb(slot->voice);
                         slot->reverbEnabled = SPU_OFF;
                     }
                     bend = song->channels.entries[channel].pitchBend;
@@ -1656,9 +1656,9 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
                     attr->addr  = bankLayer->waveAddr;
                     attr->adsr1 = bankLayer->adsr1;
                     attr->adsr2 = bankLayer->adsr2;
-                    attr->pitch = Spu_CalcVolume(key, slot->pitchOffset, bankLayer->rootKey, bankLayer->fineTune);
+                    attr->pitch = spuCalcPitch(key, slot->pitchOffset, bankLayer->rootKey, bankLayer->fineTune);
                     attr->mask  = SPU_VOICE_WDSA | SPU_VOICE_ADSR_ADSR1 | SPU_VOICE_ADSR_ADSR2 | SPU_VOICE_PITCH;
-                    Spu_KeyOn(slot->voice);
+                    spuKeyOn(slot->voice);
                 }
             }
         }
@@ -1983,8 +1983,8 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unuse
     do {
         slot = &song->voiceSlots[i];
         if (slot->channel == channel) {
-            Spu_GetVoiceRef(slot->voice, &voiceRef);
-            bankLayer = Snd_GetNote(song->bank, slot->program, slot->layer);
+            spuGetVoiceRef(slot->voice, &voiceRef);
+            bankLayer = sndBankGetLayer(song->bank, slot->program, slot->layer);
             if (pitchBend >= 0) {
                 scale   = bankLayer->bendUp;
                 scale <<= MIDI_PITCH_FRACTION_BITS;
@@ -1996,7 +1996,7 @@ static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unuse
             pitch             = scale / MIDI_PITCH_BEND_MAX;
             slot->pitchOffset = pitch;
             attr              = voiceRef.attr;
-            attr->pitch       = Spu_CalcVolume((u16)slot->key, pitch, bankLayer->rootKey, bankLayer->fineTune);
+            attr->pitch       = spuCalcPitch((u16)slot->key, pitch, bankLayer->rootKey, bankLayer->fineTune);
             attr->mask       |= SPU_VOICE_PITCH;
         }
         i += 1;

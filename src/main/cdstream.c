@@ -1074,8 +1074,8 @@ void CdStream_Start(CdStreamParams* params)
     p->voiceR = params->voiceR;
     flag      = ((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1;
     if (flag == 1) {
-        Spu_KeyOff((s8)p->voiceL);
-        Spu_KeyOff((s8)p->voiceR);
+        spuKeyOff((s8)p->voiceL);
+        spuKeyOff((s8)p->voiceR);
         if (params->voiceFreeCb != NULL) {
             params->voiceFreeCb(
                 (flag << (s8)p->voiceL) | (flag << (s8)p->voiceR));
@@ -1289,8 +1289,8 @@ static void CdStream_TeardownVoices(void)
         CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_KEY_ON;
         flag                           = (CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1;
         if (flag == 1) {
-            Spu_KeyOff((s8)CdStream_Runtime.state.voiceL);
-            Spu_KeyOff((s8)CdStream_Runtime.state.voiceR);
+            spuKeyOff((s8)CdStream_Runtime.state.voiceL);
+            spuKeyOff((s8)CdStream_Runtime.state.voiceR);
             CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_VOICES_ON;
             if (CdStream_Runtime.state.voiceFreeCb != NULL) {
                 CdStream_Runtime.state.voiceFreeCb((flag << (s8)CdStream_Runtime.state.voiceL) | (flag << (s8)CdStream_Runtime.state.voiceR));
@@ -1424,8 +1424,8 @@ static void CdStream_TickPlayback(void)
             D_80068B5E = (u8)(D_80068B5E + 1);
         stopVoices:
             if (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) {
-                Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
-                Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
+                spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
+                spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
                 if (CdStream_Runtime.state.voiceFreeCb != NULL) {
                     CdStream_Runtime.state.voiceFreeCb((1 << (s8)CdStream_Runtime.state.voiceL) | (1 << CdStream_Runtime.state.voiceR));
                 }
@@ -1515,8 +1515,8 @@ static void CdStream_CompleteChunkRead(void)
             D_80068B5E += 1;
         stopVoices:
             if (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) {
-                Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
-                Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
+                spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
+                spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
                 if (CdStream_Runtime.state.voiceFreeCb != NULL) {
                     CdStream_Runtime.state.voiceFreeCb((1 << (s8)CdStream_Runtime.state.voiceL) | (1 << CdStream_Runtime.state.voiceR));
                 }
@@ -1611,8 +1611,8 @@ void CdStream_Drive(void)
             } else {
                 if (((u8)CdStream_Runtime.state.flags1 >> CD_STREAM_SEEK_BIT) & 1) {
                     if (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) {
-                        Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
-                        Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
+                        spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
+                        spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
                         if (CdStream_Runtime.state.voiceFreeCb != NULL) {
                             CdStream_Runtime.state.voiceFreeCb((1 << CdStream_Runtime.state.voiceL) | (1 << CdStream_Runtime.state.voiceR));
                         }
@@ -1640,8 +1640,8 @@ void CdStream_Drive(void)
                 }
                 if (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_STOP_BIT) & 1) {
                     if (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) {
-                        Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
-                        Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
+                        spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
+                        spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
                         if (CdStream_Runtime.state.voiceFreeCb != NULL) {
                             CdStream_Runtime.state.voiceFreeCb((1 << (s8)CdStream_Runtime.state.voiceL) | (1 << CdStream_Runtime.state.voiceR));
                         }
@@ -1706,8 +1706,8 @@ void CdStream_Drive(void)
                          ((((u8)CdStream_Runtime.state.flags1 >> CD_STREAM_END_THROUGH_BIT) & 1) ? (position / (s16)(u16)CdStream_Runtime.state.chunkVsyncs >= CdStream_Runtime.state.chunkCount) : (position % (s16)(u16)CdStream_Runtime.state.chunkVsyncs >= (CdStream_Runtime.state.chunkVsyncs >> 1))) ||
                          (position / (s16)(u16)CdStream_Runtime.state.chunkVsyncs >= CdStream_Runtime.state.chunkCount))) {
                         if (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) {
-                            Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
-                            Spu_KeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
+                            spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceL);
+                            spuKeyOff((u32)(s8)CdStream_Runtime.state.voiceR);
                             if (CdStream_Runtime.state.voiceFreeCb != NULL) {
                                 CdStream_Runtime.state.voiceFreeCb((1 << (s8)CdStream_Runtime.state.voiceL) | (1 << CdStream_Runtime.state.voiceR));
                             }
@@ -1835,12 +1835,12 @@ static s32 CdStream_PollMtsRead(_CdReadyEntry* entry)
         } else {
             entry->phase = CD_STREAM_STEP_SETLOC;
             if (CdStream_Runtime.state.reinitSlot != 0) {
-                AsyncCb_Cancel((s16)CdStream_Runtime.state.reinitSlot);
+                asyncCbCancel(CdStream_Runtime.state.reinitSlot);
             }
             sp.entry.pollFn                   = CdStream_InitDisc;
             sp.entry.doneFn                   = CdStream_MarkEnding;
             sp.entry.cancelFn                 = _cdStreamCancelDiscInit;
-            CdStream_Runtime.state.reinitSlot = AsyncCb_Enqueue(&sp.entry);
+            CdStream_Runtime.state.reinitSlot = asyncCbEnqueue(&sp.entry);
         }
     }
     CdStream_CurrentPhase = entry->phase;

@@ -344,12 +344,12 @@ static s32 CdAudio_DriveStream(void)
             CdAudio_Ctl.openPending = 0;
             status                  = 0;
             for (i = 0x16; i < 0x18; i++) {
-                status += Spu_GetVoiceStatus(i);
-                if (status != 0) {
-                    Spu_KeyOff(i);
+                status += spuGetVoiceKeyStatus(i);
+                if (status != SPU_OFF) {
+                    spuKeyOff(i);
                 }
             }
-            if (status != 0) {
+            if (status != SPU_OFF) {
                 break;
             }
             CdAudio_Phase.openStep = CD_AUDIO_OPEN_STEP_START_READ;
@@ -429,8 +429,8 @@ static s32 CdAudio_DrivePhase0(void)
         case CD_AUDIO_STOP_STEP_RELEASE_VOICES:
             // These are the voices the player asked for, which is none: the
             // pair the stream allocated is recorded in the stream itself.
-            Spu_KeyOff(_gCdAudioState.streamParams.voiceL);
-            Spu_KeyOff(_gCdAudioState.streamParams.voiceR);
+            spuKeyOff(_gCdAudioState.streamParams.voiceL);
+            spuKeyOff(_gCdAudioState.streamParams.voiceR);
             progress->stopStep = CD_AUDIO_STOP_STEP_WAIT_IDLE;
             /* fallthrough */
         case CD_AUDIO_STOP_STEP_WAIT_IDLE:
@@ -736,8 +736,8 @@ static s32 CdAudio_DriveRead(void)
     switch (CdAudio_Phase.waveLoadStep) {
         case CD_AUDIO_WAVE_LOAD_STEP_RELEASE_STREAM:
             // The voices the player asked for, not the stream's allocated pair.
-            Spu_KeyOff(_gCdAudioState.streamParams.voiceL);
-            Spu_KeyOff(_gCdAudioState.streamParams.voiceR);
+            spuKeyOff(_gCdAudioState.streamParams.voiceL);
+            spuKeyOff(_gCdAudioState.streamParams.voiceR);
             if (CdStream_IsBusy() != 0) {
                 break;
             }
@@ -1128,8 +1128,8 @@ void CdAudio_CopyVoiceData(s8 arg0, const SpuVoiceAttr* attr)
     const s32*  arg1;
     u32         i;
 
-    Spu_SetVoiceCallbacks(arg0, NULL, NULL);
-    Spu_GetVoiceRef(arg0, &voiceRef);
+    spuSetVoiceCallback(arg0, NULL, NULL);
+    spuGetVoiceRef(arg0, &voiceRef);
     dest = (s32*)voiceRef.attr;
     arg1 = (const s32*)attr;
     i    = 0;
@@ -1143,10 +1143,10 @@ void CdAudio_CopyVoiceData(s8 arg0, const SpuVoiceAttr* attr)
 
 void CdAudio_AllocVoices(s8* arg0, s8* arg1)
 {
-    *arg0 = Spu_AllocVoice(D_80068B28, 3, 0xFFFF);
-    *arg1 = Spu_AllocVoice(D_80068B28, 3, 0xFFFF);
-    Spu_DisableReverbVoice(*arg0);
-    Spu_DisableReverbVoice(*arg1);
+    *arg0 = spuAllocVoice(D_80068B28, 3, 0xFFFF);
+    *arg1 = spuAllocVoice(D_80068B28, 3, 0xFFFF);
+    spuDisableVoiceReverb(*arg0);
+    spuDisableVoiceReverb(*arg1);
 }
 
 static s32 CdAudio_LoadSectorEntry(s32 arg0)
