@@ -25,7 +25,8 @@ and fails if it grew. A change that moves a site between files, or removes one
 and needs another elsewhere, is unaffected: only the total counts.
 
 Psy-Q's `gte_*` macros and `include/decomp/gte.h` emit GTE instructions and are
-not counted; neither is `gte_RotTransLV`, a hand-written GTE routine.
+not counted; that header also holds `gte_RotTransLV`, the one hand-written GTE
+routine.
 """
 import argparse
 import re
@@ -69,8 +70,6 @@ def sites(text: str) -> list[tuple[int, str, str]]:
             found.append((number, "alias", rest.strip()[:80]))
             continue
         for m in STMT.finditer(rest):
-            if "gte_RotTransLV" in rest:
-                continue
             template = "".join(re.findall(r'"((?:[^"\\]|\\.)*)"', m.group(1)))
             found.append((number, "barrier" if not template.strip() else "emit", rest.strip()[:80]))
         for m in MACRO.finditer(rest):

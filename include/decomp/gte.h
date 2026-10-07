@@ -168,4 +168,160 @@
                        "i"(12 + 2 * (col))                                 \
                      : "$12", "$13", "$14", "memory")
 
+/// The three MVMVA command words `gte_RotTransLV` issues, one per chunk of its input.
+enum {
+    GTE_ROT_TRANS_LV_LOW_ROTATE_TRANSLATE = 0x4A480012, /* Rotates the low chunks and adds translation.
+                                                         *
+                                                         * Same instruction word as gte_rtv0tr.
+                                                         * MVMVA(sf=1, mx=0, v=0, cv=0, lm=0).
+                                                         * V0 = (input & 1023) - 1024 * (input < 0),
+                                                         * for each input component.
+                                                         * Read MAC1..3 = (RT * V0 + TR * 4096) >> 12.
+                                                         * Code reads MAC1..3, not saturated IR. */
+    GTE_ROT_TRANS_LV_MIDDLE_ROTATE = 0x4A40E012,        /* Rotates signed middle chunks without translation.
+                                                         *
+                                                         * gte_rtv1 operands with the fraction shift off.
+                                                         * MVMVA(sf=0, mx=0, v=1, cv=3, lm=0).
+                                                         * V1 = ((input >> 10) & 1023) - 1023 * (input < 0),
+                                                         * for each input component.
+                                                         * Read MAC1..3 = RT * V1; IR1..3 saturate.
+                                                         * Arithmetic MAC >> 2 restores the 2^10 weight
+                                                         * against RT's 12 fractional bits. */
+    GTE_ROT_TRANS_LV_HIGH_ROTATE = 0x4A416012           /* Rotates signed high chunks without translation.
+                                                         *
+                                                         * MVMVA(sf=0, mx=0, v=2, cv=3, lm=0).
+                                                         * V2 = (input >> 20) + (input < 0), componentwise.
+                                                         * Read MAC1..3 = RT * V2; IR1..3 saturate.
+                                                         * MAC << 8 restores the 2^20 chunk's weight
+                                                         * with RT's 12 fractional bits; wraps at 32 bits. */
+};
+
+/// Rotates a signed 32-bit vector and adds the translation already loaded into the GTE.
+///
+/// Load RT (12 fractional bits) and TR before calling. `inputVector` and
+/// `outputVector` each address three contiguous signed 32-bit components,
+/// aligned to four bytes; input and TR use the same coordinate units. Reads
+/// and writes exactly 12 bytes. The buffers may overlap: all input loads
+/// precede the output stores. Each pointer expression is evaluated once,
+/// with no ordering between the two evaluations and no captured C variables.
+///
+/// Splits each component into signed low, middle and high chunks weighted by
+/// 1, 2^10 and 2^20. The low product includes TR and shifts right by 12; the
+/// middle product shifts right by 2; the high product shifts left by 8.
+/// Low and middle products round down separately, so this can differ from
+/// shifting a single full product. Final additions wrap at 32 bits.
+/// Clobbers GTE V0..V2, MAC1..3, IR1..3 and FLAG; leaves RT and TR intact.
+/// No combined overflow status is returned.
+#define gte_RotTransLV(inputVector, outputVector) \
+    __asm__ volatile( \
+        "lw	$14, 0( %0 );" \
+        "lw	$15, 4( %0 );" \
+        "addiu	$16, $0, -0x400;" \
+        "sra	$12, $14, 21;" \
+        "and	$12, $16, $12;" \
+        "andi	$13, $14, 0x3ff;" \
+        "or	$12, $13, $12;" \
+        "andi	$12, $12, 0xffff;" \
+        "sra	$13, $15, 21;" \
+        "and	$13, $16, $13;" \
+        "andi	$16, $15, 0x3ff;" \
+        "or	$13, $16, $13;" \
+        "sll	$13, $13, 16;" \
+        "or	$12, $13, $12;" \
+        "mtc2	$12, $0;" \
+        "sra	$14, $14, 10;" \
+        "sra	$15, $15, 10;" \
+        "addiu	$16, $0, -0x400;" \
+        "sra	$12, $14, 21;" \
+        "and	$12, $16, $12;" \
+        "andi	$13, $14, 0x3ff;" \
+        "or	$12, $13, $12;" \
+        "sra	$13, $15, 21;" \
+        "and	$13, $16, $13;" \
+        "andi	$16, $15, 0x3ff;" \
+        "or	$13, $16, $13;" \
+        "srl	$16, $15, 31;" \
+        "addu	$13, $13, $16;" \
+        "sll	$13, $13, 16;" \
+        "srl	$16, $14, 31;" \
+        "addu	$12, $12, $16;" \
+        "andi	$12, $12, 0xffff;" \
+        "or	$12, $13, $12;" \
+        "mtc2	$12, $2;" \
+        "sra	$14, $14, 10;" \
+        "sra	$15, $15, 10;" \
+        "andi	$12, $14, 0xffff;" \
+        "srl	$16, $14, 31;" \
+        "addu	$12, $16, $12;" \
+        "andi	$12, $12, 0xffff;" \
+        "andi	$13, $15, 0xffff;" \
+        "srl	$16, $15, 31;" \
+        "addu	$13, $16, $13;" \
+        "sll	$13, $13, 16;" \
+        "or	$12, $13, $12;" \
+        "mtc2	$12, $4;" \
+        "lw	$16, 8( %0 );" \
+        "addiu	$14, $0, -0x400;" \
+        "srl	$15, $16, 31;" \
+        "sra	$12, $16, 21;" \
+        "and	$12, $14, $12;" \
+        "andi	$13, $16, 0x3ff;" \
+        "or	$12, $13, $12;" \
+        "mtc2	$12, $1;" \
+        "sra	$16, $16, 10;" \
+        "sra	$12, $16, 21;" \
+        "and	$12, $14, $12;" \
+        "andi	$13, $16, 0x3ff;" \
+        "or	$12, $13, $12;" \
+        "addu	$12, $12, $15;" \
+        "mtc2	$12, $3;" \
+        "sra	$16, $16, 10;" \
+        "addu	$12, $16, $15;" \
+        "mtc2	$12, $5;" \
+        "nop;" \
+        "nop;" /* Use MAC results so IR saturation does not clamp the accumulated output. */ \
+        ".word %2;" \
+        "mfc2	$14, $25;" \
+        "mfc2	$15, $26;" \
+        "mfc2	$16, $27;" \
+        "nop;" \
+        "nop;" \
+        ".word %3;" \
+        "mfc2	$12, $25;" \
+        "nop;" \
+        "sra	$12, $12, 2;" \
+        "addu	$14, $12, $14;" \
+        "mfc2	$12, $26;" \
+        "nop;" \
+        "sra	$12, $12, 2;" \
+        "addu	$15, $12, $15;" \
+        "mfc2	$12, $27;" \
+        "nop;" \
+        "sra	$12, $12, 2;" \
+        "addu	$16, $12, $16;" \
+        "nop;" \
+        "nop;" \
+        ".word %4;" \
+        "mfc2	$12, $25;" \
+        "nop;" \
+        "sll	$12, $12, 8;" \
+        "addu	$14, $12, $14;" \
+        "mfc2	$12, $26;" \
+        "nop;" \
+        "sll	$12, $12, 8;" \
+        "addu	$15, $12, $15;" \
+        "mfc2	$12, $27;" \
+        "nop;" \
+        "sll	$12, $12, 8;" \
+        "addu	$16, $12, $16;" \
+        "sw	$14, 0( %1 );" \
+        "sw	$15, 4( %1 );" \
+        "sw	$16, 8( %1 )" \
+        : \
+        : "r"(inputVector), "r"(outputVector), \
+        "i"(GTE_ROT_TRANS_LV_LOW_ROTATE_TRANSLATE), \
+        "i"(GTE_ROT_TRANS_LV_MIDDLE_ROTATE), \
+        "i"(GTE_ROT_TRANS_LV_HIGH_ROTATE) \
+        : "$12", "$13", "$14", "$15", "$16", "memory")
+
 #endif
