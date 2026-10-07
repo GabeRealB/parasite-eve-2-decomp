@@ -1819,7 +1819,7 @@ static void func_actor_107600_801339A4(Task* arg0)
 }
 
 /// Hit handler: for each contact of category 2, stores the shot's direction in
-/// `knockback`, applies `Gp_ComputeDamage` to the enemy's HP, starts
+/// `knockback`, applies `damageComputePlayerAttack` to the enemy's HP, starts
 /// `hitCooldown`, adds a hit mark and plays the hit sound for the first eight
 /// damaging hits, and asks for a light or heavy flinch in `hitReaction`.
 static void func_actor_107600_80133DC4(Task* arg0)
@@ -1843,7 +1843,7 @@ static void func_actor_107600_80133DC4(Task* arg0)
                 work->knockback.vy = work->contacts[i].response.direction.vy;
                 work->knockback.vz = work->contacts[i].response.direction.vz;
                 func_actor_107600_80134D9C(arg0);
-                damage            = Gp_ComputeDamage(work->contacts[i].key.value, work->playerDistance, 0, 0);
+                damage            = damageComputePlayerAttack(work->contacts[i].key.value, work->playerDistance, 0, 0);
                 work->hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                 work->hitDamage   = damage;
                 worldTargetAddReadoutAmount(&enemy->node, damage, 0);

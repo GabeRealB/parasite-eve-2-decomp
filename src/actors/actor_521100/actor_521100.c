@@ -1919,7 +1919,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         scratch->delta.vector.vy = 0;
         dz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         scratch->delta.vector.vz = dz;
-        damage                   = Gp_ComputeDamage(work->bodyContacts[i].key.value, SquareRoot0(dx * dx + dz * dz), 0, 0);
+        damage                   = damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(dx * dx + dz * dz), 0, 0);
         hitResponse              = _actor521100GetBaseHitResponse(work->bodyContacts[i].key.value);
         if (hitResponse == ACTOR_521100_HIT_RESPONSE_GUARD) {
             if (work->state == ACTOR_521100_STATE_GRAB) {

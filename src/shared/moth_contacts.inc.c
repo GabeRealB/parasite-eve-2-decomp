@@ -63,8 +63,8 @@ void mothContacts(Task* arg0)
             delta->vector.vy = dy;
             dz               = target->coord.t[2] - coord->coord.t[2];
             delta->vector.vz = dz;
-            damage           = Gp_ComputeDamage((s32)work->hitContacts[0].key.value,
-                                                SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+            damage           = damageComputePlayerAttack(work->hitContacts[0].key.value,
+                                                         SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
             amount           = damage;
             if (damage == 0) {
                 damage = 1;

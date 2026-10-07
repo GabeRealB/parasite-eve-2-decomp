@@ -1075,7 +1075,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
 
 /// Per-frame hit handler: walks the three `hitContacts` records. A category-2
 /// contact lands only while `hitCooldown` is clear. Damage is the player
-/// distance through `Gp_ComputeDamage`, quadrupled on a successful
+/// distance through `damageComputePlayerAttack`, quadrupled on a successful
 /// `damageRollCriticalHit`, and halved (or zeroed for 0x8000 ids) while the
 /// shield is up, which also plays the deflect flash and sound. The id
 /// parameter may ask for a stagger or, with the shield down, for
@@ -1118,10 +1118,10 @@ static void func_actor_105100_80132C2C(Task* arg0)
             scratch->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             scratch->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
             scratch->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage               = Gp_ComputeDamage(work->hitContacts[i].key.value,
-                                                    SquareRoot0(scratch->toPlayer.vx * scratch->toPlayer.vx + scratch->toPlayer.vy * scratch->toPlayer.vy +
-                                                                scratch->toPlayer.vz * scratch->toPlayer.vz),
-                                                    0, 0);
+            damage               = damageComputePlayerAttack(work->hitContacts[i].key.value,
+                                                             SquareRoot0(scratch->toPlayer.vx * scratch->toPlayer.vx + scratch->toPlayer.vy * scratch->toPlayer.vy +
+                                                                         scratch->toPlayer.vz * scratch->toPlayer.vz),
+                                                             0, 0);
             if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
                 damage *= 4;
                 effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);

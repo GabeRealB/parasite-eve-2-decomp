@@ -6,13 +6,30 @@
 #include "gameplay/collision.h"
 #include "gameplay/enemy.h"
 
-/// Packed-id enemy damage roll. `arg0` must have high bits `0x20000`. Ids
-/// without bit 0x8000 read `Gp_IdParamLo`, scale by a random 100..119 percent,
-/// by the `D_80113568` row for `(arg0 >> 8) & 0x3F`, and by `arg3` when
-/// `arg2` matches the row's `hitReaction`; ids with bit 0x8000 read
-/// `Gp_IdParamHi` and scale by a random 100..109 percent. `arg1` is a hit
-/// count that selects the `D_80113568` column through `D_80113864`.
-u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
+/// Computes weapon or Parasite Energy HP damage from a category-2 attack key.
+///
+/// Category 2 keys are accepted; other categories return 0 without a random
+/// draw. The low seven bits select PE rows 0..54 when bit 15 is set, or
+/// weapon rows 0..46 otherwise. Weapon keys also require a distance-scale row
+/// in 0..46 in bits 8..13. These indices must be valid; no bounds checks run.
+/// Each accepted key advances the shared random sequence once, even for zero
+/// base damage. Companion and enemy attacks can also use this key encoding.
+/// The victim applies HP loss and handles critical hits separately.
+///
+/// `playerDistance` is the attacker-to-target distance in world units, used
+/// only for weapon attacks. Its distance/1000 bucket is narrowed to a byte
+/// before selecting one of six distance classes. `scaledReaction` 0 disables
+/// extra scaling; otherwise a matching weapon reaction uses `reactionScale`, a
+/// nonnegative Q8 factor (256 is unity). PE attacks ignore both parameters.
+///
+/// Weapon damage rolls 100..119 percent of its base, then applies distance,
+/// reaction and difficulty scales. Non-companion keys (bit 7 clear) with
+/// rows below 33 also receive Berserker, Energy Shot and Skull Crystal boosts.
+/// A nonzero weapon base deals at least 1 HP after scaling. PE damage rolls
+/// 100..109 percent, receives Ofuda and difficulty scales, and may remain 0.
+/// Life Drain rows 25..27 divide their base among the current PE targets;
+/// zero targets gives zero damage. The current difficulty must be in 0..4.
+u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReaction, s32 reactionScale);
 
 /// Returns 1 when a player attack scores a critical hit on `enemy`, otherwise 0.
 ///

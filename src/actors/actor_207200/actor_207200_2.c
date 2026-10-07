@@ -1162,7 +1162,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                                                        scratch->delta.vector.vy * scratch->delta.vector.vy +
                                                        scratch->delta.vector.vz * scratch->delta.vector.vz);
                 damageGetPlayerAttackReaction(work->bodyContacts[i].key.value);
-                damage = Gp_ComputeDamage(work->bodyContacts[i].key.value, damage, 0, 0);
+                damage = damageComputePlayerAttack(work->bodyContacts[i].key.value, damage, 0, 0);
                 effectSpawnHit(damageGetPlayerAttackEffectId(work->bodyContacts[i].key.value),
                                arg0->extra.tmd->coords + 1, &D_actor_207200_80153F10, &work->bodyHitEffectArg);
                 n = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
@@ -1234,7 +1234,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             damage                   = SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy +
                                                    scratch->delta.vector.vz * scratch->delta.vector.vz);
             param                    = damageGetPlayerAttackReaction(work->headContacts[i].key.value);
-            damage                   = Gp_ComputeDamage(work->headContacts[i].key.value, damage, 0, 0);
+            damage                   = damageComputePlayerAttack(work->headContacts[i].key.value, damage, 0, 0);
             switch ((u16)param) {
                 case DAMAGE_PLAYER_REACTION_STAGGER:
                 case 4:

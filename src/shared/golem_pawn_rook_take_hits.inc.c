@@ -99,9 +99,9 @@ void golemPawnRookTakeHits(Task* arg0)
                 scratch->delta.vector.vz = dz;
                 val                      = (scratch->delta.vector.vx * self->coord.m[0][2]) + (scratch->delta.vector.vy * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
                 work->hitFromFront       = val >= 0;
-                damage                   = Gp_ComputeDamage(work->hurtContacts[i].key.value,
-                                                            SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
-                                                            0, 0);
+                damage                   = damageComputePlayerAttack(work->hurtContacts[i].key.value,
+                                                                     SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
+                                                                     0, 0);
                 kind                     = damageGetPlayerAttackReaction(work->hurtContacts[i].key.value);
                 if (work->shieldRaised != 0 && work->hitFromFront == 1 && work->downedPose == 0) {
                     if (work->hurtContacts[i].key.value & 0x8000) {

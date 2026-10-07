@@ -915,7 +915,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
             case 0x20000:
                 if (work->hitCooldown == 0) {
                     work->hitTaken    = 1;
-                    dmg               = Gp_ComputeDamage(work->contacts[i].key.value, work->playerDist, 0, 0);
+                    dmg               = damageComputePlayerAttack(work->contacts[i].key.value, work->playerDist, 0, 0);
                     amount            = dmg;
                     work->hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                     if (damageRollCriticalHit(enemy, work->contacts[i].key.value, 0) != 0) {

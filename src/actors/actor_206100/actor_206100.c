@@ -1469,7 +1469,7 @@ static void func_actor_206100_8014B8B4(Task* task)
 /// takes the hit; `hitTaken` also ends the walk of the records.
 ///
 /// While the cooldown reads 0 the record's packed id is rolled through
-/// `Gp_ComputeDamage` and `damageRollCriticalHit` -- a successful roll scales the
+/// `damageComputePlayerAttack` and `damageRollCriticalHit` -- a successful roll scales the
 /// damage and selects the effect kind. The result credits any Life Drain
 /// healing through `damageAccumulateLifeDrainHp`, updates the damage readout
 /// through `worldTargetAddReadoutAmount`, and is subtracted from the enemy's `hp`.
@@ -1510,7 +1510,7 @@ static void func_actor_206100_8014BAA8(Task* task)
             if (work->hitCooldown == 0) {
                 work->hitTaken    = hit;
                 work->wasHit      = hit;
-                dmg               = Gp_ComputeDamage(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
+                dmg               = damageComputePlayerAttack(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
                 amount            = dmg;
                 work->hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                 if (damageRollCriticalHit(enemy, work->hitContacts[i].key.value, 0) != 0) {

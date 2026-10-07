@@ -2936,7 +2936,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             dz                      = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
             scratch->playerDelta.vz = dz;
             scratch->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
-            scratch->damage         = Gp_ComputeDamage(scratch->hitKey, scratch->playerDistance, 0, 0);
+            scratch->damage         = damageComputePlayerAttack(scratch->hitKey, scratch->playerDistance, 0, 0);
             if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
                 scratch->damage *= 4;
                 effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], 0, NULL);

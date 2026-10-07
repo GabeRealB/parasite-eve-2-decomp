@@ -5934,7 +5934,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
     s16                        state;
 
     if (work->hp > 0) {
-        damage                     = Gp_ComputeDamage(attackId, 0, 0, 0x1000);
+        damage                     = damageComputePlayerAttack(attackId, 0, 0, 0x1000);
         work->effectArg.coord      = &task->extra.tmd->coords[1];
         work->effectArg.spawnArgLo = 0x80;
         work->effectArg.spawnArgHi = 2;

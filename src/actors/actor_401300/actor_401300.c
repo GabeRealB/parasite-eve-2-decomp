@@ -2530,7 +2530,7 @@ static void func_actor_401300_80134F90(Task* arg0)
             dz                = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
             s->toPlayer.vz    = dz;
             s->playerDistance = SquareRoot0(dx * dx + dy * dy + dz * dz);
-            s->damage         = Gp_ComputeDamage(s->hitKey, s->playerDistance, 0, 0);
+            s->damage         = damageComputePlayerAttack(s->hitKey, s->playerDistance, 0, 0);
             if (damageRollCriticalHit(enemy, s->hitKey, 0) != 0) {
                 s->critical       = 1;
                 s->criticalEffect = 0;

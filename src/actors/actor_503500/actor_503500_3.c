@@ -1326,7 +1326,7 @@ static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enem
     d.vx = src->coord.t[0] - pos.vx;
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
     if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);
@@ -2951,7 +2951,7 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor50350
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
     if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;
@@ -3775,7 +3775,7 @@ static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500Large
     d.vy = src->coord.t[1] - pos.vy;
     d.vz = src->coord.t[2] - pos.vz;
     crit = 0;
-    dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
+    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
     if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
         crit = 1;

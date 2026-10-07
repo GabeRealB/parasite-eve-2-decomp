@@ -550,7 +550,7 @@ static void Actor02400_Fn00C08(Task* task)
                         scratch->delta.vector.vx = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vector.vy = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vector.vz = src->coord.t[2] - coord->coord.t[2];
-                        work->staggerDamage     += Gp_ComputeDamage(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
+                        work->staggerDamage     += damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
                         if (work->staggerDamage >= 20 || work->mode == ACTOR_02400_MODE_STUNNED) {
                             work->mode          = ACTOR_02400_MODE_STUNNED;
                             work->phase         = 0;
@@ -571,7 +571,7 @@ static void Actor02400_Fn00C08(Task* task)
                         scratch->delta.vector.vx = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vector.vy = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vector.vz = src->coord.t[2] - coord->coord.t[2];
-                        damage                   = Gp_ComputeDamage(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
+                        damage                   = damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
                         work->mode               = ACTOR_02400_MODE_HURT;
                         work->phase              = 0;
                         work->counter            = 0;
@@ -589,7 +589,7 @@ static void Actor02400_Fn00C08(Task* task)
                         scratch->delta.vector.vx = src->coord.t[0] - coord->coord.t[0];
                         scratch->delta.vector.vy = src->coord.t[1] - coord->coord.t[1];
                         scratch->delta.vector.vz = src->coord.t[2] - coord->coord.t[2];
-                        damage                   = (s16)Gp_ComputeDamage(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0) * 5;
+                        damage                   = (s16)damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0) * 5;
                         work->mode               = ACTOR_02400_MODE_HURT;
                         work->phase              = 0;
                         work->counter            = 0;

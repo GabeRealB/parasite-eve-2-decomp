@@ -1726,7 +1726,7 @@ static void Actor00400_Fn01B90(Task* arg0)
             if (work->hitCooldown == 0) {
                 work->hitTaken    = 1;
                 work->wasHit      = 1;
-                dmg               = Gp_ComputeDamage(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
+                dmg               = damageComputePlayerAttack(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
                 amount            = dmg;
                 work->hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
                 if (damageRollCriticalHit(obj, work->hitContacts[i].key.value, work->critChanceScale) != 0) {

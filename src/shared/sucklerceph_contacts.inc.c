@@ -77,7 +77,7 @@ void sucklercephContacts(Task* arg0)
                 break;
             case 0x20000:
                 if (work->hitCooldown == 0) {
-                    damage = Gp_ComputeDamage(work->contacts[i].key.value, distance, 0, 0);
+                    damage = damageComputePlayerAttack(work->contacts[i].key.value, distance, 0, 0);
                     if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
                         sucklercephKill(arg0, 1);
                         arg0->killCountdown = 5;

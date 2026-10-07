@@ -1095,7 +1095,7 @@ static void Actor03800_Fn00A98(Task* arg0)
                     frame->delta.vector.vx = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vector.vy = sourceCoord->coord.t[1] - coord->coord.t[1];
                     frame->delta.vector.vz = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage                 = Gp_ComputeDamage(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
+                    damage                 = damageComputePlayerAttack(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
                     if (work->overturned == 0) {
                         if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
                             damage *= 4;

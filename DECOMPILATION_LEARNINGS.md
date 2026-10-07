@@ -39478,39 +39478,39 @@ between the two statements keeps them in source order.
 
 ## Whole-function `$t` allocation: per-branch scopes, parameter reuse, `u8` locals
 
-Symptom: a large two-armed function (`if (id & 0x8000) ... else ...`) matches
+Symptom: a large two-armed function (`if (attackKey & 0x8000) ... else ...`) matches
 structurally but *every* register is shifted — the target opens with
 `move t0,a0 / move t3,a1 / move t4,a2` while the attempt keeps `$a0`/`$a2` in
-place and burns a different set of `$t` registers (`Gp_ComputeDamage`, 84% → 99%).
+place and burns a different set of `$t` registers (`damageComputePlayerAttack`, 84% → 99%).
 
 Three independent knobs fixed it, in this order:
 
 1. **Scope the locals to the branch that uses them.** GCC 2.8.1 never splits a
-   live range: a `u32 rand;` declared at function scope and used in *both*
+   live range: a `u32 weaponRoll;` declared at function scope and used in *both*
    mutually exclusive arms is one pseudo spanning both blocks, so `global_alloc`
    hands it a `$t` register and pushes everything else along. Give each arm its
-   own block-scope copy (`rand` / `rnd`, `pct` / `pc`) and they become
+   own block-scope copy (`weaponRoll` / `peRoll`, `weaponPercent` / `pePercent`) and they become
    local_alloc temps in `$v0`/`$v1` like the target. Only the genuinely shared
    value (the return variable) stays at function scope. 91% → 95%.
 
-2. **Reuse the parameter as the derived local.** The target keeps `index` in a
+2. **Reuse the parameter as the derived local.** The target keeps `attackKey` in a
    `$t` register *and* reuses that register for a value derived from it
-   (`andi t0, a0, 0x3f` overwrites the `index` copy). Writing
-   `index = (index >> 8) & 0x3F;` instead of `row = (arg0 >> 8) & 0x3F;` extends
+   (`andi t0, a0, 0x3f` overwrites the `attackKey` copy). Writing
+   `attackKey = (attackKey >> 8) & 0x3F;` instead of `distanceRow = (attackKey >> 8) & 0x3F;` extends
    the parameter's pseudo over the derived value, which is what forces the
    prologue `move t0,a0` and frees `$a0` as a scratch register.
 
 3. **Narrow a local to `u8` to flip allocation priority.** Two same-length
-   pseudos (`flag` and `lo`) came out swapped (`t1`/`t2`). `allocno_compare`
+   pseudos (`applyPlayerWeaponModifiers` and `weaponRow`) came out swapped (`t1`/`t2`). `allocno_compare`
    ranks by `floor_log2(n_refs) * n_refs / live_length` and breaks ties by
    pseudo number, so a variable declared later can still win. Declaring
-   `u8 lo` instead of `u32 lo` (and `u8 col` instead of `(u8)(x / 1000)` into a
+   `u8 weaponRow` instead of `u32 weaponRow` (and `u8 distanceBand` instead of `(u8)(playerDistance / 1000)` into a
    `u32`) changed the ranking enough to restore the target's `t1`/`t2` order and
    to fix the interleaving of two magic-number divisions in the same block.
 
 Also worth remembering: when the only remaining diff is a single **branch
 target offset**, the control flow is wrong, not the schedule. Here
-`beqz v0, 0x2b4` vs `beqz v0, 0x288` on the `if (flag)` test was the whole
+`beqz v0, 0x2b4` vs `beqz v0, 0x288` on the `if (applyPlayerWeaponModifiers)` test was the whole
 signal that the `equipmentHasEffect(EQUIPMENT_EFFECT_SKULL_CRYSTAL)` call belonged *inside* that `if`
 block, not after it.
 
@@ -45443,7 +45443,7 @@ holds a call result in one callee-saved register and a second, longer-lived
 value in another —
 
 ```
-move s0, v0           /* raw = Gp_ComputeDamage(...) */
+move s0, v0           /* raw = damageComputePlayerAttack(...) */
 ...
 move s4, s0           /* amount = raw */
 ...
@@ -96722,10 +96722,10 @@ result when a derived value is computed from it:
 ```c
 s16 dmg;
 s32 full;
-dmg = (s16)Gp_ComputeDamage(id, 0, 0, 0) >> 1;   /* sra a2; move s0,a2 */
+dmg = (s16)damageComputePlayerAttack(id, 0, 0, 0) >> 1;   /* sra a2; move s0,a2 */
 damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
 ...
-full = Gp_ComputeDamage(id, dist, 0, 0);
+full = damageComputePlayerAttack(id, dist, 0, 0);
 dmg  = full;                                     /* move s0,v0 */
 if (kind == 5) dmg = full * 2;                   /* sll s0,v0,1 */
 dmg *= 4;                                        /* sll 16; srl 14 */
@@ -131448,7 +131448,7 @@ whenever it outlives the source, and every later mention of `src` is rewritten
 to `dst`. That is what collapses
 
 ```
-move  v1, v0        /* damage = Gp_ComputeDamage(...) */
+move  v1, v0        /* damage = damageComputePlayerAttack(...) */
 move  s1, v1        /* scaled = damage */
 ...
 sll   v0, v1, 0x10  /* uses damage */
@@ -133815,7 +133815,7 @@ confirmed elimination while preserving enemy=s2 and damage=s1. This is a
 conditional compiler mechanism, not a rule to duplicate every switch arm.
 
 The router's best output was rejected: it removed the record pointer assignment
-but still dereferenced it in `Gp_ComputeDamage`. Another retained output exposed
+but still dereferenced it in `damageComputePlayerAttack`. Another retained output exposed
 indexed addresses without changing values; the controlled port used normal
 array accesses. Search distance is not semantic evidence.
 

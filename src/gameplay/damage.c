@@ -68,7 +68,7 @@ typedef struct {
 } _DamagePlayerDistanceScratch;
 STATIC_ASSERT_SIZEOF(_DamagePlayerDistanceScratch, 0x20);
 
-/// Per-sub-id damage rows used by `Gp_ComputeDamage`. The row is the id's
+/// Per-sub-id damage rows used by `damageComputePlayerAttack`. The row is the id's
 /// `(id >> 8) & 0x3F` nibble pair; the column is the class picked from
 /// `D_80113864` (or 5). The selected entry is scaled `<< 8` then / 100.
 extern u16 D_80113568[][8];
@@ -80,7 +80,7 @@ extern u16 D_80113858[];
 
 /// Distance/hit class table for `D_80113568`, indexed by `hits / 1000` (or by
 /// `SquareRoot0(distance) / 1000` in `damageRollCriticalHit`) when that value is
-/// below 0x10. `Gp_ComputeDamage` only keeps the low byte of the entry.
+/// below 0x10. `damageComputePlayerAttack` only keeps the low byte of the entry.
 extern u16 D_80113864[];
 
 static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey);
@@ -229,109 +229,125 @@ u16 D_80113864[16] = {
     4
 };
 
-u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
+u32 damageComputePlayerAttack(u32 attackKey, u32 playerDistance, s32 scaledReaction, s32 reactionScale)
 {
-    u8  flag;
-    u32 dmg;
+    enum {
+        DAMAGE_PLAYER_ATTACK_CATEGORY            = 0x20000,
+        DAMAGE_PLAYER_ATTACK_COMPANION           = 0x80,
+        DAMAGE_PLAYER_WEAPON_MODIFIER_ROW_LIMIT  = 33,
+        DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS = 8,
+        DAMAGE_PLAYER_ATTACK_SCALE_ONE           = 1 << DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS,
+        DAMAGE_WEAPON_DAMAGE_JITTER_RANGE        = 20,
+        DAMAGE_PE_DAMAGE_JITTER_RANGE            = 10,
+        DAMAGE_BERSERKER_PERCENT                 = 150,
+        DAMAGE_SKULL_CRYSTAL_PERCENT             = 120,
+        DAMAGE_OFUDA_PERCENT                     = 150,
+        DAMAGE_ENERGY_SHOT_DAMAGE_PERCENT_COLUMN = 0,
+    };
+    u8  applyPlayerWeaponModifiers;
+    u32 damage;
 
-    flag = 0;
-    if ((arg0 & 0xFFFF0000) != 0x20000) {
+    applyPlayerWeaponModifiers = 0;
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != DAMAGE_PLAYER_ATTACK_CATEGORY) {
         return 0;
     }
 
-    if ((arg0 & 0x8000) == 0) {
-        u8  lo;
-        u32 base;
-        u32 raw;
-        u32 rand;
-        s32 pct;
-        u8  col;
-        s32 sel;
-        s32 val;
-        s32 mult;
-        u32 tmp;
-        s32 extra;
+    if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
+        u8  weaponRow;
+        u32 baseDamageQ8;
+        u32 weaponRoll;
+        s32 weaponPercent;
+        u8  distanceBand;
+        s32 distanceClass;
+        s32 distanceScaleQ8;
+        s32 reactionScaleQ8;
+        u32 distanceDamageQ8;
+        s32 energyShotCombo;
 
-        if ((arg0 & 0x80) == 0) {
-            if ((arg0 & 0x7F) < 0x21) {
-                flag = 1;
+        if ((attackKey & DAMAGE_PLAYER_ATTACK_COMPANION) == 0) {
+            if ((attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK) < DAMAGE_PLAYER_WEAPON_MODIFIER_ROW_LIMIT) {
+                applyPlayerWeaponModifiers = 1;
             }
         }
-        lo   = arg0 & 0x7F;
-        arg0 = (arg0 >> 8) & 0x3F;
-        raw  = Gp_IdParamLo[lo].amount;
-        base = raw << 8;
-        if (flag != 0) {
+        // After saving the weapon row, only the distance-scale row remains needed.
+        weaponRow    = attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK;
+        attackKey    = (attackKey >> DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_SHIFT) & DAMAGE_PLAYER_ATTACK_DISTANCE_ROW_MASK;
+        baseDamageQ8 = Gp_IdParamLo[weaponRow].amount << DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS;
+        if (applyPlayerWeaponModifiers != 0) {
             if ((gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) != 0) {
-                base = base * 150 / 100;
+                baseDamageQ8 = baseDamageQ8 * DAMAGE_BERSERKER_PERCENT / 100;
             }
         }
 
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        rand            = gRandomLcgState >> 16;
-        pct             = (u16)(rand % 20) + 100;
-        base            = base * pct / 100;
+        weaponRoll      = gRandomLcgState >> 16;
+        weaponPercent   = (u16)(weaponRoll % DAMAGE_WEAPON_DAMAGE_JITTER_RANGE) + 100;
+        baseDamageQ8    = baseDamageQ8 * weaponPercent / 100;
 
-        col = arg1 / 1000;
-        if (col < 0x10) {
-            sel = (u8)D_80113864[col];
+        // Retain byte narrowing of both the distance bucket and its mapped class.
+        distanceBand = playerDistance / DAMAGE_DISTANCE_BAND_UNITS;
+        if (distanceBand < ARRAY_SIZE(D_80113864)) {
+            distanceClass = (u8)D_80113864[distanceBand];
         } else {
-            sel = 5;
+            distanceClass = DAMAGE_DISTANCE_FARTHEST_CLASS;
         }
-        val = (D_80113568[arg0][sel] << 8) / 100;
+        distanceScaleQ8 = (D_80113568[attackKey][distanceClass] << DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS) / 100;
 
-        if (arg2 == 0) {
-            mult = 0x100;
-        } else if (Gp_IdParamLo[lo].hitReaction == arg2) {
-            mult = arg3;
+        if (scaledReaction == 0) {
+            reactionScaleQ8 = DAMAGE_PLAYER_ATTACK_SCALE_ONE;
+        } else if (Gp_IdParamLo[weaponRow].hitReaction == scaledReaction) {
+            reactionScaleQ8 = reactionScale;
         } else {
-            mult = 0x100;
+            reactionScaleQ8 = DAMAGE_PLAYER_ATTACK_SCALE_ONE;
         }
 
-        tmp = base * val >> 8;
-        dmg = tmp * mult >> 16;
+        // Keep both unsigned products and their separate fixed-point truncation points.
+        distanceDamageQ8 = baseDamageQ8 * distanceScaleQ8 >> DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS;
+        damage           = distanceDamageQ8 * reactionScaleQ8 >> (2 * DAMAGE_PLAYER_ATTACK_SCALE_FRACTION_BITS);
 
-        if (flag != 0) {
-            extra = Gp_StateC08.energyShotCombo;
-            if (extra != 0) {
-                dmg = dmg * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][0] / 100;
+        if (applyPlayerWeaponModifiers != 0) {
+            energyShotCombo = Gp_StateC08.energyShotCombo;
+            if (energyShotCombo != 0) {
+                damage = damage * D_80113D0C[(energyShotCombo / (1 << ATTACHMENT_COMBO_LEVEL_SHIFT) - 1) * 2 + (s8)(energyShotCombo % (1 << ATTACHMENT_COMBO_LEVEL_SHIFT))][DAMAGE_ENERGY_SHOT_DAMAGE_PERCENT_COLUMN] / 100;
             }
             if (equipmentHasEffect(EQUIPMENT_EFFECT_SKULL_CRYSTAL) != 0) {
-                dmg = dmg * 120 / 100;
+                damage = damage * DAMAGE_SKULL_CRYSTAL_PERCENT / 100;
             }
         }
 
-        dmg = dmg * D_80113F90[gSceneCombatState.difficulty] / 100;
-        if (dmg == 0) {
-            if (base != 0) {
-                dmg = 1;
+        damage = damage * D_80113F90[gSceneCombatState.difficulty] / 100;
+        if (damage == 0) {
+            if (baseDamageQ8 != 0) {
+                damage = 1;
             }
         }
     } else {
-        u32 rnd;
-        s32 pc;
+        u32 peRoll;
+        s32 pePercent;
 
-        dmg = Gp_IdParamHi.rows[arg0 & 0x7F].column.amount;
-        if ((arg0 & 0x7F) >= 0x19 && (arg0 & 0x7F) < 0x1C) {
+        // Life Drain shares one base amount among the cast's recorded targets.
+        damage = Gp_IdParamHi.rows[attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK].column.amount;
+        if ((attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK) >= DAMAGE_LIFE_DRAIN_FIRST_ROW &&
+            (attackKey & DAMAGE_PLAYER_ATTACK_ROW_MASK) < DAMAGE_LIFE_DRAIN_FIRST_ROW + DAMAGE_LIFE_DRAIN_LEVEL_COUNT) {
             if (gSceneCombatState.peTargetCount != 0) {
-                dmg = dmg / gSceneCombatState.peTargetCount;
+                damage = damage / gSceneCombatState.peTargetCount;
             } else {
-                dmg = 0;
+                damage = 0;
             }
         }
 
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        rnd             = gRandomLcgState >> 16;
-        pc              = (u16)(rnd % 10) + 100;
-        dmg             = dmg * pc / 100;
+        peRoll          = gRandomLcgState >> 16;
+        pePercent       = (u16)(peRoll % DAMAGE_PE_DAMAGE_JITTER_RANGE) + 100;
+        damage          = damage * pePercent / 100;
 
         if (equipmentHasEffect(EQUIPMENT_EFFECT_OFUDA) != 0) {
-            dmg = dmg * 150 / 100;
+            damage = damage * DAMAGE_OFUDA_PERCENT / 100;
         }
 
-        dmg = dmg * D_80113F90[gSceneCombatState.difficulty] / 100;
+        damage = damage * D_80113F90[gSceneCombatState.difficulty] / 100;
     }
-    return dmg;
+    return damage;
 }
 
 s32 damageComputeReceived(s32 attackKey, s32 unused, s32* outReaction, s32 victimIsCompanion)

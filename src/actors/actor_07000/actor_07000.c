@@ -1505,7 +1505,7 @@ static void Actor07000_Fn03E08(Task* arg0)
                     scratch->delta.vector.vy = dy;
                     dz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
                     scratch->delta.vector.vz = dz;
-                    damage                   = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
+                    damage                   = damageComputePlayerAttack(work->contacts[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
                         effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
                         damage *= 4;

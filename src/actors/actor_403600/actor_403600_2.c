@@ -2556,9 +2556,9 @@ static void func_actor_403600_8013D15C(Task* arg0)
         dz                       = gPlayerStatus.coordMtx->t[2] - work->worldCoord.coord.t[2];
         hitKind                  = 0;
         scratch->delta.vector.vz = dz;
-        damage                   = Gp_ComputeDamage(work->hitContacts[i].key.value,
-                                                    SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz),
-                                                    0, 0);
+        damage                   = damageComputePlayerAttack(work->hitContacts[i].key.value,
+                                                             SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz),
+                                                             0, 0);
         if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
             hitKind = 1;
             damage *= 4;

@@ -43,7 +43,7 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
             vec->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage  = Gp_ComputeDamage(part->contacts[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            damage  = damageComputePlayerAttack(part->contacts[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (damageRollCriticalHit(arg0, part->contacts[0].key.value, 0) != 0) {
                 damage *= 4;
                 effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);

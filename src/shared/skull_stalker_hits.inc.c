@@ -71,11 +71,11 @@ void skullStalkerHits(Task* arg0)
                 sc->delta.vector.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                 sc->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
                 sc->delta.vector.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                damage              = Gp_ComputeDamage(work->bodyContacts[i].key.value,
-                                                       SquareRoot0(sc->delta.vector.vx * sc->delta.vector.vx +
-                                                                   sc->delta.vector.vy * sc->delta.vector.vy +
-                                                                   sc->delta.vector.vz * sc->delta.vector.vz),
-                                                       0, 0);
+                damage              = damageComputePlayerAttack(work->bodyContacts[i].key.value,
+                                                                SquareRoot0(sc->delta.vector.vx * sc->delta.vector.vx +
+                                                                            sc->delta.vector.vy * sc->delta.vector.vy +
+                                                                            sc->delta.vector.vz * sc->delta.vector.vz),
+                                                                0, 0);
                 if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->bodyContacts[i].key.value, 0) != 0) {
                     damage *= 4;
                 }

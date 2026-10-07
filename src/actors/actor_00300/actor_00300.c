@@ -1626,9 +1626,9 @@ static void Actor00300_Fn00E54(Task* arg0)
                 scratch->delta.vector.vz = dz;
                 val                      = (scratch->delta.vector.vx * self->coord.m[0][2]) + (scratch->delta.vector.vy * self->coord.m[1][2]) + (dz * self->coord.m[2][2]);
                 work->hitFromFront       = val >= 0;
-                work->hitDamage          = Gp_ComputeDamage(work->hitContacts[i].key.value,
-                                                            SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
-                                                            0, 0);
+                work->hitDamage          = damageComputePlayerAttack(work->hitContacts[i].key.value,
+                                                                     SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)),
+                                                                     0, 0);
                 if (critical != 0) {
                     work->hitDamage >>= 1;
                 } else if (damageRollCriticalHit(enemy, work->hitContacts[i].key.value, 0) != 0) {

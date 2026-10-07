@@ -443,7 +443,7 @@ static s16 func_actor_311500_80162DDC(Task* arg0)
     work->hitKey = _actor311500FindHit(&pos, work->hitContacts, 1);
     if (work->hitKey != 0) {
         work->lastHitKey = work->hitKey;
-        damage           = Gp_ComputeDamage(work->hitKey, 0, 0, 0x1000);
+        damage           = damageComputePlayerAttack(work->hitKey, 0, 0, 0x1000);
         if (damageRollCriticalHit(enemy, work->hitKey, 0) != 0) {
             damage *= 5;
             effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);

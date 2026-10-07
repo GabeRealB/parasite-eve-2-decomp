@@ -2167,7 +2167,7 @@ static void Actor00100_Fn0375C(Task* arg0)
             scratch->toPlayer.vz    = dz;
             distance                = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
             scratch->playerDistance = distance;
-            scratch->damage         = Gp_ComputeDamage(scratch->hitKey, distance, 0, 0);
+            scratch->damage         = damageComputePlayerAttack(scratch->hitKey, distance, 0, 0);
             desertChaserHitEffect(arg0, scratch->hitYaw, scratch->hitKey);
             work->lookYaw       = 0;
             work->lookYawTarget = 0;

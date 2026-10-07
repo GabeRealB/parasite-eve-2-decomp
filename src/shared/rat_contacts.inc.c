@@ -70,7 +70,7 @@ void ratContacts(Task* actor)
                     frame->delta.vector.vx = sourceCoord->coord.t[0] - coord->coord.t[0];
                     frame->delta.vector.vy = sourceCoord->coord.t[1] - coord->coord.t[1];
                     frame->delta.vector.vz = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage                 = Gp_ComputeDamage(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
+                    damage                 = damageComputePlayerAttack(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
                     if (damageRollCriticalHit(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
                         damage *= 4;
                         effectSpawn(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);

@@ -3972,7 +3972,7 @@ static void func_actor_403100_8013335C(Task* arg0)
         if ((hitId & 0xFFFF0000) == 0x20000) {
             if (D_actor_403100_80155808->hitCooldown == 0) {
                 D_actor_403100_80155808->hitTaken    = 1;
-                damage                               = Gp_ComputeDamage(D_actor_403100_80155808->hitContacts[i].key.value, D_actor_403100_80155808->hitDistance / 2, 0, 0);
+                damage                               = damageComputePlayerAttack(D_actor_403100_80155808->hitContacts[i].key.value, D_actor_403100_80155808->hitDistance / 2, 0, 0);
                 scaledDamage                         = damage;
                 D_actor_403100_80155808->hitCooldown = damageGetPlayerAttackHitCooldown(D_actor_403100_80155808->hitContacts[i].key.value);
                 if (damageRollCriticalHit(D_actor_403100_8015580C, D_actor_403100_80155808->hitContacts[i].key.value, 0) != 0) {

@@ -113,11 +113,11 @@ void golemKnightBishopTakeHits(Task* arg0)
                                              sc->delta.vector.vy * coord->coord.m[1][2] +
                                              sc->delta.vector.vz * coord->coord.m[2][2]) >>
                                      31;
-                damage = Gp_ComputeDamage(work->hurtContacts[i].key.value,
-                                          SquareRoot0(sc->delta.vector.vx * sc->delta.vector.vx +
-                                                      sc->delta.vector.vy * sc->delta.vector.vy +
-                                                      sc->delta.vector.vz * sc->delta.vector.vz),
-                                          0, 0);
+                damage = damageComputePlayerAttack(work->hurtContacts[i].key.value,
+                                                   SquareRoot0(sc->delta.vector.vx * sc->delta.vector.vx +
+                                                               sc->delta.vector.vy * sc->delta.vector.vy +
+                                                               sc->delta.vector.vz * sc->delta.vector.vz),
+                                                   0, 0);
                 kind   = damageGetPlayerAttackReaction(work->hurtContacts[i].key.value);
                 if ((u16)kind == 5) {
                     damage *= 2;

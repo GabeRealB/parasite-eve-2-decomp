@@ -1073,13 +1073,13 @@ static void func_actor_510900_80135744(Task* arg0)
                     if ((u8)work->bodyContacts[i].key.value - 1 < 6U) {
                         reaction = 2;
                     }
-                    dmg = (s16)Gp_ComputeDamage(work->bodyContacts[i].key.value, 0, 0, 0) >> 1;
+                    dmg = (s16)damageComputePlayerAttack(work->bodyContacts[i].key.value, 0, 0, 0) >> 1;
                     damageAccumulateLifeDrainHp(arg0->spawnArg2.pointer, work->bodyContacts[i].key.value, dmg, 0);
                 } else {
                     d->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
                     d->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
                     d->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                    full  = Gp_ComputeDamage(work->bodyContacts[i].key.value, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
+                    full  = damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
                     dmg   = full;
                     if ((u16)param == 5) {
                         dmg = full * 2;
@@ -3438,7 +3438,7 @@ static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
 
 /// Grab state machine of the child task, run from the frame handler above.
 /// State 0 waits for the grab: the player has to be inside the `bodyContacts` node
-/// (and survive `Gp_ComputeDamage`) or the parent has to request this child by
+/// (and survive `damageComputePlayerAttack`) or the parent has to request this child by
 /// number through `slashedLight`; on a hit it resets the animation slots, spawns
 /// the grab effect and its sound and starts the `sparkFrames` countdown. State 1
 /// runs that countdown, keeping the four trailing part coordinates updated, and
@@ -3483,7 +3483,7 @@ static void func_actor_510900_8013A9BC(Task* task)
             dmg                         = work->bodyContacts[0].key.value;
             work->body.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.parts.targeted == 1 &&
-                Gp_ComputeDamage(dmg, 0x3E8, 0, 0) != 0) {
+                damageComputePlayerAttack(dmg, 0x3E8, 0, 0) != 0) {
                 grabbed = 1;
             }
             if (parent->slashedLight == work->lightIndex + 1 && parent->lightSlashStruck == 1) {
@@ -3718,7 +3718,7 @@ static void func_actor_510900_8013B0D8(Task* arg0)
             work->body.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             if ((hit & ~0x7FFF) == 0x20000) {
                 tag = ctx->node.state.parts.targeted;
-                if (tag == 1 && Gp_ComputeDamage(hit, 0x3E8, 0, 0) != 0) {
+                if (tag == 1 && damageComputePlayerAttack(hit, 0x3E8, 0, 0) != 0) {
                     work->state       = ACTOR_510900_BLAST_SOURCE_SHOT;
                     work->flareFrames = 0x3C;
                     effectSpawn(EFFECT_IMPACT_SPARK, coord, 0, NULL);

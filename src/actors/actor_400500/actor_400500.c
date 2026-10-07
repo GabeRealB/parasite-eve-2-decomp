@@ -2666,7 +2666,7 @@ static void func_actor_400500_8013456C(Task* arg0)
         if ((work->bodyContacts[i].key.value & 0xFFFF0000) == 0x20000) {
             if (work->hitCooldown == 0) {
                 work->hitTaken    = 1;
-                dmg               = Gp_ComputeDamage(work->bodyContacts[i].key.value, work->targetDist, 0, 0);
+                dmg               = damageComputePlayerAttack(work->bodyContacts[i].key.value, work->targetDist, 0, 0);
                 amount            = dmg;
                 work->hitCooldown = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {

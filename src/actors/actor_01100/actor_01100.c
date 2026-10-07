@@ -1431,7 +1431,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
             }
             rollParam = 5;
         }
-        hitDamage = Gp_ComputeDamage(hitKey, (u32)dist, 0, 0x1000);
+        hitDamage = damageComputePlayerAttack(hitKey, (u32)dist, 0, 0x1000);
         if (damageRollCriticalHit(enemy, hitKey, rollParam) != 0) {
             if (sparkLevel < 0) {
                 sparkLevel = 0;

@@ -4281,7 +4281,7 @@ static void func_actor_403200_8013A4A0(Task* arg0)
         sc->toPlayer.vz    = (cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2]) + 0x25F;
         dz2                = sc->toPlayer.vz * sc->toPlayer.vz;
         sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
-        sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
+        sc->damage         = damageComputePlayerAttack(sc->attackKey, sc->playerDistance, 0, 0);
 
         if (damageRollCriticalHit(work->escorts[0], sc->attackKey, 0) != 0 && (state = work->state, state != 0xD) && state != 3 &&
             state != 9 && state != 0xE && state != 0xF && state != 8 && state != 0xB && work->playerCaught != 1 &&

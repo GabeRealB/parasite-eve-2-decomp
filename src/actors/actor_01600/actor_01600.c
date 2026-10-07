@@ -1794,7 +1794,7 @@ static void Actor01600_Fn00BAC(Task* actor)
                     scratch->delta.vector.vy = y;
                     z                        = other->coord.t[2] - coord->coord.t[2];
                     scratch->delta.vector.vz = z;
-                    damage                   = Gp_ComputeDamage(work->bodySphere.contacts[contactIndex].key.value, SquareRoot0(x * x + y * y + z * z), 0, 0);
+                    damage                   = damageComputePlayerAttack(work->bodySphere.contacts[contactIndex].key.value, SquareRoot0(x * x + y * y + z * z), 0, 0);
                     if (damageRollCriticalHit(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0)) {
                         damage *= 4;
                         effectSpawn(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 0, 0);

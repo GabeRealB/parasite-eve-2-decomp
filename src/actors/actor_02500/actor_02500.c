@@ -854,10 +854,10 @@ static void Actor02500_Fn00494(Task* actor)
                     frame->delta.vector.vx = target->coord.t[0] - coord->coord.t[0];
                     frame->delta.vector.vy = target->coord.t[1] - coord->coord.t[1];
                     frame->delta.vector.vz = target->coord.t[2] - coord->coord.t[2];
-                    damage                 = Gp_ComputeDamage(work->hitContacts[i].key.value,
-                                                              SquareRoot0(frame->delta.vector.vx * frame->delta.vector.vx + frame->delta.vector.vy * frame->delta.vector.vy +
-                                                                          frame->delta.vector.vz * frame->delta.vector.vz),
-                                                              0, 0);
+                    damage                 = damageComputePlayerAttack(work->hitContacts[i].key.value,
+                                                                       SquareRoot0(frame->delta.vector.vx * frame->delta.vector.vx + frame->delta.vector.vy * frame->delta.vector.vy +
+                                                                                   frame->delta.vector.vz * frame->delta.vector.vz),
+                                                                       0, 0);
                     param0                 = damageGetPlayerAttackReaction(work->hitContacts[i].key.value);
                     if ((param0 & 0xFFFF) == 5) {
                         damage *= 2;

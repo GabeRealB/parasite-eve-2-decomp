@@ -2373,7 +2373,7 @@ static void func_actor_421600_801354D8(Task* arg0)
             scratch->toPlayer.vz                  = dz;
             distance                              = SquareRoot0(dxSquared + dySquared + (dz * dz));
             scratch->playerDistance               = distance;
-            scratch->damage                       = Gp_ComputeDamage(scratch->hitKey, distance, 0, 0);
+            scratch->damage                       = damageComputePlayerAttack(scratch->hitKey, distance, 0, 0);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(arg0->extra.tmd->coords);
             scratch->hitOffset.vx = arg0->extra.tmd->coords->workm.t[0];

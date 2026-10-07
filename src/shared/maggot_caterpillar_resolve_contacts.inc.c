@@ -93,7 +93,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
                 scratch->delta.vector.vy = dy;
                 dz                       = src->coord.t[2] - coord->coord.t[2];
                 scratch->delta.vector.vz = dz;
-                damage                   = Gp_ComputeDamage((u32)work->bodyContacts[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
+                damage                   = damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(dx * dx + dy * dy + dz * dz), 0, 0);
                 amount                   = damage;
                 if (result == 0) {
                     if (work->midLeap != 0) {

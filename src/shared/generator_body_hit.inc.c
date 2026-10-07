@@ -51,7 +51,7 @@ void generatorBodyHit(Task* arg0)
             scr->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             scr->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
             scr->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage           = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0(scr->toPlayer.vx * scr->toPlayer.vx + scr->toPlayer.vy * scr->toPlayer.vy + scr->toPlayer.vz * scr->toPlayer.vz), 0, 0);
+            damage           = damageComputePlayerAttack(work->contacts[i].key.value, SquareRoot0(scr->toPlayer.vx * scr->toPlayer.vx + scr->toPlayer.vy * scr->toPlayer.vy + scr->toPlayer.vz * scr->toPlayer.vz), 0, 0);
             if (work->lifeSupportDestroyed == 0) {
                 damage /= 10;
             } else if (damageRollCriticalHit(enemy, work->contacts[i].key.value, 0) != 0) {

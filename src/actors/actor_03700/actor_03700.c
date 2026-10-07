@@ -944,7 +944,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
                 scratch->delta.vector.vy = ey;
                 ez                       = src->coord.t[2] - coord->coord.t[2];
                 scratch->delta.vector.vz = ez;
-                damage                   = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
+                damage                   = damageComputePlayerAttack(work->contacts[i].key.value, SquareRoot0(ex * ex + ey * ey + ez * ez), 0, 0);
                 id                       = work->contacts[i].key.value;
                 if (id & 0x8000) {
                     if (Actor03700_D08074[id & 0x7F] == 3) {

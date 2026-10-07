@@ -592,7 +592,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
             vec->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
             vec->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
             vec->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage  = Gp_ComputeDamage(part->contacts[i].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
+            damage  = damageComputePlayerAttack(part->contacts[i].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (damageRollCriticalHit(enemy, part->contacts[i].key.value, 0) != 0) {
                 damage *= 4;
                 effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);

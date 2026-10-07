@@ -2285,7 +2285,7 @@ static void func_actor_110600_80136210(Task* arg0)
         scratch->toPlayer.vz    = z;
         distance                = SquareRoot0((x * x) + (y * y) + (z * z));
         scratch->playerDistance = distance;
-        scratch->damage         = Gp_ComputeDamage(scratch->hitKey, distance, 0, 0);
+        scratch->damage         = damageComputePlayerAttack(scratch->hitKey, distance, 0, 0);
         if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
             scratch->damage *= 5;
             effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, 0, NULL);

@@ -717,11 +717,11 @@ static void Actor02100_Fn004C4(Task* arg0)
                 scratch->vec.vx = src->coord.t[0] - coord->coord.t[0];
                 scratch->vec.vy = src->coord.t[1] - coord->coord.t[1];
                 scratch->vec.vz = src->coord.t[2] - coord->coord.t[2];
-                damage          = Gp_ComputeDamage(work->hitContacts[0].key.value,
-                                                   SquareRoot0(scratch->vec.vx * scratch->vec.vx +
-                                                               scratch->vec.vy * scratch->vec.vy +
-                                                               scratch->vec.vz * scratch->vec.vz),
-                                                   0, 0);
+                damage          = damageComputePlayerAttack(work->hitContacts[0].key.value,
+                                                            SquareRoot0(scratch->vec.vx * scratch->vec.vx +
+                                                                        scratch->vec.vy * scratch->vec.vy +
+                                                                        scratch->vec.vz * scratch->vec.vz),
+                                                            0, 0);
                 if (damageRollCriticalHit(arg0->spawnArg2.pointer,
                                           work->hitContacts[0].key.value, 0) != 0) {
                     damage *= 4;

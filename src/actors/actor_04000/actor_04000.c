@@ -2297,7 +2297,7 @@ static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
     sc->hitKey = Actor04000_FindHit(&sc->hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
 
     if (sc->hitKey != 0) {
-        sc->damage                            = Gp_ComputeDamage(sc->hitKey, 0, 0, 0x1000);
+        sc->damage                            = damageComputePlayerAttack(sc->hitKey, 0, 0, 0x1000);
         arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(arg1->extra.tmd->coords);
         sc->hitOffset.vx = arg1->extra.tmd->coords->workm.t[0];

@@ -84,13 +84,13 @@ extern u16 D_80113F54[];
 /// is non-zero. Indexed by `((antibodyCombo / 16) - 1) * 2 + (s8)(antibodyCombo % 16)`.
 extern u16 D_80113CFC[];
 
-/// Percent scale table used by `Gp_ComputeDamage` / `damageRollCriticalHit` when
+/// Percent scale table used by `damageComputePlayerAttack` / `damageRollCriticalHit` when
 /// `Gp_StateC08.energyShotCombo` is non-zero. Indexed by
-/// `((energyShotCombo / 16) - 1) * 2 + (s8)(energyShotCombo % 16)`; `Gp_ComputeDamage` reads
+/// `((energyShotCombo / 16) - 1) * 2 + (s8)(energyShotCombo % 16)`; `damageComputePlayerAttack` reads
 /// `field_0` and `damageRollCriticalHit` reads `field_2` of each 4-byte slot.
 extern u16 D_80113D0C[][2];
 
-/// Final percent scale applied by `Gp_ComputeDamage`, indexed by `gSceneCombatState.difficulty`.
+/// Final percent scale applied by `damageComputePlayerAttack`, indexed by `gSceneCombatState.difficulty`.
 extern u16 D_80113F90[];
 
 extern const char D_800938AC[8];

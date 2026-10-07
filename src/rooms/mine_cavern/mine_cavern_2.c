@@ -3107,7 +3107,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
         blk->vec.vy             = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
         blk->vec.vz             = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];
         blk->playerDistance     = SquareRoot0(blk->vec.vx * blk->vec.vx + blk->vec.vy * blk->vec.vy + blk->vec.vz * blk->vec.vz);
-        blk->damage             = Gp_ComputeDamage(blk->hitKey, blk->playerDistance, 0, 0);
+        blk->damage             = damageComputePlayerAttack(blk->hitKey, blk->playerDistance, 0, 0);
         blk->damage             = D_mine_cavern_8018EAF4[blk->hitKey & 0x7F];
         arg0->hp               -= blk->damage;
         worldTargetAddReadoutAmount(&arg0->node, blk->damage, 0);

@@ -12,7 +12,7 @@
 /// A hit spawns the impact effect on the part's coordinate, publishes
 /// `damageGetPlayerAttackHitCooldown` of the attack id to all four per-group slots at 0xE8C, and
 /// then takes the damage off the host: the player-relative offset to the part
-/// gives the `playerDistance` `Gp_ComputeDamage` scales `damage` by, quadrupled when
+/// gives the `playerDistance` `damageComputePlayerAttack` scales `damage` by, quadrupled when
 /// `damageRollCriticalHit` fires. The contact point is re-read relative to the
 /// part's world translation and `ratan2` of the pair against the part's facing
 /// gives the yaw `contactYaw`, wrapped to +/-0x800. The damage is doubled,
@@ -73,7 +73,7 @@ void gluttonHitGroup0(Task* arg0)
         sc->toPlayer.vz    = cfg->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
         dz2                = sc->toPlayer.vz * sc->toPlayer.vz;
         sc->playerDistance = SquareRoot0(dx2 + dy2 + dz2);
-        sc->damage         = Gp_ComputeDamage(sc->attackKey, sc->playerDistance, 0, 0);
+        sc->damage         = damageComputePlayerAttack(sc->attackKey, sc->playerDistance, 0, 0);
         if (damageRollCriticalHit(enemy, sc->attackKey, 0) != 0) {
             sc->damage *= 4;
         }
