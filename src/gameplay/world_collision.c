@@ -46,7 +46,7 @@ typedef union {
             } else {                                                                                                                      \
                 if (((rec)->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {                             \
                     _otherAddress.address = (((rec)->response.bodyAddress.high << 16) & 0xFFFF0000) | (rec)->response.bodyAddress.low;    \
-                    _other                = _worldCollisionGetObjectContacts(_otherAddress.object);                                       \
+                    _other                = _worldCollisionGetBodyContacts(_otherAddress.object);                                         \
                     if (_other == NULL) {                                                                                                 \
                         return;                                                                                                           \
                     }                                                                                                                     \
@@ -206,30 +206,35 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
 
 static void Gp_RunPairHandler(WorldCollisionBody* node);
 
-static void _worldCollisionRecordPairContact(WorldCollisionBody* receivingBody, WorldCollisionBody* contactedBody, _WorldCollisionPairContact* contact);
+static void _worldCollisionRecordPairContact(const WorldCollisionBody* receivingBody, const WorldCollisionBody* contactedBody, const _WorldCollisionPairContact* pairContact);
 
-/// Contact table selected by the body's shape, or NULL for a body without one.
-static inline WorldCollisionContact* _worldCollisionGetObjectContacts(WorldCollisionBody* obj)
+/// Borrows the mutable contact table selected by a body's kind.
+///
+/// Returns NULL for NONE, unsupported kinds, or a NULL table. A proxy follows
+/// exactly one contactOwner to its direct table; that owner and shape contexts
+/// must be live and correctly initialized. Does not validate or clear entries,
+/// retain the body, or transfer ownership.
+static inline WorldCollisionContact* _worldCollisionGetBodyContacts(const WorldCollisionBody* body)
 {
-    WorldCollisionContact* recs = NULL;
+    WorldCollisionContact* contacts = NULL;
 
-    switch (obj->flags & WORLD_COLLISION_BODY_KIND_MASK) {
+    switch (body->flags & WORLD_COLLISION_BODY_KIND_MASK) {
         case WORLD_COLLISION_BODY_NONE:
             break;
         case WORLD_COLLISION_BODY_SPHERE:
-            recs = obj->context.contacts;
+            contacts = body->context.contacts;
             break;
         case WORLD_COLLISION_BODY_CONTACT_PROXY:
-            recs = obj->context.contactOwner->context.contacts;
+            contacts = body->context.contactOwner->context.contacts;
             break;
         case WORLD_COLLISION_BODY_CAPSULE:
-            recs = obj->context.capsule->contacts;
+            contacts = body->context.capsule->contacts;
             break;
         case WORLD_COLLISION_BODY_MOTION_SPHERE:
-            recs = obj->context.motion->contacts;
+            contacts = body->context.motion->contacts;
             break;
     }
-    return recs;
+    return contacts;
 }
 
 WorldCollisionPairHandler Gp_PairHandlers[5] = {
@@ -362,26 +367,37 @@ static void Gp_RunPairHandler(WorldCollisionBody* node)
     }
 }
 
-/// Records an identified pair contact in the receiving body's initialized table.
-static void _worldCollisionRecordPairContact(WorldCollisionBody* receivingBody, WorldCollisionBody* contactedBody, _WorldCollisionPairContact* contact)
+/// Copies a pair-test result into a claimed receiving-body contact entry.
+///
+/// The bodies, their contexts and LAST-terminated writable tables must be live.
+/// A zero contacted-body key or missing receiving table makes no change.
+/// Ordinary mode uses the first unoccupied entry; a full table makes no change.
+/// SINGLE_CONTACT replaces entry zero, first clearing the previous reciprocal
+/// body contact when present. Its encoded body address and reciprocal table
+/// must remain valid; a missing table or absent matching key aborts the new write.
+/// The receiving body's index is ORed into the claimed flags, and key comes
+/// from contactedBody. Copies distance, point and response unchanged, including
+/// vector pad halfwords. Pair coordinates must share the cached transform frame.
+static void _worldCollisionRecordPairContact(const WorldCollisionBody* receivingBody, const WorldCollisionBody* contactedBody, const _WorldCollisionPairContact* pairContact)
 {
-    WorldCollisionContact* rec;
+    WorldCollisionContact* contactSlot;
 
     if (contactedBody->key == 0) {
         return;
     }
 
-    rec = _worldCollisionGetObjectContacts(receivingBody);
-    if (rec == NULL) {
+    contactSlot = _worldCollisionGetBodyContacts(receivingBody);
+    if (contactSlot == NULL) {
         return;
     }
 
-    WORLD_COLLISION_CLAIM_CONTACT(rec, receivingBody);
+    // Replacing a single body contact also releases its reciprocal entry.
+    WORLD_COLLISION_CLAIM_CONTACT(contactSlot, receivingBody);
 
-    rec->key.value = contactedBody->key;
-    rec->distance  = contact->distance;
-    rec->point     = contact->point;
-    rec->response  = contact->response;
+    contactSlot->key.value = contactedBody->key;
+    contactSlot->distance  = pairContact->distance;
+    contactSlot->point     = pairContact->point;
+    contactSlot->response  = pairContact->response;
 }
 
 s32 Gp_PairHandler1(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind)
@@ -475,7 +491,7 @@ s32 Gp_PairHandler3(WorldCollisionBody* arg0, WorldCollisionBody* arg1, s32 kind
     block                      = (_WorldCollisionCapsuleScratch*)(head - sizeof(_WorldCollisionCapsuleScratch));
     // Place the sphere centre and the capsule segment in world space.
     worldCollisionGetBodyComposedPosition(arg0, sphereCenter);
-    func_800DEC80(arg1, block->ends, &block->segmentDirection, 0);
+    worldCollisionPlaceCapsuleSegment(arg1, block->ends, &block->segmentDirection, WORLD_COLLISION_CAPSULE_SEGMENT_PAIR_TEST);
 
     block->work.radiusAlongSegment.vx = (block->segmentDirection.vx * arg0->radius) >> 12;
     block->work.radiusAlongSegment.vy = (block->segmentDirection.vy * arg0->radius) >> 12;

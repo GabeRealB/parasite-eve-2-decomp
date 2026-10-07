@@ -18,6 +18,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/player_state.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/sound.h"
@@ -1031,7 +1032,7 @@ s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task* task, s32 msgId, RoomEventM
             return 0;
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_0D1) == 0 && gameFlagGetNibble(GAME_FLAG_083) == 0) {
-            Gp_FillAllyHp();
+            companionRestoreFullHp();
             gameFlagSetNibble(GAME_FLAG_0D1, 1);
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 7);
         }

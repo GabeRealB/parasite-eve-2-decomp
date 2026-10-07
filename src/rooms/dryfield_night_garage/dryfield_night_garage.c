@@ -379,7 +379,7 @@ static void func_dryfield_night_garage_8017FF2C(Task* task)
         func_dryfield_night_garage_80180604(0);
         companionRemoveEquipment(player);
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN) == 0) {
-            Gp_FillAllyHp();
+            companionRestoreFullHp();
             gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN, 1);
             evsStartScriptWithSkip(D_actor_136300_8013B590, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_136300_8013C388);
         } else {

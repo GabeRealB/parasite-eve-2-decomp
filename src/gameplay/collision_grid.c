@@ -377,7 +377,7 @@ void func_800DDDF8(WorldCollisionBody* obj)
     }
 
     _worldCollisionMarkCapsuleGridCandidates(obj);
-    func_800DEC80(obj, scratch->endpoints, scratch->ray, 1);
+    worldCollisionPlaceCapsuleSegment(obj, scratch->endpoints, scratch->ray, WORLD_COLLISION_CAPSULE_SEGMENT_GRID_SCAN);
 
     for (i = 0; i < Gp_GridParams->faceCount; i++) {
         if (D_80115450[i] != 0 && worldCollisionIntersectGridFace(i, scratch->endpoints, scratch->ray, obj) != 0) {
@@ -699,92 +699,99 @@ static void _worldCollisionMarkViewSegmentCandidates(const SVECTOR* target, cons
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridQueryScratch);
 }
 
-static inline void _worldCollisionCopyContactPoint(VECTOR* out, WorldCollisionContact* contact)
+/// Promotes a contact's signed-halfword XYZ into a full-width position.
+///
+/// Preserves the contact's coordinate frame and leaves the output pad word
+/// untouched. Both borrowed objects must be live and disjoint.
+static inline void _worldCollisionCopyContactPoint(VECTOR* positionOut, const WorldCollisionContact* contact)
 {
-    out->vx = contact->point.vx;
-    out->vy = contact->point.vy;
-    out->vz = contact->point.vz;
+    positionOut->vx = contact->point.vx;
+    positionOut->vy = contact->point.vy;
+    positionOut->vz = contact->point.vz;
 }
 
-void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
+void worldCollisionPlaceCapsuleSegment(const WorldCollisionBody* body, VECTOR endpoints[2], SVECTOR* direction, s32 gridScan)
 {
     _WorldCollisionCapsuleSegmentScratch* scratch;
-    WorldCollisionCapsule*                rec;
-    SVECTOR*                              src;
-    WorldCollisionContact*                slot;
+    const WorldCollisionCapsule*          capsule;
+    const SVECTOR*                        localEnd;
+    const WorldCollisionContact*          contact;
     s32                                   flags;
-    s32                                   i;
+    s32                                   endpointIndex;
 
-    rec     = arg0->context.capsule;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionCapsuleSegmentScratch);
-    i       = 0;
+    capsule       = body->context.capsule;
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionCapsuleSegmentScratch);
+    endpointIndex = 0;
 
-    if (arg3 == 0) {
-        if (arg0->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
-            slot = arg0->context.capsule->contacts;
+    // A retained contact may replace endpoint 0 without transforming it again.
+    if (gridScan == WORLD_COLLISION_CAPSULE_SEGMENT_PAIR_TEST) {
+        if (body->flags & WORLD_COLLISION_BODY_SINGLE_CONTACT) {
+            contact = body->context.capsule->contacts;
             for (;;) {
-                flags = slot->flags;
+                flags = contact->flags;
                 if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-                    _worldCollisionCopyContactPoint(arg1, slot);
-                    i = 1;
+                    _worldCollisionCopyContactPoint(endpoints, contact);
+                    endpointIndex = 1;
                     break;
                 }
                 if (flags & WORLD_COLLISION_CONTACT_LAST) {
                     break;
                 }
-                slot++;
+                contact++;
             }
-        } else if (arg0->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
-            slot = arg0->context.capsule->contacts;
+        } else if (body->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
+            contact = body->context.capsule->contacts;
             for (;;) {
-                if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-                    if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
-                        _worldCollisionCopyContactPoint(arg1, slot);
-                        i = 1;
+                if (contact->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+                    if ((contact->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
+                        _worldCollisionCopyContactPoint(endpoints, contact);
+                        endpointIndex = 1;
                         break;
                     }
                 }
-                if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
+                if (contact->flags & WORLD_COLLISION_CONTACT_LAST) {
                     break;
                 }
-                slot++;
+                contact++;
             }
         }
-    } else if (arg0->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
-        slot = arg0->context.capsule->contacts;
+    } else if (body->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
+        contact = body->context.capsule->contacts;
         for (;;) {
-            if (slot->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-                if ((slot->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
-                    _worldCollisionCopyContactPoint(arg1, slot);
-                    i = 1;
+            if (contact->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+                if ((contact->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
+                    _worldCollisionCopyContactPoint(endpoints, contact);
+                    endpointIndex = 1;
                     break;
                 }
             }
-            if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
+            if (contact->flags & WORLD_COLLISION_CONTACT_LAST) {
                 break;
             }
-            slot++;
+            contact++;
         }
     }
 
-    gte_SetRotMatrix(&arg0->coord->workm);
-    for (; i < 2; i++) {
-        src                       = &rec->ends[i];
-        scratch->localEndpoint.vx = src->vx + arg0->pos.vx;
-        scratch->localEndpoint.vy = src->vy + arg0->pos.vy;
-        scratch->localEndpoint.vz = src->vz + arg0->pos.vz;
+    // Place the remaining local endpoints through the composed body transform.
+    gte_SetRotMatrix(&body->coord->workm);
+    for (; endpointIndex < (s32)ARRAY_SIZE(capsule->ends); endpointIndex++) {
+        localEnd                  = &capsule->ends[endpointIndex];
+        scratch->localEndpoint.vx = localEnd->vx + body->pos.vx;
+        scratch->localEndpoint.vy = localEnd->vy + body->pos.vy;
+        scratch->localEndpoint.vz = localEnd->vz + body->pos.vz;
         gte_ldv0(&scratch->localEndpoint);
         gte_rtv0();
         gte_stlvnl(&scratch->work.rotatedEndpoint);
-        arg1[i].vx = scratch->work.rotatedEndpoint.vx + (arg0->coord)->workm.t[0];
-        arg1[i].vy = scratch->work.rotatedEndpoint.vy + (arg0->coord)->workm.t[1];
-        arg1[i].vz = scratch->work.rotatedEndpoint.vz + (arg0->coord)->workm.t[2];
+        endpoints[endpointIndex].vx = scratch->work.rotatedEndpoint.vx + body->coord->workm.t[0];
+        endpoints[endpointIndex].vy = scratch->work.rotatedEndpoint.vy + body->coord->workm.t[1];
+        endpoints[endpointIndex].vz = scratch->work.rotatedEndpoint.vz + body->coord->workm.t[2];
     }
 
-    scratch->work.segmentDelta.vx = arg1[0].vx - arg1[1].vx;
-    scratch->work.segmentDelta.vy = arg1[0].vy - arg1[1].vy;
-    scratch->work.segmentDelta.vz = arg1[0].vz - arg1[1].vz;
-    VectorNormalS(&scratch->work.segmentDelta, arg2);
+    // The axis points back from endpoint 1 towards the possibly clipped end.
+    scratch->work.segmentDelta.vx = endpoints[0].vx - endpoints[1].vx;
+    scratch->work.segmentDelta.vy = endpoints[0].vy - endpoints[1].vy;
+    scratch->work.segmentDelta.vz = endpoints[0].vz - endpoints[1].vz;
+    VectorNormalS(&scratch->work.segmentDelta, direction);
 
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleSegmentScratch);
 }

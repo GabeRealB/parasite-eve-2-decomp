@@ -208,8 +208,6 @@ extern WorldCollisionTrigger** Gp_Obj4ALists[2];
 /// `Gp_Obj3ALists[index]`; `worldCollisionClearOccluderList` walks and clears that list.
 extern WorldCollisionOccluder** Gp_Obj3ALists[1];
 
-static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
-
 /// Writes the X/Z products of two contact normals and marks an opposed result.
 ///
 /// Used inside the resolvers' retained pair loops. `contactsArg` is evaluated
@@ -227,8 +225,6 @@ static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
             (resultArg) = WORLD_COLLISION_PUSHBACK_OPPOSED;                                                                           \
         }                                                                                                                             \
     }
-
-static void Gp_UnlinkObj3A(s32 arg0, WorldCollisionOccluder* occluder);
 
 WorldCollisionBody** Gp_ObjLists[9] = {
     &Gp_ObjList0,
@@ -491,25 +487,32 @@ void worldCollisionClearActionHits(void)
     }
 }
 
-static void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
+/// Converts room-space XZ in game units to signed grid-cell indices.
+///
+/// Requires a live active grid with positive cellSize. Each biased negative
+/// axis becomes WORLD_COLLISION_GRID_INVALID_CELL; other axes divide by
+/// cellSize and narrow to signed halfwords, without an upper-bound check.
+/// Writes zero to Y, reads no input Y and retains no pointers. Input and
+/// writable output must be disjoint. No coordinate transform is performed.
+static void _worldCollisionRoomToCell(const VECTOR3* roomPosition, SVECTOR3* cellOut)
 {
-    s32                 val;
-    WorldCollisionGrid* grid;
+    s32                       biasedAxis;
+    const WorldCollisionGrid* grid;
 
-    grid = Gp_GridParams;
-    val  = arg0->vx + grid->xBias;
-    if (val >= 0) {
-        arg1->vx = val / grid->cellSize;
+    grid       = Gp_GridParams;
+    biasedAxis = roomPosition->vx + grid->xBias;
+    if (biasedAxis >= 0) {
+        cellOut->vx = biasedAxis / grid->cellSize;
     } else {
-        arg1->vx = WORLD_COLLISION_GRID_INVALID_CELL;
+        cellOut->vx = WORLD_COLLISION_GRID_INVALID_CELL;
     }
-    grid     = Gp_GridParams;
-    arg1->vy = 0;
-    val      = arg0->vz + grid->zBias;
-    if (val >= 0) {
-        arg1->vz = val / grid->cellSize;
+    grid        = Gp_GridParams;
+    cellOut->vy = 0;
+    biasedAxis  = roomPosition->vz + grid->zBias;
+    if (biasedAxis >= 0) {
+        cellOut->vz = biasedAxis / grid->cellSize;
     } else {
-        arg1->vz = WORLD_COLLISION_GRID_INVALID_CELL;
+        cellOut->vz = WORLD_COLLISION_GRID_INVALID_CELL;
     }
 }
 
@@ -832,18 +835,20 @@ void worldCollisionUnlinkBody(WorldCollisionBody* body)
     }
 }
 
-/// Appends a borrowed trigger to a live acyclic list and records its incoming link.
+/// Appends a trigger in insertion order and binds its incoming pointer slot.
 ///
-/// The non-NULL node must be absent from all lists; its owner and the head slot
-/// remain live until unlinking. Only links are changed; the caller sets LINKED.
+/// The node must be absent from the live acyclic list and every other list.
+/// Borrows it and the writable head slot until unlinking. At an empty head,
+/// prevLink points to that slot; otherwise it points to the old tail's next.
+/// Overwrites next with NULL; flags, geometry and hit state are untouched.
 static __inline__ void _worldCollisionAppendTrigger(WorldCollisionTrigger** listHead, WorldCollisionTrigger* trigger)
 {
-    WorldCollisionTrigger* tail;
     WorldCollisionTrigger* first;
 
     first = *listHead;
     if (first != NULL) {
-        tail = first;
+        WorldCollisionTrigger* tail = first;
+
         while (tail->next != NULL) {
             tail = tail->next;
         }
@@ -869,10 +874,12 @@ void worldCollisionLinkTrigger(s32 listIndex, WorldCollisionTrigger* trigger)
     }
 }
 
-/// Repairs a linked trigger's neighbors and clears its two links.
+/// Removes a trigger through its incoming slot and repairs the successor's backlink.
 ///
-/// The trigger and its incoming link must be live and valid; nothing is freed.
-/// Flags and the hit latch are unchanged so the caller controls removal policy.
+/// `next` must equal trigger->next, and prevLink must point to the live slot
+/// containing trigger. Clears both departing links; a NULL next is already
+/// cleared and needs no write. Flags, geometry and hit state remain intact.
+/// Frees nothing; the caller controls list membership flags and storage lifetime.
 static __inline__ void _worldCollisionSpliceOutTrigger(WorldCollisionTrigger* trigger, WorldCollisionTrigger* next)
 {
     WorldCollisionTrigger** previousLink;
@@ -931,18 +938,20 @@ void worldCollisionClearTriggerList(s32 listIndex)
     }
 }
 
-/// Appends a borrowed occluder to a live acyclic list and records its incoming link.
+/// Appends an occluder in insertion order and binds its incoming pointer slot.
 ///
-/// The non-NULL node must be absent from all lists; its owner and the head slot
-/// remain live until unlinking. Only links are changed; the caller sets LINKED.
+/// The node must be absent from the live acyclic list and every other list.
+/// Borrows it and the writable head slot until unlinking. At an empty head,
+/// prevLink points to that slot; otherwise it points to the old tail's next.
+/// Overwrites next with NULL; flags and geometry are untouched.
 static __inline__ void _worldCollisionAppendOccluder(WorldCollisionOccluder** listHead, WorldCollisionOccluder* occluder)
 {
-    WorldCollisionOccluder* tail;
     WorldCollisionOccluder* first;
 
     first = *listHead;
     if (first != NULL) {
-        tail = first;
+        WorldCollisionOccluder* tail = first;
+
         while (tail->next != NULL) {
             tail = tail->next;
         }
@@ -968,25 +977,40 @@ void worldCollisionLinkOccluder(s32 listIndex, WorldCollisionOccluder* occluder)
     }
 }
 
-static void Gp_UnlinkObj3A(s32 arg0, WorldCollisionOccluder* occluder)
+/// Repairs a live occluder's incoming slot and successor, then clears its links.
+///
+/// `next` equals occluder->next and prevLink points to the slot containing it.
+/// Flags and geometry are untouched; storage remains owned by the caller.
+static inline void _worldCollisionSpliceOutOccluder(WorldCollisionOccluder* occluder, WorldCollisionOccluder* next)
 {
-    u8                       flags;
-    WorldCollisionOccluder*  next;
-    WorldCollisionOccluder** prevLink;
+    WorldCollisionOccluder** previousLink;
+
+    previousLink = occluder->prevLink;
+    if (next != NULL) {
+        *previousLink  = next;
+        next->prevLink = occluder->prevLink;
+        occluder->next = NULL;
+    } else {
+        *previousLink = NULL;
+    }
+    occluder->prevLink = NULL;
+}
+
+/// Unlinks a borrowed sight occluder and clears its transient flag bits.
+///
+/// The non-NULL record must have valid list links when LINKED is set. Retains
+/// the low three flag bits and resource LAST marker; geometry survives.
+/// An unlinked record is unchanged. Frees nothing and ignores unusedListIndex.
+static void _worldCollisionUnlinkOccluder(s32 unusedListIndex, WorldCollisionOccluder* occluder)
+{
+    u8                      flags;
+    WorldCollisionOccluder* next;
 
     flags = occluder->flags;
     if (flags & WORLD_COLLISION_OCCLUDER_LINKED) {
         next            = occluder->next;
         occluder->flags = flags & WORLD_COLLISION_OCCLUDER_PERSISTENT_FLAGS;
-        prevLink        = occluder->prevLink;
-        if (next != NULL) {
-            *prevLink      = next;
-            next->prevLink = occluder->prevLink;
-            occluder->next = NULL;
-        } else {
-            *prevLink = NULL;
-        }
-        occluder->prevLink = NULL;
+        _worldCollisionSpliceOutOccluder(occluder, next);
     }
 }
 

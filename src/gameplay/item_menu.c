@@ -1001,14 +1001,20 @@ static void _itemMenuTransferActionsTask(Task* task)
 
 static const char Gp_StrBullet[] = "Bullet";
 
-/// Adjusts the preview stacks for directional input, preserving total and loaded rounds.
+/// Transfers preview ammunition between carried and container stacks from port-zero input.
 ///
-/// Requires an active live panel, valid split work and pad repeat state.
-/// Clamps both sides to capacity and carried rounds to the loaded minimum;
-/// updates only the preview and the task's notice status.
-static inline void _itemMenuAdjustAmmoSplitQuantities(Task* task, _ItemMenuAmmoSplitWork* split, PadState* pad, s32 repeatStep)
+/// The caller gates this on an active panel. Requires live task/split storage,
+/// pad for port zero, a positive acceleratedStep in rounds, and initial quantities
+/// 0 <= loadedQty <= carriedQty <= stackLimit and 0 <= containerQty <= stackLimit.
+/// Left/Right move one round, or acceleratedStep after 20 repeat ticks, unless
+/// Up/Down is held. Up/L1/L2 and Down/R1/R2 move all available rounds toward the
+/// container and carried side respectively, unless Left/Right is held.
+/// Keeps the combined quantity and loaded minimum, sets LOADED/CAPACITY notices
+/// on task->status, and leaves inventory and the initial-quantity snapshots intact.
+/// Bulk transfers reaching capacity report CAPACITY even when no excess remains.
+static inline void _itemMenuAdjustAmmoSplitQuantities(Task* task, _ItemMenuAmmoSplitWork* split, const PadState* pad, s32 acceleratedStep)
 {
-    s32 loadedQuantity;
+    s32 carriedBeforeStep;
     s32 loadedMinimum;
     s32 stepToContainer;
     s32 containerAfterMove;
@@ -1019,17 +1025,17 @@ static inline void _itemMenuAdjustAmmoSplitQuantities(Task* task, _ItemMenuAmmoS
     s32 carriedLimit;
     s32 containerToMove;
     s32 moveAllLimit;
-    s32 combinedQty;
+    s32 combinedQuantity;
 
     // Step between sides, clamping to stack capacity and the loaded minimum.
     if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            loadedQuantity = split->carriedQty;
-            loadedMinimum  = split->loadedQty;
-            if (loadedMinimum < loadedQuantity) {
+            carriedBeforeStep = split->carriedQty;
+            loadedMinimum     = split->loadedQty;
+            if (loadedMinimum < carriedBeforeStep) {
                 stepToContainer = 1;
                 if (pad->directionRepeatTicks >= (u32)ITEM_MENU_AMMO_ACCELERATE_REPEAT_TICKS) {
-                    stepToContainer = repeatStep;
+                    stepToContainer = acceleratedStep;
                 }
                 split->containerQty += stepToContainer;
                 split->carriedQty   -= stepToContainer;
@@ -1048,21 +1054,19 @@ static inline void _itemMenuAdjustAmmoSplitQuantities(Task* task, _ItemMenuAmmoS
                 task->status = ITEM_MENU_AMMO_NOTICE_LOADED;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-            {
-                s32 step;
+            s32 stepToCarried;
 
-                step = 1;
-                if (pad->directionRepeatTicks >= (u32)ITEM_MENU_AMMO_ACCELERATE_REPEAT_TICKS) {
-                    step = repeatStep;
-                }
-                split->containerQty = split->containerQty - step;
-                carriedAfterStep    = split->carriedQty + step;
-                split->carriedQty   = carriedAfterStep;
-                containerAfterStep  = split->containerQty;
-                if (containerAfterStep < 0) {
-                    split->carriedQty   = carriedAfterStep + containerAfterStep;
-                    split->containerQty = 0;
-                }
+            stepToCarried = 1;
+            if (pad->directionRepeatTicks >= (u32)ITEM_MENU_AMMO_ACCELERATE_REPEAT_TICKS) {
+                stepToCarried = acceleratedStep;
+            }
+            split->containerQty = split->containerQty - stepToCarried;
+            carriedAfterStep    = split->carriedQty + stepToCarried;
+            split->carriedQty   = carriedAfterStep;
+            containerAfterStep  = split->containerQty;
+            if (containerAfterStep < 0) {
+                split->carriedQty   = carriedAfterStep + containerAfterStep;
+                split->containerQty = 0;
             }
             carriedAfterClamp = split->carriedQty;
             carriedLimit      = split->stackLimit;
@@ -1077,16 +1081,16 @@ static inline void _itemMenuAdjustAmmoSplitQuantities(Task* task, _ItemMenuAmmoS
     if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT | PAD_BUTTON_LEFT) == 0) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_L1 | PAD_BUTTON_UP) != 0) {
             if (split->carriedQty > split->loadedQty) {
-                s32 total;
+                s32 movableQuantity;
 
-                total  = split->containerQty + split->carriedQty;
-                total -= split->loadedQty;
-                if (total < split->stackLimit) {
+                movableQuantity  = split->containerQty + split->carriedQty;
+                movableQuantity -= split->loadedQty;
+                if (movableQuantity < split->stackLimit) {
                     split->carriedQty   = split->loadedQty;
-                    split->containerQty = total;
+                    split->containerQty = movableQuantity;
                 } else {
                     split->containerQty = split->stackLimit;
-                    split->carriedQty   = split->loadedQty + (total - split->stackLimit);
+                    split->carriedQty   = split->loadedQty + (movableQuantity - split->stackLimit);
                     task->status        = ITEM_MENU_AMMO_NOTICE_CAPACITY;
                 }
             } else if (split->loadedQty > 0) {
@@ -1095,14 +1099,14 @@ static inline void _itemMenuAdjustAmmoSplitQuantities(Task* task, _ItemMenuAmmoS
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_R2 | PAD_BUTTON_R1 | PAD_BUTTON_DOWN) != 0) {
             containerToMove = split->containerQty;
             if (containerToMove > 0) {
-                moveAllLimit = split->stackLimit;
-                combinedQty  = containerToMove + split->carriedQty;
-                if (combinedQty < moveAllLimit) {
-                    split->carriedQty   = combinedQty;
+                moveAllLimit     = split->stackLimit;
+                combinedQuantity = containerToMove + split->carriedQty;
+                if (combinedQuantity < moveAllLimit) {
+                    split->carriedQty   = combinedQuantity;
                     split->containerQty = 0;
                 } else {
                     split->carriedQty   = moveAllLimit;
-                    split->containerQty = combinedQty - split->stackLimit;
+                    split->containerQty = combinedQuantity - split->stackLimit;
                     task->status        = ITEM_MENU_AMMO_NOTICE_CAPACITY;
                 }
             }
@@ -1704,21 +1708,23 @@ static void _itemMenuTransferExitMenuTask(Task* task)
     uiUpdateList(list, &object->panel);
 }
 
-/// Draws the holder's two outlined lines, borrowing readable encoded text.
+/// Draws the holder prompt's first two encoded text lines in fixed outlined grey.
 ///
-/// object must remain live and promptText must satisfy textSkipLines' stream
-/// bounds. Hidden panels still scan; normal RGB is fixed rather than panel-selected.
-static inline void _itemMenuDrawHolderPromptLines(UiObject* object, const u8* promptText)
+/// Content-relative placement is left+2, top+15 and top+30 pixels. Borrows the
+/// live object and text for this call, retaining neither. Text and drawing
+/// resources must satisfy textDrawUiLine and textSkipLines; an initial N/n also
+/// needs a readable predecessor byte. Hidden panels still scan for the second
+/// line but emit no packets. Fewer than two lines draws an empty second line.
+static inline void _itemMenuDrawHolderPromptLines(const UiObject* object, const u8* promptText)
 {
-    s32       colorRgb;
-    s32       drawMode;
+    enum { ITEM_MENU_HOLDER_PROMPT_INSET_X  = 2,
+           ITEM_MENU_HOLDER_PROMPT_FIRST_Y  = 15,
+           ITEM_MENU_HOLDER_PROMPT_SECOND_Y = 30 };
     const u8* secondLine;
 
-    colorRgb = ITEM_MENU_NORMAL_COLOR_RGB;
-    drawMode = TEXT_DRAW_OUTLINED;
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, promptText, colorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + ITEM_MENU_HOLDER_PROMPT_INSET_X, object->panel.contentTop.signedValue + ITEM_MENU_HOLDER_PROMPT_FIRST_Y, promptText, ITEM_MENU_NORMAL_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     secondLine = textSkipLines(promptText, 1);
-    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, secondLine, colorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + ITEM_MENU_HOLDER_PROMPT_INSET_X, object->panel.contentTop.signedValue + ITEM_MENU_HOLDER_PROMPT_SECOND_Y, secondLine, ITEM_MENU_NORMAL_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
 /// Publishes the transfer screen's prompt panel and draws two text lines.

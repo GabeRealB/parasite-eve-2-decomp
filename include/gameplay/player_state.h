@@ -160,6 +160,12 @@ enum {
 /// to band 2 for a nonnegative maximum.
 s32 companionGetHealthBand(void);
 
+/// Restores the live save's companion HP to its stored maximum.
+///
+/// Copies the signed-halfword maximum without clamping or checking companion
+/// presence. Changes only current HP; an active companion task is not required.
+void companionRestoreFullHp(void);
+
 /// Clears a companion's pending hit and blends back to normal idle.
 ///
 /// Arms 18 active recovery ticks, resets idle behavior and blends native set 1

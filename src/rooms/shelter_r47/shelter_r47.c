@@ -18,6 +18,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/captions.h"
+#include "gameplay/player_state.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/player_actor.h"
@@ -734,7 +735,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_080, 1);
                     gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 8);
                     gameFlagSetNibble(GAME_FLAG_0D1, 2);
-                    Gp_FillAllyHp();
+                    companionRestoreFullHp();
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
                     _shelterR47EnableRepeatEntryTrigger();

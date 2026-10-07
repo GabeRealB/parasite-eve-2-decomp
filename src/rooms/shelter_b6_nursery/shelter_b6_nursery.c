@@ -18,6 +18,7 @@
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/captions.h"
+#include "gameplay/player_state.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/player_actor.h"
@@ -1017,7 +1018,7 @@ static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
 {
     arg0->msgTable = D_shelter_b6_nursery_8018500C;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    Gp_FillAllyHp();
+    companionRestoreFullHp();
     if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
         gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 1);
         evsStartScriptWithSkip(D_actor_450800_80139964, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013A33C);

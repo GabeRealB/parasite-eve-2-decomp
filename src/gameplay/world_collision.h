@@ -62,7 +62,32 @@ void func_800DD940(WorldCollisionBody* arg0);
 
 void func_800DDDF8(WorldCollisionBody* obj);
 
-void func_800DEC80(WorldCollisionBody* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
+/// Contact-seeding policies for capsule segment placement; any nonzero mode selects the grid rule.
+enum {
+    WORLD_COLLISION_CAPSULE_SEGMENT_PAIR_TEST = 0,
+    WORLD_COLLISION_CAPSULE_SEGMENT_GRID_SCAN = 1
+};
+
+/// Places a capsule's segment in its cached transform frame and returns its axis.
+///
+/// Requires a kind-3 body with a live capsule and already composed coord->workm.
+/// Adds pos to each local endpoint, narrowing to signed halfwords, then rotates
+/// and translates it into that transform's composition frame in game units.
+/// Writes two endpoint XYZs and endpoint 0 minus endpoint 1 normalized to 4096
+/// per unit in direction. Output pad components are untouched.
+///
+/// In PAIR_TEST mode, SINGLE_CONTACT seeds endpoint 0 from the first occupied
+/// contact of any kind. Only without SINGLE_CONTACT does CLIP_TO_GRID_CONTACT
+/// seed it from the first occupied grid contact. GRID_SCAN (or any nonzero
+/// gridScan) ignores SINGLE_CONTACT and applies only CLIP_TO_GRID_CONTACT.
+/// A seeded point is already in the output frame; only endpoint 1 is transformed.
+/// Contact tables must be live and LAST-terminated when either rule is selected.
+///
+/// The final delta must fit signed halfwords and have squared length in
+/// 1..0x7FFFFFFF for SDK normalization. Outputs, body and borrowed inputs must
+/// be disjoint from each other and the initialized scratch stack's 24-byte
+/// reservation. Releases it before return, changes GTE state, retains no pointers.
+void worldCollisionPlaceCapsuleSegment(const WorldCollisionBody* body, VECTOR endpoints[2], SVECTOR* direction, s32 gridScan);
 
 void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other);
 

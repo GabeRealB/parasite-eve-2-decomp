@@ -14,6 +14,7 @@
 #include "gameplay/object_task.h"
 #include "object_task.h"
 #include "gameplay/player_actor.h"
+#include "gameplay/player_state.h"
 #include "player_actor.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
@@ -343,7 +344,7 @@ void Gp_FillPlayerHpMp(void)
     p->mp = p->mpMax;
 }
 
-void Gp_FillAllyHp(void)
+void companionRestoreFullHp(void)
 {
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax;
 }

@@ -56,12 +56,6 @@ STATIC_ASSERT_SIZEOF(_AttachmentAreaWireframeScratch, 0x60);
 // The image stores this head alone in the linked_actors BSS subsegment.
 WorldTargetNode* gWorldTargetListHead;
 
-static __inline__ void Gp_RingPointXZ(_AttachmentAreaWireframeScratch* scratch, s32 ang);
-
-static __inline__ void Gp_ProjectRingPt(_AttachmentAreaWireframeScratch* scratch);
-
-static __inline__ void Gp_LinkRingSeg(_AttachmentAreaWireframeScratch* scratch);
-
 /// Draws `val`, clamped at zero, as a right-aligned number at (`x`, `y`).
 static inline void _gpDrawHudValue(s32 x, s32 y, s32 color, s32 val);
 
@@ -94,13 +88,25 @@ void func_800A4904(s32 arg0)
     }
 }
 
-static __inline__ void Gp_RingPointXZ(_AttachmentAreaWireframeScratch* scratch, s32 ang)
+/// Sets a ring vertex's XZ offset, preserving its already selected Y coordinate.
+///
+/// Radius uses game units; `angle` counts 4096 units per turn, with +X at zero
+/// and +Z at the positive quarter turn. Products use twelve fractional bits
+/// and narrow to signed halfwords. Scratch storage is borrowed for this call.
+static __inline__ void _attachmentAreaWireframeSetRingPoint(_AttachmentAreaWireframeScratch* scratch, s32 angle)
 {
-    scratch->point.vx = (scratch->ringRadius * rcos(ang)) >> 12;
-    scratch->point.vz = (scratch->ringRadius * rsin(ang)) >> 12;
+    enum { ATTACHMENT_AREA_WIREFRAME_TRIG_FRACTION_BITS = 12 };
+
+    scratch->point.vx = (scratch->ringRadius * rcos(angle)) >> ATTACHMENT_AREA_WIREFRAME_TRIG_FRACTION_BITS;
+    scratch->point.vz = (scratch->ringRadius * rsin(angle)) >> ATTACHMENT_AREA_WIREFRAME_TRIG_FRACTION_BITS;
 }
 
-static __inline__ void Gp_ProjectRingPt(_AttachmentAreaWireframeScratch* scratch)
+/// Projects one area vertex and stores its packed screen position and GTE results.
+///
+/// The caller loads the area-to-view rotation, centre translation and projection
+/// parameters. Captures IR0, FLAG and quarter-depth even when projection fails;
+/// this helper does not reject or clip vertices. Changes GTE arithmetic state.
+static __inline__ void _attachmentAreaWireframeProjectPoint(_AttachmentAreaWireframeScratch* scratch)
 {
     gte_ldv0(&scratch->point);
     gte_rtps();
@@ -110,19 +116,25 @@ static __inline__ void Gp_ProjectRingPt(_AttachmentAreaWireframeScratch* scratch
     gte_stszotz(&scratch->orderingDepth);
 }
 
-static __inline__ void Gp_LinkRingSeg(_AttachmentAreaWireframeScratch* scratch)
+/// Emits a green flat line from the previous projected vertex to the current one.
+///
+/// Both packed positions and the current vertex's quarter-depth must be set.
+/// Requires one LINE_F2 of aligned frame-arena capacity and the current 1024-tag
+/// depth table. Depth is shifted and wrapped to that table; no clipping occurs.
+/// The GPU borrows the packet until the frame is drawn.
+static __inline__ void _attachmentAreaWireframeEmitSegment(const _AttachmentAreaWireframeScratch* scratch)
 {
-    LINE_F2* prim;
+    enum { ATTACHMENT_AREA_WIREFRAME_LINE_COLOR = GPU_PACK_COLOR_WORD(0, 0xC0, 0x40, 0) };
+    LINE_F2* line;
 
-    prim                              = gGpuPrimCursor;
-    gGpuPrimCursor                    = prim + 1;
-    GPU_PRIMITIVE_COLOR_WORD(prim, 0) = GPU_PACK_COLOR_WORD(0, 0xc0, 0x40, 0);
-    GPU_PRIMITIVE_XY_WORD(prim, 0)    = scratch->previousScreenXy;
-    GPU_PRIMITIVE_XY_WORD(prim, 1)    = scratch->screenXy;
-    setlen(prim, 3);
-    setcode(prim, 0x40);
+    line                              = gGpuPrimCursor;
+    gGpuPrimCursor                    = line + 1;
+    GPU_PRIMITIVE_COLOR_WORD(line, 0) = ATTACHMENT_AREA_WIREFRAME_LINE_COLOR;
+    GPU_PRIMITIVE_XY_WORD(line, 0)    = scratch->previousScreenXy;
+    GPU_PRIMITIVE_XY_WORD(line, 1)    = scratch->screenXy;
+    setLineF2(line);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->orderingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-            prim);
+            line);
 }
 
 void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -193,15 +205,15 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
             if (arg3 == 0) {
                 scratch->ringRadius = (scratch->radius * rcos(t)) >> 12;
                 scratch->point.vy   = -(scratch->extent * rsin(t)) >> 12;
-                Gp_RingPointXZ(scratch, ang);
+                _attachmentAreaWireframeSetRingPoint(scratch, ang);
             } else {
                 scratch->point.vy = -(scratch->extent * t) >> 10;
                 scratch->point.vx = (scratch->radius * rcos(ang)) >> 12;
                 scratch->point.vz = (scratch->radius * rsin(ang)) >> 12;
             }
-            Gp_ProjectRingPt(scratch);
+            _attachmentAreaWireframeProjectPoint(scratch);
             if (t > 0) {
-                Gp_LinkRingSeg(scratch);
+                _attachmentAreaWireframeEmitSegment(scratch);
             }
             scratch->previousScreenXy = scratch->screenXy;
         }
@@ -223,10 +235,10 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         }
         for (i = 0; i < 25; i++) {
             ang = base + ((i << 12) / 24);
-            Gp_RingPointXZ(scratch, ang);
-            Gp_ProjectRingPt(scratch);
+            _attachmentAreaWireframeSetRingPoint(scratch, ang);
+            _attachmentAreaWireframeProjectPoint(scratch);
             if (i != 0) {
-                Gp_LinkRingSeg(scratch);
+                _attachmentAreaWireframeEmitSegment(scratch);
             }
             scratch->previousScreenXy = scratch->screenXy;
         }

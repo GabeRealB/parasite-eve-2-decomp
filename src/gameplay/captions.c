@@ -86,7 +86,7 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3);
 
 static void _capDrawChoiceMarker(void);
 
-void Gp_CapExit(Task* arg0);
+static void _capFinishPlayback(Task* task);
 
 static void _capDrawContinueCaret(s32 unusedX, s32 unusedY);
 
@@ -165,7 +165,7 @@ void func_800E44A0(Task* task)
     taskState = task->state;
     if (taskState >= 2) {
         if (taskState >= 5) {
-            Gp_CapExit(task);
+            _capFinishPlayback(task);
             return;
         }
         task->state = taskState + 1;
@@ -879,46 +879,69 @@ static void _capDrawChoiceMarker(void)
     }
 }
 
-void Gp_CapExit(Task* arg0)
+/// Restores the live HUD, saved view and automatic actor drawing after in-place CAP.
+///
+/// Called only when no event owns presentation. Uses the still-live CAP saved
+/// view and debug frame counter; changes no actor-control or playback flags.
+static inline void _capRestoreInPlacePresentation(void)
 {
-    CdCmdQueue* queue;
-    char        buf[0x20];
-
-    queue = &gCdCmdQueue;
-    if (D_80115666 == 2) {
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 0, 0);
+    gGameSession->hideHud                                      = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566C;
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+    companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+    if (gDisplayState.debugMode != 0) {
+        func_8072455C(D_8011564A, D_8011566C);
     }
-    if (D_80115666 != 0) {
+}
+
+/// Restores the pre-CAP presentation and releases the active playback task.
+///
+/// Requires the live playback globals initialized by `capStartSequence` and
+/// its still-live task. Queued playback exits stage mode, requesting the saved
+/// view when needed and restoring the decoder policy only on that transition.
+/// In-place playback conditionally resumes actors. An idle event state also
+/// restores actor visibility and the HUD. Clears the selected sequence,
+/// active-playback marker and control flags before killing the task.
+static void _capFinishPlayback(Task* task)
+{
+    enum { CAP_ROOM_EFFECT_MESSAGE_3000      = 3000,
+           CAP_ACTOR_CONTROL_RESTORE_ON_EXIT = 0,
+           CAP_PLAYBACK_INACTIVE             = 0,
+           CAP_CONTROL_FLAGS_NONE            = 0 };
+    CdCmdQueue* cdQueue;
+    char        sceneFilename[0x20];
+
+    // Send the action-capture exit message before restoring the display mode.
+    cdQueue = &gCdCmdQueue;
+    if (D_80115666 == CAP_PLAYBACK_ACTION_CAPTURE) {
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_ROOM_EFFECT_MESSAGE_3000, 0, 0);
+    }
+    if (D_80115666 != CAP_PLAYBACK_IN_PLACE) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == D_8011566C) {
             stageRequestModeTaskExit();
         } else {
-            queue->imageMdecMode = D_8011565C;
+            cdQueue->imageMdecMode = D_8011565C;
             stageRequestViewTransitionAndModeExit(D_8011566C);
         }
     } else {
-        if (D_80115690 == 0) {
+        if (D_80115690 == CAP_ACTOR_CONTROL_RESTORE_ON_EXIT) {
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
         }
         if (gGameSession->eventState == 0) {
-            gGameSession->hideHud                                      = 0;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_8011566C;
-            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-            companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-            if (gDisplayState.debugMode != 0) {
-                func_8072455C(D_8011564A, D_8011566C);
-            }
+            _capRestoreInPlacePresentation();
         }
     }
-    if (gDisplayState.debugMode != 0 && D_801156F4.sceneKey != 0) {
+    // Three unsigned-halfword decimal fields fit this 32-byte debug filename.
+    if (gDisplayState.debugMode != 0 && D_801156F4.sceneKey != NULL) {
         sprintf(
-            buf, Gp_StrEvsFmt, D_801156F4.sceneKey->group, D_801156F4.sceneKey->streamId,
+            sceneFilename, Gp_StrEvsFmt, D_801156F4.sceneKey->group, D_801156F4.sceneKey->streamId,
             D_801156F4.sceneKey->subId);
-        func_807244CC(buf);
+        func_807244CC(sceneFilename);
     }
-    Gp_CapTable = 0;
-    D_8011565A  = 0;
-    D_801156A4  = 0;
-    taskKill(arg0);
+    Gp_CapTable = NULL;
+    D_8011565A  = CAP_PLAYBACK_INACTIVE;
+    D_801156A4  = CAP_CONTROL_FLAGS_NONE;
+    taskKill(task);
 }
 
 /// Draws the pulsing continue caret at the current CAP text pen.
@@ -1162,7 +1185,7 @@ s32 Gp_AbortCap(void)
 {
     if (Gp_CapTable != 0) {
         if (Gp_CapTask != NULL) {
-            Gp_CapExit(Gp_CapTask);
+            _capFinishPlayback(Gp_CapTask);
             return 0;
         }
         return -1;

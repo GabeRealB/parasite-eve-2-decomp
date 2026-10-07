@@ -7869,14 +7869,14 @@ task argument also drops from `$s2` to `$s1` and the frame shrinks.
 Assign the address to a local at the top, then store through it:
 
 ```c
-CdCmdQueue* queue;
+CdCmdQueue* cdQueue;
 
-queue = &gCdCmdQueue;
+cdQueue = &gCdCmdQueue;
 ...
-queue->imageMdecMode = D_8011565C;
+cdQueue->imageMdecMode = D_8011565C;
 ```
 
-`Gp_CapExit` is the example. The direct
+`_capFinishPlayback` is the example. The direct
 `gCdCmdQueue.imageMdecMode = D_8011565C` stuck at 93.9% with only that
 address and the extra saved register different.
 
@@ -36575,7 +36575,7 @@ so a `beqz flags` delay is `move v0, t7` / `lw 0x14(v0)` rather than
 register s32 temp asm("v0");
 temp = (s32)rec;
 asm volatile("" : "+r"(temp));
-slot = ((WorldCollisionCapsule*)temp)->recs;
+slot = ((WorldCollisionCapsule*)temp)->contacts;
 ```
 
 Index a `VECTOR` / `SVECTOR` with that same `$v0` temp so the shifts stay
@@ -36593,7 +36593,7 @@ src  = (SVECTOR*)(temp + (s32)rec);
 Walk occupied `WorldCollisionContact` slots with `for (;;)` and `goto` out on a hit so
 GCC emits a real loop and hoists `&slot->point.vz` (`lh -4/-2/0`). `break`
 from the occupied arm unrolls the body and keeps `lh 8/0xA/0xC(slot)`.
-`func_800DEC80` is the example.
+`worldCollisionPlaceCapsuleSegment` is the example.
 
 ## Widen a stored 12-bit angle to `s32` before negating so the load is `lh`
 
@@ -143142,7 +143142,7 @@ Fix: write the flag where the code means it - once the first record is filed:
 Moving `ret = 1` among the statements *before* the call changed nothing; only
 the post-call position does.
 
-## A search loop that sets a found flag: `goto` the shared exit, not `break` or an inline helper (func_800DEC80, 2026-09-26)
+## A search loop that sets a found flag: `goto` the shared exit, not `break` or an inline helper (worldCollisionPlaceCapsuleSegment, 2026-09-26)
 
 **Symptom.** Three `for (;;)` table walks set `found = 1` on a hit and leave it
 alone on the end-of-table marker; the target's miss paths branch straight to
@@ -149955,7 +149955,7 @@ attempts; left as it was.
   condition around it; `if (a != 0) { if (b == 0) goto after; }` in the middle
   of them is the term `(a == 0 || b != 0)`.
 - **`if (c) { f(); goto dump; }` falling through to code after `dump:`'s own
-  test of `c`** (`Gp_CapExit`: `if (debugMode) { show(); goto block; } ...
+  test of `c`** (`_capFinishPlayback`: `if (debugMode) { show(); goto block; } ...
   block: if (debugMode && key) {...}`) is plain sequential code, `if (c) f();`
   inside the arm and the dump after it. Jump threading sends the `c == 0` path
   past the second test, which is the image's shape.
@@ -150418,11 +150418,11 @@ attempts; left as it was.
   *unconditional* jump to the end label it meets before a `CODE_LABEL`, a call
   or a `NOTE_INSN_BLOCK_BEG/END`; a `break` at the end of the first `if` block
   is such a jump, and the whole test-and-hit block is duplicated in front of
-  the loop (`func_800DEC80`: 42 insns longer, which is why the 2026-09-26 entry
+  the loop (`worldCollisionPlaceCapsuleSegment`: 42 insns longer, which is why the 2026-09-26 entry
   kept `goto done_search`). An inlined call in the hit block puts a block note
   in front of the `break`, the scan stops there, and the loop stays as written.
   The three hit blocks were the same three-line point copy, now
-  `_worldCollisionCopyContactPoint(out, contact)`; six gotos went with it. So a
+  `_worldCollisionCopyContactPoint(endpoints, contact)`; six gotos went with it. So a
   `goto` out of a `for (;;)` whose hit block repeats elsewhere is worth one try
   as "inline for the block, `break` for the jump". A block-scoped local in the
   loop body has the same effect (`_replayBonusBuildItemList`, below).
