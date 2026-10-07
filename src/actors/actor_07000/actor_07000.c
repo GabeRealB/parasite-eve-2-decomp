@@ -2461,7 +2461,6 @@ static void Actor07000_Fn05FF8(Task* arg0)
 {
     GfxCoord*              parts;
     GfxCoord*              coord;
-    GfxMatrix*             mat;
     _Actor07000SlouchWork* work;
 
     work                      = arg0->work;
@@ -2469,12 +2468,7 @@ static void Actor07000_Fn05FF8(Task* arg0)
     coord                     = &work->deathCoord;
     coord->parent             = parts;
     parts[1].parent           = coord;
-    mat                       = (GfxMatrix*)&coord->coord;
-    mat->rotationWords.m00M01 = ONE;
-    mat->rotationWords.m02M10 = 0;
-    mat->rotationWords.m11M12 = ONE;
-    mat->rotationWords.m20M21 = 0;
-    mat->rotationWords.m22    = ONE;
+    gfxSetRotIdentity(&coord->coord);
     coord->composeStamp       = GRAPHICS_COORD_DIRTY;
     parts[1].composeStamp     = GRAPHICS_COORD_DIRTY;
     work->deathScale.vx       = 0x1000;
