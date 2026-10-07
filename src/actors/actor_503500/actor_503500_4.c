@@ -1193,7 +1193,7 @@ static void func_actor_503500_8013BE0C(Task* arg0)
     }
 }
 
-/// The large-orb emitter's counterpart of `func_actor_503500_80138490`:
+/// The large-orb emitter's counterpart of `_actor503500PinkFlashEmitterEnterState`:
 /// enters state `arg1` (an `ACTOR_503500_LARGE_ORB_EMITTER_STATE_*`), clears
 /// `stateStep` and `stateFrames`, drops any command still waiting in the
 /// task, and reports the slot busy to the boss in every state but
@@ -2032,7 +2032,7 @@ static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1)
             slotB = 0x10;
         }
         if (actor503500IsSlotEmpty(arg0->parent, kind) != 0) {
-            child = func_actor_503500_80135D00(arg0->parent, slotA);
+            child = actor503500SpawnSlotEnemy(arg0->parent, slotA);
             hp    = (s16)(enemy->hp / 5);
             if (hp <= 0) {
                 hp = 1;
@@ -2041,7 +2041,7 @@ static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1)
                 child->task->killCountdown = ACTOR_503500_SLOT_COMMAND_REGROW;
                 child->hp                  = hp;
             }
-            child = func_actor_503500_80135D00(arg0->parent, slotB);
+            child = actor503500SpawnSlotEnemy(arg0->parent, slotB);
             if (child != NULL) {
                 child->task->killCountdown = ACTOR_503500_SLOT_COMMAND_REGROW;
                 child->hp                  = hp;
@@ -2971,7 +2971,7 @@ static void func_actor_503500_8013F984(Task* arg0)
     }
 }
 
-/// The yellow-flash emitter's counterpart of `func_actor_503500_80138490`:
+/// The yellow-flash emitter's counterpart of `_actor503500PinkFlashEmitterEnterState`:
 /// enters state `arg1` (an `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_*`),
 /// clears `stateStep`, `stateFrames` and `field_EC`, drops any command still
 /// waiting in the task, and reports the slot busy to the boss in every state
@@ -5090,7 +5090,7 @@ static void func_actor_503500_801446E4(Task* arg0)
 
 static void func_actor_503500_8014473C(Task* arg0)
 {
-    func_actor_503500_801372AC(1);
+    actor503500ReleaseProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_BALLISTIC);
     worldCollisionUnlinkBody(&((_Actor503500BallisticShotWork*)arg0->work)->body);
     taskKill(arg0);
 }
@@ -5287,7 +5287,7 @@ static void func_actor_503500_80144D50(Task* arg0)
 
 static void func_actor_503500_80144DA8(Task* arg0)
 {
-    func_actor_503500_801372AC(3);
+    actor503500ReleaseProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_LINGERING);
     if (arg0->spawnArg1.value == 0) {
         sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 8), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     } else {

@@ -380,68 +380,68 @@ AnimationPlayRequest D_actor_503500_8016EAE8[18] = {
 SVECTOR D_actor_503500_8016EC50 = { 0, -500, 1600, 0 };
 
 Actor503500AttackChoice D_actor_503500_8016EC58[4] = {
-    { func_actor_503500_8013667C, 127 },
-    { func_actor_503500_80133BF4, 79 },
+    { actor503500AttackPinkOrYellowFlash, 127 },
+    { actor503500AttackArmStrike, 79 },
     { actor503500AttackLargeOrbPair, 47 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EC78[4] = {
-    { func_actor_503500_80133BF4, 127 },
-    { func_actor_503500_80136770, 79 },
+    { actor503500AttackArmStrike, 127 },
+    { actor503500AttackYellowFlash, 79 },
     { actor503500AttackLargeOrbPair, 47 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EC98[5] = {
-    { func_actor_503500_80136770, 79 },
-    { func_actor_503500_80134284, 63 },
-    { func_actor_503500_8013656C, 47 },
+    { actor503500AttackYellowFlash, 79 },
+    { actor503500AttackSideChain, 63 },
+    { actor503500AttackChainBases, 47 },
     { actor503500AttackLargeOrbPair, 31 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ECC0[3] = {
-    { func_actor_503500_8013667C, 159 },
+    { actor503500AttackPinkOrYellowFlash, 159 },
     { actor503500AttackLargeOrbPair, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ECD8[3] = {
     { actor503500AttackLargeOrbPair, 159 },
-    { func_actor_503500_80136770, 95 },
+    { actor503500AttackYellowFlash, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ECF0[4] = {
     { actor503500AttackLargeOrbPair, 111 },
-    { func_actor_503500_80134284, 79 },
-    { func_actor_503500_80136770, 63 },
+    { actor503500AttackSideChain, 79 },
+    { actor503500AttackYellowFlash, 63 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ED10[4] = {
-    { func_actor_503500_80134284, 159 },
-    { func_actor_503500_8013656C, 63 },
-    { func_actor_503500_80136770, 31 },
+    { actor503500AttackSideChain, 159 },
+    { actor503500AttackChainBases, 63 },
+    { actor503500AttackYellowFlash, 31 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ED30[4] = {
-    { func_actor_503500_80136948, 95 },
-    { func_actor_503500_8013667C, 95 },
+    { actor503500AttackSmallOrbVolley, 95 },
+    { actor503500AttackPinkOrYellowFlash, 95 },
     { actor503500AttackLargeOrbPair, 63 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ED50[3] = {
     { actor503500AttackLargeOrbPair, 159 },
-    { func_actor_503500_80134284, 95 },
+    { actor503500AttackSideChain, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ED68[3] = {
-    { func_actor_503500_80134284, 223 },
+    { actor503500AttackSideChain, 223 },
     { actor503500AttackLargeOrbPair, 31 },
     { NULL, 0 },
 };
@@ -489,64 +489,64 @@ s16 D_actor_503500_8016EDC0[4] = {
 };
 
 Actor503500AttackChoice D_actor_503500_8016EDC8[4] = {
-    { func_actor_503500_801364D0, 111 },
-    { func_actor_503500_8013667C, 111 },
-    { func_actor_503500_80133BF4, 31 },
+    { actor503500AttackBody, 111 },
+    { actor503500AttackPinkOrYellowFlash, 111 },
+    { actor503500AttackArmStrike, 31 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EDE8[3] = {
-    { func_actor_503500_8013667C, 159 },
-    { func_actor_503500_80133BF4, 95 },
+    { actor503500AttackPinkOrYellowFlash, 159 },
+    { actor503500AttackArmStrike, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE00[2] = {
-    { func_actor_503500_8013656C, 255 },
+    { actor503500AttackChainBases, 255 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE10[3] = {
-    { func_actor_503500_801364D0, 127 },
-    { func_actor_503500_8013667C, 127 },
+    { actor503500AttackBody, 127 },
+    { actor503500AttackPinkOrYellowFlash, 127 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE28[3] = {
     { actor503500AttackLargeOrbPair, 159 },
-    { func_actor_503500_80136770, 95 },
+    { actor503500AttackYellowFlash, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE40[4] = {
     { actor503500AttackLargeOrbPair, 95 },
-    { func_actor_503500_80134284, 79 },
-    { func_actor_503500_80136770, 63 },
+    { actor503500AttackSideChain, 79 },
+    { actor503500AttackYellowFlash, 63 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE60[4] = {
-    { func_actor_503500_80134284, 159 },
-    { func_actor_503500_8013656C, 63 },
-    { func_actor_503500_80136770, 31 },
+    { actor503500AttackSideChain, 159 },
+    { actor503500AttackChainBases, 63 },
+    { actor503500AttackYellowFlash, 31 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE80[3] = {
-    { func_actor_503500_801364D0, 127 },
-    { func_actor_503500_80136948, 127 },
+    { actor503500AttackBody, 127 },
+    { actor503500AttackSmallOrbVolley, 127 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE98[3] = {
     { actor503500AttackLargeOrbPair, 159 },
-    { func_actor_503500_80134284, 95 },
+    { actor503500AttackSideChain, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EEB0[3] = {
-    { func_actor_503500_80134284, 127 },
-    { func_actor_503500_8013656C, 127 },
+    { actor503500AttackSideChain, 127 },
+    { actor503500AttackChainBases, 127 },
     { NULL, 0 },
 };
 
@@ -1394,7 +1394,7 @@ static void func_actor_503500_80145480(Task* arg0)
     _Actor503500PinkFlashAttackWork* work;
     TmdObject*                       ext;
 
-    func_actor_503500_801372AC(6);
+    actor503500ReleaseProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_PINK_FLASH);
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0B), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
@@ -1547,7 +1547,7 @@ static void func_actor_503500_80145950(Task* arg0)
     TmdObject*                         ext;
 
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    func_actor_503500_801372AC(6);
+    actor503500ReleaseProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_YELLOW_FLASH);
     ext                   = arg0->extra.tmd;
     (ext->coords)->parent = &gGfxViewCoord;
     work                  = arg0->work;
@@ -1718,7 +1718,7 @@ static void func_actor_503500_80145E98(Task* arg0)
     _Actor503500OrangeFlashAttackWork* work;
     TmdObject*                         ext;
 
-    func_actor_503500_801372AC(8);
+    actor503500ReleaseProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_ORANGE_FLASH);
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0E), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x13), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), SOUND_SCRIPT_STOP_KEEP_RELEASE);

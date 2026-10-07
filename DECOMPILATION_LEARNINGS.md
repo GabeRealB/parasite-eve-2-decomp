@@ -69583,22 +69583,22 @@ assignment at every prologue position before touching anything else.
 
 ## Duplicated tail: a literal shared by an HI and a QI store stops the cross-jump one insn early
 
-`func_actor_503500_8013667C` has two arms that end in the same
+`actor503500AttackPinkOrYellowFlash` has two arms that end in the same
 `targetYawOffset = 0; attackPhase = 1;` tail. Target path 1 ends
 `sh s0,7c2; move s0,zero; j tail+4; li v0,1`. Its `j` jumps *past* path 2's
 `li v0,1`, and `li v0,1` fills the delay slot. A `goto` into a shared tail, or a
-duplicated tail that stores `attackSlot = ret`, gives
+duplicated tail that stores `attackSlot = idleDelay`, gives
 `j tail; move s0,zero` instead (97.3%).
 
 Mechanism (sched2 and dbr dumps): the post-sched2 jump pass cross-jumps the
 duplicated tails, and `find_cross_jump` compares insns with
 `rtx_renumbered_equal_p`, which checks modes. Path 1 writes
-`attackSlot = 1; targetYawOffset = 0; attackPhase = 1; ret = 0;`, so CSE loads the
+`attackSlot = 1; targetYawOffset = 0; attackPhase = 1; idleDelay = 0;`, so CSE loads the
 literal 1 once as `(reg:HI v0)` and stores `attackPhase` from its `subreg:QI`.
 Path 2's `li v0,1` is `(reg:QI v0)`. The mismatch stops the merge after
 `sh zero; sb`, which leaves path 1's `li v0,1` right before its `j`, and the
 backward fill takes it. (`attackSlot = 1` still comes out as `sh s0` because
-`ret` holds 1.)
+`idleDelay` holds 1.)
 
 The same function also used `__builtin_abs` (`abssi2`, no RTL label). With an
 `if (d < 0) d = -d;` the abs join label stops reorg's `redundant_insn` scan, so
@@ -69945,19 +69945,19 @@ copy loop that walks a source *and* a destination pointer needs both written
 as walking pointers (`*dst++ = *src++`); `work->w[j] = src[j]` walks the
 work pointer itself and stores to `0x40(a0)`.
 
-## Switch default `ret = 1` instead of presetting `ret = 1` before the switch
+## Switch default `idleDelay = 1` instead of presetting `idleDelay = 1` before the switch
 
-`func_actor_503500_80134284` dispatches on `(s8)work->attackPhase` with cases 0
+`actor503500AttackSideChain` dispatches on `(s8)work->attackPhase` with cases 0
 and 1, and the target tests case 1 against a separate constant, `li v0,1;
 beq v1,v0,case1`, with `li s0,1` for the fall-through in the delay slot. The
-siblings' shape, `ret = 1;` before `switch` with no `default`, lets CSE reuse
-`ret`'s register as the comparand (`li s0,1; beq v0,s0`), and `move v0,s0`
+siblings' shape, `idleDelay = 1;` before `switch` with no `default`, lets CSE reuse
+`idleDelay`'s register as the comparand (`li s0,1; beq v0,s0`), and `move v0,s0`
 moves into the delay slot, leaving `j end; nop` (81%). Writing it as
-`default: ret = 1; break;` with no preset keeps the constant inside the
+`default: idleDelay = 1; break;` with no preset keeps the constant inside the
 default arm, so the comparison gets its own `v0` and dbr steals the arm's
-`li s0,1` for the `beq` slot (100%). Same function: `s32 dir =
+`li s0,1` for the `beq` slot (100%). Same function: `s32 playerBearing =
 work->playerBearing` instead of `s16` gives the target's single `lh` in place of
-`lhu` plus `sll/sra`, and `if ((u16)work->attackSlot - 7 >= 2U)` gives the
+`lhu` plus `sll/sra`, and `if ((u16)work->attackSlot - ACTOR_503500_SLOT_CHAIN_BASE_0 >= 2U)` gives the
 `lhu; addiu -7; sltiu 2` range test where `switch { case 7: case 8: }`
 compiles to two `slti` compares.
 
@@ -112093,8 +112093,8 @@ the range test is two instructions shorter than the target's:
 
 The copy truncates the index to HImode, so `movhi_internal` loads it with `lhu` and
 the extension is materialised afterwards from the register instead of from a second
-load. This is the same `lhu`-vs-`lh` mechanism as the `s32 dir` / `s16 dir` pair in
-`func_actor_503500_80134284`, reached here through the switch's index type rather
+load. This is the same `lhu`-vs-`lh` mechanism as the `s32 playerBearing` / `s16 playerBearing` pair in
+`actor503500AttackSideChain`, reached here through the switch's index type rather
 than through a compare's operand. Without the copy the function scored 97.24% at
 146/148 instructions (`insert=1 delete=3`, no register or scheduling penalty at
 all); with it, 100% and every penalty zero.

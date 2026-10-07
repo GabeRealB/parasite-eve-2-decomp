@@ -79,6 +79,24 @@ enum {
     ACTOR_503500_SLOT_COUNT = 17, // Slots of the boss: its own and those of the enemies riding on it
 };
 
+/// Descriptor indices of the boss and the attached enemies these attacks command.
+enum {
+    ACTOR_503500_SLOT_BODY                 = 0,
+    ACTOR_503500_SLOT_PINK_FLASH_EMITTER   = 1,
+    ACTOR_503500_SLOT_LARGE_CHAIN_0        = 2,
+    ACTOR_503500_SLOT_LARGE_CHAIN_1        = 3,
+    ACTOR_503500_SLOT_CHAIN_BASE_0         = 7,
+    ACTOR_503500_SLOT_CHAIN_BASE_1         = 8,
+    ACTOR_503500_SLOT_SMALL_ORB_EMITTER    = 9,
+    ACTOR_503500_SLOT_ARM_0                = 10,
+    ACTOR_503500_SLOT_ARM_1                = 11,
+    ACTOR_503500_SLOT_YELLOW_FLASH_EMITTER = 12,
+    ACTOR_503500_SLOT_LUNGING_CHAIN_0      = 13,
+    ACTOR_503500_SLOT_LUNGING_CHAIN_1      = 14,
+    ACTOR_503500_SLOT_LUNGING_CHAIN_2      = 15,
+    ACTOR_503500_SLOT_LUNGING_CHAIN_3      = 16,
+};
+
 /// Requests delivered to a slot enemy in `Task::killCountdown`.
 ///
 /// Zero means no request. The receiving task consumes a request in its state
@@ -421,8 +439,16 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1);
 /// ignored because the package has one boss work block.
 void actor503500ClearSlotEnemy(Task* unusedTask, s32 slot);
 
-/// Spawns slot enemy `arg1` as a child of `arg0`; returns it, or NULL.
-Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1);
+/// Spawns an attached slot enemy under the boss and publishes it in its slot.
+///
+/// `task` is the boss task; `slot` is a descriptor index in 0..16. The parent
+/// enemy's placement index must select a live placement in the current area's
+/// loaded variant. Copies that placement's texture-page and CLUT-row offsets
+/// into the child model and refreshes both packet halves if allocated.
+/// Returns the new enemy or NULL on spawn failure, leaving the old slot intact
+/// on failure. The enemy/task teardown owns the child; this function does not
+/// destroy an existing slot enemy before replacing its pointer.
+Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot);
 
 /// Returns 1 when boss slot 0..16 has no enemy, otherwise 0.
 ///
@@ -494,7 +520,24 @@ s16 func_actor_503500_80136218(void);
 
 void func_actor_503500_80137290(s32 arg0);
 
-void func_actor_503500_801372AC(s32 arg0);
+/// Lifetime budget weights released by the package's projectile task exits.
+enum {
+    ACTOR_503500_PROJECTILE_EFFECT_COST_BALLISTIC    = 1,
+    ACTOR_503500_PROJECTILE_EFFECT_COST_LINGERING    = 3,
+    ACTOR_503500_PROJECTILE_EFFECT_COST_PINK_FLASH   = 6,
+    ACTOR_503500_PROJECTILE_EFFECT_COST_YELLOW_FLASH = 6,
+    ACTOR_503500_PROJECTILE_EFFECT_COST_ORANGE_FLASH = 8,
+};
+
+/// Releases a projectile task's lifetime share of the package's effect budget.
+///
+/// `effectCost` is the task's weight: 1 for a ballistic shot, 3 for a lingering
+/// shot (large orb or chain-base projectile), 6 for a pink/yellow flash and 8
+/// for an orange flash. Normal exits balance the earlier acquisition; effect
+/// creation failure also calls cleanup before that acquisition has happened.
+/// Subtracts from aggregate entry 17 without checking. The stored unsigned
+/// halfword wraps on underflow, while budget admission sums it as signed.
+void actor503500ReleaseProjectileEffectCost(s32 effectCost);
 
 void func_actor_503500_8013BE8C(Task* task);
 
@@ -521,17 +564,66 @@ void func_actor_503500_801459D4(Task* task);
 void func_actor_503500_80145F84(Task* task);
 
 // Callbacks referenced by the overlay's shared data tables.
-s32 func_actor_503500_80133BF4(Task*, Actor503500Work*);
+/// Commands an arm strike, then waits for the selected arm to rest.
+///
+/// With bearing band 0, tries slots 10 and 11 in random-bit order. Even if
+/// neither is ready, enters the wait phase using the previous `attackSlot`.
+/// Other bands choose slot 10 for positive player bearing and slot 11 otherwise.
+/// A command starts a 120-frame cooldown and clears the target yaw offset.
+/// `task` is unused; `work` is the boss work block. Returns 0 while running
+/// and a 1-frame idle delay on completion or a failed directional start,
+/// following `Actor503500AttackFn`.
+s32 actor503500AttackArmStrike(Task* task, Actor503500Work* work);
 
-s32 func_actor_503500_80134284(Task*, Actor503500Work*);
+/// Commands one side's chain attack and turns the boss toward its rear.
+///
+/// Positive player bearing tries slots 2, 13, 14, 7; nonpositive bearing
+/// tries 3, 16, 15, 8. Each candidate has a bearing gate; a lunging chain's
+/// gate also depends on its partner's presence. Bearings and the 2000-unit
+/// target yaw offset use 4096 units per turn. The retained opposite-side
+/// fallback tests cannot pass after the sign test. A failed start returns
+/// a 1-frame idle delay and clears the yaw offset.
+/// Once started, waits for rest or more than 90 calls in the wait phase;
+/// slots 7/8 do not advance that timer. Completion returns an idle delay
+/// of 15 frames for slots 2/3, 60 for 13..16, 90 for 7/8, or 30 otherwise.
+/// Returns 0 while running, following `Actor503500AttackFn`. `task` and
+/// `work` are the boss task and its work block.
+s32 actor503500AttackSideChain(Task* task, Actor503500Work* work);
 
-s32 func_actor_503500_801364D0(Task*, Actor503500Work*);
+/// Commands the boss's own body attack and waits for slot 0 to rest.
+///
+/// Starts a 60-frame cooldown and clears the target yaw offset. `task` is
+/// unused; `work` is the boss work block. Returns 0 while running, a 1-frame
+/// idle delay if not ready, or 30 frames when done (`Actor503500AttackFn`).
+s32 actor503500AttackBody(Task* task, Actor503500Work* work);
 
-s32 func_actor_503500_8013656C(Task*, Actor503500Work*);
+/// Commands each ready chain base and waits for either slot to rest.
+///
+/// Slots 7 and 8 are tested independently and receive 150-frame cooldowns.
+/// At least one start sets the target yaw offset to 2000 (4096 units per turn).
+/// The wait also ends after more than 90 wait-phase calls; the timer advances
+/// only when both slots report busy. A missing or uncommanded idle partner
+/// can therefore end the wait immediately. `task` is unused and `work` is
+/// the boss work block. Returns 0 while running, a 30-frame idle delay if
+/// neither starts, or 240 frames when done, following `Actor503500AttackFn`.
+s32 actor503500AttackChainBases(Task* task, Actor503500Work* work);
 
-s32 func_actor_503500_8013667C(Task*, Actor503500Work*);
+/// Commands a forward pink flash, falling back to the yellow flash.
+///
+/// Prefers ready slot 1 when the player's bearing magnitude is strictly
+/// below 500, in 4096ths of a turn; otherwise tries ready slot 12. Starts
+/// a 150-frame cooldown, clears the target yaw offset and waits for the
+/// chosen slot to rest. `task` is unused; `work` is the boss work block.
+/// Returns 0 while running, a 1-frame idle delay if neither can start, or
+/// 90 frames when done, following `Actor503500AttackFn`.
+s32 actor503500AttackPinkOrYellowFlash(Task* task, Actor503500Work* work);
 
-s32 func_actor_503500_80136770(Task*, Actor503500Work*);
+/// Commands the yellow-flash emitter and waits for slot 12 to rest.
+///
+/// Starts a 150-frame cooldown and clears the target yaw offset. `task` is
+/// unused; `work` is the boss work block. Returns 0 while running, a 1-frame
+/// idle delay if not ready, or 150 frames when done (`Actor503500AttackFn`).
+s32 actor503500AttackYellowFlash(Task* task, Actor503500Work* work);
 
 /// Commands the paired large-orb emitters and waits for both slots to rest.
 ///
@@ -545,7 +637,13 @@ s32 func_actor_503500_80136770(Task*, Actor503500Work*);
 /// delay once both slots rest, following `Actor503500AttackFn`.
 s32 actor503500AttackLargeOrbPair(Task* task, Actor503500Work* work);
 
-s32 func_actor_503500_80136948(Task*, Actor503500Work*);
+/// Commands the small-orb volley and waits for slot 9 to rest.
+///
+/// Clears the target yaw offset even when slot 9 is not ready. A start sets
+/// a 60-frame cooldown. `task` is unused; `work` is the boss work block.
+/// Returns 0 while running, a 1-frame idle delay if not ready, or 30 frames
+/// when done, following `Actor503500AttackFn`.
+s32 actor503500AttackSmallOrbVolley(Task* task, Actor503500Work* work);
 
 void func_actor_503500_80137238(Task*);
 
