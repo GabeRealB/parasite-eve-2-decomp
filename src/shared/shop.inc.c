@@ -1041,7 +1041,7 @@ static void Shop_PreviewTask(Task* task)
     item         = Shop_Data_801819EC;
     obj          = task->spawnArg2.pointer;
     task->status = 0;
-    if ((cdCmdIsIdle() & 0xFFFF) && Shop_Data_801819EC == Gp_GetPreviewItem()) {
+    if ((cdCmdIsIdle() & 0xFFFF) && Shop_Data_801819EC == itemMenuGetPrimaryPreviewItem()) {
         func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, 0x20);
     } else {
         func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, 0x120);

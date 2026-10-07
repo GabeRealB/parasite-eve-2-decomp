@@ -717,7 +717,7 @@ static void func_actor_143000_80133698(Task* task)
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
@@ -728,7 +728,7 @@ static void func_actor_143000_801336E8(Task* arg0)
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         switch ((s16)(work->selectedHotspot - 1)) {
             case 0:
                 Gp_RunCapCmd(8, 0);

@@ -2475,7 +2475,7 @@ static void func_shelter_b1_underground_parking_80184594(Task* task)
     _shelterB1UndergroundParkingDrawPanelIndicators();
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
@@ -2487,7 +2487,7 @@ static void func_shelter_b1_underground_parking_801845F8(Task* task)
     _shelterB1UndergroundParkingDrawPanelIndicators();
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         if (work->choice == SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER) {
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
             if (D_shelter_b1_underground_parking_8018D788 != D_shelter_b1_underground_parking_8018D789) {

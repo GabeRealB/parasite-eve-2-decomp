@@ -198,7 +198,7 @@ void func_800C5F70(Task* arg0)
             obj->panel.animationTicks = 0x14;
         }
         D_80067634         = obj;
-        arg0->exitCallback = func_800CF330;
+        arg0->exitCallback = itemMenuInfoTaskExit;
         arg0->state        = 2;
         if ((item < 0x100) || (item == 0x10C) || (item == 0x113) || (item == 0x114) ||
             (item == 0x11B) || (item == 0x11F) || (item == 0x125) || (item == 0x127) ||

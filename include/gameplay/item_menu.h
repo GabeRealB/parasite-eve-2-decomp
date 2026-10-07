@@ -46,15 +46,54 @@ extern ActionPrompt D_80114D28[2];
 
 void Gp_SetHolderItemText(s32 arg0);
 
-UiObject* Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Notice text indices used by item-menu and save-result notices.
+enum {
+    ITEM_MENU_NOTICE_CANNOT_MOVE_EQUIPPED_ITEM = 7,
+    ITEM_MENU_NOTICE_SAVE_CANCELLED            = 0xF,
+    ITEM_MENU_NOTICE_SAVE_COMPLETE             = 0x11,
+    ITEM_MENU_NOTICE_NO_USE_NOW                = 0x12,
+    ITEM_MENU_NOTICE_NO_OTHER_WEAPON           = 0x14,
+    ITEM_MENU_NOTICE_NO_OTHER_ARMOR            = 0x15,
+    ITEM_MENU_NOTICE_CANNOT_MOVE_ITEM          = 0x1E
+};
+
+/// Whether accepting a notice dismisses its parent operation or confirms to it.
+enum {
+    ITEM_MENU_NOTICE_RESULT_DISMISS = 0,
+    ITEM_MENU_NOTICE_RESULT_CONFIRM = 1
+};
+
+/// Opens a timed notice as a child of `parent`, or as a root when it is NULL.
+///
+/// `noticeId` selects text 0..32. `returnConfirmation` selects the result mode
+/// above: timeout or Confirm/Cancel yields DISMISS for 0, CONFIRM for 1;
+/// the Menu button yields CANCEL in either mode. `unused` is ignored.
+/// The task owns the returned object until teardown; allocation failure returns
+/// NULL. The notice starts active with a one-tick opening delay.
+UiObject* itemMenuSpawnNotice(UiObject* parent, s32 noticeId, s32 unused, s32 returnConfirmation);
 
 s32 func_800D4D2C(s32 arg0);
 
-s32 func_800D4EC0(void);
+/// Returns whether the most recently started hotspot menu's action row was accepted.
+///
+/// The menu task clears the flag when it starts; accepting Examine/Push sets 1.
+/// Cancellation and selecting Item leave it at 0. Reading does not consume it.
+/// Queuing a new menu alone does not clear the previous result.
+s32 itemMenuIsHotspotActionConfirmed(void);
 
-s32 func_800D4E78(s32 arg0, s32 arg1, s32 arg2);
+/// Queues the Examine/Push and Item command menu at a hotspot's screen position.
+///
+/// Coordinates are signed pixels from the screen center, with Y downward;
+/// the panel stores their low 16 bits. `actionKind` is 0 for Examine or 1 for
+/// Push; other values also draw Examine. Only one queued display-mode request
+/// is accepted at a time. Returns 1 even if that queue rejects the request.
+s32 itemMenuOpenHotspotCommands(s32 screenX, s32 screenY, s32 actionKind);
 
-s32 Gp_GetPreviewItem(void);
+/// Returns the item id selected for preview slot 0, or -1 when that slot is empty.
+///
+/// This is the requested item, including while its resources are still loading;
+/// callers must separately check resource readiness. Does not change the preview.
+s32 itemMenuGetPrimaryPreviewItem(void);
 
 extern char Gp_StrEmpty[];
 

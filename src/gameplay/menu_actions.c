@@ -198,7 +198,7 @@ static u8 Gp_GetMapRoomId(void);
 
 static void func_800D2020(u8 arg0);
 
-static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s32 comparePreviousLevel, s32 barX, s32 valueY, s32 column);
 
 static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 
@@ -215,6 +215,15 @@ static void _menuMapDrawAreaShape(UiObject* mapObject, const TmdSource* areaMode
 static void Gp_DrawExamineCmd(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3);
 
 static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1);
+
+/// Bit fields of the packed PE menu id; higher catalogue bits do not select a row.
+enum {
+    ATTACHMENT_MENU_ELEMENT_MASK  = 0x30,
+    ATTACHMENT_MENU_ELEMENT_SHIFT = 4,
+    ATTACHMENT_MENU_ENERGY_MASK   = 0xC,
+    ATTACHMENT_MENU_ENERGY_SHIFT  = 2,
+    ATTACHMENT_MENU_LEVEL_MASK    = 3
+};
 
 static inline s32 _gpIsItemRowFree(InventoryItemRow* arg0)
 {
@@ -637,39 +646,41 @@ static s32 func_800CF204(CdCmdEntry* entry)
     return _cdCmdEnqueueEntry(entry);
 }
 
-s32 Gp_GetPreviewItem(void)
+s32 itemMenuGetPrimaryPreviewItem(void)
 {
     return Gp_PreviewItems[0];
 }
 
-void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1)
+void itemMenuDrawDescriptionRow(UiList* list, UiObject* object)
 {
-    const const u8* text;
-    s8              idx;
-    s32             id;
+    enum { ITEM_MENU_DESCRIPTION_CHUNK_HEADER_LINES = 5 };
+    const u8* text;
+    s8        lineIndex;
+    s32       itemId;
 
-    idx = arg0->currentItemIndex;
-    id  = (u16)arg1->owner->spawnArg1.value;
-    if ((idx < 2) && (id < 0x100)) {
-        text = itemGetText(id, idx + 1, 1);
-        textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    lineIndex = list->currentItemIndex;
+    itemId    = (u16)object->owner->spawnArg1.value;
+    if ((lineIndex < 2) && (itemId < ITEM_TEXT_KEY_ID_FIRST)) {
+        text = itemGetText(itemId, lineIndex + ITEM_TEXT_DESCRIPTION_FIRST, 1);
+        textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
-        text = textSkipLines(fsGetChunkPayload(), arg0->currentItemIndex + 5);
-        textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        // The loaded description chunk has five header lines before its body.
+        text = textSkipLines(fsGetChunkPayload(), list->currentItemIndex + ITEM_MENU_DESCRIPTION_CHUNK_HEADER_LINES);
+        textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
 
-void func_800CF330(Task* arg0)
+void itemMenuInfoTaskExit(Task* task)
 {
-    UiObject* obj;
+    UiObject* object;
 
-    obj = arg0->spawnArg2.pointer;
-    if (obj != NULL) {
-        if (D_80067634 == obj) {
+    object = task->spawnArg2.pointer;
+    if (object != NULL) {
+        if (D_80067634 == object) {
             D_80067634 = NULL;
         }
     }
-    uiObjectTaskExit(arg0);
+    uiObjectTaskExit(task);
 }
 
 void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
@@ -693,28 +704,29 @@ void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
     }
 }
 
-void Gp_EquipHeld(s32 arg0)
+void equipmentEquipCarriedWeapon(s32 weaponItemId)
 {
-    PlayerStatus*     p;
-    InventoryItemRow* rec;
-    InventoryItemRow* prev;
-    u8                field21;
+    PlayerStatus*     player;
+    InventoryItemRow* weaponRow;
+    InventoryItemRow* previousWeaponRow;
+    u8                previousWeapon;
 
-    p       = &gPlayerStatus;
-    rec     = inventoryFindLastCarriedItemRow(arg0);
-    field21 = p->weapon;
-    if (field21 != arg0 - 0x7F) {
-        if (field21 != 0) {
-            prev = inventoryFindLastCarriedItemRow(field21 + 0x7F);
-            if (rec->attachSlot > INVENTORY_ATTACHMENT_NONE) {
-                prev->attachSlot = rec->attachSlot;
+    player         = &gPlayerStatus;
+    weaponRow      = inventoryFindLastCarriedItemRow(weaponItemId);
+    previousWeapon = player->weapon;
+    if (previousWeapon != weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) {
+        // Preserve the attachment position or unload the weapon being replaced.
+        if (previousWeapon != PLAYER_STATUS_EQUIPMENT_NONE) {
+            previousWeaponRow = inventoryFindLastCarriedItemRow(previousWeapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
+            if (weaponRow->attachSlot > INVENTORY_ATTACHMENT_NONE) {
+                previousWeaponRow->attachSlot = weaponRow->attachSlot;
             } else {
-                equipmentClearSelectedRemovableLoads(prev->itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
+                equipmentClearSelectedRemovableLoads(previousWeaponRow->itemId, EQUIPMENT_CLEAR_LOAD_BOTH);
             }
         }
-        p->weapon = arg0 - 0x7F;
-        inventoryDetachItem(rec);
-        itemSetIdentified(arg0, 1);
+        player->weapon = weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+        inventoryDetachItem(weaponRow);
+        itemSetIdentified(weaponItemId, 1);
     }
 }
 
@@ -901,57 +913,57 @@ void func_800CFAA8(UiObject* arg0, Task* arg1)
     Gp_InvokePeItemPanel(arg0, arg1, arg1->spawnArg1.value);
 }
 
-void Gp_DrawOkCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawOkRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrOk, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrOk, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            arg0->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
-            arg0->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_OK;
+            list->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
+            list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_OK;
         }
     }
 }
 
-void Gp_DrawCancelCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawCancelRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrCancel, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrCancel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            arg0->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
-            arg0->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_CANCEL;
+            list->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
+            list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_CANCEL;
         }
     }
 }
 
-void Gp_DrawYesCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawYesRow(UiList* list, UiObject* object)
 {
-    s32 temp;
+    s32 inputEnabled;
 
-    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrYes, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    temp = arg0->rowInputEnabled;
-    if (temp == 1) {
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrYes, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    inputEnabled = list->rowInputEnabled;
+    if (inputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            arg0->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
-            arg0->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_YES;
+            list->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
+            list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_YES;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            arg0->navigationStep = temp;
-            arg0->actionResult   = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
+            list->navigationStep = inputEnabled;
+            list->actionResult   = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
         }
     }
 }
 
-void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawNoRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, (const u8*)Gp_StrNo, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, (const u8*)Gp_StrNo, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            arg0->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
-            arg0->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_NO;
+            list->actionResult              = USER_INTERFACE_RESULT_CONFIRM;
+            list->commandResult.signedValue = USER_INTERFACE_LIST_COMMAND_NO;
         }
     }
 }
@@ -1001,7 +1013,7 @@ static void Gp_SpawnItemUsePrompt(UiList* arg0, UiObject* arg1)
         }
         arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     } else {
-        Gp_SpawnItemPrompt(arg1, 0x12, 0, 0);
+        itemMenuSpawnNotice(arg1, ITEM_MENU_NOTICE_NO_USE_NOW, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
         arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
@@ -2016,7 +2028,7 @@ void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
                 item = 0xD;
             }
             if (item >= 0) {
-                Gp_SpawnItemPrompt(arg1, item, 0, 0);
+                itemMenuSpawnNotice(arg1, item, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
                 uiSpawnObject(&D_8010F7A4, flags, 1, 0xA, arg1);
@@ -2044,7 +2056,7 @@ void Gp_PeCommandMenuTask(Task* arg0)
     if (arg0->state == 0) {
         table                               = menu->rowCallbacks;
         table[0]                            = Gp_DrawReviveCmd;
-        table[1]                            = Gp_DrawPeSlotCmd;
+        table[1]                            = itemMenuDrawPeCancelRow;
         two                                 = 2;
         menu->visibleRowCount.unsignedValue = two;
         menu->itemCount                     = two;
@@ -2118,7 +2130,7 @@ void Gp_DiscardWarnTask(Task* arg0)
     }
     if (mode != 0x10) {
         arg0->spawnArg1.value = mode;
-        Gp_NoticePanelTask(arg0);
+        itemMenuNoticeTask(arg0);
         return;
     }
     text = Gp_PromptTexts[0];
@@ -2356,81 +2368,78 @@ void func_800D29B0(Task* arg0)
     }
 }
 
-void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1)
+void itemMenuDrawAbilityDescription(UiObject* object, s32 abilityId)
 {
-    TextDrawReq req;
-    s16         y;
-    s32         mask;
-    s32         lineY;
-    s32         color;
-    s32         one;
+    TextDrawReq request;
+    s16         contentTop;
+    s32         level;
+    s32         descriptionY;
+    s32         textColorRgb;
     const u8*   text;
 
-    y     = arg0->panel.contentTop.unsignedValue;
-    mask  = arg1 & 3;
-    lineY = y + 0xF;
-    text  = itemGetText(arg1, ITEM_TEXT_DESCRIPTION_FIRST, 1);
-    color = 0x606060;
-    one   = 1;
-    textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, lineY, text, color, one, TEXT_ALIGNMENT_LEFT);
-    text = itemGetText(arg1, ITEM_TEXT_DESCRIPTION_SECOND, one);
-    textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, y + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
-    y     = arg0->panel.contentTop.unsignedValue;
-    lineY = y + 0xF;
-    uiDrawVerticalSeparator(&(arg0)->panel, y, arg0->panel.contentBottom.signedValue, 0x2F);
-    if (mask) {
-        req.x          = arg0->panel.contentOriginX.unsignedValue + 0x34;
-        req.y          = (s16)(arg0->panel.contentOriginY.unsignedValue - 6) + lineY;
-        req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-        req.colorRgb   = color;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_StrCastCost);
-        func_800D3660(arg0, arg1, 0, 0x34, y + 0x1A, ATTACHMENT_LEVEL_CAST_COST);
+    contentTop   = object->panel.contentTop.unsignedValue;
+    level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
+    descriptionY = contentTop + 0xF;
+    text         = itemGetText(abilityId, ITEM_TEXT_DESCRIPTION_FIRST, 1);
+    textColorRgb = 0x606060;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, descriptionY, text, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    text = itemGetText(abilityId, ITEM_TEXT_DESCRIPTION_SECOND, 1);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, contentTop + 0x1E, text, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    contentTop   = object->panel.contentTop.unsignedValue;
+    descriptionY = contentTop + 0xF;
+    uiDrawVerticalSeparator(&(object)->panel, contentTop, object->panel.contentBottom.signedValue, 0x2F);
+    if (level) {
+        request.x          = object->panel.contentOriginX.unsignedValue + 0x34;
+        request.y          = (s16)(object->panel.contentOriginY.unsignedValue - 6) + descriptionY;
+        request.otIndex    = object->panel.otIndex.signedValue + 1;
+        request.colorRgb   = textColorRgb;
+        request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        request.alignment  = TEXT_ALIGNMENT_LEFT;
+        request.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&request, Gp_StrCastCost);
+        _itemMenuDrawAbilityParameterBar(object, abilityId, 0, 0x34, contentTop + 0x1A, ATTACHMENT_LEVEL_CAST_COST);
     }
 }
 
-void Gp_NoticePanelTask(Task* arg0)
+void itemMenuNoticeTask(Task* task)
 {
-    UiObject* obj;
-    s32       one;
-    u8*       text;
-    s32       color;
+    enum {
+        ITEM_MENU_NOTICE_STATE_INIT     = 0,
+        ITEM_MENU_NOTICE_TIMEOUT_TICKS  = 188,
+        ITEM_MENU_NOTICE_ACCEPTED_TICKS = 0x7FFF
+    };
+    UiObject* object;
+    const u8* text;
+    s32       textColorRgb;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice3);
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&(object)->panel, Gp_StrNotice3);
 
-    color = 0x606060;
-    text  = Gp_NoticeTexts[(u16)arg0->spawnArg1.value];
+    textColorRgb = 0x606060;
+    text         = Gp_NoticeTexts[(u16)task->spawnArg1.value];
 
-    if (arg0->state == 0) {
-        uiSizePanelForTextDefault(&(obj)->panel, text);
-        arg0->killCountdown = 0xBC;
-        arg0->state         = arg0->state + 1;
+    if (task->state == ITEM_MENU_NOTICE_STATE_INIT) {
+        uiSizePanelForTextDefault(&(object)->panel, text);
+        task->killCountdown = ITEM_MENU_NOTICE_TIMEOUT_TICKS;
+        task->state         = task->state + 1;
     }
 
-    one = 1;
-    {
-        s32 drawMode = one;
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, text, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
-        textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, color, drawMode, TEXT_ALIGNMENT_LEFT);
-    }
-
-    arg0->killCountdown--;
-    if (obj->panel.control.word == one) {
-        if ((arg0->killCountdown <= 0) || (padCheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            obj->result         = USER_INTERFACE_RESULT_CONFIRM;
-            arg0->killCountdown = 0x7FFF;
+    task->killCountdown--;
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
+            task->killCountdown = ITEM_MENU_NOTICE_ACCEPTED_TICKS;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 
-    if ((s16)(arg0->spawnArg1.value >> 16) == 0) {
-        if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            obj->result = USER_INTERFACE_RESULT_DISMISS;
+    if ((s16)(task->spawnArg1.value >> 16) == 0) {
+        if (object->result == USER_INTERFACE_RESULT_CONFIRM) {
+            object->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
 }
@@ -2583,175 +2592,191 @@ void Gp_PeUpgradePanelTask(Task* arg0)
     }
 }
 
-static void func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+/// Draws a PE level parameter as a number and bar, optionally beside its previous level.
+///
+/// `column` selects 0..7; `abilityId` uses the low-six-bit menu encoding.
+/// `barX` and `valueY` are pixels relative to the panel content origin; the
+/// bar ends at the content's right edge and lies three pixels above valueY.
+/// Exactly 1 enables previous-level comparison; callers supply level 1..3
+/// after an upgrade. MP bonus always suppresses comparison and uses a signed
+/// prefix. EXP cost applies the live save's mode/clear discount.
+/// Casting cost, ATP loss (cast frames), and MP bonus use maxima 60, 95, and
+/// 20; other columns scale to the current value, which must be nonzero when
+/// comparing. Bars are not clamped to their maxima. Queues packets on panel OT + 1.
+static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s32 comparePreviousLevel, s32 barX, s32 valueY, s32 column)
 {
+    enum {
+        ITEM_MENU_ABILITY_CAST_COST_BAR_MAX = 60,
+        ITEM_MENU_ABILITY_ATP_LOSS_BAR_MAX  = 95,
+        ITEM_MENU_ABILITY_MP_BONUS_BAR_MAX  = 20
+    };
+/// Prepares medium translucent outlined value text at an absolute screen X.
+///
+/// Used only by this parameter bar. `requestValue` is a TextDrawReq lvalue and
+/// `baseYValue` a separate s32 lvalue; `objectValue` is a live panel object. All arguments must
+/// be side-effect-free because request/object expressions are evaluated repeatedly.
+/// `valueY` is panel-relative pixels; the supplied base-Y lvalue receives the
+/// screen origin minus the font baseline adjustment. Expands to a standalone block.
+#define ITEM_MENU_PREPARE_ABILITY_VALUE_TEXT(requestValue, objectValue, screenX, valueY, colorValue, baseYValue) \
+    {                                                                                                            \
+        (requestValue).x          = (screenX);                                                                   \
+        (baseYValue)              = (objectValue)->panel.contentOriginY.unsignedValue - 6;                       \
+        (requestValue).y          = (baseYValue) + (valueY);                                                     \
+        (requestValue).otIndex    = (objectValue)->panel.otIndex.signedValue + 1;                                \
+        (requestValue).colorRgb   = (colorValue);                                                                \
+        (requestValue).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                     \
+        (requestValue).alignment  = TEXT_ALIGNMENT_LEFT;                                                         \
+        (requestValue).drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;                                              \
+    }
+
     struct
     {
-        u8          buf[0x20];
-        TextDrawReq req;
-        TextDrawReq req2;
-    } loc;
-    s32   span;
-    s32   width;
-    s32   raw;
-    s32   val;
-    s32   max;
-    s32   x;
-    SPRT* p;
-    s32   rawPrev;
-    s32   prev;
-    s32   color;
-    s32   textY;
-    s32   prevId;
-    s32   spriteX;
-    s32   a;
-    s32   b;
-    s32   c;
-    s32   aPrev;
-    s32   bPrev;
-    s32   cPrev;
-    s32   textY2;
-    u8*   text;
+        u8          numberText[0x20]; // Decimal value text reused after each draw
+        TextDrawReq previousRequest;  // Previous level's value, left of the change marker
+        TextDrawReq currentRequest;   // Current value, alone or right of the change marker
+    } draw;
+    s32   barWidth;
+    s32   contentRight;
+    s32   rawValue;
+    s32   value;
+    s32   barMaximum;
+    s32   barLeft;
+    SPRT* changeSprite;
+    s32   rawPreviousValue;
+    s32   previousValue;
+    s32   colorRgb;
+    s32   textBaseY;
+    s32   previousAbilityId;
+    s32   spriteBaseX;
+    s32   elementIndex;
+    s32   energyIndex;
+    s32   level;
+    s32   previousElementIndex;
+    s32   previousEnergyIndex;
+    s32   previousLevel;
+    s32   singleValueBaseY;
+    u8*   valueText;
     {
-        a   = (arg1 & 0x30) >> 4;
-        b   = (arg1 & 0xC) >> 2;
-        c   = arg1 & 3;
-        raw = Gp_IdParamHi.rows[(((a * 3) + b) * 3) + c].value[arg5];
+        elementIndex = (abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
+        energyIndex  = (abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
+        level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
+        rawValue     = Gp_IdParamHi.rows[(((elementIndex * 3) + energyIndex) * 3) + level].value[column];
     }
-    if (arg5 == 0) {
+    if (column == ATTACHMENT_LEVEL_EXP_COST) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
-            raw = (raw * 4) / 5;
+            rawValue = (rawValue * 4) / 5;
         } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
-            raw = (raw * 2) / 5;
+            rawValue = (rawValue * 2) / 5;
         }
-        width = arg0->panel.contentRight.signedValue;
+        contentRight = object->panel.contentRight.signedValue;
     } else {
-        width = arg0->panel.contentRight.signedValue;
+        contentRight = object->panel.contentRight.signedValue;
     }
-    x    = arg3;
-    span = width - x;
-    val  = raw & 0xFFFF;
-    switch (arg5) {
+    barLeft  = barX;
+    barWidth = contentRight - barLeft;
+    value    = rawValue & 0xFFFF;
+    switch (column) {
         case ATTACHMENT_LEVEL_CAST_COST:
-            max = 0x3C;
+            barMaximum = ITEM_MENU_ABILITY_CAST_COST_BAR_MAX;
             break;
 
         case ATTACHMENT_LEVEL_ATP_LOSS:
-            max = 0x5F;
+            barMaximum = ITEM_MENU_ABILITY_ATP_LOSS_BAR_MAX;
             break;
 
         case ATTACHMENT_LEVEL_MP_BONUS:
-            max  = 0x14;
-            arg2 = 0;
+            barMaximum           = ITEM_MENU_ABILITY_MP_BONUS_BAR_MAX;
+            comparePreviousLevel = 0;
             break;
 
         default:
-            max = val;
+            barMaximum = value;
             break;
     }
 
-    if (arg2 == 1) {
-        prevId = arg1 - 1;
+    if (comparePreviousLevel == 1) {
+        // Compare the preceding level and queue its increase/decrease marker.
+        previousAbilityId = abilityId - 1;
         {
-            aPrev   = (prevId & 0x30) >> 4;
-            bPrev   = (prevId & 0xC) >> 2;
-            cPrev   = prevId & 3;
-            rawPrev = Gp_IdParamHi.rows[(((aPrev * 3) + bPrev) * 3) + cPrev].value[arg5];
+            previousElementIndex = (previousAbilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
+            previousEnergyIndex  = (previousAbilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
+            previousLevel        = previousAbilityId & ATTACHMENT_MENU_LEVEL_MASK;
+            rawPreviousValue     = Gp_IdParamHi.rows[(((previousElementIndex * 3) + previousEnergyIndex) * 3) + previousLevel].value[column];
         }
-        if (arg5 == 0) {
+        if (column == ATTACHMENT_LEVEL_EXP_COST) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
-                rawPrev = (rawPrev * 4) / 5;
+                rawPreviousValue = (rawPreviousValue * 4) / 5;
             } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
-                rawPrev = (rawPrev * 2) / 5;
+                rawPreviousValue = (rawPreviousValue * 2) / 5;
             }
         }
-        color              = 0x606060;
-        p                  = gGpuPrimCursor;
-        p->y0              = (arg0->panel.contentOriginY.unsignedValue + arg4) - 0xC;
-        prev               = rawPrev & 0xFFFF;
-        loc.req.x          = arg0->panel.contentOriginX.unsignedValue + x;
-        textY              = arg0->panel.contentOriginY.unsignedValue - 6;
-        loc.req.y          = textY + arg4;
-        gGpuPrimCursor     = p + 1;
-        loc.req.otIndex    = (arg0->panel.otIndex.signedValue) + 1;
-        loc.req.colorRgb   = color;
-        loc.req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        loc.req.alignment  = TEXT_ALIGNMENT_LEFT;
-        loc.req.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&loc.req, textItoaSigned(loc.buf, prev));
-        if (prev < val) {
-            s32 y;
+        colorRgb                        = 0x606060;
+        changeSprite                    = gGpuPrimCursor;
+        changeSprite->y0                = (object->panel.contentOriginY.unsignedValue + valueY) - 0xC;
+        previousValue                   = rawPreviousValue & 0xFFFF;
+        draw.previousRequest.x          = object->panel.contentOriginX.unsignedValue + barLeft;
+        textBaseY                       = object->panel.contentOriginY.unsignedValue - 6;
+        draw.previousRequest.y          = textBaseY + valueY;
+        gGpuPrimCursor                  = changeSprite + 1;
+        draw.previousRequest.otIndex    = (object->panel.otIndex.signedValue) + 1;
+        draw.previousRequest.colorRgb   = colorRgb;
+        draw.previousRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        draw.previousRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+        draw.previousRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+        textDrawString(&draw.previousRequest, textItoaSigned(draw.numberText, previousValue));
+        if (previousValue < value) {
+            s32 barY;
 
-            y = arg4 - 3;
-            uiFillRectInterior(&(arg0)->panel, x, y, (span * prev) / max, 3, 0x1741FU);
-            color = 0xD287F;
-            uiDrawRaisedRect(&arg0->panel, x, y, ((span * val) / max), 3, 0x1A50FE);
-            p->u0                          = 0xA0;
-            GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
-            p->y0                          = p->y0 - 1;
+            barY = valueY - 3;
+            uiFillRectInterior(&(object)->panel, barLeft, barY, (barWidth * previousValue) / barMaximum, 3, 0x1741FU);
+            colorRgb = 0xD287F;
+            uiDrawRaisedRect(&object->panel, barLeft, barY, ((barWidth * value) / barMaximum), 3, 0x1A50FE);
+            changeSprite->u0                          = 0xA0;
+            GPU_PRIMITIVE_COLOR_WORD(changeSprite, 0) = colorRgb;
+            changeSprite->y0                          = changeSprite->y0 - 1;
         } else {
-            if (val < prev) {
-                s32 y;
+            if (value < previousValue) {
+                s32 barY;
 
-                y = arg4 - 3;
-                uiFillRectInterior(&(arg0)->panel, x, y, (span * val) / max, 3, 0x1741FU);
-                color = 0x1741F;
-                uiDrawRaisedRect(&arg0->panel, x, y, ((span * prev) / max), 3, 1);
-                p->u0                          = 0x30;
-                GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
+                barY = valueY - 3;
+                uiFillRectInterior(&(object)->panel, barLeft, barY, (barWidth * value) / barMaximum, 3, 0x1741FU);
+                colorRgb = 0x1741F;
+                uiDrawRaisedRect(&object->panel, barLeft, barY, ((barWidth * previousValue) / barMaximum), 3, 1);
+                changeSprite->u0                          = 0x30;
+                GPU_PRIMITIVE_COLOR_WORD(changeSprite, 0) = colorRgb;
             } else {
-                if (val > 0) {
-                    uiDrawRaisedRect(&arg0->panel, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
+                if (value > 0) {
+                    uiDrawRaisedRect(&object->panel, barLeft, (valueY - 3), ((barWidth * value) / barMaximum), 3, 0x1741F);
                 }
-                p->u0                          = 0x78;
-                GPU_PRIMITIVE_COLOR_WORD(p, 0) = color;
+                changeSprite->u0                          = 0x78;
+                GPU_PRIMITIVE_COLOR_WORD(changeSprite, 0) = colorRgb;
             }
         }
-        spriteX = arg0->panel.contentOriginX.unsignedValue + x;
-        p->w    = 8;
-        p->h    = 8;
-        p->v0   = 0x60;
-        p->clut = 0x3C09;
-        setSprt(p);
-        p->x0 = spriteX + 0x14;
-        addPrim(gGpuCurrentOt + arg0->panel.otIndex.signedValue + 1, p);
-        uiQueueTexturePage((arg0->panel.otIndex.signedValue) + 1, 0);
-        loc.req2.x          = (arg0->panel.contentOriginX.unsignedValue + 0x1E) + x;
-        textY               = arg0->panel.contentOriginY.unsignedValue - 6;
-        loc.req2.y          = textY + arg4;
-        loc.req2.otIndex    = (arg0->panel.otIndex.signedValue) + 1;
-        loc.req2.colorRgb   = color;
-        loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
-        loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&loc.req2, textItoaSigned(loc.buf, val));
+        spriteBaseX        = object->panel.contentOriginX.unsignedValue + barLeft;
+        changeSprite->w    = 8;
+        changeSprite->h    = 8;
+        changeSprite->v0   = 0x60;
+        changeSprite->clut = 0x3C09;
+        setSprt(changeSprite);
+        changeSprite->x0 = spriteBaseX + 0x14;
+        addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, changeSprite);
+        uiQueueTexturePage((object->panel.otIndex.signedValue) + 1, 0);
+        ITEM_MENU_PREPARE_ABILITY_VALUE_TEXT(draw.currentRequest, object, (object->panel.contentOriginX.unsignedValue + 0x1E) + barLeft, valueY, colorRgb, textBaseY);
+        textDrawString(&draw.currentRequest, textItoaSigned(draw.numberText, value));
     } else {
-        if (arg5 == 1) {
-            loc.req2.x          = arg0->panel.contentOriginX.unsignedValue + x;
-            textY2              = arg0->panel.contentOriginY.unsignedValue - 6;
-            loc.req2.y          = textY2 + arg4;
-            loc.req2.otIndex    = (arg0->panel.otIndex.signedValue) + 1;
-            loc.req2.colorRgb   = 0x606060;
-            loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
-            loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            text                = textItoaSignPrefixed(loc.buf, val);
+        if (column == ATTACHMENT_LEVEL_MP_BONUS) {
+            ITEM_MENU_PREPARE_ABILITY_VALUE_TEXT(draw.currentRequest, object, object->panel.contentOriginX.unsignedValue + barLeft, valueY, 0x606060, singleValueBaseY);
+            valueText = textItoaSignPrefixed(draw.numberText, value);
         } else {
-            loc.req2.x          = arg0->panel.contentOriginX.unsignedValue + x;
-            textY2              = arg0->panel.contentOriginY.unsignedValue - 6;
-            loc.req2.y          = textY2 + arg4;
-            loc.req2.otIndex    = (arg0->panel.otIndex.signedValue) + 1;
-            loc.req2.colorRgb   = 0x606060;
-            loc.req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            loc.req2.alignment  = TEXT_ALIGNMENT_LEFT;
-            loc.req2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            text                = textItoaSigned(loc.buf, val);
+            ITEM_MENU_PREPARE_ABILITY_VALUE_TEXT(draw.currentRequest, object, object->panel.contentOriginX.unsignedValue + barLeft, valueY, 0x606060, singleValueBaseY);
+            valueText = textItoaSigned(draw.numberText, value);
         }
-        textDrawString(&loc.req2, text);
-        if (val > 0) {
-            uiDrawRaisedRect(&arg0->panel, x, (arg4 - 3), ((span * val) / max), 3, 0x1741F);
+        textDrawString(&draw.currentRequest, valueText);
+        if (value > 0) {
+            uiDrawRaisedRect(&object->panel, barLeft, (valueY - 3), ((barWidth * value) / barMaximum), 3, 0x1741F);
         }
     }
+#undef ITEM_MENU_PREPARE_ABILITY_VALUE_TEXT
 }
 
 static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
@@ -2816,7 +2841,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req2.alignment  = TEXT_ALIGNMENT_LEFT;
     req2.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req2, text);
-    func_800D3660(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_CAST_COST);
+    _itemMenuDrawAbilityParameterBar(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_CAST_COST);
 
     req3.x          = arg0->panel.contentOriginX.unsignedValue + 1 + x;
     req3.y          = arg0->panel.contentOriginY.unsignedValue + temp + 0x46;
@@ -2827,7 +2852,7 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     req3.drawMode   = TEXT_DRAW_OUTLINED;
     textDrawString(&req3, Gp_StrAtpLoss);
     y = temp + 0x58;
-    func_800D3660(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_ATP_LOSS);
+    _itemMenuDrawAbilityParameterBar(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_ATP_LOSS);
 }
 
 void Gp_MapMenuListTask(Task* arg0)
@@ -3197,25 +3222,22 @@ s32 func_800D4D2C(s32 arg0)
     return 1;
 }
 
-UiObject* Gp_SpawnItemPrompt(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
+UiObject* itemMenuSpawnNotice(UiObject* parent, s32 noticeId, s32 unused, s32 returnConfirmation)
 {
-    s32 one;
-
-    one    = 1;
-    arg3 <<= 16;
-    return uiSpawnObject(&D_8010F788, arg3 | arg1, one, one, arg0);
+    returnConfirmation <<= 16;
+    return uiSpawnObject(&D_8010F788, returnConfirmation | noticeId, USER_INTERFACE_PANEL_ACTIVE, 1, parent);
 }
 
-s32 func_800D4E78(s32 arg0, s32 arg1, s32 arg2)
+s32 itemMenuOpenHotspotCommands(s32 screenX, s32 screenY, s32 actionKind)
 {
-    D_80114E94 = arg2;
-    D_80114E8C = arg0;
-    D_80114E90 = arg1;
-    displayQueueModeTask(&D_8010F85C, arg2, 0, STAGE_ENTRY_RELOAD);
+    D_80114E94 = actionKind;
+    D_80114E8C = screenX;
+    D_80114E90 = screenY;
+    displayQueueModeTask(&D_8010F85C, actionKind, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
-s32 func_800D4EC0(void)
+s32 itemMenuIsHotspotActionConfirmed(void)
 {
     return D_80114E88;
 }
@@ -3284,43 +3306,43 @@ void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
     }
 }
 
-s32 func_800D50D4(s32 arg0, s32 arg1)
+s32 attachmentGetPackedLevelValue(s32 abilityId, s32 column)
 {
-    s32 a;
-    s32 b;
-    s32 c;
-    s32 val;
+    s32 elementIndex;
+    s32 energyIndex;
+    s32 level;
+    s32 value;
 
-    a   = (arg0 & 0x30) >> 4;
-    b   = (arg0 & 0xC) >> 2;
-    c   = arg0 & 3;
-    val = Gp_IdParamHi.rows[(a * 3 + b) * 3 + c].value[arg1];
-    if (arg1 == ATTACHMENT_LEVEL_EXP_COST) {
+    elementIndex = (abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
+    energyIndex  = (abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
+    level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
+    value        = Gp_IdParamHi.rows[(elementIndex * 3 + energyIndex) * 3 + level].value[column];
+    if (column == ATTACHMENT_LEVEL_EXP_COST) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
-            val = (val * 4) / 5;
+            value = (value * 4) / 5;
         } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
-            val = (val * 2) / 5;
+            value = (value * 2) / 5;
         }
     }
-    return val & 0xFFFF;
+    return value & 0xFFFF;
 }
 
-void Gp_DrawPeSlotCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawPeCancelRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
+    TextDrawReq request;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrCancel2);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    request.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    request.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+    request.otIndex    = object->panel.otIndex.signedValue + 1;
+    request.colorRgb   = list->colorRgb;
+    request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    request.alignment  = TEXT_ALIGNMENT_LEFT;
+    request.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&request, Gp_StrCancel2);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            arg1->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }

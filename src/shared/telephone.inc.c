@@ -773,11 +773,11 @@ static inline void Telephone_MenuTask(Task* task)
                 if (task->state == 1) {
                     kind = childObj->resultValue;
                     uiStartTreeClosing(childObj, childObj->owner);
-                    mode = 0xF;
+                    mode = ITEM_MENU_NOTICE_SAVE_CANCELLED;
                     if (kind == 0x33) {
-                        mode = 0x11;
+                        mode = ITEM_MENU_NOTICE_SAVE_COMPLETE;
                     }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
+                    itemMenuSpawnNotice(obj, mode, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                     if (ready == 0) {
                         task->state = 3;
                     } else {
@@ -797,11 +797,11 @@ static inline void Telephone_MenuTask(Task* task)
                 if (task->state == 1) {
                     kind = childObj->resultValue;
                     uiStartTreeClosing(childObj, childObj->owner);
-                    mode = 0xF;
+                    mode = ITEM_MENU_NOTICE_SAVE_CANCELLED;
                     if (kind == 0x33) {
-                        mode = 0x11;
+                        mode = ITEM_MENU_NOTICE_SAVE_COMPLETE;
                     }
-                    Gp_SpawnItemPrompt(obj, mode, 0, 1);
+                    itemMenuSpawnNotice(obj, mode, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                     if (ready == 0) {
                         task->state = 3;
                     } else {

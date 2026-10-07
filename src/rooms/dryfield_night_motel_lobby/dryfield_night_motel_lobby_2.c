@@ -909,7 +909,7 @@ static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
 
 /// Re-spawns the action prompt over the examine cursor: clears the highlight
 /// state the prompt was left in, then hands the prompt's own coordinates and
-/// this room's display mode back to `func_800D4E78`, which parks them in the
+/// this room's Examine/Push action to `itemMenuOpenHotspotCommands`, which parks them in the
 /// gameplay-side globals the prompt's display task reads.
 static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
 {
@@ -919,12 +919,12 @@ static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
     func_dryfield_night_motel_lobby_801802A8(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
 /// Acts on the answer to the examine prompt: drops the highlight state, then,
-/// when `func_800D4EC0` reports the prompt was accepted, marks the register
+/// when `itemMenuIsHotspotActionConfirmed` reports the action was accepted, marks the register
 /// `examined` (from which point the scan treats a confirm as a key press) and
 /// starts cap slot 9. Returns the task to state 2 either way.
 static void func_dryfield_night_motel_lobby_8018103C(Task* task)
@@ -935,7 +935,7 @@ static void func_dryfield_night_motel_lobby_8018103C(Task* task)
     func_dryfield_night_motel_lobby_801802A8(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         work->examined = 1;
         capStartSequenceSlot(9, 0, 0);
     }

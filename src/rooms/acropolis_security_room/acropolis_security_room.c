@@ -2384,7 +2384,7 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
     work                      = (_AcropolisSecurityRoomMonitorWork*)task->work;
     D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
     D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         confirmedId = work->hotspotId;
         if (confirmedId >= 0) {
             save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
@@ -2589,8 +2589,8 @@ void func_acropolis_security_room_8017E9D8(Task* task)
 
 /// Arms the action prompt for the monitor's hotspot and steps the caller on one
 /// state: sets the aiming speed and the idle cursor, and clears the prompt's
-/// on-screen position, which the prompt display fills in again when the prompt
-/// is actually spawned. The room carries a second copy of this body at
+/// on-screen position. Cursor movement updates that position, which
+/// `itemMenuOpenHotspotCommands` copies when opening the menu. The room carries a second copy at
 /// `func_acropolis_security_room_8017FB20`.
 static void func_acropolis_security_room_8017EA28(Task* task)
 {
@@ -2615,7 +2615,7 @@ static void func_acropolis_security_room_8017EA5C(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     _acropolisSecurityRoomDrawMonitorWash(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
     func_acropolis_security_room_8017E37C(task);
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
@@ -2920,8 +2920,8 @@ static void func_acropolis_security_room_8017FA18(Task* task)
 
 /// Arms the action prompt for the script's hotspot and steps the caller on one
 /// state: sets the aiming speed and the idle cursor, and clears the prompt's
-/// on-screen position, which the prompt display fills in again when the prompt
-/// is actually spawned. The room carries a second copy of this body at
+/// on-screen position. Cursor movement updates that position, which
+/// `itemMenuOpenHotspotCommands` copies when opening the menu. The room carries a second copy at
 /// `func_acropolis_security_room_8017EA28`.
 static void func_acropolis_security_room_8017FB20(Task* task)
 {
@@ -2936,7 +2936,7 @@ static void func_acropolis_security_room_8017FB20(Task* task)
 
 /// Spawns the action prompt for the script's current step: clears the prompt's
 /// highlight state, then re-spawns it at the coordinates the gameplay side left
-/// in `D_80114D28` with the display mode this state picked.
+/// in `D_80114D28` with this state's Examine/Push action choice.
 static void func_acropolis_security_room_8017FB54(Task* task)
 {
     ActionPrompt*                          prompt = D_80114D28;
@@ -2944,12 +2944,12 @@ static void func_acropolis_security_room_8017FB54(Task* task)
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
 /// Acts on the answer to the prompt opened for the confirmed hotspot. When its
-/// first row was confirmed (`func_800D4EC0`) or a key item was used
+/// first row was confirmed (`itemMenuIsHotspotActionConfirmed`) or a key item was used
 /// (`usedKey`), hands the task to the lock `hotspotId` names --
 /// `func_acropolis_security_room_8017F1BC` for the left one,
 /// `func_acropolis_security_room_8017F300` for the right -- and then forgets
@@ -2961,7 +2961,7 @@ static void func_acropolis_security_room_8017FBA4(Task* task)
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if ((func_800D4EC0() != 0) || (work->usedKey != ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE)) {
+    if ((itemMenuIsHotspotActionConfirmed() != 0) || (work->usedKey != ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE)) {
         if (work->hotspotId == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_HOTSPOT_LEFT) {
             func_acropolis_security_room_8017F1BC(task);
             work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;

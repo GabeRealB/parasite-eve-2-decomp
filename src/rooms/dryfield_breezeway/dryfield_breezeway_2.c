@@ -1268,8 +1268,8 @@ void func_dryfield_breezeway_8017FC38(Task* task)
 
 /// State 1 of the room's key-item event task: arms the action prompt and
 /// resets the caller's kill countdown. It sets the aiming speed and the idle
-/// cursor, clears the on-screen position the prompt display fills in again
-/// when the prompt is spawned, and steps the caller's script on one state.
+/// cursor, clears the screen position that cursor movement updates and
+/// `itemMenuOpenHotspotCommands` later copies, and advances the caller's state.
 static void func_dryfield_breezeway_8017FD68(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
@@ -1286,7 +1286,7 @@ static void func_dryfield_breezeway_8017FD68(Task* task)
 /// scan has landed on an entry: re-seeds the cursor scan
 /// `func_dryfield_breezeway_8017EB8C` at its reset position, clears the
 /// prompt's highlight state, then re-spawns the prompt at the coordinates the
-/// gameplay side left in `D_80114D28` with the display mode the scan latched in
+/// gameplay side left in `D_80114D28` with the Examine/Push action the scan latched in
 /// `_DryfieldBreezewayKeyItemEventWork::promptKind`, and steps the caller's script on one state.
 static void func_dryfield_breezeway_8017FD9C(Task* task)
 {
@@ -1296,18 +1296,18 @@ static void func_dryfield_breezeway_8017FD9C(Task* task)
     func_dryfield_breezeway_8017EB8C(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
 /// Closes whatever the hotspot scan left up and picks the room's next state:
 /// re-seeds the cursor scan `func_dryfield_breezeway_8017EB8C` and clears the
 /// prompt's highlight state as the arm above does, then interrogates the
-/// gameplay side. While `func_800D4EC0` still reports a prompt on screen there
-/// is nothing to decide, so the arm tears one down with cap slot 7 and parks on
-/// state 2; once it is gone the `_DryfieldBreezewayKeyItemEventWork::keyItemAccepted` answer latch the
-/// message handler `func_dryfield_breezeway_8017FBC8` wrote decides between
-/// state 6 (the key item was accepted here) and state 2.
+/// gameplay side. If `itemMenuIsHotspotActionConfirmed` reports that the
+/// Examine/Push row was accepted, it starts cap slot 7 and returns to state 2.
+/// Otherwise `_DryfieldBreezewayKeyItemEventWork::keyItemAccepted`, written by
+/// `func_dryfield_breezeway_8017FBC8`, selects state 6 for an accepted key item
+/// or state 2 to resume scanning.
 static void func_dryfield_breezeway_8017FE08(Task* task)
 {
     ActionPrompt*                       prompt = D_80114D28;
@@ -1317,7 +1317,7 @@ static void func_dryfield_breezeway_8017FE08(Task* task)
     func_dryfield_breezeway_8017EB8C(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         capStartSequenceSlot(7, 0, 0);
         state = 2;
     } else if (work->keyItemAccepted == 1) {

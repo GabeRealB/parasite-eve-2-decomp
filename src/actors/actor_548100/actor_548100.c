@@ -993,7 +993,7 @@ static void func_actor_548100_80132684(Task* task)
 
     D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
     D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         switch (work->choice) {
             case 1:
             case 2:
@@ -2257,7 +2257,7 @@ static void func_actor_548100_80134DBC(Task* task)
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 

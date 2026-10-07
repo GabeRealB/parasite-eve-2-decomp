@@ -120,7 +120,7 @@ static void func_replay_bonus_80117194(Task* arg0)
                 break;
             case 7:
                 if (copied == 0x33) {
-                    arg0->spawnArg2.pointer = Gp_SpawnItemPrompt(NULL, 0x11, 0, 1);
+                    arg0->spawnArg2.pointer = itemMenuSpawnNotice(NULL, ITEM_MENU_NOTICE_SAVE_COMPLETE, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                     arg0->state             = arg0->state + 1;
                 } else {
                     arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119170, 0, 1, 2, NULL);
@@ -128,7 +128,7 @@ static void func_replay_bonus_80117194(Task* arg0)
                 break;
             case 8:
                 if (copied == 0x33) {
-                    arg0->spawnArg2.pointer = Gp_SpawnItemPrompt(NULL, 0xF, 0, 1);
+                    arg0->spawnArg2.pointer = itemMenuSpawnNotice(NULL, ITEM_MENU_NOTICE_SAVE_CANCELLED, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                 } else {
                     arg0->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 1, 1, 1, NULL);
                     arg0->state             = arg0->state - 2;

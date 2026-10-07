@@ -985,7 +985,7 @@ void func_800B8014(void)
     if (stageAreaKey == GAME_LOCATION_KEY(1, 0x14, 0, 0)) {
         Gp_ResetInventory();
         inventoryGiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 1);
-        Gp_EquipHeld(0x81);
+        equipmentEquipCarriedWeapon(0x81);
     }
 }
 

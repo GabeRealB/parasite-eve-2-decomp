@@ -1821,7 +1821,7 @@ static void func_shelter_r47_80184658(Task* task)
     func_shelter_r47_801851B8(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         switch (st->hotspotId) {
             case SHELTER_R47_MAP_HOTSPOT_PANEL:
                 switch (st->page) {
@@ -2037,7 +2037,7 @@ static void func_shelter_r47_80185450(Task* task)
             state->promptKind = 0;
         }
     }
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
     task->state = 4;
 }
 

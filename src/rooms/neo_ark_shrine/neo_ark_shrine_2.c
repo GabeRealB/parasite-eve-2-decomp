@@ -1147,7 +1147,7 @@ static void func_neo_ark_shrine_8017EDAC(Task* task)
 /// Spawns the action prompt for the script's current step: runs the shrine's
 /// per-step helper, hides the cursor and stops it, then re-spawns the
 /// prompt at the coordinates the gameplay side left in `D_80114D28` with the
-/// display mode this step picked, and advances the task to state 4.
+/// Examine/Push action this step picked, and advances the task to state 4.
 static void func_neo_ark_shrine_8017EDE0(Task* task)
 {
     ActionPrompt*           prompt = D_80114D28;
@@ -1156,12 +1156,12 @@ static void func_neo_ark_shrine_8017EDE0(Task* task)
     func_neo_ark_shrine_8017EAC0(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
 /// Hides the action prompt's cursor, stops it, and runs the shrine's per-step
-/// helper. When `func_800D4EC0` reports success, starts cap slot 2 if the
+/// helper. When `itemMenuIsHotspotActionConfirmed` reports acceptance, starts cap slot 2 if the
 /// latched `selection` is `NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD`, and otherwise
 /// sets `boardExamined` and starts cap slot 1. The task advances to state 2
 /// on every path.
@@ -1173,7 +1173,7 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     func_neo_ark_shrine_8017EAC0(task);
-    if (func_800D4EC0() == 0) {
+    if (itemMenuIsHotspotActionConfirmed() == 0) {
         task->state = 2;
         return;
     }

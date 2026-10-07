@@ -23972,12 +23972,12 @@ Assign the shift back onto the incoming argument first so it is already done
 before the call setup:
 
 ```c
-arg3 <<= 16;
-uiSpawnObject(&desc, arg3 | arg1, one, one, arg0);
+returnConfirmation <<= 16;
+uiSpawnObject(&desc, returnConfirmation | noticeId, USER_INTERFACE_PANEL_ACTIVE, 1, parent);
 ```
 
-A `s32 packed = arg3 << 16` local can also work, but mutating the argument
-keeps the shift in `$a3` (`sll a3, a3, 16` / `or a1, a3, a1`). `Gp_SpawnItemPrompt`
+A `s32 packed = returnConfirmation << 16` local can also work, but mutating the argument
+keeps the shift in `$a3` (`sll a3, a3, 16` / `or a1, a3, a1`). `itemMenuSpawnNotice`
 is the example.
 
 ## Same-constant stores to a 5-word global want mid-first order
@@ -24693,7 +24693,7 @@ register u8* text asm("v0");
 ```
 
 The inner block is required: `text` and `mode` cannot both be
-`asm("v0")` in the same scope. `Gp_DrawItemDescLine` is the example.
+`asm("v0")` in the same scope. `itemMenuDrawDescriptionRow` is the example.
 
 Related: `(u16)s32_field` assigned to an `s32` temp is `lhu` + `slti`
 (u16 promotes to signed int). Assigning the same load to a `u16` temp
@@ -27493,10 +27493,10 @@ Declare the record as `u16 field[8]` and write the natural 2D access so
 GCC treats the symbol as the array base:
 
 ```c
-val = Gp_IdParamHi[(a * 3 + b) * 3 + c].field[arg1];
+value = Gp_IdParamHi.rows[(elementIndex * 3 + energyIndex) * 3 + level].value[column];
 ```
 
-`func_800D50D4` is the example. `(&rec[idx].field_0)[value]` matched in a
+`attachmentGetPackedLevelValue` is the example. `(&rec[idx].field_0)[value]` matched in a
 one-function scratch and failed the overlay checksum.
 
 ## `head` then `child = head`; write `field &= mask` not a shared `flags` temp
@@ -30020,15 +30020,15 @@ s16 y;
 s32 mask;
 s32 lineY;
 
-y     = arg0->field_18;
-mask  = arg1 & 3;
-lineY = y + 0xF;
-text  = itemGetText(arg1, 1, 1);
+contentTop   = object->panel.contentTop.unsignedValue;
+level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
+descriptionY = contentTop + 0xF;
+text         = itemGetText(abilityId, ITEM_TEXT_DESCRIPTION_FIRST, 1);
 ```
 
-`req.y = (s16)(index->baseY - 6) + lineY` is `addiu v0, v0, -6` /
-`addu v0, v0, s2`. Without the `s16` cast, `u16 baseY - 6` becomes
-`li v1, 0xFFFA` / `addu`. `Gp_DrawCastCostLines` is the example.
+`request.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + descriptionY` is `addiu v0, v0, -6` /
+`addu v0, v0, s2`. Without the `s16` cast, `u16 contentOriginY - 6` becomes
+`li v1, 0xFFFA` / `addu`. `itemMenuDrawAbilityDescription` is the example.
 
 ## Relocate file offsets by adding the pointer itself, not a `base` local
 
@@ -40165,13 +40165,13 @@ Use a variable field index instead:
 
 ```c
 bonusIdx = 1;
-... Gp_IdParamHi[(row * 3 + col) * 3 + lvl].field[bonusIdx]
+... Gp_IdParamHi.rows[(row * 3 + col) * 3 + lvl].value[bonusIdx]
 ```
 
 The offset stays variable, so expand builds `i*16 + bonusIdx*2` as its own add
 insn; RTL constant propagation collapses it to `addiu v0, v0, 2` and CSE then
 substitutes the register that already holds `2`, which is what blocks combine
-from folding it back into the load. (The already-matched `func_800D50D4` in the
+from folding it back into the load. (The already-matched `attachmentGetPackedLevelValue` in the
 same TU has the same shape with a real parameter.)
 
 ## An extra preheader `move` means the guard reloads the list head
@@ -40218,7 +40218,7 @@ The four request blocks in `Gp_PeUpgradePanelTask` were the last mismatch at 96%
 `sw colorRgb` / `sb glyphTable/alignment/drawMode` group scheduled three slots
 too early and `li s0, 1` floated to the top of the block. Moving `otIndex`
 ahead of `colorRgb` in the source — the order the already-matched
-`Gp_DrawCastCostLines` / `Gp_DrawKeyItemCmd` in the same TU use — fixed all four blocks at
+`itemMenuDrawAbilityDescription` / `Gp_DrawKeyItemCmd` in the same TU use — fixed all four blocks at
 once and took the function to 100%. When several sibling `TextDrawReq` blocks
 all miss by the same shuffle, copy the field order from a matched neighbour
 before touching anything else.
@@ -66591,27 +66591,27 @@ into a fresh local instead changed the preamble and fell to 97.079%.
 When a keep-live helper is needed only for instruction order, compare a
 barrier without operands before compensating for its allocation side effects.
 
-## func_800D3660: scalar spills, coordinate temporaries, and load-delay ordering
+## _itemMenuDrawAbilityParameterBar: scalar spills, coordinate temporaries, and load-delay ordering
 
 The archived pinned seed scored 86.160%; the final unpinned body matched
 100.000%. Keep a bar's reusable span as a scalar, separate from the address-taken
 text-buffer/request struct: the struct member generated ordinary `lw v0` loads,
 whereas the scalar was spilled by reload and used the target's `lw t4` loads.
 
-For text coordinates, write `req.x` first, compute `textY = obj->baseY - 6`,
-then store `req.y = textY + y` and `req.otIndex` before the color/font fields.
-Computing textY before req.x reordered the stores. Inlining the subtraction into
+For text coordinates, write `draw.previousRequest.x` first, compute `textBaseY = object->panel.contentOriginY.unsignedValue - 6`,
+then store `draw.previousRequest.y = textBaseY + valueY` and `draw.previousRequest.otIndex` before the color/font fields.
+Computing textBaseY before draw.previousRequest.x reordered the stores. Inlining the subtraction into
 the halfword assignment instead produced `li 0xfffa; addu`, costing an extra
 instruction for each request.
 
-The width-load block needed `width = (s16)obj->field_1E; SOFT_USE_REG(width);`
+The width-load block needed `contentRight = object->panel.contentRight.signedValue; SOFT_USE_REG(contentRight);`
 followed by copying the x argument and calculating the span. Without the helper,
 sched2 put the x copy before the load; dbr duplicated the copy into an earlier
 branch slot and left a load-delay nop. Reading sched2 and dbr exposed this:
 fixing it cleared all branch penalties without changing the branch conditions.
 
-Compute `spriteX = obj->baseX + x` before writing the sprite size/UV/tag fields,
-then store `p->x0 = spriteX + 0x14` afterwards. This hoists the baseX load and
+Compute `spriteBaseX = object->panel.contentOriginX.unsignedValue + barLeft` before writing the sprite size/UV/tag fields,
+then store `changeSprite->x0 = spriteBaseX + 0x14` afterwards. This hoists the contentOriginX load and
 keeps the arithmetic in the target position. The final seed's `do { ... }
 while (0)` around the decreasing-value draw arm is also significant: removing
 it retained instruction/control-flow shape but introduced 117 register
@@ -87611,7 +87611,7 @@ side of the pair the target pins before reaching for one.
 
 `func_neo_ark_shrine_8017EDE0` (25 insns) is the same body as the already-matched
 `func_shelter_b1_underground_parking_80184594` — leading per-step helper, prompt
-reset, `func_800D4E78` re-spawn, `task->state = 4` — and the two targets are
+reset, `itemMenuOpenHotspotCommands` re-spawn, `task->state = 4` — and the two targets are
 identical insn for insn except that the shrine puts `task` in `$s1` and the
 `Task::work` local in `$s2`, the shelter the other way. Rewriting the m2c seed
 in the shelter's source shape reproduces the shelter's homes exactly (98.2%,
@@ -88694,7 +88694,7 @@ jal  func_dryfield_night_motel_lobby_801802A8
 lui   $v0, %hi(D_80114D28)  # target: lui $s0, ... before the jal
 addiu $v0, $v0, %lo(D_80114D28)
 sb    $zero, 0x10($v0)
-jal   func_800D4EC0
+jal   itemMenuIsHotspotActionConfirmed
  sh   $zero, 0xC($v0)
 ```
 

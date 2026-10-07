@@ -569,7 +569,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 }
             }
             if (item >= 0) {
-                Gp_SpawnItemPrompt(arg1, item, 0, 1);
+                itemMenuSpawnNotice(arg1, item, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
                 Gp_ItemMoveWork->swapPartnerRow = arg0->currentItemIndex;
@@ -771,7 +771,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
             prompt = 6;
         }
         if (prompt >= 0) {
-            Gp_SpawnItemPrompt(arg1, prompt, 0, 0);
+            itemMenuSpawnNotice(arg1, prompt, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             return;
         }
@@ -826,12 +826,12 @@ void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
                 flag = 1;
             }
             if (flag) {
-                Gp_SpawnItemPrompt(arg1, 0x1E, 0, 0);
+                itemMenuSpawnNotice(arg1, ITEM_MENU_NOTICE_CANNOT_MOVE_ITEM, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else if (arg1->owner->spawnArg1.value == 1) {
                 cfg = &gPlayerStatus;
                 if ((item == cfg->weapon + 0x7F) || (item == cfg->armor + 0x5F)) {
-                    Gp_SpawnItemPrompt(arg1, 7, 0, 0);
+                    itemMenuSpawnNotice(arg1, ITEM_MENU_NOTICE_CANNOT_MOVE_EQUIPPED_ITEM, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
                     arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
                     arg1->result = 0x23;

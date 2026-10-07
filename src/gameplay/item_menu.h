@@ -224,13 +224,28 @@ void func_800D29B0(Task* arg0);
 
 void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1);
 
-void func_800CF330(Task* arg0);
+/// Releases an item-information panel and clears its published holder if still current.
+///
+/// The panel publishes its task-owned object in `D_80067634` when it starts.
+/// An older panel's exit must not clear a replacement's holder. The standard UI
+/// exit releases the object and its children even if the holder belongs elsewhere.
+void itemMenuInfoTaskExit(Task* task);
 
-void Gp_NoticePanelTask(Task* arg0);
+/// Sizes, draws and polls a timed Notice panel for its owning task.
+///
+/// `spawnArg2.pointer` is the live task-owned UiObject. The low half of
+/// `spawnArg1` selects text 0..32; a zero high half converts acceptance to
+/// DISMISS, while a nonzero high half preserves CONFIRM. The counter begins at
+/// 188 callback ticks and runs during opening and inactive frames too.
+/// Active panels accept on timeout or Confirm/Cancel; Menu yields CANCEL.
+void itemMenuNoticeTask(Task* task);
 
-void Gp_EquipHeld(s32 arg0);
-
-void Gp_DrawCastCostLines(UiObject* arg0, s32 arg1);
+/// Draws two identified PE description lines and the learned level's casting-cost bar.
+///
+/// `abilityId` is a packed PE catalogue id in 0x300..0x3FF. Its low two bits
+/// select the level; zero still draws the description but omits the cost.
+/// Borrows the live object's panel and queues text and bar primitives this frame.
+void itemMenuDrawAbilityDescription(UiObject* object, s32 abilityId);
 
 void Gp_DrawSortCmd(UiList* arg0, UiObject* arg1);
 
@@ -250,7 +265,14 @@ void Gp_DrawExitCmd(UiList* arg0, UiObject* arg1);
 
 void Gp_WeaponSummaryTask(Task* arg0);
 
-void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1);
+/// Draws one scrolling item-information description row.
+///
+/// The owner's low spawn halfword is the item id. Rows 0/1 of ordinary items
+/// use identified catalogue descriptions; remaining rows, and all key-item
+/// rows, read the loaded text chunk from line 5 onward. The caller must keep
+/// that chunk ready and readable through the selected line. Row indices are
+/// nonnegative; the initial two-row test retains signed-byte narrowing.
+void itemMenuDrawDescriptionRow(UiList* list, UiObject* object);
 
 void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1);
 
@@ -264,13 +286,17 @@ void func_800CFA60(Task* arg0);
 
 void func_800CFAA8(UiObject* arg0, Task* arg1);
 
-void Gp_DrawOkCmd(UiList* arg0, UiObject* arg1);
+/// Draws OK and publishes the list's OK command when its active row is confirmed.
+void itemMenuDrawOkRow(UiList* list, UiObject* object);
 
-void Gp_DrawCancelCmd(UiList* arg0, UiObject* arg1);
+/// Draws Cancel and publishes the list's Cancel command on Confirm.
+void itemMenuDrawCancelRow(UiList* list, UiObject* object);
 
-void Gp_DrawYesCmd(UiList* arg0, UiObject* arg1);
+/// Draws Yes; Confirm accepts it, while Cancel moves the active list to the No row.
+void itemMenuDrawYesRow(UiList* list, UiObject* object);
 
-void Gp_DrawNoCmd(UiList* arg0, UiObject* arg1);
+/// Draws No and accepts that command on either Confirm or Cancel on its active row.
+void itemMenuDrawNoRow(UiList* list, UiObject* object);
 
 void Gp_MapTaskState2(Task* arg0);
 
@@ -306,9 +332,10 @@ void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1);
 
 void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1);
 
-s32 func_800D50D4(s32 arg0, s32 arg1);
-
-void Gp_DrawPeSlotCmd(UiList* arg0, UiObject* arg1);
+/// Draws the PE release/strengthen menu's Cancel row and confirms the parent on selection.
+///
+/// Writes the object's result, without publishing a list command id.
+void itemMenuDrawPeCancelRow(UiList* list, UiObject* object);
 
 void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1);
 

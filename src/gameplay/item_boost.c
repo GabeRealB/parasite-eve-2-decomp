@@ -409,7 +409,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     if (arg1->status != 0xFF) {
         saved                 = arg1->spawnArg1.value;
         arg1->spawnArg1.value = arg1->status;
-        Gp_NoticePanelTask(arg1);
+        itemMenuNoticeTask(arg1);
         arg1->spawnArg1.value = saved;
         return;
     }
@@ -456,7 +456,7 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
     }
     saved                 = arg1->spawnArg1.value;
     arg1->spawnArg1.value = 0x1D;
-    Gp_NoticePanelTask(arg1);
+    itemMenuNoticeTask(arg1);
     arg1->spawnArg1.value = saved;
 }
 
@@ -497,7 +497,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
     }
     saved                 = arg1->spawnArg1.value;
     arg1->spawnArg1.value = 0x1C;
-    Gp_NoticePanelTask(arg1);
+    itemMenuNoticeTask(arg1);
     arg1->spawnArg1.value = saved;
 }
 
@@ -733,7 +733,7 @@ void Gp_InitModeEquip(void)
             } while (i < limit);
         }
         if (acc != 0) {
-            Gp_EquipHeld(0x81);
+            equipmentEquipCarriedWeapon(0x81);
         }
     }
     if (cfg->weapon == 2) {

@@ -214,7 +214,7 @@ static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key);
 static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area);
 
 /// Acts on `selection`, the hotspot id stored by `func_shelter_r47_80181568`,
-/// when `func_800D4EC0` returns nonzero: the id's high byte picks the kind.
+/// when `itemMenuIsHotspotActionConfirmed` returns nonzero: the id's high byte picks the kind.
 /// Kind 0 accepts a new low byte into `row` (checked by
 /// `func_shelter_r47_801829B8` while `guideStep` is set, and the first time
 /// gated by a one-off cap event otherwise), clears the wipe colour and
@@ -233,7 +233,7 @@ static void func_shelter_r47_801816CC(Task* task)
     func_shelter_r47_80181914(task, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         kind = (u16)work->selection >> 8;
         if (kind == 0) {
             if (work->row != (work->selection & 0xFF)) {
@@ -821,7 +821,7 @@ static void func_shelter_r47_80182DAC(Task* task)
     if ((state->selection >> 8) == 1 && D_shelter_r47_8018A694 == 0) {
         state->promptKind = 0;
     }
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
     task->state = 5;
 }
 

@@ -28,6 +28,16 @@ struct Enemy;
 /// No enemy or contact pointer is retained.
 void attachmentAddTargetContact(const struct Enemy* enemy, s32 attackKey);
 
+/// Returns one parameter of the level selected by a packed PE menu id.
+///
+/// Only bits 0..5 of `abilityId` are read: element (4..5), energy (2..3),
+/// level (0..1). They select row `(element * 3 + energy) * 3 + level`, at most
+/// 39; the caller supplies an `ATTACHMENT_LEVEL_*` column in 0..7. Level zero
+/// reads that row directly rather than substituting level one. EXP cost is
+/// discounted to 4/5 for positive game modes, or 2/5 for a cleared normal game.
+/// Returns the low 16 bits in s32 and does not change saved or table state.
+s32 attachmentGetPackedLevelValue(s32 abilityId, s32 column);
+
 extern InventoryItemRow Gp_ItemTable2[];
 
 // Shared HUD/replay work.

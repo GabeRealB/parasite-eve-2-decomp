@@ -456,7 +456,7 @@ UiListRowCallback D_8010F5C8[2] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd };
 
 UiList D_8010F5D0 = { D_8010F5C8, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback Gp_PeCmdFns[2] = { Gp_DrawReviveCmd, Gp_DrawPeSlotCmd };
+UiListRowCallback Gp_PeCmdFns[2] = { Gp_DrawReviveCmd, itemMenuDrawPeCancelRow };
 
 UiList D_8010F5FC = { Gp_PeCmdFns, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -631,9 +631,9 @@ void Gp_UseHealItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
                 cfg->hp = cfg->hpMax;
             }
         } else if (hp < cfg->hpMax) {
-            cfg->mp     = cfg->mp - func_800D50D4(arg2, ATTACHMENT_LEVEL_CAST_COST);
+            cfg->mp     = cfg->mp - attachmentGetPackedLevelValue(arg2, ATTACHMENT_LEVEL_CAST_COST);
             hudHpMp->mp = cfg->mp;
-            cfg->hp     = cfg->hp + func_800D50D4(arg2, ATTACHMENT_LEVEL_AMOUNT);
+            cfg->hp     = cfg->hp + attachmentGetPackedLevelValue(arg2, ATTACHMENT_LEVEL_AMOUNT);
             save        = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             if ((s16)save->state.attachUseCounts[7] < 0x270F) {
                 save->state.attachUseCounts[7] = save->state.attachUseCounts[7] + 1;
@@ -830,7 +830,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
     if (arg1->status != 0xFF) {
         saved                 = arg1->spawnArg1.value;
         arg1->spawnArg1.value = arg1->status;
-        Gp_NoticePanelTask(arg1);
+        itemMenuNoticeTask(arg1);
         arg1->spawnArg1.value = saved;
         return;
     }
@@ -1053,21 +1053,21 @@ void Gp_YesNoMenuTask(Task* arg0)
         mode = arg0->spawnArg1.value & 0xF;
         switch (mode) {
             case 1:
-                Gp_DialogCmdFns[0] = Gp_DrawOkCmd;
+                Gp_DialogCmdFns[0] = itemMenuDrawOkRow;
                 menu->itemCount    = mode;
                 break;
             case 2:
-                Gp_DialogCmdFns[0] = Gp_DrawCancelCmd;
+                Gp_DialogCmdFns[0] = itemMenuDrawCancelRow;
                 menu->itemCount    = 1;
                 break;
             case 3:
-                Gp_DialogCmdFns[0] = Gp_DrawYesCmd;
-                Gp_DialogCmdFns[1] = Gp_DrawNoCmd;
+                Gp_DialogCmdFns[0] = itemMenuDrawYesRow;
+                Gp_DialogCmdFns[1] = itemMenuDrawNoRow;
                 menu->itemCount    = 2;
                 break;
             default:
-                Gp_DialogCmdFns[0] = Gp_DrawYesCmd;
-                Gp_DialogCmdFns[1] = Gp_DrawNoCmd;
+                Gp_DialogCmdFns[0] = itemMenuDrawYesRow;
+                Gp_DialogCmdFns[1] = itemMenuDrawNoRow;
                 menu->itemCount    = 2;
                 break;
         }

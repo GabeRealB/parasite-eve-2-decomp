@@ -271,7 +271,7 @@ s32 Gp_PreviewItems[5] = {
     -1,
 };
 
-UiListRowCallback D_8010E90C[1] = { Gp_DrawItemDescLine };
+UiListRowCallback D_8010E90C[1] = { itemMenuDrawDescriptionRow };
 
 UiList D_8010E910 = { D_8010E90C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -325,8 +325,8 @@ UiList D_8010EA30 = { Gp_ItemCmdFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0
 static s32 D_8010EA54[] = { 30, 60, 50, 100, 100, 200 };
 
 UiListRowCallback Gp_DialogCmdFns[2] = {
-    Gp_DrawOkCmd,
-    Gp_DrawOkCmd,
+    itemMenuDrawOkRow,
+    itemMenuDrawOkRow,
 };
 
 UiList D_8010EA74 = { Gp_DialogCmdFns, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
@@ -639,7 +639,7 @@ static void Gp_UiPromptUpdate(UiObject* arg0, Task* arg1)
             text = textSkipLines(val.pointer, one);
             textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
         } else if ((u32)(val.value - 0x300) < 0x100U) {
-            Gp_DrawCastCostLines(arg0, val.value);
+            itemMenuDrawAbilityDescription(arg0, val.value);
         }
     }
     childTask = arg1->firstChild;

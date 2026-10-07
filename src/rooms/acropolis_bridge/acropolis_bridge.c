@@ -3557,7 +3557,7 @@ static void func_acropolis_bridge_8017F404(Task* task)
 /// Opens the command prompt for the key latched in the work block: redraws the
 /// entered `code`, hides the cursor, then spawns the prompt at the coordinates
 /// the gameplay side left in `D_80114D28` with the key's `promptKind` as its
-/// display mode, and advances the task to state 4.
+/// Examine/Push action, and advances the task to state 4.
 static void func_acropolis_bridge_8017F460(Task* task)
 {
     ActionPrompt*               prompt = D_80114D28;
@@ -3566,13 +3566,13 @@ static void func_acropolis_bridge_8017F460(Task* task)
     func_acropolis_bridge_8017E60C(work->code, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    func_800D4E78(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
     task->state = 4;
 }
 
 /// Collects the answer to the command prompt opened for the latched key:
 /// redraws the entered `code`, keeps the cursor hidden, and advances the task
-/// to state 2. If `func_800D4EC0` reports the command was confirmed,
+/// to state 2. If `itemMenuIsHotspotActionConfirmed` reports the command was confirmed,
 /// `keypadExamined` is raised (which the hotspot scan in
 /// `func_acropolis_bridge_8017E1D0` gates on, so keys type from then on) and
 /// cap slot 9 is started.
@@ -3584,7 +3584,7 @@ static void func_acropolis_bridge_8017F4CC(Task* task)
     func_acropolis_bridge_8017E60C(work->code, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (func_800D4EC0() != 0) {
+    if (itemMenuIsHotspotActionConfirmed() != 0) {
         work->keypadExamined = 1;
         capStartSequenceSlot(9, 0, 0);
     }

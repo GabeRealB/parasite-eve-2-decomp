@@ -80,7 +80,7 @@ func_800CD89C = 0x800CD89C; // type:func absolute:True
 Gp_DrawItemLabel = 0x800CD924; // type:func absolute:True
 Gp_SetPreviewItem = 0x800CDE80; // type:func absolute:True
 Gp_ClearPreviewItems = 0x800CDEF4; // type:func absolute:True
-Gp_SpawnItemPrompt = 0x800D4E40; // type:func absolute:True
+itemMenuSpawnNotice = 0x800D4E40; // type:func absolute:True
 Gp_ItemDescs = 0x8010D838; // absolute:True
 Gp_IdParamHi = 0x8011398C; // absolute:True
 

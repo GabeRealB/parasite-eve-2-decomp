@@ -533,7 +533,7 @@ void Gp_DrawAmmoRow(UiList* prompt, UiObject* obj)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             if (obj->owner->spawnArg1.value == 0) {
                 sndEvtRequestScriptStart(SOUND_WEAPON_EQUIP, 0, 0);
-                Gp_EquipHeld(item);
+                equipmentEquipCarriedWeapon(item);
                 Gp_ReloadMode = 0;
                 spawned       = uiSpawnObject(&D_8010EF14, item | 0x10000, 1, 1, obj);
                 if (spawned != NULL) {

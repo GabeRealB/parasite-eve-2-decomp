@@ -90,7 +90,7 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
             text = textSkipLines(val.pointer, 1);
             textDrawUiLine(arg0, arg0->panel.contentLeft.signedValue + 2, arg0->panel.contentTop.signedValue + 0x1E, text, textColorRgb, 1, TEXT_ALIGNMENT_LEFT);
         } else if ((u32)(val.value - 0x300) < 0x100U) {
-            Gp_DrawCastCostLines(arg0, val.value);
+            itemMenuDrawAbilityDescription(arg0, val.value);
         }
     }
 
@@ -1594,7 +1594,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                     }
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
-                    Gp_SpawnItemPrompt(obj, 0x14, 0, 1);
+                    itemMenuSpawnNotice(obj, ITEM_MENU_NOTICE_NO_OTHER_WEAPON, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else {
@@ -2314,7 +2314,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                                     }
                                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                                 } else {
-                                    Gp_SpawnItemPrompt(obj, 0x15, 0, 1);
+                                    itemMenuSpawnNotice(obj, ITEM_MENU_NOTICE_NO_OTHER_ARMOR, 0, ITEM_MENU_NOTICE_RESULT_CONFIRM);
                                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                                 }
                             } else {

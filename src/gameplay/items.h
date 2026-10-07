@@ -40,7 +40,7 @@ s32 inventoryRemoveItemRow(InventoryItemRange* range, InventoryItemRow* row, s32
 
 /// Confirmation UI for raising `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus` of the equipped
 /// 0x60–0x7F item (`gPlayerStatus.armor`). If the clamped level is
-/// already 10, `Gp_NoticePanelTask` is shown with spawnArg1 0x1A. Otherwise
+/// already 10, `itemMenuNoticeTask` is shown with spawnArg1 0x1A. Otherwise
 /// consumes `Gp_SelItemRec` and draws "More <item> attachments available."
 void Gp_UiBoostAttach(struct UiObject* arg0, Task* arg1);
 
@@ -49,7 +49,7 @@ void Gp_UiBoostMp(struct UiObject* arg0, Task* arg1);
 /// HP counterpart of `Gp_UiBoostMp`: adds 5 to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus`
 /// (clamped below 250), recomputes max HP (same body as `equipmentRecalculateMaxHp`),
 /// heals current HP to that max, then consumes `Gp_SelItemRec` and spawns
-/// `Gp_BoostPanelDesc`. `Gp_NoticePanelTask` is called with `spawnArg1` forced to 0x1C.
+/// `Gp_BoostPanelDesc`. `itemMenuNoticeTask` is called with `spawnArg1` forced to 0x1C.
 void Gp_UiBoostHp(struct UiObject* arg0, Task* arg1);
 
 /// Exact selectors for effects supplied by armour, attached items or active wards.
@@ -111,6 +111,15 @@ s32 Gp_CountEquippedRelated(InventoryItemRange* arg0, s32 arg1);
 /// supply selection and charge, inventory quantities and the saved record's
 /// unproven word are left intact. Records remain owned by the live save.
 void equipmentClearRemovableLoads(s32 weaponItemId);
+
+/// Selects a carried weapon and detaches its inventory row from any armor slot.
+///
+/// `weaponItemId` must be 0x80..0x9F with a matching carried row. The previous
+/// equipped weapon, if any, must also have a carried row. Selecting the same
+/// weapon does nothing. Otherwise the previous row inherits a positive armor
+/// slot from the new row; without one, its removable loads are cleared.
+/// Updates the player's one-based weapon selector and marks the new item identified.
+void equipmentEquipCarriedWeapon(s32 weaponItemId);
 
 /// Which weapon loads `equipmentClearSelectedRemovableLoads` clears.
 enum {
