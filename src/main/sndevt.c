@@ -835,12 +835,12 @@ static void SndEvt_HandleRefCountInc(SndEvt* unused)
 
 static void SndEvt_HandleRefCountDec(SndEvt* unused)
 {
-    SndVoice_TickRefCount();
+    sndScriptReleaseDuck();
 }
 
 static void SndEvt_HandleKeyOffMatching(SndEvt* unused)
 {
-    SndVoice_KeyOffMatching();
+    sndScriptKeyOffType1AndArea();
 }
 
 s32 midiInitSystem(u32 unused)

@@ -654,7 +654,7 @@ static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1)
             func_actor_403600_801412D0(arg0, arg1);
             if (work->pauseSoundSent == 0) {
                 work->pauseSoundSent = 1;
-                SndEvt_EnqueueType8(SOUND_AREA_BANK_ALL);
+                sndEvtRequestScriptMute(SOUND_AREA_BANK_ALL);
             }
             return;
         case 2:
@@ -664,7 +664,7 @@ static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1)
     }
     if (((gDisplayState.pendingMode & DISPLAY_MODE_MENU_GROUP_MASK) == DISPLAY_MODE_GAME_MENU_GROUP) && (work->pauseSoundSent == 0)) {
         work->pauseSoundSent = 1;
-        SndEvt_EnqueueType8(SOUND_AREA_BANK_ALL);
+        sndEvtRequestScriptMute(SOUND_AREA_BANK_ALL);
     }
     func_actor_403600_801396F8(arg1);
     if (work->mode != ACTOR_403600_MODE_PARKED) {

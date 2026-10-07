@@ -74,7 +74,7 @@ void Gp_AreaEnterTask(Task* arg0)
                 ((GameActor*)slot->work)->targetNode = NULL;
             }
         }
-        SndEvt_EnqueueType8(SOUND_COMMON(0x0D));
+        sndEvtRequestScriptMute(SOUND_COMMON(0x0D));
         sndLoadEnqueuePeFile((attachmentGetEffectiveLevel(7) + 0x15) & 0xFF);
         if (stageAreaKey == GAME_LOCATION_KEY(1, 20, 0, 0)) {
             arg0->spawnArg2.pointer = uiSpawnObject(&D_mist_shooting_gallery_80185000, arg0->spawnArg1, 1, 4, NULL);

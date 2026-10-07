@@ -426,14 +426,14 @@ static inline void Spu_InitSystemLocked(s32 arg0)
     spuInitVoices();
     _sndBankResetDescriptors();
     _audioTickReset();
-    Snd_RegisterTickCallbacks();
-    Snd_InitBanks(0);
+    audioTickInitPlayback();
+    sndScriptInitSystem(0);
     midiInitSystem(0);
 
     temp_v0  = sndHeapAlloc(4);
     *temp_v0 = 0;
 
-    audioTickInsert(&Snd_ReverbWarmupCb, NULL, AUDIO_TICK_ID_REVERB_WARMUP, temp_v0);
+    audioTickInsert(&spuTickReverbWarmup, NULL, AUDIO_TICK_ID_REVERB_WARMUP, temp_v0);
     if (D58028_SpuTimerEnabled) {
         DisableEvent(D648E0_SpuTimerED);
         CloseEvent(D648E0_SpuTimerED);

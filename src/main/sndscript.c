@@ -861,17 +861,25 @@ void Snd_PollAsync(s32 unused)
     asyncCbPoll();
 }
 
-void Snd_RegisterTickCallbacks(void)
+void audioTickInitPlayback(void)
 {
+    enum {
+        SOUND_LOAD_CHARACTER_SAMPLE_BASE  = 0x3D010,
+        SOUND_LOAD_COMMON_SAMPLE_BASE     = 0x63810,
+        SOUND_LOAD_CHARACTER_RESTART_NONE = 0
+    };
+
     audioTickInsert(midiTick, NULL, AUDIO_TICK_ID_MIDI, NULL);
     audioTickInsert(_sndScriptTickSlots, NULL, AUDIO_TICK_ID_SOUND_SCRIPTS, NULL);
-    D_80082130 = 0x3D010;
-    D_80082128 = 0x63810;
+
+    // Reset upward character allocation and downward type-1/area allocation.
+    D_80082130 = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
+    D_80082128 = SOUND_LOAD_COMMON_SAMPLE_BASE;
     D_80082124 = D_80082128;
     D_80082122 = 0;
     D_8008212C = 0;
-    D_80082135 = 0;
-    D_80082121 = 0;
+    D_80082135 = SOUND_LOAD_CHARACTER_RESTART_NONE;
+    D_80082121 = SOUND_LOAD_CHARACTER_RESTART_NONE;
     D_8008274C = 0;
 }
 
@@ -906,17 +914,23 @@ static s32 _sndScriptRemapType1Id(s32 requestId)
     return soundId;
 }
 
-s32 Snd_ReverbWarmupCb(s32* arg0)
+s32 spuTickReverbWarmup(s32* updatesSinceInit)
 {
-    s32 temp;
+    enum {
+        SPU_REVERB_WARMUP_UPDATES = 61,
+        SPU_REVERB_WARMUP_DEPTH   = 0x2800,
+        AUDIO_TICK_POLL_CONTINUE  = 0,
+        AUDIO_TICK_POLL_FINISHED  = -1
+    };
+    s32 elapsedUpdates;
 
-    temp  = *arg0 + 1;
-    *arg0 = temp;
-    if (temp < 0x3D) {
-        return 0;
+    elapsedUpdates    = *updatesSinceInit + 1;
+    *updatesSinceInit = elapsedUpdates;
+    if (elapsedUpdates < SPU_REVERB_WARMUP_UPDATES) {
+        return AUDIO_TICK_POLL_CONTINUE;
     }
-    spuSetReverbDepth(0x2800);
-    return -1;
+    spuSetReverbDepth(SPU_REVERB_WARMUP_DEPTH);
+    return AUDIO_TICK_POLL_FINISHED;
 }
 
 void Snd_SetMutedVolumes(s32 arg0)
@@ -935,39 +949,56 @@ void Snd_SetMutedVolumes(s32 arg0)
     midiSetMasterVolume(var_a0);
 }
 
-s32 Snd_InitBanks(u32 unused)
+/// Reserves one boot script-bank image and its sample descriptor's table storage.
+///
+/// `entry` must select a supported type-to-slot map entry, with a live descriptor
+/// and initialized sound heap. The blocks are uninitialized and allocation
+/// failure is unchecked; a later load fills and partitions the table block.
+static inline void _sndScriptReserveBootBank(const _SndBankInitEntry* entry)
 {
-    s32                i;
-    s8                 slot;
-    SndBankSlot*       bankSlot;
-    SndBank*           bank;
-    _SndBankInitEntry* entry;
-    s32                id;
+    s8           slotIndex;
+    SndBankSlot* bankSlot;
+    SndBank*     bank;
+    s32          bankId;
 
-    *(volatile s32*)&D_80068A78 = 0xFF;
-    spuSetVoiceRange(SPU_VOICE_RANGE_SOUND_SCRIPTS, 18, 6);
+    slotIndex                       = Snd_BankSlotsByType[entry->bankType];
+    bankSlot                        = sndBankSlotGet(slotIndex);
+    bankId                          = entry->bankId;
+    bank                            = &Snd_Banks[slotIndex];
+    bankSlot->bank                  = bank;
+    bankSlot->bankId                = bankId;
+    bank->bankId                    = entry->bankId;
+    bankSlot->bank->heapBlock       = sndHeapAlloc(entry->tableBytes);
+    bankSlot->bank->groups          = bankSlot->bank->heapBlock;
+    bankSlot->bank->layers          = bankSlot->bank->heapBlock;
+    bankSlot->bank->groupFirstLayer = bankSlot->bank->heapBlock;
+    bankSlot->image                 = sndHeapAlloc(entry->imageBytes);
+    bankSlot->spuAddr               = entry->spuAddr;
+}
+
+s32 sndScriptInitSystem(u32 unused)
+{
+    enum {
+        SOUND_BANK_INIT_BUSY               = 0xFF,
+        SOUND_BANK_INIT_IDLE               = 0,
+        SOUND_SCRIPT_FIRST_EXCLUSIVE_VOICE = 18,
+        SOUND_SCRIPT_EXCLUSIVE_VOICE_COUNT = 6
+    };
+    s32 entryIndex;
+
+    // Hold sector feeding off until boot reservations are published.
+    *(volatile s32*)&D_80068A78 = SOUND_BANK_INIT_BUSY;
+    spuSetVoiceRange(SPU_VOICE_RANGE_SOUND_SCRIPTS, SOUND_SCRIPT_FIRST_EXCLUSIVE_VOICE, SOUND_SCRIPT_EXCLUSIVE_VOICE_COUNT);
     _sndScriptInit();
     _sndScriptSetReverb(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
     sndScriptSetTypeRequestsEnabled(1, SOUND_BANK_TYPE_ALL_NON_AMBIENT);
 
-    for (i = 0; i < 2; i++) {
-        entry                           = &Snd_BankInitTable[i];
-        slot                            = Snd_BankSlotsByType[entry->bankType];
-        bankSlot                        = sndBankSlotGet(slot);
-        id                              = entry->bankId;
-        bank                            = &Snd_Banks[slot];
-        bankSlot->bank                  = bank;
-        bankSlot->bankId                = id;
-        bank->bankId                    = entry->bankId;
-        bankSlot->bank->heapBlock       = sndHeapAlloc(entry->tableBytes);
-        bankSlot->bank->groups          = bankSlot->bank->heapBlock;
-        bankSlot->bank->layers          = bankSlot->bank->heapBlock;
-        bankSlot->bank->groupFirstLayer = bankSlot->bank->heapBlock;
-        bankSlot->image                 = sndHeapAlloc(entry->imageBytes);
-        bankSlot->spuAddr               = entry->spuAddr;
+    // Reserve buffers for types 2 and 14; a later bank load fills their contents.
+    for (entryIndex = 0; entryIndex < (s32)ARRAY_SIZE(Snd_BankInitTable); entryIndex++) {
+        _sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex]);
     }
 
-    *(volatile s32*)&D_80068A78 = 0;
+    *(volatile s32*)&D_80068A78 = SOUND_BANK_INIT_IDLE;
     return -1;
 }
 
@@ -1078,17 +1109,19 @@ void sndEvtRequestScriptStop(s32 soundSelector, u16 stopControl)
     }
 }
 
-void SndEvt_EnqueueType8(s32 arg0)
+void sndEvtRequestScriptMute(s32 soundSelector)
 {
+    enum { SOUND_SCRIPT_REQUEST_TYPE_SHIFT = 28 };
     SndEvt*           event;
     SndEvtScriptArgs* args;
 
-    if (D_80082138[(u32)arg0 >> 28] != 0) {
+    // Admission uses the requested type; type-1 resolution happens only after allocation.
+    if (D_80082138[(u32)soundSelector >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
         event = sndEvtAlloc();
         if (event != NULL) {
             event->command = SOUND_EVENT_SCRIPT_MUTE;
             args           = &event->args.script;
-            args->soundId  = _sndScriptRemapType1Id(arg0);
+            args->soundId  = _sndScriptRemapType1Id(soundSelector);
             sndEvtEnqueue(event);
         }
     }
@@ -1595,44 +1628,64 @@ static void _sndScriptScanSlotCandidates(_SndScriptSlotPick* candidates, u16 req
     }
 }
 
-void SndVoice_KeyOffMatching(void)
+void sndScriptKeyOffType1AndArea(void)
 {
-    SpuVoiceRef ref;
-    s32         i;
-    _SndScript* p;
-    _SndVoice*  head;
-    _SndVoice*  node;
-    s32         type;
-    s32         emptyType;
+    enum {
+        SOUND_SCRIPT_REQUEST_TYPE_MASK            = 0xF0000000,
+        SOUND_SCRIPT_ID_IDLE                      = -1,
+        SOUND_SCRIPT_ADSR_RELEASE_RATE_MASK       = 0x1F,
+        SOUND_SCRIPT_ADSR_TRANSITION_RELEASE_RATE = 11,
+        SOUND_SCRIPT_ADSR_EXPONENTIAL_RELEASE     = 0x20
+    };
+    SpuVoiceRef voiceRef;
+    s32         slotIndex;
+    _SndScript* script;
+    _SndVoice*  voiceHead;
+    _SndVoice*  voice;
+    s32         bankType;
+    s32         emptyBankType;
 
-    for (i = 0; i < 8; i++) {
-        p    = &SndScript_Slots[i];
-        head = p->voices;
-        if (head != NULL) {
-            type = p->soundId & 0xF0000000;
-            if (type != 0x60000000) {
-                node = head;
-                if ((type == SOUND_SCRIPT_REQUEST_TYPE_1) || (type == 0x50000000)) {
+    /// Queues rate-11 exponential release using this function's ADSR constants.
+    ///
+    /// `ref` must be a side-effect-free SpuVoiceRef lvalue whose attributes are
+    /// live in the pending SPU batch. Evaluates it repeatedly; preserves every
+    /// ADSR bit outside the release rate and exponential-mode bit. Expands to
+    /// a compound statement, used only as a standalone statement in this walk.
+#define SOUND_SCRIPT_SET_TRANSITION_RELEASE(ref)                                                                                     \
+    {                                                                                                                                \
+        (ref).attr->adsr2  = ((ref).attr->adsr2 & ~SOUND_SCRIPT_ADSR_RELEASE_RATE_MASK) | SOUND_SCRIPT_ADSR_TRANSITION_RELEASE_RATE; \
+        (ref).attr->adsr2 |= SOUND_SCRIPT_ADSR_EXPONENTIAL_RELEASE;                                                                  \
+        (ref).attr->mask  |= SPU_VOICE_ADSR_ADSR2;                                                                                   \
+    }
+
+    for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(SndScript_Slots); slotIndex++) {
+        script    = &SndScript_Slots[slotIndex];
+        voiceHead = script->voices;
+        if (voiceHead != NULL) {
+            bankType = script->soundId & SOUND_SCRIPT_REQUEST_TYPE_MASK;
+            if (bankType != (SOUND_STAGE_AMBIENT & SOUND_SCRIPT_REQUEST_TYPE_MASK)) {
+                voice = voiceHead;
+                if ((bankType == SOUND_SCRIPT_REQUEST_TYPE_1) || (bankType == SOUND_AREA_BANK_ALL)) {
                     do {
-                        spuGetVoiceRef(p->voices->spuVoice, &ref);
-                        ref.attr->adsr2  = (ref.attr->adsr2 & 0xFFE0) | 0xB;
-                        ref.attr->adsr2 |= 0x20;
-                        ref.attr->mask  |= SPU_VOICE_ADSR_ADSR2;
-                        spuKeyOff(node->spuVoice);
-                        node = node->next;
-                    } while (node != NULL);
-                    p->state   = SOUND_SCRIPT_IDLE;
-                    p->soundId = -1;
+                        // Retain the head-only ADSR update while keying off every node.
+                        spuGetVoiceRef(script->voices->spuVoice, &voiceRef);
+                        SOUND_SCRIPT_SET_TRANSITION_RELEASE(voiceRef);
+                        spuKeyOff(voice->spuVoice);
+                        voice = voice->next;
+                    } while (voice != NULL);
+                    script->state   = SOUND_SCRIPT_IDLE;
+                    script->soundId = SOUND_SCRIPT_ID_IDLE;
                 }
             }
         } else {
-            emptyType = p->soundId & 0xF0000000;
-            if ((emptyType == 0x50000000) || (emptyType == SOUND_SCRIPT_REQUEST_TYPE_1)) {
-                p->state   = SOUND_SCRIPT_IDLE;
-                p->soundId = -1;
+            emptyBankType = script->soundId & SOUND_SCRIPT_REQUEST_TYPE_MASK;
+            if ((emptyBankType == SOUND_AREA_BANK_ALL) || (emptyBankType == SOUND_SCRIPT_REQUEST_TYPE_1)) {
+                script->state   = SOUND_SCRIPT_IDLE;
+                script->soundId = SOUND_SCRIPT_ID_IDLE;
             }
         }
     }
+#undef SOUND_SCRIPT_SET_TRANSITION_RELEASE
 }
 
 /// Adds one waiting update to the script's 16.16 command clock.
@@ -2126,22 +2179,24 @@ void sndScriptAcquireDuck(void)
     }
 }
 
-void SndVoice_TickRefCount(void)
+void sndScriptReleaseDuck(void)
 {
     if (D_8008274C > 0) {
         D_8008274C -= 1;
         if (D_8008274C == 0) {
             if (D_80082749 != 0) {
-                D_8008274A = 8;
+                D_8008274A = SOUND_SCRIPT_DUCK_STEP;
             }
         }
     }
 }
 
-/// Clears a nonempty, word-aligned representation without releasing its resources.
+/// Zeroes a nonempty word-aligned storage representation without releasing resources.
 ///
-/// `wordCount` counts writable s32 words, and must be positive. Call only on
-/// the complete inactive script, bank-slot or voice arrays during sound boot.
+/// `storage` must provide `wordCount` writable s32 words; the count must be
+/// positive, since the first word is always written. The void pointer admits
+/// complete script, bank-slot and voice arrays as storage representations.
+/// Call only during sound boot, with their resource users quiescent.
 static inline void _sndScriptClearWords(void* storage, u32 wordCount)
 {
     u32  wordIndex;
@@ -2303,10 +2358,14 @@ noReplacement:
     return SOUND_SCRIPT_SLOT_NO_REPLACEMENT;
 }
 
-/// Discards every hardware allocation on a script's old voice chain before reuse.
+/// Gives up every SPU slot on a script's old voice chain before slot reuse.
 ///
-/// The chain must stay live for the walk. Clears callbacks before releasing
-/// slots so completion cannot unlink a record while its next link is needed.
+/// NULL is an empty chain. Otherwise all records and links must stay live,
+/// each holding a valid SPU voice. Key-off is queued; callbacks are cleared
+/// before returning allocations so completion cannot unlink the walked chain.
+/// Clears allocation marks and voice numbers, retaining owner and neighbor
+/// links and note/envelope data. The caller must discard its old list head
+/// before reusing any record; run with audio updates and allocation serialized.
 static inline void _sndScriptDiscardVoices(_SndVoice* voice)
 {
     if (voice != NULL) {

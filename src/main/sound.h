@@ -490,7 +490,15 @@ s32 sndLoadInstallSequence(SndLoadState* load);
 
 void Snd_SetMutedVolumes(s32 arg0);
 
-void SndVoice_KeyOffMatching(void);
+/// Keys off every attached voice of type-1 and area scripts and idles those slots.
+///
+/// Every qualifying slot is set idle with sound id -1, including empty slots.
+/// Voice-list links and SPU allocations/callbacks remain live until completion
+/// or slot reuse. The retained walk repeatedly queues rate-11 exponential ADSR
+/// release on the script's head voice, while keying off each list node; other
+/// voices keep their release settings. Call with live voice lists and serialized
+/// audio updates. Hardware changes take effect at the next SPU flush.
+void sndScriptKeyOffType1AndArea(void);
 
 /// Script-slot sentinel and start refusals; successful `sndScriptTryStart` results are 0..7.
 enum {
@@ -574,13 +582,20 @@ void sndScriptRampVolume(s32 scriptSlotIndex, s32 volumeScale);
 /// The first request, when no ramp or saved level is active and the current
 /// gain is at least 48, saves it and starts an eight-level downward step per
 /// audio update. Further requests only increment the volatile count, which
-/// callers must keep within signed-word range. `SndVoice_TickRefCount` releases
+/// callers must keep within signed-word range. `sndScriptReleaseDuck` releases
 /// a request; its last release starts restoration of a saved gain. Entries
 /// with the unducked-volume flag retain that saved gain. An acquisition during
 /// an existing ramp does not restart ducking.
 void sndScriptAcquireDuck(void);
 
-void SndVoice_TickRefCount(void);
+/// Releases one nested sound-script master-volume duck request.
+///
+/// Decrements only a positive volatile request count; extra releases do nothing.
+/// The last release starts an eight-level upward step per audio update when a
+/// nonzero saved gain exists, replacing any downward step still in progress.
+/// Restoration and clearing of the saved level happen on subsequent updates.
+/// Callers must serialize acquisition and release; the count update is not atomic.
+void sndScriptReleaseDuck(void);
 
 /// Returns the first live script-slot index with the exact resolved sound id, or -1.
 ///
@@ -702,11 +717,39 @@ s32 midiTick(s32* unused);
 
 void Snd_PollAsync(s32 unused);
 
-void Snd_RegisterTickCallbacks(void);
+/// Registers MIDI and sound-script playback polls and resets their load/duck state.
+///
+/// Call after the sound heap and poll list have been reset, with audio updates
+/// quiescent. Both permanent polls take NULL arguments; their ids run MIDI
+/// before scripts. Registration failures are ignored. Restores character sample
+/// allocation at SPU byte address 0x3D010, type-1/area allocation at 0x63810,
+/// no character reservations or restart mode, and no nested duck requests.
+void audioTickInitPlayback(void);
 
-s32 Snd_ReverbWarmupCb(s32* arg0);
+/// Counts sound-startup audio updates and enables stereo reverb depth after 61.
+///
+/// `updatesSinceInit` points to a live writable s32 initialized to zero and
+/// retained through registration; it counts audio updates, including extra PAL
+/// timer updates, not display frames. Returns zero for the first 60 updates,
+/// then queues signed SPU depth 0x2800 on both channels and returns -1 to end
+/// registration. Neither this counter nor the poll node is freed before the
+/// next sound-heap reset. Hardware depth changes at the next SPU flush.
+s32 spuTickReverbWarmup(s32* updatesSinceInit);
 
-s32 Snd_InitBanks(u32);
+/// Resets sound-script playback and reserves weapon and PE bank storage at startup.
+///
+/// `unused` is ignored. Call with playback and loading quiescent after the
+/// sound heap, sample descriptors and SPU voices are reset. Registers exclusive
+/// script voices 18..23; shared voices 16..17 are registered separately.
+/// Enables all sixteen request gates and sets default script reverb level 1.
+/// While initializing, sector feeding is held off by a volatile word gate.
+///
+/// Reserves table and script-image blocks for bank types 2 and 14, without
+/// loading or clearing them. Allocation failure is unchecked. The table block
+/// initially backs all three table pointers; a completed load partitions it.
+/// Slot/descriptor ids and SPU sample bases are published for later loads.
+/// Returns the retained initializer result -1, which the caller ignores.
+s32 sndScriptInitSystem(u32 unused);
 
 /// Restores direct master gain and silences CD and external SPU inputs.
 ///

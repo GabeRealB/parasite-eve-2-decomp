@@ -472,7 +472,7 @@ static void func_actor_503500_80133270(Task* arg0)
     switch (mode) {
         case 1:
             if (work->controlPaused == 0) {
-                SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
+                sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
                 tmdAllocPrimitiveBuffer(tmd);
                 tmd->flags         &= (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 work->controlPaused = mode;
@@ -488,7 +488,7 @@ static void func_actor_503500_80133270(Task* arg0)
                 work->bufferFreeCountdown--;
             }
             if (work->controlHidden == 0) {
-                SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
+                sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
                 tmd->flags               |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
                 work->bufferFreeCountdown = 1;
                 work->controlPaused       = 0;
@@ -503,7 +503,7 @@ static void func_actor_503500_80133270(Task* arg0)
                 work->mutedForMenu  = 0;
             }
             if ((gDisplayState.pendingMode & DISPLAY_MODE_MENU_GROUP_MASK) == DISPLAY_MODE_GAME_MENU_GROUP) {
-                SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
+                sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
                 work->mutedForMenu = 1;
             }
             if (gGameSession->eventState == 0) {

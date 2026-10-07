@@ -1040,7 +1040,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
             _actor105100RefreshColor(arg1);
             _actor105100DrawShadow(arg1);
             if (work->soundsMuted == 0) {
-                SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
+                sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
             }
             work->soundsMuted = state;
             return;
@@ -1048,7 +1048,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
             obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             if (work->soundsMuted == 0) {
-                SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
+                sndEvtRequestScriptMute(SOUND_BANK_TYPE_CHARACTER_ALL);
             }
             work->soundsMuted = state;
             return;

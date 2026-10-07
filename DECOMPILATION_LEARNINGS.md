@@ -13737,7 +13737,7 @@ in the compare still scored only ~81% — the cast was deleted.
 
 ## Same global, `lb` in one function and `lbu` in another
 
-`D_80082749` is loaded with `lb` by `SndVoice_TickRefCount` (`if (D_80082749 != 0)`)
+`D_80082749` is loaded with `lb` by `sndScriptReleaseDuck` (`if (D_80082749 != 0)`)
 and with `lbu` (+ `sll/sra 24` sign-extend) by `_sndScriptStepDucking`. Declaring the
 symbol `s8` matches the first; the second needs an unsigned load:
 
@@ -17423,10 +17423,14 @@ loop:
     }
 ```
 
-Pair with `idx + (s32)base` / `(slot << 5) + (s32)banks` for offset-first
-`addu`, and `*(volatile s32*)&flag = …` before a call so the last arg (`li a2`)
-fills the `jal` delay instead of the store (see “volatile blocks delay-slot
-filling”). `Snd_InitBanks` is the pure example.
+`Snd_BankSlotsByType[entry->bankType]` and `&Snd_Banks[slotIndex]` preserve
+offset-first `addu` with their symbol bases visible to the compiler.
+`sndScriptInitSystem`'s indexed `for` calls
+`_sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex])`; the loop pass
+places the independent pointer and counter increments in these delay slots.
+`*(volatile s32*)&D_80068A78 = …` before the call keeps its last arg (`li a2`)
+in the `jal` delay instead of the store (see “volatile blocks delay-slot
+filling”).
 
 ## Late `li a0, K` before malloc: wrap setup in `do {} while (0)`
 
@@ -65663,21 +65667,21 @@ here came from changed instruction offsets, with the same branch topology.
 Cache `Gp_PubItemLoc` in an `s32` before the state check: directly comparing
 the declared `u16` global against `-1U` removes the target's comparison.
 
-## SndVoice_KeyOffMatching: split branch-local type checks to constrain delay slots
+## sndScriptKeyOffType1AndArea: split branch-local type checks to constrain delay slots
 
 The minimally typed seed scored 86.615%. Replacing its explicit walking
-`_SndScript*` with the sibling pattern `p = &SndScript_Slots[i]` inside a
+`_SndScript*` with the sibling pattern `script = &SndScript_Slots[slotIndex]` inside a
 `for` loop, and duplicating the status/ID stores instead of the m2c shared-tail
 `goto`, reached 97.954%. These edits were tested together. The baseline
-`.loop` dump had strength-reduced `p + 0x16` into an extra walking pointer;
+`.loop` dump had strength-reduced `script + 0x16` into an extra walking pointer;
 the indexed version retained only the slot pointer.
 
 The remaining penalties were `branch=3 regs=3 reorder=1 delete=1`. Reusing
-`type` in both the populated-slot and empty-slot arms allocated both masked
+`bankType` in both the populated-slot and empty-slot arms allocated both masked
 IDs to `$v1` (`.lreg`: 14 uses over 9 insns; `.greg`: r84 in `$v1`). The
 `.dbr` dump then moved `li $v0,-1` into the empty-slot arm's first comparison
 delay slot, removing a target nop and shifting branch offsets. Splitting the
-empty-slot check into `emptyType` put that check in `$v0` and prevented the
+empty-slot check into `emptyBankType` put that check in `$v0` and prevented the
 early constant load: 100% without pins or barriers. Nonzero branch penalties
 can therefore accompany a register-dependent delay-slot difference even when
 the branch topology already agrees; inspect `.jump2` and `.dbr` together.
@@ -148041,10 +148045,12 @@ local stays base first even as an inline argument. There the fix was the other
 finding - name the global (`Snd_BankSlotsByType[entry->bankType]`), whose
 symbol is a constant and swaps to the end. Its `lui`/`addiu` is hoisted only
 out of a real loop: a `loop:`/`goto` body has no loop notes, so the address is
-rebuilt per iteration. `Snd_InitBanks` matched as a plain `for (i = 0; i < 2;
-i++)` over `Snd_BankInitTable[i]`, `Snd_BankSlotsByType[...]` and
-`&Snd_Banks[slot]` with no pointer locals; the early `i = 0`, the mid-body
-`i++` and the hoist order in the target were all the scheduler and loop pass.
+rebuilt per iteration. `sndScriptInitSystem` matched as a plain
+`for (entryIndex = 0; entryIndex < (s32)ARRAY_SIZE(Snd_BankInitTable); entryIndex++)`
+over `_sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex])`, whose inline
+body uses `Snd_BankSlotsByType[...]` and `&Snd_Banks[slotIndex]` directly;
+the early `entryIndex = 0`, the mid-body `entryIndex++` and the hoist order
+in the target were all the scheduler and loop pass.
 
 ### A local in the dead parameter's register after the parameter died: a block-local temp that local-alloc put there hands it over (func_actor_403600_8013289C, 2026-10-05)
 

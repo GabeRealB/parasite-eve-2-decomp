@@ -275,7 +275,21 @@ enum { SOUND_SCRIPT_STOP_ALL_INSTANCES = 0xFF00 };
 /// request. Stops do not check bank loading or the bank-type enable gate.
 void sndEvtRequestScriptStop(s32 soundSelector, u16 stopControl);
 
-void SndEvt_EnqueueType8(s32 arg0);
+/// Queues a mute ramp for scripts matching an exact request id or type-only selector.
+///
+/// Uses the bank/instance/entry encoding of `sndEvtRequestScriptStart`.
+/// The requested top-nibble type must be enabled; a disabled type or full
+/// event pool silently drops the command. Type-1 selectors are stamped with
+/// the loaded bank id at queue time, requiring a completed image in any
+/// matching slot. That stamp also applies to a type-only selector: dispatch
+/// compares exact ids and top-nibble-only keys, not bank-wide keys.
+///
+/// Dispatch accepts running or releasing slots, fading over eight audio
+/// updates. Commands pause while voice gates and pitch envelopes continue.
+/// Muting retains the script slot without unloading its bank; voices can
+/// complete normally. No caller storage is retained, and queuing does not
+/// guarantee a matching instance.
+void sndEvtRequestScriptMute(s32 soundSelector);
 
 void SndEvt_EnqueueType9(s32 arg0);
 
