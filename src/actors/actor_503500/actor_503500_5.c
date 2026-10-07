@@ -1440,7 +1440,6 @@ static void func_actor_503500_801455A4(Task* arg0)
 {
     _Actor503500YellowFlashAttackWork* work;
     GfxCoord*                          coord;
-    GfxRotationWords*                  m;
     EffectWork*                        eff;
     Task*                              child;
     s32                                pan;
@@ -1453,12 +1452,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     }
     arg0->work = work;
 
-    m         = (GfxRotationWords*)&coord->coord;
-    m->m00M01 = ONE;
-    m->m02M10 = 0;
-    m->m11M12 = ONE;
-    m->m20M21 = 0;
-    m->m22    = ONE;
+    gfxSetRotIdentity(&coord->coord);
 
     work->body.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     work->body.context.contacts = work->contacts;
