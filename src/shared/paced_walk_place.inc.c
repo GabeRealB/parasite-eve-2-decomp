@@ -22,15 +22,18 @@ static inline void _pacedWalkPlaceRoot(GfxCoord* rootCoord, const VECTOR* positi
 
 /// Places the receiver's model root at a position and yaw in its parent's space.
 ///
-/// Handles `ACTOR_MESSAGE_PLACE` for a live TMD task whose `Task::work` is
-/// the allocated type selected by `PACED_WALK_WORK_T`. The borrowed,
-/// word-aligned placement supplies XYZ in whole parent-coordinate units and
-/// signed yaw in 1/4096 turns; pitch, roll and the vectors' fourth components
-/// are ignored. Records the heading in `st.yaw`, replaces the root rotation
-/// at unit scale and invalidates composition. Consumes the placement during
-/// dispatch without retaining it. Returns zero; `messageId` and
-/// `unusedArgument` are ignored.
-s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)
+/// Handles `ACTOR_MESSAGE_PLACE` for a live TMD task with at least one writable
+/// coordinate and the allocated `PACED_WALK_WORK_T` at `Task::work`. Borrows
+/// a non-NULL, readable, word-aligned placement through dispatch. Reads XYZ in
+/// whole units of the root's existing parent's space and signed yaw in 4096
+/// units per turn, without normalization; other placement components are unused.
+/// Records the heading in `st.yaw` and installs a unit-scale yaw rotation and
+/// XYZ translation, marking the composed matrix stale. The root's parent link
+/// and stored Euler parameters stay intact. Requires the initialized scratch
+/// stack with 0x24 free bytes used by the rotation helper, released before
+/// returning. Returns zero; `messageId` and `unusedArgument` are ignored.
+/// Retains neither the placement nor any pointer into it.
+static s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)
 {
     GfxCoord*          rootCoord;
     PACED_WALK_WORK_T* work;

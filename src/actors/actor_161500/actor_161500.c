@@ -1359,7 +1359,7 @@ static AnimationSet _gActor161500Animation0E338 = {
 TaskMessageEntry gStrideWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _strideWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _strideWalkSetModelDraw },
-    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_161500_80132B88 },
     { ACTOR_MESSAGE_WALK_TO, _strideWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },

@@ -156,23 +156,25 @@ static void PACED_WALK_BLEND_ANIM(Task* task);
 s32 PACED_WALK_SET_WALK_TARGET(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
 
 #ifndef PACED_WALK_PLACE
-/// Selects the placement callback defined by a walker's placement fragment.
+/// Function identifier selecting a walker's private placement-message callback.
 ///
-/// Defaults to `pacedWalkPlace`. Bind to a function identifier with signature
-/// `s32 name(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)`.
-/// Bind before this header for the first instance's declaration, or undefine
-/// and rebind around an additional placement fragment. Declare additional
-/// instances in the carrier's prologue before their message tables; a static
-/// declaration gives the fragment's definition internal linkage.
-/// `PACED_WALK_WORK_T` must select the same receiver's allocated work type,
-/// with a writable `ActorEnemyState st`. Restore both bindings afterwards.
+/// Defaults to `_pacedWalkPlace`, with signature
+/// `static s32 (Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)`.
+/// The header declares the first selected instance and the placement fragment
+/// defines it, both `static`. Bind before this header's first inclusion, or
+/// undefine and rebind around another placement fragment. Declare additional
+/// instances `static` in the carrier's prologue before their message tables,
+/// using the same identifier in the table and at the fragment inclusion.
+/// At each definition, `PACED_WALK_WORK_T` must select the receiver's allocated
+/// work type with `ActorEnemyState st`; placement writes its signed `st.yaw`.
+/// Restore both bindings afterwards if later fragments use the first walker.
 /// This object-like alias evaluates no arguments, captures no locals and
 /// uses no stringification or token pasting. Header guards select the default
 /// only on the first inclusion.
-#define PACED_WALK_PLACE pacedWalkPlace
+#define PACED_WALK_PLACE _pacedWalkPlace
 #endif
 
-s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
+static s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 
 void       pacedWalkFrame(Enemy* enemy, Task* task);
 void       pacedWalkSpawn(Enemy* enemy, Task* task);

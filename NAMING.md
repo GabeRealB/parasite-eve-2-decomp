@@ -763,10 +763,11 @@ instance `static`; additional instances keep the subsystem prefix (for example
 before their callers. The update always uses `PacedWalkWork`; the work-type binding
 only selects the reusable animation and placement helpers' work type.
 `PACED_WALK_PLACE` selects the placement message callback, defaulting to
-`pacedWalkPlace`. Additional TU-local copies are declared `static` in the
-carrier's prologue before their tables, retain the `pacedWalk` identity and
-are bound to their allocated type through `PACED_WALK_WORK_T` around the
-placement fragment. Restore both bindings after a further instance.
+`_pacedWalkPlace`. The header and fragment declare every instance `static`;
+additional copies are declared `static` in the carrier's prologue before their
+tables. Each retains the `pacedWalk` identity and is bound to its allocated type
+through `PACED_WALK_WORK_T` around the placement fragment. Restore both bindings
+after a further instance.
 `PACED_WALK_SET_WALK_TARGET` selects the heading-and-travel message callback,
 defaulting to `pacedWalkTo`. Additional private copies are declared `static`
 in the carrier's prologue before their message tables; actor_460200 selects

@@ -2377,7 +2377,7 @@ void strideWalkExit(Task* task)
 #define PACED_WALK_PLACE _pacedWalkPlaceSoldierB
 #include "../../shared/paced_walk_place.inc.c"
 #undef PACED_WALK_PLACE
-#define PACED_WALK_PLACE pacedWalkPlace
+#define PACED_WALK_PLACE _pacedWalkPlace
 
 #undef PACED_WALK_WORK_T
 #define PACED_WALK_WORK_T PacedWalkWork
@@ -2523,7 +2523,7 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args,
 #define PACED_WALK_PLACE _pacedWalkPlaceSoldierC
 #include "../../shared/paced_walk_place.inc.c"
 #undef PACED_WALK_PLACE
-#define PACED_WALK_PLACE pacedWalkPlace
+#define PACED_WALK_PLACE _pacedWalkPlace
 
 s32 func_actor_460200_80133DC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {

@@ -2303,7 +2303,7 @@ static TmdSource _gActor450800KyleMadiganGun = {
 TaskMessageEntry D_actor_450800_8014AC58[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_450800_80132B44 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_450800_80132BB0 },
-    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_450800_80132CE0 },
     { ACTOR_MESSAGE_WALK_TO, func_actor_450800_80132D74 },
     { TASK_MESSAGE_TABLE_END, NULL },

@@ -1378,7 +1378,7 @@ static AnimationSet _gActor160700Animation0F830 = {
 TaskMessageEntry D_actor_160700_80141678[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetPairModelDraw },
-    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor160700IgnoreCommand },
     { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
