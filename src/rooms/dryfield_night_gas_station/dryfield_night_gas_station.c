@@ -2783,25 +2783,25 @@ void func_dryfield_night_gas_station_8017FBD4(s32 arg0)
 /// OT slot 0xA.
 static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
 {
-    SVECTOR    off;
-    GfxMatrix  mtx;
-    SVECTOR    pos;
-    long       sxy;
-    long       p;
-    long       flag;
-    u16        x0;
-    u16        y0;
-    u16        x1;
-    u16        y1;
-    u16        x2;
-    SVECTOR*   vec;
-    s32        val;
-    TILE*      tile;
-    TILE_1*    tile1;
-    LINE_G2*   line;
-    DR_TPAGE*  dr;
+    SVECTOR   off;
+    GfxMatrix mtx;
+    SVECTOR   pos;
+    long      sxy;
+    long      p;
+    long      flag;
+    u16       x0;
+    u16       y0;
+    u16       x1;
+    u16       y1;
+    u16       x2;
+    SVECTOR*  vec;
+    s32       val;
+    TILE*     tile;
+    TILE_1*   tile1;
+    LINE_G2*  line;
+    DR_TPAGE* dr;
 
-    off                      = D_dryfield_night_gas_station_8017D650;
+    off = D_dryfield_night_gas_station_8017D650;
     gfxSetRotIdentity(&mtx.mat);
     RotMatrixY((s16)(-0x262), &mtx.mat);
     vec = &D_dryfield_night_gas_station_80188580[arg0];
@@ -2840,7 +2840,7 @@ static void func_dryfield_night_gas_station_8017FD80(s32 arg0)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)val << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), tile1);
 
         gfxSetRotIdentity(&mtx.mat);
-        val                      = -0x262;
+        val = -0x262;
         RotMatrixY((s16)(val), &mtx.mat);
         ApplyMatrixSV(&mtx.mat, vec, &pos);
         SetRotMatrix(&gGfxViewCoord.workm);
@@ -2902,9 +2902,9 @@ static void func_dryfield_night_gas_station_801802EC(s32 arg0)
     LINE_G2*  line;
     DR_TPAGE* dr;
 
-    off                  = D_dryfield_night_gas_station_8017D658;
+    off = D_dryfield_night_gas_station_8017D658;
     gfxSetRotIdentity(&mtx);
-    coord                = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
+    coord = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
     gfxComposeNodeWorldTransform(&coord[8], &mtx, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;

@@ -14,11 +14,11 @@ void madChaserDangleSway(Task* arg0)
     MATRIX*        dst;
     s16            pitch;
 
-    work                      = (MadChaserWork*)arg0->work;
-    coord                     = arg0->extra.tmd->coords;
-    src                       = &rot;
+    work  = (MadChaserWork*)arg0->work;
+    coord = arg0->extra.tmd->coords;
+    src   = &rot;
     gfxSetRotIdentity(&src->mat);
-    pitch                     = ((rsin(work->frameCount << 6) * 0x10) >> 7) - 0x400;
+    pitch = ((rsin(work->frameCount << 6) * 0x10) >> 7) - 0x400;
     RotMatrixX(pitch, &src->mat);
     RotMatrixY(work->rotation.vy, &src->mat);
     dst          = &coord->coord;

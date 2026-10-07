@@ -13,11 +13,11 @@ void madChaserDangleFall(Task* arg0)
     MATRIX*        dst;
     MadChaserWork* anim;
 
-    work                      = (MadChaserWork*)arg0->work;
-    coord                     = arg0->extra.tmd->coords;
-    src                       = &rot;
+    work  = (MadChaserWork*)arg0->work;
+    coord = arg0->extra.tmd->coords;
+    src   = &rot;
     gfxSetRotIdentity(&src->mat);
-    work->fallPitch          += -work->fallPitch >> 2;
+    work->fallPitch += -work->fallPitch >> 2;
     RotMatrixX(work->fallPitch, &src->mat);
     RotMatrixY(work->rotation.vy, &src->mat);
     dst                = &coord->coord;

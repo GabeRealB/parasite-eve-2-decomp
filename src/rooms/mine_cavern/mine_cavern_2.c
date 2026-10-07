@@ -2600,12 +2600,12 @@ static void func_mine_cavern_80182184(void)
                 continue;
             }
             gfxSetRotIdentity(&coord.coord);
-            coord.parent                    = &gGfxViewCoord;
-            pos                             = &D_mine_cavern_8018E39C[i];
-            coord.coord.t[0]                = pos->vx + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
-            coord.coord.t[1]                = pos->vy + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
-            coord.coord.t[2]                = pos->vz + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
-            coord.composeStamp              = GRAPHICS_COORD_DIRTY;
+            coord.parent       = &gGfxViewCoord;
+            pos                = &D_mine_cavern_8018E39C[i];
+            coord.coord.t[0]   = pos->vx + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[1]   = pos->vy + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            coord.coord.t[2]   = pos->vz + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            coord.composeStamp = GRAPHICS_COORD_DIRTY;
             effectSpawn(EFFECT_ADDITIVE_PUFF, &coord, 0x800004FF, NULL);
         }
     }
@@ -3314,11 +3314,11 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         gfxSetRotIdentity(&work->centerCoord.coord);
-        work->centerCoord.parent                    = task->extra.tmd->coords;
-        work->centerCoord.coord.t[2]                = 0;
-        work->centerCoord.coord.t[0]                = 0;
-        work->centerCoord.coord.t[1]                = -0x320;
-        work->centerCoord.composeStamp              = GRAPHICS_COORD_DIRTY;
+        work->centerCoord.parent       = task->extra.tmd->coords;
+        work->centerCoord.coord.t[2]   = 0;
+        work->centerCoord.coord.t[0]   = 0;
+        work->centerCoord.coord.t[1]   = -0x320;
+        work->centerCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&work->centerCoord);
         work->frame++;
         task->extra.tmd->flags = 0;

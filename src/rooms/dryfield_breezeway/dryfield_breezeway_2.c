@@ -1074,9 +1074,9 @@ static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, SVECTOR* arg2, 
     POLY_FT4* p;
 
     gfxSetRotIdentity(&matw.mat);
-    matw.mat.t[0]             = 0;
-    matw.mat.t[1]             = 0;
-    matw.mat.t[2]             = 0;
+    matw.mat.t[0] = 0;
+    matw.mat.t[1] = 0;
+    matw.mat.t[2] = 0;
     RotMatrixZ(arg0, &matw.mat);
     SetRotMatrix(&matw.mat);
     SetTransMatrix(&matw.mat);
@@ -1507,16 +1507,16 @@ void func_dryfield_breezeway_80181264(Task* task)
     switch (task->state) {
         case 0:
             gfxSetRotIdentity(&coord->coord);
-            work->pos.vx         = (u16)task->spawnArg1.value & 0xFFF;
-            work->scale          = 0x50;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vy         = (gRandomLcgState >> 16) & 7;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->index          = (gRandomLcgState >> 16) & 7;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->pos.vz         = (gRandomLcgState >> 16) & 0xFFF;
-            gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period         = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
+            work->pos.vx    = (u16)task->spawnArg1.value & 0xFFF;
+            work->scale     = 0x50;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vy    = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->index     = (gRandomLcgState >> 16) & 7;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->pos.vz    = (gRandomLcgState >> 16) & 0xFFF;
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->period    = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
             if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->move.vx   = 0x40 - ((gRandomLcgState >> 16) & 0x7F);

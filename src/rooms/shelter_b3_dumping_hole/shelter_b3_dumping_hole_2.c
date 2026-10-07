@@ -4681,12 +4681,12 @@ void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        coord->parent                    = mem->parent;
+        coord->parent = mem->parent;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]                = 0;
-        coord->coord.t[1]                = 0;
-        coord->coord.t[0]                = 0;
-        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[2]   = 0;
+        coord->coord.t[1]   = 0;
+        coord->coord.t[0]   = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
         arg0->state = 1;
     }

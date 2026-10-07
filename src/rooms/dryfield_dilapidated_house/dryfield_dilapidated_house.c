@@ -3277,14 +3277,14 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     gte_RotTransPers(&a, &sxy0, &depthCue, arg3, arg2);
     gte_RotTransPers(&b, &sxy1, &depthCue, arg3, arg2);
-    dy                       = (sxy0 >> 16) - (sxy1 >> 16);
-    x1                       = sxy1;
-    x0                       = sxy0;
-    dx                       = x1 - x0;
-    y0                       = sxy0 >> 16;
-    y1                       = sxy1 >> 16;
-    i                        = ratan2(dx, dy);
-    scale                    = gDisplayState.screenDistance;
+    dy    = (sxy0 >> 16) - (sxy1 >> 16);
+    x1    = sxy1;
+    x0    = sxy0;
+    dx    = x1 - x0;
+    y0    = sxy0 >> 16;
+    y1    = sxy1 >> 16;
+    i     = ratan2(dx, dy);
+    scale = gDisplayState.screenDistance;
     gfxSetRotIdentity(&rot.mat);
     RotMatrixZ(i, &rot.mat);
     gte_SetRotMatrix(&rot.mat);
@@ -3673,15 +3673,15 @@ static void _dryfieldDilapidatedHouseUpdateAttachmentTransform(Task* task)
     MATRIX*                             attachmentMtx;
     Task*                               parentTask;
 
-    modelCoord                          = task->extra.tmd->coords;
-    work                                = task->work;
-    parentTask                          = task->spawnArg2.pointer;
-    parentCoord                         = parentTask->extra.tmd->coords;
-    attachmentMtx                       = &work->attachMtx;
+    modelCoord    = task->extra.tmd->coords;
+    work          = task->work;
+    parentTask    = task->spawnArg2.pointer;
+    parentCoord   = parentTask->extra.tmd->coords;
+    attachmentMtx = &work->attachMtx;
     gfxSetRotIdentity(&work->attachMtx);
-    attachmentMtx->t[0]                 = 0;
-    attachmentMtx->t[1]                 = 0;
-    attachmentMtx->t[2]                 = 0;
+    attachmentMtx->t[0] = 0;
+    attachmentMtx->t[1] = 0;
+    attachmentMtx->t[2] = 0;
     do {
         // The SDK vector call reads the three translation words, not a fourth word.
         ApplyMatrixLV(attachmentMtx, (VECTOR*)parentCoord->coord.t, &rotatedTranslation);

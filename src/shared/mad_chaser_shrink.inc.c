@@ -6,20 +6,20 @@
 /// hides the model, clears the frame counter and advances the state.
 void madChaserShrink(Task* arg0)
 {
-    MadChaserWork*    work;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    VECTOR            scale;
-    GfxMatrix         m;
+    MadChaserWork* work;
+    TmdObject*     obj;
+    GfxCoord*      coord;
+    VECTOR         scale;
+    GfxMatrix      m;
 
-    work                   = (MadChaserWork*)arg0->work;
-    obj                    = arg0->extra.tmd;
-    coord                  = obj->coords;
-    work->shrinkScaleY    -= 0x40;
-    scale.vx               = 0x1000;
-    scale.vy               = (s16)work->shrinkScaleY;
-    scale.vz               = 0x1000;
-    coord->coord           = work->savedRootMtx;
+    work                = (MadChaserWork*)arg0->work;
+    obj                 = arg0->extra.tmd;
+    coord               = obj->coords;
+    work->shrinkScaleY -= 0x40;
+    scale.vx            = 0x1000;
+    scale.vy            = (s16)work->shrinkScaleY;
+    scale.vz            = 0x1000;
+    coord->coord        = work->savedRootMtx;
     gfxSetRotIdentity(&m.mat);
     ScaleMatrix(&m.mat, &scale);
     MulMatrix(&coord->coord, &m.mat);

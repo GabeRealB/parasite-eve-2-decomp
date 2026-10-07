@@ -164,7 +164,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                     obj->shading.colorBlend = 0;
                     work->fadeState         = GOLEM_KNIGHT_BISHOP_FADE_HIDDEN;
                     gfxSetRotIdentity(&arg0->extra.tmd->coords[0].coord);
-                    arg0->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                    arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 }
             }
             work->shadowShade = -1;

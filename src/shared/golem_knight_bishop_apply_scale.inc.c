@@ -18,7 +18,7 @@ void golemKnightBishopApplyScale(Task* arg0)
     coord                               = &arg0->extra.tmd->coords[0];
     work                                = arg0->work;
 
-    coord->coord            = work->unscaledRootMtx;
+    coord->coord = work->unscaledRootMtx;
     gfxSetRotIdentity(&m->mat);
     ScaleMatrix(&m->mat, &work->scale);
     MulMatrix(&coord->coord, &m->mat);

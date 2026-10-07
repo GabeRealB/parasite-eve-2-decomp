@@ -17,9 +17,9 @@ void maggotCaterpillarShrinkNode2(Task* actor)
     SCRATCH_HEAD_AT(scratch, ActorScaleScratch) = blk;
     coord                                       = actor->extra.tmd->coords;
 
-    blk->scale.vx                    = ONE / 16;
-    blk->scale.vy                    = ONE / 16;
-    blk->scale.vz                    = ONE / 16;
+    blk->scale.vx = ONE / 16;
+    blk->scale.vy = ONE / 16;
+    blk->scale.vz = ONE / 16;
     gfxSetRotIdentity(&blk->matrix.mat);
     ScaleMatrix(&blk->matrix.mat, &blk->scale);
     MulMatrix(&coord[2].coord, &blk->matrix.mat);

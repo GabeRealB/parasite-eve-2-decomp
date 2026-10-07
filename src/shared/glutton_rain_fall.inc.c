@@ -23,7 +23,7 @@ void gluttonRainFall(Enemy* enemy, Task* task)
     }
 
     work->stateTicks++;
-    coord.node.parent                       = &gGfxViewCoord;
+    coord.node.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&coord.node.coord);
     gfxRotMatrixY(&coord.node.coord, 0, 1);
 

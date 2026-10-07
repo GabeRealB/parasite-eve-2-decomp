@@ -18,10 +18,10 @@ void mothSquash(Task* arg0)
     if (work->squashScale >= 0x201) {
         work->squashScale -= 0x50;
     }
-    scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = work->squashScale;
-    scratch->scale.vz                    = ONE;
-    coord->coord                         = work->savedRootMtx;
+    scratch->scale.vx = ONE;
+    scratch->scale.vy = work->squashScale;
+    scratch->scale.vz = ONE;
+    coord->coord      = work->savedRootMtx;
     gfxSetRotIdentity(&scratch->matrix.mat);
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);

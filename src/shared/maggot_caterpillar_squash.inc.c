@@ -19,10 +19,10 @@ void maggotCaterpillarSquash(Task* arg0)
     if (work->vertical.squashScale >= 0x201) {
         work->vertical.squashScale -= 0x50;
     }
-    scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = work->vertical.squashScale;
-    scratch->scale.vz                    = ONE;
-    coord->coord                         = work->baseMatrix;
+    scratch->scale.vx = ONE;
+    scratch->scale.vy = work->vertical.squashScale;
+    scratch->scale.vz = ONE;
+    coord->coord      = work->baseMatrix;
     gfxSetRotIdentity(&scratch->matrix.mat);
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);

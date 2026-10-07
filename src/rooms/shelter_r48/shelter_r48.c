@@ -2404,12 +2404,12 @@ void func_shelter_r48_8017E4C4(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        coord->parent                    = mem->parent;
+        coord->parent = mem->parent;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]                = 0;
-        coord->coord.t[1]                = 0;
-        coord->coord.t[0]                = 0;
-        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[2]   = 0;
+        coord->coord.t[1]   = 0;
+        coord->coord.t[0]   = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
         arg0->state = 1;
     }
@@ -2455,12 +2455,12 @@ void func_shelter_r48_8017E704(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        coord->parent                    = mem->parent;
+        coord->parent = mem->parent;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]                = 0;
-        coord->coord.t[1]                = 0;
-        coord->coord.t[0]                = 0;
-        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[2]   = 0;
+        coord->coord.t[1]   = 0;
+        coord->coord.t[0]   = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
         arg0->state = 1;
     }
@@ -2503,12 +2503,12 @@ void func_shelter_r48_8017E9B8(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        coord->parent                    = mem->parent;
+        coord->parent = mem->parent;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]                = 0;
-        coord->coord.t[1]                = 0;
-        coord->coord.t[0]                = 0;
-        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[2]   = 0;
+        coord->coord.t[1]   = 0;
+        coord->coord.t[0]   = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
         arg0->state = 1;
     }
@@ -2535,9 +2535,9 @@ void func_shelter_r48_8017E9B8(Task* arg0)
 
 void func_shelter_r48_8017EC18(Task* task)
 {
-    EffectWork*       work;
-    GfxCoord*         coord;
-    u8                rgb[3];
+    EffectWork* work;
+    GfxCoord*   coord;
+    u8          rgb[3];
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -2545,7 +2545,7 @@ void func_shelter_r48_8017EC18(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                coord->parent       = work->parent;
+                coord->parent = work->parent;
                 gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;

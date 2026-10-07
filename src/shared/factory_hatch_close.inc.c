@@ -6,7 +6,7 @@ s32 factoryHatchClose(Task* task)
 {
     FactoryHatchWork* work  = task->work;
     GfxCoord*         coord = task->extra.tmd->coords;
-    s32               ret = 0;
+    s32               ret   = 0;
 
     switch (work->step) {
         case 0:

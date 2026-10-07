@@ -3744,12 +3744,12 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
 
 void func_dryfield_night_motel_balcony_801809CC(Task* task)
 {
-    EffectWork*       work;
-    GfxCoord*         coord;
-    s16               flag;
-    u16               age;
-    s16               t;
-    u8                color[3];
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         flag;
+    u16         age;
+    s16         t;
+    u8          color[3];
 
     work  = task->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
