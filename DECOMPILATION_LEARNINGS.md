@@ -70849,7 +70849,7 @@ function's own `pendingAction = 0; return 0;`, which is where its `j` lands.
 
 ### Selected sound-id constant needs its own local, separate from the OR'd id
 
-In `func_actor_400600_80135450` the target picks a constant into `$a1`
+In `_actor400600FinishCeilingDropLanding` the target picks a constant into `$a1`
 (`lui/ori a1` then a conditional `lui/ori a1`) and ORs it with a shifted field
 into `$s0`, which survives the `worldCoordGetOriginAudioPan`/`worldCoordGetOriginAudioDepth` calls. Writing
 it as one variable (`sound = 0x40060003; if (c) sound = 0x404A0003; sound |=
@@ -70939,8 +70939,8 @@ first matches the target pseudo, so the accumulator form always puts it first.
 
 ## `a - (b + CONST)` reassociates to `(a - CONST) - b` — compute `b + CONST` as its own statement
 
-`func_actor_400600_80134E28` eases a coordinate toward a floor:
-`t1 += (floor - (t1 + 400)) >> 3`. The target adds first and subtracts the sum
+`_actor400600TickCeilingLeap` eases a coordinate toward the ceiling:
+`t1 += (ceiling - (t1 + 400)) >> 3`. The target adds first and subtracts the sum
 (`addiu $v1, $a0, 0x190` / `subu $v0, $v0, $v1`), but written as one
 expression `fold` moves the constant out before RTL exists (`.i.rtl` already
 has `(plus floor -400)` followed by `(minus … t1)`), giving
@@ -70948,8 +70948,8 @@ has `(plus floor -400)` followed by `(minus … t1)`), giving
 refolded:
 
 ```c
-y                  = coord->coord.t[1] + 0x190;
-coord->coord.t[1] += (work->leapY - y) >> 3;
+clearanceY              = rootCoord->coord.t[1] + ACTOR_400600_LEAP_CLEARANCE_Y;
+rootCoord->coord.t[1] += (work->leapY - clearanceY) >> 3;
 ```
 
 Same mechanism as the `base | (x | CONST)` entry above. Check `.i.rtl` for
@@ -71117,7 +71117,7 @@ first use sign-extending the raw one.
 
 ## A narrower temp blocks jump2's `if (...) { x = a; goto l; } x = b;` hoist
 
-`func_actor_400600_801361AC` computes three window bounds with the same shape:
+`_actor400600TickWallWalk` computes three window bounds with the same shape:
 
 ```c
 if (rate == 0) { tmp = 0; } else { tmp = (u32)(K / rate) >> 4; }
@@ -71184,7 +71184,7 @@ because the asm has an output and so is not implicitly volatile — matched.
 Reach for the SOFT form first whenever the forced constant sits in a block the
 scheduler still has to fill.
 
-**2026-10-06.** Superseded for `func_actor_400600_801361AC`: the zero needs no asm. A `u8` zero set in an earlier block and widened once (`first = start0;`) is turned into `(set (reg:SI) 0)` by local-alloc, after cse and combine. See "A zero that local-alloc materialises" at the end of this file.
+**2026-10-06.** Superseded for `_actor400600TickWallWalk`: the zero needs no asm. A `u8` zero set in an earlier block and widened once (`first = start0;`) is turned into `(set (reg:SI) 0)` by local-alloc, after cse and combine. See "A zero that local-alloc materialises" at the end of this file.
 
 ## A `u8` zero local: folded comparisons plus a surviving dead `move`
 
@@ -87801,7 +87801,7 @@ void func_neo_ark_shrine_8017EAC0();
 ```
 
 This is not a niche spelling for a missing prototype: the tree already carries
-46 empty-parameter-list declarations (`void func_actor_400600_801361AC();`,
+46 empty-parameter-list declarations (`void _actor400600TickWallWalk();`,
 `s32 ActorsShared8016974c();`, `include/psyq/{fs,stdlib}.h`), and they are the
 only form that lets one TU call a symbol both ways.
 
@@ -146113,7 +146113,7 @@ cross-jumping into the join block, but that happens after sched2, so the `move`
 sits ahead of the `lh`, and reorg then hoists it into the `beqz` delay slot
 (99.52% against 99.88%). Narrow widths (`s8`/`s16`/`u16`) and a fourth
 `0 / rate` bound fold or add code.
-**2026-10-06.** A third plain-C way does land it: keep the zero in a `u8` set in an earlier block and copy it once into the `s32` the tests read. The copy is in the join block, cse cannot see through it, and local-alloc replaces it by the constant. Matched in `func_actor_400600_801361AC`; the three `actor_400500` handlers have the same shape and were not retried. See "A zero that local-alloc materialises" at the end of this file.
+**2026-10-06.** A third plain-C way does land it: keep the zero in a `u8` set in an earlier block and copy it once into the `s32` the tests read. The copy is in the join block, cse cannot see through it, and local-alloc replaces it by the constant. Matched in `_actor400600TickWallWalk`; the three `actor_400500` handlers have the same shape and were not retried. See "A zero that local-alloc materialises" at the end of this file.
 
 ## A dead load of a field just after two stores is an inline setter handed that field's own value (func_actor_400500_80133B14, 2026-09-27)
 
@@ -151616,7 +151616,7 @@ a build:
   (references stay, `REG_N_SETS` returns to 1). A local with two live ranges
   that both survive is a global-alloc register.
 
-## A zero that local-alloc materialises: a single-use constant pseudo widened in a later block (func_actor_400600_801361AC, 2026-10-06)
+## A zero that local-alloc materialises: a single-use constant pseudo widened in a later block (_actor400600TickWallWalk, 2026-10-06)
 
 **Was.** `SOFT_MOVE_ZERO(start0);` after `if (clipDone) work->animFrame = 0;`,
 for `lh v0,frame` / `move s2,zero` / `bne v0,s2` and a later `slt v0,v1,s2`.
@@ -151683,7 +151683,7 @@ to read it. No reason for the copy was recovered.
   after such a fold, the remainder pseudo of the deleted `divmodsi4` took a
   stack slot.
 
-**2026-10-07.** The `s32` copy is not needed. With `u8 start0` set before the other bounds and both tests reading `start0` itself, cse reuses the first test's `zero_extend` for the second, which leaves `start0` the single use this entry requires. Matched that way in the three `actor_400500` handlers, and a trial build of `func_actor_400600_801361AC` without `first` matched too (not landed there). See "The widening copy is cse's" at the end of this file.
+**2026-10-07.** The `s32` copy is not needed. With `u8 start0` set before the other bounds and both tests reading `start0` itself, cse reuses the first test's `zero_extend` for the second, which leaves `start0` the single use this entry requires. Matched that way in the three `actor_400500` handlers, and a trial build of `_actor400600TickWallWalk` without `first` matched too (not landed there). See "The widening copy is cse's" at the end of this file.
 
 ## A pointer assigned before a call keeps `crosses 1 call` after sched1 sinks it below (_waterDrawSpinU16 of shelter_b1_pod_service_gantry, 2026-10-06)
 
@@ -152048,7 +152048,7 @@ worked through a conflict, not through the order.
 
 **Was.** `SOFT_MOVE_ZERO(start0);` in the join after `if (hit) frame = 0;`,
 for `lh v0,frame` / `move s2,zero` / `bne v0,s2` and a later `slt v0,v1,s2`.
-The sibling `func_actor_400600_801361AC` had been landed the day before with
+The sibling `_actor400600TickWallWalk` had been landed the day before with
 `u8 start0; s32 first; ... first = start0;`, the copy being positional.
 
 **Now.** No copy. The four window bounds are four `u8` locals assigned in

@@ -2658,7 +2658,7 @@ static void func_actor_405800_80135780(Task* arg0)
 }
 
 /// Animation state 2: the landing slam. Same two sound/tracking windows as
-/// `func_actor_400600_80135998`, one frame-count pair per sound event.
+/// `_actor400600TickHorizontalWalk`, one frame-count pair per sound event.
 static void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
 {
     _Actor405800IvoryStalkerWork* work;

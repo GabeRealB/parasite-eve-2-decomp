@@ -1,7 +1,7 @@
 /* Part of the Ivory/Zebra Stalker library; see stalker_zebra_ivory.h. */
 
 /// Animation state 4: drives the two sound/tracking windows the same way
-/// `func_actor_400600_801361AC` does, one frame-count pair per sound event.
+/// `_actor400600TickWallWalk` does, one frame-count pair per sound event.
 void stalkerZebraIvoryStepClip4(Task* arg0)
 {
     StalkerZebraIvoryWork* work;
