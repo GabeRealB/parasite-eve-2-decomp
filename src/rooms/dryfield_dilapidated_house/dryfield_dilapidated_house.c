@@ -3760,8 +3760,8 @@ static void func_dryfield_dilapidated_house_801813DC(Task* task)
     s32     sp1;
 
     func_dryfield_dilapidated_house_8017FAD4(task, verts, &sp0, &sp1);
-    glowDrawRingBeam(task, verts, sp0);
-    glowDrawRingBeam(task, verts, sp0);
+    _glowDrawCappedBeam(task, verts, sp0);
+    _glowDrawCappedBeam(task, verts, sp0);
 }
 
 /// Detaches the ring beam from its parent model before releasing the task.

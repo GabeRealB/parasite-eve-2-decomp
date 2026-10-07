@@ -2,4 +2,4 @@
 gPlasmaId = 0x8012ef30;
 
 func_plasma_8012EF34 = 0x8012EF34; // type:func
-glowDrawHalo = 0x8012FB10; // type:func
+_glowDrawHalo = 0x8012FB10; // type:func

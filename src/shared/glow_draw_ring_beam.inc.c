@@ -1,114 +1,124 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Draws a beam of light from 24 screen points laid out as four rings of six
-/// around the two ends of a segment (`points`, sorted at `otz` plus
-/// GLOW_DRAW_RING_BEAM_OT_OFFSET): six additive gouraud quads for the bright
-/// core, then ten for the halo out to the outer rings, which fade to black.
-/// `gGlowRingBeamQuads` names each quad's corners and `gGlowRingBeamColors` each
-/// point's colour, scaled by GLOW_DRAW_RING_BEAM_BRIGHTNESS(task); the halo
-/// is blended by the DR_TPAGE word GLOW_DRAW_RING_BEAM_HALO_TPAGE. A unit that
-/// defines GLOW_DRAW_RING_BEAM_PHASE_STEP advances the task's `killCountdown`
-/// pulse phase by it here.
-void glowDrawRingBeam(Task* task, SVECTOR* points, s32 otz)
+/// Draws a lit beam with rounded end caps and a halo fading to black.
+///
+/// Borrows 24 `screenPoints` for this call; only signed pixel X/Y are read.
+/// Each six-point group has a centre followed by five rim points.
+/// Groups 0..5 and 6..11 cap the two core ends; 12..17 and 18..23 supply the
+/// corresponding enlarged halo caps. Halo centres 12 and 18 are unused.
+/// The carrier's 16-row quad table supplies indices 0..23, and its 24-row
+/// colour table supplies RGB bytes; fourth bytes are unused.
+/// Brightness comes from the live controller in `task->spawnArg2.pointer`:
+/// its low halfword is treated as signed Q12 (normally 0..4096), and scaled
+/// colour channels narrow to bytes without saturation.
+///
+/// Queues six core quads and ten halo quads, each with a draw-mode packet,
+/// without projection rejection. All sort at the quantized `sortingDepth`
+/// (camera Z / 4) plus a carrier offset measured in OT tags. The selected OT
+/// must contain that entry: actor_141000 uses -20, Dryfield uses +3. The core
+/// is additive; Dryfield's halo is quarter-additive, the actor's additive.
+///
+/// The task's signed-halfword `killCountdown` is a geometry angle, in 4096
+/// units per turn. Dryfield advances it by 64 per draw; both carriers reset
+/// values >= 2048 to zero. Geometry is built before this update, so it affects
+/// subsequent builds. Borrows the controller and consumes frame arena space
+/// for sixteen `POLY_G4`/`DR_TPAGE` pairs without a capacity check.
+static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 sortingDepth)
 {
-    CVECTOR   colors[24];
-    s8*       quad;
-    CVECTOR*  col;
-    POLY_G4*  poly;
-    DR_TPAGE* tpage;
-    s32       i;
-    u16       scale;
-    s32       a, b, c, d;
+    enum {
+        GLOW_CAPPED_BEAM_CORE_QUAD_COUNT = 6,
+        GLOW_CAPPED_BEAM_CORE_DRAW_MODE  = 0xE1000425, // Draw-to-display enabled, dithering off, additive blend
+    };
 
-    quad  = gGlowRingBeamQuads[0];
-    scale = GLOW_DRAW_RING_BEAM_BRIGHTNESS(task);
+    CVECTOR scaledColors[ARRAY_SIZE(gGlowRingBeamColors)];
+    const s8(*quadIndices)[4];
+    const CVECTOR* colors;
+    POLY_G4*       quad;
+    DR_TPAGE*      drawMode;
+    s32            index;
+    u16            brightnessQ12;
+    s32            vertex0Index, vertex1Index, vertex2Index, vertex3Index;
+
+    /// Allocates and fills one semitransparent beam quad from four vertex indices.
+    ///
+    /// `indexRow` supplies four s8 indices in 0..23. Reads RGB from `colors`
+    /// and signed pixel X/Y from `screenPoints`; their other components are
+    /// untouched. Arguments must have no side effects, and `quad` must be a
+    /// writable pointer variable: every argument is evaluated repeatedly.
+    /// Captures the four s32 `vertexNIndex` locals and `gGpuPrimCursor`, advancing
+    /// the unchecked frame arena by one POLY_G4. The caller queues the packet
+    /// with a draw-mode command. Defined only for this function, then undefined.
+#define GLOW_CAPPED_BEAM_ALLOC_QUAD(quad, indexRow, colors, screenPoints) \
+    {                                                                     \
+        vertex0Index   = (indexRow)[0];                                   \
+        vertex1Index   = (indexRow)[1];                                   \
+        vertex2Index   = (indexRow)[2];                                   \
+        vertex3Index   = (indexRow)[3];                                   \
+        (quad)         = gGpuPrimCursor;                                  \
+        gGpuPrimCursor = (quad) + 1;                                      \
+        setPolyG4((quad));                                                \
+        setSemiTrans((quad), true);                                       \
+        (quad)->r0 = (colors)[vertex0Index].r;                            \
+        (quad)->g0 = (colors)[vertex0Index].g;                            \
+        (quad)->b0 = (colors)[vertex0Index].b;                            \
+        (quad)->r1 = (colors)[vertex1Index].r;                            \
+        (quad)->g1 = (colors)[vertex1Index].g;                            \
+        (quad)->b1 = (colors)[vertex1Index].b;                            \
+        (quad)->r2 = (colors)[vertex2Index].r;                            \
+        (quad)->g2 = (colors)[vertex2Index].g;                            \
+        (quad)->b2 = (colors)[vertex2Index].b;                            \
+        (quad)->r3 = (colors)[vertex3Index].r;                            \
+        (quad)->g3 = (colors)[vertex3Index].g;                            \
+        (quad)->b3 = (colors)[vertex3Index].b;                            \
+        (quad)->x0 = (screenPoints)[vertex0Index].vx;                     \
+        (quad)->y0 = (screenPoints)[vertex0Index].vy;                     \
+        (quad)->x1 = (screenPoints)[vertex1Index].vx;                     \
+        (quad)->y1 = (screenPoints)[vertex1Index].vy;                     \
+        (quad)->x2 = (screenPoints)[vertex2Index].vx;                     \
+        (quad)->y2 = (screenPoints)[vertex2Index].vy;                     \
+        (quad)->x3 = (screenPoints)[vertex3Index].vx;                     \
+        (quad)->y3 = (screenPoints)[vertex3Index].vy;                     \
+    }
+
+    // Snapshot the parent brightness before advancing the next geometry phase.
+    quadIndices   = gGlowRingBeamQuads;
+    brightnessQ12 = GLOW_DRAW_RING_BEAM_BRIGHTNESS(task);
 #ifdef GLOW_DRAW_RING_BEAM_PHASE_STEP
     task->killCountdown += GLOW_DRAW_RING_BEAM_PHASE_STEP;
 #endif
-    if (task->killCountdown >= 0x800) {
+    if (task->killCountdown >= GLOW_HALF_TURN) {
         task->killCountdown = 0;
     }
+    // The binary also calls sine here and discards its result.
     rsin(task->killCountdown);
-    for (i = 0; i < 24; i++) {
-        colors[i].r = (gGlowRingBeamColors[i][0] * (s16)scale) >> 12;
-        colors[i].g = (gGlowRingBeamColors[i][1] * (s16)scale) >> 12;
-        colors[i].b = (gGlowRingBeamColors[i][2] * (s16)scale) >> 12;
+    for (index = 0; index < (s32)ARRAY_SIZE(scaledColors); index++) {
+        scaledColors[index].r = (gGlowRingBeamColors[index][0] * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
+        scaledColors[index].g = (gGlowRingBeamColors[index][1] * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
+        scaledColors[index].b = (gGlowRingBeamColors[index][2] * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
     }
-    col = colors;
-    for (i = 0; i < 6; i++) {
-        a              = quad[0];
-        b              = quad[1];
-        c              = quad[2];
-        d              = quad[3];
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 8);
-        poly->code = 0x3A;
-        poly->r0   = col[a].r;
-        poly->g0   = col[a].g;
-        poly->b0   = col[a].b;
-        poly->r1   = col[b].r;
-        poly->g1   = col[b].g;
-        poly->b1   = col[b].b;
-        poly->r2   = col[c].r;
-        poly->g2   = col[c].g;
-        poly->b2   = col[c].b;
-        poly->r3   = col[d].r;
-        poly->g3   = col[d].g;
-        poly->b3   = col[d].b;
-        poly->x0   = points[a].vx;
-        poly->y0   = points[a].vy;
-        poly->x1   = points[b].vx;
-        poly->y1   = points[b].vy;
-        poly->x2   = points[c].vx;
-        poly->y2   = points[c].vy;
-        poly->x3   = points[d].vx;
-        poly->y3   = points[d].vy;
-        addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + GLOW_DRAW_RING_BEAM_OT_OFFSET, poly);
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = tpage + 1;
-        setlen(tpage, 1);
-        tpage->code[0] = 0xE1000425;
-        addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + GLOW_DRAW_RING_BEAM_OT_OFFSET, tpage);
-        quad += 4;
+    // Queue the lit core first, then the ten quads fading to the outer contour.
+    colors = scaledColors;
+    for (index = 0; index < GLOW_CAPPED_BEAM_CORE_QUAD_COUNT; index++) {
+        GLOW_CAPPED_BEAM_ALLOC_QUAD(quad, *quadIndices, colors, screenPoints);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, quad);
+        drawMode       = gGpuPrimCursor;
+        gGpuPrimCursor = drawMode + 1;
+        setlen(drawMode, ARRAY_SIZE(drawMode->code));
+        drawMode->code[0] = GLOW_CAPPED_BEAM_CORE_DRAW_MODE;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, drawMode);
+        quadIndices++;
     }
-    for (i = 6; i < 16; i++) {
-        a              = quad[0];
-        b              = quad[1];
-        c              = quad[2];
-        d              = quad[3];
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setlen(poly, 8);
-        poly->code = 0x3A;
-        poly->r0   = col[a].r;
-        poly->g0   = col[a].g;
-        poly->b0   = col[a].b;
-        poly->r1   = col[b].r;
-        poly->g1   = col[b].g;
-        poly->b1   = col[b].b;
-        poly->r2   = col[c].r;
-        poly->g2   = col[c].g;
-        poly->b2   = col[c].b;
-        poly->r3   = col[d].r;
-        poly->g3   = col[d].g;
-        poly->b3   = col[d].b;
-        poly->x0   = points[a].vx;
-        poly->y0   = points[a].vy;
-        poly->x1   = points[b].vx;
-        poly->y1   = points[b].vy;
-        poly->x2   = points[c].vx;
-        poly->y2   = points[c].vy;
-        poly->x3   = points[d].vx;
-        poly->y3   = points[d].vy;
-        addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + GLOW_DRAW_RING_BEAM_OT_OFFSET, poly);
-        tpage          = gGpuPrimCursor;
-        gGpuPrimCursor = tpage + 1;
-        setlen(tpage, 1);
-        tpage->code[0] = GLOW_DRAW_RING_BEAM_HALO_TPAGE;
-        addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]) + GLOW_DRAW_RING_BEAM_OT_OFFSET, tpage);
-        quad += 4;
+    for (index = GLOW_CAPPED_BEAM_CORE_QUAD_COUNT; index < (s32)ARRAY_SIZE(gGlowRingBeamQuads); index++) {
+        GLOW_CAPPED_BEAM_ALLOC_QUAD(quad, *quadIndices, colors, screenPoints);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, quad);
+        drawMode       = gGpuPrimCursor;
+        gGpuPrimCursor = drawMode + 1;
+        setlen(drawMode, ARRAY_SIZE(drawMode->code));
+        drawMode->code[0] = GLOW_DRAW_RING_BEAM_HALO_TPAGE;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, drawMode);
+        quadIndices++;
     }
+#undef GLOW_CAPPED_BEAM_ALLOC_QUAD
 }
 
 #undef GLOW_DRAW_RING_BEAM_BRIGHTNESS

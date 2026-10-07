@@ -137,13 +137,13 @@ static void _glowDrawTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoin
 /// carries the three RGB bytes; the rim fades to black. Negative GTE flags
 /// reject the blade. Borrows `coord` and `rgb` during this call and queues one
 /// Gouraud triangle plus its additive blend command in the current frame.
-void glowDrawWedge(const GfxCoord* coord, s32 radiusScale, s32 angle, const u8 rgb[3]);
-void glowDrawHalo(GfxCoord* coord, s32 inner, s32 width, u8* rgb);
-void glowDrawRingBeam(Task* task, SVECTOR* points, s32 otz);
+void        glowDrawWedge(const GfxCoord* coord, s32 radiusScale, s32 angle, const u8 rgb[3]);
+static void _glowDrawHalo(const GfxCoord* coord, s32 innerRadiusScale, s32 widthScale, const u8 rgb[3]);
+static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 sortingDepth);
 
 static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pulseRate, s16 radiusScale);
 
-/* glowDrawRingBeam's tables, the package's data at its own positions */
+/* _glowDrawCappedBeam's tables, the package's data at its own positions */
 extern s8 gGlowRingBeamQuads[16][4];
 extern u8 gGlowRingBeamColors[24][4];
 /// Draws a flickering textured flare around a depth-clipped world point.

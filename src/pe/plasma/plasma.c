@@ -59,7 +59,7 @@ static s16 D_plasma_8012FF54[3][16] = { 0 };
 /// State 0 seeds brightness, the combo index, and three 16-entry LCG columns
 /// in `D_plasma_8012FF54`, plays the combo-indexed cue, and starts a pad
 /// lerp. States 1 and 2 decay brightness and draw three rings via
-/// `glowDrawHalo` (the third only when `index != 0`) after
+/// `_glowDrawHalo` (the third only when `index != 0`) after
 /// `func_plasma_8012F568` has applied each jitter column. State 1 is the
 /// weaker combo (`index < 2`). Either state releases once brightness
 /// drops below 9.
@@ -135,18 +135,18 @@ void func_plasma_8012EF34(Task* arg0)
             rgb[0] = rgb[1]    = mem->scale;
             rgb[2]             = mem->scale * 3 / 2;
             coord->workm.t[1] -= mem->age * 64;
-            glowDrawHalo(coord, (s16)(mem->age * 64), (s16)(mem->index * 128 + 0x100), rgb);
+            _glowDrawHalo(coord, (s16)(mem->age * 64), (s16)(mem->index * 128 + 0x100), rgb);
             rgb[0]           >>= 1;
             rgb[1]           >>= 1;
             rgb[2]           >>= 1;
             coord->workm.t[1] -= mem->age * 64;
-            glowDrawHalo(coord, (s16)(mem->age * 128), (s16)(mem->index * 128 + 0x100), rgb);
+            _glowDrawHalo(coord, (s16)(mem->age * 128), (s16)(mem->index * 128 + 0x100), rgb);
             if (mem->index != 0) {
                 rgb[0]           >>= 1;
                 rgb[1]           >>= 1;
                 rgb[2]           >>= 1;
                 coord->workm.t[1] -= mem->age * 64;
-                glowDrawHalo(coord, (s16)(mem->age * 192), (s16)(mem->index * 128 + 0x100), rgb);
+                _glowDrawHalo(coord, (s16)(mem->age * 192), (s16)(mem->index * 128 + 0x100), rgb);
             }
             return;
         case 2:
@@ -171,20 +171,20 @@ void func_plasma_8012EF34(Task* arg0)
             rgb[2]             = mem->scale * 3 / 2;
             coord->workm.t[1] -= mem->age * 128;
             span               = mem->age * 64;
-            glowDrawHalo(coord, span, span, rgb);
+            _glowDrawHalo(coord, span, span, rgb);
             rgb[0]           >>= 1;
             rgb[1]           >>= 1;
             rgb[2]           >>= 1;
             coord->workm.t[1] -= mem->age * 128;
             span               = mem->age * 128;
-            glowDrawHalo(coord, span, span, rgb);
+            _glowDrawHalo(coord, span, span, rgb);
             if (mem->index != 0) {
                 rgb[0]           >>= 1;
                 rgb[1]           >>= 1;
                 rgb[2]           >>= 1;
                 coord->workm.t[1] -= mem->age * 128;
                 span               = mem->age * 192;
-                glowDrawHalo(coord, span, span, rgb);
+                _glowDrawHalo(coord, span, span, rgb);
             }
             return;
         default:

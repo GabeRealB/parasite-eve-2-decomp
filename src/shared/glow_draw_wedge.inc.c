@@ -1,22 +1,26 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Places a fan blade centre and its two dark rim vertices in screen pixels.
-static inline void _glowSetWedgeVertices(POLY_G3* prim, EffectCentreScratch* block, s32 angle)
+/// Sets a glow wedge's centre and two rim vertices in screen pixels.
+///
+/// Borrows the projected centre and signed pixel radius without changing them.
+/// `centreAngle` uses its signed low halfword, in 4096 units per turn, zero
+/// pointing down the screen; the two rim angles lie 32 units to either side.
+/// Writes only the triangle's coordinates, narrowing each result to s16.
+static inline void _glowSetWedgeVertices(POLY_G3* triangle, const EffectCentreScratch* projectedCentre, s32 centreAngle)
 {
-    enum { GLOW_WEDGE_TRIG_SHIFT = 12,
-           GLOW_WEDGE_HALF_ANGLE = 0x20 };
+    enum { GLOW_WEDGE_HALF_ANGLE = GLOW_FULL_TURN / 128 };
     s32 rimAngle;
     s32 firstRimAngle;
 
-    rimAngle      = (s16)angle;
+    rimAngle      = (s16)centreAngle;
     firstRimAngle = rimAngle - GLOW_WEDGE_HALF_ANGLE;
-    prim->x0      = block->screenX;
-    prim->y0      = block->screenY;
-    prim->x1      = block->screenX + ((block->screenExtent * rsin(firstRimAngle)) >> GLOW_WEDGE_TRIG_SHIFT);
-    prim->y1      = block->screenY + ((block->screenExtent * rcos(firstRimAngle)) >> GLOW_WEDGE_TRIG_SHIFT);
+    triangle->x0  = projectedCentre->screenX;
+    triangle->y0  = projectedCentre->screenY;
+    triangle->x1  = projectedCentre->screenX + ((projectedCentre->screenExtent * rsin(firstRimAngle)) >> GLOW_TRIG_SHIFT);
+    triangle->y1  = projectedCentre->screenY + ((projectedCentre->screenExtent * rcos(firstRimAngle)) >> GLOW_TRIG_SHIFT);
     rimAngle     += GLOW_WEDGE_HALF_ANGLE;
-    prim->x2      = block->screenX + ((block->screenExtent * rsin(rimAngle)) >> GLOW_WEDGE_TRIG_SHIFT);
-    prim->y2      = block->screenY + ((block->screenExtent * rcos(rimAngle)) >> GLOW_WEDGE_TRIG_SHIFT);
+    triangle->x2  = projectedCentre->screenX + ((projectedCentre->screenExtent * rsin(rimAngle)) >> GLOW_TRIG_SHIFT);
+    triangle->y2  = projectedCentre->screenY + ((projectedCentre->screenExtent * rcos(rimAngle)) >> GLOW_TRIG_SHIFT);
 }
 
 void glowDrawWedge(const GfxCoord* coord, s32 radiusScale, s32 angle, const u8 rgb[3])

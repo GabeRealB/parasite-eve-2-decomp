@@ -153,9 +153,9 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 _apobiosisDrawShardSprite(
                     &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1], mem->age,
                     D_apobiosis_80130B5C[mem->index].playerSpriteScale, 0);
-                glowDrawHalo(coord, mem->scale, 0x80, rgb);
+                _glowDrawHalo(coord, mem->scale, 0x80, rgb);
                 if (mem->age & 1) {
-                    glowDrawHalo(coord, 0x80, mem->scale, rgb);
+                    _glowDrawHalo(coord, 0x80, mem->scale, rgb);
                 }
                 for (i = 0; i < D_apobiosis_80130B5C[mem->index].stripCount; i++) {
                     gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

@@ -1108,7 +1108,7 @@ static void func_actor_141000_80133260(Task* arg0)
     s32     projectionFlags;
 
     _actor141000BuildRingBeamPoints(arg0, screenPoints, &startDepth, &projectionFlags);
-    glowDrawRingBeam(arg0, screenPoints, startDepth);
+    _glowDrawCappedBeam(arg0, screenPoints, startDepth);
 }
 
 /// Applies one frame's signed 16.16 XYZ velocity, retaining unsigned fractions.

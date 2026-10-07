@@ -2,7 +2,7 @@
 func_apobiosis_8012EF4C = 0x8012EF4C; // type:func
 
 apobiosisShardTask = 0x8012FE10; // type:func
-glowDrawHalo = 0x8012F9D0; // type:func
+_glowDrawHalo = 0x8012F9D0; // type:func
 _apobiosisDrawScreenFlash = 0x8012f808; // type:func
 _apobiosisDrawShardSprite = 0x8013017c; // type:func
 _apobiosisDrawShardStrip = 0x80130630; // type:func
