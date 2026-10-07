@@ -46733,7 +46733,7 @@ gfxReadMatrixZAxis(&coord->coord, &dir);
 ```
 
 Declaration order matters: the first aggregate declared lands at the lowest
-local address, so the live one has to come first. `Actor01600_Fn06C94` is the
+local address, so the live one has to come first. `_actor01600TryBeginAttackTurn` is the
 example. Reach for this only once the rest of the body already matches and
 `stack` is the sole leftover — a missing local and a spilled temporary look the
 same in the frame size but not in the instruction stream.
@@ -75349,13 +75349,13 @@ base_3.c preprocessed SHA256: bf0383dfd910253bae5e7174b09d0f4e7c55fc62615c14cb49
 Evidence: tools/permuter_findings/_actor01600ApplyDamage/, run ba845fdbf0024d32, retained PERMUTER_ANALYSIS.md, prediction journal and base_3 RTL/allocation/delay dumps.
 
 
-## Actor01600_Fn06D74: define the narrow constant first to enable a later register copy
+## _actor01600TryBeginLunge: define the narrow constant first to enable a later register copy
 
 A byte flag yielded 97.368%: `li v1,1` instead of `move v1,a0` for a halfword store. Its QI known constant could not supply an HI value in post-reload CSE. Merely widening the flag to HI failed (95.724%): early CSE reused the flag directly in the store, eliminating the separate v1 value and changing scheduling.
 
 The successful controlled prediction used an SI flag assigned **after** the halfword stores in C. In base_5 `.cse`, UID67 defines HI constant 1 and UID78 later defines SI constant 1. Both survive. Sched1 moves the independent SI definition first; `.greg` keeps a0=1 then HI v1=1. In `.sched2`, UID67 becomes `(set (reg:HI 3 v1) (reg:HI 4 a0))`. This achieves 100% without asm helpers or pins. `reload1.c:reload_cse_regno_equal_p` permits known constants in the same mode or truncation from a larger mode; `reload_cse_simplify_set` performs the substitution. Source definition order can prevent early constant reuse while scheduled order permits late reuse. Whether scheduling produces that order must be checked for each function.
 
-Evidence: `tools/permuter_findings/Actor01600_Fn06D74/` retained session notes, inputs, and `PERMUTER_EVIDENCE/manual-resolution/` dumps. base_5 preprocessed SHA256 `690942890b29b21da96b4dd7879f4c6e2973c5abcb214cc02989b6230b37d03e`; compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. The bounded permuter found no discovery; this gain came from the subsequent manual prediction.
+Evidence: `tools/permuter_findings/_actor01600TryBeginLunge/` retained session notes, inputs, and `PERMUTER_EVIDENCE/manual-resolution/` dumps. base_5 preprocessed SHA256 `690942890b29b21da96b4dd7879f4c6e2973c5abcb214cc02989b6230b37d03e`; compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. The bounded permuter found no discovery; this gain came from the subsequent manual prediction.
 
 ### Actor01600_Fn0646C: address-of-member indirection changes scheduler alias metadata
 
@@ -103887,7 +103887,7 @@ hangs off it.
 
 Inputs: `asm/USA/actors/matchings/lib/actor_101900_text/Actor01900_Fn008B4.s`,
 `asm/USA/actors/matchings/lib/actor_400100_anim/Actor00100_Fn00508.s`.
-## The scratch free's C position and a struct-member store's `mem/s` flag decide the tail schedule (Actor01600_Fn06974, 2026-09-16)
+## The scratch free's C position and a struct-member store's `mem/s` flag decide the tail schedule (_actor01600Sidestep, 2026-09-16)
 
 An m2c seed of this 68-instruction scratch-pad stepper scored 96.54% with four
 `addiu` immediates scaled by `sizeof(VECTOR)` (`-0x3c0`/`-0x2c0`/`-0x240`/
@@ -103935,7 +103935,7 @@ Inputs: `base.i`
 `663aa1d2b54e8def0acc9fbc36f49c3d438d2473119f5eefcfc98c9790128ce7`,
 `base_6.i`
 `dc2abb0341e4ff2df80a38174066942cdd58842df27d7efe1d7187d1bc6a4dec`.
-Scratch `nonmatchings/Actor01600_Fn06974-vacuum`.
+Scratch `nonmatchings/_actor01600Sidestep-vacuum`.
 
 ## Both arms storing to the *same* stack offsets is one reused local, not two (_actor01600SelectNearestPlayer, 2026-09-16)
 
@@ -104090,9 +104090,9 @@ Inputs: `base_4.i`
 `20eeafbc1153139decd8dad0a59e29eb12d5cc70084a7023fd4b0fee89458f95`
 (100.000%). Scratch `nonmatchings/Actor01600_Fn05F80-vacuum`.
 
-## Writing a subexpression out again shifts every later INSN_LUID, and that is the reorder lever (Actor01600_Fn06A84, 2026-09-16)
+## Writing a subexpression out again shifts every later INSN_LUID, and that is the reorder lever (_actor01600StepRecoil, 2026-09-16)
 
-`Actor01600_Fn06A84` is a `RotMatrix` + `gte_SetRotMatrix`/`gte_ldclmv`/`rtir`/`gte_stclmv`
+`_actor01600StepRecoil` is a `RotMatrix` + `gte_SetRotMatrix`/`gte_ldclmv`/`rtir`/`gte_stclmv`
 matrix product over the actor's scratch pool. The natural C - one `scratch`
 variable holding `head - 0x20`, used both for the pointer store and as the
 `RotMatrix` destination - reached 97.059% with `reorder=5`, all 102 instructions
@@ -104134,7 +104134,7 @@ Inputs: `base_1.i`
 `826c9a071a84f4efa1b294c225cc1820fa642689c6b5b663216248c4964657ba` (97.059%,
 `reorder=5`), `base_5.i`
 `5d4a1d61308ba174182b504f827b670cbc73ad669f0590f72a89fdea4735a12d`
-(100.000%). Scratch `nonmatchings/Actor01600_Fn06A84-vacuum`.
+(100.000%). Scratch `nonmatchings/_actor01600StepRecoil-vacuum`.
 
 ## A callee with no prototype is a `call_value`, and the `$v0` it defines re-homes the epilogue (_actor01600StepPathProbe, 2026-09-16)
 
@@ -131677,7 +131677,7 @@ ends the block, and jump2 cross-jumps the calls back into
 `beqz; li a0,B; li a0,A; jal`. An asm that re-reads the global through its own
 `lui` is working around exactly this (func_8001FAE0).
 
-## A reference that combine folds away still makes a pseudo global, and that decides which of two temps gets `$v0` (Actor01600_Fn04974, 2026-09-18)
+## A reference that combine folds away still makes a pseudo global, and that decides which of two temps gets `$v0` (_actor01600TryBeginGrab, 2026-09-18)
 
 Two loads feeding one subtraction inside a single basic block always come out
 with the *second* load's destination in the first free call-clobbered register:
