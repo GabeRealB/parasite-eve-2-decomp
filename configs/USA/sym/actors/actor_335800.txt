@@ -115,8 +115,8 @@ _gActor335800Animation11048Bank4 = 0x80172900; // size:0x200 defined:True
 _gActor335800Animation11048Records = 0x80172B00; // size:0x340 defined:True
 _gActor335800Animation11048Indices = 0x80172E40; // size:0x28 defined:True
 _gActor335800Animation11048 = 0x80172E68; // size:0x28 defined:True
-D_actor_335800_80172E90 = 0x80172E90; // size:0x8 defined:True
-D_actor_335800_80172E98 = 0x80172E98; // size:0x4 defined:True
+_gActor335800FlintAnimationBank = 0x80172E90; // size:0x8 defined:True
+_gActor335800FlintAnimationBanks = 0x80172E98; // size:0x4 defined:True
 D_actor_335800_80172E9C = 0x80172E9C; // size:0xC defined:True
 D_actor_335800_80172EA8 = 0x80172EA8; // size:0x30 defined:True
 

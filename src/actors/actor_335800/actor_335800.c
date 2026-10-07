@@ -49,7 +49,13 @@
 
 #include "rooms/dryfield_night_motel_balcony.h"
 
-/// Arrival uses Flint's handler, which restarts repeated clips.
+/// Selects Flint's repeated-clip playback semantics for nineteen-part arrival.
+///
+/// Bind to the function identifier with signature
+/// `s32(Task*, s32, const AnimationPlayRequest*, s32)`. The arrival fragment
+/// calls it once with `ACTOR_MESSAGE_PLAY_ANIMATION`, a stack-owned request
+/// and zero fourth argument; the return value is ignored. Define before
+/// `actor_motion.h` and keep through `actor_motion_arrive19.inc.c`, then undefine.
 #define ACTOR_MOTION_PLAY19_HANDLER _actor335800FlintPlayAnimation
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
@@ -129,8 +135,6 @@ extern EvsCommand     D_actor_335800_80166098[];
 /// Animation bank tables of the parent and the child block.
 extern AnimationSet*  D_actor_335800_8016EAC4[5];
 extern AnimationSet** gActorMotionAnimBanks[1];
-extern AnimationSet*  D_actor_335800_80172E90[2];
-extern AnimationSet** D_actor_335800_80172E98[1];
 
 /// The two part tasks the parent block spawns, and its message table; both
 /// live in this overlay's trailing data.
@@ -929,13 +933,22 @@ static AnimationSet _gActor335800Animation11048 = {
     { NULL, _gActor335800Animation11048Bank1, NULL, NULL, _gActor335800Animation11048Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_335800_80172E90[2] = {
+/// Flint's embedded clip table, with clip 0 absent and clip 1 loaded.
+///
+/// Playback borrows this table and its clip data while the actor package is
+/// loaded. Animation IDs index its two entries directly; the NULL entry is
+/// not playable. There is no embedded clip-table extension.
+static AnimationSet* _gActor335800FlintAnimationBank[2] = {
     NULL,
     &_gActor335800Animation11048,
 };
 
-AnimationSet** D_actor_335800_80172E98[1] = {
-    D_actor_335800_80172E90,
+/// Indexed banks for Flint's nineteen-part animation rig; bank 0 is the only bank.
+///
+/// `AnimationPlayRequest.source.index` selects the bank, whose pointer table
+/// the rig borrows until playback ends or the actor package is unloaded.
+static AnimationSet** _gActor335800FlintAnimationBanks[1] = {
+    _gActor335800FlintAnimationBank,
 };
 
 TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &_gActor335800FlintBody } };
@@ -1580,13 +1593,22 @@ static void func_actor_335800_80163568(Task* task)
 #include "../../shared/actor_motion_arrive19.inc.c"
 #undef ACTOR_MOTION_PLAY19_HANDLER
 
-/// Applies a Flint animation request, including a repeat of the current clip.
+/// Binds Flint's playback storage and starts the requested clip, including repeats.
 ///
-/// Work and model must remain live, and the request must not overlap playback
-/// state. Bank 0 is the only bank; loaded clips, coordinates and work-owned
-/// slots/poses are borrowed through playback. Slot 0 is not driven. Nonzero
-/// blend interpolates an already ticking rig for `blendFrames` whole frames
-/// (0..2047 keeps remaining time nonnegative); otherwise the slots reset.
+/// Requires initialized work and a live nineteen-part model. Set `work->model.bank`
+/// to `ACTOR_MODEL_STATE_NONE` before the first request so it binds the rig;
+/// later requests retain the bindings while the bank agrees. Work-owned slots
+/// and word-aligned poses, model coordinates, and the loaded clip table/data
+/// must remain live during playback. The request is read only through the
+/// call and must not overlap playback state.
+///
+/// Bank 0 and clip 1 select the embedded table's only loaded clip; bank and
+/// clip are stored as signed bytes before indexing. Drives slots 1..18, leaving
+/// slot 0 untouched. Nonzero blend on an already ticking rig captures each
+/// advancing slot's pose and seeks its track start for `blendFrames` whole
+/// normal-rate frames (0..2047 keeps remaining time nonnegative). Otherwise
+/// resets each track at normal rate. Both paths tick the slots once afterward
+/// and enable subsequent frame ticking. Ignores `enableWorldCollision`.
 static inline void _actor335800FlintApplyAnimationRequest(_Actor335800FlintWork* work, TmdObject* model, const AnimationPlayRequest* request)
 {
     enum { ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT = 1 };
@@ -1595,10 +1617,11 @@ static inline void _actor335800FlintApplyAnimationRequest(_Actor335800FlintWork*
     // Rebind the borrowed playback storage when the selected bank changes.
     if (request->source.index != work->model.bank) {
         work->model.bank = request->source.index;
-        animationInitContext(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor335800FlintAnimationBanks[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
     work->model.animId = request->animationId;
+    // A blend captures an advancing pose; a reset replaces the track state.
     if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
         for (slotIndex = ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
@@ -1612,7 +1635,7 @@ static inline void _actor335800FlintApplyAnimationRequest(_Actor335800FlintWork*
     for (slotIndex = ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationTickSlot(&work->rig.anim, slotIndex);
     }
-    work->model.ticking = 1;
+    work->model.ticking = true;
 }
 
 /// Starts Flint's scripted walk toward a borrowed destination and closing yaw.
