@@ -672,9 +672,25 @@ s32 audioTickInsert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32*
 /// Call with event producers and the audio drain quiescent.
 void sndEvtReset(void);
 
-s32 Midi_InitSystem(u32);
+/// Resets the resident MIDI song and reserves its reusable sequence-bank tables.
+///
+/// `unused` is ignored. Call with playback and loading quiescent after the
+/// sound heap, bank descriptors and SPU voices have been reset. Registers the
+/// music range as voices 0..15; the shared range supplies voices 16..17.
+/// The 1,410-byte allocation request is not checked for failure; later sequence
+/// table layouts must fit the resulting retained block. The image stays resident.
+/// Returns the retained initializer result -1; the caller ignores it.
+s32 midiInitSystem(u32 unused);
 
-s32 Midi_Tick(s32* unused);
+/// Advances the resident song's phase, tracks and dirty voice volumes once.
+///
+/// Registered as an `AudioTickPoll`; `unused` is ignored and zero keeps the
+/// registration active. Updates include extra PAL timer ticks. Loaded images,
+/// bank tables and voice-slot contexts must remain valid, and trackCount must
+/// fit eighteen records. A tempo event becomes active after all tracks advance.
+/// Stopping keys off notes without freeing their slots; voice callbacks do that.
+/// The retained unmute phase continues stepping/playing at its ramp endpoint.
+s32 midiTick(s32* unused);
 
 void Snd_PollAsync(s32 unused);
 

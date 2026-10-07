@@ -428,7 +428,7 @@ static inline void Spu_InitSystemLocked(s32 arg0)
     _audioTickReset();
     Snd_RegisterTickCallbacks();
     Snd_InitBanks(0);
-    Midi_InitSystem(0);
+    midiInitSystem(0);
 
     temp_v0  = sndHeapAlloc(4);
     *temp_v0 = 0;

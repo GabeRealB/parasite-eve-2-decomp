@@ -863,7 +863,7 @@ void Snd_PollAsync(s32 unused)
 
 void Snd_RegisterTickCallbacks(void)
 {
-    audioTickInsert(Midi_Tick, NULL, AUDIO_TICK_ID_MIDI, NULL);
+    audioTickInsert(midiTick, NULL, AUDIO_TICK_ID_MIDI, NULL);
     audioTickInsert(_sndScriptTickSlots, NULL, AUDIO_TICK_ID_SOUND_SCRIPTS, NULL);
     D_80082130 = 0x3D010;
     D_80082128 = 0x63810;

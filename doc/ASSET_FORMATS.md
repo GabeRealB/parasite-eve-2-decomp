@@ -1017,7 +1017,7 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
 #### What is still missing (sequence / full audio)
 
 All retail SPK program regions use Square’s **`hONE` SndScript**, not SMF
-MIDI (`MThd` never appears in SPK blobs). The game’s `Midi_InitSequence` path
+MIDI (`MThd` never appears in SPK blobs). The game’s `_midiStartSequence` path
 expects SMF; SPK playback goes through **`_sndScriptExecCommand`** (`one*` opcodes).
 
 | Gap | Notes |

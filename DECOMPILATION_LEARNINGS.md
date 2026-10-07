@@ -12193,7 +12193,7 @@ extern s8 D_800820E9;
 if (D_800820E9 != 0)      /* emits lb */
 ```
 
-`midiUnmuteMusic` / `Midi_UpdateVoiceVolumes` both `lb` `D_800820E9`; stores remain `sb`
+`midiUnmuteMusic` / `_midiUpdateVoiceVolumes` both `lb` `D_800820E9`; stores remain `sb`
 either way.
 
 Declaring the *field* `s8` is necessary but not sufficient: the type of the
@@ -14439,7 +14439,7 @@ slot = arg0->voiceSlots;
 do { ...; i++; slot++; } while (i < 0x12);
 ```
 
-`Midi_KeyOffVoices` is the pure example.
+`_midiKeyOffSongVoices` is the pure example.
 
 ## Call-arg width: wrong prototype gives `lb` instead of `lw`
 
@@ -15265,7 +15265,7 @@ for (i = 0; i <= 0; i++) {
 
 GCC still walks with `addiu s0, s0, 0x5DC` and fills the post-call `j` delay
 with that step, but emits a one-shot `addiu a0, s0, 0x14` for the call.
-`Midi_StartFadeOut` is the pure example.
+`_midiStopMatching` is the pure example.
 
 ## `field <<= 16` reloads; `field = saved << 16` CSE's into a callee-saved
 
@@ -16048,26 +16048,25 @@ addu  a1, a3, s0      /* tmp = offset + base */
 addiu a1, a1, 0x504   /* slot = tmp + voiceSlots */
 ```
 
-a single expression `(offset + (s32)base) + 0x504` (or `base->voiceSlots` with
-an index) often lands the intermediate in `$v0`:
+a standalone indexed member-address expression can land the intermediate in
+`$v0`:
 
 ```
 addu  v0, a3, s0
 addiu a1, v0, 0x504
 ```
 
-Force the intermediate into the final register by assigning through the *same*
-pointer variable twice — first the integer `offset + base`, then the byte
-displacement that locates the contained array:
+An inline typed element reset keeps both address stages in the final register:
 
 ```c
-slot = (_MidiNoteSlot*)(slotOffsetBytes + (s32)song);
-slot = (_MidiNoteSlot*)((u8*)slot + OFFSET_OF(_MidiSong, voiceSlots)); /* addiu a1, a1, 0x504 */
+for (entryIndex = 0; (s32)entryIndex < ARRAY_SIZE(song->voiceSlots); entryIndex++) {
+    _midiResetNoteSlot(&song->voiceSlots[entryIndex]);
+}
 ```
 
-`Midi_InitSlot` is the pure example (voice-slot clear loop). Pair with the
-`offset + (s32)base` integer cast (see “Force `addu rd, offset, base`”) so the
-`addu` operands stay offset-first.
+`_midiResetSongSlot` is the pure example (voice-slot clear loop). See “An inline
+function's argument is expanded as an address” for the `(index*size + base) +
+memberOffset` expansion that keeps the `addu` operands offset-first.
 
 ## Separate `ptr += N` for switch case vs default (delay-slot fill)
 
@@ -17438,24 +17437,23 @@ writing `sndHeapAlloc(0x582)` in straight-line code often hoists
 an independent constant. That early `li` also steals the `lui` of the next
 symbol into `$v1` instead of `$v0`.
 
-Wrap the pointer math + flag store + malloc in a `do { … } while (0);` so the
-constant stays with the call:
+Grouping the pointer math + flag store + malloc in a `do { … } while (0);` was
+one way to retain that ordering. The current typed setup matches as straight-line
+code:
 
 ```c
-state->field_10 = buf;
-do {
-    bank                       = &Snd_Banks[D_800680BB];
-    state->field_40            = bank;
-    bank->bankId               = 0xF0FF;
-    state->field_40->heapBlock = sndHeapAlloc(0x582);
-} while (0);
-state->field_40->groups = state->field_40->heapBlock;
+song->sequenceData = sequenceData;
+bank = &Snd_Banks[Snd_BankSlotsByType[SOUND_BANK_TYPE_SEQUENCE >> 12]];
+song->bank = bank;
+bank->bankId = MIDI_SEQUENCE_BANK_BOOT_ID;
+song->bank->heapBlock = sndHeapAlloc(SOUND_BANK_SEQUENCE_TABLE_BYTES);
+song->bank->groups = song->bank->heapBlock;
 /* … */
 ```
 
 Also watch for a live `li v0, -1` through the epilogue with no store: the
 function returns `-1` even if call sites ignore it (`s32` not `void`).
-`Midi_InitSystem` is the pure example.
+`midiInitSystem` is the pure example.
 
 ## Identity MATRIX: global `= ONE` first, then local `one = ONE`
 
@@ -17842,7 +17840,7 @@ cursor += 0x3C;
 } while (++j < (s32)obj->field_3);
 ```
 
-`Midi_Tick` is the pure example (_MidiSong status driver over Midi_Song).
+`midiTick` is the pure example (_MidiSong status driver over Midi_Song).
 
 
 ## Reuse a temp through field copy and `&= ~const` masks
@@ -18175,15 +18173,15 @@ sb   v0, 4(s0)   /* < 0: store 0x7F */
 Write the positive arm first (`>= 0`) so the branch is `bltz` to the clamp:
 
 ```c
-if ((s8)arg1[2] >= 0) {
-    p->field_4 = arg1[2];
+if ((s8)event[2] >= 0) {
+    track->loopRepeatsLeft = event[2];
 } else {
-    p->field_4 = 0x7F;
+    track->loopRepeatsLeft = MIDI_TRACK_LOOP_FOREVER;
 }
 ```
 
 `if ((s8)x < 0)` inverts the polarity to `bgez` and swaps the store order.
-`Midi_Event3` (MIDI CC 6 data-entry path) is the pure example; same shape as
+`_midiHandleControlChange` (MIDI CC 6 data-entry path) is the pure example; same shape as
 `sndEvtRequestMidiVolume` without the dual load.
 
 ## `s32 value = u8; if ((value & 0xFF) == K)` keeps load-delay `andi`
@@ -18201,7 +18199,7 @@ beq  v1, v0, ...
 
 A plain `u8 value` drops the `andi`/`nop` and shortens the function by 8 bytes,
 shifting every later label. Use this when the target has an otherwise-redundant
-`andi 0xFF` of a just-loaded byte. `Midi_Event3` case `0x63` needs it.
+`andi 0xFF` of a just-loaded byte. `_midiHandleControlChange` case `0x63` needs it.
 
 ## Fade color global before prim cursor for `lui` order
 
@@ -21724,7 +21722,7 @@ join matches `sll v0; subu v1, a0, v0; move s1, a1; sw v1`:
 }
 ```
 
-`Midi_DriveTrack` is the pure example.
+`_midiAdvanceTrack` is the pure example.
 
 ## Place an orphan early-exit block between if/else arms
 
@@ -21753,7 +21751,7 @@ rem_join:
 
 GCC fills the then/else gap with the jump-only early_exit block. A plain
 `if/else` without the intermediate label leaves the return at the end of the
-function. `Midi_DriveTrack` is the pure example.
+function. `_midiAdvanceTrack` is the pure example.
 
 ## Delay-slot subtract with restore: compare-first via a `less` flag
 
@@ -21789,7 +21787,7 @@ undoing on the less-than path:
 /* fallthrough to end with original ticks */
 ```
 
-`Midi_DriveTrack` is the pure example.
+`_midiAdvanceTrack` is the pure example.
 
 ## Comma in call arg forces field store before callee materialization
 
@@ -21805,7 +21803,7 @@ p->eventCursor = (*(Handler*)((u8*)table + 4))(
 ```
 
 Arg evaluation keeps `lbu`/`lw` of the call operands interleaved correctly and
-the `li v0,1; sb; lw handler` order matches. `Midi_DriveTrack` is the pure
+the `li v0,1; sb; lw handler` order matches. `_midiAdvanceTrack` is the pure
 example (else / running-status arm).
 
 ## Mid-struct `s32*` at the last field for negative offsets
@@ -21831,7 +21829,7 @@ p += 15;                  /* next entry, +0x3C */
 ```
 
 Pair with `register _MidiTrack* entries asm("a1")` so the clear loop keeps
-`a1 = entries` and `addiu s0, a1, 0x38` matches. `Midi_InitSequence` is the pure
+`a1 = entries` and `addiu s0, a1, 0x38` matches. `_midiStartSequence` is the pure
 example.
 
 ## `s32` temps for scheduled `lbu` without extra `andi`
@@ -21844,13 +21842,13 @@ need no mask:
 
 ```c
 s32 d0, d1;
-d0 = data[0xC];
-d1 = data[0xD];
+d0 = sequenceData[0xC];
+d1 = sequenceData[0xD];
 /* sb flags... */
-obj->field_34 = (d0 << 8) | d1; /* sll; or — no andi */
+song->ticksPerQuarter = (d0 << 8) | d1; /* sll; or — no andi */
 ```
 
-`Midi_InitSequence` is the pure example (MIDI division word after field_6/4/7/5).
+`_midiStartSequence` is the pure example (MIDI division word after the pending/current tempo and offset bytes).
 
 ## Dual-lived `register … asm` pins for channel→entry and temp→pan
 
@@ -21890,7 +21888,7 @@ spuCalcPanVolumes(&panVolumes, slot->pan + f3, vol);
 Pair with `register s32 temp asm("v0"); register s32 scale asm("v1");` for the
 shared `(temp * scale) / 127U` path so the join `mult` is `mult v0, v1`.
 Use unsigned division (`/ 127U`, `/ 16129U`) when the target has `multu` magic.
-`Midi_UpdateVoiceVolumes` is the pure example.
+`_midiUpdateVoiceVolumes` is the pure example.
 
 ## `s16` temp for `field = -1` on a `u16` field
 
@@ -145540,7 +145538,7 @@ merges the two `sh` stores back into the one join block. Duplicating the whole
 `flag = true; return p;` tail instead does not merge: sched1 hoists the
 return-value `addiu` above the longer arm's stores, the copies differ, and
 both survive.
-## Negative offsets from a pointer to a later field are a walking struct pointer; the field accessed last becomes the base (Midi_InitSequence, 2026-09-26)
+## Negative offsets from a pointer to a later field are a walking struct pointer; the field accessed last becomes the base (_midiStartSequence, 2026-09-26)
 
 The target walks an array of 0x3C-byte records with one register seeded at
 `base + 0x38` and stores at `-0x10`, `-0xC`, `-0x4` and `0`. The seed rebuilt
@@ -145549,7 +145547,7 @@ reached as `p[-4]`, `p[-3]`. The original was a plain `_MidiTrack* track` bumped
 with `track++`: loop.c reduces each field address to a giv of the same biv,
 combines them, and keeps one register at the offset of the field the loop body
 touches *last*. Writing `track->tickFraction = 0xE0F;` before `track->eventCursor +=
-len;` based the register at 0x2C (`sw ...,0xc(s0)`); swapping the two statements
+deltaBytes;` based the register at 0x2C (`sw ...,0xc(s0)`); swapping the two statements
 based it at 0x38 and matched. When a walking pointer comes out at the wrong
 offset, sweep the order of the loop's final field accesses before anything else.
 
@@ -147990,7 +147988,7 @@ the sum whichever way round it is written, emits nothing for `slot`, and
 `next` is `addiu v0,v1,12`. Forming `slot` straight after the first read, in
 the same block, had failed.
 
-### An inline function's argument is expanded as an address: `f(&p->array[i])` gives `(i*size + p) + off`, offset first (Midi_InitSlot, 2026-10-05)
+### An inline function's argument is expanded as an address: `f(&p->array[i])` gives `(i*size + p) + off`, offset first (_midiResetSongSlot, 2026-10-05)
 
 `expand_inline_function` expands every actual with `EXPAND_SUM`
 (`integrate.c`, `arg_vals[i] = expand_expr (arg, NULL_RTX, mode, EXPAND_SUM)`),
@@ -148018,7 +148016,7 @@ for (i = 0; (s32)i < ARRAY_SIZE(song->voiceSlots); i++) {
 }
 ```
 
-Matched this way: `Midi_InitSlot`, `Pad_Init` (`Pad_ClearState(&gPadStates[i])`
+Matched this way: `_midiResetSongSlot`, `Pad_Init` (`Pad_ClearState(&gPadStates[i])`
 followed by `gPadStates[i].field = ...`; the byte-offset counter and the
 separate `state` pointer of the old source were both givs the loop pass made
 from one `i`), `fsBuildFolderTables` (byte copy of
@@ -150636,8 +150634,8 @@ constant).
   Cross-jumping compares two insn runs backward from a common end and a
   backward branch never compares equal (each copy branches to its own loop
   head), so only the part after the loop merges. `_sndScriptTickSlots` (`run`,
-  `update`, `release` all hold or lead into a voice loop) and `Midi_Tick`'s
-  `play` keep their gotos for that reason. Writing out `Midi_Tick`'s loop-free
+  `update`, `release` all hold or lead into a voice loop) and `midiTick`'s
+  `play` keep their gotos for that reason. Writing out `midiTick`'s loop-free
   `stop` tail inside the per-song loop changed that loop's strength reduction
   (`song` became `base + offset` with two more saved registers).
 - **A constant stored to a narrow field reuses the switch's compare constant
