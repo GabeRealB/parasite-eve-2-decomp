@@ -39728,6 +39728,8 @@ addend of `field_22 + y2`, which GCC already emits as `addu v0, v0, s2`.
 Rule of thumb: when two saved registers are transposed, pin whichever of the
 pair appears *last* in its commutative sums, or does not appear in one at all.
 
+*2026-10-07: neither pin is needed in `Gp_DrawHpMpStats`; see "A value loaded into one variable and copied to another" at the end of this file.*
+
 ## Interleave the UV pairs per corner instead of grouping equal constants
 
 `effectSpriteTask9E` fills a `POLY_FT4` whose `0xA8` is `u0`/`u2` and whose `0xDF` is
@@ -148625,6 +148627,8 @@ set in the same block as the compare and after the `lh`, yet unknown to cse2.
 **2026-10-06, `Gp_BuildAttachList` resolved, and `Gp_CountAmmoRows` again.** cse does not fold `i = count`, but it *creates* it: a second zeroing of a register already known to be zero is rewritten to a copy from the class head. See "A register zeroed twice" at the end of this file.
 
 **2026-10-07, `Gp_DrawAmmoRow` resolved without pins or barriers.** The table row above is right about the list pointer but treats it as a two-way contest, and the inlined colour pseudo (937) has to rank below both: with the parameter used directly the list has 13 references over about 400 insns, not 396 against a 190-insn `spawnArg`, and what `spawnArg` needs is 8 references instead of 6 so that it outranks both the list and the inlined colour (937). See "A parameter's entry copy below a chained load" at the end of this file.
+
+**2026-10-07, `Gp_DrawHpMpStats` resolved without the pin.** The table row above has the contest right (`x` 10 / 180 against `y2` 7 / 71) but looked for the answer on `y2`'s side. sched1 recounts live lengths, so `y2`'s 71 is fixed by the target's layout; what moves is `x`, which needs 12 references. See "A value loaded into one variable and copied to another" at the end of this file.
 ## A local reused for the value loaded through it keeps both reference counts (Actor02100_Fn011C4, 2026-10-05)
 
 **Problem.** Two call-crossing pseudos swap `$s5`/`$s6`: a ring head with 5
@@ -152057,3 +152061,68 @@ bytes, and the image cannot tell them apart.
 - A halfword store has no mode between itself and SImode, so this does not
   rescue an `sh` of a compared constant.
 
+### A value loaded into one variable and copied to another keeps two references on the first (Gp_DrawHpMpStats, 2026-10-07)
+
+**Was.** `register s32 y2 asm("s2")` on the row cursor (`y2 = y + 0x12`, later
+`y2 = y + 0x24`). Unpinned, `y2` took `$s0` and `x` (`xOff + 6`) `$s2`.
+
+**Required state.** Both are global allocnos. `x`: 10 references over 180
+insns, 3 * 10 / 180 = 0.1667. `y2`: 7 over 71 (two ranges, "dies in 2
+places"), 2 * 7 / 71 = 0.1971. The colour constant is next at 0.1408. The
+target needs `x` first, then `y2`, then the colour.
+
+**What cannot move.** `y2`'s side. sched1 recounts `REG_LIVE_LENGTH` for every
+register it sees (`sched_reg_live_length`, end of `schedule_block`), so a
+length is a property of the scheduled layout, not of the source position:
+
+- `y2 += 0x12` for the second row: cse folds it to `y + 36`, identical dumps.
+- the first row through the cursor (`y2 = y;`): the copy is propagated and
+  deleted before flow, identical dumps.
+- the bar at `y2 + 5`: folded to `y + 23` by cse, identical dumps.
+- the second set written before the bar call, same block: flow says 93 insns,
+  sched1 sinks the set below the call, `.lreg` says 71 again.
+- the second set one block earlier (before the `/ 64` branch): 89 insns,
+  0.1573, every register right - and the `addiu` stays in that block, in the
+  `bgez` delay slot. The first set before the first bar call: `y2` then
+  overlaps `%hi(Gp_HpMpWork)`, which loses `$s2`.
+
+So with the target's layout `y2` is 7 / 71 and `x` has to reach 12 references
+within 182 insns. `x += 0x6C` for the BP column gives the 12 but leaves an
+instruction and 186 insns (0.1935).
+
+**Fix.** The panel's left edge is loaded into `x` and copied to `xOff`, with
+another statement between the two:
+
+```c
+x    = arg0->contentLeft.signedValue;
+arg1 = arg1 + 8;
+xOff = x;
+x += 6;
+```
+
+`xOff`'s last use is later than `x`'s and outside the cse block, so
+`make_regs_eqv` makes `xOff` the class head and `x += 6` becomes
+`x = xOff + 6`. At flow time `x` has the load, the copy's use and the ten
+visible references. combine merges the load into the copy
+(`(set xOff (sign_extend (mem)))`, the target's `lh s7,28(s1)`), `x` still has
+a set left, so its count is not reset: `.lreg` says
+`Register 84 used 12 times across 180 insns`, 0.2000. No instruction changes.
+
+**The statement between is required.** With `xOff = x;` directly after the
+load, cse's copy swap (`cse_insn`, "the previous insn set the source of this
+copy") rewrites the pair to `xOff = load; x = xOff;` and the copy is dead:
+10 references again. The position is also bounded from the other side: with
+the copy after `y = contentTop + arg1` the `lh` of the left edge moves below
+the `lh` of the top (the merged load sits where the copy was).
+
+**Fitted.** That `x` was the variable loaded, and the statement order, are
+read off the allocation and the order of the two `lh`; the names are not known.
+
+**Use.** When a global needs two more references than its instructions show
+and it is `other + K` of a value loaded just before, try loading into it and
+copying out, with one unrelated statement between. Check for
+`used N times` two above the visible count. This is the Gp_UiBoostAttach
+mechanism (combine keeps the references of a set it merges away while another
+set remains) applied to the first set instead of the second. Before working
+on the cursor's own length, check whether sched1 leaves the set where the
+source put it: within one block it does not.
