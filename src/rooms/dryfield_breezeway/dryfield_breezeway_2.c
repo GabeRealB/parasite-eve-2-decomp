@@ -776,7 +776,6 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     ActionPromptHotspot*                hs;
     ActionPrompt*                       prompt;
     GfxCoord*                           coord;
-    MATRIX*                             m;
 
     coord  = task->extra.tmd->coords;
     work   = task->work;
@@ -789,14 +788,8 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
         task->killCountdown = (u16)task->killCountdown + 1;
     }
 
-    m                    = &coord->coord;
-    MATRIX_PAIR(m, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 1, 1) = 0x1000;
-    *&m->m[2][2]         = 0x1000;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 2, 0) = 0;
-
-    RotMatrixY(rsin(gDisplayState.animFrame * 0x10), m);
+    gfxSetRotIdentity(&coord->coord);
+    RotMatrixY(rsin(gDisplayState.animFrame * 0x10), &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_dryfield_breezeway_8017EB8C(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
     gGameSession->hideHud    = 1;
