@@ -5663,6 +5663,7 @@ EMBEDDED_ASSETS = {
     'hypervelocity_model_03284': {"source": 'hypervelocity.pe2pkg', "vram": 0x80120444, "size": 0x1A0, "ext": '.tmd', "type": 'model'},
     'hypervelocity_model_03550': {"source": 'hypervelocity.pe2pkg', "vram": 0x80120710, "size": 0x150, "ext": '.tmd', "type": 'model'},
     'rupert_broderick_mongoose': {"source": 'actor_310600.pe2pkg', "vram": 0x8016CA04, "size": 0x34C, "ext": '.tmd', "type": 'model'},
+    'acropolis_plaza_path_13204': {"source": 'acropolis_plaza.pe2pkg', "vram": 0x801907C4, "size": 0x12C0, "ext": '.path', "type": 'movie_path', "include": 'u32'},
     'grenade_pistol_model_00CDC': {"source": 'grenade_pistol.pe2pkg', "vram": 0x8011DE9C, "size": 0x3F0, "ext": '.tmd', "type": 'model'},
     'grenade_pistol_model_0E324': {"source": 'grenade_pistol.pe2pkg', "vram": 0x8012B4E4, "size": 0xC0, "ext": '.tmd', "type": 'model'},
     'horned_stranger_burst_head': {"source": 'actor_401300.pe2pkg', "vram": 0x80147DB8, "size": 0xA50, "ext": '.tmd', "type": 'model'},
