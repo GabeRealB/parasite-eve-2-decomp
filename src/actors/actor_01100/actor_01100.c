@@ -3,6 +3,7 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 #include <psyq/rand.h>
+#include <psyq/limits.h>
 
 #include "common.h"
 #include "gte.h"
@@ -306,7 +307,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
 static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn0389C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static void Actor01100_Fn039D0(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void _actor01100TrackPlayerLookYaw(Enemy* unusedEnemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* unusedScratch);
 static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
@@ -316,12 +317,12 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, 
 static void Actor01100_Fn05678(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn05E68(Task* task);
-static void Actor01100_Fn06198(Task* task);
+static void _actor01100SpitGlobFly(Task* task);
 static void Actor01100_Fn0638C(Task* task);
-static void Actor01100_Fn0668C(Task* task);
-static void Actor01100_Fn067C0(MATRIX* arg0, VECTOR* arg1);
-static s32  Actor01100_Fn06954(GfxCoord* arg0, s32 arg1);
-static s32  Actor01100_Fn06AC8(GfxCoord* arg0);
+static void _actor01100Exit(Task* task);
+static void _actor01100ScaleMatrixColumns(MATRIX* matrix, VECTOR* scale);
+static s32  _actor01100BearingToPlayerSlot(const GfxCoord* self, s32 playerSlot);
+static s32  _actor01100MeasurePlayerDistanceSquared(const GfxCoord* self);
 static void Actor01100_Fn06E4C(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn06F38(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
@@ -340,12 +341,12 @@ static const _Actor01100TaskStateTable Actor01100_D00004 = { {
     Actor01100_Fn02960,
 } };
 
-/// Scale copied onto the stack and passed to `Actor01100_Fn067C0` when the
+/// Scale copied onto the stack and passed to `_actor01100ScaleMatrixColumns` when the
 /// placement `entryId` is 0x31: 0x1400 on each axis.
 static const VECTOR Actor01100_D00010 = { 0x1400, 0x1400, 0x1400, 0 };
 
 extern DamageAttack Actor01100_D074F8[6];
-s32                 Actor01100_Fn0670C(Task*, s32, s32, s32);
+static s32          _actor01100SetModelDraw(Task* task, s32 unusedMessageId, s32 drawEnabled, s32 unusedSecondArg);
 void                Actor01100_Fn06554(Task*);
 void                Actor01100_Fn065E4(Task*);
 void                Actor01100_Fn0663C(Task*);
@@ -1010,22 +1011,22 @@ AnimationSet* Actor01100_D15604[23] = {
 };
 
 TaskMessageEntry Actor01100_D15660[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, Actor01100_Fn0670C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor01100SetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 u8 Actor01100_D15670;
 
-static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, u8 rate);
-static __inline__ s32  _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionContact* contacts);
-static __inline__ s32  _actor01100PushOut(GfxCoord* coord, WorldCollisionContact* contacts);
-static __inline__ void _actor01100ClearObjPair(_Actor01100Work* work);
+static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, s8 rate);
+static __inline__ s32  _actor01100FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts);
+static __inline__ s32  _actor01100PushOut(GfxCoord* coord, const WorldCollisionContact* contacts);
+static __inline__ void _actor01100DisableHandBodies(_Actor01100Work* work);
 static void            Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void            Actor01100_Fn01D98(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static __inline__ s32  _actor01100BearingToPlayer(GfxCoord* self);
-static __inline__ s32  _actor01100DistSqToPlayer(GfxCoord* self);
-static __inline__ u8*  Actor104900_ScratchRead(void);
-static __inline__ void Actor104900_ScratchWrite(u8* p);
+static __inline__ s32  _actor01100BearingToPlayer(const GfxCoord* self);
+static __inline__ s32  _actor01100DistSqToPlayer(const GfxCoord* self);
+static __inline__ u8*  _actor01100ReadScratchCursor(void);
+static __inline__ void _actor01100WriteScratchCursor(u8* cursor);
 static __inline__ void Actor104900_MatrixCol2(MATRIX* arg0, SVECTOR* arg1, s32 scale);
 static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model);
 static void            Actor01100_Fn06B6C(GfxCoord* arg0, _Actor01100Scratch* arg1, s32 arg2);
@@ -1036,17 +1037,19 @@ static void            Actor01100_Fn06D3C(Enemy* enemy, Task* task, _Actor01100W
 
 #include "../../shared/actor_contacts_steer.inc.c"
 
-/// Sets the playback rate of animation slots 1..20 in both of the work block's
-/// animation contexts.
-static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, u8 rate)
+/// Sets both animation rigs' part-slot rates, leaving their root slots untouched.
+///
+/// `rate` is a signed step in sixteenths of a frame per tick
+/// (`ANIMATION_RATE_ONE` advances one frame); all 20 part slots are updated.
+static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, s8 rate)
 {
     AnimationSlot* slot;
-    s32            i;
+    s32            partIndex;
 
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        slot       = &work->rig.slots[i];
+    for (partIndex = 1; partIndex < ARRAY_SIZE(work->rig.slots); partIndex++) {
+        slot       = &work->rig.slots[partIndex];
         slot->rate = rate;
-        slot       = &work->flinchRig.slots[i];
+        slot       = &work->flinchRig.slots[partIndex];
         slot->rate = rate;
     }
 }
@@ -1126,7 +1129,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
     gfxSetRotIdentity(&work->scaleCoord.coord);
     if (work->entryId == 0x31) {
         scale = Actor01100_D00010;
-        Actor01100_Fn067C0(&work->scaleCoord.coord, &scale);
+        _actor01100ScaleMatrixColumns(&work->scaleCoord.coord, &scale);
     }
     work->scaleCoord.coord.t[0]   = 0;
     work->scaleCoord.coord.t[1]   = 0;
@@ -1151,12 +1154,12 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
         case 1:
             work->hitFromBehind = 0;
             work->state         = ACTOR_01100_STATE_DEATH;
-            _actor01100SetSlotRates(work, 0x7F);
+            _actor01100SetSlotRates(work, SCHAR_MAX);
             break;
         case 2:
             work->hitFromBehind = 1;
             work->state         = ACTOR_01100_STATE_DEATH;
-            _actor01100SetSlotRates(work, 0x7F);
+            _actor01100SetSlotRates(work, SCHAR_MAX);
             break;
     }
 
@@ -1175,7 +1178,7 @@ static void Actor01100_Fn0097C(Enemy* enemy, Task* task, _Actor01100Work* unused
 /// three-entry collision table each, and nodes 1 and 2 are linked as kind 3
 /// with a `damagePackEnemyAttackKey` payload, the first of the two taking pose 0xC and
 /// the second pose 8 of the model's 0x50-byte coordinate records. The task then
-/// takes `Actor01100_Fn0668C` as its
+/// takes `_actor01100Exit` as its
 /// exit callback, the model's hidden bit is lifted, `msgTable` is pointed at
 /// this overlay's message table and the state advances.
 static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* unusedScratch)
@@ -1249,7 +1252,7 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
         } while (i < 2);
 
         enemy->recs            = &work->contacts[ACTOR_01100_BODY_CHEST][0];
-        task->exitCallback     = Actor01100_Fn0668C;
+        task->exitCallback     = _actor01100Exit;
         task->extra.tmd->flags = (u16)(task->extra.tmd->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
         task->msgTable         = Actor01100_D15660;
         task->state++;
@@ -1257,84 +1260,102 @@ static void Actor01100_Fn00CF0(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
 }
 
-/// Scans one three-entry contact table for its first class-2 contact, stopping
-/// at the first empty entry. The contact's position is copied into `out` and
-/// its key returned; 0 when there is none.
-static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionContact* contacts)
+/// Returns the first attack key in a three-record chest contact table.
+///
+/// Stops at the first zero key even if a later record is occupied. On success,
+/// copies the contact's XYZ into `hitPoint`, leaving its fourth halfword intact;
+/// otherwise returns zero without writing the point. Both buffers must be live.
+static __inline__ s32 _actor01100FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts)
 {
-    s16 i;
+    enum { ACTOR_01100_ATTACK_CONTACT_COUNT = 3 };
+    s16 contactIndex;
 
-    for (i = 0; i < 3; i++) {
-        if (contacts[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < ACTOR_01100_ATTACK_CONTACT_COUNT; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((contacts[i].key.value & 0xFFFF0000) == 0x20000) {
-            out->vx = contacts[i].point.vx;
-            out->vy = contacts[i].point.vy;
-            out->vz = contacts[i].point.vz;
-            return contacts[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            hitPoint->vx = contacts[contactIndex].point.vx;
+            hitPoint->vy = contacts[contactIndex].point.vy;
+            hitPoint->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
 }
 
-/// Pushes `coord` out of the world contacts in `contacts` with
-/// `worldCollisionResolvePushback`, stepping each nonzero fractional X/Z delta one unit away
-/// from zero, and raises the height by 0x80 for the caller to restore.
-/// Returns nonzero when the push moved the model on X or Z; always 0 while
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is 1.
-static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact* contacts)
+/// Adds one unit in a signed 16.16 correction's sign when a fraction remains.
+///
+/// Applied after its integer half; a negative fraction steps below the floor.
+static __inline__ void _actor01100ApplyFractionalPush(s32 correctionWord, long* translation)
 {
-    ActorContactPushScratch* head;
-    ActorContactPushScratch* block;
+    enum { ACTOR_01100_PUSH_FRACTION_MASK = 0xFFFF };
+    if (correctionWord & ACTOR_01100_PUSH_FRACTION_MASK) {
+        if (correctionWord > 0) {
+            *translation += 1;
+        } else {
+            *translation -= 1;
+        }
+    }
+}
+
+/// Applies a three-record root contact table's grid correction to a coordinate.
+///
+/// Adds the signed 16.16 integer halves to XYZ and a further sign unit to X/Z
+/// when a fraction remains; negative fractions step below the integer floor.
+/// Then adds a 128-unit Y bias, including with no grid hit. Both callers save
+/// and restore Y, keeping only X/Z, and invalidate the cache on horizontal correction.
+/// Returns 1 for nonzero resolved X/Z, otherwise 0. Does nothing only when
+/// the saved movement-freeze byte equals 1. Requires live inputs in the room
+/// frame, signed-word translation sums and initialized scratch space (72-byte
+/// peak). Retains no pointers; preserves rotation and the composition stamp.
+static __inline__ s32 _actor01100PushOut(GfxCoord* coord, const WorldCollisionContact* contacts)
+{
+    enum { ACTOR_01100_ROOT_CONTACT_COUNT    = 3,
+           ACTOR_01100_ROOT_PUSH_HEIGHT_BIAS = 128 };
+    ActorContactPushScratch* previousCursor;
+    ActorContactPushScratch* scratch;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return 0;
     }
-    head = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
+    // Both cursor views address the newly reserved correction block.
+    previousCursor = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
     SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
-    block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
-    block->moved = 0;
-    if (worldCollisionResolvePushback(contacts, &block->delta, 3, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
-        coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
-        coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
-        coord->coord.t[2] += block->delta.fixed.vz.halves.integer;
-        if (head[-1].delta.fixed.vx.word & 0xFFFF) {
-            if (head[-1].delta.fixed.vx.word > 0) {
-                coord->coord.t[0] += 1;
-            } else {
-                coord->coord.t[0] -= 1;
-            }
-        }
-        if (block->delta.fixed.vz.word & 0xFFFF) {
-            if (block->delta.fixed.vz.word > 0) {
-                coord->coord.t[2] += 1;
-            } else {
-                coord->coord.t[2] -= 1;
-            }
-        }
+    scratch        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
+    scratch->moved = 0;
+    // Apply integer corrections, then the retained fractional X/Z sign step.
+    if (worldCollisionResolvePushback(contacts, &scratch->delta, ACTOR_01100_ROOT_CONTACT_COUNT, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
+        coord->coord.t[0] += previousCursor[-1].delta.fixed.vx.halves.integer;
+        coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+        coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+        _actor01100ApplyFractionalPush(previousCursor[-1].delta.fixed.vx.word, &coord->coord.t[0]);
+        _actor01100ApplyFractionalPush(scratch->delta.fixed.vz.word, &coord->coord.t[2]);
     }
-    coord->coord.t[1] += 0x80;
-    if ((block->delta.fixed.vx.word != 0) || (block->delta.fixed.vz.word != 0)) {
-        block->moved = 1;
+    coord->coord.t[1] += ACTOR_01100_ROOT_PUSH_HEIGHT_BIAS;
+    if ((scratch->delta.fixed.vx.word != 0) || (scratch->delta.fixed.vz.word != 0)) {
+        scratch->moved = 1;
     }
+    // No reservation or call intervenes before reading the released result.
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactPushScratch);
-    return block->moved;
+    return scratch->moved;
 }
 
-/// Disables grid and pair tests on both collision objects, retaining their links.
-static __inline__ void _actor01100ClearObjPair(_Actor01100Work* work)
+/// Disables grid and pair tests on the two hand attack bodies.
+///
+/// Their list links, existing contacts and other flags remain intact.
+static __inline__ void _actor01100DisableHandBodies(_Actor01100Work* work)
 {
-    s32 i;
+    s32 handOffset;
 
-    for (i = 0; i < 2; i++) {
-        WorldCollisionBody* obj = &work->bodies[i + 1];
-        obj->flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    for (handOffset = 0; handOffset <= ACTOR_01100_BODY_RIGHT_HAND - ACTOR_01100_BODY_LEFT_HAND; handOffset++) {
+        WorldCollisionBody* body = &work->bodies[handOffset + ACTOR_01100_BODY_LEFT_HAND];
+        body->flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
 }
 
 /// Per-frame hit handler. Counts down `hitEffectFrames` (re-spawning the hit
-/// sparks every eighth frame), then takes the first class-2 contact from the
+/// sparks every eighth frame), then takes the first attack contact from the
 /// last contact table: its damage is scaled by the source's distance, doubled
 /// in state 4 unless the source key has bit 15 set, and quadrupled by a
 /// successful `damageRollCriticalHit`. Damage-over-time ticks add to it, and
@@ -1402,9 +1423,9 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
             effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
         }
     }
-    hitKey = _actor01100FindClass2Contact(&scratch->shortVector, work->contacts[ACTOR_01100_BODY_CHEST]);
+    hitKey = _actor01100FindAttackContact(&scratch->shortVector, work->contacts[ACTOR_01100_BODY_CHEST]);
     if (hitKey != 0) {
-        dist = Actor01100_Fn06AC8(task->extra.tmd->coords);
+        dist = _actor01100MeasurePlayerDistanceSquared(task->extra.tmd->coords);
         for (i = 0; i < 3; i++) {
             key = work->contacts[ACTOR_01100_BODY_CHEST][i].key.value;
             if (key != 0) {
@@ -1413,7 +1434,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
             }
         }
         dist = SquareRoot0(dist);
-        yaw  = Actor01100_Fn06954(task->extra.tmd->coords, (sourceKey >> 7) & 1);
+        yaw  = _actor01100BearingToPlayerSlot(task->extra.tmd->coords, (sourceKey >> 7) & 1);
         if (yaw < 0) {
             yaw = -yaw;
         }
@@ -1623,7 +1644,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                     sndEvtRequestScriptStart(sndId, (s8)scratch->pan, (s8)scratch->depth);
                 }
                 work->state = ACTOR_01100_STATE_FLINCH;
-                _actor01100ClearObjPair(work);
+                _actor01100DisableHandBodies(work);
                 work->mode          = ACTOR_01100_MODE_REACTING;
                 work->stateStep     = 0;
                 work->hitFromBehind = fromBehind;
@@ -1640,7 +1661,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 if (enemy->spawnState == 3) {
                     work->state = ACTOR_01100_STATE_DEATH;
                 }
-                _actor01100ClearObjPair(work);
+                _actor01100DisableHandBodies(work);
                 work->mode          = ACTOR_01100_MODE_REACTING;
                 work->stateStep     = 0;
                 work->hitFromBehind = fromBehind;
@@ -1662,7 +1683,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                     }
                     work->state = ACTOR_01100_STATE_DEATH;
                 }
-                _actor01100ClearObjPair(work);
+                _actor01100DisableHandBodies(work);
                 work->mode      = ACTOR_01100_MODE_REACTING;
                 work->stateStep = 0;
                 effectSpawnHit((u16)work->hitEffectKind, &task->extra.tmd->coords[4], NULL, &work->hitEffectArg);
@@ -1708,7 +1729,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
 
 /// First of the 0xA pair the dispatcher `Actor01100_Fn02960` runs while `mode`
 /// is still clear: it re-arms the link transform and decides from the squared
-/// distance `Actor01100_Fn06AC8` measures to the model's part-3 coordinate
+/// distance `_actor01100MeasurePlayerDistanceSquared` measures to the model's part-3 coordinate
 /// whether the actor closes in this frame.
 ///
 /// `lookYaw` steps back toward zero - 0x10 off either end of the +-0x10 band,
@@ -1724,7 +1745,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
 /// closes the actor in.
 ///
 /// Closing in while `hp` still counts masks the 0xC000 pair back out of the two
-/// middle collision bodies and, the first time only, stages the 0xA state
+/// hand attack bodies and, the first time only, stages the 0xA state
 /// through `mode`: that is what hands the next frame to `Actor01100_Fn01D98`.
 ///
 /// Each arm declares its own player and actor locals: the two arms must reach
@@ -1738,7 +1759,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, 
     s16              walk;
 
     flag = 0;
-    dist = Actor01100_Fn06AC8(task->extra.tmd->coords);
+    dist = _actor01100MeasurePlayerDistanceSquared(task->extra.tmd->coords);
     walk = work->lookYaw;
     if (walk >= 0x11) {
         work->lookYaw = (s16)((u16)work->lookYaw - 0x10);
@@ -1786,7 +1807,7 @@ static void Actor01100_Fn01B90(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
     if (flag && (work->hp > 0)) {
         work->field_BAA = 0;
-        _actor01100ClearObjPair(work);
+        _actor01100DisableHandBodies(work);
         if (work->mode == ACTOR_01100_MODE_UNAWARE) {
             work->mode      = ACTOR_01100_MODE_ENGAGED;
             work->state     = ACTOR_01100_STATE_NOTICE;
@@ -2067,8 +2088,8 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 GP_NODE_ENEMY(lockNode)->bodyPos.vx = 0;
                 GP_NODE_ENEMY(lockNode)->bodyPos.vz = 0xC8;
                 GP_NODE_ENEMY(lockNode)->coord      = c + 3;
-                if (Actor01100_Fn00F58(enemy, task, work, scratch) == 0 && task->spawnArg1.value == 0 && work->prevMode == ACTOR_01100_MODE_ENGAGED && work->motionEnded == 1 && Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
-                    _actor01100ClearObjPair(work);
+                if (Actor01100_Fn00F58(enemy, task, work, scratch) == 0 && task->spawnArg1.value == 0 && work->prevMode == ACTOR_01100_MODE_ENGAGED && work->motionEnded == 1 && _actor01100MeasurePlayerDistanceSquared(task->extra.tmd->coords) > 0xA62B10) {
+                    _actor01100DisableHandBodies(work);
                     work->mode      = ACTOR_01100_MODE_UNAWARE;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 0x10) & 0xF) < 0xC) {
@@ -2211,7 +2232,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// payload into collision body 1's `key` and ORs the grid and pair test enables
 /// into its `flags`. While the countdown sits in `[0x1B, 0x36]` and the latch
 /// is still 1, a hit on the left hand's contact table masks those bits back out
-/// of both middle collision bodies and steps the latch; frame 0x37 does the
+/// of both hand attack bodies and steps the latch; frame 0x37 does the
 /// same mask unconditionally. The scratch block's `splashPart` takes 0xC
 /// either way, and `motionEnded` ends the sub-state by clearing `state` and the
 /// latch.
@@ -2234,13 +2255,13 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
     if ((u32)((u16)work->stateCounter - 0x1B) < 0x1C) {
         if ((work->stateStep == 1) && (worldCollisionFindContactIndex(work->contacts[ACTOR_01100_BODY_LEFT_HAND], WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
-            _actor01100ClearObjPair(work);
+            _actor01100DisableHandBodies(work);
             work->stateStep = (u8)work->stateStep + 1;
         }
     }
     scratch->splashPart = ACTOR_01100_PART_LEFT_HAND;
     if (work->stateCounter == 0x37) {
-        _actor01100ClearObjPair(work);
+        _actor01100DisableHandBodies(work);
     }
     if (work->motionEnded == 1) {
         work->state     = ACTOR_01100_STATE_IDLE;
@@ -2254,7 +2275,7 @@ static void Actor01100_Fn035E4(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// `damagePackEnemyAttackKey` with pair 2 and ORs the grid and pair test enables into
 /// collision body 2's `flags`. While the countdown sits in `[0x1B, 0x36]` and
 /// the latch is still 1, a hit on the right hand's contact table masks those
-/// bits back out of both middle collision bodies and steps the latch; frame
+/// bits back out of both hand attack bodies and steps the latch; frame
 /// 0x37 does the same mask unconditionally. The scratch block's `splashPart`
 /// takes 8 either way, and `motionEnded` ends the sub-state by clearing `state`
 /// and the latch.
@@ -2277,13 +2298,13 @@ static void Actor01100_Fn03740(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
     if ((u32)((u16)work->stateCounter - 0x1B) < 0x1C) {
         if ((work->stateStep == 1) && (worldCollisionFindContactIndex(work->contacts[ACTOR_01100_BODY_RIGHT_HAND], WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
-            _actor01100ClearObjPair(work);
+            _actor01100DisableHandBodies(work);
             work->stateStep = (u8)work->stateStep + 1;
         }
     }
     scratch->splashPart = ACTOR_01100_PART_RIGHT_HAND;
     if (work->stateCounter == 0x37) {
-        _actor01100ClearObjPair(work);
+        _actor01100DisableHandBodies(work);
     }
     if (work->motionEnded == 1) {
         work->state     = ACTOR_01100_STATE_IDLE;
@@ -2345,71 +2366,88 @@ static void Actor01100_Fn0389C(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
 }
 
-/// Bearing of the player (actor slot 0) from `self`, measured in `self`'s own
-/// frame and folded into -0x800..0x800; 0 when there is no player.
-static __inline__ s32 _actor01100BearingToPlayer(GfxCoord* self)
+/// Returns the controlled player's bearing about `self`'s cached axes.
+///
+/// Both coordinate caches must be in the same frame. The signed-halfword
+/// position delta and Q12 basis follow `_actorAngleBearingInFrame`'s contract;
+/// the result is in [-2048, 2048], with 4096 units per turn. Returns zero when
+/// the player actor slot is empty. Borrows 64 scratch-stack bytes until return.
+static __inline__ s32 _actor01100BearingToPlayer(const GfxCoord* self)
 {
-    GfxCoord*            other;
-    ActorBearingScratch* blk;
+    GfxCoord*            playerCoord;
+    ActorBearingScratch* scratch;
     s32                  angle;
 
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] == NULL) {
         angle = 0;
     } else {
-        other = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
-        blk   = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
-        angle = _actorAngleBearingInFrame(blk, self, other);
+        playerCoord = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
+        scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
+        angle       = _actorAngleBearingInFrame(scratch, self, playerCoord);
         SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     }
     return angle;
 }
 
-static void Actor01100_Fn039D0(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
+/// Measures the player's bearing and eases the upper-body look yaw toward it.
+///
+/// Caches the full bearing in `work->playerBearing`, then limits the target
+/// look yaw to +/-768 and approaches it by at most 192 units per call, with
+/// 4096 units per turn. Requires a live model root with a composed cache and
+/// `_actor01100BearingToPlayer`'s scratch-stack space. The enemy and caller's
+/// scratch arguments are unused members of the state-handler signature.
+static void _actor01100TrackPlayerLookYaw(Enemy* unusedEnemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* unusedScratch)
 {
+    enum { ACTOR_01100_LOOK_YAW_LIMIT = 0x300,
+           ACTOR_01100_LOOK_YAW_STEP  = 0xC0 };
     s16 bearing;
-    s32 angle;
-    s16 cur;
+    s32 targetLookYaw;
+    s16 currentLookYaw;
 
     bearing             = _actor01100BearingToPlayer(task->extra.tmd->coords);
     work->playerBearing = bearing;
-    angle               = bearing;
-    if (angle < -0x300) {
-        angle = -0x300;
-    } else if (angle >= 0x301) {
-        angle = 0x300;
+    targetLookYaw       = bearing;
+    if (targetLookYaw < -ACTOR_01100_LOOK_YAW_LIMIT) {
+        targetLookYaw = -ACTOR_01100_LOOK_YAW_LIMIT;
+    } else if (targetLookYaw >= ACTOR_01100_LOOK_YAW_LIMIT + 1) {
+        targetLookYaw = ACTOR_01100_LOOK_YAW_LIMIT;
     }
 
-    cur = work->lookYaw;
-    if (cur < angle - 0xC0) {
-        work->lookYaw += 0xC0;
-    } else if (angle + 0xC0 < cur) {
-        work->lookYaw -= 0xC0;
+    currentLookYaw = work->lookYaw;
+    if (currentLookYaw < targetLookYaw - ACTOR_01100_LOOK_YAW_STEP) {
+        work->lookYaw += ACTOR_01100_LOOK_YAW_STEP;
+    } else if (targetLookYaw + ACTOR_01100_LOOK_YAW_STEP < currentLookYaw) {
+        work->lookYaw -= ACTOR_01100_LOOK_YAW_STEP;
     } else {
-        work->lookYaw = angle;
+        work->lookYaw = targetLookYaw;
     }
 }
 
-/// Squared distance from `self` to the player (pointer slot 3), or
-/// 0x7FFFFFFF when there is none.
-static __inline__ s32 _actor01100DistSqToPlayer(GfxCoord* self)
+/// Returns squared cached-frame distance to the registered player task.
+///
+/// Returns `INT_MAX` when its task slot is empty. Each XYZ difference narrows
+/// to a signed halfword before the GTE dot product; subtraction and the sum
+/// must fit signed 32 bits for distance comparisons. Both caches must share a
+/// frame. Borrows one `SVECTOR` from the initialized scratch stack until return.
+static __inline__ s32 _actor01100DistSqToPlayer(const GfxCoord* self)
 {
     Task*     player;
-    GfxCoord* other;
-    SVECTOR*  vec;
-    s32       dist;
+    GfxCoord* playerCoord;
+    SVECTOR*  delta;
+    s32       distanceSquared;
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (player == NULL) {
-        return 0x7FFFFFFF;
+        return INT_MAX;
     }
-    other   = player->extra.tmd->coords;
-    vec     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    vec->vx = other->workm.t[0] - self->workm.t[0];
-    vec->vy = other->workm.t[1] - self->workm.t[1];
-    vec->vz = other->workm.t[2] - self->workm.t[2];
-    dist    = gfxDotProduct(vec, vec);
+    playerCoord     = player->extra.tmd->coords;
+    delta           = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    delta->vx       = playerCoord->workm.t[0] - self->workm.t[0];
+    delta->vy       = playerCoord->workm.t[1] - self->workm.t[1];
+    delta->vz       = playerCoord->workm.t[2] - self->workm.t[2];
+    distanceSquared = gfxDotProduct(delta, delta);
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
-    return dist;
+    return distanceSquared;
 }
 
 static void Actor01100_Fn03BAC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
@@ -2538,7 +2576,7 @@ static void Actor01100_Fn041BC(Enemy* enemy, Task* task, _Actor01100Work* work, 
         work->stateStep++;
         task->killCountdown = wait;
     }
-    Actor01100_Fn039D0(enemy, task, work, scratch);
+    _actor01100TrackPlayerLookYaw(enemy, task, work, scratch);
 
     delta = work->playerBearing;
     yaw   = task->extra.tmd->coords;
@@ -2590,14 +2628,14 @@ static const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 /// `SquareRoot0(gfxDotProduct)` into `stretchGoal` — 0 inside 0x384,
 /// 0x2000 past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
 ///
-/// Every later frame increments the countdown, asks `Actor01100_Fn039D0` for
+/// Every later frame increments the countdown, asks `_actor01100TrackPlayerLookYaw` for
 /// `playerBearing` and turns the model's `field_46` toward it by at most 0x10,
 /// then rebuilds the Y rotation. Frame 0x16 packs pair 3 into collision body 1
 /// and ORs the 0xC000 bits; frame 0x20 posts `0x400B0008`. While the countdown
 /// sits in `[0x17, 0x2B]` and the latch is still 1, a high-bit hit on the left
 /// hand's contact table steps the latch to 3. `leftShoulderSwell` /
 /// `leftArmStretch` ramp with the countdown, the scratch block's `splashPart`
-/// takes 0xC, and frame 0x2C masks those bits back out of both middle collision
+/// takes 0xC, and frame 0x2C masks those bits back out of both hand attack
 /// bodies. `motionEnded` writes rate 0x10 onto slots `[1, 0x14]` of both
 /// animation runs and then either stages state 0xE, or, while the latch is 3, a
 /// 1-in-4 draw of that state versus restarting the motion through
@@ -2652,7 +2690,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
     }
     work->stateCounter = (u16)work->stateCounter + 1;
-    Actor01100_Fn039D0(enemy, task, work, scratch);
+    _actor01100TrackPlayerLookYaw(enemy, task, work, scratch);
     yaw  = work->playerBearing;
     pose = task->extra.tmd->coords;
     if (yaw >= 0x11) {
@@ -2704,10 +2742,10 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
     scratch->splashPart = ACTOR_01100_PART_LEFT_HAND;
     if (work->stateCounter == 0x2C) {
-        _actor01100ClearObjPair(work);
+        _actor01100DisableHandBodies(work);
     }
     if (work->motionEnded != 0) {
-        _actor01100SetSlotRates(work, 0x10);
+        _actor01100SetSlotRates(work, ANIMATION_RATE_ONE);
         if (work->stateStep != 3) {
             work->state     = ACTOR_01100_STATE_ADVANCE;
             work->stateStep = 0;
@@ -2732,7 +2770,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// `SquareRoot0(gfxDotProduct)` into `stretchGoal` — 0 inside 0x384,
 /// 0x2000 past 0xA8C, otherwise `((dist - 0x384) << 9) / 100`.
 ///
-/// Every frame then asks `Actor01100_Fn039D0` for `playerBearing` and turns the
+/// Every frame then asks `_actor01100TrackPlayerLookYaw` for `playerBearing` and turns the
 /// model's `field_46` toward it by at most 0x10, rebuilds the Y rotation,
 /// increments the countdown and asks again. Frame 0x23 packs pair 4 into
 /// collision body 2 and ORs the 0xC000 bits; frame 0x2D posts `0x400B0008`.
@@ -2740,7 +2778,7 @@ static void Actor01100_Fn04410(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// high-bit hit on the right hand's contact table steps the latch to 3.
 /// `rightShoulderSwell` / `rightArmStretch` ramp with the countdown, the
 /// scratch block's `splashPart` takes 8 (with a same-value write on frame
-/// 0x2F), and frame 0x3C masks those bits back out of both middle collision
+/// 0x2F), and frame 0x3C masks those bits back out of both hand attack
 /// bodies. `motionEnded` writes rate 0x10 onto slots `[1, 0x14]` of both
 /// animation runs, zeroes `rightArmStretch`, and then either stages state 0xE,
 /// or, while the latch is 3, a 1-in-4 draw of that state versus restarting the
@@ -2794,7 +2832,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
             }
         }
     }
-    Actor01100_Fn039D0(enemy, task, work, scratch);
+    _actor01100TrackPlayerLookYaw(enemy, task, work, scratch);
     yaw  = work->playerBearing;
     pose = task->extra.tmd->coords;
     if (yaw >= 0x11) {
@@ -2809,7 +2847,7 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
     gfxRotMatrixY(&pose->coord, angle, 1);
     pose->composeStamp = GRAPHICS_COORD_DIRTY;
     work->stateCounter = (u16)work->stateCounter + 1;
-    Actor01100_Fn039D0(enemy, task, work, scratch);
+    _actor01100TrackPlayerLookYaw(enemy, task, work, scratch);
     if (work->stateCounter == 0x23) {
         obj         = &work->bodies[ACTOR_01100_BODY_RIGHT_HAND];
         obj->key    = damagePackEnemyAttackKey(enemy, 4);
@@ -2851,10 +2889,10 @@ static void Actor01100_Fn048C8(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
     scratch->splashPart = ACTOR_01100_PART_RIGHT_HAND;
     if (work->stateCounter == 0x3C) {
-        _actor01100ClearObjPair(work);
+        _actor01100DisableHandBodies(work);
     }
     if (work->motionEnded != 0) {
-        _actor01100SetSlotRates(work, 0x10);
+        _actor01100SetSlotRates(work, ANIMATION_RATE_ONE);
         work->rightArmStretch = 0;
         if (work->stateStep != 3) {
             work->state     = ACTOR_01100_STATE_ADVANCE;
@@ -2949,7 +2987,7 @@ static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, 
             }
         }
     }
-    Actor01100_Fn039D0(enemy, task, work, scratch);
+    _actor01100TrackPlayerLookYaw(enemy, task, work, scratch);
     if (work->motionEnded != 0) {
         work->state     = ACTOR_01100_STATE_ADVANCE;
         work->stateStep = 0;
@@ -2957,41 +2995,46 @@ static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
 }
 
-/// Distance to actor slot 3, squared, through the scratch pool. Each access of
-/// `SCRATCH_STACK_CURSOR_SLOT` is its own inline so the address stays a rematerialized
-/// `lui`/`lw` of `0x1F8003FC`, and the macro writes the caller's variable so
-/// the distance is one pseudo.
-static __inline__ u8* Actor104900_ScratchRead(void)
+/// Reads the shared scratch-stack cursor as a byte address without reserving storage.
+///
+/// The scratch stack must be initialized; its returned address may be the empty
+/// cursor slot. Only a separately reserved block may be dereferenced as data.
+static __inline__ u8* _actor01100ReadScratchCursor(void)
 {
     return SCRATCH_STACK_CURSOR(u8);
 }
 
-static __inline__ void Actor104900_ScratchWrite(u8* p)
+/// Replaces the shared scratch-stack cursor with a byte address.
+///
+/// `cursor` must stay within the initialized stack, aligned for its next block.
+/// A lower address reserves storage; restoring a higher saved cursor releases
+/// intervening blocks in reverse order. Performs no clearing or bounds check.
+static __inline__ void _actor01100WriteScratchCursor(u8* cursor)
 {
-    SCRATCH_STACK_CURSOR(u8) = p;
+    SCRATCH_STACK_CURSOR(u8) = cursor;
 }
 
-#define Actor104900_DistToPlayer(arg0, out)                           \
-    {                                                                 \
-        u8*       head;                                               \
-        SVECTOR*  vec;                                                \
-        GfxCoord* coord;                                              \
-        Task*     slot;                                               \
-                                                                      \
-        slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);                \
-        if (slot == NULL) {                                           \
-            out = 0x7FFFFFFF;                                         \
-        } else {                                                      \
-            coord   = slot->extra.tmd->coords;                        \
-            head    = Actor104900_ScratchRead();                      \
-            vec     = (SVECTOR*)(head - 8);                           \
-            vec->vx = (u16)coord->workm.t[0] - (u16)arg0->workm.t[0]; \
-            vec->vy = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1]; \
-            Actor104900_ScratchWrite((u8*)vec);                       \
-            vec->vz = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2]; \
-            out     = gfxDotProduct(vec, vec);                        \
-            Actor104900_ScratchWrite(Actor104900_ScratchRead() + 8);  \
-        }                                                             \
+#define Actor104900_DistToPlayer(arg0, out)                                    \
+    {                                                                          \
+        u8*       head;                                                        \
+        SVECTOR*  vec;                                                         \
+        GfxCoord* coord;                                                       \
+        Task*     slot;                                                        \
+                                                                               \
+        slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);                         \
+        if (slot == NULL) {                                                    \
+            out = 0x7FFFFFFF;                                                  \
+        } else {                                                               \
+            coord   = slot->extra.tmd->coords;                                 \
+            head    = _actor01100ReadScratchCursor();                          \
+            vec     = (SVECTOR*)(head - 8);                                    \
+            vec->vx = (u16)coord->workm.t[0] - (u16)arg0->workm.t[0];          \
+            vec->vy = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1];          \
+            _actor01100WriteScratchCursor((u8*)vec);                           \
+            vec->vz = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2];          \
+            out     = gfxDotProduct(vec, vec);                                 \
+            _actor01100WriteScratchCursor(_actor01100ReadScratchCursor() + 8); \
+        }                                                                      \
     }
 
 /// Copies column 2 of `arg0` into `arg1` and scales it by `scale` through the
@@ -3021,7 +3064,7 @@ static __inline__ void _actor01100StrideSound(_Actor01100Work* work, _Actor01100
 /// the 3 is not a single set, so that arm stays a fallthrough `li`.
 ///
 /// Later frames step `strideFrame` while the motion id still matches and the
-/// clip has not finished, then `Actor01100_Fn039D0` supplies `playerBearing`.
+/// clip has not finished, then `_actor01100TrackPlayerLookYaw` supplies `playerBearing`.
 /// While the frame sits in [1, 0x2E) the model's `field_46` turns toward that
 /// yaw by at most 0x10 and the Y rotation is rebuilt. The same window steps
 /// `((frame - 13) * 900) / 33` and, while
@@ -3085,7 +3128,7 @@ static void Actor01100_Fn0516C(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
     }
 
-    Actor01100_Fn039D0(enemy, task, work, scratch);
+    _actor01100TrackPlayerLookYaw(enemy, task, work, scratch);
     if ((u32)((u8)work->strideFrame - 1) < 0x2EU) {
         turn = work->playerBearing;
         pose = task->extra.tmd->coords;
@@ -3436,68 +3479,88 @@ static void Actor01100_Fn05E68(Task* task)
     task->exitCallback = Actor01100_Fn073A8;
     SCRATCH_STACK_RELEASE_BYTES(8);
     task->state += 1;
-    Actor01100_Fn06198(task);
+    _actor01100SpitGlobFly(task);
 }
 
-/// Plays sound `0x400B000B` for the spit at `soundCoord`, takes its body out of
-/// the collision lists and starts the 0x1E-frame kill countdown in the next
-/// task state.
-static __inline__ void _actor01100SpitLand(Task* task, _Actor01100SpitWork* work, GfxCoord* soundCoord, s32 flag)
+/// Ends the glob's collision tests and starts its post-impact countdown.
+///
+/// Requests the impact sound at `soundCoord`; `waterRoom` is 0 or 1 and selects
+/// its sound variant. Keeps the body linked for the exit callback to unlink.
+/// Requires live glob work and a composed audio coordinate. Replaces its
+/// lifetime with 30 ticks and advances to the following countdown state; the
+/// flight handler consumes the first tick immediately after this returns.
+static __inline__ void _actor01100SpitGlobImpact(Task* task, _Actor01100SpitWork* work, GfxCoord* soundCoord, s32 waterRoom)
 {
-    s32 id;
+    enum { ACTOR_01100_SPIT_IMPACT_SOUND      = 0x400B000B,
+           ACTOR_01100_SPIT_POST_IMPACT_TICKS = 30,
+           ACTOR_01100_SOUND_WATER_SHIFT      = 22,
+           ACTOR_01100_SOUND_PLACE_SHIFT      = 8 };
+    s32 soundId;
 
-    id = (flag << 22) | (0x400B000B | (Actor01100_D15670 << 8));
-    sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
+    soundId = (waterRoom << ACTOR_01100_SOUND_WATER_SHIFT) | (ACTOR_01100_SPIT_IMPACT_SOUND | (Actor01100_D15670 << ACTOR_01100_SOUND_PLACE_SHIFT));
+    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
     work->body.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    task->killCountdown = 0x1E;
+    task->killCountdown = ACTOR_01100_SPIT_POST_IMPACT_TICKS;
     task->state        += 1;
 }
 
-static void Actor01100_Fn06198(Task* task)
+/// Advances a spit glob's swept capsule and handles impact or flight expiry.
+///
+/// Runs movement and its lifetime only while combat actors run. Velocity is
+/// in world units per tick; gravity adds 10 to Y after movement. The single
+/// contact ends flight: a player/companion hit or a response Y >= -3072 requests
+/// the glow child's particle burst (3); response Y below -3072 requests its
+/// animated quad burst (2). Impact starts a 30-tick countdown, stepped once here.
+/// Requires initialized glob work, a model root and a one-entry contact table.
+static void _actor01100SpitGlobFly(Task* task)
 {
+    enum { ACTOR_01100_SPIT_GRAVITY           = 10,
+           ACTOR_01100_SPIT_FLOOR_NORMAL_Y    = -0xC00,
+           ACTOR_01100_SPIT_GLOW_FLOOR_BURST  = 2,
+           ACTOR_01100_SPIT_GLOW_IMPACT_BURST = 3 };
     _Actor01100SpitWork*   work;
-    WorldCollisionCapsule* d4;
-    WorldCollisionContact* rec;
+    WorldCollisionCapsule* capsule;
+    WorldCollisionContact* contacts;
     GfxCoord*              coord;
-    GfxCoord*              soundCoord;
-    Task*                  child;
+    Task*                  glowTask;
     u32                    stageAreaKey;
-    s32                    flag;
+    s32                    waterRoom;
     s16                    countdown;
 
     work          = task->work;
     stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     coord         = task->extra.tmd->coords;
-    soundCoord    = coord;
-    d4            = &work->capsule;
-    flag          = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
+    capsule       = &work->capsule;
+    waterRoom     = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        d4->ends[1].vx      = -work->velocity.vx;
-        d4->ends[1].vy      = -work->velocity.vy;
-        d4->ends[1].vz      = -work->velocity.vz;
+        // The trailing capsule end spans the movement before gravity changes it.
+        capsule->ends[1].vx = -work->velocity.vx;
+        capsule->ends[1].vy = -work->velocity.vy;
+        capsule->ends[1].vz = -work->velocity.vz;
         coord->coord.t[0]  += work->velocity.vx;
-        rec                 = work->contacts;
+        contacts            = work->contacts;
         coord->coord.t[1]  += work->velocity.vy;
         coord->coord.t[2]  += work->velocity.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        work->velocity.vy   = work->velocity.vy + 0xA;
-        if (worldCollisionCountContactsByKind(rec, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
-            child = task->firstChild;
-            if (child != NULL) {
-                child->spawnArg1.value = 3;
+        work->velocity.vy   = work->velocity.vy + ACTOR_01100_SPIT_GRAVITY;
+        // Signal the glow child before disabling the glob for its countdown state.
+        if (worldCollisionCountContactsByKind(contacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
+            glowTask = task->firstChild;
+            if (glowTask != NULL) {
+                glowTask->spawnArg1.value = ACTOR_01100_SPIT_GLOW_IMPACT_BURST;
             }
-            _actor01100SpitLand(task, work, soundCoord, flag);
-        } else if (worldCollisionFindContactIndex(rec, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
-            child = task->firstChild;
-            if (child != NULL) {
-                if (rec->response.direction.vy >= -0xC00) {
-                    child->spawnArg1.value = 3;
+            _actor01100SpitGlobImpact(task, work, coord, waterRoom);
+        } else if (worldCollisionFindContactIndex(contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
+            glowTask = task->firstChild;
+            if (glowTask != NULL) {
+                if (contacts->response.direction.vy >= ACTOR_01100_SPIT_FLOOR_NORMAL_Y) {
+                    glowTask->spawnArg1.value = ACTOR_01100_SPIT_GLOW_IMPACT_BURST;
                 } else {
-                    child->spawnArg1.value = 2;
+                    glowTask->spawnArg1.value = ACTOR_01100_SPIT_GLOW_FLOOR_BURST;
                 }
             }
-            _actor01100SpitLand(task, work, soundCoord, flag);
+            _actor01100SpitGlobImpact(task, work, coord, waterRoom);
         }
         worldCollisionClearContacts(work->contacts);
         countdown           = task->killCountdown - 1;
@@ -3582,11 +3645,11 @@ void Actor01100_Fn06554(Task* task)
 }
 
 /// State handlers of the secondary task this entry spawns: set-up
-/// (`Actor01100_Fn05E68`), per-frame tick (`Actor01100_Fn06198`) and the
+/// (`Actor01100_Fn05E68`), per-frame tick (`_actor01100SpitGlobFly`) and the
 /// countdown to exit (`Actor01100_Fn0736C`).
 static const TaskFuncTable3 Actor01100_D000DC = { {
     Actor01100_Fn05E68,
-    Actor01100_Fn06198,
+    _actor01100SpitGlobFly,
     Actor01100_Fn0736C,
 } };
 
@@ -3613,152 +3676,147 @@ void Actor01100_Fn0663C(Task* task)
     funcs[task->state](task);
 }
 
-/// Exit callback: unlink the four collision bodies, relink the second part coord
-/// under the model's root, then let gameplay tear the enemy down.
-static void Actor01100_Fn0668C(Task* task)
+/// Unlinks the enemy's four bodies and restores its model hierarchy for teardown.
+///
+/// Requires initialized enemy work. Reparents part 1 to the root so the model
+/// no longer refers to the work block's scale coordinate before `enemyDestroy`
+/// releases the enemy task's resources.
+static void _actor01100Exit(Task* task)
 {
     _Actor01100Work* work;
     Enemy*           enemy;
-    GfxCoord*        coord;
-    s32              i;
+    GfxCoord*        root;
+    s32              bodyIndex;
 
     enemy = task->spawnArg2.pointer;
     work  = task->work;
-    for (i = 0; i < ACTOR_01100_BODY_COUNT; i++) {
-        worldCollisionUnlinkBody(&work->bodies[i]);
+    for (bodyIndex = 0; bodyIndex < ACTOR_01100_BODY_COUNT; bodyIndex++) {
+        worldCollisionUnlinkBody(&work->bodies[bodyIndex]);
     }
-    coord           = task->extra.tmd->coords;
-    coord[1].parent = coord;
+    root           = task->extra.tmd->coords;
+    root[1].parent = root;
     enemyDestroy(enemy, task);
 }
 
-/// Message 0x7D5 handler: switches the enemy's model and collision bodies
-/// between hidden and shown. `flags ^ 1` is the requested mode, latched in
-/// `hidden` so only a change acts. Mode 1 hides the model and releases the
-/// enemy's link node slot, saving its `field_4` first, and clears the 0xC000
-/// pair off all four collision bodies; mode 0 puts the saved `field_4` back,
-/// lifts the hidden bit, and sets those bits on the first and last collision
-/// body.
-s32 Actor01100_Fn0670C(Task* task, s32 arg1, s32 flags, s32 arg3)
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` for the Mossback's model and bodies.
+///
+/// `drawEnabled` is 0 to hide or 1 to show; unchanged requests do nothing.
+/// Hiding saves the lock-on flags, prevents locking and disables every body's
+/// grid/pair tests. Showing restores those flags and enables only the root and
+/// chest bodies; hand attacks stay state-controlled. Requires initialized work.
+/// Ignores the message ID and second payload and returns zero.
+static s32 _actor01100SetModelDraw(Task* task, s32 unusedMessageId, s32 drawEnabled, s32 unusedSecondArg)
 {
     _Actor01100Work*    work;
     Enemy*              enemy;
     TmdObject*          model;
-    WorldCollisionBody* obj;
-    s32                 i;
-    s32                 mode;
+    WorldCollisionBody* body;
+    s32                 bodyIndex;
+    s32                 hidden;
 
-    mode  = flags ^ 1;
-    work  = task->work;
-    model = task->extra.tmd;
-    enemy = (Enemy*)task->spawnArg2.pointer;
-    if (work->hidden != mode) {
-        work->hidden = mode;
+    hidden = drawEnabled ^ 1;
+    work   = task->work;
+    model  = task->extra.tmd;
+    enemy  = task->spawnArg2.pointer;
+    if (work->hidden != hidden) {
+        work->hidden = hidden;
         if (work->hidden == 0) {
             model->flags                 &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.parts.flags = work->savedTargetFlags;
-            obj                           = &work->bodies[ACTOR_01100_BODY_ROOT];
-            obj->flags                   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            obj                           = &work->bodies[ACTOR_01100_BODY_CHEST];
-            obj->flags                   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            body                          = &work->bodies[ACTOR_01100_BODY_ROOT];
+            body->flags                  |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            body                          = &work->bodies[ACTOR_01100_BODY_CHEST];
+            body->flags                  |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
         } else {
             model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->savedTargetFlags        = enemy->node.state.parts.flags;
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            for (i = 0; i < ACTOR_01100_BODY_COUNT; i++) {
-                obj         = &work->bodies[i];
-                obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+            for (bodyIndex = 0; bodyIndex < ACTOR_01100_BODY_COUNT; bodyIndex++) {
+                body         = &work->bodies[bodyIndex];
+                body->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
         }
     }
     return 0;
 }
 
-static void Actor01100_Fn067C0(MATRIX* arg0, VECTOR* arg1)
+/// Scales a matrix's three basis columns by the matching Q12 vector components.
+///
+/// Uses the GTE's saturating signed-halfword GPF result (4096 is unit scale).
+/// Translation stays intact. Matrix and scale must be live and disjoint;
+/// borrows one `SVECTOR` from the initialized scratch stack until return.
+static void _actor01100ScaleMatrixColumns(MATRIX* matrix, VECTOR* scale)
 {
-    void**   scratch;
-    SVECTOR* head;
-    SVECTOR* vec;
+    void**   cursorSlot;
+    SVECTOR* column;
 
-    scratch                           = SCRATCH_HEAD_ADDR;
-    head                              = SCRATCH_HEAD_AT(scratch, SVECTOR);
-    vec                               = head - 1;
-    SCRATCH_HEAD_AT(scratch, SVECTOR) = vec;
+    cursorSlot                           = SCRATCH_HEAD_ADDR;
+    column                               = SCRATCH_HEAD_AT(cursorSlot, SVECTOR) - 1;
+    SCRATCH_HEAD_AT(cursorSlot, SVECTOR) = column;
 
-    gte_ReadMatrixColumn(arg0, 0, vec);
-    gte_lddp(arg1->vx);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, arg0, 0);
+    SCALE_COL(matrix, column, 0, scale->vx);
+    SCALE_COL(matrix, column, 1, scale->vy);
+    SCALE_COL(matrix, column, 2, scale->vz);
 
-    gte_ReadMatrixColumn(arg0, 1, vec);
-    gte_lddp(arg1->vy);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, arg0, 1);
-
-    gte_ReadMatrixColumn(arg0, 2, vec);
-    gte_lddp(arg1->vz);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, arg0, 2);
-
-    head                              = SCRATCH_HEAD_AT(scratch, SVECTOR);
-    SCRATCH_HEAD_AT(scratch, SVECTOR) = head + 1;
+    SCRATCH_POP_AT(cursorSlot, SVECTOR);
 }
 
-/// Bearing of the actor in slot `arg1` of `gPlayerActorTasks` from `arg0`,
-/// measured in `arg0`'s own frame and folded into -0x800..0x800; 0 when the
-/// slot is empty.
-static s32 Actor01100_Fn06954(GfxCoord* arg0, s32 arg1)
+/// Returns a player or companion slot's bearing about `self`'s cached axes.
+///
+/// `playerSlot` is `PLAYER_ACTOR_TASK_PLAYER` or `PLAYER_ACTOR_TASK_COMPANION`.
+/// Returns zero for an empty slot. Both composed caches must share a frame;
+/// position narrowing and Q12 rotation follow `_actorAngleBearingInFrame`.
+/// The result is in [-2048, 2048], with 4096 units per turn. Borrows 64 bytes
+/// from the initialized scratch stack and releases them before return.
+static s32 _actor01100BearingToPlayerSlot(const GfxCoord* self, s32 playerSlot)
 {
-    Task*                actor;
-    GfxCoord*            coord;
-    ActorBearingScratch* blk;
+    Task*                playerTask;
+    GfxCoord*            playerCoord;
+    ActorBearingScratch* scratch;
     s32                  angle;
 
-    actor = gPlayerActorTasks[arg1];
-    if (actor == NULL) {
+    playerTask = gPlayerActorTasks[playerSlot];
+    if (playerTask == NULL) {
         return 0;
     }
-    coord = actor->extra.tmd->coords;
-    blk   = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
-    angle = _actorAngleBearingInFrame(blk, arg0, coord);
+    playerCoord = playerTask->extra.tmd->coords;
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
+    angle       = _actorAngleBearingInFrame(scratch, self, playerCoord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
     return angle;
 }
 
-/// Squared distance from `arg0` to the slot-3 (player) task's root part coord,
-/// or `0x7FFFFFFF` when that task is gone. The delta is staged in an `SVECTOR`
-/// carved off the scratchpad stack and squared with `gfxDotProduct`.
-static s32 Actor01100_Fn06AC8(GfxCoord* arg0)
+/// Returns squared cached-frame distance to the registered player task.
+///
+/// Returns `INT_MAX` when its slot is empty. XYZ differences use the low 16
+/// bits of each translation and narrow to signed halfwords before the GTE dot
+/// product. Both caches must share a frame; the sum must fit signed 32 bits for
+/// distance comparisons. Borrows one `SVECTOR` from the scratch stack until return.
+static s32 _actor01100MeasurePlayerDistanceSquared(const GfxCoord* self)
 {
-    void**    scratch;
-    u8*       head;
-    SVECTOR*  vec;
-    GfxCoord* coord;
-    Task*     task;
-    s32       ret;
+    void**    cursorSlot;
+    SVECTOR*  cursor;
+    SVECTOR*  delta;
+    GfxCoord* playerCoord;
+    Task*     playerTask;
+    s32       distanceSquared;
 
-    task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (task != NULL) {
-        coord                          = task->extra.tmd->coords;
-        scratch                        = SCRATCH_HEAD_ADDR;
-        head                           = SCRATCH_HEAD_AT(scratch, void);
-        vec                            = (SVECTOR*)(head - 8);
-        vec->vx                        = (u16)coord->workm.t[0] - (u16)arg0->workm.t[0];
-        vec->vy                        = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1];
-        SCRATCH_HEAD_AT(scratch, void) = vec;
-        vec->vz                        = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2];
-        ret                            = gfxDotProduct(vec, vec);
-        SCRATCH_POP_BYTES_AT(scratch, 8);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (playerTask != NULL) {
+        playerCoord                          = playerTask->extra.tmd->coords;
+        cursorSlot                           = SCRATCH_HEAD_ADDR;
+        cursor                               = SCRATCH_HEAD_AT(cursorSlot, SVECTOR);
+        delta                                = cursor - 1;
+        delta->vx                            = (u16)playerCoord->workm.t[0] - (u16)self->workm.t[0];
+        delta->vy                            = (u16)playerCoord->workm.t[1] - (u16)self->workm.t[1];
+        SCRATCH_HEAD_AT(cursorSlot, SVECTOR) = delta;
+        delta->vz                            = (u16)playerCoord->workm.t[2] - (u16)self->workm.t[2];
+        distanceSquared                      = gfxDotProduct(delta, delta);
+        SCRATCH_POP_AT(cursorSlot, SVECTOR);
     } else {
-        ret = 0x7FFFFFFF;
+        distanceSquared = INT_MAX;
     }
-    return ret;
+    return distanceSquared;
 }
 
 /// Steps the actor along its own forward axis: column 2 of the coordinate's
@@ -3810,8 +3868,8 @@ static void Actor01100_Fn06C0C(Enemy* enemy, Task* task, _Actor01100Work* work, 
     if ((Actor01100_Fn00F58(enemy, task, work, scratch) == 0) && (task->spawnArg1.value == 0)) {
         trigger = work->prevMode;
         if ((trigger == 1) && (work->motionEnded == trigger)) {
-            if (Actor01100_Fn06AC8(task->extra.tmd->coords) > 0xA62B10) {
-                _actor01100ClearObjPair(work);
+            if (_actor01100MeasurePlayerDistanceSquared(task->extra.tmd->coords) > 0xA62B10) {
+                _actor01100DisableHandBodies(work);
                 work->mode      = ACTOR_01100_MODE_UNAWARE;
                 gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 0x10) & 0xF) < 0xC) {
