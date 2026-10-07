@@ -12,8 +12,6 @@
 #include "player_actor.h"
 #include "gameplay/player_state.h"
 
-#define D_8010EB94 D_8010EAB4[8]
-
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -193,10 +191,10 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
         arg1->work = mem;
         if (gGameSession->cutsceneHold == 1) {
             itemMenuClearPreviewItems();
-            uiSpawnObject(&D_8010EB94, 0, 1, 8, arg0);
+            uiSpawnObject(&D_8010EAB4[8], 0, 1, 8, arg0);
             scale = 2;
         } else {
-            uiSpawnObject(&D_8010EAD0, 0, 1, 8, arg0);
+            uiSpawnObject(&D_8010EAB4[1], 0, 1, 8, arg0);
             scale = 1;
         }
         uiSetPanelContentSize(&(arg0)->panel, 0, uiGetTextRowsHeight(scale) + 1);

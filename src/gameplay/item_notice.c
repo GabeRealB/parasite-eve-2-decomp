@@ -51,7 +51,7 @@ void func_800B65B0(Task* task)
         switch (Gp_PubItemLoc >> 8) {
             case 0:
             case 1:
-                desc = &D_8010F010;
+                desc = &D_8010EAB4[49];
                 break;
             case 8:
                 // Capture the root transform before presenting the save prompt.

@@ -654,26 +654,6 @@ extern UiObjectDesc D_8010EA98;
 /// indexed by the icon index that function derives from the item id.
 extern const u16 D_80096F88[12];
 
-#define D_8010EAD0 D_8010EAB4[1]
-
-#define D_8010EC3C D_8010EAB4[14]
-
-#define D_8010ECAC D_8010EAB4[18]
-
-#define D_8010ECC8 D_8010EAB4[19]
-
-#define D_8010ECE4 D_8010EAB4[20]
-
-#define D_8010ED00 D_8010EAB4[21]
-
-#define D_8010EE6C D_8010EAB4[34]
-
-#define D_8010EF14 D_8010EAB4[40]
-
-#define D_8010EF84 D_8010EAB4[44]
-
-#define D_8010F010 D_8010EAB4[49]
-
 extern const char Gp_StrAddHp[];
 
 extern const char Gp_StrAddMp[];

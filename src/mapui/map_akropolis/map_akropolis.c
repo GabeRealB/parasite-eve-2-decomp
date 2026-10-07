@@ -188,7 +188,7 @@ void func_map_akropolis_80179988(u8* arg0)
 
 /// Draws one row of the Akropolis map's key-item list: the item's name at the
 /// row's position, previewed while the row is highlighted. Confirming on the
-/// selected row opens the item-detail panel `D_8010EFA0`; picking the row whose
+/// selected row opens the item-detail panel `D_8010EAB4[45]`; picking the row whose
 /// item is 0x10C also records that choice in `D_map_akropolis_8017A9A8`, which
 /// `func_map_akropolis_8017A038` reports back to the caller.
 static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
@@ -207,7 +207,7 @@ static void func_map_akropolis_80179C50(UiList* arg0, UiObject* arg1)
     if (sel == 1) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EFA0, item, 1, 1, arg1);
+            uiSpawnObject(&D_8010EAB4[45], item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             if (item == 0x10C) {
                 D_map_akropolis_8017A9A8 = sel;

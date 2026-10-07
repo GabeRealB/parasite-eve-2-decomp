@@ -367,7 +367,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EFA0, itemId, 1, 1, obj);
+            uiSpawnObject(&D_8010EAB4[45], itemId, 1, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -722,7 +722,7 @@ static void Shop_CategoryListTask(Task* task)
         itemMenuClearPreviewItems();
         D_80067634 = NULL;
         uiSpawnObject(&Shop_Data_80181B68, task->spawnArg1, 0, 1, obj);
-        uiSpawnObject(&D_8010D80C, 0, 0, 0, obj);
+        uiSpawnObject(&D_8010D6F4[10], 0, 0, 0, obj);
         list->itemCount                     = 5;
         list->visibleRowCount.unsignedValue = 5;
         uiFitPanelToList(list, &(obj)->panel);

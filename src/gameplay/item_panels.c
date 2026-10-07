@@ -1808,7 +1808,7 @@ void Gp_CheckItemInfoButton(UiObject* arg0)
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE)) {
         one = 1;
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        uiSpawnObject(&D_8010EFA0, (s32)Gp_SelItemRec->itemId, one, one, arg0);
+        uiSpawnObject(&D_8010EAB4[45], (s32)Gp_SelItemRec->itemId, one, one, arg0);
         arg0->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
@@ -1823,7 +1823,7 @@ void Gp_SpawnPickupUiTask(Task* arg0)
         switch (Gp_PubItemLoc >> 8) {
             case 0:
             case 1:
-                desc = &D_8010F010;
+                desc = &D_8010EAB4[49];
                 break;
             case 8:
                 Gp_SavePlayerPos();

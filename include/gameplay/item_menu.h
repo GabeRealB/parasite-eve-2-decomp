@@ -12,10 +12,13 @@
 
 /// Item-move `UiObjectDesc` table. `Gp_ItemMoveTask` spawns `[0]` / `[1]`
 /// and, when `spawnArg1 == 1`, `[9]`.
+/// `[4]` is the popup `Gp_ItemMoveRow` spawns on confirm when
+/// `owner->state == 1`, `[5]` the quantity-selection popup `func_800BD6DC`
+/// opens when moving ammo stacks, `[9]` also the "Move items" confirmation
+/// `Gp_ItemMoveChild` spawns when the pane is closed with items still selected
+/// (`Gp_CanMoveItems` result as arg1), and `[10]` an extra descriptor spawned
+/// after the `[0]` / `[1]` pair.
 extern UiObjectDesc D_8010D6F4[];
-
-/// Extra `UiObjectDesc` spawned after the `D_8010D6F4` pair.
-#define D_8010D80C D_8010D6F4[10]
 
 /// Named as a task entry by the enemy descriptor tables in the map UI overlays.
 void Gp_ItemPickupTilt(Task* arg0);
@@ -221,7 +224,5 @@ void itemMenuDrawMeter(const UiPanel* panel, s32 left, s32 right, s32 centerY, s
 extern UiObjectDesc D_8010EAB4[50];
 
 void Gp_MenuRootTask(Task* arg0);
-
-#define D_8010EFA0 D_8010EAB4[45]
 
 #endif // GAMEPLAY_ITEM_MENU_H

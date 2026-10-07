@@ -131,16 +131,6 @@ _ItemMenuMoveWork* Gp_ItemMoveWork;
 
 u16 Gp_MoveItemKey;
 
-/// Popup spawned by `Gp_ItemMoveRow` on confirm when `owner->state == 1`.
-#define D_8010D764 D_8010D6F4[4]
-
-/// Quantity-selection popup opened by `func_800BD6DC` when moving ammo stacks.
-#define D_8010D780 D_8010D6F4[5]
-
-/// "Move items" confirmation popup spawned by `Gp_ItemMoveChild` when the
-/// pane is closed with items still selected (`Gp_CanMoveItems` result as arg1).
-#define D_8010D7F0 D_8010D6F4[9]
-
 /// UiList used by `Gp_ItemActionListTask`.
 extern UiList Gp_ItemActionList;
 
@@ -319,7 +309,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
                 val = Gp_CanMoveItems();
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 work->focusedPane = 0;
-                uiSpawnObject(&D_8010D7F0, val, 1, 1, work->panes[0]);
+                uiSpawnObject(&D_8010D6F4[9], val, 1, 1, work->panes[0]);
                 break;
             }
             /* fallthrough */
@@ -471,7 +461,7 @@ void Gp_ItemMoveTask(Task* arg0)
             work->panes[1]          = uiSpawnObject(D_8010D6F4 + 1, 1, 0, 1, obj);
             obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
-        uiSpawnObject(&D_8010D80C, 0, 0, 1, obj);
+        uiSpawnObject(&D_8010D6F4[10], 0, 0, 1, obj);
         gGameSession->uiOpen = 1;
         arg0->state          = arg0->state + 1;
     }
@@ -534,7 +524,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
         if (arg1->owner->state == 1) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                spawned = uiSpawnObject(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
+                spawned = uiSpawnObject(&D_8010D6F4[4], arg1->owner->spawnArg1, 1, 1, arg1);
                 if (spawned != NULL) {
                     spawned->panel.bounds.unsignedRect.x = arg1->panel.contentOriginX.unsignedValue + arg1->panel.contentLeft.unsignedValue + 0x14;
                     spawned->panel.bounds.unsignedRect.y = (arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue) - 0x14;
@@ -542,7 +532,7 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
                 }
             } else if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) && (item != 0)) {
                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                uiSpawnObject(&D_8010EFA0, item, 1, 1, arg1);
+                uiSpawnObject(&D_8010EAB4[45], item, 1, 1, arg1);
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
@@ -777,7 +767,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
             return;
         }
         if (chooseQty == 1) {
-            if (uiSpawnObject(&D_8010D780, item, 1, 1, arg1) != NULL) {
+            if (uiSpawnObject(&D_8010D6F4[5], item, 1, 1, arg1) != NULL) {
                 arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else {
