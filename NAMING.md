@@ -549,6 +549,17 @@ interface is `src/shared/backdrop_crossfade.h`; rendering constants use
 per-carrier instances marked `_`. Each carrier supplies the stored-backdrop
 drawer for its own VRAM layout.
 
+`frameCapture` owns the included depth-sorted copy of the current draw buffer
+into off-screen VRAM for textured scene effects. Its implementation interface
+is `src/shared/frame_capture.h`; geometry and packet constants use
+`FRAME_CAPTURE_`. The ordering-table argument counts tags after projection
+quantization and any caller bias. A carrier keeps its instance static unless
+another translation unit in that package calls it. `FRAME_CAPTURE_QUEUE`
+selects the instance's identifier; private carriers declare `_frameCaptureQueue`
+static before the header and keep that binding through the fragment and callers.
+The actor_403600 package shares its externally linked `frameCaptureQueue`
+between two translation units.
+
 `actionPrompt` owns the point-and-click action cursor shared by room and actor
 overlays. The resident per-port state and its public types are gameplay
 (`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The hotspot

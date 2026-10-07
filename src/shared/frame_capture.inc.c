@@ -2,7 +2,7 @@
 
 /// Scratch-stack workspace for queueing one frame capture.
 ///
-/// `frameCaptureQueue` reserves one block, keeps the ordering-table index it
+/// `FRAME_CAPTURE_QUEUE` reserves one block, keeps the ordering-table index it
 /// links every primitive at, and stages in it the arguments of the
 /// drawing-environment setters. `SetDrawArea` and `SetDrawOffset` encode their
 /// argument into the primitive at the call, so each of the two fields is
@@ -21,126 +21,136 @@ typedef struct {
 } _FrameCaptureScratch;
 STATIC_ASSERT_SIZEOF(_FrameCaptureScratch, 0x14);
 
-/// Queues at depth `otz` a run of primitives that, executed in reverse of
-/// the order they are added, point drawing at the 320x240 area at VRAM
-/// (0x1C0, 0x100), fill it with a near-black tile with mask-bit setting on,
-/// draw two 160x240 raw-texture sprites copied from the current draw buffer
-/// over it, and then restore the draw offset, mask setting and draw area for
-/// the current buffer. The first view draw-area rectangle is restored when
-/// its scaled restore depth is below `otz`, full screen otherwise. The
-/// `_FrameCaptureScratch` block staging the rectangle and offset is carved off
-/// the scratch head and released before returning.
-void frameCaptureQueue(s32 otz)
+/// Pixel geometry and packet encoding for the fixed game-frame capture layout.
+enum {
+    FRAME_CAPTURE_WIDTH_PIXELS           = 320,
+    FRAME_CAPTURE_HEIGHT_PIXELS          = 240,
+    FRAME_CAPTURE_BUFFER_Y_STRIDE        = 272,
+    FRAME_CAPTURE_VRAM_X                 = 448,
+    FRAME_CAPTURE_VRAM_Y                 = 256,
+    FRAME_CAPTURE_SOURCE_PAGE_Y_SHIFT    = 8,
+    FRAME_CAPTURE_RIGHT_SOURCE_PAGE_X    = 128,
+    FRAME_CAPTURE_LOWER_BUFFER_TEXTURE_V = FRAME_CAPTURE_BUFFER_Y_STRIDE - (1 << FRAME_CAPTURE_SOURCE_PAGE_Y_SHIFT),
+    FRAME_CAPTURE_DIRECT_COLOR           = 2,
+    FRAME_CAPTURE_CLEAR_SHADE            = 2,
+    FRAME_CAPTURE_DEPTH_TO_SLOT_SHIFT    = 4,
+    FRAME_CAPTURE_DEPTH_MASK             = (s32)(((GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt)) << FRAME_CAPTURE_DEPTH_TO_SLOT_SHIFT) | ((1 << FRAME_CAPTURE_DEPTH_TO_SLOT_SHIFT) - 1)),
+    FRAME_CAPTURE_SPRITE_PACKET_WORDS    = sizeof(SPRT) / sizeof(u_long) - 1,
+    FRAME_CAPTURE_RAW_SPRITE_CODE        = 0x64 | SPRITE_SOURCE_RAW_TEXTURE,
+};
+
+void FRAME_CAPTURE_QUEUE(s32 orderingTableSlot)
 {
     _FrameCaptureScratch* scratch;
-    SpriteDrawArea*       drawArea;
-    DR_AREA*              area;
-    DR_STP*               stp;
-    DR_OFFSET*            off;
-    SPRT*                 sprt;
-    DR_TPAGE*             tpage;
-    TILE*                 tile;
-    RECT*                 clip;
-    u_short*              ofs;
+    const SpriteDrawArea* viewDrawAreas;
+    DR_AREA*              drawAreaPacket;
+    DR_STP*               maskPacket;
+    DR_OFFSET*            offsetPacket;
+    SPRT*                 copySprite;
+    DR_TPAGE*             texturePagePacket;
+    TILE*                 clearTile;
+    RECT*                 clipRect;
+    u_short*              drawOffset;
 
-    drawArea       = spriteGetViewDrawAreas();
+    /// Queues one raw copy strip and its source-page command in this capture's slot.
+    ///
+    /// Arguments are side-effect-free pixel values: destination X relative to
+    /// the center, source U relative to the page, and source-page VRAM X.
+    /// Each occurs once. Captures `scratch`, `copySprite`, `texturePagePacket`,
+    /// `gDisplayState`, `gGpuPrimCursor` and `gGpuCurrentOt`; consumes one SPRT
+    /// and one DR_TPAGE, retained until drawing completes. Linkage prepends
+    /// the page command so it executes before the sprite. No bounds checks.
+#define FRAME_CAPTURE_QUEUE_COPY_STRIP(screenX, textureU, sourcePageX)                                                                                                                      \
+    {                                                                                                                                                                                       \
+        copySprite     = gGpuPrimCursor;                                                                                                                                                    \
+        gGpuPrimCursor = copySprite + 1;                                                                                                                                                    \
+        copySprite->x0 = (screenX);                                                                                                                                                         \
+        copySprite->y0 = -FRAME_CAPTURE_HEIGHT_PIXELS / 2;                                                                                                                                  \
+        copySprite->w  = FRAME_CAPTURE_WIDTH_PIXELS / 2;                                                                                                                                    \
+        copySprite->h  = FRAME_CAPTURE_HEIGHT_PIXELS;                                                                                                                                       \
+        copySprite->u0 = (textureU);                                                                                                                                                        \
+        copySprite->v0 = gDisplayState.drawBuffer * FRAME_CAPTURE_LOWER_BUFFER_TEXTURE_V;                                                                                                   \
+        setlen(copySprite, FRAME_CAPTURE_SPRITE_PACKET_WORDS);                                                                                                                              \
+        setcode(copySprite, FRAME_CAPTURE_RAW_SPRITE_CODE);                                                                                                                                 \
+        addPrim(&gGpuCurrentOt[scratch->otz], copySprite);                                                                                                                                  \
+        texturePagePacket = gGpuPrimCursor;                                                                                                                                                 \
+        gGpuPrimCursor    = texturePagePacket + 1;                                                                                                                                          \
+        setDrawTPage(texturePagePacket, true, true, getTPage(FRAME_CAPTURE_DIRECT_COLOR, GPU_BLEND_AVERAGE, (sourcePageX), gDisplayState.drawBuffer << FRAME_CAPTURE_SOURCE_PAGE_Y_SHIFT)); \
+        addPrim(&gGpuCurrentOt[scratch->otz], texturePagePacket);                                                                                                                           \
+    }
+
+    viewDrawAreas  = spriteGetViewDrawAreas();
     scratch        = SCRATCH_STACK_RESERVE_BLOCK(_FrameCaptureScratch);
-    scratch->otz   = otz;
-    area           = gGpuPrimCursor;
-    gGpuPrimCursor = area + 1;
-    if (drawArea != NULL && ((drawArea->restoreDepth << gDisplayState.otDepthShift) & 0x3FFF) >> 4 < scratch->otz) {
-        scratch->drawArea    = drawArea->clipRect;
-        scratch->drawArea.y += gDisplayState.drawBuffer * 0x110;
+    scratch->otz   = orderingTableSlot;
+    drawAreaPacket = gGpuPrimCursor;
+    gGpuPrimCursor = drawAreaPacket + 1;
+
+    // addPrim prepends: queue the state restored after the copy first.
+    if (viewDrawAreas != NULL && ((viewDrawAreas->restoreDepth << gDisplayState.otDepthShift) & FRAME_CAPTURE_DEPTH_MASK) >> FRAME_CAPTURE_DEPTH_TO_SLOT_SHIFT < scratch->otz) {
+        scratch->drawArea    = viewDrawAreas->clipRect;
+        scratch->drawArea.y += gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE;
     } else {
         scratch->drawArea.x = 0;
-        scratch->drawArea.y = gDisplayState.drawBuffer * 0x110;
-        scratch->drawArea.w = 0x140;
-        scratch->drawArea.h = 0xF0;
+        scratch->drawArea.y = gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE;
+        scratch->drawArea.w = FRAME_CAPTURE_WIDTH_PIXELS;
+        scratch->drawArea.h = FRAME_CAPTURE_HEIGHT_PIXELS;
     }
-    clip = &scratch->drawArea;
-    SetDrawArea(area, clip);
-    addPrim(&gGpuCurrentOt[scratch->otz], area);
+    clipRect = &scratch->drawArea;
+    SetDrawArea(drawAreaPacket, clipRect);
+    addPrim(&gGpuCurrentOt[scratch->otz], drawAreaPacket);
 
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(&gGpuCurrentOt[scratch->otz], stp);
+    maskPacket     = gGpuPrimCursor;
+    gGpuPrimCursor = maskPacket + 1;
+    SetDrawStp(maskPacket, false);
+    addPrim(&gGpuCurrentOt[scratch->otz], maskPacket);
 
-    ofs                    = scratch->drawOffset;
-    off                    = gGpuPrimCursor;
-    gGpuPrimCursor         = off + 1;
-    scratch->drawOffset[0] = 0xA0;
-    scratch->drawOffset[1] = gDisplayState.drawBuffer * 0x110 + 0x78;
-    SetDrawOffset(off, ofs);
-    addPrim(&gGpuCurrentOt[scratch->otz], off);
+    drawOffset             = scratch->drawOffset;
+    offsetPacket           = gGpuPrimCursor;
+    gGpuPrimCursor         = offsetPacket + 1;
+    scratch->drawOffset[0] = FRAME_CAPTURE_WIDTH_PIXELS / 2;
+    scratch->drawOffset[1] = gDisplayState.drawBuffer * FRAME_CAPTURE_BUFFER_Y_STRIDE + FRAME_CAPTURE_HEIGHT_PIXELS / 2;
+    SetDrawOffset(offsetPacket, drawOffset);
+    addPrim(&gGpuCurrentOt[scratch->otz], offsetPacket);
 
-    sprt           = gGpuPrimCursor;
-    gGpuPrimCursor = sprt + 1;
-    sprt->x0       = -0xA0;
-    sprt->y0       = -0x78;
-    sprt->w        = 0xA0;
-    sprt->h        = 0xF0;
-    sprt->u0       = 0;
-    sprt->v0       = gDisplayState.drawBuffer * 0x10;
-    setlen(sprt, 4);
-    setcode(sprt, 0x65);
-    addPrim(&gGpuCurrentOt[scratch->otz], sprt);
+    // Each 160-pixel half fits a 256-texel page; the right page starts at x=128.
+    FRAME_CAPTURE_QUEUE_COPY_STRIP(-FRAME_CAPTURE_WIDTH_PIXELS / 2, 0, 0);
+    FRAME_CAPTURE_QUEUE_COPY_STRIP(0, FRAME_CAPTURE_WIDTH_PIXELS / 2 - FRAME_CAPTURE_RIGHT_SOURCE_PAGE_X, FRAME_CAPTURE_RIGHT_SOURCE_PAGE_X);
 
-    tpage          = gGpuPrimCursor;
-    gGpuPrimCursor = tpage + 1;
-    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0, gDisplayState.drawBuffer << 8));
-    addPrim(&gGpuCurrentOt[scratch->otz], tpage);
+    // Fill the capture with nonzero, masked texels before copying the scene.
+    clearTile      = gGpuPrimCursor;
+    gGpuPrimCursor = clearTile + 1;
+    setTile(clearTile);
+    clearTile->b0 = FRAME_CAPTURE_CLEAR_SHADE;
+    clearTile->g0 = FRAME_CAPTURE_CLEAR_SHADE;
+    clearTile->r0 = FRAME_CAPTURE_CLEAR_SHADE;
+    clearTile->x0 = -FRAME_CAPTURE_WIDTH_PIXELS / 2;
+    clearTile->y0 = -FRAME_CAPTURE_HEIGHT_PIXELS / 2;
+    clearTile->w  = FRAME_CAPTURE_WIDTH_PIXELS;
+    clearTile->h  = FRAME_CAPTURE_HEIGHT_PIXELS;
+    addPrim(&gGpuCurrentOt[scratch->otz], clearTile);
 
-    sprt           = gGpuPrimCursor;
-    gGpuPrimCursor = sprt + 1;
-    sprt->x0       = 0;
-    sprt->y0       = -0x78;
-    sprt->w        = 0xA0;
-    sprt->h        = 0xF0;
-    sprt->u0       = 0x20;
-    sprt->v0       = gDisplayState.drawBuffer * 0x10;
-    setlen(sprt, 4);
-    setcode(sprt, 0x65);
-    addPrim(&gGpuCurrentOt[scratch->otz], sprt);
+    maskPacket     = gGpuPrimCursor;
+    gGpuPrimCursor = maskPacket + 1;
+    SetDrawStp(maskPacket, true);
+    addPrim(&gGpuCurrentOt[scratch->otz], maskPacket);
 
-    tpage          = gGpuPrimCursor;
-    gGpuPrimCursor = tpage + 1;
-    setDrawTPage(tpage, 1, 1, getTPage(2, 0, 0x80, gDisplayState.drawBuffer << 8));
-    addPrim(&gGpuCurrentOt[scratch->otz], tpage);
+    offsetPacket           = gGpuPrimCursor;
+    gGpuPrimCursor         = offsetPacket + 1;
+    scratch->drawOffset[0] = FRAME_CAPTURE_VRAM_X + FRAME_CAPTURE_WIDTH_PIXELS / 2;
+    scratch->drawOffset[1] = FRAME_CAPTURE_VRAM_Y + FRAME_CAPTURE_HEIGHT_PIXELS / 2;
+    SetDrawOffset(offsetPacket, drawOffset);
+    addPrim(&gGpuCurrentOt[scratch->otz], offsetPacket);
 
-    tile           = gGpuPrimCursor;
-    gGpuPrimCursor = tile + 1;
-    setlen(tile, 3);
-    setcode(tile, 0x60);
-    tile->b0 = 2;
-    tile->g0 = 2;
-    tile->r0 = 2;
-    tile->x0 = -0xA0;
-    tile->y0 = -0x78;
-    tile->w  = 0x140;
-    tile->h  = 0xF0;
-    addPrim(&gGpuCurrentOt[scratch->otz], tile);
-
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(&gGpuCurrentOt[scratch->otz], stp);
-
-    off                    = gGpuPrimCursor;
-    gGpuPrimCursor         = off + 1;
-    scratch->drawOffset[0] = 0x260;
-    scratch->drawOffset[1] = 0x178;
-    SetDrawOffset(off, ofs);
-    addPrim(&gGpuCurrentOt[scratch->otz], off);
-
-    area                = gGpuPrimCursor;
-    gGpuPrimCursor      = area + 1;
-    scratch->drawArea.x = 0x1C0;
-    scratch->drawArea.y = 0x100;
-    scratch->drawArea.w = 0x140;
-    scratch->drawArea.h = 0xF0;
-    SetDrawArea(area, clip);
-    addPrim(&gGpuCurrentOt[scratch->otz], area);
+    drawAreaPacket      = gGpuPrimCursor;
+    gGpuPrimCursor      = drawAreaPacket + 1;
+    scratch->drawArea.x = FRAME_CAPTURE_VRAM_X;
+    scratch->drawArea.y = FRAME_CAPTURE_VRAM_Y;
+    scratch->drawArea.w = FRAME_CAPTURE_WIDTH_PIXELS;
+    scratch->drawArea.h = FRAME_CAPTURE_HEIGHT_PIXELS;
+    SetDrawArea(drawAreaPacket, clipRect);
+    addPrim(&gGpuCurrentOt[scratch->otz], drawAreaPacket);
 
     SCRATCH_STACK_RELEASE_BLOCK(_FrameCaptureScratch);
 }
+
+#undef FRAME_CAPTURE_QUEUE_COPY_STRIP

@@ -1,7 +1,7 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
 /// Projects the origin of `arg0` to find its ordering-table depth, adds
-/// `arg1`, and queues the frame-buffer pass `frameCaptureQueue` there
+/// `arg1`, and queues the frame-buffer pass `FRAME_CAPTURE_QUEUE` there
 /// (at depth `arg1` when the projection fails).
 void golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1)
 {
@@ -29,6 +29,6 @@ void golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1)
         block->otz = 0;
     }
     block->otz = (block->otz >> 4) + arg1;
-    frameCaptureQueue(block->otz);
+    FRAME_CAPTURE_QUEUE(block->otz);
     SCRATCH_STACK_RELEASE_BLOCK(ActorOriginDepthScratch);
 }

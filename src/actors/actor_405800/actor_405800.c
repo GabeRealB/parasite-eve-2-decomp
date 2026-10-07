@@ -54,6 +54,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+static void _frameCaptureQueue(s32 orderingTableSlot);
+#define FRAME_CAPTURE_QUEUE _frameCaptureQueue
 #include "../../shared/frame_capture.h"
 #include "../../shared/limb_shadows.h"
 #define STALKER_ZEBRA_IVORY_KIND STALKER_IVORY
@@ -1957,7 +1959,7 @@ static __inline__ void Actor405800_ProjectPart(GfxCoord* part)
         block->otz = 0;
     }
     block->otz = (block->otz >> 4) + 0x1E;
-    frameCaptureQueue(block->otz);
+    FRAME_CAPTURE_QUEUE(block->otz);
     SCRATCH_STACK_RELEASE_BLOCK(ActorOriginDepthScratch);
 }
 

@@ -57,6 +57,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+static void _frameCaptureQueue(s32 orderingTableSlot);
+#define FRAME_CAPTURE_QUEUE _frameCaptureQueue
 #include "../../shared/frame_capture.h"
 #include "../../shared/coord_math.h"
 
@@ -3236,7 +3238,7 @@ static void func_actor_400500_80135770(Task* arg0)
                 proj->otz = 0;
             }
             proj->otz = (proj->otz >> 4) + 0x1E;
-            frameCaptureQueue(proj->otz);
+            FRAME_CAPTURE_QUEUE(proj->otz);
             pop_scratch(sizeof(ActorOriginDepthScratch));
             return;
     }

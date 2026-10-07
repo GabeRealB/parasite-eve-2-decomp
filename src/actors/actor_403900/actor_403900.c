@@ -50,6 +50,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+static void _frameCaptureQueue(s32 orderingTableSlot);
+#define FRAME_CAPTURE_QUEUE _frameCaptureQueue
 #include "../../shared/frame_capture.h"
 #define GOLEM_KNIGHT_BISHOP_KIND GOLEM_BISHOP
 #include "../../shared/golem_knight_bishop.h"
