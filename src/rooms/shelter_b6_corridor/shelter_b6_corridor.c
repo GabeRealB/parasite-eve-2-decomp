@@ -61,9 +61,6 @@
 #define SCREEN_WAVE_GRID gScreenWaveGrid.quads
 #include "../../shared/screen_wave.h"
 
-#define D_shelter_b6_corridor_8017F844 (D_shelter_b6_corridor_8017F834 + 2)
-#define D_shelter_b6_corridor_8017F874 (D_shelter_b6_corridor_8017F834 + 8)
-
 /// Current displacement of the screen wave, recomputed every frame from the
 /// context's ramp.
 extern s32 gScreenWaveRamp;
@@ -740,13 +737,13 @@ void shelterB6CorridorDrawViewGlowsTask(Task* task)
             _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[8], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
         case 3:
-            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F844[0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[4], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
-            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F844[8], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F844[12], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[2], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[6], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[10], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[14], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F874[0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[8], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
     }
 }
