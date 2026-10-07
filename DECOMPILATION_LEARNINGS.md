@@ -153104,7 +153104,7 @@ and is taken first, the `li` last).
 | local set at flags and at `param` | literal | 2, same |
 | global named | `value` shared with the view | 10: pointer `$v0`, constant `$a0` |
 | local set at flags and `param`; or at `bodyPos` and flags; or at all three | `value` shared with the view, `s32`/`u32`/`s16`/`u16` | **0** |
-| same | `u8`/`s8` local | 2 (the QImode store source is a fresh constant) |
+| same | `u8`/`s8` local | 2 (`li` below the `lw` again; cause not traced) |
 | same | second set `0x300`, `-1`, `0x10`, `1`, `2` instead of the view | 4 to 16: the *other* constant is then not launched either and floats out of its own stall |
 | same | `if (obj != NULL) value = 9; else value = 9;` | 2: jump1 folds equal-armed constant sets before flow |
 | `enemy` (the spawn argument) reassigned from the global | shared | 16: one pseudo, one register, and the first range needs `$a1` |
