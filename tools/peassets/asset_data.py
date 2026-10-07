@@ -5671,6 +5671,7 @@ EMBEDDED_ASSETS = {
     'neo_ark_shrine_model_049E8': {"source": 'neo_ark_shrine.pe2pkg', "vram": 0x80181FA8, "size": 0x1A8, "ext": '.tmd', "type": 'model'},
     'neo_ark_shrine_model_04C6C': {"source": 'neo_ark_shrine.pe2pkg', "vram": 0x8018222C, "size": 0x1B4, "ext": '.tmd', "type": 'model'},
     'rupert_broderick_hurt_body': {"source": 'actor_113000.pe2pkg', "vram": 0x80133D80, "size": 0x3B60, "ext": '.tmd', "type": 'model'},
+    'acropolis_bridge_path_0BC80': {"source": 'acropolis_bridge.pe2pkg', "vram": 0x80189240, "size": 0x5F0, "ext": '.path', "type": 'movie_path', "include": 'u16'},
     'creeping_stranger_burst_arm': {"source": 'actor_207200.pe2pkg', "vram": 0x80150D68, "size": 0x30C, "ext": '.tmd', "type": 'model'},
     'creeping_stranger_burst_leg': {"source": 'actor_207200.pe2pkg', "vram": 0x80150AD8, "size": 0xF4, "ext": '.tmd', "type": 'model'},
     'dryfield_toilet_morph_053C0': {"source": 'dryfield_toilet.pe2pkg', "vram": 0x80182980, "size": 0xA28, "ext": '.morph', "type": 'morph_deltas', "include": 'u16'},
