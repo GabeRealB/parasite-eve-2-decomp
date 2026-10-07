@@ -862,22 +862,19 @@ static __inline__ void _worldCoordWritePositionalLightMatrix(s32 lightIndex, con
 static __inline__ s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light)
 {
     s16 viewId;
+    s32 score;
 
     viewId = light->transform.lighting.viewId;
     if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
         return 0;
     }
-    {
-        s32 r, g, b, weightedRgb;
-        r                                     = light->color.r;
-        g                                     = light->color.g;
-        b                                     = light->color.b;
-        light->transform.lighting.attenuation = ONE;
-        weightedRgb                           = r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT;
-        // Keep the RGB sum in a register before the inlined admission test.
-        USE_REG3(weightedRgb, weightedRgb, weightedRgb);
-        return (weightedRgb >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT) + WORLD_COORDINATE_LIGHT_SCORE_BASE;
-    }
+    // The image needs `score` assigned more than once and the attenuation stored
+    // after it; where the original split the expression is not known (the shift
+    // and the base as one second statement compiles the same).
+    score                                 = (light->color.r * WORLD_COORDINATE_LIGHT_SCORE_RED_WEIGHT + light->color.g * WORLD_COORDINATE_LIGHT_SCORE_GREEN_WEIGHT + light->color.b * WORLD_COORDINATE_LIGHT_SCORE_BLUE_WEIGHT) >> WORLD_COORDINATE_LIGHT_SCORE_RGB_SHIFT;
+    score                                += WORLD_COORDINATE_LIGHT_SCORE_BASE;
+    light->transform.lighting.attenuation = ONE;
+    return score;
 }
 
 /// Admits a positive contribution only when it outranks the ambient cutoff.
