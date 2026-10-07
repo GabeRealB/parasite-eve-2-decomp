@@ -4158,7 +4158,6 @@ static inline void _actor560800BlendPlayerWeaponAnimation(s32 animationId);
 static inline void Actor560800_SpawnSparksA(Task* task);
 static inline void Actor560800_SpawnSparksB(Task* task);
 static inline void Actor560800_ResetAnimSlots(_Actor560800CastWork* anim, s16 clip);
-static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate);
 static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate);
 static void        func_actor_560800_80135BD8(Task* arg0);
 static void        func_actor_560800_80136AA8(Task* arg0);
@@ -4288,10 +4287,23 @@ static s32 func_actor_560800_80132340(Task* arg0)
     } while (0)
 
 /// Restarts the animation clip's hold counter.
-#define _actor560800ResetAnimHold(work) \
-    do {                                \
-        (work)->animHold = 0;           \
-    } while (0)
+///
+/// FITTED: the two arms are the same store. The image has one `sh zero` here
+/// and no test, but everything after it was compiled as a new basic block: the
+/// blend loop that follows opens with a fresh `li v0,1` although its case
+/// label is reached knowing `step == 1` (the neighbouring cases store `step`'s
+/// register for a 1), and the slot count it reads is not scheduled above the
+/// stores before it. A branch whose arms jump2 merges leaves exactly that. The
+/// original condition is unknown; `work` is used because testing it costs no
+/// instruction.
+static inline void _actor560800ResetAnimHold(_Actor560800CastWork* work)
+{
+    if (work != NULL) {
+        work->animHold = 0;
+    } else {
+        work->animHold = 0;
+    }
+}
 
 /// Blends a cast body's non-root tracks into a new clip over ten frames.
 ///
@@ -5359,28 +5371,6 @@ void func_actor_560800_80134B14(s32 arg0)
     padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
 }
 
-static inline void Actor560800_BlendSlotsFirst(Task* task, u16 id, s16 rate)
-{
-    _Actor560800CastWork* w;
-    u16                   i;
-    u32                   first;
-    u32                   count;
-
-    w           = task->work;
-    w->animId   = id;
-    w->animRate = rate;
-    _actor560800ResetAnimHold(w);
-    count = w->slotCount;
-    __asm__("" : "=r"(first) : "0"((u16)1));
-    if (first < count) {
-        i = 1;
-        do {
-            animationSeekSlotWithBlend(&w->rig.anim, i, id, 0, 10);
-            i++;
-        } while (i < w->slotCount);
-    }
-}
-
 static inline void Actor560800_ResetSlots(Task* task, u16 id, u16 rate)
 {
     _Actor560800CastWork* anim;
@@ -5413,9 +5403,6 @@ static void func_actor_560800_80134BFC(Task* arg0)
     _Actor560800CastWork*     blend;
     _Actor560800CastWork*     anim;
     GfxCoord*                 coord;
-    u32                       first;
-    u32                       count;
-    u16                       i;
 
     work = arg0->work;
     switch (work->kyleCue.id) {
@@ -5461,7 +5448,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     coord->coord.t[0] -= 0x1E;
                     if (work->kyle->extra.tmd->coords->coord.t[0] < D_actor_560800_8016F1CC[5].pos.vx) {
                         TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, &D_actor_560800_8016F1CC[5], 0);
-                        Actor560800_BlendSlotsFirst(work->kyle, 0x1A, ANIMATION_RATE_ONE);
+                        _actor560800BlendCastAnimation(work->kyle, 0x1A, ANIMATION_RATE_ONE);
                         work->kyleCue.id = 0;
                     }
                     work->kyle->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5592,7 +5579,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (++work->kyleCue.counter < 0x5B) {
                         return;
                     }
-                    Actor560800_BlendSlotsFirst(work->kyle, 0x14, ANIMATION_RATE_ONE);
+                    _actor560800BlendCastAnimation(work->kyle, 0x14, ANIMATION_RATE_ONE);
                     break;
                 default:
                     return;
@@ -5614,18 +5601,8 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     blend           = work->no9->work;
                     blend->animId   = 0x20;
                     blend->animRate = ANIMATION_RATE_ONE / 2;
-                    blend->animHold = 0;
-                    SOFT_BARRIER();
-                    count = blend->slotCount;
-                    SOFT_BARRIER();
-                    __asm__("" : "=r"(first) : "0"((u16)1));
-                    if (first < count) {
-                        i = 1;
-                        do {
-                            animationSeekSlotWithBlend(&blend->rig.anim, i, 0x20, 0, 5);
-                            i++;
-                        } while (i < blend->slotCount);
-                    }
+                    _actor560800ResetAnimHold(blend);
+                    _ACTOR560800_BLEND_SLOTS(blend, 0x20, 5);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;

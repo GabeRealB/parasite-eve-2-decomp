@@ -134511,6 +134511,8 @@ Two further constraints mattered. Initialize the separate u16 loop counter insid
 
 Evidence: scratch `nonmatchings/func_actor_560800_80134BFC-vacuum/LEARNINGS.md`, dumps and experiment journal. `base_10.i` SHA256 `4600b357087d9360be29cb8d200baa10aff99a852e9364e638892d55984396cd`; normal-style port `base_11.i` SHA256 `f17afb7496261a9677c4d8e36332ee0cc5a57821ba674c7732963af82298e247`. Both score 100%, and the unscoped integration build passed. Original source spelling remains unresolved; no claim about scheduler hazard selection follows from the failed ordering variants.
 
+**2026-10-07.** Superseded for the three blend guards: no asm. What the identity asm and the two barriers stood for is a basic-block boundary after the hold-counter store, see "A label that is gone from the image" at the end of this file. `SOFT_TOUCH_REG(anim)` is still there.
+
 The search router skipped this function because target.o's interior `alabel func_801353D0` is typed FUNC at offset2004. Removing that symbol from a separate diagnostic copy (never from the scored target) confirms matching blocks/predicates/calls. This is metadata ambiguity, not evidence of a second callable body.
 ## A prologue constant register can be compiler-made from literal uses, not a source variable (func_actor_403100_8013335C, 2026-09-19)
 
@@ -148607,6 +148609,8 @@ has to be inside the wrapper: the scheduler does not move the `lhu step` over
 a loop note, and the tail is then cross-jumped one insn longer. The original
 construct that ends those three case bodies is unknown.
 
+*2026-10-07: resolved without touching the case tails. The boundary is inside the blend helper, not before the case label; see "A label that is gone from the image" at the end of this file.*
+
 **`anim` copied from the pre-switch load (same function, `SOFT_TOUCH_REG(anim)`).**
 `ctx7 = kyle->work` is loaded before `switch (step)` and `case 0:` reloads the
 same pointer, which cse turns into a copy. Uses of the copy are rewritten to
@@ -152693,3 +152697,79 @@ of every stack store relative to loads through a reload register: together
 they fix the sched1 order, and that tells whether a statement order can reach
 it at all. Here the order needs a dependent of the address computation that
 leaves no instruction.
+
+## A label that is gone from the image: cse1, cse2 and sched1 all stopping at the same statement (func_actor_560800_80134BFC, `_actor560800ResetAnimHold`, 2026-10-07)
+
+**Was.** `Actor560800_BlendSlotsFirst` with `__asm__("" : "=r"(first) : "0"((u16)1))`
+for the loop pre-test `li v0,1` / `sltu v0,v0,count`, the same asm plus two
+`SOFT_BARRIER()` at a hand-expanded copy, and a `do { work->animHold = 0; } while (0)`
+macro in front of both (an uncounted fake loop, which had replaced two more
+barriers on 2026-09-27).
+
+**This is not the zero-start family.** `for (i = 1; i < w->slotCount; i++)` with
+a `u16 i` already compiles to `li v0,1` / `sltu` wherever nothing else is known
+to be 1 (the same loop in `case 0:` of the same switches). The three failing
+sites are all in `case 1:` of `switch (step)`: cse follows the dispatch's
+`beq step,1` into the label, the fresh `(set t 1)` of the duplicated exit test
+joins `step`'s class, and `canon_reg` rewrites `(ltu t count)` to read the class
+head, `step`. A redundant initialiser, a `u16 first = 1`, or the count read
+first change nothing; all are on the same cse path.
+
+**Required state.** Three passes have to treat the point between
+`work->animHold = 0` and the loop as the start of a block:
+
+| pass | without a boundary there | in the image |
+|---|---|---|
+| cse1 / cse2 | pre-test reads `step` (`sltu v0,s3,v0`, `step` kept in `$s3` over the calls) | fresh `li v0,1` |
+| sched1 | `lhu count` and `li i,1` float above the three `sh` | stores, then `lhu count` |
+
+while two other `case 1:` bodies of the same function (`animPaused = 1` as
+`sh v1`, and the `sw a3` pair of an inlined play request) do use `step`'s
+register, so the dispatch path itself is followed. A `NOTE_INSN_LOOP_END`
+(the old macro) stops cse1 and the scheduler but not cse2. A `CODE_LABEL` stops
+all three: `cse_end_of_basic_block` ends a block at any label, whichever pass.
+
+**Fix.** The label of an `if`/`else` whose arms are the same store, on a value
+already in a register:
+
+```c
+static inline void _actor560800ResetAnimHold(_Actor560800CastWork* work)
+{
+    if (work != NULL) { work->animHold = 0; } else { work->animHold = 0; }
+}
+```
+
+The branch is `beqz work` (no compare insn), survives to sched2, and jump2
+cross-jumps the arms and deletes it; nothing is left in the image. With it the
+natural loop matches, `Actor560800_BlendSlotsFirst` is the existing
+`_actor560800BlendCastAnimation`, and the hand-expanded site is
+`_actor560800ResetAnimHold(blend); _ACTOR560800_BLEND_SLOTS(blend, 0x20, 5);`.
+The whole TU's `.text` is unchanged, including the other callers of
+`_actor560800BlendCastAnimation`.
+
+**What is fitted.** The condition. The image shows a block boundary and no
+test; which branch stood there is not recoverable. It is one construct in place
+of five asm statements and one fake loop.
+
+**Measured around it.**
+- The boundary has to be after the last store: the same `if`/`else` around
+  `animId` lets the count load float above the two later stores.
+- The helper cannot take the blend length as a parameter: `frames` becomes a
+  pseudo set before the loop and `li s3,10` moves into the pre-test's delay
+  slot (the image has it after, hoisted by loop.c from a literal).
+- A function-level `u32 first = 1` shared by all three sites does survive cse
+  (it becomes the class head: `make_regs_eqv` prefers a register that is live
+  outside the block and dies later than `step`), but it then also feeds
+  `i = 1` and lands in `$a0`; not a match.
+- The three `case 0:` sites that write the stores by hand need no boundary.
+  One of them (`case 4`) does not accept the helper: its pointer was loaded
+  twice and the two arms then store through different registers, so the arms
+  are not merged.
+- `SOFT_TOUCH_REG(anim)` in `case 38` is unchanged. It needs the copy of the
+  pre-switch pointer to stay the register the stores use; a boundary after the
+  first store is too late and one before it has nothing to put in its arms.
+
+**Use.** When an empty asm or a `do { } while (0)` is needed at one statement
+for both a cse result and a schedule, check whether cse2 is the pass that still
+gets through (`-dt`). If it is, only a label explains the image, and a branch
+on a register with identical arms is the smallest source that leaves one.
