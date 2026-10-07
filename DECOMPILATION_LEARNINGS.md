@@ -44919,7 +44919,7 @@ straight into an `if` hoists the same way, and the cut body then opens with
 the value's type, used as the test --
 
 ```c
-void func_actor_535700_80131E2C(Task* task)
+void _actor535700BlackoutTask(Task* task)
 {
     TILE* tile;
     s32   count;          /* $v0: the count the hoisted load left there */
@@ -44937,7 +44937,7 @@ prologue on. The direct form is not a near miss to be tuned: `if
 So when a first function plateaus just under 100% with a small `insert` count,
 disassemble the overlay's leading rodata words before attacking the tail: if
 they are `lui $v0, %hi(sym)` / `lw $v0, %lo(sym)($v0)`, the function is already
-matched and only the span disagrees. `func_actor_535700_80131E2C` is the worked
+matched and only the span disagrees. `_actor535700BlackoutTask` is the worked
 example of the scalar form.
 
 The scalar form recurs across overlays at the same address, and a carrier that
