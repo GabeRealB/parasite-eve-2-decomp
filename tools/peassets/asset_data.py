@@ -5769,6 +5769,7 @@ EMBEDDED_ASSETS = {
     'gameplay_effect_80112200_part_vertices': {"source": 'gameplay.pe2pkg', "vram": 0x8011212C, "size": 0x4, "ext": '.modelpart', "type": 'model'},
     'gameplay_effect_8011231c_part_vertices': {"source": 'gameplay.pe2pkg', "vram": 0x80112248, "size": 0x4, "ext": '.modelpart', "type": 'model'},
     'gameplay_effect_801124b8_part_vertices': {"source": 'gameplay.pe2pkg', "vram": 0x80112364, "size": 0x4, "ext": '.modelpart', "type": 'model', "include": 'u32'},
+    'acropolis_west_elevator_hall_clut_07644': {"source": 'acropolis_west_elevator_hall.pe2pkg', "vram": 0x80184C04, "size": 0x200, "ext": '.clut', "type": 'clut', "include": 'u16'},
     'acropolis_west_elevator_hall_model_02DE8': {"source": 'acropolis_west_elevator_hall.pe2pkg', "vram": 0x801803A8, "size": 0x164, "ext": '.tmd', "type": 'model'},
     'acropolis_west_elevator_hall_model_03058': {"source": 'acropolis_west_elevator_hall.pe2pkg', "vram": 0x80180618, "size": 0x164, "ext": '.tmd', "type": 'model'},
     'shelter_1f_vehicular_airlock_model_03A58': {"source": 'shelter_1f_vehicular_airlock.pe2pkg', "vram": 0x80181018, "size": 0xFEC, "ext": '.tmd', "type": 'model'},
