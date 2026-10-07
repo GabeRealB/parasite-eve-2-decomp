@@ -44,7 +44,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     break;
                 }
             case 0x30000:
-                madChaserCalcPush(arg0, coord, &work->contacts[i], &push);
+                _madChaserCalcContactPushback(arg0, coord, &work->contacts[i], &push);
                 if (ABS(maxX) < ABS(push.vx)) {
                     maxX = push.vx;
                 }

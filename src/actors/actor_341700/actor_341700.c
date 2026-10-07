@@ -96,7 +96,7 @@ static const TaskFuncTable6 gMadChaserTaskStates = { {
 } };
 
 /// Ten task-state handlers of the second enemy form, dispatched by
-/// `madChaserHiddenTask` on `Task::state`.
+/// `_madChaserHiddenTask` on `Task::state`.
 static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     _madChaserSpawnHidden,
     madChaserLurkTick,
@@ -135,9 +135,9 @@ static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
 
 /// Sub-state handlers `madChaserWalkState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserWalkSteps = { {
-    madChaserWalkStart,
-    madChaserWalkApproach,
-    madChaserWalkFinish,
+    _madChaserWalkStart,
+    _madChaserWalkApproach,
+    _madChaserWalkFinish,
 } };
 
 /// Sub-state handlers `madChaserLeapState` dispatches by `subState`.
@@ -160,10 +160,10 @@ static const TaskFuncTable5 gMadChaserAlertSteps = { {
 
 /// Sub-state handlers `madChaserDangleState` dispatches by `subState`.
 static const TaskFuncTable4 gMadChaserDangleSteps = { {
-    madChaserDangleStart,
-    madChaserDangleSway,
-    madChaserDangleFall,
-    madChaserDangleLand,
+    _madChaserDangleStart,
+    _madChaserDangleSway,
+    _madChaserDangleFall,
+    _madChaserDangleLand,
 } };
 
 static TmdSource _gActor341700MadChaserBody;
@@ -752,11 +752,11 @@ TaskMessageEntry gMadChaserMsgTable[3] = {
 
 TaskDesc D_actor_341700_80174D58 = { { { TASK_BODY_TMD, 96 } }, madChaserTask, { .model = &_gActor341700MadChaserBody } };
 
-TaskDesc D_actor_341700_80174D64 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, madChaserHiddenTask, { .model = &_gActor341700MadChaserBody } };
+TaskDesc D_actor_341700_80174D64 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _madChaserHiddenTask, { .model = &_gActor341700MadChaserBody } };
 
 TaskDesc D_actor_341700_80174D70 = { { { TASK_BODY_COORD, 96 } }, taskKill, { .value = 0 } };
 
-TaskDesc D_actor_341700_80174D7C = { { { TASK_BODY_TMD, 96 } }, madChaserHiddenTask, { .model = &_gActor341700MadChaserBody } };
+TaskDesc D_actor_341700_80174D7C = { { { TASK_BODY_TMD, 96 } }, _madChaserHiddenTask, { .model = &_gActor341700MadChaserBody } };
 
 u8 gMadChaserAnimStance[20] = {
     0,
@@ -907,7 +907,7 @@ static const TaskFuncTable5 gMadChaserLurkStates = { {
     _madChaserLurkIdleState,
     _madChaserLurkLookState,
     madChaserLurkRiseState,
-    madChaserLurkAlertState,
+    _madChaserLurkAlertState,
     func_actor_341700_80169D54,
 } };
 
@@ -1117,8 +1117,8 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 /// A further copy, under this file's own name.
 #define madChaserRecoilLightState func_actor_341700_801688C8
-#define madChaserRecoilLight      madChaserStatusHoldStart
-#define madChaserRecoilRecover    madChaserStatusHold
+#define madChaserRecoilLight      _madChaserStatusHoldStart
+#define madChaserRecoilRecover    _madChaserStatusHold
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilLightState
 #undef madChaserRecoilLight

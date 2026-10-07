@@ -1,12 +1,15 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Task callback of the Mad Chaser spawned hidden: runs the handler for
-/// `Task::state` from the ten-entry table that adds the emerge, vanish and two
-/// death phases.
-void madChaserHiddenTask(Task* arg0)
+/// Dispatches one task-state frame of the Mad Chaser form that can emerge.
+///
+/// `Task::state` must be in 0..9 (`MAD_CHASER_TASK_*`), with that handler's storage
+/// initialized and all callbacks loaded. Copies the carrier's ten handlers
+/// before calling the selected one once; the handler owns any state changes
+/// and teardown. The task descriptor supplies the model and enemy instance.
+static void _madChaserHiddenTask(Task* task)
 {
-    TaskFuncTable10 sp;
+    TaskFuncTable10 states;
 
-    sp = gMadChaserHiddenTaskStates;
-    sp.funcs[arg0->state](arg0);
+    states = gMadChaserHiddenTaskStates;
+    states.funcs[task->state](task);
 }

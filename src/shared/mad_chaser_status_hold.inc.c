@@ -1,22 +1,28 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once slot 1 reports a boundary, jump or hold, requests animation 0xB; once the enemy's
-/// buildup countdown (`damageTickEnemyBuildup`) runs out, moves the state machine to state 3.
-void madChaserStatusHold(Task* arg0)
+/// Advances the enemy's buildup-status reaction while maintaining its hold pose.
+///
+/// Requires live work, initialized animation storage, and an enemy with a
+/// started buildup reaction, live parameters and grade in 0..3. Slot-1
+/// boundary/jump/held status requests a four-frame normal-rate blend into
+/// clip 11. Ticks buildup once each call, then selects combat walk at sub-state
+/// zero when it expires. Does not clear the buildup flag or tick animation.
+static void _madChaserStatusHold(Task* task)
 {
-    MadChaserWork* work;
-    MadChaserWork* work2;
+    enum {
+        MAD_CHASER_STATUS_HOLD_CLIP         = 11,
+        MAD_CHASER_STATUS_HOLD_BLEND_FRAMES = 4,
+    };
+    MadChaserWork* requestWork;
 
-    if ((_madChaserAnimHasBoundaryStatus(arg0) << 0x10) != 0) {
-        work                  = (MadChaserWork*)arg0->work;
-        work->animBlendFrames = 4;
-        work->animRate        = ANIMATION_RATE_ONE;
-        work->animId          = 0xB;
-        work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+    if (_madChaserAnimHasBoundaryStatus(task)) {
+        requestWork                  = task->work;
+        requestWork->animBlendFrames = MAD_CHASER_STATUS_HOLD_BLEND_FRAMES;
+        requestWork->animRate        = ANIMATION_RATE_ONE;
+        requestWork->animId          = MAD_CHASER_STATUS_HOLD_CLIP;
+        requestWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     }
-    if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
-        work2           = (MadChaserWork*)arg0->work;
-        work2->state    = 3;
-        work2->subState = 0;
+    if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
+        _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_WALK);
     }
 }

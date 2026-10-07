@@ -692,11 +692,11 @@ TaskMessageEntry gMadChaserMsgTable[3] = {
 
 TaskDesc Actor04400_D107E4 = { { { TASK_BODY_TMD, 96 } }, madChaserTask, { .model = &_gActor04400MadChaserBody } };
 
-TaskDesc Actor04400_D107F0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, madChaserHiddenTask, { .model = &_gActor04400MadChaserBody } };
+TaskDesc Actor04400_D107F0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _madChaserHiddenTask, { .model = &_gActor04400MadChaserBody } };
 
 TaskDesc Actor04400_D107FC = { { { TASK_BODY_COORD, 96 } }, taskKill, { .value = 0 } };
 
-TaskDesc Actor04400_D10808 = { { { TASK_BODY_TMD, 96 } }, madChaserHiddenTask, { .model = &_gActor04400MadChaserBody } };
+TaskDesc Actor04400_D10808 = { { { TASK_BODY_TMD, 96 } }, _madChaserHiddenTask, { .model = &_gActor04400MadChaserBody } };
 
 u8 gMadChaserAnimStance[20] = {
     0,
@@ -764,7 +764,7 @@ static const TaskFuncTable6 gMadChaserTaskStates = { {
 } };
 
 /// Task-state handlers of the second enemy form, dispatched by
-/// `madChaserHiddenTask` on `Task::state`.
+/// `_madChaserHiddenTask` on `Task::state`.
 static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     _madChaserSpawnHidden,
     Actor04400_Fn03538,
@@ -802,9 +802,9 @@ static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
 
 /// Sub-state handlers `madChaserWalkState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserWalkSteps = { {
-    madChaserWalkStart,
-    madChaserWalkApproach,
-    madChaserWalkFinish,
+    _madChaserWalkStart,
+    _madChaserWalkApproach,
+    _madChaserWalkFinish,
 } };
 
 /// Sub-state handlers `madChaserLeapState` dispatches by `subState`.
@@ -827,10 +827,10 @@ static const TaskFuncTable5 Actor04400_D0009C = { {
 
 /// Sub-state handlers `madChaserDangleState` dispatches by `subState`.
 static const TaskFuncTable4 gMadChaserDangleSteps = { {
-    madChaserDangleStart,
-    madChaserDangleSway,
-    madChaserDangleFall,
-    madChaserDangleLand,
+    _madChaserDangleStart,
+    _madChaserDangleSway,
+    _madChaserDangleFall,
+    _madChaserDangleLand,
 } };
 
 #include "../../shared/mad_chaser_limb_shadow.inc.c"
@@ -903,7 +903,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     break;
                 }
             case 0x30000:
-                madChaserCalcPush(arg0, coord, &work->contacts[i], &push);
+                _madChaserCalcContactPushback(arg0, coord, &work->contacts[i], &push);
                 if (ABS(maxX) < ABS(push.vx)) {
                     maxX = push.vx;
                 }
@@ -1103,7 +1103,7 @@ static const TaskFuncTable5 Actor04400_D00128 = { {
     _madChaserLurkIdleState,
     _madChaserLurkLookState,
     madChaserLurkRiseState,
-    madChaserLurkAlertState,
+    _madChaserLurkAlertState,
     Actor04400_Fn07F04,
 } };
 
@@ -1172,7 +1172,7 @@ static const TaskFuncTable3 Actor04400_D0015C = { {
     _madChaserLurkLookAround,
 } };
 
-/// Sub-state handlers `madChaserLurkAlertState` dispatches by `subState`.
+/// Sub-state handlers `_madChaserLurkAlertState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     _madChaserStartAlert,
     _madChaserLurkAlertStartSidestep,
@@ -1350,8 +1350,8 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 /// A further copy, under this file's own name.
 #define madChaserRecoilLightState Actor04400_Fn06A78
-#define madChaserRecoilLight      madChaserStatusHoldStart
-#define madChaserRecoilRecover    madChaserStatusHold
+#define madChaserRecoilLight      _madChaserStatusHoldStart
+#define madChaserRecoilRecover    _madChaserStatusHold
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilLightState
 #undef madChaserRecoilLight

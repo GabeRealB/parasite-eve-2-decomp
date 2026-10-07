@@ -29,44 +29,49 @@ static __inline__ void madChaserUpdateColor(void* enemy, GfxCoord* coord)
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
-/// Push-out of the model from contact record `rec`: how far `coord` sits
-/// inside the record's radius (`depth`), along the direction from the
-/// record's centre to the root part, carried into grid space.
+/// Computes the Mad Chaser's horizontal push from one sphere contact.
 ///
-/// `rec` must stay an inline argument: `integrate.c` expands it with
-/// `EXPAND_SUM`, giving `(i * 0x18 + work) + 0x2EC` rather than a loop giv.
-static __inline__ void madChaserCalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out)
+/// Measures overlap from overlapCoord's composed X/Z, narrowed to signed
+/// halfwords, against `contact->distance` (summed sphere radii). The direction
+/// uses the live model root's full XYZ separation from the contact centre.
+/// Both inputs must be in the same composed view frame; the grid view basis's
+/// transpose carries the normalized direction into room axes. Negative depth
+/// produces zero push. X/Z are narrowed to s16 after Q12 scaling; Y is zero
+/// and pad is untouched. Output must provide writable XYZ.
+///
+/// Requires live model storage, a sphere contact, and an initialized active
+/// grid view matrix. Inputs must fit SDK normalization and signed 32-bit
+/// squares/products. Borrows all pointers for the call and uses SDK/GTE math;
+/// it does not refresh the composed coordinates or reserve scratch storage.
+static __inline__ void _madChaserCalcContactPushback(const Task* task, const GfxCoord* overlapCoord, const WorldCollisionContact* contact, SVECTOR* pushDelta)
 {
-    SVECTOR   pos;
-    VECTOR    d;
-    VECTOR    n;
-    GfxCoord* c2;
-    s32       t;
-    s32       pen;
+    enum { MAD_CHASER_PUSH_DIRECTION_FRACTION_BITS = 12 };
+    SVECTOR         overlapPosition;
+    VECTOR          separation;
+    VECTOR          normalizedDirection;
+    const GfxCoord* root;
+    s32             penetrationDepth;
 
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    c2     = arg0->extra.tmd->coords;
-    d.vx   = pos.vx - rec->point.vx;
-    d.vy   = 0;
-    d.vz   = pos.vz - rec->point.vz;
-    pen    = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen    = rec->distance - pen;
-    if (pen <= 0) {
-        t = 0;
-    } else {
-        t = pen;
-    }
-    pen  = t;
-    d.vx = c2->workm.t[0] - rec->point.vx;
-    d.vy = c2->workm.t[1] - rec->point.vy;
-    d.vz = c2->workm.t[2] - rec->point.vz;
-    VectorNormal(&d, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &n, &d);
-    out->vx = (pen * d.vx) >> 12;
-    out->vy = 0;
-    out->vz = (pen * d.vz) >> 12;
+    // Measure X/Z overlap before including height in the push direction.
+    overlapPosition.vx = overlapCoord->workm.t[0];
+    overlapPosition.vy = overlapCoord->workm.t[1];
+    overlapPosition.vz = overlapCoord->workm.t[2];
+    root               = task->extra.tmd->coords;
+    separation.vx      = overlapPosition.vx - contact->point.vx;
+    separation.vy      = 0;
+    separation.vz      = overlapPosition.vz - contact->point.vz;
+    penetrationDepth   = SquareRoot0(separation.vx * separation.vx + separation.vz * separation.vz);
+    penetrationDepth   = contact->distance - penetrationDepth;
+    penetrationDepth   = (penetrationDepth <= 0) ? 0 : penetrationDepth;
+    // Use the live root for direction, then remove the composed view basis.
+    separation.vx = root->workm.t[0] - contact->point.vx;
+    separation.vy = root->workm.t[1] - contact->point.vy;
+    separation.vz = root->workm.t[2] - contact->point.vz;
+    VectorNormal(&separation, &normalizedDirection);
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &normalizedDirection, &separation);
+    pushDelta->vx = (penetrationDepth * separation.vx) >> MAD_CHASER_PUSH_DIRECTION_FRACTION_BITS;
+    pushDelta->vy = 0;
+    pushDelta->vz = (penetrationDepth * separation.vz) >> MAD_CHASER_PUSH_DIRECTION_FRACTION_BITS;
 }
 
 /// Selects a behavior in the current task state and resets its sub-state.

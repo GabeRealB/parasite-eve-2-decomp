@@ -6,8 +6,8 @@ void madChaserLurkRiseState(Task* arg0)
 {
     MadChaserWork* work                = (MadChaserWork*)arg0->work;
     void           (*states[2])(Task*) = {
-        madChaserLurkRiseStart,
-        madChaserLurkRiseEnd,
+        _madChaserLurkRiseStart,
+        _madChaserLurkRiseEnd,
     };
 
     if (_madChaserJoinAlert(arg0) == 0) {

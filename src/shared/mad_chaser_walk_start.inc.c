@@ -2,48 +2,52 @@
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Starts a walk: requests animation 7, plays the enemy's sound 1, draws a
-/// random 0..0x7FF into `leapRangeBonus` and advances the sub-state. The animation
-/// speed and the turn step `turnStep` grow with the distance to the nearer
-/// player actor in `playerDist`, in bands of 1000.
-void madChaserWalkStart(Task* arg0)
+/// Starts the combat approach with a distance-scaled walk and random leap range.
+///
+/// Requires live enemy/model/work storage, a tracked player distance and the
+/// walk entry sub-state. Blends clip 7 over eight frames, advances to approach,
+/// plays the positional walk cue and consumes one resident LCG draw for a
+/// 0..2047-unit range bonus. Distance bands of 1000 parent-coordinate units
+/// select rates 16/20/24/28/32/64 (sixteenths of a frame) and heading steps
+/// 16/18/20/22/24/32 (4096ths of a turn). Animation ticking belongs to the caller.
+static void _madChaserWalkStart(Task* task)
 {
     MadChaserWork* work;
     s32            soundId;
-    s32            pan;
-    s16            step;
+    s32            audioPan;
+    s16            turnStep;
 
-    work                  = (MadChaserWork*)arg0->work;
-    work->animBlendFrames = 8;
-    work->animId          = 7;
+    work                  = task->work;
+    work->animBlendFrames = MAD_CHASER_WALK_BLEND_FRAMES;
+    work->animId          = MAD_CHASER_WALK_CLIP;
     work->animRate        = ANIMATION_RATE_ONE;
     work->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
     work->subState++;
-    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0001;
-    pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 1);
+    audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->leapRangeBonus = (gRandomLcgState >> 0x10) & 0x7FF;
-    if (work->playerDist < 1000) {
+    work->leapRangeBonus = (gRandomLcgState >> 16) & MAD_CHASER_WALK_LEAP_RANGE_BONUS_MASK;
+    if (work->playerDist < MAD_CHASER_WALK_DISTANCE_BAND) {
         work->animRate = ANIMATION_RATE_ONE;
-        work->turnStep = 0x10;
+        work->turnStep = MAD_CHASER_WALK_BASE_TURN_STEP;
         return;
     }
-    if (work->playerDist < 2000) {
-        work->animRate = 0x14;
-        step           = 0x12;
-    } else if (work->playerDist < 3000) {
-        work->animRate = 0x18;
-        step           = 0x14;
-    } else if (work->playerDist < 4000) {
-        work->animRate = 0x1C;
-        step           = 0x16;
-    } else if (work->playerDist < 5000) {
-        work->animRate = 0x20;
-        step           = 0x18;
+    if (work->playerDist < 2 * MAD_CHASER_WALK_DISTANCE_BAND) {
+        work->animRate = ANIMATION_RATE_ONE + MAD_CHASER_WALK_RATE_BAND_STEP;
+        turnStep       = MAD_CHASER_WALK_BASE_TURN_STEP + MAD_CHASER_WALK_TURN_BAND_STEP;
+    } else if (work->playerDist < 3 * MAD_CHASER_WALK_DISTANCE_BAND) {
+        work->animRate = ANIMATION_RATE_ONE + 2 * MAD_CHASER_WALK_RATE_BAND_STEP;
+        turnStep       = MAD_CHASER_WALK_BASE_TURN_STEP + 2 * MAD_CHASER_WALK_TURN_BAND_STEP;
+    } else if (work->playerDist < 4 * MAD_CHASER_WALK_DISTANCE_BAND) {
+        work->animRate = ANIMATION_RATE_ONE + 3 * MAD_CHASER_WALK_RATE_BAND_STEP;
+        turnStep       = MAD_CHASER_WALK_BASE_TURN_STEP + 3 * MAD_CHASER_WALK_TURN_BAND_STEP;
+    } else if (work->playerDist < 5 * MAD_CHASER_WALK_DISTANCE_BAND) {
+        work->animRate = ANIMATION_RATE_ONE + 4 * MAD_CHASER_WALK_RATE_BAND_STEP;
+        turnStep       = MAD_CHASER_WALK_BASE_TURN_STEP + 4 * MAD_CHASER_WALK_TURN_BAND_STEP;
     } else {
-        work->animRate = 0x40;
-        step           = 0x20;
+        work->animRate = MAD_CHASER_WALK_FAR_RATE;
+        turnStep       = MAD_CHASER_WALK_FAR_TURN_STEP;
     }
-    work->turnStep = step;
+    work->turnStep = turnStep;
 }

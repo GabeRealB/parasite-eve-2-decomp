@@ -1,36 +1,53 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Rebuilds the root rotation: pitches about X by a sine sway driven by
-/// `frameCount`, turns by the heading `rotation.vy`, and copies the 3x3 into the
-/// root coordinate. When `hitTaken` is 1, latches that pitch into
-/// `fallPitch`, releases the anchor, clears the flag and the fall motion, and advances the
-/// sub-state.
-void madChaserDangleSway(Task* arg0)
+/// Copies the replacement dangle rotation while retaining root translation.
+///
+/// Requires readable source and writable destination 3x3 coefficients. The
+/// matrices are borrowed; translation and composition stamps are retained.
+static __inline__ void _madChaserDangleSwayCopyRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
 {
+    rootMatrix->m[0][0] = rotationMatrix->m[0][0];
+    rootMatrix->m[0][1] = rotationMatrix->m[0][1];
+    rootMatrix->m[0][2] = rotationMatrix->m[0][2];
+    rootMatrix->m[1][0] = rotationMatrix->m[1][0];
+    rootMatrix->m[1][1] = rotationMatrix->m[1][1];
+    rootMatrix->m[1][2] = rotationMatrix->m[1][2];
+    rootMatrix->m[2][0] = rotationMatrix->m[2][0];
+    rootMatrix->m[2][1] = rotationMatrix->m[2][1];
+    rootMatrix->m[2][2] = rotationMatrix->m[2][2];
+}
+
+/// Sways the anchored root until a hit releases it into the fall.
+///
+/// Requires live work/model storage. Replaces root rotation with X pitch then
+/// Y heading, retaining translation. Pitch uses 4096 angle units per turn:
+/// a 64-frame sine cycle of amplitude 512 about -1024. Only hitTaken == 1
+/// releases the anchor, consumes the hit latch, saves pitch and zeros the
+/// signed-halfword fall motion before advancing. The caller marks composition
+/// dirty and applies the part-6 anchor while it remains enabled.
+static void _madChaserDangleSway(Task* task)
+{
+    enum {
+        MAD_CHASER_DANGLE_PHASE_SHIFT      = 6,
+        MAD_CHASER_DANGLE_SWAY_SCALE       = 16,
+        MAD_CHASER_DANGLE_SWAY_SCALE_SHIFT = 7,
+    };
     MadChaserWork* work;
-    GfxCoord*      coord;
-    MATRIX         rot;
-    MATRIX*        src;
-    MATRIX*        dst;
+    GfxCoord*      root;
+    MATRIX         rotation;
+    MATRIX*        rotationMatrix;
+    MATRIX*        rootMatrix;
     s16            pitch;
 
-    work  = (MadChaserWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
-    src   = &rot;
-    gfxSetRotIdentity(src);
-    pitch = ((rsin(work->frameCount << 6) * 0x10) >> 7) - 0x400;
-    RotMatrixX(pitch, src);
-    RotMatrixY(work->rotation.vy, src);
-    dst          = &coord->coord;
-    dst->m[0][0] = src->m[0][0];
-    dst->m[0][1] = src->m[0][1];
-    dst->m[0][2] = src->m[0][2];
-    dst->m[1][0] = src->m[1][0];
-    dst->m[1][1] = src->m[1][1];
-    dst->m[1][2] = src->m[1][2];
-    dst->m[2][0] = src->m[2][0];
-    dst->m[2][1] = src->m[2][1];
-    dst->m[2][2] = src->m[2][2];
+    work           = task->work;
+    root           = task->extra.tmd->coords;
+    rotationMatrix = &rotation;
+    gfxSetRotIdentity(rotationMatrix);
+    pitch = ((rsin(work->frameCount << MAD_CHASER_DANGLE_PHASE_SHIFT) * MAD_CHASER_DANGLE_SWAY_SCALE) >> MAD_CHASER_DANGLE_SWAY_SCALE_SHIFT) - ACTOR_TRANSFORM_ANGLE_TURN / 4;
+    RotMatrixX(pitch, rotationMatrix);
+    RotMatrixY(work->rotation.vy, rotationMatrix);
+    rootMatrix = &root->coord;
+    _madChaserDangleSwayCopyRotation(rootMatrix, rotationMatrix);
     if (work->hitTaken == 1) {
         work->hitTaken  = 0;
         work->anchored  = 0;

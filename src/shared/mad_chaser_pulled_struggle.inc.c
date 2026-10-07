@@ -1,9 +1,13 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Requests the dead pull's stance-specific settle animation or releases busy.
+/// Holds a dead resisting pull in its settle pose, except for a blast reaction.
 ///
-/// Requires live work and a valid settle-table entry for every non-leap clip.
-/// Retains four-frame normal-rate blending and reloads the task's live work.
+/// Requires `work == task->work` and a current clip in 1..19. Clip 8 selects
+/// clip 5 before the first leap or clip 6 afterwards; other clips use the
+/// carrier's one-based settle table. A non-blast sets busy and requests a
+/// four-frame blend at normal rate on the live work block. A blast only clears
+/// busy, retaining the animation. Playback and task transitions belong to the
+/// caller; this helper borrows the work and leaves state/subState intact.
 static __inline__ void _madChaserPulledStruggleRequestSettle(Task* task, MadChaserWork* work)
 {
     if (work->hitReaction != MAD_CHASER_HIT_REACTION_BLAST) {

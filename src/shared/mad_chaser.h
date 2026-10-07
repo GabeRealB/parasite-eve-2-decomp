@@ -72,6 +72,7 @@ enum {
 /// Behavior indices selected by the combat-state setters.
 enum {
     MAD_CHASER_COMBAT_STATE_WALK         = 3,
+    MAD_CHASER_COMBAT_STATE_LEAP         = 4,
     MAD_CHASER_COMBAT_STATE_ALERT        = 5,
     MAD_CHASER_COMBAT_STATE_RECOIL_LIGHT = 6,
     MAD_CHASER_COMBAT_STATE_RECOIL_HEAVY = 7,
@@ -105,6 +106,24 @@ enum {
     MAD_CHASER_PULL_LEAP_CLIP           = 8,
     MAD_CHASER_PULL_LOW_SETTLE_CLIP     = 5,
     MAD_CHASER_PULL_UPRIGHT_SETTLE_CLIP = 6
+};
+
+/// Walk tuning: distances in the root's parent frame, rates in sixteenths of a
+/// frame, and turn steps in 4096ths of a turn.
+enum {
+    MAD_CHASER_WALK_CLIP                    = 7,
+    MAD_CHASER_WALK_BLEND_FRAMES            = 8,
+    MAD_CHASER_WALK_DISTANCE_BAND           = 1000,
+    MAD_CHASER_WALK_RATE_BAND_STEP          = 4,
+    MAD_CHASER_WALK_BASE_TURN_STEP          = 16,
+    MAD_CHASER_WALK_TURN_BAND_STEP          = 2,
+    MAD_CHASER_WALK_FAR_RATE                = 4 * ANIMATION_RATE_ONE,
+    MAD_CHASER_WALK_FAR_TURN_STEP           = 32,
+    MAD_CHASER_WALK_DISTANCE_AT_NORMAL_RATE = -16,
+    MAD_CHASER_WALK_LEAP_RANGE_BONUS_MASK   = 0x7FF,
+    MAD_CHASER_WALK_BASE_LEAP_DISTANCE      = 2000,
+    MAD_CHASER_WALK_CLOSE_LEAP_DISTANCE     = 1500,
+    MAD_CHASER_WALK_LEAP_HALF_ARC           = ACTOR_TRANSFORM_ANGLE_TURN / 8
 };
 
 /// Work block of a Mad Chaser task.
@@ -221,14 +240,14 @@ void madChaserSpawnGibs(Task* arg0);
 static void _madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 halfWidth, s32 worldY, u8 shade);
 void        madChaserSpawn(Task* task);
 static void _madChaserSpawnHidden(Task* task);
-void        madChaserWalkStart(Task* arg0);
-void        madChaserWalkApproach(Task* arg0);
+static void _madChaserWalkStart(Task* task);
+static void _madChaserWalkApproach(Task* task);
 static void _madChaserLeapAttack(Task* task);
 static void _madChaserLeapTurnAway(Task* task);
 static void _madChaserLeapRebound(Task* task);
 void        madChaserDangleFrame(Task* arg0);
-void        madChaserDangleFall(Task* arg0);
-void        madChaserDangleLand(Task* arg0);
+static void _madChaserDangleFall(Task* task);
+static void _madChaserDangleLand(Task* task);
 void        madChaserApplyContacts(Task* arg0, s16 arg1);
 static void _madChaserTickAnim(Task* task);
 void        madChaserShrinkWithDust(Task* arg0);
@@ -254,17 +273,17 @@ static void _madChaserSetAlertHold(Task* task, s32 claim);
 static s16  _madChaserTakeHitRequest(Task* task);
 static void _madChaserQueueCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
 static void _madChaserTurnToPlayer(Task* task, s32 turnStep);
-void        madChaserStatusHold(Task* arg0);
+static void _madChaserStatusHold(Task* task);
 static void _madChaserKnockdownStart(Task* task);
 static void _madChaserKnockdownRise(Task* task);
 static void _madChaserKnockdownEnd(Task* task);
-void        madChaserWalkFinish(Task* arg0);
+static void _madChaserWalkFinish(Task* task);
 static void _madChaserLeapLand(Task* task);
 static void _madChaserAlertCry(Task* task);
 static void _madChaserAlertRelease(Task* task);
 static void _madChaserAlertStartSidestep(Task* task);
 static void _madChaserAlertSidestep(Task* task);
-void        madChaserDangleSway(Task* arg0);
+static void _madChaserDangleSway(Task* task);
 void        madChaserDeathCry(Task* arg0);
 void        madChaserDeathSettle(Task* arg0);
 void        madChaserDeathWaitAnim(Task* task);
@@ -278,7 +297,7 @@ static void _madChaserLurkWait(Task* task);
 static void _madChaserLurkIdleEnd(Task* task);
 static void _madChaserLurkPrepareLook(Task* task);
 static void _madChaserLurkStartLookHold(Task* task);
-void        madChaserLurkRiseEnd(Task* arg0);
+static void _madChaserLurkRiseEnd(Task* task);
 static void _madChaserLurkAlertStartSidestep(Task* task);
 static void _madChaserLurkShiftStart(Task* task);
 static void _madChaserLurkShiftStartSidestep(Task* task);
@@ -293,7 +312,7 @@ s32         madChaserTakeKnockdownRequest(Task* arg0);
 
 static inline void _madChaserEnterTaskState(Task* task, s32 taskState);
 static inline void madChaserUpdateColor(void* enemy, GfxCoord* coord);
-static inline void madChaserCalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
+static inline void _madChaserCalcContactPushback(const Task* task, const GfxCoord* overlapCoord, const WorldCollisionContact* contact, SVECTOR* pushDelta);
 static inline void _madChaserSetBehaviorState(Task* task, s32 behaviorState);
 static inline s32  _madChaserTakeHitReaction(Task* task);
 static inline s32  _madChaserAnimHasBoundaryStatusInline(Task* task);
@@ -305,9 +324,9 @@ void        madChaserEmergeTick(Task* arg0);
 void        madChaserShrinkDeathTick(Task* arg0);
 void        madChaserDropDeathTick(Task* arg0);
 void        madChaserDeathTick(Task* arg0);
-void        madChaserLurkAlertState(Task* arg0);
+static void _madChaserLurkAlertState(Task* task);
 void        madChaserWalkState(Task* task);
-void        madChaserHiddenTask(Task* arg0);
+static void _madChaserHiddenTask(Task* task);
 void        madChaserKnockdownState(Task* arg0);
 void        madChaserPullState(Task* arg0);
 void        madChaserTask(Task* arg0);
@@ -319,10 +338,10 @@ static s16  _madChaserJoinAlert(Task* task);
 void        madChaserDeathPause(Task* arg0);
 static s16  _madChaserAnimHasBoundaryStatus(Task* task);
 static void _madChaserAlertWait(Task* task);
-void        madChaserDangleStart(Task* arg0);
+static void _madChaserDangleStart(Task* task);
 static void _madChaserPlaceRoot(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg);
-void        madChaserStatusHoldStart(Task* arg0);
-void        madChaserLurkRiseStart(Task* arg0);
+static void _madChaserStatusHoldStart(Task* task);
+static void _madChaserLurkRiseStart(Task* task);
 static s32  _madChaserScaleByAnimRate(Task* task, s16 distanceAtNormalRate);
 static void _madChaserAdvanceBehaviorState(Task* task);
 void        madChaserStartDespawn(Task* arg0);

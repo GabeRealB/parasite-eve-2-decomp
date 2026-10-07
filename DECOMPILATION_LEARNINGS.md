@@ -153400,8 +153400,8 @@ became `gfxSetRotIdentity(<matrix>)` on its first build, including the two
 hand-ordered `ONE, ONE, ONE, 0, 0` blocks in `dryfield_breezeway_2.c` and the
 `one = ONE` constant-local blocks in `dryfield_night_gas_station.c`. The one
 choice that mattered: where the function's matrix pointer is a real local that
-later code reads through (`madChaserDangleFall`/`Sway`'s `src`), keep the local
-and pass `&src->mat`; replacing its uses by `&rot` moved registers.
+later code reads through (`_madChaserDangleFall`/`_madChaserDangleSway`'s `rotationMatrix`), keep the local
+and pass `rotationMatrix`; replacing its uses by `&rotation` moved registers.
 
 ### Identity blocks whose zero cells go through `$sp` and whose `ONE` cells go through a register: where the inline matches and where it does not (actors/pe/weapons, 2026-10-07)
 

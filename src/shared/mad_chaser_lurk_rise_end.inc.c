@@ -1,22 +1,13 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, returns the state machine to state 0.
-void madChaserLurkRiseEnd(Task* arg0)
+/// Returns the lurk rise to idle when slot 1 reaches an animation boundary.
+///
+/// Requires initialized animation/work storage. A boundary, control jump or
+/// held pose selects lurk idle at sub-state zero; other statuses leave the
+/// behavior intact. Does not consume status or tick the animation.
+static void _madChaserLurkRiseEnd(Task* task)
 {
-    MadChaserWork* work;
-    MadChaserWork* work2;
-    s32            cond;
-
-    work = (MadChaserWork*)arg0->work;
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2           = (MadChaserWork*)arg0->work;
-        work2->state    = 0;
-        work2->subState = 0;
+    if (_madChaserAnimHasBoundaryStatusInline(task)) {
+        _madChaserSetBehaviorState(task, MAD_CHASER_LURK_STATE_IDLE);
     }
 }

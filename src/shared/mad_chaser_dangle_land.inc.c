@@ -1,41 +1,44 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Plays sounds 4 and 3 on the first two frames; once slot 1 reports a boundary, jump or hold,
-/// moves the task to state 3 with the state machine at state 3.
-void madChaserDangleLand(Task* arg0)
+/// Plays a landing cue on this enemy's positional character-bank channel.
+///
+/// Requires live enemy/model storage and a character-bank cue without channel
+/// bits set. Pan and depth are signed bytes; the place index supplies channel
+/// bits 8..11. Borrows the task and queues the sound without advancing state.
+static __inline__ void _madChaserDangleLandPlayCue(Task* task, u32 cue)
+{
+    u32 soundId;
+    s32 audioPan;
+
+    soundId    = ((Enemy*)task->spawnArg2.pointer)->placeKey;
+    soundId  >>= ENEMY_PLACE_INDEX_SHIFT;
+    soundId  <<= 8;
+    soundId   |= cue;
+    audioPan   = worldCoordGetOriginAudioPan(task->extra.tmd->coords) << 24;
+    audioPan >>= 24;
+    sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+}
+
+/// Completes the dangle landing animation and enters the combat walk.
+///
+/// Requires live enemy/model/work storage, initialized animation slots and a
+/// stateFrames counter reset by the fall. Increments the wrapping u16 counter
+/// and plays positional character-bank cues 4 and 3 on signed frames 1 and 2.
+/// A slot-1 boundary, control jump or held pose enters combat at its walk
+/// behavior and sub-state zero; the caller applies animation and collision.
+static void _madChaserDangleLand(Task* task)
 {
     MadChaserWork* work;
-    MadChaserWork* next;
-    MadChaserWork* next2;
-    u32            soundId;
-    s32            pan;
 
-    work = (MadChaserWork*)arg0->work;
+    work = task->work;
     if ((s16)++work->stateFrames == 1) {
-        soundId   = (u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        soundId >>= 0xC;
-        soundId <<= 8;
-        soundId  |= 0x402C0004;
-        pan       = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan     >>= 24;
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        _madChaserDangleLandPlayCue(task, SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 4));
     }
     if ((s16)work->stateFrames == 2) {
-        soundId   = (u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        soundId >>= 0xC;
-        soundId <<= 8;
-        soundId  |= 0x402C0003;
-        pan       = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan     >>= 24;
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        _madChaserDangleLandPlayCue(task, SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 3));
     }
-    if (_madChaserAnimHasBoundaryStatus(arg0)) {
-        next            = (MadChaserWork*)arg0->work;
-        arg0->state     = 3;
-        next->state     = 0;
-        next->subState  = 0;
-        next2           = (MadChaserWork*)arg0->work;
-        next2->state    = 3;
-        next2->subState = 0;
+    if (_madChaserAnimHasBoundaryStatus(task)) {
+        _madChaserEnterTaskState(task, MAD_CHASER_TASK_COMBAT);
+        _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_WALK);
     }
 }
