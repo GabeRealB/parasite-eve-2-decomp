@@ -1,7 +1,7 @@
 /* The Dryfield main street room in its day and night versions. It covers the
  * room's 0x13EE handler: it answers the neighbours' variants from story
  * nibbles, runs two staged events from its own gate and two item events
- * through roomEventGate. It also has the CAP cue sound handler, the 'talk'
+ * through _roomEventGate. It also has the CAP cue sound handler, the 'talk'
  * handler that starts the play-time task, and the drifting puffs the room
  * task spawns as effect 0x601B1 by day and 0x601B2 by night. A puff is one
  * frame of a 10-cell 48x48 sheet on tpage 0x2B that drifts on a random bearing.

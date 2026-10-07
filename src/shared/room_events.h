@@ -7,8 +7,9 @@
  * Include this header in the prologue and room_event_gate, room_event_task,
  * room_event_staged_task or room_event_departure_task (each with the .inc.c
  * suffix) at the position of that
- * function; a package includes only the ones it carries. The functions have
- * external linkage, since some rooms call them from another of their files.
+ * function; a package includes only the ones it carries. The gate is static
+ * in each carrier; the event and departure tasks have external linkage,
+ * since some rooms call them from another of their files.
  *
  * The event's state belongs to the room, which declares and defines it at its
  * own positions under these names - declaring it here would move it, since bss
@@ -78,9 +79,9 @@
 #define ROOM_EVENT_FADE gRoomEventFade.fade
 #endif
 
-s32  roomEventGate(RoomEventReq* req, RoomEventMsg* msg);
-void roomEventTask(Task* task);
-void roomEventStagedTask(Task* arg0);
-void roomDepartureTask(Task* arg0);
+static s32 _roomEventGate(const RoomEventReq* request, const RoomEventMsg* message);
+void       roomEventTask(Task* task);
+void       roomEventStagedTask(Task* arg0);
+void       roomDepartureTask(Task* arg0);
 
 #endif /* SRC_SHARED_ROOM_EVENTS_H */

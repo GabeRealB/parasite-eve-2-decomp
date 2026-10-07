@@ -57,7 +57,7 @@
 
 extern RoomEventActiveBytes gRoomEventActive;
 
-/// The event the room's gate `roomEventGate`
+/// The event the room's gate `_roomEventGate`
 /// latched: the incoming message and the request, kept for the event task it
 /// spawns from `gRoomEventTaskDesc`, and the flag the gate
 /// sets once it has done so.

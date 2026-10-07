@@ -244,7 +244,7 @@ gRoomEventActive = 0x80188FB4; // size:0x4 defined:True
 gRoomEventReq = 0x80188FB8; // size:0x14 defined:True
 
 dryfieldNightSaloonGRDrawGlowsTask = 0x8017E6C8; // type:func
-roomEventGate = 0x8017D8A0; // type:func
+_roomEventGate = 0x8017D8A0; // type:func
 roomEventTask = 0x8017DA04; // type:func
 _glowDrawFlare = 0x8017E8B0; // type:func
 jukeboxDrawRow = 0x8017E0C0; // type:func

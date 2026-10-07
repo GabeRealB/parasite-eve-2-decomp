@@ -184,7 +184,7 @@ extern RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask;
 extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 
-/// Set when `roomEventGate` started a transition,
+/// Set when `_roomEventGate` started a transition,
 /// cleared on every other call.
 extern u8 gRoomEventActive;
 
@@ -1219,7 +1219,7 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     req.secondSnd     = 0x541F0003;
     req.flagId        = GAME_FLAG_B2_LABORATORY_DOOR_UNLOCKED;
     req.collectedBit  = 0;
-    return roomEventGate(&req, out);
+    return _roomEventGate(&req, out);
 }
 
 /// Handler for slot-7 msg `0x13EF` in `D_shelter_b2_laboratory_80182A38`: the

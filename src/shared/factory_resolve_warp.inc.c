@@ -62,7 +62,7 @@ s32 factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
         req.secondSnd     = 0x52170003;
         req.flagId        = -GAME_FLAG_030;
         req.collectedBit  = 0;
-        return roomEventGate(&req, in);
+        return _roomEventGate(&req, in);
     }
     return 1;
 }

@@ -1,60 +1,88 @@
 /* Part of the room events library; see room_events.h. */
 
-/// The room's event gate, called by the room's message handler with the
-/// request it builds on the stack. A set flag nibble (or a clear one, for a
-/// negative `flagId`) means the event has already happened and the answer is
-/// 1; a missing collected-bit prerequisite runs the request's `missingCapCmd`
-/// and answers 0; otherwise the request and message are latched into
-/// `gRoomEventReq` / `gRoomEventMsg`, the flag
-/// nibble is written, the event task is spawned and
-/// `gRoomEventActive` is raised, for 2. A non-zero `queryOnly` on
-/// the message asks what would happen and suppresses all of those effects.
-s32 roomEventGate(RoomEventReq* req, RoomEventMsg* msg)
-{
-    s32 flag;
-    s32 id;
-    s32 mode;
-    s32 got;
-    s32 ret;
-    s32 neg;
+/// Return choices, flag values and start indications used only by this gate.
+enum {
+    ROOM_EVENT_GATE_MISSING_COLLECTION     = 0,
+    ROOM_EVENT_GATE_BYPASSED               = 1,
+    ROOM_EVENT_GATE_ELIGIBLE               = 2,
+    ROOM_EVENT_GATE_NO_COLLECTION_REQUIRED = 0,
+    ROOM_EVENT_GATE_FLAG_CLEAR             = 0,
+    ROOM_EVENT_GATE_FLAG_SET               = 1,
+    ROOM_EVENT_GATE_REFUSAL_FLAG_VALUE     = 2,
+    ROOM_EVENT_GATE_NOT_STARTED            = 0,
+    ROOM_EVENT_GATE_STARTED                = 1,
+};
 
-    flag              = req->flagId;
-    ROOM_EVENT_ACTIVE = 0;
-    neg               = flag < 0;
-    got               = (s16)flag;
-    if (neg) {
-        flag = -flag;
-        got  = gameFlagGetNibble(flag) == 0;
+/// Copies the deferred event's inputs, commits its flag and requests its task.
+static inline void _roomEventLatchAndSpawn(const RoomEventReq* request, const RoomEventMsg* message)
+{
+    s32 flagId;
+    s32 flagValue;
+
+    gRoomEventMsg  = *message;
+    ROOM_EVENT_REQ = *request;
+    flagId         = request->flagId;
+    flagValue      = ROOM_EVENT_GATE_FLAG_SET;
+    if (flagId < 0) {
+        flagId    = -flagId;
+        flagValue = ROOM_EVENT_GATE_FLAG_CLEAR;
+    }
+    gameFlagSetNibble(flagId, flagValue);
+    taskSpawnFromTable(&gRoomEventTaskDesc, 0, 0, 0);
+    ROOM_EVENT_ACTIVE = ROOM_EVENT_GATE_STARTED;
+}
+
+/// Checks whether a room transition needs its event and optionally starts it.
+///
+/// Returns 1 when the flag bypasses the event, 0 when a required
+/// collection bit is missing, or 2 when the event is eligible. Nonnegative
+/// request flag IDs run while clear and are set to 1; negative IDs run while
+/// nonzero and are cleared. The magnitude must be a valid nibble index
+/// (0..503); request flag zero is an actual index, not an absent flag.
+/// Collection IDs select their low seven bits; zero requires no collection.
+///
+/// Both inputs are borrowed and unchanged. Eligible execution copies the
+/// complete twenty-byte request and eight-byte message for the deferred task;
+/// another start replaces those snapshots. Missing-collection execution runs
+/// `missingCapCmd` and writes 2 to the message's optional flag (0 none, otherwise
+/// 1..503). Nonzero `queryOnly` suppresses both execution paths.
+///
+/// Every call first clears `ROOM_EVENT_ACTIVE`, including queries returning 2.
+/// Eligible execution sets it after requesting the task. It records that call's
+/// start branch, not task lifetime or allocation success: the spawn result is
+/// unchecked, and allocation failure still commits the inputs and flag.
+static s32 _roomEventGate(const RoomEventReq* request, const RoomEventMsg* message)
+{
+    s32 flagId;
+    s32 flagIndex;
+    s32 flagSatisfied;
+
+    flagId            = request->flagId;
+    ROOM_EVENT_ACTIVE = ROOM_EVENT_GATE_NOT_STARTED;
+    // This halfword conversion preserves the flag-test branch's delay slot.
+    flagIndex = (s16)flagId;
+
+    // Test whether the flag polarity already bypasses this event.
+    if (flagId < 0) {
+        flagSatisfied = gameFlagGetNibble(-flagId) == ROOM_EVENT_GATE_FLAG_CLEAR;
     } else {
-        got = gameFlagGetNibble(got);
+        flagSatisfied = gameFlagGetNibble(flagIndex);
     }
-    ret = 1;
-    if (got == 0) {
-        if (inventoryHasCollectedBit(req->collectedBit) != 0 || req->collectedBit == 0) {
-            ret = 2;
-            if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventMsg  = *msg;
-                ROOM_EVENT_REQ = *req;
-                id             = req->flagId;
-                mode           = 1;
-                if (id < 0) {
-                    id   = -id;
-                    mode = 0;
-                }
-                gameFlagSetNibble(id, mode);
-                taskSpawnFromTable(&gRoomEventTaskDesc, 0, 0, 0);
-                ROOM_EVENT_ACTIVE = 1;
-                return 2;
-            }
-            return ret;
-        }
-        ret = 0;
-        if (msg->queryOnly == ROOM_EVENT_EXECUTE) {
-            capRunCommandWithTransition(req->missingCapCmd);
-            gameFlagSetNibbleIfPresent(msg->flagId, 2);
-            ret = 0;
-        }
-        return ret;
+    if (flagSatisfied != 0) {
+        return ROOM_EVENT_GATE_BYPASSED;
     }
-    return ret;
+
+    if (inventoryHasCollectedBit(request->collectedBit) != 0 || request->collectedBit == ROOM_EVENT_GATE_NO_COLLECTION_REQUIRED) {
+        if (message->queryOnly == ROOM_EVENT_EXECUTE) {
+            _roomEventLatchAndSpawn(request, message);
+        }
+        return ROOM_EVENT_GATE_ELIGIBLE;
+    }
+
+    // Queries report the refusal without starting its caption or writing its flag.
+    if (message->queryOnly == ROOM_EVENT_EXECUTE) {
+        capRunCommandWithTransition(request->missingCapCmd);
+        gameFlagSetNibbleIfPresent(message->flagId, ROOM_EVENT_GATE_REFUSAL_FLAG_VALUE);
+    }
+    return ROOM_EVENT_GATE_MISSING_COLLECTION;
 }

@@ -60,7 +60,7 @@ extern RoomEventReq gRoomEventReq;
 /// 0x13F1 to it through `taskMessageDispatch`, answering 0 while there is none.
 extern Task* D_dryfield_breezeway_801843A8;
 
-/// Raised by the room's event gate `roomEventGate` when it
+/// Raised by the room's event gate `_roomEventGate` when it
 /// latched a request and spawned the event task, cleared on every other call.
 extern u8 gRoomEventActive;
 
@@ -522,7 +522,7 @@ s32 func_dryfield_breezeway_8017D90C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// answers message 0x17 by writing 1 or 2 into the outgoing record's `room`
 /// from the room's progress nibble 0x47, and - when the message id still reads
 /// 0x17 on a second look - hands the room's event request (flag nibble 0x37,
-/// collected bit 0x15) to the room's event gate `roomEventGate`,
+/// collected bit 0x15) to the room's event gate `_roomEventGate`,
 /// returning its answer.
 /// A gate that latched the request is followed by the room's own follow-up:
 /// progress nibble 0x56 set to 4 and effect 0xA2. Everything else answers 1.
@@ -547,7 +547,7 @@ s32 func_dryfield_breezeway_8017D940(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
             req.secondSnd     = 0x52160003;
             req.flagId        = GAME_FLAG_BREEZEWAY_FACTORY_DOOR_UNLOCKED;
             req.collectedBit  = 0x15;
-            ret               = roomEventGate(&req, out);
+            ret               = _roomEventGate(&req, out);
             if (gRoomEventActive != 0) {
                 gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 4);
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x38);

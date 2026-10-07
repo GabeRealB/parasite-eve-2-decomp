@@ -69,7 +69,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/shelter_elevator.h"
 
-/// Task descriptor `roomEventGate` spawns when a
+/// Task descriptor `_roomEventGate` spawns when a
 /// gated event fires.
 extern TaskDesc gRoomEventTaskDesc;
 
@@ -500,7 +500,7 @@ RoomEventReq gRoomEventReq;
 
 /// Message handler: copies the incoming message to `out` and forwards both to
 /// `mapShelterRoomVariantResolve`. Messages 0x21 and 0x1C build a request for the gate
-/// `roomEventGate` (nibble 0xAB with no collected bit, and
+/// `_roomEventGate` (nibble 0xAB with no collected bit, and
 /// nibble 0xA9 with collected bit 0x21, which also sets item-seen bit 0x121 when the
 /// gate reports the event fired). Message 0x1A
 /// answers 0 and, unless `in->queryOnly` asks for a dry run, either sets the
@@ -521,7 +521,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         req.secondSnd     = 0x541B0005;
         req.flagId        = GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED;
         req.collectedBit  = 0;
-        return roomEventGate(&req, out);
+        return _roomEventGate(&req, out);
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY) {
         req.capCmd        = 3;
@@ -530,7 +530,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         req.secondSnd     = 0x541B0003;
         req.flagId        = GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED;
         req.collectedBit  = 0x21;
-        ret               = roomEventGate(&req, out);
+        ret               = _roomEventGate(&req, out);
         if (gRoomEventActive.eventStarted != 0) {
             itemSetIdentified(0x121, 1);
         }

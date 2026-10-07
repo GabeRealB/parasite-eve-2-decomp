@@ -9,7 +9,7 @@
 /// it is set.
 ///
 /// Messages 0x11 and 0x12 are the events: each builds a request for the
-/// room's event gate `roomEventGate` - message 0x11 on
+/// room's event gate `_roomEventGate` - message 0x11 on
 /// nibble 0x40 with collected bit 0x12, message 0x12 on nibble 0x35 with collected bit 0x10.
 /// When the gate reports the event fired, 0x11 applies the area records
 /// `gParkingLotAreaRecs` and sets nibbles 0x46 and 0x97, while 0x12 sets item-seen bit
@@ -47,7 +47,7 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         req.secondSnd     = sndScriptResolveStageId(SOUND_PARKING_LOT_DOOR_OPEN);
         req.flagId        = GAME_FLAG_PARKING_LOT_LOBBY_DOOR_UNLOCKED;
         req.collectedBit  = 0x12;
-        ret               = roomEventGate(&req, out);
+        ret               = _roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }
@@ -63,7 +63,7 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         req.secondSnd     = sndScriptResolveStageId(SOUND_PARKING_LOT_DOOR_OPEN);
         req.flagId        = GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED;
         req.collectedBit  = 0x10;
-        ret               = roomEventGate(&req, out);
+        ret               = _roomEventGate(&req, out);
         if (ROOM_EVENT_ACTIVE != 0) {
             itemSetIdentified(0x110, 1);
         }

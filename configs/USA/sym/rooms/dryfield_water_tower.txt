@@ -131,7 +131,7 @@ D_dryfield_water_tower_80181A40 = 0x80181A40; // size:0x30 defined:True
 D_dryfield_water_tower_80181A70 = 0x80181A70; // size:0x48 defined:True
 
 dryfieldWaterTowerUpdateViewEffectGateTask = 0x80180348; // type:func
-roomEventGate = 0x8017D674; // type:func
+_roomEventGate = 0x8017D674; // type:func
 roomEventTask = 0x8017D7D8; // type:func
 _screenFadeInTask = 0x8017FF5C; // type:func
 _screenFadeOutTask = 0x80180038; // type:func

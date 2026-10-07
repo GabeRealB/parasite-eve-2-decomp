@@ -4,7 +4,7 @@
 /// `room` from story nibbles. Messages 0xB and 0xC run the room's own event
 /// gate: unless the event's nibble is already set, the message and event are
 /// latched, the nibble is set and the room's event task is spawned. Messages
-/// 0xD and 0xE go through the event gate `roomEventGate`
+/// 0xD and 0xE go through the event gate `_roomEventGate`
 /// and, when it fires, swap collected bits
 /// 0x10F / 0x112 for 0x113. Anything else is not consumed.
 s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out)
@@ -94,7 +94,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         req.secondSnd     = sndScriptResolveStageId(SOUND_MAIN_STREET_MOTEL_DOOR_OPEN);
         req.flagId        = GAME_FLAG_MOTEL_ROOM_3_DOOR_UNLOCKED;
         req.collectedBit  = 0x13;
-        ret               = roomEventGate(&req, out);
+        ret               = _roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }
@@ -114,7 +114,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         req.secondSnd     = sndScriptResolveStageId(SOUND_MAIN_STREET_MOTEL_DOOR_OPEN);
         req.flagId        = GAME_FLAG_MOTEL_ROOM_4_DOOR_UNLOCKED;
         req.collectedBit  = 0x13;
-        ret               = roomEventGate(&req, out);
+        ret               = _roomEventGate(&req, out);
         if (ret == 0) {
             ret = 2;
         }

@@ -58,7 +58,7 @@ s32 storeDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         req.secondSnd     = sndScriptResolveStageId(SOUND_GENERAL_STORE_DOOR_OPEN);
         req.flagId        = GAME_FLAG_GENERAL_STORE_DOOR_UNLOCKED;
         req.collectedBit  = 0;
-        return roomEventGate(&req, in);
+        return _roomEventGate(&req, in);
     }
     if (in->areaId != 0x26) {
         return 1;

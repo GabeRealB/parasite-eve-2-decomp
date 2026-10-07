@@ -46,7 +46,7 @@ gRoomEventReq = 0x8017EC30; // size:0x14 defined:True
 
 dryfieldNightGRKitchenDrawLightShaftsTask = 0x8017E1E4; // type:func
 _glowDrawShaft = 0x8017D9FC; // type:func
-roomEventGate = 0x8017D5E8; // type:func
+_roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
 grKitchenDoorMsg = 0x8017D8C4; // type:func
 _dryfieldNightGRKitchenRejectKeyItemUse = 0x8017d8bc; // type:func

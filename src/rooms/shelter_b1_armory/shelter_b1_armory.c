@@ -348,7 +348,7 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
         req.secondSnd     = 0x540D0001;
         req.flagId        = GAME_FLAG_B1_ARMORY_STOREROOM_DOOR_UNLOCKED;
         req.collectedBit  = 0;
-        return roomEventGate(&req, out);
+        return _roomEventGate(&req, out);
     }
     if (in->areaId != GAME_AREA_SHELTER_B1_ARMORY) {
         return 1;

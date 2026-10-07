@@ -748,7 +748,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
         req.secondSnd     = 0x541E0001;
         req.flagId        = GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED;
         req.collectedBit  = 0x22;
-        result            = roomEventGate(&req, out);
+        result            = _roomEventGate(&req, out);
         if (result == 0) {
             result = 2;
         }

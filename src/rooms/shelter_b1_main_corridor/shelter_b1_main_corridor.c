@@ -774,7 +774,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
         req.secondSnd     = 0x540F0001;
         req.flagId        = GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED;
         req.collectedBit  = 0;
-        return roomEventGate(&req, out);
+        return _roomEventGate(&req, out);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
         if (gameFlagGetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED) == 0) {

@@ -85,7 +85,7 @@ gRoomEventReq = 0x801858C8; // size:0x14 defined:True
 
 dryfieldNightGeneralStoreDrawLightShaftsTask = 0x8017E6C8; // type:func
 _glowDrawShaft = 0x8017DEE0; // type:func
-roomEventGate = 0x8017D630; // type:func
+_roomEventGate = 0x8017D630; // type:func
 roomEventTask = 0x8017D794; // type:func
 storeDoorMsg = 0x8017D904; // type:func
 storeCutsceneTask = 0x8017DAF0; // type:func

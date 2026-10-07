@@ -197,7 +197,7 @@ s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEv
         req.secondSnd     = 0x53090001;
         req.flagId        = GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED;
         req.collectedBit  = 0;
-        return roomEventGate(&req, in);
+        return _roomEventGate(&req, in);
     }
     return 1;
 }

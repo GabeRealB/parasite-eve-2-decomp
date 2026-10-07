@@ -527,7 +527,7 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, Roo
         req.secondSnd     = 0x541C0001;
         req.flagId        = GAME_FLAG_OPERATING_ROOM_SOUTH_DOOR_UNLOCKED;
         req.collectedBit  = 0;
-        return roomEventGate(&req, out);
+        return _roomEventGate(&req, out);
     }
     if (in->areaId != GAME_AREA_SHELTER_B2_ELEVATOR_HALL) {
         return 1;

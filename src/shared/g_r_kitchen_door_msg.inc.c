@@ -18,7 +18,7 @@ s32 grKitchenDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
         req.secondSnd     = DRYFIELD_STAGE_SOUND(0x130004);
         req.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
         req.collectedBit  = 0;
-        ret               = roomEventGate(&req, in);
+        ret               = _roomEventGate(&req, in);
     } else {
         ret = 1;
     }

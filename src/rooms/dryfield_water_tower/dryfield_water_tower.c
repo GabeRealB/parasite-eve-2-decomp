@@ -38,7 +38,7 @@ Task* D_dryfield_water_tower_801876A4;
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
 
-/// The event the room's gate `roomEventGate` latched:
+/// The event the room's gate `_roomEventGate` latched:
 /// the incoming message and the request, kept for the event task it spawns
 /// from `gRoomEventTaskDesc`, and the flag the gate sets once it
 /// has done so.

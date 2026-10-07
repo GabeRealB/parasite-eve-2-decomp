@@ -138,7 +138,7 @@ enum {
     /// Set to 1 when the water tank's action-2 scene plays (also sets hint 0x155=3);
     /// the garage door to the junk yard is refused until it is set.
     GAME_FLAG_WATER_TANK_SCENE_SEEN = 0x033,
-    /// Set by roomEventGate when the G&R kitchen / water tower door is first opened:
+    /// Set by _roomEventGate when the G&R kitchen / water tower door is first opened:
     /// from the kitchen freely (CAP 3), from the water tower only with collected bit
     /// 0x10 (else CAP 6 locked message; marks item 0x110 seen). Once set the door
     /// passes freely; shared by day and night stages.

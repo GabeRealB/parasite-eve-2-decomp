@@ -100,6 +100,6 @@ _roomVisualEffectsDrawBurstStar = 0x80183188; // type:func
 glowDrawDimGreyCapsule = 0x8017E0DC; // type:func
 glowDrawRedDisc = 0x8017E858; // type:func
 _glowDrawTintedDisc = 0x8017EBB4; // type:func
-roomEventGate = 0x8017D7B4; // type:func
+_roomEventGate = 0x8017D7B4; // type:func
 roomEventTask = 0x8017D918; // type:func
 roomEventStagedTask = 0x8017D61C; // type:func

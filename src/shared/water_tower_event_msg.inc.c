@@ -23,7 +23,7 @@ s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         req.secondSnd     = sndScriptResolveStageId(SOUND_WATER_TOWER_KITCHEN_DOOR_OPEN);
         req.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
         req.collectedBit  = 0x10;
-        ret               = roomEventGate(&req, msg);
+        ret               = _roomEventGate(&req, msg);
         if (ret == 0) {
             ret = 2;
         }

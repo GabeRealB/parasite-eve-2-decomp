@@ -89,7 +89,7 @@ D_dryfield_night_parking_lot_8017ECA0 = 0x8017ECA0; // size:0x14 defined:True
 D_dryfield_night_parking_lot_8017ECB4 = 0x8017ECB4; // size:0x108 defined:True
 
 dryfieldNightParkingLotDrawGlowsTask = 0x8017DC88; // type:func
-roomEventGate = 0x8017D5FC; // type:func
+_roomEventGate = 0x8017D5FC; // type:func
 roomEventTask = 0x8017D760; // type:func
 glowDrawFlareClipped = 0x8017DE10; // type:func
 parkingLotEventMsg = 0x8017D8D0; // type:func

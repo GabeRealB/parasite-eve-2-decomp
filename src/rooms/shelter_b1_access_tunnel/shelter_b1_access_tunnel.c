@@ -64,7 +64,7 @@
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_shelter_b1_access_tunnel_8017FF6C[4];
 
-/// Task descriptor `roomEventGate` spawns when a
+/// Task descriptor `_roomEventGate` spawns when a
 /// gated event fires.
 extern TaskDesc gRoomEventTaskDesc;
 
@@ -86,7 +86,7 @@ extern RoomFadeStorage gRoomEventFade;
 /// `roomEventTask` to warp from.
 extern RoomEventMsg gRoomEventMsg;
 
-/// Set by `roomEventGate` when the event it gates has
+/// Set by `_roomEventGate` when the event it gates has
 /// just fired, clear otherwise.
 extern RoomEventStartStorage gRoomEventActive;
 
@@ -592,7 +592,7 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
         req.secondSnd     = 0x54130001;
         req.flagId        = GAME_FLAG_B1_CONTROL_ROOM_TUNNEL_DOOR_UNLOCKED;
         req.collectedBit  = 0;
-        return roomEventGate(&req, out);
+        return _roomEventGate(&req, out);
     }
     if (in->areaId == GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING) {
         event.capCmd   = 4;

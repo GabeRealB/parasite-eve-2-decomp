@@ -39,7 +39,7 @@ gRoomEventActive = 0x8017F564; // size:0x4 defined:True
 gRoomEventReq = 0x8017F568; // size:0x14 defined:True
 
 dryfieldGRKitchenDrawLightBeamsTask = 0x8017EB04; // type:func
-roomEventGate = 0x8017D5E8; // type:func
+_roomEventGate = 0x8017D5E8; // type:func
 roomEventTask = 0x8017D74C; // type:func
 _glowDrawTaperedBeam = 0x8017D9FC; // type:func
 grKitchenDoorMsg = 0x8017D8C4; // type:func
