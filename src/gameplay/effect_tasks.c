@@ -2344,6 +2344,7 @@ void effectSpriteTask7C(Task* task)
         EFFECT_BOUNCING_SPARK_CLUT                   = getClut(160, 266),
         EFFECT_BOUNCING_SPARK_UNMODULATED_BRIGHTNESS = 128,
         EFFECT_BOUNCING_SPARK_FADE_AGE               = 24,
+        EFFECT_BOUNCING_SPARK_FADE_SHIFT             = 4,
         EFFECT_BOUNCING_SPARK_TICKS                  = 31,
         EFFECT_BOUNCING_SPARK_GRAVITY                = 5,
     };
@@ -2357,7 +2358,7 @@ void effectSpriteTask7C(Task* task)
     s16                 size;
     s16                 ticksPerFrame;
     s32                 shade;
-    s32                 shadeByteSource;
+    s32                 fade;
     u32                 glowBrightness;
 
     work           = task->spawnArg2.pointer;
@@ -2409,11 +2410,22 @@ void effectSpriteTask7C(Task* task)
         gGpuPrimCursor = quad + 1;
         setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
         setcode(quad, EFFECT_DRAW_ADDITIVE_TEXTURED_QUAD & ~2);
-        if (work->age >= EFFECT_BOUNCING_SPARK_FADE_AGE) {
-            shade = (EFFECT_BOUNCING_SPARK_TICKS - work->age) * EFFECT_BOUNCING_SPARK_CELL_SIZE;
-            // Keep a separate word copy for the glow's byte conversion.
-            __asm__ volatile("" : "=r"(shadeByteSource) : "0"(shade));
-            glowBrightness = (u8)shadeByteSource;
+        fade = work->age;
+        if (fade >= EFFECT_BOUNCING_SPARK_FADE_AGE) {
+            shade = (EFFECT_BOUNCING_SPARK_TICKS - fade) << EFFECT_BOUNCING_SPARK_FADE_SHIFT;
+            // Fitted: the image copies the shade into the register that held
+            // the age and converts that copy to the glow byte, so the copy
+            // and the conversion were in different blocks, and whatever
+            // separated them left no instruction. What was tested, and
+            // whether the two sides differed in the source, is unknown; this
+            // test is a stand-in. That the copy is the age's own variable is
+            // read off its register alone.
+            if (shade > 0) {
+                fade = shade;
+            } else {
+                fade = shade;
+            }
+            glowBrightness = (u8)fade;
             quad->r0       = shade;
             quad->g0       = shade;
             quad->b0       = shade;
