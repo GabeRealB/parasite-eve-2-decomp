@@ -7218,10 +7218,6 @@ void func_actor_560800_80138FC8(Task* task)
     TmdObject*            obj;
     GfxCoord*             coord;
     GfxCoord*             c;
-    MATRIX*               m0;
-    MATRIX*               m2;
-    MATRIX*               m3;
-    MATRIX*               m5;
     VECTOR                scale;
     GfxCoord*             root;
 
@@ -7242,12 +7238,7 @@ void func_actor_560800_80138FC8(Task* task)
                 taskReparent(task->spawnArg2.pointer, task);
                 task->msgTable          = D_actor_560800_80175744;
                 D_actor_560800_801757AC = task;
-                m0                      = &root->coord;
-                MATRIX_PAIR(m0, 0, 0)   = 0x1000;
-                MATRIX_PAIR(m0, 0, 2)   = 0;
-                MATRIX_PAIR(m0, 1, 1)   = 0x1000;
-                MATRIX_PAIR(m0, 2, 0)   = 0;
-                m0->m[2][2]             = 0x1000;
+                gfxSetRotIdentity(&root->coord);
             }
             task->state++;
             return;
@@ -7262,12 +7253,7 @@ void func_actor_560800_80138FC8(Task* task)
                 work->pulseGrowing    = 1;
                 c                     = task->extra.tmd->coords;
                 w                     = task->work;
-                m2                    = &c[1].coord;
-                MATRIX_PAIR(m2, 0, 0) = 0x1000;
-                MATRIX_PAIR(m2, 0, 2) = 0;
-                MATRIX_PAIR(m2, 1, 1) = 0x1000;
-                MATRIX_PAIR(m2, 2, 0) = 0;
-                m2->m[2][2]           = 0x1000;
+                gfxSetRotIdentity(&c[1].coord);
                 c++;
                 if (w->pulseGrowing == 0) {
                     w->pulseScale -= 0x32;
@@ -7295,12 +7281,7 @@ void func_actor_560800_80138FC8(Task* task)
                 work->pulseGrowing    = 0;
                 c                     = task->extra.tmd->coords;
                 w                     = task->work;
-                m3                    = &c[1].coord;
-                MATRIX_PAIR(m3, 0, 0) = 0x1000;
-                MATRIX_PAIR(m3, 0, 2) = 0;
-                MATRIX_PAIR(m3, 1, 1) = 0x1000;
-                MATRIX_PAIR(m3, 2, 0) = 0;
-                m3->m[2][2]           = 0x1000;
+                gfxSetRotIdentity(&c[1].coord);
                 c++;
                 if (w->pulseGrowing == 0) {
                     w->pulseScale -= 0xA;
@@ -7331,12 +7312,7 @@ void func_actor_560800_80138FC8(Task* task)
                 work->pulseGrowing    = 1;
                 c                     = task->extra.tmd->coords;
                 w                     = task->work;
-                m5                    = &c[1].coord;
-                MATRIX_PAIR(m5, 0, 0) = 0x1000;
-                MATRIX_PAIR(m5, 0, 2) = 0;
-                MATRIX_PAIR(m5, 1, 1) = 0x1000;
-                MATRIX_PAIR(m5, 2, 0) = 0;
-                m5->m[2][2]           = 0x1000;
+                gfxSetRotIdentity(&c[1].coord);
                 c++;
                 if (w->pulseGrowing == 0) {
                     w->pulseScale -= 0x32;
