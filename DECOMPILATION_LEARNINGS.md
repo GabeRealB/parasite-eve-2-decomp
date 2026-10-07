@@ -44906,7 +44906,7 @@ diff still shows a name mismatch against `%lo(gPlayerActorTasks+4)` — see
 "`%lo(sym+off)` and `%lo(D_<sym+off>)` are the same instruction"; the bytes are
 identical and the full build verifies.
 
-`func_actor_800100_80163C04` is the example. Its `_playerActorTeardown`
+`_actor800100Teardown` is the example. Its `_playerActorTeardown`
 sibling above also now matches with a plain `GameActor*`; this example needed
 **no** `volatile GameActor*` for the field loads: with no
 non-volatile sibling store competing for the `lui` delay slot, the plain pointer
@@ -49585,7 +49585,7 @@ does not know the callee's prototype — it is still `INCLUDE_ASM`, or lives in
 another overlay — so it types the call from the registers the body happens to
 set, and drops the leading argument when that register is already occupied.
 
-In `func_actor_800100_80165664` the target's `jal playerActorPlayChildSlotsWithBlend` never
+In `_actor800100EnterObstacleScan` the target's `jal playerActorPlayChildSlotsWithBlend` never
 writes `$a0`, because `$a0` still holds the caller's own `index`; m2c emitted the
 call with three arguments and got a uniform shift on all of them:
 
@@ -76366,7 +76366,7 @@ as two statements is safe. The return form's first test branches to its own
 block, and the shared epilogue the target shows appears later, once the
 epilogues merge.
 
-`func_actor_800100_801658E8` (87.44% → 100%). Inputs: `base.i`
+`_actor800100DamageRecoveryState` (87.44% → 100%). Inputs: `base.i`
 `497a7018cba867ca8cf008b74d0ef2b3f38dc938b62255d209e0dd8bfa21ff40`,
 `base_1.i` `e199c8dc352ac3ca403e6daeb079435784d1cfe96873037806a25623683171bb`,
 `base_2.i`
@@ -76387,7 +76387,7 @@ sra    a1, a1, 16
 addiu  a1, a1, 0xE
 ```
 
-`func_actor_800100_80166E94`'s target instead adds straight onto the incoming
+`actor800100EnterReload`'s target instead adds straight onto the incoming
 register, because the original parameter was word-typed:
 
 ```
@@ -76401,7 +76401,7 @@ same way. The tell is an `addiu`/`addu` on a register that still holds the raw
 incoming argument: no extension pair anywhere in front of it means the source
 parameter was `s32`, not the narrow type the store suggests.
 
-`func_actor_800100_80166E94` (91.30% → 100%, the only leftover being
+`actor800100EnterReload` (91.30% → 100%, the only leftover being
 `insert=2`). Inputs: `base.i`
 `be29cf56717444d791255fd861fb768e3c3ef3df022527ac4e2a48cbe9b9ae88` (82.17%,
 `s16 value` plus a 3-argument call — the `jal` takes four), `base_1.i`
@@ -76419,10 +76419,10 @@ fragment:
 ```
 .section .rodata
 dlabel D_actor_800100_80161E88
-    .word func_actor_800100_801658E8
+    .word _actor800100DamageRecoveryState
     ...
 .section .text
-glabel func_actor_800100_80165850
+glabel _actor800100DamageMode
 ```
 
 `INCLUDE_ASM` includes that whole file at the stub's position in the `.c`, so the
@@ -76431,7 +76431,7 @@ words land in the C unit's `.rodata` in **source order** — the `.c`'s
 Replacing the `INCLUDE_ASM` with the C body therefore deletes those bytes, and
 nothing says so: the function itself scores 100.00% in the scratch, and the
 overlay links, just N bytes short with every later table and the whole `.text`
-shifted. `func_actor_800100_80165850` lost exactly its 16-byte 4-entry table and
+shifted. `_actor800100DamageMode` lost exactly its 16-byte 4-entry table and
 the ld error (`undefined reference to D_actor_800100_80161E88`) was the only
 signal.
 
@@ -76447,7 +76447,7 @@ extern TaskFuncTable4 D_actor_800100_80161E88;
 __asm__(".section .rodata\n"
         "nonmatching D_actor_800100_80161E88\n"
         "dlabel D_actor_800100_80161E88\n"
-        "    .word func_actor_800100_801658E8\n"
+        "    .word _actor800100DamageRecoveryState\n"
         "    .word _actor800100StoppedDamageState\n"
         "enddlabel D_actor_800100_80161E88\n"
         ".section .text");
@@ -76466,7 +76466,7 @@ cross-check: it should equal the original unit's rodata span exactly.
 ## A live `$a0` shifts the block-move scratch registers
 
 `func_actor_800100_80166EE8` copies a `.rodata` callback table onto the stack and
-calls through it, exactly like its matched sibling `func_actor_800100_80165850`:
+calls through it, exactly like its matched sibling `_actor800100DamageMode`:
 
 ```c
 TaskFuncTable5 sp;
@@ -76562,8 +76562,8 @@ statements moves it, because the priority inputs are counts, not orderings:
 pri = floor_log2 (allocno_n_refs) * allocno_n_refs / allocno_live_length * 10000 * allocno_size
 ```
 
-`func_actor_800100_80163D54` was 98.796% with `regs=26` and one difference: the
-argument (`$s3` in retail) and a cached `index->actor` (`$s2`) exchanged homes.
+`_actor800100DecideIdleBehavior` was 98.796% with `regs=26` and one difference: the
+argument (`$s3` in retail) and a cached `task->work` (`$s2`) exchanged homes.
 `.greg` printed `;; 7 regs to allocate: 86 85 84 80 81 82 83`, and the priorities
 are `3*11/154 = 33/154` for the argument against `2*6/56 = 12/56` for the actor -
 both `0.2142857`, so the argument's lower pseudo number took `$s2` first.
@@ -76582,8 +76582,8 @@ and `depth` starts at **1** at the top level (flow.c:402), incrementing on
 single reference in a constant-false `do{}while(0)`:
 
 ```c
-count = (u16) actor->idleTicks + 1;
-do { actor->idleTicks = count; } while (0);   /* 98.796% -> 100% */
+decisionCount = (u16) actor->idleTicks + 1;
+do { actor->idleTicks = decisionCount; } while (0);   /* 98.796% -> 100% */
 ```
 
 raises that allocno to 7 refs, `floor_log2(7)*7/56 = 2500 > 33/154`, which orders
@@ -110046,30 +110046,30 @@ the same variable, emit one. The same applies to a `| 0x10000 | 0x80` chain:
 `lui $v1,1 / ori $v1,$v1,0x80 / or`, while `packed = 0x10000;` assigned once
 outside the blocks keeps the oracle's `lui $s0,1 / or / ori $v0,$v0,0x80`.
 
-## Store before assignment: the computed value keeps a temp and gains a `move` (func_actor_800100_801643F4, 2026-09-16)
+## Store before assignment: the computed value keeps a temp and gains a `move` (_actor800100TurnToTargetState, 2026-09-16)
 
 **Symptom:** the target builds the scratch pointer as
 `addiu a0,a1,-0x10 / move s1,a0 / sw a0,0(v1)`, while the natural C emits
-`addiu s1,a1,-0x10 / sw s1,0(v1)` - one instruction fewer, `pos` in `$s1`
+`addiu s1,a1,-0x10 / sw s1,0(v1)` - one instruction fewer, `targetPoint` in `$s1`
 throughout, no copy. 99 vs 100 instructions, `regs=2 branch=8 delete=1`.
 
 **Cause:** a MEM destination cannot be a binop target, so
 
 ```c
     *scratch = (u8*)head - 0x10;          /* expands the subtract into a FRESH pseudo */
-    pos      = (VECTOR3*)((u8*)head - 0x10);
+    targetPoint      = (VECTOR3*)((u8*)head - 0x10);
 ```
 
 materialises `head - 0x10` into a new pseudo at RTL generation. cse records that
 pseudo as the value of the expression, so the later assignment is rewritten to
-`(set (reg pos) (reg temp))` - a real copy. `pos` is live across the following
+`(set (reg targetPoint) (reg temp))` - a real copy. `targetPoint` is live across the following
 `jal`s and lands in a callee-saved register, the temp stays in `$a0`, and the
 copy survives.
 
 Writing the two statements the other way round collapses it to one pseudo and
-loses the match: with `pos = (u8*)head - 0x10;` first, cse gives the first
+loses the match: with `targetPoint = (u8*)head - 0x10;` first, cse gives the first
 occurrence the register and folds the *store's* source to it; replacing the
-store's operand with the same expression (`pos = expr; *scratch = expr;`) does
+store's operand with the same expression (`targetPoint = expr; *scratch = expr;`) does
 not help either, because the second occurrence is the one that gets rewritten.
 The same shape appears whenever a computed value is written to memory and also
 kept in a named local - put the store first.
@@ -110142,7 +110142,7 @@ checksum holds. Diagnostics: the `.s` that carried the table is gone from
 'D_...'` while `asm/USA/<family>/data/<overlay>/<unit>.rodata.s` still holds the
 bytes - the same on-disk-but-unlinked shape as above.
 
-## A callee-saved tie is decided by the allocno priority, and the ref count is source-reachable (func_actor_800100_80164580, 2026-09-16)
+## A callee-saved tie is decided by the allocno priority, and the ref count is source-reachable (_actor800100CombatEntryState, 2026-09-16)
 
 **Symptom:** every instruction matched except the two callee-saved registers the
 constant `1` and the parameter occupy. The oracle has `addiu $s2,$a0,0` (the
@@ -110153,8 +110153,8 @@ in `$s3`, the shared constant in `$s2` - so 7 `regs` rows and nothing else.
 `floor_log2 (allocno_n_refs) * allocno_n_refs / allocno_live_length * 10000 *
 allocno_size` and hands out the lowest free callee-saved register first, so the
 allocno with the higher priority takes `$s2`. Doing the same statement twice with
-one variable (`flag = 1; ... actor->statePhase = flag;` and later
-`flag = 7; actor->animationState = flag;`) makes cse give the `1` one pseudo with
+one variable (`facingPhase = 1; ... actor->statePhase = facingPhase;` and later
+`facingPhase = 7; actor->animationState = facingPhase;`) makes cse give the `1` one pseudo with
 **five** references - its own define/compare/store plus the 7's define and store -
 and `refs=5 span=37` (priority 2702) beats the parameter's `refs=8 span=109`
 (priority 2201). Giving the `7` its own local drops the constant to three
@@ -110179,10 +110179,10 @@ references it needs. 100.00% with all-zero penalties.
 `base_4.c`. Inputs: `base_4.i`
 `54e78e1023de60978bb8249d49d7cb6525bcca75c189d139d13b0d7574b4a7f9`.
 
-## The if/else emission order cannot place a merged tail, and cross-jumping keeps the later copy (func_actor_800100_80164580, 2026-09-16)
+## The if/else emission order cannot place a merged tail, and cross-jumping keeps the later copy (_actor800100CombatEntryState, 2026-09-16)
 
 **Symptom:** the oracle's case-0 store block sits *between* the distance test and
-the `companionTrackLockTarget(index, 1)` block, and ends with `j case-1`:
+the `companionTrackLockTarget(task, 1)` block, and ends with `j case-1`:
 
 ```
 slti  $v0,$v0,0x201
@@ -110193,8 +110193,8 @@ sh    $s3,0x95E($s0)     ; delay slot
 .L64654: jal companionTrackLockTarget
 ```
 
-The natural C (`if (val >= 0x201) { companionTrackLockTarget(index, 1); break; }`
-then `actor->statePhase = flag;`) emits the *then* arm first, so the store lands
+The natural C (`if (val >= 0x201) { companionTrackLockTarget(task, 1); break; }`
+then `actor->statePhase = facingPhase;`) emits the *then* arm first, so the store lands
 after the hand-off block and the test inverts to `bnez $v0,<store>`.
 
 **Cause and dead ends:** GCC 2.8.1 emits `if (c) THEN else ELSE` as
@@ -110235,18 +110235,18 @@ across all 13 dumps).
 `base_6.c`. Inputs: `base_6.i`
 `7e3592f25ac5d9a9ba586710dc638784d73098d68a2473cf315a31b0fcfe8978`.
 
-## Re-reading the same object needs a distinct block-local, or the reload reuses the global pseudo (func_actor_800100_80164580, 2026-09-16)
+## Re-reading the same object needs a distinct block-local, or the reload reuses the global pseudo (_actor800100CombatEntryState, 2026-09-16)
 
 **Symptom:** the last mismatch was one load. The oracle reloads the actor inside
 the `statePhase == 3` arm as `lw $v1,0x1C($a0)` and writes six fields through
 `$v1`; the C produced `lw $s0,0x1C($a0)` and wrote them through `$s0`, the
 register holding the function-wide `actor` pseudo.
 
-**Cause:** `actor = index->actor;` assigns to the existing variable, so the
+**Cause:** `actor = task->work;` assigns to the existing variable, so the
 reloaded value *is* that pseudo and keeps its home. A fresh block-scope handle is
 a new pseudo whose live range ends inside that block (its last use is the store
 in the `playerActorPlayChildSlotsWithBlend` delay slot), so local-alloc gives it a
-caller-saved register: `GameActor* actor2 = index->actor;`.
+caller-saved register: `GameActor* decisionActor = task->work;`.
 
 The same reload keeps `lw` after the four argument setups, so the scheduler -
 not the statement order - decides where it lands; do not move the declaration to
@@ -110342,7 +110342,7 @@ Verified: scratch 100.00% with all-zero penalties, and the unscoped
 `./tools/build-and-verify.sh` passes. `base_5.c`. Input `base_5.i`
 `8597845d1a6f28d0af4af85760b2a432bc004fd78f94ce5cd66b263f7e840135`.
 
-## A phi copy placed by `jump.c` after the branch survives `cse`; one placed before it does not (func_actor_800100_801659EC, 2026-09-16)
+## A phi copy placed by `jump.c` after the branch survives `cse`; one placed before it does not (_actor800100DecideCombatBehavior, 2026-09-16)
 
 **Symptom:** 97.878%, `insert=2 delete=1 regs=1 branch=9`, and every mismatch in
 the object diff except one block was a 4-byte address shift. The block is the
@@ -110421,19 +110421,19 @@ twice, once at the top and once at each switch exit, is just `SCRATCH_STACK_CURS
 used both to bump the pointer and to read it back. Input: `base_12.i`
 `86ee1783f1069ad1cc9e6320a8f21cdd7adea9e9373a52e17371752325243942`.
 
-## An argument's constant needs a register of its own: an HImode local keeps `$a1` (func_actor_800100_80164940, 2026-09-16)
+## An argument's constant needs a register of its own: an HImode local keeps `$a1` (_actor800100RetreatState, 2026-09-16)
 
 **Symptom:** the target stores a 1 through a copy out of the argument register -
 `addiu a1,$zero,1 / addu v1,a1,zero / sb v1,0x97E(v0)` - and the `jal` that
 follows needs no argument move. Writing the store as `= 1`, or as an `s32`
 local assigned 1, gives the call's `li a1,1` but stores from `$s1`, the register
-the `flag = 1;` local took at the top of the function: one instruction fewer,
+the `forwardSign = 1;` local took at the top of the function: one instruction fewer,
 `insert=1 delete=2`, 98.0%.
 
 **Cause:** cse puts `(const_int 1)` and every SImode register known to hold 1 in
 one quantity, and `canon_reg` rewrites *every* register of that quantity to
 `qty_first_reg` - the head, which `make_regs_eqv` hands to the longest-lived
-member. `flag` (live from the entry to the last case) is that head, so both a
+member. `forwardSign` (live from the entry to the last case) is that head, so both a
 `const_int 1` store and an `s32 x = 1;` local come out as `$s1`. Only the HImode
 quantity is separate (`exp_equiv_p` rejects differing modes), so the original's
 local was declared `s16`.
@@ -110441,10 +110441,10 @@ local was declared `s16`.
 **Fix:** declare the value `s16`, which is also how the callee consumes it:
 
 ```c
-    s16 anim = 1;
-    actor3->aimTrackingState = anim;
+    s16 idleSet = 1;
+    scanActor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
     ...
-    playerActorPlayChildSlotsWithBlend(arg0, anim, 0, 6);
+    playerActorPlayChildSlotsWithBlend(task, idleSet, 0, 6);
 ```
 
 The HImode pseudo keeps its own register; feeding a call argument allocates it
@@ -110568,7 +110568,7 @@ before reaching for a register pin.
 Input: `base_17.i` (98.650%) `8b706a23c2a0b24ae8b73a191ce4c0be735b993bd2f03d3328ccaa12beec5494`;
 `base_21.i` (100.000%) `cc90e1dcb5dd9eed39a9e025bc242ab6b4c9e72746ed003144711d8404b8284a`.
 
-## `bltz` against a zero-extended load is a `switch` decision tree, not an `if` chain (func_actor_800100_80164184, 2026-09-16)
+## `bltz` against a zero-extended load is a `switch` decision tree, not an `if` chain (_actor800100FollowPlayerState, 2026-09-16)
 
 A state machine dispatching on the `u16` `GameActor::statePhase` opens
 
@@ -110610,7 +110610,7 @@ out-of-range values *into* the drive instead of past it: 86.5% with
 switch is 92.3% on the first build, with `predicates_match=True`,
 `calls_match=True` and all 29 blocks aligned.
 
-## One call, two arms, one differing argument: the target says which side of the merge the setup is on (func_actor_800100_80164184, 2026-09-16)
+## One call, two arms, one differing argument: the target says which side of the merge the setup is on (_actor800100FollowPlayerState, 2026-09-16)
 
 Both arms of the distance test end in the same child-slot call, and the target
 has one call site whose *whole* argument setup is inside the shared block:
@@ -123887,7 +123887,7 @@ genuine `j`-target miss can score a perfect 100.000%.
 
 ## `overlay_dup_index find` cannot see a near-twin that differs by one call; `similar` is what finds it, and its *source* is the whole match (func_actor_800300_80162A98, 2026-09-17)
 
-`func_actor_800300_80162A98` is `func_actor_800100_801643F4`'s body with a
+`func_actor_800300_80162A98` is `_actor800100TurnToTargetState`'s body with a
 single extra `playerActorPlayFootstepCue(index)` call before the scratch restore - 101
 instructions against the twin's 98. One extra call is enough to defeat the
 same-body test, so `find` reported only the function itself ("1 copies,
@@ -150376,7 +150376,7 @@ attempts; left as it was.
   that reorg turns into the final `li v0,1`. Separate `if (a) return 1;`
   guards inside the block instead leave the survivor at the *second* return.
 - **A `case 1: case 2: case 3: x = 1; goto drive; case 0: ...; x = 1; drive:`**
-  (`func_actor_800100_80164184`) is `case 0: ...; /* fallthrough */ case 1:
+  (`_actor800100FollowPlayerState`) is `case 0: ...; /* fallthrough */ case 1:
   case 2: case 3: x = 1; drive...`. The image's second copy of `li v0,1; sb`
   in front of the dispatch `j` is reorg filling the branch and the jump from
   the target thread, not source. Same file, `default: goto tail;` after

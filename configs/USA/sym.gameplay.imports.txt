@@ -278,7 +278,7 @@ D_aya_20900_80115D9C = 0x80115D9C; // absolute:True owner=aya_20900
 D_replay_bonus_80119218 = 0x80119218; // absolute:True owner=replay_bonus
 D_replay_bonus_8011922C = 0x8011922C; // absolute:True owner=replay_bonus
 D_actor_361100_801637C8 = 0x801637C8; // absolute:True owner=actor_361100
-func_actor_800100_80166E94 = 0x80166E94; // type:func absolute:True owner=actor_800100
+actor800100EnterReload = 0x80166E94; // type:func absolute:True owner=actor_800100
 D_actor_800100_80167218 = 0x80167218; // absolute:True owner=actor_800100
 D_actor_800100_80167224 = 0x80167224; // absolute:True owner=actor_800100
 D_actor_800100_80167230 = 0x80167230; // absolute:True owner=actor_800100

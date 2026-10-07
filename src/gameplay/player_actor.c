@@ -8962,7 +8962,7 @@ void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
         inner->animationState = 0xA;
         mode                  = 0x14;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
-            func_actor_800100_80166E94(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0);
+            actor800100EnterReload(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0);
         }
     } else {
         if (arg2 == 1) {
