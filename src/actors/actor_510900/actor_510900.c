@@ -1163,7 +1163,6 @@ void func_actor_510900_80131F24(Task* arg0)
     WorldCoordPointLight*          slot;
     WorldCoordTransientPointLight* lightSlot;
     EffectWork*                    eff;
-    GfxRotationWords*              mat;
     s32                            i;
     s32                            bits;
     s32                            z;
@@ -1182,13 +1181,8 @@ void func_actor_510900_80131F24(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        mat                 = (GfxRotationWords*)&coord->coord;
         coord->parent       = mem->parent;
-        mat->m00M01         = ONE;
-        mat->m02M10         = 0;
-        mat->m11M12         = ONE;
-        mat->m20M21         = 0;
-        mat->m22            = ONE;
+        gfxSetRotIdentity(&coord->coord);
         coord->coord.t[0]   = mem->pos.vx;
         coord->coord.t[1]   = mem->pos.vy;
         z                   = mem->pos.vz;
