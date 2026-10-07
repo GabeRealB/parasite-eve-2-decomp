@@ -1,19 +1,22 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Moves the root laterally in its parent frame, scaled by animation rate.
+/// Applies the lurk right step along the heading's positive lateral axis.
 ///
-/// distanceAtNormalRate is a signed displacement in parent-coordinate units.
-/// Requires the task's live work and root. Scaling retains the signed low 20
-/// product bits before division by 16; the displacement then narrows to s16.
+/// distanceAtNormalRate is signed parent-coordinate units per normal-rate frame;
+/// a positive value moves right. Uses the supplied heading plus a quarter turn
+/// (4096 units per turn), with the task's live animation rate in sixteenths.
+/// Scaling retains the signed low 20 product bits before division by 16 and
+/// narrows the result to s16. Requires live work and root coordinates.
 static __inline__ void _madChaserLurkMoveRight(Task* task, MadChaserWork* work, s32 distanceAtNormalRate)
 {
+    enum { MAD_CHASER_LURK_RIGHT_RATE_FRACTION_BITS = 4 };
     MadChaserWork* rateWork;
     s16            sideHeading;
     s16            stepDistance;
 
     sideHeading                           = work->rotation.vy + ACTOR_TRANSFORM_ANGLE_TURN / 4;
     rateWork                              = task->work;
-    stepDistance                          = (rateWork->animRate * distanceAtNormalRate) << 0xC >> 0x10;
+    stepDistance                          = (rateWork->animRate * distanceAtNormalRate) << (16 - MAD_CHASER_LURK_RIGHT_RATE_FRACTION_BITS) >> 16;
     task->extra.tmd->coords->coord.t[0]  += ((rsin(sideHeading) << 4) * stepDistance) >> 0x10;
     task->extra.tmd->coords->coord.t[2]  += ((rcos(sideHeading) << 4) * stepDistance) >> 0x10;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -1,28 +1,28 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once the hit flags are set, marks the enemy busy (`busy`), requests
-/// animation 4 and advances the sub-state.
-void madChaserLurkBrace(Task* arg0)
+/// Starts the lurk alert's right sidestep after the preceding animation boundary.
+///
+/// A slot-1 boundary, jump or held pose resets the frame counter, marks the
+/// move busy, blends to clip 4 over four normal-rate frames and advances the
+/// sub-state. Requires initialized work; task and behavior state are retained.
+static void _madChaserLurkAlertStartSidestep(Task* task)
 {
+    enum {
+        MAD_CHASER_LURK_ALERT_SIDESTEP_CLIP         = 4,
+        MAD_CHASER_LURK_ALERT_SIDESTEP_BLEND_FRAMES = 4,
+    };
     MadChaserWork* work;
-    MadChaserWork* work2;
-    s32            cond;
+    MadChaserWork* requestWork;
 
-    work = (MadChaserWork*)arg0->work;
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work->stateFrames      = 0;
-        work->busy             = 1;
-        work2                  = (MadChaserWork*)arg0->work;
-        work2->animBlendFrames = 4;
-        work2->animRate        = ANIMATION_RATE_ONE;
-        work2->animId          = 4;
-        work2->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+    work = task->work;
+    if (_madChaserAnimHasBoundaryStatusInline(task)) {
+        work->stateFrames            = 0;
+        work->busy                   = 1;
+        requestWork                  = task->work;
+        requestWork->animBlendFrames = MAD_CHASER_LURK_ALERT_SIDESTEP_BLEND_FRAMES;
+        requestWork->animRate        = ANIMATION_RATE_ONE;
+        requestWork->animId          = MAD_CHASER_LURK_ALERT_SIDESTEP_CLIP;
+        requestWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
         work->subState++;
     }
 }

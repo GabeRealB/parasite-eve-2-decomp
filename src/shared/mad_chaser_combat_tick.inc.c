@@ -50,9 +50,9 @@ void madChaserCombatTick(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
             madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-            madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-            madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+            _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+            _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+            _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             return;
     }
 }

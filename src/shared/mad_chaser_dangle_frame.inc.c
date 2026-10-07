@@ -4,7 +4,7 @@
 /// one-entry handler table. `gSceneCombatState.actorControl` 2 hides the model; 0 runs the state
 /// handler and the follow-up steps, then moves the task to state 4 when
 /// `hitReaction` requests it and the enemy is out of HP; 0 and 1 both colour
-/// it, run `madChaserDrawLimbShadow` for three part pairs and unhide it. The work block is reloaded through its own local
+/// it, run `_madChaserDrawLimbShadow` for three part pairs and unhide it. The work block is reloaded through its own local
 /// for the state reset, as the original does.
 void madChaserDangleFrame(Task* arg0)
 {
@@ -36,9 +36,9 @@ void madChaserDangleFrame(Task* arg0)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         case SCENE_COMBAT_ACTORS_PAUSED:
             madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
-            madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-            madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-            madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+            _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+            _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+            _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }

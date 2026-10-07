@@ -1,15 +1,18 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Moves the root laterally in its parent frame, scaled by animation rate.
+/// Moves the root right by 30 parent-coordinate units at normal animation rate.
 ///
-/// Requires the task's live work and root. Scaling retains the signed low 20
-/// product bits before division by 16; the displacement then narrows to s16.
+/// Uses the supplied work's heading plus a quarter turn (4096 units per turn)
+/// and reloads the task's live work for its rate in sixteenths of a frame.
+/// Scaling retains the signed low 20 product bits before division by 16;
+/// the displacement then narrows to s16. Requires live work and root coordinates.
 static __inline__ void _madChaserAlertMoveRight(Task* task, MadChaserWork* work)
 {
+    enum { MAD_CHASER_ALERT_RIGHT_DISTANCE = 30 };
     s16 sideHeading;
     s16 stepDistance;
 
-    stepDistance                          = _madChaserScaleByAnimRate(task, 0x1E);
+    stepDistance                          = _madChaserScaleByAnimRate(task, MAD_CHASER_ALERT_RIGHT_DISTANCE);
     sideHeading                           = work->rotation.vy + ACTOR_TRANSFORM_ANGLE_TURN / 4;
     task->extra.tmd->coords->coord.t[0]  += ((rsin(sideHeading) << 4) * stepDistance) >> 0x10;
     task->extra.tmd->coords->coord.t[2]  += ((rcos(sideHeading) << 4) * stepDistance) >> 0x10;

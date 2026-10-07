@@ -26,9 +26,9 @@ void madChaserDropDeathTick(Task* arg0)
         case SCENE_COMBAT_ACTORS_PAUSED:
             madChaserUpdateColor(arg0->spawnArg2.pointer, &arg0->extra.tmd->coords[1]);
             if (work->shadowHidden == 0) {
-                madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
-                madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
+                _madChaserDrawLimbShadow(arg0, 2, 6, 0xC8, 0, 0xFF);
+                _madChaserDrawLimbShadow(arg0, 1, 7, 0x80, 0, 0xFF);
+                _madChaserDrawLimbShadow(arg0, 7, 8, 0x80, 0, 0xFF);
             }
             obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;

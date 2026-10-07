@@ -115,12 +115,17 @@ static __inline__ s32 _madChaserTakeHitReaction(Task* task)
     return 0;
 }
 
-static __inline__ s32 madChaserIsHit(Task* arg0)
+/// Returns an s32 boolean for slot 1's animation boundary, jump or held pose.
+///
+/// Reads the latest animation status without consuming it; a looping clip may
+/// report a jump while continuing to play. Requires initialized Mad Chaser work.
+/// This inline interface retains the recoil handlers' inlined status test.
+static __inline__ s32 _madChaserAnimHasBoundaryStatusInline(Task* task)
 {
-    MadChaserWork* w = (MadChaserWork*)arg0->work;
+    MadChaserWork* work = task->work;
 
-    if ((w->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (w->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
         return 1;
     }
     return 0;

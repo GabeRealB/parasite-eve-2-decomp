@@ -68681,9 +68681,9 @@ instruction stream fixed, a value's live length is usually forced, and
 **A narrower parameter type is a third lever, and changes no instructions.** A
 `u8`/`s16` parameter reaches its pseudo through an `SI` temp that `assign_parms`
 loads and then narrows (`(set (reg/v:QI 88) (subreg:QI (reg:SI 89) 0))`), and
-that temp gets no doubling. `ActorsShared80163354` passes `shade` on the stack
+that temp gets no doubling. `_madChaserDrawLimbShadow` passes `shade` on the stack
 and stores it with three `sb`; as `s32 shade` its pseudo read `4 refs across 386
-insns` in `.lreg`, lost to the `s16 width` parameter (`2 across 73`), and the two
+insns` in `.lreg`, lost to the `s16 halfWidth` parameter (`2 across 73`), and the two
 came out as `$fp`/`$s7` the wrong way round. As `u8 shade` the temp read `4 across
 193`, the ranking flipped and the function matched. The code was the same, since
 `sb` only stores the low byte anyway. When a stack parameter is used only through
@@ -68704,9 +68704,9 @@ GCC 2.8.1's alias check proves two `MEM`s off the same base register with
 disjoint constant offsets independent, so every store into one `POLY_FT4`
 reorders against every other. A load from a *different* struct, such as a
 scratch block of `RotTransPers4` outputs, conflicts with any `u8` store, because
-char aliases everything. So in `ActorsShared80163354`, the ROM's
+char aliases everything. So in `_madChaserDrawLimbShadow`, the ROM's
 `lw a2, 0x7C(s4)` ahead of the UV `sb`s, with its `sw a2, 0x20(a0)` after
-`setRGB0`, means `*(s32*)&poly->x3 = s->screenCorners[3]` was written *before*
+`setRGB0`, means `GPU_PRIMITIVE_XY_WORD(quad, 3) = scratch->screenCorners[3]` was written *before*
 `setUV4`: the load is pinned above the byte stores and the store sinks.
 Writing it after `setRGB0` (matching the store's position) or putting
 `tpage` / `clut` between the `x0..x2` copies scored 96.4-96.5%. Writing the four
@@ -93437,15 +93437,16 @@ SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 `_actor00400DrawGroundStain`'s brief reported "no similar matched bodies above 0.80",
 so `overlay_dup_index.py similar` handed over no template. But the m2c output
 named `RotTransPers4`, and `grep -rn RotTransPers4 src/` found six matched call
-sites - one of which, `ActorsShared80163354` in
-`src/actors/lib/actors_shared_80163354.c`, ends in exactly the same
-`POLY_FT4` tail: `setlen(poly, 9)`, `poly->code = 0x2E`, the four
-`*(s32*)&poly->xN = s->screenCorners[N]` stores, the same `setUV4` constants, `tpage`
+sites - one of which, `_madChaserDrawLimbShadow` in
+`src/shared/mad_chaser_limb_shadow.inc.c`, ends in exactly the same
+`POLY_FT4` tail: `setPolyFT4(quad)`, `setSemiTrans(quad, true)`, the four
+`GPU_PRIMITIVE_XY_WORD(quad, N) = scratch->screenCorners[N]` stores, the same `setUV4` constants, `tpage`
 `0x48`, `clut` `0x4283`, `setRGB0`, and
 
 ```c
-addPrim((u32*)((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & 0xFFC)
-               + (u32)gGpuCurrentOt), poly);
+addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
+            ((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2)
+            & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), quad);
 ```
 
 Transcribing that tail, with a 0x1C scratch struct holding just
@@ -150790,7 +150791,7 @@ constant).
   last one makes the last copy the survivor. The 8 bytes of unused stack are
   still an unused local.
 - **A constant local documented as needed can be an artefact of the `goto`
-  beside it.** `madChaserSpawnHidden`'s `two = 2` and `kind` were both
+  beside it.** `_madChaserSpawnHidden`'s `two = 2` and `kind` were both
   unnecessary once the failure path was written twice instead of as a jump
   into the second `if`.
 

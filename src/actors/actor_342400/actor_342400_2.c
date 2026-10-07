@@ -100,7 +100,7 @@ static const TaskFuncTable6 gMadChaserTaskStates = { {
 /// Ten task-state handlers of the second enemy form, dispatched by
 /// `madChaserHiddenTask` on `Task::state`.
 static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
-    madChaserSpawnHidden,
+    _madChaserSpawnHidden,
     madChaserLurkTick,
     madChaserDangleFrame,
     madChaserCombatTick,
@@ -130,9 +130,9 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
 
 /// Sub-state handlers `madChaserKnockdownState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
-    madChaserKnockdownStart,
-    madChaserKnockdownRise,
-    madChaserKnockdownEnd,
+    _madChaserKnockdownStart,
+    _madChaserKnockdownRise,
+    _madChaserKnockdownEnd,
 } };
 
 /// Sub-state handlers `madChaserWalkState` dispatches by `subState`.
@@ -145,7 +145,7 @@ static const TaskFuncTable3 gMadChaserWalkSteps = { {
 /// Sub-state handlers `madChaserLeapState` dispatches by `subState`.
 static const TaskFuncTable5 gMadChaserLeapSteps = { {
     madChaserStartLeap,
-    madChaserLeapAttack,
+    _madChaserLeapAttack,
     madChaserLeapTurnAway,
     madChaserLeapRebound,
     madChaserLeapLand,
@@ -832,9 +832,9 @@ static const TaskFuncTable3 D_actor_342400_80161FC0 = { {
 
 /// Sub-state handlers `madChaserLurkRiseState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
-    madChaserStartAlert,
-    madChaserLurkBrace,
-    madChaserLurkSidestepToCombat,
+    _madChaserStartAlert,
+    _madChaserLurkAlertStartSidestep,
+    _madChaserLurkSidestepToCombat,
 } };
 
 /// Sub-state handlers `func_actor_342400_8016B038` dispatches by `subState`.
@@ -874,7 +874,7 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
 /// the stack before dispatch.
 static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathCryUnlink,
-    madChaserDeathSettleQuiet,
+    _madChaserDeathRequestSettle,
     func_actor_342400_8016BAF4,
     madChaserDropBodies,
     func_actor_342400_8016BBD0,
@@ -884,7 +884,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
 /// the stack before dispatch.
 static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     func_actor_342400_8016BBD8,
-    madChaserDeathSettleQuiet,
+    _madChaserDeathRequestSettle,
     func_actor_342400_8016BAF4,
     madChaserBeginShrink,
     func_actor_342400_8016BD3C,
@@ -973,12 +973,12 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 /// A further copy, under this file's own name.
 #define madChaserVanishState func_actor_342400_80169880
-#define madChaserVanish      _madChaserAdvanceBehaviorState
-#define madChaserVanishFree  _madChaserDespawn
+#define _madChaserVanish     _madChaserAdvanceBehaviorState
+#define _madChaserVanishFree _madChaserDespawn
 #include "../../shared/mad_chaser_vanish_state.inc.c"
 #undef madChaserVanishState
-#undef madChaserVanish
-#undef madChaserVanishFree
+#undef _madChaserVanish
+#undef _madChaserVanishFree
 
 #include "../../shared/mad_chaser_turn_to_player.inc.c"
 

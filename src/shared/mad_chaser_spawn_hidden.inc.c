@@ -1,84 +1,112 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Variant of `madChaserSpawn`'s init: also destroys the enemy
-/// when bit 16 of `spawnArg1` is set,
-/// sets bit 0x80 of the model's `field_C` for spawn kind 2, and enters state 6
-/// with `shadowHidden` set and the collision flags 0x8000 / 0x4000 cleared on
-/// `pairBody` / `gridBody`.
-void madChaserSpawnHidden(Task* task)
+/// Binds hidden-spawn resources to the task-owned work and loaded model.
+///
+/// Model matrices, enemy contacts and animation storage borrow work until
+/// task teardown; the clip bank and message table remain overlay-owned.
+/// Requires a live nine-part model, zeroed work, enemy and loaded clip bank.
+static __inline__ void _madChaserBindHiddenResources(Task* task, TmdObject* model, MadChaserWork* work, Enemy* enemy)
 {
+    enum {
+        MAD_CHASER_HIDDEN_HIT_EFFECT_SPAN  = 320,
+        MAD_CHASER_HIDDEN_HIT_EFFECT_COUNT = 2,
+    };
+    task->msgTable             = gMadChaserMsgTable;
+    model->lightMtx            = &work->lightMtx;
+    model->colorMtx            = &work->colorMtx;
+    enemy->param               = &gMadChaserEnemyParams;
+    enemy->recs                = work->contacts;
+    work->effectArg.coord      = &task->extra.tmd->coords[1];
+    work->effectArg.spawnArgLo = MAD_CHASER_HIDDEN_HIT_EFFECT_SPAN;
+    work->effectArg.spawnArgHi = MAD_CHASER_HIDDEN_HIT_EFFECT_COUNT;
+    enemy->hp = enemy->hpMax = gMadChaserEnemyParams.hpMax;
+    animationInitContext(&work->anim, (AnimationSet**)gMadChaserAnimBank, model, work->poses, work->slots);
+}
+
+/// Initializes a Mad Chaser that waits for a scripted emerge command.
+///
+/// Requires a live enemy in spawnArg2.pointer and its nine-part model. Owns a
+/// zeroed MadChaserWork allocation, whose matrices, contacts, slots and pose
+/// buffers remain borrowed by the model, enemy and animation context until task
+/// teardown. Acquires one battle reference and links an un-lockable target.
+/// Disables pair/grid collision and limb shadows, raises the root by 60 parent
+/// units and enters emerge behavior zero. Spawn kind 2 also hides active drawing.
+/// Bit 16 of spawnArg1.value cancels the spawn after the sound-bank request;
+/// allocation failure and cancellation destroy the enemy and begin task teardown.
+static void _madChaserSpawnHidden(Task* task)
+{
+    enum {
+        MAD_CHASER_HIDDEN_SPAWN_CANCEL_SHIFT    = 16,
+        MAD_CHASER_HIDDEN_SPAWN_KIND_MASK       = 0xF,
+        MAD_CHASER_HIDDEN_SPAWN_HIDE_MODEL_KIND = 2,
+        MAD_CHASER_HIDDEN_INITIAL_CLIP          = 7,
+        MAD_CHASER_HIDDEN_ROOT_LIFT             = 60,
+    };
     TmdObject*     model;
     Enemy*         enemy;
     GfxCoord*      root;
     MadChaserWork* work;
-    TmdObject*     obj;
-    MadChaserWork* w;
-    Enemy*         e;
-    GfxCoord*      coord;
-    MadChaserWork* w2;
-    MadChaserWork* w3;
-    Enemy*         e2;
-    s32            flags;
+    TmdObject*     liveModel;
+    MadChaserWork* setupWork;
+    Enemy*         setupEnemy;
+    GfxCoord*      liveRoot;
+    MadChaserWork* animationWork;
+    MadChaserWork* stateWork;
+    Enemy*         targetEnemy;
+    s32            spawnFlags;
 
     model      = task->extra.tmd;
     enemy      = task->spawnArg2.pointer;
     root       = model->coords;
     task->work = memCalloc(sizeof(MadChaserWork), 0);
-    work       = (MadChaserWork*)task->work;
+    work       = task->work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     _madChaserQueueSoundBank();
-    flags = task->spawnArg1.value;
-    if ((flags >> 16) & 1) {
+    spawnFlags = task->spawnArg1.value;
+    if ((spawnFlags >> MAD_CHASER_HIDDEN_SPAWN_CANCEL_SHIFT) & 1) {
         enemyDestroy(enemy, task);
         return;
     }
-    if ((flags & 0xF) == 2) {
+    if ((spawnFlags & MAD_CHASER_HIDDEN_SPAWN_KIND_MASK) == MAD_CHASER_HIDDEN_SPAWN_HIDE_MODEL_KIND) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    obj                     = task->extra.tmd;
-    w                       = (MadChaserWork*)task->work;
-    e                       = task->spawnArg2.pointer;
-    coord                   = obj->coords;
-    task->msgTable          = gMadChaserMsgTable;
-    obj->lightMtx           = &w->lightMtx;
-    obj->colorMtx           = &w->colorMtx;
-    e->param                = &gMadChaserEnemyParams;
-    e->recs                 = w->contacts;
-    w->effectArg.coord      = &task->extra.tmd->coords[1];
-    w->effectArg.spawnArgLo = 0x140;
-    w->effectArg.spawnArgHi = 2;
-    e->hp = e->hpMax = gMadChaserEnemyParams.hpMax;
-    animationInitContext(&w->anim, (AnimationSet**)gMadChaserAnimBank, obj, w->poses, w->slots);
-    w2              = (MadChaserWork*)task->work;
-    w2->animRate    = ANIMATION_RATE_ONE;
-    w2->animId      = 7;
-    w2->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
+    // Bind task-owned storage before applying the initial pose.
+    liveModel  = task->extra.tmd;
+    setupWork  = task->work;
+    setupEnemy = task->spawnArg2.pointer;
+    liveRoot   = liveModel->coords;
+    _madChaserBindHiddenResources(task, liveModel, setupWork, setupEnemy);
+    animationWork              = task->work;
+    animationWork->animRate    = ANIMATION_RATE_ONE;
+    animationWork->animId      = MAD_CHASER_HIDDEN_INITIAL_CLIP;
+    animationWork->animRequest = MAD_CHASER_ANIM_REQUEST_RESET;
     _madChaserTickAnim(task);
-    coord->parent = &gGfxViewCoord;
+    liveRoot->parent = &gGfxViewCoord;
     _madChaserLinkBodies(task);
-    w->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0x800;
+    setupWork->rotation.vy = ratan2(-liveRoot->coord.m[2][0], liveRoot->coord.m[2][2]) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     (sceneAcquireBattleRef)(0);
-    e2 = task->spawnArg2.pointer;
-    worldTargetLinkNode(&e2->node);
-    e2->field_4                = &task->extra.tmd->coords->coord;
-    e2->field_48               = 0;
-    e2->bodyPos.vx             = 0;
-    e2->bodyPos.vy             = 0;
-    e2->bodyPos.vz             = 0;
-    e2->coord                  = &task->extra.tmd->coords[1];
-    e2->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    work->anchorPos.vx         = root->coord.t[0];
-    root->coord.t[1]          -= 0x3C;
-    work->anchorPos.vy         = root->coord.t[1];
-    work->anchorPos.vz         = root->coord.t[2];
-    work->shadowHidden         = 1;
-    work->pairBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->gridBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-    w3                         = (MadChaserWork*)task->work;
-    task->state                = 6;
-    w3->state                  = 0;
-    w3->subState               = 0;
+    targetEnemy = task->spawnArg2.pointer;
+    worldTargetLinkNode(&targetEnemy->node);
+    targetEnemy->field_4                = &task->extra.tmd->coords->coord;
+    targetEnemy->field_48               = 0;
+    targetEnemy->bodyPos.vx             = 0;
+    targetEnemy->bodyPos.vy             = 0;
+    targetEnemy->bodyPos.vz             = 0;
+    targetEnemy->coord                  = &task->extra.tmd->coords[1];
+    targetEnemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    // Retain the spawn anchor while disabling contact and shadow presentation.
+    work->anchorPos.vx    = root->coord.t[0];
+    root->coord.t[1]     -= MAD_CHASER_HIDDEN_ROOT_LIFT;
+    work->anchorPos.vy    = root->coord.t[1];
+    work->anchorPos.vz    = root->coord.t[2];
+    work->shadowHidden    = 1;
+    work->pairBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+    stateWork             = task->work;
+    task->state           = MAD_CHASER_TASK_EMERGE;
+    stateWork->state      = 0;
+    stateWork->subState   = 0;
 }

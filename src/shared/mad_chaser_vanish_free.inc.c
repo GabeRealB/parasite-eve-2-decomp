@@ -1,22 +1,30 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// On frame 3 frees the model's buffers and sets model flag 4; after 0x24
-/// frames destroys the enemy.
-void madChaserVanishFree(Task* arg0)
+/// Releases the hidden model's primitive buffer, then destroys the vanished enemy.
+///
+/// Requires the detached task left by `_madChaserVanish`. Increments its u16
+/// frame counter, testing it as s16: frame 3 frees the primitive buffer and
+/// disables automatic buffer allocation; frame 36 or later destroys the enemy
+/// and begins task teardown. No task or enemy access is valid after destruction.
+static void _madChaserVanishFree(Task* task)
 {
+    enum {
+        MAD_CHASER_VANISH_RELEASE_BUFFER_FRAME = 3,
+        MAD_CHASER_VANISH_DESTROY_FRAME        = 36,
+    };
     MadChaserWork* work;
     TmdObject*     model;
-    u16            ticks;
+    u16            elapsedFrames;
 
-    work              = (MadChaserWork*)arg0->work;
-    model             = arg0->extra.tmd;
-    ticks             = work->stateFrames + 1;
-    work->stateFrames = ticks;
-    if ((s16)ticks == 3) {
+    work              = task->work;
+    model             = task->extra.tmd;
+    elapsedFrames     = work->stateFrames + 1;
+    work->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == MAD_CHASER_VANISH_RELEASE_BUFFER_FRAME) {
         tmdFreePrimitiveBuffer(model);
         model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
-    if ((s16)work->stateFrames >= 0x24) {
-        enemyDestroy(arg0->spawnArg2.pointer, arg0);
+    if ((s16)work->stateFrames >= MAD_CHASER_VANISH_DESTROY_FRAME) {
+        enemyDestroy(task->spawnArg2.pointer, task);
     }
 }

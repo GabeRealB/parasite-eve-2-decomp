@@ -1,22 +1,20 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Once slot 1 reports a boundary, jump or hold, moves the state machine to state 3 (when
-/// `stateScratch` is 1) or 5.
-void madChaserKnockdownEnd(Task* arg0)
+/// Resumes combat walking or alert after the recovery animation's boundary status.
+///
+/// Saved stance 1 selects combat walk; all other values select combat alert.
+/// Resets the behavior sub-state, retaining task state, animation and counters.
+/// Requires initialized work and the stance saved by `_madChaserKnockdownStart`.
+static void _madChaserKnockdownEnd(Task* task)
 {
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
+    enum { MAD_CHASER_KNOCKDOWN_END_UPRIGHT_STANCE = 1 };
+    MadChaserWork* work = task->work;
 
-    if (_madChaserAnimHasBoundaryStatus(arg0)) {
-        if (work->stateScratch == 1) {
-            MadChaserWork* w = (MadChaserWork*)arg0->work;
-
-            w->state    = 3;
-            w->subState = 0;
+    if (_madChaserAnimHasBoundaryStatus(task)) {
+        if (work->stateScratch == MAD_CHASER_KNOCKDOWN_END_UPRIGHT_STANCE) {
+            _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_WALK);
         } else {
-            MadChaserWork* w = (MadChaserWork*)arg0->work;
-
-            w->state    = 5;
-            w->subState = 0;
+            _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_ALERT);
         }
     }
 }

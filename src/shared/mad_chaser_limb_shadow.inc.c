@@ -1,77 +1,109 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Draws a flat textured quad at height `height` spanning the model parts
-/// `firstJoint` and `secondJoint`, `width` wide on each side of the line
-/// between them, tinted grey by `shade`. The working set lives in a frame
-/// carved off the scratchpad and released again; nothing is drawn when the
-/// two parts are the same or the quad is off screen.
-void madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade)
+/// Queues one accepted Mad Chaser shadow projection with subtractive blending.
+///
+/// Borrows the scratch result only during this call. The frame arena must have
+/// room for one word-aligned POLY_FT4 and the current ordering table must have
+/// 1024 depth tags. The packet remains live until frame DMA completes.
+static __inline__ void _madChaserQueueLimbShadow(const MadChaserLimbShadowScratch* scratch, u8 shade)
 {
-    MadChaserLimbShadowScratch* s;
-    s16                         angle;
+    enum {
+        MAD_CHASER_SHADOW_TEXTURE_4_BIT = 0,
+        MAD_CHASER_SHADOW_U_MIN         = 0xC0,
+        MAD_CHASER_SHADOW_U_MAX         = 0xF7,
+        MAD_CHASER_SHADOW_V_MIN         = 0x98,
+        MAD_CHASER_SHADOW_V_MAX         = 0xCF,
+        MAD_CHASER_SHADOW_PAGE_X        = 512,
+        MAD_CHASER_SHADOW_PAGE_Y        = 0,
+        MAD_CHASER_SHADOW_CLUT_X        = 48,
+        MAD_CHASER_SHADOW_CLUT_Y        = 266,
+    };
+    POLY_FT4* quad;
+
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    setSemiTrans(quad, true);
+    GPU_PRIMITIVE_XY_WORD(quad, 0) = scratch->screenCorners[0];
+    GPU_PRIMITIVE_XY_WORD(quad, 1) = scratch->screenCorners[1];
+    GPU_PRIMITIVE_XY_WORD(quad, 2) = scratch->screenCorners[2];
+    GPU_PRIMITIVE_XY_WORD(quad, 3) = scratch->screenCorners[3];
+    setUV4(quad, MAD_CHASER_SHADOW_U_MIN, MAD_CHASER_SHADOW_V_MIN, MAD_CHASER_SHADOW_U_MAX, MAD_CHASER_SHADOW_V_MIN,
+           MAD_CHASER_SHADOW_U_MIN, MAD_CHASER_SHADOW_V_MAX, MAD_CHASER_SHADOW_U_MAX, MAD_CHASER_SHADOW_V_MAX);
+    quad->tpage = getTPage(MAD_CHASER_SHADOW_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT, MAD_CHASER_SHADOW_PAGE_X, MAD_CHASER_SHADOW_PAGE_Y);
+    quad->clut  = getClut(MAD_CHASER_SHADOW_CLUT_X, MAD_CHASER_SHADOW_CLUT_Y);
+    setRGB0(quad, shade, shade, shade);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), quad);
+}
+
+/// Draws a horizontal subtractive limb shadow between two model coordinates.
+///
+/// firstJoint and secondJoint must be in 0..partCount-1 of the live model;
+/// equal indices draw nothing. halfWidth and worldY are signed world-coordinate
+/// units. Each end extends by half the X/Z span, making the quad twice as long
+/// as the limb. Part positions, worldY and corners narrow to signed halfwords.
+/// shade is grey texture modulation (0..255). A negative GTE FLAG discards the
+/// quad; this is a projection-status test, not a complete screen clipping test.
+///
+/// Requires initialized scratch storage and room for a POLY_FT4 in the frame
+/// arena and current depth table. Refreshes coordinate caches and changes GTE
+/// state. Releases its scratch block before returning; a queued packet stays
+/// live until frame DMA completes.
+static void _madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 halfWidth, s32 worldY, u8 shade)
+{
+    enum { MAD_CHASER_SHADOW_TRIG_FRACTION_BITS = 12 };
+    MadChaserLimbShadowScratch* scratch;
+    s16                         segmentYaw;
     GfxCoord*                   secondCoord;
     GfxCoord*                   firstCoord;
-    s32                         offset0;
-    s32                         offset1;
-    s32                         offset2;
-    s32                         offset3;
-    GfxCoord*                   coords;
-    POLY_FT4*                   poly;
+    s32                         widthCosine;
+    GfxCoord*                   partCoords;
 
-    coords      = task->extra.tmd->coords;
-    firstCoord  = coords + firstJoint;
-    secondCoord = coords + secondJoint;
+    partCoords  = task->extra.tmd->coords;
+    firstCoord  = partCoords + firstJoint;
+    secondCoord = partCoords + secondJoint;
     if (firstJoint != secondJoint) {
-        s = SCRATCH_STACK_RESERVE_BLOCK(MadChaserLimbShadowScratch);
+        // Remove the view transform to recover the joints in world space.
+        scratch = SCRATCH_STACK_RESERVE_BLOCK(MadChaserLimbShadowScratch);
         actorRenderComposeCoord(firstCoord);
         actorRenderComposeCoord(secondCoord);
-        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &s->firstMatrix);
-        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &s->secondMatrix);
-        s->firstPos.vy             = (s16)height;
-        s->secondPos.vy            = (s16)height;
-        s->firstPos.vx             = s->firstMatrix.t[0];
-        s->firstPos.vz             = s->firstMatrix.t[2];
-        s->secondPos.vx            = s->secondMatrix.t[0];
-        s->secondPos.vz            = s->secondMatrix.t[2];
-        angle                      = ratan2(s->secondPos.vx - s->firstPos.vx, s->secondPos.vz - s->firstPos.vz);
-        s->halfSpanX               = (s->firstPos.vx - s->secondPos.vx) / 2;
-        s->halfSpanZ               = (s->firstPos.vz - s->secondPos.vz) / 2;
-        offset0                    = rcos(angle) * width;
-        s->corners[0].vy           = (s16)height;
-        s->corners[0].vx           = s->halfSpanX + (s->firstPos.vx - (offset0 >> 0xC));
-        s->corners[0].vz           = s->halfSpanZ + (s->firstPos.vz + ((s32)(rsin(angle) * width) >> 0xC));
-        offset1                    = rcos(angle) * width;
-        s->corners[1].vy           = (s16)height;
-        s->corners[1].vx           = s->halfSpanX + (s->firstPos.vx + (offset1 >> 0xC));
-        s->corners[1].vz           = s->halfSpanZ + (s->firstPos.vz - ((s32)(rsin(angle) * width) >> 0xC));
-        offset2                    = rcos(angle) * width;
-        s->corners[2].vy           = (s16)height;
-        s->corners[2].vx           = (s->secondPos.vx - (offset2 >> 0xC)) - s->halfSpanX;
-        s->corners[2].vz           = (s->secondPos.vz + ((s32)(rsin(angle) * width) >> 0xC)) - s->halfSpanZ;
-        offset3                    = rcos(angle) * width;
-        s->corners[3].vy           = (s16)height;
-        s->corners[3].vx           = (s->secondPos.vx + (offset3 >> 0xC)) - s->halfSpanX;
-        s->corners[3].vz           = (s->secondPos.vz - ((s32)(rsin(angle) * width) >> 0xC)) - s->halfSpanZ;
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &firstCoord->workm, &scratch->firstMatrix);
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &secondCoord->workm, &scratch->secondMatrix);
+        scratch->firstPos.vy  = (s16)worldY;
+        scratch->secondPos.vy = (s16)worldY;
+        scratch->firstPos.vx  = scratch->firstMatrix.t[0];
+        scratch->firstPos.vz  = scratch->firstMatrix.t[2];
+        scratch->secondPos.vx = scratch->secondMatrix.t[0];
+        scratch->secondPos.vz = scratch->secondMatrix.t[2];
+        // Widen perpendicular to the limb and overhang each end by half its span.
+        segmentYaw             = ratan2(scratch->secondPos.vx - scratch->firstPos.vx, scratch->secondPos.vz - scratch->firstPos.vz);
+        scratch->halfSpanX     = (scratch->firstPos.vx - scratch->secondPos.vx) / 2;
+        scratch->halfSpanZ     = (scratch->firstPos.vz - scratch->secondPos.vz) / 2;
+        widthCosine            = rcos(segmentYaw) * halfWidth;
+        scratch->corners[0].vy = (s16)worldY;
+        scratch->corners[0].vx = scratch->halfSpanX + (scratch->firstPos.vx - (widthCosine >> MAD_CHASER_SHADOW_TRIG_FRACTION_BITS));
+        scratch->corners[0].vz = scratch->halfSpanZ + (scratch->firstPos.vz + ((rsin(segmentYaw) * halfWidth) >> MAD_CHASER_SHADOW_TRIG_FRACTION_BITS));
+        widthCosine            = rcos(segmentYaw) * halfWidth;
+        scratch->corners[1].vy = (s16)worldY;
+        scratch->corners[1].vx = scratch->halfSpanX + (scratch->firstPos.vx + (widthCosine >> MAD_CHASER_SHADOW_TRIG_FRACTION_BITS));
+        scratch->corners[1].vz = scratch->halfSpanZ + (scratch->firstPos.vz - ((rsin(segmentYaw) * halfWidth) >> MAD_CHASER_SHADOW_TRIG_FRACTION_BITS));
+        widthCosine            = rcos(segmentYaw) * halfWidth;
+        scratch->corners[2].vy = (s16)worldY;
+        scratch->corners[2].vx = (scratch->secondPos.vx - (widthCosine >> MAD_CHASER_SHADOW_TRIG_FRACTION_BITS)) - scratch->halfSpanX;
+        scratch->corners[2].vz = (scratch->secondPos.vz + ((rsin(segmentYaw) * halfWidth) >> MAD_CHASER_SHADOW_TRIG_FRACTION_BITS)) - scratch->halfSpanZ;
+        widthCosine            = rcos(segmentYaw) * halfWidth;
+        scratch->corners[3].vy = (s16)worldY;
+        scratch->corners[3].vx = (scratch->secondPos.vx + (widthCosine >> MAD_CHASER_SHADOW_TRIG_FRACTION_BITS)) - scratch->halfSpanX;
+        scratch->corners[3].vz = (scratch->secondPos.vz - ((rsin(segmentYaw) * halfWidth) >> MAD_CHASER_SHADOW_TRIG_FRACTION_BITS)) - scratch->halfSpanZ;
+        // Project world corners through the freshly composed view transform.
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&gGfxViewCoord);
         gte_SetRotMatrix(&gGfxViewCoord.workm);
         gte_SetTransMatrix(&gGfxViewCoord.workm);
-        s->depth = RotTransPers4(&s->corners[0], &s->corners[1], &s->corners[2], &s->corners[3], &s->screenCorners[0], &s->screenCorners[1],
-                                 &s->screenCorners[2], &s->screenCorners[3], &s->depthCue, &s->flag);
-        if (s->flag >= 0) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 9);
-            poly->code                     = 0x2E;
-            GPU_PRIMITIVE_XY_WORD(poly, 0) = s->screenCorners[0];
-            GPU_PRIMITIVE_XY_WORD(poly, 1) = s->screenCorners[1];
-            GPU_PRIMITIVE_XY_WORD(poly, 2) = s->screenCorners[2];
-            GPU_PRIMITIVE_XY_WORD(poly, 3) = s->screenCorners[3];
-            setUV4(poly, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);
-            poly->tpage = 0x48;
-            poly->clut  = 0x4283;
-            setRGB0(poly, shade, shade, shade);
-            addPrim((&gGpuCurrentOt[((((u32)(s->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
+        scratch->depth = RotTransPers4(&scratch->corners[0], &scratch->corners[1], &scratch->corners[2], &scratch->corners[3], &scratch->screenCorners[0], &scratch->screenCorners[1],
+                                       &scratch->screenCorners[2], &scratch->screenCorners[3], &scratch->depthCue, &scratch->flag);
+        if (scratch->flag >= 0) {
+            _madChaserQueueLimbShadow(scratch, shade);
         }
         SCRATCH_STACK_RELEASE_BLOCK(MadChaserLimbShadowScratch);
     }

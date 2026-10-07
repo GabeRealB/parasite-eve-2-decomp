@@ -162,7 +162,7 @@ typedef struct {
 } MadChaserWork;
 STATIC_ASSERT_SIZEOF(MadChaserWork, 0x454);
 
-/// Scratch-stack workspace of `madChaserDrawLimbShadow`, one shadow quad.
+/// Scratch-stack workspace of `_madChaserDrawLimbShadow`, one shadow quad.
 ///
 /// Everything up to the projection is in world space, the frame under the
 /// view coordinate. `corners` lie flat at the shadow's height in GPU quad
@@ -196,19 +196,19 @@ void        madChaserCreepUntilHit(Task* arg0);
 
 void        madChaserStartLeap(Task* arg0);
 static void _madChaserLurkStartIdleHold(Task* task);
-void        madChaserStartAlert(Task* arg0);
+static void _madChaserStartAlert(Task* task);
 void        madChaserBurst(Task* arg0);
 void        madChaserDropBodies(Task* arg0);
 void        madChaserBeginShrink(Task* task);
 
 void madChaserSpawnGibs(Task* arg0);
 
-void        madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height, u8 shade);
+static void _madChaserDrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoint, s16 halfWidth, s32 worldY, u8 shade);
 void        madChaserSpawn(Task* task);
-void        madChaserSpawnHidden(Task* task);
+static void _madChaserSpawnHidden(Task* task);
 void        madChaserWalkStart(Task* arg0);
 void        madChaserWalkApproach(Task* arg0);
-void        madChaserLeapAttack(Task* arg0);
+static void _madChaserLeapAttack(Task* task);
 void        madChaserLeapTurnAway(Task* arg0);
 void        madChaserLeapRebound(Task* arg0);
 void        madChaserDangleFrame(Task* arg0);
@@ -220,7 +220,7 @@ void        madChaserShrinkWithDust(Task* arg0);
 void        madChaserTrackPlayer(Task* arg0);
 void        madChaserRecoilRecover(Task* arg0);
 static void _madChaserLurkLookAround(Task* task);
-void        madChaserLurkSidestepToCombat(Task* arg0);
+static void _madChaserLurkSidestepToCombat(Task* task);
 static void _madChaserLurkSidestepRight(Task* task);
 static void _madChaserLurkSidestepLeft(Task* task);
 void        madChaserEmergeAtSpot(Task* arg0);
@@ -240,9 +240,9 @@ static s16  _madChaserTakeHitRequest(Task* task);
 static void _madChaserQueueCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
 static void _madChaserTurnToPlayer(Task* task, s32 turnStep);
 void        madChaserStatusHold(Task* arg0);
-void        madChaserKnockdownStart(Task* arg0);
-void        madChaserKnockdownRise(Task* arg0);
-void        madChaserKnockdownEnd(Task* arg0);
+static void _madChaserKnockdownStart(Task* task);
+static void _madChaserKnockdownRise(Task* task);
+static void _madChaserKnockdownEnd(Task* task);
 void        madChaserWalkFinish(Task* arg0);
 void        madChaserLeapLand(Task* arg0);
 static void _madChaserAlertCry(Task* task);
@@ -264,14 +264,14 @@ static void _madChaserLurkIdleEnd(Task* task);
 static void _madChaserLurkPrepareLook(Task* task);
 static void _madChaserLurkStartLookHold(Task* task);
 void        madChaserLurkRiseEnd(Task* arg0);
-void        madChaserLurkBrace(Task* arg0);
+static void _madChaserLurkAlertStartSidestep(Task* task);
 static void _madChaserLurkShiftStart(Task* task);
 static void _madChaserLurkShiftStartSidestep(Task* task);
 void        madChaserPullStart(Task* arg0);
 void        madChaserPullReact(Task* arg0);
-void        madChaserVanish(Task* arg0);
-void        madChaserVanishFree(Task* arg0);
-void        madChaserDeathSettleQuiet(Task* arg0);
+static void _madChaserVanish(Task* task);
+static void _madChaserVanishFree(Task* task);
+static void _madChaserDeathRequestSettle(Task* task);
 void        madChaserDeathCryUnlink(Task* arg0);
 void        madChaserShrink(Task* arg0);
 s32         madChaserTakeKnockdownRequest(Task* arg0);
@@ -281,7 +281,7 @@ static inline void madChaserUpdateColor(void* enemy, GfxCoord* coord);
 static inline void madChaserCalcPush(Task* arg0, GfxCoord* coord, WorldCollisionContact* rec, SVECTOR* out);
 static inline void _madChaserSetBehaviorState(Task* task, s32 behaviorState);
 static inline s32  _madChaserTakeHitReaction(Task* task);
-static inline s32  madChaserIsHit(Task* arg0);
+static inline s32  _madChaserAnimHasBoundaryStatusInline(Task* task);
 static inline void _madChaserSetBehaviorStateS16(Task* task, s16 behaviorState);
 
 void        madChaserLurkTick(Task* arg0);
