@@ -181,34 +181,38 @@ static inline void _itemMenuDrawUnmarkedItemRowIntoRequest(const UiObject* objec
     }
 }
 
-/// Counts the loaded caption's description rows for the information viewport.
+/// Counts rows for the item-information description list in the loaded text chunk.
 ///
-/// The five metadata lines precede description text, ending at NUL or \Z.
-/// Ordinary items reserve at least two rows for their extra specifications.
+/// `itemId` is the low 16-bit catalogue/packed id. Below `ITEM_TEXT_KEY_ID_FIRST`,
+/// at least two rows are reserved for the identified catalogue descriptions.
+/// Skips up to five encoded header line breaks, then counts literal LF bytes until
+/// NUL or \\Z/\\z. CR and \\n/\\N add no rows; a final fragment without LF adds none.
+/// Borrows `fsGetChunkPayload` only for this call: the correct chunk must be
+/// loaded, stable and readable through the stop byte/command. Every backslash
+/// needs a following non-NUL byte. The result must fit signed-byte list indices.
 static inline s32 _itemMenuCountInfoDescriptionRows(s32 itemId)
 {
-    s32       lineCount;
-    const u8* cursor;
-    lineCount = 0;
-    cursor    = textSkipLines(fsGetChunkPayload(), ITEM_MENU_INFO_METADATA_LINE_COUNT);
-    while (*cursor != 0) {
-        if (*cursor == '\\') {
-            cursor++;
-            if (*cursor == 'Z' || *cursor == 'z') {
+    s32       rowCount;
+    const u8* descriptionCursor;
+
+    rowCount          = 0;
+    descriptionCursor = textSkipLines(fsGetChunkPayload(), ITEM_MENU_INFO_METADATA_LINE_COUNT);
+    while (*descriptionCursor != '\0') {
+        if (*descriptionCursor == '\\') {
+            descriptionCursor++;
+            if (*descriptionCursor == 'Z' || *descriptionCursor == 'z') {
                 break;
             }
         }
-        if (*cursor == '\n') {
-            lineCount++;
+        if (*descriptionCursor == '\n') {
+            rowCount++;
         }
-        cursor++;
+        descriptionCursor++;
     }
-    if (itemId < ITEM_TEXT_KEY_ID_FIRST) {
-        if (lineCount < ITEM_MENU_INFO_MINIMUM_ORDINARY_ROWS) {
-            lineCount = ITEM_MENU_INFO_MINIMUM_ORDINARY_ROWS;
-        }
+    if ((itemId < ITEM_TEXT_KEY_ID_FIRST) && (rowCount < ITEM_MENU_INFO_MINIMUM_ORDINARY_ROWS)) {
+        rowCount = ITEM_MENU_INFO_MINIMUM_ORDINARY_ROWS;
     }
-    return lineCount;
+    return rowCount;
 }
 
 void itemMenuInfoTask(Task* task)
