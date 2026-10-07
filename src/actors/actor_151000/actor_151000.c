@@ -106,7 +106,7 @@ extern TaskDesc D_actor_151000_80133360;
 extern TaskMessageEntry gFootstepWalkMsgTable[];
 extern u8               gFootstepWalkAnims[];
 
-static void func_actor_151000_80132450(Enemy* enemy, Task* task);
+static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor151000AyaBreaBody;
@@ -896,24 +896,28 @@ static void _actor151000SetBlackout(s32 enabled)
 /// The enemy's task body: publishes the task's work block in
 /// `gFootstepWalkWork`, then runs the handler for the task's state from a
 /// table built on the stack - the spawn handler `_footstepWalkSpawn`,
-/// then the per-frame `func_actor_151000_80132450`.
+/// then the per-frame `_actorRenderWalkerFrame`.
 void func_actor_151000_801323F4(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         _footstepWalkSpawn,
-        func_actor_151000_80132450,
+        _actorRenderWalkerFrame,
     };
 
     gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame  func_actor_151000_80132450
-#define walkerUpdate _footstepWalkUpdate
+/// Selects this carrier's private walker frame state for one fragment inclusion.
+///
+/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// This identifier alias evaluates no arguments; undefine after the fragment.
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
+#define walkerUpdate              _footstepWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
-#undef walkerFrame
+#undef ACTOR_RENDER_WALKER_FRAME
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 

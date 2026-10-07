@@ -164,3 +164,4 @@ _actor260400ExitScriptedWalker = 0x8014a630; // type:func
 _actor260400MongooseTask = 0x8014a6f8; // type:func
 _actor260400PlayScriptedWalkerAnimation = 0x8014a908; // type:func
 _actor260400SetScriptedWalkerModelDraw = 0x8014a998; // type:func
+_actorRenderWalkerFrame = 0x8014a5ac; // type:func

@@ -110,7 +110,7 @@ static void _pacedWalkResetSoldierBAnim(Task* task);
 static void _pacedWalkBlendSoldierBAnim(Task* task);
 static void _pacedWalkUpdateSoldierC(Task* task);
 static void func_actor_460200_801338C0(Enemy* enemy, Task* task);
-static void func_actor_460200_80133A04(Enemy* enemy, Task* task);
+static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void func_actor_460200_80133A88(Task* task);
 static void _actorRenderDrawThirdFixedWalkerGroundShadow(Task* task);
 static void _pacedWalkTickSoldierCAnim(Task* task);
@@ -2411,7 +2411,7 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args, s32 arg
 
 void func_actor_460200_8013386C(Task* task)
 {
-    EnemyTaskFunc fns[2] = { func_actor_460200_801338C0, func_actor_460200_80133A04 };
+    EnemyTaskFunc fns[2] = { func_actor_460200_801338C0, _actorRenderWalkerFrame };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
@@ -2460,11 +2460,15 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
     task->state += 1;
 }
 
-#define walkerFrame                            func_actor_460200_80133A04
+/// Selects this carrier's private walker frame state for one fragment inclusion.
+///
+/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// This identifier alias evaluates no arguments; undefine after the fragment.
+#define ACTOR_RENDER_WALKER_FRAME              _actorRenderWalkerFrame
 #define walkerUpdate                           _pacedWalkUpdateSoldierC
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawThirdFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
-#undef walkerFrame
+#undef ACTOR_RENDER_WALKER_FRAME
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 

@@ -399,6 +399,14 @@ The included world-yaw joint update in
 `src/shared/actor_contacts.h` declares its static per-carrier interface beside
 the contact routines it is carried with.
 
+The common walker frame state in `src/shared/walker_frame.inc.c` also belongs
+to `actorRender`: it composes the model root, samples lighting, calls the
+carrier's motion/animation update and draws its selected ground shadow.
+`ACTOR_RENDER_WALKER_FRAME` selects each static `EnemyTaskFunc` instance;
+carriers declare it in their prologues and bind it around each inclusion.
+Further instances in one carrier retain the subsystem prefix and `_` marker.
+The bound walk update keeps the identity of its own movement subsystem.
+
 `actorMovement` owns the shared coordinate steps used by actor packages:
 translation along a normalized local axis, subject to the live actor-freeze
 state, with distances in parent-coordinate units. Its inline interface is

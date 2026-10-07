@@ -410,3 +410,4 @@ _actorRenderDrawSecondFixedWalkerGroundShadow = 0x80133254; // type:func
 _actorRenderDrawThirdFixedWalkerGroundShadow = 0x80133ab0; // type:func
 _pacedWalkSetSoldierCWalkTarget = 0x80133DCC; // type:func
 _pacedWalkSetSoldierCModelDraw = 0x80133CD0; // type:func
+_actorRenderWalkerFrame = 0x80133a04; // type:func

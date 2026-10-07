@@ -498,3 +498,5 @@ _actor450800PlayKyleMadiganAnimation = 0x80132b44; // type:func
 _actor450800SetKyleMadiganDrawFlags = 0x80132bb0; // type:func
 _actor450800SetKyleMadiganWalkTarget = 0x80132d74; // type:func
 _actor450800IgnorePawnGolemCommand = 0x80133670; // type:func
+_actorRenderWalkerFrame = 0x801327e4; // type:func
+_actorRenderWalkerFrameSecond = 0x801332b8; // type:func

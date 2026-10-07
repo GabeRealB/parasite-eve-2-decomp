@@ -77719,7 +77719,7 @@ index is the task's state. The reconstruction is the ordinary local array:
 ```c
 void (*fns[2])(Enemy*, Task*) = {
     func_actor_461800_8013307C,
-    func_actor_461800_801335B0,
+    _actorRenderWalkerFrameSecond,
 };
 
 D_actor_461800_801438A0 = (Actor461800Work2*)task->work;
@@ -87703,7 +87703,7 @@ slots and passes one of those addresses, the C is one aggregate — declare the
 named repo type (`VECTOR`, `SVECTOR`, the work struct) rather than an array or
 a set of scalars, so the field names also match the siblings. The BRIEF's
 "similar matched bodies" listed the identical body minus its trailing call
-(`func_actor_521100_80136680`, `func_actor_460200_80133A04`); reading one of
+(`func_actor_521100_80136680`, actor_460200's `_actorRenderWalkerFrame`); reading one of
 those gave the whole source shape, which is the fast path for a `calls`-class
 1.00 neighbour.
 

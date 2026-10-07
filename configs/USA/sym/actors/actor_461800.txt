@@ -189,3 +189,5 @@ _actor461800SetScriptedWalkerModelDraw = 0x80132e14; // type:func
 _actor461800ApplyScriptedWalkerCommand = 0x80132f20; // type:func
 _actor461800SetFootstepWalkerModelDraw = 0x80133928; // type:func
 _actor461800ApplyFootstepWalkerCommand = 0x801339ec; // type:func
+_actorRenderWalkerFrame = 0x80132a0c; // type:func
+_actorRenderWalkerFrameSecond = 0x801335b0; // type:func

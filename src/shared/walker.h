@@ -10,7 +10,8 @@
  * Further copies need their own static prototypes in the carrier's prologue.
  * Room-shaded instances use actor_render_walker_shadow.inc.c and its separate
  * ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW definition binding.
- * walker_frame.inc.c also requires walkerFrame and walkerUpdate bindings.
+ * walker_frame.inc.c also requires ACTOR_RENDER_WALKER_FRAME and walkerUpdate
+ * bindings; its frame-state contract is documented beside the definition.
  */
 
 #ifndef SRC_SHARED_WALKER_H

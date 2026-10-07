@@ -82,7 +82,7 @@ extern EvsCommand           D_actor_160700_80135BD4[];
 extern EvsCommand           D_actor_160700_801362F4[];
 extern EvsCommand           D_actor_160700_80136414[];
 
-static void func_actor_160700_80132390(Enemy* enemy, Task* task);
+static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actor160700Exit(Task* task);
 
 extern AnimationPlayRequest D_actor_160700_80135288;
@@ -1596,18 +1596,22 @@ void func_actor_160700_8013233C(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         func_actor_160700_80131F70,
-        func_actor_160700_80132390,
+        _actorRenderWalkerFrame,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame  func_actor_160700_80132390
-#define walkerUpdate _pacedWalkUpdate
+/// Selects this carrier's private walker frame state for one fragment inclusion.
+///
+/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// This identifier alias evaluates no arguments; undefine after the fragment.
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
+#define walkerUpdate              _pacedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
-#undef walkerFrame
+#undef ACTOR_RENDER_WALKER_FRAME
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 

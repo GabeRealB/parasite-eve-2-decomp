@@ -101,9 +101,9 @@ extern s16 gFootstepWalkBlendFrames;
 /// Approach mode the last `_footstepWalkSetWalkTarget` call selected.
 extern s16 gFootstepWalkMode;
 
-static void func_actor_461800_80132A0C(Enemy* enemy, Task* task);
+static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actor461800ExitScriptedWalker(Task* task);
-static void func_actor_461800_801335B0(Enemy* enemy, Task* task);
+static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
@@ -1242,19 +1242,23 @@ void func_actor_461800_801329B0(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         func_actor_461800_80132390,
-        func_actor_461800_80132A0C,
+        _actorRenderWalkerFrame,
     };
 
     _gScriptedWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame  func_actor_461800_80132A0C
-#define walkerUpdate _scriptedWalkUpdate
+/// Selects this carrier's private walker frame state for one fragment inclusion.
+///
+/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// This identifier alias evaluates no arguments; undefine after the fragment.
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
+#define walkerUpdate              _scriptedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
-#undef walkerFrame
+#undef ACTOR_RENDER_WALKER_FRAME
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
@@ -1424,18 +1428,22 @@ void func_actor_461800_80133554(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         _footstepWalkSpawn,
-        func_actor_461800_801335B0,
+        _actorRenderWalkerFrameSecond,
     };
 
     gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame                            func_actor_461800_801335B0
+/// Selects this carrier's private walker frame state for one fragment inclusion.
+///
+/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// This identifier alias evaluates no arguments; undefine after the fragment.
+#define ACTOR_RENDER_WALKER_FRAME              _actorRenderWalkerFrameSecond
 #define walkerUpdate                           _footstepWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
-#undef walkerFrame
+#undef ACTOR_RENDER_WALKER_FRAME
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 

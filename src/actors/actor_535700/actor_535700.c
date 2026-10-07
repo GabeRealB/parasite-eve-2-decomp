@@ -93,8 +93,8 @@ extern u8               gPairWalkAnimParams[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void func_actor_535700_801324D4(Enemy* enemy, Task* task);
-static void func_actor_535700_80132F74(Enemy* enemy, Task* task);
+static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
+static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
@@ -1218,24 +1218,28 @@ static void _actor535700FinishScene(void)
 /// The first enemy's task body: publishes the task's work block in
 /// `gFootstepWalkWork`, then runs the handler for the task's state from
 /// a table built on the stack - the spawn handler `_footstepWalkSpawn`,
-/// then the per-frame `func_actor_535700_801324D4`.
+/// then the per-frame `_actorRenderWalkerFrame`.
 void func_actor_535700_80132478(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         _footstepWalkSpawn,
-        func_actor_535700_801324D4,
+        _actorRenderWalkerFrame,
     };
 
     gFootstepWalkWork = task->work;
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame  func_actor_535700_801324D4
-#define walkerUpdate _footstepWalkUpdate
+/// Selects this carrier's private walker frame state for one fragment inclusion.
+///
+/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// This identifier alias evaluates no arguments; undefine after the fragment.
+#define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
+#define walkerUpdate              _footstepWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
-#undef walkerFrame
+#undef ACTOR_RENDER_WALKER_FRAME
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
@@ -1334,22 +1338,26 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 
 /// The second enemy's task body: runs the handler for the task's state from a
 /// table built on the stack - the spawn handler `pairWalkSpawn`,
-/// then the per-frame `func_actor_535700_80132F74`.
+/// then the per-frame `_actorRenderWalkerFrameSecond`.
 void func_actor_535700_80132F20(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         pairWalkSpawn,
-        func_actor_535700_80132F74,
+        _actorRenderWalkerFrameSecond,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame                            func_actor_535700_80132F74
+/// Selects this carrier's private walker frame state for one fragment inclusion.
+///
+/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// This identifier alias evaluates no arguments; undefine after the fragment.
+#define ACTOR_RENDER_WALKER_FRAME              _actorRenderWalkerFrameSecond
 #define walkerUpdate                           _pairWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
-#undef walkerFrame
+#undef ACTOR_RENDER_WALKER_FRAME
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 

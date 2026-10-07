@@ -263,3 +263,4 @@ _footstepWalkPlace = 0x8014A79C; // type:func
 _footstepWalkQuietUpdate = 0x8014A110; // type:func
 _footstepWalkQuietResetAnim = 0x8014A5B4; // type:func
 _footstepWalkQuietBlendAnim = 0x8014A644; // type:func
+_actorRenderWalkerFrame = 0x8014a4bc; // type:func

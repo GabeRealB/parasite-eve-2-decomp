@@ -63,3 +63,4 @@ _pairWalkPlay = 0x801326A4; // type:func
 _pairWalkSetVisibility = 0x80132710; // type:func
 _pairWalkPlace = 0x80132774; // type:func
 _pairWalkSubModelTask = 0x801328BC; // type:func
+_actorRenderWalkerFrame = 0x80132434; // type:func
