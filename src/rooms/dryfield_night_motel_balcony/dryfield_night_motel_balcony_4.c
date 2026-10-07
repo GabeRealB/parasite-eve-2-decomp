@@ -3746,7 +3746,6 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
 {
     EffectWork*       work;
     GfxCoord*         coord;
-    GfxRotationWords* rot;
     s16               flag;
     u16               age;
     s16               t;
@@ -3766,12 +3765,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
     work->age = age + 1;
     switch (task->state) {
         case 0:
-            rot             = (GfxRotationWords*)&coord->coord;
-            rot->m00M01     = ONE;
-            rot->m02M10     = 0;
-            rot->m11M12     = ONE;
-            rot->m20M21     = 0;
-            rot->m22        = ONE;
+            gfxSetRotIdentity(&coord->coord);
             work->pos.vx    = task->spawnArg1.halves.low & 0xFFF;
             work->scale     = 0xA0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
