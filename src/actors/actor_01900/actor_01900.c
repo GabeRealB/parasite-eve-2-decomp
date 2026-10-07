@@ -3341,7 +3341,7 @@ static void Actor01900_Fn08724(Task* arg0)
             vec.vx                   = 0;
             eff                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
             if (eff != NULL) {
-                actorTintTask(eff->task, enemy);
+                _actorRenderApplyTaskPlacementTextureOffsets(eff->task, enemy);
             }
             break;
         case 4:
@@ -3350,7 +3350,7 @@ static void Actor01900_Fn08724(Task* arg0)
             vec.vx                   = 0;
             eff                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec);
             if (eff != NULL) {
-                actorTintTask(eff->task, enemy);
+                _actorRenderApplyTaskPlacementTextureOffsets(eff->task, enemy);
             }
             break;
     }

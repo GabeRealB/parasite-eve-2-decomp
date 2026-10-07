@@ -144310,8 +144310,8 @@ before the body's RTL, so `spawned->extra.tmd` sits ahead of every statement in
 the helper. sched1 breaks the tie between the two independent loads on RTL
 order.
 
-**Fix.** A helper taking the `Task*` and loading `model = spawned->extra.tmd`
-after `idx = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT` matched without hacks. When only the
+**Fix.** `_actorRenderApplyTaskPlacementTextureOffsets` takes the `Task*` and loads `model = task->extra.tmd`
+after `placementIndex = placementOwner->placeKey >> ENEMY_PLACE_INDEX_SHIFT`, matching without hacks. When only the
 position of an argument's load differs, try passing the object that holds it
 and dereferencing inside the helper.
 

@@ -1081,7 +1081,7 @@ static void func_actor_420700_80131E24(Enemy* enemy, Task* task)
     D_actor_420700_8013EFE4          = task;
     D_actor_420700_8013EFE8          = taskSpawnFromTable(D_actor_420700_8013EF68, 1, 0, 0);
     D_actor_420700_8013EFEC          = taskSpawnFromTable(D_actor_420700_8013EF68, 2, 0, 0);
-    actorTintTask(D_actor_420700_8013EFE8, enemy);
+    _actorRenderApplyTaskPlacementTextureOffsets(D_actor_420700_8013EFE8, enemy);
     obj->lightMtx           = &_gScriptedWalkWork->light;
     obj->colorMtx           = &_gScriptedWalkWork->color;
     D_actor_420700_8013EFF0 = 0;

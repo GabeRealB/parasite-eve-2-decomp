@@ -700,7 +700,7 @@ static void func_actor_135400_80132064(Task* arg0)
     spawned            = taskSpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
     if (spawned != NULL) {
         work->headTask = spawned;
-        actorTintTask(spawned, (Enemy*)arg0->spawnArg2.pointer);
+        _actorRenderApplyTaskPlacementTextureOffsets(spawned, arg0->spawnArg2.pointer);
     }
     spawned = taskSpawnFromTable(D_actor_135400_8013A4AC, 2, 8, arg0);
     if (spawned != NULL) {

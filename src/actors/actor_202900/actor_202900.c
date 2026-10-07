@@ -265,7 +265,7 @@ static void func_actor_202900_80149E24(Enemy* enemy, Task* task)
     obj->flags                       = 0;
     gActorSelfTask                   = task;
     gActorHelperTask                 = taskSpawnFromTable(D_actor_202900_80156E24, 1, 0, 0);
-    actorTintTask(gActorHelperTask, enemy);
+    _actorRenderApplyTaskPlacementTextureOffsets(gActorHelperTask, enemy);
     obj->lightMtx = &D_actor_202900_80156E54->light;
     obj->colorMtx = &D_actor_202900_80156E54->color;
     vec.vx        = coord->workm.t[0];

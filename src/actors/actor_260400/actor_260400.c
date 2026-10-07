@@ -1109,7 +1109,7 @@ static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
     spawned                       = taskSpawnFromTable(D_actor_260400_80154C18, 1, 8, 0);
     if (spawned != NULL) {
         _gScriptedWalkWork->mongoose = spawned;
-        actorTintTask(spawned, (Enemy*)task->spawnArg2.pointer);
+        _actorRenderApplyTaskPlacementTextureOffsets(spawned, task->spawnArg2.pointer);
     }
     _gScriptedWalkWork->st.travel     = 0;
     _gScriptedWalkWork->turnFrames    = 0;

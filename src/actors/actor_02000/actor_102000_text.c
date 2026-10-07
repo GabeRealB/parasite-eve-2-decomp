@@ -1196,7 +1196,7 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
         animationResetSlot(&work->rig.anim, i, 1);
     }
     eff = enemySpawnFromTable(Actor02000_D15FD0, 1, 0, ctx);
-    actorTintTask(eff->task, ctx);
+    _actorRenderApplyTaskPlacementTextureOffsets(eff->task, ctx);
 
     switch (ctx->spawnState) {
         case 0:
