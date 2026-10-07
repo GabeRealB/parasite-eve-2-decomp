@@ -1181,7 +1181,7 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
         case DRYFIELD_WATER_TANK_PROP_SLIDE_SETTLING:
             work->settleFrames++;
             if (work->settleFrames >= DRYFIELD_WATER_TANK_PROP_SETTLE_FRAMES) {
-                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_dryfield_water_tank_8017FD60[1], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_8017FD60[1], 0);
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tank_8017FD60[1].pos.vx;

@@ -2407,7 +2407,7 @@ static void func_actor_121300_80133854(Task* arg0)
     switch (work->step) {
         case ACTOR_121300_STEP_REPLACE_PLAYER:
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_121300_8013CCA0, 0);
             gGameSession->viewDirty = 1;
             {
                 _Actor121300AyaBreaWork* slotsWork;
@@ -2449,7 +2449,7 @@ static void func_actor_121300_80133854(Task* arg0)
             break;
         case ACTOR_121300_STEP_HOLD_ON_MARK:
             if (work->stepState == 0) {
-                TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_121300_8013CCA0, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_121300_8013CCA0, 0);
                 {
                     _Actor121300AyaBreaWork* slotsWork;
                     s32                      i;

@@ -112,14 +112,15 @@ s32 actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s
 /// the angle vector passed to the SDK's unqualified input signature.
 s32 actorMsgPlaceRotMatrix(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 
-/// Places the model root with Ry * Rx * Rz for `ACTOR_MESSAGE_PLACE`.
+/// Replaces the model root's local transform with yaw, pitch and roll, in that order.
 ///
 /// Requires a live TMD task with a writable root coordinate and a readable,
 /// word-aligned placement through the call. Position uses the root parent's
-/// frame; signed angles use 4096 units per turn. Reads only vector X/Y/Z,
-/// retains no payload pointer and leaves the stored Euler angles unchanged.
-/// Invalidates composition. Ignores the message ID and second payload word;
-/// no return value is defined.
+/// frame; signed angles use 4096 units per turn and need not be normalized.
+/// Builds Ry * Rx * Rz, reads only vector X/Y/Z and retains no payload pointer.
+/// Leaves the parent and stored Euler angles unchanged, and invalidates
+/// composition. Requires an initialized graphics scratch stack. Ignores the
+/// message ID and second payload word; callers must ignore the dispatch result.
 void actorMsgPlaceYawPitchRoll(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg);
 
 /// Places a model in world space by parenting its root to `gGfxViewCoord`.

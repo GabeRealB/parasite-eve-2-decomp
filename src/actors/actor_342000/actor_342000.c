@@ -691,7 +691,7 @@ void func_actor_342000_801628C8(Task* arg0)
     switch (arg0->state) {
         case 0:
             func_actor_342000_80162158(arg0);
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_342000_801648B8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_342000_801648B8, 0);
             arg0->state += 1;
             return;
         case 1:
