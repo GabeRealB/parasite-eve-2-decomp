@@ -569,17 +569,17 @@ extern _Actor503500SmallOrbEmitterWork D_actor_503500_8017797C;
 
 extern _Actor503500LargeOrbEmitterWork D_actor_503500_801774C0[2];
 
-static void func_actor_503500_8013BC54(Task* arg0);
+static void _actor503500LargeOrbEmitterExit(Task* task);
 
 extern _Actor503500ChainBaseWork D_actor_503500_80177794[2];
-static void                      func_actor_503500_8013D85C(Task* arg0);
+static void                      _actor503500ChainBaseExit(Task* task);
 
 static void func_actor_503500_8013AF60(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
 static void func_actor_503500_8013CCBC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
 static void func_actor_503500_8013C088(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
 static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
-static void func_actor_503500_8013EA2C(Task* arg0);
-static void func_actor_503500_8013EC20(Task* arg0, s32 arg1);
+static void _actor503500SmallOrbEmitterExit(Task* task);
+static void _actor503500SmallOrbEmitterEnterState(Task* task, s32 state);
 static void func_actor_503500_801431EC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 static void func_actor_503500_8014215C(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
@@ -588,11 +588,11 @@ static void func_actor_503500_8013B460(Task* arg0);
 static void func_actor_503500_8013B8D0(Task* arg0);
 static void func_actor_503500_8013BE0C(Task* arg0);
 static void func_actor_503500_8013BCB4(Task* arg0);
-static void func_actor_503500_8013C900(Task* arg0);
+static void _actor503500RearPartExit(Task* task);
 static void func_actor_503500_8013C9DC(Task* arg0);
 static void func_actor_503500_8013C960(Task* arg0);
 static void func_actor_503500_8013CA34(Task* arg0);
-static void func_actor_503500_8013CA74(Task* arg0, s8 arg1);
+static void _actor503500RearPartEnterState(Task* task, s8 state);
 static void func_actor_503500_8013D8BC(Task* arg0);
 static void func_actor_503500_8013D914(Task* arg0);
 static void func_actor_503500_8013D990(Task* arg0);
@@ -608,15 +608,15 @@ static void func_actor_503500_8013EBE4(Task* arg0);
 static void func_actor_503500_8013EA8C(Task* arg0);
 static void func_actor_503500_8013EAE4(Task* arg0);
 static void func_actor_503500_8013EB60(Task* arg0);
-static void func_actor_503500_8013F778(Task* arg0);
+static void _actor503500YellowFlashEmitterExit(Task* task);
 static void func_actor_503500_8013F7D8(Task* arg0);
 static void func_actor_503500_8013F830(Task* arg0);
-static void func_actor_503500_8013DBA8(Task* arg0, s32 arg1);
+static void _actor503500ChainBaseEnterState(Task* task, s32 state);
 static void func_actor_503500_8013F328(Task* arg0);
 static void func_actor_503500_8013F4A4(Task* arg0);
 static void func_actor_503500_8013F948(Task* arg0);
 static void func_actor_503500_8013F984(Task* arg0);
-static void func_actor_503500_8013F9D4(Task* arg0, s32 arg1);
+static void _actor503500YellowFlashEmitterEnterState(Task* task, s32 state);
 static void func_actor_503500_801400A4(Task* arg0);
 static void func_actor_503500_80140654(Task* arg0);
 static void func_actor_503500_80140BE8(Task* arg0);
@@ -629,7 +629,7 @@ static void func_actor_503500_80141F48(Task* arg0);
 static void func_actor_503500_80141FC8(Task* arg0);
 static void func_actor_503500_801420C4(Task* arg0);
 static void func_actor_503500_801421A8(Task* arg0);
-static void func_actor_503500_80142310(Task* arg0, s32 arg1);
+static void _actor503500LungingChainEnterState(Task* task, s32 state);
 static void func_actor_503500_8014271C(Task* arg0);
 static void func_actor_503500_80142980(Task* arg0);
 static void func_actor_503500_80143FFC(Task* arg0);
@@ -637,12 +637,12 @@ static void func_actor_503500_80144004(Task* arg0);
 static void func_actor_503500_80144098(Task* arg0, s32 arg1, Enemy* arg2);
 static void func_actor_503500_8014418C(Task* arg0);
 static void func_actor_503500_801441E8(Task* arg0);
-static void func_actor_503500_80144238(Task* arg0, s32 arg1);
-static void func_actor_503500_80144520(Task* arg0);
+static void _actor503500ArmEnterState(Task* task, s32 state);
+static void _actor503500BallisticShotStep(Task* task);
 static void func_actor_503500_80144778(Task* arg0);
 static void func_actor_503500_80144B40(Task* arg0);
 static void func_actor_503500_80144E10(Task* arg0);
-static void func_actor_503500_8013BE48(Task* arg0, s32 arg1);
+static void _actor503500LargeOrbEmitterEnterState(Task* task, s32 state);
 static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2);
 
 /// Storage holding the two arms' work blocks and the eight bytes after them.
@@ -661,11 +661,11 @@ typedef struct {
 } _Actor503500ArmStorage;
 STATIC_ASSERT_SIZEOF(_Actor503500ArmStorage, 0x450);
 
-static void func_actor_503500_80143F78(Task* arg0);
-static void func_actor_503500_8014473C(Task* arg0);
+static void _actor503500ArmExit(Task* task);
+static void _actor503500BallisticShotExit(Task* task);
 static void func_actor_503500_80144DA8(Task* arg0);
 
-static void func_actor_503500_80141D04(Task* arg0);
+static void _actor503500LungingChainExit(Task* task);
 
 extern _Actor503500LungingChainWork D_actor_503500_80177B60[];
 
@@ -696,12 +696,23 @@ static void func_actor_503500_80144D50(Task* arg0);
 static void func_actor_503500_8013BD0C(Task* arg0);
 static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords);
 
+/// Integrates a shot's signed 16.16 velocity and publishes its integer position.
+static inline void _actor503500BallisticShotIntegratePosition(_Actor503500BallisticShotWork* work, GfxCoord* coord)
+{
+    work->position.fixed.vx.word += work->velocity.fixed.vx.word;
+    work->position.fixed.vy.word += work->velocity.fixed.vy.word;
+    work->position.fixed.vz.word += work->velocity.fixed.vz.word;
+    coord->coord.t[0]             = work->position.fixed.vx.halves.integer;
+    coord->coord.t[1]             = work->position.fixed.vy.halves.integer;
+    coord->coord.t[2]             = work->position.fixed.vz.halves.integer;
+}
+
 /// `Task::state` handlers `func_actor_503500_8013BE8C` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80131FF0 = {
     {
         func_actor_503500_8013AD64,
         func_actor_503500_8013BBCC,
-        func_actor_503500_8013BC54,
+        _actor503500LargeOrbEmitterExit,
     },
 };
 
@@ -778,7 +789,7 @@ static void func_actor_503500_8013AD64(Task* arg0)
     work->hitEffect.spawnArgHi = 3;
     work->body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     MoveImage(&D_actor_503500_8016F100, 0, 0x105);
-    arg0->exitCallback = func_actor_503500_8013BC54;
+    arg0->exitCallback = _actor503500LargeOrbEmitterExit;
     arg0->state       += 1;
 }
 
@@ -829,7 +840,7 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* arg0, _Actor503500
     worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
-        func_actor_503500_8013BE48(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING);
+        _actor503500LargeOrbEmitterEnterState(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING);
     }
     switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
         case DAMAGE_PLAYER_REACTION_NONE:
@@ -916,7 +927,7 @@ static void func_actor_503500_8013B460(Task* arg0)
 
     work = arg0->work;
     if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        func_actor_503500_8013BE48(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE);
+        _actor503500LargeOrbEmitterEnterState(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE);
         actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
@@ -944,7 +955,7 @@ static void func_actor_503500_8013B460(Task* arg0)
             }
         case 2:
             if (actor503500HasAnimationFinished(arg0->parent, 9) != 0) {
-                func_actor_503500_8013BE48(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE);
+                _actor503500LargeOrbEmitterEnterState(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE);
             }
             break;
     }
@@ -1115,18 +1126,23 @@ static void func_actor_503500_8013BBCC(Task* arg0)
     func_actor_503500_8013BD88(arg0);
 }
 
-static void func_actor_503500_8013BC54(Task* arg0)
+/// Detaches a large-orb emitter and releases its collision body and enemy.
+///
+/// Requires an initialized task with its enemy in `spawnArg2.pointer`. The
+/// root coordinate is reparented to the view before teardown. Clearing
+/// `task->work` retains the static work block instead of freeing it.
+static void _actor503500LargeOrbEmitterExit(Task* task)
 {
     Enemy*                           enemy;
     _Actor503500LargeOrbEmitterWork* work;
 
-    enemy                           = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    work                            = arg0->work;
+    enemy                           = task->spawnArg2.pointer;
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    work                            = task->work;
     worldCollisionUnlinkBody(&work->body);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_8013BCB4(Task* arg0)
@@ -1188,25 +1204,25 @@ static void func_actor_503500_8013BD88(Task* arg0)
 static void func_actor_503500_8013BE0C(Task* arg0)
 {
     if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        func_actor_503500_8013BE48(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK);
+        _actor503500LargeOrbEmitterEnterState(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK);
         arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
-/// The large-orb emitter's counterpart of `_actor503500PinkFlashEmitterEnterState`:
-/// enters state `arg1` (an `ACTOR_503500_LARGE_ORB_EMITTER_STATE_*`), clears
-/// `stateStep` and `stateFrames`, drops any command still waiting in the
-/// task, and reports the slot busy to the boss in every state but
-/// `ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE`.
-static void func_actor_503500_8013BE48(Task* arg0, s32 arg1)
+/// Starts a large-orb emitter state and reports its availability to the boss.
+///
+/// `state` is an `ACTOR_503500_LARGE_ORB_EMITTER_STATE_*` value. Restarts
+/// the state step and frame count, consumes any pending boss command, and
+/// marks the slot busy unless the new state is idle.
+static void _actor503500LargeOrbEmitterEnterState(Task* task, s32 state)
 {
-    _Actor503500LargeOrbEmitterWork* work = arg0->work;
+    _Actor503500LargeOrbEmitterWork* work = task->work;
 
-    work->state         = arg1;
+    work->state         = state;
     work->stateStep     = 0;
     work->stateFrames   = 0;
-    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
-    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE);
 }
 
 void func_actor_503500_8013BE8C(Task* task)
@@ -1222,7 +1238,7 @@ static const TaskFuncTable3 D_actor_503500_80132028 = {
     {
         func_actor_503500_8013BEE4,
         func_actor_503500_8013C878,
-        func_actor_503500_8013C900,
+        _actor503500RearPartExit,
     },
 };
 
@@ -1275,8 +1291,8 @@ static void func_actor_503500_8013BEE4(Task* arg0)
     D_actor_503500_801776A0.hitEffect.coord      = coord;
     D_actor_503500_801776A0.hitEffect.spawnArgHi = 3;
     D_actor_503500_801776A0.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    func_actor_503500_8013CA74(arg0, ACTOR_503500_REAR_PART_STATE_IDLE);
-    arg0->exitCallback = func_actor_503500_8013C900;
+    _actor503500RearPartEnterState(arg0, ACTOR_503500_REAR_PART_STATE_IDLE);
+    arg0->exitCallback = _actor503500RearPartExit;
     arg0->state       += 1;
 }
 
@@ -1327,7 +1343,7 @@ static inline void _actor503500RearPartHandleHit(Task* arg0, _Actor503500RearPar
     worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
-        func_actor_503500_8013CA74(arg0, ACTOR_503500_REAR_PART_STATE_DYING);
+        _actor503500RearPartEnterState(arg0, ACTOR_503500_REAR_PART_STATE_DYING);
     }
     switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
         case DAMAGE_PLAYER_REACTION_NONE:
@@ -1485,16 +1501,23 @@ static void func_actor_503500_8013C878(Task* arg0)
     func_actor_503500_8013CA34(arg0);
 }
 
-static void func_actor_503500_8013C900(Task* arg0)
+/// Detaches the rear-part target and releases its collision body and enemy.
+///
+/// Requires an initialized task with its enemy in `spawnArg2.pointer`. The
+/// root coordinate is reparented to the view before teardown. Clearing
+/// `task->work` retains the static work block instead of freeing it.
+static void _actor503500RearPartExit(Task* task)
 {
-    Enemy* enemy;
+    Enemy*                    enemy;
+    _Actor503500RearPartWork* work;
 
-    enemy                           = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    worldCollisionUnlinkBody(&((_Actor503500RearPartWork*)arg0->work)->body);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy                           = task->spawnArg2.pointer;
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    work                            = task->work;
+    worldCollisionUnlinkBody(&work->body);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_8013C960(Task* arg0)
@@ -1542,15 +1565,16 @@ static void func_actor_503500_8013CA34(Task* arg0)
     }
 }
 
-/// The rear part's counterpart of `func_actor_503500_8013BE48`: enters state
-/// `arg1` (an `ACTOR_503500_REAR_PART_STATE_*`) and clears `stateStep` and
-/// `stateFrames`. Nothing is reported to the boss.
-static void func_actor_503500_8013CA74(Task* arg0, s8 arg1)
+/// Starts a rear-part state with its step and frame count reset.
+///
+/// `state` is an `ACTOR_503500_REAR_PART_STATE_*` value. This target has no
+/// boss command or slot-availability handshake.
+static void _actor503500RearPartEnterState(Task* task, s8 state)
 {
     _Actor503500RearPartWork* work;
 
-    work              = arg0->work;
-    work->state       = arg1;
+    work              = task->work;
+    work->state       = state;
     work->stateStep   = 0;
     work->stateFrames = 0;
 }
@@ -1568,7 +1592,7 @@ static const TaskFuncTable3 D_actor_503500_80132060 = {
     {
         func_actor_503500_8013CAE4,
         func_actor_503500_8013D7D4,
-        func_actor_503500_8013D85C,
+        _actor503500ChainBaseExit,
     },
 };
 
@@ -1626,8 +1650,8 @@ static void func_actor_503500_8013CAE4(Task* arg0)
     work->hitEffect.coord      = coord;
     work->hitEffect.spawnArgHi = 3;
     work->body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_COVERED);
-    arg0->exitCallback = func_actor_503500_8013D85C;
+    _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_COVERED);
+    arg0->exitCallback = _actor503500ChainBaseExit;
     arg0->state       += 1;
 }
 
@@ -1678,7 +1702,7 @@ static inline void _actor503500ChainBaseHandleHit(Task* arg0, _Actor503500ChainB
     worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
-        func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_DYING);
+        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_DYING);
     }
     switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
         case DAMAGE_PLAYER_REACTION_NONE:
@@ -1781,7 +1805,7 @@ static void func_actor_503500_8013D1CC(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
+        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
         actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
@@ -1841,7 +1865,7 @@ static void func_actor_503500_8013D1CC(Task* arg0)
             break;
         case 2:
             if (actor503500HasAnimationFinished(arg0->parent, 0xA) != 0) {
-                func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
+                _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
             }
             break;
     }
@@ -1933,16 +1957,23 @@ static void func_actor_503500_8013D7D4(Task* arg0)
     func_actor_503500_8013D990(arg0);
 }
 
-static void func_actor_503500_8013D85C(Task* arg0)
+/// Detaches a chain base and releases its collision body and enemy.
+///
+/// Requires an initialized task with its enemy in `spawnArg2.pointer`. The
+/// root coordinate is reparented to the view before teardown. Clearing
+/// `task->work` retains the static work block instead of freeing it.
+static void _actor503500ChainBaseExit(Task* task)
 {
-    Enemy* enemy;
+    Enemy*                     enemy;
+    _Actor503500ChainBaseWork* work;
 
-    enemy                           = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    worldCollisionUnlinkBody(&((_Actor503500ChainBaseWork*)arg0->work)->body);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy                           = task->spawnArg2.pointer;
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    work                            = task->work;
+    worldCollisionUnlinkBody(&work->body);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_8013D8BC(Task* arg0)
@@ -2048,33 +2079,33 @@ static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1)
             }
             work->exposedFrames = 0;
         }
-        func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_COVERED);
+        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_COVERED);
         work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         worldTargetUnlinkNode(&enemy->node);
         work->hitCooldown = 0;
         return;
     }
     if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_ATTACK);
+        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_ATTACK);
         arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
-/// The chain base's counterpart of `func_actor_503500_8013BE48`: enters state
-/// `arg1` (an `ACTOR_503500_CHAIN_BASE_STATE_*`), clears `stateStep`,
-/// `stateFrames` and `field_EE` but not `exposedFrames`, drops any command
-/// still waiting in the task, and reports the slot busy to the boss in every
-/// state but `ACTOR_503500_CHAIN_BASE_STATE_EXPOSED`.
-static void func_actor_503500_8013DBA8(Task* arg0, s32 arg1)
+/// Starts a chain-base state and reports its availability to the boss.
+///
+/// `state` is an `ACTOR_503500_CHAIN_BASE_STATE_*` value. Restarts the state
+/// step and frame count, consumes any pending boss command, and marks the
+/// slot busy unless exposed. The exposure age survives attacks and state changes.
+static void _actor503500ChainBaseEnterState(Task* task, s32 state)
 {
-    _Actor503500ChainBaseWork* work = arg0->work;
+    _Actor503500ChainBaseWork* work = task->work;
 
-    work->state         = arg1;
+    work->state         = state;
     work->stateStep     = 0;
     work->stateFrames   = 0;
     work->field_EE      = 0;
-    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
-    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
+    task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
 }
 
 void func_actor_503500_8013DBF4(Task* task)
@@ -2108,7 +2139,7 @@ static void func_actor_503500_8013DC4C(Task* arg0)
     if ((actor503500IsSlotEmpty(arg0->parent, kind) != 0) &&
         (actor503500IsSlotEmpty(arg0->parent, slotA) != 0) &&
         (actor503500IsSlotEmpty(arg0->parent, slotB) != 0)) {
-        func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
+        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
         work              = arg0->work;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
@@ -2120,7 +2151,7 @@ static const TaskFuncTable3 D_actor_503500_80132098 = {
     {
         func_actor_503500_8013DD10,
         func_actor_503500_8013E9A4,
-        func_actor_503500_8013EA2C,
+        _actor503500SmallOrbEmitterExit,
     },
 };
 
@@ -2172,8 +2203,8 @@ static void func_actor_503500_8013DD10(Task* arg0)
     D_actor_503500_8017797C.hitEffect.coord      = coord;
     D_actor_503500_8017797C.hitEffect.spawnArgHi = 3;
     D_actor_503500_8017797C.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
-    arg0->exitCallback = func_actor_503500_8013EA2C;
+    _actor503500SmallOrbEmitterEnterState(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
+    arg0->exitCallback = _actor503500SmallOrbEmitterExit;
     arg0->state       += 1;
 }
 
@@ -2224,7 +2255,7 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500
     worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
-        func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING);
+        _actor503500SmallOrbEmitterEnterState(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING);
     }
     switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
         case DAMAGE_PLAYER_REACTION_NONE:
@@ -2323,7 +2354,7 @@ static void func_actor_503500_8013E384(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
+        _actor503500SmallOrbEmitterEnterState(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
         actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
@@ -2377,7 +2408,7 @@ static void func_actor_503500_8013E384(Task* arg0)
             break;
         case 3:
             if (actor503500HasAnimationFinished(arg0->parent, 0xB) != 0) {
-                func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
+                _actor503500SmallOrbEmitterEnterState(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
             }
             break;
     }
@@ -2466,18 +2497,23 @@ static void func_actor_503500_8013E9A4(Task* arg0)
     func_actor_503500_8013EB60(arg0);
 }
 
-static void func_actor_503500_8013EA2C(Task* arg0)
+/// Detaches the small-orb emitter and releases its collision body and enemy.
+///
+/// Requires an initialized task with its enemy in `spawnArg2.pointer`. The
+/// root coordinate is reparented to the view before teardown. Clearing
+/// `task->work` retains the static work block instead of freeing it.
+static void _actor503500SmallOrbEmitterExit(Task* task)
 {
     Enemy*                           enemy;
     _Actor503500SmallOrbEmitterWork* work;
 
-    enemy                           = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    work                            = arg0->work;
+    enemy                           = task->spawnArg2.pointer;
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    work                            = task->work;
     worldCollisionUnlinkBody(&work->body);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_8013EA8C(Task* arg0)
@@ -2536,25 +2572,25 @@ static void func_actor_503500_8013EB60(Task* arg0)
 static void func_actor_503500_8013EBE4(Task* arg0)
 {
     if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK);
+        _actor503500SmallOrbEmitterEnterState(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK);
         arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
-/// The small-orb emitter's counterpart of `func_actor_503500_8013BE48`:
-/// enters state `arg1` (an `ACTOR_503500_SMALL_ORB_EMITTER_STATE_*`), clears
-/// `stateStep` and `stateFrames`, drops any command still waiting in the
-/// task, and reports the slot busy to the boss in every state but
-/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE`.
-static void func_actor_503500_8013EC20(Task* arg0, s32 arg1)
+/// Starts a small-orb emitter state and reports its availability to the boss.
+///
+/// `state` is an `ACTOR_503500_SMALL_ORB_EMITTER_STATE_*` value. Restarts
+/// the state step and frame count, consumes any pending boss command, and
+/// marks the slot busy unless the new state is idle.
+static void _actor503500SmallOrbEmitterEnterState(Task* task, s32 state)
 {
-    _Actor503500SmallOrbEmitterWork* work = arg0->work;
+    _Actor503500SmallOrbEmitterWork* work = task->work;
 
-    work->state         = arg1;
+    work->state         = state;
     work->stateStep     = 0;
     work->stateFrames   = 0;
-    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
-    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
 }
 
 void func_actor_503500_8013EC64(Task* task)
@@ -2570,7 +2606,7 @@ static const TaskFuncTable3 D_actor_503500_801320D0 = {
     {
         func_actor_503500_8013ECBC,
         func_actor_503500_8013F6F0,
-        func_actor_503500_8013F778,
+        _actor503500YellowFlashEmitterExit,
     },
 };
 
@@ -2621,8 +2657,8 @@ static void func_actor_503500_8013ECBC(Task* arg0)
     D_actor_503500_80177A6C.hitEffect.coord      = coord;
     D_actor_503500_80177A6C.hitEffect.spawnArgHi = 3;
     D_actor_503500_80177A6C.body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT);
-    arg0->exitCallback = func_actor_503500_8013F778;
+    _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT);
+    arg0->exitCallback = _actor503500YellowFlashEmitterExit;
     arg0->state       += 1;
 }
 
@@ -2673,7 +2709,7 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* arg0, _Actor503
     worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
-        func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING);
+        _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING);
     }
     switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
         case DAMAGE_PLAYER_REACTION_NONE:
@@ -2755,7 +2791,7 @@ static void func_actor_503500_8013F328(Task* arg0)
     GfxCoord*                           coord;
 
     if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
+        _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
         actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
@@ -2788,7 +2824,7 @@ static void func_actor_503500_8013F328(Task* arg0)
             break;
         case 3:
             if (actor503500HasAnimationFinished(arg0->parent, 0xD) != 0) {
-                func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
+                _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
             }
             break;
     }
@@ -2875,18 +2911,23 @@ static void func_actor_503500_8013F6F0(Task* arg0)
     func_actor_503500_8013F8AC(arg0);
 }
 
-static void func_actor_503500_8013F778(Task* arg0)
+/// Detaches the yellow-flash emitter and releases its collision body and enemy.
+///
+/// Requires an initialized task with its enemy in `spawnArg2.pointer`. The
+/// root coordinate is reparented to the view before teardown. Clearing
+/// `task->work` retains the static work block instead of freeing it.
+static void _actor503500YellowFlashEmitterExit(Task* task)
 {
     Enemy*                              enemy;
     _Actor503500YellowFlashEmitterWork* work;
 
-    enemy                           = arg0->spawnArg2.pointer;
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    work                            = arg0->work;
+    enemy                           = task->spawnArg2.pointer;
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    work                            = task->work;
     worldCollisionUnlinkBody(&work->body);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_8013F7D8(Task* arg0)
@@ -2951,7 +2992,7 @@ static void func_actor_503500_8013F8AC(Task* arg0)
 static void func_actor_503500_8013F948(Task* arg0)
 {
     if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK);
+        _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK);
         arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
@@ -2965,27 +3006,27 @@ static void func_actor_503500_8013F984(Task* arg0)
     _Actor503500YellowFlashEmitterWork* work;
 
     if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_BECOME_TARGET) {
-        func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
+        _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
         work              = arg0->work;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
 }
 
-/// The yellow-flash emitter's counterpart of `_actor503500PinkFlashEmitterEnterState`:
-/// enters state `arg1` (an `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_*`),
-/// clears `stateStep`, `stateFrames` and `field_EC`, drops any command still
-/// waiting in the task, and reports the slot busy to the boss in every state
-/// but `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE`.
-static void func_actor_503500_8013F9D4(Task* arg0, s32 arg1)
+/// Starts a yellow-flash emitter state and reports its availability to the boss.
+///
+/// `state` is an `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_*` value. Restarts
+/// the state step and frame count, consumes any pending boss command, and
+/// marks the slot busy unless idle, including while dormant.
+static void _actor503500YellowFlashEmitterEnterState(Task* task, s32 state)
 {
-    _Actor503500YellowFlashEmitterWork* work = arg0->work;
+    _Actor503500YellowFlashEmitterWork* work = task->work;
 
-    work->state         = arg1;
+    work->state         = state;
     work->stateStep     = 0;
     work->stateFrames   = 0;
     work->field_EC      = 0;
-    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
-    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
 }
 
 void func_actor_503500_8013FA1C(Task* task)
@@ -3001,7 +3042,7 @@ static const TaskFuncTable3 D_actor_503500_80132108 = {
     {
         func_actor_503500_8013FA74,
         func_actor_503500_8013FF0C,
-        func_actor_503500_80141D04,
+        _actor503500LungingChainExit,
     },
 };
 
@@ -3092,21 +3133,21 @@ static void func_actor_503500_8013FA74(Task* arg0)
     func_actor_503500_801421A8(arg0);
     switch (arg0->killCountdown) {
         case ACTOR_503500_SLOT_COMMAND_BECOME_TARGET:
-            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING);
+            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING);
             break;
         case ACTOR_503500_SLOT_COMMAND_REGROW:
             tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING);
+            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING);
             break;
         default:
             worldTargetLinkNode(&enemy->node);
             enemy->hp         = D_actor_503500_8016E7EC[arg0->spawnArg1.value].hpMax;
             work->blendWeight = 0x1000;
             work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             break;
     }
-    arg0->exitCallback = func_actor_503500_80141D04;
+    arg0->exitCallback = _actor503500LungingChainExit;
     arg0->state       += 1;
 }
 
@@ -3164,7 +3205,8 @@ static void func_actor_503500_8013FF0C(Task* arg0)
 /// `gPlayerStatus.coordMtx` in `lungeTarget` and rotates its offset from the
 /// parent coordinate into `tipTarget`; step 1 ramps `curlWeight` to 0x2000 and
 /// re-aims once `tipArrived` is set; steps 2..4 ramp it back to 0. While in
-/// steps 0..1, `func_actor_503500_80142310` ends the state after 120 frames
+/// steps 0..1, returns to idle through `_actor503500LungingChainEnterState`
+/// when its frame count exceeds 120
 /// or when `actor503500GetPlayerBearing`'s reading leaves the window the slot
 /// (and whether its partner slot is empty) allows.
 static void func_actor_503500_801400A4(Task* arg0)
@@ -3181,7 +3223,7 @@ static void func_actor_503500_801400A4(Task* arg0)
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
     if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
         actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
@@ -3255,7 +3297,7 @@ static void func_actor_503500_801400A4(Task* arg0)
             }
             work->stepFrames++;
             if (work->stepFrames > 30) {
-                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
     }
@@ -3303,7 +3345,7 @@ static void func_actor_503500_801400A4(Task* arg0)
     }
     work->stateFrames++;
     if (work->stateStep < 2 && (work->stateFrames > 120 || keep == 0)) {
-        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
     }
 }
 
@@ -3453,7 +3495,7 @@ static void func_actor_503500_80140BE8(Task* arg0)
         flags = enemy->reactionFlags;
         if (flags & ENEMY_REACTION_STAGGER) {
             enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
-            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             work->holdFrames = 5;
             work->slowFrames = 8;
         }
@@ -3461,10 +3503,10 @@ static void func_actor_503500_80140BE8(Task* arg0)
             enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DAMAGE_OVER_TIME);
+            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DAMAGE_OVER_TIME);
             if (damageIsEnemyDamageOverTimeExpired(arg0->spawnArg2.pointer) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
-                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             } else {
                 dmg = damageTickEnemyDamageOverTime(enemy);
                 if (dmg != 0) {
@@ -3473,9 +3515,9 @@ static void func_actor_503500_80140BE8(Task* arg0)
                     work->slowFrames = 8;
                     if (enemy->hp <= 0) {
                         enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
-                        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
+                        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
                     } else {
-                        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
                     }
                 }
             }
@@ -3531,7 +3573,7 @@ static inline void _actor503500LungingChainHandleHit(Task* arg0, _Actor503500Lun
     enemy->hp -= dmg;
     if (enemy->hp <= 0) {
         if (work->state < ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING) {
-            func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
+            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
         }
     } else {
         switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
@@ -3578,7 +3620,7 @@ static inline void _actor503500LungingChainHandleHit(Task* arg0, _Actor503500Lun
         work->hitCooldown = stun;
     }
     if (work->state == ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE) {
-        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
     }
 }
 
@@ -3829,18 +3871,26 @@ static void func_actor_503500_80141B94(Task* arg0)
     }
 }
 
-static void func_actor_503500_80141D04(Task* arg0)
+/// Releases a lunging chain's effect reservation, collision bodies and enemy.
+///
+/// Requires an initialized task with its enemy in `spawnArg2.pointer`. The
+/// root coordinate is reparented to the view before teardown. Clearing
+/// `task->work` retains the static work block instead of freeing it.
+static void _actor503500LungingChainExit(Task* task)
 {
-    Enemy* enemy;
+    Enemy*                        enemy;
+    _Actor503500LungingChainWork* work;
 
-    enemy = arg0->spawnArg2.pointer;
-    actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    worldCollisionUnlinkBody(&((_Actor503500LungingChainWork*)arg0->work)->body);
-    worldCollisionUnlinkBody(&((_Actor503500LungingChainWork*)arg0->work)->attackBody);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy = task->spawnArg2.pointer;
+    actor503500ReleaseSlotEffects(task->spawnArg1.value);
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    work                            = task->work;
+    worldCollisionUnlinkBody(&work->body);
+    work = task->work;
+    worldCollisionUnlinkBody(&work->attackBody);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_80141D7C(Task* arg0)
@@ -3858,7 +3908,7 @@ static void func_actor_503500_80141D7C(Task* arg0)
         case ACTOR_503500_LUNGING_CHAIN_STATE_HOLD:
             work->holdFrames--;
             if (work->holdFrames < 0) {
-                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_DYING:
@@ -3883,7 +3933,7 @@ static void func_actor_503500_80141E64(Task* arg0)
 
     work = arg0->work;
     if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE);
+        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE);
         arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
     work->swayWeight += 0x20;
@@ -3909,7 +3959,7 @@ static void func_actor_503500_80141F48(Task* arg0)
         worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
         work->blendWeight = 0x1000;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
     }
 }
 
@@ -3944,7 +3994,7 @@ static void func_actor_503500_80141FC8(Task* arg0)
                 worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
                 work->blendWeight = 0x1000;
                 work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
     }
@@ -4020,20 +4070,28 @@ static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
 
 #include "../../shared/bezier_curve_coefficients.inc.c"
 
-static void func_actor_503500_80142310(Task* arg0, s32 arg1)
+/// Starts a lunging-chain state with normal tip speed and its attack disabled.
+///
+/// `state` is an `ACTOR_503500_LUNGING_CHAIN_STATE_*` value. Restarts the
+/// state step and both frame counters, consumes any pending boss command,
+/// and marks the slot busy unless idle. Target-sphere eligibility is retained.
+static void _actor503500LungingChainEnterState(Task* task, s32 state)
 {
+    // Signed 16.16 world units per update.
+    enum { ACTOR_503500_LUNGING_CHAIN_REST_SPEED_LIMIT = 96 * 0x10000 };
+
     _Actor503500LungingChainWork* work;
 
-    work                     = arg0->work;
-    work->state              = arg1;
+    work                     = task->work;
+    work->state              = state;
     work->stateStep          = 0;
     work->field_3D1          = 0;
     work->stateFrames        = 0;
     work->stepFrames         = 0;
-    work->tipSpeedLimit.word = 0x600000;
+    work->tipSpeedLimit.word = ACTOR_503500_LUNGING_CHAIN_REST_SPEED_LIMIT;
     work->attackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    arg0->killCountdown      = ACTOR_503500_SLOT_COMMAND_NONE;
-    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    task->killCountdown      = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
 }
 
 void func_actor_503500_80142370(Task* task)
@@ -4049,7 +4107,7 @@ static const TaskFuncTable3 D_actor_503500_80132178 = {
     {
         func_actor_503500_801423C8,
         func_actor_503500_80143EB4,
-        func_actor_503500_80143F78,
+        _actor503500ArmExit,
     },
 };
 
@@ -4156,8 +4214,8 @@ static void func_actor_503500_801423C8(Task* arg0)
     work->hitEffect.coord       = coord;
     work->hitEffect.spawnArgHi  = 3;
     work->handAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_IDLE);
-    arg0->exitCallback = func_actor_503500_80143F78;
+    _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_IDLE);
+    arg0->exitCallback = _actor503500ArmExit;
     arg0->state       += 1;
 }
 
@@ -4179,7 +4237,7 @@ static void func_actor_503500_8014271C(Task* arg0)
 
     work = arg0->work;
     if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_IDLE);
+        _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_IDLE);
         actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
@@ -4245,7 +4303,7 @@ static void func_actor_503500_8014271C(Task* arg0)
             }
             break;
         default:
-            func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_IDLE);
+            _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_IDLE);
             break;
     }
 }
@@ -4539,13 +4597,13 @@ static inline void _actor503500ArmHandleHit(Task* arg0, _Actor503500ArmWork* wor
         case 4:
         case DAMAGE_PLAYER_REACTION_EXPLOSION:
             if (enemy->hp <= 0) {
-                func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_DYING);
+                _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_DYING);
                 crit = 2;
             }
             break;
     }
     if ((id & 0x8000) && D_actor_503500_80171490[id & 0x7F] != 0) {
-        func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_DYING);
+        _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_DYING);
         crit = 2;
     }
     gte_TransposeMatrix(&coord->workm, &rot);
@@ -4824,21 +4882,26 @@ static void func_actor_503500_80143EB4(Task* arg0)
     }
 }
 
-static void func_actor_503500_80143F78(Task* arg0)
+/// Releases an arm's effect reservation, collision bodies and enemy.
+///
+/// Requires an initialized task with its enemy in `spawnArg2.pointer`. The
+/// root coordinate is reparented to the view before teardown. Clearing
+/// `task->work` retains the static work block instead of freeing it.
+static void _actor503500ArmExit(Task* task)
 {
     Enemy*               enemy;
     _Actor503500ArmWork* work;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    actor503500ReleaseSlotEffects(task->spawnArg1.value);
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
     worldCollisionUnlinkBody(&work->body);
     worldCollisionUnlinkBody(&work->forearmAttackBody);
     worldCollisionUnlinkBody(&work->handAttackBody);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_80143FFC(Task* arg0)
@@ -4905,11 +4968,11 @@ static void func_actor_503500_8014418C(Task* arg0)
 {
     switch (arg0->killCountdown) {
         case ACTOR_503500_SLOT_COMMAND_ATTACK:
-            func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_STRIKE);
+            _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_STRIKE);
             arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
             break;
         case ACTOR_503500_SLOT_COMMAND_BECOME_TARGET:
-            func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_BECOME_TARGET);
+            _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_BECOME_TARGET);
             arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
             break;
     }
@@ -4922,19 +4985,25 @@ static void func_actor_503500_801441E8(Task* arg0)
     work              = arg0->work;
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-    func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_IDLE);
+    _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_IDLE);
 }
 
-static void func_actor_503500_80144238(Task* arg0, s32 arg1)
+/// Starts an arm state with both strike spheres disabled and its sound stopped.
+///
+/// `state` is an `ACTOR_503500_ARM_STATE_*` value. Restarts the state step
+/// and frame count, consumes any pending boss command, and marks the slot
+/// busy unless idle. Stopping the strike sound retains its release phase.
+static void _actor503500ArmEnterState(Task* task, s32 state)
 {
     _Actor503500ArmWork* work;
 
-    work                = arg0->work;
-    work->state         = arg1;
+    work                = task->work;
+    work->state         = state;
     work->stateStep     = 0;
     work->stateFrames   = 0;
-    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
-    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_ARM_STATE_IDLE);
+    // Every state starts outside the damaging interval of a strike.
     work->forearmAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->handAttackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     sndEvtRequestScriptStop(SOUND_BRAHMAN_ARM_STRIKE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -4953,7 +5022,7 @@ static const TaskFuncTable3 D_actor_503500_801321DC = {
     {
         func_actor_503500_80144300,
         func_actor_503500_801446E4,
-        func_actor_503500_8014473C,
+        _actor503500BallisticShotExit,
     },
 };
 
@@ -5007,7 +5076,7 @@ static void func_actor_503500_80144300(Task* arg0)
 
     eff = effectSpawn(EFFECT_BRAHMAN_SMALL_ORB, coord, 0, NULL);
     if (eff == NULL) {
-        func_actor_503500_8014473C(arg0);
+        _actor503500BallisticShotExit(arg0);
         return;
     }
     child            = eff->task;
@@ -5016,26 +5085,42 @@ static void func_actor_503500_80144300(Task* arg0)
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 5), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_BALLISTIC);
-    arg0->exitCallback = func_actor_503500_8014473C;
+    arg0->exitCallback = _actor503500BallisticShotExit;
     arg0->state       += 1;
 }
 
-static void func_actor_503500_80144520(Task* arg0)
+/// Advances a ballistic shot's flight or landing burst by one active update.
+///
+/// Requires initialized work and a live child effect. Contacts from the
+/// collision pass land the shot or cut it short on touching the player.
+/// Position and velocity are signed 16.16 world units; positive Y is downward.
+/// A cut-short or spent phase advances the task to its exit state when stepped.
+static void _actor503500BallisticShotStep(Task* task)
 {
+    enum {
+        ACTOR_503500_BALLISTIC_SHOT_FIXED_ONE     = 0x10000, // One world unit in signed 16.16
+        ACTOR_503500_BALLISTIC_SHOT_BURST_RADIUS  = 600,     // World-coordinate units
+        ACTOR_503500_BALLISTIC_SHOT_FLIGHT_LIMIT  = 61,      // Active updates without landing
+        ACTOR_503500_BALLISTIC_SHOT_BURST_FRAMES  = 6,       // Active updates with the enlarged sphere
+        ACTOR_503500_BALLISTIC_SHOT_EFFECT_FINISH = 2,       // Child effect command: emit its final burst, then end
+    };
+
     _Actor503500BallisticShotWork* work;
     GfxCoord*                      coord;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
     if (work->touchedPlayer != 0) {
-        work->effectTask->spawnArg1.value = 2;
+        work->effectTask->spawnArg1.value = ACTOR_503500_BALLISTIC_SHOT_EFFECT_FINISH;
         work->phase                       = ACTOR_503500_BALLISTIC_SHOT_CUT_SHORT;
     }
     switch (work->phase) {
         case ACTOR_503500_BALLISTIC_SHOT_FLYING:
-            work->velocity.fixed.vy.word += 9.8 * 0x10000;
+            // Keep the floating-point addition: conversion truncates the updated velocity.
+            work->velocity.fixed.vy.word += 9.8 * ACTOR_503500_BALLISTIC_SHOT_FIXED_ONE;
             if (work->gridContactResult != 0) {
-                work->body.radius            = 0x258;
+                // Rest at the resolved position with a larger attack sphere.
+                work->body.radius            = ACTOR_503500_BALLISTIC_SHOT_BURST_RADIUS;
                 work->velocity.fixed.vx.word = 0;
                 work->velocity.fixed.vy.word = 0;
                 work->velocity.fixed.vz.word = 0;
@@ -5045,30 +5130,27 @@ static void func_actor_503500_80144520(Task* arg0)
                 work->phase++;
             } else {
                 work->phaseFrames++;
-                if (work->phaseFrames >= 0x3D) {
+                if (work->phaseFrames >= ACTOR_503500_BALLISTIC_SHOT_FLIGHT_LIMIT) {
                     work->phase = ACTOR_503500_BALLISTIC_SHOT_CUT_SHORT;
                 }
             }
             break;
         case ACTOR_503500_BALLISTIC_SHOT_BURSTING:
+            // Finish the visual burst and stop pair tests when its interval ends.
             work->phaseFrames++;
-            if (work->phaseFrames >= 6) {
-                work->effectTask->spawnArg1.value = 2;
+            if (work->phaseFrames >= ACTOR_503500_BALLISTIC_SHOT_BURST_FRAMES) {
+                work->effectTask->spawnArg1.value = ACTOR_503500_BALLISTIC_SHOT_EFFECT_FINISH;
                 work->phaseFrames                 = 0;
                 work->body.flags                 &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->phase++;
             }
             break;
         default:
-            arg0->state++;
+            task->state++;
             break;
     }
-    work->position.fixed.vx.word += work->velocity.fixed.vx.word;
-    work->position.fixed.vy.word += work->velocity.fixed.vy.word;
-    work->position.fixed.vz.word += work->velocity.fixed.vz.word;
-    coord->coord.t[0]             = work->position.fixed.vx.halves.integer;
-    coord->coord.t[1]             = work->position.fixed.vy.halves.integer;
-    coord->coord.t[2]             = work->position.fixed.vz.halves.integer;
+    // Advance even on the update that hands the task to its exit state.
+    _actor503500BallisticShotIntegratePosition(work, coord);
 }
 
 static void func_actor_503500_801446E4(Task* arg0)
@@ -5085,14 +5167,22 @@ static void func_actor_503500_801446E4(Task* arg0)
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_503500_80144778(arg0);
-    func_actor_503500_80144520(arg0);
+    _actor503500BallisticShotStep(arg0);
 }
 
-static void func_actor_503500_8014473C(Task* arg0)
+/// Unlinks a ballistic shot and releases its task and projectile effect budget.
+///
+/// Requires allocated work with a linked collision body. Generic task teardown
+/// frees that work and exits any child effect. The effect-creation failure path
+/// also calls this before acquiring the budget cost; the subtraction is retained.
+static void _actor503500BallisticShotExit(Task* task)
 {
+    _Actor503500BallisticShotWork* work;
+
     actor503500ReleaseProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_BALLISTIC);
-    worldCollisionUnlinkBody(&((_Actor503500BallisticShotWork*)arg0->work)->body);
-    taskKill(arg0);
+    work = task->work;
+    worldCollisionUnlinkBody(&work->body);
+    taskKill(task);
 }
 
 static void func_actor_503500_80144778(Task* arg0)
