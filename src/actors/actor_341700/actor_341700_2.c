@@ -354,23 +354,26 @@ static void _actor341700PropUpdate(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.inc.c"
 
-/// Composes the prop's nine bending parts around X for one shake step.
+/// Advances the dumping-hole prop's bend by rotating nine parts about local X.
 ///
-/// Requires its 11-coordinate model. `shakeStep` is signed: magnitude 1 is the
-/// initial jolt, 2 the slow rise and 3 the fast rise; reversal negates it.
-/// Part angles are multiples of this step in 4096 units per turn. The root
-/// and part 7 retain their rotation; the caller invalidates composed transforms.
-static inline void _actor341700PropBendParts(Task* task, s32 shakeStep)
+/// Borrows a live TMD prop task with its 11 initialized model coordinates.
+/// `angleStep` is a signed increment in 4096 units per turn; each part applies
+/// its own multiple. Callers use +/-1 for the initial jolt, +/-2 for the slow
+/// rise and +/-3 for the fast rise and settled shake. These increments compose
+/// with the existing rotations rather than setting an absolute pose.
+/// Translations, parent links, root and part 7 rotations are preserved.
+/// The caller must invalidate composed transforms before using them again.
+static inline void _actor341700PropBendParts(const Task* propTask, s32 angleStep)
 {
-    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, 4 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixX(&task->extra.tmd->coords[2].coord, 8 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixX(&task->extra.tmd->coords[3].coord, -8 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixX(&task->extra.tmd->coords[4].coord, 4 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixX(&task->extra.tmd->coords[5].coord, -2 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixX(&task->extra.tmd->coords[6].coord, 6 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixX(&task->extra.tmd->coords[8].coord, -2 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixX(&task->extra.tmd->coords[9].coord, -shakeStep, GRAPHICS_ROTATION_COMPOSE);
-    gfxRotMatrixX(&task->extra.tmd->coords[10].coord, -9 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[1].coord, 4 * angleStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[2].coord, 8 * angleStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[3].coord, -8 * angleStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[4].coord, 4 * angleStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[5].coord, -2 * angleStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[6].coord, 6 * angleStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[8].coord, -2 * angleStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[9].coord, -angleStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&propTask->extra.tmd->coords[10].coord, -9 * angleStep, GRAPHICS_ROTATION_COMPOSE);
 }
 
 /// Raises the dumping-hole prop with timed jolts, part rotations and sprite bursts.
