@@ -3582,7 +3582,7 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->work          = work;
+    task->work = work;
     gfxSetRotIdentity(&coord->coord);
     coord->coord.t[0]   = -0x17D4;
     coord->coord.t[1]   = -0x456;

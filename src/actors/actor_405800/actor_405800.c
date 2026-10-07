@@ -2588,20 +2588,20 @@ static void func_actor_405800_80135780(Task* arg0)
     GfxMatrix*                    pm2;
     GfxMatrix                     m;
 
-    root                     = arg0->extra.tmd->coords;
-    work                     = (_Actor405800IvoryStalkerWork*)arg0->work;
-    parent                   = &root[7];
-    parent2                  = &root[10];
-    task                     = taskSpawnFromTable(D_actor_405800_801514B4, 0, 0, 0);
-    work->armTasks[0]        = task;
-    obj                      = task->extra.tmd;
-    coord                    = obj->coords;
-    obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coord->parent            = parent2;
-    coord->coord.t[0]        = 0x400;
-    coord->coord.t[1]        = 0;
-    coord->coord.t[2]        = 0;
-    pm                       = &m;
+    root              = arg0->extra.tmd->coords;
+    work              = (_Actor405800IvoryStalkerWork*)arg0->work;
+    parent            = &root[7];
+    parent2           = &root[10];
+    task              = taskSpawnFromTable(D_actor_405800_801514B4, 0, 0, 0);
+    work->armTasks[0] = task;
+    obj               = task->extra.tmd;
+    coord             = obj->coords;
+    obj->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    coord->parent     = parent2;
+    coord->coord.t[0] = 0x400;
+    coord->coord.t[1] = 0;
+    coord->coord.t[2] = 0;
+    pm                = &m;
     gfxSetRotIdentity(&pm->mat);
     RotMatrixY(-0x180, &pm->mat);
     mdst                   = &coord->coord;
@@ -2640,7 +2640,7 @@ static void func_actor_405800_80135780(Task* arg0)
         tmdBuildBufferHalf(dst);
         tmdBuildBufferHalf(dst);
     }
-    pm2                       = &m;
+    pm2 = &m;
     gfxSetRotIdentity(&pm2->mat);
     RotMatrixY(0x180, &pm2->mat);
     mdst          = &coord->coord;
@@ -3194,24 +3194,24 @@ static void func_actor_405800_8013706C(Task* arg0, s16 arg1)
         case 0:
             if (work->onCeiling == 0) {
 
-                v.vx                     = work->targetPos.vx - arg0->extra.tmd->coords->coord.t[0];
-                v.vy                     = work->targetPos.vy - arg0->extra.tmd->coords->coord.t[1] - 0x384;
-                v.vz                     = work->targetPos.vz - arg0->extra.tmd->coords->coord.t[2];
+                v.vx = work->targetPos.vx - arg0->extra.tmd->coords->coord.t[0];
+                v.vy = work->targetPos.vy - arg0->extra.tmd->coords->coord.t[1] - 0x384;
+                v.vz = work->targetPos.vz - arg0->extra.tmd->coords->coord.t[2];
                 gfxSetRotIdentity(&rot.mat);
-                rot.mat.t[0]             = 0;
-                rot.mat.t[1]             = 0;
-                rot.mat.t[2]             = 0;
+                rot.mat.t[0] = 0;
+                rot.mat.t[1] = 0;
+                rot.mat.t[2] = 0;
                 RotMatrixY(-work->yaw, &rot.mat);
                 ApplyMatrixSV(&rot.mat, &v, &out);
             } else {
 
-                v.vx                     = work->targetPos.vx - arg0->extra.tmd->coords->coord.t[0];
-                v.vy                     = work->targetPos.vy - arg0->extra.tmd->coords->coord.t[1] - 0x640;
-                v.vz                     = work->targetPos.vz - arg0->extra.tmd->coords->coord.t[2];
+                v.vx = work->targetPos.vx - arg0->extra.tmd->coords->coord.t[0];
+                v.vy = work->targetPos.vy - arg0->extra.tmd->coords->coord.t[1] - 0x640;
+                v.vz = work->targetPos.vz - arg0->extra.tmd->coords->coord.t[2];
                 gfxSetRotIdentity(&rot.mat);
-                rot.mat.t[0]             = 0;
-                rot.mat.t[1]             = 0;
-                rot.mat.t[2]             = 0;
+                rot.mat.t[0] = 0;
+                rot.mat.t[1] = 0;
+                rot.mat.t[2] = 0;
                 RotMatrixY(-work->yaw, &rot.mat);
                 RotMatrixZ(-work->roll, &rot.mat);
                 ApplyMatrixSV(&rot.mat, &v, &out);
@@ -3348,10 +3348,10 @@ static void func_actor_405800_801375C4(Task* task)
 
     work = (_Actor405800IvoryStalkerWork*)task->work;
     if (work->rightArmOut != 0) {
-        angle                    = (u16)work->armSwingAngles[1] + ((0x380 - work->armSwingAngles[1]) >> 2);
-        work->armSwingAngles[1]  = angle;
-        child                    = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1];
-        child->extra.tmd->flags  = 0;
+        angle                   = (u16)work->armSwingAngles[1] + ((0x380 - work->armSwingAngles[1]) >> 2);
+        work->armSwingAngles[1] = angle;
+        child                   = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1];
+        child->extra.tmd->flags = 0;
         _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
     } else {
         work->rightArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3361,18 +3361,18 @@ static void func_actor_405800_801375C4(Task* task)
         if (angle < 9) {
             ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1]->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
-            child                    = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1];
-            child->extra.tmd->flags  = 0;
+            child                   = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1];
+            child->extra.tmd->flags = 0;
             _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
         }
     }
 
     if (work->leftArmOut != 0) {
-        angle                    = (u16)work->armSwingAngles[0] + ((0x380 - work->armSwingAngles[0]) >> 2);
-        work->armSwingAngles[0]  = angle;
-        child                    = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0];
-        angle                    = -angle;
-        child->extra.tmd->flags  = 0;
+        angle                   = (u16)work->armSwingAngles[0] + ((0x380 - work->armSwingAngles[0]) >> 2);
+        work->armSwingAngles[0] = angle;
+        child                   = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0];
+        angle                   = -angle;
+        child->extra.tmd->flags = 0;
         _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
     } else {
         work->leftArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3382,8 +3382,8 @@ static void func_actor_405800_801375C4(Task* task)
         if (angle < 9) {
             ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0]->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
-            child                    = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0];
-            child->extra.tmd->flags  = 0;
+            child                   = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0];
+            child->extra.tmd->flags = 0;
             _actor405800SetCoordRotation(child->extra.tmd->coords, -angle);
         }
     }

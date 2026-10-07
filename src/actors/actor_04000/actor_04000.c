@@ -2828,11 +2828,11 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
             }
             if (work->state == ACTOR_04000_STATE_DROP) {
                 gfxSetRotIdentity(&coord.coord);
-                coord.coord.t[0]                          = arg1->extra.tmd->coords->coord.t[0];
-                coord.coord.t[1]                          = 0;
-                coord.coord.t[2]                          = arg1->extra.tmd->coords->coord.t[2];
-                coord.parent                              = &gGfxViewCoord;
-                coord.composeStamp                        = GRAPHICS_COORD_DIRTY;
+                coord.coord.t[0]   = arg1->extra.tmd->coords->coord.t[0];
+                coord.coord.t[1]   = 0;
+                coord.coord.t[2]   = arg1->extra.tmd->coords->coord.t[2];
+                coord.parent       = &gGfxViewCoord;
+                coord.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&coord);
                 effectDrawGroundShadow(MATRIX_TRANS(&coord.workm), 0x60, gRoomEffectState->groundShadowShade);
             }

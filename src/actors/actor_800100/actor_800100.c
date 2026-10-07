@@ -1038,7 +1038,7 @@ void func_actor_800100_80161F20(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            coord->parent       = work->parent;
+            coord->parent = work->parent;
             gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = D_actor_800100_80167128.vx;
             coord->coord.t[1]   = D_actor_800100_80167128.vy;

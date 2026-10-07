@@ -535,10 +535,10 @@ void func_actor_342100_80162AB0(Task* arg0)
 /// passes it no arguments, which is why the declaration is `(void)`.
 void func_actor_342100_80162C88(void)
 {
-    GfxCoord*         coord;
-    SVECTOR*          pos;
-    Task*             task;
-    u32               rng;
+    GfxCoord* coord;
+    SVECTOR*  pos;
+    Task*     task;
+    u32       rng;
 
     switch (gGameSession->location.loc.view) {
         case 29:
@@ -558,10 +558,10 @@ void func_actor_342100_80162C88(void)
             break;
     }
     while (pos->vx != 0) {
-        rng               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState   = rng;
-        task              = taskSpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
-        coord             = task->extra.tmd->coords;
+        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = rng;
+        task            = taskSpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
+        coord           = task->extra.tmd->coords;
         gfxSetRotIdentity(&coord->coord);
         coord->coord.t[0] = pos->vx;
         coord->coord.t[1] = pos->vy;

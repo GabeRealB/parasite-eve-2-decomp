@@ -1548,23 +1548,23 @@ static void Actor00400_Fn01454(Task* arg0)
    inverse of all three lands in `c4`. */
 static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
 {
-    SVECTOR           euler;
-    SVECTOR           rot1;
-    SVECTOR           rot2;
-    MATRIX            t1;
-    MATRIX            t2;
-    MATRIX            t3;
-    GfxMatrix         ma;
-    GfxMatrix         mb;
-    GfxMatrix         mc;
-    GfxCoord*         base;
-    GfxCoord*         c1;
-    GfxCoord*         c2;
-    GfxCoord*         c3;
-    GfxCoord*         c4;
-    _Actor00400Work*  work;
-    MATRIX*           m2;
-    MATRIX*           m3;
+    SVECTOR          euler;
+    SVECTOR          rot1;
+    SVECTOR          rot2;
+    MATRIX           t1;
+    MATRIX           t2;
+    MATRIX           t3;
+    GfxMatrix        ma;
+    GfxMatrix        mb;
+    GfxMatrix        mc;
+    GfxCoord*        base;
+    GfxCoord*        c1;
+    GfxCoord*        c2;
+    GfxCoord*        c3;
+    GfxCoord*        c4;
+    _Actor00400Work* work;
+    MATRIX*          m2;
+    MATRIX*          m3;
 
     base = arg0->extra.tmd->coords;
     c1   = &base[1];
@@ -2106,24 +2106,24 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             case ACTOR_00400_NECK_RETRACTED: {
 
                 gfxExtractEulerAngles(&c4->coord, &euler2);
-                work->neckScale         = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
+                work->neckScale = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
                 gfxSetRotIdentity(&ma.mat);
-                scale.vx                = 0x1000;
-                scale.vy                = 0x1000;
-                scale.vz                = work->neckScale;
+                scale.vx = 0x1000;
+                scale.vy = 0x1000;
+                scale.vz = work->neckScale;
                 ScaleMatrix(&ma.mat, &scale);
                 _actor00400CopyRotation(&ma.mat, &base[2].coord);
                 gfxSetRotIdentity(&mb.mat);
-                scale.vx                = 0x1000;
-                scale.vy                = 0x1000;
-                scale.vz                = 0x1000;
+                scale.vx = 0x1000;
+                scale.vy = 0x1000;
+                scale.vz = 0x1000;
                 ScaleMatrix(&mb.mat, &scale);
                 _actor00400CopyRotation(&mb.mat, &base[3].coord);
                 gfxSetRotIdentity(&mc.mat);
-                scale.vx                = 0x1000;
-                scale.vy                = 0x1000;
-                invScale                = 0x1000000 / work->neckScale;
-                scale.vz                = invScale;
+                scale.vx = 0x1000;
+                scale.vy = 0x1000;
+                invScale = 0x1000000 / work->neckScale;
+                scale.vz = invScale;
                 ScaleMatrix(&mc.mat, &scale);
                 gfxSetRotIdentity(&rot.mat);
                 RotMatrix(&euler2, &rot.mat);
@@ -2146,32 +2146,32 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
         if (work->neckScale < 0xF80) {
 
             gfxExtractEulerAngles(&c4->coord, &euler2);
-            work->neckScale         = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 3);
+            work->neckScale = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 3);
             gfxSetRotIdentity(&ma.mat);
-            scale.vx                = 0x1000;
-            scale.vy                = 0x1000;
-            scale.vz                = work->neckScale;
+            scale.vx = 0x1000;
+            scale.vy = 0x1000;
+            scale.vz = work->neckScale;
             ScaleMatrix(&ma.mat, &scale);
             _actor00400CopyRotation(&ma.mat, &base[2].coord);
             gfxSetRotIdentity(&mb.mat);
-            scale.vx                = 0x1000;
-            scale.vy                = 0x1000;
-            scale.vz                = 0x1000;
+            scale.vx = 0x1000;
+            scale.vy = 0x1000;
+            scale.vz = 0x1000;
             ScaleMatrix(&mb.mat, &scale);
             _actor00400CopyRotation(&mb.mat, &base[3].coord);
             gfxSetRotIdentity(&mc.mat);
-            scale.vx                = 0x1000;
-            scale.vy                = 0x1000;
-            invScale                = 0x1000000 / work->neckScale;
-            scale.vz                = invScale;
+            scale.vx = 0x1000;
+            scale.vy = 0x1000;
+            invScale = 0x1000000 / work->neckScale;
+            scale.vz = invScale;
             ScaleMatrix(&mc.mat, &scale);
             gfxSetRotIdentity(&rot.mat);
             RotMatrix(&euler2, &rot.mat);
             MulMatrix(&mc.mat, &rot.mat);
             _actor00400CopyRotation(&mc.mat, &c4->coord);
         } else {
-            MATRIX*           m2;
-            MATRIX*           m3;
+            MATRIX* m2;
+            MATRIX* m3;
 
             m2 = &base[2].coord;
             gfxExtractEulerAngles(m2, &euler0);
@@ -2984,19 +2984,19 @@ static const TaskFuncTable10 Actor00400_D000A8 = { {
 
 static void Actor00400_Fn04580(Task* arg0)
 {
-    _Actor00400Work*  work = arg0->work;
-    Enemy*            obj  = arg0->spawnArg2.pointer;
-    TmdObject*        ctx  = arg0->extra.tmd;
-    TaskFuncTable10   fns;
-    GfxMatrix         m;
-    _Actor00400Work*  w;
-    _Actor00400Work*  w2;
-    _Actor00400Work*  w3;
-    _Actor00400Work*  work2;
-    TmdObject*        ctx2;
-    GfxCoord*         coord;
-    MATRIX*           dst;
-    s32               i;
+    _Actor00400Work* work = arg0->work;
+    Enemy*           obj  = arg0->spawnArg2.pointer;
+    TmdObject*       ctx  = arg0->extra.tmd;
+    TaskFuncTable10  fns;
+    GfxMatrix        m;
+    _Actor00400Work* w;
+    _Actor00400Work* w2;
+    _Actor00400Work* w3;
+    _Actor00400Work* work2;
+    TmdObject*       ctx2;
+    GfxCoord*        coord;
+    MATRIX*          dst;
+    s32              i;
 
     fns = Actor00400_D000A8;
     switch (gSceneCombatState.actorControl) {
@@ -3035,8 +3035,8 @@ static void Actor00400_Fn04580(Task* arg0)
             } while (i < ARRAY_SIZE(w->rig.slots));
             work->animStatus = work->rig.slots[1].status.fields.flags;
             Actor00400_Fn016A4(arg0, work->lookDisabled);
-            w2                     = arg0->work;
-            coord                  = arg0->extra.tmd->coords;
+            w2    = arg0->work;
+            coord = arg0->extra.tmd->coords;
             gfxSetRotIdentity(&m.mat);
             RotMatrixZ(w2->rotation.vz, &m.mat);
             RotMatrixY(w2->rotation.vy, &m.mat);
@@ -3232,13 +3232,13 @@ static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
 /// the roll about Z, then the heading about Y.
 static inline void _actor00400ApplyRootRotation(Task* task)
 {
-    _Actor00400Work*  work;
-    GfxCoord*         coord;
-    GfxMatrix         m;
-    MATRIX*           dst;
+    _Actor00400Work* work;
+    GfxCoord*        coord;
+    GfxMatrix        m;
+    MATRIX*          dst;
 
-    work                   = task->work;
-    coord                  = task->extra.tmd->coords;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
     gfxSetRotIdentity(&m.mat);
     RotMatrixZ(work->rotation.vz, &m.mat);
     RotMatrixY(work->rotation.vy, &m.mat);
@@ -3999,19 +3999,19 @@ static void _actor00400RoomIntroBeginDischarge(Task* task)
 /// before falling through to the draw half, and 1 is the draw half on its own.
 static void Actor00400_Fn06B7C(Task* arg0)
 {
-    _Actor00400Work*  work             = arg0->work;
-    Enemy*            obj              = arg0->spawnArg2.pointer;
-    TmdObject*        ctx              = arg0->extra.tmd;
-    void              (*fns[2])(Task*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
-    GfxMatrix         m;
-    _Actor00400Work*  w;
-    _Actor00400Work*  w2;
-    _Actor00400Work*  w3;
-    _Actor00400Work*  work2;
-    TmdObject*        ctx2;
-    GfxCoord*         coord;
-    MATRIX*           dst;
-    s32               i;
+    _Actor00400Work* work             = arg0->work;
+    Enemy*           obj              = arg0->spawnArg2.pointer;
+    TmdObject*       ctx              = arg0->extra.tmd;
+    void             (*fns[2])(Task*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
+    GfxMatrix        m;
+    _Actor00400Work* w;
+    _Actor00400Work* w2;
+    _Actor00400Work* w3;
+    _Actor00400Work* work2;
+    TmdObject*       ctx2;
+    GfxCoord*        coord;
+    MATRIX*          dst;
+    s32              i;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -4043,9 +4043,9 @@ static void Actor00400_Fn06B7C(Task* arg0)
                 animationTickSlot(&w->rig.anim, i);
                 i++;
             } while (i < ARRAY_SIZE(w->rig.slots));
-            work->animStatus       = work->rig.slots[1].status.fields.flags;
-            w2                     = arg0->work;
-            coord                  = arg0->extra.tmd->coords;
+            work->animStatus = work->rig.slots[1].status.fields.flags;
+            w2               = arg0->work;
+            coord            = arg0->extra.tmd->coords;
             gfxSetRotIdentity(&m.mat);
             RotMatrixZ(w2->rotation.vz, &m.mat);
             RotMatrixY(w2->rotation.vy, &m.mat);
@@ -4159,20 +4159,20 @@ static void Actor00400_Fn06F64(Task* arg0)
 /// sixteenth of the way towards `goalY` and falls through.
 static void Actor00400_Fn070C0(Task* arg0)
 {
-    _Actor00400Work*  work             = arg0->work;
-    TmdObject*        ctx              = arg0->extra.tmd;
-    Enemy*            obj              = arg0->spawnArg2.pointer;
-    GfxCoord*         coord0           = ctx->coords;
-    void              (*fns[2])(Task*) = { Actor00400_Fn0A468, Actor00400_Fn0A4BC };
-    GfxMatrix         m;
-    _Actor00400Work*  w;
-    _Actor00400Work*  w2;
-    _Actor00400Work*  w3;
-    _Actor00400Work*  work2;
-    TmdObject*        ctx2;
-    GfxCoord*         coord;
-    MATRIX*           dst;
-    s32               i;
+    _Actor00400Work* work             = arg0->work;
+    TmdObject*       ctx              = arg0->extra.tmd;
+    Enemy*           obj              = arg0->spawnArg2.pointer;
+    GfxCoord*        coord0           = ctx->coords;
+    void             (*fns[2])(Task*) = { Actor00400_Fn0A468, Actor00400_Fn0A4BC };
+    GfxMatrix        m;
+    _Actor00400Work* w;
+    _Actor00400Work* w2;
+    _Actor00400Work* w3;
+    _Actor00400Work* work2;
+    TmdObject*       ctx2;
+    GfxCoord*        coord;
+    MATRIX*          dst;
+    s32              i;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -4204,9 +4204,9 @@ static void Actor00400_Fn070C0(Task* arg0)
                 animationTickSlot(&w->rig.anim, i);
                 i++;
             } while (i < ARRAY_SIZE(w->rig.slots));
-            work->animStatus       = work->rig.slots[1].status.fields.flags;
-            w2                     = arg0->work;
-            coord                  = arg0->extra.tmd->coords;
+            work->animStatus = work->rig.slots[1].status.fields.flags;
+            w2               = arg0->work;
+            coord            = arg0->extra.tmd->coords;
             gfxSetRotIdentity(&m.mat);
             RotMatrixZ(w2->rotation.vz, &m.mat);
             RotMatrixY(w2->rotation.vy, &m.mat);

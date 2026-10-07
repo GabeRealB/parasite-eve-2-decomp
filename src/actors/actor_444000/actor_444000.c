@@ -4371,8 +4371,8 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->escorts[3]->param         = &D_actor_444000_80144A58;
     work->escorts[3]->recs          = work->hits[1].contacts;
 
-    freeCoord                                          = &work->swipeCoord.node;
-    work->swipeCoord.node.parent                       = task->extra.tmd->coords;
+    freeCoord                    = &work->swipeCoord.node;
+    work->swipeCoord.node.parent = task->extra.tmd->coords;
     gfxSetRotIdentity(&work->swipeCoord.node.coord);
     work->swipeCoord.node.coord.t[0] = work->swipeCoord.node.coord.t[1] = work->swipeCoord.node.coord.t[2] = 0;
     work->swipeCoord.node.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
@@ -5836,14 +5836,14 @@ static void func_actor_444000_80140BBC(Task* arg0)
         work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if (work->animId == 9 && work->stateTicks == 0x2D) {
-        coords                                                    = arg0->extra.tmd->coords;
-        node = &D_actor_444000_801618B8.node;
+        coords = arg0->extra.tmd->coords;
+        node   = &D_actor_444000_801618B8.node;
         gfxSetRotIdentity(&node->coord);
-        D_actor_444000_801618B8.node.coord.t[1]                   = -0x64;
-        D_actor_444000_801618B8.node.coord.t[0]                   = 0;
-        D_actor_444000_801618B8.node.coord.t[2]                   = 0x64;
-        D_actor_444000_801618B8.node.composeStamp                 = GRAPHICS_COORD_DIRTY;
-        D_actor_444000_801618B8.node.parent                       = &coords[4];
+        D_actor_444000_801618B8.node.coord.t[1]   = -0x64;
+        D_actor_444000_801618B8.node.coord.t[0]   = 0;
+        D_actor_444000_801618B8.node.coord.t[2]   = 0x64;
+        D_actor_444000_801618B8.node.composeStamp = GRAPHICS_COORD_DIRTY;
+        D_actor_444000_801618B8.node.parent       = &coords[4];
         actorRenderComposeCoord(&D_actor_444000_801618B8.node);
     }
     if (work->animId == 0x14 && (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {

@@ -130,15 +130,15 @@ void func_lifedrain_8012EF48(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0: {
-            EffectWork*       spawned;
+            EffectWork* spawned;
 
             D_lifedrain_80130B0C = arg0;
             coord->parent        = mem->parent;
             gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]    = 0;
-            coord->coord.t[1]    = 0;
-            coord->coord.t[2]    = 0;
-            coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+            coord->coord.t[0]   = 0;
+            coord->coord.t[1]   = 0;
+            coord->coord.t[2]   = 0;
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             arg0->state = 1;
             mem->index  = (Gp_StateC08.attachId % 10) - 1;

@@ -2993,14 +2993,14 @@ static void func_actor_400600_801356E0(Task* arg0)
     task              = taskSpawnFromTable(D_actor_400600_80151AF8, 0, 0, 0);
     work->armTasks[0] = task;
     if (task != NULL) {
-        obj                      = task->extra.tmd;
-        coord                    = obj->coords;
-        obj->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        coord->coord.t[0]        = 0x200;
-        coord->parent            = parent2;
-        coord->coord.t[1]        = 0;
-        coord->coord.t[2]        = 0;
-        pm                       = &m;
+        obj               = task->extra.tmd;
+        coord             = obj->coords;
+        obj->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        coord->coord.t[0] = 0x200;
+        coord->parent     = parent2;
+        coord->coord.t[1] = 0;
+        coord->coord.t[2] = 0;
+        pm                = &m;
         gfxSetRotIdentity(&pm->mat);
         RotMatrixY(-0x180, &pm->mat);
         mdst                   = &coord->coord;
@@ -3041,7 +3041,7 @@ static void func_actor_400600_801356E0(Task* arg0)
             tmdBuildBufferHalf(dst);
             tmdBuildBufferHalf(dst);
         }
-        pm2                       = &m;
+        pm2 = &m;
         gfxSetRotIdentity(&pm2->mat);
         RotMatrixY(0x180, &pm2->mat);
         mdst          = &coord->coord;
@@ -3772,24 +3772,24 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode)
         case ACTOR_400600_PROBE_TARGET:
             if (work->onCeiling == 0) {
 
-                targetDelta.vx                       = work->targetPos.vx - task->extra.tmd->coords->coord.t[0];
-                targetDelta.vy                       = work->targetPos.vy - task->extra.tmd->coords->coord.t[1] - ACTOR_400600_FLOOR_TARGET_Y_OFFSET;
-                targetDelta.vz                       = work->targetPos.vz - task->extra.tmd->coords->coord.t[2];
+                targetDelta.vx = work->targetPos.vx - task->extra.tmd->coords->coord.t[0];
+                targetDelta.vy = work->targetPos.vy - task->extra.tmd->coords->coord.t[1] - ACTOR_400600_FLOOR_TARGET_Y_OFFSET;
+                targetDelta.vz = work->targetPos.vz - task->extra.tmd->coords->coord.t[2];
                 gfxSetRotIdentity(&inverseRotation.mat);
-                inverseRotation.mat.t[0]             = 0;
-                inverseRotation.mat.t[1]             = 0;
-                inverseRotation.mat.t[2]             = 0;
+                inverseRotation.mat.t[0] = 0;
+                inverseRotation.mat.t[1] = 0;
+                inverseRotation.mat.t[2] = 0;
                 RotMatrixY(-work->yaw, &inverseRotation.mat);
                 ApplyMatrixSV(&inverseRotation.mat, &targetDelta, &localTarget);
             } else {
 
-                targetDelta.vx                       = work->targetPos.vx - task->extra.tmd->coords->coord.t[0];
-                targetDelta.vy                       = work->targetPos.vy - task->extra.tmd->coords->coord.t[1] - ACTOR_400600_CEILING_TARGET_Y_OFFSET;
-                targetDelta.vz                       = work->targetPos.vz - task->extra.tmd->coords->coord.t[2];
+                targetDelta.vx = work->targetPos.vx - task->extra.tmd->coords->coord.t[0];
+                targetDelta.vy = work->targetPos.vy - task->extra.tmd->coords->coord.t[1] - ACTOR_400600_CEILING_TARGET_Y_OFFSET;
+                targetDelta.vz = work->targetPos.vz - task->extra.tmd->coords->coord.t[2];
                 gfxSetRotIdentity(&inverseRotation.mat);
-                inverseRotation.mat.t[0]             = 0;
-                inverseRotation.mat.t[1]             = 0;
-                inverseRotation.mat.t[2]             = 0;
+                inverseRotation.mat.t[0] = 0;
+                inverseRotation.mat.t[1] = 0;
+                inverseRotation.mat.t[2] = 0;
                 RotMatrixY(-work->yaw, &inverseRotation.mat);
                 RotMatrixZ(-work->roll, &inverseRotation.mat);
                 ApplyMatrixSV(&inverseRotation.mat, &targetDelta, &localTarget);
@@ -3831,8 +3831,8 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode)
 /// identity matrix for `angle`.
 static inline void _actor400600SetCoordRotation(GfxCoord* coord, s16 angle)
 {
-    GfxMatrix  rot;
-    MATRIX*    dst;
+    GfxMatrix rot;
+    MATRIX*   dst;
 
     gfxSetRotIdentity(&rot.mat);
     RotMatrixY(angle, &rot.mat);

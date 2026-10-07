@@ -204,7 +204,7 @@ void func_hypervelocity_8011D1E8(Task* task)
     work->age = work->age + 1;
     switch (task->state) {
         case 0:
-            coord->parent       = work->parent;
+            coord->parent = work->parent;
             gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = D_hypervelocity_8011FB74.vx;
             coord->coord.t[1]   = D_hypervelocity_8011FB74.vy;
@@ -799,12 +799,12 @@ void hypervelocityDischargeConeTask(Task* task)
 
 static void func_hypervelocity_8011F374(Task* arg0)
 {
-    Task*             parent;
-    TmdObject*        extra;
-    TmdObject*        playerExtra;
-    GfxCoord*         coord;
-    Task*             work;
-    s16               count;
+    Task*      parent;
+    TmdObject* extra;
+    TmdObject* playerExtra;
+    GfxCoord*  coord;
+    Task*      work;
+    s16        count;
 
     parent      = arg0->parent;
     work        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);

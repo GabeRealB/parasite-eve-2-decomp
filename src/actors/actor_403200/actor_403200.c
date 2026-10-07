@@ -4150,7 +4150,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->groups3To5Pool  = 0x32;
     work->spinnersSpawned = 0;
 
-    work->swipeCoord.node.parent                       = task->extra.tmd->coords;
+    work->swipeCoord.node.parent = task->extra.tmd->coords;
     gfxSetRotIdentity(&work->swipeCoord.node.coord);
     work->swipeCoord.node.coord.t[0] = work->swipeCoord.node.coord.t[1] = work->swipeCoord.node.coord.t[2] = 0;
     work->swipeCoord.node.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
@@ -5577,14 +5577,14 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     if (work->animId == 9 && work->stateTicks == 0x2D) {
-        coords                                                    = arg0->extra.tmd->coords;
-        node = &D_actor_403200_8015F970.node;
+        coords = arg0->extra.tmd->coords;
+        node   = &D_actor_403200_8015F970.node;
         gfxSetRotIdentity(&node->coord);
-        D_actor_403200_8015F970.node.coord.t[1]                   = -0x64;
-        D_actor_403200_8015F970.node.coord.t[0]                   = 0;
-        D_actor_403200_8015F970.node.coord.t[2]                   = 0x64;
-        D_actor_403200_8015F970.node.composeStamp                 = GRAPHICS_COORD_DIRTY;
-        D_actor_403200_8015F970.node.parent                       = &coords[4];
+        D_actor_403200_8015F970.node.coord.t[1]   = -0x64;
+        D_actor_403200_8015F970.node.coord.t[0]   = 0;
+        D_actor_403200_8015F970.node.coord.t[2]   = 0x64;
+        D_actor_403200_8015F970.node.composeStamp = GRAPHICS_COORD_DIRTY;
+        D_actor_403200_8015F970.node.parent       = &coords[4];
         actorRenderComposeCoord(&D_actor_403200_8015F970.node);
     }
     state = work->animId;

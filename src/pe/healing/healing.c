@@ -113,15 +113,15 @@ static inline void _healingDrawGlow(const GfxCoord* coord, const EffectWork* wor
 /// releases.
 void func_healing_8012EF34(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    AttachmentState*  state;
-    EffectWork*       spawned;
-    s32               pan;
-    s32               bright;
-    s16               ang;
-    s32               rng;
-    s32               temp_lo;
+    EffectWork*      mem;
+    GfxCoord*        coord;
+    AttachmentState* state;
+    EffectWork*      spawned;
+    s32              pan;
+    s32              bright;
+    s16              ang;
+    s32              rng;
+    s32              temp_lo;
 
     state = &Gp_StateC08;
     mem   = arg0->spawnArg2.pointer;
@@ -137,7 +137,7 @@ void func_healing_8012EF34(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            coord->parent       = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+            coord->parent = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = 0;
             coord->coord.t[1]   = -0x400;

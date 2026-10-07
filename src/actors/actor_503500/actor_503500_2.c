@@ -1691,10 +1691,10 @@ void func_actor_503500_80132778(Task* task)
 
     coord = task->extra.coordBody->coord;
     if (task->state == 0) {
-        pos                 = &D_actor_503500_8014B97C[task->spawnArg1.value];
-        coord->coord.t[0]   = pos->vx;
-        coord->coord.t[1]   = pos->vy;
-        coord->coord.t[2]   = pos->vz;
+        pos               = &D_actor_503500_8014B97C[task->spawnArg1.value];
+        coord->coord.t[0] = pos->vx;
+        coord->coord.t[1] = pos->vy;
+        coord->coord.t[2] = pos->vz;
         gfxSetRotIdentity(&coord->coord);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         work                = memCalloc(sizeof(*work), false);

@@ -1783,10 +1783,10 @@ static void func_actor_207200_8014D7E8(Task* arg0)
     if (work->flattenScaleY >= 0x201) {
         work->flattenScaleY -= 0x50;
     }
-    scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = work->flattenScaleY;
-    scratch->scale.vz                    = ONE;
-    coord->coord                         = work->savedRootMtx;
+    scratch->scale.vx = ONE;
+    scratch->scale.vy = work->flattenScaleY;
+    scratch->scale.vz = ONE;
+    coord->coord      = work->savedRootMtx;
     gfxSetRotIdentity(&scratch->matrix.mat);
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);

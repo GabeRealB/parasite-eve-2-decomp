@@ -113,7 +113,7 @@ void func_antibody_8012EF34(Task* arg0)
         switch (arg0->state) {
             case 0: {
 
-                coord->parent       = mem->parent;
+                coord->parent = mem->parent;
                 gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;

@@ -3538,8 +3538,8 @@ static void Actor01100_Fn0638C(Task* task)
     if (effect != NULL) {
         taskReparent(task, effect->task);
     }
-    task->killCountdown   = 0x5A;
-    obj                   = &work->body;
+    task->killCountdown = 0x5A;
+    obj                 = &work->body;
     gfxSetRotIdentity(&coord->coord);
     rec                   = work->contacts;
     coord->composeStamp   = GRAPHICS_COORD_DIRTY;

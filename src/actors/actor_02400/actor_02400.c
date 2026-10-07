@@ -1645,10 +1645,10 @@ static void Actor02400_Fn03278(Task* task)
     coord                                       = task->extra.tmd->coords;
     work                                        = task->work;
 
-    blk->scale.vx                    = ONE;
-    blk->scale.vy                    = work->scale.vy;
-    blk->scale.vz                    = ONE;
-    coord->coord                     = work->baseMatrix;
+    blk->scale.vx = ONE;
+    blk->scale.vy = work->scale.vy;
+    blk->scale.vz = ONE;
+    coord->coord  = work->baseMatrix;
     gfxSetRotIdentity(&blk->matrix.mat);
     ScaleMatrix(&blk->matrix.mat, &blk->scale);
     MulMatrix(&coord->coord, &blk->matrix.mat);

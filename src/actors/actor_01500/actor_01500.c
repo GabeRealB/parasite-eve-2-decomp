@@ -2277,10 +2277,10 @@ static void Actor01500_Fn02C34(Task* arg0)
     if (work->deathScaleY > 512) {
         work->deathScaleY -= 80;
     }
-    scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = work->deathScaleY;
-    scratch->scale.vz                    = ONE;
-    coord->coord                         = work->deathBaseMtx;
+    scratch->scale.vx = ONE;
+    scratch->scale.vy = work->deathScaleY;
+    scratch->scale.vz = ONE;
+    coord->coord      = work->deathBaseMtx;
     gfxSetRotIdentity(&scratch->matrix.mat);
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);

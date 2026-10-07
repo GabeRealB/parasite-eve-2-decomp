@@ -92,11 +92,11 @@ static s32 D_combustion_801309A4 = 0;
 /// `emitterFrames` tick is reached.
 void func_combustion_8012EF34(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    EffectWork*       spawned;
-    s32               pan;
-    u8                rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    EffectWork* spawned;
+    s32         pan;
+    u8          rgb[3];
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;
@@ -109,9 +109,9 @@ void func_combustion_8012EF34(Task* arg0)
             D_combustion_801309A4 = coord->workm.t[1];
             coord->parent         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]     = 0;
-            coord->coord.t[1]     = -0x400;
-            coord->coord.t[2]     = 0;
+            coord->coord.t[0] = 0;
+            coord->coord.t[1] = -0x400;
+            coord->coord.t[2] = 0;
             gfxRotMatrixY(&coord->coord, arg0->spawnArg1.value << 9, 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
@@ -173,15 +173,15 @@ void func_combustion_8012EF34(Task* arg0)
 /// 0x21 frames.
 void func_combustion_8012F2BC(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    EffectWork*       spawned;
-    s32               rng;
-    s32               spawnRng1;
-    s32               spawnRng1b;
-    s32               spawnRng2;
-    s32               spawnRng2b;
-    s32               last;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    EffectWork* spawned;
+    s32         rng;
+    s32         spawnRng1;
+    s32         spawnRng1b;
+    s32         spawnRng2;
+    s32         spawnRng2b;
+    s32         last;
 
     mem      = arg0->spawnArg2.pointer;
     coord    = arg0->extra.coordBody->coord;

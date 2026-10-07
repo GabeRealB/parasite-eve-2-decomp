@@ -105,12 +105,12 @@ static Task* D_apobiosis_80130BA0;
 /// state change, hardest on the widest row.
 void func_apobiosis_8012EF4C(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    s32               i;
-    s32               n;
-    s32               pan;
-    u8                rgb[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s32         i;
+    s32         n;
+    s32         pan;
+    u8          rgb[3];
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -121,10 +121,10 @@ void func_apobiosis_8012EF4C(Task* arg0)
                 D_apobiosis_80130BA0 = arg0;
                 coord->parent        = mem->parent;
                 gfxSetRotIdentity(&coord->coord);
-                coord->coord.t[0]    = 0;
-                coord->coord.t[1]    = 0;
-                coord->coord.t[2]    = 0;
-                coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+                coord->coord.t[0]   = 0;
+                coord->coord.t[1]   = 0;
+                coord->coord.t[2]   = 0;
+                coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(D_apobiosis_80130B74[(u16)(Gp_StateC08.attachId % 10) - 1], pan,

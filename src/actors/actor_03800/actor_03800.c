@@ -2435,10 +2435,10 @@ static void Actor03800_Fn037E0(Task* arg0)
     if (work->deathScaleY >= 0x201) {
         work->deathScaleY = work->deathScaleY - 0x50;
     }
-    scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = work->deathScaleY;
-    scratch->scale.vz                    = ONE;
-    coord->coord                         = work->savedRootMtx;
+    scratch->scale.vx = ONE;
+    scratch->scale.vy = work->deathScaleY;
+    scratch->scale.vz = ONE;
+    coord->coord      = work->savedRootMtx;
     gfxSetRotIdentity(&scratch->matrix.mat);
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);

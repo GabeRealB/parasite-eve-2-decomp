@@ -99,11 +99,11 @@ void func_energyshot_8012EF34(Task* arg0)
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0: {
-                RoomEffectState*  effectState;
-                s16               count;
-                u16               level;
+                RoomEffectState* effectState;
+                s16              count;
+                u16              level;
 
-                coord->parent       = mem->parent;
+                coord->parent = mem->parent;
                 gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;

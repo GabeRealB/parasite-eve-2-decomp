@@ -2463,18 +2463,18 @@ static void Actor07000_Fn05FF8(Task* arg0)
     GfxCoord*              coord;
     _Actor07000SlouchWork* work;
 
-    work                      = arg0->work;
-    parts                     = arg0->extra.tmd->coords;
-    coord                     = &work->deathCoord;
-    coord->parent             = parts;
-    parts[1].parent           = coord;
+    work            = arg0->work;
+    parts           = arg0->extra.tmd->coords;
+    coord           = &work->deathCoord;
+    coord->parent   = parts;
+    parts[1].parent = coord;
     gfxSetRotIdentity(&coord->coord);
-    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
-    parts[1].composeStamp     = GRAPHICS_COORD_DIRTY;
-    work->deathScale.vx       = 0x1000;
-    work->deathScale.vy       = 0x1000;
-    work->deathScale.vz       = 0x1000;
-    work->stateFrames         = 0;
+    coord->composeStamp   = GRAPHICS_COORD_DIRTY;
+    parts[1].composeStamp = GRAPHICS_COORD_DIRTY;
+    work->deathScale.vx   = 0x1000;
+    work->deathScale.vy   = 0x1000;
+    work->deathScale.vz   = 0x1000;
+    work->stateFrames     = 0;
     if (work->state != ACTOR_07000_SLOUCH_STATE_PUFFING_DEATH) {
         effectSpawn(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords, 2, NULL);
     }

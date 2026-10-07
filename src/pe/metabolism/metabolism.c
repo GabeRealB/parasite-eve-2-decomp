@@ -120,13 +120,13 @@ static inline void _metabolismDrawGlow(const GfxCoord* coord, const EffectWork* 
 /// last.
 void func_metabolism_8012EF34(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    EffectWork*       spawned;
-    s32               pan;
-    s32               bright;
-    s32               i;
-    s32               temp_lo;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    EffectWork* spawned;
+    s32         pan;
+    s32         bright;
+    s32         i;
+    s32         temp_lo;
 
     mem   = arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -138,7 +138,7 @@ void func_metabolism_8012EF34(Task* arg0)
     mem->age = mem->age + 1;
     switch (arg0->state) {
         case 0:
-            coord->parent       = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+            coord->parent = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = 0;
             coord->coord.t[1]   = -0x400;

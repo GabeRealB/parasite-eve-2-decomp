@@ -529,14 +529,14 @@ void func_actor_342000_8016201C(Task* arg0)
 /// of being hoisted to the top of each case.
 static inline void Actor342000_InitCoord(Task* arg0, _Actor342000GluttonModelWork* w)
 {
-    GfxCoord*  coord;
+    GfxCoord* coord;
 
-    coord                                 = &w->coord;
-    coord->parent                         = ((_Actor342000GluttonModelWork*)arg0->work)->parentCoord;
-    arg0->extra.tmd->coords->parent       = coord;
-    coord->coord.t[0]                     = 0;
-    coord->coord.t[1]                     = 0;
-    coord->coord.t[2]                     = 0;
+    coord                           = &w->coord;
+    coord->parent                   = ((_Actor342000GluttonModelWork*)arg0->work)->parentCoord;
+    arg0->extra.tmd->coords->parent = coord;
+    coord->coord.t[0]               = 0;
+    coord->coord.t[1]               = 0;
+    coord->coord.t[2]               = 0;
     gfxSetRotIdentity(&w->coord.coord);
     w->coord.composeStamp                 = GRAPHICS_COORD_DIRTY;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -657,7 +657,7 @@ void func_actor_342000_801625D8(Task* arg0)
             arg0->state        += 1;
             break;
         case 1:
-            sc                        = &((_Actor342000GluttonModelWork*)work->parent->work)->scale;
+            sc = &((_Actor342000GluttonModelWork*)work->parent->work)->scale;
             gfxSetRotIdentity(&work->coord.coord);
             gfxScaleMatrixColumns(&work->coord.coord, sc);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -696,7 +696,7 @@ void func_actor_342000_801628C8(Task* arg0)
             return;
         case 1:
             gfxSetRotIdentity(&work->coord.coord);
-            ang                       = work->rotation;
+            ang = work->rotation;
             gfxRotMatrixY(&work->coord.coord, ang[1], 1);
             gfxRotMatrixX(&work->coord.coord, ang[0], GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixZ(&work->coord.coord, ang[2], GRAPHICS_ROTATION_COMPOSE);

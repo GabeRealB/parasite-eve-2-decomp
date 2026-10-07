@@ -89,7 +89,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            coord->parent       = work->parent;
+            coord->parent = work->parent;
             gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = D_m4a1_pyke_8011E90C.vx;
             coord->coord.t[1]   = D_m4a1_pyke_8011E90C.vy;

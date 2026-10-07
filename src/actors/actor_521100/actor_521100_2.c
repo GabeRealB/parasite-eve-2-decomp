@@ -838,10 +838,10 @@ static void func_actor_521100_801368B0(Task* task)
     } else {
         work->st.flattenStep = ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE;
     }
-    scratch->scale.vx                    = ONE;
-    scratch->scale.vy                    = work->st.flattenScaleY;
-    scratch->scale.vz                    = ONE;
-    coord->coord                         = work->st.savedRootMtx;
+    scratch->scale.vx = ONE;
+    scratch->scale.vy = work->st.flattenScaleY;
+    scratch->scale.vz = ONE;
+    coord->coord      = work->st.savedRootMtx;
     gfxSetRotIdentity(&scratch->matrix.mat);
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);

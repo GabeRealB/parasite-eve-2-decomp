@@ -1181,7 +1181,7 @@ void func_actor_510900_80131F24(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        coord->parent       = mem->parent;
+        coord->parent = mem->parent;
         gfxSetRotIdentity(&coord->coord);
         coord->coord.t[0]   = mem->pos.vx;
         coord->coord.t[1]   = mem->pos.vy;
@@ -1909,7 +1909,7 @@ void func_actor_510900_801340E8(Task* arg0)
         effectKillTask(eff, arg0);
         return;
     }
-    coord->parent       = eff->parent;
+    coord->parent = eff->parent;
     gfxSetRotIdentity(&coord->coord);
     coord->coord.t[0]   = eff->pos.vx;
     coord->coord.t[1]   = eff->pos.vy;

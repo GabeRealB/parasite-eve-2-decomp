@@ -1662,19 +1662,19 @@ static void func_actor_400500_8013226C(Task* arg0)
     TmdObject*                   tmd;
     TmdObject*                   parentTmd;
 
-    parts                     = arg0->extra.tmd->coords;
-    work                      = (_Actor400500GrayStalkerWork*)arg0->work;
-    part7                     = &parts[7];
-    part10                    = &parts[10];
-    child                     = taskSpawnFromTable(D_actor_400500_80153D48, 0, 0, 0);
-    work->armTasks[0]         = child;
-    extra                     = child->extra.tmd;
-    coord                     = extra->coords;
-    extra->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coord->parent             = part10;
-    coord->coord.t[0]         = 0x400;
-    coord->coord.t[1]         = 0;
-    coord->coord.t[2]         = 0;
+    parts             = arg0->extra.tmd->coords;
+    work              = (_Actor400500GrayStalkerWork*)arg0->work;
+    part7             = &parts[7];
+    part10            = &parts[10];
+    child             = taskSpawnFromTable(D_actor_400500_80153D48, 0, 0, 0);
+    work->armTasks[0] = child;
+    extra             = child->extra.tmd;
+    coord             = extra->coords;
+    extra->flags      = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    coord->parent     = part10;
+    coord->coord.t[0] = 0x400;
+    coord->coord.t[1] = 0;
+    coord->coord.t[2] = 0;
     gfxSetRotIdentity(&rot.mat);
     RotMatrixY((s16)(-0x180), &rot.mat);
     _actor400500CopyRotation(&rot.mat, &coord->coord);
@@ -1759,12 +1759,12 @@ static void func_actor_400500_80132438(Task* arg0)
         work->targetDist  = dist;
         work->toTarget.vz = vz;
         VectorNormalSS(dirp, dirp);
-        work->targetBearing       = (ratan2(dir.vx, dir.vz) - (u16)work->yaw) & 0xFFF;
-        delta.vx                  = (u16)other->coord.t[0] - (u16)work->playerPrevPos.vx;
-        delta.vy                  = (u16)other->coord.t[1] - (u16)work->playerPrevPos.vy;
-        delta.vz                  = (u16)other->coord.t[2] - (u16)work->playerPrevPos.vz;
+        work->targetBearing = (ratan2(dir.vx, dir.vz) - (u16)work->yaw) & 0xFFF;
+        delta.vx            = (u16)other->coord.t[0] - (u16)work->playerPrevPos.vx;
+        delta.vy            = (u16)other->coord.t[1] - (u16)work->playerPrevPos.vy;
+        delta.vz            = (u16)other->coord.t[2] - (u16)work->playerPrevPos.vz;
         gfxSetRotIdentity(&rot.mat);
-        heading                   = work->yaw;
+        heading = work->yaw;
         RotMatrixY(-heading, &rot.mat);
         ApplyMatrixSV(&rot.mat, &delta, &work->playerLocalMove);
     }
@@ -3166,14 +3166,14 @@ static void func_actor_400500_80135770(Task* arg0)
                 work_pos->playerPrevPos.vy = player->coord.t[1];
                 work_pos->playerPrevPos.vz = player->coord.t[2];
             }
-            work_rot                  = (_Actor400500GrayStalkerWork*)arg0->work;
-            rot_root                  = arg0->extra.tmd->coords;
-            ang                       = work_rot->pitch;
-            ang_y                     = work_rot->yaw;
-            work_rot->pitch           = ang & 0xFFF;
-            ang_z                     = work_rot->roll;
-            work_rot->yaw             = ang_y & 0xFFF;
-            work_rot->roll            = ang_z & 0xFFF;
+            work_rot        = (_Actor400500GrayStalkerWork*)arg0->work;
+            rot_root        = arg0->extra.tmd->coords;
+            ang             = work_rot->pitch;
+            ang_y           = work_rot->yaw;
+            work_rot->pitch = ang & 0xFFF;
+            ang_z           = work_rot->roll;
+            work_rot->yaw   = ang_y & 0xFFF;
+            work_rot->roll  = ang_z & 0xFFF;
             gfxSetRotIdentity(&rot.mat);
             RotMatrixZ(work_rot->roll, &rot.mat);
             RotMatrixX(work_rot->pitch, &rot.mat);
@@ -3433,19 +3433,19 @@ static void func_actor_400500_801361EC(Task* arg0)
                     }
                     break;
                 default:
-                    tx                        = -0x3E8;
-                    coord->coord.t[0]         = tx;
-                    tx                        = -0xFA0;
-                    coord->coord.t[1]         = tx;
-                    tx                        = -0x2116;
-                    coord->coord.t[2]         = tx;
-                    tx                        = 0x400;
-                    work->yaw                 = tx;
-                    tx                        = 0x800;
-                    work->roll                = tx;
-                    src                       = &rot;
-                    work->pitch               = 0;
-                    work->posture             = 0;
+                    tx                = -0x3E8;
+                    coord->coord.t[0] = tx;
+                    tx                = -0xFA0;
+                    coord->coord.t[1] = tx;
+                    tx                = -0x2116;
+                    coord->coord.t[2] = tx;
+                    tx                = 0x400;
+                    work->yaw         = tx;
+                    tx                = 0x800;
+                    work->roll        = tx;
+                    src               = &rot;
+                    work->pitch       = 0;
+                    work->posture     = 0;
                     gfxSetRotIdentity(&src->mat);
                     RotMatrixZ(work->roll, &src->mat);
                     RotMatrixY(work->yaw, &src->mat);
@@ -4284,10 +4284,10 @@ static void func_actor_400500_8013771C(Task* arg0)
     work->stateFrames = work->stateFrames + 1;
     _actor400500TickAnim(arg0);
     if ((s16)work->stateFrames < 0xF) {
-        in.vx                     = (u16)work->toTarget.vx;
-        in.vy                     = 0;
-        vz                        = (u16)work->toTarget.vz;
-        in.vz                     = vz;
+        in.vx = (u16)work->toTarget.vx;
+        in.vy = 0;
+        vz    = (u16)work->toTarget.vz;
+        in.vz = vz;
         gfxSetRotIdentity(&rot.mat);
         RotMatrixY(work->yaw, &rot.mat);
         ApplyMatrixSV(&rot.mat, &in, &out);
@@ -4600,11 +4600,11 @@ static void func_actor_400500_80138CE8(Task* arg0)
     Task*                        child;
     s32                          angle;
 
-    work                      = (_Actor400500GrayStalkerWork*)arg0->work;
-    angle                     = work->armSwingAngle - 0x80;
-    work->armSwingAngle       = angle;
-    child                     = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0];
-    child->extra.tmd->flags   = 0;
+    work                    = (_Actor400500GrayStalkerWork*)arg0->work;
+    angle                   = work->armSwingAngle - 0x80;
+    work->armSwingAngle     = angle;
+    child                   = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0];
+    child->extra.tmd->flags = 0;
     _actor400500SetCoordYaw(child->extra.tmd->coords, -angle);
     if ((s16)work->armSwingAngle <= 0) {
         ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0]->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -6326,12 +6326,12 @@ static void func_actor_400500_8013BEC4(Task* arg0)
     _Actor400500GrayStalkerWork* work2;
     s32                          angle;
 
-    work                      = (_Actor400500GrayStalkerWork*)arg0->work;
-    work->armSwingAngle       = work->armSwingAngle + 0x80;
-    work->stateFrames         = work->stateFrames + 1;
-    child                     = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[1];
-    angle                     = work->armSwingAngle;
-    child->extra.tmd->flags   = 0;
+    work                    = (_Actor400500GrayStalkerWork*)arg0->work;
+    work->armSwingAngle     = work->armSwingAngle + 0x80;
+    work->stateFrames       = work->stateFrames + 1;
+    child                   = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[1];
+    angle                   = work->armSwingAngle;
+    child->extra.tmd->flags = 0;
     _actor400500SetCoordYaw(child->extra.tmd->coords, angle);
     if ((s16)work->armSwingAngle >= 0x200) {
         work2              = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -6373,12 +6373,12 @@ static void func_actor_400500_8013C018(Task* arg0)
     _Actor400500GrayStalkerWork* work2;
     s32                          angle;
 
-    work                      = (_Actor400500GrayStalkerWork*)arg0->work;
-    work->armSwingAngle       = work->armSwingAngle + 0x80;
-    work->stateFrames         = work->stateFrames + 1;
-    child                     = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0];
-    angle                     = work->armSwingAngle;
-    child->extra.tmd->flags   = 0;
+    work                    = (_Actor400500GrayStalkerWork*)arg0->work;
+    work->armSwingAngle     = work->armSwingAngle + 0x80;
+    work->stateFrames       = work->stateFrames + 1;
+    child                   = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0];
+    angle                   = work->armSwingAngle;
+    child->extra.tmd->flags = 0;
     _actor400500SetCoordYaw(child->extra.tmd->coords, -angle);
     if ((s16)work->armSwingAngle >= 0x200) {
         work2              = (_Actor400500GrayStalkerWork*)arg0->work;
