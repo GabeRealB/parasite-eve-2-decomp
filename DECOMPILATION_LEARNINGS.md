@@ -152860,3 +152860,58 @@ register below an address chain, read sched1's trace for the block (`-dS`, the
 `;; ready list at T-n` lines of the `.sched` dump) and look for `blocking insn N for 1 cycles, now <launched insn>`:
 the launched insn that fills the stall is a store's constant, and writing that
 store earlier or later frees the cycle for the leftover.
+
+## The store that reads the argument register is the delay-slot pass's doing, and it needs the loop's `li 1` below the stores (func_actor_160900_Reseed, 2026-10-07)
+
+**Was.** `TOUCH_REG_USE2(id, work, work)` after the two stores of the Kyle
+model's clip reseed, with a `u16 id` copy of the inline's parameter and `i = 1`
+written first. Image, at both inlined sites of `func_actor_160900_80132844`:
+
+```
+bltz v0,L ; li s0,1          # i = 1 in the delay slot
+lw s1,28(s2) ; move s2,a2    # work; the parameter's copy
+sh a2,1208(s1) ; sh zero,1210(s1)
+li s3,10                     # blend length, hoisted by loop.c
+```
+
+**The 2026-10-05 entry named the wrong pass.** It said the copy has to sit
+after the stores at `.lreg` and that `optimize_reg_copy_1` rewrites the store
+otherwise. Neither holds: in the matching source the copy is *before* the store
+at `.lreg`, `.greg`, `.sched2` and `.jump2`, and the store reads the copy's
+destination (`sh s2`) in every one of those dumps. `sh a2` appears only in the
+assembly. It is `fill_slots_from_thread` (reorg.c): walking the fall-through
+thread of `bltz` for a delay-slot candidate, it meets a register-register copy
+whose next insn uses the destination and rewrites that use to the source
+("that way it will become a candidate next time"), then goes on and takes
+`li s0,1`. So the image requires `li s0,1` to be *after* the copy in the
+thread, i.e. below the stores when reorg runs; if `li s0,1` is the first insn
+after the branch the slot is filled at once, the copy is never visited, and the
+store stays `sh s2`.
+
+**Why plain C fails.** In one block sched1 gives the stores priority 2 (they
+depend on the in-block `lw work`) and `i = 1` / the hoisted `li 10` priority 1,
+so both constants rise above the stores wherever they are written. Result:
+`li s3,10` above `lw`, `sh s2`. Measured, all with that 4-line diff or worse:
+no `id` local; `i = 1` in the `for`; `animHold` before `animId` (swaps
+`$s1`/`$s2`); `s32` parameter (`lh a2; bltz a2` replaces the `lh`/`lhu` pair);
+`id = work->animId = anim`; `id = anim` after the stores without the asm
+(`arg0` moves to `$s3`); the loop reading `work->animId` (reloads per call).
+
+**Fix.** The same boundary as `_actor560800ResetAnimHold` (previous-but-one
+section): `if (work != NULL) work->animHold = 0; else work->animHold = 0;` in a
+reset helper. The label keeps `i = 1` and `li 10` in the block after the
+stores through sched1 and sched2; jump2 merges the arms and deletes the branch,
+and reorg then finds copy, stores, `li 1` in that order. With it the body is
+the natural one: no `id`, `for (i = 1; ...)`, the parameter passed straight to
+the call. Here the bound is a constant, so unlike 560800 there is no pre-test
+and cse is not involved; only the scheduler needs the boundary.
+
+**What is fitted.** The condition, one construct for one barrier. A
+`NOTE_INSN_LOOP_END` (`do { } while (0)` around the store) would also stop
+sched1; not used.
+
+**Use.** When a store reads a call-clobbered argument register right after
+`move sN,aN` set up for a loop, do not look at local-alloc: check whether the
+insn sitting in the preceding branch's delay slot would have been first in the
+fall-through thread. If the image has it in the slot *and* the store reads the
+copy's source, it was below the copy before reorg.

@@ -1038,20 +1038,35 @@ static s32 func_actor_160900_801326EC(Task* arg0)
     }
     return 0;
 }
+/// Restarts the hold counter of the model's current clip.
+///
+/// FITTED: the two arms are the same store. The image has one `sh zero` here
+/// and no test, but what follows it was compiled as a new basic block: the
+/// blend loop's `li 1` and `li 10` stay below the two stores (in one block
+/// sched1 lifts both above them), which is also what lets the delay-slot pass
+/// reach the copy of the clip id and make the `animId` store read the
+/// argument register. A branch whose arms jump2 merges leaves exactly that.
+/// The original condition is unknown; `work` is used because testing it costs
+/// no instruction. Same shape as `_actor560800ResetAnimHold`.
+static inline void func_actor_160900_ResetAnimHold(_Actor160900KyleModelWork* work)
+{
+    if (work != NULL) {
+        work->animHold = 0;
+    } else {
+        work->animHold = 0;
+    }
+}
+
 static inline void func_actor_160900_Reseed(Task* arg0, u16 anim)
 {
     _Actor160900KyleModelWork* work;
     u16                        i;
-    u16                        id;
 
-    i              = 1;
-    work           = arg0->work;
-    work->animId   = anim;
-    work->animHold = 0;
-    id             = anim;
-    TOUCH_REG_USE2(id, work, work);
-    for (; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationSeekSlotWithBlend(&work->rig.anim, i, id, 0, 0xA);
+    work         = arg0->work;
+    work->animId = anim;
+    func_actor_160900_ResetAnimHold(work);
+    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
+        animationSeekSlotWithBlend(&work->rig.anim, i, anim, 0, 0xA);
     }
 }
 
