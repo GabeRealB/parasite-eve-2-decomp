@@ -399,6 +399,6 @@ _pacedWalkUpdate = 0x8014C874; // type:func
 _pacedWalkTickAnim = 0x8014CBB8; // type:func
 _pacedWalkResetAnim = 0x8014CC04; // type:func
 _pacedWalkBlendAnim = 0x8014CC7C; // type:func
-pacedWalkTo = 0x8014CE30; // type:func
+_pacedWalkSetWalkTarget = 0x8014CE30; // type:func
 _actorRenderDrawFixedWalkerGroundShadow = 0x8014CB2C; // type:func
 _pacedWalkPlace = 0x8014CDB0; // type:func

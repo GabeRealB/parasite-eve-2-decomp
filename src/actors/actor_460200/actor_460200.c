@@ -2535,4 +2535,4 @@ s32 func_actor_460200_80133DC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 #define PACED_WALK_SET_WALK_TARGET _pacedWalkSetSoldierCWalkTarget
 #include "../../shared/paced_walk_to.inc.c"
 #undef PACED_WALK_SET_WALK_TARGET
-#define PACED_WALK_SET_WALK_TARGET pacedWalkTo
+#define PACED_WALK_SET_WALK_TARGET _pacedWalkSetWalkTarget

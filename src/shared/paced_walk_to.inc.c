@@ -23,23 +23,25 @@ static inline void _pacedWalkFaceTravelTarget(GfxCoord* rootCoord, PacedWalkWork
 }
 #endif
 
-/// Sets a paced walker's heading and remaining travel attempts from a destination.
+/// Records a paced walker's heading and travel attempts toward a horizontal destination.
 ///
-/// Handles `ACTOR_MESSAGE_WALK_TO` for a live TMD task with writable
-/// `PacedWalkWork`. Borrows word-aligned target X/Z in the root parent's
-/// coordinate frame; height and orientation are ignored, and no pointer is
-/// retained. Replaces the root rotation at unit scale and records its signed
-/// yaw in 4096 units per turn, preserving translation and the composition stamp.
-/// Rotation requires initialized scratch state.
+/// `ACTOR_MESSAGE_WALK_TO` callback for a live TMD task with writable
+/// `PacedWalkWork` at `Task::work`. Borrows a word-aligned `target` during the
+/// call, reading only its X/Z position in the model root's parent frame.
+/// Replaces the root rotation with a unit-scale Y rotation and records the
+/// signed-halfword heading in 4096 units per turn. Translation, parent and
+/// composition stamp stay intact. Requires initialized scratch state with
+/// room for the rotation helper's 0x24 bytes. No pointer is retained.
 ///
-/// Divides the integer horizontal distance estimate by twelve parent-coordinate
-/// units and stores the low signed halfword in `st.travel`, discarding the
-/// remainder without clamping. Offsets and their squared sum must fit the
-/// nonnegative signed 32-bit square-root input. Later walking updates consume
-/// one attempt per twelve-unit step, including frozen attempts. This command
-/// leaves animation selection and request state intact; walking requires clip 4.
+/// Stores the integer horizontal distance estimate divided by twelve
+/// parent-coordinate units in signed-halfword `st.travel`, discarding the
+/// remainder without clamping. Each signed X/Z offset and the sum of their
+/// squares must fit signed 32-bit arithmetic. The animation update consumes
+/// one attempt per twelve-unit step in TICK with requested walk clip 4,
+/// including attempts suppressed by actor freezing. This command changes
+/// neither animation selection nor request state; it does not start walking.
 /// `messageId` and `unusedArgument` are ignored. Returns zero.
-s32 PACED_WALK_SET_WALK_TARGET(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument)
+static s32 PACED_WALK_SET_WALK_TARGET(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument)
 {
     enum {
         PACED_WALK_STEP_UNITS = 12,

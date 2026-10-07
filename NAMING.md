@@ -773,9 +773,11 @@ tables. Each retains the `pacedWalk` identity and is bound to its allocated type
 through `PACED_WALK_WORK_T` around the placement fragment. Restore both bindings
 after a further instance.
 `PACED_WALK_SET_WALK_TARGET` selects the heading-and-travel message callback,
-defaulting to `pacedWalkTo`. Additional private copies are declared `static`
-in the carrier's prologue before their message tables; actor_460200 selects
-`_pacedWalkSetSoldierCWalkTarget` for its third walker. Each copy requires
+defaulting to `_pacedWalkSetWalkTarget`. The header and fragment declare every
+instance `static`, reached through its carrier's own message table. Additional
+copies are declared `static` in the carrier's prologue before their tables;
+actor_460200 selects `_pacedWalkSetSoldierCWalkTarget` for its third walker.
+Each copy requires
 `PacedWalkWork` independently of `PACED_WALK_WORK_T`; rebind around its fragment
 and restore the first binding afterwards.
 

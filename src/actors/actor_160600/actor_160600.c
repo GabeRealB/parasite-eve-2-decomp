@@ -1122,7 +1122,7 @@ TaskMessageEntry gPacedWalkMsgTable[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, pacedWalkShowPair },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_160600_8013268C },
-    { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _pacedWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

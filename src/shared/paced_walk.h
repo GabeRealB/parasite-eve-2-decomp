@@ -138,22 +138,25 @@ static void PACED_WALK_RESET_ANIM(Task* task);
 static void PACED_WALK_BLEND_ANIM(Task* task);
 
 #ifndef PACED_WALK_SET_WALK_TARGET
-/// Selects the callback that records a paced walker's heading and travel count.
+/// Function identifier selecting a paced walker's private walk-target callback.
 ///
-/// Defaults to `pacedWalkTo`. Bind to a function identifier with signature
-/// `s32 name(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument)`.
-/// Bind before this header for the first declaration, or undefine and rebind
-/// around an additional walk-target fragment. Declare additional instances
-/// in the carrier's prologue before their message tables; a static declaration
-/// gives the fragment's definition internal linkage. Each instance requires
+/// Defaults to `_pacedWalkSetWalkTarget`, with signature
+/// `static s32 (Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument)`.
+/// The callback records heading and travel attempts without starting a clip.
+/// Both the header declaration and fragment definition are static. Bind before
+/// this header's first inclusion, or undefine and rebind around an additional
+/// walk-target fragment. Declare further instances static in the carrier's
+/// prologue before their message tables, using the same identifier in the
+/// table and at the fragment inclusion. Each instance requires live
 /// `PacedWalkWork` at `Task::work`, independent of `PACED_WALK_WORK_T`.
-/// Restore the first binding afterwards. The header guard selects the default
-/// only once. This object-like alias evaluates no arguments, captures no locals
-/// and uses no stringification or token pasting.
-#define PACED_WALK_SET_WALK_TARGET pacedWalkTo
+/// Restore the first binding afterwards if later fragments use that walker.
+/// The header guard selects the default only once. This object-like alias
+/// evaluates no arguments, captures no locals and uses no stringification
+/// or token pasting.
+#define PACED_WALK_SET_WALK_TARGET _pacedWalkSetWalkTarget
 #endif
 
-s32 PACED_WALK_SET_WALK_TARGET(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
+static s32 PACED_WALK_SET_WALK_TARGET(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
 
 #ifndef PACED_WALK_PLACE
 /// Function identifier selecting a walker's private placement-message callback.

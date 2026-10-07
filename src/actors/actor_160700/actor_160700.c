@@ -1380,7 +1380,7 @@ TaskMessageEntry D_actor_160700_80141678[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetPairModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor160700IgnoreCommand },
-    { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _pacedWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
