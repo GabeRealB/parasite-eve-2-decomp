@@ -1369,7 +1369,7 @@ sra     $3,$2,0x10
 
 Those two instructions shift every later address and arrive as `insert` /
 `delete` penalties on top of the arity error. A parameter written only through a
-halfword store is a full `s32` whose store truncates. `func_actor_120400_80132C38`
+halfword store is a full `s32` whose store truncates. `_actor120400SetKyleMadiganDrawMode`
 scored 59.655% (`stack=0 branch=4 regs=7 reorder=8 insert=8 delete=9`) as m2c's
 `(void *index, s16 arg2)` seed, and 100.000% with every penalty zero once the body
 was taken from the shaped sibling `ActorsShared80162bc4` - byte-identical apart

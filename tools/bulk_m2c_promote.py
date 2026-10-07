@@ -26,7 +26,7 @@ Runs under the orchestrator merge lock, one promotion per commit.
 
 Usage
 -----
-    python3 tools/bulk_m2c_promote.py --func func_actor_120400_801327B4 --dry-run
+    python3 tools/bulk_m2c_promote.py --func _actor120400ExitKyleMadiganWalker --dry-run
     python3 tools/bulk_m2c_promote.py --results .bulk_m2c/results.jsonl --limit 5 --commit
 """
 
