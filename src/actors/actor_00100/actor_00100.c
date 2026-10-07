@@ -2880,9 +2880,9 @@ static void Actor00100_Fn09724(Task* arg0)
             break;
         case 13:
             if (work->stateTimer <= ((s16)work->baseRate * 17) / 16) {
-                actorMoveForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 2000) / 272);
+                _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 2000) / 272);
             } else if (work->stateTimer <= ((s16)work->baseRate * 25) / 16) {
-                actorMoveForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 1000) / 192);
+                _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 1000) / 192);
             }
             if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->state = 0x26;
@@ -2933,7 +2933,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
     _desertChaserAnimTick(arg0);
     switch (work->animId) {
         case 3:
-            actorMoveForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 1000) / 192);
+            _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 1000) / 192);
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             if (work->stateTimer >= 0xD) {
                 work->animId      = 0xE;
@@ -2942,7 +2942,7 @@ static void Actor00100_Fn09CCC(Task* arg0)
             }
             break;
         case 14:
-            actorMoveForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 1300) / 192);
+            _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, ((s16)work->baseRate * 1300) / 192);
             timer = work->stateTimer;
             if (timer == 0xF) {
                 if ((viewGetMappedIndex() & 0xFF) == 8) {

@@ -1490,10 +1490,10 @@ static void func_actor_401800_80136560(Task* arg0)
     if (work->animId == 3) {
         if (work->blendActive == 0) {
             if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x42) / 18) != 0) {
-                actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x42) / 18);
+                _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x42) / 18);
             }
         } else if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, (((work->chaseRate + 2) * 0x42) / 18) >> 2) != 0) {
-            actorMoveForwardNonzero(arg0->extra.tmd->coords, (((work->chaseRate + 2) * 0x42) / 18) >> 2);
+            _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, (((work->chaseRate + 2) * 0x42) / 18) >> 2);
         }
     } else if (work->rig.slots[1].status.fields.flags & 1) {
         work->animId      = 3;

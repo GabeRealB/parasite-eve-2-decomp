@@ -1763,7 +1763,7 @@ static void func_actor_356100_80164ACC(Task* arg0)
     if (work->stateCounter != 0) {
         work->runStep = 2;
     }
-    actorMoveForwardNonzero(arg0->extra.tmd->coords, work->runStep);
+    _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, work->runStep);
     D_actor_356100_80173290 += work->runStep;
     if (work->circleRateStep == 8 && work->animRate >= 0x18) {
         work->circleRateStep = -1;
@@ -2513,7 +2513,7 @@ static void func_actor_356100_8016804C(Task* arg0)
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     _actorContactPushRoot(arg0->extra.tmd->coords, work->pushContacts, ARRAY_SIZE(work->pushContacts), 0x10);
-    actorMoveForwardNonzero(arg0->extra.tmd->coords, work->runStep);
+    _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, work->runStep);
     if (work->runStep > 0) {
         next          = work->runStep - 0xA;
         work->runStep = next;

@@ -3152,7 +3152,7 @@ static void func_actor_401300_801365F8(Task* arg0)
     run->turn           = _actorAngleNormalizeYaw(angle - ratan2(-c2->coord.m[2][0], c2->coord.m[2][2]));
     work->lookYawTarget = run->turn;
     if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, (work->chaseRate + 2) * 30 * 1.5f / 18.0f)) {
-        actorMoveForwardNonzero(arg0->extra.tmd->coords, (work->chaseRate + 2) * 30 * 1.5f / 18.0f);
+        _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, (work->chaseRate + 2) * 30 * 1.5f / 18.0f);
     }
     if (run->turn > 0x30) {
         run->turn = 0x30;
@@ -4124,7 +4124,7 @@ static void func_actor_401300_8013A208(Task* arg0)
         _actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, work->slideStep) != 0) {
-        actorMoveForwardNonzero(arg0->extra.tmd->coords, work->slideStep);
+        _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, work->slideStep);
     }
     if (work->slideStep > 0) {
         next            = work->slideStep - 0xA;
@@ -5013,7 +5013,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor401300ChargeScratch);
 }
 
-/// `actorMoveForwardNonzero` testing `actorsFrozen` through a `McSaveData*`.
+/// `_actorMovementTranslateForwardNonzero` testing `actorsFrozen` through a `McSaveData*`.
 static __inline__ void Actor401300_MoveForwardNonzeroSave(McSaveData* save, GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;
@@ -5195,7 +5195,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                 }
             }
             if (work->playerHeld == 0) {
-                actorMoveForwardNonzero(arg0->extra.tmd->coords, work->leapStep);
+                _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, work->leapStep);
             }
             _actor401300RestoreRootYawScale(arg0);
             break;
@@ -5370,7 +5370,7 @@ static void func_actor_401300_8013F628(Task* arg0)
             cur                  = work->stateTimer;
             if (cur < 0x11 && work->playerHeld == 0) {
                 if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x54 - cur * 0x54 / 16) != 0) {
-                    actorMoveForwardNonzero(arg0->extra.tmd->coords, 0x54 - work->stateTimer * 0x54 / 16);
+                    _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, 0x54 - work->stateTimer * 0x54 / 16);
                 }
             }
             _actor401300RestoreRootYawScale(arg0);

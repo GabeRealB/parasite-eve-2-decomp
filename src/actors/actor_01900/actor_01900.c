@@ -2385,7 +2385,7 @@ static void _actor01900StateCircle(Task* task)
     if (work->stateCounter != 0) {
         work->runStep = 2;
     }
-    actorMoveForwardNonzero(task->extra.tmd->coords, work->runStep);
+    _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, work->runStep);
     Actor01900_D172FC += work->runStep;
     // Accelerate, ease back to the cruising rate, then test whether to slide.
     if (work->circleRateStep == ACTOR_01900_CIRCLE_ACCELERATION && work->animRate >= ACTOR_01900_CIRCLE_PEAK_RATE) {
@@ -3014,7 +3014,7 @@ static void Actor01900_Fn07810(Task* arg0)
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
-    actorMoveForwardNonzero(arg0->extra.tmd->coords, work->runStep);
+    _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, work->runStep);
     if (work->runStep > 0) {
         next          = work->runStep - 0xA;
         work->runStep = next;

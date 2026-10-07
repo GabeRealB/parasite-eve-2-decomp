@@ -88239,8 +88239,8 @@ In the same function a `RescaleYaw` inline releases its block
 `SVECTOR` (`head = *G; vec = head - 1`). CSE equates `head` with the released
 value, and the address fold for `head[-1].vx` chose that pseudo (`-8($s2)`),
 keeping it alive in a callee-saved register. The target reads `0x2C($s2)` off the
-*pre-release* pointer; `vec->vx` produced it. actorMoveForwardNonzero's
-`head[-1].vx` still matches where no release precedes it, so this is context,
+*pre-release* pointer; `vec->vx` produced it. `_actorMovementTranslateForwardNonzero`'s
+`displacement->vx` also matches where no release precedes it, so this is context,
 not a rule: try both spellings when the base register of the first component
 read is the only regs diff.
 
@@ -107275,9 +107275,9 @@ function the same `*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT` first forces the addre
 pseudo (`li $r,0x1F800000` / `ori $r,$r,0x3FC`) and nothing later takes it out.
 
 So a move block whose scratch accesses are folded is an inlined helper, not a
-statement sequence: this one is the same body as `actorMoveForwardNonzero` /
-`_actorMovementStepForward`, which is why those live in headers and why
-`actorMoveForwardNonzero` carries a `SOFT_TOUCH_REG`. Moving the body into
+statement sequence: this one is the same movement block as `_actorMovementTranslateForwardNonzero` /
+`_actorMovementStepForward`, whose header bodies use `_actorMovementBuildDisplacement`
+for normalization and scaling. Moving the body into
 `_actorMovementStepForward(coord, 0x14)` took the score 84.892% -> 100.000%, every
 penalty zero, with no other edit - and the helper's own live `actorsFrozen != ACTOR_MOVEMENT_FROZEN` check
 is what puts the pause test after the caller's coordinate load, exactly as the
@@ -108294,15 +108294,16 @@ literal; a helper boundary, not the macro, is what buys the displacement form.
 
 So when a twin's scratch block matches but the function it was pasted into does not, check
 whether the block belongs in the inlined helper rather than the caller. `actor_401800` needed
-*two* step helpers for this: `actorMoveForwardNonzero` (its own `gteVec` name for `vec`,
-used where the step is a variable) and `actorStepForward` (step applied through `vec`
+*two* step helpers for this: `_actorMovementTranslateForwardNonzero` (its scratch `displacement`
+passed to `_actorMovementBuildDisplacement`, used where the step is a variable)
+and `actorStepForward` (step applied through `vec`
 itself, used by `8013945C` with the constant `-0x57`, and by the chase body
 `80137714` with `0x28` / `0x14`). Compiling `8013945C` against the
-`gteVec` variant scores 96% - the copy `(set reg120 reg118)` survives local-alloc as a real
-`addu s1,s0,zero` the target does not have - and swapping the shared helper to the no-`gteVec`
-body breaks `80139118` instead, which is the mirror image. The zero-amount guard is *not* part
-of that difference: dropping `if (amount != 0)` from the helper still matches 100%, because a
-constant `amount` folds the branch away either way.
+separate-GTE-operand variant scores 96% - the copy `(set reg120 reg118)` survives local-alloc as a real
+`addu s1,s0,zero` the target does not have - and swapping the shared helper to the single-GTE-operand
+body breaks `80139118` instead, which is the mirror image. The zero-distance guard is *not* part
+of that difference: dropping `if (stepDistance != 0)` from the helper still matches 100%, because a
+constant `stepDistance` folds the branch away either way.
 
 ## A chain whose arms all end in the same statement: m2c's reversed test is the polarity to write (func_actor_401800_8013B784, 2026-09-16)
 
@@ -108610,12 +108611,12 @@ started `addiu sp,sp,-0x30` where the target has `-0x38`, and held `index` in
 the 538 words at the function's file offset against the split `.s` is what
 localised it; the scratch score says nothing about it.
 
-The function calls two `static __inline__` helpers of its own TU. One of them,
-`actorMoveForwardNonzero`, is *defined later in the file* than the
-function that calls it — the scratch env had copied the definition in above the
-function, the host file has it below. GCC 2.8.1 sees an undeclared call, takes
+The failing source called two `static __inline__` helpers of its own TU. One of them,
+`_actorMovementTranslateForwardNonzero`, was *defined later in the file* than the
+function that called it — the scratch env had copied the definition in above the
+function, the host file had it below. GCC 2.8.1 sees an undeclared call, takes
 the implicit declaration, and never reconsiders, so the call is emitted as
-`jal actorMoveForwardNonzero` plus an out-of-line copy of the helper
+`jal _actorMovementTranslateForwardNonzero` plus an out-of-line copy of the helper
 (`.ent`/`.end` in the generated `.s`). The caller's frame and allocation follow
 from that: one fewer live value across the call, one fewer saved register.
 
@@ -109272,7 +109273,7 @@ sign-extension, but turns the store into `li v0,0xff88`; declaring it `s16` fixe
 
 ```c
 work->releaseStep                                        /* lh  */;
-actorMoveForwardNonzero(coord, (u16)work->releaseStep)  /* lhu */;
+_actorMovementTranslateForwardNonzero(coord, (u16)work->releaseStep)  /* lhu */;
 work->releaseStep = (s16)(u16)work->releaseStep / 2;             /* lhu + sll/sra + /2 bias */;
 ```
 
@@ -109340,15 +109341,15 @@ catch is that the family carries **two** helpers with that body:
 
 ```c
 static __inline__ void _actorMovementStepForward(GfxCoord* coord, s16 stepDistance)   /* plain */
-static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
+static __inline__ void _actorMovementTranslateForwardNonzero(GfxCoord* coord, s16 stepDistance)
 ```
 
 The `Nonzero` variant (the only one 401000 had, added when
-`oddStrangerGrabRelease` landed) wraps the same block in an `if (amount != 0)`
-and, above it, `gteVec = vec;` — feeding `gte_ldsv`/`gte_stsv` from that copy.
-Writing this body with `Nonzero` and the constant `-0x57` folds the `amount != 0`
+`oddStrangerGrabRelease` landed) wraps the same block in an `if (stepDistance != 0)`
+and passes its scratch `displacement` to `_actorMovementBuildDisplacement`.
+Writing this body with `Nonzero` and the constant `-0x57` folds the `stepDistance != 0`
 test away but **keeps the copy**, so it scores 96.000% with `regs=81 insert=3`:
-one extra `addu $sN,$sM,$zero` (the `gteVec = vec`), the gte loads and stores
+one extra `addu $sN,$sM,$zero` (the GTE operand copy), the gte loads and stores
 addressing `$s1` instead of `$s0`, and — because that extra pseudo is live across
 the whole block — one more saved register, so every other quantity sits one
 $s-number high (`index` in `$s5` instead of `$s4`, `work` in `$s3` instead of
@@ -151527,8 +151528,8 @@ No instruction changes; only the order of allocation does.
   the reserve followed by `vec = SCRATCH_STACK_CURSOR(T)`: the new cursor is a
   temporary, `vec` a copy of it, and cse writes the first field through the
   old cursor (`sh ...,-8(old)`) because the bare address has the older
-  equivalent. The `head[-1].vx` spelled out in `actorMoveForwardNonzero`
-  and `actorStepForward` (`include/actors/actor.h`)
+  equivalent. The `head[-1].vx` spelled out in
+  `actorStepForward` (`include/actors/actor.h`)
   may be this same artifact; not checked.
 - The `.sched` dump prints each ready list with priorities
   (`7f000001` = a boosted birth) and ends with `register N life shortened from

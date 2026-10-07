@@ -51,7 +51,7 @@ void oddStrangerAdvance(Task* arg0)
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     if ((_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {
-        actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->slideStep);
+        _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, (u16)work->slideStep);
     }
     if (work->slideStep > 0) {
         work->slideStep = (u16)work->slideStep - 0xA;

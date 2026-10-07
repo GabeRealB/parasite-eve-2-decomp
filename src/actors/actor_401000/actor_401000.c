@@ -1603,11 +1603,11 @@ static void func_actor_401000_80135AA4(Task* arg0)
     if (work->animId == 3) {
         if (work->blendActive == 0) {
             if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x78) / 0x12) != 0) {
-                actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x78) / 0x12);
+                _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x78) / 0x12);
             }
         } else {
             if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x78) / 0x12 >> 2) != 0) {
-                actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x78) / 0x12 >> 2);
+                _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x78) / 0x12 >> 2);
             }
         }
     } else if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {

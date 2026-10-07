@@ -1345,29 +1345,34 @@ static __inline__ void _actorMovementStepForward(GfxCoord* coord, s16 stepDistan
     }
 }
 
-/// `_actorMovementStepForward` that also skips the step when `amount` is zero, though
-/// it still takes and releases its scratch vector.
-static __inline__ void actorMoveForwardNonzero(GfxCoord* coord, s16 amount)
+/// Translates an actor coordinate along its normalized local Z axis for a nonzero distance.
+///
+/// `coord` must be live and writable. `stepDistance` is a signed distance in
+/// parent-coordinate units per call; negative values move backward. The local
+/// matrix supplies all three direction components, including Y, and
+/// normalization removes its scale. SDK approximation and GTE quantization
+/// can change the displacement's magnitude; its components are signed halfwords.
+///
+/// Live `actorsFrozen` equal to 1 skips all work. Otherwise a zero distance
+/// still reserves and releases scratch, leaving the coordinate and GTE state
+/// unchanged. A nonzero step marks composition dirty. The initialized scratch
+/// stack needs room for one aligned `SVECTOR` (eight bytes), released before
+/// return with its `pad` untouched. GTE state is overwritten by a nonzero
+/// step; no pointer is retained. Collision correction belongs to the caller.
+static __inline__ void _actorMovementTranslateForwardNonzero(GfxCoord* coord, s16 stepDistance)
 {
-    SVECTOR* head;
-    SVECTOR* vec;
-    SVECTOR* gteVec;
+    enum { ACTOR_MOVEMENT_FROZEN = 1 };
+    SVECTOR* displacement;
 
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-        vec                           = head - 1;
-        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        gteVec                        = vec;
-        if (amount != 0) {
-            gfxReadMatrixZAxis(&coord->coord, vec);
-            VectorNormalSS(vec, vec);
-            gte_lddp(amount);
-            gte_ldsv(gteVec);
-            gte_gpf12();
-            gte_stsv(gteVec);
-            coord->coord.t[0]  += head[-1].vx;
-            coord->coord.t[1]  += vec->vy;
-            coord->coord.t[2]  += vec->vz;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != ACTOR_MOVEMENT_FROZEN) {
+        displacement = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+        if (stepDistance != 0) {
+            // The local forward axis and translation share the parent's space.
+            gfxReadMatrixZAxis(&coord->coord, displacement);
+            _actorMovementBuildDisplacement(displacement, stepDistance);
+            coord->coord.t[0]  += displacement->vx;
+            coord->coord.t[1]  += displacement->vy;
+            coord->coord.t[2]  += displacement->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
@@ -1465,8 +1470,7 @@ static __inline__ void actorRescaleYawY(GfxCoord* coord, s32 scale, s16 scaleY)
     coord->coord.m[2][2] = m22;
 }
 
-/// `actorMoveForwardNonzero` spelled with the GTE reading the scratch vector
-/// under a single name.
+/// `_actorMovementTranslateForwardNonzero` with a cursor-relative X-component read.
 static __inline__ void actorStepForward(GfxCoord* coord, s16 amount)
 {
     SVECTOR* head;

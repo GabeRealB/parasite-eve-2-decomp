@@ -105,7 +105,7 @@ void oddStrangerChase(Task* arg0)
         work->slideStep = 2;
     }
     if ((_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {
-        actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->slideStep);
+        _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, (u16)work->slideStep);
     }
     gOddStrangerChaseDistance += (u16)work->slideStep;
     if (work->dashRateStep == 8 && work->animRate >= 0x18) {
