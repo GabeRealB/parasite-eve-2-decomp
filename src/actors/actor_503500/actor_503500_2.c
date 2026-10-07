@@ -65,9 +65,9 @@ extern TaskDesc D_actor_503500_8014B964[];
 extern EvsCommand D_actor_503500_8014CD98[];
 extern EvsCommand D_actor_503500_8014D098[];
 
-void func_actor_503500_80132778(Task*);
-void func_actor_503500_80132990(Task*);
-void func_actor_503500_80132D20(Task*);
+void        func_actor_503500_80132778(Task*);
+static void _actor503500FadeFromBlackTask(Task* task);
+void        func_actor_503500_80132D20(Task*);
 
 static AnimationSet _gActor503500Animation16D8C;
 static AnimationSet _gActor503500Animation16F18;
@@ -102,26 +102,29 @@ extern ActorTransform            D_actor_503500_8014BB38;
 extern ActorTransform            D_actor_503500_8014BBB4[2];
 extern ActorTransform            D_actor_503500_8014BBE4;
 extern ActorTransform            D_actor_503500_8014BBFC;
-void                             func_actor_503500_80132B78(void);
-void                             func_actor_503500_80132B98(void);
-void                             func_actor_503500_80132BB8(void);
-void                             func_actor_503500_80132BD8(void);
+static void                      _actor503500StageSceneAudioStart(void);
+static void                      _actor503500EnqueueScenePlayback(void);
+static void                      _actor503500FinishScene(void);
+static void                      _actor503500CancelScene(void);
 void                             func_actor_503500_80132BF8(void);
 void                             func_actor_503500_80132C40(s32);
 void                             func_actor_503500_80132C70(s32);
-void                             func_actor_503500_80132CA4(void);
-void                             func_actor_503500_80132CC4(s8);
-void                             func_actor_503500_80132D00(s32);
-void                             func_actor_503500_80132D60(void);
-void                             func_actor_503500_80132D7C(void);
-void                             func_actor_503500_80132D90(s32);
+static void                      _actor503500CancelRoomEffects(void);
+static void                      _actor503500ReleaseBossBattle(s8 endDelayFrames);
+static void                      _actor503500AddSessionFlowFlags(s32 flowFlags);
+static void                      _actor503500LockAttachmentsForEvent(void);
+static void                      _actor503500RequestViewRespawn(void);
+static void                      _actor503500SetStaffCardUseState(s32 cardUseState);
 void                             func_actor_503500_80132DB4(s32);
-void                             func_actor_503500_80132DD4(void);
-void                             func_actor_503500_80132DEC(void);
-void                             func_actor_503500_80132E7C(void);
-void                             func_actor_503500_80132EE8(u8);
+static void                      _actor503500ClearSavedPlayerTransform(void);
+static void                      _actor503500SavePlayerTransform(void);
+static void                      _actor503500RestorePlayerTransform(void);
+static void                      _actor503500SetPlayerUpdateHold(u8 holdPlayerUpdate);
 void                             func_actor_503500_80132EF4(void);
-void                             func_actor_503500_80132F28(void);
+static void                      _actor503500HaltPadScript(void);
+
+/// Progress value installed by both normal and skipped Shelter R48 entry scripts.
+enum { ACTOR_503500_STAFF_CARD_USE_READY = 1 };
 
 static TmdSource _gActor503500BrahmanTorso;
 static TmdSource _gActor503500Model22A30;
@@ -380,7 +383,7 @@ TaskDesc D_actor_503500_8014B958 = { { { TASK_BODY_NONE, 192 } }, func_actor_503
 
 TaskDesc D_actor_503500_8014B964[2] = {
     { { { TASK_BODY_COORD, 192 } }, func_actor_503500_80132778, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_503500_80132990, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor503500FadeFromBlackTask, { .value = 0 } },
 };
 
 SVECTOR D_actor_503500_8014B97C[4] = {
@@ -511,7 +514,7 @@ EvsSceneKey D_actor_503500_8014BD40 = { 6, 80, 11 };
 
 EvsCommand D_actor_503500_8014BD48[56] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_503500_8014BD30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132B78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_503500_8014B9CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_503500_8014BAD8 } }, { .value = 0 } },
@@ -523,10 +526,10 @@ EvsCommand D_actor_503500_8014BD48[56] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132C40 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132C70 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132DB4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132DD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500ClearSavedPlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132B98 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = D_actor_503500_8014B9FC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -547,30 +550,30 @@ EvsCommand D_actor_503500_8014BD48[56] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014B9FC[2] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_503500_8014BB50[4] } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132D00 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132D00 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500AddSessionFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500AddSessionFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_AREA_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BB8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BD8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_503500_8014BAF0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014BAC4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_503500_8014BBE4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BC14 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132CA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132CA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_503500_8014C288[29] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132CA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_503500_8014BAF0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_503500_8014B9CC } }, { .value = 0 } },
@@ -578,24 +581,24 @@ EvsCommand D_actor_503500_8014C288[29] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_503500_8014BBE4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BC14 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500HaltPadScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BD8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132DB4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132DD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500ClearSavedPlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132CA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132CA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132D00 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132D00 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500AddSessionFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500AddSessionFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_AREA_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132CA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -605,10 +608,10 @@ EvsCommand D_actor_503500_8014C540[61] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014B9E8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_503500_8014BD38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132B78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132D00 }, { .value = 128 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132D60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132CA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500AddSessionFlowFlags }, { .value = GAME_SESSION_FLOW_REEQUIP_WEAPON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500LockAttachmentsForEvent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_503500_8014BB08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -616,7 +619,7 @@ EvsCommand D_actor_503500_8014C540[61] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_503500_8014BB50[3] } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132B98 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014B9FC[7] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .pointer = &D_actor_503500_8014BC18[1] } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -648,8 +651,8 @@ EvsCommand D_actor_503500_8014C540[61] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BCB0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BB8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_503500_80132CC4 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor503500ReleaseBossBattle }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BC20 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BCBC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -660,28 +663,28 @@ EvsCommand D_actor_503500_8014C540[61] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 32 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 33 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132D90 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SetStaffCardUseState }, { .value = ACTOR_503500_STAFF_CARD_USE_READY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_503500_8014CAF8[28] = {
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132F28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500HaltPadScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132D00 }, { .value = 128 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500AddSessionFlowFlags }, { .value = GAME_SESSION_FLOW_REEQUIP_WEAPON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_503500_8014BB20 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_503500_8014B9CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014B9E8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_503500_80132CC4 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor503500ReleaseBossBattle }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BC20 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BCBC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132D60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132CA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BD8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132D90 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500LockAttachmentsForEvent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SetStaffCardUseState }, { .value = ACTOR_503500_STAFF_CARD_USE_READY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132DB4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -697,16 +700,16 @@ EvsCommand D_actor_503500_8014CAF8[28] = {
 
 EvsCommand D_actor_503500_8014CD98[32] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_503500_8014BD40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132B78 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_503500_80132EE8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor503500SetPlayerUpdateHold }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_503500_8014B9CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014B9E8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 32 }, { .value = 2004 }, { .message = { .pointer = &D_actor_503500_8014BCC0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 33 }, { .value = 2004 }, { .message = { .pointer = &D_actor_503500_8014BCD8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132D7C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500RequestViewRespawn }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132B98 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 32 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BD2C } }, { .value = 0 } },
@@ -725,7 +728,7 @@ EvsCommand D_actor_503500_8014CD98[32] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 33 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BD20 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_503500_8014D300 }, { .vibrationSegments = D_actor_503500_8014D30C }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BB8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BF8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -735,7 +738,7 @@ EvsCommand D_actor_503500_8014D098[8] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_503500_8014B9CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014B9E8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BD8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BF8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -745,8 +748,8 @@ EvsCommand D_actor_503500_8014D158[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_503500_8014B9CC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_503500_8014B9E8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132EF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132D60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132DEC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500LockAttachmentsForEvent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500SavePlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_503500_8014BB38 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BC24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -754,7 +757,7 @@ EvsCommand D_actor_503500_8014D158[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132E7C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500RestorePlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BC28 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
@@ -1752,26 +1755,67 @@ void func_actor_503500_80132778(Task* task)
     }
 }
 
-void func_actor_503500_80132990(Task* task)
+/// Queues a centred 320x240 subtractive tile and its blend command at OT slot 3.
+///
+/// Channels are byte intensities. The current frame arena must have room for
+/// both packets and remain live until GPU drawing completes.
+static inline void _actor503500DrawBlackOverlay(u8 red, u8 green, u8 blue)
 {
+    enum { BLACK_OVERLAY_WIDTH          = 320,
+           BLACK_OVERLAY_HEIGHT         = 240,
+           BLACK_OVERLAY_OT_SLOT        = 3,
+           BLACK_OVERLAY_TEXTURE_PAGE_X = 320 };
     TILE*     tile;
-    DR_TPAGE* dr;
-    u8        r, g, b;
+    DR_TPAGE* drawMode;
 
-    r = g = b = task->killCountdown;
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    setTile(tile);
+    SetSemiTrans(tile, 1);
+    tile->x0 = -BLACK_OVERLAY_WIDTH / 2;
+    tile->y0 = -BLACK_OVERLAY_HEIGHT / 2;
+    tile->w  = BLACK_OVERLAY_WIDTH;
+    tile->h  = BLACK_OVERLAY_HEIGHT;
+    setRGB0(tile, red, green, blue);
+    addPrim(gGpuCurrentOt + BLACK_OVERLAY_OT_SLOT, tile);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, BLACK_OVERLAY_TEXTURE_PAGE_X, 0));
+    addPrim(gGpuCurrentOt + BLACK_OVERLAY_OT_SLOT, drawMode);
+}
+
+/// Holds the screen black for the spawn delay, then reveals it eight shade levels per tick.
+///
+/// `spawnArg1.value` is a mutable frame countdown; the hold ends once it is
+/// negative or the event is skipped. Initialization, hold and reveal advance
+/// only while scene actors run, but the overlay draws on every callback.
+/// `killCountdown` holds a signed halfword shade, initially 255. Each tick
+/// draws its preceding low byte, including initialization and teardown ticks.
+/// Requires the current frame arena and OT slot 3; task teardown owns the task.
+static void _actor503500FadeFromBlackTask(Task* task)
+{
+    enum { FADE_INITIALIZE,
+           FADE_HOLD,
+           FADE_REVEAL,
+           FADE_BLACK_LEVEL = 255,
+           FADE_SHADE_STEP  = 8 };
+    u8 red, green, blue;
+
+    // Sample before updating so the final decrement still draws the preceding shade.
+    red = green = blue = task->killCountdown;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         switch (task->state) {
-            case 0:
-                task->killCountdown = 0xFF;
+            case FADE_INITIALIZE:
+                task->killCountdown = FADE_BLACK_LEVEL;
                 task->state++;
                 break;
-            case 1:
+            case FADE_HOLD:
                 if (--task->spawnArg1.value < 0 || gGameSession->evtSkipped != 0) {
                     task->state++;
                 }
                 break;
-            case 2:
-                task->killCountdown -= 8;
+            case FADE_REVEAL:
+                task->killCountdown -= FADE_SHADE_STEP;
                 if (task->killCountdown < 0) {
                     taskKill(task);
                 }
@@ -1781,46 +1825,41 @@ void func_actor_503500_80132990(Task* task)
                 break;
         }
     }
-    tile           = gGpuPrimCursor;
-    gGpuPrimCursor = tile + 1;
-    setTile(tile);
-    SetSemiTrans(tile, 1);
-    tile->x0 = -160;
-    tile->y0 = -120;
-    tile->w  = 320;
-    tile->h  = 240;
-    setRGB0(tile, r, g, b);
-    addPrim(gGpuCurrentOt + 3, tile);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 1, 0, getTPage(0, GPU_BLEND_SUBTRACT, 320, 0));
-    addPrim(gGpuCurrentOt + 3, dr);
+    _actor503500DrawBlackOverlay(red, green, blue);
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: queues the
-/// replacing load of overlay 0x82.
-void func_actor_503500_80132B78(void)
+/// Stages the selected scene's audio start for later CD queue admission.
+///
+/// Entry scripts first select the scene. Its descriptor and buffers must stay
+/// live through deferred request consumption; a missing slot leaves the request alone.
+static void _actor503500StageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: queues the load
-/// of overlay 0x81.
-void func_actor_503500_80132B98(void)
+/// Starts playback of the entry script's selected scene/audio session.
+///
+/// Prepared descriptor and buffers must stay live through playback. A selected
+/// slot needs room in the CD request ring; without a slot, playback mode starts directly.
+static void _actor503500EnqueueScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: restores the
-/// stream random-number state.
-void func_actor_503500_80132BB8(void)
+/// Finishes the selected scene's streaming state and restores its saved random values.
+///
+/// Normal entry/card-use scripts call this after their final CAP cue. Requires
+/// a successful scene selection; buffer and task teardown remain with their owners.
+static void _actor503500FinishScene(void)
 {
     streamFinishScene();
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: cancels the queued
-/// CD command and restarts the CD queue.
-void func_actor_503500_80132BD8(void)
+/// Discards deferred scene playback, requests CD cancellation and finishes the scene.
+///
+/// Entry and skip scripts use this after selecting a scene. Streaming/RNG state
+/// finishes immediately; CD cancellation completes through subsequent dispatches.
+static void _actor503500CancelScene(void)
 {
     cdCmdCancelScene();
 }
@@ -1843,25 +1882,34 @@ void func_actor_503500_80132C70(s32 arg0)
     D_actor_503500_80176558 = taskSpawnFromTable(D_actor_503500_8014B964, 1, arg0, 0);
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: calls
-/// `roomEffectRequestCancelAll`.
-void func_actor_503500_80132CA4(void)
+/// Requests cancellation of all room effects at an entry-script transition.
+///
+/// Requires the live room-effect state; cancellation is handled by its later updates.
+static void _actor503500CancelRoomEffects(void)
 {
     roomEffectRequestCancelAll();
 }
 
-void func_actor_503500_80132CC4(s8 arg0)
+/// Releases the placed boss's battle hold with rewards and sets the battle-end delay.
+///
+/// Placement index 0 must remain live while a battle hold exists. The delay is
+/// in actor-running frames, copied as a low byte (scripts pass 5 or 11).
+/// The task and its enemy work remain owned by the scene.
+static void _actor503500ReleaseBossBattle(s8 endDelayFrames)
 {
-    sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x23);
-    gSceneCombatState.signals.bytes.endDelayFrames = arg0;
+    enum { BOSS_PLACEMENT_INDEX = 0 };
+
+    sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(BOSS_PLACEMENT_INDEX), 0x23);
+    gSceneCombatState.signals.bytes.endDelayFrames = endDelayFrames;
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data, taking the
-/// record's argument word: ORs it into `GameSession::flowFlags` (the script
-/// passes 1 and 2).
-void func_actor_503500_80132D00(s32 bits)
+/// Adds session music-loading or weapon-restoration options from an entry script.
+///
+/// `flowFlags` uses `GAME_SESSION_FLOW_*`; only its low byte is stored.
+/// Existing options accumulate until the session's flow handling clears them.
+static void _actor503500AddSessionFlowFlags(s32 flowFlags)
 {
-    gGameSession->flowFlags |= bits;
+    gGameSession->flowFlags |= flowFlags;
 }
 
 void func_actor_503500_80132D20(Task* arg0)
@@ -1870,19 +1918,27 @@ void func_actor_503500_80132D20(Task* arg0)
     taskKill(arg0);
 }
 
-void func_actor_503500_80132D60(void)
+/// Locks attachment activation and cancels an active attachment for the event.
+///
+/// Attachment updates consume the lock; ordinary activation is blocked while set.
+static void _actor503500LockAttachmentsForEvent(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-void func_actor_503500_80132D7C(void)
+/// Requests deferred respawn of the saved view after the card-use scene begins.
+static void _actor503500RequestViewRespawn(void)
 {
-    gGameSession->viewDirty = 1;
+    gGameSession->viewDirty = true;
 }
 
-void func_actor_503500_80132D90(s32 arg0)
+/// Sets Shelter R48's staff-card progress from a normal or skipped entry script.
+///
+/// Only the low nibble is stored: 0 inactive, 1 ready for a staff card, 2 card-use
+/// started. Both callers install 1; the room advances to 2 on card acceptance.
+static void _actor503500SetStaffCardUseState(s32 cardUseState)
 {
-    gameFlagSetNibble(GAME_FLAG_100, arg0);
+    gameFlagSetNibble(GAME_FLAG_100, cardUseState);
 }
 
 void func_actor_503500_80132DB4(s32 arg0)
@@ -1890,50 +1946,64 @@ void func_actor_503500_80132DB4(s32 arg0)
     shelterR48SetBackgroundSpritesVisible(arg0 & 0xFF);
 }
 
-void func_actor_503500_80132DD4(void)
+/// Invalidates the saved player placement by clearing its position sentinel.
+///
+/// All-zero XYZ suppresses restoration; the saved rotation remains available.
+static void _actor503500ClearSavedPlayerTransform(void)
 {
     D_actor_503500_8017655C.pos.vx = 0;
     D_actor_503500_8017655C.pos.vy = 0;
     D_actor_503500_8017655C.pos.vz = 0;
 }
 
-void func_actor_503500_80132DEC(void)
+/// Saves the live player's root translation and Euler angles for a temporary scene placement.
+///
+/// Requires the player task, model root and `GameActor` work live. Positions use
+/// the root's parent-coordinate units; angles use 4096 units per turn. The
+/// package retains the copy until cleared or replaced; an origin position
+/// cannot be restored because it is also the empty sentinel.
+static void _actor503500SavePlayerTransform(void)
 {
-    Task*     slot3;
-    GfxCoord* coord;
-    SVECTOR*  rot;
+    Task*     playerTask;
+    GfxCoord* rootCoord;
+    SVECTOR*  savedRotation;
 
-    slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    coord = slot3->extra.tmd->coords;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    rootCoord  = playerTask->extra.tmd->coords;
 
-    D_actor_503500_8017655C.pos.vx = coord->coord.t[0];
-    D_actor_503500_8017655C.pos.vy = coord->coord.t[1];
-    D_actor_503500_8017655C.pos.vz = coord->coord.t[2];
+    D_actor_503500_8017655C.pos.vx = rootCoord->coord.t[0];
+    D_actor_503500_8017655C.pos.vy = rootCoord->coord.t[1];
+    D_actor_503500_8017655C.pos.vz = rootCoord->coord.t[2];
 
-    /* Anchoring the rotation pointer *after* the three word stores is what
-     * makes cse keep the plain symbol as the base address; taking it first
-     * anchors the whole function on `D_actor_503500_8017655C + 0x10`. */
-    rot = &D_actor_503500_8017655C.rot;
-
-    rot->vx = ((GameActor*)slot3->work)->rotation.vx;
-    rot->vy = ((GameActor*)slot3->work)->rotation.vy;
-    rot->vz = ((GameActor*)slot3->work)->rotation.vz;
+    savedRotation     = &D_actor_503500_8017655C.rot;
+    savedRotation->vx = ((GameActor*)playerTask->work)->rotation.vx;
+    savedRotation->vy = ((GameActor*)playerTask->work)->rotation.vy;
+    savedRotation->vz = ((GameActor*)playerTask->work)->rotation.vz;
 }
 
-void func_actor_503500_80132E7C(void)
+/// Restores the saved player placement after the temporary scene, when its position is nonzero.
+///
+/// Requires a live player with its placement-message handler. Dispatch borrows
+/// the package's saved `ActorTransform` synchronously and copies XYZ/angles;
+/// the snapshot remains valid for later restoration until cleared or replaced.
+static void _actor503500RestorePlayerTransform(void)
 {
-    Task* slot3;
+    Task* playerTask;
 
-    slot3 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if ((D_actor_503500_8017655C.pos.vx != 0) || (D_actor_503500_8017655C.pos.vy != 0) ||
         (D_actor_503500_8017655C.pos.vz != 0)) {
-        TASK_MESSAGE_DISPATCH_POINTER(slot3, 0x3E9, &D_actor_503500_8017655C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_503500_8017655C, 0);
     }
 }
 
-void func_actor_503500_80132EE8(u8 arg0)
+/// Holds or releases the player's ordinary state tick during the card-use scene.
+///
+/// Zero permits the tick; any nonzero byte suppresses it without stopping the
+/// rest of player movement/collision upkeep. The script passes 1 to hold it.
+static void _actor503500SetPlayerUpdateHold(u8 holdPlayerUpdate)
 {
-    D_80115768 = arg0;
+    D_80115768 = holdPlayerUpdate;
 }
 
 void func_actor_503500_80132EF4(void)
@@ -1941,9 +2011,14 @@ void func_actor_503500_80132EF4(void)
     playerActorResetWeaponAttack(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), gPlayerStatus.weapon, 0);
 }
 
-void func_actor_503500_80132F28(void)
+/// Stops scripted controller vibration when an entry scene is skipped.
+///
+/// Raises the script/hold/ramp halt requests and clears script activity and
+/// vibration output. Pending script tasks consume the halt requests on update.
+static void _actor503500HaltPadScript(void)
 {
     padScriptHalt();
+    // The binary repeats this clear after the halt helper has already cleared it.
     gGameSession->padScriptFlags = 0;
 }
 

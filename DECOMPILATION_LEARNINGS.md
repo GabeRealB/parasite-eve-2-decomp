@@ -68912,7 +68912,7 @@ predecessors and post-reload CSE can no longer prove `$a0 == $s0`.
 
 ## Where a sub-object pointer is taken decides which address anchors the function
 
-**Problem.** `func_actor_503500_80132DEC` fills a 0x18-byte global: three `s32`
+**Problem.** `_actor503500SavePlayerTransform` fills a 0x18-byte global: three `s32`
 words at 0x0/0x4/0x8, then a rotation triple at 0x10/0x12/0x14. The target
 computes the symbol address once, stores the words at `0(v1)`/`4(v1)`/`8(v1)`,
 stores the *first* halfword at `0x10(v1)`, and only then emits
@@ -119158,7 +119158,7 @@ but it is not what the compiler produces, so a target `bgez` fed by `sll 16` is
 not an unsigned-field bug.
 
 Worked example: `_mineMesaFadeFromBlackTask` matched at 100% with no pins and one
-scratch build. It is `func_actor_503500_80132990` (`src/actors/actor_503500/`
+scratch build. It is `_actor503500FadeFromBlackTask` (`src/actors/actor_503500/`
 `actor_503500_2.c`, the `similar` hit the brief lists in three classes at once)
 minus that function's `D_801153F4` gate and minus the `gGameSession->evtSkipped`
 term of its state-1 test; the tile/`DR_TPAGE` packet that follows is byte-for-byte
