@@ -161,56 +161,65 @@ static void _worldTargetDrawReadouts(void);
 
 static WorldTargetNode* _worldTargetFindLockNodeAndPositionFromPad(Task* aimingTask, VECTOR3* outPosition);
 
-/// Marks the final battle release and starts its frame delay, preserving rewards.
+/// Finishes battle signaling and starts the delay after the final encounter hold.
 ///
-/// `combat` must be `&gSceneCombatState`; callers have already dropped the final
-/// hold. Music and reward handling follow separately so their ordering is kept.
+/// `combat` must be live and writable, with its final battle reference already
+/// released. Sets the finished phase, clears action/enemy stimuli and rearms
+/// the 60-frame end delay. The caller handles rewards and the music fade.
 static __inline__ void _sceneFinishBattleSignals(SceneCombatState* combat)
 {
-    gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
-    combat->signals.bytes.actionFlags           = 0;
-    combat->signals.bytes.enemyAlert            = 0;
-    combat->signals.bytes.endDelayFrames        = SCENE_COMBAT_END_DELAY_FRAMES;
+    combat->signals.bytes.battlePhase    = SCENE_COMBAT_BATTLE_FINISHED;
+    combat->signals.bytes.actionFlags    = 0;
+    combat->signals.bytes.enemyAlert     = 0;
+    combat->signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
 }
 
 /// Reads port-zero held directions for lock cycling, with left taking precedence.
+///
+/// Returns `WORLD_TARGET_LOCK_SCAN_LEFT` (1), `WORLD_TARGET_LOCK_SCAN_RIGHT`
+/// (-1), or `WORLD_TARGET_LOCK_SCAN_AUTOMATIC` (0) when neither is held. Reads
+/// the processed pad sample, including synthesized stick directions; input is
+/// not polled or consumed. Right is queried only when left is clear.
 static __inline__ s32 _worldTargetGetPadLockScanMode(void)
 {
-    s32 scanMode;
+    enum { WORLD_TARGET_LOCK_PAD_PORT = 0 };
 
-    if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
-        scanMode = WORLD_TARGET_LOCK_SCAN_LEFT;
-    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
-        scanMode = WORLD_TARGET_LOCK_SCAN_RIGHT;
-    } else {
-        scanMode = WORLD_TARGET_LOCK_SCAN_AUTOMATIC;
+    if (padCheckButtons(WORLD_TARGET_LOCK_PAD_PORT, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_LEFT) != 0) {
+        return WORLD_TARGET_LOCK_SCAN_LEFT;
     }
-    return scanMode;
+    if (padCheckButtons(WORLD_TARGET_LOCK_PAD_PORT, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT) != 0) {
+        return WORLD_TARGET_LOCK_SCAN_RIGHT;
+    }
+    return WORLD_TARGET_LOCK_SCAN_AUTOMATIC;
 }
 
 /// Places a candidate's local body point in the view frame used by sight occluders.
 ///
-/// Both pointers must be live and disjoint; the scratch reservation belongs to
-/// the caller. Narrows the body's XYZ to signed halfwords, saturates the GTE
-/// rotation and then adds the composed view-space translation with narrowing.
-static __inline__ void _worldTargetTransformLockCandidate(WorldTargetNode* candidate, _WorldTargetLockScanScratch* scratch)
+/// `candidate` must be a live enemy's embedded target entry with a writable,
+/// acyclic coordinate chain whose full transform maps into the current view.
+/// `scanScratch` is the caller's separate, word-aligned live scan reservation;
+/// only `targetView` XYZ is written and its pad is preserved. Coordinates use
+/// game units: local XYZ narrows to signed 16 bits, rotation uses 12 fractional
+/// bits and saturates to -32768..32767, then translation adds with 16-bit wrapping.
+/// Refreshes coordinate caches and changes GTE state. Both pointers are borrowed
+/// for this call; the caller retains and releases the scratch reservation.
+static __inline__ void _worldTargetTransformLockCandidate(const WorldTargetNode* candidate, _WorldTargetLockScanScratch* scanScratch)
 {
     GfxCoord* targetCoord;
     SVECTOR   targetLocal;
 
     actorRenderComposeCoord(GP_NODE_ENEMY(candidate)->coord);
-    scratch->targetView.vx = GP_NODE_ENEMY(candidate)->bodyPos.vx;
-    scratch->targetView.vy = GP_NODE_ENEMY(candidate)->bodyPos.vy;
-    scratch->targetView.vz = GP_NODE_ENEMY(candidate)->bodyPos.vz;
-    targetCoord            = GP_NODE_ENEMY(candidate)->coord;
-    targetLocal            = scratch->targetView;
-    gte_SetRotMatrix(&targetCoord->workm);
-    gte_ldv0(&targetLocal);
-    gte_rtv0();
-    gte_stsv(&scratch->targetView);
-    scratch->targetView.vx += GP_NODE_ENEMY(candidate)->coord->workm.t[0];
-    scratch->targetView.vy += GP_NODE_ENEMY(candidate)->coord->workm.t[1];
-    scratch->targetView.vz += GP_NODE_ENEMY(candidate)->coord->workm.t[2];
+    scanScratch->targetView.vx = GP_NODE_ENEMY(candidate)->bodyPos.vx;
+    scanScratch->targetView.vy = GP_NODE_ENEMY(candidate)->bodyPos.vy;
+    scanScratch->targetView.vz = GP_NODE_ENEMY(candidate)->bodyPos.vz;
+    targetCoord                = GP_NODE_ENEMY(candidate)->coord;
+    targetLocal                = scanScratch->targetView;
+
+    // Add translation on the CPU so it wraps after the GTE rotation saturates.
+    gte_ApplyMatrixSV(&targetCoord->workm, &targetLocal, &scanScratch->targetView);
+    scanScratch->targetView.vx += GP_NODE_ENEMY(candidate)->coord->workm.t[0];
+    scanScratch->targetView.vy += GP_NODE_ENEMY(candidate)->coord->workm.t[1];
+    scanScratch->targetView.vz += GP_NODE_ENEMY(candidate)->coord->workm.t[2];
 }
 
 /// Clears the player and companion actors' borrowed lock-on references to `node`.
