@@ -45,7 +45,7 @@ extern s8 D_mist_parking_801908C8[];
 
 static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task);
 void        func_mist_parking_80183EAC(Task*);
-void        func_mist_parking_801842DC(Task*);
+static void _mistParkingShopDepartureMenuTask(Task* task);
 void        func_mist_parking_8018451C(Task*);
 static void _mistParkingDelayShopDisplayModeExitTask(Task* task);
 
@@ -62,7 +62,7 @@ void        func_mist_parking_80184468(s32);
 void        func_mist_parking_801844EC(void);
 void        func_mist_parking_8018459C(void);
 static void _mistParkingControlShopPlayerHeadAim(s32 mode);
-void        func_mist_parking_80184624(s32);
+static void _mistParkingQueueDelayedShopDisplayModeExit(s32 delayTicks);
 
 /// Ordinals of the already-loaded CAP resources used by the variant-1 talks.
 enum {
@@ -76,7 +76,7 @@ TaskDesc D_mist_parking_80190824[5] = {
     { { { TASK_BODY_NONE, 97 } }, _mistParkingAimPlayerHeadAtShopPartnerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mistParkingDelayShopDisplayModeExitTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80183EAC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801842DC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingShopDepartureMenuTask, { .value = 0 } },
 };
 
 AnimationSet* D_mist_parking_80190860[4] = {
@@ -324,7 +324,7 @@ EvsCommand D_mist_parking_80190E84[18] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184624 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingQueueDelayedShopDisplayModeExit }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
@@ -345,7 +345,7 @@ EvsCommand D_mist_parking_80191034[12] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184624 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingQueueDelayedShopDisplayModeExit }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184468 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -605,41 +605,59 @@ void func_mist_parking_80183EAC(Task* task)
     }
 }
 
-void func_mist_parking_801842DC(Task* task)
+/// Runs the variant-1 departure menu and restores the default CAP selection.
+///
+/// State 0 starts the prompt; states 1 and 3 wait for EVS, state 2 selects the
+/// CAP key and state 4 releases the task. Keys 1, 2 and 3 select staying,
+/// Acropolis plaza and the shooting gallery respectively. The chosen key
+/// replaces `spawnArg1.value` until finish; only staying resumes player control.
+/// Requires loaded dialogue, live scene actors and player control already held.
+static void _mistParkingShopDepartureMenuTask(Task* task)
 {
-    s32 key;
+    enum {
+        MIST_PARKING_SHOP_DEPARTURE_START            = 0,
+        MIST_PARKING_SHOP_DEPARTURE_WAIT_PROMPT      = 1,
+        MIST_PARKING_SHOP_DEPARTURE_SELECT           = 2,
+        MIST_PARKING_SHOP_DEPARTURE_WAIT_SCRIPT      = 3,
+        MIST_PARKING_SHOP_DEPARTURE_FINISH           = 4,
+        MIST_PARKING_SHOP_DEPARTURE_STAY             = 1,
+        MIST_PARKING_SHOP_DEPARTURE_PLAZA            = 2,
+        MIST_PARKING_SHOP_DEPARTURE_SHOOTING_GALLERY = 3
+    };
+    s32 choiceKey;
 
     switch (task->state) {
-        case 0:
+        case MIST_PARKING_SHOP_DEPARTURE_START:
             _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_MENU);
             evsStartScript(D_mist_parking_80190C74, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 1:
-        case 3:
+        case MIST_PARKING_SHOP_DEPARTURE_WAIT_PROMPT:
+        case MIST_PARKING_SHOP_DEPARTURE_WAIT_SCRIPT:
             if (gGameSession->eventState != 0) {
                 return;
             }
             task->state++;
             break;
-        case 2:
-            key                   = capGetVariantKey();
-            task->spawnArg1.value = key;
-            switch (key) {
-                case 1:
+        case MIST_PARKING_SHOP_DEPARTURE_SELECT:
+            // Retain the choice while its script runs and changes CAP selection.
+            choiceKey             = capGetVariantKey();
+            task->spawnArg1.value = choiceKey;
+            switch (choiceKey) {
+                case MIST_PARKING_SHOP_DEPARTURE_STAY:
                     evsStartScript(D_mist_parking_80190D64, EVENT_SCRIPT_HUD_KEEP);
                     break;
-                case 2:
+                case MIST_PARKING_SHOP_DEPARTURE_PLAZA:
                     evsStartScript(D_mist_parking_80190E84, EVENT_SCRIPT_HUD_KEEP);
                     break;
-                case 3:
+                case MIST_PARKING_SHOP_DEPARTURE_SHOOTING_GALLERY:
                     evsStartScript(D_mist_parking_80191034, EVENT_SCRIPT_HUD_KEEP);
                     break;
             }
             task->state++;
             break;
-        case 4:
-            if (task->spawnArg1.value == 1) {
+        case MIST_PARKING_SHOP_DEPARTURE_FINISH:
+            if (task->spawnArg1.value == MIST_PARKING_SHOP_DEPARTURE_STAY) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
             _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_DEFAULT);
@@ -724,9 +742,16 @@ static void _mistParkingControlShopPlayerHeadAim(s32 mode)
     }
 }
 
-void func_mist_parking_80184624(s32 arg0)
+/// Queues the variant-1 talk's display mode with a callback-tick exit delay.
+///
+/// A nonnegative N exits on dispatch N + 1. Uses the reload presentation
+/// policy; an already pending mode request silently rejects the request.
+/// Requires this overlay and its descriptor table to remain loaded until exit.
+static void _mistParkingQueueDelayedShopDisplayModeExit(s32 delayTicks)
 {
-    displayQueueModeTask(taskGetDescAt(D_mist_parking_80190824, 2U), arg0, 0, STAGE_ENTRY_RELOAD);
+    enum { MIST_PARKING_SHOP_DISPLAY_EXIT_DESCRIPTOR_INDEX = 2 };
+
+    displayQueueModeTask(taskGetDescAt(D_mist_parking_80190824, MIST_PARKING_SHOP_DISPLAY_EXIT_DESCRIPTOR_INDEX), delayTicks, 0, STAGE_ENTRY_RELOAD);
 }
 
 /// Counts down callback ticks before releasing the variant-1 talk's display mode.
@@ -776,9 +801,7 @@ static void _mistParkingSelectShopDialogueResource(s32 resourceOrdinal)
     }
 }
 
-/// Drops the handle in `D_mist_parking_8019532C.task` without killing the task.
-/// Its caller passes an argument, which is unused.
-void func_mist_parking_8018471C(s32 arg0)
+void mistParkingForgetShopHeadAimTaskHandle(s32 unused)
 {
     D_mist_parking_8019532C.task = NULL;
 }

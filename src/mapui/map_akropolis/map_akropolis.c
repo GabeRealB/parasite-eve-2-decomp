@@ -619,7 +619,7 @@ TaskDesc D_map_akropolis_8017A8AC[] = {
     { { { TASK_BODY_NONE, 0x20 } }, acropolisHelicopterLandingPadRoomTask, { .value = GP_TASK_LOC_KEY(1, 16, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_west_elevator_hall_8017F5F4, { .value = GP_TASK_LOC_KEY(1, 17, 1) } },
     { { { TASK_BODY_NONE, 0x20 } }, mistR18BriefingTask, { .value = GP_TASK_LOC_KEY(1, 18, 1) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_mist_parking_80182898, { .value = GP_TASK_LOC_KEY(1, 19, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, mistParkingRoomTask, { .value = GP_TASK_LOC_KEY(1, 19, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_mist_shooting_gallery_8018018C, { .value = GP_TASK_LOC_KEY(1, 20, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_mist_r21_8017D708, { .value = GP_TASK_LOC_KEY(1, 21, 0) } },
     { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },

@@ -855,7 +855,7 @@ void func_800B92CC(Task* task)
             func_acropolis_fire_escape_8017EA68(task);
             break;
         case GAME_LOCATION_KEY(1, 19, 0, 0):
-            func_mist_parking_80181468(task);
+            mistParkingTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(2, 1, 0, 0):
             func_dryfield_gas_station_8017EA90(task);

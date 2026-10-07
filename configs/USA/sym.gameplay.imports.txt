@@ -1691,7 +1691,7 @@ func_acropolis_square_80180804 = 0x80180804; // type:func absolute:True owner=ac
 
 func_acropolis_fire_escape_8017EA68 = 0x8017EA68; // type:func absolute:True owner=acropolis_fire_escape
 
-func_mist_parking_80181468 = 0x80181468; // type:func absolute:True owner=mist_parking
+mistParkingTelephoneMenuTask = 0x80181468; // type:func absolute:True owner=mist_parking
 
 func_dryfield_gas_station_8017EA90 = 0x8017EA90; // type:func absolute:True owner=dryfield_gas_station shared=rooms
 
@@ -1963,7 +1963,7 @@ mistShootingGalleryTracerTask = 0x80182064; // type:func absolute:True owner=mis
 
 neoArkWoodlandPathLeafFallTask = 0x8017ED00; // type:func absolute:True owner=neo_ark_woodland_path
 
-func_mist_parking_8018345C = 0x8018345C; // type:func absolute:True owner=mist_parking
+mistParkingContinueDepartureChoiceTask = 0x8018345C; // type:func absolute:True owner=mist_parking
 
 hypervelocityDischargeConeTask = 0x8011F270; // type:func absolute:True owner=hypervelocity
 

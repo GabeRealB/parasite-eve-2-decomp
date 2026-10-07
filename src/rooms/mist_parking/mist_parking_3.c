@@ -175,9 +175,11 @@ void mistParkingControlPlayerHeadAim(s32 mode)
     }
 }
 
-void func_mist_parking_80183688(s32 arg0)
+void mistParkingQueueDelayedDisplayModeExit(s32 delayTicks)
 {
-    displayQueueModeTask(taskGetDescAt(D_mist_parking_8018D75C, 5U), arg0, 0, STAGE_ENTRY_RELOAD);
+    enum { MIST_PARKING_DISPLAY_EXIT_DESCRIPTOR_INDEX = 5 };
+
+    displayQueueModeTask(taskGetDescAt(D_mist_parking_8018D75C, MIST_PARKING_DISPLAY_EXIT_DESCRIPTOR_INDEX), delayTicks, 0, STAGE_ENTRY_RELOAD);
 }
 
 void mistParkingDelayDisplayModeExitTask(Task* task)

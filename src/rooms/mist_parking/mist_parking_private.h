@@ -215,7 +215,11 @@ void mistParkingSelectDialogueResource(s32 resourceOrdinal);
 /// ignored argument.
 void mistParkingResetCutsceneTaskHandles(s32 unused);
 
-void func_mist_parking_8018471C(s32 arg0);
+/// Forgets the variant-1 player's head-aim task handle before room setup.
+///
+/// Does not kill the task or change the unused second word of the handle.
+/// `unused` is the ignored argument supplied by the room's setup callback.
+void mistParkingForgetShopHeadAimTaskHandle(s32 unused);
 
 /// Ramps the player's head aim toward the stage/area's index-zero talk partner.
 ///
@@ -236,7 +240,12 @@ void mistParkingAimPlayerHeadAtTalkPartnerTask(Task* task);
 /// refer to a live task while it is set.
 void mistParkingControlPlayerHeadAim(s32 mode);
 
-void func_mist_parking_80183688(s32);
+/// Queues a temporary display mode that exits after the given callback delay.
+///
+/// A nonnegative `delayTicks` exits on dispatch delayTicks + 1. Uses the reload
+/// presentation policy; an already pending mode request silently rejects it.
+/// The parking overlay and descriptor table must remain loaded through exit.
+void mistParkingQueueDelayedDisplayModeExit(s32 delayTicks);
 
 /// Counts down callback ticks before releasing a temporary display mode.
 ///

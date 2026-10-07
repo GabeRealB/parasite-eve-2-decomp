@@ -526,9 +526,6 @@ static void _effectExitTask(Task* task);
 
 static void _gpuSetPrimitiveBlendModeFixedDepth(void* primitive, s32 blendMode, s32 depth);
 
-// Retained effect slots without a proven owning room. See the local type audit.
-void func_mist_parking_8018345C(Task* task);
-
 /// Unresolved weapon-overlay callback for effect-bank slots 0xBB and 0xBD.
 ///
 /// Both slots allocate a single-coordinate body and pass a live `task`.
@@ -584,7 +581,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask2B, { NULL } },                                                        // 0x02B
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x02C
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_square_801823DC, { NULL } },                                         // 0x02D
-    { { { TASK_BODY_COORD, 0x70 } }, func_mist_parking_8018345C, { NULL } },                                             // 0x02E
+    { { { TASK_BODY_COORD, 0x70 } }, mistParkingContinueDepartureChoiceTask, { NULL } },                                 // 0x02E
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinGuideBeamTask, { NULL } },                                               // 0x02F
     { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask30, { NULL } },                                                        // 0x030
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x031

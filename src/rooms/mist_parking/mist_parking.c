@@ -147,9 +147,9 @@ static u16 Shop_Data_80181AD4[];
 s32         func_mist_parking_801823F8(Task*, s32, s32, s32);
 static s32  _mistParkingRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32  _mistParkingCopyRoomEventReply(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-s32         func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
+static s32  _mistParkingHandleDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
 static void _mistParkingSelectChapterRoom(s32 roomId);
-void        func_mist_parking_801827A0(s32);
+static void _mistParkingSpawnCapEventIfIdle(s32 commandIndex);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -191,7 +191,7 @@ static AnimationSet _gMistParkingAnimation095D0 = {
 
 TaskMessageEntry D_mist_parking_80186BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mistParkingCopyRoomEventReply },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_parking_801826E8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _mistParkingHandleDirectionAction },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mistParkingRefuseKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_mist_parking_801823F8 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -215,7 +215,7 @@ AnimationPlayRequest D_mist_parking_80186C48 = { { .index = 1 }, 1, ANIMATION_BL
 
 EvsCommand D_mist_parking_80186C5C[15] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C48 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_801827A0 }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSpawnCapEventIfIdle }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -943,7 +943,7 @@ static UiObjectDesc Telephone_Data_80181CC8;
 
 extern EvsCommand D_mist_parking_80186EFC[];
 
-static void func_mist_parking_801827C0(Task* arg0);
+static void _mistParkingInitializeRoomTask(Task* task);
 
 static void _mistParkingIdleRoomState(Task* task);
 
@@ -959,7 +959,7 @@ extern EvsCommand D_mist_parking_80186DC4[];
 
 #include "../../shared/telephone.inc.c"
 
-void func_mist_parking_80181468(Task* task)
+void mistParkingTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -1027,11 +1027,11 @@ s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// State handlers of the task `func_mist_parking_80182898` runs: its set-up,
+/// State handlers of the task `mistParkingRoomTask` runs: its set-up,
 /// an empty per-frame state and the kill.
 static const TaskFuncTable3 D_mist_parking_8017D7DC = {
     {
-        func_mist_parking_801827C0,
+        _mistParkingInitializeRoomTask,
         _mistParkingIdleRoomState,
         taskKill,
     },
@@ -1057,14 +1057,26 @@ static s32 _mistParkingCopyRoomEventReply(Task* task, s32 messageId, const RoomE
     return 1;
 }
 
-s32 func_mist_parking_801826E8(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
+/// Starts the chapter-dependent room-change script selected by a direction trigger.
+///
+/// Action 1 selects base room 2, action 2 base room 1 and enables the parking
+/// talk flag; later chapters add two to the room. Other actions do nothing.
+/// Borrows the four-byte request through dispatch; its control and argument
+/// are ignored, as are the receiver, message ID and second payload. Returns 1.
+static s32 _mistParkingHandleDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
-    if (request->actionId == 1) {
+    enum {
+        MIST_PARKING_ACTION_SELECT_ROOM_2 = 1,
+        MIST_PARKING_ACTION_SELECT_ROOM_1 = 2,
+        MIST_PARKING_TALK_ENABLED         = 1
+    };
+
+    if (request->actionId == MIST_PARKING_ACTION_SELECT_ROOM_2) {
         evsStartScript(D_mist_parking_80186C5C, EVENT_SCRIPT_HUD_KEEP);
     }
-    if (request->actionId == 2) {
+    if (request->actionId == MIST_PARKING_ACTION_SELECT_ROOM_1) {
         evsStartScript(D_mist_parking_80186DC4, EVENT_SCRIPT_HUD_KEEP);
-        gameFlagSetNibble(GAME_FLAG_0ED, 1);
+        gameFlagSetNibble(GAME_FLAG_0ED, MIST_PARKING_TALK_ENABLED);
     }
     return 1;
 }
@@ -1085,26 +1097,43 @@ static void _mistParkingSelectChapterRoom(s32 roomId)
     gGameSession->roomObjsDirty                                = 1;
 }
 
-void func_mist_parking_801827A0(s32 arg0)
+/// Queues the selected CAP command while idle, without event hold/hide flags.
+///
+/// `commandIndex` must select a live loaded CAP command through playback.
+/// Busy playback and allocation failure silently skip the request.
+static void _mistParkingSpawnCapEventIfIdle(s32 commandIndex)
 {
-    capSpawnEventIfIdle(arg0, CAP_EVENT_NO_FLAGS);
+    capSpawnEventIfIdle(commandIndex, CAP_EVENT_NO_FLAGS);
 }
 
-static void func_mist_parking_801827C0(Task* arg0)
+/// Registers the room receiver and starts its pending arrival conversation.
+///
+/// State 0 advances to idle. Variant 2 with no intro progress starts the full
+/// skippable arrival at warp 3, otherwise its shorter entry script. Setup
+/// forgets the appropriate head-aim handles without releasing their tasks.
+static void _mistParkingInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_mist_parking_80186BB8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 2) && (gameFlagGetNibble(GAME_FLAG_0F1) == 0)) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3C);
+    enum {
+        MIST_PARKING_ARRIVAL_TALK_VARIANT   = 2,
+        MIST_PARKING_ARRIVAL_TALK_WARP      = 3,
+        MIST_PARKING_ARRIVAL_TALK_OBJECTIVE = 0x3C
+    };
+
+    task->msgTable = D_mist_parking_80186BB8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gGameSession->location.loc.variant == MIST_PARKING_ARRIVAL_TALK_VARIANT) &&
+        (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_INTRO_PENDING)) {
+        // Arrival has a skip path; other entries use the shorter room-entry script.
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == MIST_PARKING_ARRIVAL_TALK_WARP) {
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MIST_PARKING_ARRIVAL_TALK_OBJECTIVE);
             mistParkingResetCutsceneTaskHandles(0);
             evsStartScriptWithSkip(D_mist_parking_8018DF34, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_parking_8018EDBC);
         } else {
-            func_mist_parking_8018471C(0);
+            mistParkingForgetShopHeadAimTaskHandle(0);
             evsStartScript(D_mist_parking_8018EFE4, EVENT_SCRIPT_HUD_KEEP);
         }
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// Keeps the room's message receiver alive between setup and teardown.
@@ -1115,14 +1144,12 @@ static void _mistParkingIdleRoomState(Task* task)
     char stackReservation[0x10];
 }
 
-/// Runs the handler for the task's state from a stack copy of
-/// `D_mist_parking_8017D7DC`.
-void func_mist_parking_80182898(Task* task)
+void mistParkingRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_mist_parking_8017D7DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_mist_parking_8017D7DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 void mistParkingAimPlayerHeadAtTalkPartnerTask(Task* task)

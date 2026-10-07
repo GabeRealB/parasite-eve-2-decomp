@@ -47,7 +47,20 @@ enum {
 /// Requires the mist_parking overlay and its writable live grid to remain loaded.
 void mistParkingSetPierceCollisionPatchLowered(s32 lowerPatch);
 
-void func_mist_parking_80181468(Task* task);
+/// Updates the parking-lot telephone's save menu and optional play statistics.
+///
+/// `spawnArg2.pointer` must hold the live UI object owned by this menu task.
+/// Its save and statistics children must remain linked until their answers
+/// are consumed. Requires the parking overlay and telephone UI resources.
+void mistParkingTelephoneMenuTask(Task* task);
+
+/// Starts the selected parking departure script once EVS and CAP are idle.
+///
+/// The room answer word selects departure when it is 2, staying otherwise.
+/// The producer of that word is unproven. Kills this continuation after starting
+/// the script; the callback does not use its work, body or spawn arguments.
+/// Requires the parking overlay and its dialogue resources to remain loaded.
+void mistParkingContinueDepartureChoiceTask(Task* task);
 
 /// Draws the current mapped camera view's grey capsule glows and pulsing cyan point glow.
 ///
@@ -58,6 +71,12 @@ void func_mist_parking_80181468(Task* task);
 /// Views without a listed glow emit no packets; task state is unchanged.
 void mistParkingDrawGlowsTask(Task* unused);
 
-void func_mist_parking_80182898(Task* task);
+/// Runs the parking-lot room's message receiver and arrival conversation setup.
+///
+/// `state` is 0 to initialize, 1 to idle or 2 to release, with no bounds check.
+/// Initialization registers the task in the room slot and may start the
+/// variant-2 arrival conversation. Requires the live session, save state and
+/// parking overlay to stay loaded until the task is released.
+void mistParkingRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MIST_PARKING_H

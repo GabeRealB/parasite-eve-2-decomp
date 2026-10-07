@@ -500,9 +500,9 @@ D_mist_parking_8019533C = 0x8019533C; // size:0x18 defined:True
 
 mistParkingSetPierceCollisionPatchLowered = 0x80183BAC; // type:func
 
-func_mist_parking_8018345C = 0x8018345C; // type:func
+mistParkingContinueDepartureChoiceTask = 0x8018345C; // type:func
 
-func_mist_parking_80181468 = 0x80181468; // type:func
+mistParkingTelephoneMenuTask = 0x80181468; // type:func
 
 mistParkingDrawGlowsTask = 0x80184728; // type:func
 _telephoneDrawPlayDataRow = 0x801800D0; // type:func
@@ -574,3 +574,16 @@ _mistParkingAimPlayerHeadAtShopPartnerTask = 0x80183d58; // type:func
 _mistParkingControlShopPlayerHeadAim = 0x801845d0; // type:func
 _mistParkingDelayShopDisplayModeExitTask = 0x80184668; // type:func
 _mistParkingSelectShopDialogueResource = 0x801846a4; // type:func
+mistParkingForgetShopHeadAimTaskHandle = 0x8018471c; // type:func
+mistParkingQueueDelayedDisplayModeExit = 0x80183688; // type:func
+_mistParkingQueueDelayedShopDisplayModeExit = 0x80184624; // type:func
+_mistParkingHandleDirectionAction = 0x801826e8; // type:func
+_mistParkingSpawnCapEventIfIdle = 0x801827a0; // type:func
+_mistParkingInitializeRoomTask = 0x801827c0; // type:func
+mistParkingRoomTask = 0x80182898; // type:func
+_mistParkingDepartureMenuTask = 0x80182f60; // type:func
+_mistParkingIdleAttachedModelState = 0x801830f8; // type:func
+_mistParkingOpenOptionDialog = 0x80183304; // type:func
+_mistParkingOptionDialogTask = 0x801832ac; // type:func
+_mistParkingContinueShopChoiceTask = 0x801834d4; // type:func
+_mistParkingShopDepartureMenuTask = 0x801842dc; // type:func

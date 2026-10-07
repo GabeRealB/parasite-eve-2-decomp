@@ -51462,13 +51462,13 @@ that reaches 100%.
 
 ## A hoisted invariant lands last in the preheader, so an *early* `li reg, k` is a source-level local
 
-`func_mist_parking_80183304` fills two `UiDialogOption`s, picking each line's
+`_mistParkingOpenOptionDialog` fills two `UiDialogOption`s, picking each line's
 string from one of two halves of a four-pointer table depending on
-`task->spawnArg1 == 1`. Two preheader details decided the last 2%.
+`task->spawnArg1.value == 1`. Two preheader details decided the last 2%.
 
 **Where the compare constant appears tells you whether it is a variable.**
 GCC 2.8.1's `move_movables` appends every hoisted loop invariant at the *end*
-of the preheader, right before the loop. So `if (task->spawnArg1 == 1)` inside
+of the preheader, right before the loop. So `if (task->spawnArg1.value == 1)` inside
 the loop always produces its `li reg, 1` after every setup statement:
 
 ```
@@ -51486,9 +51486,9 @@ already a pseudo in the preheader, i.e. the original source compared against a
 local:
 
 ```c
-mode = 1;
+alternatePairSelector = 1;
 ...
-if (arg0->spawnArg1 == mode) { ... }
+if (task->spawnArg1.value == alternatePairSelector) { ... }
 ```
 
 Nothing is hoisted, the `li` stays where the assignment is, and both the order

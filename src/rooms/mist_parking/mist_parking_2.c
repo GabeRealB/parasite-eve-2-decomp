@@ -35,8 +35,6 @@
 
 #include "rooms/room_common.h"
 
-void func_mist_parking_8018345C(Task* arg0);
-
 extern EvsCommand D_mist_parking_8018F374[];
 extern EvsCommand D_mist_parking_8018F4AC[];
 extern EvsCommand D_mist_parking_8018F5E4[];
@@ -50,8 +48,8 @@ extern s32        D_mist_parking_8018FC10[];
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _mistParkingWaitOptionDialogAnswer(Task* task);
 
-static void func_mist_parking_801830F8(Task* task);
-static void func_mist_parking_80183304(Task* task);
+static void _mistParkingIdleAttachedModelState(Task* unusedTask);
+static void _mistParkingOpenOptionDialog(Task* task);
 static void _mistParkingExitOptionDialogTask(Task* task);
 
 /// State handlers of the same shape for a task that attaches a model to a
@@ -59,14 +57,14 @@ static void _mistParkingExitOptionDialogTask(Task* task);
 static const TaskFuncTable3 D_mist_parking_8017D7E8 = {
     {
         _modelPlacementAttachPartTask,
-        func_mist_parking_801830F8,
+        _mistParkingIdleAttachedModelState,
         taskKill,
     },
 };
-/// State handlers of the two-option choice task `func_mist_parking_801832AC` runs.
+/// State handlers of the two-option choice task `_mistParkingOptionDialogTask` runs.
 static const TaskFuncTable3 D_mist_parking_8017D7F4 = {
     {
-        func_mist_parking_80183304,
+        _mistParkingOpenOptionDialog,
         _mistParkingWaitOptionDialogAnswer,
         _mistParkingExitOptionDialogTask,
     },
@@ -80,7 +78,7 @@ extern AnimationPlayRequest D_mist_parking_8018DEC4;
 extern AnimationPlayRequest D_mist_parking_8018DED8;
 
 void        func_mist_parking_80182A44(Task*);
-void        func_mist_parking_80182F60(Task*);
+static void _mistParkingDepartureMenuTask(Task* task);
 void        func_mist_parking_80183100(s32);
 void        func_mist_parking_8018312C(s32);
 void        func_mist_parking_8018316C(s32);
@@ -89,22 +87,22 @@ static void _mistParkingReleaseCutsceneModel(s32 descriptorIndex);
 
 /// Descriptor selected by the arrival conversation's model-release callback.
 enum { MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX = 0 };
-void func_mist_parking_801832AC(Task*);
-void func_mist_parking_801834D4(Task*);
-void func_mist_parking_8018354C(void);
-void func_mist_parking_8018357C(Task*);
-void func_mist_parking_80183600(void);
+static void _mistParkingOptionDialogTask(Task* task);
+static void _mistParkingContinueShopChoiceTask(Task* task);
+void        func_mist_parking_8018354C(void);
+void        func_mist_parking_8018357C(Task*);
+void        func_mist_parking_80183600(void);
 
 TaskDesc D_mist_parking_8018D75C[9] = {
     { { { TASK_BODY_TMD, 192 } }, mistParkingCutsceneModelPitchTask, { .model = &gMistParkingModel09B9C } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801832AC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018345C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingOptionDialogTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, mistParkingContinueDepartureChoiceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018357C, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, mistParkingAimPlayerHeadAtTalkPartnerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, mistParkingDelayDisplayModeExitTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_801834D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingContinueShopChoiceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80182A44, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80182F60, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingDepartureMenuTask, { .value = 0 } },
 };
 
 AnimationSet* D_mist_parking_8018D7C8[25] = {
@@ -671,7 +669,7 @@ EvsCommand D_mist_parking_8018F5E4[24] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80183688 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingQueueDelayedDisplayModeExit }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
@@ -695,7 +693,7 @@ EvsCommand D_mist_parking_8018F824[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80183688 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingQueueDelayedDisplayModeExit }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_8018316C }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingSelectDialogueResource }, { .value = MIST_PARKING_DIALOGUE_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -752,7 +750,7 @@ s32 D_mist_parking_8018FC10[5] = {
     1,
 };
 
-/// The labels of the two options `func_mist_parking_80183304` offers, and
+/// The labels of the two options `_mistParkingOpenOptionDialog` offers, and
 /// the alternative pair it uses when the task's `spawnArg1` is 1.
 extern u8* D_mist_parking_8018DF24[4];
 
@@ -919,40 +917,58 @@ void func_mist_parking_80182A44(Task* task)
     }
 }
 
-void func_mist_parking_80182F60(Task* task)
+/// Runs the departure menu used after the variant-2 conversation follow-ups.
+///
+/// State 0 starts the prompt; states 1 and 3 wait for EVS, state 2 selects the
+/// CAP key and state 4 releases the task. Keys 4, 5 and 6 select staying,
+/// Dryfield departure and the shooting gallery respectively. The selected key
+/// replaces `spawnArg1.value` until finish; only staying resumes player control.
+/// Requires loaded dialogue, live scene actors and player control already held.
+static void _mistParkingDepartureMenuTask(Task* task)
 {
-    s32 key;
+    enum {
+        MIST_PARKING_DEPARTURE_START            = 0,
+        MIST_PARKING_DEPARTURE_WAIT_PROMPT      = 1,
+        MIST_PARKING_DEPARTURE_SELECT           = 2,
+        MIST_PARKING_DEPARTURE_WAIT_SCRIPT      = 3,
+        MIST_PARKING_DEPARTURE_FINISH           = 4,
+        MIST_PARKING_DEPARTURE_STAY             = 4,
+        MIST_PARKING_DEPARTURE_DRYFIELD         = 5,
+        MIST_PARKING_DEPARTURE_SHOOTING_GALLERY = 6
+    };
+    s32 choiceKey;
 
     switch (task->state) {
-        case 0:
+        case MIST_PARKING_DEPARTURE_START:
             evsStartScript(D_mist_parking_8018F374, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 1:
-        case 3:
+        case MIST_PARKING_DEPARTURE_WAIT_PROMPT:
+        case MIST_PARKING_DEPARTURE_WAIT_SCRIPT:
             if (gGameSession->eventState != 0) {
                 return;
             }
             task->state++;
             break;
-        case 2:
-            key                   = capGetVariantKey();
-            task->spawnArg1.value = key;
-            switch (key) {
-                case 4:
+        case MIST_PARKING_DEPARTURE_SELECT:
+            // Retain the choice while its script runs and changes CAP selection.
+            choiceKey             = capGetVariantKey();
+            task->spawnArg1.value = choiceKey;
+            switch (choiceKey) {
+                case MIST_PARKING_DEPARTURE_STAY:
                     evsStartScript(D_mist_parking_8018F4AC, EVENT_SCRIPT_HUD_KEEP);
                     break;
-                case 5:
+                case MIST_PARKING_DEPARTURE_DRYFIELD:
                     evsStartScript(D_mist_parking_8018F5E4, EVENT_SCRIPT_HUD_KEEP);
                     break;
-                case 6:
+                case MIST_PARKING_DEPARTURE_SHOOTING_GALLERY:
                     evsStartScript(D_mist_parking_8018F824, EVENT_SCRIPT_HUD_KEEP);
                     break;
             }
             task->state++;
             break;
-        case 4:
-            if (task->spawnArg1.value == 4) {
+        case MIST_PARKING_DEPARTURE_FINISH:
+            if (task->spawnArg1.value == MIST_PARKING_DEPARTURE_STAY) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
             taskKill(task);
@@ -962,8 +978,11 @@ void func_mist_parking_80182F60(Task* task)
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// The empty per-frame state of `D_mist_parking_8017D7E8`.
-static void func_mist_parking_801830F8(Task* task)
+/// Keeps an attached model task idle between attachment and teardown.
+///
+/// Ignores the task and makes no state change. Its three-state table has no
+/// observed dispatcher in this room; the retained callback performs no drawing.
+static void _mistParkingIdleAttachedModelState(Task* unusedTask)
 {
 }
 
@@ -1028,55 +1047,69 @@ static void _mistParkingReleaseCutsceneModel(s32 descriptorIndex)
     }
 }
 
-/// Runs the handler for the task's state from a stack copy of
-/// `D_mist_parking_8017D7F4`: the two-option choice's setup, its wait and its
-/// exit.
-void func_mist_parking_801832AC(Task* task)
+/// Runs a modal two-option choice and forwards its one-based answer.
+///
+/// State 0 opens, 1 waits and 2 exits, with no bounds check. `spawnArg1.value`
+/// selects the second label pair only when 1; `spawnArg2.pointer` borrows a
+/// writable aligned s32 for the answer (1 or 2). The task owns its dialog work
+/// until teardown. Its descriptor's launcher has not been identified.
+static void _mistParkingOptionDialogTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_mist_parking_8017D7F4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_mist_parking_8017D7F4;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// Opens the room's two-option choice: allocates the `RoomOptionDialog`
-/// (killing the task if that fails), parks it at `Task::work`, labels its two
-/// options from the pair chosen by `spawnArg1` (the second pair when it is 1,
-/// the first otherwise), passes the request to `uiSpawnOptionDialog` and steps
-/// the task on. Cancelling is not permitted. `_mistParkingExitOptionDialogTask` is
-/// set as the exit callback.
-static void func_mist_parking_80183304(Task* task)
+/// Allocates and opens the room's two-option dialog with cancellation disabled.
+///
+/// Labels are "not yet"/"yes", or "yes"/"no" when `spawnArg1.value` is 1.
+/// The task owns the request and linked options; the UI borrows them and the
+/// loaded label strings until closing. Allocation failure kills the task;
+/// success installs the exit callback and advances to waiting for the answer.
+static void _mistParkingOpenOptionDialog(Task* task)
 {
+    enum { MIST_PARKING_OPTION_ALTERNATE_LABEL_PAIR = 1 };
     RoomOptionDialog* dialog;
     UiDialogOption*   option;
-    u8**              line;
-    s32               mode;
-    s32               i;
+    u8**              labelCursor;
+    s32               alternatePairSelector;
+    s32               optionIndex;
 
     dialog = memCalloc(sizeof(RoomOptionDialog), 0);
-    option = dialog->options;
     if (dialog == NULL) {
         taskKill(task);
         return;
     }
 
-    i                  = 0;
-    mode               = 1;
-    line               = D_mist_parking_8018DF24;
-    task->work         = dialog;
-    task->exitCallback = _mistParkingExitOptionDialogTask;
+    option                = dialog->options;
+    optionIndex           = 0;
+    alternatePairSelector = MIST_PARKING_OPTION_ALTERNATE_LABEL_PAIR;
+    labelCursor           = D_mist_parking_8018DF24;
+    task->work            = dialog;
+    task->exitCallback    = _mistParkingExitOptionDialogTask;
 
-    for (; i < ARRAY_SIZE(dialog->options); i++) {
-        if (task->spawnArg1.value == mode) {
-            option->text = D_mist_parking_8018DF24[i + 2];
-        } else {
-            option->text = *line;
-        }
-        option->next = option + 1;
-        option++;
-        line++;
+    /// Labels and links both rows before the UI borrows the dialog.
+    ///
+    /// Captures task, dialog, option, labelCursor, alternatePairSelector and
+    /// optionIndex. Advances both cursors past the two rows, leaves optionIndex
+    /// at two and terminates the last link. Takes no arguments.
+#define MIST_PARKING_LINK_OPTION_LABELS()                                                          \
+    {                                                                                              \
+        for (; optionIndex < ARRAY_SIZE(dialog->options); optionIndex++) {                         \
+            if (task->spawnArg1.value == alternatePairSelector) {                                  \
+                option->text = D_mist_parking_8018DF24[optionIndex + ARRAY_SIZE(dialog->options)]; \
+            } else {                                                                               \
+                option->text = *labelCursor;                                                       \
+            }                                                                                      \
+            option->next = option + 1;                                                             \
+            option++;                                                                              \
+            labelCursor++;                                                                         \
+        }                                                                                          \
+        option[-1].next = NULL;                                                                    \
     }
-    option[-1].next = NULL;
+    MIST_PARKING_LINK_OPTION_LABELS();
+#undef MIST_PARKING_LINK_OPTION_LABELS
 
     dialog->request.optionCount = ARRAY_SIZE(dialog->options);
     dialog->request.options     = dialog->options;
@@ -1117,27 +1150,36 @@ static void _mistParkingExitOptionDialogTask(Task* task)
     stageRequestModeTaskExit();
 }
 
-void func_mist_parking_8018345C(Task* arg0)
+void mistParkingContinueDepartureChoiceTask(Task* task)
 {
+    enum { MIST_PARKING_DEPARTURE_CHOICE_LEAVE = 2 };
+
     if (gGameSession->eventState == 0 && capIsBusy() == 0) {
-        if (D_mist_parking_8019531C == 2) {
+        if (D_mist_parking_8019531C == MIST_PARKING_DEPARTURE_CHOICE_LEAVE) {
             evsStartScript(D_mist_parking_8018F5E4, EVENT_SCRIPT_HUD_KEEP);
         } else {
             evsStartScript(D_mist_parking_8018F4AC, EVENT_SCRIPT_HUD_KEEP);
         }
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 
-void func_mist_parking_801834D4(Task* arg0)
+/// Starts or skips the shop once the room's current EVS and CAP have finished.
+///
+/// The room answer word selects skipping when it is 2, opening otherwise.
+/// The producer of that word is unproven. Starts one script, then kills the
+/// continuation; work, body and spawn arguments are unused.
+static void _mistParkingContinueShopChoiceTask(Task* task)
 {
+    enum { MIST_PARKING_SHOP_CHOICE_SKIP = 2 };
+
     if (gGameSession->eventState == 0 && capIsBusy() == 0) {
-        if (D_mist_parking_8019531C == 2) {
+        if (D_mist_parking_8019531C == MIST_PARKING_SHOP_CHOICE_SKIP) {
             evsStartScript(D_mist_parking_8018FB3C, EVENT_SCRIPT_HUD_KEEP);
         } else {
             evsStartScript(D_mist_parking_8018FA4C, EVENT_SCRIPT_HUD_KEEP);
         }
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 
