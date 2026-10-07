@@ -88,6 +88,23 @@ typedef struct {
 } _PlayerActorAimScratch;
 STATIC_ASSERT_SIZEOF(_PlayerActorAimScratch, 0x68);
 
+/// Pending collision-hit region selectors shared by the contact handlers.
+enum {
+    PLAYER_ACTOR_HIT_REGION_NONE       = 0,
+    PLAYER_ACTOR_HIT_REGION_PART4      = 1,
+    PLAYER_ACTOR_HIT_REGION_OTHER_BODY = 2
+};
+
+/// Packed contact categories accepted by the player/companion response scan.
+enum {
+    PLAYER_ACTOR_CONTACT_NO_KIND            = 0,
+    PLAYER_ACTOR_CONTACT_PLAYER_BODY_KIND   = WORLD_COLLISION_CONTACT_PLAYER_BODY >> 16,
+    PLAYER_ACTOR_CONTACT_PLAYER_ATTACK_KIND = WORLD_COLLISION_CONTACT_ATTACK >> 16,
+    PLAYER_ACTOR_CONTACT_ENEMY_BODY_KIND    = WORLD_COLLISION_CONTACT_ENEMY_BODY >> 16,
+    PLAYER_ACTOR_CONTACT_ENEMY_ATTACK_KIND  = DAMAGE_ATTACK_CATEGORY >> 16,
+    PLAYER_ACTOR_CONTACT_HAZARD_KIND        = 5
+};
+
 extern u16 D_80113F9C[70];
 
 extern const TaskFuncTable4 D_80097AB0;
@@ -114,9 +131,9 @@ static void func_8010B0C8(Task* arg0);
 
 static s32 Gp_TestHpDamage(s32 arg0);
 
-static void func_8010B2D4(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
+static void _playerActorRecordAttackContact(Task* task, const WorldCollisionContact* contact, s32 bodyIndex);
 
-static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
+static void _playerActorRecordHazardContact(Task* task, const WorldCollisionContact* contact, s32 bodyIndex);
 
 static void _modelObjectInitChildTask(Task* task);
 
@@ -126,17 +143,7 @@ static void _modelObjectDeferChildTaskRemoval(Task* task);
 
 static void _modelObjectKillChildTask(Task* task);
 
-s32 func_8010C30C(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
-
 static void func_8010C46C(Task* arg0);
-
-s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg);
-
-s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg);
-
-s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3);
-
-s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
 s32 func_8010C708(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim);
 
@@ -144,14 +151,12 @@ s32 func_8010C75C(Task* arg0, s32 arg1, GameActorButtonPressHold* arg2, s32 unus
 
 s32 Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSecondArg);
 
-s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request, s32 unusedSecondArg);
-
 static inline void _gpResumeBaseState(Task* arg0)
 {
     GameActor* inner;
 
     inner = arg0->work;
-    func_8010B210(arg0);
+    playerActorClearPendingHit(arg0);
     inner->recoveryTicks = 0x12;
     if (inner->state != 0) {
         playerActorEnterAim(arg0, 0xC);
@@ -233,97 +238,109 @@ u16 D_80113F9C[70] = {
     0,
 };
 
-void func_80109BB4(Task* arg0, WorldCollisionContact* arg1)
+/// Measures a receiving body's centre minus a contact point in their cached composition space.
+static inline void _playerActorMeasureContactSeparation(WorldCollisionBody* body, const WorldCollisionContact* contact, _PlayerActorPushbackScratch* block)
 {
+    gte_SetRotMatrix(&body->coord->workm);
+    gte_ldv0(&body->pos);
+    gte_rtv0();
+    gte_stlvnl(&block->separation);
+    block->position.vx   = (body->coord)->workm.t[0] + block->separation.vx;
+    block->position.vy   = (body->coord)->workm.t[1] + block->separation.vy;
+    block->position.vz   = (body->coord)->workm.t[2] + block->separation.vz;
+    block->separation.vx = block->position.vx - contact->point.vx;
+    block->separation.vy = block->position.vy - contact->point.vy;
+    block->separation.vz = block->position.vz - contact->point.vz;
+}
+
+void playerActorResolveBodyContacts(Task* task, const WorldCollisionContact* contacts)
+{
+    enum {
+        PLAYER_ACTOR_CONTACT_DIRECTION_FRACTION_BITS = 12,
+        PLAYER_ACTOR_CONTACT_PUSH_DIVISOR_BITS       = 2
+    };
     _PlayerActorPushbackScratch* block;
     GameActor*                   actor;
-    GfxCoord*                    coord;
-    WorldCollisionContact*       rec;
-    WorldCollisionBody*          obj;
+    GfxCoord*                    rootCoord;
+    const WorldCollisionContact* contact;
+    WorldCollisionBody*          body;
     VECTOR*                      separation;
-    s32                          i;
-    s32                          best;
-    s32                          push;
-    s32                          id;
-    s32                          val;
+    s32                          contactIndex;
+    s32                          deepestOverlap;
+    s32                          overlap;
+    s32                          bodyId;
+    s32                          nonnegativeOverlap;
 
-    rec   = arg1;
-    best  = 0;
-    i     = 0;
-    block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorPushbackScratch);
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    contact        = contacts;
+    deepestOverlap = 0;
+    contactIndex   = 0;
+    block          = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorPushbackScratch);
+    actor          = task->work;
+    rootCoord      = task->extra.tmd->coords;
 
-    for (i = 0; i < 0x12; rec++, i++) {
+    // Keep the deepest blocking body overlap and latch the first pending hit.
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(actor->collisionContacts); contact++, contactIndex++) {
         separation = &block->separation;
-        if (rec->flags & 1) {
-            switch (rec->key.parts.kind) {
-                case 0:
-                case 1:
-                case 2:
+        if (contact->flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+            switch (contact->key.parts.kind) {
+                case PLAYER_ACTOR_CONTACT_NO_KIND:
+                case PLAYER_ACTOR_CONTACT_PLAYER_BODY_KIND:
+                case PLAYER_ACTOR_CONTACT_PLAYER_ATTACK_KIND:
                     break;
-                case 3:
+                case PLAYER_ACTOR_CONTACT_ENEMY_BODY_KIND:
                     if ((s8)actor->gridResponse != 0) {
                         break;
                     }
-                    id = rec->key.parts.id;
-                    if (id < 0x46 && D_80113F9C[id] == 1) {
-                        obj = &actor->collisionBodies[(u8)rec->flags >> 4];
-                        gte_SetRotMatrix(&obj->coord->workm);
-                        gte_ldv0(&obj->pos);
-                        gte_rtv0();
-                        gte_stlvnl(&block->separation);
-                        block->position.vx   = (obj->coord)->workm.t[0] + block->separation.vx;
-                        block->position.vy   = (obj->coord)->workm.t[1] + block->separation.vy;
-                        block->position.vz   = (obj->coord)->workm.t[2] + block->separation.vz;
-                        block->separation.vx = block->position.vx - rec->point.vx;
-                        block->separation.vy = block->position.vy - rec->point.vy;
-                        block->separation.vz = block->position.vz - rec->point.vz;
-                        push                 = rec->distance - SquareRoot0(block->separation.vx * block->separation.vx +
-                                                                           block->separation.vy * block->separation.vy +
-                                                                           block->separation.vz * block->separation.vz);
-                        val                  = push;
-                        if (push < 0) {
-                            val = 0;
+                    bodyId = contact->key.parts.id;
+                    if (bodyId < ARRAY_SIZE(D_80113F9C) && D_80113F9C[bodyId] == 1) {
+                        body = &actor->collisionBodies[(u8)contact->flags >> WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT];
+                        _playerActorMeasureContactSeparation(body, contact, block);
+                        overlap            = contact->distance - SquareRoot0(block->separation.vx * block->separation.vx +
+                                                                             block->separation.vy * block->separation.vy +
+                                                                             block->separation.vz * block->separation.vz);
+                        nonnegativeOverlap = overlap;
+                        if (overlap < 0) {
+                            nonnegativeOverlap = 0;
                         }
-                        push = val;
-                        if (best < push) {
-                            best = push;
+                        overlap = nonnegativeOverlap;
+                        if (deepestOverlap < overlap) {
+                            deepestOverlap = overlap;
                             VectorNormal(separation, &block->viewDirection);
                             ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm,
                                                    &block->viewDirection, &block->roomDirection);
                         }
                     }
                     break;
-                case 4:
-                    func_8010B2D4(arg0, rec, (u8)rec->flags >> 4);
+                case PLAYER_ACTOR_CONTACT_ENEMY_ATTACK_KIND:
+                    _playerActorRecordAttackContact(task, contact, (u8)contact->flags >> WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT);
                     break;
-                case 5:
-                    func_8010B348(arg0, rec, (u8)rec->flags >> 4);
+                case PLAYER_ACTOR_CONTACT_HAZARD_KIND:
+                    _playerActorRecordHazardContact(task, contact, (u8)contact->flags >> WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT);
                     break;
             }
         }
     }
 
-    if (best > 0) {
+    // Measure view-space heading at the full push, then retain a quarter push.
+    if (deepestOverlap > 0) {
         actor->usesPushbackDirection = 1;
-        actor->pushbackDirection.vx  = coord->workm.t[0];
-        actor->pushbackDirection.vy  = coord->workm.t[1];
-        actor->pushbackDirection.vz  = coord->workm.t[2];
-        block->position.vx           = coord->coord.t[0];
-        block->position.vz           = coord->coord.t[2];
-        coord->coord.t[0]           += (best * block->roomDirection.vx) >> 12;
-        coord->coord.t[2]           += (best * block->roomDirection.vz) >> 12;
-        coord->composeStamp          = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        actor->pushbackDirection.vx = coord->workm.t[0] - actor->pushbackDirection.vx;
-        actor->pushbackDirection.vy = coord->workm.t[1] - actor->pushbackDirection.vy;
-        actor->pushbackDirection.vz = coord->workm.t[2] - actor->pushbackDirection.vz;
+        actor->pushbackDirection.vx  = rootCoord->workm.t[0];
+        actor->pushbackDirection.vy  = rootCoord->workm.t[1];
+        actor->pushbackDirection.vz  = rootCoord->workm.t[2];
+        block->position.vx           = rootCoord->coord.t[0];
+        block->position.vz           = rootCoord->coord.t[2];
+        rootCoord->coord.t[0]       += (deepestOverlap * block->roomDirection.vx) >> PLAYER_ACTOR_CONTACT_DIRECTION_FRACTION_BITS;
+        rootCoord->coord.t[2]       += (deepestOverlap * block->roomDirection.vz) >> PLAYER_ACTOR_CONTACT_DIRECTION_FRACTION_BITS;
+        rootCoord->composeStamp      = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(rootCoord);
+        actor->pushbackDirection.vx = rootCoord->workm.t[0] - actor->pushbackDirection.vx;
+        actor->pushbackDirection.vy = rootCoord->workm.t[1] - actor->pushbackDirection.vy;
+        actor->pushbackDirection.vz = rootCoord->workm.t[2] - actor->pushbackDirection.vz;
         VectorNormal(&actor->pushbackDirection, &actor->pushbackDirection);
-        coord->coord.t[0]   = block->position.vx + ((best * block->roomDirection.vx) >> 14);
-        coord->coord.t[2]   = block->position.vz + ((best * block->roomDirection.vz) >> 14);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
+        rootCoord->coord.t[0]   = block->position.vx + ((deepestOverlap * block->roomDirection.vx) >> (PLAYER_ACTOR_CONTACT_DIRECTION_FRACTION_BITS + PLAYER_ACTOR_CONTACT_PUSH_DIVISOR_BITS));
+        rootCoord->coord.t[2]   = block->position.vz + ((deepestOverlap * block->roomDirection.vz) >> (PLAYER_ACTOR_CONTACT_DIRECTION_FRACTION_BITS + PLAYER_ACTOR_CONTACT_PUSH_DIVISOR_BITS));
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(rootCoord);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorPushbackScratch);
 }
@@ -356,7 +373,7 @@ void func_80109FC4(Task* arg0)
             temp                     = actor->poisonDamageTicks - 1;
             actor->poisonDamageTicks = temp;
             if ((s8)temp <= 0) {
-                Gp_ApplyHpDamage(1);
+                playerStateApplyHpDamage(1);
                 mode = (u16)actor->movementMode;
                 if (mode == 0) {
                     actor->poisonDamageTicks = 0x78;
@@ -406,81 +423,87 @@ void func_80109FC4(Task* arg0)
     }
 }
 
-void Gp_TriggerPeState(s32 arg0, s32 arg1)
+void playerStateSetStatusEffects(s32 clearEffects, s32 statusMask)
 {
-    Task*      work;
-    GameActor* inner;
-    s32        mask;
+    enum {
+        PLAYER_STATE_TIMED_STATUS_20                 = 0x20, // Timed effect identity remains unproven
+        PLAYER_STATE_CONFUSION_DIRECTION_RANDOM_MASK = 0x1F,
+        PLAYER_STATE_CONFUSION_DIRECTION_BASE_TICKS  = 10
+    };
+    Task*      playerTask;
+    GameActor* actor;
+    s32        effects;
 
-    mask = arg1;
-    if (arg0 == 0) {
-        work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        if (arg1 & PLAYER_STATUS_DARKNESS) {
-            inner = work->work;
+    effects = statusMask;
+    // Applying a mask refreshes each accepted effect independently.
+    if (clearEffects == 0) {
+        playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        if (statusMask & PLAYER_STATUS_DARKNESS) {
+            actor = playerTask->work;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_DARKNESS) == 0) {
                 gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
-                inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartDarknessDim();
-                playerActorClearLockTarget(work);
+                playerActorClearLockTarget(playerTask);
                 roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
             }
         }
-        if (mask & PLAYER_STATUS_PARALYSIS) {
-            inner = work->work;
+        if (effects & PLAYER_STATUS_PARALYSIS) {
+            actor = playerTask->work;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_PARALYSIS) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
-                inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
-                inner->paralysisProgress   = 0;
-                func_8010B210(work);
+                actor->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->paralysisProgress   = 0;
+                playerActorClearPendingHit(playerTask);
                 roomEffectStartStatusTint(PLAYER_STATUS_PARALYSIS);
             }
         }
-        if (mask & PLAYER_STATUS_POISON) {
-            inner = work->work;
+        if (effects & PLAYER_STATUS_POISON) {
+            actor = playerTask->work;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_POISON) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
-                inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
-                inner->poisonDamageTicks   = 0;
+                actor->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->poisonDamageTicks   = 0;
                 roomEffectStartStatusTint(PLAYER_STATUS_POISON);
             }
         }
-        if (mask & PLAYER_STATUS_SILENCE) {
-            inner = work->work;
+        if (effects & PLAYER_STATUS_SILENCE) {
+            actor = playerTask->work;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_SILENCE) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
-                inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartStatusTint(PLAYER_STATUS_SILENCE);
             }
         }
-        if (mask & 0x20) {
-            inner = work->work;
+        if (effects & PLAYER_STATE_TIMED_STATUS_20) {
+            actor = playerTask->work;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20) == 0) {
-                gPlayerStatus.statusFlags |= 0x20;
-                inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
+                gPlayerStatus.statusFlags |= PLAYER_STATE_TIMED_STATUS_20;
+                actor->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartStatusTint(ROOM_EFFECT_STATUS_TINT_STATUS_20);
             }
         }
-        if (mask & PLAYER_STATUS_CONFUSION) {
-            inner = work->work;
+        if (effects & PLAYER_STATUS_CONFUSION) {
+            actor = playerTask->work;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_CONFUSION) == 0) {
                 gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
-                inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
-                inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
-                inner->confusionDirections     = 0;
+                actor->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->confusionDirectionTicks = (rand() & PLAYER_STATE_CONFUSION_DIRECTION_RANDOM_MASK) + PLAYER_STATE_CONFUSION_DIRECTION_BASE_TICKS;
+                actor->confusionDirections     = 0;
                 roomEffectStartStatusTint(PLAYER_STATUS_CONFUSION);
             }
         }
-        if (mask & PLAYER_STATUS_BERSERKER) {
-            inner = work->work;
+        if (effects & PLAYER_STATUS_BERSERKER) {
+            actor = playerTask->work;
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
-                inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+                actor->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 roomEffectStartStatusTint(PLAYER_STATUS_BERSERKER);
                 roomEffectStartBerserkerGlow();
             }
         }
     } else {
-        gPlayerStatus.statusFlags &= ~arg1;
+        gPlayerStatus.statusFlags &= ~statusMask;
     }
 }
 
@@ -517,7 +540,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
                 inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->paralysisProgress   = 0;
-                func_8010B210(arg0);
+                playerActorClearPendingHit(arg0);
                 roomEffectStartStatusTint(PLAYER_STATUS_PARALYSIS);
                 break;
             }
@@ -657,46 +680,53 @@ void func_8010A670(Task* arg0)
     }
 }
 
-s32 Gp_ApplyHpDamage(s16 arg0)
+s32 playerStateApplyHpDamage(s16 damagePoints)
 {
-    s16           amount;
-    s32           ret;
-    PlayerStatus* p;
-    Task*         slot;
-    GfxCoord*     coords;
+    enum {
+        PLAYER_STATE_SURVIVAL_MIN_HP      = 5,
+        PLAYER_STATE_SURVIVAL_HP          = 1,
+        PLAYER_STATE_MP_DAMAGE_DIVISOR    = 5,
+        PLAYER_STATE_SURVIVAL_BURST_STYLE = 5
+    };
+    s16           adjustedDamage;
+    s32           fatal;
+    PlayerStatus* playerStatus;
+    Task*         playerTask;
+    GfxCoord*     rootCoord;
 
-    amount = arg0;
-    ret    = 0;
+    adjustedDamage = damagePoints;
+    fatal          = 0;
     if (equipmentHasEffect(EQUIPMENT_EFFECT_HOLY_WATER) != 0) {
-        amount = arg0 - (arg0 >> 2);
+        adjustedDamage = damagePoints - (damagePoints >> 2);
     }
+    // Credit MP from the reduced damage before either survival path.
     if (equipmentHasEffect(EQUIPMENT_EFFECT_MP_GENERATION) != 0) {
-        gPlayerStatus.mp += amount / 5;
+        gPlayerStatus.mp += adjustedDamage / PLAYER_STATE_MP_DAMAGE_DIVISOR;
         if (gPlayerStatus.mpMax < gPlayerStatus.mp) {
             gPlayerStatus.mp = gPlayerStatus.mpMax;
         }
     }
     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_IMPACT) != 0) {
-        p = &gPlayerStatus;
-        if (p->hp >= 5 && amount >= p->hp) {
-            slot   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            coords = slot->extra.tmd->coords;
-            p->hp  = 1;
-            effectSpawn(EFFECT_CRITICAL_HIT, coords + 1, 5, 0);
+        playerStatus = &gPlayerStatus;
+        if (playerStatus->hp >= PLAYER_STATE_SURVIVAL_MIN_HP && adjustedDamage >= playerStatus->hp) {
+            playerTask       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            rootCoord        = playerTask->extra.tmd->coords;
+            playerStatus->hp = PLAYER_STATE_SURVIVAL_HP;
+            effectSpawn(EFFECT_CRITICAL_HIT, rootCoord + 1, PLAYER_STATE_SURVIVAL_BURST_STYLE, 0);
             return 0;
         }
     }
-    gPlayerStatus.hp -= amount;
+    gPlayerStatus.hp -= adjustedDamage;
     if (gPlayerStatus.hp > 0) {
-        return ret;
+        return fatal;
     }
     if (gGameSession->eventState != 0) {
-        gPlayerStatus.hp = 1;
+        gPlayerStatus.hp = PLAYER_STATE_SURVIVAL_HP;
     } else {
-        ret = 1;
+        fatal = 1;
         displayAcquireMenuHold();
     }
-    return ret;
+    return fatal;
 }
 
 void func_8010A9D0(Task* arg0)
@@ -750,7 +780,7 @@ static void func_8010AAB4(Task* arg0)
         inner->animationState = 7;
         inner->statePhase     = 0;
         inner->movementSign   = 0;
-        Gp_ApplyHpDamage(inner->pendingDamage);
+        playerStateApplyHpDamage(inner->pendingDamage);
         inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         if ((s8)inner->aimTrackingState == GAME_ACTOR_AIM_TRACKING_TARGET) {
             inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
@@ -771,7 +801,7 @@ void func_8010ABD4(Task* arg0)
     inner = arg0->work;
     if (inner->statePhase != 0) {
         if (inner->statePhase == 1) {
-            func_8010B210(arg0);
+            playerActorClearPendingHit(arg0);
             inner->recoveryTicks = 0x12;
             if (inner->state != 0) {
                 playerActorEnterAim(arg0, 0xC);
@@ -797,7 +827,7 @@ void func_8010AC54(Task* arg0)
         inner->actionValue++;
         if (inner->actionValue == 3) {
             inner2 = arg0->work;
-            func_8010B210(arg0);
+            playerActorClearPendingHit(arg0);
             inner2->recoveryTicks = 0x12;
             if (inner2->state != 0) {
                 playerActorEnterAim(arg0, 0xC);
@@ -883,7 +913,7 @@ static void func_8010AF04(Task* arg0)
     gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
     inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
     inner->paralysisProgress   = 0;
-    func_8010B210(arg0);
+    playerActorClearPendingHit(arg0);
     roomEffectStartStatusTint(PLAYER_STATUS_PARALYSIS);
 }
 
@@ -974,7 +1004,7 @@ void Gp_PlayerStepSfx(Task* arg0)
     if ((s8)inner->recoveryTicks != 0) {
         return;
     }
-    func_80109BB4(arg0, inner->collisionContacts);
+    playerActorResolveBodyContacts(arg0, inner->collisionContacts);
     if ((u16)inner->hitRegion == 0) {
         return;
     }
@@ -994,14 +1024,14 @@ void Gp_PlayerStepSfx(Task* arg0)
     sndEvtRequestScriptStart(snd, temp, temp2);
 }
 
-void func_8010B210(Task* arg0)
+void playerActorClearPendingHit(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner                 = arg0->work;
-    inner->hitRegion      = 0;
-    inner->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
-    inner->pendingDamage  = 0;
+    actor                 = task->work;
+    actor->hitRegion      = PLAYER_ACTOR_HIT_REGION_NONE;
+    actor->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
+    actor->pendingDamage  = 0;
 }
 
 static s32 Gp_TestHpDamage(s32 arg0)
@@ -1015,7 +1045,7 @@ static s32 Gp_TestHpDamage(s32 arg0)
     p       = &gPlayerStatus;
     saved18 = p->hp;
     saved1c = p->mp;
-    ret     = Gp_ApplyHpDamage(damageComputeReceived(arg0, 0, &out, 0));
+    ret     = playerStateApplyHpDamage(damageComputeReceived(arg0, 0, &out, 0));
     p->hp   = saved18;
     p->mp   = saved1c;
     if (ret != 0) {
@@ -1029,60 +1059,78 @@ void func_8010B2A0(s32 arg0, s32 arg1)
     taskSpawnFromTable(D_80113340, arg0, arg1, 0);
 }
 
-static void func_8010B2D4(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
+/// Latches the first category-4 attack against a player or companion motion body.
+///
+/// `bodyIndex` identifies the receiving motion sphere (0..2). The contact is
+/// borrowed for this call; calculated HP loss and reaction are stored for the
+/// later damage state. Companion work selects companion damage modifiers.
+static void _playerActorRecordAttackContact(Task* task, const WorldCollisionContact* contact, s32 bodyIndex)
 {
-    GameActor* inner;
-    s32        out;
-    s32        flag;
+    GameActor* actor;
+    s32        reaction;
+    s32        isCompanion;
 
-    inner = arg0->work;
-    flag  = inner->companionWork != 0;
-    if ((u16)inner->hitRegion == 0) {
-        inner->hitBodyIndex = arg2;
-        arg2                = (u16)arg2;
-        if (arg2 == 1) {
-            inner->hitRegion = arg2;
+    actor       = task->work;
+    isCompanion = actor->companionWork != 0;
+    if ((u16)actor->hitRegion == PLAYER_ACTOR_HIT_REGION_NONE) {
+        actor->hitBodyIndex = bodyIndex;
+        bodyIndex           = (u16)bodyIndex;
+        if (bodyIndex == GAME_ACTOR_BODY_PART4) {
+            actor->hitRegion = bodyIndex;
         } else {
-            inner->hitRegion = 2;
+            actor->hitRegion = PLAYER_ACTOR_HIT_REGION_OTHER_BODY;
         }
-        inner->pendingDamage  = damageComputeReceived(arg1->key.value, 0, &out, flag);
-        inner->damageReaction = out;
+        actor->pendingDamage  = damageComputeReceived(contact->key.value, 0, &reaction, isCompanion);
+        actor->damageReaction = reaction;
     }
 }
 
-static void func_8010B348(Task* arg0, WorldCollisionContact* arg1, s32 arg2)
+/// Records category-5 hazard damage while no collision hit is pending.
+///
+/// The borrowed key must select a hazard row 0..10. IDs 2..4 latch the receiving
+/// motion body's hit region (body index 1 or another body); other IDs update
+/// damage without establishing a hit region. IDs 2/4 select the player's
+/// three-part flash sequence; ID 3 selects the ordinary reaction.
+static void _playerActorRecordHazardContact(Task* task, const WorldCollisionContact* contact, s32 bodyIndex)
 {
-    GameActor* inner;
-    u32        kind;
+    enum {
+        PLAYER_ACTOR_HAZARD_HELIPAD_LIGHT_BLAST    = 2,
+        PLAYER_ACTOR_HAZARD_HELIPAD_FINISHED_FLARE = 3,
+        PLAYER_ACTOR_HAZARD_HELIPAD_ACTIVE_FLARE   = 4,
+        PLAYER_ACTOR_HAZARD_REACTION_FLASH_BURSTS  = 5 // Player flashes model parts 3, 2, then 1
+    };
+    GameActor* actor;
+    u32        hazardId;
 
-    inner = arg0->work;
-    kind  = (u16)arg1->key.value;
-    if ((u16)inner->hitRegion == 0) {
-        inner->hitBodyIndex = arg2;
-        switch (kind) {
-            case 1: // placeholder: the tree pivots on 2, so one value below it was listed
+    actor    = task->work;
+    hazardId = (u16)contact->key.value;
+    // Unhandled hazard IDs still supply damage without latching a hit region.
+    if ((u16)actor->hitRegion == PLAYER_ACTOR_HIT_REGION_NONE) {
+        actor->hitBodyIndex = bodyIndex;
+        switch (hazardId) {
+            case 1: // Placeholder no-op arm; the original selector is unproven
                 break;
-            case 2:
-            case 4:
-                arg2 = (u16)arg2;
-                if (arg2 == 1) {
-                    inner->hitRegion = arg2;
+            case PLAYER_ACTOR_HAZARD_HELIPAD_LIGHT_BLAST:
+            case PLAYER_ACTOR_HAZARD_HELIPAD_ACTIVE_FLARE:
+                bodyIndex = (u16)bodyIndex;
+                if (bodyIndex == GAME_ACTOR_BODY_PART4) {
+                    actor->hitRegion = bodyIndex;
                 } else {
-                    inner->hitRegion = 2;
+                    actor->hitRegion = PLAYER_ACTOR_HIT_REGION_OTHER_BODY;
                 }
-                inner->damageReaction = 5;
+                actor->damageReaction = PLAYER_ACTOR_HAZARD_REACTION_FLASH_BURSTS;
                 break;
-            case 3:
-                arg2 = (u16)arg2;
-                if (arg2 == 1) {
-                    inner->hitRegion = arg2;
+            case PLAYER_ACTOR_HAZARD_HELIPAD_FINISHED_FLARE:
+                bodyIndex = (u16)bodyIndex;
+                if (bodyIndex == GAME_ACTOR_BODY_PART4) {
+                    actor->hitRegion = bodyIndex;
                 } else {
-                    inner->hitRegion = 2;
+                    actor->hitRegion = PLAYER_ACTOR_HIT_REGION_OTHER_BODY;
                 }
-                inner->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
+                actor->damageReaction = GAME_ACTOR_REACTION_ORDINARY;
                 break;
         }
-        inner->pendingDamage = damageGetHazardDamage(arg1->key.value, DAMAGE_HAZARD_VICTIM_PLAYER);
+        actor->pendingDamage = damageGetHazardDamage(contact->key.value, DAMAGE_HAZARD_VICTIM_PLAYER);
     }
 }
 
@@ -1388,7 +1436,10 @@ Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2
     return task;
 }
 
-/// Resets the companion's normal-mode idle state, motion selectors and counters.
+/// Returns a live companion work block to its normal idle dispatch state.
+///
+/// Stops movement and turning and resets the idle/action counters. The caller
+/// selects the idle animation after this reset; the block remains task-owned.
 static inline void _companionResetIdleState(GameActor* actor)
 {
     enum {
@@ -1441,46 +1492,47 @@ s32 companionGetPlayerPlanarDistance(const GfxCoord* coord)
     return distance;
 }
 
-s32 func_8010BCF4(Task* arg0, VECTOR3* arg1)
+s32 playerActorGetTurnToPoint(Task* task, const VECTOR3* targetPoint)
 {
-    GfxCoord*  coords;
-    VECTOR3*   vec;
-    GameActor* actor;
-    s16        ret;
+    GfxCoord*                         coords;
+    PlayerActorPlanarDistanceScratch* block;
+    GameActor*                        actor;
+    s16                               turn;
 
-    coords = arg0->extra.tmd->coords;
-    vec    = SCRATCH_STACK_RESERVE_BYTES(0x10);
-    actor  = arg0->work;
-    playerActorGetPointDelta(coords, arg1, vec);
-    ret = playerActorShortestTurn(actor->rotation.vy, ratan2(vec->vx, vec->vz));
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
-    return ret;
+    coords = task->extra.tmd->coords;
+    block  = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPlanarDistanceScratch);
+    actor  = task->work;
+    playerActorGetPointDelta(coords, targetPoint, &block->delta);
+    turn = playerActorShortestTurn(actor->rotation.vy, ratan2(block->delta.vx, block->delta.vz));
+    SCRATCH_STACK_RELEASE_BLOCK(PlayerActorPlanarDistanceScratch);
+    return turn;
 }
 
-void func_8010BD88(Task* arg0, VECTOR3* arg1)
+void playerActorTurnBodyTowardPoint(Task* task, const VECTOR3* targetPoint)
 {
+    enum { PLAYER_ACTOR_BODY_YAW_STEP = 0x40 };
     _PlayerActorTurnScratch* block;
-    TmdObject*               extra;
+    TmdObject*               model;
     GameActor*               actor;
-    s32                      val;
+    s32                      yawStep;
 
-    extra = arg0->extra.tmd;
+    model = task->extra.tmd;
     block = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorTurnScratch);
-    actor = arg0->work;
-    playerActorGetPointDelta(extra->coords, arg1, &block->targetDelta);
+    actor = task->work;
+    playerActorGetPointDelta(model->coords, targetPoint, &block->targetDelta);
     block->yaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val        = playerActorShortestTurn(actor->rotation.vy, block->yaw);
-    block->yaw = val;
-    if (val > 0x40) {
-        block->yaw = 0x40;
-    } else if (val < -0x40) {
-        block->yaw = -0x40;
+    yawStep    = playerActorShortestTurn(actor->rotation.vy, block->yaw);
+    block->yaw = yawStep;
+    if (yawStep > PLAYER_ACTOR_BODY_YAW_STEP) {
+        block->yaw = PLAYER_ACTOR_BODY_YAW_STEP;
+    } else if (yawStep < -PLAYER_ACTOR_BODY_YAW_STEP) {
+        block->yaw = -PLAYER_ACTOR_BODY_YAW_STEP;
     }
-    actor->rotation.vy = (actor->rotation.vy + block->yaw) & 0xFFF;
+    actor->rotation.vy = (actor->rotation.vy + block->yaw) & ACTOR_TRANSFORM_ANGLE_MASK;
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorTurnScratch);
 }
 
-void func_8010BE5C(Task* task, VECTOR3* targetPoint)
+void playerActorTurnAimTowardPoint(Task* task, const VECTOR3* targetPoint)
 {
     enum {
         PLAYER_ACTOR_AIM_YAW_STEP  = 0x20,
@@ -1488,25 +1540,25 @@ void func_8010BE5C(Task* task, VECTOR3* targetPoint)
     };
     _PlayerActorAimScratch* head;
     _PlayerActorAimScratch* block;
-    GfxCoord*               coord;
-    SVECTOR*                offset;
-    TmdObject*              extra;
-    GfxCoord*               parts;
+    GfxCoord*               originCoord;
+    SVECTOR*                originOffset;
+    TmdObject*              model;
+    GfxCoord*               modelCoords;
     GameActor*              actor;
     s32                     yawStep;
 
-    head   = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch);
-    extra  = task->extra.tmd;
-    coord  = &head[-1].originCoord;
-    offset = &head[-1].originOffset;
-    parts  = extra->coords;
-    actor  = task->work;
+    head         = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch);
+    model        = task->extra.tmd;
+    originCoord  = &head[-1].originCoord;
+    originOffset = &head[-1].originOffset;
+    modelCoords  = model->coords;
+    actor        = task->work;
     block = SCRATCH_STACK_CURSOR(_PlayerActorAimScratch) = head - 1;
     block->originOffset.vx                               = 0;
     block->originOffset.vy                               = 0;
     block->originOffset.vz                               = 0;
-    actorRenderPlaceCoordOffset(parts + 4, coord, offset);
-    playerActorGetPointDelta(coord, targetPoint, &block->targetDelta);
+    actorRenderPlaceCoordOffset(modelCoords + 4, originCoord, originOffset);
+    playerActorGetPointDelta(originCoord, targetPoint, &block->targetDelta);
     // Turn toward the target relative to body facing, preserving the strict aim limit.
     yawStep = ratan2(head[-1].targetDelta.vx, block->targetDelta.vz) - actor->rotation.vy;
     yawStep = playerActorShortestTurn(actor->aimYaw, yawStep);
@@ -1593,7 +1645,7 @@ void func_8010C180(Task* arg0)
     GameActor* actor;
 
     inner = arg0->work;
-    func_8010B210(arg0);
+    playerActorClearPendingHit(arg0);
     inner->recoveryTicks  = 0x12;
     actor                 = arg0->work;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
@@ -1644,44 +1696,46 @@ void Gp_BindActorD4(Task* arg0, SVECTOR3* arg1, s32 arg2)
     obj->flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
-s32 func_8010C30C(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
+s32 companionEndScriptedMotion(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    TmdObject*     extra;
-    GfxCoord*      coord;
-    GfxCoord*      next;
+    TmdObject*     model;
+    GfxCoord*      rootCoord;
+    GfxCoord*      animatedRoot;
     GameActor*     actor;
-    VECTOR         vec;
-    AnimationSet** prev;
-    AnimationSet** anim;
-    s32            changed;
+    VECTOR         rootMotion;
+    AnimationSet** previousSets;
+    AnimationSet** nativeSets;
+    s32            bankChanged;
 
-    extra  = arg0->extra.tmd;
-    coord  = extra->coords;
-    actor  = arg0->work;
-    next   = coord + 1;
-    vec.vx = next->coord.t[0];
-    vec.vy = next->coord.t[1];
-    vec.vz = next->coord.t[2];
-    ApplyMatrixLV(&coord->coord, &vec, &vec);
-    coord->coord.t[0]         += vec.vx;
-    coord->coord.t[2]         += vec.vz;
-    next->coord.t[0]           = 0;
-    next->coord.t[2]           = 0;
-    actor->previousPosition.vx = coord->coord.t[0];
-    actor->previousPosition.vy = coord->coord.t[1];
-    actor->previousPosition.vz = coord->coord.t[2];
-    prev                       = actor->animationSets;
-    actor->animationBankIndex  = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    anim                       = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
-    changed                    = prev != anim;
-    actor->animationSets       = anim;
-    animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+    model        = task->extra.tmd;
+    rootCoord    = model->coords;
+    actor        = task->work;
+    animatedRoot = rootCoord + 1;
+    // Fold animation-root XZ motion into the model root before restoring native clips.
+    rootMotion.vx = animatedRoot->coord.t[0];
+    rootMotion.vy = animatedRoot->coord.t[1];
+    rootMotion.vz = animatedRoot->coord.t[2];
+    ApplyMatrixLV(&rootCoord->coord, &rootMotion, &rootMotion);
+    rootCoord->coord.t[0]     += rootMotion.vx;
+    rootCoord->coord.t[2]     += rootMotion.vz;
+    animatedRoot->coord.t[0]   = 0;
+    animatedRoot->coord.t[2]   = 0;
+    actor->previousPosition.vx = rootCoord->coord.t[0];
+    actor->previousPosition.vy = rootCoord->coord.t[1];
+    actor->previousPosition.vz = rootCoord->coord.t[2];
+    // Restart on a bank change; otherwise blend the existing pose back to idle.
+    previousSets              = actor->animationSets;
+    actor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    nativeSets                = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
+    bankChanged               = previousSets != nativeSets;
+    actor->animationSets      = nativeSets;
+    animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                          actor->animationSlots);
     actor->animationRate           = ANIMATION_RATE_ONE;
     actor->pendingCollisionUpdates = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->statePhase              = 0;
     actor->stateAux                = 0;
-    companionEnterIdle(arg0, changed);
+    companionEnterIdle(task, bankChanged);
     return 0;
 }
 
@@ -1706,13 +1760,9 @@ static void func_8010C46C(Task* arg0)
     playerActorResetWeaponAttack(arg0, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
 }
 
-s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg)
+/// Stops companion motion and aim offsets and disables its weapon attack for scripted control.
+static inline void _companionEnterScriptedMode(Task* task, GameActor* actor)
 {
-    GameActor* actor;
-    TmdObject* extra;
-
-    actor                                                 = task->work;
-    extra                                                 = task->extra.tmd;
     actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
     actor->statePhase                                     = 0;
     actor->movementSign                                   = 0;
@@ -1727,11 +1777,22 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     actor->hitRegion                                      = 0;
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     playerActorResetWeaponAttack(task, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], 0);
+}
+
+s32 companionPlayScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
+{
+    enum { COMPANION_SCRIPTED_ANIMATION_STATE = 1 };
+    GameActor* actor;
+    TmdObject* model;
+
+    actor = task->work;
+    model = task->extra.tmd;
+    _companionEnterScriptedMode(task, actor);
     // Select the animation table before resetting or blending its slots.
-    actor->state = 1;
+    actor->state = COMPANION_SCRIPTED_ANIMATION_STATE;
     if (actor->animationSets != Gp_AnimBlkTbl[request->source.index]->table.sets) {
         actor->animationSets = Gp_AnimBlkTbl[request->source.index]->table.sets;
-        animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+        animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
         actor->animationBankIndex = (u16)request->source.index;
     }
@@ -1749,39 +1810,39 @@ s32 func_8010C4F0(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     return 0;
 }
 
-s32 func_8010C648(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedSecondArg)
+s32 companionInstallScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
     PlayerStatus* playerStatus;
     u8            savedInteractionPressed;
 
     playerStatus            = &gPlayerStatus;
     savedInteractionPressed = playerStatus->interactionPressed;
-    playerActorInstallScriptedAnimation(task, msgId, request, unusedSecondArg);
+    playerActorInstallScriptedAnimation(task, unusedMessageId, request, unusedSecondArg);
     playerStatus->interactionPressed = savedInteractionPressed;
     return 0;
 }
 
-s32 func_8010C688(Task* arg0, s32 arg1, ActorTransform* transform, s32 arg3)
+s32 companionTurnToYaw(Task* task, s32 unusedMessageId, const ActorTransform* transform, s32 unusedSecondArg)
 {
-    PlayerStatus* p;
+    PlayerStatus* playerStatus;
     u8            savedInteractionPressed;
 
-    p                       = &gPlayerStatus;
-    savedInteractionPressed = p->interactionPressed;
-    playerActorTurnToYaw(arg0, arg1, transform, arg3);
-    p->interactionPressed = savedInteractionPressed;
+    playerStatus            = &gPlayerStatus;
+    savedInteractionPressed = playerStatus->interactionPressed;
+    playerActorTurnToYaw(task, unusedMessageId, transform, unusedSecondArg);
+    playerStatus->interactionPressed = savedInteractionPressed;
     return 0;
 }
 
-s32 func_8010C6C8(Task* arg0, s32 arg1, ActorTransform* transform, GameActorMoveAnim* moveAnim)
+s32 companionMoveTo(Task* task, s32 unusedMessageId, const ActorTransform* transform, const GameActorMoveAnim* moveAnim)
 {
-    PlayerStatus* p;
+    PlayerStatus* playerStatus;
     u8            savedInteractionPressed;
 
-    p                       = &gPlayerStatus;
-    savedInteractionPressed = p->interactionPressed;
-    playerActorMoveTo(arg0, arg1, transform, moveAnim);
-    p->interactionPressed = savedInteractionPressed;
+    playerStatus            = &gPlayerStatus;
+    savedInteractionPressed = playerStatus->interactionPressed;
+    playerActorMoveTo(task, unusedMessageId, transform, moveAnim);
+    playerStatus->interactionPressed = savedInteractionPressed;
     return 0;
 }
 
@@ -1841,26 +1902,23 @@ s32 Gp_MoveActorByKeep(Task* arg0, s32 arg1, GameActorMoveBy* move, s32 unusedSe
     return result;
 }
 
-s32 Gp_CopyAllyAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request, s32 unusedSecondArg)
+s32 animationCopyCompanionBankExtension(Task* unusedTask, s32 unusedMessageId, const AnimationBankCopyRequest* request, s32 unusedSecondArg)
 {
-    union {
-        AnimationBank* block;
-        s32*           words;
-    } dest;
-    const s32* src;
-    s32        i;
-    s32        count;
+    s32*       destinationWords;
+    const s32* sourceWords;
+    s32        wordIndex;
+    s32        wordCount;
 
-    dest.block = Gp_AnimBlkTbl[Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
-    src        = request->source.words;
-    count      = request->wordCount;
-    if (count >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
+    destinationWords = Gp_AnimBlkTbl[Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant]->table.words;
+    sourceWords      = request->source.words;
+    wordCount        = request->wordCount;
+    if (wordCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
         return 1;
     }
     // Transfer raw words: the span can include records after the clip pointers.
-    dest.words = &dest.block->table.words[ANIMATION_BANK_BASE_SET_COUNT];
-    for (i = 0; i < request->wordCount; i++) {
-        dest.words[i] = src[i];
+    destinationWords = &destinationWords[ANIMATION_BANK_BASE_SET_COUNT];
+    for (wordIndex = 0; wordIndex < request->wordCount; wordIndex++) {
+        destinationWords[wordIndex] = sourceWords[wordIndex];
     }
     return 0;
 }

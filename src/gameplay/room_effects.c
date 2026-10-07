@@ -1525,7 +1525,7 @@ static void Gp_TickState1C(Task* unused)
         attachment->metabolismCombo = 0;
         attachment->mindWard        = 0;
         attachment->bodyWard        = 0;
-        Gp_TriggerPeState(1, PLAYER_STATUS_BERSERKER);
+        playerStateSetStatusEffects(1, PLAYER_STATUS_BERSERKER);
     }
 }
 

@@ -206,31 +206,31 @@ extern GpuImageUpload* D_actor_800100_80167A60[2];
 SVECTOR D_actor_800100_80167128 = { 0, 512, 64, 0 };
 
 TaskMessageEntry D_actor_800100_80167130[26] = {
-    { ANIMATION_MESSAGE_PLAY, func_8010C4F0 },
-    { 1002, func_8010C4F0 },
-    { 1003, func_8010C4F0 },
-    { 1004, func_8010C4F0 },
+    { ANIMATION_MESSAGE_PLAY, companionPlayScriptedAnimation },
+    { 1002, companionPlayScriptedAnimation },
+    { 1003, companionPlayScriptedAnimation },
+    { 1004, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
     { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
-    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_8010C688 },
-    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_8010C4F0 },
-    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, func_8010C4F0 },
-    { GAME_ACTOR_MESSAGE_END_SCRIPTED, func_8010C30C },
-    { GAME_ACTOR_MESSAGE_MOVE_TO, func_8010C6C8 },
+    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, companionTurnToYaw },
+    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, companionPlayScriptedAnimation },
+    { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, companionPlayScriptedAnimation },
+    { GAME_ACTOR_MESSAGE_END_SCRIPTED, companionEndScriptedMotion },
+    { GAME_ACTOR_MESSAGE_MOVE_TO, companionMoveTo },
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, playerActorSetModelDraw },
-    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_8010C648 },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, companionInstallScriptedAnimation },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
     { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
-    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyAllyAnim },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_8010C75C },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_HurtAlly },
-    { 1018, func_8010C4F0 },
-    { 1019, func_8010C4F0 },
-    { 1020, func_8010C4F0 },
+    { 1018, companionPlayScriptedAnimation },
+    { 1019, companionPlayScriptedAnimation },
+    { 1020, companionPlayScriptedAnimation },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
     { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorByKeep },
-    { ANIMATION_MESSAGE_REPLACE_AND_PLAY, func_8010C30C },
-    { 1024, func_8010C30C },
+    { ANIMATION_MESSAGE_REPLACE_AND_PLAY, companionEndScriptedMotion },
+    { 1024, companionEndScriptedMotion },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
 };
 
@@ -1513,7 +1513,7 @@ static void func_actor_800100_80163D54(Task* arg0)
     GfxCoord*  target;
     s32        flag;
     s32        dist;
-    s32        val;
+    s32        turnDelta;
     s16        count;
 
     actor  = arg0->work;
@@ -1538,18 +1538,18 @@ static void func_actor_800100_80163D54(Task* arg0)
                     _actor800100EnterWander(arg0);
                 }
             } else {
-                val = func_8010BCF4(arg0, MATRIX_TRANS(&target->coord));
-                if (val < 0) {
-                    val = -val;
+                turnDelta = playerActorGetTurnToPoint(arg0, MATRIX_TRANS(&target->coord));
+                if (turnDelta < 0) {
+                    turnDelta = -turnDelta;
                 }
-                if (val >= 0x200) {
+                if (turnDelta >= 0x200) {
                     actor->targetNode = NULL;
                     _actor800100EnterTurnToPlayer(arg0);
                 }
             }
         }
     }
-    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
 }
 
 /// Handlers `func_actor_800100_80165528` runs, indexed by `mode`.
@@ -1619,7 +1619,7 @@ static void func_actor_800100_80163F04(Task* arg0)
         }
     }
     if ((s8)actor->recoveryTicks == 0) {
-        func_80109BB4(arg0, actor->collisionContacts);
+        playerActorResolveBodyContacts(arg0, actor->collisionContacts);
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -1647,7 +1647,7 @@ static void func_actor_800100_80163F04(Task* arg0)
 /// before latching state 3 through the state-1 entry, and otherwise drops
 /// `actionValue` while it is positive, re-arming it to `0x3C` from a `rand()`
 /// window and returning to state 0. The target's coordinate goes to
-/// `func_8010BD88` and `func_8010BE5C`.
+/// `playerActorTurnBodyTowardPoint` and `playerActorTurnAimTowardPoint`.
 static void func_actor_800100_80164184(Task* arg0)
 {
     GameActor*     actor;
@@ -1722,8 +1722,8 @@ static void func_actor_800100_80164184(Task* arg0)
                 }
             }
     }
-    func_8010BD88(arg0, MATRIX_TRANS(&target->coord));
-    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
+    playerActorTurnBodyTowardPoint(arg0, MATRIX_TRANS(&target->coord));
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
 }
 
 /// Lock-on drive for the actor's `statePhase` state machine. Builds a `VECTOR3`
@@ -1740,7 +1740,7 @@ static void func_actor_800100_801643F4(Task* arg0)
     WorldTargetNode* node;
     TmdObject*       extra;
     GfxCoord*        src;
-    s32              val;
+    s32              turnDelta;
     s32              arg;
     s32              flag;
 
@@ -1767,7 +1767,7 @@ static void func_actor_800100_801643F4(Task* arg0)
         case 0:
             flag              = 1;
             actor->statePhase = flag;
-            if (func_8010BCF4(arg0, pos) < 0) {
+            if (playerActorGetTurnToPoint(arg0, pos) < 0) {
                 actor->actionValue = -1;
                 arg                = 5;
             } else {
@@ -1778,16 +1778,16 @@ static void func_actor_800100_801643F4(Task* arg0)
             /* fallthrough */
         case 1:
             actor->turnSign = (u8)actor->actionValue;
-            val             = func_8010BCF4(arg0, pos);
-            if (val < 0) {
-                val = -val;
+            turnDelta       = playerActorGetTurnToPoint(arg0, pos);
+            if (turnDelta < 0) {
+                turnDelta = -turnDelta;
             }
-            if ((val < 0x81) || (actor->statePhase == 2)) {
+            if ((turnDelta < 0x81) || (actor->statePhase == 2)) {
                 companionEnterIdle(arg0, 0);
             }
             break;
     }
-    func_8010BE5C(arg0, MATRIX_TRANS(&src->coord));
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&src->coord));
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
@@ -1796,23 +1796,23 @@ static void func_actor_800100_801643F4(Task* arg0)
 /// node first.
 static inline s32 _actor800100LockTargetTurn(Task* task, GameActor* actor, VECTOR3* pos)
 {
-    s32 val;
+    s32 turnDelta;
 
     if (actor->targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
         actor->targetNode = worldTargetFindLockNodeFromPad(task);
     }
     worldTargetGetBodyPosition(actor->targetNode, pos);
-    val = func_8010BCF4(task, pos);
-    if (val < 0) {
-        val = -val;
+    turnDelta = playerActorGetTurnToPoint(task, pos);
+    if (turnDelta < 0) {
+        turnDelta = -turnDelta;
     }
-    return val;
+    return turnDelta;
 }
 
 /// Second arm of the lock-on drive: builds the lock position at
 /// `the scratch stack - 0x10` (`worldTargetGetBodyPosition`, or `worldTargetFindLockNodeFromPad` when
-/// `targetNode` is flagged) and measures the distance to it with
-/// `func_8010BCF4`. Close enough latches `statePhase` to 1 and plays the slot-7
+/// `targetNode` is flagged) and measures the yaw turn to it with
+/// `playerActorGetTurnToPoint`. Close enough latches `statePhase` to 1 and plays the slot-7
 /// child animation; otherwise the target is handed to `Gp_TrackAllyLockTarget`
 /// with 1. `statePhase` 2/3 waits for the chain to reach 3, which resets the
 /// move fields and plays the slots 9/6 pair.
@@ -1876,7 +1876,7 @@ static void func_actor_800100_80164710(Task* arg0)
     WorldTargetNode*           lock;
     GfxCoord*                  coord;
     _Actor800100TargetScratch* block;
-    s32                        dist;
+    s32                        turnDelta;
 
     actor     = arg0->work;
     block     = SCRATCH_STACK_RESERVE_BLOCK(_Actor800100TargetScratch);
@@ -1896,11 +1896,11 @@ static void func_actor_800100_80164710(Task* arg0)
                 playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 6);
                 break;
             }
-            dist = func_8010BCF4(arg0, &block->targetPoint);
-            if (dist < 0) {
-                dist = -dist;
+            turnDelta = playerActorGetTurnToPoint(arg0, &block->targetPoint);
+            if (turnDelta < 0) {
+                turnDelta = -turnDelta;
             }
-            if (dist >= 0x181) {
+            if (turnDelta >= 0x181) {
                 break;
             }
             actor->statePhase += 1;
@@ -1953,7 +1953,7 @@ static void func_actor_800100_80164940(Task* arg0)
     s16            distance;
     s32            flag;
     s32            arg;
-    s32            val;
+    s32            turnDelta;
     s32            count;
     s32            dist;
 
@@ -1969,7 +1969,7 @@ static void func_actor_800100_80164940(Task* arg0)
             actor->statePhase    = flag;
             actor->turnRateIndex = flag;
             worldTargetGetBodyPosition(actor->targetNode, pos);
-            if (func_8010BCF4(arg0, pos) < 0) {
+            if (playerActorGetTurnToPoint(arg0, pos) < 0) {
                 actor->actionValue = flag;
                 arg                = 6;
             } else {
@@ -1982,12 +1982,12 @@ static void func_actor_800100_80164940(Task* arg0)
         case 1:
             actor->turnSign = (u8)actor->actionValue;
             worldTargetGetBodyPosition(actor->targetNode, pos);
-            val  = func_8010BCF4(arg0, pos);
-            dist = actor->stateTimer;
-            if (val < 0) {
-                val = -val;
+            turnDelta = playerActorGetTurnToPoint(arg0, pos);
+            dist      = actor->stateTimer;
+            if (turnDelta < 0) {
+                turnDelta = -turnDelta;
             }
-            if (val >= dist) {
+            if (turnDelta >= dist) {
                 actor->movementMode = 3;
                 actor->statePhase  += 1;
                 actor->stateTimer   = (rand() & 0x1F) + 0x14;
@@ -2045,8 +2045,8 @@ static void func_actor_800100_80164940(Task* arg0)
 /// either from the lock node (`worldTargetGetBodyPosition`) or from the player's model
 /// coordinate, runs the `statePhase` switch, measures the planar length of
 /// `targetDelta`, and drops back to child slot 9 once the target is within the
-/// rolled reach. Both arms end by handing `targetPoint` to `func_8010BD88` /
-/// `func_8010BE5C` and releasing the block.
+/// rolled reach. Both arms end by handing `targetPoint` to `playerActorTurnBodyTowardPoint` /
+/// `playerActorTurnAimTowardPoint` and releasing the block.
 static void func_actor_800100_80164B9C(Task* arg0)
 {
     GameActor*                 actor;
@@ -2131,8 +2131,8 @@ static void func_actor_800100_80164B9C(Task* arg0)
             }
             break;
     }
-    func_8010BD88(arg0, &block->targetPoint);
-    func_8010BE5C(arg0, &block->targetPoint);
+    playerActorTurnBodyTowardPoint(arg0, &block->targetPoint);
+    playerActorTurnAimTowardPoint(arg0, &block->targetPoint);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor800100TargetScratch);
 }
 
@@ -2289,7 +2289,7 @@ static void func_actor_800100_80165010(Task* arg0)
             }
             break;
     }
-    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
 }
 
 static void func_actor_800100_801652B0(Task* arg0)

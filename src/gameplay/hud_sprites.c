@@ -1079,7 +1079,7 @@ void Gp_TriggerPeIfArmed(void)
     state = gSceneCombatState.signals.bytes.battlePhase;
     if ((state == 1) || (state == 3)) {
         if (gGameSession->battleResetPending == 0) {
-            Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
+            playerStateSetStatusEffects(1, PLAYER_STATUS_ALL_EFFECTS);
             roomEffectRequestCancelPe();
             gDisplayState.suppressDisconnectPause = 0;
             displayQueueModeTask(&D_8010CABC, 1, 0, STAGE_ENTRY_RELOAD_FORCED);

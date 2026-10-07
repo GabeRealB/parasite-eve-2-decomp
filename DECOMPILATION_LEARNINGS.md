@@ -7784,7 +7784,7 @@ parts = extra->coords;
 actorRenderPlaceCoordOffset(parts + 4, coord, offset);
 ```
 
-`func_8010BE5C` is the example. A separate `bone` stuck at 99.9% with
+`playerActorTurnAimTowardPoint` is the example. A separate `bone` stuck at 99.9% with
 only those two registers different.
 
 ## Assign `val = ratan2(...) - field` before the wrap helper
@@ -7813,7 +7813,7 @@ val = ratan2(dx, dz) - actor->rotation.vy;
 val = playerActorShortestTurn(actor->aimYaw, val);
 ```
 
-`func_8010BE5C` is the example. The fused call stuck at 96.3% with
+`playerActorTurnAimTowardPoint` is the example. The fused call stuck at 96.3% with
 `lhu` / `$v0` subtract / clamp in `$a0`.
 
 ## Assign `mask = 1` before `ptr->arr[i]` so `li v0,1` stays live
@@ -7961,7 +7961,7 @@ keeps the value in `$v0` and the dest is a copy:
 block = *scratch = (_PlayerActorTurnScratch*)(head - 0x14);
 ```
 
-`func_8010BD88` is the example. `block = (_PlayerActorTurnScratch*)(head - 0x14);
+`playerActorTurnBodyTowardPoint` is the example. `block = (_PlayerActorTurnScratch*)(head - 0x14);
 *scratch = block` stuck at 96% with only those three instructions (and
 the extra/head load order) wrong. `SCRATCH_STACK_RESERVE_BLOCK` is this
 same single expression, which is how the function spells it now:
@@ -25791,7 +25791,7 @@ if (arg == 1) {
 }
 ```
 
-`func_8010B2D4` is the example.
+`_playerActorRecordAttackContact` is the example.
 
 ## Sentinel-bit walk: `if (flags & LAST) break; p++` vs `do … while`
 
@@ -25874,7 +25874,7 @@ GameActor* inner;
 GameActor* actor;
 
 inner            = arg0->actor;
-func_8010B210(arg0);
+playerActorClearPendingHit(arg0);
 inner->recoveryTicks = 0x12; /* sb K, off(s1) */
 actor            = arg0->actor; /* lw v0, 0x1C(s0) */
 actor->mode = 0;    /* sh zero, off(v0) */
@@ -25962,7 +25962,7 @@ Pin the later local:
 register GameActor* actor asm("s2");
 ```
 
-`func_8010BCF4` is the example. The unpinned form stuck at 99% with only those
+`playerActorGetTurnToPoint` is the example. The unpinned form stuck at 99% with only those
 two callee-saved registers swapped.
 
 ## Zero the `$s2` global first so the `$s3` one is restored first
@@ -26393,7 +26393,7 @@ if ((u16)inner->hitRegion == 0) {
 A `switch (kind)` on that temp still pivots at the median (`== 3`) and
 loses `li a0, 2` CSE into `field = 2`. The goto tree is required.
 
-`func_8010B348` is the example.
+`_playerActorRecordHazardContact` is the example.
 
 ## Assign consecutive call results before the branch that uses them
 
@@ -27610,7 +27610,7 @@ if (arg0 == 0) {
 }
 ```
 
-`Gp_TriggerPeState` is the example. `flags = value; ... &= ~flags` stuck at
+`playerStateSetStatusEffects` is the example. `flags = value; ... &= ~flags` stuck at
 99.969% with only that `nor` source swapped.
 
 ## Split `spawnArg1` (`s32 val`) from the `textSkipLines` result
@@ -28152,7 +28152,7 @@ switch already loaded it into `$a0`. Without a barrier GCC emits
 case 2:
     asm("" ::: "memory");
     inner2 = arg0->actor;
-    func_8010B210(arg0);
+    playerActorClearPendingHit(arg0);
 ```
 
 ## Assign `one = 1` before `n = count` so `li` precedes the copy
@@ -29801,7 +29801,7 @@ if (func(0x40000) != 0) {
 }
 ```
 
-`Gp_ApplyHpDamage` is the example. Unpinned dest stuck at 85% (one saved
+`playerStateApplyHpDamage` is the example. Unpinned dest stuck at 85% (one saved
 reg, later `$s0`/`$s1`/`$s2` all shifted). Dest pin alone stuck at
 98.7% with only that `nop` + `sll s1`.
 
@@ -30734,7 +30734,7 @@ if (actor->animationSets != Gp_AnimBlkTbl[idx]->table.sets) {
 }
 ```
 
-GCC CSEs the address and keeps the table value in `$v0`. `func_8010C4F0`
+GCC CSEs the address and keeps the table value in `$v0`. `companionPlayScriptedAnimation`
 is the example.
 
 ## Dummy `0` on an overlay helper so the `jal` delay slot is `move a2, zero`
@@ -38526,7 +38526,7 @@ if (best < push) {
 
 Once the copy exists before the branch, GCC's `fill_simple_delay_slots`
 prefers it over duplicating from the branch target, so the extra `slt`
-disappears too. `func_80109BB4` is the example.
+disappears too. `playerActorResolveBodyContacts` is the example.
 
 ## Hoisting a loop-invariant scratch field address flips callee-saved coloring
 
@@ -146536,9 +146536,9 @@ insns, and the load is several blocks and calls away.
 **Fix.** `if (item < 0xA0) spawn(...); else spawn(...);` around a call the
 function already makes; any placement that keeps the value live across a call
 matches. Prefer the identical-arms form over a folded bit test.
-## Two call-crossing pointers swapped between `$s2`/`$s3`: a local for another call argument lengthens one of their spans (func_8010BCF4, 2026-09-27)
+## Two call-crossing pointers swapped between `$s2`/`$s3`: a local for another call argument lengthens one of their spans (playerActorGetTurnToPoint, 2026-09-27)
 
-**Shape.** A scratch push (`head` load, `vec = head - K`) and an `actor =
+**Shape.** A scratch push (`head` load, `block = head - K`) and an `actor =
 task->work` load both live across the first call; the target puts `actor` in
 the lower `$s` register and `head` in the higher one. Every spelling of the
 body gave the reverse, and the tree held `actor` with a `register asm("s2")`
@@ -146553,7 +146553,9 @@ lands inside `head`'s live range (span 18, priority 0.167), which puts `actor`
 first. The emitted code is unchanged apart from the registers.
 
 **Fix.** `coords = task->extra.tmd->coords;` as the first statement, then the
-push, then the call with `coords`.
+push, then the call with `coords`. The typed spelling keeps the same push:
+`block = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorPlanarDistanceScratch);`, with
+`&block->delta` supplying the point-delta output.
 ## A global pointer local one register too high: store the global first, then read the local back from it (_spriteSetViewRawTexture, 2026-09-27)
 
 **Shape.** A function sets a cursor global from a table (`lw $a1,0(...)`,
@@ -148396,24 +148398,24 @@ So the natural source has to give `gh` one more inner-loop reference than
 loads, the page flag computed next to the height. `clut` is `getClut(...)`;
 the `clutY` local was not needed.
 
-### A temporary feeding `aN = temp + K` sits in `$aN` only once the parameter that arrived there is dead: read the parameter last (func_8010BE5C, 2026-10-05)
+### A temporary feeding `aN = temp + K` sits in `$aN` only once the parameter that arrived there is dead: read the parameter last (playerActorTurnAimTowardPoint, 2026-10-05)
 
 **Target.** `lw v0,0x2c(a0)` / `lw s4,0x1c(a0)` ... `lw v0,8(v0)` ...
 `jal actorRenderPlaceCoordOffset` / `addiu a0,v0,0x140`: the coordinate array is loaded
 into `$v0` and the argument is formed from it in the delay slot. The source
-read `extra = task->extra.tmd; actor = task->work;` and later
-`parts = extra->coords;`, which gave `lw a0,8(v0)` / `addiu a0,a0,0x140`, and
-held `$v0` with `register GfxCoord* parts asm("v0")`.
+read `model = task->extra.tmd; actor = task->work;` and later
+`modelCoords = model->coords;`, which gave `lw a0,8(v0)` / `addiu a0,a0,0x140`, and
+held `$v0` with `register GfxCoord* modelCoords asm("v0")`.
 
-**Mechanism.** `parts` dies in `(set a0 (plus parts 320))`, so local-alloc
+**Mechanism.** `modelCoords` dies in `(set a0 (plus modelCoords 320))`, so local-alloc
 gives its quantity `$a0` as a suggestion and tries only that first. The
 suggestion fails when `$a0` is still occupied over the quantity's range, and
 the occupant is the parameter: `task` is itself a block-local quantity whose
 copy suggestion is `$a0`, live from entry to its last read. With
-`actor = task->work` written before `parts = extra->coords`, `task` is dead
-when `parts` is born and the suggestion succeeds. Written after it, `task`
-overlaps `parts`, the suggestion is refused and `parts` takes the lowest free
-register, `$v0`, which `extra` has just vacated.
+`actor = task->work` written before `modelCoords = model->coords`, `task` is dead
+when `modelCoords` is born and the suggestion succeeds. Written after it, `task`
+overlaps `modelCoords`, the suggestion is refused and `modelCoords` takes the lowest free
+register, `$v0`, which `model` has just vacated.
 
 The final order of the two loads says nothing about this: sched2 puts
 `lw s4,0x1c(a0)` back above `lw v0,8(v0)` in both builds. The allocation is
@@ -148422,9 +148424,9 @@ made on sched1's order, where a load written later stays later.
 **Fix.**
 
 ```c
-extra  = task->extra.tmd;
+model  = task->extra.tmd;
 ...
-parts  = extra->coords;
+modelCoords = model->coords;
 actor  = task->work;      /* the parameter's last read, after the array load */
 ```
 
@@ -150734,7 +150736,7 @@ constant).
   (`Display_SpawnFromMode`) pivots on the third of `1 3 4 ...`, so two single
   values or one range sat above 4 (a range counts twice in
   `balance_case_nodes`). `beq 2; sltiu x,3 -> default; beq 3; bne 4`
-  (`func_8010B348`) and `beq 1; slti x,2 -> default; bnez` (`func_800A63B4`)
+  (`_playerActorRecordHazardContact`) and `beq 1; slti x,2 -> default; bnez` (`func_800A63B4`)
   are four and three nodes with one no-op node whose test was deleted in
   front of the jump to the same label. The value of such a node is not
   recoverable; it is marked as a placeholder in the source.
@@ -153653,7 +153655,7 @@ The 37 `_...AnimationBankExtensionStorage` unions pair a `data` struct
 AnimationBankCopyRequest D_x = { { .words = D_storage.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
 ```
 
-and `Gp_CopyPlayerAnim` / `Gp_CopyAllyAnim` then read `wordCount` words through
+and `Gp_CopyPlayerAnim` / `animationCopyCompanionBankExtension` then read `wordCount` words through
 that pointer. `N` is below the count in every case, so the same request written
 as `{ .sets = D_storage.sets }` over a struct would link to the same bytes but
 read past `sets[N]` through a pointer derived from that array - the overrun the

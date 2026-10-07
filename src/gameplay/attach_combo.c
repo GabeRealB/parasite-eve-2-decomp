@@ -98,7 +98,7 @@ void Gp_UpdateAttachCombo(s32 arg0)
                 Gp_StateC08.metabolismCombo++;
             }
             Gp_StateC08.metabolismCombo |= lvl << ATTACHMENT_COMBO_LEVEL_SHIFT;
-            Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
+            playerStateSetStatusEffects(1, PLAYER_STATUS_ALL_EFFECTS);
             break;
         }
         case ATTACHMENT_ID_HEALING_1:

@@ -116,7 +116,7 @@ extern s32 Gp_PendingRelatedId;
 /// Non-zero when `Gp_PendingRelatedId` should be applied by `Gp_MenuExitCallback`.
 extern s32 Gp_RelatedPending;
 
-/// Pending id consumed by `Gp_MenuExitCallback`; `0x3E` also calls `Gp_TriggerPeState`.
+/// Pending id consumed by `Gp_MenuExitCallback`; `0x3E` also calls `playerStateSetStatusEffects`.
 extern s32 Gp_UsedItemId;
 
 extern UiObjectDesc D_8010F6FC;

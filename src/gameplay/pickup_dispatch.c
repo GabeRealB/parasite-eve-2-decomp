@@ -157,7 +157,7 @@ void Gp_MenuExitCallback(Task* arg0)
     }
     if (Gp_UsedItemId != 0) {
         if (Gp_UsedItemId == 0x3E) {
-            Gp_TriggerPeState(0, PLAYER_STATUS_BERSERKER);
+            playerStateSetStatusEffects(0, PLAYER_STATUS_BERSERKER);
         }
         Gp_UsedItemId = 0;
     }

@@ -289,11 +289,11 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                         cfg->hp        = cfg->hpMax;
                         break;
                     case 4:
-                        Gp_TriggerPeState(1, (PLAYER_STATUS_SILENCE | PLAYER_STATUS_CONFUSION | PLAYER_STATUS_BERSERKER));
+                        playerStateSetStatusEffects(1, (PLAYER_STATUS_SILENCE | PLAYER_STATUS_CONFUSION | PLAYER_STATUS_BERSERKER));
                         ret = Gp_HealPending = Gp_StateC08.mindWard = 1;
                         break;
                     case 8:
-                        Gp_TriggerPeState(1, (PLAYER_STATUS_DARKNESS | PLAYER_STATUS_PARALYSIS | PLAYER_STATUS_POISON));
+                        playerStateSetStatusEffects(1, (PLAYER_STATUS_DARKNESS | PLAYER_STATUS_PARALYSIS | PLAYER_STATUS_POISON));
                         ret = Gp_HealPending = Gp_StateC08.bodyWard = 1;
                         break;
                     case 5:

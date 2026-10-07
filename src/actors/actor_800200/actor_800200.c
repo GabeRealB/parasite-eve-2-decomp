@@ -186,25 +186,25 @@ TmdSource gActor800200FlintBody = {
 };
 
 TaskMessageEntry D_actor_800200_80169EF0[20] = {
-    { ANIMATION_MESSAGE_PLAY, func_8010C4F0 },
-    { 1002, func_8010C4F0 },
-    { 1003, func_8010C4F0 },
-    { 1004, func_8010C4F0 },
+    { ANIMATION_MESSAGE_PLAY, companionPlayScriptedAnimation },
+    { 1002, companionPlayScriptedAnimation },
+    { 1003, companionPlayScriptedAnimation },
+    { 1004, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
     { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
-    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_8010C688 },
-    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, companionTurnToYaw },
+    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, playerActorIsScriptedMotionPending },
-    { GAME_ACTOR_MESSAGE_END_SCRIPTED, func_8010C30C },
-    { GAME_ACTOR_MESSAGE_MOVE_TO, func_8010C6C8 },
+    { GAME_ACTOR_MESSAGE_END_SCRIPTED, companionEndScriptedMotion },
+    { GAME_ACTOR_MESSAGE_MOVE_TO, companionMoveTo },
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, playerActorSetModelDraw },
-    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_8010C648 },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, companionInstallScriptedAnimation },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
     { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
-    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyAllyAnim },
-    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_8010C4F0 },
-    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, func_8010C4F0 },
-    { 1018, func_8010C4F0 },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
+    { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionPlayScriptedAnimation },
+    { 1018, companionPlayScriptedAnimation },
     { 1019, func_8010C708 },
 };
 
@@ -1155,7 +1155,7 @@ static void func_actor_800200_80162750(Task* arg0)
     u32              state;
     u8*              tbl;
     s32              dist;
-    s32              diff;
+    s32              turnDelta;
 
     coord                    = arg0->extra.tmd->coords;
     target                   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
@@ -1199,11 +1199,11 @@ static void func_actor_800200_80162750(Task* arg0)
         if (companionGetPlayerPlanarDistance(coord) >= 0x600) {
             func_actor_800200_80165380(arg0);
         } else {
-            diff = func_8010BCF4(arg0, MATRIX_TRANS(&target->coord));
-            if (diff < 0) {
-                diff = -diff;
+            turnDelta = playerActorGetTurnToPoint(arg0, MATRIX_TRANS(&target->coord));
+            if (turnDelta < 0) {
+                turnDelta = -turnDelta;
             }
-            if (diff >= 0x200) {
+            if (turnDelta >= 0x200) {
                 actor->targetNode = NULL;
                 _actor800200EnterTargetTurn(arg0);
             } else if (actor->actionValue >= ((rand() & 0x7F) + 0x96)) {
@@ -2075,8 +2075,8 @@ static void func_actor_800200_80163F5C(Task* arg0)
             break;
     }
     vec = (VECTOR3*)&target->coord.t[0];
-    func_8010BD88(arg0, vec);
-    func_8010BE5C(arg0, vec);
+    playerActorTurnBodyTowardPoint(arg0, vec);
+    playerActorTurnAimTowardPoint(arg0, vec);
 }
 
 static void func_actor_800200_80164180(Task* arg0)
@@ -2089,7 +2089,7 @@ static void func_actor_800200_80164180(Task* arg0)
     u8*              tmp;
     VECTOR3*         vec;
     GameActor*       actor2;
-    s32              dist;
+    s32              turnDelta;
     s32              anim;
     u16              flag;
 
@@ -2117,7 +2117,7 @@ static void func_actor_800200_80164180(Task* arg0)
             actor->statePhase   = 1;
             actor->movementMode = 5;
             actor->movementSign = 1;
-            if (func_8010BCF4(arg0, vec) < 0) {
+            if (playerActorGetTurnToPoint(arg0, vec) < 0) {
                 actor->turnSign = -1;
                 anim            = 5;
             } else {
@@ -2127,11 +2127,11 @@ static void func_actor_800200_80164180(Task* arg0)
             playerActorPlayChildSlotsWithBlend(arg0, anim, 1, 5);
         case 1:
         case 2:
-            dist = func_8010BCF4(arg0, vec);
-            if (dist < 0) {
-                dist = -dist;
+            turnDelta = playerActorGetTurnToPoint(arg0, vec);
+            if (turnDelta < 0) {
+                turnDelta = -turnDelta;
             }
-            if ((dist < 0x101) || (actor->statePhase == 2)) {
+            if ((turnDelta < 0x101) || (actor->statePhase == 2)) {
                 if ((s8)companion->activity.combat.repeatsRemaining > 0) {
                     flag                                = actor->targetNode != 0;
                     actor2                              = arg0->work;
@@ -2150,7 +2150,7 @@ static void func_actor_800200_80164180(Task* arg0)
         default:
             break;
     }
-    func_8010BE5C(arg0, (VECTOR3*)&target->coord.t[0]);
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
@@ -2166,7 +2166,7 @@ static void func_actor_800200_8016436C(Task* arg0)
     u8*              head;
     s8               count;
     s32              pan;
-    s32              dist;
+    s32              turnDelta;
     s32              next = 1;
     GameActor*       actor2;
 
@@ -2200,11 +2200,11 @@ static void func_actor_800200_8016436C(Task* arg0)
             /* fallthrough */
         case 1:
             if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                dist = func_8010BCF4(arg0, vec);
-                if (dist < 0) {
-                    dist = -dist;
+                turnDelta = playerActorGetTurnToPoint(arg0, vec);
+                if (turnDelta < 0) {
+                    turnDelta = -turnDelta;
                 }
-                if ((dist >= 0x281) && (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec) >= 0x201)) {
+                if ((turnDelta >= 0x281) && (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), vec) >= 0x201)) {
                     actor2                 = arg0->work;
                     actor2->mode           = GAME_ACTOR_MODE_NORMAL;
                     actor2->state          = 2;
@@ -2375,7 +2375,7 @@ static void func_actor_800200_801647A8(Task* arg0)
             }
             break;
     }
-    func_8010BE5C(arg0, (VECTOR3*)&target->coord.t[0]);
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
 
@@ -3097,7 +3097,7 @@ static void func_actor_800200_80165B84(Task* arg0)
     }
     sp.funcs[actor->state](arg0);
     if ((s8)actor->recoveryTicks == 0) {
-        func_80109BB4(arg0, actor->collisionContacts);
+        playerActorResolveBodyContacts(arg0, actor->collisionContacts);
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
@@ -3147,7 +3147,7 @@ static void func_actor_800200_80165D44(Task* arg0)
         case 3:
             break;
     }
-    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
 }
 
 static void func_actor_800200_80165E50(Task* arg0)

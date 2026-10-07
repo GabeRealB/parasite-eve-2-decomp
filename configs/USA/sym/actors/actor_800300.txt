@@ -1,16 +1,16 @@
 // Overlay-local symbols for actor_800300.
-func_8010C4F0 = 0x8010C4F0; // type:func absolute:True
+companionPlayScriptedAnimation = 0x8010C4F0; // type:func absolute:True
 playerActorPlace = 0x80104D68; // type:func absolute:True
 playerActorIsAnimationPlaying = 0x8010583C; // type:func absolute:True
-func_8010C688 = 0x8010C688; // type:func absolute:True
+companionTurnToYaw = 0x8010C688; // type:func absolute:True
 playerActorIsScriptedMotionPending = 0x80105828; // type:func absolute:True
-func_8010C30C = 0x8010C30C; // type:func absolute:True
-func_8010C6C8 = 0x8010C6C8; // type:func absolute:True
+companionEndScriptedMotion = 0x8010C30C; // type:func absolute:True
+companionMoveTo = 0x8010C6C8; // type:func absolute:True
 playerActorSetModelDraw = 0x80104684; // type:func absolute:True
-func_8010C648 = 0x8010C648; // type:func absolute:True
+companionInstallScriptedAnimation = 0x8010C648; // type:func absolute:True
 playerActorAttachToCoord = 0x80105A60; // type:func absolute:True
 func_801052B8 = 0x801052B8; // type:func absolute:True
-Gp_CopyAllyAnim = 0x8010C858; // type:func absolute:True
+animationCopyCompanionBankExtension = 0x8010C858; // type:func absolute:True
 Gp_HurtAlly = 0x8010C8F0; // type:func absolute:True
 func_8010C708 = 0x8010C708; // type:func absolute:True
 playerActorSetAnimationRate = 0x801058BC; // type:func absolute:True

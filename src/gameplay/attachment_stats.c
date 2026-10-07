@@ -1591,7 +1591,7 @@ void Gp_HudTask(HudState* hud)
                     }
                     n = combat->signals.bytes.endDelayFrames;
                     if (n == 2) {
-                        Gp_TriggerPeState(1, PLAYER_STATUS_ALL_EFFECTS);
+                        playerStateSetStatusEffects(1, PLAYER_STATUS_ALL_EFFECTS);
                         cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
                         if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
                             attachment->effectPhase = n;

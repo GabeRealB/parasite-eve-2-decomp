@@ -18,7 +18,17 @@ void func_8010A42C(Task* arg0, s32 arg1);
 
 void func_8010A670(Task* arg0);
 
-s32 Gp_ApplyHpDamage(s16 arg0);
+/// Applies player HP damage with equipment modifiers and fatal-hit handling.
+///
+/// `damagePoints` is signed HP loss, narrowed to s16 by callers with no sign
+/// clamp; negative values reverse the HP/MP changes. Holy Water removes the
+/// arithmetic-shift quarter; MP Generation credits one MP per five reduced HP
+/// before survival handling, capped at maximum MP. Impact resistance leaves one
+/// HP on a lethal hit when starting HP is at least five. Active events likewise
+/// retain one HP. Otherwise nonpositive resulting HP acquires a menu hold and
+/// returns 1; every surviving path returns 0. Requires live player/session state
+/// and a live player model when the resistance burst is emitted.
+s32 playerStateApplyHpDamage(s16 damagePoints);
 
 void func_8010AC54(Task* arg0);
 
@@ -26,7 +36,11 @@ void func_8010AD64(Task* arg0);
 
 void Gp_PlayerStepSfx(Task* arg0);
 
-void func_8010B210(Task* arg0);
+/// Clears the actor's pending collision hit region, reaction and HP damage.
+///
+/// Requires live GameActor task work. Restores the ordinary reaction code;
+/// the saved hit-body index is meaningful only while a hit region is pending.
+void playerActorClearPendingHit(Task* task);
 
 void func_8010B3F8(Task* arg0);
 

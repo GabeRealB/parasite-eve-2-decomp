@@ -106,31 +106,31 @@ TmdSource gActor800300Model02CF4 = {
 };
 
 TaskMessageEntry D_actor_800300_80168880[26] = {
-    { ANIMATION_MESSAGE_PLAY, func_8010C4F0 },
-    { 1002, func_8010C4F0 },
-    { 1003, func_8010C4F0 },
-    { 1004, func_8010C4F0 },
+    { ANIMATION_MESSAGE_PLAY, companionPlayScriptedAnimation },
+    { 1002, companionPlayScriptedAnimation },
+    { 1003, companionPlayScriptedAnimation },
+    { 1004, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
     { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
-    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, func_8010C688 },
-    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_8010C4F0 },
+    { GAME_ACTOR_MESSAGE_TURN_TO_YAW, companionTurnToYaw },
+    { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, playerActorIsScriptedMotionPending },
-    { GAME_ACTOR_MESSAGE_END_SCRIPTED, func_8010C30C },
-    { GAME_ACTOR_MESSAGE_MOVE_TO, func_8010C6C8 },
+    { GAME_ACTOR_MESSAGE_END_SCRIPTED, companionEndScriptedMotion },
+    { GAME_ACTOR_MESSAGE_MOVE_TO, companionMoveTo },
     { GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, playerActorSetModelDraw },
-    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, func_8010C648 },
+    { ANIMATION_MESSAGE_INSTALL_AND_PLAY, companionInstallScriptedAnimation },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
     { GAME_ACTOR_MESSAGE_WALK_STEPS, func_801052B8 },
-    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyAllyAnim },
-    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_8010C4F0 },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
+    { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_HurtAlly },
-    { 1018, func_8010C4F0 },
+    { 1018, companionPlayScriptedAnimation },
     { 1019, func_8010C708 },
-    { 1020, func_8010C4F0 },
+    { 1020, companionPlayScriptedAnimation },
     { ANIMATION_MESSAGE_SET_RATE, playerActorSetAnimationRate },
     { GAME_ACTOR_MESSAGE_MOVE_BY, Gp_MoveActorByKeep },
-    { ANIMATION_MESSAGE_REPLACE_AND_PLAY, func_8010C30C },
-    { 1024, func_8010C30C },
+    { ANIMATION_MESSAGE_REPLACE_AND_PLAY, companionEndScriptedMotion },
+    { 1024, companionEndScriptedMotion },
     { GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, playerActorSetTextureSequence },
 };
 
@@ -1913,7 +1913,7 @@ static void func_actor_800300_80162658(Task* arg0)
     }
     sp.funcs[actor->state](arg0);
     if ((s8)actor->recoveryTicks == 0) {
-        func_80109BB4(arg0, &actor->collisionContacts[0]);
+        playerActorResolveBodyContacts(arg0, &actor->collisionContacts[0]);
         if ((u16)actor->hitRegion != 0) {
             func_8010B9A4(arg0);
             pan   = (s8)worldCoordGetOriginAudioPan(obj);
@@ -1993,8 +1993,8 @@ static void func_actor_800300_801628D0(Task* arg0)
             break;
     }
     vec = MATRIX_TRANS(&target->coord);
-    func_8010BD88(arg0, vec);
-    func_8010BE5C(arg0, vec);
+    playerActorTurnBodyTowardPoint(arg0, vec);
+    playerActorTurnAimTowardPoint(arg0, vec);
     playerActorPlayFootstepCue(arg0);
 }
 
@@ -2006,7 +2006,7 @@ static void func_actor_800300_80162A98(Task* arg0)
     WorldTargetNode* node;
     TmdObject*       extra;
     GfxCoord*        src;
-    s32              val;
+    s32              turnDelta;
     s32              arg;
     s32              flag;
 
@@ -2032,7 +2032,7 @@ static void func_actor_800300_80162A98(Task* arg0)
         case 0:
             flag              = 1;
             actor->statePhase = flag;
-            if (func_8010BCF4(arg0, vec) < 0) {
+            if (playerActorGetTurnToPoint(arg0, vec) < 0) {
                 actor->actionValue = -1;
                 arg                = 5;
             } else {
@@ -2043,16 +2043,16 @@ static void func_actor_800300_80162A98(Task* arg0)
             /* fallthrough */
         case 1:
             actor->turnSign = (u8)actor->actionValue;
-            val             = func_8010BCF4(arg0, vec);
-            if (val < 0) {
-                val = -val;
+            turnDelta       = playerActorGetTurnToPoint(arg0, vec);
+            if (turnDelta < 0) {
+                turnDelta = -turnDelta;
             }
-            if ((val < 0x81) || (actor->statePhase == 2)) {
+            if ((turnDelta < 0x81) || (actor->statePhase == 2)) {
                 companionEnterIdle(arg0, 0);
             }
             break;
     }
-    func_8010BE5C(arg0, MATRIX_TRANS(&src->coord));
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&src->coord));
     playerActorPlayFootstepCue(arg0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }
@@ -2075,7 +2075,7 @@ static void func_actor_800300_80162C98(Task* arg0)
     GameActor* actor;
     GfxCoord*  coord;
     GfxCoord*  target;
-    s32        val;
+    s32        turnDelta;
 
     actor  = arg0->work;
     coord  = arg0->extra.tmd->coords;
@@ -2085,16 +2085,16 @@ static void func_actor_800300_80162C98(Task* arg0)
         if ((u32)(companionGetPlayerPlanarDistance(coord) - 0x581) < 0x87F) {
             func_actor_800300_80163048(arg0);
         }
-        val = func_8010BCF4(arg0, MATRIX_TRANS(&target->coord));
-        if (val < 0) {
-            val = -val;
+        turnDelta = playerActorGetTurnToPoint(arg0, MATRIX_TRANS(&target->coord));
+        if (turnDelta < 0) {
+            turnDelta = -turnDelta;
         }
-        if (val >= 0x200) {
+        if (turnDelta >= 0x200) {
             actor->targetNode = NULL;
             func_actor_800300_80163074(arg0);
         }
     }
-    func_8010BE5C(arg0, MATRIX_TRANS(&target->coord));
+    playerActorTurnAimTowardPoint(arg0, MATRIX_TRANS(&target->coord));
     playerActorPlayFootstepCue(arg0);
 }
 
@@ -2141,8 +2141,8 @@ static void func_actor_800300_80162D74(Task* arg0)
             }
             break;
     }
-    func_8010BD88(arg0, vec);
-    func_8010BE5C(arg0, vec);
+    playerActorTurnBodyTowardPoint(arg0, vec);
+    playerActorTurnAimTowardPoint(arg0, vec);
     playerActorPlayFootstepCue(arg0);
     SCRATCH_STACK_RELEASE_BYTES(0x10);
 }

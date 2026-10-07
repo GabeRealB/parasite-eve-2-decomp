@@ -581,7 +581,7 @@ static void func_80109844(Task* arg0);
 
 static void func_80109A1C(Task* arg0);
 
-/// Ends the actor's current action: clears the fields `func_8010B210` resets,
+/// Ends the actor's current action: clears the fields `playerActorClearPendingHit` resets,
 /// sets `recoveryTicks` to 0x12 and restarts the state machine in the base state
 /// for its `state` mode.
 static inline void _gpResumeBaseState(Task* arg0);
@@ -7173,7 +7173,7 @@ s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg)
     actor = arg0->work;
     ret   = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) {
-        ret = Gp_ApplyHpDamage(damageComputeReceived(arg2, 0, &out, 0));
+        ret = playerStateApplyHpDamage(damageComputeReceived(arg2, 0, &out, 0));
         if (ret != 0) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
         } else if (actor->companionWork == 0) {
@@ -7867,7 +7867,7 @@ static void Gp_PlayerNormalState2(Task* arg0)
                 (item = actor->attackButton,
                  D_80112F1C[gPlayerStatus.weapon][(u8)(item - 1)] != 0)) {
                 if (gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) {
-                    Gp_ApplyHpDamage(2);
+                    playerStateApplyHpDamage(2);
                 }
                 if (gPlayerStatus.hp > 0) {
                     actor->aimControl = GAME_ACTOR_AIM_REQUEST_ENTER;
@@ -9623,7 +9623,7 @@ static void func_80109844(Task* arg0)
             break;
         case 3:
             inner2 = arg0->work;
-            func_8010B210(arg0);
+            playerActorClearPendingHit(arg0);
             inner2->recoveryTicks = 0x12;
             if (inner2->state != 0) {
                 playerActorEnterAim(arg0, 0xC);
@@ -9677,7 +9677,7 @@ static void func_80109A1C(Task* arg0)
         case 2:
             break;
         case 3:
-            func_8010B210(arg0);
+            playerActorClearPendingHit(arg0);
             inner->recoveryTicks = 0x12;
             if (inner->state != 0) {
                 playerActorEnterAim(arg0, 0xC);
@@ -9688,7 +9688,7 @@ static void func_80109A1C(Task* arg0)
     }
 }
 
-/// Ends the actor's current action: clears the fields `func_8010B210` resets,
+/// Ends the actor's current action: clears the fields `playerActorClearPendingHit` resets,
 /// sets `recoveryTicks` to 0x12 and restarts the state machine in the base state
 /// for its `state` mode.
 static inline void _gpResumeBaseState(Task* arg0)
@@ -9696,7 +9696,7 @@ static inline void _gpResumeBaseState(Task* arg0)
     GameActor* inner;
 
     inner = arg0->work;
-    func_8010B210(arg0);
+    playerActorClearPendingHit(arg0);
     inner->recoveryTicks = 0x12;
     if (inner->state != 0) {
         playerActorEnterAim(arg0, 0xC);

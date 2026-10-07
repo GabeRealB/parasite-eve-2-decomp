@@ -65,7 +65,7 @@ void golemPawnRookSilenceScreamState(Task* arg0)
             }
             break;
         case 2:
-            Gp_TriggerPeState(0, PLAYER_STATUS_SILENCE);
+            playerStateSetStatusEffects(0, PLAYER_STATUS_SILENCE);
             work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_ENGAGE;
             work->step     = 0;
             work->anim     = 2;
