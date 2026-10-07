@@ -241,7 +241,33 @@ void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProf
 
 void CdCmd_StepVlcRebuild(void);
 
-void Fs_ReadSectorEx(s32 sector, s32 endSector, u8* dest, u8 mode);
+/// Interpretations of sectors read without a CDF chunk header.
+///
+/// These byte values also select continuation processing after a chunk header.
+/// SKIP consumes no payload and waits for the end sector.
+enum {
+    FILE_SYSTEM_PAYLOAD_RAW        = 0,
+    FILE_SYSTEM_PAYLOAD_PACKAGE    = 1,
+    FILE_SYSTEM_PAYLOAD_IMAGE      = 2,
+    FILE_SYSTEM_PAYLOAD_CLUT       = 3,
+    FILE_SYSTEM_PAYLOAD_BUNDLE     = 4,
+    FILE_SYSTEM_PAYLOAD_BACKGROUND = 5,
+    FILE_SYSTEM_PAYLOAD_MUSIC      = 6,
+    FILE_SYSTEM_PAYLOAD_SKIP       = 0xFF,
+};
+
+/// Starts an asynchronous sector read with an already selected payload format.
+///
+/// Sector addresses are absolute CD logical sectors. Completion compares the
+/// next sector against `endSector`: raw reads stop after at least one sector,
+/// otherwise at the exclusive end. `destination` must be word aligned, hold
+/// every full 2048-byte raw sector and stay alive until completion; other phases use the shared
+/// filesystem buffers and cursors and require their format-specific setup.
+/// `payloadPhase` is a FILE_SYSTEM_PAYLOAD_* byte, not a file-load policy.
+/// Requires double-speed sector-header mode and serialized filesystem access.
+/// Poll `Fs_CdOpStatus` for 0xFF completion or 0x80 restart; no storage is owned
+/// or released here. A preceding seek at `startSector` is reused.
+void fsStartPayloadRead(s32 startSector, s32 endSector, void* destination, u8 payloadPhase);
 
 bool Fs_StageCdfIsAvailable(u32 stageIdx);
 

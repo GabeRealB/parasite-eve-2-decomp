@@ -205,7 +205,7 @@ s32 LoadUi_PollDiskSwap(void)
                 return 0xFF;
             }
         case 4:
-            Fs_ScanIsoDirectory(0);
+            fsScanIsoDirectory(0);
             if (Wip_SysFlags.discNumber != GAME_MAIN_DISC_UNKNOWN) {
                 while (Fs_CdOpStatus != 0xFF) {
                     if (Fs_CdOpStatus == 0x80) {

@@ -153,7 +153,13 @@ void fsDecompressImagePayload(void);
 /// the 50-record runtime table; later folder requests require matching IDs.
 void fsInitFolderTable(s32 unusedStageIndex);
 
-void Fs_SelectStage(s32 stageIdx);
+/// Reads the first sector of a stage CDF into the shared folder-list buffer.
+///
+/// Uses the low byte of `stageIndex`, which must be in 1..5 and name a CDF on
+/// the current disc. Requires serialized access in sector-header mode. Resets
+/// image load mode/slot state; starts one raw sector asynchronously. Poll
+/// `Fs_CdOpStatus` (0xFF done, 0x80 restart), then call `fsInitFolderTable`.
+void fsStartStageFolderListRead(s32 stageIndex);
 
 /// Starts rebuilding the STAGE0 file/stream tables from its HED asynchronously.
 ///
@@ -204,11 +210,54 @@ void cdSyncStopDisc(void);
 /// those stage rules. Requires a stage index within `Fs_StageCdfSectors`.
 s32 fsGetRequiredStageDisc(void);
 
-void Fs_ScanIsoDirectory(s32 mode);
+/// Finds the game files and disc number in the disc's ISO directory sector.
+///
+/// Requires serialized sector-header reads. Checks logical sector 22, falling
+/// back to 20 when its opening directory record is absent. Accepts the retail
+/// directory's even record lengths 48..62; names must be NUL-terminated inside
+/// the sector, CDF suffix digits must be in 0..5, and all inspected records and
+/// halfwords must fit. This is the game's fixed layout, not a general ISO walk.
+/// The low byte of `bootMode` selects startup behavior: nonzero also reads the
+/// first 16 sectors of INIT.BS into the image workspace and restarts if the HED
+/// is absent. Zero omits that image and reports an unknown disc without a HED.
+/// Blocks through directory/image reads and drive recovery without a timeout,
+/// then starts the HED table read asynchronously when present. Calls SetMem(2).
+void fsScanIsoDirectory(s32 bootMode);
 
-/// Load an image chunk into VRAM (BreakDraw / LoadImage2 path).
-/// `retryNonzero` disables timeout aborts when non-zero.
-u8 Fs_LoadImageStrip(s32 arg0);
+/// Input policies for a prepared strip-image transfer (only the low byte is used).
+enum {
+    FILE_SYSTEM_IMAGE_STRIPS_CD_INPUT       = 0,
+    FILE_SYSTEM_IMAGE_STRIPS_RESIDENT_INPUT = 1,
+};
+
+/// Results of advancing a strip-image transfer; RETRY can follow a VRAM upload.
+enum {
+    FILE_SYSTEM_IMAGE_STRIPS_NEEDS_INPUT  = 0,
+    FILE_SYSTEM_IMAGE_STRIPS_COMPLETE     = 1,
+    FILE_SYSTEM_IMAGE_STRIPS_RETRY        = 0x7F,
+    FILE_SYSTEM_IMAGE_STRIPS_TIMER_FAILED = 0xFF,
+};
+
+/// Decodes and uploads sequential 64-halfword by 32-row strips to VRAM.
+///
+/// Requires `fsBeginImageColumns` setup, exclusive filesystem decode/GPU state,
+/// counter 2 running, and initialized scratch history as for `fsDecompressStream`.
+/// Every strip's decoded bytes must fit the shared 4480-byte staging buffer;
+/// the GPU reads 4096 bytes even when decoding leaves its old tail intact.
+/// The prepared rectangles must fit VRAM and the table storage must survive
+/// the transfer. Later columns receive the X-page shift but use their stored Y.
+///
+/// A zero low byte of `inputMode` means CD input: NEEDS_INPUT/COMPLETE resets the
+/// cursor for the next sector and permits aborts at 28224 counter-2 ticks.
+/// Nonzero means resident input: preserves the cursor and ignores that cutoff.
+/// The zero-byte separator scan stops after six bytes or at the CD buffer end,
+/// even for resident input, returning NEEDS_INPUT.
+/// COMPLETE means the column terminator was reached. RETRY reports scratch
+/// contention or a cutoff, including after an upload; restart with
+/// `fsBeginImageColumns` for resident input or filesystem read recovery for CD
+/// input. TIMER_FAILED leaves drawing untouched. Drawing resumes on all other
+/// returns; GPU-idle waits themselves have no timeout.
+u8 fsUploadImageStrips(s32 inputMode);
 
 /// Copies a column table and primes the first strip of its compressed image.
 ///
@@ -225,9 +274,15 @@ void fsBeginImageColumns(const FsImageColumn* table);
 /// Returns the resolved absolute sector (low 16 bits), or 0 on failure.
 s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3);
 
-/// Look up folder `arg1*100+arg2` under stage `arg0` and start a CD read of
-/// that folder into `Fs_CdSector` (cmd-queue load path).
-void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2);
+/// Invalidates published folder slots and reads the requested folder directory.
+///
+/// Uses the arguments' low bytes: `stageIndex` must name a mounted stage CDF
+/// (1..5) and `fileGroup * 100 + folderIndex` must exist in its folder table.
+/// Clears resource kinds, stream start sectors and bundle redirect state without
+/// releasing storage. Starts one raw sector into `Fs_CdSector`; requires serialized
+/// sector-header reads. Poll `Fs_CdOpStatus` (0xFF done, 0x80 restart), then build
+/// the file/stream tables with `fsBuildFolderTables`.
+void fsStartFolderDirectoryRead(s32 stageIndex, s32 fileGroup, s32 folderIndex);
 
 /// Builds file and stream lookup tables from a loaded folder directory sector.
 ///

@@ -6489,7 +6489,7 @@ extra = extra >> 11;
 
 `Gp_StepCdAudioCmd` is the example. Reassigning the same `a0` pointer
 (`info = (T*)info->field_4`) then `end = (s32)info` keeps the sector in
-`$a0` and copies it to `$a1` before `Fs_ReadSectorEx` reloads `field_4`.
+`$a0` and copies it to `$a1` before `fsStartPayloadRead` reloads `field_4`.
 
 ## Reuse `$v0` for a store constant then a later temp
 
@@ -8506,7 +8506,7 @@ and mismatches prologue/early stores (`CdStream_Continue` / `CdStream_State`).
 post-call. Pre-assigning `dest = (u8*)&Fs_CdSector` before `CdSync` puts the
 address in `$s1` and fills the call delay slot with `addiu s1, v0, %lo(...)`,
 which also forces `a1` for the call to be set earlier (matching the target
-prologue). `Fs_SelectStage` is the example — same shape as `Fs_ReadSectorEx`
+prologue). `fsStartStageFolderListRead` is the example — same shape as `fsStartPayloadRead`
 where the dest is already a parameter.
 
 **Post-call store that uses `$s0` for `%hi/%lo`.** Even a single
@@ -11000,7 +11000,7 @@ end:
 
 Error sites earlier in the function `goto on_error`; soft-error sites that
 must not share the `jal` call `F(2)` then `goto end` (or `return`). Same idea
-as `_fsStage0HeaderReadyCallback`, used for `Fs_CdReadyCb`.
+as `_fsStage0HeaderReadyCallback`, used for `_fsChunkReadyCallback`.
 
 ## Empty body with a pure stack frame (`addiu sp` / `addiu sp` / `jr ra`)
 
@@ -20651,7 +20651,7 @@ initial `0 < len` collapses to `beqz`. Wrapping the same loop in
 pair (or peels a `do`/`while` into a first-element special case). Prefer the
 plain `for` when the target has a single `beqz` on the length.
 
-`Fs_PrepareFolderLoad` is the pure example (folder-table lookup).
+`fsStartFolderDirectoryRead` is the pure example (folder-table lookup).
 
 ## `asm("")` after `i = 0` before an unrelated global store
 
@@ -20675,7 +20675,7 @@ D_flag = 0;
 folderId = ((u8)arg1 * 100) + (u8)arg2;
 ```
 
-`Fs_PrepareFolderLoad` (`D_8006ADE2` after the `Stream_Slots` clear loop).
+`fsStartFolderDirectoryRead` (`D_8006ADE2` after the `Stream_Slots` clear loop).
 
 ## Two-phase scratch alloc: unpinned load, then `register … asm("v1")` adjust
 
@@ -22587,7 +22587,7 @@ ret0:
     return 0;
 ```
 
-`Fs_ProcessChunkData` case 4 is the pure example (99.478% → 100% on this alone).
+`_fsReadChunkPayloadSector` case 4 is the pure example (99.478% → 100% on this alone).
 
 ## `lui v0,%hi` + `addiu v1,v0,%lo` when `p` is pinned to `$v1`
 
@@ -22974,7 +22974,7 @@ register u8* entry asm("s0");
 }
 ```
 
-`Fs_ScanIsoDirectory` is the pure example (99.978% → 100%). Pair with
+`fsScanIsoDirectory` is the pure example (99.978% → 100%). Pair with
 `const char` ISO name strings declared just above the function so they land in
 `.rodata` *between* earlier jtbls and this function's jtbl (non-`const` arrays
 go to `.data` and shift the whole image).
@@ -23151,9 +23151,9 @@ Most of the leaf is ordinary C with s-reg pins (`t1` base, `a2` slot/count,
 Found path (`slot*0x44 + base - 0x3C`) is pure C. `slotByVoice` is at offset
 `0x664` from the table base via `base + idx`.
 
-## Fs_ProcessChunkHeader: s0=ptr / s1=%hi for CdSector
+## _fsReadChunkHeaderSector: s0=ptr / s1=%hi for CdSector
 
-`Fs_ProcessChunkHeader` prologue must colour `&Fs_CdSector` as:
+`_fsReadChunkHeaderSector` prologue must colour `&Fs_CdSector` as:
 
 ```
 lui  s1, %hi(Fs_CdSector)
@@ -23173,7 +23173,7 @@ size = sec->chunk.size;
 
 That alone lifted the baseline from ~74% to ~81%.
 
-## Fs_ProcessChunkHeader: finish (100%)
+## _fsReadChunkHeaderSector: finish (100%)
 
 ### Prologue without early `sw ra`
 
@@ -65830,7 +65830,7 @@ load has `#nop` in GCC output but no delay in the object.
 
 ## A scoped byte test preserves a scan loop while LICM hoists its buffer addresses
 
-`Fs_LoadImageStrip` matched without pins or inline asm by keeping the scan's
+`fsUploadImageStrips` matched without pins or inline asm by keeping the scan's
 return paths inside a structured loop, with the byte test in its own local
 scope:
 
@@ -142118,7 +142118,7 @@ pass's per-coordinate block was `actorRenderComposeCoordChain`'s body inlined wi
 `root = NULL`, and the helper's parameter copies were what the pins had been
 imitating (the block-scoped macro form scored 90-93%).
 
-## Merged branch tails look like hand-written gotos; `break` vs `return` decides which copy survives (Fs_ProcessChunkHeader, 2026-09-25)
+## Merged branch tails look like hand-written gotos; `break` vs `return` decides which copy survives (_fsReadChunkHeaderSector, 2026-09-25)
 
 A switch whose target shares one error tail between several cases was matched
 with gotos and some twenty asm blocks carrying the control flow. The sharing
@@ -144798,9 +144798,9 @@ live range shortens enough that global allocation ranks the two pseudos the
 target's way, so the end-of-function keep-alive was never needed. When a pin
 keeps a pseudo alive past its last use, sweep the position of a *neighbouring*
 local's definition before looking at the pinned one.
-## A function's inlined twin of a later exported function, and a pinned pointer reused across two jobs (Fs_ScanIsoDirectory, 2026-09-26)
+## A function's inlined twin of a later exported function, and a pinned pointer reused across two jobs (fsScanIsoDirectory, 2026-09-26)
 
-The directory scan carried three hand-inlined copies of `Fs_ReadSectorEx`'s
+The directory scan carried three hand-inlined copies of `fsStartPayloadRead`'s
 body, pinned with `entry asm("s0")`, `endSec asm("s1")`, a `TOUCH_REG2` and a
 hand-written `lui/addiu` of the sector buffer. Moving that body into a
 `static inline` helper above the scan (and making the exported function a
@@ -150516,7 +150516,7 @@ attempts; left as it was.
   first (same length, wrong place); both as enclosing `if`s leave no barrier
   and the exit block stays in the loop (2 insns short).
 - **The same error call in the middle of the function, between the value
-  computed for a final test and the test** (`Fs_CdReadyCb`) is
+  computed for a final test and the test** (`_fsChunkReadyCallback`) is
   `if (ok) { ...; if (mismatch) { if (c) { hard(); return; } soft(); return; }
   ret = ...; } else { soft(); return; } if (ret) ...`: the `else` copy is
   where the image has the block and the inner copy becomes a branch to it.
@@ -150524,10 +150524,10 @@ attempts; left as it was.
   `ret = 0; j L; L: bnez ret` survives (`li v0,1; j; bne v0,zero` in a
   scratch test with four returns), so "the body as an inline returning a
   status, the tails in the caller" cannot stand in for gotos to distinct
-  tails. In `Fs_CdReadyCb` it also made the two error calls identical up to
+  tails. In `_fsChunkReadyCallback` it also made the two error calls identical up to
   the join, and cross-jumping merged them (2 insns short).
 - Not converted, each for a reason that holds for any structured form:
-  - `Fs_ScanIsoDirectory` (`goto restart` from three wait loops and the
+  - `fsScanIsoDirectory` (`goto restart` from three wait loops and the
     tail): as `for (;;)` with `continue`, loop.c hoists `li 5` and two `lui`
     out of the retry loop into `$s8/$s4/$s6` (5 insns longer, larger frame).
     The image reloads them, so the retry was not a loop to loop.c.
@@ -150548,7 +150548,7 @@ attempts; left as it was.
     target (a `j` to it carries a fresh `lui v1,%hi(CdAudio_Ctl)` right after
     a store through `&CdAudio_Ctl`), and the error block sits behind that
     `return`, so it is reachable only by a jump.
-- Dropping `Fs_LoadImageStrip`'s `do { ... break; ... } while (0)` around the
+- Dropping `fsUploadImageStrips`'s `do { ... break; ... } while (0)` around the
   GPU-idle wait for `if (GetRCnt() >= K && retry == 0) { ...; return; }` is 1
   insn longer; it stays.
 ## Goto forms from batch 31: a surviving `andi rX, rY, 0xFFFF` says the block was shared in the source

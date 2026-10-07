@@ -849,7 +849,7 @@ void Gp_StepCdAudioCmd(void)
                         if ((sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES != 0) {
                             sector += 1 + (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
                         }
-                        Fs_ReadSectorEx(p->sceneStream->startSector, sector, p->timingBuffer, 0);
+                        fsStartPayloadRead(p->sceneStream->startSector, sector, p->timingBuffer, FILE_SYSTEM_PAYLOAD_RAW);
                         p->step = p->step + 1;
                     } else {
                         p->step = 5;

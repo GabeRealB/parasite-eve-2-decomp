@@ -213,7 +213,7 @@ void Boot_LoadInitialFile(Task* task)
             modeParam[0] = CdlModeSpeed | CdlModeSize1;
             CdControlB(CdlSetmode, modeParam, NULL);
             SetDispMask(0);
-            Fs_ScanIsoDirectory(1);
+            fsScanIsoDirectory(1);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
             cdCmdEnqueue(CD_COMMAND_READ_STAGE_HEADER, NULL, NULL);
             memConfigureImageMemory(GAME_STAGE_NONE, 0);

@@ -1110,12 +1110,12 @@ static void Mdec_ProcessDecode(void)
                             D5B498_8006C233 = STREAM_SCENE_STRIP_X_SHIFT_PAGES;
                         }
                         fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
-                        while (Fs_LoadImageStrip(1) != 1) {
-                            r = Fs_LoadImageStrip(1);
-                            if (r == 1) {
+                        while (fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_RESIDENT_INPUT) != FILE_SYSTEM_IMAGE_STRIPS_COMPLETE) {
+                            r = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_RESIDENT_INPUT);
+                            if (r == FILE_SYSTEM_IMAGE_STRIPS_COMPLETE) {
                                 break;
                             }
-                            if (r == 0x7F) {
+                            if (r == FILE_SYSTEM_IMAGE_STRIPS_RETRY) {
                                 fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
                             }
                         }

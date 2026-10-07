@@ -312,7 +312,7 @@ static void CdCmd_HandleFileLoad(void)
             state->step = state->step + 1;
             /* fallthrough */
         case 1:
-            Fs_PrepareFolderLoad(req[3], req[2], req[1]);
+            fsStartFolderDirectoryRead(req[3], req[2], req[1]);
             state->step = state->step + 1;
             break;
         case 2:
@@ -484,7 +484,7 @@ static void CdCmd_HandleMount(void)
                         state->busy          = 1;
                         gDisplayState.cdBusy = DISPLAY_CD_BUSY;
                     }
-                    Fs_SelectStage(stageIndex & 0xFF);
+                    fsStartStageFolderListRead(stageIndex & 0xFF);
                     state->step = state->step + 1;
                     return;
                 case 1:

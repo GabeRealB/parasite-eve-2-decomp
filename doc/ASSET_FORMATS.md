@@ -213,7 +213,7 @@ python3 tools/peassets/lzss_roundtrip_report.py --log layout_diff.log
 | `type` | Name | Extension | Loader (main) | Notes |
 |---|---|---|---|---|
 | `0x0` | Room package | `.pe2pkg` | `fsDecompressStream` | LZSS body; overlays load at `load_addr` |
-| `0x1` | Image | `.pe2img` | `fsBeginImageColumns` + `Fs_LoadImageStrip` | Sequential LZSS strips → VRAM |
+| `0x1` | Image | `.pe2img` | `fsBeginImageColumns` + `fsUploadImageStrips` | Sequential LZSS strips → VRAM |
 | `0x2` | Color lookup table | `.pe2clut` | `fsUploadImageChunk` + `fsDecompressImagePayload` | 16-byte image header + LZSS → ABGR1555 |
 | `0x4` | Dialogue / cap2 | `.pe2cap2` | (package-like) | Often has load address |
 | `0x5` | Room background | `.bs` | MDEC path | PSX BS v2 → PNG (320×240) |
@@ -319,7 +319,7 @@ Then: sequential LZSS strips (see below)
 3. Sets remaining height `D5B498_8006ACD4 = 0x100` (unless single-column
    terminator special-cases `0x40` or `term_y & 0x7FFF` when `term_y & 0x8000`).
 4. Points the decompress cursor at `table + entry0.dataOffset` in bytes.
-5. `Fs_LoadImageStrip` loop:
+5. `fsUploadImageStrips` loop:
    - Decompress one strip into a scratch buffer (`0x1000` bytes).
    - `LoadImage2` that strip to VRAM.
    - `y += 0x20`, `ACD4 -= 0x20`.
