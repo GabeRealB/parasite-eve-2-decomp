@@ -5382,7 +5382,7 @@ addPrim(gGpuCurrentOt, p);
 are scheduled first, then UV, then `li w` becomes ready and inserts into
 the XY region — the target's `y0`/`y1` / `x1`/`x3` / `li w` / `y2`/`y3`
 interleave. clut/tpage stores still sink to the middle (they do not alias
-the XY/UV bytes tightly enough to stay last). `func_aya_20900_80115948`
+the XY/UV bytes tightly enough to stay last). `_aya20900DrawGameOverLogo`
 went 86% → 100% on this reorder alone; `setXYWH` is required so `x+w`
 keeps `x` live from the prologue (`li a1, -0x3C`).
 
@@ -150768,7 +150768,7 @@ constant).
   the other copy where nothing is known instead: the allocation failure as an
   early return at the top, and the late arms as `if (deferred) { ... } else if
   (...) { ...; return; }` falling into the one tail at the end.
-  `func_aya_20900_80115A14` has no such way out: one arm does `phase += 1`
+  `_aya20900StepGameOver` has no such way out: one arm does `phase += 1`
   before the shared block and cse reuses that register for the block's own
   `phase += 1`, the other arm calls a function first and reloads. Written out
   or as an inline the two copies differ (7 insns longer); the `goto` stays.

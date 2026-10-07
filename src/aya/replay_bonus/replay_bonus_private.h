@@ -285,19 +285,24 @@ extern ReplayBonusTotals D_replay_bonus_80119274;
 
 extern UiList D_replay_bonus_80119130;
 
-/// The BP an item is worth on the replay-bonus screen: half its descriptor
-/// price, looked up in `Gp_ItemDescs` below id 0x100 and in `Gp_KeyItemDescs` above.
-static inline s32 replayBonusItemBp(s32 id)
+/// Returns an item's replay-clear BP credit: half its unsigned purchase price, rounded down.
+///
+/// Requires the gameplay catalogue to remain loaded. Declared catalogue ids
+/// are 0..0xBF and 0x100..0x17F; no bounds check is performed. The Complete
+/// Bonus list supplies only its whitelisted ordinary and collection ids.
+/// The result is 0..32767 BP and neither prices nor inventory are changed.
+static inline s32 _replayBonusItemBp(s32 itemId)
 {
-    s32 price;
+    enum { REPLAY_BONUS_ITEM_CREDIT_SHIFT = 1 };
+    s32 purchasePriceBp;
 
-    if (id < 0x100) {
-        price = Gp_ItemDescs[id].price;
+    if (itemId < ITEM_TEXT_KEY_ID_FIRST) {
+        purchasePriceBp = Gp_ItemDescs[itemId].price;
     } else {
-        price = Gp_KeyItemDescs[id - 0x100].price;
+        purchasePriceBp = Gp_KeyItemDescs[itemId - ITEM_TEXT_KEY_ID_FIRST].price;
     }
-    price >>= 1;
-    return price;
+    purchasePriceBp >>= REPLAY_BONUS_ITEM_CREDIT_SHIFT;
+    return purchasePriceBp;
 }
 
 /// Allocates and builds the credits pictures' VLC table on the auxiliary heap.

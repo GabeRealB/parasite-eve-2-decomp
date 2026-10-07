@@ -1,1 +1,5 @@
 // Overlay-local symbols for aya_20900 (file 20900).
+_aya20900DrawGameOverLogo = 0x80115948; // type:func
+_aya20900StepGameOver = 0x80115a14; // type:func
+_aya20900GameOverTask = 0x80115cfc; // type:func
+_aya20900RedFlashTask = 0x8011578c; // type:func

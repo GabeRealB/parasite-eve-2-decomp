@@ -47,7 +47,6 @@ enum {
 static void       _replayBonusUploadPictureStrip(void);
 static inline s32 _replayBonusUpgradeCost(s32 abilitySlot, s32 previousLevel);
 static void       _replayBonusBuildItemList(UiList* list, UiObject* object);
-static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx);
 static inline s32 _replayBonusShopTier(void);
 static inline s32 _replayBonusShopItem(s32 itemColumn);
 
@@ -83,19 +82,24 @@ static void _replayBonusUploadPictureStrip(void)
     }
 }
 
-/// Feeds the expanded credits picture to MDEC and requests its first strip.
+/// Starts MDEC decoding of the expanded credits picture into the first strip buffer.
+///
+/// Requires serialized decoding, a live expanded bitstream, and an aligned
+/// output buffer for two 16-pixel columns. Height must be positive and fit a
+/// signed halfword; output size is eight 32-bit words per row. Installs the strip-upload completion
+/// callback, resets the strip index, marks output pending and advances the task.
 static inline void _replayBonusStartPictureDecode(Task* task)
 {
     enum { REPLAY_BONUS_STRIP_WORDS_PER_ROW = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2 };
-    s32 nextState;
+    s32 decodeState;
 
     DecDCToutCallback(_replayBonusUploadPictureStrip);
     DecDCTin(D_replay_bonus_80119260, MDEC_IMAGE_MODE_RGB16_MASK_BIT);
     DecDCTout((u_long*)D_replay_bonus_8011925C, (s16)D_replay_bonus_80119266 * REPLAY_BONUS_STRIP_WORDS_PER_ROW);
     D_replay_bonus_8011926E = 0;
-    nextState               = task->state;
+    decodeState             = task->state;
     D_replay_bonus_8011926C = 1;
-    task->state             = nextState + 1;
+    task->state             = decodeState + 1;
 }
 
 void replayBonusDecodePictureTask(Task* task)
@@ -333,22 +337,32 @@ static const char D_replay_bonus_80115784[] = "GET ITEM";
 static const char D_replay_bonus_80115790[] = "BONUS BP";
 static const char D_replay_bonus_8011579C[] = "TOTAL BP";
 
-static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx)
+/// Returns the BP balance plus item credit from the first visible row to the list's end.
+///
+/// The owner task's work holds the list's borrowed `s16` item ids. The row
+/// range must be nonnegative and fit that storage; each id must satisfy
+/// `_replayBonusItemBp`'s catalogue bounds. Starting at zero computes the full
+/// clear total; scrolling backward progressively reveals the displayed total.
+/// Caps at eight decimal digits without changing the player's balance.
+static inline s32 _replayBonusGetDisplayedTotalBp(const UiList* list, const UiObject* object)
 {
-    s32           i;
-    s32           sum;
-    PlayerStatus* cfg;
+    enum { REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP = 99999999 };
+    s32                 itemIndex;
+    s32                 totalBp;
+    const PlayerStatus* playerStatus;
 
-    cfg = &gPlayerStatus;
-    sum = 0;
-    for (i = list->firstVisibleItemIndex.signedValue; i < list->itemCount; i++) {
-        sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);
+    playerStatus = &gPlayerStatus;
+    totalBp      = 0;
+    for (itemIndex = list->firstVisibleItemIndex.signedValue; itemIndex < list->itemCount; itemIndex++) {
+        const s16* itemIds = object->owner->work;
+
+        totalBp += _replayBonusItemBp(itemIds[itemIndex]);
     }
-    sum += cfg->bp;
-    if (sum > 99999999) {
-        sum = 99999999;
+    totalBp += playerStatus->bp;
+    if (totalBp > REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP) {
+        totalBp = REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP;
     }
-    return sum;
+    return totalBp;
 }
 
 void func_replay_bonus_80115ED0(Task* arg0)
@@ -412,7 +426,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         arg0->killCountdown                       = 0x3C;
         arg0->state                               = arg0->state + 1;
         list->firstVisibleItemIndex.unsignedValue = 0;
-        acc                                       = _replayBonusTotalBp(list, obj);
+        acc                                       = _replayBonusGetDisplayedTotalBp(list, obj);
         totals                                    = &D_replay_bonus_80119274;
         totals->totalBp                           = acc;
         totals->nextBp                            = acc;
@@ -583,7 +597,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
     req3.otIndex    = ot3 + 1;
     textDrawString(&req3, D_replay_bonus_8011579C);
 
-    sum = _replayBonusTotalBp(list, obj);
+    sum = _replayBonusGetDisplayedTotalBp(list, obj);
     textDrawUiLine(obj, -xOff, yOff, textItoaUnsigned(buf, (u32)sum), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
         obj->result = USER_INTERFACE_RESULT_CONFIRM;

@@ -268,7 +268,7 @@ static s32 func_replay_bonus_801175F0(UiList* list, UiObject* ctx)
     cfg = &gPlayerStatus;
     sum = 0;
     for (i = list->firstVisibleItemIndex.signedValue; i < list->itemCount; i++) {
-        sum += replayBonusItemBp(((s16*)ctx->owner->work)[i]);
+        sum += _replayBonusItemBp(((s16*)ctx->owner->work)[i]);
     }
     sum += cfg->bp;
     if (sum > 99999999) {
@@ -285,7 +285,7 @@ static inline void _replayBonusDrawItemRow(UiList* prompt, UiObject* obj, s32 id
 
     itemSetIdentified(id, 1);
     itemMenuDrawItemRow(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, id, 0x606060, 0);
-    textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, textItoaSigned(buf, replayBonusItemBp(id)), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
+    textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, textItoaSigned(buf, _replayBonusItemBp(id)), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED,
                    TEXT_ALIGNMENT_RIGHT);
 }
 
