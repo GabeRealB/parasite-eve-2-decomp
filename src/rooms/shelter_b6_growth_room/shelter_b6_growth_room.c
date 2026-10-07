@@ -18,6 +18,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
+#include "actors/actor_450900.h"
+
 #include "mapui/map_neo_ark.h"
 
 extern TaskDesc         D_actor_450900_80135E78[];
@@ -27,7 +29,6 @@ extern EvsCommand D_actor_450900_80136110[];
 extern EvsCommand D_actor_450900_80136308[];
 
 extern void func_actor_450900_801327A8(void);
-extern void func_actor_450900_80132834(void);
 
 s32 func_shelter_b6_growth_room_8017D5E8(Task*, s32, s32, s32);
 s32 func_shelter_b6_growth_room_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -82,7 +83,7 @@ s32 func_shelter_b6_growth_room_8017D6C8(Task* arg0, s32 arg1, RoomEventMsg* arg
         func_actor_450900_801327A8();
     }
     if (arg2->warp == 2) {
-        func_actor_450900_80132834();
+        actor450900HandleDepartureTrigger();
     }
     return 0;
 }

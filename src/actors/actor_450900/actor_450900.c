@@ -1,3 +1,5 @@
+#include "actors/actor_450900.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
@@ -8,6 +10,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
+#include "gameplay/collision.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
@@ -15,6 +18,7 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -86,17 +90,17 @@ extern EvsCommand           D_actor_450900_80136B00[];
 extern EvsCommand           D_actor_450900_80136BD8[];
 extern s32                  D_actor_450900_80136C98;
 
-/// The save-point capture task spawned by `func_actor_450900_80131E38`, kept
-/// alive until `func_actor_450900_80132548` kills it. Script opcode 0xD reaches
-/// both this and `func_actor_450900_80132678`, so its one argument is the
+/// The save-point capture task spawned by `_actor450900CompanionDistressTask`, kept
+/// alive until `_actor450900HeadAimTask` kills it. Script opcode 0xD reaches
+/// both this and `_actor450900SetActorControl`, so its one argument is the
 /// opcode's immediate.
 extern Task* D_actor_450900_80136C9C;
 
 /// This overlay's own spawn table, six `TaskDesc` entries. Index 0 is the exit
 /// handler `taskKill`; 1..5 are the overlay's state handlers, and the "next
-/// stage" of each is the next entry: `func_actor_450900_80131E38` spawns 5 on
-/// its way through, and `func_actor_450900_80132834` spawns 4
-/// (`func_actor_450900_8013235C`, the save-data teardown) when the ally has
+/// stage" of each is the next entry: `_actor450900CompanionDistressTask` spawns 5 on
+/// its way through, and `actor450900HandleDepartureTrigger` spawns 4
+/// (`_actor450900DepartureTask`, the save-data teardown) when the ally has
 /// walked past the trigger line.
 extern TaskDesc D_actor_450900_80135E78[];
 
@@ -124,10 +128,27 @@ extern AnimationPlayRequest D_actor_450900_8013603C;
 extern AnimationPlayRequest D_actor_450900_80136050;
 extern AnimationPlayRequest D_actor_450900_80136064;
 extern AnimationPlayRequest D_actor_450900_80136078;
-void                        func_actor_450900_80132518(s32);
-void                        func_actor_450900_80132678(u8);
-void                        func_actor_450900_80132684(s32);
-void                        func_actor_450900_80132724(void);
+
+// Shared timing and callback selectors for this package's growth-room scenes.
+enum {
+    ACTOR_450900_REACTION_PERIOD_TICKS          = 210,
+    ACTOR_450900_COMPANION_DISTRESS_START_TICKS = 780,
+    ACTOR_450900_HEAD_AIM_DISABLE               = 1,
+    ACTOR_450900_HEAD_AIM_ENABLE                = 2,
+    ACTOR_450900_COMPANION_VOICE_RANDOM         = 0,
+    ACTOR_450900_COMPANION_VOICE_FIXED          = 1,
+    ACTOR_450900_DEPARTURE_COMMAND              = 11,
+};
+
+static void _actor450900CompanionDistressTask(Task* task);
+static void _actor450900PlayerReactionTask(Task* task);
+static void _actor450900GrowthRoomActionTask(Task* task);
+static void _actor450900DepartureTask(Task* task);
+static void _actor450900ControlHeadAim(s32 command);
+static void _actor450900HeadAimTask(Task* task);
+static void _actor450900SetActorControl(u8 actorControl);
+static void _actor450900PlayCompanionVoice(s32 voiceSelector);
+static void _actor450900PreparePlayerFacingCompanion(void);
 
 static AnimationPackedPose _gActor450900Animation00F80Bank1[5] = {
 #include "assets/actor_450900_animation_00F80_bank1.inc"
@@ -485,19 +506,13 @@ s8 D_actor_450900_80135E70 = 0;
 
 s32 D_actor_450900_80135E74 = 0;
 
-void func_actor_450900_80131E38(Task*);
-void func_actor_450900_8013207C(Task*);
-void func_actor_450900_8013223C(Task*);
-void func_actor_450900_8013235C(Task*);
-void func_actor_450900_80132548(Task*);
-
 TaskDesc D_actor_450900_80135E78[6] = {
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_450900_80131E38, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_450900_8013207C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_450900_8013223C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_450900_8013235C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_actor_450900_80132548, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor450900CompanionDistressTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor450900PlayerReactionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor450900GrowthRoomActionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor450900DepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, _actor450900HeadAimTask, { .value = 0 } },
 };
 
 _Actor450900AnimationBankExtensionStorage D_actor_450900_80135EC0 = { .data = { { &_gActor450900Animation020EC, &_gActor450900Animation02428, &_gActor450900Animation025F0, &_gActor450900Animation02A30, &_gActor450900Animation030F4, &_gActor450900Animation04028, &_gActor450900Animation03338, &_gActor450900Animation03738, &_gActor450900Animation03934, &_gActor450900Animation03C70 }, { &_gActor450900Animation00F80, &_gActor450900Animation012D8, &_gActor450900Animation0176C, &_gActor450900Animation01934, &_gActor450900Animation01B50, &_gActor450900Animation01D04 }, { { .words = &D_actor_450900_80135EC0.words[ARRAY_SIZE(D_actor_450900_80135EC0.data.playerSets)] }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { .words = D_actor_450900_80135EC0.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
@@ -588,47 +603,47 @@ EvsCommand D_actor_450900_80136470[22] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.playerCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.companionCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450900_80132724 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450900PreparePlayerFacingCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450900_80136458 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1018 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450900_80132518 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_450900_80132678 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450900ControlHeadAim }, { .value = ACTOR_450900_HEAD_AIM_ENABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450900SetActorControl }, { .value = SCENE_COMBAT_ACTORS_PAUSED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_80136064 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_801360A0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1018 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450900_80132518 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450900ControlHeadAim }, { .value = ACTOR_450900_HEAD_AIM_DISABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_450900_80132678 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450900SetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_450900_80136680[22] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_450900_80132678 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450900_80132724 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450900SetActorControl }, { .value = SCENE_COMBAT_ACTORS_PAUSED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450900PreparePlayerFacingCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450900_80136458 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1018 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450900_80132518 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450900ControlHeadAim }, { .value = ACTOR_450900_HEAD_AIM_ENABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_80136064 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_80135EC0.data.companionPlayRequests[2] }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450900_80132684 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450900PlayCompanionVoice }, { .value = ACTOR_450900_COMPANION_VOICE_FIXED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_801360B4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1018 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450900_80132518 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450900ControlHeadAim }, { .value = ACTOR_450900_HEAD_AIM_DISABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_450900_80132678 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450900SetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -636,15 +651,15 @@ EvsCommand D_actor_450900_80136680[22] = {
 EvsCommand D_actor_450900_80136890[26] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_growth_room_8017D82C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_450900_80132678 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450900SetActorControl }, { .value = SCENE_COMBAT_ACTORS_PAUSED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.playerCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_450900_80135EC0.data.companionCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_450900_80132724 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor450900PreparePlayerFacingCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_actor_450900_80136458 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1018 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450900_80132518 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450900ControlHeadAim }, { .value = ACTOR_450900_HEAD_AIM_ENABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450900_80135F74 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -653,10 +668,10 @@ EvsCommand D_actor_450900_80136890[26] = {
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1018 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_450900_80132518 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor450900ControlHeadAim }, { .value = ACTOR_450900_HEAD_AIM_DISABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_450900_80132678 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor450900SetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -690,21 +705,29 @@ s32 D_actor_450900_80136C98;
 Task* D_actor_450900_80136C9C;
 
 void func_actor_450900_801327A8(void);
-void func_actor_450900_80132834(void);
 
-/// State handler that runs the save-point capture. State 0 spawns the capture
-/// task `func_actor_450900_80132548` into `D_actor_450900_80136C9C`; state 1
-/// waits for `D_map_neo_ark_8017A99C`, the AI tick counter, to pass 0x30C with save data in
-/// the slot, then arms the flag `func_actor_450900_80132518` toggles and, on
-/// every 210th tick, plays the ally's voice cue at its own pan and depth and
-/// posts the `0x3F7` / `0x3E8` / `0x3F9` messages to the slot-0xA task; 0x3C
-/// ticks later it posts `0x3E8` alone, with the capture-indicator animation.
-/// The one-shot `D_actor_450900_80135E74` retires the handler after one pass.
-void func_actor_450900_80131E38(Task* task)
+/// Advances growth-room distress timing and periodically animates and hurts the companion.
+///
+/// State 0 spawns the tracked head-aim task. State 1 advances the persistent
+/// counter only outside CAP/event playback and actor pauses, except in demo 11.
+/// From tick 780, while the companion has HP and the conversation latch is zero,
+/// every 210 ticks plays a random spatial voice and a power-16 damage reaction;
+/// 60 ticks later restores its idle pose. Requires live companion/model and
+/// gameplay sound, animation and damage resources; messages borrow the requests
+/// synchronously. Other states do nothing.
+static void _actor450900CompanionDistressTask(Task* task)
 {
-    GfxCoord* coord;
+    enum {
+        ACTOR_450900_DISTRESS_INIT             = 0,
+        ACTOR_450900_DISTRESS_RUN              = 1,
+        ACTOR_450900_HEAD_AIM_TASK_INDEX       = 5,
+        ACTOR_450900_DISTRESS_IDLE_DELAY_TICKS = 60,
+        ACTOR_450900_DISTRESS_DEMO_SCENE       = 11,
+        ACTOR_450900_DISTRESS_ATTACK_KEY       = DAMAGE_ATTACK_CATEGORY | 16,
+    };
+    GfxCoord* companionCoord;
     s32       state;
-    s32       t;
+    s32       distressTicks;
     s8        pan;
     s8        depth;
     Task*     companionTask;
@@ -712,12 +735,12 @@ void func_actor_450900_80131E38(Task* task)
     companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     state         = task->state;
     switch (state) {
-        case 0:
+        case ACTOR_450900_DISTRESS_INIT:
             D_actor_450900_80135E70 = 0;
-            D_actor_450900_80136C9C = taskSpawnFromTable(D_actor_450900_80135E78, 5, 0, 0);
+            D_actor_450900_80136C9C = taskSpawnFromTable(D_actor_450900_80135E78, ACTOR_450900_HEAD_AIM_TASK_INDEX, 0, 0);
             task->state             = task->state + 1;
             break;
-        case 1:
+        case ACTOR_450900_DISTRESS_RUN:
             if (capIsBusy() != 0) {
                 break;
             }
@@ -727,16 +750,17 @@ void func_actor_450900_80131E38(Task* task)
             if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
                 break;
             }
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB) {
+            // Count eligible updates across visits; demo playback retains the counter.
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_450900_DISTRESS_DEMO_SCENE) {
                 D_map_neo_ark_8017A99C = D_map_neo_ark_8017A99C + 1;
             }
-            t = D_map_neo_ark_8017A99C - 0x30C;
-            if (D_actor_450900_80135E74 == 0 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0 && t >= 0) {
+            distressTicks = D_map_neo_ark_8017A99C - ACTOR_450900_COMPANION_DISTRESS_START_TICKS;
+            if (D_actor_450900_80135E74 == 0 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0 && distressTicks >= 0) {
                 D_actor_450900_80135E70 = state;
-                if (t % 210 == 0) {
-                    coord = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
-                    pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                    depth = (s8)worldCoordGetOriginAudioDepth(coord);
+                if (distressTicks % ACTOR_450900_REACTION_PERIOD_TICKS == 0) {
+                    companionCoord = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
+                    pan            = (s8)worldCoordGetOriginAudioPan(companionCoord);
+                    depth          = (s8)worldCoordGetOriginAudioDepth(companionCoord);
                     if (rand() & 1) {
                         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_1, pan, depth);
                     } else {
@@ -745,8 +769,8 @@ void func_actor_450900_80131E38(Task* task)
                     companionWriteAnimationBankIndex(&Actor450900AllyAnim.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.companionCopy, 0);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &Actor450900AllyAnim, 0);
-                    taskMessageDispatch(companionTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, 0x40010, 0);
-                } else if (t % 210 == 0x3C) {
+                    taskMessageDispatch(companionTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, ACTOR_450900_DISTRESS_ATTACK_KEY, 0);
+                } else if (distressTicks % ACTOR_450900_REACTION_PERIOD_TICKS == ACTOR_450900_DISTRESS_IDLE_DELAY_TICKS) {
                     companionWriteAnimationBankIndex(&D_actor_450900_801360B4.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &D_actor_450900_801360B4, 0);
                 }
@@ -755,50 +779,58 @@ void func_actor_450900_80131E38(Task* task)
     }
 }
 
-void func_actor_450900_8013207C(Task* task)
+/// Plays the player's periodic growth-room response after the distress timer reaches 1110.
+///
+/// Outside CAP/event playback and actor pauses, starts a spatial voice and the
+/// extended response animation every 210 counter ticks. Seventy ticks later
+/// increments the completion counter and releases scripted player control.
+/// Requires a live player TMD and this package's animation and sound resources.
+/// State 0 clears the task countdown; state 1 runs; other states do nothing.
+static void _actor450900PlayerReactionTask(Task* task)
 {
-    GfxCoord* coord;
-    Task*     slot;
-    s32       value;
+    enum {
+        ACTOR_450900_PLAYER_REACTION_INIT        = 0,
+        ACTOR_450900_PLAYER_REACTION_RUN         = 1,
+        ACTOR_450900_PLAYER_REACTION_START_TICKS = 1110,
+        ACTOR_450900_PLAYER_RESPONSE_TICKS       = 70,
+    };
+    GfxCoord* playerCoord;
+    Task*     playerTask;
+    s32       stateOrReactionCount;
     s8        pan;
     s8        depth;
 
-    slot  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    value = task->state;
-    switch (value) {
-        case 0:
+    playerTask           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    stateOrReactionCount = task->state;
+    switch (stateOrReactionCount) {
+        case ACTOR_450900_PLAYER_REACTION_INIT:
             task->killCountdown = 0;
             task->state         = task->state + 1;
             return;
-        case 1:
-            if ((capIsBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((D_map_neo_ark_8017A99C - 0x456) >= 0)) {
-                if ((D_map_neo_ark_8017A99C - 0x456) % 210 == 0) {
-                    coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-                    pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                    depth = (s8)worldCoordGetOriginAudioDepth(coord);
+        case ACTOR_450900_PLAYER_REACTION_RUN:
+            if ((capIsBusy() == 0) && (gGameSession->eventState == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) && ((D_map_neo_ark_8017A99C - ACTOR_450900_PLAYER_REACTION_START_TICKS) >= 0)) {
+                if ((D_map_neo_ark_8017A99C - ACTOR_450900_PLAYER_REACTION_START_TICKS) % ACTOR_450900_REACTION_PERIOD_TICKS == 0) {
+                    playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+                    pan         = (s8)worldCoordGetOriginAudioPan(playerCoord);
+                    depth       = (s8)worldCoordGetOriginAudioDepth(playerCoord);
                     if (rand() & 1) {
                         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_1, pan, depth);
                     } else {
                         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_PLAYER_VOICE_2, pan, depth);
                     }
-                    TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.playerCopy, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &D_actor_450900_80135EC0.data.playerCopy, 0);
                     playerActorWriteWeaponAnimationBankIndex(&D_actor_450900_80135FEC.source.index);
-                    TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
-                } else if ((D_map_neo_ark_8017A99C - 0x456) % 210 == 0x46) {
-                    /* The image has the counter's lw/addiu/sw alone in a block: the load's
-                     * stall is an unfilled nop and the call's four argument moves all sit
-                     * below the store, so a branch stood between the store and the call and
-                     * left no instruction. Equal arms on the new count reproduce that; what
-                     * the original tested, and what differed between its arms, is unknown.
-                     * The count is kept in `value` (the state local) because only a variable
-                     * that lives in more than one block gets `$v1` behind the `%hi`. */
-                    value = D_actor_450900_80136C98;
-                    value++;
-                    D_actor_450900_80136C98 = value;
-                    if (value != 0) {
-                        taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
+                } else if ((D_map_neo_ark_8017A99C - ACTOR_450900_PLAYER_REACTION_START_TICKS) % ACTOR_450900_REACTION_PERIOD_TICKS == ACTOR_450900_PLAYER_RESPONSE_TICKS) {
+                    // The shared temporary and equal arms retain the matching shape;
+                    // the original counter condition is unproven.
+                    stateOrReactionCount = D_actor_450900_80136C98;
+                    stateOrReactionCount++;
+                    D_actor_450900_80136C98 = stateOrReactionCount;
+                    if (stateOrReactionCount != 0) {
+                        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                     } else {
-                        taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                     }
                 }
             }
@@ -806,21 +838,36 @@ void func_actor_450900_8013207C(Task* task)
     }
 }
 
-void func_actor_450900_8013223C(Task* task)
+/// Runs the growth-room action choice and its optional player-animation follow-up.
+///
+/// CAP command 1 pauses actors. Variant 11 sets the persistent action flag,
+/// starts command 2 and the player animation script; other variants resume play.
+/// The follow-up resumes play when event state returns to zero. Requires this
+/// package, the room's CAP commands, and the player model through completion.
+static void _actor450900GrowthRoomActionTask(Task* task)
 {
+    enum {
+        ACTOR_450900_ACTION_START             = 0,
+        ACTOR_450900_ACTION_WAIT_CHOICE       = 1,
+        ACTOR_450900_ACTION_HANDLE_CHOICE     = 2,
+        ACTOR_450900_ACTION_WAIT_SCRIPT       = 3,
+        ACTOR_450900_ACTION_COMMAND           = 1,
+        ACTOR_450900_ACTION_FOLLOW_UP_COMMAND = 2,
+        ACTOR_450900_ACTION_FOLLOW_UP_VARIANT = 11,
+    };
     switch (task->state) {
-        case 0:
+        case ACTOR_450900_ACTION_START:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
+            capRunCommand(ACTOR_450900_ACTION_COMMAND, CAP_PLAYBACK_IN_PLACE);
             task->state = task->state + 1;
             break;
-        case 1:
+        case ACTOR_450900_ACTION_WAIT_CHOICE:
             if (capIsBusy() == 0) {
                 task->state = task->state + 1;
             }
             break;
-        case 2:
-            if (capGetVariantKey() != 0xB) {
+        case ACTOR_450900_ACTION_HANDLE_CHOICE:
+            if (capGetVariantKey() != ACTOR_450900_ACTION_FOLLOW_UP_VARIANT) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
@@ -828,11 +875,11 @@ void func_actor_450900_8013223C(Task* task)
             }
             gameFlagSetNibble(GAME_FLAG_0D8, 1);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
+            capRunCommand(ACTOR_450900_ACTION_FOLLOW_UP_COMMAND, CAP_PLAYBACK_IN_PLACE);
             evsStartScript(D_actor_450900_80136B00, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             task->state = task->state + 1;
             break;
-        case 3:
+        case ACTOR_450900_ACTION_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -842,20 +889,43 @@ void func_actor_450900_8013223C(Task* task)
     }
 }
 
-void func_actor_450900_8013235C(Task* task)
+/// Offers growth-room departure, then removes the companion and reloads Neo Ark Garden.
+///
+/// CAP command 11 uses variant 1. A returned key other than 11 resumes the
+/// player and kills this task. Key 11 runs the fade script; its event-state 2
+/// handshake commits story/route flags and destination room 1, warp 3, before
+/// spawning the resident session-load task. Requires this package and the room's
+/// CAP and event resources through the handshake. Other task states do nothing.
+static void _actor450900DepartureTask(Task* task)
 {
+    enum {
+        ACTOR_450900_DEPARTURE_START            = 0,
+        ACTOR_450900_DEPARTURE_WAIT_CHOICE      = 1,
+        ACTOR_450900_DEPARTURE_HANDLE_CHOICE    = 2,
+        ACTOR_450900_DEPARTURE_WAIT_FADE        = 3,
+        ACTOR_450900_DEPARTURE_COMMIT           = 4,
+        ACTOR_450900_DEPARTURE_OFFER_VARIANT    = 1,
+        ACTOR_450900_DEPARTURE_CONFIRMED_KEY    = 11,
+        ACTOR_450900_DEPARTURE_FADE_READY       = 2,
+        ACTOR_450900_DEPARTURE_STORY_DIALOGUE   = 8,
+        ACTOR_450900_DEPARTURE_DESTINATION_WARP = 3,
+        ACTOR_450900_DEPARTURE_DESTINATION_ROOM = 1,
+        ACTOR_450900_COMPANION_NONE             = 0,
+        ACTOR_450900_DEFAULT_DISPLAY_VARIANT    = 1,
+        ACTOR_450900_SESSION_LOAD_TASK_INDEX    = 17,
+    };
     switch (task->state) {
-        case 0:
-            capStartSequenceSlot(0xB, 1, 1);
+        case ACTOR_450900_DEPARTURE_START:
+            capStartSequenceSlot(ACTOR_450900_DEPARTURE_COMMAND, CAP_PLAYBACK_DISPLAY_TRANSITION, ACTOR_450900_DEPARTURE_OFFER_VARIANT);
             task->state = task->state + 1;
             break;
-        case 1:
+        case ACTOR_450900_DEPARTURE_WAIT_CHOICE:
             if (capIsBusy() == 0) {
                 task->state = task->state + 1;
             }
             break;
-        case 2:
-            if (capGetVariantKey() != 0xB) {
+        case ACTOR_450900_DEPARTURE_HANDLE_CHOICE:
+            if (capGetVariantKey() != ACTOR_450900_DEPARTURE_CONFIRMED_KEY) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             } else {
@@ -863,12 +933,13 @@ void func_actor_450900_8013235C(Task* task)
                 task->state = task->state + 1;
             }
             break;
-        case 3:
-            if (gGameSession->eventState == 2) {
+        case ACTOR_450900_DEPARTURE_WAIT_FADE:
+            if (gGameSession->eventState == ACTOR_450900_DEPARTURE_FADE_READY) {
                 task->state = task->state + 1;
             }
             break;
-        case 4:
+        case ACTOR_450900_DEPARTURE_COMMIT:
+            // Commit the post-companion route before the session-load task reads the save.
             gameFlagSetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 0);
             gameFlagSetNibble(GAME_FLAG_0FC, 1);
             gameFlagSetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED, 0);
@@ -877,27 +948,29 @@ void func_actor_450900_8013235C(Task* task)
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1C7, 0);
             gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, 0);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 8);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_450900_DEPARTURE_STORY_DIALOGUE);
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0xF;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType     = 0;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-            gDisplayState.spriteVariant                                = 1;
-            taskSpawn(0, 0x11, 0, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_NEO_ARK_GARDEN;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_450900_DEPARTURE_DESTINATION_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType     = ACTOR_450900_COMPANION_NONE;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_450900_DEPARTURE_DESTINATION_ROOM;
+            gDisplayState.spriteVariant                                = ACTOR_450900_DEFAULT_DISPLAY_VARIANT;
+            taskSpawn(0, ACTOR_450900_SESSION_LOAD_TASK_INDEX, 0, 0);
             streamFinishScene();
             taskKill(task);
             break;
     }
 }
 
-/// Script callback: arms or disarms the save-point capture task's flag
-/// (`Task::spawnArg1`, the value `func_actor_450900_80132548` tests to decide
-/// which way the capture cursor sweeps).
-void func_actor_450900_80132518(s32 arg0)
+/// Sets whether the tracked task fades the player's head turn toward the companion.
+///
+/// Command 1 disables aiming; every other value enables it (scripts use 2).
+/// Does nothing without a tracked task. Requires any retained handle to remain
+/// live; this changes spawnArg1, leaving task state and lifetime untouched.
+static void _actor450900ControlHeadAim(s32 command)
 {
     if (D_actor_450900_80136C9C != NULL) {
-        if (arg0 == 1) {
+        if (command == ACTOR_450900_HEAD_AIM_DISABLE) {
             D_actor_450900_80136C9C->spawnArg1.value = 0;
             return;
         }
@@ -905,47 +978,65 @@ void func_actor_450900_80132518(s32 arg0)
     }
 }
 
-/// State handler of the save-point capture task `func_actor_450900_80131E38`
-/// spawns. State 0 allocates the head-aim record the capture cursor sweeps with
-/// (an `AnimationHeadAim` in `Task::work`); state 1 ramps its `rate` one
-/// 0x200 step per frame, up or down according to `Task::spawnArg1` (the flag
-/// `func_actor_450900_80132518` arms), and hands the record to `animationAimHeadAt`
-/// between the slot-3 task and the ally's own slot-0xA task. Any other state
-/// kills the task and drops the overlay's handle to it.
-void func_actor_450900_80132548(Task* task)
+/// Fades the player's Q12 head-aim weight in or out over eight updates.
+///
+/// Only `aim->rate` changes. Nonzero `enabled` adds ONE/8; zero subtracts it.
+/// Each update narrows to a signed halfword before clamping to its endpoint,
+/// preserving wraparound even for inputs outside the normal 0..ONE range.
+static inline void _actor450900RampHeadAimWeight(AnimationHeadAim* aim, s32 enabled)
 {
+    enum { ACTOR_450900_HEAD_AIM_FADE_TICKS = 8 };
+    s16 nextWeight;
+
+    if (enabled != 0) {
+        nextWeight = aim->rate + ONE / ACTOR_450900_HEAD_AIM_FADE_TICKS;
+        aim->rate  = nextWeight;
+        if (nextWeight > ONE) {
+            aim->rate = ONE;
+        }
+    } else {
+        nextWeight = aim->rate - ONE / ACTOR_450900_HEAD_AIM_FADE_TICKS;
+        aim->rate  = nextWeight;
+        if (nextWeight < 0) {
+            aim->rate = 0;
+        }
+    }
+}
+
+/// Fades the player's head turn toward the companion during growth-room scenes.
+///
+/// State 0 owns a zeroed `AnimationHeadAim` in `Task::work`, limits yaw to 1/16
+/// turn and pitch to 1/8 turn, and immediately runs state 1. Nonzero spawnArg1
+/// enables aiming. Both tasks require live TMD skeletons with five coordinates.
+/// Other states kill this task, freeing its work and clearing the tracked
+/// handle. Allocation failure kills without clearing that handle.
+static void _actor450900HeadAimTask(Task* task)
+{
+    enum {
+        ACTOR_450900_HEAD_AIM_INIT        = 0,
+        ACTOR_450900_HEAD_AIM_RUN         = 1,
+        ACTOR_450900_HEAD_AIM_YAW_LIMIT   = ACTOR_TRANSFORM_ANGLE_TURN / 16,
+        ACTOR_450900_HEAD_AIM_PITCH_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+    };
     AnimationHeadAim* aim;
     Task*             playerTask;
-    u16               rate;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (task->state) {
-        case 0:
+        case ACTOR_450900_HEAD_AIM_INIT:
             aim = memCalloc(sizeof(AnimationHeadAim), false);
             if (aim == NULL) {
                 taskKill(task);
                 return;
             }
             task->work      = aim;
-            aim->yawLimit   = 0x100;
-            aim->pitchLimit = 0x200;
+            aim->yawLimit   = ACTOR_450900_HEAD_AIM_YAW_LIMIT;
+            aim->pitchLimit = ACTOR_450900_HEAD_AIM_PITCH_LIMIT;
             task->state++;
             /* fallthrough */
-        case 1:
+        case ACTOR_450900_HEAD_AIM_RUN:
             aim = task->work;
-            if (task->spawnArg1.value != 0) {
-                rate      = aim->rate + 0x200;
-                aim->rate = rate;
-                if ((s16)rate > ONE) {
-                    aim->rate = ONE;
-                }
-            } else {
-                rate      = aim->rate - 0x200;
-                aim->rate = rate;
-                if ((s16)rate < 0) {
-                    aim->rate = 0;
-                }
-            }
+            _actor450900RampHeadAimWeight(aim, task->spawnArg1.value);
             animationAimHeadAt(playerTask, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), aim);
             return;
         default:
@@ -955,23 +1046,32 @@ void func_actor_450900_80132548(Task* task)
     }
 }
 
-void func_actor_450900_80132678(u8 arg0)
+/// Supplies a script argument's low byte to the scene's actor-control gate.
+///
+/// Scripts use SCENE_COMBAT_ACTORS_RUNNING (0) and SCENE_COMBAT_ACTORS_PAUSED
+/// (1); other byte values are stored unchanged. This does not change player
+/// scripted-control state or resume tasks on its own.
+static void _actor450900SetActorControl(u8 actorControl)
 {
-    gSceneCombatState.actorControl = arg0;
+    gSceneCombatState.actorControl = actorControl;
 }
 
-/// Plays the ally's voice cue at its own pan and depth: `arg0` picks the
-/// non-random id, otherwise one of the two `0x55170005/6` takes is chosen.
-void func_actor_450900_80132684(s32 arg0)
+/// Plays a spatial growth-room companion voice from its cached root coordinate.
+///
+/// Selector 0 randomly chooses voice 1 or 2; every nonzero selector uses voice 3.
+/// Requires a live companion TMD, a composed local-to-view matrix, projection
+/// scratch space and the room's loaded sound bank. Pan/depth retain signed-byte
+/// narrowing before submission; the coordinate is borrowed only during the call.
+static void _actor450900PlayCompanionVoice(s32 voiceSelector)
 {
-    GfxCoord* coord;
+    GfxCoord* companionCoord;
     s8        pan;
     s8        depth;
 
-    coord = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
-    pan   = (s8)worldCoordGetOriginAudioPan(coord);
-    depth = (s8)worldCoordGetOriginAudioDepth(coord);
-    if (arg0 != 0) {
+    companionCoord = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
+    pan            = (s8)worldCoordGetOriginAudioPan(companionCoord);
+    depth          = (s8)worldCoordGetOriginAudioDepth(companionCoord);
+    if (voiceSelector != ACTOR_450900_COMPANION_VOICE_RANDOM) {
         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_3, pan, depth);
     } else if (rand() & 1) {
         sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_VOICE_1, pan, depth);
@@ -980,22 +1080,22 @@ void func_actor_450900_80132684(s32 arg0)
     }
 }
 
-/// Script callback (opcode 0xD): refreshes the root coordinates of the slot-0xA
-/// and slot-3 tasks and stores the 12-bit `ratan2` heading from the slot-3
-/// object to the slot-0xA object in `D_actor_450900_80136458.rot.vy`, the halfword at
-/// offset 0x12 of the `D_actor_450900_80136458` block the same scripts then post
-/// with message `0x3EE`.
-void func_actor_450900_80132724(void)
+/// Updates the player's scripted transform request to face the companion.
+///
+/// Requires both live TMD roots. Composes their coordinates and stores only
+/// the player's yaw in 4096-unit turns, wrapped to 0..4095. The event script
+/// then sends the package-owned request with GAME_ACTOR_MESSAGE_TURN_TO_YAW.
+static void _actor450900PreparePlayerFacingCompanion(void)
 {
-    GfxCoord* target;
-    GfxCoord* origin;
+    GfxCoord* companionCoord;
+    GfxCoord* playerCoord;
 
-    target = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
-    origin = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    actorRenderComposeCoord(target);
-    actorRenderComposeCoord(origin);
+    companionCoord = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
+    playerCoord    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    actorRenderComposeCoord(companionCoord);
+    actorRenderComposeCoord(playerCoord);
     D_actor_450900_80136458.rot.vy =
-        ratan2(target->coord.t[0] - origin->coord.t[0], target->coord.t[2] - origin->coord.t[2]) & 0xFFF;
+        ratan2(companionCoord->coord.t[0] - playerCoord->coord.t[0], companionCoord->coord.t[2] - playerCoord->coord.t[2]) & ACTOR_TRANSFORM_ANGLE_MASK;
 }
 
 /// Spawns the ally's save-point state handler. Once flag 0xD8 is set (the
@@ -1022,19 +1122,19 @@ void func_actor_450900_801327A8(void)
     }
 }
 
-/// Reads the root coordinate of the slot-0xA task's `TmdObject` (reached through
-/// `Task::extra`, as `func_actor_450900_80132684` does) and, when its world Z is
-/// below -0x76C, spawns entry 4 of `D_actor_450900_80135E78`
-/// (`func_actor_450900_8013235C`); otherwise it starts capture slot 0xB with
-/// `capStartSequenceSlot`.
-void func_actor_450900_80132834(void)
+void actor450900HandleDepartureTrigger(void)
 {
-    GfxCoord* coord;
+    enum {
+        ACTOR_450900_DEPARTURE_TRIGGER_Z    = -1900,
+        ACTOR_450900_DEPARTURE_TASK_INDEX   = 4,
+        ACTOR_450900_DEPARTURE_PASS_VARIANT = 0,
+    };
+    GfxCoord* companionCoord;
 
-    coord = (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION))->extra.tmd->coords;
-    if (coord->coord.t[2] < -0x76C) {
-        taskSpawnFromTable(D_actor_450900_80135E78, 4, 0, 0);
+    companionCoord = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
+    if (companionCoord->coord.t[2] < ACTOR_450900_DEPARTURE_TRIGGER_Z) {
+        taskSpawnFromTable(D_actor_450900_80135E78, ACTOR_450900_DEPARTURE_TASK_INDEX, 0, 0);
     } else {
-        capStartSequenceSlot(0xB, 1, 0);
+        capStartSequenceSlot(ACTOR_450900_DEPARTURE_COMMAND, CAP_PLAYBACK_DISPLAY_TRANSITION, ACTOR_450900_DEPARTURE_PASS_VARIANT);
     }
 }

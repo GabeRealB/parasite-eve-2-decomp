@@ -44224,7 +44224,7 @@ case 3:
     break;
 ```
 
-`func_actor_450900_8013223C` is the example: 75% as m2c's switch-with-`goto`s,
+`_actor450900GrowthRoomActionTask` is the example: 75% as m2c's switch-with-`goto`s,
 93.3% as a full goto chain, 100% this way. Declaring the constant as an explicit
 `s32 one = 1;` local changes nothing either way — CSE produces the shared
 constant register on its own.
@@ -102372,7 +102372,7 @@ and a shared call whose argument setup sits at the join. Writing it the natural
 way (one call after the chain, the id in a local) gives the *other* layout
 instead, and plateaus: jump.c's `if (...) { x = a; goto l; } x = b;` rule fires,
 hoisting the else arm's constant before the branch, putting its `ori` in the
-delay slot, and deleting the `goto` — 91.2% on `func_actor_450900_80132684`
+delay slot, and deleting the `goto` — 91.2% on `_actor450900PlayCompanionVoice`
 with `branch=1 regs=6 reorder=2 insert=1 delete=1`.
 
 ```c
@@ -102385,8 +102385,8 @@ if (arg0 != 0) {
 }
 ```
 
-The two siblings in the same overlay, `func_actor_450900_80131E38` and
-`func_actor_450900_8013207C`, carry the same idiom with the branch delay slot
+The two siblings in the same overlay, `_actor450900CompanionDistressTask` and
+`_actor450900PlayerReactionTask`, carry the same idiom with the branch delay slot
 left as a `nop` (nothing was free to fill it), which is the same merge with a
 different fill. Compare `## /* irregular */ in m2c output` above: that is the
 `switch` spelling of this rule, and both come from m2c hoisting the constant
@@ -102396,18 +102396,18 @@ Keep the pan/depth a **byte** (`s8`) so the sign-extension stays at the call —
 `(s32)`-widening at the assignment moves the `sll`/`sra` pair into each arm and
 shifts the whole tail — and keep the coordinate a pointer so its load is `lw`.
 
-`func_actor_450900_80132684`: 91.225% from the m2c seed, 100.00% all-zero
+`_actor450900PlayCompanionVoice`: 91.225% from the m2c seed, 100.00% all-zero
 penalties (`base_2.c`, and `base_3.c` in the project's own style) with the call
 written per arm. Preprocessed SHA256
 `a4be31247a63bb20ced12fb458a1f0c3ff3047e3b9cae91eb0f1360bccb0fc1b` (`base_2`)
 and `f0e59f99810c60ec5b88edf3b9669192742ceb17681826dd4aae85771da8d067`
 (`base_3`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Session:
-`nonmatchings/func_actor_450900_80132684-vacuum` (`base_2_diff`, `base_3_diff`).
+`nonmatchings/_actor450900PlayCompanionVoice-vacuum` (`base_2_diff`, `base_3_diff`).
 
 ## An m2c seed that reads a field before a call the source read after: that live range alone owns several callee-saved registers
 
-**Problem.** `func_actor_450900_80132548` (save-point capture state handler,
+**Problem.** `_actor450900HeadAimTask` (player head-aim task,
 `actor_450900`) came out of m2c at 90.395% with `regs=21 branch=5 insert=2
 delete=3 reorder=2`. The asm diff was almost entirely register homes: the
 target keeps `index` in `$s1`, the allocated head-aim record in `$s0` and the
@@ -102475,7 +102475,7 @@ was 100.00% on the first build. With a sibling that close, the sibling's
 `83439da8d5693f71fbe5c282cc45985e4f107a45e7d35e6d09356cb0a9034bc4` (90.395%).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 No pins, no empty asm, no permuter run. Session:
-`nonmatchings/func_actor_450900_80132548-vacuum`.
+`nonmatchings/_actor450900HeadAimTask-vacuum`.
 
 ### Two back-to-back `sw …, 0x3FC($at)` after three `mult`s is the scratch range-test inline (func_actor_401300_801397F8, 2026-09-16)
 
@@ -127770,12 +127770,12 @@ former.
 
 ## A `%` written in the comparison leaves `expand_divmod` no destination, so the quotient stops sharing the remainder's pseudo
 
-`func_actor_450900_80131E38` (145 insns) keeps a signed constant remainder in
+`_actor450900CompanionDistressTask` (145 insns) keeps a signed constant remainder in
 `$v1`, its quotient in `$v0`, and the dividend `D_8017A99C - 0x30C` in `$a0`
 across both. Assigning the modulo to a local first -
 
 ```c
-rem = t % 210;
+rem = distressTicks % 210;
 if (rem == 0) { ... } else if (rem == 0x3C) { ... }
 ```
 
@@ -127793,7 +127793,7 @@ Writing the same modulo in the comparisons passes `target == 0`, so
 `tquotient = gen_reg_rtx (compute_mode)` and the remainder is a fresh pseudo:
 
 ```c
-if (t % 210 == 0) { ... } else if (t % 210 == 0x3C) { ... }
+if (distressTicks % 210 == 0) { ... } else if (distressTicks % 210 == 0x3C) { ... }
 ```
 
 The remainder is now 3 refs / 4 insns conflicting only with `$v0`, so it takes
@@ -127809,7 +127809,7 @@ corpus' `Actor05500_Fn02FFC` entry separates the two lifetimes from the other
 side (`q = x / 10; r = x - q * 10;`); this is the spelling to try when the
 comparison is the modulo's only consumer.
 
-Inputs: scratch `nonmatchings/func_actor_450900_80131E38-vacuum`, `base_2.c`
+Inputs: scratch `nonmatchings/_actor450900CompanionDistressTask-vacuum`, `base_2.c`
 99.538% (`regs=13`), `base_3.c` 100.000%, preprocessed base_2 SHA256
 `fd96dc8d592e2dcc0ad39bfaa4e126b70bb13f6c684c24a5095e4a5b36de6466`, base_3
 SHA256 `30f4e6e2cbde1adb2f31d908cc1e25b33aeb6d8fedca89ab162c7e5e7eaaee00`,
@@ -148558,7 +148558,7 @@ Not found: the natural second set. Tried: `s16 hp`, the difference
 
 ### Unresolved, with the mechanism measured: three actor barriers (2026-10-05)
 
-- `func_actor_450900_8013207C` (`SCHED_BARRIER` after a counter increment).
+- `_actor450900PlayerReactionTask` (`SCHED_BARRIER` after a counter increment).
   Two separate things. (a) sched1 must keep `lw/addiu/sw` of the counter above
   the next call's argument moves; plain C lets the low-priority argument moves
   float above the load. A loop note does the same as the barrier
@@ -150819,7 +150819,7 @@ The earlier attempts all kept the compare inside the `if` because the existing
 body had it there; the m2c seed has it there too, so this came from the
 allocation measurement (`.greg` order, refs / live length), not from the seed.
 
-## Unresolved, with the fence and the register both pinned to their passes: a counter's `lw/addiu/sw` above a call's argument moves (func_actor_450900_8013207C, 2026-10-06)
+## Unresolved, with the fence and the register both pinned to their passes: a counter's `lw/addiu/sw` above a call's argument moves (_actor450900PlayerReactionTask, 2026-10-06)
 
 Dated note on the 2026-10-05 entry "Unresolved, with the mechanism measured:
 three actor barriers": its two findings stand, and this adds the numbers, a
@@ -150869,7 +150869,7 @@ because the local load left `$v1` to the `%hi`). `$v1` needs the *load itself*
 to target a pseudo that global-alloc places after local-alloc gave the `%hi`
 `$v0`: three statements `x = D; x++; D = x;` on a variable that lives in more
 than one block. In the tree that is the `switch` variable. The sibling
-`func_actor_450900_80131E38` stores its own switch variable into a flag
+`_actor450900CompanionDistressTask` stores its own switch variable into a flag
 (`sb s1`) after a join where cse no longer knows its value, so that
 programmer did keep using the state local inside `case 1`; that makes the
 three-statement form on the same local a defensible reading, not a proof.
@@ -152997,7 +152997,7 @@ unrelated statement between the last update and the copy. Check with
 `used N times` in `.lreg`. A side-effect store written after the value is
 computed and before `return` is an ordinary shape and is enough.
 
-## A counter alone in its block: the unfilled load stall says no argument move was in it (func_actor_450900_8013207C, 2026-10-07)
+## A counter alone in its block: the unfilled load stall says no argument move was in it (_actor450900PlayerReactionTask, 2026-10-07)
 
 Dated note on "Unresolved, with the fence and the register both pinned to
 their passes" (2026-10-06): the `SCHED_BARRIER()` is gone. Its measurements
@@ -153023,15 +153023,15 @@ a0,s2` is in each arm, and only `jal` / `move a3,zero` is shared.
 **Fix (fitted).**
 
 ```c
-value = D_actor_450900_80136C98;
-value++;
-D_actor_450900_80136C98 = value;
-if (value != 0) { taskMessageDispatch(slot, MSG, 0, 0); }
-else            { taskMessageDispatch(slot, MSG, 0, 0); }
+stateOrReactionCount = D_actor_450900_80136C98;
+stateOrReactionCount++;
+D_actor_450900_80136C98 = stateOrReactionCount;
+if (stateOrReactionCount != 0) { taskMessageDispatch(playerTask, MSG, 0, 0); }
+else            { taskMessageDispatch(playerTask, MSG, 0, 0); }
 ```
 
-jump2 cross-jumps the arms and drops the `beqz`. Any zero test of `value`
-matches (`> 0`, plain `value`, `(D = value) != 0`); `slot != NULL` does not
+jump2 cross-jumps the arms and drops the `beqz`. Any zero test of `stateOrReactionCount`
+matches (`> 0`, plain `stateOrReactionCount`, `(D = stateOrReactionCount) != 0`); `playerTask != NULL` does not
 (cse puts `a0 = 0` in one arm and the arms stay apart). The counter is written
 only here in the whole image, so a test on it is at least a reason for it to
 exist; what the original tested is not recoverable.
@@ -153040,11 +153040,11 @@ exist; what the original tested is not recoverable.
 ranks the `%hi` at 3 refs over 8 (half-insn units). A fresh `s32 count` with
 the same three statements and the same test is still block-local, because the
 branch that reads it ends the block: 5 refs over 4, takes `$v0`, `%hi` gets
-`$v1`. `D++`, `value = ++D`, `value = D + 1` load into a 2-ref temporary:
-same result, or (`value = D + 1`, `value += D`) the state variable itself
+`$v1`. `D++`, `stateOrReactionCount = ++D`, `stateOrReactionCount = D + 1` load into a 2-ref temporary:
+same result, or (`stateOrReactionCount = D + 1`, `stateOrReactionCount += D`) the state variable itself
 moves to `$a0`. Only a pseudo that is live in another block is left to
-global-alloc, which runs after the `%hi` has `$v0`: `value = D; value++; D =
-value;` or `value = D; D = ++value;` on the state local (8 refs over 9,
+global-alloc, which runs after the `%hi` has `$v0`: `stateOrReactionCount = D; stateOrReactionCount++; D =
+stateOrReactionCount;` or `stateOrReactionCount = D; D = ++stateOrReactionCount;` on the state local (8 refs over 9,
 global). So the reused local stays; fitted constructs 2 before (asm, reused
 local), 2 after (equal arms, reused local).
 

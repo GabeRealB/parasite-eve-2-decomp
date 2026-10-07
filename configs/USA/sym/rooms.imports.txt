@@ -485,7 +485,7 @@ gRoomEffectOrangeBurst2Id = 0x80115754; // absolute:True
 gRoomEffectFlashId = 0x80115758; // absolute:True
 actor160700RestoreMeetingAnimation = 0x80131E24; // type:func absolute:True owner=actor_160700 shared=actors
 func_actor_450800_80131E2C = 0x80131E2C; // type:func absolute:True owner=actor_450800
-func_actor_161500_80131E38 = 0x80131E38; // type:func absolute:True owner=actor_161500 shared=actors
+func_actor_161500_80131E38 = 0x80131E38; // type:func absolute:True owner=actor_161500
 actor160700StartMeetingScript = 0x80131E70; // type:func absolute:True owner=actor_160700
 func_actor_150400_80131FB8 = 0x80131FB8; // type:func absolute:True owner=actor_150400
 func_actor_161500_80131FBC = 0x80131FBC; // type:func absolute:True owner=actor_161500
@@ -502,7 +502,7 @@ func_actor_450200_801322F8 = 0x801322F8; // type:func absolute:True owner=actor_
 func_actor_161500_8013230C = 0x8013230C; // type:func absolute:True owner=actor_161500
 func_actor_460200_80132390 = 0x80132390; // type:func absolute:True owner=actor_460200
 func_actor_450900_801327A8 = 0x801327A8; // type:func absolute:True owner=actor_450900
-func_actor_450900_80132834 = 0x80132834; // type:func absolute:True owner=actor_450900
+actor450900HandleDepartureTrigger = 0x80132834; // type:func absolute:True owner=actor_450900
 D_actor_150400_80132D70 = 0x80132D70; // absolute:True owner=actor_150400
 func_actor_503500_80132F58 = 0x80132F58; // type:func absolute:True owner=actor_503500
 D_actor_150400_80133088 = 0x80133088; // absolute:True owner=actor_150400
