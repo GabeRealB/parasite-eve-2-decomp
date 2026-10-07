@@ -15,7 +15,7 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 |------|-------------|
 | Load addresses | `assets/USA/stages.json` (`type: room_pkg`, `load_addr`) |
 | File tree / ids | `tools/peassets/asset_data.py` (`TREE`) |
-| CD file lookup | `src/main/fs.c` (`Fs_LoadFile`, `Fs_InitStage0TablesCb`) |
+| CD file lookup | `src/main/fs.c` (`Fs_LoadFile`, `_fsStage0HeaderReadyCallback`) |
 | Room enter | `src/main/stage.c` (`Display_TaskLoadStep`), `src/main/loadui.c` (`cdCmdEnqueueDisplayResource`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
 | Model stream | `_tmdResolveSourceDrawHandlers` / `tmdBuildBufferHalf` |

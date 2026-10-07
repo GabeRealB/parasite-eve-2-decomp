@@ -121,7 +121,15 @@ void fsInitFolderTable(s32 unusedStageIndex);
 
 void Fs_SelectStage(s32 stageIdx);
 
-void Fs_InitStage0Tables(void);
+/// Starts rebuilding the STAGE0 file/stream tables from its HED asynchronously.
+///
+/// Requires sector-header mode, the ISO scan's HED and STAGE0.CDF sectors,
+/// and no competing transfer.
+/// Resets append counts without clearing table storage, then reads until the
+/// HED terminator. Poll `Fs_CdOpStatus` for completion (0xFF) or restart (0x80).
+/// Records must fit wholly within a sector and their destination table; indexed
+/// file IDs and compact sector offsets must fit their table/halfword domains.
+void fsStartStage0HeaderRead(void);
 
 /// Blocks until a CD command completes, recovering a disc error if necessary.
 ///
@@ -206,7 +214,13 @@ void Fs_StepBootImage(void);
 
 void Fs_RetryReadN(void);
 
-void Fs_CheckReadTimeout(void);
+/// Aborts a pending seek/read after more than 180 VBlanks without progress.
+///
+/// Applies to the ordinary pending state (0) and a chunk read being resumed
+/// (0x41). Uses the absolute VSync counter, not rendered frames. Selects request
+/// restart (0x80), flushes the drive, releases sound-load state, removes both CD
+/// callbacks and waits for pause completion. Does not increment the error count.
+void fsAbortTimedOutOperation(void);
 
 /// Boot-image / CD load setup (src/main/bootload.c).
 void Fs_SetupBootLoad(void);

@@ -1357,7 +1357,7 @@ Category tables:
 |---|---|
 | `0x21` | Load CDF file by packed id |
 | `0x54` | Select / mount stage CDF (`Fs_SelectStage`) |
-| `0x55` | Parse `STAGE0.HED` (`Fs_InitStage0Tables`) |
+| `0x55` | Start reading `STAGE0.HED` (`fsStartStage0HeaderRead`) |
 | `0x81` / `0x82` | Stream / audio related |
 
 ## What not to do

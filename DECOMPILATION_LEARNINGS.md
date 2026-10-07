@@ -9391,7 +9391,7 @@ splits into clusters that *look* independent. They often are not: applying the
 obvious fix to one cluster in isolation can score worse than leaving it alone,
 because it perturbs allocation everywhere else.
 
-Concretely, while matching `Fs_InitStage0TablesCb` the fix for one cluster
+Concretely, while matching `_fsStage0HeaderReadyCallback` the fix for one cluster
 (a value being reloaded rather than cached) scored worse every time it was
 applied alone — and then became unnecessary, because an unrelated change
 elsewhere (hoisting an assignment above a test) made the cluster disappear on
@@ -11000,7 +11000,7 @@ end:
 
 Error sites earlier in the function `goto on_error`; soft-error sites that
 must not share the `jal` call `F(2)` then `goto end` (or `return`). Same idea
-as `Fs_InitStage0TablesCb`, used for `Fs_CdReadyCb`.
+as `_fsStage0HeaderReadyCallback`, used for `Fs_CdReadyCb`.
 
 ## Empty body with a pure stack frame (`addiu sp` / `addiu sp` / `jr ra`)
 
@@ -22493,31 +22493,31 @@ register u8 flag asm("t1") = 0;
 }
 ```
 
-`Fs_InitStage0TablesCb` is the pure example — the rest of the function already
+`_fsStage0HeaderReadyCallback` is the pure example — the rest of the function already
 matched with `flag` in `$t1`, only the compare form was wrong.
 
 ## Fallback path: reload entry so `$a3`/`$a2` can be reused
 
-When an earlier `entry`/`entryValue` pair lives in `$t0`/`$a3` and a later
+When an earlier `fileRecord`/`fileId` pair lives in `$t0`/`$a3` and a later
 fallback must re-read the same sector word, reloading into fresh locals (and
 storing the *reloaded* id, not the old `fileId`) lets the allocator put the
 pointer in `$a3` and the value in `$a2` as the target does:
 
 ```c
-register u32 v asm("a2");
-words = sectorBuffer->words;
-v = words[(u16)headerOffset];
-if (v / 100000 != 0) {
-    register FsCdfFile* tbl asm("v1");
-    tbl = Fs_FileTable;          /* lui order: table before len */
-    i   = Fs_FileTableLen;
+u32 uncategorizedFileId;
+fileCursor = (FsCdfFile*)sectorBuffer->words;
+uncategorizedFileId = ((FsCdfFile*)&((u32*)fileCursor)[(u16)recordWordOffset])->fileId;
+if (uncategorizedFileId / FILE_SYSTEM_HED_FULL_FILE_ID_MIN != 0) {
+    u32 tableIndex;
+    fileCursor = Fs_FileTable;          /* lui order: table before len */
+    tableIndex = Fs_FileTableLen;
     Fs_FileTableLen++;
-    tbl[i].fileId       = v;     /* reloaded, not fileId */
-    tbl[i].sectorOffset = ((FsCdfFile*)&words[(u16)headerOffset])->sectorOffset;
+    fileCursor[tableIndex].fileId       = uncategorizedFileId; /* reloaded, not fileId */
+    fileCursor[tableIndex].sectorOffset = ((FsCdfFile*)&sectorBuffer->words[(u16)recordWordOffset])->sectorOffset;
 }
 ```
 
-Assigning `tbl = Fs_FileTable` *before* reading the length also fixes the
+Assigning `fileCursor = Fs_FileTable` *before* reading the length also fixes the
 `lui v1,table` / `lui a1,len` order for the generic file table.
 
 ## Cat tables: `_FsStage0CategoryFile*` first, then len (switch delay + lui order)
@@ -22528,19 +22528,19 @@ Target wants table-then-len for cases 1–3, and for case 4 it wants
 `lui v0,%hi(Fs_FileTableCat4)` in the switch-tree delay slot of
 `bnez …, case4` (with only `lui a1,len` left in the case body).
 
-Fix: pin a `_FsStage0CategoryFile*` (not `FsCdfFile*` — wrong 8-byte stride) in
-`$v0`, assign the flag early, then table then len:
+Fix: use a shared `_FsStage0CategoryFile*` (not `FsCdfFile*` — wrong 8-byte stride),
+which lands in `$v0`; assign the flag early, then table then len:
 
 ```c
 case 4: {
-    register _FsStage0CategoryFile* tbl asm("v0");
-    isValidCategory = true;       /* li t1,1 early — helps schedule */
-    tbl = Fs_FileTableCat4;       /* lui order: table before len;
-                                     %hi can fill the case4 delay slot */
-    i   = Fs_FileTableCat4Len;
+    u32 tableIndex;
+    categoryHandled = true;              /* li t1,1 early — helps schedule */
+    categoryTable = Fs_FileTableCat4;    /* lui order: table before len;
+                                           %hi can fill the case4 delay slot */
+    tableIndex = Fs_FileTableCat4Len;
     Fs_FileTableCat4Len++;
-    tbl[i].idInCategory = fileId - fileCategory * 10000;
-    tbl[i].sectorOffset = ((FsCdfFile*)entry)->sectorOffset; /* sector entry is full word */
+    categoryTable[tableIndex].idInCategory = fileId - fileCategory * FILE_SYSTEM_HED_FILE_CATEGORY_SCALE;
+    categoryTable[tableIndex].sectorOffset = fileRecord->sectorOffset; /* sector entry is full word */
     break;
 }
 ```
@@ -22548,7 +22548,7 @@ case 4: {
 Same pattern for cases 1–3. Using `FsCdfFile*` here silently switches to
 `sll …,0x3` / `sw` and tanks the match even when lui order is right.
 
-`Fs_InitStage0TablesCb` is the pure example (99.703% → 100% on this alone).
+`_fsStage0HeaderReadyCallback` is the pure example (99.703% → 100% on this alone).
 
 ## Fresh `lui` for a late store when `%hi` is live in `$s0`
 
@@ -142115,7 +142115,7 @@ A switch whose target shares one error tail between several cases was matched
 with gotos and some twenty asm blocks carrying the control flow. The sharing
 is GCC's cross-jumping (`jump.c`), which merges identical code at the end of
 branches: write each case out in full and let the compiler merge them. Which
-copy survives depends on how the paths leave: with `Fs_OnCdError(0); break;`
+copy survives depends on how the paths leave: with `_fsHandleCdError(FS_ERROR_SOFT); break;`
 the cases fold into the last case's copy as in the target, while `return 0;`
 keeps the first case's copy instead. Ordinary exits `break` to one return after
 the switch. When the target has one shared tail that several cases jump to,
@@ -142962,22 +142962,22 @@ amplitude is an `s16` local; with that type the function matches with plain
 `addPrim` and no loop construct. The phony loop reproduced a hoisting
 decision by a different route. See "A hoisted mask next to an in-loop
 `lui`: count the moves loop.c makes before it".
-### Pinned table pointers in `switch` arms are one variable assigned in every arm; the arm's index is its own block local (Fs_InitStage0TablesCb, 2026-09-26)
+### Pinned table pointers in `switch` arms are one variable assigned in every arm; the arm's index is its own block local (_fsStage0HeaderReadyCallback, 2026-09-26)
 
 **Symptom.** Inside a loop, each `case` appends to a different global table:
 `lui v0,%hi(Table); lui a1,%hi(Count); lbu a0,%lo(Count)(a1); addiu v0,v0,%lo(Table)`.
 The table's `lui` comes before the count's, the table address is not hoisted
-out of the loop, and the seed pinned a block-local `tbl` to `$v0` and the index
-to `$a0`. Written as `Table[n]` directly, the count loads first. That is because
+out of the loop, and the seed pinned a block-local `categoryTable` to `$v0` and the index
+to `$a0`. Written as `Table[tableIndex]` directly, the count loads first. That is because
 `ARRAY_REF` expands the index before the base, and both `lui`s tie in sched1:
 latency 1 puts both in class 3, and the tie falls to RTL order. A block-local
-`tbl = Table;` per arm puts the table first, but loop.c hoists it, since it is a
+`categoryTable = Table;` per arm puts the table first, but loop.c hoists it, since it is a
 user variable set once and used in the same block.
 
-**Fix.** Declare one `T* tbl;` at function scope and assign it in every arm.
+**Fix.** Declare one `T* categoryTable;` at function scope and assign it in every arm.
 With `n_times_set` above 1 it is not movable, so it stays in the arm, ahead of the
-count load. Give each arm its own `{ u32 n; n = Count; Count++; tbl[n]... }`.
-Reusing the function's loop counter for `n` keeps it live across blocks where
+count load. Give each arm its own `{ u32 tableIndex; tableIndex = Count; Count++; categoryTable[tableIndex]... }`.
+Reusing the function's loop counter for `tableIndex` keeps it live across blocks where
 local-alloc has already given `$a0` to arm temporaries, so it lands in `$a2`.
 
 **Not solved.** A lone arm with its own table type has nothing to share the
@@ -150498,7 +150498,7 @@ attempts; left as it was.
   order in the source is the block order in the image (`CdlDiskError` first).
 - **An error call at the end of the function, reached from two guards, with
   an in-loop exit block sitting between the second guard and the loop**
-  (`Fs_InitStage0TablesCb`: `beq ok; j on_error; <table_end block>; ok:`) is
+  (`_fsStage0HeaderReadyCallback`: `beq ok; j on_error; <table_end block>; ok:`) is
   `if (status != ERR) { ...; if (pos != want) { fail(); return; } ...loop
   with the exit written in place... } fail();`. loop.c moves the exit block
   out of the loop to the barrier behind the inner `fail(); return;`, and

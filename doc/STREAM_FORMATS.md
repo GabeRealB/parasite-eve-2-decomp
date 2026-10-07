@@ -12,7 +12,7 @@ and **seeks the CD** to feed hardware (SPU or MDEC) in real time.
 | Area | Code / tools |
 |------|----------------|
 | Descriptor struct | `include/main/stream_types.h` (`StreamSlot`), `tools/peassets/format.py` |
-| Runtime load of descriptors | `src/main/fs.c` (`fsBuildFolderTables`, `Fs_InitStage0TablesCb`) |
+| Runtime load of descriptors | `src/main/fs.c` (`fsBuildFolderTables`, `_fsStage0HeaderReadyCallback`) |
 | Movie play | `src/main/stream.c` (`Stream_*`, `Mdec_*`), `cdcmd.c` (cmd `0x61`) |
 | Audio play | `src/main/cdaudio.c`, `cdstream.c` (`CdStream_*`, `_MtsHeader`) |
 | MTS codec / extract | `mts_codec.py`, `extract.py` (also `extract_streams.py`) |
@@ -38,7 +38,8 @@ Each entry is **`0x28` bytes** (`StreamSlot` / peassets `STREAMING_LIST_ENTRY_SI
 
 Empty slots are all zeros. STAGE0 HED mixes streams with the file table using
 the high bit of the first word when scanned as a flat sector list (see
-`Fs_InitStage0TablesCb`: `fileId < 0` → stream).
+`_fsStage0HeaderReadyCallback`: after the `0xFFFFFFFF` terminator test,
+`(s32)fileId < 0` → stream).
 
 ### 1.2 Entry type
 

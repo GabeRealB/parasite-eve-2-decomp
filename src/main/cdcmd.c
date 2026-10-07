@@ -323,7 +323,7 @@ static void CdCmd_HandleFileLoad(void)
                 state->step = 1;
                 break;
             }
-            Fs_CheckReadTimeout();
+            fsAbortTimedOutOperation();
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
@@ -392,7 +392,7 @@ static void CdCmd_HandleFileLoad(void)
                 state->step = 4;
                 break;
             }
-            Fs_CheckReadTimeout();
+            fsAbortTimedOutOperation();
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
@@ -495,7 +495,7 @@ static void CdCmd_HandleMount(void)
                         state->step = 0;
                         return;
                     }
-                    Fs_CheckReadTimeout();
+                    fsAbortTimedOutOperation();
                     status = Fs_CdOpStatus;
                     switch (status) {
                         case 0x80:
@@ -591,7 +591,7 @@ static void CdCmd_HandleMount(void)
                     if (CdSync(1, NULL) == CdlDiskError) {
                         cdSyncWaitForReadableDisc(1);
                     }
-                    Fs_InitStage0Tables();
+                    fsStartStage0HeaderRead();
                     return;
                 case 0:
                 default:
