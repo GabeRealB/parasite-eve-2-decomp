@@ -395,6 +395,24 @@ enum {
     ACTOR_00400_ANIM_SWIM_STATUS_HOLD_ENTER = 14
 };
 
+/// Clip indices used by the crawl, recoil and swimming status hold.
+enum {
+    ACTOR_00400_ANIM_CRAWL                 = 4,
+    ACTOR_00400_ANIM_SWIM_RECOIL_LIGHT     = 10,
+    ACTOR_00400_ANIM_STRANDED_RECOIL_LIGHT = 12,
+    ACTOR_00400_ANIM_STRANDED_RECOIL_HEAVY = 13,
+    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP = 16,
+    ACTOR_00400_ANIM_SWIM_STATUS_HOLD_HIT  = 18
+};
+
+/// Placement-tagged sound scripts used by these movement and hit handlers.
+enum {
+    ACTOR_00400_SOUND_SWIM        = 0x40040001,
+    ACTOR_00400_SOUND_STRIDE_ODD  = 0x40040002,
+    ACTOR_00400_SOUND_STRIDE_EVEN = 0x40040003,
+    ACTOR_00400_SOUND_HIT         = 0x40040006
+};
+
 /// Sound-script instance tag: the diver's placement index occupies bits 8..15.
 enum { ACTOR_00400_SOUND_INSTANCE_SHIFT = 8 };
 
@@ -422,11 +440,11 @@ static void Actor00400_Fn06B7C(Task* arg0);
 static void Actor00400_Fn070C0(Task* arg0);
 static void _actor00400BlendRequestedClip(Task* task);
 static s16  _actor00400ScaleFramesForAnimRate(Task* task, s16 frames);
-static void Actor00400_Fn08814(Task* arg0);
+static void _actor00400TickAnimation(Task* task);
 static s16  _actor00400ClipEnded(Task* task);
 static void _actor00400CapturePartMidpointXZ(Task* task, s16 firstPartIndex, s16 secondPartIndex, SVECTOR* midpoint);
 static void _actor00400AlignPartMidpointXZ(Task* task, s16 firstPartIndex, s16 secondPartIndex, const SVECTOR* anchor);
-static void Actor00400_Fn060CC(Task* arg0);
+static void _actor00400SwimLightRecoilWait(Task* task);
 static void Actor00400_Fn097C8(Task* arg0);
 static void Actor00400_Fn06EA4(Task* arg0);
 static void Actor00400_Fn08ADC(Task* arg0);
@@ -435,29 +453,29 @@ static void Actor00400_Fn08B40(Task* arg0);
 static void Actor00400_Fn08B94(Task* arg0);
 static void Actor00400_Fn06F64(Task* arg0);
 static void Actor00400_Fn0A880(Task* arg0);
-static void Actor00400_Fn04900(Task* arg0);
+static void _actor00400StrandedLightRecoilWait(Task* task);
 static void Actor00400_Fn0A940(Task* arg0);
-static void Actor00400_Fn04A1C(Task* arg0);
+static void _actor00400StrandedHeavyRecoilWait(Task* task);
 static void Actor00400_Fn0A9F4(Task* arg0);
 static void Actor00400_Fn0AA40(Task* arg0);
-static void Actor00400_Fn0A3D4(Task* arg0);
+static void _actor00400ReleaseSurfaceSpot(Task* task);
 static void Actor00400_Fn0A414(Task* arg0);
 static void _actor00400SwimStatusHoldEnter(Task* task);
-static void Actor00400_Fn09924(Task* arg0);
+static void _actor00400SwimStatusHoldTick(Task* task);
 static s16  _actor00400ApplyHitReaction(Task* task);
 static void Actor00400_Fn0A5B8(Task* arg0);
 static void Actor00400_Fn019B4(Task* arg0);
 static void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3);
 static void _actor00400CopyRotation(const MATRIX* source, MATRIX* destination);
 
-static s32  Actor00400_Fn02208(Task* arg0);
+static s32  _actor00400SwimToNextWaypoint(Task* task);
 static void Actor00400_Fn0A680(Task* arg0);
 static void Actor00400_Fn0A6B0(Task* arg0);
 static void Actor00400_Fn0A704(Task* arg0);
 static void Actor00400_Fn0A760(Task* arg0);
 static void Actor00400_Fn0A7F0(Task* arg0);
 static void Actor00400_Fn0A82C(Task* arg0);
-static void Actor00400_Fn0A034(Task* arg0);
+static void _actor00400AwaitFightCue(Task* task);
 static void Actor00400_Fn0A510(Task* arg0);
 static void Actor00400_Fn0A57C(Task* arg0);
 
@@ -515,13 +533,13 @@ static void _actor00400TunnelPatrolEnter(Task* task);
 static void _actor00400TunnelPatrolWaitForCue(Task* task);
 static void _actor00400TunnelIntroEnter(Task* task);
 static void _actor00400TunnelIntroWaitForSwim(Task* task);
-static void Actor00400_Fn09B74(Task* arg0);
+static void _actor00400TunnelIntroSwim(Task* task);
 static void _actor00400TunnelIntroWaitForPatrol(Task* task);
 static void Actor00400_Fn09C04(Task* arg0);
 static void Actor00400_Fn09C84(Task* arg0);
 static void _actor00400RoomIntroEnter(Task* task);
 static void _actor00400RoomIntroWaitForSwim(Task* task);
-static void Actor00400_Fn09D98(Task* arg0);
+static void _actor00400RoomIntroSwim(Task* task);
 static void _actor00400RoomIntroWaitForSurface(Task* task);
 static void _actor00400RoomIntroWaitAfterDischarge(Task* task);
 static void _actor00400RoomIntroWaitForFight(Task* task);
@@ -1300,9 +1318,9 @@ static void Actor00400_Fn058C4(Task* arg0);
 
 static void            Actor00400_Fn00A14(Task* arg0);
 static void            Actor00400_Fn00B48(Task* arg0);
-static void            Actor00400_Fn00C84(Task* arg0);
-static void            Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2);
-static void            Actor00400_Fn01454(Task* arg0);
+static void            _actor00400CrawlStride(Task* task);
+static void            _actor00400DrawLimbShadows(Task* actor, s16 worldY, u8 shade);
+static void            _actor00400UpdatePartyTarget(Task* task);
 static void            Actor00400_Fn016A4(Task* arg0, s32 arg1);
 static void            Actor00400_Fn01B90(Task* arg0);
 static void            Actor00400_Fn02D48(Task* arg0);
@@ -1322,7 +1340,7 @@ static void            Actor00400_Fn061E8(Task* arg0);
 static void            Actor00400_Fn06380(Task* arg0);
 static inline void     Actor00400_SpawnMarker(Task* arg0);
 static void            Actor00400_Fn064B0(Task* arg0);
-static void            Actor00400_Fn06798(Task* arg0);
+static void            _actor00400TunnelPatrolSwim(Task* task);
 static void            _actor00400RoomIntroBeginDischarge(Task* task);
 static inline s32      _actor00400ConsumeWoundedHitReaction(_Actor00400Work* work);
 static void            Actor00400_Fn07400(Task* arg0);
@@ -1400,140 +1418,188 @@ static void Actor00400_Fn00B48(Task* arg0)
     work->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }
 
-static void Actor00400_Fn00C84(Task* arg0)
+/// Consumes a pending clip request and ticks body slots 1..14.
+///
+/// Requires a live initialized rig. A blend resets the frame counter on a new
+/// clip, or rescales it on a repeated clip; RESET restarts the requested clip
+/// and clears the counter. Both become PLAYING. A PLAYING tick increments the
+/// signed halfword counter. Other request values still tick the body slots.
+/// Leaves the slot-1 status in the rig for the frame driver to publish.
+static inline void _actor00400AdvanceAnimation(Task* task)
 {
+    _Actor00400Work* work;
+    s32              slotIndex;
+
+    work = task->work;
+    if (work->animRequest == DIVER_ANIM_REQUEST_BLEND) {
+        if (work->animPlaying != work->animClip) {
+            work->animFrames = 0;
+        } else {
+            work->animFrames = _actor00400ScaleFramesForAnimRate(task, work->animFrames);
+        }
+        _actor00400BlendRequestedClip(task);
+        work->animRequest = DIVER_ANIM_REQUEST_PLAYING;
+    } else if (work->animRequest == DIVER_ANIM_REQUEST_RESET) {
+        _diverRestartClip(task);
+        work->animRequest = DIVER_ANIM_REQUEST_PLAYING;
+        work->animFrames  = 0;
+    } else if (work->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
+        work->animFrames++;
+    }
+    slotIndex = 1;
+    do {
+        animationTickSlot(&work->rig.anim, slotIndex);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
+}
+
+/// Advances a crawl stride while keeping the arm tips anchored in XZ.
+///
+/// Requires a live diver rig, enemy and player task. Starts the crawl clip at
+/// double rate when needed. A boundary, jump or settled status resets the
+/// frame counter; a zero frame captures the midpoint and alternates the stride
+/// sounds. Through the rate-scaled frame
+/// 57 (narrowed to a byte), turns toward the player and restores that midpoint.
+/// Positions use the root's view-parent space; the root is marked dirty.
+static void _actor00400CrawlStride(Task* task)
+{
+    enum { ACTOR_00400_CRAWL_ANCHOR_LAST_NORMAL_FRAME = 57,
+           ACTOR_00400_CRAWL_FIRST_ARM_TIP            = 11,
+           ACTOR_00400_CRAWL_SECOND_ARM_TIP           = 14 };
     Task*            actor;
     Task*            player;
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        pc;
-    SVECTOR          pos;
-    u8               frame;
+    GfxCoord*        rootCoord;
+    GfxCoord*        playerRoot;
+    SVECTOR          playerPosition;
+    u8               anchorEndFrame;
 
-    actor  = arg0;
-    player = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    work   = actor->work;
-    coord  = actor->extra.tmd->coords;
-    if (work->animClip != 4) {
-        _actor00400RequestClipBlend(actor, 4, 0x20, 0xA);
-        Actor00400_Fn08814(actor);
+    actor     = task;
+    player    = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    work      = actor->work;
+    rootCoord = actor->extra.tmd->coords;
+    if (work->animClip != ACTOR_00400_ANIM_CRAWL) {
+        _actor00400RequestClipBlend(actor, ACTOR_00400_ANIM_CRAWL, ANIMATION_RATE_ONE * 2, 10);
+        _actor00400TickAnimation(actor);
     }
-    frame = _actor00400ScaleFramesForAnimRate(actor, 0x39);
+    anchorEndFrame = _actor00400ScaleFramesForAnimRate(actor, ACTOR_00400_CRAWL_ANCHOR_LAST_NORMAL_FRAME);
     if (_actor00400ClipEnded(actor)) {
         work->animFrames = 0;
     }
+    // Each stride fixes the arm-tip midpoint before turning the body around it.
     if (work->animFrames == 0) {
-        _actor00400CapturePartMidpointXZ(actor, 0xB, 0xE, &work->armAnchor);
+        _actor00400CapturePartMidpointXZ(actor, ACTOR_00400_CRAWL_FIRST_ARM_TIP, ACTOR_00400_CRAWL_SECOND_ARM_TIP, &work->armAnchor);
         if (work->strideCount & 1) {
-            s32 id  = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040002;
-            s32 pan = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
+            s32 soundId   = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_STRIDE_ODD;
+            s32 panOffset = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
         } else {
-            s32 id  = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040003;
-            s32 pan = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
+            s32 soundId   = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_STRIDE_EVEN;
+            s32 panOffset = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(actor->extra.tmd->coords));
         }
         work->strideCount++;
     }
-    if (work->animFrames >= 0 && frame >= work->animFrames) {
-        pc     = player->extra.tmd->coords;
-        pos.vx = pc->coord.t[0];
-        pos.vy = pc->coord.t[1];
-        pos.vz = pc->coord.t[2];
-        _actor00400TurnTowardPointMaskedRange(actor, &pos, 8, 0x100);
-        _actor00400AlignPartMidpointXZ(actor, 0xB, 0xE, &work->armAnchor);
+    if (work->animFrames >= 0 && anchorEndFrame >= work->animFrames) {
+        playerRoot        = player->extra.tmd->coords;
+        playerPosition.vx = playerRoot->coord.t[0];
+        playerPosition.vy = playerRoot->coord.t[1];
+        playerPosition.vz = playerRoot->coord.t[2];
+        _actor00400TurnTowardPointMaskedRange(actor, &playerPosition, 8, 0x100);
+        _actor00400AlignPartMidpointXZ(actor, ACTOR_00400_CRAWL_FIRST_ARM_TIP, ACTOR_00400_CRAWL_SECOND_ARM_TIP, &work->armAnchor);
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 #include "../../shared/limb_shadows_segment.inc.c"
 
-static void Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2)
+/// Draws thirteen limb-shadow segments of the diver's fifteen-part rig.
+///
+/// Requires the live model coordinates. `worldY` fixes the horizontal shadow
+/// plane in game-coordinate units; `shade` is an eight-bit subtractive intensity.
+/// Each segment uses its own fixed half-width and the shared blob texture.
+static void _actor00400DrawLimbShadows(Task* actor, s16 worldY, u8 shade)
 {
-    s32 temp_s2;
-
-    temp_s2 = arg2 & 0xFF;
-    _limbShadowDrawSegment(arg0, 1, 2, 0x258, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 2, 3, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 3, 4, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 4, 5, 0x1F4, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 1, 6, 0x320, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 6, 7, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 7, 8, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 1, 0xC, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 0xC, 0xD, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 0xD, 0xE, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 1, 9, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 9, 0xA, 0x12C, arg1, temp_s2);
-    _limbShadowDrawSegment(arg0, 0xA, 0xB, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(actor, 1, 2, 0x258, worldY, shade);
+    _limbShadowDrawSegment(actor, 2, 3, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 3, 4, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 4, 5, 0x1F4, worldY, shade);
+    _limbShadowDrawSegment(actor, 1, 6, 0x320, worldY, shade);
+    _limbShadowDrawSegment(actor, 6, 7, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 7, 8, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 1, 0xC, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 0xC, 0xD, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 0xD, 0xE, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 1, 9, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 9, 0xA, 0x12C, worldY, shade);
+    _limbShadowDrawSegment(actor, 0xA, 0xB, 0x12C, worldY, shade);
 }
 
-/* Tracks the nearer of the two party members and stores the result in the
-   actor's work block.
-
-   `prevRootPos` snapshots the actor's own root translation. The
-   second coordinate's origin (`coord[1]`) is taken into world space and
-   each slot's root translation measured against it; the closer of the two
-   lands in `targetPos` with its XZ distance in `targetDistance`. The chosen
-   offset is then normalised and turned into a yaw relative to the actor's
-   own heading (`rotation.vy`) in `targetBearing`. */
-static void Actor00400_Fn01454(Task* arg0)
+/// Saves the frame's root position and tracks the nearer party member.
+///
+/// Measures XZ distance from the trunk's world origin to the player and live
+/// companion roots; ties select the player. Caches the chosen XYZ, signed
+/// halfword distance and relative yaw (4096 units per turn, wrapped to 0..4095).
+/// Offsets narrow to signed halfwords before measurement. With no player,
+/// target fields are preserved; the root snapshot is still refreshed.
+static void _actor00400UpdatePartyTarget(Task* task)
 {
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        c0;
-    GfxCoord*        c1;
+    GfxCoord*        rootCoord;
+    GfxCoord*        playerRoot;
+    GfxCoord*        companionRoot;
     Task*            player;
-    GfxCoord*        joint;
-    SVECTOR          delta0;
-    SVECTOR          delta1;
+    GfxCoord*        trunkCoord;
+    SVECTOR          targetOffset;
+    SVECTOR          companionOffset;
     SVECTOR          jointWorldPosition;
-    s32              dist0;
-    s32              dist1;
+    s32              targetDistance;
+    s32              companionDistance;
 
-    work                 = arg0->work;
-    coord                = arg0->extra.tmd->coords;
+    work                 = task->work;
+    rootCoord            = task->extra.tmd->coords;
     player               = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    joint                = &coord[1];
-    work->prevRootPos.vx = coord->coord.t[0];
-    work->prevRootPos.vy = coord->coord.t[1];
-    work->prevRootPos.vz = coord->coord.t[2];
+    trunkCoord           = &rootCoord[1];
+    work->prevRootPos.vx = rootCoord->coord.t[0];
+    work->prevRootPos.vy = rootCoord->coord.t[1];
+    work->prevRootPos.vz = rootCoord->coord.t[2];
+    // Measure both roots from the trunk origin; ties retain the player.
     if (player != NULL) {
-        c0                    = player->extra.tmd->coords;
+        playerRoot            = player->extra.tmd->coords;
         jointWorldPosition.vx = 0;
         jointWorldPosition.vy = 0;
         jointWorldPosition.vz = 0;
-        _actorRenderTransformPointToWorld(joint, &jointWorldPosition);
-        delta0.vx = c0->coord.t[0] - jointWorldPosition.vx;
-        delta0.vy = c0->coord.t[1] - jointWorldPosition.vy;
-        delta0.vz = c0->coord.t[2] - jointWorldPosition.vz;
-        dist0     = SquareRoot0(delta0.vx * delta0.vx + delta0.vz * delta0.vz);
+        _actorRenderTransformPointToWorld(trunkCoord, &jointWorldPosition);
+        targetOffset.vx = playerRoot->coord.t[0] - jointWorldPosition.vx;
+        targetOffset.vy = playerRoot->coord.t[1] - jointWorldPosition.vy;
+        targetOffset.vz = playerRoot->coord.t[2] - jointWorldPosition.vz;
+        targetDistance  = SquareRoot0(targetOffset.vx * targetOffset.vx + targetOffset.vz * targetOffset.vz);
         if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] == NULL) {
-            work->targetPos.vx   = c0->coord.t[0];
-            work->targetPos.vy   = c0->coord.t[1];
-            work->targetPos.vz   = c0->coord.t[2];
-            work->targetDistance = dist0;
+            work->targetPos.vx   = playerRoot->coord.t[0];
+            work->targetPos.vy   = playerRoot->coord.t[1];
+            work->targetPos.vz   = playerRoot->coord.t[2];
+            work->targetDistance = targetDistance;
         } else {
-            c1        = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
-            delta1.vx = c1->coord.t[0] - jointWorldPosition.vx;
-            delta1.vy = c1->coord.t[1] - jointWorldPosition.vy;
-            delta1.vz = c1->coord.t[2] - jointWorldPosition.vz;
-            dist1     = SquareRoot0(delta1.vx * delta1.vx + delta1.vz * delta1.vz);
-            if (dist1 < dist0) {
-                work->targetPos.vx = c1->coord.t[0];
-                work->targetPos.vy = c1->coord.t[1];
-                work->targetPos.vz = c1->coord.t[2];
-                delta0             = delta1;
-                dist0              = dist1;
+            companionRoot      = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
+            companionOffset.vx = companionRoot->coord.t[0] - jointWorldPosition.vx;
+            companionOffset.vy = companionRoot->coord.t[1] - jointWorldPosition.vy;
+            companionOffset.vz = companionRoot->coord.t[2] - jointWorldPosition.vz;
+            companionDistance  = SquareRoot0(companionOffset.vx * companionOffset.vx + companionOffset.vz * companionOffset.vz);
+            if (companionDistance < targetDistance) {
+                work->targetPos.vx = companionRoot->coord.t[0];
+                work->targetPos.vy = companionRoot->coord.t[1];
+                work->targetPos.vz = companionRoot->coord.t[2];
+                targetOffset       = companionOffset;
+                targetDistance     = companionDistance;
             } else {
-                work->targetPos.vx = c0->coord.t[0];
-                work->targetPos.vy = c0->coord.t[1];
-                work->targetPos.vz = c0->coord.t[2];
+                work->targetPos.vx = playerRoot->coord.t[0];
+                work->targetPos.vy = playerRoot->coord.t[1];
+                work->targetPos.vz = playerRoot->coord.t[2];
             }
-            work->targetDistance = dist0;
+            work->targetDistance = targetDistance;
         }
-        VectorNormalSS(&delta0, &delta0);
-        work->targetBearing = (ratan2(delta0.vx, delta0.vz) - work->rotation.vy) & 0xFFF;
+        VectorNormalSS(&targetOffset, &targetOffset);
+        work->targetBearing = (ratan2(targetOffset.vx, targetOffset.vz) - work->rotation.vy) & (ACTOR_TRANSFORM_ANGLE_TURN - 1);
     }
 }
 
@@ -1911,28 +1977,37 @@ static s16 _actor00400ApplyHitReaction(Task* task)
     return 0;
 }
 
-static s32 Actor00400_Fn02208(Task* arg0)
+/// Swims toward a patrol waypoint and reports when its XZ arrival radius is met.
+///
+/// Requires a live root and an eight-entry borrowed waypoint ring, index 0..7.
+/// Requests the normal swim clip and black colouring on a clip change. Sets
+/// goal Y to waypoint depth plus water level. A signed-halfword XZ distance
+/// below 400 advances the ring and returns 1; otherwise turns and steps 96
+/// coordinate units along the heading, returning 0. Height is eased elsewhere.
+static s32 _actor00400SwimToNextWaypoint(Task* task)
 {
+    enum { ACTOR_00400_PATROL_ARRIVAL_RADIUS = 400,
+           ACTOR_00400_WAYPOINT_INDEX_MASK   = 7 };
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    SVECTOR          vec;
+    GfxCoord*        rootCoord;
+    SVECTOR          waypointOffset;
 
-    work   = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = (u16)work->waypoints[work->waypointIndex].vx - coord->coord.t[0];
-    vec.vy = (u16)work->waypoints[work->waypointIndex].vy - coord->coord.t[1];
-    vec.vz = (u16)work->waypoints[work->waypointIndex].vz - coord->coord.t[2];
-    if (work->animClip != 3) {
-        _actor00400RequestClipBlend(arg0, 3, ANIMATION_RATE_ONE, 0xE);
-        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    work              = task->work;
+    rootCoord         = task->extra.tmd->coords;
+    waypointOffset.vx = (u16)work->waypoints[work->waypointIndex].vx - rootCoord->coord.t[0];
+    waypointOffset.vy = (u16)work->waypoints[work->waypointIndex].vy - rootCoord->coord.t[1];
+    waypointOffset.vz = (u16)work->waypoints[work->waypointIndex].vz - rootCoord->coord.t[2];
+    if (work->animClip != ACTOR_00400_ANIM_SWIM) {
+        _actor00400RequestClipBlend(task, ACTOR_00400_ANIM_SWIM, ANIMATION_RATE_ONE, 14);
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
     work->goalY = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
-    if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 400) {
-        work->waypointIndex = (work->waypointIndex + 1) & 7;
+    if ((s16)SquareRoot0(waypointOffset.vx * waypointOffset.vx + waypointOffset.vz * waypointOffset.vz) < ACTOR_00400_PATROL_ARRIVAL_RADIUS) {
+        work->waypointIndex = (work->waypointIndex + 1) & ACTOR_00400_WAYPOINT_INDEX_MASK;
         return 1;
     } else {
-        _actor00400TurnTowardPointMaskedRange(arg0, &work->waypoints[work->waypointIndex], 0x2C, 0x100);
-        _diverStepForward(arg0, 0x60, work->rotation.vy);
+        _actor00400TurnTowardPointMaskedRange(task, &work->waypoints[work->waypointIndex], 0x2C, 0x100);
+        _diverStepForward(task, 0x60, work->rotation.vy);
         return 0;
     }
 }
@@ -3009,7 +3084,7 @@ static void Actor00400_Fn04580(Task* arg0)
             }
             work->bobPhase++;
             work->frameCount++;
-            Actor00400_Fn01454(arg0);
+            _actor00400UpdatePartyTarget(arg0);
             fns.funcs[work->state](arg0);
             Actor00400_Fn00A14(arg0);
             w = arg0->work;
@@ -3063,61 +3138,70 @@ static void Actor00400_Fn04580(Task* arg0)
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             _actor00400UpdateModelColor(arg0, &ctx2->coords[1], work2, ctx2);
-            Actor00400_Fn012B0(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
+            _actor00400DrawLimbShadows(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
             ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
 
-static void Actor00400_Fn04900(Task* arg0)
+/// Holds the stranded light recoil, restarting it on another light hit.
+///
+/// Requires the live rig and enemy. A repeated light hit queues a normal-rate
+/// restart and its sound, preserving the pending reaction on that early return.
+/// Otherwise consumes hit reactions; without a state change, a clip boundary,
+/// jump or settled pose selects the stranded decision state.
+static void _actor00400StrandedLightRecoilWait(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* work2;
-    s32              id;
+    _Actor00400Work* nextStateWork;
+    s32              soundId;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_LIGHT) {
         work->animStep    = ANIMATION_RATE_ONE;
-        work->animClip    = 0xC;
+        work->animClip    = ACTOR_00400_ANIM_STRANDED_RECOIL_LIGHT;
         work->animRequest = DIVER_ANIM_REQUEST_RESET;
-        id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-        sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        soundId           = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_HIT;
+        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
+                                 (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         return;
     }
-    if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        if (_diverClipHasBoundaryOrJump(arg0)) {
-            work2           = arg0->work;
-            work2->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
-            work2->subState = 0;
+    if ((_actor00400ApplyHitReaction(task) << 0x10) == 0) {
+        if (_diverClipHasBoundaryOrJump(task)) {
+            nextStateWork           = task->work;
+            nextStateWork->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
+            nextStateWork->subState = 0;
         }
     }
 }
 
-static void Actor00400_Fn04A1C(Task* arg0)
+/// Holds the stranded heavy recoil, blending back into it on another heavy hit.
+///
+/// Requires the live rig and enemy. A repeated heavy hit plays its sound and
+/// queues a six-frame normal-rate blend, preserving the reaction on return.
+/// Other reactions may change state; otherwise a clip boundary, jump or settled
+/// pose returns to the stranded decision state.
+static void _actor00400StrandedHeavyRecoilWait(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* work2;
-    _Actor00400Work* work3;
-    s32              id;
+    _Actor00400Work* animWork;
+    _Actor00400Work* nextStateWork;
+    s32              soundId;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_HEAVY) {
-        id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-        sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work2              = arg0->work;
-        work2->animBlend   = 6;
-        work2->animStep    = ANIMATION_RATE_ONE;
-        work2->animClip    = 0xD;
-        work2->animRequest = DIVER_ANIM_REQUEST_BLEND;
+        soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_HIT;
+        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
+                                 (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        animWork = task->work;
+        _diverRequestClipBlend(animWork, ACTOR_00400_ANIM_STRANDED_RECOIL_HEAVY, ANIMATION_RATE_ONE, 6);
         return;
     }
-    if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        if (_diverClipHasBoundaryOrJump(arg0)) {
-            work3           = arg0->work;
-            work3->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
-            work3->subState = 0;
+    if ((_actor00400ApplyHitReaction(task) << 0x10) == 0) {
+        if (_diverClipHasBoundaryOrJump(task)) {
+            nextStateWork           = task->work;
+            nextStateWork->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
+            nextStateWork->subState = 0;
         }
     }
 }
@@ -3168,7 +3252,7 @@ static void Actor00400_Fn04B48(Task* arg0)
             work2 = arg0->work;
             coord = &ctx2->coords[1];
             _actor00400UpdateModelColor(arg0, coord, work2, ctx2);
-            Actor00400_Fn012B0(arg0, arg0->extra.tmd->coords->coord.t[1], (u8)work->shadowShade);
+            _actor00400DrawLimbShadows(arg0, arg0->extra.tmd->coords->coord.t[1], work->shadowShade);
             break;
     }
 }
@@ -3312,7 +3396,7 @@ static void Actor00400_Fn04E18(Task* arg0)
             }
             work->bobPhase++;
             work->frameCount++;
-            Actor00400_Fn01454(arg0);
+            _actor00400UpdatePartyTarget(arg0);
             fns.funcs[work->state](arg0);
             Actor00400_Fn00A14(arg0);
             wA = arg0->work;
@@ -3716,27 +3800,33 @@ static void Actor00400_Fn05EA4(Task* arg0)
     }
 }
 
-static void Actor00400_Fn060CC(Task* arg0)
+/// Holds the swimming light recoil, restarting it on another light hit.
+///
+/// Requires the live rig and enemy. A repeated light hit queues a double-rate
+/// restart and its sound, preserving the pending reaction on that early return.
+/// Other reactions may change state; otherwise a clip boundary, jump or settled
+/// pose returns to the swimming decision state.
+static void _actor00400SwimLightRecoilWait(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* work2;
-    s32              id;
+    _Actor00400Work* nextStateWork;
+    s32              soundId;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitTaken != 0 && work->hitReaction == ACTOR_00400_HIT_REACTION_LIGHT) {
-        work->animStep    = 0x20;
-        work->animClip    = 0xA;
+        work->animStep    = ANIMATION_RATE_ONE * 2;
+        work->animClip    = ACTOR_00400_ANIM_SWIM_RECOIL_LIGHT;
         work->animRequest = DIVER_ANIM_REQUEST_RESET;
-        id                = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-        sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        soundId           = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_HIT;
+        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
+                                 (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         return;
     }
-    if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        if (_diverClipHasBoundaryOrJump(arg0)) {
-            work2           = arg0->work;
-            work2->state    = ACTOR_00400_SWIM_STATE_DECIDE;
-            work2->subState = 0;
+    if ((_actor00400ApplyHitReaction(task) << 0x10) == 0) {
+        if (_diverClipHasBoundaryOrJump(task)) {
+            nextStateWork           = task->work;
+            nextStateWork->state    = ACTOR_00400_SWIM_STATE_DECIDE;
+            nextStateWork->subState = 0;
         }
     }
 }
@@ -3884,71 +3974,53 @@ static void Actor00400_Fn064B0(Task* arg0)
     }
 }
 
-static void Actor00400_Fn06798(Task* arg0)
+/// Circles the tunnel's eight patrol waypoints without entering combat.
+///
+/// Requires the live diver rig and borrowed waypoint ring, index 0..7. Sets
+/// goal Y directly from the waypoint, without a water-level offset. A signed
+/// halfword XZ distance below 1000 advances the ring and ends this tick.
+/// Otherwise starts and immediately ticks the normal swim clip if needed,
+/// turns toward the waypoint, steps 96 coordinate units and selects black colouring.
+static void _actor00400TunnelPatrolSwim(Task* task)
 {
+    enum { ACTOR_00400_TUNNEL_PATROL_ARRIVAL_RADIUS = 1000,
+           ACTOR_00400_WAYPOINT_INDEX_MASK          = 7 };
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    SVECTOR          vec;
+    GfxCoord*        rootCoord;
+    SVECTOR          waypointOffset;
 
-    work   = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = (u16)work->waypoints[work->waypointIndex].vx - coord->coord.t[0];
-    vec.vy = (u16)work->waypoints[work->waypointIndex].vy - coord->coord.t[1];
-    vec.vz = (u16)work->waypoints[work->waypointIndex].vz - coord->coord.t[2];
+    work              = task->work;
+    rootCoord         = task->extra.tmd->coords;
+    waypointOffset.vx = (u16)work->waypoints[work->waypointIndex].vx - rootCoord->coord.t[0];
+    waypointOffset.vy = (u16)work->waypoints[work->waypointIndex].vy - rootCoord->coord.t[1];
+    waypointOffset.vz = (u16)work->waypoints[work->waypointIndex].vz - rootCoord->coord.t[2];
 
     work->goalY = (u16)work->waypoints[work->waypointIndex].vy;
-    if ((s16)SquareRoot0(vec.vx * vec.vx + vec.vz * vec.vz) < 1000) {
-        work->waypointIndex = (work->waypointIndex + 1) & 7;
+    if ((s16)SquareRoot0(waypointOffset.vx * waypointOffset.vx + waypointOffset.vz * waypointOffset.vz) < ACTOR_00400_TUNNEL_PATROL_ARRIVAL_RADIUS) {
+        work->waypointIndex = (work->waypointIndex + 1) & ACTOR_00400_WAYPOINT_INDEX_MASK;
         return;
     }
-    if (work->animClip != 3) {
-        _Actor00400Work* w;
-        _Actor00400Work* a;
-        s32              i;
+    if (work->animClip != ACTOR_00400_ANIM_SWIM) {
+        _Actor00400Work* requestWork;
 
-        w              = arg0->work;
-        w->animBlend   = 10;
-        w->animStep    = ANIMATION_RATE_ONE;
-        w->animClip    = 3;
-        w->animRequest = DIVER_ANIM_REQUEST_BLEND;
-
-        a = arg0->work;
-        if (a->animRequest == DIVER_ANIM_REQUEST_BLEND) {
-            if (a->animPlaying != a->animClip) {
-                a->animFrames = 0;
-            } else {
-                a->animFrames = _actor00400ScaleFramesForAnimRate(arg0, a->animFrames);
-            }
-            _actor00400BlendRequestedClip(arg0);
-            a->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-        } else if (a->animRequest == DIVER_ANIM_REQUEST_RESET) {
-            _diverRestartClip(arg0);
-            a->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-            a->animFrames  = 0;
-        } else if (a->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
-            a->animFrames++;
-        }
-        i = 1;
-        do {
-            animationTickSlot(&a->rig.anim, i);
-            i++;
-        } while (i < ARRAY_SIZE(a->rig.slots));
+        requestWork = task->work;
+        _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_SWIM, ANIMATION_RATE_ONE, 10);
+        // Apply the new swim pose before turning and moving this frame.
+        _actor00400AdvanceAnimation(task);
     }
-    _actor00400TurnTowardPoint(arg0, &work->waypoints[work->waypointIndex], 0x2C, 0x100);
-    _diverStepForward(arg0, 0x60, work->rotation.vy);
-    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    _actor00400TurnTowardPoint(task, &work->waypoints[work->waypointIndex], 0x2C, 0x100);
+    _diverStepForward(task, 0x60, work->rotation.vy);
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
 }
 
-/// Requests a normal-rate clip transition over `blendFrames` normal frames.
+/// Queues a body-clip blend at the normal playback rate.
 ///
-/// Borrows the live work block. The clip must name a loaded set for every body
-/// slot; the animation driver applies and acknowledges the request later.
+/// Borrows the live work block. `clipIndex` must select a loaded clip for slots
+/// 1..14; `blendFrames` is in normal-rate frames, with 0..2047 keeping the blend
+/// duration nonnegative. A later request replaces it; no slots are ticked here.
 static inline void _actor00400RequestNormalClipBlend(_Actor00400Work* work, s16 clipIndex, s16 blendFrames)
 {
-    work->animBlend   = blendFrames;
-    work->animStep    = ANIMATION_RATE_ONE;
-    work->animClip    = clipIndex;
-    work->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    _diverRequestClipBlend(work, clipIndex, ANIMATION_RATE_ONE, blendFrames);
 }
 
 /// Starts the scripted room-introduction discharge on its timed cues.
@@ -4020,7 +4092,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->bobPhase++;
             work->frameCount++;
-            Actor00400_Fn01454(arg0);
+            _actor00400UpdatePartyTarget(arg0);
             fns[work->state](arg0);
             w = arg0->work;
             if (w->animRequest == DIVER_ANIM_REQUEST_BLEND) {
@@ -4072,7 +4144,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
             ctx2  = arg0->extra.tmd;
             work2 = arg0->work;
             _actor00400UpdateModelColor(arg0, &ctx2->coords[1], work2, ctx2);
-            Actor00400_Fn012B0(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
+            _actor00400DrawLimbShadows(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
             ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
@@ -4181,7 +4253,7 @@ static void Actor00400_Fn070C0(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->bobPhase++;
             work->frameCount++;
-            Actor00400_Fn01454(arg0);
+            _actor00400UpdatePartyTarget(arg0);
             fns[work->state](arg0);
             w = arg0->work;
             if (w->animRequest == DIVER_ANIM_REQUEST_BLEND) {
@@ -4400,7 +4472,7 @@ static void Actor00400_Fn079A8(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         _diverEnterRecoil,
-        Actor00400_Fn060CC,
+        _actor00400SwimLightRecoilWait,
     };
 
     states[work->subState](arg0);
@@ -4449,7 +4521,7 @@ static void Actor00400_Fn07ABC(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         _actor00400SwimStatusHoldEnter,
-        Actor00400_Fn09924,
+        _actor00400SwimStatusHoldTick,
     };
 
     states[work->subState](arg0);
@@ -4478,7 +4550,7 @@ static void Actor00400_Fn07B10(Task* arg0)
 static const TaskFuncTable3 Actor00400_D0015C = { {
     _actor00400TunnelPatrolEnter,
     _actor00400TunnelPatrolWaitForCue,
-    Actor00400_Fn06798,
+    _actor00400TunnelPatrolSwim,
 } };
 
 static void Actor00400_Fn07B98(Task* arg0)
@@ -4499,7 +4571,7 @@ static void Actor00400_Fn07B98(Task* arg0)
 static const TaskFuncTable4 Actor00400_D00168 = { {
     _actor00400TunnelIntroEnter,
     _actor00400TunnelIntroWaitForSwim,
-    Actor00400_Fn09B74,
+    _actor00400TunnelIntroSwim,
     _actor00400TunnelIntroWaitForPatrol,
 } };
 
@@ -4665,7 +4737,7 @@ void Actor00400_Fn08004(Task* arg0)
 static const TaskFuncTable7 Actor00400_D00178 = { {
     _actor00400RoomIntroEnter,
     _actor00400RoomIntroWaitForSwim,
-    Actor00400_Fn09D98,
+    _actor00400RoomIntroSwim,
     _actor00400RoomIntroWaitForSurface,
     _actor00400RoomIntroBeginDischarge,
     _actor00400RoomIntroWaitAfterDischarge,
@@ -4946,37 +5018,15 @@ static void _actor00400TurnTowardPointMaskedRange(Task* task, const SVECTOR* tar
     }
 }
 
-/// One animation-step: state 1 starts the clip `animClip` (or advances the
-/// current one through `_actor00400ScaleFramesForAnimRate` when it is already in place, and
-/// resets `animFrames` when it is not), state 2 finishes the old clip and state
-/// 3 counts `animFrames` up a frame at a time. All three land in state 3 and
-/// then tick animation slots 1..14.
-static void Actor00400_Fn08814(Task* arg0)
+/// Applies the diver's clip request and advances its body animation once.
+///
+/// Requires the live initialized rig. BLEND seeks the requested clip (rescaling
+/// elapsed frames when already playing); RESET restarts that clip from frame
+/// zero; PLAYING counts a frame. All calls tick slots 1..14. Slot-1 status is
+/// left in the rig; this helper does not publish `animStatus`.
+static void _actor00400TickAnimation(Task* task)
 {
-    _Actor00400Work* work;
-    s32              i;
-
-    work = arg0->work;
-    if (work->animRequest == DIVER_ANIM_REQUEST_BLEND) {
-        if (work->animPlaying != work->animClip) {
-            work->animFrames = 0;
-        } else {
-            work->animFrames = _actor00400ScaleFramesForAnimRate(arg0, work->animFrames);
-        }
-        _actor00400BlendRequestedClip(arg0);
-        work->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-    } else if (work->animRequest == DIVER_ANIM_REQUEST_RESET) {
-        _diverRestartClip(arg0);
-        work->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-        work->animFrames  = 0;
-    } else if (work->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
-        work->animFrames++;
-    }
-    i = 1;
-    do {
-        animationTickSlot(&work->rig.anim, i);
-        i++;
-    } while (i < ARRAY_SIZE(work->rig.slots));
+    _actor00400AdvanceAnimation(task);
 }
 
 /// Queues a clip and playback rate for the next blended animation update.
@@ -5018,7 +5068,7 @@ static void Actor00400_Fn089C8(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A3D4,
+        _actor00400ReleaseSurfaceSpot,
         Actor00400_Fn0A414,
     };
 
@@ -5383,7 +5433,7 @@ static void Actor00400_Fn093C4(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         Actor00400_Fn0A880,
-        Actor00400_Fn04900,
+        _actor00400StrandedLightRecoilWait,
     };
 
     states[work->subState](arg0);
@@ -5394,7 +5444,7 @@ static void Actor00400_Fn09418(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         Actor00400_Fn0A940,
-        Actor00400_Fn04A1C,
+        _actor00400StrandedHeavyRecoilWait,
     };
 
     states[work->subState](arg0);
@@ -5428,7 +5478,7 @@ static void Actor00400_Fn094DC(Task* arg0)
     s32              sound;
 
     work = arg0->work;
-    if ((Actor00400_Fn02208(arg0) << 0x10) != 0) {
+    if ((_actor00400SwimToNextWaypoint(arg0) << 0x10) != 0) {
         if (work->animClip != 5) {
             work2              = arg0->work;
             work2->animBlend   = 0x10;
@@ -5540,36 +5590,44 @@ static void _actor00400SwimStatusHoldEnter(Task* task)
     work->subState        = work->subState + 1;
 }
 
-static void Actor00400_Fn09924(Task* arg0)
+/// Keeps the swimming diver in its status hold until buildup expires.
+///
+/// Requires the live rig and enemy. Counts a tick, requests the hit clip when
+/// `hitTaken` is exactly 1, otherwise blends to the hold loop on a clip boundary,
+/// jump or settled pose. The signed hit value is reused as the BLEND request.
+/// Buildup expiry clears the critical-chance multiplier, restores the head as
+/// target part and selects the dive entry step.
+static void _actor00400SwimStatusHoldTick(Task* task)
 {
+    enum { ACTOR_00400_STATUS_TARGET_HEAD = 4,
+           ACTOR_00400_STATUS_HIT_TAKEN   = 1 };
     _Actor00400Work* work;
-    _Actor00400Work* w;
-    s32              mode;
+    _Actor00400Work* requestWork;
+    _Actor00400Work* nextStateWork;
+    s32              hitTaken;
 
-    work = arg0->work;
-    mode = work->hitTaken;
+    work     = task->work;
+    hitTaken = work->hitTaken;
     work->stateFrames++;
-    if (mode == 1) {
-        w              = arg0->work;
-        w->animBlend   = 2;
-        w->animStep    = ANIMATION_RATE_ONE;
-        w->animClip    = 0x12;
-        w->animRequest = mode;
+    if (hitTaken == ACTOR_00400_STATUS_HIT_TAKEN) {
+        requestWork              = task->work;
+        requestWork->animBlend   = 2;
+        requestWork->animStep    = ANIMATION_RATE_ONE;
+        requestWork->animClip    = ACTOR_00400_ANIM_SWIM_STATUS_HOLD_HIT;
+        requestWork->animRequest = hitTaken;
     } else {
-        if (_diverClipHasBoundaryOrJump(arg0)) {
-            w              = arg0->work;
-            w->animBlend   = 8;
-            w->animStep    = ANIMATION_RATE_ONE;
-            w->animClip    = 0x10;
-            w->animRequest = DIVER_ANIM_REQUEST_BLEND;
+        if (_diverClipHasBoundaryOrJump(task)) {
+            requestWork = task->work;
+            _actor00400RequestNormalClipBlend(requestWork, ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP, 8);
         }
     }
-    if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
-        work->critChanceScale = 0;
-        work->targetPart      = 4;
-        w                     = arg0->work;
-        w->state              = ACTOR_00400_SWIM_STATE_DIVE;
-        w->subState           = 0;
+    // End the critical-chance boost only when the status buildup has expired.
+    if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
+        work->critChanceScale   = 0;
+        work->targetPart        = ACTOR_00400_STATUS_TARGET_HEAD;
+        nextStateWork           = task->work;
+        nextStateWork->state    = ACTOR_00400_SWIM_STATE_DIVE;
+        nextStateWork->subState = 0;
     }
 }
 
@@ -5661,13 +5719,19 @@ static void _actor00400TunnelIntroWaitForSwim(Task* task)
     }
 }
 
-static void Actor00400_Fn09B74(Task* arg0)
+/// Runs the tunnel introduction's timed forward swim.
+///
+/// Requires a live root and a counter cleared by the entry step. Pre-increments
+/// the signed halfword counter and steps 160 coordinate units while it is below
+/// 48; tick 48 advances to the patrol cue without moving. Height is unchanged.
+static void _actor00400TunnelIntroSwim(Task* task)
 {
+    enum { ACTOR_00400_TUNNEL_INTRO_SWIM_TICKS = 48 };
     _Actor00400Work* work;
 
-    work = arg0->work;
-    if (++work->stateFrames < 0x30) {
-        _diverStepForward(arg0, 0xA0, work->rotation.vy);
+    work = task->work;
+    if (++work->stateFrames < ACTOR_00400_TUNNEL_INTRO_SWIM_TICKS) {
+        _diverStepForward(task, 0xA0, work->rotation.vy);
         return;
     }
     work->subState++;
@@ -5702,7 +5766,7 @@ static void Actor00400_Fn09C84(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[1])(Task*) = {
-        Actor00400_Fn0A034,
+        _actor00400AwaitFightCue,
     };
 
     states[work->subState](arg0);
@@ -5759,32 +5823,41 @@ static void _actor00400RoomIntroWaitForSwim(Task* task)
     }
 }
 
-static void Actor00400_Fn09D98(Task* arg0)
+/// Runs the room introduction's timed forward swim and periodic swim sound.
+///
+/// Requires the live root and enemy, with the entry counter initially zero.
+/// Increments the halfword counter and steps 96 coordinate units while its
+/// signed value is below 48; tick 48 advances without moving. Moving ticks
+/// sound once per sixteen `frameCount` ticks with signed-byte audio pan/depth.
+static void _actor00400RoomIntroSwim(Task* task)
 {
-    u16              count;
-    s32              sound;
-    s32              pan;
+    enum { ACTOR_00400_ROOM_INTRO_SWIM_TICKS = 48,
+           ACTOR_00400_SWIM_SOUND_TICK_MASK  = 15 };
+    u16              elapsedFrames;
+    s32              soundId;
+    s32              panOffset;
     _Actor00400Work* work;
 
-    work              = arg0->work;
-    count             = work->stateFrames + 1;
-    work->stateFrames = count;
-    if ((s16)count < 0x30) {
-        _diverStepForward(arg0, 0x60, work->rotation.vy);
-        if (!(work->frameCount & 0xF)) {
-            sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040001;
-            pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    work              = task->work;
+    elapsedFrames     = work->stateFrames + 1;
+    work->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames < ACTOR_00400_ROOM_INTRO_SWIM_TICKS) {
+        _diverStepForward(task, 0x60, work->rotation.vy);
+        if (!(work->frameCount & ACTOR_00400_SWIM_SOUND_TICK_MASK)) {
+            soundId   = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_SWIM;
+            panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         }
     } else {
         work->subState += 1;
     }
 }
 
-/// Sets the scripted endpoint's XZ and neutral rotation, preserving root height.
+/// Fixes the room introduction's endpoint XZ and clears the stored rotation.
 ///
-/// Borrows the live work and root coordinate; coordinates use the view-parent
-/// space. The frame driver rebuilds the root matrix after the state handler.
+/// Borrows live work and root coordinates in the view-parent space. Preserves
+/// root Y, the goal height and composition stamp; the enclosing frame rebuilds
+/// and dirties the root matrix after this state step.
 static inline void _actor00400PlaceRoomIntroEndpoint(_Actor00400Work* work, GfxCoord* rootCoord)
 {
     rootCoord->coord.t[0] = ACTOR_00400_ROOM_INTRO_X;
@@ -5879,17 +5952,25 @@ static void _actor00400RoomIntroWaitForFight(Task* task)
     }
 }
 
-static void Actor00400_Fn0A034(Task* arg0)
+/// Makes the waiting diver targetable and enters combat on the fight cue.
+///
+/// Requires the live enemy and a terminated borrowed surface-spot list. Clears
+/// target flags, claims the spot nearest the cached target and acquires one
+/// battle reference before selecting the dive entry step. That transition
+/// prevents repeated acquisition from the command, which remains latched.
+static void _actor00400AwaitFightCue(Task* task)
 {
-    Enemy*           obj;
-    _Actor00400Work* work;
+    Enemy*                 enemy;
+    const _Actor00400Work* commandWork;
+    _Actor00400Work*       work;
 
-    obj = arg0->spawnArg2.pointer;
-    if (((_Actor00400Work*)arg0->work)->command == ACTOR_00400_COMMAND_FIGHT) {
-        obj->node.state.parts.flags = 0;
-        _actor00400ClaimNearestSurfaceSpot(arg0);
+    enemy       = task->spawnArg2.pointer;
+    commandWork = task->work;
+    if (commandWork->command == ACTOR_00400_COMMAND_FIGHT) {
+        enemy->node.state.parts.flags = 0;
+        _actor00400ClaimNearestSurfaceSpot(task);
         sceneAcquireBattleRef(0);
-        work           = arg0->work;
+        work           = task->work;
         work->state    = ACTOR_00400_SWIM_STATE_DIVE;
         work->subState = 0;
     }
@@ -5987,14 +6068,20 @@ static void _actor00400GroundStainFade(Task* task)
     }
 }
 
-static void Actor00400_Fn0A3D4(Task* arg0)
+/// Releases the diver's surface-spot claim before its delayed despawn.
+///
+/// Requires a live borrowed surface-spot list and a valid `surfaceSpotIndex`
+/// (entry zero is the unclaimed default). Clears any nonzero claim halfword,
+/// resets the delay counter and advances the despawn state to its timed wait.
+/// The room owns the list; this callback does not free it.
+static void _actor00400ReleaseSurfaceSpot(Task* task)
 {
+    enum { ACTOR_00400_SURFACE_SPOT_FREE = 0 };
     _Actor00400Work* work;
-    SVECTOR*         record;
 
-    work = arg0->work;
-    if (work->surfaceSpots[work->surfaceSpotIndex].pad != 0) {
-        work->surfaceSpots[work->surfaceSpotIndex].pad = 0;
+    work = task->work;
+    if (work->surfaceSpots[work->surfaceSpotIndex].pad != ACTOR_00400_SURFACE_SPOT_FREE) {
+        work->surfaceSpots[work->surfaceSpotIndex].pad = ACTOR_00400_SURFACE_SPOT_FREE;
     }
     work->stateFrames = 0;
     work->state       = (u16)work->state + 1;
@@ -6129,7 +6216,7 @@ static void Actor00400_Fn0A704(Task* arg0)
         work->subState = 0;
         return;
     }
-    Actor00400_Fn00C84(arg0);
+    _actor00400CrawlStride(arg0);
     work->subState++;
 }
 
@@ -6143,7 +6230,7 @@ static void Actor00400_Fn0A760(Task* arg0)
         work->subState = 0;
         return;
     }
-    Actor00400_Fn00C84(arg0);
+    _actor00400CrawlStride(arg0);
     if (_diverClipHasBoundaryOrJump(arg0)) {
         work           = arg0->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;

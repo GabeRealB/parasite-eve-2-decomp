@@ -1639,7 +1639,7 @@ similarity of the two `if`s.
 
 ## `li` + `slt` against a literal range means an inlined helper's parameter, not `x > C`
 
-`Actor00400_Fn06798` ends with the turn-toward-a-point idiom and compares the
+`_actor00400TunnelPatrolSwim` ends with the turn-toward-a-point idiom and compares the
 clamped heading delta against `0x100`:
 
 ```
@@ -77134,12 +77134,12 @@ happens at the load, which is exactly what `lh` is, and the `sh` store truncates
 back for free:
 
 ```c
-s32 mode;
+s32 hitTaken;
 
-mode = work->hitTaken;
-if (mode == 1) {
+hitTaken = work->hitTaken;
+if (hitTaken == 1) {
     ...
-    state->animRequest = mode;
+    requestWork->animRequest = hitTaken;
 }
 ```
 
@@ -77147,7 +77147,7 @@ This is the same rule as the `s8` call-result entry above, in its more common
 form: a narrow *object* defers its conversion to each use, a narrow *value*
 assigned to an SImode object converts once at the assignment. When the value is
 read straight out of a struct, the target's `lh` (rather than `lhu`) is the tell
-that the source local was wider than the field. `Actor00400_Fn09924` is the
+that the source local was wider than the field. `_actor00400SwimStatusHoldTick` is the
 worked example, 88.651% -> 100% on that one declaration.
 
 
@@ -90980,13 +90980,13 @@ Inputs: `base_25.i` (100.000%) `12238417d88f79205ec5e97a73a05cdde4292130bee920d1
 
 ### Duplicated arms that assign locals: declare the locals inside each arm
 
-`Actor00400_Fn00C84` picks a sound id from `work->strideCount & 1` and the target
+`_actor00400CrawlStride` picks a sound id from `work->strideCount & 1` and the target
 keeps both arms whole (`beqz` slot = shared `lui a1`, `j` over the `ori`), i.e.
 the `jump.c` "`x = b; if (...) x = a;`" hoist did not fire. Duplicating the whole
-id/pan/`sndEvtRequestScriptStart` block into both arms (the known lever) fixes the
-branch, but with function-scope `id`/`pan` locals each is now set in two blocks,
+soundId/panOffset/`sndEvtRequestScriptStart` block into both arms (the known lever) fixes the
+branch, but with function-scope `soundId`/`panOffset` locals each is now set in two blocks,
 so they leave local-alloc for `global.c` and reshuffle every callee-saved
-register (98.7%). Declaring `s32 id` / `s32 pan` *inside each arm* gives each arm
+register (98.7%). Declaring `s32 soundId` / `s32 panOffset` *inside each arm* gives each arm
 its own block-local pseudos, cross-jumping still merges the tails, and it matched.
 
 Two dead ends on the way, both worth knowing: `snd = bit; if (snd)` blocks the
@@ -90996,7 +90996,7 @@ temp or `u8` width does not survive CSE either.
 
 Same function: the parameter lost `$s2` to `work` because its `REG_EQUIV`
 doubles its live length (see the parameter-priority entry). Copying it into a
-local first (`actor = index;`) and using only the local removed the doubling and
+local first (`actor = task;`) and using only the local removed the doubling and
 flipped the order, with no instruction change.
 
 ### A store that reuses a compared register behind a multi-way label is a variable, not CSE
@@ -93472,7 +93472,7 @@ parameter `s32`.
 
 ## A global's load and an argument's address both have to be *written* before the `if`
 
-`Actor00400_Fn01454` reads the actor's root coordinate, snapshots three
+`_actor00400UpdatePartyTarget` reads the actor's root coordinate, snapshots three
 translation components into the work block, then picks the nearer of
 `gPlayerActorTasks[0..1]`. Written the obvious way - stores first, `if
 (gPlayerActorTasks[0] != NULL)` after - the CFG, predicates and call sites all
@@ -104753,7 +104753,8 @@ Scratch `nonmatchings/Actor00400_Fn09124-vacuum`.
 
 The other direction of the `reload_cse` constant-substitution sections: this
 time the target wants the **immediate** and the candidate produced the register.
-`Actor00400_Fn08814`'s third state arm is `w->animFrames++`, and m2c hoists the
+`_actor00400TickAnimation`'s PLAYING arm, in `_actor00400AdvanceAnimation`, is
+`work->animFrames++`, and m2c hoists the
 tail loop's `var_s0 = 1` above the three-way state chain (its `goto block_9`
 rendering). That puts the SImode `(set (reg/v:SI 83) (const_int 1))` in the same
 straight-line region as the increment, so `reload_cse_simplify_operands` finds
@@ -104767,9 +104768,9 @@ the value in `$s0` and rewrites the add's constant operand:
 `addsi3_internal`'s operand 2 is the single alternative `"dI"` (`mips.md:509`),
 so nothing competes with the register: any alternative that accepts `$s0` is the
 matching alternative, and the operand is substituted. The counter is not the
-only `1` in the function either - `i++)` itself is still an immediate.
+only `1` in the function either - `slotIndex++)` itself is still an immediate.
 
-Writing `i = 1` *after* the chain, which is how the family's already-matched
+Writing `slotIndex = 1` *after* the chain, which is how the family's already-matched
 siblings are written (`Actor00400_Fn07CC4` in `src/actors/lib/actor_100400_text.c`,
 whose tail is instruction-for-instruction identical to this target), leaves a
 `CODE_LABEL` at the merge point - and `reload_cse_regs_1` clears all of
@@ -104787,7 +104788,7 @@ Inputs: `base.i` (96.296%) SHA256
 (100%) SHA256 `3388da5ddb2e81e9aede649d7e054f21c38b1a51a13b00cae8da04d27e5a2fb3`;
 target.o SHA256 `b44efee74e98c0419283ae616254f21ab21bf22f1d34d53924d1d70c14b5fb7a`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn08814-vacuum`.
+Scratch `nonmatchings/_actor00400TickAnimation-vacuum`.
 
 ## A block-local pointer can tie a load to its own base register; a global allocno never can
 
@@ -147523,11 +147524,11 @@ about the caller's pointer, not the helper:
   form had lent that variable to the test, so dropping the assignment left it
   unset; the caller keeps `work = arg0->work;` and the helper makes its own
   load beside it.
-- `Actor00400_Fn04A1C` had one `work2` serving an animation request on the
+- `_actor00400StrandedHeavyRecoilWait` had one `animWork` serving an animation request on the
   early-return path, the test and the state change. With the test's definition
   gone the remaining two are one pseudo with two definitions in disjoint paths
-  and it allocates differently (8 words); a separate variable for the state
-  change restores the match. `Actor00400_Fn04900`, the same shape with the
+  and it allocates differently (8 words); a separate `nextStateWork` variable for the state
+  change restores the match. `_actor00400StrandedLightRecoilWait`, the same shape with the
   request written through the function's first pointer, needed nothing.
 
 The helper has to be defined above every site (GCC 2.8.1 inlines only a body it
