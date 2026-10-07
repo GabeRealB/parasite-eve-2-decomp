@@ -121,7 +121,7 @@ STATIC_ASSERT_SIZEOF(_Actor403600AimTurnScratch, 0x30);
 /// block is released before the step returns.
 typedef struct {
     SVECTOR   offset;   // Player's offset from the room's centre on X and Z, the bearing's operands; then the arm: the radius along Z, turned by `rotation` into the boss's offset from the centre
-    GfxMatrix rotation; // Identity turned about Y by the pass's bearing
+    MATRIX    rotation; // Identity turned about Y by the pass's bearing
     s32       bearing;  // Even pass only: bearing of the player from the room's centre, 4096 to a turn, negated while the player stands in the room's middle
 } _Actor403600RushPassScratch;
 STATIC_ASSERT_SIZEOF(_Actor403600RushPassScratch, 0x2C);
@@ -2283,14 +2283,14 @@ static inline void _actor403600ArcStart(_Actor403600RushPassScratch* s)
     s->offset.vx = 0;
     s->offset.vy = 0;
     s->offset.vz = 0x3A98 - D_actor_403600_801605D4.vz;
-    gfxSetRotIdentity(&s->rotation.mat);
+    gfxSetRotIdentity(&s->rotation);
 }
 
 /// Rotates the arc vector by the turn matrix on the GTE and places the actor's
 /// target at the result offset from the anchor, 0x3E8 above the player.
 static inline void _actor403600ArcFinish(Actor403600Work* work, _Actor403600RushPassScratch* s)
 {
-    gte_SetRotMatrix(&s->rotation.mat);
+    gte_SetRotMatrix(&s->rotation);
     gte_ldv0(&s->offset);
     gte_rtv0();
     gte_stsv(&s->offset);
@@ -2328,7 +2328,7 @@ static void func_actor_403600_8013C864(Task* arg0)
             s->bearing = -s->bearing;
         }
         _actor403600ArcStart(s);
-        RotMatrixY(s->bearing, &s->rotation.mat);
+        RotMatrixY(s->bearing, &s->rotation);
         _actor403600ArcFinish(work, s);
         if ((u32)(gPlayerStatus.coordMtx->t[0] - 0xDAC) < 0x2135 &&
             (u32)(gPlayerStatus.coordMtx->t[2] - 0x7D0) < 0x2711) {
@@ -2348,7 +2348,7 @@ static void func_actor_403600_8013C864(Task* arg0)
         work->actionParam++;
     } else {
         _actor403600ArcStart(s);
-        RotMatrixY(work->rushAngle, &s->rotation.mat);
+        RotMatrixY(work->rushAngle, &s->rotation);
         _actor403600ArcFinish(work, s);
         work->actionTimer = 0x96;
         work->actionParam++;
