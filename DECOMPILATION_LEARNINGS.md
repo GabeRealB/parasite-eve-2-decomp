@@ -153208,3 +153208,34 @@ against the copy.
   across it in the matching build and which instruction starts that quantity;
   a schedule that looks right and puts that instruction two lines lower is the
   whole difference.
+
+### Hand-spelled identity matrices in `player_actor.c` were all `gfxSetRotIdentity` (2026-10-07)
+
+**Problem.** Nine functions set a `GfxCoord`'s rotation to identity with a
+constant local (`fixedOne`/`one`), `MATRIX_PAIR` or `GfxRotationWords` word
+stores and a matrix pointer local, often with the parent store written between
+the first `ONE` store and the rest "in target order".
+
+**Result.** Every one compiles to the same bytes as
+
+```c
+coord->parent = <parent>;          /* where the function sets one */
+gfxSetRotIdentity(&coord->coord);
+```
+
+on the first build, with the constant and the pointer locals deleted and the
+neighbouring statements untouched (`effectSpriteTaskE2` and
+`effectControlTask0E` through their init inlines, `Gp_EffCtlTask7F`,
+`effectSpriteTaskA7`, `effectControlTaskAE`, `effectSpriteTask32`,
+`Gp_EffSprTask81`, `func_800F91AC`, `Gp_EffSprTask30`; `func_800FF710` the day
+before). The first store through the coordinate and the rest through
+`coord + 4`, the parent store landing after the first `ONE` store, and the
+`ONE, ONE, ONE, 0, 0` store order `Gp_EffSprTask30` spelled by hand are all
+what cse and the schedulers make of the inline.
+
+**Use.**
+- A source that writes the first cell through `&coord->coord` and the others
+  through a pointer local, or that interleaves an unrelated store among the
+  cells, is describing the output. Try the inline with the parent store first.
+- The rest of the tree has 51 more sites spelled with `MATRIX_PAIR` (some mixed
+  with `rotationWords` fields); all 51 set the full identity. None was tried.
