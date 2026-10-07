@@ -1,17 +1,22 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Dispatcher of the enemy `gGluttonThrowStates` drives: run the handler for
-/// the task's state, skipped while the global game mode is 2.
-void gluttonThrowTask(Task* arg0)
+/// Dispatches the thrown sphere's three-state coordinate-body lifecycle.
+///
+/// Requires a live enemy in `spawnArg2.pointer`, coordinate body and state
+/// 0..2; states after spawn require projectile work. Hidden actor control
+/// skips dispatch. Running, paused and other control values dispatch; the
+/// flight handler controls which motion runs while paused. A handler may
+/// destroy the task.
+static void _gluttonThrowTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 states;
 
-    sp = gGluttonThrowStates;
+    states = gGluttonThrowStates;
     switch (gSceneCombatState.actorControl) {
         default:
         case SCENE_COMBAT_ACTORS_RUNNING:
         case SCENE_COMBAT_ACTORS_PAUSED:
-            sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+            states.funcs[task->state](task->spawnArg2.pointer, task);
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             break;

@@ -2667,13 +2667,13 @@ u8 gGluttonRainPointIndex[3][8] = {
 };
 
 TaskDesc gGluttonEscortTasks[4] = {
-    { { { TASK_BODY_TMD, 96 } }, gluttonGlobTask, { .model = &_gActor444000Actor403200Model199E4 } },
-    { { { TASK_BODY_COORD, 96 } }, gluttonRainTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, gluttonThrowTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonChunkTask, { .model = &_gActor444000Actor403200Model1AC48 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonGlobTask, { .model = &_gActor444000Actor403200Model199E4 } },
+    { { { TASK_BODY_COORD, 96 } }, _gluttonRainTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, _gluttonThrowTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonChunkTask, { .model = &_gActor444000Actor403200Model1AC48 } },
 };
 
-TaskDesc D_actor_444000_8016180C = { { { TASK_BODY_TMD, 96 } }, gluttonSpinnerTask, { .model = &_gActor444000Actor403200Model19284 } };
+TaskDesc D_actor_444000_8016180C = { { { TASK_BODY_TMD, 96 } }, _gluttonSpinnerTask, { .model = &_gActor444000Actor403200Model19284 } };
 
 TaskMessageEntry D_actor_444000_80161818[7] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_444000_8013A958 },
@@ -3343,7 +3343,7 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 /// reparenting is why both halves of the part's placement have to be resolved
 /// by hand -- `_actorRenderAccumulateWorldRotation` for the rotation it had up the
 /// chain and `_actorRenderTransformLocalPointToWorld` for its origin -- the
-/// same pair `gluttonThrowSpawn` uses. Past each of those sub-states the body
+/// same pair `_gluttonThrowSpawn` uses. Past each of those sub-states the body
 /// sinks toward the host's own height 0x1E a step, clamped there, and squashes
 /// from 0x1000 to nothing over 0x28 steps, throwing effect 0x60196 at one of
 /// three offsets every fifth step and raising flag 0x80 on the last one.
@@ -3832,16 +3832,16 @@ static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
 /// teardown.
 static const EnemyTaskFuncTable3 gGluttonPropStates = {
     {
-        gluttonPropSetup,
+        _gluttonPropSetup,
         _gluttonPropTick,
         enemyDestroy,
     },
 };
 
-/// State handlers of the enemy `gluttonThrowTask` dispatches.
+/// State handlers of the enemy `_gluttonThrowTask` dispatches.
 static const EnemyTaskFuncTable3 gGluttonThrowStates = {
     {
-        gluttonThrowSpawn,
+        _gluttonThrowSpawn,
         _gluttonThrowFly,
         enemyDestroy,
     },
@@ -3851,7 +3851,7 @@ static const EnemyTaskFuncTable3 gGluttonThrowStates = {
 /// teardown.
 static const EnemyTaskFuncTable5 gGluttonGlobStates = {
     {
-        gluttonGlobSpawn,
+        _gluttonGlobSpawn,
         _gluttonGlobFall,
         gluttonGlobEngulf,
         _gluttonGlobHold,
@@ -3867,11 +3867,11 @@ static const EnemyTaskFuncTable5 gGluttonGlobStates = {
 
 #include "../../shared/glutton_rain_fall.inc.c"
 
-/// State handlers of the enemy `gluttonChunkTask` dispatches: spawn,
+/// State handlers of the enemy `_gluttonChunkTask` dispatches: spawn,
 /// descent, settle and teardown.
 static const EnemyTaskFuncTable4 gGluttonChunkStates = {
     {
-        gluttonChunkSpawn,
+        _gluttonChunkSpawn,
         _gluttonChunkFall,
         _gluttonChunkSettle,
         enemyDestroy,
@@ -3882,10 +3882,10 @@ static const EnemyTaskFuncTable4 gGluttonChunkStates = {
 /// teardown.
 static const EnemyTaskFuncTable5 gGluttonRainStates = {
     {
-        gluttonRainSpawn,
+        _gluttonRainSpawn,
         _gluttonRainRise,
         _gluttonRainFall,
-        gluttonRainSplat,
+        _gluttonRainSplat,
         enemyDestroy,
     },
 };

@@ -1,38 +1,48 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Dispatcher of the grab enemy (`gGluttonGlobStates`): park the model
-/// object while the global game mode is 1 or 2, otherwise note in the work
-/// block whether the state changed since the last step and run the handler for
-/// it. Unlike `gluttonChunkTask` it guards the bookkeeping on the
-/// state being non-zero rather than on the work block existing, and clears the
-/// model object's flag word rather than leaving it 2.
-void gluttonGlobTask(Task* arg0)
+/// Records whether this tick enters a new catching-glob task state.
+///
+/// Borrows live arguments for this call; no pointer is retained.
+static __inline__ void _gluttonRecordGlobTaskState(GluttonProjectileWork* work, Task* task)
 {
-    EnemyTaskFuncTable5    sp;
+    if (work->prevState != task->state) {
+        work->stateChanged = 1;
+    } else {
+        work->stateChanged = 0;
+    }
+    work->prevState = task->state;
+}
+
+/// Dispatches the catching glob and records entry into each task state.
+///
+/// Requires a live enemy in `spawnArg2.pointer`, TMD body and state 0..4;
+/// every nonzero state requires projectile work. Paused ticks retain normal
+/// drawing and skip dispatch; hidden ticks suppress drawing and dispatch.
+/// Running ticks restore normal drawing. A handler may destroy the task.
+/// Other control values dispatch without changing the model flags.
+static void _gluttonGlobTask(Task* task)
+{
+    enum { GLUTTON_GLOB_SPAWN_STATE = 0 };
+    EnemyTaskFuncTable5    states;
     GluttonProjectileWork* work;
 
-    sp   = gGluttonGlobStates;
-    work = arg0->work;
+    states = gGluttonGlobStates;
+    work   = task->work;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            arg0->extra.tmd->flags = 0;
+            task->extra.tmd->flags = 0;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            arg0->extra.tmd->flags = 0;
+            task->extra.tmd->flags = 0;
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
-    if (arg0->state != 0) {
-        if (work->prevState != arg0->state) {
-            work->stateChanged = 1;
-        } else {
-            work->stateChanged = 0;
-        }
-        work->prevState = arg0->state;
+    if (task->state != GLUTTON_GLOB_SPAWN_STATE) {
+        _gluttonRecordGlobTaskState(work, task);
     }
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }

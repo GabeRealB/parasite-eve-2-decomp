@@ -170,7 +170,7 @@ extern s32 gGluttonGrabActive;
 extern s16 gGluttonLimbReach;
 
 /// Cleared by both halves of the launch state and exposed through the setter /
-/// getter pair `gluttonSetSpinnersReleased` and `gluttonGetSpinnersReleased`;
+/// getter pair `_gluttonSetSpinnersReleased` and `_gluttonGetSpinnersReleased`;
 /// the spinner enemies wait for it to be 1 and die once it is 0.
 extern s16 gGluttonSpinnersReleased;
 
@@ -2709,11 +2709,11 @@ u8 gGluttonRainPointIndex[3][8] = {
 };
 
 TaskDesc gGluttonEscortTasks[5] = {
-    { { { TASK_BODY_TMD, 96 } }, gluttonGlobTask, { .model = &_gActor403200Model199E4 } },
-    { { { TASK_BODY_COORD, 96 } }, gluttonRainTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, gluttonThrowTask, { .value = 0 } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonChunkTask, { .model = &_gActor403200Model1AC48 } },
-    { { { TASK_BODY_TMD, 96 } }, gluttonSpinnerTask, { .model = &_gActor403200Model19284 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonGlobTask, { .model = &_gActor403200Model199E4 } },
+    { { { TASK_BODY_COORD, 96 } }, _gluttonRainTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, _gluttonThrowTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonChunkTask, { .model = &_gActor403200Model1AC48 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonSpinnerTask, { .model = &_gActor403200Model19284 } },
 };
 
 static AnimationPackedPose _gActor403200Animation2CDE0Bank1[7] = {
@@ -3409,7 +3409,7 @@ static const _Actor403200ViewAnchors D_actor_403200_80131E64 = {
 /// teardown.
 static const EnemyTaskFuncTable3 gGluttonPropStates = {
     {
-        gluttonPropSetup,
+        _gluttonPropSetup,
         _gluttonPropTick,
         enemyDestroy,
     },
@@ -3630,7 +3630,7 @@ static void func_actor_403200_80134D40(Task* arg0)
 /// flight, teardown.
 static const EnemyTaskFuncTable3 gGluttonThrowStates = {
     {
-        gluttonThrowSpawn,
+        _gluttonThrowSpawn,
         _gluttonThrowFly,
         enemyDestroy,
     },
@@ -3648,7 +3648,7 @@ static const EnemyTaskFuncTable3 gGluttonThrowStates = {
 /// teardown.
 static const EnemyTaskFuncTable5 gGluttonGlobStates = {
     {
-        gluttonGlobSpawn,
+        _gluttonGlobSpawn,
         _gluttonGlobFall,
         gluttonGlobEngulf,
         _gluttonGlobHold,
@@ -3666,7 +3666,7 @@ static const EnemyTaskFuncTable5 gGluttonGlobStates = {
 /// settle, teardown.
 static const EnemyTaskFuncTable4 gGluttonChunkStates = {
     {
-        gluttonChunkSpawn,
+        _gluttonChunkSpawn,
         _gluttonChunkFall,
         _gluttonChunkSettle,
         enemyDestroy,
@@ -3685,10 +3685,10 @@ static const EnemyTaskFuncTable4 gGluttonChunkStates = {
 /// spawn, rise, descent, landing, teardown.
 static const EnemyTaskFuncTable5 gGluttonRainStates = {
     {
-        gluttonRainSpawn,
+        _gluttonRainSpawn,
         _gluttonRainRise,
         _gluttonRainFall,
-        gluttonRainSplat,
+        _gluttonRainSplat,
         enemyDestroy,
     },
 };

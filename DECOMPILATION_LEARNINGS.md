@@ -74300,7 +74300,7 @@ sw    v0,8(s0)
 says the coordinate parameter is declared before the object parameter, even
 though the body writes `body->coord = coord;`. Swapping the two parameters of
 `_worldCollisionLinkSphereBody` was the last instruction of
-`gluttonRainSpawn`; the helper's other two call sites in the same TU
+`_gluttonRainSpawn`; the helper's other two call sites in the same TU
 still matched, because there the coordinate argument is a load rather than an
 address computation and nothing ties.
 

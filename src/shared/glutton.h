@@ -393,23 +393,23 @@ static void _gluttonSwitchAnim(Task* task);
 static void _gluttonTickBlended(Task* task);
 static void _gluttonTickAnim(Task* task);
 static void _gluttonHitEffect(GfxCoord* coord, s32 attackKey);
-void        gluttonThrowSpawn(Enemy* enemy, Task* task);
+static void _gluttonThrowSpawn(Enemy* enemy, Task* task);
 static void _gluttonThrowFly(Enemy* enemy, Task* task);
-void        gluttonGlobSpawn(Enemy* enemy, Task* task);
+static void _gluttonGlobSpawn(Enemy* enemy, Task* task);
 static void _gluttonGlobFall(Enemy* enemy, Task* task);
 void        gluttonGlobEngulf(Enemy* enemy, Task* task);
 static void _gluttonGlobHold(Enemy* enemy, Task* task);
-void        gluttonChunkSpawn(Enemy* enemy, Task* task);
+static void _gluttonChunkSpawn(Enemy* enemy, Task* task);
 static void _gluttonChunkFall(Enemy* enemy, Task* task);
 static void _gluttonChunkSettle(Enemy* enemy, Task* task);
-void        gluttonRainSpawn(Enemy* enemy, Task* task);
+static void _gluttonRainSpawn(Enemy* enemy, Task* task);
 static void _gluttonRainRise(Enemy* enemy, Task* task);
 static void _gluttonRainFall(Enemy* enemy, Task* task);
-void        gluttonRainSplat(Enemy* enemy, Task* task);
+static void _gluttonRainSplat(Enemy* enemy, Task* task);
 static void _gluttonSpinnerSpawn(Enemy* enemy, Task* task);
 void        gluttonSpinnerChase(Enemy* enemy, Task* task);
 static void _gluttonExit(Task* task);
-void        gluttonPropSetup(Enemy* enemy, Task* task);
+static void _gluttonPropSetup(Enemy* enemy, Task* task);
 static void _gluttonPropTick(Enemy* enemy, Task* task);
 static void _gluttonSpinnerWait(Enemy* enemy, Task* task);
 
@@ -417,16 +417,13 @@ static inline void _actorRenderRescaleYawHalf(GfxCoord* coord);
 static inline void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalScale, s32 verticalScale);
 static inline void _gluttonGetPlayerOffset(const GfxCoord* sourceCoord, SVECTOR* playerOffset);
 
-void gluttonGlobTask(Task* arg0);
-void gluttonChunkTask(Task* arg0);
-void gluttonSpinnerTask(Task* arg0);
-void gluttonRainTask(Task* arg0);
-void gluttonThrowTask(Task* arg0);
-void gluttonPropTask(Task* arg0);
-void gluttonSetQuadHeights(s32 arg0, s16 arg1);
-void gluttonSetShakeLevel(s8 arg0);
-void gluttonSetSpinnersReleased(s16 arg0);
-s16  gluttonGetSpinnersReleased(void);
+static void _gluttonGlobTask(Task* task);
+static void _gluttonChunkTask(Task* task);
+static void _gluttonSpinnerTask(Task* task);
+static void _gluttonRainTask(Task* task);
+static void _gluttonThrowTask(Task* task);
+void        gluttonPropTask(Task* arg0);
+void        gluttonSetShakeLevel(s8 arg0);
 
 /// Gives the escort the texture page and palette of the current area's
 /// third placement, and refreshes its existing model stream.

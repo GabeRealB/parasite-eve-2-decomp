@@ -1,61 +1,75 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Spawn state of the enemy dispatched through `D_actor_444000_80131EA8`:
-/// allocate its work block and stand the model up where the host's first
-/// escort is, in world space.
+/// Copies escort 0's part-1 world pose and composes the sphere's local-Y turn.
 ///
-/// The model is reparented to `gGfxViewCoord`, so both halves of that escort's
-/// part 1 have to be resolved by hand: `_actorRenderAccumulateWorldRotation` walks
-/// the part's coordinate chain up to the view coordinate for the rotation and
-/// `_actorRenderTransformLocalPointToWorld` carries its origin along the same
-/// chain for the translation. The model is then turned a quarter turn, its
-/// single display node is linked with a 0x394 extent, and that node is paired with the owning
-/// enemy so collisions against it reach this task.
+/// Function-local operation: task and hostWork must be side-effect-free live
+/// pointers to a coordinate-body task and host work; launchPoint must be a
+/// writable SVECTOR lvalue. Arguments are evaluated repeatedly. The caller
+/// supplies GLUTTON_THROW_LOCAL_Y_TURN in 4096 units per turn. No pointer is
+/// retained; invoke as a standalone statement. Undefined after the function.
+#define GLUTTON_PLACE_THROWN_SPHERE(task, hostWork, launchPoint)                                                      \
+    {                                                                                                                 \
+        _actorRenderAccumulateWorldRotation(&(hostWork)->escorts[0]->task->extra.tmd->coords[1],                      \
+                                            &(task)->extra.coordBody->coord->coord);                                  \
+                                                                                                                      \
+        (launchPoint).vx = (launchPoint).vy = (launchPoint).vz = 0;                                                   \
+        _actorRenderTransformLocalPointToWorld(&(hostWork)->escorts[0]->task->extra.tmd->coords[1], &(launchPoint));  \
+                                                                                                                      \
+        (task)->extra.coordBody->coord->coord.t[0]   = (launchPoint).vx;                                              \
+        (task)->extra.coordBody->coord->coord.t[1]   = (launchPoint).vy;                                              \
+        (task)->extra.coordBody->coord->coord.t[2]   = (launchPoint).vz;                                              \
+        (task)->extra.coordBody->coord->composeStamp = GRAPHICS_COORD_DIRTY;                                          \
+                                                                                                                      \
+        gfxRotMatrixY(&(task)->extra.coordBody->coord->coord, GLUTTON_THROW_LOCAL_Y_TURN, GRAPHICS_ROTATION_COMPOSE); \
+        actorRenderComposeCoord((task)->extra.coordBody->coord);                                                      \
+    }
+
+/// Creates a thrown attack sphere at escort 0's part-1 world transform.
 ///
-/// Bails out -- destroying the enemy -- when the overlay is shutting down, the
-/// host actor has left the grab states, or the work block cannot be allocated.
-void gluttonThrowSpawn(Enemy* enemy, Task* task)
+/// Requires a live coordinate body and parent host with escort 0, its part 1
+/// and attack entry 2. Allocates zeroed task-owned projectile work, composes
+/// a local-Y turn of 128/4096 revolution and links a radius-916 attack sphere
+/// with pair tests disabled until flight entry. Clears only the low half of
+/// the coordinate body's `field_C`; that field's meaning remains unproven.
+/// Fight end, host states 5, 12, 16 or 18, or allocation failure destroys the
+/// enemy; success requests flight entry and advances the task.
+static void _gluttonThrowSpawn(Enemy* enemy, Task* task)
 {
+    enum { GLUTTON_THROW_LOCAL_Y_TURN = ACTOR_TRANSFORM_ANGLE_TURN / 32,
+           GLUTTON_THROW_RADIUS       = 916,
+           GLUTTON_THROW_ATTACK_INDEX = 2 };
     GluttonProjectileWork* work;
-    Enemy*                 owner;
-    GluttonWork*           host;
-    SVECTOR                pos;
-    SVECTOR                vec;
+    Enemy*                 hostEnemy;
+    GluttonWork*           hostWork;
+    SVECTOR                sphereOffset;
+    SVECTOR                launchPoint;
 
-    owner = task->parent->spawnArg2.pointer;
-    host  = owner->task->work;
+    hostEnemy = task->parent->spawnArg2.pointer;
+    hostWork  = hostEnemy->task->work;
 
-    if (gGluttonEnded == 1 || host->state == 0x10 || host->state == 5 ||
-        host->state == 0xC || host->state == 0x12 ||
+    if (gGluttonEnded == 1 || hostWork->state == 0x10 || hostWork->state == 5 ||
+        hostWork->state == 0xC || hostWork->state == 0x12 ||
         (work = memCalloc(sizeof(GluttonProjectileWork), false), task->work = work, work == NULL)) {
         enemyDestroy(enemy, task);
         return;
     }
 
-    work->stateTicks                = 0;
-    task->extra.tmd->coords->parent = &gGfxViewCoord;
-    task->extra.tmd->flags          = 0;
+    work->stateTicks                     = 0;
+    task->extra.coordBody->coord->parent = &gGfxViewCoord;
+    // Retain the original halfword clear; the upper half is left intact.
+    *(u16*)&task->extra.coordBody->field_C = 0;
 
-    _actorRenderAccumulateWorldRotation(&host->escorts[0]->task->extra.tmd->coords[1],
-                                        &task->extra.tmd->coords->coord);
+    // Detach the launch transform from the escort without losing its world pose.
+    GLUTTON_PLACE_THROWN_SPHERE(task, hostWork, launchPoint);
 
-    vec.vx = vec.vy = vec.vz = 0;
-    _actorRenderTransformLocalPointToWorld(&host->escorts[0]->task->extra.tmd->coords[1], &vec);
-
-    task->extra.tmd->coords->coord.t[0]   = vec.vx;
-    task->extra.tmd->coords->coord.t[1]   = vec.vy;
-    task->extra.tmd->coords->coord.t[2]   = vec.vz;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x80, 0);
-    actorRenderComposeCoord(task->extra.tmd->coords);
-
-    pos.vx = pos.vy = pos.vz = 0;
-    _worldCollisionLinkSphereBody(task->extra.tmd->coords, &work->attackBody, work->attackContacts, &pos, 0x394, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
+    sphereOffset.vx = sphereOffset.vy = sphereOffset.vz = 0;
+    _worldCollisionLinkSphereBody(task->extra.coordBody->coord, &work->attackBody, work->attackContacts, &sphereOffset, GLUTTON_THROW_RADIUS, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
                                   ARRAY_SIZE(work->attackContacts));
 
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->attackBody.key    = damagePackEnemyAttackKey(owner, 2);
+    work->attackBody.key    = damagePackEnemyAttackKey(hostEnemy, GLUTTON_THROW_ATTACK_INDEX);
     work->stateChanged      = 1;
     task->state++;
 }
+
+#undef GLUTTON_PLACE_THROWN_SPHERE
