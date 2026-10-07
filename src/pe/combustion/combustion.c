@@ -94,7 +94,6 @@ void func_combustion_8012EF34(Task* arg0)
 {
     EffectWork*       mem;
     GfxCoord*         coord;
-    GfxRotationWords* rot;
     EffectWork*       spawned;
     s32               pan;
     u8                rgb[3];
@@ -108,13 +107,8 @@ void func_combustion_8012EF34(Task* arg0)
                 arg0->spawnArg1.value = 1;
             }
             D_combustion_801309A4 = coord->workm.t[1];
-            rot                   = (GfxRotationWords*)&coord->coord;
             coord->parent         = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            rot->m00M01           = ONE;
-            rot->m11M12           = ONE;
-            rot->m22              = ONE;
-            rot->m02M10           = 0;
-            rot->m20M21           = 0;
+            gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]     = 0;
             coord->coord.t[1]     = -0x400;
             coord->coord.t[2]     = 0;
