@@ -1,1 +1,2 @@
 // Overlay-local symbols for options (file 20100).
+optionsUpdateMenuTask = 0x801d4b64; // type:func

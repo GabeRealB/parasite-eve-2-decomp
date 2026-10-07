@@ -31,6 +31,8 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
+#include "options/options.h"
+
 /// Panel expanding into the open state while its content updates with input suspended.
 ///
 /// Counters use nominal 60-Hz ticks. A full opening starts at
@@ -280,8 +282,6 @@ void func_8071489C(Task* arg0);
 void func_807149F0(Task* arg0);
 
 void func_80714A48(Task* arg0);
-
-extern void func_801D4B64(Task* arg0);
 
 static void _taskNoOpCallback(Task* unusedTask);
 
@@ -3190,7 +3190,7 @@ void Ui_WaitCdThenOverlay(Task* task)
 
     temp_s0 = task->spawnArg2.pointer;
     if (cdCmdIsIdle() != 0) {
-        func_801D4B64(task);
+        optionsUpdateMenuTask(task);
         return;
     }
     temp_s0->animationTicks += gDisplayState.frameTicks;

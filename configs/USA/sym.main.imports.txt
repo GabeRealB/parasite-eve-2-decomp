@@ -91,7 +91,7 @@ modelLightingReserveStreamPrimG3 = 0x8009FC90; // type:func absolute:True
 func_map_akropolis_80179988 = 0x80179988; // type:func absolute:True owner=map_akropolis
 func_map_neo_ark_801799BC = 0x801799BC; // type:func absolute:True owner=map_neo_ark
 func_map_neo_ark_80179BE4 = 0x80179BE4; // type:func absolute:True owner=map_neo_ark
-func_801D4B64 = 0x801D4B64; // type:func absolute:True
+optionsUpdateMenuTask = 0x801D4B64; // type:func absolute:True owner=options
 actor403600DrawStreamGt3BottomFade = 0x80136224; // type:func absolute:True owner=actor_403600
 actor403600DrawStreamGt3PreXformBottomFade = 0x80136500; // type:func absolute:True owner=actor_403600
 actor403600DrawStreamGt4BottomFade = 0x8013685C; // type:func absolute:True owner=actor_403600 shared=actors

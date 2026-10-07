@@ -1,3 +1,5 @@
+#include "options/options.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -149,8 +151,6 @@ typedef union {
 STATIC_ASSERT_SIZEOF(_OptionsKeyConfigStackSlot, 0x10);
 
 static const _OptionsKeyIconUvs Options_KeyIconUvs;
-
-static void func_options_801D4B64(Task* task);
 
 static void func_options_801D404C(UiList* arg0, UiObject* arg1)
 {
@@ -465,51 +465,69 @@ static void func_options_801D4944(UiList* arg0, UiObject* arg1)
     }
 }
 
-static void func_options_801D4B64(Task* task)
+/// Gives the vibration-only panel its fixed content width and centered bounds.
+///
+/// Borrows a laid-out panel; height stays unchanged. Width/height bits are
+/// interpreted as signed halfwords before halving, with stores retaining 16 bits.
+static inline void _optionsCenterVibrationPanel(UiPanel* panel)
 {
-    UiList*   list;
-    UiObject* obj;
-    UiObject* child;
-    s32       status;
-    s32       result;
+    enum { OPTIONS_VIBRATION_CONTENT_WIDTH_PIXELS = 192 };
 
-    list = &D_options_801D5EB0;
-    obj  = task->spawnArg2.pointer;
-    if (task->spawnArg1.value == 1) {
+    uiSetPanelContentSize(panel, OPTIONS_VIBRATION_CONTENT_WIDTH_PIXELS, 0);
+    panel->bounds.unsignedRect.y = -((s16)panel->bounds.unsignedRect.h / 2);
+    panel->bounds.unsignedRect.x = -((s16)panel->bounds.unsignedRect.w / 2);
+}
+
+void optionsUpdateMenuTask(Task* owningTask)
+{
+    enum {
+        OPTIONS_MENU_TASK_INITIAL = 0,
+        OPTIONS_MENU_TASK_READY   = 1
+    };
+    UiList*   list;
+    UiObject* object;
+    UiObject* childObject;
+    s32       controlMode;
+    s32       childResult;
+
+    list   = &D_options_801D5EB0;
+    object = owningTask->spawnArg2.pointer;
+    if (owningTask->spawnArg1.value == OPTIONS_MENU_VIBRATION_ONLY) {
         list = &D_options_801D5ED8;
     }
-    if (task->state == 0) {
-        uiFitPanelToList(list, &(obj)->panel);
-        task->state += 1;
-        if (task->spawnArg1.value == 1) {
-            uiSetPanelContentSize(&(obj)->panel, 0xC0, 0);
-            obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
-            obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
+    // Fit once; only the vibration layout explicitly centers the outer bounds.
+    if (owningTask->state == OPTIONS_MENU_TASK_INITIAL) {
+        uiFitPanelToList(list, &object->panel);
+        owningTask->state += OPTIONS_MENU_TASK_READY - OPTIONS_MENU_TASK_INITIAL;
+        if (owningTask->spawnArg1.value == OPTIONS_MENU_VIBRATION_ONLY) {
+            _optionsCenterVibrationPanel(&object->panel);
         }
     }
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, "Option");
-    uiUpdateList(list, &obj->panel);
-    status = obj->panel.control.word;
-    if (status == 1) {
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, "Option");
+    uiUpdateList(list, &object->panel);
+    controlMode = object->panel.control.word;
+    // Cancel acknowledges this panel; Menu requests cancellation of its parent flow.
+    if (controlMode == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->resultValue = status;
-            obj->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = controlMode;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
-    if (task->firstChild != NULL) {
-        child  = task->firstChild->spawnArg2.pointer;
-        result = child->result;
-        switch (result) {
+    // Returning from key configuration restores focus; its cancellation propagates.
+    if (owningTask->firstChild != NULL) {
+        childObject = owningTask->firstChild->spawnArg2.pointer;
+        childResult = childObject->result;
+        switch (childResult) {
             case USER_INTERFACE_RESULT_CONFIRM:
-                uiStartTreeClosing(child, child->owner);
-                obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+                uiStartTreeClosing(childObject, childObject->owner);
+                object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 break;
             case USER_INTERFACE_RESULT_CANCEL:
-                obj->result = result;
+                object->result = childResult;
                 break;
         }
     }
