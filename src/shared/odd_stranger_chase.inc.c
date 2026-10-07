@@ -52,9 +52,9 @@ void oddStrangerChase(Task* arg0)
     arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
     _oddStrangerDriveAnimation(arg0);
 #if ODD_STRANGER_VARIANT == 1
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
 #else
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
 #endif
         work->exitCounter++;
     } else {

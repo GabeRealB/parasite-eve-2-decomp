@@ -41,7 +41,7 @@ void gluttonChunkFall(Enemy* enemy, Task* task)
         task->state++;
     }
 
-    if (ActorContact_PushContact(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
+    if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
         work->aim.travel.vz = 0;
         work->aim.travel.vx = 0;
     }

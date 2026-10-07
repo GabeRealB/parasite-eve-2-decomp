@@ -1442,7 +1442,7 @@ static void func_actor_401800_80136560(Task* arg0)
     block                                       = head - 1;
     SCRATCH_HEAD_AT(scratch, ActorChaseScratch) = block;
     chase                                       = block;
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     coord                                 = arg0->extra.tmd->coords;
@@ -1602,7 +1602,7 @@ static void func_actor_401800_801381E4(Task* arg0)
         work->animRate                = 0x10;
         work->animId                  = 4;
         _oddStrangerDriveAnimation(arg0);
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         work->grabStartPos.vx = arg0->extra.tmd->coords->coord.t[0];
         work->grabStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
         work->grabStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
@@ -1612,7 +1612,7 @@ static void func_actor_401800_801381E4(Task* arg0)
     step             = (u16)work->stateTimer + 1;
     work->stateTimer = step;
     if ((s16)step == 1) {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         work->grabStartPos.vx = arg0->extra.tmd->coords->coord.t[0];
         work->grabStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
         work->grabStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
@@ -1669,7 +1669,7 @@ static void func_actor_401800_801381E4(Task* arg0)
             arg0->extra.tmd->coords->coord.t[2]  += dir.vz;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
             oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
@@ -1722,8 +1722,8 @@ static void func_actor_401800_8013945C(Task* arg0)
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
         _oddStrangerDriveAnimation(arg0);
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if ((work->rig.slots[1].status.fields.flags & 1) && (work->animId == 0xB)) {
         work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -1765,8 +1765,8 @@ static void func_actor_401800_8013971C(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     _oddStrangerDriveAnimation(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -1807,8 +1807,8 @@ static void func_actor_401800_80139870(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     _oddStrangerDriveAnimation(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -1850,8 +1850,8 @@ static void func_actor_401800_801399C4(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     _oddStrangerDriveAnimation(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 1) {
         work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);

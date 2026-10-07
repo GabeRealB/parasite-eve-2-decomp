@@ -2085,7 +2085,7 @@ static void Actor01900_Fn042BC(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     chase = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     if (Actor01900_Fn03C98(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x60) != 1) {
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
             Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
@@ -2206,7 +2206,7 @@ static void Actor01900_Fn04D14(Task* arg0)
     chase                                 = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     Actor01900_Fn01C94(arg0);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
         work->stateCounter++;
     } else {
         Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
@@ -2353,7 +2353,7 @@ static void Actor01900_Fn0551C(Task* arg0)
     } else {
         Actor01900_StepForward(arg0->extra.tmd->coords, 0x14);
     }
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
@@ -2442,7 +2442,7 @@ static void Actor01900_Fn05B4C(Task* arg0)
         coord->coord.t[0] += aim->delta.vx;
         coord              = arg0->extra.tmd->coords;
         coord->coord.t[2] += aim->delta.vz;
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
             work->sidestepStep >>= 1;
         }
     }
@@ -2471,7 +2471,7 @@ static void Actor01900_Fn05F38(Task* arg0)
     if ((u32)((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) - 0x10) < 7U) {
         coord = arg0->extra.tmd->coords;
         Actor01900_StepForward(coord, -0x78);
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->rig.slots[1].status.fields.flags & 0x100) {
@@ -2510,7 +2510,7 @@ static void Actor01900_Fn06100(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
@@ -2569,8 +2569,8 @@ static void Actor01900_Fn06634(Task* arg0)
         Actor01900_StepForwardHead(arg0->extra.tmd->coords, -0x57);
     }
     Actor01900_Fn01C94(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         if (work->animId == 0xA) {
@@ -2776,14 +2776,14 @@ static void Actor01900_Fn06F40(Task* arg0)
         Actor01900_StepForward(arg0->extra.tmd->coords, 0xA);
     }
     if ((arg0->spawnArg1.value >> 16) != 0x10) {
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 && ABS(work->lookYawTarget) < 0x80) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 && ABS(work->lookYawTarget) < 0x80) {
             work->stateTimer++;
         } else {
             Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     } else {
-        if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 ||
-             ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 1) &&
+        if ((_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 ||
+             _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 1) &&
             ABS(work->lookYawTarget) < 0x80) {
             work->stateTimer++;
         } else {
@@ -2850,7 +2850,7 @@ static void Actor01900_Fn07810(Task* arg0)
     coord        = arg0->extra.tmd->coords;
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     Actor01900_MoveForward(arg0->extra.tmd->coords, work->runStep);
@@ -2919,7 +2919,7 @@ static void Actor01900_Fn07BA8(Task* arg0)
     if (work->animId == 0x11) {
         work->stateTimer++;
         Actor01900_StepForward(arg0->extra.tmd->coords, -0x10);
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
             Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3119,7 +3119,7 @@ static void Actor01900_Fn0892C(Task* arg0)
                 work->blendActive = 0;
             }
             Actor01900_StepForwardHead(arg0->extra.tmd->coords, 0xA);
-            ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+            _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if (work->stateTimer == 3) {
                 D_80114B34[5].data.model = &_gActor01900StrangerBurstHand;
                 vec.vz                   = 0x64;
@@ -3293,8 +3293,8 @@ static void Actor01900_Fn09BE8(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     Actor01900_Fn01C94(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);

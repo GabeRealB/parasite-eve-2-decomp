@@ -77,7 +77,7 @@ void desertChaserStrike(Task* arg0)
             } else {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 200);
             }
-            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts))) {
+            if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts))) {
                 work->state = 0x23;
             }
             if (work->stateTimer >= 0x15) {

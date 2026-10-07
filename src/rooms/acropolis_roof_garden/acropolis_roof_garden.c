@@ -85,7 +85,7 @@ extern s16 D_acropolis_roof_garden_80184C5C[];
 /// Volume the ambience task last handed the sound driver.
 extern s32 D_acropolis_roof_garden_80186E94;
 
-/// Whole-unit X/Y/Z displacement left by `ActorContact_PushContact`.
+/// Whole-unit X/Y/Z displacement left by `_actorContactApplyGridPushback`.
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.

@@ -123,7 +123,7 @@ extern TmdSource gOddStrangerBurstModelB;
 static void func_actor_401000_8013DB10(Task* arg0);
 static void func_actor_401000_8013DEC8(Task* arg0);
 
-/// Integer part of the last delta `ActorContact_PushContact` resolved.
+/// Integer part of the last delta `_actorContactApplyGridPushback` resolved.
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.
@@ -1614,7 +1614,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
         work->animId      = 3;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
     }
-    if (func_actor_401000_80135374(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x4B) != 1 && ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
+    if (func_actor_401000_80135374(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x4B) != 1 && _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1665,12 +1665,12 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->sidestepCount = 0;
         work->playerHeld    = 0;
         work->grabCooldown  = 0xA;
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         work->stateTimer = 0;
         return;
     }
     if (++work->stateTimer == 1) {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         work->grabStartPos.vx                 = arg0->extra.tmd->coords->coord.t[0];
         work->grabStartPos.vy                 = arg0->extra.tmd->coords->coord.t[1];
         work->grabStartPos.vz                 = arg0->extra.tmd->coords->coord.t[2];
@@ -1726,7 +1726,7 @@ static void func_actor_401000_801378DC(Task* arg0)
             coord->coord.t[2]                    += delta.vz;
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
             oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
@@ -1769,8 +1769,8 @@ static void func_actor_401000_801388F4(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     _oddStrangerDriveAnimation(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     if (work->animId == 0xA && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0) {
         _actorMovementStepForward(arg0->extra.tmd->coords, -0x57);
     }
@@ -1826,8 +1826,8 @@ static void func_actor_401000_80138BB4(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     _oddStrangerDriveAnimation(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -2123,8 +2123,8 @@ static void func_actor_401000_8013CD9C(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     _oddStrangerDriveAnimation(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -2168,8 +2168,8 @@ static void func_actor_401000_8013CEF0(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     _oddStrangerDriveAnimation(arg0);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;

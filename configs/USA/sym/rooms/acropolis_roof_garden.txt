@@ -123,7 +123,7 @@ acropolisRoofGardenFlareTask = 0x8017E29C; // type:func
 
 acropolisRoofGardenLeafFallTask = 0x8017F10C; // type:func
 _leafDraw = 0x8017F560; // type:func
-ActorContact_PushContact = 0x8017F870; // type:func
+_actorContactApplyGridPushback = 0x8017F870; // type:func
 ActorContact_Push = 0x8017FA14; // type:func
 _acropolisRoofGardenRejectKeyItemUse = 0x8017d798; // type:func
 _acropolisRoofGardenReleaseMaggotCaterpillarEntrance = 0x8017dccc; // type:func

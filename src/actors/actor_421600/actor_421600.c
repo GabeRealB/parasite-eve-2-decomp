@@ -2617,7 +2617,7 @@ static void func_actor_421600_80136138(Task* arg0)
     }
     playerZone = Actor421600_Zone(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords);
     zone       = Actor421600_Zone(arg0->extra.tmd->coords);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     if (playerZone == zone) {
         work->state = 0x26;
         return;
@@ -2940,7 +2940,7 @@ static void func_actor_421600_80138D24(Task* arg0)
         work->state = 2;
     }
     if (((u32)((u16)work->stateTimer - 9) < 0x10) && (work->stateCounter < 5)) {
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) {
             work->stateCounter++;
         }
         found = desertChaserCapsuleTouchesGrid(arg0);
@@ -2950,14 +2950,15 @@ static void func_actor_421600_80138D24(Task* arg0)
             _actorMovementStepForward(arg0->extra.tmd->coords, -0xC8);
         }
     } else {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Re-arms the model the way `desertChaserSpawnAim` does -- buffers
 /// reallocated, clip 0x10, `animId` 2, the 0xB6C node's 0x4000 flag up --
-/// then walks the 0xB8C `WorldCollisionContact` table through `ActorContact_PushContact`.
+/// then applies horizontal grid pushback from the root sphere's contact table
+/// through `_actorContactApplyGridPushback`.
 /// Takes two `SVECTOR`s off the scratch stack and fills the XZ offset of the
 /// model coordinate from `gPlayerStatus.coordMtx` (the player's coordinate matrix),
 /// forms the yaw difference against the model's own facing (row 2 of its
@@ -3002,7 +3003,7 @@ static void func_actor_421600_8013903C(Task* arg0)
         desertChaserAnimTick(arg0);
         work->stateTimer = 0;
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = arg0->extra.tmd->coords;
     head[-2].vx                           = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
@@ -3101,8 +3102,8 @@ static void func_actor_421600_8013947C(Task* arg0)
         sndEvtRequestScriptStart(eventSound, eventPan,
                                  (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts));
     if (work->lastCommand.fields.command == 2) {
         Actor421600_ClampToArena(arg0->extra.tmd->coords);
     } else {
@@ -3251,7 +3252,7 @@ static void func_actor_421600_8013A554(Task* arg0)
     scratch       = SCRATCH_STACK_RESERVE_BLOCK(_Actor421600LungeScratch);
     coord         = arg0->extra.tmd->coords;
     scratch->zone = Actor421600_Zone(coord);
-    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) && (work->stateTimer >= 0xB)) {
+    if ((_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) && (work->stateTimer >= 0xB)) {
         work->state = 5;
     }
     if ((ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->offset) << 0x10) != 0 && work->animId == 3) {
@@ -3972,7 +3973,7 @@ static void func_actor_421600_8013BA70(Task* arg0)
         record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     }
     ActorContact_Steer(arg0->extra.tmd->coords, record, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->toPatrolPoint);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) == 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) == 1) {
         originalMagnitude = abs(scratch->fullTurn);
         if (originalMagnitude < 0x20) {
             work->stateTimer += 1;
@@ -4602,7 +4603,7 @@ static void func_actor_421600_8013EAAC(Task* arg0)
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
         desertChaserAnimTick(arg0);
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
     if (work->rig.slots[1].status.fields.flags & 0x100) {

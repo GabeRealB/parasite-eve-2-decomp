@@ -161,7 +161,7 @@ void desertChaserRoam(Task* arg0)
         record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     }
     ActorContact_Steer(arg0->extra.tmd->coords, record, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->toPatrolPoint);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) == 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) == 1) {
         originalMagnitude = abs(scratch->fullTurn);
         if (originalMagnitude < 0x20) {
             work->stateTimer += 1;

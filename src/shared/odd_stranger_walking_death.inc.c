@@ -59,7 +59,7 @@ void oddStrangerWalkingDeath(Task* arg0)
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_WALK_STEP) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
             }
-            ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+            _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if ((s16)work->stateTimer == 3) {
                 D_80114B34[5].data.model  = &gOddStrangerBurstModelA;
                 ODD_STRANGER_FX_OFFSET.vz = 0x64;

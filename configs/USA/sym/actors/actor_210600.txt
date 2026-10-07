@@ -58,13 +58,13 @@ ActorContact_FindPush = 0x8014A13C; // type:func allow_duplicated:True
 
 ActorContact_Steer = 0x8014A484; // type:func allow_duplicated:True
 
-ActorContact_PushContact = 0x8014A9D0; // type:func allow_duplicated:True
+_actorContactApplyGridPushback = 0x8014A9D0; // type:func allow_duplicated:True
 
 ActorContact_Push = 0x8014AB74; // type:func allow_duplicated:True
 _actorRenderYawJointInWorld = 0x8014BA98; // type:func allow_duplicated:True
 ActorContact_FindPush = 0x8014BDA4; // type:func allow_duplicated:True
 ActorContact_Steer = 0x8014C0EC; // type:func allow_duplicated:True
-ActorContact_PushContact = 0x8014C638; // type:func allow_duplicated:True
+_actorContactApplyGridPushback = 0x8014C638; // type:func allow_duplicated:True
 ActorContact_Push = 0x8014C7DC; // type:func allow_duplicated:True
 coordSetYawScale = 0x8014B7B0; // type:func
 actorMsgPlace = 0x8014B6A0; // type:func

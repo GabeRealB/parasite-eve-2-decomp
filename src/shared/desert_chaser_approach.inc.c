@@ -93,7 +93,7 @@ void desertChaserApproach(Task* arg0)
         records = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     }
     ActorContact_Steer(arg0->extra.tmd->coords, records, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->delta);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) == 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) == 1) {
         magnitude = abs(work->lookYawTarget);
         if (magnitude < 0x80)
             work->stateTimer += 1;

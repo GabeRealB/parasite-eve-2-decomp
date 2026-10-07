@@ -86,7 +86,7 @@ void desertChaserPursue(Task* arg0)
     if (work->animId == 3) {
         work->stateTimer += 1;
     }
-    if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) && (work->stateTimer >= 0xB)) {
+    if ((_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) && (work->stateTimer >= 0xB)) {
         distanceSquared            = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
         scratch->pushLengthSquared = distanceSquared;
         scratch->pushLengthSquared = distanceSquared + ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz;

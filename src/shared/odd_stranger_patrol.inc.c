@@ -74,14 +74,14 @@ void oddStrangerPatrol(Task* arg0)
         }
 #if ODD_STRANGER_VARIANT == 1
         if ((arg0->spawnArg1.value >> 16) != 0x10) {
-            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
+            if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
                 if (ABS(work->lookYawTarget) < 0x80) {
                     work->stateTimer = (u16)work->stateTimer + 1;
                 }
             }
         } else {
             rec = work->hitContacts;
-            if (ActorContact_PushContact(arg0->extra.tmd->coords, rec, ARRAY_SIZE(work->hitContacts)) != 1 && ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+            if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, rec, ARRAY_SIZE(work->hitContacts)) != 1 && _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
                 oddStrangerPushContacts(arg0, rec, ARRAY_SIZE(work->hitContacts));
             } else {
                 if (ABS(work->lookYawTarget) < 0x80) {
@@ -91,15 +91,15 @@ void oddStrangerPatrol(Task* arg0)
         }
 #else
         if ((arg0->spawnArg1.value >> 16) != 0x10) {
-            if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 &&
+            if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 &&
                 ABS(work->lookYawTarget) < 0x80) {
                 work->stateTimer++;
             } else {
                 oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
         } else {
-            if ((ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 ||
-                 ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 1) &&
+            if ((_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 ||
+                 _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 1) &&
                 ABS(work->lookYawTarget) < 0x80) {
                 work->stateTimer++;
             } else {

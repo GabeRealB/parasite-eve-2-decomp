@@ -199,7 +199,7 @@ extern AreaApplyRec                  D_acropolis_sanctuary_80186418[];
 extern Task*                         D_acropolis_sanctuary_80186C90;
 
 /// Whole-unit X/Y/Z displacement left by the last call of
-/// `ActorContact_PushContact`.
+/// `_actorContactApplyGridPushback`.
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.

@@ -3575,7 +3575,7 @@ static void func_actor_401300_80138CF8(Task* arg0)
         _actorMovementStepForward(arg0->extra.tmd->coords, -0x57);
     }
     func_actor_401300_80133A3C(arg0);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3624,7 +3624,7 @@ static void func_actor_401300_80138FCC(Task* arg0)
         work->hitBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     func_actor_401300_80133A3C(arg0);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4296,7 +4296,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
             if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 0xA);
             }
-            ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+            _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if (work->stateTimer == 3) {
                 D_80114B34[5].data.model = &_gActor401300HornedStrangerBurstHead;
                 vec.vz                   = 0x64;
@@ -4561,7 +4561,7 @@ static void func_actor_401300_8013D6C4(Task* arg0)
         work->jointPairStep   = 0x80;
         return;
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     if (work->stateTimer >= 0x26) {
         work->jointPairTarget = 0;
         work->jointPairStep   = 0x40;
@@ -5277,7 +5277,7 @@ static void func_actor_401300_80140300(Task* arg0)
         work->hitBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     func_actor_401300_80133A3C(arg0);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5320,7 +5320,7 @@ static void func_actor_401300_8014046C(Task* arg0)
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     func_actor_401300_80133A3C(arg0);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
         func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

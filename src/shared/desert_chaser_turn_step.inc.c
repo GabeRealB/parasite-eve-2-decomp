@@ -74,7 +74,7 @@ void desertChaserTurnStep(Task* arg0)
     coord2->coord.t[2] += scratch->offset.vz;
     _actorMovementStepForward(arg0->extra.tmd->coords, -8);
 #if DESERT_CHASER_RUN_SEQUENCE
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
 #endif
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (abs(scratch->turn) < 0x20) {

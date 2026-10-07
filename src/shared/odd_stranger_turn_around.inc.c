@@ -88,7 +88,7 @@ void oddStrangerTurnAround(Task* arg0)
             _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
         }
     }
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     if (work->grabCooldown != 0) {

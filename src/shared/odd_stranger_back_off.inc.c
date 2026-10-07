@@ -57,7 +57,7 @@ void oddStrangerBackOff(Task* arg0)
         if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x10) << 16) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, -0x10);
         }
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
             oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

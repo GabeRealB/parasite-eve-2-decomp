@@ -2396,7 +2396,7 @@ static void Actor00100_Fn06C10(Task* arg0)
         work->state = 0x26;
     }
     if (((u32)((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) - 6) < 8U) && (work->stateCounter < 5)) {
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts)) != 0) {
             work->stateCounter = (s16)((u16)work->stateCounter + 1);
         }
         switch (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) {
@@ -2418,7 +2418,7 @@ static void Actor00100_Fn06C10(Task* arg0)
                 break;
         }
     } else {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -2456,7 +2456,7 @@ static void Actor00100_Fn070DC(Task* arg0)
         desertChaserAnimTick(arg0);
         work->stateTimer = 0;
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = arg0->extra.tmd->coords;
     head[-1].delta.vx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -2527,7 +2527,7 @@ static void Actor00100_Fn07650(Task* arg0)
             sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         }
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
     if (work->rig.slots[1].status.fields.flags & 0x100) {
@@ -2586,7 +2586,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
     scratch->delta.vy = 0;
     scratch->delta.vz = 0;
     gte_RotTransPers(&scratch->delta, &head[-1].screen, &head[-1].depthCue, &head[-1].projectionFlags, &head[-1].orderingDepth);
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     coord                                 = arg0->extra.tmd->coords;
     head[-1].delta.vx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -3346,7 +3346,7 @@ static void Actor00100_Fn0B658(Task* arg0)
         desertChaserAnimTick(arg0);
         sceneEngageBattle(1);
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     desertChaserAnimTick(arg0);
     if (work->rig.slots[1].status.fields.flags & 0x100) {

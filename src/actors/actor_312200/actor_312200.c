@@ -42,7 +42,7 @@ extern u8 D_actor_312200_80169F44[];
 
 extern TaskMessageEntry D_actor_312200_80169F5C[4];
 
-/// Whole-unit part of the last step `ActorContact_PushContact` applied.
+/// Whole-unit part of the last step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.

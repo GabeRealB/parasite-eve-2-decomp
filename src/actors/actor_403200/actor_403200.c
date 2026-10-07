@@ -2883,7 +2883,7 @@ _Actor403200PlayerPlacementStorage D_actor_403200_8015F9C0;
 
 GameActorButtonPressHold D_actor_403200_8015FA00;
 
-/// Integer part of the last step `ActorContact_PushContact` applied.
+/// Integer part of the last step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
 
 extern _Actor403200ViewFunc D_actor_403200_8015E6E8[];

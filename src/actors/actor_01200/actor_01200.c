@@ -162,7 +162,7 @@ extern AnimationSet*             Actor01200_D06F98[19]; // animation bank handed
 
 extern TaskMessageEntry Actor01200_D07058[4];
 
-/// Integer part of the last movement step `ActorContact_PushContact` applied.
+/// Integer part of the last movement step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Returns this carrier's persistent last contact-push correction.
@@ -923,7 +923,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     turn->angle += ratan2(-part->coord.m[2][0], part->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 0x14);
-    ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     if (overlayOutOfRange(&turn->delta, 1000)) {
         work->chaseFarFrames++;
     } else {
@@ -1411,7 +1411,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
     turn->angle += ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 5);
-    if (ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts))) {
+    if (_actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts))) {
         work->stateFrame++;
     }
     if (!overlayOutOfRange(&turn->delta, 400) || work->stateFrame > 0x60) {
@@ -1496,7 +1496,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     turn->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 8);
-    ActorContact_PushContact(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    _actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     work->stateFrame++;
     if (!overlayOutOfRange(&turn->delta, 0x50) || work->stateFrame >= 0xDD) {
         work->state = ACTOR_01200_STATE_PATROL;

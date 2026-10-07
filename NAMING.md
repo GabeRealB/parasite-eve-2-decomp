@@ -37,7 +37,7 @@ distinct role word and so cannot collide with the library's.
 |---|---|---|
 | **Module function** | `moduleVerbNoun` | `fsLoadFile`, `cdCmdEnqueue`, `bootLoadInitialFile` |
 | **Overlay function** | `packageVerbNoun` | `gunbladeFireRound`, `pyrokinesisSpawnFlame` |
-| **Included shared implementation** | `subsystemVerbNoun` with the private marker for static instances | `_actorContactPushContact`, `_planarReflectionDraw` |
+| **Included shared implementation** | `subsystemVerbNoun` with the private marker for static instances | `_actorContactApplyGridPushback`, `_planarReflectionDraw` |
 | **Global data** | `gModuleName` | `gFsFileTable`, `gPlayerStatus` |
 | **Private function** | `_moduleVerbNoun` | `_fsReadSector` |
 | **Private data** | `_gModuleName` | `_gSectorCache` |

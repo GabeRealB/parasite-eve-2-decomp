@@ -552,7 +552,7 @@ extern s8      D_actor_403000_80158364[45][45];
 
 extern ActorCommand D_actor_403000_80158D8C;
 
-/// Integer part of the last movement step `ActorContact_PushContact`
+/// Integer part of the last movement step `_actorContactApplyGridPushback`
 /// applied to the actor's root coordinate.
 extern SVECTOR ActorContact_ScratchPosition;
 
@@ -3466,10 +3466,10 @@ static void func_actor_403000_80137084(Task* arg0)
             work->requestedAnimId = 2;
             work->animStart       = ACTOR_403000_ANIM_BLEND_IN;
         }
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     }
     if (work->requestedAnimId == 2) {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
         t             = &scratch->offset;
         pos2          = arg0->extra.tmd->coords;
         t->vx         = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
@@ -3716,7 +3716,7 @@ static void func_actor_403000_801377C8(Task* arg0)
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 1 && work->requestedAnimId == 2 && work->stateFrame >= 0x10) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 1 && work->requestedAnimId == 2 && work->stateFrame >= 0x10) {
         work->state       = ACTOR_403000_STATE_TURN;
         work->turnRingDir = -work->watchRingDir;
     }
@@ -3903,8 +3903,8 @@ static void func_actor_403000_801386E8(Task* arg0)
         work->watchRingDir  = -work->watchRingDir;
     }
     func_actor_403000_80133AF8(arg0);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts));
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts));
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
@@ -4075,8 +4075,8 @@ static void func_actor_403000_80138DB0(Task* arg0)
     }
     func_actor_403000_80133AF8(arg0);
     if (++work->stateFrame < 10) {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts));
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4102,8 +4102,8 @@ static void func_actor_403000_801399A0(Task* arg0)
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->torsoSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
-        ActorContact_PushContact(arg0->extra.tmd->coords, work->torsoSphere.contacts, ARRAY_SIZE(work->torsoSphere.contacts));
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
+        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->torsoSphere.contacts, ARRAY_SIZE(work->torsoSphere.contacts));
     }
     func_actor_403000_80133AF8(arg0);
     if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && work->requestedAnimId == 0xE) {
@@ -4163,7 +4163,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
         dir                                = _actor403000RingSide(diff);
         work->seekRingDir                  = dir;
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
     base                = Actor403000_Cell(arg0->extra.tmd->coords);
     scratch->cell       = base;
@@ -4256,7 +4256,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
         work->stateFrame  = 0;
     }
     work->stateFrame++;
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
     base                = Actor403000_Cell(arg0->extra.tmd->coords);
     scratch->cell       = base;
@@ -4370,7 +4370,7 @@ static void func_actor_403000_8013A678(Task* arg0)
         }
     }
     work->stateFrame++;
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     base          = Actor403000_Cell(arg0->extra.tmd->coords);
     scratch->cell = base;
     if (base == work->patrolGoalCell) {
@@ -4626,7 +4626,7 @@ static void func_actor_403000_8013B238(Task* arg0)
         work->stateFrame        = 0;
     }
     work->stateFrame++;
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     scratch->turn = work->turnStep + ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
     arg0->extra.tmd->coords->coord.t[0]  += work->turnDrift.vx;
@@ -4923,7 +4923,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
         scratch->cell                      = Actor403000_Cell(arg0->extra.tmd->coords);
         work->seekRingDir                  = func_actor_403000_80134204(arg0->extra.tmd->coords);
     }
-    ActorContact_PushContact(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
+    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
     scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
     base                = Actor403000_Cell(arg0->extra.tmd->coords);
     scratch->cell       = base;

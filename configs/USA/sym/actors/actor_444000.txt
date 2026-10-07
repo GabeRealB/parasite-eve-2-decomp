@@ -446,7 +446,7 @@ D_shelter_b3_garbage_incinerator_8018FB6C = 0x8018FB6C; // absolute:True owner=s
 
 D_shelter_b3_garbage_incinerator_8018FBC8 = 0x8018FBC8; // absolute:True owner=shelter_b3_garbage_incinerator
 _actorRenderYawJointInWorld = 0x80132808; // type:func
-ActorContact_PushContact = 0x80132B14; // type:func
+_actorContactApplyGridPushback = 0x80132B14; // type:func
 gluttonBuildWall = 0x80132CB8; // type:func
 gluttonPoseLimb = 0x80133010; // type:func
 gluttonTurnNeck = 0x80133C58; // type:func

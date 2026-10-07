@@ -1085,7 +1085,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 
 EffectSpawnArg D_actor_110600_80148698 = { NULL, 0, 0 };
 
-/// Whole-unit step `ActorContact_PushContact` last applied to its coordinate.
+/// Whole-unit step `_actorContactApplyGridPushback` last applied to its coordinate.
 extern SVECTOR ActorContact_ScratchPosition;
 
 /// Reset argument `animationSeekSlotWithBlend` is handed for the clip `animId` of the

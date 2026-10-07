@@ -99,7 +99,7 @@ void oddStrangerSidestep(Task* arg0)
         coord->coord.t[0] += aim->delta.vx;
         coord              = arg0->extra.tmd->coords;
         coord->coord.t[2] += aim->delta.vz;
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
             work->sidestepStep = (u16)(work->sidestepStep >> 1);
         }
     }

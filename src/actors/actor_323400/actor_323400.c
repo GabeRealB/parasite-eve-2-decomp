@@ -45,7 +45,7 @@
 
 /// Psy-Q `RotMatrixY`.
 
-/// Whole-unit step `ActorContact_PushContact` last applied to its coordinate.
+/// Whole-unit step `_actorContactApplyGridPushback` last applied to its coordinate.
 static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
 /// Per-state animation table `desertChaserAnimTick` reads when it

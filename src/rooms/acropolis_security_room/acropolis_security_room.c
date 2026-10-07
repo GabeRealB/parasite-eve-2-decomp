@@ -223,7 +223,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomSweepLineScratch, 0x14);
 extern Task* D_acropolis_security_room_801855A8;
 extern Task* D_acropolis_security_room_801855AC;
 
-/// The whole-unit world displacement the last `ActorContact_PushContact`
+/// The whole-unit world displacement the last `_actorContactApplyGridPushback`
 /// call produced.
 extern SVECTOR ActorContact_ScratchPosition;
 

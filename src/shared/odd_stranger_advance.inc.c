@@ -4,9 +4,9 @@
 /// 0x12 clip and clears the spawn pose, then takes a 0xC-byte scratch stack
 /// turn block, aims it at `gPlayerStatus.coordMtx` through
 /// `actorPositionYaw`, clamps the turn to +-0x40 and adds the facing
-/// yaw back in before rebuilding the root coordinate. The obstacle walk
-/// `ActorContact_PushContact` runs against `gridContacts` and hands
-/// `hitContacts` to `oddStrangerPushContacts` when it reports a hit, the
+/// yaw back in before rebuilding the root coordinate. After
+/// `_actorContactApplyGridPushback` resolves `gridContacts`, `hitContacts`
+/// go to `oddStrangerPushContacts` if no horizontal grid correction resulted. The
 /// `detectPlayerOutOfReach` probe takes one forward step out of
 /// `slideStep`, and that same countdown then runs down by 0xA a frame. The
 /// tail drops the actor to state 9 on the `rig.slots[1].status` bit or once the
@@ -47,7 +47,7 @@ void oddStrangerAdvance(Task* arg0)
     coord        = arg0->extra.tmd->coords;
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
-    if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {

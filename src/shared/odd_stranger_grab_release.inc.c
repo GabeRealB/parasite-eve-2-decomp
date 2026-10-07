@@ -35,7 +35,7 @@ void oddStrangerGrabRelease(Task* arg0)
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->releaseStep) != 0) {
             actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->releaseStep);
         }
-        if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
+        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
             work->releaseStep = (s16)(u16)work->releaseStep / 2;
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
