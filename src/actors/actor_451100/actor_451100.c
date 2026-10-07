@@ -27,7 +27,6 @@
 #include "main/tmd_types.h"
 #define FOOTSTEP_WALK_WORK_T FootstepWalkQuietWork
 #include "../../shared/footstep_walk.h"
-#include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
 
 static void _footstepWalkQuietUpdate(Task* task);
@@ -95,6 +94,7 @@ static void func_actor_451100_80132330(Enemy* enemy, Task* task);
 static void func_actor_451100_801323B4(Task* task);
 static void func_actor_451100_80132C28(Enemy* enemy, Task* task);
 static void func_actor_451100_80132CAC(Task* task);
+static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor451100No9GolemDryfieldBody;
@@ -1548,7 +1548,7 @@ void func_actor_451100_801322D4(Task* task)
 
 #define walkerFrame      func_actor_451100_80132330
 #define walkerUpdate     _footstepWalkQuietUpdate
-#define walkerDrawShadow walkerDrawShadowShaded
+#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -1623,7 +1623,13 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 
 #include "../../shared/footstep_walk_to.inc.c"
 
-#include "../../shared/walker_shadow_shaded.inc.c"
+/// Names this carrier's private room-shaded shadow function for one inclusion.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// replacement is one identifier and evaluates no arguments or object state.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// State 0 of the `func_actor_451100_80132BD4` dispatcher: allocates the
 /// actor's 0x4C0-byte `PairWalkWork` block and hangs it off the task, spawns

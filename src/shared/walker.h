@@ -1,7 +1,8 @@
-/* What the scripted NPC walkers share whatever their kind: the two ground
- * shadows they draw under the model root - one at a fixed shade, one at the
- * room's shadow shade - and the per-frame state that relights the model from a
+/* What the scripted NPC walkers share whatever their kind: a ground shadow
+ * at a fixed shade and the per-frame state that relights the model from a
  * point 0x320 above its root, runs the walker's update and draws its shadow.
+ * Room-shaded shadows use actor_render_walker_shadow.inc.c with a private
+ * declaration in each carrier's prologue.
  *
  * Include this header in the prologue and each fragment at its function's
  * position. The shadows are library functions; a file with more than one copy
@@ -20,6 +21,5 @@
 #include "main/task_types.h"
 
 void walkerDrawShadow(Task* task);
-void walkerDrawShadowShaded(Task* task);
 
 #endif /* SRC_SHARED_WALKER_H */

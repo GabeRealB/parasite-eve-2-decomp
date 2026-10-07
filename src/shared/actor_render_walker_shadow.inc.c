@@ -5,13 +5,13 @@
 #error "Bind ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW before including this fragment"
 #endif
 
-/// Draws the second walker's ground shadow using the room's shadow shade.
+/// Draws a walker's ground shadow using the room's shadow shade.
 ///
 /// `task` must own a live TMD model whose root view transform is composed.
 /// Hidden models and models without a primitive buffer draw nothing. The quad
 /// has a 512-unit half-side before view-frame rotation and uses the root's
 /// cached view-space translation, without a ground-height query. A negative
-/// room shade or hidden room effects suppress drawing in `effectDrawGroundShadow`.
+/// room shade or hidden/cancelled room effects suppress drawing in `effectDrawGroundShadow`.
 /// The scratch stack needs 80 free, word-aligned bytes for this reservation and
 /// the renderer's nested block; the centre is borrowed until the draw call returns.
 static void ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW(Task* task)

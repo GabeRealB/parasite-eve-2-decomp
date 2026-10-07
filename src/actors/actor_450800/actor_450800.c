@@ -43,7 +43,6 @@
 // Exported instance: rooms spawn from this package's table by name.
 #define gPairWalkTasks gActor450800PairWalkTasks
 #include "../../shared/paced_walk.h"
-#include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
 
 static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
@@ -188,6 +187,7 @@ static void func_actor_450800_801327E4(Enemy* enemy, Task* task);
 static void func_actor_450800_80132868(Task* task);
 static void func_actor_450800_80132AE0(Task* task);
 static void func_actor_450800_801332B8(Enemy* enemy, Task* task);
+static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor450800Body;
@@ -2932,7 +2932,7 @@ void func_actor_450800_80132790(Task* task)
 
 #define walkerFrame      func_actor_450800_801327E4
 #define walkerUpdate     func_actor_450800_80132448
-#define walkerDrawShadow walkerDrawShadowShaded
+#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -2948,7 +2948,13 @@ static void func_actor_450800_80132868(Task* task)
     taskKill(work->gunTask);
 }
 
-#include "../../shared/walker_shadow_shaded.inc.c"
+/// Names this carrier's private room-shaded shadow function for one inclusion.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// replacement is one identifier and evaluates no arguments or object state.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// State handler of one of the actor's model tasks: the spawn tick hangs this
 /// task's own coordinate frame off part `spawnArg1` of the actor's model and

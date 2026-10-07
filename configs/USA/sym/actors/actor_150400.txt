@@ -54,7 +54,7 @@ D_actor_150400_80132D70 = 0x80132D70; // size:0x318 defined:True
 D_shelter_b1_control_room_80181BBC = 0x80181BBC; // absolute:True owner=shelter_b1_control_room shared=rooms
 
 D_shelter_b1_control_room_80183BE0 = 0x80183BE0; // absolute:True owner=shelter_b1_control_room
-walkerDrawShadowShaded = 0x801324E0; // type:func
+_actorRenderDrawWalkerGroundShadow = 0x801324E0; // type:func
 _pairWalkUpdate = 0x80132228; // type:func
 _pairWalkTickAnim = 0x8013257C; // type:func
 _pairWalkResetAnim = 0x801325C8; // type:func

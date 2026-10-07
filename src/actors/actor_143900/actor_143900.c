@@ -37,7 +37,6 @@
 // block; the second walker's copies of the two rebind the type to its own.
 #define SCRIPTED_WALK_WORK_T _Actor143900Work
 #include "../../shared/scripted_walk.h"
-#include "../../shared/walker.h"
 
 static s16 _gScriptedWalkModeStorage[2];
 
@@ -120,6 +119,7 @@ static void func_actor_143900_80132404(Task* task);
 static void func_actor_143900_80132A9C(Task* task);
 static void func_actor_143900_80132E48(Enemy* enemy, Task* task);
 static void func_actor_143900_80132ECC(Task* task);
+static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 static void _scriptedWalkTickSecondAnim(void);
 static void _scriptedWalkResetSecondAnim(void);
@@ -1270,7 +1270,7 @@ void func_actor_143900_80132324(Task* task)
 
 #define walkerFrame      func_actor_143900_80132380
 #define walkerUpdate     scriptedWalkUpdate
-#define walkerDrawShadow walkerDrawShadowShaded
+#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -1283,7 +1283,13 @@ static void func_actor_143900_80132404(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/walker_shadow_shaded.inc.c"
+/// Names this carrier's private room-shaded shadow function for one inclusion.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// replacement is one identifier and evaluates no arguments or object state.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 #include "../../shared/scripted_walk_tick_anim.inc.c"
 

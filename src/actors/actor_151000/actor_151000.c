@@ -30,7 +30,6 @@
 #include "main/tmd_types.h"
 #define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk.h"
-#include "../../shared/walker.h"
 
 static void _footstepWalkUpdate(Task* task);
 static void _footstepWalkExit(Task* task);
@@ -108,6 +107,7 @@ extern TaskMessageEntry gFootstepWalkMsgTable[];
 extern u8               gFootstepWalkAnims[];
 
 static void func_actor_151000_80132450(Enemy* enemy, Task* task);
+static void _actorRenderDrawWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor151000AyaBreaBody;
 void             func_actor_151000_801323F4(Task*);
@@ -910,7 +910,7 @@ void func_actor_151000_801323F4(Task* task)
 
 #define walkerFrame      func_actor_151000_80132450
 #define walkerUpdate     _footstepWalkUpdate
-#define walkerDrawShadow walkerDrawShadowShaded
+#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -997,4 +997,10 @@ static s32 _actor151000ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 
 #include "../../shared/footstep_walk_to.inc.c"
 
-#include "../../shared/walker_shadow_shaded.inc.c"
+/// Names this carrier's private room-shaded shadow function for one inclusion.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// replacement is one identifier and evaluates no arguments or object state.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW

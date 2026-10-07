@@ -43,7 +43,6 @@
 /// Only element zero is a mode; the remaining halfword has an unproven role.
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #include "../../shared/scripted_walk.h"
-#include "../../shared/walker.h"
 
 static void _footstepWalkUpdate(Task* task);
 static void _footstepWalkExit(Task* task);
@@ -108,6 +107,7 @@ extern s16 gFootstepWalkMode;
 static void func_actor_461800_80132A0C(Enemy* enemy, Task* task);
 static void func_actor_461800_80132A90(Task* task);
 static void func_actor_461800_801335B0(Enemy* enemy, Task* task);
+static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 s32  func_actor_461800_80132D84(Task*, s32, AnimationPlayRequest*, s32);
@@ -1143,7 +1143,7 @@ void func_actor_461800_801329B0(Task* task)
 
 #define walkerFrame      func_actor_461800_80132A0C
 #define walkerUpdate     scriptedWalkUpdate
-#define walkerDrawShadow walkerDrawShadowShaded
+#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -1162,7 +1162,13 @@ static void func_actor_461800_80132A90(Task* task)
     taskKill(work->attachment2);
 }
 
-#include "../../shared/walker_shadow_shaded.inc.c"
+/// Names this carrier's private room-shaded shadow function for one inclusion.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// replacement is one identifier and evaluates no arguments or object state.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// State handler of the actor's model task: the spawn tick hangs the task's own
 /// coordinate frame off the actor's part `spawnArg1` and steps to state 1, and

@@ -35,7 +35,6 @@
 #define gPairWalkTasks       gActor535700PairWalkTasks
 #define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk.h"
-#include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
 
 static void _footstepWalkUpdate(Task* task);
@@ -95,6 +94,7 @@ extern u8               gPairWalkAnimParams[];
 
 static void func_actor_535700_801324D4(Enemy* enemy, Task* task);
 static void func_actor_535700_80132F74(Enemy* enemy, Task* task);
+static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor535700AyaBreaBody;
@@ -1191,7 +1191,7 @@ void func_actor_535700_80132478(Task* task)
 
 #define walkerFrame      func_actor_535700_801324D4
 #define walkerUpdate     _footstepWalkUpdate
-#define walkerDrawShadow walkerDrawShadowShaded
+#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -1259,7 +1259,13 @@ s32 func_actor_535700_80132910(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 
 #include "../../shared/footstep_walk_to.inc.c"
 
-#include "../../shared/walker_shadow_shaded.inc.c"
+/// Names this carrier's private room-shaded shadow function for one inclusion.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// replacement is one identifier and evaluates no arguments or object state.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 #include "../../shared/pair_walk_spawn.inc.c"
 

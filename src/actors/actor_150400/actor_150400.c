@@ -35,7 +35,6 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_b1_control_room.h"
-#include "../../shared/walker.h"
 #include "../../shared/pair_walk.h"
 
 static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
@@ -56,6 +55,7 @@ extern TaskMessageEntry D_actor_150400_8013C8C4[];
 
 static void func_actor_150400_80132434(Enemy* enemy, Task* task);
 static void func_actor_150400_801324B8(Task* task);
+static void _actorRenderDrawWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor150400No9GolemDryfieldBody;
 static TmdSource _gActor150400GolemBeamSword;
@@ -506,7 +506,7 @@ void func_actor_150400_801323E0(Task* task)
 
 #define walkerFrame      func_actor_150400_80132434
 #define walkerUpdate     _pairWalkUpdate
-#define walkerDrawShadow walkerDrawShadowShaded
+#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
@@ -519,7 +519,13 @@ static void func_actor_150400_801324B8(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/walker_shadow_shaded.inc.c"
+/// Names this carrier's private room-shaded shadow function for one inclusion.
+///
+/// Bind to the prologue's `static void name(Task* task)` declaration; the
+/// replacement is one identifier and evaluates no arguments or object state.
+#define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
+#include "../../shared/actor_render_walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 #include "../../shared/pair_walk_tick_anim.inc.c"
 
