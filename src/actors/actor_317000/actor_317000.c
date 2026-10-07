@@ -360,24 +360,31 @@ TaskMessageEntry D_actor_317000_8016CF50[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Applies this tick's signed 16.16 leap velocity and advances gravity for the next tick.
+/// Applies one frame of leap displacement and advances the airborne velocity.
 ///
-/// Requires live writable work and root storage. Carries narrow to signed
-/// halfword displacements; the retained fractions are zero-extended. Root
-/// composition is invalidated even for zero velocity.
+/// Requires initialized writable work and a live root coordinate in separate
+/// storage. Velocity uses signed 16.16 units per frame in the root's parent
+/// coordinate frame; carry holds the previous frame's unsigned fractions.
+/// While airborne, positive Y gravity adds 18 whole units per frame to the
+/// next frame's velocity. Signed integer halves move the root, and carry words
+/// finish in 0..0xFFFF. Composition is invalidated even when stationary.
+/// Performs no collision or floor correction and retains no pointers.
 static inline void _actor317000IntegrateLeapVelocity(_Actor317000Work* work, GfxCoord* rootCoord)
 {
     enum { ACTOR_317000_LEAP_GRAVITY = 18 << 16 }; // Signed 16.16 units per tick squared
+
+    // Accumulate this frame's displacement before gravity changes the velocity.
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
     work->walk.carry[2].word += work->walk.velocity.vz;
     if (work->airborne != 0) {
         work->walk.velocity.vy += ACTOR_317000_LEAP_GRAVITY;
     }
-    rootCoord->coord.t[0]   += work->walk.carry[0].halves.integer;
-    rootCoord->coord.t[1]   += work->walk.carry[1].halves.integer;
-    rootCoord->coord.t[2]   += work->walk.carry[2].halves.integer;
-    rootCoord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    rootCoord->coord.t[0]  += work->walk.carry[0].halves.integer;
+    rootCoord->coord.t[1]  += work->walk.carry[1].halves.integer;
+    rootCoord->coord.t[2]  += work->walk.carry[2].halves.integer;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Retain the unsigned fractions after consuming the signed integer steps.
     work->walk.carry[0].word = work->walk.carry[0].halves.fraction;
     work->walk.carry[1].word = work->walk.carry[1].halves.fraction;
     work->walk.carry[2].word = work->walk.carry[2].halves.fraction;
@@ -562,20 +569,30 @@ static void _actor317000TurnHeadToTarget(Task* task, Task* targetTask, s32 maxYa
     RotMatrix(&jointAngles, &subjectCoords[ACTOR_317000_HEAD_PART].coord);
 }
 
-/// Applies a changed start clip to the actor's nineteen-part animation rig.
+/// Applies the leap's requested start clip without restarting repeated clips.
 ///
-/// Borrows a live model, initialized work and a request through the call.
-/// Bank and clip must exist in `gActorMotionAnimBanks19`; a bank change binds
-/// the rig and invalidates the old clip. Slots 1..18 blend for the requested
-/// duration when already ticking, otherwise reset, then tick immediately.
+/// Requires a live nineteen-part TMD task and initialized `_Actor317000Work`,
+/// with `model.bank` initially `ACTOR_MODEL_STATE_NONE`. The readable request
+/// must not overlap playback storage: `source.index` selects bank 0 and
+/// `animationId` selects a loaded clip 1..8; stored IDs narrow to signed bytes.
+/// A bank change binds the rig and invalidates the old clip. An unchanged clip
+/// in the same bank leaves playback alone, including its blend and cursor.
+/// Slots 1..18 blend when requested and already ticking, otherwise reset.
+/// Blending captures an advanced pose before a final tick of the new clip;
+/// `blendFrames` counts whole normal-rate frames (0..2047). Slot 0 and the
+/// collision choice are unused. The request may expire on return; work-owned
+/// slots/poses, model coordinates and bank/clip data stay live during playback.
+/// Scratch-stack and GTE requirements follow `animationTickSlotPose`.
 static inline void _actor317000ApplyLeapStartAnimation(Task* task, const AnimationPlayRequest* request)
 {
+    enum { ACTOR_317000_FIRST_DRIVEN_SLOT = 1 };
     _Actor317000Work* playbackWork;
     TmdObject*        bodyModel;
     s32               slotIndex;
 
     playbackWork = task->work;
     bodyModel    = task->extra.tmd;
+    // Changing banks invalidates the previous clip even when its ID agrees.
     if (request->source.index != playbackWork->model.bank) {
         playbackWork->model.bank   = request->source.index;
         playbackWork->model.animId = ACTOR_MODEL_STATE_NONE;
@@ -585,18 +602,19 @@ static inline void _actor317000ApplyLeapStartAnimation(Task* task, const Animati
     if (request->animationId != playbackWork->model.animId) {
         playbackWork->model.animId = request->animationId;
         if (request->blend != ANIMATION_BLEND_RESET && playbackWork->model.ticking != 0) {
-            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+            for (slotIndex = ACTOR_317000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
                 animationSeekSlotWithBlend(&playbackWork->rig.anim, slotIndex, playbackWork->model.animId, 0, request->blendFrames);
             }
         } else {
-            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+            for (slotIndex = ACTOR_317000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
                 animationResetSlot(&playbackWork->rig.anim, slotIndex, playbackWork->model.animId);
             }
         }
-        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+        // Apply the selected pose before the normal frame update resumes ticking.
+        for (slotIndex = ACTOR_317000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
             animationTickSlot(&playbackWork->rig.anim, slotIndex);
         }
-        playbackWork->model.ticking = 1;
+        playbackWork->model.ticking = true;
     }
 }
 
