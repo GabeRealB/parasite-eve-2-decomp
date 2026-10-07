@@ -875,7 +875,7 @@ void viewCommitIndexTask(Task* task)
 
 void func_800A99B4(void)
 {
-    Display_SpawnWithOtSmall(0, 0x26, 0, 0);
+    displaySpawnTask(0, 0x26, 0, 0);
 }
 
 void loadingRestoreViewGraphicsTask(Task* task)

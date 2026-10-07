@@ -680,7 +680,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     } while (0);
     arg0->state          += 1;
     work->keyItemAccepted = 0;
-    Display_AcquireRef();
+    displayAcquireMenuHold();
 
     hs = D_dryfield_breezeway_80182E00;
     while (hs->id != ACTION_PROMPT_HOTSPOT_END) {

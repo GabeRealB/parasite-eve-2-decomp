@@ -96,7 +96,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 
 void func_shelter_b1_control_room_8017F100(Task* arg0)
 {
-    Display_SpawnWithOt(D_shelter_b1_control_room_80181BBC, 1, 0, 0);
+    displaySpawnTaskFromTable(D_shelter_b1_control_room_80181BBC, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);

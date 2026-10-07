@@ -12,7 +12,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 | Area | Code / data |
 |------|-------------|
 | Types + APIs | `include/main/task.h`, `src/main/task.c` |
-| Extra lists / OT spawn | `src/main/otutil.c` (`Display_SpawnWithOt*`, `taskSpawnFromTableOnDefaultList`, `Task_SpawnOnDefaultListA`) |
+| Extra lists / OT spawn | `src/main/otutil.c` (`displaySpawnTaskFromTable`, `displaySpawnTask`, `taskSpawnFromTableOnDefaultList`, `taskSpawnOnDefaultList`) |
 | Frame tick | `src/main/gamemain.c` (`GameMain_Loop` → `taskExecDefaultList`) |
 | Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
@@ -230,9 +230,17 @@ task. Both functions require a live, non-NULL task and loaded exit handlers.
 |------|------|
 | `gTaskDefaultList` | Resident head of the default priority-ordered execution list; initialized and selected on boot / session reset |
 | `_gTaskActiveList` | Private borrowed pointer selecting the head used for spawning and tail unlinking |
-| `gTaskDisplayList` | Side list with its own small OT. `Display_SpawnWithOt` / `Display_SpawnWithOtSmall` init it, spawn onto it, then restore `_gTaskActiveList` |
+| `gTaskDisplayList` | Task-owned presentation list. `displaySpawnTaskFromTable` / `displaySpawnTask` configure two 64-tag OTs and the static primitive arena, initialize and select the list, spawn onto it, then restore the previous selection |
 
-`taskSpawnFromTableOnDefaultList` / `Task_SpawnOnDefaultListA` temporarily switch
+Both display spawners return NULL without changes when the game loop does not
+own presentation. A successful spawn selects task-owned presentation and requests
+the bare-OT mode; the callback runs on a later presentation walk. Allocation or
+body-attachment failure leaves ownership and the pending mode unchanged, but the
+buffer configuration and empty display list remain. The table form selects an
+unchecked descriptor index; the bank form follows `taskSpawn`'s bank/index or
+negative-bank/direct-descriptor contract. Neither retains the descriptor.
+
+`taskSpawnFromTableOnDefaultList` / `taskSpawnOnDefaultList` temporarily switch
 `_gTaskActiveList` to the default list so a spawn from inside another list
 still lands on the main frame walk.
 
@@ -435,7 +443,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | Table | Callback / role |
 |-------|-----------------|
 | `Title_TaskDescs[0]` | `Title_BootTask` |
-| `Title_TaskDescs[1]` | `Title_DemoStreamTask` (`Display_SpawnWithOt`) |
+| `Title_TaskDescs[1]` | `Title_DemoStreamTask` (`displaySpawnTaskFromTable`) |
 | `D_8006269C[0]` | `Display_DispatchTaskTable` — 6-way stage load (`Stage_WaitCdActivate` … `_stageResumeMovieAndFinishModeTask`) |
 | `D_80062774[0]` | `Stage_DispatchTaskTable` — bank-load spawn from gameplay |
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |

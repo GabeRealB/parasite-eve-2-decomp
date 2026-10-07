@@ -1122,7 +1122,7 @@ static void func_neo_ark_shrine_8017ECC4(Task* task)
     do {
         task->state++;
     } while (0);
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     for (hs = D_neo_ark_shrine_80182430; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }

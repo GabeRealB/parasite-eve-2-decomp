@@ -27,7 +27,7 @@
 /// this task's `spawnArg1`, sets `gDisplayState.control.flags.flipMode`, spawns the view tasks and ends.
 void func_shelter_r36_8017DBC0(Task* arg0)
 {
-    Display_SpawnWithOt(D_shelter_r36_8017E9A4, 1, arg0->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(D_shelter_r36_8017E9A4, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);

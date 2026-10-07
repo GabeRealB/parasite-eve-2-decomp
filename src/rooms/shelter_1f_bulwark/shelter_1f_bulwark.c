@@ -531,7 +531,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Display_SpawnWithOt(D_shelter_1f_bulwark_80180360, 1, 0, 0);
+            displaySpawnTaskFromTable(D_shelter_1f_bulwark_80180360, 1, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             Gp_SpawnViewTasks();
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;

@@ -34,9 +34,24 @@ enum { DISPLAY_CLEAR_DISABLED = -1 };
 /// The settings persist until changed here or by display-mode setup.
 void displaySetClearColor(s32 red, s32 green, s32 blue);
 
-void Gpu_InitOtSmall(void);
+/// Binds small task-owned ordering tables and the static primitive arena.
+///
+/// Configures both `Gpu_OrderingTables` slots for 64 tags and a 0x6000-byte
+/// primitive arena split into two 0x3000-byte halves. Previous GPU users must
+/// have finished. Does not clear tags, select the current OT or primitive cursor,
+/// initialize a task list, or change display ownership; the frame path clears
+/// and selects a half before drawing. Allocates and releases no storage.
+void displayInitTaskBuffers(void);
 
-void Gpu_InitOt(void);
+/// Binds full task-owned ordering tables and clears the selected frame's tags.
+///
+/// Configures both `Gpu_OrderingTables` slots for 1024 tags in the resident
+/// frame-tag buffers, whose stride includes additional foreground storage.
+/// `gDisplayState.frameBuffer` must be 0 or 1; previous GPU users of the buffers
+/// must have finished. Clears only that slot's 1024-tag table, terminates tag
+/// zero and selects it as `gGpuCurrentOt`, without the game loop's 32-tag bias.
+/// The primitive arena, task list and display ownership are unchanged.
+void gpuInitTaskOrderingTables(void);
 
 /// Build and present the task-owned frame, restoring the caller's current OT.
 ///
@@ -50,9 +65,22 @@ s32 Display_DispatchModeId(s32 arg0);
 /// Put draw/disp env and optionally transfer framebuffer strips (gamemain.c).
 void Display_FlipDraw(s32 bufferIndex);
 
-void Display_SetPrimBufLarge(void);
+/// Selects the image-memory primitive reservation for task-owned drawing.
+///
+/// `Gpu_PrimHeapBase` must provide `MEMORY_PRIMITIVE_HEAP_BYTES` (0x10000)
+/// writable bytes with previous GPU/heap users finished. Subsequent task frames
+/// select one 0x8000-byte half. This records borrowed storage without allocating,
+/// clearing it or resetting the live cursor; image-memory configuration owns
+/// its lifetime. Complete packets must fit in the selected half.
+void displayUseHeapTaskPrimitiveBuffer(void);
 
-void Display_SetPrimBufSmall(void);
+/// Selects the resident static primitive arena for task-owned drawing.
+///
+/// Subsequent task frames select one half of the 0x6000-byte arena (0x3000
+/// bytes). Previous GPU users must have finished and packets must fit within
+/// the selected half. Changes only the arena binding and byte capacity; the
+/// current cursor is reset by the next frame. Allocates and releases no storage.
+void displayUseStaticTaskPrimitiveBuffer(void);
 
 /// Makes buffer `buf`'s ordering table the current one: clears it, terminates
 /// it, and leaves the current-table pointer past the entries reserved at its

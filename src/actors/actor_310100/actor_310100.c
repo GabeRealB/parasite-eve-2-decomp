@@ -1172,7 +1172,7 @@ s32 func_actor_310100_80162C64(Task* task, s32 msgId, s32 arg2, ActorTransform* 
         taskKill(work->modelTask);
     }
     work->bodyAnimationId = placement->pos.vy;
-    Display_SpawnWithOt(&D_actor_310100_801798E4, 0, arg2, task);
+    displaySpawnTaskFromTable(&D_actor_310100_801798E4, 0, arg2, task);
 }
 
 /// Message 0x7D7 handler: parks the display task's work block at state 2 and
@@ -1192,7 +1192,7 @@ s32 func_actor_310100_80162CDC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (work->modelTask != NULL) {
         taskKill(work->modelTask);
     }
-    Display_SpawnWithOt(&D_actor_310100_801798F0, 0, arg2, task);
+    displaySpawnTaskFromTable(&D_actor_310100_801798F0, 0, arg2, task);
 }
 
 /// Message 0x7DD handler, and the display task's placement command: marks the

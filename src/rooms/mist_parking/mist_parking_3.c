@@ -272,7 +272,7 @@ void func_mist_parking_801837B8(Task* task)
 /// `spawnArg1`, sets `gDisplayState.control.flags.flipMode`, respawns the view tasks and kills itself.
 void func_mist_parking_8018397C(Task* arg0)
 {
-    Display_SpawnWithOt(D_mist_parking_8018FC24, 1, arg0->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(D_mist_parking_8018FC24, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);

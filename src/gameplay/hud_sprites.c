@@ -1702,7 +1702,7 @@ void Gp_SpawnCurView(s32 arg0)
         taskSpawn(0, 0x17, 0, 0);
     }
     if (arg0 == 1) {
-        Task_SpawnOnDefaultListA(0, 0x17, 0, 0);
+        taskSpawnOnDefaultList(0, 0x17, 0, 0);
     }
 }
 
@@ -1728,7 +1728,7 @@ void Gp_ViewGateTask(Task* task)
             sess->location.loc.view = save->state.location.loc.view;
             Pad_SetCooldown(0);
             Gp_SpawnViewTasks();
-            if (Display_SpawnWithOtSmall(0, 0x1E, 0, 0) != 0) {
+            if (displaySpawnTask(0, 0x1E, 0, 0) != 0) {
                 loc                   = gGameSession->location.loc.view;
                 task->killCountdown   = 2;
                 task->spawnArg1.value = loc;
@@ -1739,7 +1739,7 @@ void Gp_ViewGateTask(Task* task)
         }
     }
     if (task->state == 1) {
-        Display_AcquireRef();
+        displayAcquireMenuHold();
         task->state += 1;
     }
     if (task->state == 2) {

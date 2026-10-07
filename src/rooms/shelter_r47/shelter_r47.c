@@ -1146,7 +1146,7 @@ void func_shelter_r47_8018138C(Task* task)
     work->savedView                                            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x10;
     task->state++;
-    Display_AcquireRef();
+    displayAcquireMenuHold();
 
     hs = D_shelter_r47_80186FB4;
     while (hs->id != ACTION_PROMPT_HOTSPOT_END) {

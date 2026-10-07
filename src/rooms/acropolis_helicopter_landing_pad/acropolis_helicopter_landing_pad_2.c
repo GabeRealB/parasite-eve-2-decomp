@@ -1675,7 +1675,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
                     taskKill(task);
                     break;
                 }
-                Display_AcquireRef();
+                displayAcquireMenuHold();
                 task->state++;
             }
             task->state++;

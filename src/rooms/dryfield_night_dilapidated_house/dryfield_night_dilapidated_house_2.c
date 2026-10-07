@@ -2469,7 +2469,7 @@ void func_dryfield_night_dilapidated_house_8017DB20(Task* task)
 /// view tasks and kills itself.
 void func_dryfield_night_dilapidated_house_8017DCE0(Task* arg0)
 {
-    Display_SpawnWithOt(D_dryfield_night_dilapidated_house_801872B4, 1, 0, 0);
+    displaySpawnTaskFromTable(D_dryfield_night_dilapidated_house_801872B4, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);

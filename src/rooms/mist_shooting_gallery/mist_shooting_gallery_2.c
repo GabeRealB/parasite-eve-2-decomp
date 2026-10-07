@@ -2350,7 +2350,7 @@ static void func_mist_shooting_gallery_80182B1C(Task* arg0)
         Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
         if (work->course < 2) {
             actor->movementInputDisabled = 1;
-            Display_AcquireRef();
+            displayAcquireMenuHold();
         }
     }
     gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
@@ -3204,7 +3204,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
             }
             work->timer = 0x1E;
             work->phase++;
-            Display_AcquireRef();
+            displayAcquireMenuHold();
         case 1:
             if ((s16)work->timer-- > 0) {
                 return;

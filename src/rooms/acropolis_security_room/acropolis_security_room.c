@@ -2311,7 +2311,7 @@ static void func_acropolis_security_room_8017D9DC(Task* task)
         state                                                      = stateElse;
     }
     task->state = state;
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     gGameSession->hideHud      = 1;
     gGameSession->cutsceneHold = 1;
     gGameSession->eventState   = 1;
@@ -2918,7 +2918,7 @@ static void func_acropolis_security_room_8017FA18(Task* task)
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     for (hs = D_acropolis_security_room_801826DC; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }

@@ -666,7 +666,7 @@ void Stage_InitOtAndSpawn(void)
 {
     DisplayState* temp;
 
-    Gpu_InitOtSmall();
+    displayInitTaskBuffers();
     temp                         = &gDisplayState;
     temp->displayOwner           = DISPLAY_OWNER_TRANSITION;
     temp->control.flags.flipMode = DISPLAY_FLIP_HOLD;
@@ -771,7 +771,7 @@ s32 Stage_HasTransitionFlags(void)
 void Stage_InitOtOnce(void)
 {
     if (Stage_Ctx->fullOtReady == 0) {
-        Gpu_InitOt();
+        gpuInitTaskOrderingTables();
         Stage_Ctx->fullOtReady = 1;
     }
 }
@@ -779,7 +779,7 @@ void Stage_InitOtOnce(void)
 void Stage_InitPrimBufOnce(void)
 {
     if (Stage_Ctx->largePrimBuf == 0) {
-        Display_SetPrimBufLarge();
+        displayUseHeapTaskPrimitiveBuffer();
         Stage_Ctx->largePrimBuf = 1;
     }
 }
@@ -787,7 +787,7 @@ void Stage_InitPrimBufOnce(void)
 void Stage_ReleasePrimBuf(void)
 {
     if (Stage_Ctx->largePrimBuf == 1) {
-        Display_SetPrimBufSmall();
+        displayUseStaticTaskPrimitiveBuffer();
         Stage_Ctx->largePrimBuf = 0;
     }
 }

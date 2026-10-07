@@ -3071,7 +3071,7 @@ void Gp_TickPlayClock(Task* task)
                 gGameSession->restartMode = GAME_SESSION_RESTART_COMPANION_3_DOWN;
             }
         }
-        Display_AcquireRef();
+        displayAcquireMenuHold();
         task->killCountdown   = gGameSession->deathRestartDelay;
         Wip_SysFlags.gameOver = 1;
         task->state++;
@@ -3079,7 +3079,7 @@ void Gp_TickPlayClock(Task* task)
     }
 
     if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
-        Display_AcquireRef();
+        displayAcquireMenuHold();
         gGameSession->deathVariant = 1;
         task->state++;
     } else {

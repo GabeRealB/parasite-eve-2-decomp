@@ -1255,7 +1255,7 @@ static void _dryfieldNightGarageBlackoutTask(Task* task)
 /// kills itself.
 void func_dryfield_night_garage_80180D4C(Task* arg0)
 {
-    Display_SpawnWithOt(D_dryfield_night_garage_80183380, 1, arg0->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(D_dryfield_night_garage_80183380, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);

@@ -2409,7 +2409,7 @@ static void func_shelter_b1_underground_parking_80184304(Task* task)
             work->field_0 = 0;
         } while (0);
     } while (0);
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     for (hs = D_shelter_b1_underground_parking_8018767C; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }

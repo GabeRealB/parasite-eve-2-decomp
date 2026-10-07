@@ -92,7 +92,18 @@ static __inline__ Task* Task_SpawnPtr(s32 bank, s32 type, s32 arg2, const void* 
 /// can run in a later default-list walk, or this walk if insertion follows its cursor.
 Task* taskSpawnFromTableOnDefaultList(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
-Task* Task_SpawnOnDefaultListA(s32 bank, TaskSpawnArg type, TaskSpawnArg arg2, TaskSpawnArg arg3);
+/// Spawns a bank entry or direct descriptor onto the default execution list.
+///
+/// `gTaskDefaultList` must be initialized. `bank`, `selector` and the payload
+/// words follow `taskSpawn`'s bounds, lifetime and ownership contract: banks
+/// 0..14 select an unchecked signed index, and every negative bank selects a
+/// live descriptor pointer. The callback is not invoked during spawning.
+///
+/// Returns the task or NULL on allocation/body-attachment failure, restoring
+/// the previous list selection in either case. A missing model primitive buffer
+/// alone does not fail spawning. Insertion after the current default-list walk's
+/// cursor can dispatch the new task in that same walk.
+Task* taskSpawnOnDefaultList(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
 /// Performs default task teardown, releasing its resources and arranging collection.
 ///

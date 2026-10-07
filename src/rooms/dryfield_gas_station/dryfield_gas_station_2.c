@@ -112,7 +112,7 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
 /// Runs the gas station's shaft sequence. State 0 allocates the task's
 /// `_DryfieldGasStationArrivalWork` into `Task::work`, spawns the
 /// `D_dryfield_gas_station_80181E7C` entry 1 loader through
-/// `Display_SpawnWithOt` and turns the view tasks on; states 1 and 2 only
+/// `displaySpawnTaskFromTable` and turns the view tasks on; states 1 and 2 only
 /// step, so state 3 spawns the cutscene task from
 /// `D_dryfield_gas_station_8018312C` entry 0 into that block, and state 4 kills
 /// this task once the cutscene has died. The block is read at function entry,
@@ -134,7 +134,7 @@ void func_dryfield_gas_station_801802C0(Task* task)
                 taskKill(task);
                 break;
             }
-            Display_SpawnWithOt(D_dryfield_gas_station_80181E7C, 1, 0, 0);
+            displaySpawnTaskFromTable(D_dryfield_gas_station_80181E7C, 1, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             Gp_SpawnViewTasks();
             task->state = task->state + 1;

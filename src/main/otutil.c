@@ -14,6 +14,7 @@
 #include "display_types.h"
 #include "gamemain.h"
 #include "main/mem.h"
+#include "mem.h"
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/stage.h"
@@ -49,14 +50,28 @@ static TaskDesc Display_MenuTaskDesc;
 
 static void Display_FlipOt(void);
 
-/// Resolves special display modes to their effective frame-hold state.
-static s32 Display_GetHoldMode(void);
-
 static void _displayResumeGameLoop(void);
 
 static void Display_FlipOtAlt(void);
 
 static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, Gp_MenuRootTask };
+
+/// Binds two 64-tag task ordering tables and the static primitive arena.
+///
+/// Previous GPU users must have finished. Only the storage bindings change;
+/// tags are cleared and the primitive cursor is selected by the frame path.
+static __inline__ void _displayConfigureSmallTaskBuffers(void)
+{
+    GsOT* orderingTables;
+
+    orderingTables              = Gpu_OrderingTables;
+    orderingTables->length      = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+    orderingTables->org         = (GsOT_TAG*)Gpu_SmallOtTags;
+    orderingTables[1].length    = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+    orderingTables[1].org       = (GsOT_TAG*)(Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES);
+    _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
+    _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
+}
 
 s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
 {
@@ -122,78 +137,68 @@ s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
     return frameStart;
 }
 
-Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
+Task* displaySpawnTask(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2)
 {
-    DisplayState* temp;
-    GsOT*         ot;
+    DisplayState* display;
     TaskNode*     previousList;
-    Task*         ret;
+    Task*         spawnedTask;
 
-    temp = &gDisplayState;
-    ret  = NULL;
-    if (temp->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
-        ot                          = Gpu_OrderingTables;
-        ot->length                  = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-        ot->org                     = Gpu_SmallOtTags;
-        ot[1].length                = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-        ot[1].org                   = Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES;
-        _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
-        _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
-        temp->frameBuffer           = temp->drawBuffer ^ 1;
-        previousList                = taskGetActiveList();
+    display     = &gDisplayState;
+    spawnedTask = NULL;
+    if (display->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
+        // Prepare the hidden framebuffer and a fresh task-owned drawing list.
+        _displayConfigureSmallTaskBuffers();
+        display->frameBuffer = display->drawBuffer ^ 1;
+        previousList         = taskGetActiveList();
         taskInitList(&gTaskDisplayList);
-        ret = taskSpawn(arg0, arg1, arg2, arg3);
-        if (ret != NULL) {
-            temp->pendingMode            = DISPLAY_MODE_BARE_OT;
-            temp->displayOwner           = DISPLAY_OWNER_TASK;
-            temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
+        spawnedTask = taskSpawn(bank, selector, spawnArg1, spawnArg2);
+        // Commit the presentation handoff only after the task has been created.
+        if (spawnedTask != NULL) {
+            display->pendingMode            = DISPLAY_MODE_BARE_OT;
+            display->displayOwner           = DISPLAY_OWNER_TASK;
+            display->control.flags.flipMode = DISPLAY_FLIP_FULL;
         }
         taskSetActiveList(previousList);
     }
-    return ret;
+    return spawnedTask;
 }
 
-Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
+Task* displaySpawnTaskFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2)
 {
-    DisplayState* temp;
-    GsOT*         ot;
+    DisplayState* display;
     TaskNode*     previousList;
-    Task*         ret;
+    Task*         spawnedTask;
 
-    temp = &gDisplayState;
-    ret  = NULL;
-    if (temp->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
-        ot                          = Gpu_OrderingTables;
-        ot->length                  = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-        ot->org                     = Gpu_SmallOtTags;
-        ot[1].length                = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-        ot[1].org                   = Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES;
-        _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
-        _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
-        temp->frameBuffer           = temp->drawBuffer ^ 1;
-        previousList                = taskGetActiveList();
+    display     = &gDisplayState;
+    spawnedTask = NULL;
+    if (display->displayOwner == DISPLAY_OWNER_GAME_LOOP) {
+        // Prepare the hidden framebuffer and a fresh task-owned drawing list.
+        _displayConfigureSmallTaskBuffers();
+        display->frameBuffer = display->drawBuffer ^ 1;
+        previousList         = taskGetActiveList();
         taskInitList(&gTaskDisplayList);
-        ret = taskSpawnFromTable(descriptor, arg1, arg2, arg3);
-        if (ret != NULL) {
-            temp->pendingMode            = DISPLAY_MODE_BARE_OT;
-            temp->displayOwner           = DISPLAY_OWNER_TASK;
-            temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
+        spawnedTask = taskSpawnFromTable(table, index, spawnArg1, spawnArg2);
+        // Commit the presentation handoff only after the task has been created.
+        if (spawnedTask != NULL) {
+            display->pendingMode            = DISPLAY_MODE_BARE_OT;
+            display->displayOwner           = DISPLAY_OWNER_TASK;
+            display->control.flags.flipMode = DISPLAY_FLIP_FULL;
         }
         taskSetActiveList(previousList);
     }
-    return ret;
+    return spawnedTask;
 }
 
-Task* Task_SpawnOnDefaultListA(s32 arg0, TaskSpawnArg arg1, TaskSpawnArg arg2, TaskSpawnArg arg3)
+Task* taskSpawnOnDefaultList(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2)
 {
     TaskNode* previousList;
-    Task*     ret;
+    Task*     spawnedTask;
 
     previousList = taskGetActiveList();
     taskSetActiveList(&gTaskDefaultList);
-    ret = taskSpawn(arg0, arg1, arg2, arg3);
+    spawnedTask = taskSpawn(bank, selector, spawnArg1, spawnArg2);
     taskSetActiveList(previousList);
-    return ret;
+    return spawnedTask;
 }
 
 Task* taskSpawnFromTableOnDefaultList(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2)
@@ -230,7 +235,7 @@ static void Display_FlipOt(void)
     temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }
 
-void Display_AcquireRef(void)
+void displayAcquireMenuHold(void)
 {
     DisplayState* display;
 
@@ -256,30 +261,26 @@ void displayReleaseMenuHold(void)
     }
 }
 
-static s32 Display_GetHoldMode(void)
+/// Returns selector 2's value 4, selector 3's value 6, or the signed hold byte.
+///
+/// No caller or writer of `Display_HoldMode` is present in the game. The
+/// selector, override values and hold byte's low bits have unproven roles.
+static s32 _displayResolveHoldState(void)
 {
     switch (Display_HoldMode) {
         case 2:
             return 4;
         case 3:
             return 6;
-        case 1: // some case below 2 was listed with the default; which is not recoverable
+        case 1: // The binary distinguishes one value below 2; its identity is unproven.
         default:
             return gDisplayState.holdState;
     }
 }
 
-void Gpu_InitOtSmall(void)
+void displayInitTaskBuffers(void)
 {
-    GsOT* ot;
-
-    ot                          = Gpu_OrderingTables;
-    ot->length                  = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-    ot->org                     = Gpu_SmallOtTags;
-    ot[1].length                = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-    ot[1].org                   = Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES;
-    _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
-    _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
+    _displayConfigureSmallTaskBuffers();
 }
 
 s32 Display_DispatchModeId(s32 arg0)
@@ -341,31 +342,32 @@ static void Display_FlipOtAlt(void)
     temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }
 
-void Gpu_InitOt(void)
+void gpuInitTaskOrderingTables(void)
 {
-    GsOT*         ot;
-    DisplayState* temp;
-    u_long*       org;
+    GsOT*         orderingTables;
+    DisplayState* display;
+    u_long*       firstTag;
 
-    ot           = Gpu_OrderingTables;
-    ot->length   = GPU_ORDERING_TABLE_DEPTH_BITS;
-    ot->org      = Gpu_OtTags;
-    ot[1].length = GPU_ORDERING_TABLE_DEPTH_BITS;
-    ot[1].org    = Gpu_OtTags + GPU_ORDERING_TABLE_BUFFER_ENTRIES;
-    temp         = &gDisplayState;
-    GsClearOt(0, 0, &ot[temp->frameBuffer]);
-    org           = ot[temp->frameBuffer].org;
-    *org          = GPU_OT_END_PRIM;
-    gGpuCurrentOt = org;
+    orderingTables           = Gpu_OrderingTables;
+    orderingTables->length   = GPU_ORDERING_TABLE_DEPTH_BITS;
+    orderingTables->org      = (GsOT_TAG*)Gpu_OtTags;
+    orderingTables[1].length = GPU_ORDERING_TABLE_DEPTH_BITS;
+    orderingTables[1].org    = (GsOT_TAG*)(Gpu_OtTags + GPU_ORDERING_TABLE_BUFFER_ENTRIES);
+    display                  = &gDisplayState;
+    // Select tag zero as the task depth base, without the game loop's foreground bias.
+    GsClearOt(0, 0, &orderingTables[display->frameBuffer]);
+    firstTag      = (u_long*)orderingTables[display->frameBuffer].org;
+    *firstTag     = GPU_OT_END_PRIM;
+    gGpuCurrentOt = firstTag;
 }
 
-void Display_SetPrimBufLarge(void)
+void displayUseHeapTaskPrimitiveBuffer(void)
 {
-    _gGpuDisplayPrimBufferBytes = 0x10000;
+    _gGpuDisplayPrimBufferBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
     _gGpuDisplayPrimBufferBase  = Gpu_PrimHeapBase;
 }
 
-void Display_SetPrimBufSmall(void)
+void displayUseStaticTaskPrimitiveBuffer(void)
 {
     _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
     _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);

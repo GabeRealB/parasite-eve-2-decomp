@@ -2438,14 +2438,14 @@ void func_mist_shooting_gallery_801810D8(Task* task)
                 task->state = 2;
                 return;
             }
-            Display_SpawnWithOt(D_mist_shooting_gallery_80185384, 2, 0, 0);
+            displaySpawnTaskFromTable(D_mist_shooting_gallery_80185384, 2, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_FULL;
             Gp_SpawnViewTasks();
         case 1:
             task->state = task->state + 1;
             return;
         case 2:
-            Display_SpawnWithOt(D_mist_shooting_gallery_80185384, 1, 0, 0);
+            displaySpawnTaskFromTable(D_mist_shooting_gallery_80185384, 1, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             Gp_SpawnViewTasks();
             taskKill(task);

@@ -282,7 +282,7 @@ static void func_actor_143000_801324C8(Task* arg0)
     D_actor_143000_80135C0C_value                              = temp_a0;
     arg0->state                                               += 1;
     work->field_4                                              = 0;
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     // Clear hits left on the table before the prompt scan starts.
     if (p->id != ACTION_PROMPT_HOTSPOT_END) {
         do {

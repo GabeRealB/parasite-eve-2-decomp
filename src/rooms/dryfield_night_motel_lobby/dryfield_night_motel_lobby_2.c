@@ -876,7 +876,7 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
     do {
         task->state++;
     } while (0);
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     for (hs = D_dryfield_night_motel_lobby_80182820; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }

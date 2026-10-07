@@ -5761,7 +5761,7 @@ void func_actor_560800_80135D54(Task* arg0)
             if (work->eve != NULL) {
                 taskKill(work->eve);
             }
-            Display_SpawnWithOt(D_actor_560800_801718F0, 0xC, 0, 0);
+            displaySpawnTaskFromTable(D_actor_560800_801718F0, 0xC, 0, 0);
             break;
     }
     work->sceneCue.id = 0;
@@ -5769,7 +5769,7 @@ void func_actor_560800_80135D54(Task* arg0)
 
 void func_actor_560800_80135F50(Task* arg0)
 {
-    Display_SpawnWithOt(D_actor_560800_8016EA28, 1, arg0->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(D_actor_560800_8016EA28, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);
@@ -6178,7 +6178,7 @@ void func_actor_560800_80136930(s32 arg0)
 
 void func_actor_560800_801369A0(void)
 {
-    Display_SpawnWithOt(D_actor_560800_801718F0, 0xD, 0, 0);
+    displaySpawnTaskFromTable(D_actor_560800_801718F0, 0xD, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
     Gp_SpawnViewTasks();
 }

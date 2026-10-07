@@ -12370,7 +12370,7 @@ typedef struct {
 } GsOT;
 ```
 
-Init pattern (see `Gpu_InitOtSmall`): hold `GsOT* ot = Gpu_OrderingTables`, write
+Init pattern (see `displayInitTaskBuffers`): hold `GsOT* ot = Gpu_OrderingTables`, write
 `length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
@@ -12382,7 +12382,7 @@ GsClearOt(0, 0, &ot[temp->frameBuffer]);
 gGpuCurrentOt = ot[temp->frameBuffer].org;
 ```
 
-`Gpu_InitOt` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
+`gpuInitTaskOrderingTables` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
 with `Gpu_OtTags` / `+ GPU_ORDERING_TABLE_BUFFER_ENTRIES`, clears the active buffer
 (`gDisplayState.frameBuffer`), then points `gGpuCurrentOt` at the OT base.
 
@@ -85065,7 +85065,7 @@ form.
 
 The region is a real home for such a table, not an accident: all 167 room
 packages cover 0x8017DA00, and in `shelter_r49` offset 0x440 is a `TaskDesc` the
-room's own code spawns from (`D_shelter_r49_8017DA00`, via `Display_SpawnWithOt`).
+room's own code spawns from (`D_shelter_r49_8017DA00`, via `displaySpawnTaskFromTable`).
 Other actor overlays reach into the same region the same way (`func_8017D9B8`
 from `actor_400600`, `D_8017DC54` from `actor_461800`), and the project already
 calls one of these "map 0x427's spawn points"
@@ -149657,7 +149657,7 @@ attempts; left as it was.
 
 ### Goto removal, batch 11: an unsigned switch index, a store's arm order, alias locals that were inlines (2026-10-06)
 
-- **`==2; <3 -> default; ==3; j default`** (`Display_GetHoldMode`) is three
+- **`==2; <3 -> default; ==3; j default`** (`_displayResolveHoldState`) is three
   nodes, `case 2:`, `case 3:` and one case below 2 listed with the default
   (`case 1: default:`). Two cases alone give `==2; ==3` with no `slti`.
 - **A switch on an *unsigned* index tests its bounded neighbours by equality,

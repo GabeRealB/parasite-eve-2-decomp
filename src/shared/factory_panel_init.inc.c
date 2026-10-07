@@ -23,7 +23,7 @@ void factoryPanelInit(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 5;
     }
     task->state++;
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     for (hs = gFactoryPanelHotspots; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
         hs->hit = 0;
     }

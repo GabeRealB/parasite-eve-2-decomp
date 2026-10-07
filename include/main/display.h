@@ -198,9 +198,36 @@ void displaySetFrameTiming(s32 timingMode);
 /// background-image crop after presenting its current frame.
 void displaySetShakeY(s8 offsetY);
 
-Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3);
+/// Spawns a bank entry or direct descriptor to take over frame presentation.
+///
+/// Requires game-loop ownership and an empty or disposable display-task list.
+/// Other owners reject the request with NULL and no changes. `bank`, `selector`
+/// and both payload words follow `taskSpawn`'s bounds and lifetime contract:
+/// banks 0..14 select an unchecked index; a negative bank uses a descriptor
+/// pointer. Reads the descriptor synchronously without invoking its callback.
+///
+/// Configures two 64-tag OTs and the 0x6000-byte static primitive arena, starts
+/// the task framebuffer opposite `drawBuffer`, and initializes the display list.
+/// GPU use of this storage and tasks on the old list must already have ended.
+/// On success, requests bare-OT mode and task-owned full presentation; the
+/// callback runs in a subsequent display-list walk. It must arrange completion
+/// and return presentation through `displayResumeGameLoop` when appropriate.
+///
+/// Returns the task or NULL on allocation/body-attachment failure. Failure
+/// retains the new buffer bindings, framebuffer selection and empty list, but
+/// leaves presentation ownership and the pending mode unchanged. Restores the
+/// previously selected execution list on either spawn result. No arena is
+/// allocated or freed; pointer payload ownership belongs to the callback.
+Task* displaySpawnTask(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
-Task* Display_SpawnWithOt(TaskDesc* descriptor, s32 arg1, TaskSpawnArg arg2, TaskSpawnArg arg3);
+/// Spawns an indexed descriptor to take over frame presentation.
+///
+/// `table[index]` must be a live non-terminator descriptor; the signed element
+/// index is unchecked. Follows `taskSpawnFromTable`'s payload and resource
+/// lifetime contract. The descriptor is read synchronously and not retained.
+/// Uses the same ownership gate, buffer preparation, deferred callback dispatch,
+/// success handoff, failure side effects and list restoration as `displaySpawnTask`.
+Task* displaySpawnTaskFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
 /// Drawing policy selected while a display-mode task presents the frame.
 enum {
@@ -272,12 +299,22 @@ void Display_LoadImageStrips(s32 bufferIndex);
 /// responsibility; the game loop resets the primitive cursor on its next frame.
 void displayResumeGameLoop(void);
 
-/// Acquire a display hold that blocks normal menu-mode requests.
-void Display_AcquireRef(void);
+/// Acquires one hold on normal menu-mode requests.
+///
+/// Balance each acquisition with `displayReleaseMenuHold`. If the active bit
+/// is clear, sets it and starts the byte count at one, preserving the low bits.
+/// Otherwise increments the count, including the initial active/zero-count state.
+/// An active count must be below 255 before acquisition: incrementing 255 wraps
+/// to zero without clearing the gate. No overflow check is performed.
+///
+/// Holds delay queued menu requests while the game loop owns presentation;
+/// requests with their high bit set bypass the gate. This does not stop task
+/// execution, acquire a resource reference or take presentation ownership.
+void displayAcquireMenuHold(void);
 
 /// Releases one hold on normal menu-mode requests.
 ///
-/// Balance `Display_AcquireRef` calls and keep outstanding holds within 1..255.
+/// Balance `displayAcquireMenuHold` calls and keep outstanding holds within 1..255.
 /// The last release clears the active hold bit while preserving all other
 /// hold-state bits. If the hold bit is already clear, the count is reset to zero.
 /// An active hold with a zero count wraps to 255 instead of opening the gate.

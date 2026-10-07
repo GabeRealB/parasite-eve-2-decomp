@@ -3109,7 +3109,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     rec[(u8)view - 1].batches[35].hidden = 1;
     gGameSession->cutsceneHold           = 1;
     Gp_MsgPlayer3F3(0);
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     gGameSession->eventState = 1;
     gGameSession->hideHud    = 1;
     for (hs = D_acropolis_bridge_8018983C; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {

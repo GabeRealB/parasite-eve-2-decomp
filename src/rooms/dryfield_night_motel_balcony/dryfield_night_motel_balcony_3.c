@@ -1074,7 +1074,7 @@ SVECTOR D_dryfield_night_motel_balcony_80182C90 = { -160, -3100, 8360, 0 };
 
 void func_dryfield_night_motel_balcony_8017E0C8(Task* arg0)
 {
-    Display_SpawnWithOt(D_dryfield_night_motel_balcony_80182834, 1, 0, 0);
+    displaySpawnTaskFromTable(D_dryfield_night_motel_balcony_80182834, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, SOUND_SCRIPT_STOP_KEEP_RELEASE);

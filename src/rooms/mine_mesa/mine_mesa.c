@@ -2787,7 +2787,7 @@ static void _mineMesaHoldBlackScreenTask(Task* task)
 
 void func_mine_mesa_8017E024(Task* arg0)
 {
-    Display_SpawnWithOt(D_mine_mesa_80181990, 1, 0, 0);
+    displaySpawnTaskFromTable(D_mine_mesa_80181990, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     Gp_SpawnViewTasks();
     taskKill(arg0);

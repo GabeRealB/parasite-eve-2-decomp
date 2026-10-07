@@ -694,7 +694,7 @@ s32 Gp_ApplyHpDamage(s16 arg0)
         gPlayerStatus.hp = 1;
     } else {
         ret = 1;
-        Display_AcquireRef();
+        displayAcquireMenuHold();
     }
     return ret;
 }

@@ -764,7 +764,7 @@ static void Gp_ScriptInit(Task* arg0)
     }
     D_801156F9          = 0;
     D_801156F4.sceneKey = 0;
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     script           = arg0->spawnArg2.pointer;
     D_801156A4       = 0;
     arg0->work       = work;

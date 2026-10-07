@@ -578,7 +578,7 @@ void Title_BootTask(Task* arg0)
                 next               = 6;
                 Title_SkipFadeFlag = 0;
             } else {
-                Display_SpawnWithOt(Title_TaskDescs, 1, 0, 0);
+                displaySpawnTaskFromTable(Title_TaskDescs, 1, 0, 0);
                 gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
                 next                                 = task->state + 1;
             }

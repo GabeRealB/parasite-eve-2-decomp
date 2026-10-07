@@ -219,7 +219,7 @@ void func_shelter_b1_armory_80180214(Task* task)
 {
     switch (task->state) {
         case 0:
-            Display_AcquireRef();
+            displayAcquireMenuHold();
             D_80115768 = 1;
             task->state++;
             break;

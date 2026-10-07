@@ -602,9 +602,9 @@ void Gp_MenuRootTask(Task* arg0)
             } else {
                 Stage_BeginTransitionKind7(gGameSession->location.loc.view);
             }
-            Task_SpawnOnDefaultListA(FADE_DISPLAY_TASK_BANK, FADE_DISPLAY_TASK_TYPE, FADE_DISPLAY_REVEAL_WORLD, 0);
+            taskSpawnOnDefaultList(FADE_DISPLAY_TASK_BANK, FADE_DISPLAY_TASK_TYPE, FADE_DISPLAY_REVEAL_WORLD, 0);
             if (taskSpawnFromTableOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {
-                Display_AcquireRef();
+                displayAcquireMenuHold();
             }
             Gp_MenuLockDelay = 8;
             hudDelayInputAfterMenu();

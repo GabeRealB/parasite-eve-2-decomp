@@ -935,7 +935,7 @@ static void func_actor_548100_80132420(Task* task)
         gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SOCKET_4, 1);
     }
     work->usedItem = 0;
-    Display_AcquireRef();
+    displayAcquireMenuHold();
     start = D_actor_548100_801357E8;
     for (rec = start; rec->id != ACTION_PROMPT_HOTSPOT_END; rec++) {
         rec->hit = 0;

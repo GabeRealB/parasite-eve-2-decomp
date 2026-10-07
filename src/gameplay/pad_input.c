@@ -168,7 +168,7 @@ void Gp_UpdatePadInput(void)
     Gp_PadSuppressPrev = Gp_PadSuppressMask;
     if (gDisplayState.demoScene == DISPLAY_DEMO_NONE) {
         if (Gp_PadSuppressRise & 0x900) {
-            Display_AcquireRef();
+            displayAcquireMenuHold();
             Gp_PadSuppressRefs++;
         }
         if (Gp_PadSuppressFall & 0x900) {
