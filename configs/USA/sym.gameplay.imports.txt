@@ -704,7 +704,7 @@ func_dryfield_motel_balcony_80181628 = 0x80181628; // type:func absolute:True ow
 
 dryfieldNightBackStreetDrawGlowsTask = 0x8017D7E0; // type:func absolute:True owner=dryfield_night_back_street
 
-dryfieldNightBackStreetRoomVisualEffectsFlashTask = 0x8017E390; // type:func absolute:True owner=dryfield_night_back_street shared=rooms
+dryfieldNightBackStreetRoomVisualEffectsFlashTask = 0x8017E390; // type:func absolute:True owner=dryfield_night_back_street
 
 dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask = 0x8017EDF4; // type:func absolute:True owner=dryfield_night_back_street shared=rooms
 

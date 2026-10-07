@@ -26,6 +26,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/item_menu.h"
+#include "gameplay/items.h"
 #include "gameplay/gpu_image_upload.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
@@ -101,6 +102,54 @@ STATIC_ASSERT_SIZEOF(_DryfieldBreezewayFirstEventWork, 0x14);
 /// the screen centre. Its X at rest is the centre itself.
 #define DRYFIELD_BREEZEWAY_LINE_REST_Y 0x20
 
+/// Screen-pixel geometry of the key-item line and its two steered halves.
+enum {
+    DRYFIELD_BREEZEWAY_LINE_ANCHOR_X              = 0,
+    DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y              = -80,
+    DRYFIELD_BREEZEWAY_LINE_REACH                 = 112,
+    DRYFIELD_BREEZEWAY_LINE_GRAB_RADIUS           = 32,
+    DRYFIELD_BREEZEWAY_LINE_SEGMENT_LENGTH        = 4,
+    DRYFIELD_BREEZEWAY_LINE_MAX_SEGMENTS_PER_HALF = 30,
+    DRYFIELD_BREEZEWAY_LINE_TARGET_DISTANCE_LIMIT = 9,
+    DRYFIELD_BREEZEWAY_LINE_HALF_WIDTH            = 4,
+};
+
+/// Angle units and fixed-point precision used to steer and bend the line.
+enum {
+    DRYFIELD_BREEZEWAY_LINE_SCALE_FRACTION_BITS = 12,
+    DRYFIELD_BREEZEWAY_LINE_SIGNED_ANGLE_SHIFT  = 20,
+    DRYFIELD_BREEZEWAY_LINE_TURN_LARGE          = 0x200,
+    DRYFIELD_BREEZEWAY_LINE_TURN_MEDIUM         = 0x100,
+    DRYFIELD_BREEZEWAY_LINE_TURN_SMALL          = 0x80,
+};
+
+/// Texture binding and ordering-table entry for the key-item line's quads.
+enum {
+    DRYFIELD_BREEZEWAY_LINE_TEXTURE_PAGE         = 0x8E,
+    DRYFIELD_BREEZEWAY_LINE_CLUT                 = 0x4000,
+    DRYFIELD_BREEZEWAY_LINE_ORDERING_TABLE_INDEX = 100,
+    DRYFIELD_BREEZEWAY_LINE_TEXTURE_U_END        = 16,
+    DRYFIELD_BREEZEWAY_LINE_TEXTURE_V_END        = 4,
+};
+
+/// State selectors used by the key-item event's seven-entry dispatch table.
+enum {
+    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_INITIALIZE    = 0,
+    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_ARM_PROMPT    = 1,
+    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_SELECT_MODEL  = 2,
+    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_OPEN_PROMPT   = 3,
+    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_WAIT_FOR_ITEM = 4,
+    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_EXIT          = 5,
+    DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_LEAD_LINE     = 6,
+};
+
+/// Equipped-bank clip the opening encounter plays before starting pursuit.
+enum { DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_ANIMATION = 9 };
+
+/// Actor commands used by this room to stage and start its desert-chaser encounter.
+enum { DRYFIELD_BREEZEWAY_ACTOR_COMMAND_STAGE         = 1,
+       DRYFIELD_BREEZEWAY_ACTOR_COMMAND_START_PURSUIT = 2 };
+
 /// Values of `_DryfieldBreezewayKeyItemEventWork::swingDamping`.
 enum {
     DRYFIELD_BREEZEWAY_LINE_SWING_DAMPING_START = 3, // Stored while the cursor leads the end, so a release starts from it
@@ -140,7 +189,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_DryfieldBreezewayKeyItemEventWork, 0x60);
 
 /// The `TaskDesc` `func_dryfield_breezeway_8017E464` spawns the room's prompt
-/// task (`func_dryfield_breezeway_8017FA80`) from, and the single-entry `TaskMessageEntry[]` it parks in `Task::msgTable`
+/// task (`_dryfieldBreezewayActionPromptTask`) from, and the single-entry `TaskMessageEntry[]` it parks in `Task::msgTable`
 /// so `taskMessageDispatch` routes the family's messages (the 0x13F1 "can this key
 /// item be used here?" query) into it. Both sit in the room's trailing data
 /// blob, the table immediately after the descriptor.
@@ -161,7 +210,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_DryfieldBreezewayLineEdge, 0x12);
 
 /// Placement this room hands on with message 0x7D4 from
-/// `func_dryfield_breezeway_8017E2D4`, `func_dryfield_breezeway_8017E390` and
+/// `_dryfieldBreezewayStageSecondDesertChaser`, `_dryfieldBreezewayStageFirstEventSkip` and
 /// `func_dryfield_breezeway_8017DEC0`: world x 17000, y 0, z 3000, yaw 0xA00.
 extern ActorTransform D_dryfield_breezeway_80181E28;
 
@@ -175,7 +224,7 @@ extern ActorTransform D_dryfield_breezeway_80181E40[];
 
 /// The key-item prompt's own hotspot table: the one-entry
 /// `ActionPromptHotspot` run, ended by `ACTION_PROMPT_HOTSPOT_END`, that
-/// `func_dryfield_breezeway_8017E65C` hit-tests at the
+/// `_dryfieldBreezewayScanKeyItemHotspot` hit-tests at the
 /// prompt's own screen position and walks for the entry the cursor landed on,
 /// where the prop table below is hit-tested at the cursor itself. Its `id` is
 /// the script variant the prompt confirms, which the scan parks in the event
@@ -196,14 +245,14 @@ extern ActionPromptHotspot D_dryfield_breezeway_80182DDC[];
 
 static void _actionPromptResetDefault(Task* task);
 static void func_dryfield_breezeway_8017E464(Task* arg0);
-static void func_dryfield_breezeway_8017E65C(Task* task);
+static void _dryfieldBreezewayScanKeyItemHotspot(Task* task);
 static void func_dryfield_breezeway_8017E81C(Task* task);
-static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2);
-static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, SVECTOR* arg2, SVECTOR* arg3, _DryfieldBreezewayLineEdge* arg4);
-static s16  func_dryfield_breezeway_8017FAD0(SVECTOR* target, SVECTOR* pos);
-static void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2);
-static s16  func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_dryfield_breezeway_8017FD68(Task* task);
+static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY);
+static void _dryfieldBreezewayDrawKeyItemLineSegment(s16 angle, s16 length, const SVECTOR* start, SVECTOR* tipOut, _DryfieldBreezewayLineEdge* edge);
+static s16  _dryfieldBreezewayIsLinePointNearTarget(const SVECTOR* target, const SVECTOR* point);
+static void _dryfieldBreezewayPlaceKeyItemModelAtLineTip(Task* task, s16 tipX, s16 tipY);
+static s16  _dryfieldBreezewayGetLineBearing(s16 fromX, s16 fromY, s16 toX, s16 toY);
+static void _dryfieldBreezewayArmKeyItemPrompt(Task* task);
 static void func_dryfield_breezeway_8017FD9C(Task* task);
 static void func_dryfield_breezeway_8017FE08(Task* task);
 static void _actionPromptEventEnd(Task* eventTask);
@@ -217,8 +266,8 @@ static void func_dryfield_breezeway_80181938(Task* task, u8* color);
 static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
     {
         func_dryfield_breezeway_8017E464,
-        func_dryfield_breezeway_8017FD68,
-        func_dryfield_breezeway_8017E65C,
+        _dryfieldBreezewayArmKeyItemPrompt,
+        _dryfieldBreezewayScanKeyItemHotspot,
         func_dryfield_breezeway_8017FD9C,
         func_dryfield_breezeway_8017FE08,
         _actionPromptEventEnd,
@@ -226,18 +275,17 @@ static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
     }
 };
 
-void func_dryfield_breezeway_8017E2D4(void);
-void func_dryfield_breezeway_8017E350(void);
-void func_dryfield_breezeway_8017E370(s16);
+static void _dryfieldBreezewayStageSecondDesertChaser(void);
+static void _dryfieldBreezewayRequestFirstEventAction(s16 action);
 
-void func_dryfield_breezeway_8017E010(Task*);
-void func_dryfield_breezeway_8017E114(Task*);
-void func_dryfield_breezeway_8017E350(void);
-void func_dryfield_breezeway_8017E390(void);
+static void _dryfieldBreezewayInitFirstEventTask(Task* task);
+void        func_dryfield_breezeway_8017E114(Task*);
+static void _dryfieldBreezewayEngageFirstEventBattle(void);
+static void _dryfieldBreezewayStageFirstEventSkip(void);
 
-s32  func_dryfield_breezeway_8017FBC8(Task*, s32, s32, s32);
-void func_dryfield_breezeway_8017FA80(Task*);
-void func_dryfield_breezeway_8017FC38(Task*);
+static s32  _dryfieldBreezewayUseBottlecapMagnet(Task* task, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static void _dryfieldBreezewayActionPromptTask(Task* task);
+void        func_dryfield_breezeway_8017FC38(Task*);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
@@ -264,14 +312,14 @@ ActorTransform D_dryfield_breezeway_80181E40[2] = {
 
 EvsCommand D_dryfield_breezeway_80181E70[12] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_breezeway_8017E370 }, { .value = DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_STAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldBreezewayRequestFirstEventAction }, { .value = DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_STAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_breezeway_8017E370 }, { .value = DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldBreezewayRequestFirstEventAction }, { .value = DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_breezeway_8017E2D4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_breezeway_8017E350 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldBreezewayStageSecondDesertChaser }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldBreezewayEngageFirstEventBattle }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -280,12 +328,12 @@ EvsCommand D_dryfield_breezeway_80181E70[12] = {
 EvsCommand D_dryfield_breezeway_80181F90[12] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_breezeway_8017E390 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldBreezewayStageFirstEventSkip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_breezeway_8017E350 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldBreezewayEngageFirstEventBattle }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -293,7 +341,7 @@ EvsCommand D_dryfield_breezeway_80181F90[12] = {
 };
 
 TaskDesc D_dryfield_breezeway_801820B0[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017E010, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayInitFirstEventTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017E114, { .value = 0 } },
 };
 
@@ -331,10 +379,10 @@ static TmdSource _gDryfieldBreezewayModel04E8C = {
     _gDryfieldBreezewayModel04E8CStream,
 };
 
-TaskDesc D_dryfield_breezeway_80182DC0 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_breezeway_8017FA80, { .value = 0 } };
+TaskDesc D_dryfield_breezeway_80182DC0 = { { { TASK_BODY_NONE, 192 } }, _dryfieldBreezewayActionPromptTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_breezeway_80182DCC[2] = {
-    { 5105, func_dryfield_breezeway_8017FBC8 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldBreezewayUseBottlecapMagnet },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -368,11 +416,11 @@ extern EvsCommand D_dryfield_breezeway_80181F90[];
 
 static void func_dryfield_breezeway_8017DEC0(Task* arg0);
 
-/// Sends `command` to every placed actor of the room.
+/// Broadcasts a stage/area-scoped command to the scene's placed actors.
 ///
-/// The command is addressed to the session's stage and area and broadcast
-/// through the scene task; what each value does is up to the actor that
-/// receives it.
+/// `command` is a full u16 selector in each actor's command namespace. The scene
+/// and current session must be live. Dispatch consumes the stack request
+/// synchronously and discards the actors' replies.
 static inline void _dryfieldBreezewayBroadcastActorCommand(u16 command)
 {
     ActorCommand msg;
@@ -383,19 +431,27 @@ static inline void _dryfieldBreezewayBroadcastActorCommand(u16 command)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
-/// Plays `animationId` from the player's bank for the equipped weapon, off the
-/// collision grid.
+/// Plays a clip from the current character's equipped-weapon bank under scripted control.
 ///
-/// `blend` is an `ANIMATION_BLEND_*` choice and `blendFrames` the length of the
-/// transition in frames. The request is consumed by the dispatch.
+/// `animationId`, `blend` and `blendFrames` are u16 selectors/durations promoted
+/// into the request's signed words; frames are normal playback frames and `blend`
+/// is an `ANIMATION_BLEND_*` choice. The current bank table requires character
+/// 1, weapon slot 0..32 and a loaded bank/clip. The other-character branch
+/// retains offset 34; its reachable bank storage is unproven.
+/// World collision is disabled. Dispatch consumes the request synchronously;
+/// the animation resources remain borrowed through playback.
 static inline void _dryfieldBreezewayPlayPlayerAnimation(u16 animationId, u16 blend, u16 blendFrames)
 {
+    enum { DRYFIELD_BREEZEWAY_PLAYER_PRIMARY_CHARACTER    = 1,
+           DRYFIELD_BREEZEWAY_PRIMARY_WEAPON_BANK_FIRST   = 1,
+           DRYFIELD_BREEZEWAY_OTHER_CHARACTER_BANK_OFFSET = 0x22 };
+
     AnimationPlayRequest request;
     s32                  weapon;
 
-    // Each character has a bank per weapon slot: the primary's start at 1, the alternate's at 0x22.
+    // Character 1 selects the equipped-weapon bank; the retained other-character offset is unproven.
     weapon                       = gPlayerStatus.weapon;
-    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weapon + 1 : weapon + 0x22;
+    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_BREEZEWAY_PLAYER_PRIMARY_CHARACTER) ? weapon + DRYFIELD_BREEZEWAY_PRIMARY_WEAPON_BANK_FIRST : weapon + DRYFIELD_BREEZEWAY_OTHER_CHARACTER_BANK_OFFSET;
     request.animationId          = animationId;
     request.blend                = blend;
     request.blendFrames          = blendFrames;
@@ -428,51 +484,66 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_NONE:
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_STAGE:
-            _dryfieldBreezewayBroadcastActorCommand(1);
+            _dryfieldBreezewayBroadcastActorCommand(DRYFIELD_BREEZEWAY_ACTOR_COMMAND_STAGE);
             TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E40[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &D_dryfield_breezeway_80181E40[1], 0);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(4);
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9:
-            _dryfieldBreezewayPlayPlayerAnimation(9, ANIMATION_BLEND_INTERPOLATE, 10);
+            _dryfieldBreezewayPlayPlayerAnimation(DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_ANIMATION, ANIMATION_BLEND_INTERPOLATE, 10);
             break;
     }
     work->action = DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_NONE;
 }
 
-void func_dryfield_breezeway_8017E010(Task* arg0)
+/// Allocates the first-event work and binds its borrowed room actors.
+static inline void _dryfieldBreezewayInitializeFirstEventWork(Task* task)
 {
     _DryfieldBreezewayFirstEventWork* work;
-    s32                               id;
+    s32                               placeKey;
 
-    switch (arg0->state) {
-        case 0:
-            work       = memMalloc(sizeof(*work), false);
-            arg0->work = work;
-            if (work == NULL) {
-                taskKill(arg0);
-            } else {
-                memFillBytes(work, 0, sizeof(*work));
-                work->playerTask              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_dryfield_breezeway_801843C0 = arg0;
-                // The placed actors are found by place key: the session's stage and area with the placement index.
-                id                         = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
-                work->desertChaserTasks[0] = sceneFindEnemyByPlaceKey(id)->task;
-                id                         = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
-                work->desertChaserTasks[1] = sceneFindEnemyByPlaceKey(id)->task;
-            }
-            arg0->state += 1;
+    work       = memMalloc(sizeof(*work), false);
+    task->work = work;
+    if (work == NULL) {
+        taskKill(task);
+    } else {
+        memFillBytes(work, 0, sizeof(*work));
+        work->playerTask              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        D_dryfield_breezeway_801843C0 = task;
+        // The placed actors are found by place key: the session's stage and area with the placement index.
+        placeKey                   = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
+        work->desertChaserTasks[0] = sceneFindEnemyByPlaceKey(placeKey)->task;
+        placeKey                   = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+        work->desertChaserTasks[1] = sceneFindEnemyByPlaceKey(placeKey)->task;
+    }
+}
+
+/// Initializes and publishes the opening encounter's task/work, then retires on its next tick.
+///
+/// The work owns no actor tasks: it borrows the player and the current room's
+/// desert-chaser placements 0 and 1, which must already exist. Allocation failure
+/// kills the task; otherwise task teardown owns the work. No cutscene is started
+/// here. The published task slot is not cleared on retirement.
+static void _dryfieldBreezewayInitFirstEventTask(Task* task)
+{
+    enum { DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_INITIALIZE = 0,
+           DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_RETIRE     = 1 };
+
+    switch (task->state) {
+        case DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_INITIALIZE:
+            _dryfieldBreezewayInitializeFirstEventWork(task);
+            task->state += 1;
             return;
-        case 1:
-            taskKill(arg0);
+        case DRYFIELD_BREEZEWAY_FIRST_EVENT_TASK_RETIRE:
+            taskKill(task);
             return;
     }
 }
 
-/// The long-lived half of the arming pair: `func_dryfield_breezeway_8017E010`
-/// is the same state 0 with no sequencer and no cutscene behind it, and is the
-/// one `dryfield_night_water_tank` spawns. This one arms the room and then
+/// The long-lived half of the arming pair: `_dryfieldBreezewayInitFirstEventTask`
+/// initializes the same borrowed actor bindings at room startup and then retires.
+/// This one arms the room and then
 /// stays resident to run `func_dryfield_breezeway_8017DEC0` every frame.
 ///
 /// State 0 arms the room, but only while no cutscene is running
@@ -532,45 +603,58 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
     func_dryfield_breezeway_8017DEC0(arg0);
 }
 
-void func_dryfield_breezeway_8017E2D4(void)
+/// Starts the opening encounter's pursuit and places its second chaser at the mark.
+static inline void _dryfieldBreezewayStartFirstEventPursuit(void)
 {
     _DryfieldBreezewayFirstEventWork* work;
-    ActorCommand                      msg;
 
-    work                  = D_dryfield_breezeway_801843C0->work;
-    msg.context.loc.stage = gGameSession->location.loc.stage;
-    msg.context.loc.area  = gGameSession->location.loc.area;
-    msg.command           = 2;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    work = D_dryfield_breezeway_801843C0->work;
+    _dryfieldBreezewayBroadcastActorCommand(DRYFIELD_BREEZEWAY_ACTOR_COMMAND_START_PURSUIT);
     TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
 }
 
-void func_dryfield_breezeway_8017E350(void)
+/// Starts the opening encounter's desert-chaser pursuit and places its second chaser at the mark.
+///
+/// Broadcasts actor command 2 before placing the second chaser. The published
+/// first-event task, its work and the selected actor must still be live.
+static void _dryfieldBreezewayStageSecondDesertChaser(void)
+{
+    _dryfieldBreezewayStartFirstEventPursuit();
+}
+
+/// Engages the scene battle after the opening encounter's normal or skip script.
+static void _dryfieldBreezewayEngageFirstEventBattle(void)
 {
     sceneEngageBattle(1);
 }
 
-void func_dryfield_breezeway_8017E370(s16 arg0)
+/// Queues an opening-script action for the published first-event task's next tick.
+///
+/// `action` is a `DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_*` selector, stored as
+/// u16; unsupported selectors are cleared by the task. The action-step counter
+/// is reset. The published task and its work must still be live.
+static void _dryfieldBreezewayRequestFirstEventAction(s16 action)
 {
     _DryfieldBreezewayFirstEventWork* work;
 
     work             = D_dryfield_breezeway_801843C0->work;
-    work->action     = arg0;
+    work->action     = action;
     work->actionStep = 0;
 }
 
-void func_dryfield_breezeway_8017E390(void)
+/// Stages the opening encounter's final player pose and second chaser during the skip fade.
+///
+/// Plays equipped-bank animation 9 without blending or world collision, then
+/// broadcasts actor command 2 and places the second desert chaser at its mark.
+/// The player, loaded animation bank and published first-event task must be live.
+static void _dryfieldBreezewayStageFirstEventSkip(void)
 {
-    _DryfieldBreezewayFirstEventWork* work;
-
-    _dryfieldBreezewayPlayPlayerAnimation(9, ANIMATION_BLEND_RESET, 0);
-    work = D_dryfield_breezeway_801843C0->work;
-    _dryfieldBreezewayBroadcastActorCommand(2);
-    TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
+    _dryfieldBreezewayPlayPlayerAnimation(DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_ANIMATION, ANIMATION_BLEND_RESET, 0);
+    _dryfieldBreezewayStartFirstEventPursuit();
 }
 
 /// Brings up the room's second task family, the key-item event the prompt in
-/// `func_dryfield_breezeway_8017E65C` rides on. The `_DryfieldBreezewayKeyItemEventWork` block
+/// `_dryfieldBreezewayScanKeyItemHotspot` rides on. The `_DryfieldBreezewayKeyItemEventWork` block
 /// is allocated and published in `Task::work`, the family's own `TaskMessageEntry[]`
 /// (`D_dryfield_breezeway_80182DCC`, the one 0x13F1 record) goes to
 /// `Task::msgTable` -- which is what routes the key-item query into this room
@@ -682,47 +766,27 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     }
 }
 
-/// Main-executable symbols with no module header yet: `gDisplayState.animFrame` is the
-/// frame counter the prop's swing angle is derived from, and `RotMatrixY`
-/// is the Y rotation builder `ActorsShared80139948` also reaches.
+/// Waits for confirmation on the key-item model or cancellation of the event.
 ///
-/// Its `angle` parameter is declared `s32` rather than the `s16` the actor
-/// headers use because the calls below feed it `rsin`'s `int` result, which
-/// the target passes through untruncated.
-
-/// The two image records the key-item prompt's scan uploads the first time it
-/// runs, taken from the room's trailing data blob: the confirm and cancel
-/// artwork `gpuUploadImages` stages into VRAM.
-
-/// Runs the key-item prompt's scan state: uploads this room's two prompt
-/// `GpuImageUpload`s the first time it runs (`Task::killCountdown` is zero, and the
-/// increment latches it so a later frame never reloads them), rebuilds the
-/// event task's display object matrix as the same pure Y rotation of
-/// `rsin(gDisplayState.animFrame * 16)` the prop's swing builds -- one full turn every 256
-/// frames -- and re-seeds `func_dryfield_breezeway_8017EB8C` at the reset
-/// position (0, 0x20) rather than at the cursor the prop's scan passes.
-///
-/// The idle cursor is the state the scan runs in; landing on
-/// `D_dryfield_breezeway_80182E00` -- the key-item prompt's own one-entry table,
-/// where `func_dryfield_breezeway_8017E81C` reaches the two-entry prop table --
-/// shows the hotspot cursor and walks that table for the entry whose `hit` is
-/// raised. The entry's `id` and `promptKind` go to the event work block
-/// (`_DryfieldBreezewayKeyItemEventWork::hotspotId` / `promptKind`), which
-/// `func_dryfield_breezeway_8017FD9C` re-spawns the prompt from, and the task
-/// advances to state 3. A cancel press (`buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED`) ends the script
-/// in state 5, and a busy cap abandons the scan with the prompt cleared.
-static void func_dryfield_breezeway_8017E65C(Task* task)
+/// Uploads the line artwork once, oscillates the model's yaw with a 256-frame
+/// sine period, and updates the line using its rest point as the lead request.
+/// A busy caption hides and stops the cursor. Confirmation records the hit
+/// hotspot's id and prompt kind and opens the item prompt on the next state;
+/// cancel selects the exit state. The task needs its initialized TMD body/work
+/// and a live action-prompt slot.
+static void _dryfieldBreezewayScanKeyItemHotspot(Task* task)
 {
     _DryfieldBreezewayKeyItemEventWork* work;
-    ActionPromptHotspot*                hs;
+    ActionPromptHotspot*                hotspot;
     ActionPrompt*                       prompt;
     GfxCoord*                           coord;
 
-    coord  = task->extra.tmd->coords;
-    work   = task->work;
-    hs     = D_dryfield_breezeway_80182E00;
-    prompt = D_80114D28;
+    coord   = task->extra.tmd->coords;
+    work    = task->work;
+    hotspot = D_dryfield_breezeway_80182E00;
+    prompt  = D_80114D28;
 
+    // Upload the line artwork once per entry into this state.
     if (task->killCountdown == 0) {
         gpuUploadImages(&D_dryfield_breezeway_80182F24[0]);
         gpuUploadImages(&D_dryfield_breezeway_80183144[0]);
@@ -732,7 +796,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
     gfxSetRotIdentity(&coord->coord);
     RotMatrixY(rsin(gDisplayState.animFrame * 0x10), &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_dryfield_breezeway_8017EB8C(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
+    _dryfieldBreezewayUpdateKeyItemLine(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (capIsBusy() != 0) {
@@ -741,26 +805,26 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTestDefault(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != ACTION_PROMPT_HOTSPOT_END)) {
+        if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hotspot->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
-                if (hs->hit != 0) {
+                if (hotspot->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->hotspotId     = hs->id;
-                    work->promptKind    = hs->promptKind;
-                    task->state         = 3;
+                    work->hotspotId     = hotspot->id;
+                    work->promptKind    = hotspot->promptKind;
+                    task->state         = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_OPEN_PROMPT;
                     return;
                 }
-                hs++;
-            } while (hs->id != ACTION_PROMPT_HOTSPOT_END);
+                hotspot++;
+            } while (hotspot->id != ACTION_PROMPT_HOTSPOT_END);
         }
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-        task->state = 5;
+        task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_EXIT;
     }
 }
 
@@ -768,7 +832,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
 /// matrix as a pure Y rotation of `rsin(gDisplayState.animFrame * 16)` -- one full turn
 /// every 256 frames -- off an identity built the same word-at-a-time way
 /// `func_dryfield_breezeway_8017E464` builds the event work's two matrices, then
-/// re-seeds the hotspot scan `func_dryfield_breezeway_8017EB8C` at the
+/// updates the hanging line with `_dryfieldBreezewayUpdateKeyItemLine` using the
 /// prompt's own screen position and hit-tests it against the room's table.
 ///
 /// The idle cursor is the state the scan runs in; landing on
@@ -788,7 +852,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
 
     gfxSetRotIdentity(&coord->coord);
     RotMatrixY(rsin(gDisplayState.animFrame * 0x10), &coord->coord);
-    func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
+    _dryfieldBreezewayUpdateKeyItemLine(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
     if (_actionPromptHitTestDefault(hs, work->lineEndX, work->lineEndY) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
@@ -809,57 +873,84 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
 
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
-/// The breezeway's cursor scan, run every frame its key-item event task is on a
-/// state that watches the cursor. `arg1` / `arg2` are the position the scan
-/// starts from - the prompt's own `screen` coordinates from
-/// `func_dryfield_breezeway_8017E81C`, or the reset pair (0, 0x20) the other
-/// states pass - and the scan answers by writing `D_80114D28::mode` (1 = over a
-/// hotspot, 2 = confirmed) as well as advancing the hotspot's own animation.
-static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
+/// Moves and draws the hanging key-item line, placing the task's model at the drawn tip.
+///
+/// `leadX` and `leadY` are screen-centred pixels used to gate whether the action
+/// cursor may lead the free end. Callers pass the cursor or the rest point. An
+/// in-reach request and a nearby cursor make the end close a quarter of the
+/// cursor gap each frame; otherwise it falls to rest and swings toward centre.
+/// Two runs of at most 30 four-pixel segments connect a bend toward the anchor
+/// and toward the free end. The second run inherits the first run's edge state.
+/// The initialized work, TMD body, prompt and primitive arena must be live.
+static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY)
 {
-    s32                                 x;
-    s32                                 ay;
-    s32                                 ty;
-    SVECTOR                             pos;
-    SVECTOR                             out;
+    // Advance to the drawn tip and steer toward the target in wrapped 4096-unit angles.
+    // Arguments have no side effects and may be read repeatedly. The angle and combined
+    // angle are s16 lvalues, turnError an s32 lvalue, and both points SVECTOR lvalues.
+#define DRYFIELD_BREEZEWAY_ADVANCE_LINE_SEGMENT(segmentAngle, segmentStart, segmentTip, targetX, targetY, combinedAngle, turnError)      \
+    {                                                                                                                                    \
+        (combinedAngle) = (segmentAngle) + _dryfieldBreezewayGetLineBearing((segmentTip).vx, (segmentTip).vy, (targetX), (targetY));     \
+        (turnError)     = ((combinedAngle) << DRYFIELD_BREEZEWAY_LINE_SIGNED_ANGLE_SHIFT) >> DRYFIELD_BREEZEWAY_LINE_SIGNED_ANGLE_SHIFT; \
+        (segmentStart)  = (segmentTip);                                                                                                  \
+        if ((turnError) > DRYFIELD_BREEZEWAY_LINE_TURN_LARGE) {                                                                          \
+            (segmentAngle) -= DRYFIELD_BREEZEWAY_LINE_TURN_LARGE;                                                                        \
+        } else if ((turnError) > DRYFIELD_BREEZEWAY_LINE_TURN_MEDIUM) {                                                                  \
+            (segmentAngle) -= DRYFIELD_BREEZEWAY_LINE_TURN_MEDIUM;                                                                       \
+        } else if ((turnError) > DRYFIELD_BREEZEWAY_LINE_TURN_SMALL) {                                                                   \
+            (segmentAngle) -= DRYFIELD_BREEZEWAY_LINE_TURN_SMALL;                                                                        \
+        } else if ((turnError) < -DRYFIELD_BREEZEWAY_LINE_TURN_LARGE) {                                                                  \
+            (segmentAngle) += DRYFIELD_BREEZEWAY_LINE_TURN_LARGE;                                                                        \
+        } else if ((turnError) < -DRYFIELD_BREEZEWAY_LINE_TURN_MEDIUM) {                                                                 \
+            (segmentAngle) += DRYFIELD_BREEZEWAY_LINE_TURN_MEDIUM;                                                                       \
+        } else if ((turnError) < -DRYFIELD_BREEZEWAY_LINE_TURN_SMALL) {                                                                  \
+            (segmentAngle) += DRYFIELD_BREEZEWAY_LINE_TURN_SMALL;                                                                        \
+        } else {                                                                                                                         \
+            (segmentAngle) = -_dryfieldBreezewayGetLineBearing((segmentTip).vx, (segmentTip).vy, (targetX), (targetY));                  \
+        }                                                                                                                                \
+    }
+    s32                                 lineX;
+    s32                                 requestedY;
+    s32                                 anchorOffsetY;
+    SVECTOR                             segmentStart;
+    SVECTOR                             segmentTip;
     SVECTOR                             target;
     _DryfieldBreezewayLineEdge          edge;
     _DryfieldBreezewayKeyItemEventWork* work;
-    s32                                 dist;
-    s32                                 cdist;
-    s32                                 dx;
-    s32                                 dy;
-    s16                                 y;
-    s16                                 sx;
-    s16                                 sy;
-    s32                                 scale;
-    s32                                 px;
-    s32                                 py;
-    s32                                 r;
-    s32                                 d;
-    s32                                 i;
-    s16                                 a;
-    s16                                 angle;
-    s16                                 t;
+    s32                                 leadDistance;
+    s32                                 cursorDistance;
+    s32                                 cursorDeltaX;
+    s32                                 cursorDeltaY;
+    s16                                 lineY;
+    s16                                 endX;
+    s16                                 endY;
+    s32                                 bendScale;
+    s32                                 bendX;
+    s32                                 bendY;
+    s32                                 slack;
+    s32                                 turnError;
+    s32                                 segmentIndex;
+    s16                                 anchorBearing;
+    s16                                 segmentAngle;
+    s16                                 combinedAngle;
 
     ActionPrompt* prompt;
 
-    x      = arg1;
-    ay     = arg2;
-    work   = task->work;
-    prompt = D_80114D28;
-    ty     = ay + 0x50;
-    dist   = SquareRoot0(x * x + ty * ty);
-    sx     = work->lineEndX;
-    dx     = sx - prompt->screen.xy.x;
-    sy     = work->lineEndY;
-    dy     = sy - prompt->screen.xy.y;
-    cdist  = SquareRoot0(dx * dx + dy * dy);
-    if (dist >= 0x70 || ay < -0x4F || cdist > 0x20) {
+    lineX          = leadX;
+    requestedY     = leadY;
+    work           = task->work;
+    prompt         = D_80114D28;
+    anchorOffsetY  = requestedY - DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y;
+    leadDistance   = SquareRoot0(lineX * lineX + anchorOffsetY * anchorOffsetY);
+    endX           = work->lineEndX;
+    cursorDeltaX   = endX - prompt->screen.xy.x;
+    endY           = work->lineEndY;
+    cursorDeltaY   = endY - prompt->screen.xy.y;
+    cursorDistance = SquareRoot0(cursorDeltaX * cursorDeltaX + cursorDeltaY * cursorDeltaY);
+    if (leadDistance >= DRYFIELD_BREEZEWAY_LINE_REACH || requestedY < DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y + 1 || cursorDistance > DRYFIELD_BREEZEWAY_LINE_GRAB_RADIUS) {
         // Nothing leads the free end: it drops to its rest height and swings about the centre.
         prompt->mode    = ACTION_PROMPT_MODE_IDLE;
         work->lineEndY += work->fallSpeed;
-        dist            = 0x70;
+        leadDistance    = DRYFIELD_BREEZEWAY_LINE_REACH;
         if (work->lineEndY >= DRYFIELD_BREEZEWAY_LINE_REST_Y) {
             work->lineEndY  = DRYFIELD_BREEZEWAY_LINE_REST_Y;
             work->fallSpeed = 0;
@@ -868,7 +959,7 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
         }
         if (work->swingDamping < DRYFIELD_BREEZEWAY_LINE_SWING_DAMPING_STILL) {
             work->previousLineEndX = work->lineEndX;
-            // The casts keep each two-step sum in the order written; without them it is reassociated.
+            // Narrow the intermediate sum to s16 before applying the damping adjustment.
             if (work->lineEndX > 0) {
                 work->swingSpeed = (s16)(work->swingSpeed - 2) - work->swingDamping;
             }
@@ -895,273 +986,234 @@ static void func_dryfield_breezeway_8017EB8C(Task* task, s16 arg1, s16 arg2)
         }
     }
 
-    y     = work->lineEndY;
-    x     = work->lineEndX;
-    ty    = y + 0x50;
-    scale = 0x800 - (ty << 12) / 224;
-    scale = 0xE00 - scale;
-    sx    = work->lineEndX;
-    sy    = work->lineEndY;
-    r     = 0x70 - dist;
-    px    = (x * scale / 8) >> 9;
-    py    = ((ty * scale / 8) >> 9) + ((r * scale / 8) >> 9);
-    py   -= 0x50;
+    // Choose the bend from the end height and slack, using a 12-bit fractional scale.
+    lineY         = work->lineEndY;
+    lineX         = work->lineEndX;
+    anchorOffsetY = lineY - DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y;
+    bendScale     = (ONE / 2) - (anchorOffsetY << DRYFIELD_BREEZEWAY_LINE_SCALE_FRACTION_BITS) / (DRYFIELD_BREEZEWAY_LINE_REACH * 2);
+    bendScale     = (ONE * 7 / 8) - bendScale;
+    endX          = work->lineEndX;
+    endY          = work->lineEndY;
+    slack         = DRYFIELD_BREEZEWAY_LINE_REACH - leadDistance;
+    // Keep the division before the shift: negative products round at each stage.
+    bendX  = (lineX * bendScale / 8) >> 9;
+    bendY  = ((anchorOffsetY * bendScale / 8) >> 9) + ((slack * bendScale / 8) >> 9);
+    bendY += DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y;
 
-    target.vx = 0;
-    target.vy = -0x50;
-    target.vz = 0;
-    pos.vx    = px;
-    pos.vy    = py;
-    pos.vz    = 0;
-    a         = func_dryfield_breezeway_8017FBEC(0, -0x50, px, py);
-    angle     = -((func_dryfield_breezeway_8017FBEC(px, py, x, y) + a) / 2) + 0x800;
-    for (i = 0; i < 30; i++) {
-        if (i == 0) {
+    // Draw from the bend toward the anchor, then from the bend toward the free end.
+    target.vx       = DRYFIELD_BREEZEWAY_LINE_ANCHOR_X;
+    target.vy       = DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y;
+    target.vz       = 0;
+    segmentStart.vx = bendX;
+    segmentStart.vy = bendY;
+    segmentStart.vz = 0;
+    anchorBearing   = _dryfieldBreezewayGetLineBearing(DRYFIELD_BREEZEWAY_LINE_ANCHOR_X, DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y, bendX, bendY);
+    segmentAngle    = -((_dryfieldBreezewayGetLineBearing(bendX, bendY, lineX, lineY) + anchorBearing) / 2) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+    for (segmentIndex = 0; segmentIndex < DRYFIELD_BREEZEWAY_LINE_MAX_SEGMENTS_PER_HALF; segmentIndex++) {
+        if (segmentIndex == 0) {
             edge.joined = 0;
         } else {
             edge.joined = 1;
         }
-        func_dryfield_breezeway_8017F1F4(angle, 4, &pos, &out, &edge);
-        if (func_dryfield_breezeway_8017FAD0(&target, &out) != 0) {
+        _dryfieldBreezewayDrawKeyItemLineSegment(segmentAngle, DRYFIELD_BREEZEWAY_LINE_SEGMENT_LENGTH, &segmentStart, &segmentTip, &edge);
+        if (_dryfieldBreezewayIsLinePointNearTarget(&target, &segmentTip) != 0) {
             break;
         }
-        t   = angle + func_dryfield_breezeway_8017FBEC(out.vx, out.vy, 0, -0x50);
-        d   = (t << 20) >> 20;
-        pos = out;
-        if (d > 0x200) {
-            angle -= 0x200;
-        } else if (d > 0x100) {
-            angle -= 0x100;
-        } else if (d > 0x80) {
-            angle -= 0x80;
-        } else if (d < -0x200) {
-            angle += 0x200;
-        } else if (d < -0x100) {
-            angle += 0x100;
-        } else if (d < -0x80) {
-            angle += 0x80;
-        } else {
-            angle = -func_dryfield_breezeway_8017FBEC(out.vx, out.vy, 0, -0x50);
-        }
+        DRYFIELD_BREEZEWAY_ADVANCE_LINE_SEGMENT(segmentAngle, segmentStart, segmentTip, DRYFIELD_BREEZEWAY_LINE_ANCHOR_X, DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y, combinedAngle, turnError);
     }
 
-    target.vx = sx;
-    target.vy = sy;
-    target.vz = 0;
-    pos.vx    = px;
-    pos.vy    = py;
-    pos.vz    = 0;
-    a         = func_dryfield_breezeway_8017FBEC(0, -0x50, px, py);
-    angle     = -((func_dryfield_breezeway_8017FBEC(px, py, sx, sy) + a) / 2);
-    for (i = 0; i < 30; i++) {
-        func_dryfield_breezeway_8017F1F4(angle, 4, &pos, &out, &edge);
-        if (func_dryfield_breezeway_8017FAD0(&target, &out) != 0) {
+    target.vx       = endX;
+    target.vy       = endY;
+    target.vz       = 0;
+    segmentStart.vx = bendX;
+    segmentStart.vy = bendY;
+    segmentStart.vz = 0;
+    anchorBearing   = _dryfieldBreezewayGetLineBearing(DRYFIELD_BREEZEWAY_LINE_ANCHOR_X, DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y, bendX, bendY);
+    segmentAngle    = -((_dryfieldBreezewayGetLineBearing(bendX, bendY, endX, endY) + anchorBearing) / 2);
+    for (segmentIndex = 0; segmentIndex < DRYFIELD_BREEZEWAY_LINE_MAX_SEGMENTS_PER_HALF; segmentIndex++) {
+        _dryfieldBreezewayDrawKeyItemLineSegment(segmentAngle, DRYFIELD_BREEZEWAY_LINE_SEGMENT_LENGTH, &segmentStart, &segmentTip, &edge);
+        if (_dryfieldBreezewayIsLinePointNearTarget(&target, &segmentTip) != 0) {
             break;
         }
-        t   = angle + func_dryfield_breezeway_8017FBEC(out.vx, out.vy, sx, sy);
-        d   = (t << 20) >> 20;
-        pos = out;
-        if (d > 0x200) {
-            angle -= 0x200;
-        } else if (d > 0x100) {
-            angle -= 0x100;
-        } else if (d > 0x80) {
-            angle -= 0x80;
-        } else if (d < -0x200) {
-            angle += 0x200;
-        } else if (d < -0x100) {
-            angle += 0x100;
-        } else if (d < -0x80) {
-            angle += 0x80;
-        } else {
-            angle = -func_dryfield_breezeway_8017FBEC(out.vx, out.vy, sx, sy);
-        }
+        DRYFIELD_BREEZEWAY_ADVANCE_LINE_SEGMENT(segmentAngle, segmentStart, segmentTip, endX, endY, combinedAngle, turnError);
     }
-    func_dryfield_breezeway_8017FB30(task, out.vx, out.vy);
+    _dryfieldBreezewayPlaceKeyItemModelAtLineTip(task, segmentTip.vx, segmentTip.vy);
 }
+#undef DRYFIELD_BREEZEWAY_ADVANCE_LINE_SEGMENT
 
-/// Draws one segment of the breezeway's prompt beam: a raw-textured quad of
-/// two `arg0`-rotated edges, eight halfwords wide, whose far edge is `arg1`
-/// down the rotated frame from its near one. All five probe points go through
-/// `RotTransSV` (so `arg0` has to be a real rotation: the identity matrix the
-/// two `Set` calls start from is splatted word-wise and then handed to
-/// `RotMatrixZ`), and the quad is carved from `gGpuPrimCursor` and linked into
-/// `gGpuCurrentOt[0x64]` with the room's tpage 0x8E / clut 0x4000 texture.
+/// Draws one textured segment of the key-item line and returns its far-edge centre.
 ///
-/// `arg2` is the scan's own position, added to every projected point; the
-/// rotated probe at (0, `arg1`, 0) -- the far edge's centre -- lands in `arg3`
-/// as the segment's tip, which is the position the caller advances its cursor
-/// to. `arg4` carries the near edge: `joined` 0 draws it from the `arg2` origin
-/// (the first segment of a beam), anything else from the two corners stored in
-/// `arg4`, which the tail of every call overwrites with the far edge -- so a
-/// beam that keeps being redrawn starts where the previous segment ended.
-///
-/// Nothing is written to `arg4`'s corners on a `joined` 0 call beyond that tail,
-/// which is what makes the first segment of a beam run from the origin.
-static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, SVECTOR* arg2, SVECTOR* arg3, _DryfieldBreezewayLineEdge* arg4)
+/// `angle` is a Z rotation in 4096 units per turn; `length` is pixels along the
+/// rotated +Y axis. `start` and `tipOut` are screen-centred points. With
+/// `edge->joined` zero the quad starts from its own near edge; otherwise it uses
+/// the saved corners. Each call overwrites the saved far corners, but does not
+/// change `joined`. Only the corners' X/Y components are used. One POLY_FT4 is
+/// reserved from the live primitive arena and linked at the line's fixed depth.
+static void _dryfieldBreezewayDrawKeyItemLineSegment(s16 angle, s16 length, const SVECTOR* start, SVECTOR* tipOut, _DryfieldBreezewayLineEdge* edge)
 {
-    SVECTOR   probe;
-    SVECTOR   tip;
-    SVECTOR   near0;
-    SVECTOR   near1;
-    SVECTOR   far0;
-    SVECTOR   far1;
-    SVECTOR   corner0;
-    SVECTOR   corner1;
-    SVECTOR   corner2;
-    SVECTOR   corner3;
-    MATRIX    matw;
-    long      flag;
-    POLY_FT4* p;
+    // Build an XY point and transform it through the installed GTE matrices.
+    // localPoint is evaluated four times; arguments must have no side effects.
+    // The input/output vectors and long flags word are borrowed writable storage.
+#define DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT(localPoint, x, y, rotatedPoint, flags) \
+    {                                                                               \
+        (localPoint)->vx = (x);                                                     \
+        (localPoint)->vy = (y);                                                     \
+        (localPoint)->vz = 0;                                                       \
+        RotTransSV((localPoint), (rotatedPoint), (flags));                          \
+    }
+    SVECTOR   localTip;
+    SVECTOR   rotatedTip;
+    SVECTOR   localNearLeft;
+    SVECTOR   localNearRight;
+    SVECTOR   localFarLeft;
+    SVECTOR   localFarRight;
+    SVECTOR   rotatedNearLeft;
+    SVECTOR   rotatedNearRight;
+    SVECTOR   rotatedFarLeft;
+    SVECTOR   rotatedFarRight;
+    MATRIX    rotation;
+    long      transformFlags;
+    POLY_FT4* quad;
 
-    gfxSetRotIdentity(&matw);
-    matw.t[0] = 0;
-    matw.t[1] = 0;
-    matw.t[2] = 0;
-    RotMatrixZ(arg0, &matw);
-    SetRotMatrix(&matw);
-    SetTransMatrix(&matw);
+    gfxSetRotIdentity(&rotation);
+    rotation.t[0] = 0;
+    rotation.t[1] = 0;
+    rotation.t[2] = 0;
+    RotMatrixZ(angle, &rotation);
+    SetRotMatrix(&rotation);
+    SetTransMatrix(&rotation);
 
-    probe.vx = 0;
-    probe.vy = arg1;
-    probe.vz = 0;
-    RotTransSV(&probe, &tip, &flag);
-    arg3->vx = arg2->vx + tip.vx;
-    arg3->vy = arg2->vy + tip.vy;
-    arg3->vz = arg2->vz + tip.vz;
+    DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT(&localTip, 0, length, &rotatedTip, &transformFlags);
+    tipOut->vx = start->vx + rotatedTip.vx;
+    tipOut->vy = start->vy + rotatedTip.vy;
+    tipOut->vz = start->vz + rotatedTip.vz;
 
-    if (arg4->joined == 0) {
-        near0.vx = -4;
-        near0.vy = 0;
-        near0.vz = 0;
-        RotTransSV(&near0, &corner0, &flag);
-        near1.vx = 4;
-        near1.vy = 0;
-        near1.vz = 0;
-        RotTransSV(&near1, &corner1, &flag);
+    if (edge->joined == 0) {
+        DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT(&localNearLeft, -DRYFIELD_BREEZEWAY_LINE_HALF_WIDTH, 0, &rotatedNearLeft, &transformFlags);
+        DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT(&localNearRight, DRYFIELD_BREEZEWAY_LINE_HALF_WIDTH, 0, &rotatedNearRight, &transformFlags);
     }
 
-    far0.vx = -4;
-    far0.vy = arg1;
-    far0.vz = 0;
-    RotTransSV(&far0, &corner2, &flag);
-    far1.vx = 4;
-    far1.vy = arg1;
-    far1.vz = 0;
-    RotTransSV(&far1, &corner3, &flag);
+    DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT(&localFarLeft, -DRYFIELD_BREEZEWAY_LINE_HALF_WIDTH, length, &rotatedFarLeft, &transformFlags);
+    DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT(&localFarRight, DRYFIELD_BREEZEWAY_LINE_HALF_WIDTH, length, &rotatedFarRight, &transformFlags);
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setPolyFT4(p);
-    p->tpage = 0x8E;
-    p->clut  = 0x4000;
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    quad->tpage = DRYFIELD_BREEZEWAY_LINE_TEXTURE_PAGE;
+    quad->clut  = DRYFIELD_BREEZEWAY_LINE_CLUT;
 
-    if (arg4->joined == 0) {
-        p->x0 = corner0.vx + arg2->vx;
-        p->y0 = corner0.vy + arg2->vy;
-        p->x1 = corner1.vx + arg2->vx;
-        p->y1 = corner1.vy + arg2->vy;
+    if (edge->joined == 0) {
+        quad->x0 = rotatedNearLeft.vx + start->vx;
+        quad->y0 = rotatedNearLeft.vy + start->vy;
+        quad->x1 = rotatedNearRight.vx + start->vx;
+        quad->y1 = rotatedNearRight.vy + start->vy;
     } else {
-        p->x0 = arg4->left.vx;
-        p->y0 = arg4->left.vy;
-        p->x1 = arg4->right.vx;
-        p->y1 = arg4->right.vy;
+        quad->x0 = edge->left.vx;
+        quad->y0 = edge->left.vy;
+        quad->x1 = edge->right.vx;
+        quad->y1 = edge->right.vy;
     }
-    p->x2 = corner2.vx + arg2->vx;
-    p->y2 = corner2.vy + arg2->vy;
-    p->x3 = corner3.vx + arg2->vx;
-    p->y3 = corner3.vy + arg2->vy;
+    quad->x2 = rotatedFarLeft.vx + start->vx;
+    quad->y2 = rotatedFarLeft.vy + start->vy;
+    quad->x3 = rotatedFarRight.vx + start->vx;
+    quad->y3 = rotatedFarRight.vy + start->vy;
 
-    p->u0 = 0;
-    p->v0 = 0;
-    p->u1 = 0x10;
-    p->v1 = 0;
-    p->u2 = 0;
-    p->v2 = 4;
-    p->u3 = 0x10;
-    p->v3 = 4;
+    quad->u0 = 0;
+    quad->v0 = 0;
+    quad->u1 = DRYFIELD_BREEZEWAY_LINE_TEXTURE_U_END;
+    quad->v1 = 0;
+    quad->u2 = 0;
+    quad->v2 = DRYFIELD_BREEZEWAY_LINE_TEXTURE_V_END;
+    quad->u3 = DRYFIELD_BREEZEWAY_LINE_TEXTURE_U_END;
+    quad->v3 = DRYFIELD_BREEZEWAY_LINE_TEXTURE_V_END;
 
-    setShadeTex(p, 1);
-    addPrim(&gGpuCurrentOt[0x64], p);
+    setShadeTex(quad, 1);
+    addPrim(&gGpuCurrentOt[DRYFIELD_BREEZEWAY_LINE_ORDERING_TABLE_INDEX], quad);
 
-    arg4->left.vx  = corner2.vx + arg2->vx;
-    arg4->left.vy  = corner2.vy + arg2->vy;
-    arg4->right.vx = corner3.vx + arg2->vx;
-    arg4->right.vy = corner3.vy + arg2->vy;
+    edge->left.vx  = rotatedFarLeft.vx + start->vx;
+    edge->left.vy  = rotatedFarLeft.vy + start->vy;
+    edge->right.vx = rotatedFarRight.vx + start->vx;
+    edge->right.vy = rotatedFarRight.vy + start->vy;
 }
+#undef DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
-/// The room's prompt task, run from `D_dryfield_breezeway_80182DC0`: state 0
-/// resets both action-prompt slots (`_actionPromptResetDefault`), state
-/// 1 drives the cursor every frame after that
-/// (`_actionPromptMoveCursorsDefault`). The handler pair is built on the stack
-/// rather than read from rodata.
-void func_dryfield_breezeway_8017FA80(Task* task)
+/// Runs the key-item event's cursor task: reset at state 0, move/draw at state 1.
+///
+/// The event owns this task through its spawn handle. `task->state` must be 0
+/// or 1; the shared reset advances to 1 and movement leaves it there.
+static void _dryfieldBreezewayActionPromptTask(Task* task)
 {
-    TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
+    TaskFunc states[] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }
 
-/// 1 when `pos` is closer than 9 units to `target`: a real distance, since the
-/// sum of the two squared component differences is square-rooted before the
-/// comparison. Only `vx` and `vy` take part. `func_dryfield_breezeway_8017EB8C`
-/// asks this of each point it generates while it looks for somewhere to put the
-/// hotspot prompt, and leaves its loop on the first point this accepts, so the
-/// answer marks the candidate that has converged onto the target.
-static s16 func_dryfield_breezeway_8017FAD0(SVECTOR* target, SVECTOR* pos)
+/// Returns 1 when a line point is less than nine screen pixels from its target, else 0.
+///
+/// Only X/Y participate. Each difference narrows to s16 before squaring; the
+/// integer square root is compared, so the truncation is part of the test.
+static s16 _dryfieldBreezewayIsLinePointNearTarget(const SVECTOR* target, const SVECTOR* point)
 {
-    s16 dx = pos->vx - target->vx;
-    s16 dy = pos->vy - target->vy;
+    s16 dx = point->vx - target->vx;
+    s16 dy = point->vy - target->vy;
 
-    return SquareRoot0((dx * dx) + (dy * dy)) < 9;
+    return SquareRoot0((dx * dx) + (dy * dy)) < DRYFIELD_BREEZEWAY_LINE_TARGET_DISTANCE_LIMIT;
 }
 
-/// Parks the room task's display object on the hotspot cursor: the position the
-/// scan `func_dryfield_breezeway_8017EB8C` advanced to is carried into the
-/// object's coordinate scaled by the depth it is placed at (`0x5DC` over 680),
-/// and `composeStamp` is cleared so the next coord-tree update rebuilds the world matrix
-/// from the new translation. The scan calls this once, as it leaves its loop.
-static void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
+/// Places the key-item model at a screen-centred line tip at fixed view depth.
+///
+/// `tipX` and `tipY` are pixels. The TMD root translation is set to depth 1500,
+/// with X/Y scaled by 1500/680 and truncated toward zero. Its composed matrix
+/// is marked dirty; the existing rotation and parent are retained.
+static void _dryfieldBreezewayPlaceKeyItemModelAtLineTip(Task* task, s16 tipX, s16 tipY)
 {
     GfxCoord* coord = task->extra.tmd->coords;
 
-    coord->coord.t[2]   = 0x5DC;
+    enum { DRYFIELD_BREEZEWAY_KEY_ITEM_MODEL_DEPTH      = 1500,
+           DRYFIELD_BREEZEWAY_KEY_ITEM_PROJECTION_SCALE = 680 };
+
+    coord->coord.t[2]   = DRYFIELD_BREEZEWAY_KEY_ITEM_MODEL_DEPTH;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[0]   = (arg1 * 0x5DC) / 680;
-    coord->coord.t[1]   = (arg2 * 0x5DC) / 680;
+    coord->coord.t[0]   = (tipX * DRYFIELD_BREEZEWAY_KEY_ITEM_MODEL_DEPTH) / DRYFIELD_BREEZEWAY_KEY_ITEM_PROJECTION_SCALE;
+    coord->coord.t[1]   = (tipY * DRYFIELD_BREEZEWAY_KEY_ITEM_MODEL_DEPTH) / DRYFIELD_BREEZEWAY_KEY_ITEM_PROJECTION_SCALE;
 }
 
-/// `TaskMessageEntry` handler for message 0x13F1, the "can this key item be used
-/// here?" query `itemMenuUseKeyItemTask` sends to slot 7. `item` is the key item the
-/// player highlighted; 0x11B is the only one the breezeway accepts, and the
-/// answer is latched in the work block's `keyItemAccepted` for
-/// `func_dryfield_breezeway_8017FE08` to pick its next state from.
-s32 func_dryfield_breezeway_8017FBC8(Task* task, s32 msgId, s32 item, s32 arg3)
+/// Answers a key-item-use query by latching whether the bottlecap magnet was offered.
+///
+/// `itemId` is the collected-item catalogue id; the other payload and message id
+/// are unused. Returns the item menu's used-notice reply for the magnet and the
+/// refused reply otherwise, without consuming inventory. The initialized event
+/// work holds the answer until the item-prompt state checks it.
+static s32 _dryfieldBreezewayUseBottlecapMagnet(Task* task, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
     _DryfieldBreezewayKeyItemEventWork* work = task->work;
 
-    if (item == 0x11B) {
-        work->keyItemAccepted = 1;
-        return 1;
+    if (itemId == INVENTORY_COLLECTION_ID_BOTTLECAP_MAGNET) {
+        work->keyItemAccepted = true;
+        return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
     }
-    work->keyItemAccepted = 0;
-    return 0;
+    work->keyItemAccepted = false;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// The `ratan2` angle of the direction from (`arg0`, `arg1`) to (`arg2`, `arg3`).
-static s16 func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 arg3)
+/// Returns the screen-plane bearing from one point to another, in 4096 units per turn.
+///
+/// Coordinates are screen-centred pixels. X/Y differences narrow to s16 before
+/// normalization. Zero angle is +Y and positive quarter-turn is +X; a coincident
+/// pair follows the SDK's zero-vector normalization and angle behavior.
+static s16 _dryfieldBreezewayGetLineBearing(s16 fromX, s16 fromY, s16 toX, s16 toY)
 {
-    SVECTOR vec;
+    SVECTOR direction;
 
-    vec.vx = arg2 - arg0;
-    vec.vy = arg3 - arg1;
-    vec.vz = 0;
-    VectorNormalSS(&vec, &vec);
-    return ratan2(vec.vx, vec.vy);
+    direction.vx = toX - fromX;
+    direction.vy = toY - fromY;
+    direction.vz = 0;
+    VectorNormalSS(&direction, &direction);
+    return ratan2(direction.vx, direction.vy);
 }
 
 /// The room's key-item event task, run from `D_dryfield_breezeway_80182E18`:
@@ -1178,11 +1230,12 @@ void func_dryfield_breezeway_8017FC38(Task* task)
 
 #include "../../shared/action_prompt_hit_test.inc.c"
 
-/// State 1 of the room's key-item event task: arms the action prompt and
-/// resets the caller's kill countdown. It sets the aiming speed and the idle
-/// cursor, clears the screen position that cursor movement updates and
-/// `itemMenuOpenHotspotCommands` later copies, and advances the caller's state.
-static void func_dryfield_breezeway_8017FD68(Task* task)
+/// Arms the key-item event's cursor at screen centre and advances to model selection.
+///
+/// Resets the aiming speed, idle cursor, X/Y and one-time upload latch. The cursor
+/// task later moves these coordinates; the item menu copies them when opening
+/// the hotspot commands.
+static void _dryfieldBreezewayArmKeyItemPrompt(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
 
@@ -1195,8 +1248,8 @@ static void func_dryfield_breezeway_8017FD68(Task* task)
 }
 
 /// State 3 of the room's key-item event task, run once the room's hotspot
-/// scan has landed on an entry: re-seeds the cursor scan
-/// `func_dryfield_breezeway_8017EB8C` at its reset position, clears the
+/// scan has landed on an entry: updates the line
+/// through `_dryfieldBreezewayUpdateKeyItemLine` using the rest point, clears the
 /// prompt's highlight state, then re-spawns the prompt at the coordinates the
 /// gameplay side left in `D_80114D28` with the Examine/Push action the scan latched in
 /// `_DryfieldBreezewayKeyItemEventWork::promptKind`, and steps the caller's script on one state.
@@ -1205,7 +1258,7 @@ static void func_dryfield_breezeway_8017FD9C(Task* task)
     ActionPrompt*                       prompt = D_80114D28;
     _DryfieldBreezewayKeyItemEventWork* work   = task->work;
 
-    func_dryfield_breezeway_8017EB8C(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
+    _dryfieldBreezewayUpdateKeyItemLine(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
@@ -1213,12 +1266,12 @@ static void func_dryfield_breezeway_8017FD9C(Task* task)
 }
 
 /// Closes whatever the hotspot scan left up and picks the room's next state:
-/// re-seeds the cursor scan `func_dryfield_breezeway_8017EB8C` and clears the
+/// updates the line through `_dryfieldBreezewayUpdateKeyItemLine` using the rest point and clears the
 /// prompt's highlight state as the arm above does, then interrogates the
 /// gameplay side. If `itemMenuIsHotspotActionConfirmed` reports that the
 /// Examine/Push row was accepted, it starts cap slot 7 and returns to state 2.
 /// Otherwise `_DryfieldBreezewayKeyItemEventWork::keyItemAccepted`, written by
-/// `func_dryfield_breezeway_8017FBC8`, selects state 6 for an accepted key item
+/// `_dryfieldBreezewayUseBottlecapMagnet`, selects state 6 for an accepted key item
 /// or state 2 to resume scanning.
 static void func_dryfield_breezeway_8017FE08(Task* task)
 {
@@ -1226,7 +1279,7 @@ static void func_dryfield_breezeway_8017FE08(Task* task)
     _DryfieldBreezewayKeyItemEventWork* work   = task->work;
     s32                                 state;
 
-    func_dryfield_breezeway_8017EB8C(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
+    _dryfieldBreezewayUpdateKeyItemLine(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {

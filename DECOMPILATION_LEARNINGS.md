@@ -86605,11 +86605,11 @@ ids are message ids some gameplay dispatcher calls by name, which is the
 strongest confirmation: `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EF, ...)`
 (`src/gameplay/1A8.c`) selects the entry this task installed with
 `gameSetTaskSlot(task, 7)`.
-## A lone `.word` code pointer in a room's data is a `TaskMessageHandler`; `a1` is the msgId, `a2` the payload (func_dryfield_breezeway_8017FBC8, 2026-09-15)
+## A lone `.word` code pointer in a room's data is a `TaskMessageHandler`; `a1` is the msgId, `a2` the payload (_dryfieldBreezewayUseBottlecapMagnet, 2026-09-15)
 
 A room function no `jal` reaches - nothing in `src/` calls it, its only
 reference is a `.word` in the room's `_data` blob - is a callback, and the
-neighbouring words say which kind. `func_dryfield_breezeway_8017FBC8` sits in
+neighbouring words say which kind. `_dryfieldBreezewayUseBottlecapMagnet` sits in
 `D_dryfield_breezeway_80182DD0` with `0x13F1` in the word before it and
 `TASK_MESSAGE_TABLE_END` after it: that is the `TaskMessageEntry` spelling above, a one-entry
 message table plus terminator. The room function that owns the table confirms
@@ -89736,9 +89736,9 @@ leaves `a1`-`a3` holding whatever the caller had - and the referenced `Task*` is
 overlay-local, so the body is *not* promotable despite the twin other rooms
 carry.
 
-## An m2c payload's unread scalar locals are deleted by the first jump pass - write the payload as a struct (func_dryfield_breezeway_8017E2D4, 2026-09-15)
+## An m2c payload's unread scalar locals are deleted by the first jump pass - write the payload as a struct (_dryfieldBreezewayStageSecondDesertChaser, 2026-09-15)
 
-`func_dryfield_breezeway_8017E2D4` builds a 4-byte message payload on the stack
+`_dryfieldBreezewayStageSecondDesertChaser` builds a 4-byte message payload on the stack
 and passes `&payload` to `taskMessageDispatch`. m2c renders such a payload as one
 scalar local per field and takes the address of the first one only:
 
@@ -89805,10 +89805,10 @@ scheduler ever ran.
 
 ## m2c drops a call argument that is already in `$a0`, and the missing argument costs a callee-saved register (func_dryfield_breezeway_8017FD9C, 2026-09-15)
 
-`func_dryfield_breezeway_8017FD9C` calls the room's cursor scan as
-`func_dryfield_breezeway_8017EB8C(task, 0, 0x20)` - the task itself, passed
+`func_dryfield_breezeway_8017FD9C` updates the room's hanging line as
+`_dryfieldBreezewayUpdateKeyItemLine(task, 0, 0x20)` - the task itself, passed
 straight through from `$a0`. m2c sees only `a1`/`a2` being set before the `jal`,
-so it renders the call as `func_dryfield_breezeway_8017EB8C(0, 0x20)` and the
+so it renders the call as `_dryfieldBreezewayUpdateKeyItemLine(0, 0x20)` and the
 seed compiles `move a0,zero`, handing the callee a null task.
 
 The part worth recognising is the collateral: with `a0` clobbered, only one of
@@ -94771,7 +94771,7 @@ with `regs=8` and nothing else wrong.
 Example: `func_dryfield_night_motel_lobby_8017FB7C`. Inputs: `base_1.i`
 `7e8b7e80c9511bc09528f9be9e9b73dd730261eaf351f5c235a2d5c778b46e07`, `base_2.i`
 `c2b01570db8190811762a1f9418bc07fd341b547adf77199d9231bae6a89c812`.
-## `fold`'s `associate` inverts `a | (b | C)` — so match the target by writing it pre-inverted (func_dryfield_breezeway_8017E010, 2026-09-16)
+## `fold`'s `associate` inverts `a | (b | C)` — so match the target by writing it pre-inverted (_dryfieldBreezewayInitFirstEventTask, 2026-09-16)
 
 **Problem.** The target applies the constant to the *plain* operand and the
 other operand to the shifted one:
@@ -117984,7 +117984,7 @@ exemption from the store side": the `.rotationWords` stores are `mem/s:SI`, the
 `mtx->`/`dest->` ones plain `mem:SI`, because a pointer-typed base clears
 `MEM_IN_STRUCT_P`.
 
-The rule crosses families unchanged: `func_dryfield_breezeway_8017F1F4` (a room
+The rule crosses families unchanged: `_dryfieldBreezewayDrawKeyItemLineSegment` (a room
 overlay) builds the same identity splat for its `RotMatrixZ` and shows the same
 3-frame + 2-`$s0` split, so its `GfxMatrix` union (the word-wise view in
 `include/main/gfx_types.h`) is named for the three words it can pair and the two
@@ -120370,7 +120370,7 @@ ANIMATION_BLEND_INTERPOLATE, 10)`): the two stores the helper writes itself are
 frame-relative and the three parameter stores are the register-relative ones.
 So a fill split exactly along "values that differ between call sites" is a
 helper's signature, and the pointer local is its hand expansion. The sibling
-call with `(9, 0, 0)` in `func_dryfield_breezeway_8017E390` is frame-relative
+call with `(9, 0, 0)` in `_dryfieldBreezewayStageFirstEventSkip` is frame-relative
 throughout, so the split is not there to see at every call site - try the
 helper before the pointer whenever the same fill recurs with other values. The
 helper also explained the union the two payloads used to share there: two
@@ -120491,7 +120491,7 @@ passed to `taskMessageDispatch`, so the other four stores were never generated a
 all. `AnimationPlayRequest buf;` with `buf.animationId = 1; …` brings them back. See "m2c's
 scalar stack locals for an address-taken struct lose their dead stores".
 
-## A transposed pair of prologue loads is the written order of the two assignments (func_dryfield_breezeway_8017E65C, 2026-09-17)
+## A transposed pair of prologue loads is the written order of the two assignments (_dryfieldBreezewayScanKeyItemHotspot, 2026-09-17)
 
 A structurally correct rewrite stalled at 97.947% on four instructions: the
 prologue's four loads came out `lw work / lw extra / lh killCountdown /
@@ -139485,22 +139485,22 @@ stored to `SCRATCH_STACK_CURSOR_SLOT`, the explicit `__asm__("move %0,%1")` alre
 instead (98.87%), and `SOFT_TOUCH_REG` on the carve leaves the reload move ahead
 of the `lhu` (99.07%), as the scratch-push entries above predict.
 
-## When the target puts one short-lived temp in the same argument register in two distant blocks, reuse one variable for both (func_dryfield_breezeway_8017EB8C, 2026-09-23)
+## When the target puts one short-lived temp in the same argument register in two distant blocks, reuse one variable for both (_dryfieldBreezewayUpdateKeyItemLine, 2026-09-23)
 
-**Symptom.** The entry block computed `(arg2 + 0x50)` into `$a1` in the target
+**Symptom.** The entry block computed `(leadY + 0x50)` into `$a1` in the target
 (`addiu a1,s2,0x50; mult a1,a1`), while the C put it in `$v0`, and a mult
 result went to `$t4`. The tail block of the same target computed
 `(lineEndY + 0x50)` into `$a1` as well.
 
 **Cause.** With a separate temporary for each value, each has one set and one
 death, so local-alloc takes it and gives it the first free register (`$v0`). If
-one variable holds both values (`ty = arg2 + 0x50; ... ty = y + 0x50;`), it has
+one variable holds both values (`anchorOffsetY = leadY + 0x50; ... anchorOffsetY = lineY + 0x50;`), it has
 two sets, so local-alloc skips it and global-alloc gives it a register that is
 free across *both* live ranges. In this function that register was `$a1`.
 This is the reverse of entry [63], where reusing a variable is what breaks the
 match. Use it only when the target shows the same register at both sites.
 
-**Fix.** One `s32 ty` for both sums. With it, the entry block matched exactly
+**Fix.** One `s32 anchorOffsetY` for both sums. With it, the entry block matched exactly
 (99.634% -> 99.890%, together with setting the `&D_80114D28` pointer before
 the first call).
 
@@ -140785,13 +140785,13 @@ clobbers enough registers to look like an allocation problem (here 98.5% with
 `regs`/`branch` penalties). Add both includes to the scratch and, if missing,
 to the host file.
 
-### A local reused for an early load that combine folds away keeps its references, and that reorders global-alloc (func_dryfield_breezeway_8017EB8C, 2026-09-23)
+### A local reused for an early load that combine folds away keeps its references, and that reorders global-alloc (_dryfieldBreezewayUpdateKeyItemLine, 2026-09-23)
 
-**Symptom.** 99.890%, `regs=9` only: three callee-saved values in the function's tail, `y` (`lh lineEndY`) and `sx`/`sy` (`lhu lineEndX/Y`, HImode `s16` locals), permuted over `$s6`/`$s7`/`$fp`. The target has `sx=$s6, sy=$s7, y=$fp`. Two sessions and the permuter did not find it. `.greg` listed `y` before `sx`/`sy` in `regs to allocate`: `y` had 3 refs over 55 insns (priority 545), `sx`/`sy` 3 refs over 128/130 (234/230). The schedule already matched the target, so the live lengths were the target's too. The only thing left to change was the reference count.
+**Symptom.** 99.890%, `regs=9` only: three callee-saved values in the function's tail, `lineY` (`lh lineEndY`) and `endX`/`endY` (`lhu lineEndX/Y`, HImode `s16` locals), permuted over `$s6`/`$s7`/`$fp`. The target has `endX=$s6, endY=$s7, lineY=$fp`. Two sessions and the permuter did not find it. `.greg` listed `lineY` before `endX`/`endY` in `regs to allocate`: `lineY` had 3 refs over 55 insns (priority 545), `endX`/`endY` 3 refs over 128/130 (234/230). The schedule already matched the target, so the live lengths were the target's too. The only thing left to change was the reference count.
 
 **Cause.** `allocno_compare` ranks by `floor_log2(refs) * refs / live_length`, with `REG_N_REFS` taken from `flow`, which runs before combine. Combine never lowers `REG_N_REFS` unless it deletes the pseudo's *last* set (combine.c: `REG_N_SETS--`, refs zeroed only at 0), and sched1 recomputes only the live length. So if a variable has one extra set that combine folds away, its early refs still count and its live length does not grow.
 
-**Fix.** Load the early `dx`/`dy` terms through the same locals: `sx = work->lineEndX; dx = sx - prompt->x; sy = work->lineEndY; dy = sy - ...`. The HImode load plus sign-extension folds into `lh`, so the early code is unchanged, and `sx`/`sy` reach 5 refs (priority about 780, above `y`). That gave the target's allocation at 100%. Reusing the *parameters* instead did nothing: cse bypasses a parameter's HImode copy at entry, flow then deletes it as dead, and deleted insns add no refs. When a `regs`-only permutation of callee-saved registers comes from global priority and the lengths already match, look for a variable that can also carry an earlier value which combine will absorb.
+**Fix.** Load the early `cursorDeltaX`/`cursorDeltaY` terms through the same locals: `endX = work->lineEndX; cursorDeltaX = endX - prompt->screen.xy.x; endY = work->lineEndY; cursorDeltaY = endY - prompt->screen.xy.y`. The HImode load plus sign-extension folds into `lh`, so the early code is unchanged, and `endX`/`endY` reach 5 refs (priority about 780, above `lineY`). That gave the target's allocation at 100%. Reusing the *parameters* instead did nothing: cse bypasses a parameter's HImode copy at entry, flow then deletes it as dead, and deleted insns add no refs. When a `regs`-only permutation of callee-saved registers comes from global priority and the lengths already match, look for a variable that can also carry an earlier value which combine will absorb.
 
 ### A store placed between an arm's argument setup and its `jal` needs a second memory insn in that block, not a load (func_neo_ark_shrine_8017EE44, 2026-09-23)
 
