@@ -18,6 +18,7 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/random.h"
 #include "main/gfx.h"
@@ -27,6 +28,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/stage_types.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
@@ -75,21 +77,21 @@ extern SVECTOR D_actor_341700_80175F7C[];
 extern u8      D_actor_341700_801760FC[150][4];
 // Message-table callbacks use the argument views required by this TU.
 
-extern TaskMessageEntry D_actor_341700_80175F5C[4]; // stored into `Task::msgTable` by func_actor_341700_8016D130
+extern TaskMessageEntry D_actor_341700_80175F5C[4]; // stored into `Task::msgTable` by _actor341700PropInitialize
 
 /// Psy-Q `RotMatrixY`.
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1);
-static void func_actor_341700_8016D2B8(Enemy* arg0, Task* arg1);
-static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1);
+static void _actor341700PropInitialize(Enemy* enemy, Task* task);
+static void _actor341700PropHiddenState(Enemy* enemy, Task* task);
+static void _actor341700PropShownState(Enemy* enemy, Task* task);
 
 static TmdSource _gActor341700Model13558;
-static void      func_actor_341700_8016D32C(Task*);
+static void      _actor341700PropTask(Task* task);
 
-s32 func_actor_341700_8016CE28(Task*, s32, s32, s32);
-s32 func_actor_341700_8016CEB4(Task* task, s32 msgId, ActorCommand* cmd, s32 arg3);
+static s32 _actor341700PropSetModelDrawMessage(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static s32 _actor341700PropCommandMessage(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 
 #include "../../shared/actor_contacts.h"
 
@@ -126,8 +128,8 @@ static TmdSource _gActor341700Model13558 = {
 };
 
 TaskMessageEntry D_actor_341700_80175F5C[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_341700_8016CE28 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_341700_8016CEB4 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor341700PropSetModelDrawMessage },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor341700PropCommandMessage },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -336,7 +338,7 @@ u8 D_actor_341700_801760FC[150][4] = {
     { 20, 0, 0, 0 },
 };
 
-TaskDesc D_actor_341700_80176354 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_341700_8016D32C, { .model = &_gActor341700Model13558 } };
+TaskDesc D_actor_341700_80176354 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor341700PropTask, { .model = &_gActor341700Model13558 } };
 
 static SVECTOR ActorContact_ScratchPosition;
 
@@ -345,312 +347,299 @@ static inline SVECTOR* ActorContact_GetScratchPosition(void)
     return &ActorContact_ScratchPosition;
 }
 
-static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1);
-static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1);
+static void _actor341700PropRiseState(Enemy* enemy, Task* task);
+static void _actor341700PropUpdate(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.h"
 
 #include "../../shared/actor_contacts.inc.c"
 
-static void func_actor_341700_8016C0F4(Enemy* arg0, Task* arg1)
+/// Composes the prop's nine bending parts around X for one shake step.
+///
+/// Requires its 11-coordinate model. `shakeStep` is signed: magnitude 1 is the
+/// initial jolt, 2 the slow rise and 3 the fast rise; reversal negates it.
+/// Part angles are multiples of this step in 4096 units per turn. The root
+/// and part 7 retain their rotation; the caller invalidates composed transforms.
+static inline void _actor341700PropBendParts(Task* task, s32 shakeStep)
 {
-    SVECTOR               vec;
-    _Actor341700PropWork* work = arg1->work;
-    s16                   i;
-    s16                   r;
-    u32                   t;
-    u32                   rnd;
+    gfxRotMatrixX(&task->extra.tmd->coords[1].coord, 4 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[2].coord, 8 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[3].coord, -8 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[4].coord, 4 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[5].coord, -2 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[6].coord, 6 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[8].coord, -2 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[9].coord, -shakeStep, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[10].coord, -9 * shakeStep, GRAPHICS_ROTATION_COMPOSE);
+}
+
+/// Raises the dumping-hole prop with timed jolts, part rotations and sprite bursts.
+///
+/// Requires the prop's 11-coordinate model and initialized work. Entry starts
+/// the root at Y=1800 in its parent's frame; each running tick advances the
+/// signed 16-bit frame counter. At or below Y=200 it keeps shaking without
+/// selecting another state. Sprite rows are used for frames 120..240, with
+/// zero ending a row. The room's sprite director must remain live; spawned
+/// sprites borrow the prop root through their first update. `enemy` is unused.
+static void _actor341700PropRiseState(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_341700_PROP_RISE_START_Y       = 1800,
+        ACTOR_341700_PROP_RISE_SETTLED_Y     = 200,
+        ACTOR_341700_PROP_JOLT_FIRST_FRAME   = 11,
+        ACTOR_341700_PROP_JOLT_END_FRAME     = 18,
+        ACTOR_341700_PROP_SLOW_SHAKE_FRAME   = 121,
+        ACTOR_341700_PROP_FAST_SHAKE_FRAME   = 166,
+        ACTOR_341700_PROP_SPRITE_FIRST_FRAME = 120,
+        ACTOR_341700_PROP_SPRITE_LAST_FRAME  = 240,
+        ACTOR_341700_PROP_SPRITE_ROW_END     = 0,
+    };
+    SVECTOR               spriteOffset;
+    _Actor341700PropWork* work = task->work;
+    s16                   spriteSlot;
+    s16                   jitter;
+    u32                   randomByte;
+    u32                   nextRandomState;
 
     if (work->stateEntered != 0) {
         work->stateFrame                    = 0;
-        arg1->extra.tmd->coords->coord.t[1] = 0x708;
+        task->extra.tmd->coords->coord.t[1] = ACTOR_341700_PROP_RISE_START_Y;
     }
     work->stateFrame++;
-    if (arg1->extra.tmd->coords->coord.t[1] > 200) {
-        if (work->stateFrame >= 0xA6) {
+    // Four-tick vertical cycles rise gradually; six-tick part bends reverse.
+    if (task->extra.tmd->coords->coord.t[1] > ACTOR_341700_PROP_RISE_SETTLED_Y) {
+        if (work->stateFrame >= ACTOR_341700_PROP_FAST_SHAKE_FRAME) {
             if (work->stateFrame % 4 < 2) {
-                arg1->extra.tmd->coords->coord.t[1] += 90;
+                task->extra.tmd->coords->coord.t[1] += 90;
             } else {
-                arg1->extra.tmd->coords->coord.t[1] -= 100;
+                task->extra.tmd->coords->coord.t[1] -= 100;
             }
             if (work->stateFrame % 6 < 3) {
-                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 12, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 24, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -24, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, 12, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, -6, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, 18, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, -6, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, -3, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, -27, GRAPHICS_ROTATION_COMPOSE);
+                _actor341700PropBendParts(task, 3);
             } else {
-                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, -12, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, -24, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, 24, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, -12, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, 6, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, -18, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, 6, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 3, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 27, GRAPHICS_ROTATION_COMPOSE);
+                _actor341700PropBendParts(task, -3);
             }
-        } else if (work->stateFrame >= 0x79) {
+        } else if (work->stateFrame >= ACTOR_341700_PROP_SLOW_SHAKE_FRAME) {
             if (work->stateFrame % 4 < 2) {
-                arg1->extra.tmd->coords->coord.t[1] += 50;
+                task->extra.tmd->coords->coord.t[1] += 50;
             } else {
-                arg1->extra.tmd->coords->coord.t[1] -= 58;
+                task->extra.tmd->coords->coord.t[1] -= 58;
             }
             if (work->stateFrame % 6 < 3) {
-                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 8, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 16, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -16, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, 8, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, -4, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, 12, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, -4, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, -2, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, -18, GRAPHICS_ROTATION_COMPOSE);
+                _actor341700PropBendParts(task, 2);
             } else {
-                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, -8, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, -16, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, 16, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, -8, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, 4, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, -12, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, 4, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 2, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 18, GRAPHICS_ROTATION_COMPOSE);
+                _actor341700PropBendParts(task, -2);
             }
-        } else if (work->stateFrame >= 11 && work->stateFrame < 18) {
+        } else if (work->stateFrame >= ACTOR_341700_PROP_JOLT_FIRST_FRAME && work->stateFrame < ACTOR_341700_PROP_JOLT_END_FRAME) {
             if (work->stateFrame % 4 < 2) {
-                arg1->extra.tmd->coords->coord.t[1] += 30;
+                task->extra.tmd->coords->coord.t[1] += 30;
             } else {
-                arg1->extra.tmd->coords->coord.t[1] -= 33;
+                task->extra.tmd->coords->coord.t[1] -= 33;
             }
             if (work->stateFrame % 6 < 3) {
-                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 4, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 8, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -8, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, 4, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, -2, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, 6, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, -2, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, -1, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, -9, GRAPHICS_ROTATION_COMPOSE);
+                _actor341700PropBendParts(task, 1);
             } else {
-                gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, -4, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, -8, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, 8, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, -4, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, 2, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, -6, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, 2, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 1, GRAPHICS_ROTATION_COMPOSE);
-                gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 9, GRAPHICS_ROTATION_COMPOSE);
+                _actor341700PropBendParts(task, -1);
             }
-            switch ((work->stateFrame - 11) % 8) {
+            switch ((work->stateFrame - ACTOR_341700_PROP_JOLT_FIRST_FRAME) % 8) {
                 case 0:
-                    vec = D_actor_341700_80175F7C[35];
-                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
+                    spriteOffset = D_actor_341700_80175F7C[35];
+                    shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
                 case 1:
-                    vec = D_actor_341700_80175F7C[8];
-                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
+                    spriteOffset = D_actor_341700_80175F7C[8];
+                    shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
                 case 2:
-                    vec = D_actor_341700_80175F7C[25];
-                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
+                    spriteOffset = D_actor_341700_80175F7C[25];
+                    shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
                 case 4:
-                    vec = D_actor_341700_80175F7C[24];
-                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
+                    spriteOffset = D_actor_341700_80175F7C[24];
+                    shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
                 case 5:
-                    vec = D_actor_341700_80175F7C[26];
-                    shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
+                    spriteOffset = D_actor_341700_80175F7C[26];
+                    shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
                     break;
             }
         }
     } else {
         if (work->stateFrame % 4 < 2) {
-            arg1->extra.tmd->coords->coord.t[1] += 100;
+            task->extra.tmd->coords->coord.t[1] += 100;
         } else {
-            arg1->extra.tmd->coords->coord.t[1] -= 100;
+            task->extra.tmd->coords->coord.t[1] -= 100;
         }
         if (work->stateFrame % 6 < 3) {
-            gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, 12, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, 24, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, -24, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, 12, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, -6, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, 18, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, -6, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, -3, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, -27, GRAPHICS_ROTATION_COMPOSE);
+            _actor341700PropBendParts(task, 3);
         } else {
-            gfxRotMatrixX(&arg1->extra.tmd->coords[1].coord, -12, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[2].coord, -24, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[3].coord, 24, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[4].coord, -12, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[5].coord, 6, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[6].coord, -18, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[8].coord, 6, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[9].coord, 3, GRAPHICS_ROTATION_COMPOSE);
-            gfxRotMatrixX(&arg1->extra.tmd->coords[10].coord, 27, GRAPHICS_ROTATION_COMPOSE);
+            _actor341700PropBendParts(task, -3);
         }
     }
-    arg1->extra.tmd->coords[0].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[1].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[2].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[3].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[4].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[5].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[6].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[7].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[8].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[9].composeStamp  = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
-    i                                        = 0;
-    for (; i < 4; i++) {
-        if (work->stateFrame > 240) {
+    // Rotations and root movement invalidate every part's composed transform.
+    task->extra.tmd->coords[0].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[1].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[2].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[3].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[4].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[5].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[6].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[7].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[8].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[9].composeStamp  = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
+    // Each row selects world-space offsets; jitter uses the shared LCG stream.
+    for (spriteSlot = 0; spriteSlot < (s32)ARRAY_SIZE(D_actor_341700_801760FC[0]); spriteSlot++) {
+        if (work->stateFrame > ACTOR_341700_PROP_SPRITE_LAST_FRAME) {
             return;
         }
-        if (work->stateFrame < 120) {
+        if (work->stateFrame < ACTOR_341700_PROP_SPRITE_FIRST_FRAME) {
             return;
         }
-        if (D_actor_341700_801760FC[work->stateFrame - 120][i] == 0) {
+        if (D_actor_341700_801760FC[work->stateFrame - ACTOR_341700_PROP_SPRITE_FIRST_FRAME][spriteSlot] == ACTOR_341700_PROP_SPRITE_ROW_END) {
             return;
         }
-        vec             = D_actor_341700_80175F7C[D_actor_341700_801760FC[work->stateFrame - 120][i]];
-        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        t               = (rnd >> 16) & 0xFF;
-        r               = t;
-        gRandomLcgState = rnd;
-        if (r % 2) {
-            r = -t;
+        spriteOffset    = D_actor_341700_80175F7C[D_actor_341700_801760FC[work->stateFrame - ACTOR_341700_PROP_SPRITE_FIRST_FRAME][spriteSlot]];
+        nextRandomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        randomByte      = (nextRandomState >> 16) & 0xFF;
+        jitter          = randomByte;
+        gRandomLcgState = nextRandomState;
+        if (jitter % 2) {
+            jitter = -randomByte;
         }
-        vec.vx += r / 2;
-        vec.vy -= r;
-        vec.vz += r;
-        shelterB3DumpingHoleSpawnActorSprite(arg1->extra.tmd->coords, &vec);
+        spriteOffset.vx += jitter / 2;
+        spriteOffset.vy -= jitter;
+        spriteOffset.vz += jitter;
+        shelterB3DumpingHoleSpawnActorSprite(task->extra.tmd->coords, &spriteOffset);
     }
 }
 
 /// Three state handlers, indexed by `_Actor341700PropWork::state`; copied onto
 /// the stack before dispatch.
 static const EnemyTaskFuncTable3 D_actor_341700_80162058 = { {
-    func_actor_341700_8016D2B8,
-    func_actor_341700_8016D2E8,
-    func_actor_341700_8016C0F4,
+    _actor341700PropHiddenState,
+    _actor341700PropShownState,
+    _actor341700PropRiseState,
 } };
 
-/// Per-frame callback of the `func_actor_341700_8016D130` task. It colours the
-/// model from the world position of its *second* attach coordinate and then,
-/// unless `gSceneCombatState.actorControl` hides the model, runs the handler
-/// `_Actor341700PropWork::state` names, with `stateEntered` set on the first
-/// tick of a state.
+/// Updates prop lighting and runs its hidden, shown or rise state while actors run.
 ///
-/// `case 0` is folded into `default` on purpose. The two bodies are the same,
-/// so the case list keeps three nodes and GCC's tree tests `case 1` at the
-/// root; dropping the case makes `case 2` the root and the emitted branches
-/// come out with the wrong polarity and a stray low-bound test.
-static void func_actor_341700_8016CC9C(Enemy* arg0, Task* arg1)
+/// Requires initialized prop work and its live enemy/model. Lighting samples
+/// coordinate 1's composed translation even while paused or hidden. Hidden control
+/// sets draw exclusion; paused control leaves state timing untouched. Running
+/// control dispatches work state 0..2 and marks state entry before the call.
+static void _actor341700PropUpdate(Enemy* enemy, Task* task)
 {
-    VECTOR                block;
-    _Actor341700PropWork* work = arg1->work;
-    EnemyTaskFuncTable3   sp   = D_actor_341700_80162058;
+    VECTOR                lightingPosition;
+    _Actor341700PropWork* work          = task->work;
+    EnemyTaskFuncTable3   stateHandlers = D_actor_341700_80162058;
 
-    arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-    block.vx = arg1->extra.tmd->coords[1].workm.t[0];
-    block.vy = arg1->extra.tmd->coords[1].workm.t[1];
-    block.vz = arg1->extra.tmd->coords[1].workm.t[2];
-    worldCoordUpdateActorColor(arg0, &block, 0, 0);
+    // Sample the moving part's translation after composing the full view chain.
+    task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&task->extra.tmd->coords[1]);
+    lightingPosition.vx = task->extra.tmd->coords[1].workm.t[0];
+    lightingPosition.vy = task->extra.tmd->coords[1].workm.t[1];
+    lightingPosition.vz = task->extra.tmd->coords[1].workm.t[2];
+    worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_PAUSED:
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
+            // Only running updates consume a state transition or advance its time.
             if (work->prevState != work->state) {
-                work->stateEntered = 1;
+                work->stateEntered = true;
             } else {
-                work->stateEntered = 0;
+                work->stateEntered = false;
             }
             work->prevState = work->state;
-            sp.funcs[work->state](arg0, arg1);
+            stateHandlers.funcs[work->state](enemy, task);
             if (gGameSession->viewReady != 0) {
-                arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             }
             return;
     }
 }
 
-/// Task-state handlers of the `func_actor_341700_8016D130` task: set-up, the
-/// per-frame callback, teardown. `func_actor_341700_8016D32C` dispatches them
+/// Task-state handlers of the `_actor341700PropInitialize` task: set-up, the
+/// per-frame callback, teardown. `_actor341700PropTask` dispatches them
 /// on `Task::state`.
 static const EnemyTaskFuncTable3 D_actor_341700_80162064 = { {
-    func_actor_341700_8016D130,
-    func_actor_341700_8016CC9C,
+    _actor341700PropInitialize,
+    _actor341700PropUpdate,
     enemyDestroy,
 } };
 
-s32 func_actor_341700_8016CE28(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Sets the prop's model draw and primitive-buffer policy without changing its state.
+///
+/// Requires a live TMD task. Mode 0 replaces flags with draw exclusion and
+/// mode 1 clears flags; both allocate a buffer if absent. Mode 2 adds automatic
+/// buffer suppression, and mode 3 replaces all flags with that bit. Neither
+/// releases an existing buffer. Other modes change nothing. The message ID
+/// and second payload are ignored; returns 0 even if allocation fails.
+static s32 _actor341700PropSetModelDrawMessage(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    TmdObject* obj = task->extra.tmd;
+    TmdObject* model = task->extra.tmd;
 
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
+    switch (mode) {
+        case ACTOR_MESSAGE_VISIBILITY_HIDE:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
             break;
-        case 1:
-            obj->flags = 0;
-            tmdAllocPrimitiveBuffer(obj);
+        case ACTOR_MESSAGE_VISIBILITY_SHOW:
+            model->flags = 0;
+            tmdAllocPrimitiveBuffer(model);
             break;
-        case 2:
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags = TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_VISIBILITY_CLEAR_FLAGS_SKIP_AUTO_BUFFER:
+            model->flags = TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
 }
 
-/// The `0x2704` command handler, reached through the task's `Task::msgTable`
-/// table (`D_actor_341700_80175F5C`): the three leading bytes of `cmd` are
-/// recorded in `_Actor341700PropWork::lastCommandStage`, `lastCommandArea`
-/// and `lastCommand`, and the selector, when the command is the dumping
-/// hole's, picks the `ACTOR_341700_PROP_STATE_*` the work block moves to.
+/// Applies the dumping-hole prop's hide, rise or hide-and-resume command.
 ///
-/// `case 2` is folded into `default` on purpose. The two bodies are the same,
-/// so the case list keeps three nodes and GCC's decision tree balances around
-/// `case 1`; dropping `case 2` makes `case 0` the root and the emitted branches
-/// come out in a different order.
-s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd, s32 arg3)
+/// Requires initialized prop work and a readable command borrowed through this
+/// call. Every namespace's stage, area and low command byte are recorded.
+/// In the Shelter B3 dumping-hole namespace, command 0 selects hidden, command
+/// 1 selects rise and invalidates the root transform, and every other command
+/// selects hidden and task update state 1. State entry is deferred until the
+/// next running update; repeating a state does not restart it. Other namespaces
+/// change no state. The message ID and second payload are ignored; returns 1.
+static s32 _actor341700PropCommandMessage(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
+    enum {
+        ACTOR_341700_PROP_COMMAND_CONTEXT         = GAME_STAGE_MINE_SHELTER | (GAME_AREA_SHELTER_B3_DUMPING_HOLE << 8),
+        ACTOR_341700_PROP_COMMAND_HIDE            = 0,
+        ACTOR_341700_PROP_COMMAND_RISE            = 1,
+        ACTOR_341700_PROP_COMMAND_HIDE_AND_RESUME = 2,
+        ACTOR_341700_PROP_TASK_UPDATE             = 1,
+    };
     _Actor341700PropWork* work = task->work;
 
-    work->lastCommandStage = cmd->context.loc.stage;
-    work->lastCommandArea  = cmd->context.loc.area;
-    work->lastCommand      = (u8)cmd->command;
+    work->lastCommandStage = command->context.loc.stage;
+    work->lastCommandArea  = command->context.loc.area;
+    work->lastCommand      = (u8)command->command;
 
-    if (cmd->context.key == 0x2704) {
-        switch (cmd->command) {
-            case 0:
+    if (command->context.key == ACTOR_341700_PROP_COMMAND_CONTEXT) {
+        switch (command->command) {
+            case ACTOR_341700_PROP_COMMAND_HIDE:
                 work->state = ACTOR_341700_PROP_STATE_HIDDEN;
                 return 1;
-            case 1:
+            case ACTOR_341700_PROP_COMMAND_RISE:
                 task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 work->state                           = ACTOR_341700_PROP_STATE_RISE;
                 break;
-            case 2:
+            case ACTOR_341700_PROP_COMMAND_HIDE_AND_RESUME:
             default:
                 work->state = ACTOR_341700_PROP_STATE_HIDDEN;
-                task->state = 1;
+                task->state = ACTOR_341700_PROP_TASK_UPDATE;
                 break;
         }
     }
@@ -661,81 +650,102 @@ s32 func_actor_341700_8016CEB4(Task* task, s32 arg1, ActorCommand* cmd, s32 arg3
 
 #include "../../shared/coord_math_yaw_scale.inc.c"
 
-static void func_actor_341700_8016D130(Enemy* arg0, Task* arg1)
+/// Initializes the prop's task-owned work, lighting and untargetable enemy record.
+///
+/// Requires the descriptor's 11-coordinate model and live enemy owned by this
+/// task. The root starts at (5000, 0, -6000) beneath the view coordinate; placement
+/// messages may replace that transform. Work supplies the model's light/color
+/// matrices until task teardown. Allocation failure destroys the enemy/task;
+/// success selects shown and advances task state 0 to update state 1.
+static void _actor341700PropInitialize(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_341700_PROP_NO_PREVIOUS_STATE = -1 };
     _Actor341700PropWork* work;
     TmdObject*            model;
-    GfxCoord*             coord;
-    VECTOR                block;
+    GfxCoord*             rootCoord;
+    VECTOR                lightingPosition;
 
-    model      = arg1->extra.tmd;
-    coord      = model->coords;
-    arg1->work = work = memCalloc(sizeof(*work), false);
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
+    task->work = work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    coord->parent                         = &gGfxViewCoord;
-    arg1->extra.tmd->coords->coord.t[1]   = 0;
-    arg1->extra.tmd->coords->coord.t[0]   = 0x1388;
-    arg1->extra.tmd->coords->coord.t[2]   = -0x1770;
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    arg1->msgTable                        = D_actor_341700_80175F5C;
-    arg0->field_4                         = &coord->coord;
-    arg0->field_48                        = 0;
-    arg0->bodyPos.vx                      = 0;
-    arg0->bodyPos.vy                      = 0;
-    arg0->bodyPos.vz                      = 0;
-    arg0->coord                           = &arg1->extra.tmd->coords[2];
-    arg0->node.state.parts.flags          = WORLD_TARGET_NOT_LOCKABLE;
-    arg0->reactionFlags                   = 0;
-    arg0->hpMax                           = 0;
-    arg0->hp                              = 0;
-    model->lightMtx                       = &work->lightMtx;
-    model->colorMtx                       = &work->colorMtx;
-    coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    block.vx = coord->workm.t[0];
-    block.vy = coord->workm.t[1];
-    block.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0, &block, 0, 0);
-    work->prevState = -1;
+    // Join the view chain; the enemy has no combat or lock-on role.
+    rootCoord->parent                     = &gGfxViewCoord;
+    task->extra.tmd->coords->coord.t[1]   = 0;
+    task->extra.tmd->coords->coord.t[0]   = 5000;
+    task->extra.tmd->coords->coord.t[2]   = -6000;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->msgTable                        = D_actor_341700_80175F5C;
+    enemy->field_4                        = &rootCoord->coord;
+    enemy->field_48                       = 0;
+    enemy->bodyPos.vx                     = 0;
+    enemy->bodyPos.vy                     = 0;
+    enemy->bodyPos.vz                     = 0;
+    enemy->coord                          = &task->extra.tmd->coords[2];
+    enemy->node.state.parts.flags         = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->reactionFlags                  = 0;
+    enemy->hpMax                          = 0;
+    enemy->hp                             = 0;
+    // Bind task-owned lighting storage before evaluating the initial position.
+    model->lightMtx         = &work->lightMtx;
+    model->colorMtx         = &work->colorMtx;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    lightingPosition.vx = rootCoord->workm.t[0];
+    lightingPosition.vy = rootCoord->workm.t[1];
+    lightingPosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
+    work->prevState = ACTOR_341700_PROP_NO_PREVIOUS_STATE;
     work->state     = ACTOR_341700_PROP_STATE_SHOWN;
-    arg1->state    += 1;
+    task->state    += 1;
 }
 
-static void func_actor_341700_8016D2B8(Enemy* arg0, Task* arg1)
+/// On hidden-state entry, excludes the prop from drawing and automatic buffer allocation.
+///
+/// Requires initialized prop work and its live enemy/model. Existing buffers
+/// are retained, and the enemy remains untargetable. Later ticks do nothing.
+static void _actor341700PropHiddenState(Enemy* enemy, Task* task)
 {
-    _Actor341700PropWork* work = arg1->work;
+    _Actor341700PropWork* work = task->work;
     TmdObject*            model;
 
     if (work->stateEntered != 0) {
-        model                        = arg1->extra.tmd;
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        model->flags                 = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     }
 }
 
-static void func_actor_341700_8016D2E8(Enemy* arg0, Task* arg1)
+/// On shown-state entry, clears model flags and allocates a missing primitive buffer.
+///
+/// Requires initialized prop work and its live enemy/model. The enemy remains
+/// untargetable. Allocation failure is left to automatic buffer recovery;
+/// later ticks do nothing.
+static void _actor341700PropShownState(Enemy* enemy, Task* task)
 {
-    _Actor341700PropWork* work = arg1->work;
+    _Actor341700PropWork* work = task->work;
     TmdObject*            model;
 
     if (work->stateEntered != 0) {
-        model                        = arg1->extra.tmd;
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        model->flags                 = 0;
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = 0;
         tmdAllocPrimitiveBuffer(model);
     }
 }
 
-/// Runs the controlled enemy's current state handler from
-/// `D_actor_341700_80162064` - spawn/setup, per-frame tick or teardown -
-/// copying the table onto the stack before the call.
-static void func_actor_341700_8016D32C(Task* task)
+/// Dispatches the scripted prop's task lifecycle with its owned enemy record.
+///
+/// Requires a live enemy in `spawnArg2.pointer` and task state 0..2:
+/// 0 initializes, 1 updates, and 2 destroys. The selected handler may release
+/// both objects; this dispatcher accesses neither after the call.
+static void _actor341700PropTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 taskHandlers;
 
-    sp = D_actor_341700_80162064;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    taskHandlers = D_actor_341700_80162064;
+    taskHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

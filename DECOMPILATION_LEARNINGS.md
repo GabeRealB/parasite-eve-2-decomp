@@ -46463,11 +46463,11 @@ identical objects).
 
 `actor_341700` calls `memCalloc` three times: `0x454` in
 `func_actor_341700_80162974` and `func_actor_341700_80162B8C`, and `0x80` in
-`func_actor_341700_8016D130`. All three store the result straight into
+`_actor341700PropInitialize`. All three store the result straight into
 `Task::work`, because the overlay runs two different task families out of one
 `.text` - the enemy itself and a smaller companion task. Sizing a single struct
 from the first `memCalloc` you find would have put a `0x454`-byte block under
-`func_actor_341700_8016D2E8`'s `lh 0x4(work)`, which belongs to the `0x80` one.
+`_actor341700PropShownState`'s `lh 0x4(work)`, which belongs to the `0x80` one.
 
 So grep the whole overlay for `jal memCalloc` and read `$a0` at every site
 before naming a work struct, then decide per function which block its
@@ -84799,13 +84799,13 @@ M2C_FIELD(M2C_FIELD(arg1, void **, 0x2C), s16 *, 0xC) = 0x84;
 ```
 
 so the `lw` is emitted *between* the two stores and the constant-1 `li` is born
-first. `func_actor_341700_8016D2B8` stalls at 79.545% (`regs=5 insert=1
+first. `_actor341700PropHiddenState` stalls at 79.545% (`regs=5 insert=1
 delete=1`) that way: `li v0,1 / sb v0,0x14(a0) / lw v1,0x2C(a1) / li v0,0x84 /
 sh v0,0xC(v1)`. The target has `lw v0,0x2C(a1)` before the `sb`, the pointer in
 `$v0`, and *both* constants sharing `$v1`.
 
 Declaring the pointer as a local - exactly as the matched sibling
-`func_actor_341700_8016D2E8` in the same TU already did - reproduces it:
+`_actor341700PropShownState` in the same TU already did - reproduces it:
 
 ```c
 TmdObject* model = (TmdObject*)arg1->extra;
@@ -86159,7 +86159,7 @@ the pointer `$v1`, and `sb` is scheduled ahead of `lw`. The target has the load
 first, the constant in `$v1` and the pointer in `$v0`.
 
 Assigning the loaded pointer to a local *before* the independent store - the
-shape the 1.00 `shape` sibling `func_actor_341700_8016D2B8` already carries -
+shape the 1.00 `shape` sibling `_actor341700PropHiddenState` already carries -
 moves the load to the top of the block (`(insn 23 (set (reg/v:SI 82) ...))`, a
 block-1 pseudo spanning 5 insns instead of one born at the store) and is a full
 match in one build:
@@ -124536,16 +124536,16 @@ before reaching for the pins above. The same helper later removed every pin
 from `func_actor_342000_801628C8` itself, unchanged, with the `ang` local
 still needed: calling the three `Gfx_RotMatrix*` on `work->field_27x` directly
 drops to 97.5%.
-## A two-case `switch`'s decision tree is a linear list, so the emitted branch order is fixed by *case count*, not by source order - give the switch a third label (func_actor_341700_8016CEB4, 2026-09-17)
+## A two-case `switch`'s decision tree is a linear list, so the emitted branch order is fixed by *case count*, not by source order - give the switch a third label (_actor341700PropCommandMessage, 2026-09-17)
 
-`func_actor_341700_8016CEB4` dispatches on a `u16` sub-command with bodies for
+`_actor341700PropCommandMessage` dispatches on a `u16` sub-command with bodies for
 0, 1 and everything else. Written as the obvious two-case switch,
 
 ```c
-switch (cmd->halfs[1]) {
-    case 0: work->field_0 = 0; return 1;
-    case 1: ...;               work->field_0 = 2; break;
-    default: work->field_0 = 0; task->state = 1; break;
+switch (command->command) {
+    case 0: work->state = 0; return 1;
+    case 1: ...;               work->state = 2; break;
+    default: work->state = 0; task->state = 1; break;
 }
 ```
 
@@ -124568,27 +124568,27 @@ switch a third label that shares the default body restores it:
 ```c
     case 2:
     default:
-        work->field_0 = 0;
+        work->state = 0;
         task->state = 1;
         break;
 ```
 
 That alone takes it to 97.34%, with a matching tree but one `jr ra` too many.
-The remaining two instructions are the outer guard: `if (cmd->halfs[0] !=
+The remaining two instructions are the outer guard: `if (command->context.key !=
 0x2704) return 1;` before the switch is its own `(return)` insn, and the
 target's `bne` reaches the *same* epilogue as the switch's `break` tails. Write
 the guard as the enclosing condition and leave one trailing return - every tail
 then cross-jumps to it:
 
 ```c
-    if (cmd->halfs[0] == 0x2704) {
+    if (command->context.key == 0x2704) {
         switch (...) { ... }
     }
     return 1;
 ```
 
 Two more notes from the same function. The switch index has to be a signed
-`s32` copy of the `u16` field (`s32 sel = cmd->halfs[1];`): the load stays
+`s32` copy of the `u16` field (`s32 sel = command->command;`): the load stays
 `lhu`, but `shorten_compare` makes a direct `u16 > 1` unsigned and the tree
 then emits `sltiu` where the target has `slti`. And an `if/else` chain over the
 same values (`==1`, `>1`, `==0`) reproduces the test sequence too, but places
@@ -124599,16 +124599,16 @@ Inputs: `base_5.i` (100%) SHA256
 `5e0b9926d73bb2fa67310bb87bfe33bba060b98d495e7af2f0ce4729fd20da4e`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
-`nonmatchings/func_actor_341700_8016CEB4-vacuum`.
+`nonmatchings/_actor341700PropCommandMessage-vacuum`.
 
 ## A load cannot be scheduled above the stores that precede it in the source
 
-`func_actor_341700_8016D130` stores `index->field_18` from a reload chain —
+`_actor341700PropInitialize` stores `enemy->coord` from a reload chain —
 `lw v0,0x2c(s2)` (`Task::extra`), `lw v1,8(v0)` (`TmdObject::coords`),
 `addiu v1,v1,0xa0`, `sw v1,0x18(s1)` — that the target interleaves starting
 immediately after the three `sw zero,0x2c/0x30/0x34` vector stores. m2c emits
 statements in the order the final asm shows them, which there is *after*
-`node.flags`, `field_4C`, `field_42` and `field_40`, and the result was 94.4%
+`node.state.parts.flags`, `reactionFlags`, `hpMax` and `hp`, and the result was 94.4%
 with `insert=2 delete=1` and one extra instruction (`.diagnosis.json` reports
 `instructions=99/98` and an `0:0` opcode delta of 1 — a load-delay `nop`):
 
@@ -124623,7 +124623,7 @@ sw    v0,0x18(s1)
 
 sched1 cannot hoist it: it tracks memory conservatively, so a load that follows
 a store in the RTL has a dependence edge on it and stays below. Moving the
-single statement above `index->node.flags = 1;` — i.e. directly after the
+single statement above `enemy->node.state.parts.flags = 1;` — i.e. directly after the
 vector stores, giving the chain lower instruction uids than the four stores it
 must precede — reproduces the target's interleaving, absorbs the load delay
 into `move a0,s0`, and reaches 100.000%:
@@ -124644,14 +124644,14 @@ insns; for memory it is a hard ordering constraint.
 Two further notes from the same function, both about m2c's shape rather than the
 scheduler:
 
-* m2c's `s32 sp10; s32 sp14; s32 sp18; ... worldCoordUpdateActorColor(index, (VECTOR*)&sp10, 0, 0)`
+* m2c's `s32 sp10; s32 sp14; s32 sp18; ... worldCoordUpdateActorColor(enemy, (VECTOR*)&sp10, 0, 0)`
   keeps only *one* of the three loads and stores. Each local is its own DECL and
   only `sp10`'s address is taken, so GCC deletes the other two as dead stores.
-  One addressable aggregate — `VECTOR block; block.vx = coord->workm.t[0]; ...` —
+  One addressable aggregate — `VECTOR lightingPosition; lightingPosition.vx = rootCoord->workm.t[0]; ...` —
   reproduces the whole three-`lw`/three-`sw` run.
 * The calloc result is named twice on purpose, as
   "Naming one `memCalloc` result twice" describes: `workAllocation = memCalloc(sizeof(*workAllocation), 0);
-  work = workAllocation; arg1->work = workAllocation; if (workAllocation == NULL)`
+  work = workAllocation; task->work = workAllocation; if (workAllocation == NULL)`
   gives the target's `addu s3,v0` / `bnez v0` / `sw v0,0x1c(s2)`, where a single
   variable puts all three in `$s3` (`regs=5`).
 
@@ -124659,12 +124659,12 @@ Inputs: `base_4.i` (100.000%) SHA256
 `a2f51f3b1a84e8f80c2d27f7f580152b3fec786e0a50e3fcb4e2494ff9d49441`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
-`nonmatchings/func_actor_341700_8016D130-vacuum`.
+`nonmatchings/_actor341700PropInitialize-vacuum`.
 
-## Folding a case onto `default` changes a switch tree's *branch polarity*: `case 0: default:` gives `slti`/`bnez` where a bare `default:` gives `slti`/`beqz` (func_actor_341700_8016CC9C, 2026-09-17)
+## Folding a case onto `default` changes a switch tree's *branch polarity*: `case 0: default:` gives `slti`/`bnez` where a bare `default:` gives `slti`/`beqz` (_actor341700PropUpdate, 2026-09-17)
 
-`func_actor_341700_8016CC9C` dispatches `D_801153F4` (a `u8`) over three bodies:
-`case 2` sets `field_C |= 0x80` and returns, `case 1` returns, everything else
+`_actor341700PropUpdate` dispatches `gSceneCombatState.actorControl` (a `u8`) over three bodies:
+`case 2` sets `flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW` and returns, `case 1` returns, everything else
 runs the state handler. Written the obvious way, with the body in a bare
 `default:`, it scores 95.36% (`branch=4 regs=11`) and the dispatch comes out as
 
@@ -124706,7 +124706,7 @@ default body are the same statements here, so writing the fold out is free:
             ...
 ```
 
-This is the same `balance_case_nodes` rule the 8016CEB4 entry records - a case
+This is the same `balance_case_nodes` rule the `_actor341700PropCommandMessage` entry records - a case
 list is only split at the middle once it holds more than two nodes, so a
 three-label switch is what puts `case 1` at the root. The corollary worth
 keeping is that folding a case onto `default` also moves the *polarity* of the
@@ -124715,23 +124715,22 @@ a switch-label question rather than an allocation or scheduling one.
 
 Two more leftovers from the same function, both about the frame:
 
-* `VECTOR block;` has to be declared *before* the struct-copy table
-  (`EnemyTaskFuncTable3 sp = D_actor_341700_80162058;`). GCC hands out the
+* `VECTOR lightingPosition;` has to be declared *before* the struct-copy table
+  (`EnemyTaskFuncTable3 stateHandlers = D_actor_341700_80162058;`). GCC hands out the
   local slots in declaration order, so the table came out at 0x10 and the vector
   at 0x20 where the target has them the other way round - a pure
   `sw t0,0x10(sp)` vs `0x20(sp)` diff, reported as `branch=4`.
-* The per-use reloads are what the target wants: `((TmdObject*)arg1->extra)->
-  field_8[1]` repeated at every use, never a saved `GfxCoord* coord` local.
+* The per-use reloads are what the target wants: `task->extra.tmd->coords[1]` repeated at every use, never a saved `GfxCoord* coord` local.
   Each store through the loaded pointer kills GCC's CSE of the Task field, so
-  the target re-loads `value->extra` and `->field_8` for each of the five uses,
+  the target re-loads `task->extra.tmd` and `->coords` for each of the five uses,
   while a local keeps one `lw` in a callee-saved register. The matched
-  `func_actor_341700_8016D130` in the same overlay is written the same way.
+  `_actor341700PropInitialize` in the same overlay is written the same way.
 
 Inputs: `base_2.i` (100.000%) SHA256
 `de39b860a3801a8e4a596c97418984f5de3d6358662f034bb77d04130cfd6b38`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
-`nonmatchings/func_actor_341700_8016CC9C-vacuum`.
+`nonmatchings/_actor341700PropUpdate-vacuum`.
 ## An m2c seed's stack locals are 4-byte `M2C_UNK`, so passing a 0x10-byte struct to a callee costs the frame and a saved register (func_actor_323000_8016331C, 2026-09-17)
 
 `m2c` declares every stack temporary as `M2C_UNK`, which is 4 bytes. When the real
@@ -138193,7 +138192,7 @@ normal-header base_4:
 Bundled cc1 SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Order the entire invariant prefix when a pointer-only hoist loses its register (func_actor_341700_8016C0F4, 2026-09-20)
+## Order the entire invariant prefix when a pointer-only hoist loses its register (_actor341700PropRiseState, 2026-09-20)
 
 The 99.839% seed had only two reorders: its loop preheader emitted RNG `%hi`,
 coords load, stack-vector address, while the target needed stack-vector address,
@@ -138238,7 +138237,7 @@ because its address remains reg/v; aggregate-return base_2 adds a stack vector
 and copy. The bounded permuter's unrelated alternate mutation did not improve
 paired scratch distance (516 -> 519); it was not used for this match.
 
-Evidence: `tools/permuter_findings/func_actor_341700_8016C0F4/sessions/f9c1cfd006b44fc9b84b62cca40632b9/426d28fd0740b41b992f/` retains notes, predictions,
+Evidence: `tools/permuter_findings/_actor341700PropRiseState/sessions/f9c1cfd006b44fc9b84b62cca40632b9/426d28fd0740b41b992f/` retains notes, predictions,
 insn walks, scheduling/allocation dumps and integration verification.
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
@@ -146903,12 +146902,12 @@ Scratch inputs: `base_1.i` (cached value)
 `base_3.i` (direct field reads)
 `1124be1c35fd783822a43ca33abf00ae43e53d2f28709f82f8760f08c023a4e4`.
 
-## Halfword oddness tests: `% 2` can preserve a copy that `& 1` propagates away (func_actor_341700_8016C0F4, 2026-09-27)
+## Halfword oddness tests: `% 2` can preserve a copy that `& 1` propagates away (_actor341700PropRiseState, 2026-09-27)
 
-With `u32 t = (rnd >> 16) & 0xFF; s16 r = t;`, removing two empty-asm
-barriers scored 99.255%. Changing only `if (r & 1)` to `if (r % 2)` restored
+With `u32 randomByte = (nextRandomState >> 16) & 0xFF; s16 jitter = randomByte;`, removing two empty-asm
+barriers scored 99.255%. Changing only `if (jitter & 1)` to `if (jitter % 2)` restored
 100.000% and all-zero penalties. Both tests select the same branch here:
-`r` is 0..255 before the test and is negated only afterward.
+`jitter` is 0..255 before the test and is negated only afterward.
 
 The dumps explain the distinction. In `base_1.i.rtl`, the bit test reads a
 SI lowpart of HI r84; `.cse` substitutes the pre-mask random value r578.
@@ -146920,7 +146919,7 @@ Try the arithmetic oddness test before adding barriers to a narrow local.
 This removed both barriers, but a pre-existing integer-address cast remains:
 ordinary byte-pointer indexing swaps the final addition's operands (99.987%).
 Direct global indexing gets their order right but changes loop hoisting.
-Scratch evidence: `nonmatchings/func_actor_341700_8016C0F4-dehack/`, base_1/base_8
+Scratch evidence: `nonmatchings/_actor341700PropRiseState-dehack/`, base_1/base_8
 RTL, CSE and combine dumps. Input SHA256s respectively:
 `4fd1232dd0218332d445fdff364dfcf91a07a3f4c4a9a40c295cdea7efc5da76`,
 `afac79f9a53e428ac8cba7a1cac59141dc78cbcf7a717bc75d039f77983d45d7`.
@@ -147773,10 +147772,10 @@ gives `addu v0,v0,base`; `p = &base[index]` then `*p` gives `addu v0,base,v0`,
 and `index = i + 1` in its own variable keeps the `+1` out of the displacement
 (`&base[i + 1]` folds it to `lw 4(..)`).
 
-## The order of the address loads before a loop is the order the loop first names them (func_actor_341700_8016C0F4, 2026-10-05)
+## The order of the address loads before a loop is the order the loop first names them (_actor341700PropRiseState, 2026-10-05)
 
 A loop preceded by `lui/addiu sN, table` pairs looks like explicit pointer locals
-(`indices = D_a; table = D_b; vecPtr = &vec;`), and writing it that way forces an
+(`indices = D_a; table = D_b; vecPtr = &spriteOffset;`), and writing it that way forces an
 integer cast for any element address the target adds offset first: with a `REG`
 base neither `expand_binop` nor `expand_expr`'s `both_summands` swaps the
 operands, so `addu a2, v0, s6` cannot come from `indices[...]` or `&indices[...]`.
@@ -147787,23 +147786,23 @@ emits the hoisted sets in the order the loop body first mentions each one, so
 the pre-loop order is a statement-order question:
 
 ```c
-/* target: s6 = indices, s5 = table, s3 = &vec, s2 = %hi(gRandomLcgState) */
-if (D_indices[work->stateFrame - 120][i] == 0) return;
-vec = D_table[D_indices[work->stateFrame - 120][i]];   /* names table, then &vec */
-rnd = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+/* target: s6 = indices, s5 = table, s3 = &spriteOffset, s2 = %hi(gRandomLcgState) */
+if (D_indices[work->stateFrame - 120][spriteSlot] == 0) return;
+spriteOffset = D_table[D_indices[work->stateFrame - 120][spriteSlot]];   /* names table, then &spriteOffset */
+nextRandomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
 ```
 
 With the struct copy written after the `gRandomLcgState` store the `%hi` was
 hoisted second and the block before the loop scheduled two instructions longer.
-Moving the copy first costs nothing in the body: the table, the stack `vec` and
+Moving the copy first costs nothing in the body: the table, the stack `spriteOffset` and
 `gRandomLcgState` have distinct bases, so sched1 still places the copy after the
-store, as the target has it. Three details of the same site: the `&vec` pseudo is
+store, as the target has it. Three details of the same site: the `&spriteOffset` pseudo is
 made by the struct copy (the block move needs its destination address), not by
-the call that passes `&vec`; `vecPtr = &vec;` assigned *inside* the loop was not
+the call that passes `&spriteOffset`; `vecPtr = &spriteOffset;` assigned *inside* the loop was not
 a substitute (it was not hoisted - its use is in a later basic block than the
 set, past conditional exits - and one saved register disappeared); and
-`D[row][i]` on a two-dimensional global keeps `i + row * 4` unfolded and in that
-order, where `indices[i + (frame - 120) * 4]` through a flat pointer local
+`D[row][spriteSlot]` on a two-dimensional global keeps `spriteSlot + row * 4` unfolded and in that
+order, where `indices[spriteSlot + (frame - 120) * 4]` through a flat pointer local
 distributed the `- 480` into the displacement (`lbu v0, -480(a2)`).
 
 Related, from three animation ticks (`oddStrangerDrive`, `desertChaserAnimTick`,
