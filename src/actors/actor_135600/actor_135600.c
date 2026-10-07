@@ -666,7 +666,6 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
     SVECTOR   itemWorldPosition;
     SVECTOR   screenCorners[4];
     GfxMatrix matrix;
-    MATRIX*   rotationMatrix;
     long      nearScreenXY;
     long      depthCue;
     long      projectionFlags;
@@ -683,7 +682,6 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
 
     // Project two points on the held model's forward axis into the current view.
     actorRenderComposeCoord(itemRoot);
-    rotationMatrix = &matrix.mat;
     _actor135600ComposeWorldTransform(itemRoot, &matrix.mat, &itemWorldPosition);
 
     nearWorldPoint.vx = 0;
@@ -716,22 +714,8 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
     screenAngle = ratan2((s16)farScreenXY - (s16)nearScreenXY, nearScreenY - farScreenY);
 
     // Rotate the near vertex pair in screen space; the far pair stays horizontal.
-    /// Builds a pure Z rotation in `matrix` (angle in 4096 units per turn).
-    ///
-    /// Captures the local `matrix` and its `rotationMatrix` alias; writes only
-    /// the nine rotation coefficients. Evaluates the angle once. Use as a
-    /// standalone statement; this binding is undefined immediately after use.
-#define ACTOR_135600_BUILD_HELD_QUAD_ROTATION(angle) \
-    {                                                \
-        matrix.rotationWords.m00M01       = ONE;     \
-        MATRIX_PAIR(&matrix.mat, 0, 2)    = 0;       \
-        MATRIX_PAIR(rotationMatrix, 1, 1) = ONE;     \
-        MATRIX_PAIR(&matrix.mat, 2, 0)    = 0;       \
-        rotationMatrix->m[2][2]           = ONE;     \
-        RotMatrixZ((angle), &matrix.mat);            \
-    }
-    ACTOR_135600_BUILD_HELD_QUAD_ROTATION(screenAngle);
-#undef ACTOR_135600_BUILD_HELD_QUAD_ROTATION
+    gfxSetRotIdentity(&matrix.mat);
+    RotMatrixZ(screenAngle, &matrix.mat);
 
     for (pairIndex = 0; pairIndex < (s32)ARRAY_SIZE(screenCorners) / 2; pairIndex++) {
         ApplyMatrixSV(&matrix.mat, &D_actor_135600_8013B060[pairIndex], &screenCorners[pairIndex]);
