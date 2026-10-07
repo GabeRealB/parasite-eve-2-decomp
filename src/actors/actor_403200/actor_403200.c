@@ -5538,7 +5538,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
     GluttonWork* work;
     GluttonWork* escorts;
     GluttonWork* dying;
-    GfxMatrix*   mtx;
+    GfxCoord*    node;
     GfxCoord*    coords;
     s32          state;
     s32          frame;
@@ -5578,12 +5578,8 @@ static void func_actor_403200_8013E2FC(Task* arg0)
     }
     if (work->animId == 9 && work->stateTicks == 0x2D) {
         coords                                                    = arg0->extra.tmd->coords;
-        D_actor_403200_8015F970.packed.coord.rotationWords.m00M01 = ONE;
-        mtx                                                       = &D_actor_403200_8015F970.packed.coord;
-        mtx->rotationWords.m02M10                                 = 0;
-        mtx->rotationWords.m11M12                                 = ONE;
-        mtx->rotationWords.m20M21                                 = 0;
-        mtx->rotationWords.m22                                    = ONE;
+        node = &D_actor_403200_8015F970.node;
+        gfxSetRotIdentity(&node->coord);
         D_actor_403200_8015F970.node.coord.t[1]                   = -0x64;
         D_actor_403200_8015F970.node.coord.t[0]                   = 0;
         D_actor_403200_8015F970.node.coord.t[2]                   = 0x64;
