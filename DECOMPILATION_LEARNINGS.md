@@ -41457,6 +41457,10 @@ it), or a set from a memory load or other opaque value. Adding an
 uninitialised use of `glowBrightness` confirmed the first but does not match the rest, so
 the copy there is still the asm.
 
+*Note 2026-10-07:* `actor510900FlameSpriteTask45` no longer uses the asm. The
+opaque set is a copy from a variable assigned on two paths that join before
+the copy. See the section at the end of this file with this function's name.
+
 ## Put the `div`-derived `u` before the constant `v` so the constant fills the `mflo` slot
 
 In a `POLY_FT4` fill where each UV pair is `prim->uN = (a / b) << 5;` and
@@ -148715,6 +148719,10 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
   effect->angle = glowBrightness;` gives `0xff`), because the bits are the union over all
   sets, taken before combine merges anything. But the extra range is real and
   takes `$s2`. It would have to be a set combine deletes; none found.
+  *Note 2026-10-07:* now none, with a fitted `if`/`else`. `$s2` was not a
+  real range: the merged set leaves `glowBrightness` at 5 references, which
+  outranks `task`. See the section at the end of this file with this
+  function's name.
 - `func_actor_143000_80133CF0` (two). The strip count is in `$a1` because the
   helper's frame base is already in `$a0` when the count is stored, and the
   `*640` shifts stay above the struct copy. Both are births that must not sink
@@ -152133,3 +152141,97 @@ mechanism (combine keeps the references of a set it merges away while another
 set remains) applied to the first set instead of the second. Before working
 on the cursor's own length, check whether sched1 leaves the set where the
 source put it: within one block it does not.
+
+### A mask that combine does not narrow: the value reached the byte through a join that left no code (actor510900FlameSpriteTask45, 2026-10-07)
+
+**Symptom.** `u8 glow` is `fade` (a multiple of 16) in one arm and `0x80` in
+the other, and is passed to a call much later. The target has
+`sll v0,v0,4; move s3,v0; sb v0 x3` and at the call `andi a2,s3,0xff`. The
+plain `glow = fade;` gives every instruction and register of the target
+except the mask, which comes out `0xf0`.
+
+**Where the `0xf0` is made.** Not at the copy. `expand_call` extends the `u8`
+argument into a pseudo and then moves it to `$a2`; combine merges those two
+insns, and while doing so asks `nonzero_bits` of `glow`. `glow` is set twice
+and its sets are behind labels, so the answer is `reg_nonzero_bits[glow]`:
+the union over all its sets, computed once in the scan at the top of
+`combine_instructions`, before anything is merged
+(`set_nonzero_bits_and_sign_copies`). There `nonzero_sign_valid` is 0, and
+`nonzero_bits` of a register returns "all bits" unless `get_last_value` finds
+its value, which needs `REG_N_SETS == 1` **or** the last set under the same
+`label_tick` (no `CODE_LABEL` since).
+
+So the mask stays `0xff` only if one set of `glow` reads something that scan
+cannot see through. What it sees through: any once-set temporary, at any
+distance; any register set since the last label; `SUBREG`s, extensions, a
+multiply by a constant (`nonzero_bits` counts low zero bits of a `MULT`). What
+it does not: memory, a hard register, `asm` operands, a register live at
+function entry (uninitialised on some path), and **a register set more than
+once whose last set is before a label**.
+
+**What was ruled out, with the reason.**
+
+- An extra set of `glow` that combine merges away (`glow = rand & 0xF;
+  effect->angle = glow;`): the bits are right, but flow has already counted
+  the set and its use, combine does not take them back while another set
+  remains, and `glow` goes into global-alloc with 5 references instead of 3.
+  Priority is `floor_log2(refs) * refs / live_length`: 5 refs / 165 insns is
+  606 against `task`'s 489 (9 / 552), so `glow` takes `$s2` and `task` `$s3`.
+  It would need 205 insns of life. Any form that adds a set to `glow` has this
+  problem: 4 references need 164+ insns, and the fitted forms give 162-163.
+- A set of `glow` in a conditional combine proves dead
+  (`if (fade & 0xF) glow = 0xFF;`): combine folds a branch that is always
+  taken into a jump, and the skipped code stays until jump2, so the union gets
+  its low bits. Same reference count problem (4 refs, 163 insns, 490 against
+  483). A branch that is never taken is **not** folded
+  (`if (!(fade & 0xF)) glow = fade;` keeps its `andi`/`bnez`), so a guard
+  cannot be used to leave `glow` uninitialised on a dead path either.
+- `glow = n; glow <<= 4;` and `glow *= 16`: the narrowing reaches the loads
+  (`lbu` for `lh`) and the shift re-extends (`andi 0xff` before the `sll`).
+- A join after the outer `if`/`else` (`fade` set in both arms, `glow = fade`
+  after): `glow` is then set once, combine follows its value to `fade`, and by
+  then `nonzero_sign_valid` is 1, so `fade`'s own union (`0xf0 | 0x80`) is used.
+
+**Fix (fitted).** `glow` keeps its two sets and three references; the variable
+it copies from is the one set twice:
+
+```c
+framesLeft = effect->angle - effect->age + 1;
+if (framesLeft > 0) {
+    fadeBrightness = framesLeft * ACTOR_510900_FLAME_FADE_STEP;
+} else {
+    fadeBrightness = framesLeft * ACTOR_510900_FLAME_FADE_STEP;
+}
+glowBrightness = fadeBrightness;
+sprite->r0     = fadeBrightness;
+```
+
+At combine the two `ashift` sets of `fadeBrightness` are in different blocks
+and the copy is after their join label, so the scan records "all bits" for
+`glow`. Nothing before reload merges the arms (no cross-jumping there). After
+reload both arms are `sll v0,v0,4`, jump2 cross-jumps them, the `blez` then
+branches to the next instruction and is deleted. `.lreg` is unchanged for
+`glow`: `used 3 times across 160 insns`.
+
+The condition has to be a single branch instruction on a register that is
+already loaded (`blez`/`bgtz`/`bltz`/`bgez`, `beq`/`bne` of two registers): a
+`slt` or a load feeding it would survive the branch. It must not be an
+equality the arms can use: after `if (n != 0)` cse knows `n == 0` in one arm
+and folds that arm to a constant, and the arms no longer merge.
+
+**What is not known.** That a join was there is read off the mask and nothing
+else; which condition, and whether the two sides were the same text in the
+source (two constants with one value, a macro with equal arms), cannot be
+recovered. The test on `framesLeft` is a stand-in and the source says so. The
+permuter (7,500 iterations from the plain form, score 5) found nothing.
+
+**Use.** A mask or extension that combine should have narrowed and did not
+(`andi 0xff` on a value with known zero bits), or a copy combine should have
+merged into its only user and did not, means a `CODE_LABEL` stood between the
+value's set and that use at combine time. If no label is there in the target,
+a branch was deleted after reload. `effectSpriteTask7C`
+(`sll v0; move v1,v0; andi s5,v1,0xff; sb v0`) has the same signature and
+still uses the asm: there the copy and the `andi` are not merged, which a join
+on the copy (`c` assigned `shade` on two paths, then `glow = (u8)c`) would
+explain; not tried. Before adding a set to the narrow variable to feed the
+union, compute its global-alloc priority with the extra references.
