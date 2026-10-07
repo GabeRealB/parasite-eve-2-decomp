@@ -203,7 +203,7 @@ STATIC_ASSERT_SIZEOF(_Actor503500WorkStorage, 0x7F0);
 
 extern _Actor503500WorkStorage D_actor_503500_80176574;
 /// 18-entry table of per-slot u16 counters, indexed by slot in
-/// `func_actor_503500_801360A4` / `_801360BC` / `_8013611C`.
+/// `func_actor_503500_801360A4` / `actor503500TryReserveSlotEffects` / `actor503500ReleaseSlotEffects`.
 extern u16 D_actor_503500_80176D64[];
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
 /// "everything is dead" message, `gPlayerStatus.hp` is the player's current HP and
@@ -213,18 +213,17 @@ extern u16 D_actor_503500_80176D64[];
 /// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
 /// the preceding `scriptedEffectTask` store ordered before it.
 static s32  func_actor_503500_80133684(Task* arg0);
-static void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2);
+static void _actor503500ScheduleTargetable(Task* task, s8 targetable, s16 delayFrames);
 static void func_actor_503500_801338E8(Task* arg0);
 static void func_actor_503500_80134408(Task* arg0);
 static void func_actor_503500_801345F4(Task* arg0);
 static void func_actor_503500_80134A24(Task* arg0);
 static void func_actor_503500_80134C68(Task* arg0);
-static s32  func_actor_503500_80136FA8(Actor503500Work* work, s32 slot);
+static s32  _actor503500IsSlotAtRest(Actor503500Work* work, s32 slot);
 static s32  func_actor_503500_80133D40(Task* arg0, Actor503500Work* work);
 static s32  func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work);
-static s32  func_actor_503500_80136FDC(Actor503500Work* work, s32 slot);
-/// Commands slot `slot`: `arg2` is the command and `arg3` its `slotCooldown`.
-static void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3);
+static s32  _actor503500IsSlotReady(Actor503500Work* work, s32 slot);
+static void _actor503500CommandSlot(Actor503500Work* work, s32 slot, s32 command, s32 cooldownFrames);
 
 static void func_actor_503500_80136450(Task* arg0);
 static void func_actor_503500_801369E4(Task* arg0);
@@ -420,7 +419,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     for (i = 17; i >= 0; i--) {
         D_actor_503500_80176D64[i] = 0;
     }
-    func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, D_actor_503500_8016EAC0, 0);
+    actor503500HandlePlayAnimation(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, D_actor_503500_8016EAC0, 0);
     arg0->exitCallback = func_actor_503500_80136228;
     arg0->msgTable     = D_actor_503500_8016EA2C;
     arg0->state       += 1;
@@ -571,18 +570,18 @@ static s32 func_actor_503500_80133684(Task* arg0)
 
     if (work->state != ACTOR_503500_STATE_PART_LOST) {
         if (!(work->progressFlags & 1) && (slots[4] == NULL)) {
-            slots[10]->task->killCountdown = 8;
+            slots[10]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
             ret                            = 1;
             work->progressFlags           |= 1;
         }
         if (!((work->progressFlags >> 1) & 1) && (slots[5] == NULL)) {
-            slots[11]->task->killCountdown = 8;
+            slots[11]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
             ret                            = 1;
             work->progressFlags           |= 2;
         }
         if (!((work->progressFlags >> 2) & 1) && (slots[1] == NULL)) {
             if (slots[12] != NULL) {
-                slots[12]->task->killCountdown = 8;
+                slots[12]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
                 ret                            = 1;
                 work->progressFlags           |= 4;
             }
@@ -719,24 +718,24 @@ s32 func_actor_503500_80133BF4(Task* arg0, Actor503500Work* work)
             if (work->bearingBand == 0) {
                 odd  = work->randomRoll & 1;
                 slot = odd + 0xA;
-                if (func_actor_503500_80136FDC(work, slot) != 0 ||
-                    (slot = 0xB - odd, func_actor_503500_80136FDC(work, slot) != 0)) {
-                    func_actor_503500_80136F40(work, slot, 2, 0x78);
+                if (_actor503500IsSlotReady(work, slot) != 0 ||
+                    (slot = 0xB - odd, _actor503500IsSlotReady(work, slot) != 0)) {
+                    _actor503500CommandSlot(work, slot, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x78);
                     work->attackSlot = slot;
                 }
                 ret                   = 0;
                 work->targetYawOffset = 0;
                 work->attackPhase     = 1;
             } else if (work->playerBearing > 0) {
-                if (func_actor_503500_80136FDC(work, 0xA) != 0) {
-                    func_actor_503500_80136F40(work, 0xA, 2, 0x78);
+                if (_actor503500IsSlotReady(work, 0xA) != 0) {
+                    _actor503500CommandSlot(work, 0xA, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x78);
                     ret                   = 0;
                     work->attackSlot      = 0xA;
                     work->targetYawOffset = 0;
                     work->attackPhase     = 1;
                 }
-            } else if (func_actor_503500_80136FDC(work, 0xB) != 0) {
-                func_actor_503500_80136F40(work, 0xB, 2, 0x78);
+            } else if (_actor503500IsSlotReady(work, 0xB) != 0) {
+                _actor503500CommandSlot(work, 0xB, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x78);
                 ret                   = 0;
                 work->attackSlot      = 0xB;
                 work->targetYawOffset = 0;
@@ -744,7 +743,7 @@ s32 func_actor_503500_80133BF4(Task* arg0, Actor503500Work* work)
             }
             break;
         case 1:
-            if (func_actor_503500_80136FA8(work, work->attackSlot) == 0) {
+            if (_actor503500IsSlotAtRest(work, work->attackSlot) == 0) {
                 ret = 0;
             }
             break;
@@ -774,7 +773,7 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
             dir   = work->playerBearing;
             for (; i < 4; i++) {
                 slot = *slots;
-                if (func_actor_503500_80136FDC(work, slot) != 0) {
+                if (_actor503500IsSlotReady(work, slot) != 0) {
                     switch (slot) {
                         case 2:
                             if (!(dir >= -0x6A4 && dir <= 0x3E8)) {
@@ -782,7 +781,7 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
                             }
                             break;
                         case 13:
-                            if (func_actor_503500_80135E04(arg0, 0xE) != 0) {
+                            if (actor503500IsSlotEmpty(arg0, 0xE) != 0) {
                                 if (!(dir >= -0x7D0 && dir <= 0x3E8)) {
                                     ret = 0;
                                 }
@@ -791,7 +790,7 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
                             }
                             break;
                         case 14:
-                            if (func_actor_503500_80135E04(arg0, 0xD) != 0) {
+                            if (actor503500IsSlotEmpty(arg0, 0xD) != 0) {
                                 if (!(dir >= -0x7D0 && dir <= 0x3E8)) {
                                     ret = 0;
                                 }
@@ -806,7 +805,7 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
                             break;
                     }
                     if (ret == 0) {
-                        func_actor_503500_80136F40(work, slot, 2, D_actor_503500_8016EF40[i]);
+                        _actor503500CommandSlot(work, slot, ACTOR_503500_SLOT_COMMAND_ATTACK, D_actor_503500_8016EF40[i]);
                         work->attackSlot  = slot;
                         work->attackPhase = 1;
                         break;
@@ -820,7 +819,7 @@ static s32 func_actor_503500_80133D40(Task* arg0, Actor503500Work* work)
             if (work->attackSlot != 7) {
                 work->attackFrames++;
             }
-            if (func_actor_503500_80136FA8(work, work->attackSlot) != 0 || work->attackFrames > 0x1E) {
+            if (_actor503500IsSlotAtRest(work, work->attackSlot) != 0 || work->attackFrames > 0x1E) {
                 switch (work->attackSlot) {
                     case 2:
                         ret = 0x1E;
@@ -865,7 +864,7 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
             dir   = work->playerBearing;
             for (; i < 4; i++) {
                 slot = *slots;
-                if (func_actor_503500_80136FDC(work, slot) != 0) {
+                if (_actor503500IsSlotReady(work, slot) != 0) {
                     switch (slot) {
                         case 3:
                             if (!(dir >= -0x3E8 && dir <= 0x6A4)) {
@@ -873,7 +872,7 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
                             }
                             break;
                         case 15:
-                            if (func_actor_503500_80135E04(arg0, 0x10) != 0) {
+                            if (actor503500IsSlotEmpty(arg0, 0x10) != 0) {
                                 if (!(dir >= -0x3E8 && dir <= 0x7D0)) {
                                     ret = 0;
                                 }
@@ -882,7 +881,7 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
                             }
                             break;
                         case 16:
-                            if (func_actor_503500_80135E04(arg0, 0xF) != 0) {
+                            if (actor503500IsSlotEmpty(arg0, 0xF) != 0) {
                                 if (!(dir >= -0x3E8 && dir <= 0x7D0)) {
                                     ret = 0;
                                 }
@@ -901,7 +900,7 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
                             break;
                     }
                     if (ret == 0) {
-                        func_actor_503500_80136F40(work, slot, 2, D_actor_503500_8016EF40[i]);
+                        _actor503500CommandSlot(work, slot, ACTOR_503500_SLOT_COMMAND_ATTACK, D_actor_503500_8016EF40[i]);
                         work->attackSlot  = slot;
                         work->attackPhase = 1;
                         break;
@@ -915,7 +914,7 @@ static s32 func_actor_503500_80133FD8(Task* arg0, Actor503500Work* work)
             if (work->attackSlot != 8) {
                 work->attackFrames++;
             }
-            if (func_actor_503500_80136FA8(work, work->attackSlot) != 0 || work->attackFrames > 0x14) {
+            if (_actor503500IsSlotAtRest(work, work->attackSlot) != 0 || work->attackFrames > 0x14) {
                 switch (work->attackSlot) {
                     case 3:
                         ret = 0x1E;
@@ -977,7 +976,7 @@ s32 func_actor_503500_80134284(Task* arg0, Actor503500Work* work)
             if ((u16)work->attackSlot - 7 >= 2U) {
                 work->attackFrames++;
             }
-            if (func_actor_503500_80136FA8(work, work->attackSlot) != 0 || work->attackFrames > 0x5A) {
+            if (_actor503500IsSlotAtRest(work, work->attackSlot) != 0 || work->attackFrames > 0x5A) {
                 switch (work->attackSlot) {
                     case 2:
                     case 3:
@@ -1024,7 +1023,7 @@ static void func_actor_503500_80134408(Task* arg0)
     switch ((s8)work->stateStep) {
         case 0:
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            func_actor_503500_8013611C(arg0->spawnArg1.value);
+            actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
             worldTargetUnlinkNode(&enemy->node);
             enemy->recs       = 0;
             work->hitCooldown = 0;
@@ -1036,8 +1035,8 @@ static void func_actor_503500_80134408(Task* arg0)
                 }
             }
             gGameSession->bossPartsHpSum = sum;
-            work->selfAttackCommand      = 0;
-            func_actor_503500_80135FB4(arg0, 0xE, 0x20);
+            work->selfAttackCommand      = ACTOR_503500_SLOT_COMMAND_NONE;
+            actor503500PlayAnimationPreset(arg0, 0xE, 0x20);
             pan = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[3]);
             sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan,
                                      (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[3]) / 2));
@@ -1071,8 +1070,8 @@ static void func_actor_503500_801345F4(Task* arg0)
     work = arg0->work;
     switch ((s8)work->stateStep) {
         case 0:
-            func_actor_503500_80135FB4(arg0, 0x13, 0x10);
-            func_actor_503500_8013611C(arg0->spawnArg1.value);
+            actor503500PlayAnimationPreset(arg0, 0x13, 0x10);
+            actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
             work->scriptedEffectTask = NULL;
             work->stateStep          = work->stateStep + 1;
             break;
@@ -1112,7 +1111,7 @@ static void func_actor_503500_801345F4(Task* arg0)
                 if (task != NULL) {
                     task->exitCallback(task);
                 }
-                func_actor_503500_80135FB4(arg0, 5, 0x10);
+                actor503500PlayAnimationPreset(arg0, 5, 0x10);
                 task = taskSpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
@@ -1121,34 +1120,34 @@ static void func_actor_503500_801345F4(Task* arg0)
                     coord->coord.t[1] = D_actor_503500_8016EC50.vy;
                     coord->coord.t[2] = D_actor_503500_8016EC50.vz;
                 }
-                func_actor_503500_80137074(arg0, 1, 1);
+                _actor503500ScheduleTargetable(arg0, 1, 1);
                 work->stateStep = work->stateStep + 1;
             }
             break;
         case 3:
-            if (func_actor_503500_80136014(arg0, 5) != 0) {
-                func_actor_503500_80135FB4(arg0, 6, 0x10);
+            if (actor503500HasAnimationFinished(arg0, 5) != 0) {
+                actor503500PlayAnimationPreset(arg0, 6, 0x10);
                 work->stateFrames = 0;
                 work->stateStep   = work->stateStep + 1;
             }
             break;
         case 4:
             if (++work->stateFrames >= 0x33) {
-                func_actor_503500_80135FB4(arg0, 7, 0);
+                actor503500PlayAnimationPreset(arg0, 7, 0);
                 work->stateStep = work->stateStep + 1;
             }
             break;
         case 5:
-            if (func_actor_503500_80136014(arg0, 7) != 0) {
-                func_actor_503500_80135FB4(arg0, 8, 0);
-                func_actor_503500_80137074(arg0, 0, 0xE);
+            if (actor503500HasAnimationFinished(arg0, 7) != 0) {
+                actor503500PlayAnimationPreset(arg0, 8, 0);
+                _actor503500ScheduleTargetable(arg0, 0, 0xE);
                 work->stateStep = work->stateStep + 1;
             }
             break;
         case 6:
-            if (func_actor_503500_80136014(arg0, 8) != 0) {
+            if (actor503500HasAnimationFinished(arg0, 8) != 0) {
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-                func_actor_503500_80135FB4(arg0, 0, 0);
+                actor503500PlayAnimationPreset(arg0, 0, 0);
                 work->targetYawOffset = 0;
                 func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
             }
@@ -1161,7 +1160,7 @@ static void func_actor_503500_801345F4(Task* arg0)
 /// animation preset 0xE; step 2 restores the rotation every frame, squashes it
 /// in Y down to 0x200 and fires the light / effect cues at frames 0x3C, 0x46
 /// and 0x64. From step 2 on, preset 0xE is reapplied whenever
-/// `func_actor_503500_80136014` reports it.
+/// `actor503500HasAnimationFinished` reports it.
 static void func_actor_503500_80134A24(Task* arg0)
 {
     Actor503500Work* work;
@@ -1191,7 +1190,7 @@ static void func_actor_503500_80134A24(Task* arg0)
             break;
         case 1:
             if (++work->stateFrames >= 0x1F) {
-                func_actor_503500_80135FB4(arg0, 0xE, 0x20);
+                actor503500PlayAnimationPreset(arg0, 0xE, 0x20);
                 work->stateFrames = 0;
                 work->stateStep   = work->stateStep + 1;
             }
@@ -1225,8 +1224,8 @@ static void func_actor_503500_80134A24(Task* arg0)
             }
             break;
     }
-    if ((s8)work->stateStep >= 2 && func_actor_503500_80136014(arg0, 0xE) != 0) {
-        func_actor_503500_80135FB4(arg0, 0xE, 0x20);
+    if ((s8)work->stateStep >= 2 && actor503500HasAnimationFinished(arg0, 0xE) != 0) {
+        actor503500PlayAnimationPreset(arg0, 0xE, 0x20);
     }
 }
 
@@ -1238,18 +1237,18 @@ static void func_actor_503500_80134C68(Task* arg0)
 
     work = arg0->work;
     if ((u16)(work->state - ACTOR_503500_STATE_PART_LOST) < 3U) {
-        func_actor_503500_80136F40(work, 0, 0, 0);
+        _actor503500CommandSlot(work, 0, ACTOR_503500_SLOT_COMMAND_NONE, 0);
         return;
     }
     switch (work->selfAttackPhase) {
         case 0:
-            func_actor_503500_80135FB4(arg0, 4, 0x10);
-            func_actor_503500_80137074(arg0, 1, 0x4B);
+            actor503500PlayAnimationPreset(arg0, 4, 0x10);
+            _actor503500ScheduleTargetable(arg0, 1, 0x4B);
             work->selfAttackPhase++;
             break;
         case 1:
-            if (func_actor_503500_80136014(arg0, 4) != 0) {
-                func_actor_503500_80135FB4(arg0, 5, 0x10);
+            if (actor503500HasAnimationFinished(arg0, 4) != 0) {
+                actor503500PlayAnimationPreset(arg0, 5, 0x10);
                 task = taskSpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
                 if (task != NULL) {
                     coord             = task->extra.tmd->coords;
@@ -1265,30 +1264,30 @@ static void func_actor_503500_80134C68(Task* arg0)
             break;
         case 2:
             if (++work->selfAttackFrames >= 0x5B) {
-                func_actor_503500_80135FB4(arg0, 6, 0x10);
+                actor503500PlayAnimationPreset(arg0, 6, 0x10);
                 work->selfAttackFrames = 0;
                 work->selfAttackPhase++;
             }
             break;
         case 3:
             if (++work->selfAttackFrames >= 0x33) {
-                func_actor_503500_80135FB4(arg0, 7, 0);
+                actor503500PlayAnimationPreset(arg0, 7, 0);
                 work->selfAttackPhase++;
             }
             break;
         case 4:
-            if (func_actor_503500_80136014(arg0, 7) != 0) {
-                func_actor_503500_80135FB4(arg0, 8, 0);
-                func_actor_503500_80137074(arg0, 0, 0xE);
+            if (actor503500HasAnimationFinished(arg0, 7) != 0) {
+                actor503500PlayAnimationPreset(arg0, 8, 0);
+                _actor503500ScheduleTargetable(arg0, 0, 0xE);
                 work->selfAttackPhase++;
             }
             break;
         case 5:
-            if (func_actor_503500_80136014(arg0, 8) != 0) {
-                work->selfAttackCommand    = 0;
+            if (actor503500HasAnimationFinished(arg0, 8) != 0) {
+                work->selfAttackCommand    = ACTOR_503500_SLOT_COMMAND_NONE;
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-                func_actor_503500_80135F9C(arg0, 0, 0);
-                func_actor_503500_80135FB4(arg0, 0, 0);
+                actor503500SetSlotBusy(arg0, 0, 0);
+                actor503500PlayAnimationPreset(arg0, 0, 0);
             }
             break;
     }
@@ -1668,57 +1667,64 @@ void func_actor_503500_80135828(Task* arg0, s8* arg1)
     }
 }
 
-/// Applies the requested animation bank and clip to this actor's rig.
+/// Reapplies the boss's enabled part scales after an animation pose update.
 ///
-/// A changed bank installs its set table. The requested clip is applied to the slots.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_503500_80135950(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
+/// Parts 5 and 11 use scaled copies of their preceding parent coordinates;
+/// part 16 is scaled in place. Scale vectors use 4096 for 1.0.
+static inline void _actor503500ApplyPartScales(Task* task)
+{
+    Actor503500Work* scaleWork;
+
+    scaleWork = task->work;
+    if (scaleWork->scaledParts & (1 << 5)) {
+        scaleWork->part5Parent = task->extra.tmd->coords[4];
+        ScaleMatrix(&scaleWork->part5Parent.coord, &scaleWork->part5Scale);
+    }
+    if (scaleWork->scaledParts & (1 << 11)) {
+        scaleWork->part11Parent = task->extra.tmd->coords[10];
+        ScaleMatrix(&scaleWork->part11Parent.coord, &scaleWork->part11Scale);
+    }
+    if (scaleWork->scaledParts & (1 << 16)) {
+        ScaleMatrix(&task->extra.tmd->coords[16].coord, &scaleWork->part16Scale);
+    }
+}
+
+s32 actor503500HandlePlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     Actor503500Work* work;
-    Actor503500Work* work2;
-    TmdObject*       ext;
-    s32              i;
+    TmdObject*       model;
+    s32              trackIndex;
 
-    work = arg0->work;
-    ext  = arg0->extra.tmd;
-    if (arg2->source.index != work->animationSourceIndex) {
-        work->animationSourceIndex = arg2->source.index;
-        animationInitContext(&work->rig.anim, D_actor_503500_8016EAB8[work->animationSourceIndex], ext, work->rig.poses, work->rig.slots);
+    work  = task->work;
+    model = task->extra.tmd;
+    // Bind a changed source before reseeding the driven tracks.
+    if (request->source.index != work->animationSourceIndex) {
+        work->animationSourceIndex = request->source.index;
+        animationInitContext(&work->rig.anim, D_actor_503500_8016EAB8[work->animationSourceIndex], model, work->rig.poses, work->rig.slots);
         work->animationStarted = 0;
     }
-    work->animationId = arg2->animationId;
-    if (arg2->blend != ANIMATION_BLEND_RESET && work->animationStarted != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->animationId, 0, arg2->blendFrames);
+    work->animationId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET && work->animationStarted != 0) {
+        for (trackIndex = 1; trackIndex < ARRAY_SIZE(work->rig.slots); trackIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, trackIndex, work->animationId, 0, request->blendFrames);
         }
     } else {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationResetSlot(&work->rig.anim, i, work->animationId);
+        for (trackIndex = 1; trackIndex < ARRAY_SIZE(work->rig.slots); trackIndex++) {
+            animationResetSlot(&work->rig.anim, trackIndex, work->animationId);
         }
     }
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationTickSlot(&work->rig.anim, i);
+    // Publish the first pose immediately, then restore the scaled parts.
+    for (trackIndex = 1; trackIndex < ARRAY_SIZE(work->rig.slots); trackIndex++) {
+        animationTickSlot(&work->rig.anim, trackIndex);
     }
     work->animationStarted = 1;
-    work2                  = arg0->work;
-    if (work2->scaledParts & 0x20) {
-        work2->part5Parent = arg0->extra.tmd->coords[4];
-        ScaleMatrix(&work2->part5Parent.coord, &work2->part5Scale);
-    }
-    if (work2->scaledParts & 0x800) {
-        work2->part11Parent = arg0->extra.tmd->coords[10];
-        ScaleMatrix(&work2->part11Parent.coord, &work2->part11Scale);
-    }
-    if (work2->scaledParts & 0x10000) {
-        ScaleMatrix(&arg0->extra.tmd->coords[16].coord, &work2->part16Scale);
-    }
+    _actor503500ApplyPartScales(task);
     return 0;
 }
 
-/// Enters boss state `state` the way `func_actor_503500_80136048` enters
-/// `ACTOR_503500_STATE_PART_LOST`: clears the per-state counters, asks for sub-state 3 and drops the
-/// main-executable flag.
+/// Enters boss state `state` the way `actor503500EnterPartLostState` enters
+/// `ACTOR_503500_STATE_PART_LOST`: clears the per-state counters and schedules
+/// target removal after three upkeep ticks. It also restores ordinary OT depth.
 static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
 {
     Actor503500Work* work;
@@ -1729,7 +1735,7 @@ static inline void func_actor_503500_SetBossState(Task* arg0, s16 state)
     work->attackPhase  = 0;
     work->stateFrames  = 0;
     work->attackFrames = 0;
-    func_actor_503500_80137074(arg0, 0, 3);
+    _actor503500ScheduleTargetable(arg0, 0, 3);
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
 
@@ -1775,12 +1781,9 @@ s32 func_actor_503500_80135B74(Task* arg0, s32 arg1, ActorCommand* msg, s32 arg3
     return 0;
 }
 
-/// Clears slot `arg1` of the boss work block's `enemies` array. `arg0` is
-/// loaded by every caller but the body ignores it, the same way
-/// `func_actor_503500_80135E04` does.
-void func_actor_503500_80135CE8(Task* arg0, s32 arg1)
+void actor503500ClearSlotEnemy(Task* unusedTask, s32 slot)
 {
-    D_actor_503500_80176574.work.enemies[arg1] = NULL;
+    D_actor_503500_80176574.work.enemies[slot] = NULL;
 }
 
 /// Spawns table entry `arg1` as a child of `arg0`'s enemy, tints its model
@@ -1826,11 +1829,9 @@ Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
     return enemy;
 }
 
-/// Reports whether slot `arg1` of the boss work block's `enemies` array is
-/// empty. `arg0` is loaded by every caller but the body ignores it.
-s32 func_actor_503500_80135E04(Task* arg0, s32 arg1)
+s32 actor503500IsSlotEmpty(Task* unusedTask, s32 slot)
 {
-    return D_actor_503500_80176574.work.enemies[arg1] == NULL;
+    return D_actor_503500_80176574.work.enemies[slot] == NULL;
 }
 
 /// Sets the scale of boss part `arg1` (5, 11 or 16) from `arg2` and marks it
@@ -1865,70 +1866,48 @@ void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2)
     work->scaledParts |= 1 << arg1;
 }
 
-/// Stores `arg2` as the `slotBusy` flag of slot `arg1` of the boss work block.
-/// `arg0` is loaded by every caller but the body ignores it, the same way
-/// `func_actor_503500_80135E04` does.
-void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2)
+void actor503500SetSlotBusy(Task* unusedTask, s32 slot, s16 busy)
 {
-    D_actor_503500_80176574.work.slotBusy[arg1] = arg2;
+    D_actor_503500_80176574.work.slotBusy[slot] = busy;
 }
 
-/// Sets the per-slot playback rate `AnimationSlot.rate` on animation slots 1..16 of the
-/// boss block -- `rate` of 0 meaning `animationResetSlot`'s own 0x10 default,
-/// exactly as `func_actor_503500_80137048` does -- then applies preset `arg1`.
-void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 rate)
+void actor503500PlayAnimationPreset(Task* task, s32 presetIndex, s32 rate)
 {
+    enum { ACTOR_503500_ANIMATION_RATE_SLOT_COUNT = 16 };
     Actor503500Work* work;
     AnimationSlot*   slot;
-    s32              i;
+    s32              tracksLeft;
 
-    work = arg0->work;
+    work = task->work;
     slot = &work->rig.slots[1];
     if (rate == 0) {
         rate = ANIMATION_RATE_ONE;
     }
-    for (i = 0xF; i >= 0; i--) {
+    for (tracksLeft = ACTOR_503500_ANIMATION_RATE_SLOT_COUNT - 1; tracksLeft >= 0; tracksLeft--) {
         slot->rate = rate;
         slot++;
     }
-    func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAC0[arg1], 0);
+    actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAC0[presetIndex], 0);
 }
 
-/// Reports whether the boss's animation `arg1` has run out: 1 once the latest
-/// tick of its first driven slot settled on the clip's boundary pose or followed
-/// a jump, 0 while it is still playing. Returns -1 when `arg1` is not the
-/// animation the boss was last asked to play. `arg0` is loaded by every caller
-/// but the body ignores it, the same way `func_actor_503500_80135E04` does.
-s32 func_actor_503500_80136014(Task* arg0, s32 arg1)
+s32 actor503500HasAnimationFinished(Task* unusedTask, s32 animationId)
 {
-    if (arg1 != D_actor_503500_80176574.work.animationId) {
-        return -1;
+    enum { ACTOR_503500_ANIMATION_NOT_CURRENT = -1 };
+
+    if (animationId != D_actor_503500_80176574.work.animationId) {
+        return ACTOR_503500_ANIMATION_NOT_CURRENT;
     }
     return (D_actor_503500_80176574.work.rig.slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
 }
 
-/// Puts the boss into `ACTOR_503500_STATE_PART_LOST`: clears the state's step counters and the two
-/// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 and
-/// drops the main-executable flag.
-void func_actor_503500_80136048(Task* arg0)
+void actor503500EnterPartLostState(Task* task)
 {
-    Actor503500Work* work;
-
-    work               = arg0->work;
-    work->state        = ACTOR_503500_STATE_PART_LOST;
-    work->stateStep    = 0;
-    work->attackPhase  = 0;
-    work->stateFrames  = 0;
-    work->attackFrames = 0;
-    func_actor_503500_80137074(arg0, 0, 3);
-    gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
+    func_actor_503500_SetBossState(task, ACTOR_503500_STATE_PART_LOST);
 }
 
-/// Reports whether the boss-wide gate is open; the body ignores its
-/// argument, and callers pass unrelated pointers they already hold.
-s32 func_actor_503500_8013608C(void* arg0)
+s32 actor503500ShouldInterruptAttack(Task* unusedTask)
 {
-    return (u32)((u16)D_actor_503500_80176574.work.state - ACTOR_503500_STATE_PART_LOST) < 3U;
+    return (u32)((u16)D_actor_503500_80176574.work.state - ACTOR_503500_STATE_PART_LOST) < (ACTOR_503500_STATE_DEFEATED - ACTOR_503500_STATE_PART_LOST + 1U);
 }
 
 static void func_actor_503500_801360A4(s32 arg0, s16 arg1)
@@ -1936,38 +1915,37 @@ static void func_actor_503500_801360A4(s32 arg0, s16 arg1)
     D_actor_503500_80176D64[arg0] = arg1;
 }
 
-/// Tries to claim `arg1` counts for slot `arg0`: sums every *other* slot's
-/// counter plus the requested amount and, if the total stays under 9, writes
-/// the request into the slot. Returns whether it was granted.
-s32 func_actor_503500_801360BC(s32 arg0, s32 arg1)
+s32 actor503500TryReserveSlotEffects(s32 slot, s32 effectCost)
 {
+    enum { ACTOR_503500_EFFECT_BUDGET_LIMIT = 9 };
     s32  accepted;
-    s32  total;
-    s32  i;
-    u16* slot;
+    s32  totalCost;
+    s32  budgetIndex;
+    u16* slotCost;
 
-    accepted = 0;
-    total    = arg1;
-    i        = 0;
-    slot     = D_actor_503500_80176D64;
+    accepted    = 0;
+    totalCost   = effectCost;
+    budgetIndex = 0;
+    slotCost    = D_actor_503500_80176D64;
+    // Replace this slot's reservation rather than adding to it.
     do {
-        if (i != arg0) {
-            total += (s16)*slot;
+        if (budgetIndex != slot) {
+            totalCost += (s16)*slotCost;
         }
-        i++;
-        slot++;
-    } while (i < 0x12);
+        budgetIndex++;
+        slotCost++;
+    } while (budgetIndex < (s32)ARRAY_SIZE(D_actor_503500_80176D64));
 
-    if (total < 9) {
-        D_actor_503500_80176D64[arg0] = (u16)arg1;
+    if (totalCost < ACTOR_503500_EFFECT_BUDGET_LIMIT) {
+        D_actor_503500_80176D64[slot] = (u16)effectCost;
         accepted                      = 1;
     }
     return accepted;
 }
 
-void func_actor_503500_8013611C(s32 arg0)
+void actor503500ReleaseSlotEffects(s32 slot)
 {
-    D_actor_503500_80176D64[arg0] = 0;
+    D_actor_503500_80176D64[slot] = 0;
 }
 
 /// Yaw from the actor's first part to `gPlayerStatus.coordMtx`'s translation, relative to
@@ -1992,7 +1970,7 @@ s16 func_actor_503500_80136134(Task* arg0)
     return angle;
 }
 
-s32 func_actor_503500_80136208(void)
+s32 actor503500IsDefeated(void)
 {
     return D_actor_503500_80176574.work.defeated;
 }
@@ -2060,7 +2038,7 @@ static void func_actor_503500_80136304(Task* arg0)
             timer                    = work->stunAnimationTimer - 1;
             work->stunAnimationTimer = timer;
             if ((s16)timer < 0) {
-                func_actor_503500_80135FB4(arg0, 6, 0x10);
+                actor503500PlayAnimationPreset(arg0, 6, 0x10);
                 work->stunAnimationTimer = 3;
             }
             if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
@@ -2092,7 +2070,7 @@ static void func_actor_503500_80136450(Task* arg0)
     u16              timer;
 
     if ((s8)work->stateStep == 0 && work->animationId >= 2) {
-        func_actor_503500_80135FB4(arg0, 1, 0x10);
+        actor503500PlayAnimationPreset(arg0, 1, 0x10);
     }
     timer             = work->attackDelay - 1;
     work->attackDelay = timer;
@@ -2113,8 +2091,8 @@ s32 func_actor_503500_801364D0(Task* arg0, Actor503500Work* work)
     ret = 1;
     switch ((s8)work->attackPhase) {
         case 0:
-            if (func_actor_503500_80136FDC(work, 0) != 0) {
-                func_actor_503500_80136F40(work, 0, 2, 0x3C);
+            if (_actor503500IsSlotReady(work, 0) != 0) {
+                _actor503500CommandSlot(work, 0, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x3C);
                 work->attackPhase     = 1;
                 ret                   = 0;
                 work->targetYawOffset = 0;
@@ -2122,7 +2100,7 @@ s32 func_actor_503500_801364D0(Task* arg0, Actor503500Work* work)
             break;
         case 1:
             ret = 0;
-            if (func_actor_503500_80136FA8(work, 0) != 0) {
+            if (_actor503500IsSlotAtRest(work, 0) != 0) {
                 ret = 0x1E;
             }
             break;
@@ -2144,12 +2122,12 @@ s32 func_actor_503500_8013656C(Task* arg0, Actor503500Work* work)
         case 0:
             ret                   = 0x1E;
             work->targetYawOffset = 0;
-            if (func_actor_503500_80136FDC(work, 7) != 0) {
-                func_actor_503500_80136F40(work, 7, 2, 0x96);
+            if (_actor503500IsSlotReady(work, 7) != 0) {
+                _actor503500CommandSlot(work, 7, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x96);
                 ret = 0;
             }
-            if (func_actor_503500_80136FDC(work, 8) != 0) {
-                func_actor_503500_80136F40(work, 8, 2, 0x96);
+            if (_actor503500IsSlotReady(work, 8) != 0) {
+                _actor503500CommandSlot(work, 8, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x96);
                 ret = 0;
             }
             if (ret == 0) {
@@ -2159,7 +2137,7 @@ s32 func_actor_503500_8013656C(Task* arg0, Actor503500Work* work)
             break;
         case 1:
             ret = 0;
-            if (func_actor_503500_80136FA8(work, 7) != 0 || func_actor_503500_80136FA8(work, 8) != 0 ||
+            if (_actor503500IsSlotAtRest(work, 7) != 0 || _actor503500IsSlotAtRest(work, 8) != 0 ||
                 ++work->attackFrames > 0x5A) {
                 ret = 0xF0;
             }
@@ -2180,9 +2158,9 @@ s32 func_actor_503500_8013667C(Task* arg0, Actor503500Work* work)
     ret = 1;
     switch ((s8)work->attackPhase) {
         case 0:
-            if (func_actor_503500_80136FDC(work, 1) != 0) {
+            if (_actor503500IsSlotReady(work, 1) != 0) {
                 if (__builtin_abs(work->playerBearing) < 500) {
-                    func_actor_503500_80136F40(work, 1, 2, 0x96);
+                    _actor503500CommandSlot(work, 1, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x96);
                     work->attackSlot      = 1;
                     work->targetYawOffset = 0;
                     work->attackPhase     = 1;
@@ -2190,8 +2168,8 @@ s32 func_actor_503500_8013667C(Task* arg0, Actor503500Work* work)
                     break;
                 }
             }
-            if (func_actor_503500_80136FDC(work, 0xC) != 0) {
-                func_actor_503500_80136F40(work, 0xC, 2, 0x96);
+            if (_actor503500IsSlotReady(work, 0xC) != 0) {
+                _actor503500CommandSlot(work, 0xC, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x96);
                 ret                   = 0;
                 work->attackSlot      = 0xC;
                 work->targetYawOffset = 0;
@@ -2200,7 +2178,7 @@ s32 func_actor_503500_8013667C(Task* arg0, Actor503500Work* work)
             break;
         case 1:
             ret = 0;
-            if (func_actor_503500_80136FA8(work, work->attackSlot) != 0) {
+            if (_actor503500IsSlotAtRest(work, work->attackSlot) != 0) {
                 ret = 0x5A;
             }
             break;
@@ -2220,8 +2198,8 @@ s32 func_actor_503500_80136770(Task* arg0, Actor503500Work* work)
     ret = 1;
     switch ((s8)work->attackPhase) {
         case 0:
-            if (func_actor_503500_80136FDC(work, 0xC) != 0) {
-                func_actor_503500_80136F40(work, 0xC, 2, 0x96);
+            if (_actor503500IsSlotReady(work, 0xC) != 0) {
+                _actor503500CommandSlot(work, 0xC, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x96);
                 work->attackPhase     = 1;
                 ret                   = 0;
                 work->targetYawOffset = 0;
@@ -2229,7 +2207,7 @@ s32 func_actor_503500_80136770(Task* arg0, Actor503500Work* work)
             break;
         case 1:
             ret = 0;
-            if (func_actor_503500_80136FA8(work, 0xC) != 0) {
+            if (_actor503500IsSlotAtRest(work, 0xC) != 0) {
                 ret = 0x96;
             }
             break;
@@ -2237,50 +2215,55 @@ s32 func_actor_503500_80136770(Task* arg0, Actor503500Work* work)
     return ret;
 }
 
-/// Script step for the boss's slot-4/5 helper pair: state 0 asks both slots to
-/// die, led by slot 4 unless `playerBearing` is in [-0x5FF, -0x201] and by slot 5
-/// unless it is in [0x201, 0x5FF]; state 1 waits until both have finished.
-/// Returns 1 while still busy, 0 the frame a request is issued, 0xA once both
-/// slots have gone quiet. `arg0` is ignored, as in the sibling steps.
-/// The first range check compares `playerBearing` directly rather than `x`: fold
-/// merges two tests on one operand into a single unsigned range check.
-s32 func_actor_503500_8013680C(Task* arg0, Actor503500Work* work)
+s32 actor503500AttackLargeOrbPair(Task* task, Actor503500Work* work)
 {
-    s32 ret;
-    s16 x;
+    enum {
+        ACTOR_503500_LARGE_ORB_PAIR_PHASE_COMMAND      = 0,
+        ACTOR_503500_LARGE_ORB_PAIR_PHASE_WAIT         = 1,
+        ACTOR_503500_LARGE_ORB_PAIR_FIRST_SLOT         = 4,
+        ACTOR_503500_LARGE_ORB_PAIR_SECOND_SLOT        = 5,
+        ACTOR_503500_LARGE_ORB_PAIR_COOLDOWN_FRAMES    = 180,
+        ACTOR_503500_LARGE_ORB_PAIR_RETRY_DELAY_FRAMES = 1,
+        ACTOR_503500_LARGE_ORB_PAIR_IDLE_DELAY_FRAMES  = 10,
+        ACTOR_503500_LARGE_ORB_PAIR_SIDE_BAND_INNER    = 0x200,
+        ACTOR_503500_LARGE_ORB_PAIR_SIDE_BAND_OUTER    = 0x600,
+    };
+    s32 idleDelay;
+    s16 playerBearing;
 
-    x   = work->playerBearing;
-    ret = 1;
+    playerBearing = work->playerBearing;
+    idleDelay     = ACTOR_503500_LARGE_ORB_PAIR_RETRY_DELAY_FRAMES;
     switch ((s8)work->attackPhase) {
-        case 0:
-            if (x < -0x5FF || work->playerBearing >= -0x200) {
-                if (func_actor_503500_80136FDC(work, 4) != 0) {
-                    func_actor_503500_80136F40(work, 4, 2, 0xB4);
-                    func_actor_503500_80136F40(work, 5, 2, 0xB4);
-                    ret = 0;
+        case ACTOR_503500_LARGE_ORB_PAIR_PHASE_COMMAND:
+            // Either eligible emitter commands both; preserve each leading-slot order.
+            if (playerBearing < -(ACTOR_503500_LARGE_ORB_PAIR_SIDE_BAND_OUTER - 1) || work->playerBearing >= -ACTOR_503500_LARGE_ORB_PAIR_SIDE_BAND_INNER) {
+                if (_actor503500IsSlotReady(work, ACTOR_503500_LARGE_ORB_PAIR_FIRST_SLOT) != 0) {
+                    _actor503500CommandSlot(work, ACTOR_503500_LARGE_ORB_PAIR_FIRST_SLOT, ACTOR_503500_SLOT_COMMAND_ATTACK, ACTOR_503500_LARGE_ORB_PAIR_COOLDOWN_FRAMES);
+                    _actor503500CommandSlot(work, ACTOR_503500_LARGE_ORB_PAIR_SECOND_SLOT, ACTOR_503500_SLOT_COMMAND_ATTACK, ACTOR_503500_LARGE_ORB_PAIR_COOLDOWN_FRAMES);
+                    idleDelay = 0;
                 }
             }
-            if (x < 0x201 || x >= 0x600) {
-                if (func_actor_503500_80136FDC(work, 5) != 0) {
-                    func_actor_503500_80136F40(work, 5, 2, 0xB4);
-                    func_actor_503500_80136F40(work, 4, 2, 0xB4);
-                    ret = 0;
+            if (playerBearing < ACTOR_503500_LARGE_ORB_PAIR_SIDE_BAND_INNER + 1 || playerBearing >= ACTOR_503500_LARGE_ORB_PAIR_SIDE_BAND_OUTER) {
+                if (_actor503500IsSlotReady(work, ACTOR_503500_LARGE_ORB_PAIR_SECOND_SLOT) != 0) {
+                    _actor503500CommandSlot(work, ACTOR_503500_LARGE_ORB_PAIR_SECOND_SLOT, ACTOR_503500_SLOT_COMMAND_ATTACK, ACTOR_503500_LARGE_ORB_PAIR_COOLDOWN_FRAMES);
+                    _actor503500CommandSlot(work, ACTOR_503500_LARGE_ORB_PAIR_FIRST_SLOT, ACTOR_503500_SLOT_COMMAND_ATTACK, ACTOR_503500_LARGE_ORB_PAIR_COOLDOWN_FRAMES);
+                    idleDelay = 0;
                 }
             }
-            if (ret == 0) {
-                work->attackPhase = 1;
+            if (idleDelay == 0) {
+                work->attackPhase = ACTOR_503500_LARGE_ORB_PAIR_PHASE_WAIT;
             }
             break;
-        case 1:
-            ret = 0;
-            if (func_actor_503500_80136FA8(work, 4) != 0) {
-                if (func_actor_503500_80136FA8(work, 5) != 0) {
-                    ret = 0xA;
+        case ACTOR_503500_LARGE_ORB_PAIR_PHASE_WAIT:
+            idleDelay = 0;
+            if (_actor503500IsSlotAtRest(work, ACTOR_503500_LARGE_ORB_PAIR_FIRST_SLOT) != 0) {
+                if (_actor503500IsSlotAtRest(work, ACTOR_503500_LARGE_ORB_PAIR_SECOND_SLOT) != 0) {
+                    idleDelay = ACTOR_503500_LARGE_ORB_PAIR_IDLE_DELAY_FRAMES;
                 }
             }
             break;
     }
-    return ret;
+    return idleDelay;
 }
 
 /// Script step for the boss's slot-9 helper: state 0 waits for the slot to be
@@ -2296,15 +2279,15 @@ s32 func_actor_503500_80136948(Task* arg0, Actor503500Work* work)
     switch ((s8)work->attackPhase) {
         case 0:
             work->targetYawOffset = 0;
-            if (func_actor_503500_80136FDC(work, 9) != 0) {
-                func_actor_503500_80136F40(work, 9, 2, 0x3C);
+            if (_actor503500IsSlotReady(work, 9) != 0) {
+                _actor503500CommandSlot(work, 9, ACTOR_503500_SLOT_COMMAND_ATTACK, 0x3C);
                 work->attackPhase = 1;
                 ret               = 0;
             }
             break;
         case 1:
             ret = 0;
-            if (func_actor_503500_80136FA8(work, 9) != 0) {
+            if (_actor503500IsSlotAtRest(work, 9) != 0) {
                 ret = 0x1E;
             }
             break;
@@ -2319,12 +2302,12 @@ static void func_actor_503500_801369E4(Task* arg0)
     work = arg0->work;
     switch ((s8)work->stateStep) {
         case 0:
-            func_actor_503500_80135FB4(arg0, 0xE, 0x10);
-            func_actor_503500_8013611C(arg0->spawnArg1.value);
+            actor503500PlayAnimationPreset(arg0, 0xE, 0x10);
+            actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
             work->stateStep = work->stateStep + 1;
             break;
         case 1:
-            if (func_actor_503500_80136014(arg0, 0xE) != 0) {
+            if (actor503500HasAnimationFinished(arg0, 0xE) != 0) {
                 work->targetYawOffset = 0;
                 func_actor_503500_80136EFC(arg0, ACTOR_503500_STATE_IDLE);
             }
@@ -2424,7 +2407,7 @@ static void func_actor_503500_80136D30(Task* arg0)
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             if (work->state == ACTOR_503500_STATE_IDLE) {
                 func_actor_503500_80137048(arg0, 0);
-                func_actor_503500_80135950(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAD4, 0);
+                actor503500HandlePlayAnimation(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAD4, 0);
             }
         } else {
             for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
@@ -2456,8 +2439,8 @@ static void func_actor_503500_80136DDC(Task* arg0)
 }
 
 /// Puts the boss into state `arg1`: clears the state's step counters and the two
-/// per-state halfwords, asks `func_actor_503500_80137074` for sub-state 3 with
-/// its flag set only for `ACTOR_503500_STATE_STUNNED`, and drops the main-executable flag.
+/// per-state halfwords, schedules target enablement after three upkeep ticks
+/// only for `ACTOR_503500_STATE_STUNNED` (removal otherwise), and restores OT depth.
 static void func_actor_503500_80136EFC(Task* arg0, s32 arg1)
 {
     Actor503500Work* work;
@@ -2468,68 +2451,72 @@ static void func_actor_503500_80136EFC(Task* arg0, s32 arg1)
     work->attackPhase  = 0;
     work->stateFrames  = 0;
     work->attackFrames = 0;
-    func_actor_503500_80137074(arg0, arg1 == ACTOR_503500_STATE_STUNNED, 3);
+    _actor503500ScheduleTargetable(arg0, arg1 == ACTOR_503500_STATE_STUNNED, 3);
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
 }
 
-/// Commands slot `slot`: marks it in `slotBusy` and gives it `arg3` frames of
-/// `slotCooldown`. Slot 0 is the boss itself and keeps the command `arg2` in
-/// `selfAttackCommand`; any other slot receives it in its enemy task's
-/// `killCountdown`, and an empty slot is only marked at rest.
-static void func_actor_503500_80136F40(Actor503500Work* work, s32 slot, s32 arg2, s32 arg3)
+/// Delivers a command to boss slot 0..16 and starts its busy/cooldown period.
+///
+/// Slot 0 resets the boss's own attack phase and timer. Other occupied slots
+/// receive the command through their task's signed-halfword `killCountdown`.
+/// An empty slot only has its busy flag cleared. `cooldownFrames` is 0..32767
+/// upkeep ticks and counts down during the boss's idle state. Slot 0 stores
+/// the command as a signed byte; other slots store it as a signed halfword.
+static void _actor503500CommandSlot(Actor503500Work* work, s32 slot, s32 command, s32 cooldownFrames)
 {
     Enemy* enemy;
 
     if (slot == 0) {
-        work->selfAttackCommand = arg2;
+        work->selfAttackCommand = command;
         work->selfAttackPhase   = 0;
         work->selfAttackFrames  = 0;
         work->slotBusy[0]       = 1;
-        work->slotCooldown[0]   = arg3;
+        work->slotCooldown[0]   = cooldownFrames;
         return;
     }
     enemy = work->enemies[slot];
     if (enemy != NULL) {
-        enemy->task->killCountdown = arg2;
+        enemy->task->killCountdown = command;
         work->slotBusy[slot]       = 1;
-        work->slotCooldown[slot]   = arg3;
+        work->slotCooldown[slot]   = cooldownFrames;
         return;
     }
     work->slotBusy[slot] = 0;
 }
 
-/// True when enemy slot `slot` is either unoccupied or has its `slotBusy`
-/// flag clear -- i.e. the slot has nothing left to wait for.
-static s32 func_actor_503500_80136FA8(Actor503500Work* work, s32 slot)
+/// Returns 1 when slot 0..16 is empty or has reported itself at rest.
+///
+/// Cooldown is ignored; this is the completion test for a commanded attack.
+static s32 _actor503500IsSlotAtRest(Actor503500Work* work, s32 slot)
 {
-    s32 ret;
+    s32 atRest;
 
-    ret = 1;
+    atRest = 1;
     if (work->enemies[slot] != NULL) {
-        ret = work->slotBusy[slot] == 0;
+        atRest = work->slotBusy[slot] == 0;
     }
-    return ret;
+    return atRest;
 }
 
-/// The stricter form of `func_actor_503500_80136FA8`: slot `slot` is ready when
-/// it is occupied, its `slotCooldown` has run out and its `slotBusy` flag is
-/// clear. Slot 0 stands for the boss itself, which is ready when
-/// `selfAttackCommand` and its own `slotCooldown` are both clear.
-static s32 func_actor_503500_80136FDC(Actor503500Work* work, s32 slot)
+/// Returns 1 when slot 0..16 can accept a new attack command.
+///
+/// A nonzero slot must have an enemy, no busy report and zero cooldown. Slot
+/// 0 instead tests the boss's own pending command and cooldown.
+static s32 _actor503500IsSlotReady(Actor503500Work* work, s32 slot)
 {
-    s32 ret;
+    s32 ready;
 
-    ret = 0;
+    ready = 0;
     if (slot != 0) {
         if (work->enemies[slot] != NULL) {
             if (work->slotCooldown[slot] == 0) {
-                ret = work->slotBusy[slot] == 0;
+                ready = work->slotBusy[slot] == 0;
             }
         }
-    } else if ((work->selfAttackCommand == 0) && (work->slotCooldown[0] == 0)) {
-        ret = 1;
+    } else if ((work->selfAttackCommand == ACTOR_503500_SLOT_COMMAND_NONE) && (work->slotCooldown[0] == 0)) {
+        ready = 1;
     }
-    return ret;
+    return ready;
 }
 
 /// Sets `AnimationSlot.rate` -- the per-slot value `animationResetSlot` seeds
@@ -2552,13 +2539,18 @@ static void func_actor_503500_80137048(Task* arg0, s32 rate)
     }
 }
 
-static void func_actor_503500_80137074(Task* arg0, s8 arg1, s16 arg2)
+/// Schedules the boss's target to be linked or unlinked after upkeep ticks.
+///
+/// `targetable` is 0 to remove the target, 1 to enable it. A `delayFrames`
+/// value in 1..32767 applies the change when upkeep decrements it to zero.
+/// A later call replaces the pending change; zero or negative cancels it.
+static void _actor503500ScheduleTargetable(Task* task, s8 targetable, s16 delayFrames)
 {
     Actor503500Work* work;
 
-    work                    = arg0->work;
-    work->targetablePending = arg1;
-    work->targetableDelay   = arg2;
+    work                    = task->work;
+    work->targetablePending = targetable;
+    work->targetableDelay   = delayFrames;
 }
 
 /// Places the boss's part at `args`: drops the translation into the root
@@ -2726,14 +2718,14 @@ static void func_actor_503500_801374BC(Task* arg0)
     s32                               i;
 
     work = arg0->work;
-    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
         func_actor_503500_80138490(arg0, ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
-        func_actor_503500_8013611C(arg0->spawnArg1.value);
+        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
         case 0:
-            func_actor_503500_80135FB4(arg0->parent, 0xF, 0x10);
+            actor503500PlayAnimationPreset(arg0->parent, 0xF, 0x10);
             work->stateStep++;
             break;
         case 1:
@@ -2754,8 +2746,8 @@ static void func_actor_503500_801374BC(Task* arg0)
             }
             break;
         case 2:
-            if (func_actor_503500_80136014(arg0->parent, 0xF) != 0) {
-                func_actor_503500_80135FB4(arg0->parent, 0x10, 0x10);
+            if (actor503500HasAnimationFinished(arg0->parent, 0xF) != 0) {
+                actor503500PlayAnimationPreset(arg0->parent, 0x10, 0x10);
                 work->stateStep++;
             }
             break;
@@ -2798,11 +2790,11 @@ static void func_actor_503500_80137678(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             enemy->reactionFlags             &= ENEMY_REACTION_LOW_CLEAR;
             work->spin.fixed.vx.word          = 0;
             work->spin.fixed.vy.word          = 0;
@@ -2906,7 +2898,7 @@ static void func_actor_503500_80137678(Task* arg0)
     work->positionCarry.fixed.vy.word  = work->positionCarry.fixed.vy.halves.fraction;
     work->positionCarry.fixed.vz.word  = work->positionCarry.fixed.vz.halves.fraction;
     coord->composeStamp                = GRAPHICS_COORD_DIRTY;
-    if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
+    if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 3) != 0) {
         switch (gDisplayState.animFrame % 6) {
             case 0:
             case 2:
@@ -3082,7 +3074,7 @@ static void func_actor_503500_80138288(Task* arg0)
     Enemy* enemy;
 
     enemy = arg0->spawnArg2.pointer;
-    func_actor_503500_8013611C(arg0->spawnArg1.value);
+    actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     worldCollisionUnlinkBody(&((_Actor503500PinkFlashEmitterWork*)arg0->work)->body);
     enemy->recs = 0;
@@ -3110,7 +3102,7 @@ static void func_actor_503500_801382FC(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_80137C90(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
@@ -3153,9 +3145,9 @@ static void func_actor_503500_801383D0(Task* arg0)
 
 static void func_actor_503500_80138454(Task* arg0)
 {
-    if (arg0->killCountdown == 2) {
+    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
         func_actor_503500_80138490(arg0, ACTOR_503500_PINK_FLASH_EMITTER_STATE_ATTACK);
-        arg0->killCountdown = 0;
+        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
@@ -3170,8 +3162,8 @@ static void func_actor_503500_80138490(Task* arg0, s32 arg1)
     work->state         = arg1;
     work->stateStep     = 0;
     work->stateFrames   = 0;
-    arg0->killCountdown = 0;
-    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
+    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
 }
 
 void func_actor_503500_801384D4(Task* task)
@@ -3308,7 +3300,7 @@ static void func_actor_503500_80138898(Task* arg0)
         work->bufferFreeCountdown = (s8)((u8)work->bufferFreeCountdown - 1);
     }
     if (gGameSession->eventState != 0 &&
-        func_actor_503500_80135E04(arg0->parent, arg0->spawnArg1.value < 3 ? 0xA : 0xB) == 0) {
+        actor503500IsSlotEmpty(arg0->parent, arg0->spawnArg1.value < 3 ? 0xA : 0xB) == 0) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
         func_actor_503500_80135828(arg0, &work->bufferFreeCountdown);
@@ -3366,7 +3358,7 @@ static void func_actor_503500_80138A30(Task* arg0)
         func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_SPLITTING);
         return;
     }
-    if (arg0->killCountdown == 2) {
+    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
         func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_SHOOT);
         return;
     }
@@ -3416,15 +3408,15 @@ static void func_actor_503500_80138C08(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
         func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
-        func_actor_503500_8013611C(arg0->spawnArg1.value);
+        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
         case 0:
             work->tipArrived = 0;
-            func_actor_503500_80135FB4(arg0->parent, 0x11, 0x10);
+            actor503500PlayAnimationPreset(arg0->parent, 0x11, 0x10);
             work->stateStep++;
         case 1:
             if (work->tipArrived != 0) {
@@ -3518,11 +3510,11 @@ static void func_actor_503500_80139014(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             enemy->reactionFlags    &= ENEMY_REACTION_LOW_CLEAR;
             work->tipTarget.vy       = 0x1388;
             work->tipSpeedLimit.word = 0x300000;
@@ -3608,7 +3600,7 @@ static void func_actor_503500_80139014(Task* arg0)
             work->stateFrames++;
             break;
     }
-    if (func_actor_503500_801360BC(arg0->spawnArg1.value, 4) != 0 && work->stateStep < 3 &&
+    if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 4) != 0 && work->stateStep < 3 &&
         gDisplayState.animFrame % 12 == 0) {
         for (i = ACTOR_503500_LARGE_CHAIN_TIP_PART, j = 0; i > 0; i--) {
             effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
@@ -3658,7 +3650,7 @@ static void func_actor_503500_801395BC(Task* arg0)
             }
             break;
         case 2:
-            if (func_actor_503500_801360BC(arg0->spawnArg1.value, 4) != 0) {
+            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 4) != 0) {
                 coord  = &arg0->extra.tmd->coords[(s16)(work->stateFrames / 3)];
                 vec.vx = 0;
                 vec.vy = -700;
@@ -3678,15 +3670,15 @@ static void func_actor_503500_801395BC(Task* arg0)
                 }
                 child = func_actor_503500_80135D00(arg0->parent, a);
                 if (child != NULL) {
-                    child->task->killCountdown = 8;
+                    child->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
                     child->hp                  = enemy->hp / 2;
                 }
                 child = func_actor_503500_80135D00(arg0->parent, b);
                 if (child != NULL) {
-                    child->task->killCountdown = 8;
+                    child->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
                     child->hp                  = enemy->hp / 2;
                 }
-                func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+                actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
                 work->bufferFreeCountdown = 3;
                 work->stateFrames         = 0;
                 work->stateStep++;
@@ -3696,7 +3688,7 @@ static void func_actor_503500_801395BC(Task* arg0)
             arg0->extra.tmd->flags |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             work->stateFrames++;
             if (work->stateFrames >= 0x5B) {
-                func_actor_503500_8013611C(arg0->spawnArg1.value);
+                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
                 arg0->state++;
             }
             break;
@@ -3712,7 +3704,7 @@ static void func_actor_503500_801398D0(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
-    if ((func_actor_503500_80136208() == 0) && (gGameSession->eventState == 0)) {
+    if ((actor503500IsDefeated() == 0) && (gGameSession->eventState == 0)) {
         flags = enemy->reactionFlags;
         if (flags & ENEMY_REACTION_STAGGER) {
             enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
@@ -4063,7 +4055,7 @@ static void func_actor_503500_8013A900(Task* arg0)
     Enemy* enemy;
 
     enemy = arg0->spawnArg2.pointer;
-    func_actor_503500_8013611C(arg0->spawnArg1.value);
+    actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     worldCollisionUnlinkBody(&((_Actor503500LargeChainWork*)arg0->work)->body);
     enemy->recs = 0;
@@ -4121,7 +4113,7 @@ static void func_actor_503500_8013AA44(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_80139A20(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
@@ -4183,8 +4175,8 @@ static void func_actor_503500_8013ACC4(Task* arg0, s32 arg1)
     work->stateStep     = 0;
     work->field_2E5     = 0;
     work->stateFrames   = 0;
-    arg0->killCountdown = 0;
-    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
 }
 
 void func_actor_503500_8013AD0C(Task* task)

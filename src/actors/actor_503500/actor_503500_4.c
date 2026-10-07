@@ -921,14 +921,14 @@ static void func_actor_503500_8013B460(Task* arg0)
     s32                              side;
 
     work = arg0->work;
-    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
         func_actor_503500_8013BE48(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE);
-        func_actor_503500_8013611C(arg0->spawnArg1.value);
+        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
         case 0:
-            func_actor_503500_80135FB4(arg0->parent, 9, 0x10);
+            actor503500PlayAnimationPreset(arg0->parent, 9, 0x10);
             work->stateStep++;
             break;
         case 1:
@@ -949,7 +949,7 @@ static void func_actor_503500_8013B460(Task* arg0)
                 work->stateStep++;
             }
         case 2:
-            if (func_actor_503500_80136014(arg0->parent, 9) != 0) {
+            if (actor503500HasAnimationFinished(arg0->parent, 9) != 0) {
                 func_actor_503500_8013BE48(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE);
             }
             break;
@@ -1049,18 +1049,18 @@ static void func_actor_503500_8013B8D0(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             work->stateStep++;
             break;
         case 1:
-            if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
+            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 3) != 0) {
                 i       = (s16)(work->stateFrames % 9);
                 vec.vx  = D_actor_503500_8016F168[i].vx;
                 vec.vy  = D_actor_503500_8016F168[i].vy;
@@ -1093,7 +1093,7 @@ static void func_actor_503500_8013B8D0(Task* arg0)
             }
             break;
         default:
-            func_actor_503500_8013611C(arg0->spawnArg1.value);
+            actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
             arg0->state++;
             break;
     }
@@ -1164,7 +1164,7 @@ static void func_actor_503500_8013BD0C(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_8013AF60(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
@@ -1193,9 +1193,9 @@ static void func_actor_503500_8013BD88(Task* arg0)
 /// `ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK`.
 static void func_actor_503500_8013BE0C(Task* arg0)
 {
-    if (arg0->killCountdown == 2) {
+    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
         func_actor_503500_8013BE48(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK);
-        arg0->killCountdown = 0;
+        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
@@ -1211,8 +1211,8 @@ static void func_actor_503500_8013BE48(Task* arg0, s32 arg1)
     work->state         = arg1;
     work->stateStep     = 0;
     work->stateFrames   = 0;
-    arg0->killCountdown = 0;
-    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
 }
 
 void func_actor_503500_8013BE8C(Task* task)
@@ -1429,11 +1429,11 @@ static void func_actor_503500_8013C558(Task* arg0)
             work->body.flags                       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             ((Enemy*)arg0->spawnArg2.pointer)->recs = 0;
             worldTargetUnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                                               = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
@@ -1443,7 +1443,7 @@ static void func_actor_503500_8013C558(Task* arg0)
             break;
         case 1:
             if (++work->stateFrames <= ACTOR_503500_REAR_PART_DYING_EFFECT_FRAMES) {
-                if (func_actor_503500_801360BC(arg0->spawnArg1.value, 5) != 0) {
+                if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 5) != 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001900,
                                 &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
@@ -1463,7 +1463,7 @@ static void func_actor_503500_8013C558(Task* arg0)
             work->shrinkStep  -= ACTOR_503500_REAR_PART_SHRINK_STEP_DECREASE;
             if (work->shrinkStep <= 0) {
                 sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
-                func_actor_503500_8013611C(arg0->spawnArg1.value);
+                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
                 work->stateStep++;
             }
             break;
@@ -1524,7 +1524,7 @@ static void func_actor_503500_8013C960(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_8013C088(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
@@ -1802,14 +1802,14 @@ static void func_actor_503500_8013D1CC(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
         func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
-        func_actor_503500_8013611C(arg0->spawnArg1.value);
+        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
         case 0:
-            func_actor_503500_80135FB4(arg0->parent, 0xA, 0x10);
+            actor503500PlayAnimationPreset(arg0->parent, 0xA, 0x10);
             work->stateStep++;
             break;
         case 1:
@@ -1862,7 +1862,7 @@ static void func_actor_503500_8013D1CC(Task* arg0)
             work->stateStep++;
             break;
         case 2:
-            if (func_actor_503500_80136014(arg0->parent, 0xA) != 0) {
+            if (actor503500HasAnimationFinished(arg0->parent, 0xA) != 0) {
                 func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
             }
             break;
@@ -1890,11 +1890,11 @@ static void func_actor_503500_8013D558(Task* arg0)
             work->body.flags                       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             ((Enemy*)arg0->spawnArg2.pointer)->recs = 0;
             worldTargetUnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                                               = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
@@ -1906,11 +1906,11 @@ static void func_actor_503500_8013D558(Task* arg0)
             } else {
                 vec = D_actor_503500_8016F290;
             }
-            if (func_actor_503500_801360BC(arg0->spawnArg1.value, 2) != 0) {
+            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 2) != 0) {
                 effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001C00, &vec[work->stateFrames % 3]);
             }
             if (work->stateFrames++ >= ACTOR_503500_CHAIN_BASE_DYING_BURST_FRAME) {
-                if (func_actor_503500_801360BC(arg0->spawnArg1.value, 6) != 0) {
+                if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 6) != 0) {
                     effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600, &vec[0]);
                     effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x05404600, &vec[1]);
                     effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x06404600, &vec[2]);
@@ -1922,7 +1922,7 @@ static void func_actor_503500_8013D558(Task* arg0)
         default:
             work->stateFrames++;
             if (work->stateFrames >= ACTOR_503500_CHAIN_BASE_DYING_FRAMES) {
-                func_actor_503500_8013611C(arg0->spawnArg1.value);
+                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
                 arg0->state++;
             }
             break;
@@ -1995,7 +1995,7 @@ static void func_actor_503500_8013D914(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_8013CCBC(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
@@ -2053,19 +2053,19 @@ static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1)
             slotA = 0xF;
             slotB = 0x10;
         }
-        if (func_actor_503500_80135E04(arg0->parent, kind) != 0) {
+        if (actor503500IsSlotEmpty(arg0->parent, kind) != 0) {
             child = func_actor_503500_80135D00(arg0->parent, slotA);
             hp    = (s16)(enemy->hp / 5);
             if (hp <= 0) {
                 hp = 1;
             }
             if (child != NULL) {
-                child->task->killCountdown = 9;
+                child->task->killCountdown = ACTOR_503500_SLOT_COMMAND_REGROW;
                 child->hp                  = hp;
             }
             child = func_actor_503500_80135D00(arg0->parent, slotB);
             if (child != NULL) {
-                child->task->killCountdown = 9;
+                child->task->killCountdown = ACTOR_503500_SLOT_COMMAND_REGROW;
                 child->hp                  = hp;
             }
             work->exposedFrames = 0;
@@ -2076,9 +2076,9 @@ static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1)
         work->hitCooldown = 0;
         return;
     }
-    if (arg0->killCountdown == 2) {
+    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
         func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_ATTACK);
-        arg0->killCountdown = 0;
+        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
@@ -2095,8 +2095,8 @@ static void func_actor_503500_8013DBA8(Task* arg0, s32 arg1)
     work->stateStep     = 0;
     work->stateFrames   = 0;
     work->field_EE      = 0;
-    arg0->killCountdown = 0;
-    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
+    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
 }
 
 void func_actor_503500_8013DBF4(Task* task)
@@ -2127,9 +2127,9 @@ static void func_actor_503500_8013DC4C(Task* arg0)
         slotA = 0xF;
         slotB = 0x10;
     }
-    if ((func_actor_503500_80135E04(arg0->parent, kind) != 0) &&
-        (func_actor_503500_80135E04(arg0->parent, slotA) != 0) &&
-        (func_actor_503500_80135E04(arg0->parent, slotB) != 0)) {
+    if ((actor503500IsSlotEmpty(arg0->parent, kind) != 0) &&
+        (actor503500IsSlotEmpty(arg0->parent, slotA) != 0) &&
+        (actor503500IsSlotEmpty(arg0->parent, slotB) != 0)) {
         func_actor_503500_8013DBA8(arg0, ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
         work              = arg0->work;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2352,14 +2352,14 @@ static void func_actor_503500_8013E384(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
         func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
-        func_actor_503500_8013611C(arg0->spawnArg1.value);
+        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
         case 0:
-            func_actor_503500_80135FB4(arg0->parent, 0xB, 0x10);
+            actor503500PlayAnimationPreset(arg0->parent, 0xB, 0x10);
             work->stateStep++;
             break;
         case 1:
@@ -2406,7 +2406,7 @@ static void func_actor_503500_8013E384(Task* arg0)
             }
             break;
         case 3:
-            if (func_actor_503500_80136014(arg0->parent, 0xB) != 0) {
+            if (actor503500HasAnimationFinished(arg0->parent, 0xB) != 0) {
                 func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
             }
             break;
@@ -2435,18 +2435,18 @@ static void func_actor_503500_8013E740(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             work->stateStep++;
             break;
         case 1:
-            if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
+            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 3) != 0) {
                 effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001C00,
                             &D_actor_503500_8016F31C[work->stateFrames % 9]);
                 if (work->stateFrames & 1) {
@@ -2459,7 +2459,7 @@ static void func_actor_503500_8013E740(Task* arg0)
                 MoveImage(&D_actor_503500_8016F364, 0x141, 0x12A);
             }
             if (work->stateFrames++ >= ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES) {
-                func_actor_503500_8013611C(arg0->spawnArg1.value);
+                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
                 sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
                 work->stateStep++;
             }
@@ -2536,7 +2536,7 @@ static void func_actor_503500_8013EAE4(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_8013DEB4(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
@@ -2565,9 +2565,9 @@ static void func_actor_503500_8013EB60(Task* arg0)
 /// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK`.
 static void func_actor_503500_8013EBE4(Task* arg0)
 {
-    if (arg0->killCountdown == 2) {
+    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
         func_actor_503500_8013EC20(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK);
-        arg0->killCountdown = 0;
+        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
@@ -2583,8 +2583,8 @@ static void func_actor_503500_8013EC20(Task* arg0, s32 arg1)
     work->state         = arg1;
     work->stateStep     = 0;
     work->stateFrames   = 0;
-    arg0->killCountdown = 0;
-    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
 }
 
 void func_actor_503500_8013EC64(Task* task)
@@ -2792,14 +2792,14 @@ static void func_actor_503500_8013F328(Task* arg0)
     Task*                               task;
     GfxCoord*                           coord;
 
-    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
         func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
-        func_actor_503500_8013611C(arg0->spawnArg1.value);
+        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
         case 0:
-            func_actor_503500_80135FB4(arg0->parent, 0xC, 8);
+            actor503500PlayAnimationPreset(arg0->parent, 0xC, 8);
             work->stateStep++;
             break;
         case 1:
@@ -2819,13 +2819,13 @@ static void func_actor_503500_8013F328(Task* arg0)
             }
             break;
         case 2:
-            if (func_actor_503500_80136014(arg0->parent, 0xC) != 0) {
-                func_actor_503500_80135FB4(arg0->parent, 0xD, 0x10);
+            if (actor503500HasAnimationFinished(arg0->parent, 0xC) != 0) {
+                actor503500PlayAnimationPreset(arg0->parent, 0xD, 0x10);
                 work->stateStep++;
             }
             break;
         case 3:
-            if (func_actor_503500_80136014(arg0->parent, 0xD) != 0) {
+            if (actor503500HasAnimationFinished(arg0->parent, 0xD) != 0) {
                 func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
             }
             break;
@@ -2853,11 +2853,11 @@ static void func_actor_503500_8013F4A4(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             pan                   = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
@@ -2865,7 +2865,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
             work->stateStep++;
             break;
         case 1:
-            if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
+            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 3) != 0) {
                 effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001A00,
                             &D_actor_503500_8016F374[work->stateFrames % 6]);
                 if (work->stateFrames & 1) {
@@ -2877,7 +2877,7 @@ static void func_actor_503500_8013F4A4(Task* arg0)
             if (work->stateFrames >= ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES) {
                 MoveImage(&D_actor_503500_8016F3A4, 0x140, 0x100);
                 sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
-                func_actor_503500_8013611C(arg0->spawnArg1.value);
+                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
                 work->stateStep++;
             }
             break;
@@ -2956,7 +2956,7 @@ static void func_actor_503500_8013F830(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_8013EE5C(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
@@ -2988,9 +2988,9 @@ static void func_actor_503500_8013F8AC(Task* arg0)
 /// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK`.
 static void func_actor_503500_8013F948(Task* arg0)
 {
-    if (arg0->killCountdown == 2) {
+    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
         func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK);
-        arg0->killCountdown = 0;
+        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
@@ -3002,7 +3002,7 @@ static void func_actor_503500_8013F984(Task* arg0)
 {
     _Actor503500YellowFlashEmitterWork* work;
 
-    if (arg0->killCountdown == 8) {
+    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_BECOME_TARGET) {
         func_actor_503500_8013F9D4(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
         work              = arg0->work;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -3022,8 +3022,8 @@ static void func_actor_503500_8013F9D4(Task* arg0, s32 arg1)
     work->stateStep     = 0;
     work->stateFrames   = 0;
     work->field_EC      = 0;
-    arg0->killCountdown = 0;
-    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
 }
 
 void func_actor_503500_8013FA1C(Task* task)
@@ -3135,10 +3135,10 @@ static void func_actor_503500_8013FA74(Task* arg0)
     actorRenderComposeCoord(coord);
     func_actor_503500_801421A8(arg0);
     switch (arg0->killCountdown) {
-        case 8:
+        case ACTOR_503500_SLOT_COMMAND_BECOME_TARGET:
             func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING);
             break;
-        case 9:
+        case ACTOR_503500_SLOT_COMMAND_REGROW:
             tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING);
             break;
@@ -3172,7 +3172,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
         work->bufferFreeCountdown--;
     }
     if (gGameSession->eventState != 0 &&
-        func_actor_503500_80135E04(arg0->parent, arg0->spawnArg1.value < 0xF ? 0xA : 0xB) == 0) {
+        actor503500IsSlotEmpty(arg0->parent, arg0->spawnArg1.value < 0xF ? 0xA : 0xB) == 0) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
         func_actor_503500_80135828(arg0, &work->bufferFreeCountdown);
@@ -3224,9 +3224,9 @@ static void func_actor_503500_801400A4(Task* arg0)
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
-    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
         func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
-        func_actor_503500_8013611C(arg0->spawnArg1.value);
+        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
@@ -3243,7 +3243,7 @@ static void func_actor_503500_801400A4(Task* arg0)
             gte_ldv0(&v);
             gte_rtv0();
             gte_stsv(&work->tipTarget);
-            func_actor_503500_80135FB4(arg0->parent, 0x12, 0x10);
+            actor503500PlayAnimationPreset(arg0->parent, 0x12, 0x10);
             work->stateStep++;
             break;
         case 1:
@@ -3307,7 +3307,7 @@ static void func_actor_503500_801400A4(Task* arg0)
     dist = func_actor_503500_80136218();
     switch (arg0->spawnArg1.value) {
         case 13:
-            if (func_actor_503500_80135E04(arg0, 0xE) != 0) {
+            if (actor503500IsSlotEmpty(arg0, 0xE) != 0) {
                 if (dist < -1900 || dist > 1000) {
                     keep = 1;
                 }
@@ -3316,7 +3316,7 @@ static void func_actor_503500_801400A4(Task* arg0)
             }
             break;
         case 14:
-            if (func_actor_503500_80135E04(arg0, 0xD) != 0) {
+            if (actor503500IsSlotEmpty(arg0, 0xD) != 0) {
                 if (dist < -1900 || dist > 1000) {
                     keep = 1;
                 }
@@ -3325,7 +3325,7 @@ static void func_actor_503500_801400A4(Task* arg0)
             }
             break;
         case 15:
-            if (func_actor_503500_80135E04(arg0, 0x10) != 0) {
+            if (actor503500IsSlotEmpty(arg0, 0x10) != 0) {
                 if (dist < -1000 || dist > 1900) {
                     keep = 1;
                 }
@@ -3334,7 +3334,7 @@ static void func_actor_503500_801400A4(Task* arg0)
             }
             break;
         case 16:
-            if (func_actor_503500_80135E04(arg0, 0xF) != 0) {
+            if (actor503500IsSlotEmpty(arg0, 0xF) != 0) {
                 if (dist < -1000 || dist > 1900) {
                     keep = 1;
                 }
@@ -3382,11 +3382,11 @@ static void func_actor_503500_80140654(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
             work->tipTarget.vy    = 0x7D0;
             work->stateStep++;
@@ -3470,7 +3470,7 @@ static void func_actor_503500_80140654(Task* arg0)
             work->stateFrames++;
             break;
     }
-    if (func_actor_503500_801360BC(arg0->spawnArg1.value, 4) != 0 && work->stateStep < 3 &&
+    if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 4) != 0 && work->stateStep < 3 &&
         gDisplayState.animFrame % 12 == 0) {
         for (i = ACTOR_503500_LUNGING_CHAIN_TIP_PART, j = 0; i > 0; i--) {
             effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F448[j]);
@@ -3493,7 +3493,7 @@ static void func_actor_503500_80140BE8(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
-    if ((func_actor_503500_80136208() == 0) && (gGameSession->eventState == 0)) {
+    if ((actor503500IsDefeated() == 0) && (gGameSession->eventState == 0)) {
         flags = enemy->reactionFlags;
         if (flags & ENEMY_REACTION_STAGGER) {
             enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
@@ -3878,7 +3878,7 @@ static void func_actor_503500_80141D04(Task* arg0)
     Enemy* enemy;
 
     enemy = arg0->spawnArg2.pointer;
-    func_actor_503500_8013611C(arg0->spawnArg1.value);
+    actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     worldCollisionUnlinkBody(&((_Actor503500LungingChainWork*)arg0->work)->body);
     worldCollisionUnlinkBody(&((_Actor503500LungingChainWork*)arg0->work)->attackBody);
@@ -3926,9 +3926,9 @@ static void func_actor_503500_80141E64(Task* arg0)
     _Actor503500LungingChainWork* work;
 
     work = arg0->work;
-    if (arg0->killCountdown == 2) {
+    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
         func_actor_503500_80142310(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE);
-        arg0->killCountdown = 0;
+        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
     work->swayWeight += 0x20;
     if (work->swayWeight > 0x1000) {
@@ -4008,7 +4008,7 @@ static void func_actor_503500_801420C4(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_80140D38(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
         func_actor_503500_8014215C(arg0, &work->attackBody, work->attackContacts, ARRAY_SIZE(work->attackContacts));
     }
@@ -4080,8 +4080,8 @@ static void func_actor_503500_80142310(Task* arg0, s32 arg1)
     work->stepFrames         = 0;
     work->tipSpeedLimit.word = 0x600000;
     work->attackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    arg0->killCountdown      = 0;
-    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    arg0->killCountdown      = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
 }
 
 void func_actor_503500_80142370(Task* task)
@@ -4210,12 +4210,12 @@ static void func_actor_503500_801423C8(Task* arg0)
 }
 
 /// `ACTOR_503500_ARM_STATE_STRIKE` step of the arm. Step 0 hands the parent
-/// rate 0xC, or 0x12 when `func_actor_503500_80135E04` accepts slot 4/5, and
+/// rate 0xC, or 0x12 when `actor503500IsSlotEmpty` reports slot 4/5 empty, and
 /// keeps the pick in `strikeRate`. Step 1 counts frames in `stateFrames`: on
 /// frame 0x7A (0xC) or 0x51 (0x12) it enables pair tests on
 /// `forearmAttackBody` / `handAttackBody` and plays `SOUND_BRAHMAN_ARM_STRIKE`
 /// at parent coordinate 6 or 12 (by `side`); on 0x90 / 0x60 it disables them,
-/// and it moves on once `func_actor_503500_80136014` reports done.
+/// and it moves on once `actor503500HasAnimationFinished` reports done.
 static void func_actor_503500_8014271C(Task* arg0)
 {
     _Actor503500ArmWork* work;
@@ -4226,9 +4226,9 @@ static void func_actor_503500_8014271C(Task* arg0)
     s16                  frame;
 
     work = arg0->work;
-    if (func_actor_503500_8013608C(arg0->parent) != 0) {
+    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
         func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_IDLE);
-        func_actor_503500_8013611C(arg0->spawnArg1.value);
+        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
         return;
     }
     side = 3;
@@ -4238,10 +4238,10 @@ static void func_actor_503500_8014271C(Task* arg0)
     switch (work->stateStep) {
         case 0:
             anim = ACTOR_503500_ARM_STRIKE_RATE_SLOW;
-            if (func_actor_503500_80135E04(arg0->parent, side == 2 ? 5 : 4) != 0) {
+            if (actor503500IsSlotEmpty(arg0->parent, side == 2 ? 5 : 4) != 0) {
                 anim = ACTOR_503500_ARM_STRIKE_RATE_FAST;
             }
-            func_actor_503500_80135FB4(arg0->parent, side, anim);
+            actor503500PlayAnimationPreset(arg0->parent, side, anim);
             work->strikeRate = anim;
             work->stateStep++;
             break;
@@ -4286,7 +4286,7 @@ static void func_actor_503500_8014271C(Task* arg0)
                         break;
                 }
             }
-            if (func_actor_503500_80136014(arg0->parent, side) != 0) {
+            if (actor503500HasAnimationFinished(arg0->parent, side) != 0) {
                 work->forearmAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->handAttackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->stateStep++;
@@ -4337,11 +4337,11 @@ static void func_actor_503500_80142980(Task* arg0)
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             enemy->recs       = 0;
             worldTargetUnlinkNode(&enemy->node);
-            func_actor_503500_80135CE8(arg0->parent, arg0->spawnArg1.value);
+            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
             work->hitCooldown = 0;
             (sceneAcquireBattleRef)(0);
             sceneReleaseBattleRefWithRewards(arg0, 0);
-            func_actor_503500_80136048(arg0->parent);
+            actor503500EnterPartLostState(arg0->parent);
             enemy->reactionFlags             &= ENEMY_REACTION_LOW_CLEAR;
             work->spin.fixed.vx.word          = 0;
             work->spin.fixed.vy.word          = 0;
@@ -4358,7 +4358,7 @@ static void func_actor_503500_80142980(Task* arg0)
             break;
         case 1:
             side = work->side;
-            if (func_actor_503500_801360BC(arg0->spawnArg1.value, 1) != 0) {
+            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 1) != 0) {
                 rot.vx = side != 0 ? -300 : 300;
                 rot.vy = (u32)(rcos(work->stateFrames << 7) * 375) >> 10;
                 rot.vz = (u32)(rsin(work->stateFrames << 7) * 375) >> 10;
@@ -4436,7 +4436,7 @@ static void func_actor_503500_80142980(Task* arg0)
             work->stateStep++;
             break;
         case 3:
-            if (func_actor_503500_801360BC(arg0->spawnArg1.value, 2) != 0) {
+            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 2) != 0) {
                 if (work->side != 0) {
                     effectSpawn(EFFECT_HIT_PUFF, coord, 0x01101C00, &D_actor_503500_80171594);
                     work->spin.fixed.vz.word -= 0x2000;
@@ -4504,7 +4504,7 @@ static void func_actor_503500_80142980(Task* arg0)
     work->positionCarry.fixed.vy.word  = work->positionCarry.fixed.vy.halves.fraction;
     work->positionCarry.fixed.vz.word  = work->positionCarry.fixed.vz.halves.fraction;
     coord->composeStamp                = GRAPHICS_COORD_DIRTY;
-    if (func_actor_503500_801360BC(arg0->spawnArg1.value, 3) != 0) {
+    if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 3) != 0) {
         if (!(gDisplayState.animFrame & 3)) {
             for (i = 0, j = 0; i < 2; i++) {
                 effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0x81018A00, &D_actor_503500_80171564[j]);
@@ -4885,7 +4885,7 @@ static void func_actor_503500_80143F78(Task* arg0)
 
     enemy = arg0->spawnArg2.pointer;
     work  = arg0->work;
-    func_actor_503500_8013611C(arg0->spawnArg1.value);
+    actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
     arg0->extra.tmd->coords->parent = &gGfxViewCoord;
     worldCollisionUnlinkBody(&work->body);
     worldCollisionUnlinkBody(&work->forearmAttackBody);
@@ -4912,7 +4912,7 @@ static void func_actor_503500_80144004(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    if (func_actor_503500_80136208() == 0) {
+    if (actor503500IsDefeated() == 0) {
         func_actor_503500_801431EC(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
         func_actor_503500_801437D0(arg0, work->attackContacts, ARRAY_SIZE(work->attackContacts));
     }
@@ -4958,13 +4958,13 @@ static void func_actor_503500_801440F0(Task* arg0)
 static void func_actor_503500_8014418C(Task* arg0)
 {
     switch (arg0->killCountdown) {
-        case 2:
+        case ACTOR_503500_SLOT_COMMAND_ATTACK:
             func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_STRIKE);
-            arg0->killCountdown = 0;
+            arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
             break;
-        case 8:
+        case ACTOR_503500_SLOT_COMMAND_BECOME_TARGET:
             func_actor_503500_80144238(arg0, ACTOR_503500_ARM_STATE_BECOME_TARGET);
-            arg0->killCountdown = 0;
+            arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
             break;
     }
 }
@@ -4987,8 +4987,8 @@ static void func_actor_503500_80144238(Task* arg0, s32 arg1)
     work->state         = arg1;
     work->stateStep     = 0;
     work->stateFrames   = 0;
-    arg0->killCountdown = 0;
-    func_actor_503500_80135F9C(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
+    arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    actor503500SetSlotBusy(arg0->parent, arg0->spawnArg1.value, arg1 != 0);
     work->forearmAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->handAttackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     sndEvtRequestScriptStop(SOUND_BRAHMAN_ARM_STRIKE, SOUND_SCRIPT_STOP_KEEP_RELEASE);

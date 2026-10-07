@@ -69283,7 +69283,7 @@ give the source that many names.
 
 ## A `regs=1` penalty can be a wrong immediate, not an allocation problem
 
-`func_actor_503500_801360BC` scored 99.79% with `regs=1` and every other penalty
+`actor503500TryReserveSlotEffects` scored 99.79% with `regs=1` and every other penalty
 zero. The matching-loop table sends `regs` to `.lreg`/`.greg` — split a local,
 check quantity membership, do not pin — and all of that would have been wasted:
 the object dump differed by one operand,
@@ -69590,19 +69590,19 @@ takes `li a1,1`.
 
 ### Name the field in one arm to keep a two-sided `||` bound from folding to `sltiu`
 
-`func_actor_503500_8013680C` loads `s16 x = work->playerBearing` once and tests two
+`actor503500AttackLargeOrbPair` loads `s16 playerBearing = work->playerBearing` once and tests two
 excluded bands. The target keeps the first as two `slti`s and the second as a
 merged `addiu -0x201; andi 0xFFFF; sltiu 0x3FF`, so writing both as
-`x < lo || x >= hi` folds both, and an `else if` chain changes the blocks.
+`playerBearing < lo || playerBearing >= hi` folds both, and an `else if` chain changes the blocks.
 `fold_range_test` only merges when `operand_equal_p` holds for the two sides,
 so spell one side with the field itself:
 
 ```c
-if (x < -0x5FF || work->playerBearing >= -0x200) { ... }   /* two slti */
-if (x < 0x201 || x >= 0x600) { ... }                   /* one sltiu */
+if (playerBearing < -0x5FF || work->playerBearing >= -0x200) { ... }   /* two slti */
+if (playerBearing < 0x201 || playerBearing >= 0x600) { ... }                   /* one sltiu */
 ```
 
-CSE then reuses `x`'s register for the field read, so no second load appears
+CSE then reuses `playerBearing`'s register for the field read, so no second load appears
 and the match is exact.
 
 ### `bodies_of()` files a body under a multi-line prototype's name
@@ -69614,13 +69614,13 @@ the moved function as missing. The cause is a prototype split across two lines
 in the file's prelude:
 
 ```c
-void func_actor_503500_80135950(Actor503500* arg0, s32 arg1,
-                                AnimationPlayRequest* arg2, s32 arg3);
+s32 actor503500HandlePlayAnimation(Task* task, s32 messageId,
+                                 const AnimationPlayRequest* request, s32 unusedArg);
 ```
 
 The first line has no `;`, so `FUNC_START` accepts it as a definition and reads
 to the next `}` line. That files the first real body after the prelude under
-`80135950`. Both the snapshot and the rebuilt file carry the same misfiling, so
+`actor503500HandlePlayAnimation`. Both the snapshot and the rebuilt file carry the same misfiling, so
 a diff of the key sets only flags the file whose prelude now sits next to a
 different function. Cross-check with a definition-only grep (a signature line
 followed by `{`) before believing a "missing" body.
@@ -70094,7 +70094,7 @@ pseudo live across several blocks. Global alloc then gives it `$v1` and the
 constant `$v0`, the reverse of the target, and the score sits at 99.25% on
 `regs` alone. Moving the tail into a `static inline` helper gives each inlined
 copy its own block-local pseudo. Local alloc then puts the pointer in `$v0`
-and N in `$v1`, which is 100%. The non-inline sibling `func_actor_503500_80136048`
+and N in `$v1`, which is 100%. The non-inline sibling `actor503500EnterPartLostState`
 (the same tail with N = 2) suggests this is how the original was written.
 
 ## `&local` in a callee-saved register, set *after* the other call args: assign the pointer after the call
@@ -70317,7 +70317,7 @@ the rodata already in `_7` (here `0x28`, a multiple of 8). Also check that the
 moved block needs no declarations that exist only in `_6.c`; the two files shared
 one header block.
 **Tooling note.** `bodies_of()` keys a body to a multi-line prototype placed
-directly in front of it (`func_actor_503500_80135950` here). So a name-set diff
+directly in front of it (`actor503500HandlePlayAnimation` here). So a name-set diff
 before and after a move can report one false swap. Count the bodies and run
 `check_lost_matches.py`.
 **Second use.** `func_actor_503500_8013C088` hit the same pad one boundary
@@ -98317,6 +98317,7 @@ Session: `nonmatchings/func_actor_521100_80135DDC-vacuum` (`base_1.i.greg`,
 
 The seed's `frames = 0` sat first, where m2c rendered it; rewriting the body to
 the family's style — `_actor00300MsgPlayAnimation` and `func_actor_503500_80135950` write
+the family's style — `Actor00300_Fn05304` and `actor503500HandlePlayAnimation` write
 that init *after* the work-block field stores — moved it down and cost two hunks
 that look like pure scheduling noise:
 

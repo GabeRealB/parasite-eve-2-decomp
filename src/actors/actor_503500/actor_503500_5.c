@@ -307,7 +307,7 @@ static AnimationSet _gActor503500Animation3EE08;
 static AnimationSet _gActor503500Animation3F61C;
 
 TaskMessageEntry D_actor_503500_8016EA2C[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_503500_80135950 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, actor503500HandlePlayAnimation },
     { ACTOR_MESSAGE_PLACE, func_actor_503500_80137088 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_503500_80137158 },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_503500_80135B74 },
@@ -382,14 +382,14 @@ SVECTOR D_actor_503500_8016EC50 = { 0, -500, 1600, 0 };
 Actor503500AttackChoice D_actor_503500_8016EC58[4] = {
     { func_actor_503500_8013667C, 127 },
     { func_actor_503500_80133BF4, 79 },
-    { func_actor_503500_8013680C, 47 },
+    { actor503500AttackLargeOrbPair, 47 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EC78[4] = {
     { func_actor_503500_80133BF4, 127 },
     { func_actor_503500_80136770, 79 },
-    { func_actor_503500_8013680C, 47 },
+    { actor503500AttackLargeOrbPair, 47 },
     { NULL, 0 },
 };
 
@@ -397,24 +397,24 @@ Actor503500AttackChoice D_actor_503500_8016EC98[5] = {
     { func_actor_503500_80136770, 79 },
     { func_actor_503500_80134284, 63 },
     { func_actor_503500_8013656C, 47 },
-    { func_actor_503500_8013680C, 31 },
+    { actor503500AttackLargeOrbPair, 31 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ECC0[3] = {
     { func_actor_503500_8013667C, 159 },
-    { func_actor_503500_8013680C, 95 },
+    { actor503500AttackLargeOrbPair, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ECD8[3] = {
-    { func_actor_503500_8013680C, 159 },
+    { actor503500AttackLargeOrbPair, 159 },
     { func_actor_503500_80136770, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ECF0[4] = {
-    { func_actor_503500_8013680C, 111 },
+    { actor503500AttackLargeOrbPair, 111 },
     { func_actor_503500_80134284, 79 },
     { func_actor_503500_80136770, 63 },
     { NULL, 0 },
@@ -430,19 +430,19 @@ Actor503500AttackChoice D_actor_503500_8016ED10[4] = {
 Actor503500AttackChoice D_actor_503500_8016ED30[4] = {
     { func_actor_503500_80136948, 95 },
     { func_actor_503500_8013667C, 95 },
-    { func_actor_503500_8013680C, 63 },
+    { actor503500AttackLargeOrbPair, 63 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ED50[3] = {
-    { func_actor_503500_8013680C, 159 },
+    { actor503500AttackLargeOrbPair, 159 },
     { func_actor_503500_80134284, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016ED68[3] = {
     { func_actor_503500_80134284, 223 },
-    { func_actor_503500_8013680C, 31 },
+    { actor503500AttackLargeOrbPair, 31 },
     { NULL, 0 },
 };
 
@@ -513,13 +513,13 @@ Actor503500AttackChoice D_actor_503500_8016EE10[3] = {
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE28[3] = {
-    { func_actor_503500_8013680C, 159 },
+    { actor503500AttackLargeOrbPair, 159 },
     { func_actor_503500_80136770, 95 },
     { NULL, 0 },
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE40[4] = {
-    { func_actor_503500_8013680C, 95 },
+    { actor503500AttackLargeOrbPair, 95 },
     { func_actor_503500_80134284, 79 },
     { func_actor_503500_80136770, 63 },
     { NULL, 0 },
@@ -539,7 +539,7 @@ Actor503500AttackChoice D_actor_503500_8016EE80[3] = {
 };
 
 Actor503500AttackChoice D_actor_503500_8016EE98[3] = {
-    { func_actor_503500_8013680C, 159 },
+    { actor503500AttackLargeOrbPair, 159 },
     { func_actor_503500_80134284, 95 },
     { NULL, 0 },
 };
@@ -1526,7 +1526,7 @@ static void func_actor_503500_80145754(Task* arg0)
     s32                                pan2;
 
     work = arg0->work;
-    if (func_actor_503500_8013608C(arg0) == 0) {
+    if (actor503500ShouldInterruptAttack(arg0) == 0) {
         switch (work->phase) {
             case ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE:
                 work->phaseFrames++;
@@ -1750,7 +1750,7 @@ static void func_actor_503500_80145E1C(Task* arg0)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_503500_80145F18(arg0);
     func_actor_503500_80145C50(arg0);
-    if (func_actor_503500_8013608C(arg0->spawnArg2.pointer)) {
+    if (actor503500ShouldInterruptAttack(arg0->spawnArg2.pointer)) {
         arg0->exitCallback(arg0);
     }
 }

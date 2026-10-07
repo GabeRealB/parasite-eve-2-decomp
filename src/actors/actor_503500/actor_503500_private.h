@@ -79,6 +79,17 @@ enum {
     ACTOR_503500_SLOT_COUNT = 17, // Slots of the boss: its own and those of the enemies riding on it
 };
 
+/// Requests delivered to a slot enemy in `Task::killCountdown`.
+///
+/// Zero means no request. The receiving task consumes a request in its state
+/// handler; slot 0 keeps its request in the boss work's `selfAttackCommand`.
+enum {
+    ACTOR_503500_SLOT_COMMAND_NONE          = 0,
+    ACTOR_503500_SLOT_COMMAND_ATTACK        = 2, // Start the slot's attack
+    ACTOR_503500_SLOT_COMMAND_BECOME_TARGET = 8, // Expose an arm/emitter, or unfold a newly split lunging chain
+    ACTOR_503500_SLOT_COMMAND_REGROW        = 9, // Start a newly spawned lunging chain's regrowth
+};
+
 /// What the boss is doing, as held in `Actor503500Work::state`.
 typedef enum {
     ACTOR_503500_STATE_IDLE      = 0, // Waits out the delay before its next attack
@@ -415,38 +426,81 @@ static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
 
 void func_actor_503500_80135828(Task* arg0, s8* arg1);
 
-void func_actor_503500_80135CE8(Task* arg0, s32 arg1);
+/// Clears the boss's enemy pointer for slot 0..16.
+///
+/// This only empties the slot; the caller retains responsibility for tearing
+/// down the enemy. Its busy flag and cooldown are retained. `unusedTask` is
+/// ignored because the package has one boss work block.
+void actor503500ClearSlotEnemy(Task* unusedTask, s32 slot);
 
 /// Spawns slot enemy `arg1` as a child of `arg0`; returns it, or NULL.
 Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1);
 
-/// Reports whether slot `arg1` of the boss work block's `enemies` array is
-/// empty. `arg0` is loaded by every caller but the body ignores it.
-s32 func_actor_503500_80135E04(Task* arg0, s32 arg1);
+/// Returns 1 when boss slot 0..16 has no enemy, otherwise 0.
+///
+/// `unusedTask` is ignored; the query reads the package's one boss work block.
+s32 actor503500IsSlotEmpty(Task* unusedTask, s32 slot);
 
 void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2);
 
-/// Stores `arg2` as the `slotBusy` flag of slot `arg1`; `arg0` is ignored the same
-/// way `func_actor_503500_80135E04` ignores it.
-void func_actor_503500_80135F9C(Task* arg0, s32 arg1, s16 arg2);
+/// Stores a slot enemy's busy report in the boss work block.
+///
+/// `slot` is 0..16. State setters pass 0 while at rest and 1 while occupied
+/// with an attack or transition; the value is stored without normalization.
+/// `unusedTask` is ignored. The report does not change the slot's cooldown.
+void actor503500SetSlotBusy(Task* unusedTask, s32 slot, s16 busy);
 
-void func_actor_503500_80135FB4(Task* arg0, s32 arg1, s32 arg2);
+/// Sets the boss's track rates and applies one of its animation requests.
+///
+/// `presetIndex` is 0..19: 0 resets animation 1, 1 blends animation 1, and
+/// 2..19 select the animation with that ID. `rate` is a signed step in
+/// sixteenths of a frame per tick, narrowed to a signed byte; 0 selects
+/// `ANIMATION_RATE_ONE`. Only tracks 1..16 receive this rate, while playback
+/// drives tracks 1..19. A reset or source change replaces those rates with
+/// the normal rate before the first pose is ticked.
+void actor503500PlayAnimationPreset(Task* task, s32 presetIndex, s32 rate);
 
-s32 func_actor_503500_80136014(Task* arg0, s32 arg1);
+/// Tests whether the boss's last requested animation has finished or jumped.
+///
+/// Returns -1 if `animationId` differs from the last request; otherwise 1
+/// when the first driven track's latest tick settled or followed a control
+/// jump, and 0 while it continues. Callers treat every nonzero result as done.
+/// `unusedTask` is ignored; the query reads the package's one boss work block.
+s32 actor503500HasAnimationFinished(Task* unusedTask, s32 animationId);
 
-void func_actor_503500_80136048(Task* arg0);
+/// Starts the boss's recoil after a slot enemy is destroyed.
+///
+/// Enters `ACTOR_503500_STATE_PART_LOST`, restarts the state and attack
+/// progress, schedules removal of the boss's target after three upkeep ticks,
+/// and restores ordinary ordering-table depth.
+void actor503500EnterPartLostState(Task* task);
 
-/// Reports whether the boss-wide gate is open; the body ignores its
-/// argument, and callers pass unrelated pointers they already hold.
-s32 func_actor_503500_8013608C(void* arg0);
+/// Returns 1 while the boss is recoiling, stunned or defeated, otherwise 0.
+///
+/// Slot attacks and flash attack tasks use this to abort their current attack.
+/// `unusedTask` is ignored; the query reads the package's one boss work block.
+s32 actor503500ShouldInterruptAttack(Task* unusedTask);
 
-s32 func_actor_503500_801360BC(s32 arg0, s32 arg1);
+/// Tries to replace a slot's share of the package's effect budget.
+///
+/// `slot` is an enemy slot 0..16; live projectile tasks contribute separately
+/// through budget entry 17. `effectCost` is a budget cost in 0..32767, not a
+/// count of effects spawned this frame. If the new cost plus all other entries
+/// is strictly below 9, stores it and returns 1; otherwise retains the old
+/// reservation and returns 0. Stored costs are halfwords and are summed as
+/// signed halfwords. A reservation lasts until replaced or released.
+s32 actor503500TryReserveSlotEffects(s32 slot, s32 effectCost);
 
-void func_actor_503500_8013611C(s32 arg0);
+/// Releases enemy slot 0..16's entire effect-budget reservation.
+void actor503500ReleaseSlotEffects(s32 slot);
 
 s16 func_actor_503500_80136134(Task* arg0);
 
-s32 func_actor_503500_80136208(void);
+/// Returns the boss's latched health-exhausted flag.
+///
+/// Slot enemies use this to suppress their hit handling once the boss is
+/// defeated. The flag remains set until the boss work block is initialized.
+s32 actor503500IsDefeated(void);
 
 s16 func_actor_503500_80136218(void);
 
@@ -491,7 +545,17 @@ s32 func_actor_503500_8013667C(Task*, Actor503500Work*);
 
 s32 func_actor_503500_80136770(Task*, Actor503500Work*);
 
-s32 func_actor_503500_8013680C(Task*, Actor503500Work*);
+/// Commands the paired large-orb emitters and waits for both slots to rest.
+///
+/// Phase 0 commands slots 4 and 5 with 180-frame cooldowns if slot 4 is ready
+/// outside bearing [-1535, -513], or slot 5 is ready outside [513, 1535].
+/// Bearings use 4096 units per turn. Only the leading slot's readiness is
+/// checked; an occupied partner is commanded even if busy or cooling down.
+/// Slot 4 is tried first. Phase 1 waits for both slots to be empty or at rest.
+/// `task` is unused; `work` is the boss work block.
+/// Returns 0 while running, 1 if no command can start, or a 10-frame idle
+/// delay once both slots rest, following `Actor503500AttackFn`.
+s32 actor503500AttackLargeOrbPair(Task* task, Actor503500Work* work);
 
 s32 func_actor_503500_80136948(Task*, Actor503500Work*);
 
@@ -504,7 +568,17 @@ void func_actor_503500_8013AD0C(Task*);
 void func_actor_503500_80143AC0(Task*);
 
 // Callbacks referenced by the overlay's shared data tables.
-s32 func_actor_503500_80135950(Task*, s32, AnimationPlayRequest*, s32);
+/// Applies an animation request to the boss's nineteen driven model tracks.
+///
+/// `request` is borrowed for this call and is read only. Its source index is
+/// 0 or 1; its animation ID is 1..19 for source 0 or 1..4 for source 1. A
+/// changed source binds the rig before playback; a non-reset blend applies
+/// only after the rig has started, with duration in whole normal-rate frames
+/// (0..2047).
+/// Tracks 1..19 are ticked once immediately and the enabled part scales are
+/// reapplied. The rig borrows the loaded set tables while playback continues.
+/// `messageId` and `unusedArg` are ignored. Returns 0.
+s32 actor503500HandlePlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 
 s32 func_actor_503500_80135B74(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
