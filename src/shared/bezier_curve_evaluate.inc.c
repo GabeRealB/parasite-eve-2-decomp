@@ -1,29 +1,51 @@
 /* Part of the bezier curve library; see bezier_curve.h. */
 
-/// Evaluates a cubic Bezier segment at step `pos` of `len`: control points
-/// `pts[0..2]` and `p3`, with `t` running from 1 (0xFFFF) down to 0 as `pos`
-/// reaches `len`, so step 0 is the `p3` end. Writes the X/Y/Z result to `out`
-/// as ((a*t >> 16 + b)*t >> 16 + c)*t >> 16 + d per axis. Does nothing when
-/// `len` is 0.
-static void bezierCurveEvaluate(SVECTOR* pts, SVECTOR* p3, s32 len, s32 pos, s32* out)
+/// Evaluates one coordinate, rounding down after each fixed-point Horner product.
+static inline s32 _bezierCurveEvaluateAxis(const _BezierCurveAxisCoefficients* coefficients, s32 parameterQ16)
 {
-    SVECTOR  coeff[3];
-    SVECTOR* p1;
-    SVECTOR* p2;
-    s32      t;
-    s32      i;
-    s32*     o;
+    s32 value;
 
-    if (len != 0) {
-        t  = ((len - pos) * 0xFFFF) / len;
-        p1 = &pts[1];
-        p2 = &pts[2];
-        bezierCurveCoefficients(pts->vx, p1->vx, p2->vx, p3->vx, &coeff[0]);
-        bezierCurveCoefficients(pts->vy, p1->vy, p2->vy, p3->vy, &coeff[1]);
-        bezierCurveCoefficients(pts->vz, p1->vz, p2->vz, p3->vz, &coeff[2]);
-        o = out;
-        for (i = 0; i < 3; i++) {
-            *o++ = ((((((coeff[i].vx * t) >> 16) + coeff[i].vy) * t >> 16) + coeff[i].vz) * t >> 16) + coeff[i].pad;
+    value = ((coefficients->cubic * parameterQ16) >> BEZIER_CURVE_PARAMETER_FRACTION_BITS) + coefficients->quadratic;
+    value = ((value * parameterQ16) >> BEZIER_CURVE_PARAMETER_FRACTION_BITS) + coefficients->linear;
+    return ((value * parameterQ16) >> BEZIER_CURVE_PARAMETER_FRACTION_BITS) + coefficients->constant;
+}
+
+/// Samples a cubic Bezier backward from its fourth control point.
+///
+/// `controlPoints` supplies the first three points; `endPoint` supplies the
+/// fourth and may be `&controlPoints[3]`. All points use the same coordinate
+/// frame and units. `stepCount` is a subdivision count and `stepIndex` is in
+/// [0, stepCount]. For positive counts the parameter is
+/// ((stepCount - stepIndex) * 65535) / stepCount with 16 fractional bits:
+/// index 0 is just below t = 1, and index stepCount is exactly t = 0.
+/// Coefficients narrow to signed halfwords before evaluation; each Horner
+/// stage uses signed 32-bit multiplication and an arithmetic right shift.
+///
+/// Writes three consecutive signed 32-bit SDK `long` coordinates (X, Y, Z)
+/// to caller-owned `outXyz`, also accepting the XYZ prefix of a `VECTOR`.
+/// A zero `stepCount` accesses neither points nor output. Inputs must keep
+/// the parameter scaling and polynomial arithmetic within signed 32-bit range.
+static void _bezierCurveEvaluate(const SVECTOR controlPoints[3], const SVECTOR* endPoint, s32 stepCount, s32 stepIndex, long outXyz[3])
+{
+    _BezierCurveAxisCoefficients coefficients[3];
+    const SVECTOR*               firstControlPoint;
+    const SVECTOR*               secondControlPoint;
+    s32                          parameterQ16;
+    s32                          axis;
+    long*                        coordinateOut;
+
+    if (stepCount != 0) {
+        parameterQ16       = ((stepCount - stepIndex) * BEZIER_CURVE_PARAMETER_MAX) / stepCount;
+        firstControlPoint  = &controlPoints[1];
+        secondControlPoint = &controlPoints[2];
+        _bezierCurveCoefficients(controlPoints->vx, firstControlPoint->vx, secondControlPoint->vx, endPoint->vx, &coefficients[0]);
+        _bezierCurveCoefficients(controlPoints->vy, firstControlPoint->vy, secondControlPoint->vy, endPoint->vy, &coefficients[1]);
+        _bezierCurveCoefficients(controlPoints->vz, firstControlPoint->vz, secondControlPoint->vz, endPoint->vz, &coefficients[2]);
+
+        // Round down at each fixed-point Horner stage, preserving halfword terms.
+        coordinateOut = outXyz;
+        for (axis = 0; axis < ARRAY_SIZE(coefficients); axis++) {
+            *coordinateOut++ = _bezierCurveEvaluateAxis(&coefficients[axis], parameterQ16);
         }
     }
 }

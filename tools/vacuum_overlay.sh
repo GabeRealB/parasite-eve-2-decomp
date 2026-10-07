@@ -378,7 +378,7 @@ mapfile -t ALL_MATCHED < <(git -C "$WT" log --format=%s "$BASE"..HEAD \
 # Two kinds of match end up elsewhere and make it refuse the whole batch:
 #   * a promoted shared body, which moves to src/lib/<unit>.c;
 #   * a sibling overlay's copy matched in passing - an actor_503500 sweep
-#     matched func_dryfield_dilapidated_house_80181290 like this.
+#     matched dryfield_dilapidated_house's _bezierCurveCoefficients like this.
 # Both still reach trunk through EXTRAS; they just must not be in the
 # per-function list. (The replay path below is unaffected: it cherry-picks
 # commits, so it carries them correctly either way.)

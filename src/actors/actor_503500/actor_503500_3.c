@@ -4015,7 +4015,7 @@ static void func_actor_503500_80139EFC(Task* arg0)
 }
 
 /// Builds the chain polyline `linkPoints[0..8]` from cubic Bezier segments
-/// (`bezierCurveEvaluate`): a first curve runs from the root's world
+/// (`_bezierCurveEvaluate`): a first curve runs from the root's world
 /// position, through a point 1000 units along its Z axis, to the parent-local
 /// `tipPosition` point raised in Y; `linkPoints[1..5]` and `linkPoints[6..8]`
 /// are then sampled from two curves re-seeded from that first one.
@@ -4064,7 +4064,7 @@ static void func_actor_503500_8013A0D0(Task* arg0)
     ctrl[3].vy = tmp.vy - 2000;
     ctrl[3].vz = tmp.vz;
     for (i = 8; i >= 0; i--) {
-        bezierCurveEvaluate(ctrl, &ctrl[3], 9, i, &out[i].vx);
+        _bezierCurveEvaluate(ctrl, &ctrl[3], 9, i, &out[i].vx);
     }
     ctrl[0].vx = out[8].vx;
     ctrl[0].vy = out[8].vy;
@@ -4079,7 +4079,7 @@ static void func_actor_503500_8013A0D0(Task* arg0)
     ctrl[3].vy = out[4].vy - 2000;
     ctrl[3].vz = out[4].vz;
     for (i = 4; i >= 0; i--) {
-        bezierCurveEvaluate(ctrl, &ctrl[3], 5, i, &v.vx);
+        _bezierCurveEvaluate(ctrl, &ctrl[3], 5, i, &v.vx);
         copyVector(&work->linkPoints[5 - i], &v);
     }
     ctrl[0].vx = out[4].vx;
@@ -4095,7 +4095,7 @@ static void func_actor_503500_8013A0D0(Task* arg0)
     ctrl[3].vy = tmp.vy;
     ctrl[3].vz = tmp.vz;
     for (i = 2; i >= 0; i--) {
-        bezierCurveEvaluate(ctrl, &ctrl[3], 16, i + 12, &v.vx);
+        _bezierCurveEvaluate(ctrl, &ctrl[3], 16, i + 12, &v.vx);
         copyVector(&work->linkPoints[8 - i], &v);
     }
     func_actor_503500_8013A470(work->linkPoints, arg0->extra.tmd->coords, work->pulsePhase);

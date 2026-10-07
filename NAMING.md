@@ -380,6 +380,12 @@ exports even though their saved state and sound queue are resident.
 
 ### Packages and included shared implementations
 
+`bezierCurve` owns the included cubic Bezier coefficient conversion and reverse
+3D sampling shared by actor chains and room curve displays. Its private
+implementation interface is `src/shared/bezier_curve.h`; each carrier keeps
+static function instances marked `_`. Coefficients are signed halfword scalar
+polynomial terms, and sampling uses a parameter with 16 fractional bits.
+
 Package-specific routines keep their manifest-derived prefixes. The title
 interface is `include/title/title.h`, implemented by `src/title/title.c`.
 Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,

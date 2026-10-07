@@ -68967,7 +68967,7 @@ retype the source field to `u16` to chase an unsigned load.
 
 ## An argument used without `sll/sra` is `s32`, whatever the callers load
 
-`func_actor_503500_801422B8` converts one axis of a cubic Bezier segment into
+`_bezierCurveCoefficients` converts one axis of a cubic Bezier segment into
 polynomial coefficients. Every caller loads its four inputs with `lh` from `s16`
 fields, and every result is written back with `sh`, so m2c typed the parameters
 `s16`. That scored 68.65% (`insert=6 delete=2`): the extra instructions were
@@ -69784,23 +69784,23 @@ alias, so its position in the source limits how early the scheduler can place it
 
 ## Loop counter and output giv swapped: walk a local copy of the output pointer
 
-`func_actor_503500_8013A7B0` (cubic Bezier eval) reached 99.57% with only the
-loop counter and the `out` store pointer in each other's registers (`$a1`/`$a0`
-instead of `$a0`/`$a1`). Written as `out[i] = ...`, loop.c makes the store
+`_bezierCurveEvaluate` (cubic Bezier eval) reached 99.57% with only the
+loop counter and the `outXyz` store pointer in each other's registers (`$a1`/`$a0`
+instead of `$a0`/`$a1`). Written as `outXyz[axis] = ...`, loop.c makes the store
 address a giv (pseudo 177: 7 refs over 21 insns) that global.c ranks just
-above the counter `i` (7 refs over 22 insns), so the giv takes the first free
+above the counter `axis` (7 refs over 22 insns), so the giv takes the first free
 argument register. Walking a local copy made after the calls flips the ranking:
 
 ```c
-o = out;                     /* not `out` itself: that crosses the calls -> $s */
-for (i = 0; i < 3; i++) {
-    *o++ = ... coeff[i].vx ... coeff[i].pad;
+coordinateOut = outXyz;       /* not `outXyz` itself: that crosses the calls -> $s */
+for (axis = 0; axis < ARRAY_SIZE(coefficients); axis++) {
+    *coordinateOut++ = _bezierCurveEvaluateAxis(&coefficients[axis], parameterQ16);
 }
 ```
 
-The same loop also needed `coeff[i]` indexing rather than a walking
-`SVECTOR* c`: `c->vx`/`c->pad` split into two pointers (`$s2` and a
-`sp+0x1e` giv), while indexing let the giv reuse the callee-saved `&coeff[0]`
+The same loop also needed `coefficients[axis]` indexing rather than a walking
+`_BezierCurveAxisCoefficients* coefficient`: `coefficient->cubic`/`coefficient->constant` split into two pointers (`$s2` and a
+`sp+0x1e` giv), while indexing let the giv reuse the callee-saved `&coefficients[0]`
 already passed to the first call.
 
 ## Which reload is skipped tells you which blocks share a flags local
@@ -120773,7 +120773,7 @@ that section (`break` out of the switch and return once) may still be right for
 the function it was written for, but re-derive it from that function's dumps
 rather than from `HAVE_return` before applying it.
 
-## A dup-index `~` sibling is a drop-in body: the `=`/`~` split is the callee's link offset, not a source difference (func_dryfield_dilapidated_house_8017F418, 2026-09-17)
+## A dup-index `~` sibling is a drop-in body: the `=`/`~` split is the callee's link offset, not a source difference (_bezierCurveEvaluate, 2026-09-17)
 
 `overlay_dup_index.py find` reports a body copied into another overlay as `=`
 (identical bytes) or `~` (same body, different link offset), and `~` reads like
@@ -120783,11 +120783,11 @@ disassembly *text*, and the only line a cross-overlay copy can differ on is the
 Transcribe the matched sibling's C verbatim, rename the callee, and it matches -
 no matching loop at all.
 
-`func_dryfield_dilapidated_house_8017F418` is `~`-equal to
-`func_actor_503500_8013A7B0` (and to `func_actor_503500_80141A44`), 84
+Dryfield's `_bezierCurveEvaluate` is `~`-equal to
+actor_503500's copies in `_3.c` and `_4.c`, 84
 instructions. The two disassemblies are identical word for word apart from the
 two `jal` displacements and the label names; the callee
-`func_dryfield_dilapidated_house_80181290` is likewise `func_actor_503500_8013AC6C`
+Dryfield's `_bezierCurveCoefficients` is likewise actor_503500's copy
 with the same body (the Bezier coefficient helper). m2c's own body is
 structurally right and scores 89.864% (`regs=34 reorder=2 insert=5 delete=1`) -
 all of it allocation the sibling's C form had already solved - and the sibling's

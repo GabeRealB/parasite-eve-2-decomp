@@ -3720,7 +3720,7 @@ static void func_actor_503500_80141448(Task* arg0)
     ctrl[3].vy = tmp.vy;
     ctrl[3].vz = tmp.vz;
     for (i = ACTOR_503500_LUNGING_CHAIN_TIP_PART; i >= 0; i--) {
-        bezierCurveEvaluate(ctrl, &ctrl[3], ACTOR_503500_LUNGING_CHAIN_PART_COUNT, i, &out[i].vx);
+        _bezierCurveEvaluate(ctrl, &ctrl[3], ACTOR_503500_LUNGING_CHAIN_PART_COUNT, i, &out[i].vx);
         copyVector(&work->linkPoints[ACTOR_503500_LUNGING_CHAIN_TIP_PART - i], &out[i]);
     }
     func_actor_503500_8014176C(work->linkPoints, arg0->extra.tmd->coords);

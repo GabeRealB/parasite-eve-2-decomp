@@ -473,10 +473,10 @@ D_shelter_r48_80183EEC = 0x80183EEC; // absolute:True owner=shelter_r48 shared=r
 
 shelterR48SetBackgroundSpritesVisible = 0x8017E27C; // type:func absolute:True owner=shelter_r48 shared=rooms
 _actorMotionPlayAnim19 = 0x8014652C; // type:func
-bezierCurveEvaluate = 0x8013A7B0; // type:func allow_duplicated:True
-bezierCurveCoefficients = 0x8013AC6C; // type:func allow_duplicated:True
-bezierCurveEvaluate = 0x80141A44; // type:func allow_duplicated:True
-bezierCurveCoefficients = 0x801422B8; // type:func allow_duplicated:True
+_bezierCurveEvaluate = 0x8013A7B0; // type:func allow_duplicated:True
+_bezierCurveCoefficients = 0x8013AC6C; // type:func allow_duplicated:True
+_bezierCurveEvaluate = 0x80141A44; // type:func allow_duplicated:True
+_bezierCurveCoefficients = 0x801422B8; // type:func allow_duplicated:True
 actorMsgPlaceEuler = 0x80132508; // type:func
 _actorMsgPlaceEuler = 0x80146664; // type:func
 _actor503500CommandSlot = 0x80136f40; // type:func

@@ -3068,7 +3068,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
     SVECTOR  vec;
     DVECTOR  sx;
     DVECTOR  sy;
-    s32      out[3];
+    long     out[3];
     s32      sxy;
     s32      dp;
     s32      flag;
@@ -3079,7 +3079,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
 
     mtx = &((_DryfieldDilapidatedHouseMorphWork*)((Task*)task->spawnArg2.pointer)->work)->attachMtx;
     for (i = 20; i >= 0; i--) {
-        bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, 20, i, out);
+        _bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, 20, i, out);
         vec.vx = out[0];
         vec.vy = out[1];
         vec.vz = out[2];
@@ -3122,7 +3122,7 @@ static void func_dryfield_dilapidated_house_8017EE58(Task* task)
         addPrim(gGpuCurrentOt + 10, line);
     }
     for (i = 20; i >= 0; i--) {
-        bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4 + 3, D_dryfield_dilapidated_house_801866B4 + 6, 20, i, out);
+        _bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4 + 3, D_dryfield_dilapidated_house_801866B4 + 6, 20, i, out);
         vec.vx = out[0];
         vec.vy = out[1];
         vec.vz = out[2];
