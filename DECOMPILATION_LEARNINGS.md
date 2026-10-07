@@ -152978,3 +152978,58 @@ result variable updated in place and then returned or copied out, with any
 unrelated statement between the last update and the copy. Check with
 `used N times` in `.lreg`. A side-effect store written after the value is
 computed and before `return` is an ordinary shape and is enough.
+
+## A counter alone in its block: the unfilled load stall says no argument move was in it (func_actor_450900_8013207C, 2026-10-07)
+
+Dated note on "Unresolved, with the fence and the register both pinned to
+their passes" (2026-10-06): the `SCHED_BARRIER()` is gone. Its measurements
+stand; what changed is the acceptance of an equal-armed `if`, which that pass
+had built and set aside.
+
+**Image.** `bne rem,0x46` / `lui v0,%hi(D)` (in the slot) / `lw v1` / `nop` /
+`addiu v1,v1,1` / `sw v1` / `move a0,s2` / `li a1,0x3F1` / `move a2,zero` /
+`jal` / `move a3,zero`.
+
+**What the `nop` proves.** In one block sched1 gives `addiu` and `sw` priority
+2 and the four argument moves priority 1; backward, the `lw` is queued for one
+cycle after `addiu` and the highest-LUID leftover fills the cycle (`.sched`:
+`launching 246 before 259 with no stalls`, order `a0 a1 a2 lui lw a3 addiu sw`;
+`.greg` still has the stranded `a3 = 0`, the assembly has `move a3,a2`;
+which post-reload step rewrites it was not traced). sched2 recomputes
+the same priorities. So an unfilled stall with independent moves right below
+the store means none of them was in the block in either pass: the block held
+`lui/lw/addiu/sw` and nothing else, and its lower edge was deleted by jump2.
+A common call after the `if` chain is excluded by the same listing: `move
+a0,s2` is in each arm, and only `jal` / `move a3,zero` is shared.
+
+**Fix (fitted).**
+
+```c
+value = D_actor_450900_80136C98;
+value++;
+D_actor_450900_80136C98 = value;
+if (value != 0) { taskMessageDispatch(slot, MSG, 0, 0); }
+else            { taskMessageDispatch(slot, MSG, 0, 0); }
+```
+
+jump2 cross-jumps the arms and drops the `beqz`. Any zero test of `value`
+matches (`> 0`, plain `value`, `(D = value) != 0`); `slot != NULL` does not
+(cse puts `a0 = 0` in one arm and the arms stay apart). The counter is written
+only here in the whole image, so a test on it is at least a reason for it to
+exist; what the original tested is not recoverable.
+
+**Register half, measured again with the boundary in place.** Local-alloc
+ranks the `%hi` at 3 refs over 8 (half-insn units). A fresh `s32 count` with
+the same three statements and the same test is still block-local, because the
+branch that reads it ends the block: 5 refs over 4, takes `$v0`, `%hi` gets
+`$v1`. `D++`, `value = ++D`, `value = D + 1` load into a 2-ref temporary:
+same result, or (`value = D + 1`, `value += D`) the state variable itself
+moves to `$a0`. Only a pseudo that is live in another block is left to
+global-alloc, which runs after the `%hi` has `$v0`: `value = D; value++; D =
+value;` or `value = D; D = ++value;` on the state local (8 refs over 9,
+global). So the reused local stays; fitted constructs 2 before (asm, reused
+local), 2 after (equal arms, reused local).
+
+**Use.** An unfilled load-use `nop` directly above a call's constant argument
+moves is a deleted block boundary, not a scheduling choice; do not look for a
+statement order.

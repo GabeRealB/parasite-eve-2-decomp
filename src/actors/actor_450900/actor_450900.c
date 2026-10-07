@@ -784,11 +784,21 @@ void func_actor_450900_8013207C(Task* task)
                     Gp_PlayerWeaponId(&D_actor_450900_80135FEC.source.index);
                     TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_450900_80135FEC, 0);
                 } else if ((D_map_neo_ark_8017A99C - 0x456) % 210 == 0x46) {
+                    /* The image has the counter's lw/addiu/sw alone in a block: the load's
+                     * stall is an unfilled nop and the call's four argument moves all sit
+                     * below the store, so a branch stood between the store and the call and
+                     * left no instruction. Equal arms on the new count reproduce that; what
+                     * the original tested, and what differed between its arms, is unknown.
+                     * The count is kept in `value` (the state local) because only a variable
+                     * that lives in more than one block gets `$v1` behind the `%hi`. */
                     value = D_actor_450900_80136C98;
                     value++;
                     D_actor_450900_80136C98 = value;
-                    SCHED_BARRIER();
-                    taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                    if (value != 0) {
+                        taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                    } else {
+                        taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+                    }
                 }
             }
             return;
