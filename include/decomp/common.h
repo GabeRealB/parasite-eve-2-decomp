@@ -88,22 +88,6 @@
 #define SOFT_TOUCH_REG(x) __asm__("" : "+r"(x))
 #define SOFT_USE_REG(x)   __asm__("" :: "r"(x))
 
-/*
- * MATCHING CARRIER, not reconstructed source. Clears a dead flag and leaves an
- * empty loop behind it; a later guard then tests the flag alongside its real
- * condition. The first common-subexpression pass stops scanning at a loop end,
- * so only the second can fold that test, and folding it there limits how far
- * that pass carries an equivalence through a run of identical guards: each
- * guard past the second keeps the constant its predecessor loaded instead of
- * sharing the first. Neither the flag nor the loop leaves an instruction. Use
- * it only where that per-guard constant grouping is what the target shows; the
- * spelling that originally produced it is unknown.
- */
-#define CSE_STEER(flag) \
-    flag = 0;           \
-    do {                \
-    } while (0)
-
 /// Exports `orig`, defined in this file, under a second name `alias`: one more
 /// global symbol at the same address, adding no bytes. The compiler has no
 /// alias attribute for this target, so the assembler makes it, and it has to be

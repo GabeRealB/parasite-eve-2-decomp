@@ -42,11 +42,11 @@ and only some of it is debt.
               coprocessor instructions and are what the original source used.
               Also local `gte_<op>_real()` redefinitions, which exist because
               the stock header emits the wrong opcode.
-  scaffolding `include/decomp/**` - `SOFT_TOUCH_REG`, `SOFT_USE_REG` and
-              `CSE_STEER` exist only to steer the register allocator, the
-              scheduler and CSE. The rest of the family (`TOUCH_REG`,
-              `USE_REG`, `SCHED_BARRIER`, `COMPILER_BARRIER`, ...) was deleted
-              once unused and must not come back.
+  scaffolding `include/decomp/**` - `SOFT_TOUCH_REG` and `SOFT_USE_REG`
+              exist only to steer the register allocator and the scheduler.
+              The rest of the family (`TOUCH_REG`, `USE_REG`, `SCHED_BARRIER`,
+              `COMPILER_BARRIER`, `CSE_STEER`, ...) was deleted once unused
+              and must not come back.
   raw         inline asm from no macro at all: hand-written `lw`/`mfc2`/`%hi`
               blocks sitting in the C. The most severe of the three.
 
