@@ -55,6 +55,19 @@ enum {
     ACTOR_120300_INTERACTION_REMARK = 1  // action trigger 2: one exchange during which the player looks toward the actor
 };
 
+/// Transition duration in whole normal-rate animation frames.
+enum { ACTOR_120300_ANIMATION_BLEND_FRAMES = 10 };
+
+/// Player requests whose actions are established independently of the clip content.
+enum {
+    ACTOR_120300_PLAYER_REQUEST_NONE         = 0,
+    ACTOR_120300_PLAYER_REQUEST_AIM_AT_ACTOR = 20,
+    ACTOR_120300_PLAYER_REQUEST_CENTER_AIM   = 21,
+};
+
+/// No pending body choreography request.
+enum { ACTOR_120300_BODY_REQUEST_NONE = 0 };
+
 /// Work block of Gary Douglas in Dryfield's garage.
 ///
 /// The actor's task allocates it zeroed when it starts and keeps it at
@@ -133,17 +146,17 @@ static TmdSource _gActor120300GaryDouglasBody;
 static TmdSource _gActor120300GaryDouglasHeadHat;
 static TmdSource _gActor120300Model082F8;
 void             func_actor_120300_80132004(Task*);
-void             func_actor_120300_801321C8(Task*);
+static void      _actor120300RifleTask(Task* task);
 void             func_actor_120300_80133330(s32);
 void             func_actor_120300_801337C4(Task*);
-void             func_actor_120300_80133C38(Task*, s32, s32, s32);
-void             func_actor_120300_80133D04(s32);
-void             func_actor_120300_80133DA4(void);
-void             func_actor_120300_80133DD4(void);
-void             func_actor_120300_80133DF4(void);
-void             func_actor_120300_80133E14(s16);
-void             func_actor_120300_80133E34(s16);
-void             func_actor_120300_80133E54(void);
+static void      _actor120300HandleModelDrawMessage(Task* task, s32 unusedMessageId, s32 visible, s32 unusedSecondArg);
+static void      _actor120300SetModelsVisible(s32 visible);
+static void      _actor120300PrepareScenePlayback(void);
+static void      _actor120300StartScenePlayback(void);
+static void      _actor120300FinishSceneStream(void);
+static void      _actor120300PostPlayerRequest(s16 requestId);
+static void      _actor120300PostBodyRequest(s16 requestId);
+static void      _actor120300RemovePlayerEquipment(void);
 void             func_actor_120300_80133E94(void);
 void             func_actor_120300_80133EE4(void);
 void             func_actor_120300_80133F14(Task*);
@@ -1085,7 +1098,7 @@ s32 D_actor_120300_801409C0[24] = { -0x3E7F380, 2460, -0x3E7F380, 2000, 3200, 24
 s32 D_actor_120300_80140A20[9] = { 0x10000, 0x30002, 0, 0x50004, 0x70006, 1, 0x90008, 0xB000A, 2 };
 
 TaskMessageEntry D_actor_120300_80140A44[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_120300_80133C38 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor120300HandleModelDrawMessage },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
@@ -1111,103 +1124,103 @@ EvsCommand D_actor_120300_80140B94[102] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_120300_80140B8C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133DA4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300PrepareScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133DD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133D04 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133E54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300RemovePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133D04 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133D04 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133D04 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133D04 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133D04 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133D04 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_120300_80133D04 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133EE4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133E94 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133DF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300FinishSceneStream }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1226,8 +1239,8 @@ EvsCommand D_actor_120300_80141524[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1235,64 +1248,64 @@ EvsCommand D_actor_120300_80141524[18] = {
 
 EvsCommand D_actor_120300_801416D4[9] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_120300_801417AC[9] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_120300_80141884[9] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_120300_8014195C[9] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_actor_120300_80141A34[13] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_AIM_AT_ACTOR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_CENTER_AIM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120300_80133E34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1301,20 +1314,20 @@ TaskDesc D_actor_120300_80141B6C[5] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_801337C4, { .model = &_gActor120300GaryDouglasBody } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_120300_80133F14, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_80132004, { .model = &_gActor120300GaryDouglasHeadHat } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_801321C8, { .model = &_gActor120300Model082F8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120300RifleTask, { .model = &_gActor120300Model082F8 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
 };
 
 Task* D_actor_120300_80141BA8;
 
 static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTOR* vec);
-static s32         func_actor_120300_80131EE0(Task* arg0);
-static inline s16  _actor120300InitChild(Task* arg0, s32 part);
-static inline void _actor120300PlayAnim(Task* task, u16 anim);
-static inline void _actor120300SetAnim(Task* task, u16 anim);
-static void        func_actor_120300_80132338(Task* arg0);
-static inline void _actor120300BlendAll(Task* task, u16 anim);
-static inline void _actor120300ResetAll(Task* task, u16 anim);
+static s32         _actor120300TickBodyAnimation(Task* task);
+static inline s16  _actor120300InitChild(Task* task, s32 parentPartIndex);
+static inline void _actor120300BlendPlayerAnimation(Task* task, u16 animationId);
+static inline void _actor120300ResetPlayerAnimation(Task* task, u16 animationId);
+static void        _actor120300RunPlayerRequest(Task* task);
+static inline void _actor120300BlendBodyAnimation(Task* task, u16 animationId);
+static inline void _actor120300ResetBodyAnimation(Task* task, u16 animationId);
 static void        func_actor_120300_80132C60(Task* arg0);
 static s32         func_actor_120300_801334A4(Task* arg0);
 static void        func_actor_120300_801335D8(Task* task);
@@ -1330,44 +1343,45 @@ static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTO
     worldCoordSetModelLighting(tmd, vec, 0, 3);
 }
 
-/// Ticks slots 1..19 of a task's animation context and, if every one of them
-/// then has `ANIMATION_SLOT_SETTLED` set, re-reads the work block and
-/// restarts slots 1..19 on the id `D_actor_120300_80140980` gives for the
-/// block's `bodyAnimation`, which it stores there; a negative entry restarts
-/// nothing. Returns 1 when every slot had settled and 0 otherwise. The gotos
-/// reproduce retail's block layout.
-static s32 func_actor_120300_80131EE0(Task* arg0)
+/// Advances the body's animation and starts its next clip once every track settles.
+///
+/// Drives slots 1 to 19 of the initialized body rig. Returns 1 when all slots
+/// settled on this tick, including when a follow-on clip has just started;
+/// returns 0 while any slot is still playing. A negative follow-on entry keeps
+/// the settled pose. The rig, model and package animation data must remain live.
+static s32 _actor120300TickBodyAnimation(Task* task)
 {
     _Actor120300Work* work;
-    _Actor120300Work* animWork;
-    u16               anim;
-    u16               i;
-    u16               done;
+    _Actor120300Work* restartWork;
+    u16               nextAnimationId;
+    u16               slotIndex;
+    u16               allSettled;
 
-    work = arg0->work;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationTickSlot(&work->rig.anim, i);
+    work = task->work;
+    // Slot 0 is the model root; the animated body starts at slot 1.
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
-    i    = 1;
-    done = 1;
-    for (; i < ARRAY_SIZE(work->rig.slots); i++) {
-        if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
-            goto fail;
+    slotIndex  = 1;
+    allSettled = 1;
+    for (; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        if (!(work->rig.slots[slotIndex].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+            goto unsettled;
         }
     }
-check:
-    if (done) {
+checkSettled:
+    if (allSettled) {
         if (D_actor_120300_80140980[work->bodyAnimation] >= 0) {
-            anim                    = D_actor_120300_80140980[work->bodyAnimation];
-            animWork                = arg0->work;
-            animWork->bodyAnimation = anim;
-            goto loop;
-        fail:
-            done = 0;
-            goto check;
-        loop:
-            for (i = 1; i < ARRAY_SIZE(animWork->rig.slots); i++) {
-                animationSeekSlotWithBlend(&animWork->rig.anim, i, anim, 0, 10);
+            nextAnimationId            = D_actor_120300_80140980[work->bodyAnimation];
+            restartWork                = task->work;
+            restartWork->bodyAnimation = nextAnimationId;
+            goto restartSlots;
+        unsettled:
+            allSettled = 0;
+            goto checkSettled;
+        restartSlots:
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(restartWork->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&restartWork->rig.anim, slotIndex, nextAnimationId, 0, ACTOR_120300_ANIMATION_BLEND_FRAMES);
             }
         }
         return 1;
@@ -1375,27 +1389,33 @@ check:
     return 0;
 }
 
-/// Allocates and wires up a child's work block, anchoring its root
-/// coordinate under part `part` of the spawning task's model. Returns
-/// nonzero when the allocation failed.
-static inline s16 _actor120300InitChild(Task* arg0, s32 part)
+/// Allocates a child model's lighting storage and attaches it to its parent's model.
+///
+/// `task` owns a live model and receives a zeroed work block, released by task
+/// teardown. Its spawn argument must point to the live body task;
+/// `parentPartIndex` is an element index in that body's coordinates (4 for the
+/// head, 8 for the rifle). The parent must outlive the attachment. Returns 1 on
+/// work-allocation failure and 0 after installing lighting and message handling.
+static inline s16 _actor120300InitChild(Task* task, s32 parentPartIndex)
 {
-    TmdObject*        tmd   = arg0->extra.tmd;
-    GfxCoord*         coord = tmd->coords;
+    TmdObject*        model     = task->extra.tmd;
+    GfxCoord*         rootCoord = model->coords;
     _Actor120300Work* work;
+    Task*             parentTask;
 
     work       = memMalloc(sizeof(*work), false);
-    arg0->work = work;
+    task->work = work;
     if (work == NULL) {
         return 1;
     }
     memFillBytes(work, 0, sizeof(*work));
-    coord->parent          = ((Task*)arg0->spawnArg2.pointer)->extra.tmd->coords + part;
-    arg0->extra.tmd->flags = 0;
-    tmdAllocPrimitiveBuffer(tmd);
-    tmd->lightMtx  = &work->light;
-    tmd->colorMtx  = &work->color;
-    arg0->msgTable = D_actor_120300_80140A44;
+    parentTask             = task->spawnArg2.pointer;
+    rootCoord->parent      = parentTask->extra.tmd->coords + parentPartIndex;
+    task->extra.tmd->flags = 0;
+    tmdAllocPrimitiveBuffer(model);
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    task->msgTable  = D_actor_120300_80140A44;
     return 0;
 }
 
@@ -1450,77 +1470,86 @@ void func_actor_120300_80132004(Task* task)
     ScaleMatrix(tmd2->colorMtx, &vec);
 }
 
-/// Spawn tick of a child actor. State 0 allocates a zeroed
-/// `_Actor120300Work` block, parks it in `Task::work`, points the model's
-/// light and colour matrices at the block's `light` / `color`, clears
-/// `TmdObject::flags` and anchors the root coordinate `parent` under part 8 of
-/// the spawning task's model (`Task::spawnArg2->extra`). A failed allocation
-/// kills the task rather than stepping to state 1.
-/// Every later tick reads the parent work block's `scale` and primes the
-/// colour matrix with the root coordinate's own translation through
-/// `worldCoordSetModelLighting`, then replaces that translation with the parent scale
-/// broadcast over all three axes and folds it in with `ScaleMatrix`.
-void func_actor_120300_801321C8(Task* arg0)
+/// Initializes the rifle attachment and updates its room lighting each tick.
+///
+/// The spawn argument borrows the body task. Initialization attaches the rifle
+/// to body part 8; later placement messages may put it in the room instead.
+/// Work-allocation failure kills the task. Lighting is sampled at the composed
+/// rifle root and its directional-light coefficients receive the body's uniform
+/// Q12 multiplier (4096 is full intensity); the ambient term is unchanged.
+static void _actor120300RifleTask(Task* task)
 {
-    VECTOR     vec;
-    s32        scale;
-    u16        scaleRaw;
-    TmdObject* tmd2;
+    enum { RIFLE_PARENT_PART = 8 };
 
-    if (arg0->state == 0) {
-        if (_actor120300InitChild(arg0, 8) != 0) {
-            taskKill(arg0);
+    VECTOR            lightingVector;
+    u16               lightingScale;
+    TmdObject*        model;
+    Task*             parentTask;
+    _Actor120300Work* parentWork;
+
+    if (task->state == 0) {
+        if (_actor120300InitChild(task, RIFLE_PARENT_PART) != 0) {
+            taskKill(task);
             return;
         }
-        arg0->state += 1;
+        task->state += 1;
     }
-    tmd2     = arg0->extra.tmd;
-    scaleRaw = ((_Actor120300Work*)((Task*)arg0->spawnArg2.pointer)->work)->scale;
-    vec.vx   = tmd2->coords->workm.t[0];
-    vec.vy   = arg0->extra.tmd->coords->workm.t[1];
-    vec.vz   = arg0->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(tmd2, &vec, 0, 3);
-    scale  = scaleRaw;
-    vec.vz = scale;
-    vec.vy = scale;
-    vec.vx = scale;
-    ScaleMatrix(tmd2->colorMtx, &vec);
+    // Sample room lighting before applying the scene's intensity multiplier.
+    model             = task->extra.tmd;
+    parentTask        = task->spawnArg2.pointer;
+    parentWork        = parentTask->work;
+    lightingScale     = parentWork->scale;
+    lightingVector.vx = model->coords->workm.t[0];
+    lightingVector.vy = task->extra.tmd->coords->workm.t[1];
+    lightingVector.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingVector, 0, 3);
+    lightingVector.vz = lightingScale;
+    lightingVector.vy = lightingScale;
+    lightingVector.vx = lightingScale;
+    ScaleMatrix(model->colorMtx, &lightingVector);
 }
 
-/// Records `anim` in the block's `playerAnimation` and sends the player's task
-/// `ANIMATION_MESSAGE_INSTALL_AND_PLAY` to blend into animation `anim` of
-/// `D_actor_120300_801408CC`. Does nothing while `playerTask` is unset.
-static inline void _actor120300PlayAnim(Task* task, u16 anim)
+/// Installs the garage scene's player clips and blends into the selected animation.
+///
+/// `animationId` is a loaded player-set index, 0 to 16. Playback enters scripted
+/// mode at normal rate with world collision enabled and a ten-frame blend.
+/// Records the clip for follow-on playback. Does nothing without a player task;
+/// otherwise that task and the package data must remain live through playback.
+static inline void _actor120300BlendPlayerAnimation(Task* task, u16 animationId)
 {
     _Actor120300Work*    work = task->work;
-    AnimationPlayRequest msg;
+    AnimationPlayRequest request;
 
     if (work->playerTask != NULL) {
-        msg.source.sets          = D_actor_120300_801408CC;
-        work->playerAnimation    = anim;
-        msg.animationId          = anim;
-        msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-        msg.blendFrames          = 0xA;
-        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        request.source.sets          = D_actor_120300_801408CC;
+        work->playerAnimation        = animationId;
+        request.animationId          = animationId;
+        request.blend                = ANIMATION_BLEND_INTERPOLATE;
+        request.blendFrames          = ACTOR_120300_ANIMATION_BLEND_FRAMES;
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
     }
 }
 
-/// As `_actor120300PlayAnim`, but with `field_8` zero, so the receiver resets
-/// its animation slots to `anim` instead of blending.
-static inline void _actor120300SetAnim(Task* task, u16 anim)
+/// Installs the garage scene's player clips and resets playback to the selected animation.
+///
+/// `animationId` is a loaded player-set index, 0 to 16. Enters scripted mode at
+/// normal rate with world collision enabled, without blending from the old pose.
+/// Records the clip for follow-on playback. Does nothing without a player task;
+/// otherwise that task and the package data must remain live through playback.
+static inline void _actor120300ResetPlayerAnimation(Task* task, u16 animationId)
 {
     _Actor120300Work*    work = task->work;
-    AnimationPlayRequest msg;
+    AnimationPlayRequest request;
 
     if (work->playerTask != NULL) {
-        msg.source.sets          = D_actor_120300_801408CC;
-        work->playerAnimation    = anim;
-        msg.animationId          = anim;
-        msg.blend                = ANIMATION_BLEND_RESET;
-        msg.blendFrames          = 0;
-        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+        request.source.sets          = D_actor_120300_801408CC;
+        work->playerAnimation        = animationId;
+        request.animationId          = animationId;
+        request.blend                = ANIMATION_BLEND_RESET;
+        request.blendFrames          = 0;
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
     }
 }
 
@@ -1543,67 +1572,93 @@ static inline void _actor120300SetAnim(Task* task, u16 anim)
         TASK_MESSAGE_DISPATCH_POINTER((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                                \
     }
 
-/// Performs the request posted in `playerRequest`. While the session event
-/// state is set and the player's animation has finished, it first plays the
-/// animation `D_actor_120300_8014095C` gives as the follower of
-/// `playerAnimation`.
-/// The switch sends the player animation requests, placements and the weapon
-/// animation, then clears the request. Request 9 counts 16 ticks in
-/// `playerRequestFrames` first. Request 20 steps `playerAimYaw` by 0x30 a tick
-/// toward the bearing between the actor and the player and request 21 steps it
-/// back to zero, each storing it to the player's aim yaw; 20 is not cleared
-/// here and holds the aim until another request is posted.
-static void func_actor_120300_80132338(Task* arg0)
+/// Computes the scene's player aim bearing in 4096 angle units per turn.
+///
+/// Reads both model roots in parent coordinates, choosing the X/Z signs from
+/// their full-width X ordering. Differences use each coordinate's low unsigned
+/// halfword and narrow to signed halfwords before the angle calculation.
+static inline s16 _actor120300GetPlayerAimYaw(const GfxCoord* actorCoord, const GfxCoord* playerCoord)
 {
+    s32 deltaX;
+    s32 deltaZ;
+
+    if (actorCoord->coord.t[0] > playerCoord->coord.t[0]) {
+        deltaX = (u16)actorCoord->coord.t[0] - (u16)playerCoord->coord.t[0];
+        deltaZ = (u16)playerCoord->coord.t[2] - (u16)actorCoord->coord.t[2];
+    } else {
+        deltaX = (u16)playerCoord->coord.t[0] - (u16)actorCoord->coord.t[0];
+        deltaZ = (u16)actorCoord->coord.t[2] - (u16)playerCoord->coord.t[2];
+    }
+    return ratan2((s16)deltaZ, (s16)deltaX);
+}
+
+/// Advances player choreography posted by the garage scene's scripts.
+///
+/// The body work block must be initialized and its player task live whenever a
+/// placement, rate or aim request is pending. Clip helpers tolerate no player.
+/// During an event, a settled clip starts its nonnegative follow-on animation.
+/// Requests normally clear after dispatch; request 9 waits sixteen updates,
+/// aiming at the actor remains latched, and centering clears on reaching zero.
+/// The other numbered beats are defined by the scripts and animation data.
+static void _actor120300RunPlayerRequest(Task* task)
+{
+    enum {
+        PLAYER_ANIMATION_DELAY_TICKS = 16,
+        PLAYER_AIM_STEP              = 48, // Angle units per update, 4096 units per turn.
+    };
     _Actor120300Work* work;
+    _Actor120300Work* dispatchWork;
     GameActor*        player;
     GfxCoord*         actorCoord;
     GfxCoord*         playerCoord;
-    s32               dx;
-    s32               dz;
-    s32               diff;
-    s16               target;
-    s16               cur;
-    ActorTransform*   rec;
+    s32               yawDistance;
+    s16               targetYaw;
+    s16               currentYaw;
+    ActorTransform*   placement;
     Task*             playerTask;
 
-    work = arg0->work;
+    work = task->work;
+    // A pending script request may replace the follow-on clip started here.
     if (gGameSession->eventState != 0) {
         if ((work->playerTask != NULL) && (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0)) {
             if (D_actor_120300_8014095C[work->playerAnimation] >= 0) {
-                _actor120300PlayAnim(arg0, D_actor_120300_8014095C[work->playerAnimation]);
+                _actor120300BlendPlayerAnimation(task, D_actor_120300_8014095C[work->playerAnimation]);
             }
         }
     }
     switch (work->playerRequest) {
-        case 0:
+        case ACTOR_120300_PLAYER_REQUEST_NONE:
             break;
         case 1:
-            _actor120300SetAnim(arg0, 0);
+            _actor120300ResetPlayerAnimation(task, 0);
             break;
         case 2:
-            rec = &D_actor_120300_80140A54[6];
-            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, rec, 0);
-            /* Both views belong to the same placement table. */
-            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, rec - 5, 0);
+            placement    = &D_actor_120300_80140A54[6];
+            dispatchWork = task->work;
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, placement, 0);
+            // Send the movement destination after placing the player at the approach start.
+            dispatchWork = task->work;
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, placement - 5, 0);
             break;
         case 3:
-            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[1], 0);
-            _actor120300SetAnim(arg0, 1);
+            dispatchWork = task->work;
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[1], 0);
+            _actor120300ResetPlayerAnimation(task, 1);
             break;
         case 4:
-            _actor120300PlayAnim(arg0, 2);
+            _actor120300BlendPlayerAnimation(task, 2);
             break;
         case 5:
             taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[2], 0);
-            _actor120300PlayAnim(arg0, 3);
+            dispatchWork = task->work;
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[2], 0);
+            _actor120300BlendPlayerAnimation(task, 3);
             break;
         case 7:
-            _actor120300PlayAnim(arg0, 5);
+            _actor120300BlendPlayerAnimation(task, 5);
             break;
         case 8:
-            _actor120300PlayAnim(arg0, 6);
+            _actor120300BlendPlayerAnimation(task, 6);
             break;
         case 9:
             switch (work->playerRequestStep) {
@@ -1612,82 +1667,77 @@ static void func_actor_120300_80132338(Task* arg0)
                     work->playerRequestStep++;
                     break;
                 case 1:
-                    if (++work->playerRequestFrames >= 0x10) {
-                        _actor120300PlayAnim(arg0, 7);
-                        work->playerRequest = 0;
+                    if (++work->playerRequestFrames >= PLAYER_ANIMATION_DELAY_TICKS) {
+                        _actor120300BlendPlayerAnimation(task, 7);
+                        work->playerRequest = ACTOR_120300_PLAYER_REQUEST_NONE;
                     }
                     break;
             }
             return;
         case 10:
-            _actor120300PlayAnim(arg0, 8);
-            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            _actor120300BlendPlayerAnimation(task, 8);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
             break;
         case 11:
-            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[3], 0);
-            _actor120300PlayAnim(arg0, 0xB);
-            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            dispatchWork = task->work;
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[3], 0);
+            _actor120300BlendPlayerAnimation(task, 0xB);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
             break;
         case 12:
-            _actor120300PlayAnim(arg0, 9);
-            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 0x18, 0);
+            _actor120300BlendPlayerAnimation(task, 9);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE * 3 / 2, 0);
             break;
         case 13:
-            TASK_MESSAGE_DISPATCH_POINTER(((_Actor120300Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[5], 0);
-            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->playerTask, 0, 0);
+            dispatchWork = task->work;
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[5], 0);
+            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->playerTask, ANIMATION_BLEND_RESET, 0);
             break;
         case 14:
-            _actor120300PlayAnim(arg0, 0xF);
-            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            _actor120300BlendPlayerAnimation(task, 0xF);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
             break;
         case 15:
-            _actor120300PlayAnim(arg0, 0xE);
-            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            _actor120300BlendPlayerAnimation(task, 0xE);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
             break;
         case 16:
-            _actor120300PlayAnim(arg0, 0xD);
-            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            _actor120300BlendPlayerAnimation(task, 0xD);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
             break;
         case 17:
-            _actor120300PlayAnim(arg0, 0xE);
-            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            _actor120300BlendPlayerAnimation(task, 0xE);
+            taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
             break;
         case 18:
-            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->playerTask, 1, 0xA);
+            ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->playerTask, ANIMATION_BLEND_INTERPOLATE, ACTOR_120300_ANIMATION_BLEND_FRAMES);
             break;
         case 19:
-            _actor120300PlayAnim(arg0, 0x10);
+            _actor120300BlendPlayerAnimation(task, 0x10);
             break;
-        case 20:
+        case ACTOR_120300_PLAYER_REQUEST_AIM_AT_ACTOR:
             playerTask  = work->playerTask;
-            actorCoord  = arg0->extra.tmd->coords;
+            actorCoord  = task->extra.tmd->coords;
             playerCoord = playerTask->extra.tmd->coords;
-            player      = (GameActor*)playerTask->work;
+            player      = playerTask->work;
             switch (work->playerRequestStep) {
                 case 0:
                     work->playerAimYaw = player->aimYaw;
                     work->playerRequestStep++;
                     /* fallthrough */
                 case 1:
-                    if (actorCoord->coord.t[0] > playerCoord->coord.t[0]) {
-                        dx = (u16)actorCoord->coord.t[0] - (u16)playerCoord->coord.t[0];
-                        dz = (u16)playerCoord->coord.t[2] - (u16)actorCoord->coord.t[2];
-                    } else {
-                        dx = (u16)playerCoord->coord.t[0] - (u16)actorCoord->coord.t[0];
-                        dz = (u16)actorCoord->coord.t[2] - (u16)playerCoord->coord.t[2];
+                    targetYaw   = _actor120300GetPlayerAimYaw(actorCoord, playerCoord);
+                    currentYaw  = work->playerAimYaw;
+                    yawDistance = targetYaw - currentYaw;
+                    if (yawDistance < 0) {
+                        yawDistance = -yawDistance;
                     }
-                    target = ratan2((s16)dz, (s16)dx);
-                    cur    = work->playerAimYaw;
-                    diff   = target - cur;
-                    if (diff < 0) {
-                        diff = -diff;
-                    }
-                    if (diff < 0x31) {
+                    if (yawDistance < PLAYER_AIM_STEP + 1) {
                         work->playerRequestStep++;
-                    } else if (cur < target) {
-                        work->playerAimYaw = cur + 0x30;
+                    } else if (currentYaw < targetYaw) {
+                        work->playerAimYaw = currentYaw + PLAYER_AIM_STEP;
                     } else {
-                        work->playerAimYaw = cur - 0x30;
+                        work->playerAimYaw = currentYaw - PLAYER_AIM_STEP;
                     }
                     /* fallthrough */
                 case 2:
@@ -1695,23 +1745,23 @@ static void func_actor_120300_80132338(Task* arg0)
                     return;
             }
             return;
-        case 21: {
-            GameActor* aim;
+        case ACTOR_120300_PLAYER_REQUEST_CENTER_AIM: {
+            GameActor* centeringPlayer;
 
-            aim = (GameActor*)work->playerTask->work;
-            if (ABS(work->playerAimYaw) < 0x31) {
+            centeringPlayer = work->playerTask->work;
+            if (ABS(work->playerAimYaw) < PLAYER_AIM_STEP + 1) {
                 work->playerAimYaw  = 0;
-                work->playerRequest = 0;
+                work->playerRequest = ACTOR_120300_PLAYER_REQUEST_NONE;
             } else if (work->playerAimYaw < 0) {
-                work->playerAimYaw += 0x30;
+                work->playerAimYaw += PLAYER_AIM_STEP;
             } else {
-                work->playerAimYaw -= 0x30;
+                work->playerAimYaw -= PLAYER_AIM_STEP;
             }
-            aim->aimYaw = work->playerAimYaw;
+            centeringPlayer->aimYaw = work->playerAimYaw;
             return;
         }
     }
-    work->playerRequest = 0;
+    work->playerRequest = ACTOR_120300_PLAYER_REQUEST_NONE;
 }
 
 /// Cross-fades body slots 1..19 of `work`'s animation context to animation
@@ -1724,31 +1774,37 @@ static void func_actor_120300_80132338(Task* arg0)
         }                                                                         \
     } while (0)
 
-/// Records `anim` in the block's `bodyAnimation` and cross-fades every body
-/// slot to it over ten frames.
-static inline void _actor120300BlendAll(Task* task, u16 anim)
+/// Blends the body's animated parts into a selected clip over ten normal-rate frames.
+///
+/// `task` must have an initialized body rig with live model and animation data.
+/// `animationId` selects a non-NULL body set (1 or 4 to 18). Drives slots 1 to 19,
+/// preserves their playback rates, and records the clip for follow-on playback.
+static inline void _actor120300BlendBodyAnimation(Task* task, u16 animationId)
 {
     _Actor120300Work* work = task->work;
 
-    work->bodyAnimation = anim;
-    _ACTOR120300_BLEND_SLOTS(work, anim, 10);
+    work->bodyAnimation = animationId;
+    _ACTOR120300_BLEND_SLOTS(work, animationId, ACTOR_120300_ANIMATION_BLEND_FRAMES);
 }
 
-/// Records `anim` in the block's `bodyAnimation` and restarts every body slot
-/// on it at rate 0x10.
-static inline void _actor120300ResetAll(Task* task, u16 anim)
+/// Restarts the body's animated parts on a selected clip at normal playback rate.
+///
+/// `task` must have an initialized body rig with live model and animation data.
+/// `animationId` selects a non-NULL body set (1 or 4 to 18). Resets slots 1 to 19
+/// without a transition pose and records the clip for follow-on playback.
+static inline void _actor120300ResetBodyAnimation(Task* task, u16 animationId)
 {
     _Actor120300Work* work = task->work;
-    u16               i;
+    u16               slotIndex;
 
-    work->bodyAnimation = anim;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        work->rig.slots[i].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&work->rig.anim, i, anim);
+    work->bodyAnimation = animationId;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&work->rig.anim, slotIndex, animationId);
     }
 }
 
-/// After `func_actor_120300_80131EE0`, performs the request posted in
+/// After `_actor120300TickBodyAnimation`, performs the request posted in
 /// `bodyRequest` (0..19): most start an animation on slots 1..19, recording it
 /// in `bodyAnimation`, through `animationSeekSlotWithBlend` or
 /// `animationResetSlot`; a few also place the body or the rifle with
@@ -1767,13 +1823,13 @@ static void func_actor_120300_80132C60(Task* arg0)
     tmd   = arg0->extra.tmd;
     work  = arg0->work;
     coord = tmd->coords;
-    func_actor_120300_80131EE0(arg0);
+    _actor120300TickBodyAnimation(arg0);
     switch (work->bodyRequest) {
         case 1:
             switch (work->bodyRequestStep) {
                 case 0:
                     TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[7], 0);
-                    _actor120300ResetAll(arg0, 1);
+                    _actor120300ResetBodyAnimation(arg0, 1);
                     work->bodyRequestStep++;
                     return;
                 case 1:
@@ -1782,7 +1838,7 @@ static void func_actor_120300_80132C60(Task* arg0)
                     x                  -= 0x14;
                     coord->coord.t[0]   = x;
                     if (x < 0xF3D) {
-                        _actor120300BlendAll(arg0, 0xE);
+                        _actor120300BlendBodyAnimation(arg0, 0xE);
                         work->bodyRequest = 0;
                     }
                     return;
@@ -1792,62 +1848,62 @@ static void func_actor_120300_80132C60(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[8], 0);
             break;
         case 3:
-            _actor120300BlendAll(arg0, 4);
+            _actor120300BlendBodyAnimation(arg0, 4);
             break;
         case 4:
-            _actor120300BlendAll(arg0, 0x12);
+            _actor120300BlendBodyAnimation(arg0, 0x12);
             break;
         case 5:
-            _actor120300BlendAll(arg0, 6);
+            _actor120300BlendBodyAnimation(arg0, 6);
             break;
         case 6:
-            _actor120300BlendAll(arg0, 7);
+            _actor120300BlendBodyAnimation(arg0, 7);
             break;
         case 7:
-            _actor120300BlendAll(arg0, 0xD);
+            _actor120300BlendBodyAnimation(arg0, 0xD);
             break;
         case 8:
             msg = &D_actor_120300_80140A54[9];
             TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, msg, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, msg + 2, 0);
-            _actor120300ResetAll(arg0, 8);
+            _actor120300ResetBodyAnimation(arg0, 8);
             break;
         case 9:
-            _actor120300BlendAll(arg0, 0xB);
+            _actor120300BlendBodyAnimation(arg0, 0xB);
             break;
         case 10:
-            _actor120300BlendAll(arg0, 9);
+            _actor120300BlendBodyAnimation(arg0, 9);
             break;
         case 11:
-            _actor120300BlendAll(arg0, 0xA);
+            _actor120300BlendBodyAnimation(arg0, 0xA);
             break;
         case 12:
-            _actor120300BlendAll(arg0, 0xC);
+            _actor120300BlendBodyAnimation(arg0, 0xC);
             break;
         case 13:
             work->scale = 0x400;
             TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[12], 0);
-            _actor120300ResetAll(arg0, 0xE);
+            _actor120300ResetBodyAnimation(arg0, 0xE);
             break;
         case 14:
             work->scale = 0x1000;
             break;
         case 15:
-            _actor120300BlendAll(arg0, 0xF);
+            _actor120300BlendBodyAnimation(arg0, 0xF);
             break;
         case 16:
-            _actor120300BlendAll(arg0, 0x10);
+            _actor120300BlendBodyAnimation(arg0, 0x10);
             break;
         case 17:
             TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[10], 0);
-            _actor120300ResetAll(arg0, 0x11);
+            _actor120300ResetBodyAnimation(arg0, 0x11);
             break;
         case 18:
             TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[9], 0);
-            _actor120300ResetAll(arg0, 8);
+            _actor120300ResetBodyAnimation(arg0, 8);
             break;
         case 19:
-            _actor120300BlendAll(arg0, 5);
+            _actor120300BlendBodyAnimation(arg0, 5);
             break;
         case 0:
         default:
@@ -2136,7 +2192,7 @@ void func_actor_120300_801337C4(Task* arg0)
             break;
     }
 
-    func_actor_120300_80132338(arg0);
+    _actor120300RunPlayerRequest(arg0);
     func_actor_120300_80132C60(arg0);
     scratch.draw.shadowOffset.vx = 0;
     scratch.draw.shadowOffset.vy = 0x380;
@@ -2154,77 +2210,103 @@ void func_actor_120300_801337C4(Task* arg0)
 
 #include "../../shared/screen_fade_out.inc.c"
 
-/// Message 0x7D5 handler: a nonzero `arg2` shows the task's model (clears
-/// `TmdObject` flag 0x80), zero hides it. `arg1` is the message id.
-void func_actor_120300_80133C38(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Enables or suppresses active drawing of the receiving body, head or rifle model.
+///
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW`: zero hides, any nonzero value shows.
+/// The model must be live; buffer ownership and other draw flags are unchanged.
+/// The message produces no defined result, so callers must discard it.
+static void _actor120300HandleModelDrawMessage(Task* task, s32 unusedMessageId, s32 visible, s32 unusedSecondArg)
 {
-    TmdObject* obj;
+    TmdObject* model;
 
-    obj = task->extra.tmd;
-    if (arg2 != 0) {
-        obj->flags = obj->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model = task->extra.tmd;
+    if (visible != 0) {
+        model->flags = model->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    obj->flags = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->flags = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
 #include "../../shared/actor_messages_place_in_view.inc.c"
 
-/// Broadcasts message 0x7D5 -- the visibility control the actor's display task
-/// handles -- to the actor itself and to the `headTask` and `rifleTask` of
-/// its work block.
-/// Sending it is the whole body: `arg0` is the message's payload and only 0/1
-/// are accepted.
-void func_actor_120300_80133D04(s32 arg0)
+/// Sets active drawing of the body, head and rifle together for an event script.
+///
+/// Accepts 0 to hide or 1 to show; other values do nothing. Requires the
+/// published body task and both initialized child tasks to remain live.
+static void _actor120300SetModelsVisible(s32 visible)
 {
     _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
-    if (arg0 == 0) {
+    if (visible == 0) {
         taskMessageDispatch(D_actor_120300_80141BA8, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
         taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
         taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-    } else if (arg0 == 1) {
+    } else if (visible == 1) {
         taskMessageDispatch(D_actor_120300_80141BA8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
         taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
         taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     }
 }
 
-void func_actor_120300_80133DA4(void)
+/// Stages the selected scene's audio start and requests a deferred view refresh.
+///
+/// Called after the script selects its scene stream. The selected descriptor
+/// and prepared playback buffers must remain live until the CD request runs.
+static void _actor120300PrepareScenePlayback(void)
 {
     cdCmdStageSceneAudioStart();
     gGameSession->viewDirty = 1;
 }
 
-void func_actor_120300_80133DD4(void)
+/// Queues playback of the selected garage scene's prepared stream.
+///
+/// The event script waits three updates after preparing audio before this call.
+/// The selected scene and its playback buffers must remain live through playback.
+static void _actor120300StartScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-void func_actor_120300_80133DF4(void)
+/// Finishes the garage scene's stream session and restores its saved random state.
+///
+/// Requires prior scene selection. The event interpreter owns stream teardown;
+/// this callback marks completion without releasing buffers or cancelling CD work.
+static void _actor120300FinishSceneStream(void)
 {
     streamFinishScene();
 }
 
-void func_actor_120300_80133E14(s16 arg0)
+/// Replaces the pending player choreography request and restarts its first stage.
+///
+/// The event script supplies the low signed halfword of its argument, stored as
+/// u16 without validation. Scripts use 0 to 21 (0 clears); request 6 is unhandled
+/// and cleared by the tick. Requires the published body task and its work live.
+static void _actor120300PostPlayerRequest(s16 requestId)
 {
     _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
-    work->playerRequest     = arg0;
+    work->playerRequest     = requestId;
     work->playerRequestStep = 0;
 }
 
-void func_actor_120300_80133E34(s16 arg0)
+/// Replaces the pending body choreography request and restarts its first stage.
+///
+/// The event script supplies the low signed halfword of its argument, stored as
+/// u16 without validation. Scripts use 0 to 19 (0 clears). Requires the published
+/// body task and its work live; child tasks must survive requests addressing them.
+static void _actor120300PostBodyRequest(s16 requestId)
 {
     _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
-    work->bodyRequest     = arg0;
+    work->bodyRequest     = requestId;
     work->bodyRequestStep = 0;
 }
 
-/// Kills the player's equipment tasks for the scene, once: sets the block's
-/// `playerEquipmentRemoved`, which `func_actor_120300_80133E94` clears.
-void func_actor_120300_80133E54(void)
+/// Removes the player's equipment once while the garage scene owns the player.
+///
+/// Requires the initialized body and player tasks. Marks equipment suppressed
+/// before removal; subsequent calls do nothing until the scene restores it.
+static void _actor120300RemovePlayerEquipment(void)
 {
     _Actor120300Work* work = D_actor_120300_80141BA8->work;
 

@@ -216,3 +216,14 @@ gDryfieldGarageCollision0108CVerts = 0x8017DEA4; // absolute:True owner=dryfield
 gDryfieldGarageCollision0108CFaces = 0x8017E1F4; // absolute:True owner=dryfield_garage shared=rooms
 _screenFadeOutTask = 0x80133B5C; // type:func
 actorMsgPlaceInView = 0x80133C6C; // type:func
+_actor120300TickBodyAnimation = 0x80131ee0; // type:func
+_actor120300RifleTask = 0x801321c8; // type:func
+_actor120300RunPlayerRequest = 0x80132338; // type:func
+_actor120300HandleModelDrawMessage = 0x80133c38; // type:func
+_actor120300SetModelsVisible = 0x80133d04; // type:func
+_actor120300PrepareScenePlayback = 0x80133da4; // type:func
+_actor120300StartScenePlayback = 0x80133dd4; // type:func
+_actor120300FinishSceneStream = 0x80133df4; // type:func
+_actor120300PostPlayerRequest = 0x80133e14; // type:func
+_actor120300PostBodyRequest = 0x80133e34; // type:func
+_actor120300RemovePlayerEquipment = 0x80133e54; // type:func

@@ -656,7 +656,7 @@ into a +4 IV. Same family as "one counter per loop, not one shared".
 
 ## A `move` into the branch register is a copy cse deletes unless the copied value is opaque: `TOUCH_REG` keeps it
 
-`func_actor_120300_801321C8` sets a kill flag in both arms of an `if`/`else` and
+`_actor120300RifleTask` sets a kill flag in both arms of an `if`/`else` and
 the ROM branches on a *copy* of it:
 
 ```
@@ -124325,7 +124325,7 @@ tails.
 
 ## A function that is a sibling plus one block is matched by splicing, not by decompiling (func_actor_120300_80132004, 2026-09-17)
 
-`func_actor_120300_80132004` is `func_actor_120300_801321C8` - the next function
+`func_actor_120300_80132004` is `_actor120300RifleTask` - the next function
 in the same TU, same `0x38` frame, same `memMalloc`/`memFillBytes`/
 `tmdAllocPrimitiveBuffer` prologue, same `worldCoordSetModelLighting` + `ScaleMatrix` tail - with one
 constant changed and one block inserted before the state step. m2c's rendering
@@ -124371,9 +124371,9 @@ Inputs: scratch `nonmatchings/func_actor_120300_80132004-vacuum`, `base.c`
 73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`), `base_1.c` 100.000%,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Re-assigning one C variable for a reload keeps both loads in one pseudo (func_actor_120300_80131EE0, 2026-09-17)
+## Re-assigning one C variable for a reload keeps both loads in one pseudo (_actor120300TickBodyAnimation, 2026-09-17)
 
-`func_actor_120300_80131EE0` reloads `index->work` after the tick loop that
+`_actor120300TickBodyAnimation` reloads `task->work` after the tick loop that
 clobbers memory, and retail's two loads land in *different* registers:
 
 ```
@@ -124393,10 +124393,10 @@ value out of the shared tail block and into the delay slots of both branches
 (`bltz $2,$L23; li $2,1` and a second copy in the loop's `bne` slot) instead of
 leaving it in the `j`'s slot as retail does.
 
-Declaring a second variable for the reload - `work` then `animWork`, the pair
+Declaring a second variable for the reload - `work` then `restartWork`, the pair
 this overlay already uses in `func_actor_120300_80133330` /
 `func_actor_120300_801335D8` - makes two pseudos. The reload's birth at
-`lw` ties it to the dying `index` in `$s2` (`lw $s2,0x1c($s2)`), which leaves
+`lw` ties it to the dying `task` in `$s2` (`lw $s2,0x1c($s2)`), which leaves
 `$s1` free for the animation id, and the whole tail falls into place:
 `92.041%` -> `100.000%` with every penalty zero and no other edit.
 
@@ -124428,7 +124428,7 @@ for an explicit truncation. The field type is the better edit when the field has
 exactly one reader (here the overlay's three units), since the two writers store
 small positive ids and the `sh` is unaffected either way.
 
-Inputs: scratch `nonmatchings/func_actor_120300_80131EE0-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor120300TickBodyAnimation-vacuum`, `base.c`
 72.918% (`branch=2 regs=51 reorder=2 insert=8 delete=8`), `base_1.c` 89.338%,
 `base_2.c` 92.041%, `base_3.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -142634,7 +142634,7 @@ non-user-variable argument into the formal's own pseudo, cse folds the second
 whose label has several predecessors - the single-predecessor arm is reached
 by cse's jump following and reads the original. Passing a named local instead
 substitutes it directly and the copy disappears.
-## More stack slots than message locals: a block-scope aggregate claims the inline temp it lands on (func_actor_120300_80132338, 2026-09-26)
+## More stack slots than message locals: a block-scope aggregate claims the inline temp it lands on (_actor120300RunPlayerRequest, 2026-09-26)
 
 A request switch sends the same `AnimationPlayRequest` payload from twenty places, and the
 target frame has three 0x18-byte slots: 0x10 for the early cases, 0x28 from
@@ -142650,10 +142650,10 @@ expansions that land in a fresh slot address the payload through a register
 boundary.
 
 Constants passed as inline parameters are materialised before the helper's
-`if`, so `li v1,1` moved above the null test. Fixing `field_8`/`field_C` inside
+`if`, so `li v1,1` moved above the null test. Fixing `request.blend`/`request.blendFrames` inside
 two helpers (blend vs. reset) put it back after the test. Which copy of the
 identical dispatch tails survives cross-jumping was set by case 9: written as
-`PlayAnim(7); work->playerRequest = 0; return;`, not `break`, its copy is the one
+`_actor120300BlendPlayerAnimation(task, 7); work->playerRequest = 0; return;`, not `break`, its copy is the one
 the other cases jump into, as in the target.
 
 ## Values computed at the head of each outer iteration may be the inner loop's invariants, written at their use (func_actor_403600_80132A18, 2026-09-26)
@@ -150300,10 +150300,10 @@ attempts; left as it was.
   three copies of the fill only if *every* site uses it
   (`_actor03800UpdateColorAtRoot`): with the caller's own `vec` still in use
   at one site the frame is 16 bytes larger.
-- Not converted: `func_actor_120300_80131EE0`, the settle scan of
+- Not converted: `_actor120300TickBodyAnimation`, the settle scan of
   `func_actor_342000_80161EA4` (batch 09) again. The plain flag-and-`break`
-  form puts the `done = 0` block behind the `return 1` jump; the image has it
-  between the `bodyAnimation` store and the seek loop's `i = 1`, where no
+  form puts the `allSettled = 0` block behind the `return 1` jump; the image has it
+  between the `bodyAnimation` store and the seek loop's `slotIndex = 1`, where no
   structured form leaves an unconditional jump.
 ## Goto removal, batch 22: the `ret1:` chain, the companion's drive states, a stop tail (2026-10-06)
 
