@@ -695,8 +695,8 @@ static void func_acropolis_helicopter_landing_pad_8017ED50(Task* arg0)
     D_acropolis_helicopter_landing_pad_80187F90.areaId    = GAME_AREA_ACROPOLIS_FIRE_ESCAPE;
     D_acropolis_helicopter_landing_pad_80187F90.warp      = 3;
     D_acropolis_helicopter_landing_pad_80187F90.queryOnly = ROOM_EVENT_EXECUTE;
-    if (Gp_DispatchMsgPtrs(slot, ROOM_EVENT_MESSAGE_RESOLVE, &D_acropolis_helicopter_landing_pad_80187F90,
-                           &D_acropolis_helicopter_landing_pad_80187F90) != 0) {
+    if (TASK_MESSAGE_DISPATCH_POINTERS(slot, ROOM_EVENT_MESSAGE_RESOLVE, &D_acropolis_helicopter_landing_pad_80187F90,
+                                       &D_acropolis_helicopter_landing_pad_80187F90) != 0) {
         arg0->state += 1;
     } else {
         taskKill(arg0);

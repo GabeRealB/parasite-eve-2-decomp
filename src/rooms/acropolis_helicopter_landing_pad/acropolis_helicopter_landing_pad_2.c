@@ -1612,7 +1612,7 @@ void func_acropolis_helicopter_landing_pad_8017E76C(Task* task)
         case 0:
             moveAnim.approachAnimId = 0xC;
             moveAnim.arrivalAnimId  = 9;
-            Gp_DispatchMsgPtrs(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_MOVE_TO, &D_acropolis_helicopter_landing_pad_801837E0, &moveAnim);
+            TASK_MESSAGE_DISPATCH_POINTERS(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_MOVE_TO, &D_acropolis_helicopter_landing_pad_801837E0, &moveAnim);
             task->state++;
             break;
         case 1:

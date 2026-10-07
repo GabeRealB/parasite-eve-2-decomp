@@ -266,7 +266,7 @@ void Gp_SetupDirWarp(void)
     Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
     Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
 
-    ret        = Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
+    ret        = TASK_MESSAGE_DISPATCH_POINTERS(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
     D_80114CF4 = ret;
 
     switch (ret) {
@@ -307,7 +307,7 @@ void Gp_SetupDirWarp(void)
                 Gp_WarpLoc.areaId    = Gp_DirByte;
                 Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
                 Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
-                Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
+                TASK_MESSAGE_DISPATCH_POINTERS(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
                 D_80114CF8              = 0;
                 Gp_DirNibble            = 0;
                 Gp_DirByte              = 0;
@@ -340,7 +340,7 @@ void Gp_SetupDirWarp(void)
             Gp_WarpLoc.areaId    = Gp_DirByte;
             Gp_WarpLoc.warp      = Gp_DirNibble & 0xF;
             Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
-            Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
+            TASK_MESSAGE_DISPATCH_POINTERS(slot7, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
             D_80114CF8              = 0;
             Gp_DirNibble            = 0;
             Gp_DirByte              = 0;
@@ -405,7 +405,7 @@ void Gp_CommitWarp(void)
     Gp_WarpLoc.areaId = Gp_DirByte;
     loc->warp         = Gp_DirNibble & 0xF;
     loc->flagId       = warpEntry.mapFlagId;
-    Gp_DispatchMsgPtrs(slot7, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
+    TASK_MESSAGE_DISPATCH_POINTERS(slot7, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
 
     if (D_80114CF0 != 0) {
         if (cfg->hp > 0) {

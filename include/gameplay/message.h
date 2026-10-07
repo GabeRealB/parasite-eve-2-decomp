@@ -623,14 +623,24 @@ s32 taskMessageDispatch(Task* receiver, s32 messageId, s32 firstArg, s32 secondA
 #define TASK_MESSAGE_DISPATCH_SECOND_POINTER(receiver, messageId, firstArg, payload) \
     taskMessageDispatch((receiver), (messageId), (firstArg), (s32)(payload))
 
-/// Send two object addresses through the same word-based message interface.
-static __inline__ s32 Gp_DispatchMsgPtrs(Task* task, s32 id, const void* data, const void* reply)
-{
-    TaskMessageArg payload;
-    TaskMessageArg response;
-    payload.pointer  = data;
-    response.pointer = reply;
-    return taskMessageDispatch(task, id, payload.value, response.value);
-}
+/// Dispatches a synchronous task message with object addresses in both payload words.
+///
+/// `receiver` must be a live task; use the message domain of `taskMessageDispatch`.
+/// Its message table and `messageId` select each object's type, complete extent,
+/// alignment and whether the handler reads it, writes it, or both. Null or
+/// aliased addresses are valid only when that message permits them.
+/// Storage is borrowed as described by `TaskMessageArg`; this adapter neither
+/// copies nor retains the objects. Keep each object live through dispatch and
+/// any later use required by the selected message.
+///
+/// The handler's signed result is returned unchanged; its meaning is
+/// message-specific. An absent table or a search reaching the table's end
+/// marker returns zero.
+///
+/// Each argument is evaluated once, with ordinary function-argument ordering.
+/// The casts encode the complete object addresses as the PS1's 32-bit integer
+/// message ABI words directly in the call expression.
+#define TASK_MESSAGE_DISPATCH_POINTERS(receiver, messageId, firstPayload, secondPayload) \
+    taskMessageDispatch((receiver), (messageId), (s32)(firstPayload), (s32)(secondPayload))
 
 #endif // GAMEPLAY_MESSAGE_H

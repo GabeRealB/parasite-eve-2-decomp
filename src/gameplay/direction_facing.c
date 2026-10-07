@@ -136,7 +136,7 @@ void Gp_CommitDirWarp(void)
     loc->field_4      = 1;
     loc->room         = 1;
     loc->queryOnly    = ROOM_EVENT_EXECUTE;
-    Gp_DispatchMsgPtrs(slot, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
+    TASK_MESSAGE_DISPATCH_POINTERS(slot, ROOM_EVENT_MESSAGE_RESOLVE, loc, loc);
 
     save                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     save->state.location.loc.area = (u8)Gp_WarpLoc.areaId;
