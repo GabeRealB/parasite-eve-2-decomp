@@ -44642,7 +44642,7 @@ done
 
 then rename the first label back to `glabel <parent>`, append one `endlabel`,
 assemble, and `mips-linux-gnu-objcopy --remove-section=.pdr target.o` if any
-`.ent` survived. `Actor00300_L04CB4` (arm of `Actor00300_Fn04C20`) is the
+`.ent` survived. `Actor00300_L04CB4` (arm of `_actor00300TickAction`) is the
 example; scoring it this way gives 99.848% with the `%hi(Actor00300_Jt00054)`
 vs `%hi(.rodata)` pair as the only diff.
 
@@ -77464,13 +77464,13 @@ project's `MATRIX` is `short m[3][3]; long t[3];`, so both sides are nine
 puts `m[1][0]` at +8 and leaves gaps in the store run. Those copies also load
 `lhu`, not `lh`: the result is truncated by the store, so GCC picks the
 unsigned load — no `(u16)` cast in the source is needed to get it.
-## Global priority tie: widening a masked angle preserves its early variable pseudo (Actor00300_Fn04528)
+## Global priority tie: widening a masked angle preserves its early variable pseudo (_actor00300TurnFireballTowardPlayer)
 
 The valid 99.430% seed had only coord/want s1/s2 reversed. .lreg coord=6 refs/48 insns and want=3/12 are global, equal priority 0.25. A declared s16 want was folded into synthesized SI mask pseudo r117, later than coord r81. Declaring s32 want first preserved its early variable pseudo: .combine mask destination reg/v:SI 81; .greg allocated it before coord r82, producing 100% with unchanged instruction order and scratch s0. The mask bounds want to 0..4095, so widening preserves values.
 
 Controlled base_4 changed only declaration order in the widened source: coord became r81, want r82, counts/lifetimes stayed 6/48 and 3/12, and exactly the nine register mismatches returned. Patched global.c allocno_compare breaks equal priorities by allocno index. This is a global tie-break example, not a general declaration-order allocator rule.
 
-The router's retained apparent improvement was invalid: an uninitialized pointer load dropped one coord reference. It was rejected and not ported. Full observations and rejected output are preserved under tools/permuter_findings/Actor00300_Fn04528/; session PERMUTER_ANALYSIS.md identifies dumps and prediction records.
+The router's retained apparent improvement was invalid: an uninitialized pointer load dropped one coord reference. It was rejected and not ported. Full observations and rejected output are preserved under tools/permuter_findings/_actor00300TurnFireballTowardPlayer/; session PERMUTER_ANALYSIS.md identifies dumps and prediction records.
 
 base_3.i SHA256: `ba10e47470d9c97a8cf7a7cb179aeef409108283201cd3c724bf96628888d3fd`.
 
@@ -98316,7 +98316,7 @@ Session: `nonmatchings/func_actor_521100_80135DDC-vacuum` (`base_1.i.greg`,
 ## A zero-init's position is part of the match: it picks the branch delay slot and the prologue save order (func_actor_521100_80135C14, 2026-09-16)
 
 The seed's `frames = 0` sat first, where m2c rendered it; rewriting the body to
-the family's style — `Actor00300_Fn05304` and `func_actor_503500_80135950` write
+the family's style — `_actor00300MsgPlayAnimation` and `func_actor_503500_80135950` write
 that init *after* the work-block field stores — moved it down and cost two hunks
 that look like pure scheduling noise:
 
@@ -145754,7 +145754,7 @@ The inner `return 0`s jump to the return label and the trailing `return 1` is
 reached from the guard as well, so there is no lone `x = 0 / x = 1` diamond for
 store-flag to fold.
 
-## A scratch matrix taken with `SCRATCH_STACK_RESERVE_BLOCK(MATRIX)`, not load-then-store, before `gte_MulMatrix0` (Actor00300_Fn0340C, 2026-09-27)
+## A scratch matrix taken with `SCRATCH_STACK_RESERVE_BLOCK(MATRIX)`, not load-then-store, before `gte_MulMatrix0` (_actor00300ApplyHitTwist, 2026-09-27)
 
 `RotMatrix(angles, m)` into a scratch-pad `MATRIX` followed by the nine-macro
 `SetRotMatrix / ldclmv / rtir / stclmv` column sequence had its `m` and the

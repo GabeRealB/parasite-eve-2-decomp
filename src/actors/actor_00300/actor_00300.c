@@ -20,6 +20,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -146,6 +147,12 @@ enum {
     ACTOR_00300_MOTE_SPAWN_MASK    = 3      // Emit on one of four upper-halfword draws
 };
 
+/// Draw-request bits retained for the enemy and its drain attachment during events.
+enum {
+    ACTOR_00300_EVENT_DRAW_SHOW             = 1 << 0,
+    ACTOR_00300_EVENT_DRAW_SKIP_AUTO_BUFFER = 1 << 1
+};
+
 /// Work block of the package's enemy task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
@@ -255,11 +262,11 @@ extern s16 Actor00300_D16394[];
 extern s16 Actor00300_D16000[];
 extern s16 Actor00300_D15FF8[];
 
-static void Actor00300_Fn048D4(Enemy* arg0, Task* arg1);
+static void _actor00300TickEvent(Enemy* enemy, Task* task);
 static void Actor00300_Fn04958(Enemy* arg0, Task* arg1);
 
 static void Actor00300_Fn00970(Enemy* enemy, Task* task);
-static void Actor00300_Fn04528(Task* arg0);
+static void _actor00300TurnFireballTowardPlayer(Task* task);
 static void Actor00300_Fn00E54(Task* arg0);
 static void _actor00300TickPatrol(Task* task);
 static void _actor00300TickPursuit(Task* task);
@@ -269,21 +276,21 @@ static void _actor00300TickDrainAttack(Task* task);
 static void _actor00300TickHeal(Task* task);
 static void _actor00300TickHurt(Task* task);
 static void _actor00300TickRecharge(Task* task);
-static void Actor00300_Fn032BC(Task* arg0);
-static void Actor00300_Fn0340C(Task* arg0);
-static void Actor00300_Fn03A1C(Task* arg0);
+static void _actor00300TurnTowardTargetYaw(Task* task);
+static void _actor00300ApplyHitTwist(Task* task);
+static void _actor00300PlayAnimationCueSounds(Task* task);
 static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1);
 static void Actor00300_Fn047CC(Enemy* arg0, Task* arg1);
-static void Actor00300_Fn04A2C(Task* arg0);
-static void Actor00300_Fn04C20(Task* arg0);
+static void _actor00300TickStatusReactions(Task* task);
+static void _actor00300TickAction(Task* task);
 static void _actor00300TickBuildup(Task* task);
-static void Actor00300_Fn04E30(Task* arg0);
+static void _actor00300Move(Task* task);
 static void _actor00300UpdateAnimation(Task* task);
 static void _actor00300UpdateLighting(Task* task);
 static void _actor00300DrawShadow(Task* task);
 static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2);
 static void _actor00300InitDrainModel(Enemy* enemy, Task* task);
-static void Actor00300_Fn05278(Enemy* arg0, Task* arg1);
+static void _actor00300TeardownFireball(Enemy* enemy, Task* task);
 
 extern EnemyParams           Actor00300_D15FE8;
 extern _Actor00300PatrolRoom Actor00300_D16020[15];
@@ -327,9 +334,9 @@ static AnimationSet _gActor00300Actor100300Animation15594;
 static AnimationSet _gActor00300Actor100300Animation15FB0;
 static TmdSource    _gActor00300StingerBody;
 static TmdSource    _gActor00300Actor100300Model09FA0;
-s32                 Actor00300_Fn05304(Task*, s32, AnimationPlayRequest*, s32);
-s32                 Actor00300_Fn053EC(Task*, s32, s32, s32);
-s32                 Actor00300_Fn05434(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
+static s32          _actor00300MsgPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
+static s32          _actor00300MsgSetModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedSecondArg);
+static s32          _actor00300MsgApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedSecondArg);
 void                Actor00300_Fn04770(Task*);
 static void         _actor00300DrainModelTask(Task* task);
 void                Actor00300_Fn0521C(Task*);
@@ -1230,10 +1237,10 @@ TaskDesc Actor00300_D162F0[3] = {
 };
 
 TaskMessageEntry Actor00300_D16314[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, Actor00300_Fn05304 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor00300MsgPlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, Actor00300_Fn053EC },
-    { ACTOR_COMMAND_MESSAGE_APPLY, Actor00300_Fn05434 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor00300MsgSetModelDraw },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor00300MsgApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1305,11 +1312,11 @@ static TmdSource _gActor00300Actor100300Model0BFC0;
 
 extern void* D_80067704[1];
 
-static inline s16      _actor00300TiltMagnitude(s8 value);
+static inline s16      _actor00300TiltMagnitude(s8 randomByte);
 static void            Actor00300_Fn03618(Task* arg0);
 static __inline__ void _actor00300UpdateDrainModel(Task* task);
 static void            _actor00300DrainModelActive(Enemy* enemy, Task* task);
-static void            Actor00300_Fn040A4(Enemy* arg0, Task* arg1);
+static void            _actor00300InitFireball(Enemy* enemy, Task* task);
 static void            Actor00300_Fn04370(Enemy* arg0, Task* arg1);
 
 #include "../../shared/fireball_glow.inc.c"
@@ -1491,10 +1498,16 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
         }                                                                   \
     } while (0)
 
-/// Maps a random byte's low seven bits to a tilt magnitude of 0x40..0xBF.
-static inline s16 _actor00300TiltMagnitude(s8 value)
+/// Maps a random byte to a hit-twist magnitude of 64..191 angle units.
+///
+/// Uses the low seven bits even for a signed input (4096 units per turn).
+/// The hit reaction chooses the sign separately from the same random byte.
+static inline s16 _actor00300TiltMagnitude(s8 randomByte)
 {
-    return (value & 0x7F) + 0x40;
+    enum { ACTOR_00300_HIT_TWIST_RANDOM_MASK = 0x7F,
+           ACTOR_00300_HIT_TWIST_MIN         = 64 };
+
+    return (randomByte & ACTOR_00300_HIT_TWIST_RANDOM_MASK) + ACTOR_00300_HIT_TWIST_MIN;
 }
 
 static void Actor00300_Fn00E54(Task* arg0)
@@ -2430,10 +2443,12 @@ static void _actor00300TickHeal(Task* task)
     }
 }
 
-/// Ends an owned charge halo and stops its matching sound instance.
+/// Releases a live charge halo and stops the sound instance held by the enemy.
 ///
-/// The caller passes the halo pointer read before changing action state; NULL
-/// leaves all charge state intact. Requires initialized work and a live halo.
+/// Borrows initialized enemy work and an optional live halo. A non-NULL halo
+/// receives its release task state, then the stored pointer and timer clear and
+/// the sound stop keeps the current ADSR release policy. NULL changes nothing;
+/// the halo task owns its eventual release.
 static inline void _actor00300StopCharge(_Actor00300Work* work, EffectWork* chargeEffect)
 {
     if (chargeEffect != NULL) {
@@ -2679,118 +2694,129 @@ static void _actor00300TickRecharge(Task* task)
 }
 #undef ACTOR_00300_SPAWN_CHARGE_MOTE
 
-static void Actor00300_Fn032BC(Task* arg0)
+/// Turns the enemy root toward its requested heading by at most `turnRate`.
+///
+/// Requires initialized TMD work, a target yaw in 0..4095 and a nonnegative
+/// turn rate, all in 4096 units per turn. Reads the current yaw from the matrix,
+/// chooses the shorter arc and rebuilds pure Y rotation, retaining translation.
+/// At exactly half a turn it takes the wrapped arc. The caller dirties and
+/// composes the root afterward. Borrows one `ActorFaceScratch`.
+static void _actor00300TurnTowardTargetYaw(Task* task)
 {
     _Actor00300Work*  work;
     GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               ang;
-    u16               want;
-    s16               diff;
-    s32               adiff;
-    s32               step;
-    s32               cur;
-    s32               next;
-    s32               wrapStep;
+    ActorFaceScratch* scratch;
+    s32               matrixYaw;
+    u16               targetYaw;
+    s16               yawDelta;
+    s32               yawMagnitude;
+    s32               turnRate;
+    s32               currentYaw;
+    s32               nextYaw;
+    s32               wrappedTurnRate;
 
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->targetYaw;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    coord        = task->extra.tmd->coords;
+    work         = task->work;
+    matrixYaw    = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    targetYaw    = work->targetYaw;
+    yawDelta     = targetYaw - matrixYaw;
+    yawMagnitude = yawDelta >= 0 ? yawDelta : -yawDelta;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step = work->turnRate;
-        if (step >= adiff) {
-            work->yaw = want;
+    work->yaw = matrixYaw;
+    if (yawMagnitude < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        turnRate = work->turnRate;
+        if (turnRate >= yawMagnitude) {
+            work->yaw = targetYaw;
         } else {
-            next = work->yaw;
-            if (diff <= 0) {
-                next -= step;
+            nextYaw = work->yaw;
+            if (yawDelta <= 0) {
+                nextYaw -= turnRate;
             } else {
-                next += step;
+                nextYaw += turnRate;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        step = work->turnRate;
-        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+        turnRate = work->turnRate;
+        if (yawDelta > 0 ? turnRate >= ACTOR_TRANSFORM_ANGLE_TURN - yawDelta : turnRate >= ACTOR_TRANSFORM_ANGLE_TURN + yawDelta) {
             work->yaw = work->targetYaw;
         } else {
-            wrapStep = work->turnRate;
-            cur      = work->yaw;
-            if (diff > 0) {
-                work->yaw = cur - wrapStep;
+            wrappedTurnRate = work->turnRate;
+            currentYaw      = work->yaw;
+            if (yawDelta > 0) {
+                work->yaw = currentYaw - wrappedTurnRate;
             } else {
-                work->yaw = cur + wrapStep;
+                work->yaw = currentYaw + wrappedTurnRate;
             }
         }
     }
-    sc->rot.vx = 0;
-    sc->rot.vy = work->yaw;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    scratch->rot.vx = 0;
+    scratch->rot.vy = work->yaw;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &coord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-/// Turns the model's fourth coordinate by the angles in `hitTwist`, then
-/// eases the x and y angles back toward zero by 0x20 a call; once both have
-/// settled, clears `hitTwistActive`.
-static void Actor00300_Fn0340C(Task* arg0)
+/// Applies the hit recoil to body part 3 and eases its two angles toward zero.
+///
+/// Requires the initialized nineteen-part TMD rig and active `hitTwist`.
+/// Postmultiplies that part's animated rotation, retaining translation, then
+/// reduces each nonzero angle by up to 32 units (4096 per turn). Clears the
+/// active flag once both settle. Borrows a scratch matrix and changes GTE state.
+static void _actor00300ApplyHitTwist(Task* task)
 {
+    enum { ACTOR_00300_HIT_TWIST_RETURN_STEP = 32 };
+
+    /// Eases one hit-twist angle, raising the shared latch while another tick is needed.
+    ///
+    /// All arguments must be side-effect-free lvalues and the temporaries must
+    /// be distinct signed words. Uses this function's angle-unit return step;
+    /// the caller initializes the shared latch to zero before easing both axes.
+#define ACTOR_00300_EASE_HIT_TWIST(angle, angleValue, magnitude, nextAngle, activeLatch) \
+    {                                                                                    \
+        (angleValue) = (angle);                                                          \
+        if ((angleValue) != 0) {                                                         \
+            (magnitude) = __builtin_abs(angleValue);                                     \
+            if ((magnitude) <= ACTOR_00300_HIT_TWIST_RETURN_STEP) {                      \
+                (angle) = 0;                                                             \
+            } else {                                                                     \
+                (nextAngle) = (angleValue) - ACTOR_00300_HIT_TWIST_RETURN_STEP;          \
+                if ((angleValue) <= 0) {                                                 \
+                    (nextAngle) = (angleValue) + ACTOR_00300_HIT_TWIST_RETURN_STEP;      \
+                }                                                                        \
+                (angle)       = (nextAngle);                                             \
+                (activeLatch) = 1;                                                       \
+            }                                                                            \
+        }                                                                                \
+    }
+
     _Actor00300Work* work;
-    GfxCoord*        coord;
-    MATRIX*          matrix;
+    GfxCoord*        parts;
+    MATRIX*          twistMatrix;
     s32              angleX;
     s32              angleY;
     s32              absX;
     s32              nextX;
     s32              absY;
     s32              nextY;
-    s32              active;
+    s32              stillTwisting;
 
-    matrix = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    active = 0;
-    work   = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    RotMatrix(&work->hitTwist, matrix);
-    gte_MulMatrix0(&coord[3].coord, matrix, &coord[3].coord);
-    angleX = work->hitTwist.vx;
-    if (angleX != 0) {
-        absX = __builtin_abs(angleX);
-        if (absX < 0x21) {
-            work->hitTwist.vx = 0;
-        } else {
-            nextX = angleX - 0x20;
-            if (angleX <= 0) {
-                nextX = angleX + 0x20;
-            }
-            work->hitTwist.vx = nextX;
-            active            = 1;
-        }
-    }
-    angleY = work->hitTwist.vy;
-    if (angleY != 0) {
-        absY = __builtin_abs(angleY);
-        if (absY < 0x21) {
-            work->hitTwist.vy = 0;
-        } else {
-            nextY = angleY - 0x20;
-            if (angleY <= 0) {
-                nextY = angleY + 0x20;
-            }
-            work->hitTwist.vy = nextY;
-            active            = 1;
-        }
-    }
-    if (active == 0) {
+    twistMatrix   = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
+    stillTwisting = 0;
+    work          = task->work;
+    parts         = task->extra.tmd->coords;
+    // Apply recoil to the animated part before easing the angles for the next tick.
+    RotMatrix(&work->hitTwist, twistMatrix);
+    gte_MulMatrix0(&parts[3].coord, twistMatrix, &parts[3].coord);
+    ACTOR_00300_EASE_HIT_TWIST(work->hitTwist.vx, angleX, absX, nextX, stillTwisting);
+    ACTOR_00300_EASE_HIT_TWIST(work->hitTwist.vy, angleY, absY, nextY, stillTwisting);
+    if (stillTwisting == 0) {
         work->hitTwistActive = 0;
     }
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
+#undef ACTOR_00300_EASE_HIT_TWIST
 
 static void Actor00300_Fn03618(Task* arg0)
 {
@@ -2933,30 +2959,39 @@ static void Actor00300_Fn03618(Task* arg0)
     }
 }
 
-static void Actor00300_Fn03A1C(Task* arg0)
+/// Plays the actor's two cue sounds when their slot-1 record bits fall.
+///
+/// Requires initialized rig, root coordinate and enemy placement key. Reads
+/// the current record without advancing playback; NULL leaves the saved cue
+/// bits intact. Sound instances use the placement index and root audio position.
+/// Only cue bits are retained for the next tick.
+static void _actor00300PlayAnimationCueSounds(Task* task)
 {
-    _Actor00300Work*       work;
-    const AnimationRecord* rec;
-    GfxCoord*              coord;
-    s32                    sound;
-    s32                    pan;
-    s32                    pan2;
+    enum { ACTOR_00300_SOUND_CUE_2 = 0x40030001,
+           ACTOR_00300_SOUND_CUE_1 = 0x40030002 };
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    rec   = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
-    if (rec != NULL) {
-        if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->lastCueFlags & ANIMATION_RECORD_CUE_2)) {
-            sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030001;
-            pan   = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    _Actor00300Work*       work;
+    const AnimationRecord* record;
+    GfxCoord*              rootCoord;
+    s32                    soundId;
+    s32                    cue2Pan;
+    s32                    cue1Pan;
+
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    record    = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
+    if (record != NULL) {
+        if (!(record->flags & ANIMATION_RECORD_CUE_2) && (work->lastCueFlags & ANIMATION_RECORD_CUE_2)) {
+            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_CUE_2;
+            cue2Pan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundId, cue2Pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
-        if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->lastCueFlags & ANIMATION_RECORD_CUE_1)) {
-            sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030002;
-            pan2  = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(sound, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+        if (!(record->flags & ANIMATION_RECORD_CUE_1) && (work->lastCueFlags & ANIMATION_RECORD_CUE_1)) {
+            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_CUE_1;
+            cue1Pan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundId, cue1Pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
-        work->lastCueFlags = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
+        work->lastCueFlags = (u16)(record->flags & ANIMATION_RECORD_CUE_MASK);
     }
 }
 
@@ -3063,10 +3098,12 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
     }
 }
 
-/// Rebuilds one drain-model matrix from its rest transform and prepared Q12 scale.
+/// Rebuilds the drain coordinate with a prepared local-axis Q12 scale from its rest matrix.
 ///
-/// All pointers borrow live, disjoint coordinate, matrix and scratch storage.
-/// Translation is copied from rest and is not scaled; composition is invalidated.
+/// Borrows live coordinate, saved matrix and disjoint scratch storage. The scale
+/// vector is prepared by the caller (4096 means full scale); this operation
+/// initializes only the scratch rotation, postmultiplies the saved rotation and
+/// preserves saved translation. Invalidates composition and changes GTE state.
 static inline void _actor00300ApplyDrainScale(GfxCoord* coord, const MATRIX* restMatrix, ActorScaleScratch* scratch)
 {
     coord->coord = *restMatrix;
@@ -3135,60 +3172,44 @@ static void _actor00300DrainModelActive(Enemy* enemy, Task* task)
     _actor00300UpdateDrainModel(task);
 }
 
-static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
+/// Initializes and links the fireball's attack sphere before pair tests are enabled.
+///
+/// Borrows a live coordinate-body task, zeroed fireball work and the launching
+/// enemy's work. The attack index must be 1..3; the body borrows the task's
+/// coordinate and its own one-entry contact table until teardown unlinks it.
+static inline void _actor00300InitFireballAttackBody(Task* task, _Actor00300FireballWork* work, const _Actor00300Work* parentWork)
 {
-    _Actor00300Work*         parentWork;
-    Task*                    parent;
-    _Actor00300FireballWork* work;
-    ActorOffsetScratch*      scratch;
-    ActorOffsetScratch*      head;
-    SVECTOR*                 offset;
-    GfxCoord*                coord;
-    GfxCoord*                parentCoord;
-    GfxCoord*                objCoord;
-    GfxCoord*                objCoord2;
+    enum { ACTOR_00300_FIREBALL_HIT_RADIUS = 450 };
+    GfxCoord* coord;
 
-    head                                     = SCRATCH_STACK_CURSOR(ActorOffsetScratch);
-    scratch                                  = head - 1;
-    SCRATCH_STACK_CURSOR(ActorOffsetScratch) = scratch;
-    offset                                   = &scratch->offset;
-    parent                                   = arg1->parent;
-    coord                                    = arg1->extra.tmd->coords;
-    parentCoord                              = parent->extra.tmd->coords;
-    parentWork                               = parent->work;
-    work                                     = memCalloc(sizeof(_Actor00300FireballWork), 0);
-    if (work == NULL) {
-        enemyDestroy(arg0, arg1);
-        return;
-    }
-    arg1->work         = work;
-    scratch->offset.vx = 0;
-    scratch->offset.vy = -0x5DC;
-    scratch->offset.vz = 0x320;
-    gte_SetRotMatrix(&parentCoord->coord);
-    gte_ldv0(offset);
-    gte_rtv0();
-    gte_stlvnl(&scratch->rotated);
-    coord->parent               = &gGfxViewCoord;
-    coord->coord                = parentCoord->coord;
-    coord->coord.t[0]           = parentCoord->coord.t[0] + scratch->rotated.vx;
-    coord->coord.t[1]           = parentCoord->coord.t[1] + scratch->rotated.vy;
-    coord->coord.t[2]           = parentCoord->coord.t[2] + scratch->rotated.vz;
-    coord->composeStamp         = GRAPHICS_COORD_DIRTY;
-    objCoord                    = arg1->extra.tmd->coords;
+    coord                       = task->extra.coordBody->coord;
     work->body.context.contacts = work->contacts;
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
-    work->body.coord            = objCoord;
+    work->body.coord            = coord;
     work->body.key              = damagePackAttackKey(Actor00300_D15FD8, parentWork->fireballAttack);
-    work->body.radius           = 450;
+    work->body.radius           = ACTOR_00300_FIREBALL_HIT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
-    work->sweepCapsule.ends[1].vz   = -0x1A4;
-    work->sweepCapsule.end0Radius   = 1;
-    work->sweepCapsule.end1Radius   = 1;
+}
+
+/// Links the trailing grid-probe capsule and enables the attack sphere's pair tests.
+///
+/// Requires a linked attack sphere and zeroed sweep storage. The 420-unit
+/// capsule covers one 400-unit flight step with radius 1 at both ends.
+/// Borrows the live task coordinate and the work's one-entry sweep-contact table;
+/// the caller enables grid tests after starting the flight countdown.
+static inline void _actor00300InitFireballSweepBody(Task* task, _Actor00300FireballWork* work)
+{
+    enum { ACTOR_00300_FIREBALL_SWEEP_LENGTH = 420,
+           ACTOR_00300_FIREBALL_SWEEP_RADIUS = 1 };
+    GfxCoord* coord;
+
+    work->sweepCapsule.ends[1].vz   = -ACTOR_00300_FIREBALL_SWEEP_LENGTH;
+    work->sweepCapsule.end0Radius   = ACTOR_00300_FIREBALL_SWEEP_RADIUS;
+    work->sweepCapsule.end1Radius   = ACTOR_00300_FIREBALL_SWEEP_RADIUS;
     work->sweepCapsule.ends[0].vx   = 0;
     work->sweepCapsule.ends[0].vy   = 0;
     work->sweepCapsule.ends[0].vz   = 0;
@@ -3196,7 +3217,7 @@ static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
     work->sweepCapsule.ends[1].vy   = 0;
     work->sweepCapsule.contacts     = work->sweepContacts;
     work->body.flags               |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    objCoord2                       = arg1->extra.tmd->coords;
+    coord                           = task->extra.coordBody->coord;
     work->sweepBody.context.capsule = &work->sweepCapsule;
     work->sweepBody.pos.vx          = 0;
     work->sweepBody.pos.vy          = 0;
@@ -3204,13 +3225,66 @@ static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
     work->sweepBody.key             = 0;
     work->sweepBody.radius          = 0;
     work->sweepBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->sweepBody.coord           = objCoord2;
+    work->sweepBody.coord           = coord;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sweepBody);
     worldCollisionInitContacts(work->sweepContacts, ARRAY_SIZE(work->sweepContacts), 0);
+}
+
+/// Places and arms a fireball, then detaches it from the launching enemy.
+///
+/// Requires a coordinate-body child of a live TMD enemy with initialized work
+/// and attack index 1..3. Launches 1500 units above and 800 forward in the
+/// parent's frame, borrowing `gGfxViewCoord` thereafter. Owns a zeroed fireball
+/// work allocation and links its attack sphere and grid sweep capsule. Success
+/// starts the flight countdown and task state 1. Allocation failure destroys
+/// the child and retains the reserved scratch block, as in the binary.
+static void _actor00300InitFireball(Enemy* enemy, Task* task)
+{
+    enum { ACTOR_00300_FIREBALL_LAUNCH_Y = -1500,
+           ACTOR_00300_FIREBALL_LAUNCH_Z = 800,
+           ACTOR_00300_FIREBALL_TASK_FLY = 1 };
+
+    _Actor00300Work*         parentWork;
+    Task*                    parent;
+    _Actor00300FireballWork* work;
+    ActorOffsetScratch*      scratch;
+    SVECTOR*                 offset;
+    GfxCoord*                coord;
+    GfxCoord*                parentCoord;
+
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorOffsetScratch);
+    offset      = &scratch->offset;
+    parent      = task->parent;
+    coord       = task->extra.coordBody->coord;
+    parentCoord = parent->extra.tmd->coords;
+    parentWork  = parent->work;
+    work        = memCalloc(sizeof(_Actor00300FireballWork), 0);
+    if (work == NULL) {
+        // Retained failure path leaves the scratch block reserved.
+        enemyDestroy(enemy, task);
+        return;
+    }
+    task->work         = work;
+    scratch->offset.vx = 0;
+    scratch->offset.vy = ACTOR_00300_FIREBALL_LAUNCH_Y;
+    scratch->offset.vz = ACTOR_00300_FIREBALL_LAUNCH_Z;
+    // Carry the local launch offset through the parent rotation before detaching.
+    gte_SetRotMatrix(&parentCoord->coord);
+    gte_ldv0(offset);
+    gte_rtv0();
+    gte_stlvnl(&scratch->rotated);
+    coord->parent       = &gGfxViewCoord;
+    coord->coord        = parentCoord->coord;
+    coord->coord.t[0]   = parentCoord->coord.t[0] + scratch->rotated.vx;
+    coord->coord.t[1]   = parentCoord->coord.t[1] + scratch->rotated.vy;
+    coord->coord.t[2]   = parentCoord->coord.t[2] + scratch->rotated.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor00300InitFireballAttackBody(task, work, parentWork);
+    _actor00300InitFireballSweepBody(task, work);
     work->timer            = ACTOR_00300_FIREBALL_FLIGHT_TICKS;
     work->sweepBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-    taskDetachFromParent(arg1);
-    arg1->state = 1;
+    taskDetachFromParent(task);
+    task->state = ACTOR_00300_FIREBALL_TASK_FLY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorOffsetScratch);
 }
 
@@ -3243,7 +3317,7 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
                 expired = 1;
             }
             worldCollisionClearContacts(work->sweepContacts);
-            Actor00300_Fn04528(arg1);
+            _actor00300TurnFireballTowardPlayer(arg1);
             timer       = work->timer - 1;
             work->timer = timer;
             if (timer <= 0 || (work->contacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) || expired != 0) {
@@ -3256,50 +3330,59 @@ static void Actor00300_Fn04370(Enemy* arg0, Task* arg1)
     }
 }
 
-static void Actor00300_Fn04528(Task* arg0)
+/// Steers the fireball toward the player's X/Z position by up to 12 angle units.
+///
+/// Requires a live coordinate-body task and player matrix. Angles use 4096
+/// units per turn; the position difference narrows to signed 16 bits before
+/// the bearing calculation. Uses the shorter arc, retaining the delta's sign
+/// at exactly half a turn. Replaces pitch and roll while retaining translation;
+/// the flight caller owns composition invalidation. Borrows `ActorFaceScratch`.
+static void _actor00300TurnFireballTowardPlayer(Task* task)
 {
-    s32               want;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s16               cur;
-    s32               ang;
-    s32               current;
-    s16               diff;
-    s32               adiff;
-    s16               turn;
-    s16               wrap;
+    enum { ACTOR_00300_FIREBALL_TURN_RATE = 12 };
 
-    coord        = arg0->extra.tmd->coords;
-    sc           = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    sc->delta.vy = 0;
-    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-    ang          = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    cur          = ang;
-    diff         = want - ang;
-    adiff        = diff >= 0 ? diff : -diff;
-    turn         = diff;
-    if (adiff < 0xD) {
-        cur = want;
+    s32               targetYaw;
+    GfxCoord*         coord;
+    ActorFaceScratch* scratch;
+    s16               nextYaw;
+    s32               matrixYaw;
+    s32               currentYaw;
+    s16               yawDelta;
+    s32               yawMagnitude;
+    s16               turnDirection;
+    s16               wrappedDelta;
+
+    coord             = task->extra.coordBody->coord;
+    scratch           = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    scratch->delta.vy = 0;
+    scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    targetYaw         = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+    matrixYaw         = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    nextYaw           = matrixYaw;
+    yawDelta          = targetYaw - matrixYaw;
+    yawMagnitude      = yawDelta >= 0 ? yawDelta : -yawDelta;
+    turnDirection     = yawDelta;
+    if (yawMagnitude <= ACTOR_00300_FIREBALL_TURN_RATE) {
+        nextYaw = targetYaw;
     } else {
-        if (adiff >= 0x801) {
-            wrap = diff - 0x1000;
-            if (diff <= 0) {
-                wrap = 0x1000 - diff;
+        if (yawMagnitude > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+            wrappedDelta = yawDelta - ACTOR_TRANSFORM_ANGLE_TURN;
+            if (yawDelta <= 0) {
+                wrappedDelta = ACTOR_TRANSFORM_ANGLE_TURN - yawDelta;
             }
-            turn = wrap;
+            turnDirection = wrappedDelta;
         }
-        current = cur;
-        cur     = current + 0xC;
-        if (turn <= 0) {
-            cur = current - 0xC;
+        currentYaw = nextYaw;
+        nextYaw    = currentYaw + ACTOR_00300_FIREBALL_TURN_RATE;
+        if (turnDirection <= 0) {
+            nextYaw = currentYaw - ACTOR_00300_FIREBALL_TURN_RATE;
         }
     }
-    sc->rot.vx = 0;
-    sc->rot.vy = cur;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    scratch->rot.vx = 0;
+    scratch->rot.vy = nextYaw;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &coord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
@@ -3335,30 +3418,35 @@ static void Actor00300_Fn047CC(Enemy* arg0, Task* arg1)
             return;
     }
     if (gGameSession->eventState != 0) {
-        Actor00300_Fn048D4(arg0, arg1);
+        _actor00300TickEvent(arg0, arg1);
         return;
     }
     Actor00300_Fn04958(arg0, arg1);
 }
 
-static void Actor00300_Fn048D4(Enemy* arg0, Task* arg1)
+/// Updates event-controlled model drawing, animation, lighting and shadow.
+///
+/// Requires initialized TMD work. While an event is active, the cached draw
+/// request replaces the body model flags; other request bits have no effect.
+/// The enemy parameter is unused. The drain task applies its own cached flags.
+static void _actor00300TickEvent(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
+    TmdObject*       model;
     _Actor00300Work* work;
-    s16              flags;
+    s16              modelFlags;
 
-    work = arg1->work;
-    obj  = arg1->extra.tmd;
+    work  = task->work;
+    model = task->extra.tmd;
     if (gGameSession->eventState != 0) {
-        flags      = ((work->eventDrawFlags & 1) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        obj->flags = flags;
-        if (work->eventDrawFlags & 2) {
-            obj->flags = flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
+        modelFlags   = ((work->eventDrawFlags & ACTOR_00300_EVENT_DRAW_SHOW) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = modelFlags;
+        if (work->eventDrawFlags & ACTOR_00300_EVENT_DRAW_SKIP_AUTO_BUFFER) {
+            model->flags = modelFlags | TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
     }
-    _actor00300UpdateAnimation(arg1);
-    _actor00300UpdateLighting(arg1);
-    _actor00300DrawShadow(arg1);
+    _actor00300UpdateAnimation(task);
+    _actor00300UpdateLighting(task);
+    _actor00300DrawShadow(task);
 }
 
 static void Actor00300_Fn04958(Enemy* arg0, Task* arg1)
@@ -3370,19 +3458,19 @@ static void Actor00300_Fn04958(Enemy* arg0, Task* arg1)
     coord = arg1->extra.tmd->coords;
     if (work->patrolPoints != NULL) {
         if (arg0->reactionFlags != 0) {
-            Actor00300_Fn04A2C(arg1);
+            _actor00300TickStatusReactions(arg1);
         }
         Actor00300_Fn00E54(arg1);
-        Actor00300_Fn04C20(arg1);
+        _actor00300TickAction(arg1);
         if (work->turnRate != 0) {
-            Actor00300_Fn032BC(arg1);
+            _actor00300TurnTowardTargetYaw(arg1);
         }
-        Actor00300_Fn04E30(arg1);
+        _actor00300Move(arg1);
         _actor00300UpdateAnimation(arg1);
         if (work->hitTwistActive != 0) {
-            Actor00300_Fn0340C(arg1);
+            _actor00300ApplyHitTwist(arg1);
         }
-        Actor00300_Fn03A1C(arg1);
+        _actor00300PlayAnimationCueSounds(arg1);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
         _actor00300UpdateLighting(arg1);
@@ -3390,31 +3478,37 @@ static void Actor00300_Fn04958(Enemy* arg0, Task* arg1)
     }
 }
 
-static void Actor00300_Fn04A2C(Task* arg0)
+/// Applies pending buildup and damage-over-time reactions to the enemy action.
+///
+/// Requires initialized work and a live enemy in the second spawn argument.
+/// Clears stagger, starts buildup unless already hurt, and reports each damage
+/// pulse before subtracting it and entering hurt. An expired status clears its
+/// damage-over-time reaction bits. Hit direction and knock-down state are retained.
+static void _actor00300TickStatusReactions(Task* task)
 {
     _Actor00300Work* work;
     Enemy*           enemy;
-    s16              damage;
-    u8               flags;
+    s16              pulseDamage;
+    u8               reactionFlags;
 
-    enemy = arg0->spawnArg2.pointer;
-    flags = enemy->reactionFlags;
-    work  = arg0->work;
-    if (flags & ENEMY_REACTION_STAGGER) {
-        enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
+    enemy         = task->spawnArg2.pointer;
+    reactionFlags = enemy->reactionFlags;
+    work          = task->work;
+    if (reactionFlags & ENEMY_REACTION_STAGGER) {
+        enemy->reactionFlags = reactionFlags & ENEMY_REACTION_STAGGER_CLEAR;
     }
     if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) && (work->action != ACTOR_00300_ACTION_HURT)) {
         work->action     = ACTOR_00300_ACTION_BUILDUP;
-        work->actionStep = 0;
+        work->actionStep = ACTOR_00300_ACTION_BEGIN;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage          = damageTickEnemyDamageOverTime(enemy);
-        work->hitDamage = damage;
-        if (damage != 0) {
-            worldTargetAddReadoutAmount(&enemy->node, (s32)damage, 0);
+        pulseDamage     = damageTickEnemyDamageOverTime(enemy);
+        work->hitDamage = pulseDamage;
+        if (pulseDamage != 0) {
+            worldTargetAddReadoutAmount(&enemy->node, (s32)pulseDamage, 0);
             enemy->hp        = (u16)enemy->hp - (u16)work->hitDamage;
             work->action     = ACTOR_00300_ACTION_HURT;
-            work->actionStep = 0;
+            work->actionStep = ACTOR_00300_ACTION_BEGIN;
         }
         if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
             enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
@@ -3441,50 +3535,58 @@ static const EnemyTaskFuncTable3 Actor00300_D0003C = {
 /// has run out.
 static const EnemyTaskFuncTable3 Actor00300_D00048 = {
     {
-        Actor00300_Fn040A4,
+        _actor00300InitFireball,
         Actor00300_Fn04370,
-        Actor00300_Fn05278,
+        _actor00300TeardownFireball,
     },
 };
 
-static void Actor00300_Fn04C20(Task* arg0)
+/// Runs the current combat action and retracts a drain interrupted by another action.
+///
+/// Requires initialized enemy work. `ACTOR_00300_ACTION_*` selects one handler;
+/// dead or unrecognized actions run none. Outside drain, positive local-Y scale
+/// decreases by 1/16 of full scale per tick; a negative overshoot clears next tick.
+static void _actor00300TickAction(Task* task)
 {
+    enum { ACTOR_00300_DRAIN_SCALE_STEP = ONE / 16 };
+
     _Actor00300Work* work;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->action) {
         case ACTOR_00300_ACTION_PATROL:
-            _actor00300TickPatrol(arg0);
+            _actor00300TickPatrol(task);
             break;
         case ACTOR_00300_ACTION_PURSUE:
-            _actor00300TickPursuit(arg0);
+            _actor00300TickPursuit(task);
             break;
         case ACTOR_00300_ACTION_FIREBALL:
-            _actor00300TickFireballAttack(arg0);
+            _actor00300TickFireballAttack(task);
             break;
         case ACTOR_00300_ACTION_DRAIN:
-            _actor00300TickDrainAttack(arg0);
+            _actor00300TickDrainAttack(task);
             break;
         case ACTOR_00300_ACTION_HEAL:
-            _actor00300TickHeal(arg0);
+            _actor00300TickHeal(task);
             break;
         case ACTOR_00300_ACTION_HURT:
-            _actor00300TickHurt(arg0);
+            _actor00300TickHurt(task);
             break;
         case ACTOR_00300_ACTION_BUILDUP:
-            _actor00300TickBuildup(arg0);
+            _actor00300TickBuildup(task);
             break;
         case ACTOR_00300_ACTION_RECHARGE:
-            _actor00300TickRecharge(arg0);
+            _actor00300TickRecharge(task);
             break;
         case ACTOR_00300_ACTION_DEAD:
             break;
     }
 
+    // Retract an interrupted drain, clamping an overshoot on the next tick.
     if (work->action != ACTOR_00300_ACTION_DRAIN) {
         if (work->drainScaleY != 0) {
             if (work->drainScaleY > 0) {
-                work->drainScaleY -= 0x100;
+                work->drainScaleY -= ACTOR_00300_DRAIN_SCALE_STEP;
             } else if (work->drainScaleY < 0) {
                 work->drainScaleY = 0;
             }
@@ -3536,21 +3638,31 @@ static void _actor00300TickBuildup(Task* task)
     }
 }
 
-static void Actor00300_Fn04E30(Task* arg0)
+/// Saves the root position and moves along its facing with a downward floor step.
+///
+/// Requires initialized TMD work. `speed` is distance per tick in the root
+/// parent's coordinate units; matrix axes are Q12. Positive Y advances 128
+/// units until the fatal fall's second stage. Collision resolution can restore
+/// the saved position. The caller invalidates and composes the root afterward.
+static void _actor00300Move(Task* task)
 {
+    enum { ACTOR_00300_COORD_FRACTION_BITS  = 12,
+           ACTOR_00300_FLOOR_STEP           = 128,
+           ACTOR_00300_DEATH_FLOOR_RELEASED = 2 };
+
     _Actor00300Work* work;
     GfxCoord*        coord;
 
-    coord              = arg0->extra.tmd->coords;
-    work               = arg0->work;
+    coord              = task->extra.tmd->coords;
+    work               = task->work;
     work->prevPos.vx   = coord->coord.t[0];
     work->prevPos.vy   = coord->coord.t[1];
     work->prevPos.vz   = coord->coord.t[2];
-    coord->coord.t[0] += (coord->coord.m[0][2] * work->speed) >> 12;
-    if (work->deathStage < 2) {
-        coord->coord.t[1] += 0x80;
+    coord->coord.t[0] += (coord->coord.m[0][2] * work->speed) >> ACTOR_00300_COORD_FRACTION_BITS;
+    if (work->deathStage < ACTOR_00300_DEATH_FLOOR_RELEASED) {
+        coord->coord.t[1] += ACTOR_00300_FLOOR_STEP;
     }
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> 12;
+    coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> ACTOR_00300_COORD_FRACTION_BITS;
 }
 
 /// Starts a requested body animation or advances the eighteen non-root slots.
@@ -3703,12 +3815,18 @@ void Actor00300_Fn0521C(Task* arg0)
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
 }
 
-static void Actor00300_Fn05278(Enemy* arg0, Task* arg1)
+/// Unlinks a burst fireball's bodies, waits sixty task ticks and destroys it.
+///
+/// Requires live enemy/task and initialized fireball work. The first teardown
+/// step disables both bodies and starts the linger countdown; the second
+/// counts it down through signed 16-bit storage. Work and the coordinate body
+/// stay owned by the task until `enemyDestroy` releases them. Other steps do nothing.
+static void _actor00300TeardownFireball(Enemy* enemy, Task* task)
 {
     _Actor00300FireballWork* work;
     u16                      timer;
 
-    work = arg1->work;
+    work = task->work;
     switch (work->teardownStep) {
         case ACTOR_00300_FIREBALL_TEARDOWN_UNLINK:
             worldCollisionUnlinkBody(&work->body);
@@ -3720,69 +3838,89 @@ static void Actor00300_Fn05278(Enemy* arg0, Task* arg1)
             timer       = work->timer - 1;
             work->timer = timer;
             if ((s16)timer <= 0) {
-                enemyDestroy(arg0, arg1);
+                enemyDestroy(enemy, task);
             }
             return;
     }
 }
 
-s32 Actor00300_Fn05304(Task* arg0, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Starts an event animation on the enemy's eighteen non-root playback slots.
+///
+/// Requires initialized rig and a borrowed request with animation id 0..2,
+/// mapped to package clips 19..21. A zero blend choice seeks without a transition;
+/// otherwise `blendFrames` is passed through in normal-rate frames. Sets both
+/// requested and playing ids without resetting the actor's animation-tick counter.
+/// Ignores the request's bank and collision fields, message id and second argument.
+/// Retains no request pointer and returns 0; ids and frame counts are unchecked.
+static s32 _actor00300MsgPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
     _Actor00300Work* work;
-    s32              i;
-    s32              frames;
-    s16              anim;
+    s32              slotIndex;
+    s32              blendFrames;
+    s16              animationId;
 
-    work              = arg0->work;
-    anim              = args->animationId + ACTOR_00300_ANIM_EVENT_BASE;
-    work->anim        = anim;
-    work->playingAnim = anim;
-    frames            = 0;
-    if (args->blend != ANIMATION_BLEND_RESET) {
-        frames = args->blendFrames;
+    work              = task->work;
+    animationId       = request->animationId + ACTOR_00300_ANIM_EVENT_BASE;
+    work->anim        = animationId;
+    work->playingAnim = animationId;
+    blendFrames       = 0;
+    if (request->blend != ANIMATION_BLEND_RESET) {
+        blendFrames = request->blendFrames;
     }
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, frames);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
     }
     return 0;
 }
 
 #include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
-s32 Actor00300_Fn053EC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Replaces model draw flags and caches the request for event ticks and the drain child.
+///
+/// Requires initialized TMD work. Bit 0 permits active drawing; bit 1 disables
+/// automatic buffer allocation. Other model flags are cleared and no buffers
+/// are allocated or freed here. The low 16 request bits are retained, including
+/// unused bits. Ignores the message id and second argument; returns 0.
+static s32 _actor00300MsgSetModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedSecondArg)
 {
-    TmdObject*       obj;
+    TmdObject*       model;
     _Actor00300Work* work;
 
-    obj  = arg0->extra.tmd;
-    work = arg0->work;
-    if (!(arg2 & 1)) {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model = task->extra.tmd;
+    work  = task->work;
+    if (!(drawFlags & ACTOR_00300_EVENT_DRAW_SHOW)) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        obj->flags = 0;
+        model->flags = 0;
     }
-    if (arg2 & 2) {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_00300_EVENT_DRAW_SKIP_AUTO_BUFFER) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
-    work->eventDrawFlags = arg2;
+    work->eventDrawFlags = drawFlags;
     return 0;
 }
 
-s32 Actor00300_Fn05434(Task* arg0, s32 arg1, ActorCommand* args, s32 arg3)
+/// Removes the enemy for any nonzero actor command, leaving command zero alone.
+///
+/// Requires initialized enemy work and a borrowed command through dispatch.
+/// Clears hit-record borrowing, unlinks the target and all four collision bodies,
+/// then destroys the enemy and its task. Ignores command context, message id and
+/// second argument. Retains no command pointer and returns 0 on either path.
+static s32 _actor00300MsgApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedSecondArg)
 {
     _Actor00300Work* work;
     Enemy*           enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (args->command != 0) {
-        enemy->recs = 0;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    if (command->command != 0) {
+        enemy->recs = NULL;
         worldTargetUnlinkNode(&enemy->node);
         worldCollisionUnlinkBody(&work->sightBody);
         worldCollisionUnlinkBody(&work->gridBody);
         worldCollisionUnlinkBody(&work->hitBody);
         worldCollisionUnlinkBody(&work->drainBody);
-        enemyDestroy(enemy, arg0);
+        enemyDestroy(enemy, task);
     }
     return 0;
 }
