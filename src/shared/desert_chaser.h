@@ -606,6 +606,24 @@ enum {
     DESERT_CHASER_CUE_DUST_PERIOD_SHIFT = 12
 };
 
+/// Whether a model part has a dust offset: the parts _desertChaserSpawnPartDust
+/// supports. Every animation-cue puff tests it with a constant part beside the
+/// room-effect mode, so the test leaves no instruction; it is recognisable only
+/// by its effect on how far a run of such guards shares the mode constant.
+static inline s32 _desertChaserPartHasDust(s32 part)
+{
+    switch (part) {
+        case 0:
+        case 1:
+        case 7:
+        case 9:
+        case 14:
+        case 17:
+            return 1;
+    }
+    return 0;
+}
+
 static void _desertChaserBlendTick(Task* task);
 static void _desertChaserAnimTick(Task* task);
 void        desertChaserSpawn(Enemy* enemy, Task* task);

@@ -153568,3 +153568,66 @@ register for both without a head-pointer local.
 **Use.** Where a scratch reservation needs a struct view of the cursor or a
 `head`/`head - 1` pair to hold its place, try the single-expression macro
 first. `ScratchStackCursor` in `include/main/scratch.h` now has no user.
+
+## A run of identical guards where each compare uses its predecessor's constant: a second, constant condition that only cse2 can fold (_desertChaserAnimCues, actor_323400 / actor_421600, 2026-10-07)
+
+Problem: four statements in a row of the shape "set an offset; `if
+(gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) effectSpawn(...)`".
+Written flat, all four compares share one register holding 2. The target loads
+2 three times, in a chain: guard 2 compares against the register guard 1
+loaded, guard 3 against one loaded in guard 2's block (`li s4,2` in guard 2's
+branch delay slot), guard 4 against one loaded in guard 3's block. The offset
+constant chains the same way (700 shared by guards 1-2, 600 by 3-4). This was
+carried by `CSE_STEER` (a dead flag, an empty `do { } while (0)` and
+`flag == 0 &&` in the guard).
+
+Mechanism (`cse_end_of_basic_block`, `make_regs_eqv`, cse.c): cse extends a
+block past `if (c) { call; }` only when the label after the block has exactly
+one use (the skip-blocks path). A guard `if (a && b)` gives that label two
+uses, so the path stops at it. If `b` is something cse folds *while scanning*,
+the label drops to one use only after the path was computed: the scan that
+started one guard earlier reaches this guard's compare (and replaces its
+constant with the predecessor's, which is the class head because the new
+register does not live past the block) but goes no further, and the next scan
+starts at this guard. Each scan therefore spans exactly two guards. The fold
+has to happen in cse2 and not in cse1: if cse1 folds it, every label has one
+use when cse2 runs, cse2 walks the whole run in one path and rewrites every
+compare to the first register, which is the flat result.
+
+What is foldable by cse2 and not cse1: the value of an inline function with
+more than one `return`. Its result reaches the caller through the return label,
+which has several uses until the jump pass after cse1 removes the dead arms, and
+cse1 forgets everything at a multiply-used label.
+
+Fix: the guard's second condition is a small predicate inline with a `switch`
+on the (constant) part, `_desertChaserPartHasDust(part)` in
+`src/shared/desert_chaser.h` - the same set of parts the out-of-line
+`_desertChaserSpawnPartDust` supports through its `supportedPart` flag:
+
+```c
+if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(9)) {
+    effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], ..., &effectOffset);
+}
+```
+
+It emits no instruction; either operand order matches. Sites with only two
+guards compile the same with or without it, so it is recognisable only in a run
+of three or more.
+
+What did not work, and why: the whole statement as an inline. With the offset
+as the inline's own local, or passed as `SVECTOR*`, the inline addresses it
+through a pseudo holding the slot address (`addiu a3,sp,16` before the stores,
+`sh v0,2(a3)`), and two expansions in one block take two stack slots; the
+target stores `sp`-relative into one slot. A boolean inline around the mode test
+alone (`return mode == ENABLED;`, or `if (...) return 1; return 0;`)
+materialises the flag. So the offset stores and the call are the caller's own
+statements; only the constant condition is a helper.
+
+Signature to look for: a constant reloaded per guard into a different
+callee-saved register in the *previous* guard's branch delay slot, across
+guards that look identical. Check the `;; Processing block from A to B` lines
+of the `.cse2` dump: blocks that each span two guards mean a label lost a use
+during the scan.
+
+Note on the 2026-10-07 entry "The steering macros named in older entries no
+longer exist": `CSE_STEER` now has no use either.
