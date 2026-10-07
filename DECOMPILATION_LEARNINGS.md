@@ -11858,7 +11858,7 @@ return 1;` — leaves only the layout wrong: 95.294% with
 GCC inverts it to `bnez v0, body` and lays the failure arm out as the
 *fall-through*, so the two blocks swap and the tail store's operands move from
 `$v1`/`$a0` to `$v0`/`$v1` (`$v0` is free there, the result not yet live).
-`func_actor_215100_8014B2B8` is exact with the shape above — 100%, all
+`actor215100CapCaptionSelectRecord` is exact with the shape above — 100%, all
 penalties zero.
 
 So the polarity is not a property of the body but of where the target put the
@@ -81131,8 +81131,8 @@ Inputs: `base_2.i`
 
 ## A callee prototyped only in the host `.c` is unprototyped in the scratch env
 
-`func_actor_215100_8014AFAC` calls `func_actor_215100_8014B2B8(s16, s16, s32)`,
-which that overlay declares above its own definition and nowhere in
+`func_actor_215100_8014AFAC` calls `actor215100CapCaptionSelectRecord(s16, s16, s32)`,
+which the overlay then declared above its own definition and nowhere in
 `include/actors/actor_215100.h`. A scratch env includes the header, so the call
 compiled against an *implicit* declaration: the `s16` parameters were never
 seen, the two arguments went out unpromoted, and the target's truncation pairs
@@ -81150,7 +81150,7 @@ difference, grep the `.i` for the callee name: if only the call site is there,
 copy the host `.c`'s declaration block into the scratch file. That block is
 worth copying wholesale — it also carries the declarations (`D_801153F4`, the
 overlay's own callees) that otherwise resolve to implicit `int`. Declaring
-`func_actor_215100_8014B2B8` alone took the candidate from 86.3% to 94.5%.
+`actor215100CapCaptionSelectRecord` alone took the candidate from 86.3% to 94.5%.
 
 Inputs: `base_2.i`
 `bb2ba0bccc1727bcf2dcb573a0cfa8ecbccea39a497a8b1be31a222b5b210510`,

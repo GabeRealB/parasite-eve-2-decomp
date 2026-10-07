@@ -23,6 +23,23 @@
 
 #include "cap_captions_types.h"
 
+/// Selects the function that chooses a keyed record and caches its text layout.
+///
+/// Bind a function identifier before this header and retain through both caption
+/// source fragments. It takes (s16 commandIndex, s16 key, s32 bottomBaselineY)
+/// and returns s32: 0 selected, 1 null command entry. Room carriers keep the
+/// default static instance; actor_215100 binds its public export and an empty
+/// `CAP_CAPTION_SELECT_SCRIPT_LINKAGE`. Each carrier owns independent CAP state.
+/// The object-like alias has no arguments, captures, side effects or token
+/// construction; linkage is selected separately.
+#ifndef CAP_CAPTION_SELECT_RECORD
+#define CAP_CAPTION_SELECT_RECORD _capCaptionSelectRecord
+#endif
+#ifndef CAP_CAPTION_SELECT_SCRIPT_LINKAGE
+#define CAP_CAPTION_SELECT_SCRIPT_LINKAGE static
+#endif
+CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CAP_CAPTION_SELECT_RECORD(s16 commandIndex, s16 key, s32 bottomBaselineY);
+
 // Selection resets the continuation-caret delay in eligible drawer calls.
 enum {
     CAP_CAPTION_CARET_DELAY_DRAWS = 30

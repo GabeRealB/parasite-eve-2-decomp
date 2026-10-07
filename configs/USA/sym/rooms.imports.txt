@@ -580,7 +580,7 @@ func_actor_215100_8014AA54 = 0x8014AA54; // type:func absolute:True owner=actor_
 func_actor_215100_8014AB6C = 0x8014AB6C; // type:func absolute:True owner=actor_215100
 actor215100StartPierceConversation = 0x8014AF0C; // type:func absolute:True owner=actor_215100
 actor215100CapCaptionDrawCurrent = 0x8014B0D4; // type:func absolute:True owner=actor_215100
-actor215100CapCaptionSelectScript = 0x8014B2B8; // type:func absolute:True owner=actor_215100
+actor215100CapCaptionSelectRecord = 0x8014B2B8; // type:func absolute:True owner=actor_215100
 D_actor_503500_8014B958 = 0x8014B958; // absolute:True owner=actor_503500
 D_actor_503500_8014B964 = 0x8014B964; // absolute:True owner=actor_503500
 D_actor_503500_8014BD48 = 0x8014BD48; // absolute:True owner=actor_503500

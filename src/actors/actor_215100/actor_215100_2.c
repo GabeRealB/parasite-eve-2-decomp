@@ -67,10 +67,15 @@ static void _pacedWalkExit(Task* task);
 /* cap captions instance: retain the original overlay symbols. */
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
 void        func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
-// Exported instances: mist_shooting_gallery's modal caption calls this
-// package's script selector, and its caption task this package's drawer.
+// The gallery selects and draws captions using this actor's loaded CAP state.
 #define CAP_CAPTION_SELECT_SCRIPT_LINKAGE
-#define CapCaption_SelectScript actor215100CapCaptionSelectScript
+/// Binds shared record selection to this actor's exported selector.
+///
+/// Define before `cap_captions.h` and retain through both caption source fragments.
+/// The empty linkage binding exports the s32(s16, s16, s32) instance declared in
+/// `actors/actor_215100.h`. This object-like alias captures no arguments and
+/// constructs no tokens.
+#define CAP_CAPTION_SELECT_RECORD actor215100CapCaptionSelectRecord
 #define CAP_CAPTION_DRAW_CURRENT_LINKAGE
 /// Binds shared caption drawing to this actor's exported void(void) instance.
 ///

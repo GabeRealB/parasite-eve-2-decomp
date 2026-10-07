@@ -144,7 +144,6 @@ static void   _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* wo
 static u16    _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
 static void   func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2);
 static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGallerySpawn* arg1);
-s32           actor215100CapCaptionSelectScript(s16 arg0, s16 arg1, s32 arg2);
 static void   _mistShootingGalleryDrawClockGlyph(s32 screenX, s16 screenY, s32 glyph);
 static void   _mistShootingGalleryDrawRedFlash(u8 redIntensity);
 static void   func_mist_shooting_gallery_80182B1C(Task* arg0);
@@ -3540,7 +3539,7 @@ static void _mistShootingGalleryRedFlashTask(Task* task)
 
 static void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
 {
-    actor215100CapCaptionSelectScript(arg0, arg1, 0xD0);
+    actor215100CapCaptionSelectRecord(arg0, arg1, 0xD0);
     displayQueueModeTask(&D_mist_shooting_gallery_801856D0, arg2, 0, STAGE_ENTRY_RELOAD);
 }
 

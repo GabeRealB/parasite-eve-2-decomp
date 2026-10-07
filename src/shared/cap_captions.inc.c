@@ -45,24 +45,17 @@ enum { CAP_CAPTION_CARET_PULSE_MIN = 8,
 static void CapCaption_RunSchedule(Task* task);
 
 static bool _capCaptionRelocateFile(CapFile* file);
-/* The script selector and the caption drawer are file-local unless another
- * image calls this copy: a carrier whose copy is called from outside binds the
- * linkage to nothing and the name to its own exported one. */
-#ifndef CAP_CAPTION_SELECT_SCRIPT_LINKAGE
-#define CAP_CAPTION_SELECT_SCRIPT_LINKAGE static
-#endif
-CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
-static s32                            _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unusedRevealAll, s32 titleIndex);
-static s16                            _capCaptionGetTextFirstBaselineY(const u16* textStream);
-static void                           _capCaptionDrawContinueCaret(void);
-static s16                            _capCaptionGetTextBlockLeftX(const u16* text);
-static s16                            _capCaptionGetTextLineLeftX(const u16* text, s32 selectedLineIndex);
-static s16                            _capCaptionGetTextBlockHeight(const u16* text);
-static s32                            _capCaptionGetTextLineAdvance(const u16* text);
-static s32                            _capCaptionFindRecordByKey(s32 recordIndex);
-static void                           CapCaption_TimedTask(Task* task);
-static void                           CapCaption_CancelableTask(Task* task);
-static void                           CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2);
+static s32  _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unusedRevealAll, s32 titleIndex);
+static s16  _capCaptionGetTextFirstBaselineY(const u16* textStream);
+static void _capCaptionDrawContinueCaret(void);
+static s16  _capCaptionGetTextBlockLeftX(const u16* text);
+static s16  _capCaptionGetTextLineLeftX(const u16* text, s32 selectedLineIndex);
+static s16  _capCaptionGetTextBlockHeight(const u16* text);
+static s32  _capCaptionGetTextLineAdvance(const u16* text);
+static s32  _capCaptionFindRecordByKey(s32 recordIndex);
+static void CapCaption_TimedTask(Task* task);
+static void CapCaption_CancelableTask(Task* task);
+static void CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2);
 
 /// Plays scheduled captions as the scene clock counts down.
 ///
@@ -93,7 +86,7 @@ static void CapCaption_RunSchedule(Task* task)
                 }
             }
             if (script != 0) {
-                CapCaption_SelectScript(script, key, (s16)task->spawnArg1.value);
+                CAP_CAPTION_SELECT_RECORD(script, key, (s16)task->spawnArg1.value);
                 CAP_CAPTION_DRAW_CURRENT();
             }
             if ((capIsBusy() == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
@@ -243,29 +236,53 @@ static bool _capCaptionRelocateFile(CapFile* file)
     return true;
 }
 
-/// Starts playing the caption script `arg0` picks out of
-/// `CapCaption_Data_8015E650`, keyed on `arg1`, and parks its per-line metrics in
-/// the globals `CAP_CAPTION_DRAW_CURRENT` reads. Returns 1 when there is no
-/// such script, 0 once it is playing; `arg2` is the line delay.
-CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2)
+/// Caches layout for the selected record and restarts its continuation-caret delay.
+///
+/// Requires the selected sequence, readable text and loaded glyph metrics;
+/// recordIndex must equal the published `CAP_CAPTION_RECORD_INDEX`.
+/// The screen-pixel bottom baseline is narrowed before the first baseline is
+/// measured; the record slot retains signed-halfword indexing.
+static inline void _capCaptionCacheSelectedRecordLayout(s16 recordIndex, s32 bottomBaselineY)
 {
-    CapSequenceRecord* caption;
-    s16                entry;
-
-    caption              = CapCaption_Data_8015E650[arg0].sequence;
-    CAP_CAPTION_SEQUENCE = caption;
-    if (caption == NULL) {
-        return 1;
-    }
-    CapCaption_Data_8015E666      = arg1;
-    entry                         = _capCaptionFindRecordByKey(1);
-    CAP_CAPTION_RECORD_INDEX      = entry;
-    CAP_CAPTION_BOTTOM_BASELINE_Y = arg2;
-    CAP_CAPTION_BLOCK_LEFT_X      = _capCaptionGetTextBlockLeftX(CAP_CAPTION_SEQUENCE[entry].textRef.text);
+    CAP_CAPTION_BOTTOM_BASELINE_Y = bottomBaselineY;
+    CAP_CAPTION_BLOCK_LEFT_X      = _capCaptionGetTextBlockLeftX(CAP_CAPTION_SEQUENCE[recordIndex].textRef.text);
     CAP_CAPTION_FIRST_BASELINE_Y  = _capCaptionGetTextFirstBaselineY(CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].textRef.text);
     CAP_CAPTION_BLOCK_HEIGHT      = _capCaptionGetTextBlockHeight(CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].textRef.text);
     CAP_CAPTION_CARET_DRAWS_LEFT  = CAP_CAPTION_CARET_DELAY_DRAWS;
-    return 0;
+}
+
+/// Selects the first keyed record of a command and caches its caption layout.
+///
+/// Requires a relocated CAP command index and loaded glyph metrics. commandIndex
+/// is in 0..32767 and below the command-table count. A null entry hides captions
+/// and returns 1 without changing the remaining state. Otherwise key must match
+/// a nonterminal record in slots 1..32767; a miss reaches the terminal, whose
+/// invalid text reference is still measured. Text must end within 32768 words
+/// and nonnegative codes' low-ten-bit glyph indices must exist in the table.
+/// bottomBaselineY is the last baseline in screen pixels, narrowed to s16.
+/// Returns 0 after selection, without drawing, playback or task creation.
+/// The selected sequence and glyph cells borrow the CAP file through caption use.
+CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CAP_CAPTION_SELECT_RECORD(s16 commandIndex, s16 key, s32 bottomBaselineY)
+{
+    enum {
+        CAP_CAPTION_FIRST_RECORD_INDEX = 1,
+        CAP_CAPTION_SELECTION_OK       = 0,
+        CAP_CAPTION_SELECTION_NULL     = 1
+    };
+    CapSequenceRecord* sequence;
+    s16                recordIndex;
+
+    sequence             = CapCaption_Data_8015E650[commandIndex].sequence;
+    CAP_CAPTION_SEQUENCE = sequence;
+    if (sequence == NULL) {
+        return CAP_CAPTION_SELECTION_NULL;
+    }
+    // Slot zero is the command header; only following records supply text.
+    CapCaption_Data_8015E666 = key;
+    recordIndex              = _capCaptionFindRecordByKey(CAP_CAPTION_FIRST_RECORD_INDEX);
+    CAP_CAPTION_RECORD_INDEX = recordIndex;
+    _capCaptionCacheSelectedRecordLayout(recordIndex, bottomBaselineY);
+    return CAP_CAPTION_SELECTION_OK;
 }
 
 /// Queues the complete caption, its background and optional title, returning zero.
@@ -759,6 +776,6 @@ static void CapCaption_CancelableTask(Task* task)
 
 static inline void CapCaption_ShowTimed(s16 arg0, s16 arg1, s16 arg2)
 {
-    CapCaption_SelectScript(arg0, arg1, 0xD0);
+    CAP_CAPTION_SELECT_RECORD(arg0, arg1, 0xD0);
     taskSpawnFromTable(&CapCaption_Data_801544FC, 0, (s32)(arg2), 0);
 }
