@@ -2898,22 +2898,14 @@ static void func_dryfield_night_gas_station_801802EC(s32 arg0)
     u16       y0;
     u16       x1;
     u16       y1;
-    s32       one;
-    MATRIX*   m;
     GfxCoord* coord;
     LINE_G2*  line;
     DR_TPAGE* dr;
 
     off                  = D_dryfield_night_gas_station_8017D658;
-    one                  = ONE;
-    m                    = &mtx;
-    *(s32*)&mtx          = one;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = one;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = one;
+    gfxSetRotIdentity(&mtx);
     coord                = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(&coord[8], m, &pos);
+    gfxComposeNodeWorldTransform(&coord[8], &mtx, &pos);
     ApplyMatrixSV(&mtx, &off, &p0);
     p0.vx  += pos.vx;
     p0.vy  += pos.vy;
