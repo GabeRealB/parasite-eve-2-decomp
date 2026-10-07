@@ -3219,7 +3219,7 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
 {
     SVECTOR                             a;
     SVECTOR                             b;
-    GfxMatrix                           rot;
+    MATRIX                              rot;
     s32                                 sxy0;
     s32                                 depthCue;
     s32                                 sxy1;
@@ -3285,9 +3285,9 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     y1    = sxy1 >> 16;
     i     = ratan2(dx, dy);
     scale = gDisplayState.screenDistance;
-    gfxSetRotIdentity(&rot.mat);
-    RotMatrixZ(i, &rot.mat);
-    gte_SetRotMatrix(&rot.mat);
+    gfxSetRotIdentity(&rot);
+    RotMatrixZ(i, &rot);
+    gte_SetRotMatrix(&rot);
     for (i = 0; i < 6; i++) {
         a.vx = D_dryfield_dilapidated_house_801867A4[i].vx * scale / *arg2;
         a.vy = D_dryfield_dilapidated_house_801867A4[i].vy * scale / *arg2;
