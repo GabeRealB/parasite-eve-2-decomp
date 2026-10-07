@@ -40,8 +40,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
-#define D_shelter_b3_incinerator_control_room_801818E8 (D_shelter_b3_incinerator_control_room_80181888 + 12)
-
 /// Glow positions `shelterB3IncineratorControlRoomDrawViewGlowsTask` draws
 /// per view.
 extern SVECTOR D_shelter_b3_incinerator_control_room_80181868[];
@@ -398,8 +396,8 @@ void shelterB3IncineratorControlRoomDrawViewGlowsTask(Task* task)
             _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[16], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_WARM);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[0], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_801818E8[2], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[12], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[14], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
             break;
         case 8:
             _shelterB3IncineratorControlRoomDrawStackedGlows(SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
