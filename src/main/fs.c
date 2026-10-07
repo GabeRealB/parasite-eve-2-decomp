@@ -1337,24 +1337,35 @@ static const char Fs_ExtensionStr[]      = ".STR";
 static const char Fs_Stage0HeaderName[]  = "STAGE0.HED";
 static const char Fs_InitBitstreamName[] = "INIT.BS";
 
-/// Rebuilds HED table append counts and starts the scan's asynchronous header read.
+/// Starts the discovered STAGE0.HED read to rebuild resident file/stream tables.
 ///
-/// Requires a discovered nonzero HED sector and serialized sector-header mode.
+/// The ISO scan must have published a nonzero `Fs_Stage0HedSector` and the
+/// STAGE0.CDF base sector. Requires exclusive filesystem/CD state with sector
+/// headers enabled. Resets append counts without clearing table storage;
+/// `_fsStage0HeaderReadyCallback` imports records until the HED terminator.
+/// Returns before completion: `Fs_CdOpStatus` reports 0xFF done or 0x80 restart.
+/// The final VBlank counter sample starts the read-timeout interval.
 static inline void _fsStartScannedStage0HeaderRead(void)
 {
+    enum {
+        FILE_SYSTEM_VSYNC_QUERY_COUNTER = -1,
+    };
     CdlLOC headerLocation;
 
+    // Appended tables start empty; indexed tables are overwritten by the HED.
     Fs_CdOpStatus       = FILE_SYSTEM_CD_OPERATION_PENDING;
     Fs_FileTableLen     = 0;
     Fs_FileTableCat2Len = 0;
     Fs_FileTableCat4Len = 0;
     Fs_FileTableCat1Len = 0;
     Fs_FileTableCat3Len = 0;
-    Fs_ReqSector        = Fs_Stage0HedSector;
+
+    // Publish the expected absolute sector before enabling its ready callback.
+    Fs_ReqSector = Fs_Stage0HedSector;
     CdIntToPos(Fs_Stage0HedSector, &headerLocation);
     CdControlF(CdlReadN, &headerLocation.minute);
     CdReadyCallback(_fsStage0HeaderReadyCallback);
-    Fs_VBlank = VSync(-1);
+    Fs_VBlank = VSync(FILE_SYSTEM_VSYNC_QUERY_COUNTER);
 }
 
 void fsScanIsoDirectory(s32 bootMode)
@@ -1638,17 +1649,31 @@ void fsBeginImageColumns(const FsImageColumn* table)
     D5B498_8006D4E0[D5B498_8006ADF4] = 0;
 }
 
-/// Primes an independent strip decode without clearing its output or history.
+/// Primes the next image strip's LZSS decode in the shared upload buffer.
+///
+/// Requires exclusive decoder/buffer use and prepared input as for
+/// `fsDecompressStream`. Restarts the byte output cursor and bit reservoir,
+/// discards any saved continuation, and starts history writes at ring index 1.
+/// Preserves the compressed input cursor, input boundary, scratch history and
+/// existing output bytes. The decoded strip must fit the 4480-byte buffer;
+/// unwritten bytes remain available to the subsequent 4096-byte GPU upload.
+/// Clears the new-strip latch so incomplete input resumes this same decode.
+/// Does not read compressed bytes or start a GPU upload.
 static inline void _fsBeginStripDecode(void)
 {
+    enum {
+        FILE_SYSTEM_STRIP_LZSS_INITIAL_WRITE_INDEX = 1,
+    };
+
     Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
-    D5B498_8006D748  = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
-    D5B498_8006EA1A  = 0;
-    D5B498_8006EBB0  = 0;
-    D5B498_8006D850  = NULL;
-    D5B498_8006D85A  = 0;
-    D5B498_8006D858  = 1;
-    D5B498_8006ADE1  = 0;
+    // Reset the bit cursor and continuation without clearing history or pixels.
+    D5B498_8006D748 = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
+    D5B498_8006EA1A = 0;
+    D5B498_8006EBB0 = 0;
+    D5B498_8006D850 = NULL;
+    D5B498_8006D85A = 0;
+    D5B498_8006D858 = FILE_SYSTEM_STRIP_LZSS_INITIAL_WRITE_INDEX;
+    D5B498_8006ADE1 = false;
 }
 
 u8 fsUploadImageStrips(s32 inputMode)
