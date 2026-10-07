@@ -24,6 +24,7 @@
  *   `animBlend`    `s16`             frames a blend request takes
  *   `animPlaying`  `s16`             clip last applied to the slots
  *   `animStatus`   `u16`             slot 1's `ANIMATION_SLOT_*` results of the last tick
+ *   `state`        `s16`             index into the current task state's handler table
  *   `subState`     `s16`             step of the current state
  *
  * Include this header in the prologue and each fragment at its function's

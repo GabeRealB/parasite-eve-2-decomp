@@ -3836,7 +3836,7 @@ if (work->animPlaying == work->animClip) { ... }
 
 So a target `lh` on a halfword whose only other appearance is a compare means
 the header's `u16` is the wrong half of the pair, exactly as a target `lhu`
-means an `s16` header is wrong. `func_actor_206100_8014F2F0` scored 89.3% on the
+means an `s16` header is wrong. `_actor206100BlendRequestedClip` scored 89.3% on the
 m2c seed with `lh` already against it, and narrowing the field was one of two
 changes in the 100% `base_1.c` (preprocessed
 `673ed3b63566099595c330182a22fd9eecc9f67c3f95082ea6ace7553d352f31`).
@@ -9176,9 +9176,9 @@ in the candidate and C89's implicit declaration makes it a real `jal`.
 further than the call site — an external call clobbers the argument and return
 registers, so the global allocation changes and the schedule pulls apart
 elsewhere in the function. `func_actor_206100_8014D8E8` scored 92.162% with
-`jal set_state` where the target has `lw v1,0x1c(s4)` plus two `sh`, *and* a
+`jal _diverSetState` where the target has `lw v1,0x1c(s4)` plus two `sh`, *and* a
 `move a1,s3` sitting two slots late in an unrelated loop body; copying
-`set_state` into the candidate verbatim — the body was already right — took it
+`_diverSetState` into the candidate verbatim — the body was already right — took it
 to 100.000% with every penalty zero, the loop's schedule included. Port every
 `static __inline__` the body calls into the candidate before reading a
 scheduling difference as a scheduling story.
@@ -14732,7 +14732,7 @@ Pair with `base = Mc_BufferSlots` kept live (not `Mc_BufferSlots[idx]` alone) so
 example (reverse walk of `Mc_BufferSlots[8..1]` comparing each live save record
 to its adjacent backup).
 
-`func_actor_206100_8014DEAC` is the version of this where **both** operands come
+`_actor206100SwimWaypointRing` is the version of this where **both** operands come
 from memory and a store sits between the two reads. Its `else` arm reads
 `waypoints[waypointIndex]` twice with a `vec` store in between, and the target loads
 the index and the base *once* each and folds them offset first
@@ -42360,7 +42360,7 @@ whole lines. The port is then the sibling's C body with its **type names**
 renamed: the sibling was written against `ActorsShared80168d3cWork`, this
 overlay against `Actor104400Work`, and the two layouts agree on every offset
 the body touches. Keep every source-level oddity, because that shape is what
-matched — the duplicated inline `set_state` per switch arm, the re-read of
+matched — the duplicated inline `_diverSetState` per switch arm, the re-read of
 `index->spawnArg2` / `index->extra` at the sound call. The raw m2c seed scored
 84.8%; the ported body 100.000% with every penalty zero on the next build.
 
@@ -43777,7 +43777,7 @@ and the overlay drops from 97.5% to 79.5% (`delete=77`).
 The ROM tells you the source did not do that. Its sub-state-2 tail ends
 `j .L66C` with a `nop` delay slot while the else arm's ends `j .L66C` with the
 `sh zero, 0x53A($s5)` in the delay slot — and the jump's target is the epilogue
-*past* the `sh` that the `func_actor_206100_8014E228` arm falls through. A jump
+*past* the `sh` that the `_actor206100AimHead` arm falls through. A jump
 that skips its own join block means the store was never at the join: it is
 written inside each arm, and reorg moved the if arm's copy into the delay slot.
 Writing it that way leaves the two tails one instruction apart, which is enough
@@ -77162,7 +77162,7 @@ argument list is the table:
 ```c
 M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x522) * 4)),
           M2C_UNK (**)(void (*)(Task *), M2C_UNK *), 0x10)
-    (func_actor_206100_8014F9C4, &func_actor_206100_8014FA08);
+    (_actor206100EnterStatusHold, &func_actor_206100_8014FA08);
 ```
 
 Besides the bogus two-argument signature, `sp` is not even a C identifier, so
@@ -77175,7 +77175,7 @@ void func_actor_206100_8014F608(Task* task)
 {
     _Actor206100Work* work                = task->work;
     void             (*states[2])(Task*) = {
-        func_actor_206100_8014F9C4,
+        _actor206100EnterStatusHold,
         func_actor_206100_8014FA08,
     };
 
@@ -77348,7 +77348,7 @@ the rest of the overlay stores it with.
 
 ## An assignment whose store sits in a `jal` delay slot was not written there: put it where its *load* is
 
-`func_actor_206100_8014F18C` initializes two `WorldCollisionBody` collision records and m2c
+`_actor206100InitHitBodies` initializes two `WorldCollisionBody` collision records and m2c
 recovered the statement order from the final asm, so each record's
 `field_8 = &((TmdObject*)task->extra)->coords[n]` was written last, right
 before `worldCollisionLinkBody(2, &work->obj_n)`. The seed scored 74.44% with
@@ -77423,7 +77423,7 @@ it; fix the ordering before chasing the register penalty.
 
 ## Move the statement that carries a reload chain, not the independent load beside it
 
-`func_actor_206100_8014AF74` sat at 91.81% on three hunks that all read as
+`_actor206100InitEnemy` sat at 91.81% on three hunks that all read as
 scheduling. Its effectArg block is a pointer chain followed by two stores, and
 the pointer chain is a *second* walk of `task->extra`:
 
@@ -97242,7 +97242,7 @@ and so cannot be proven disjoint. A store to a neighbouring scratch field
 therefore forces the earlier field to reload: expect one load and one
 register-served use, and do not restructure the source to even them out.
 
-`func_actor_206100_8014ED3C` in `src/actors/actor_206100/actor_206100.c` is the
+`_actor206100StepWithinFightArea` in `src/actors/actor_206100/actor_206100.c` is the
 example -- 60 instructions, exact on the first build.
 ## A load sitting above an `if` is source order, not scheduling: sched1's region ends at the block boundary
 
@@ -117444,7 +117444,7 @@ the constant to the front of the block, ahead of the pointer load.  Moving the
 two stores into an accessor and *calling* it is what works:
 
 ```c
-static __inline__ void set_state(Task* task, s32 state)
+static __inline__ void _diverSetState(Task* task, s32 state)
 {
     _Actor206100Work* next = task->work;
 
@@ -117452,7 +117452,7 @@ static __inline__ void set_state(Task* task, s32 state)
     next->subState = 0;
 }
 ...
-            set_state(task, 8);   /* one call per arm */
+            _diverSetState(task, 8);   /* one call per arm */
 ```
 
 The inlined parameter is a fresh pseudo per call site, defined immediately
@@ -117568,7 +117568,7 @@ target's 10): GCC branches straight on the test result, and the materialised
 0/1, the `addu $v0,$zero,$zero` and the second `beqz` all disappear.  What
 survives is only the two-test sequence's shape - the arms' identical `li v0,1`
 targets are what make both branches jump to one place.  The same source shape
-had already matched `func_actor_206100_8014F970` in the same TU, which is where
+had already matched `_actor206100WaitRecoilBoundary` in the same TU, which is where
 the idiom was read from rather than guessed.
 
 Inputs: `base.c` 76.036%, `base_1.c` 100.000%, `base_3.c` (no `cond`) 90.764%,
@@ -117846,7 +117846,7 @@ The register is the tell that the move is the right lever: the two versions
 differ in *where* the group is scheduled, and the allocation follows the
 schedule, not the other way round. Do not reach for a pin.
 
-## A 0x24-wide six-case switch becomes a jump table; the target's `beq` chain is an `||` chain (func_actor_206100_8014D14C, 2026-09-16)
+## A 0x24-wide six-case switch becomes a jump table; the target's `beq` chain is an `||` chain (_actor206100AttackTick, 2026-09-16)
 
 m2c renders the sub-state handler's per-frame cue dispatch as a `switch` with six
 sparse cases, 0x54, 0x5B, 0x62, 0x69, 0x70 and 0x77, all sharing one store. GCC
@@ -117879,9 +117879,9 @@ in a register the call does not clobber, and the chain's own comparisons then
 reuse it instead of loading their own. That register choice is a consequence of
 the chain existing, not something to arrange separately.
 
-## One variable with three definitions homes every use in the same callee-saved register (func_actor_206100_8014D14C, 2026-09-16)
+## One variable with three definitions homes every use in the same callee-saved register (_actor206100AttackTick, 2026-09-16)
 
-`func_actor_206100_8014D14C` reads `task->work` three times: for the `animStatus`
+`_actor206100AttackTick` reads `task->work` three times: for the `animStatus`
 test, for the state change its `true` arm makes, and for the steering tail that
 folds `rotation.vy` toward the walk target. Written through one local, as the
 sibling `func_actor_206100_8014FA08` writes its own two reads:
@@ -117915,7 +117915,7 @@ a call-clobbered and a callee-saved one, and `./insn.py --reg` shows all three
 register: the same three reads through three variables are three pseudos, and the
 two that stay inside a block get the scratch register on their own.
 
-The state change here still goes through the inlined `set_state`, which is a third
+The state change here still goes through the inlined `_diverSetState`, which is a third
 variable and so a third pseudo -- it builds to the same 100.000%. The flags
 test has since gone the same way, into the inlined `_diverClipHasBoundaryOrJump`: each
 helper's own `task->work` local is its own pseudo, so the function keeps one
@@ -135961,7 +135961,7 @@ base_2 input:eeb68acc8379740f26c98084114266e316966e5fbcde57c6775f6812039406bf.
 Final input:489cc0624d28301ab202835f5fe68c64d5095ddab5d893ae8d34229559882aaa.
 
 
-## Move a repeated pointer definition after the join to make it local; a pitch read before the branch fixes both scheduling and allocation (func_actor_206100_8014E228, 2026-09-20)
+## Move a repeated pointer definition after the join to make it local; a pitch read before the branch fixes both scheduling and allocation (_actor206100AimHead, 2026-09-20)
 
 A retry seed at 98.915% assigned `m2 = &c2->coord` on two incoming paths before a named join. Its `.lreg` showed r91 spanning blocks (11 refs/73 instructions), and `.greg` allocated it globally in s6 after the block-local matrix pointers/constants had occupied s0-s5. The old notes called this a global priority rotation. It was actually an eligibility boundary: changing global rank could not outrank those local quantities.
 
@@ -135971,7 +135971,7 @@ The last difference was an unsigned pitch read inside the conditional update. Ho
 
 The router independently found the same unsigned-read transformation on an alternate seed. Controlled base_4 strips its if(1) wrapper and declaration reorder, reproducing the full verified 992 -> 692 distance gain. CSE deletes the repeated addend load UID249 and rewrites add UID253 to the hoisted r98. `.lreg` reports r98 across blocks, 4 refs/6 instructions; `.greg` assigns v1. `.sched` places load UID231 before branch UID239. No unobserved comparator or quantity tie is claimed.
 
-Inputs (SHA256): baseline `f3325cde03dec34452d8cebb7dfc78bf0d04088d8460bdfc6a056a72aa91ccb8`; base_1 `5f587c95c26384881722d43b34012808373f82790159e9cfd24457c0b98f12db`; base_2 `9ae83bbf6405dd2eaf2219f4a6337967ebf162aef07f583b452dd27216d09aa3`; base_4 `9d61e0472d78120b0ecbe2b05a8bd046823a2e04a32a7687a85a8cc4216023d2`. Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; target object `bfc46784f243eff70364272c30290f56ea077403ab747bc687b69c00b8e1da11`. Full paired sources, plans, conclusions and dumps are retained under `tools/permuter_findings/func_actor_206100_8014E228/`; scratch base_5 is the structured exact port.
+Inputs (SHA256): baseline `f3325cde03dec34452d8cebb7dfc78bf0d04088d8460bdfc6a056a72aa91ccb8`; base_1 `5f587c95c26384881722d43b34012808373f82790159e9cfd24457c0b98f12db`; base_2 `9ae83bbf6405dd2eaf2219f4a6337967ebf162aef07f583b452dd27216d09aa3`; base_4 `9d61e0472d78120b0ecbe2b05a8bd046823a2e04a32a7687a85a8cc4216023d2`. Compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`; target object `bfc46784f243eff70364272c30290f56ea077403ab747bc687b69c00b8e1da11`. Full paired sources, plans, conclusions and dumps are retained under `tools/permuter_findings/_actor206100AimHead/`; scratch base_5 is the structured exact port.
 
 ## Match the parent-walk exit before tuning its hoisted addresses (func_actor_206100_8014C458, 2026-09-20)
 

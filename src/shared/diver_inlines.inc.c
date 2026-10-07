@@ -132,3 +132,16 @@ static __inline__ void _diverRequestClipBlend(DiverWork* work, s16 clipIndex, s1
     work->animClip    = clipIndex;
     work->animRequest = DIVER_ANIM_REQUEST_BLEND;
 }
+
+/// Selects a carrier state and restarts it at substate zero.
+///
+/// Reloads the carrier's live `DiverWork` through the task. `state` is an
+/// index into that carrier's current state table and narrows to a signed
+/// halfword. Preserves timers, animation requests and the task's outer state.
+static __inline__ void _diverSetState(Task* task, s32 state)
+{
+    DiverWork* work = task->work;
+
+    work->state    = state;
+    work->subState = 0;
+}

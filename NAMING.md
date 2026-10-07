@@ -803,8 +803,8 @@ and spells the members they reach alike. Animation request and pending action
 values use `STALKER_ZEBRA_IVORY_ANIM_REQUEST_` and `STALKER_ZEBRA_IVORY_PENDING_`.
 
 `diver` owns the included strike child, impact sparks, joint turn and
-animation-request code shared by the Bog Diver (`actor_00400`) and the Sea
-Diver (`actor_206100`). Its implementation interface is `src/shared/diver.h`,
+animation-request and state-selection code shared by the Bog Diver
+(`actor_00400`) and the Sea Diver (`actor_206100`). Its implementation interface is `src/shared/diver.h`,
 one fragment per function. Each package names its own work type `DiverWork`
 before including the fragments and spells the members they reach alike; the
 header lists them. Each carrier keeps static instances marked `_diver`.
