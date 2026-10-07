@@ -1771,7 +1771,7 @@ before touching anything else.
 
 ## cse's copy survivor is the class *canonical*, and it rewrites the *other* register's uses: a third consumer of the first read decides which home the case bodies get
 
-`_actor310600SetModelDraw` is the twin of `func_actor_113100_80132790`: same
+`_actor310600SetModelDraw` is the twin of `_actor113100SetModelDraw`: same
 four-mode switch, same walk, and the same `lw v1` / `move a1,v1` prologue, with
 the walks of modes 0..2 taking `$a1` (the copy) and mode 3's taking `$v1` (the
 load). Two reads of `task->work` reproduce that prologue exactly - but the three
@@ -47901,7 +47901,7 @@ them: the tail unit keeps its number, its `.c` file keeps its name and its
 
 This is the common case for the small `Task` callbacks, because a family's
 actors tend to carry them as a contiguous run. Promoting
-`func_actor_113100_80132F24` (republishes the work block's light/colour matrix
+`_actor113100BindLighting` (republishes the work block's light/colour matrix
 pair onto `TmdObject::lightMtx`/`colorMtx`) into `actors_shared_80132f24`
 covered six overlays, and in three of them it sat immediately after the already
 promoted `actors_shared_801327b4`:
@@ -71258,7 +71258,7 @@ risk, and the frame size tells you whether a slot is missing (add a local) or
 merely misplaced (move one).
 
 A pure reordering is the whole fix even when the frame size already agrees and
-every instruction matches: `func_actor_113100_8013301C` sat at 98.725% with
+every instruction matches: `_actor113100QueueWalkHeading` sat at 98.725% with
 `regs=13` and *only* displacements differing (`sw $v0,0x10($sp)` where the
 target has `0x28`, and so on down the body). Its three locals were declared
 `VECTOR delta; SVECTOR dir; AnimationPlayRequest preset;`, but the target puts
@@ -82162,7 +82162,7 @@ on an `s32` temp.
 Example: `_actor141000TickAyaBreaBlink` (scratch `base_2.c`, 100%; `base_1.c`,
 the `goto` spelling, 99.697%). Input `base_2.i`
 `1520622cbff766666797221e9862f0afe6034a224a669ab40fbf0c8da24c11c6`.
-## func_actor_113100_80132BDC: a wrong `addiu` displacement sizes the pointer, and a matched sibling names it
+## _actor113100FaceBillboardToCamera: a wrong `addiu` displacement sizes the pointer, and a matched sibling names it
 
 An m2c seed scored 99.896% with exactly one difference: `addiu s1,s3,0x10`
 where the target has `addiu s1,s3,4`. The displacement in the object dump *is*
@@ -82197,7 +82197,7 @@ below the similarity threshold does not mean the *structure* is unmatched.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Inputs: base_1.i `f71b89bd03c7af91edc35e6c0838a946ca1822faf94d6930a1e64fc4be6b1a85`,
 base_2.i `05cee88f6a66bcc1997128422ea5c1e137aeaceac7a94bc53e896e307b678adb`.
-Evidence: scratch `nonmatchings/func_actor_113100_80132BDC-vacuum/`, base_1/2
+Evidence: scratch `nonmatchings/_actor113100FaceBillboardToCamera-vacuum/`, base_1/2
 `.rtl` identical to target; no pins, no permuter, no tracer.
 ## A `stack` penalty with `regs=0` is `a0`–`a3` read as hex: check the parameter slots, not the frame
 
@@ -99635,7 +99635,7 @@ change above the function reached 100.000% in 2 attempts.
 
 ## A load that feeds a call argument is dragged to the front of its block by the argument copy
 
-`func_actor_113100_80132B30` was stuck at 99.535% / `regs=4` with a two-line
+`_actor113100AttachBillboard` was stuck at 99.535% / `regs=4` with a two-line
 diff: the target emits
 
 ```
@@ -99696,7 +99696,7 @@ scored candidate has `regs=0` and `branch=0` but nonzero `reorder`/`insert`/
 `delete` and the diff is a mirrored branch, the m2c-style nesting is wrong, not
 the codegen - invert the test and move the arms.
 
-This is the same oracle the matched sibling `func_actor_113100_80132B30` in the
+This is the same oracle the matched sibling `_actor113100AttachBillboard` in the
 same TU had already used: its source reads `if (gameFlagGetNibble(0xF1) == 0)
 { model->field_C &= 0xFF7F; } else { model->field_C |= 0x80; }` for the
 identical `&= 0xFF7F` / `|= 0x80` pair on the same `field_C`. When a truth-table
@@ -125802,7 +125802,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## One variable for two roles across branches is what moves a pseudo off `$v0`
 
-`func_actor_113100_801324DC` reached 99.837% with `regs=3` and everything else
+`_actor113100TurnAndBeginWalk` reached 99.837% with `regs=3` and everything else
 zero: the only diff was that the snapped heading took `$v0` where the target
 has `$a0` (`addiu a0,v0,±0x40` against our `addiu v0,v0,±0x40`, then
 `sll a0,a0,0x10` against `sll a0,v0,0x10`). The `(s16)angle` temporary was
@@ -125844,7 +125844,7 @@ global allocation puts it in a callee-saved register and reload adds
 the sched2 delay-slot fill follows: with one pointer the `bnez` slot takes the
 address materialisation, with two it takes the `sll` of the field conversion.
 
-Inputs: scratch `nonmatchings/func_actor_113100_801324DC-vacuum`, `base_6.c`
+Inputs: scratch `nonmatchings/_actor113100TurnAndBeginWalk-vacuum`, `base_6.c`
 99.837% (`kebab` pointer split, source SHA256
 `b0b690325d426cd67484719f63ea2386f4d848e0580f2d7f66e986a0442e000d`), `base_7.c`
 99.837% (`$a0` still wrong, `ea17dcc16240efb1ca9894242f7913a27e9c3dfea2afe71f9ba3e569e4382a4d`),
@@ -125854,7 +125854,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## A reload of a just-written byte field survives only if no other store stands between the write and the read
 
-`func_actor_113100_801331E8` latches the animation id (`sb` to `work+0x476`) and
+`_actor113100PlayAnimation` latches the animation id (`sb` to `work+0x476`) and
 reads it straight back with `lb` to index the bank table (`sll $v1,$v1,2` before
 the `lw`). The m2c baseline emitted no `lb` at all: the index came from the byte
 still in a register (`lbu` + `sll 24` / `sra 20`). Retyping the work block as its
@@ -125896,7 +125896,7 @@ contradict the source either, because sched2 reorders independent stores: the
 target's `sb 0x475` before `sb 0x476` is fully compatible with the source writing
 `model.bank` first.
 
-Inputs: scratch `nonmatchings/func_actor_113100_801331E8-vacuum`, `base_1.c`
+Inputs: scratch `nonmatchings/_actor113100PlayAnimation-vacuum`, `base_1.c`
 100.000% (`7a6b46a23f0b7cbe63c10583f1aa714a4dd041a161aa4fdef6358fc69a615429`),
 `base_2.c` 100.000% with the `(s8)(u8)` store source
 (`75b930cc020488efb10631f2a49a9ad6221903ccd0e8a6271da6d4bd5526be0e`, same object
@@ -125909,7 +125909,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 `python3 tools/overlay_dup_index.py find <fn>` (and `solved`, which the vacuum
 uses to skip work) decides equality on splat's disassembly *text*, so two bodies
 that differ only in a struct field displacement -- `lw $v1, 0x18($a1)` vs
-`lw $v1, 0x20($a1)` -- are different functions to it. `func_actor_113100_8013264C`
+`lw $v1, 0x20($a1)` -- are different functions to it. `_actor113100CheckWalkArrival`
 and the already-matched `func_actor_335800_80162B3C` are the same 81
 instructions in the same order with only immediates, offsets and jump targets
 differing; `find` reports one copy (itself), while the brief's `shape` and
@@ -125931,13 +125931,13 @@ separate `s16` locals score the same but the ternary abs at the end
 (`work->field_4E8 = d.vx < 0 ? -d.vx : d.vx;`) is spelled over the struct member,
 not the `s32` the difference was computed in.
 
-Inputs: scratch `nonmatchings/func_actor_113100_8013264C-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor113100CheckWalkArrival-vacuum`, `base.c`
 65.938% with m2c's dropped first arm restored
 (`6f16643aa9c13c90474ba05864c02a639863d1663147223e351e4d7ba2e1bd91`), `base_1.c`
 100.000% (`101b4219bf7d268836e9ec37bb802eb4b9ea5dd99f72a7e53f18a78740454b9b`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A second read of the same pointer is what splits a value across two registers; hoist the loop's base node from the *copy* (func_actor_113100_80132790, 2026-09-17)
+## A second read of the same pointer is what splits a value across two registers; hoist the loop's base node from the *copy* (_actor113100SetModelDraw, 2026-09-17)
 
 The 0x7D5 visibility handler walks the work block's collision `body` once in each of
 its four mode arms. The target keeps the block in `$v1` for the arm that folds
@@ -125973,7 +125973,7 @@ as `PERMUTER_MISS`. **A router MISS whose log shows `setup failed` is not a
 search result** -- strip the m2c leftovers from the seeds and run it again before
 recording a miss.
 
-Inputs: scratch `nonmatchings/func_actor_113100_80132790-vacuum`, `base_1.c`
+Inputs: scratch `nonmatchings/_actor113100SetModelDraw-vacuum`, `base_1.c`
 98.517% (`0172ee7427a4d733330cc03db36ae80470a764be57d0bc0d5c21366eb84014bd`),
 `base_3.c` 99.828%
 (`ef5dcc14de8821416c037205da55be0a6b34c5bc21320b9b8ef396ab2ceb36cd`),
@@ -125981,9 +125981,9 @@ Inputs: scratch `nonmatchings/func_actor_113100_80132790-vacuum`, `base_1.c`
 (`6af09fb4fb1931a6df32358aa91d24a9a12c22af521f17c3edf9887ce03e1541`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Porting a twin across families: the arm the twin has and the target does not is a codegen change, not just a semantic one (func_actor_113100_801328EC, 2026-09-17)
+## Porting a twin across families: the arm the twin has and the target does not is a codegen change, not just a semantic one (_actor113100StartWalk, 2026-09-17)
 
-The 0x7DD placement handler is the 0x7D3 handler `func_actor_113100_801331E8`
+The 0x7DD placement handler is the 0x7D3 handler `_actor113100PlayAnimation`
 written out inline against a stack preset, and the brief's `calls` tier reaches
 its cross-family twin `_actor141000StartAyaBreaWalk` at 1.00 -- the same body for
 actor_141000. Porting it is mechanical except that its `anim == NULL` arm is one
@@ -126028,7 +126028,7 @@ halves `u16` and write the plain member assignment. The `lhu` that comes out is
 the default HImode load (see "A halfword field read through a pointer expands to
 `lhu` + `ashl`/`ashr`"), not evidence that the source halves are unsigned.
 
-Inputs: scratch `nonmatchings/func_actor_113100_801328EC-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor113100StartWalk-vacuum`, `base.c`
 76.341% (`stack=7 branch=8 regs=51 reorder=4 insert=9 delete=15`), `base_1.c`
 100.000% (`a2f2e103a7145db75e3d764375540fa3b2355a161405358b92bc0ec617b8e644`,
 preprocessed `5414d536d8423c61ed8b862534f11243921512130c3b726931e8f60e80df47da`).

@@ -26,7 +26,6 @@
 #include "main/coord.h"
 #include "main/gameflag.h"
 #include "main/gfx.h"
-#include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -39,6 +38,26 @@
 #include "rooms/mist_parking.h"
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
+#include "../../shared/actor_motion_walk_helpers.h"
+
+/// Body drawing and primitive-buffer policies; every mode disables sphere pairs.
+enum {
+    ACTOR_113100_DRAW_HIDE                  = 0,
+    ACTOR_113100_DRAW_SHOW                  = 1,
+    ACTOR_113100_DRAW_HIDE_AND_RELEASE      = 2,
+    ACTOR_113100_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+    ACTOR_113100_BUFFER_RELEASE_DELAY_TICKS = 2,
+};
+
+/// Pierce's walk clips and transitions; velocity uses signed 16.16 units per tick.
+enum {
+    ACTOR_113100_BODY_ANIMATION_BANK     = 0,
+    ACTOR_113100_ANIM_WALK               = 2,
+    ACTOR_113100_WALK_STEP_QUEUE_HEADING = 0,
+    ACTOR_113100_TURN_BLEND_FRAMES       = 4,
+    ACTOR_113100_WALK_BLEND_FRAMES       = 5,
+    ACTOR_113100_YAW_STEP                = 64,
+};
 
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 
@@ -79,15 +98,15 @@ STATIC_ASSERT_SIZEOF(_Actor113100PierceCarradineWork, 0x540);
 extern TaskDesc D_actor_113100_80144308[];
 
 /// The actor's message table, stored in `Task::msgTable`: 0x7D3
-/// (`func_actor_113100_801331E8`), 0x7D4 (`actorMsgPlaceEuler`), 0x7D5
-/// (`func_actor_113100_80132790`), 0x7DD (`func_actor_113100_801328EC`) and
-/// 0x7DB (`func_actor_113100_801333B8`), terminated by `TASK_MESSAGE_TABLE_END`.
+/// (`_actor113100PlayAnimation`), 0x7D4 (`actorMsgPlaceEuler`), 0x7D5
+/// (`_actor113100SetModelDraw`), 0x7DD (`_actor113100StartWalk`) and
+/// 0x7DB (`_actor113100ApplyCommand`), terminated by `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
 extern TaskMessageEntry D_actor_113100_80144338[];
 
-/// Animation bank table the 0x7D3 handler `func_actor_113100_801331E8` indexes
+/// Animation bank table the 0x7D3 handler `_actor113100PlayAnimation` indexes
 /// by the animation id it has latched into `_Actor113100PierceCarradineWork::model.bank`; the
 /// entry is the `AnimationSet**` passed to `animationInitContext`.
 extern AnimationSet*  D_actor_113100_80144250[36];
@@ -98,40 +117,40 @@ extern AnimationSet** D_actor_113100_801442E0[1];
 /// `AnimationPlayRequest::animationId`.
 extern u8 D_actor_113100_801442E4[];
 
-/// Main-executable routine the turn handler `func_actor_113100_801324DC` calls
-/// with a yaw angle and the root coordinate's matrix, after resetting its 3x3
-/// to the identity.
-
 /// Gameplay import, called with 1 by the setup handler and with 0 by
 /// `func_actor_113100_80132F40`.
 
 static void func_actor_113100_80131E58(Task* task);
 static void func_actor_113100_80132104(Task* task);
-static void func_actor_113100_801324DC(Task* task);
-static void func_actor_113100_8013264C(Task* task);
-s32         func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3);
-static void func_actor_113100_80132B30(Task* task);
-static void func_actor_113100_80132BDC(Task* task);
-static void func_actor_113100_80132EF0(Task* task);
-static void func_actor_113100_80132F24(Task* task);
+static void _actor113100TurnAndBeginWalk(Task* task);
+static void _actor113100CheckWalkArrival(Task* task);
+static s32  _actor113100SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
+static void _actor113100AttachBillboard(Task* task);
+static void _actor113100FaceBillboardToCamera(Task* task);
+static void _actor113100Exit(Task* task);
+static void _actor113100BindLighting(Task* task);
 static void func_actor_113100_80132F40(Task* task);
-static void func_actor_113100_80132FB4(Task* task);
-static void func_actor_113100_8013301C(Task* task);
-static void func_actor_113100_801330E8(Task* task);
-s32         func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* preset, s32 arg3);
+static void _actor113100StepWalk(Task* task);
+static void _actor113100QueueWalkHeading(Task* task);
+static void _actor113100TurnToArrivalYaw(Task* task);
+static s32  _actor113100PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32  _actor113100StartWalk(Task* task, s32 messageId, const ActorTransform* placement, const ActorMotionWalkAnim* walkAnim);
+static s32  _actor113100ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
+static void _actor113100BillboardTask(Task* task);
+static void _actor113100AttachedModelTask(Task* task);
 
 /// States of a child task posed on one of the parent's parts: attach to the
 /// parent, rebuild its display matrix every frame, then `taskKill`. Dispatched
-/// by `func_actor_113100_80132AD8`.
+/// by `_actor113100BillboardTask`.
 static const TaskFuncTable3 D_actor_113100_80131E24 = { {
-    func_actor_113100_80132B30,
-    func_actor_113100_80132BDC,
+    _actor113100AttachBillboard,
+    _actor113100FaceBillboardToCamera,
     taskKill,
 } };
 
 /// States of the child task: attach to the parent's part, mirror its active-draw
 /// and buffer flags each frame, then `taskKill`.
-/// Dispatched by `func_actor_113100_80132C9C`.
+/// Dispatched by `_actor113100AttachedModelTask`.
 static const TaskFuncTable3 D_actor_113100_80131E30 = { {
     _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
@@ -143,25 +162,20 @@ static const TaskFuncTable3 D_actor_113100_80131E30 = { {
 static const TaskFuncTable3 D_actor_113100_80131E3C = { {
     func_actor_113100_80131E58,
     func_actor_113100_80132104,
-    func_actor_113100_80132EF0,
+    _actor113100Exit,
 } };
 
-/// The four main-body handlers, dispatched by `func_actor_113100_80132FB4`
+/// The four main-body handlers, dispatched by `_actor113100StepWalk`
 /// through `_Actor113100PierceCarradineWork::walk.motionStep`.
 static const TaskFuncTable4 D_actor_113100_80131E48 = { {
-    func_actor_113100_8013301C,
-    func_actor_113100_801324DC,
-    func_actor_113100_8013264C,
-    func_actor_113100_801330E8,
+    _actor113100QueueWalkHeading,
+    _actor113100TurnAndBeginWalk,
+    _actor113100CheckWalkArrival,
+    _actor113100TurnToArrivalYaw,
 } };
 
 static TmdSource _gActor113100PierceCarradineBody;
 void             func_actor_113100_80132E98(Task*);
-
-s32 func_actor_113100_80132790(Task*, s32, s32, s32);
-s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
-s32 func_actor_113100_801331E8(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 static TmdBone _gActor113100PierceCarradineBodySkeleton[20] = {
 #include "assets/pierce_carradine_body_skeleton.inc"
@@ -1139,8 +1153,6 @@ u8 D_actor_113100_801442E4[36] = {
     0,
 };
 
-void             func_actor_113100_80132AD8(Task*);
-void             func_actor_113100_80132C9C(Task*);
 void             func_actor_113100_80132E98(Task*);
 static TmdSource _gActor113100Model07BC4;
 static TmdSource _gActor113100Model07960;
@@ -1148,17 +1160,17 @@ static TmdSource _gActor113100Model07AB4;
 
 TaskDesc D_actor_113100_80144308[4] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_113100_80132E98, { .model = &_gActor113100PierceCarradineBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_113100_80132AD8, { .model = &_gActor113100Model07BC4 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_113100_80132C9C, { .model = &_gActor113100Model07960 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_113100_80132C9C, { .model = &_gActor113100Model07AB4 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor113100BillboardTask, { .model = &_gActor113100Model07BC4 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor113100AttachedModelTask, { .model = &_gActor113100Model07960 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor113100AttachedModelTask, { .model = &_gActor113100Model07AB4 } },
 };
 
 TaskMessageEntry D_actor_113100_80144338[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_113100_801331E8 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor113100PlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_113100_80132790 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_113100_801328EC },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_113100_801333B8 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor113100SetModelDraw },
+    { ACTOR_MESSAGE_WALK_TO, _actor113100StartWalk },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor113100ApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1249,7 +1261,7 @@ static void func_actor_113100_80131E58(Task* task)
         }
     }
 
-    func_actor_113100_80132F24(task);
+    _actor113100BindLighting(task);
 
     obj                   = &work->body;
     obj->coord            = &task->extra.tmd->coords[1];
@@ -1266,8 +1278,8 @@ static void func_actor_113100_80131E58(Task* task)
 
     task->msgTable = D_actor_113100_80144338;
     func_mist_parking_80183BAC(1);
-    func_actor_113100_80132790(task, 0, 0, 0);
-    task->exitCallback = func_actor_113100_80132EF0;
+    _actor113100SetModelDraw(task, 0, ACTOR_113100_DRAW_HIDE, 0);
+    task->exitCallback = _actor113100Exit;
     task->state       += 1;
 }
 
@@ -1275,7 +1287,7 @@ static void func_actor_113100_80131E58(Task* task)
 /// (bit 0x80 of `TmdObject::flags`) it rebuilds part 1's world matrix and
 /// draws the ground shadow under that part. `gSceneCombatState.actorControl` gates the rest: a
 /// nonzero value skips it. The live path dispatches `func_actor_113100_80132F40`
-/// or `func_actor_113100_80132FB4` from a two-entry stack table indexed by
+/// or `_actor113100StepWalk` from a two-entry stack table indexed by
 /// `walk.motion`, integrates the 16.16 step at `walk.velocity` into `walk.carry[0].word` /
 /// `walk.carry[1].word` / `walk.carry[2].word` and the root translation, ticks slots 1..0x13
 /// once `model.ticking` has latched, and plays ids 0x5113000F / 0x51130013 /
@@ -1288,7 +1300,7 @@ static void func_actor_113100_80132104(Task* task)
 {
     TmdObject*                       extra    = task->extra.tmd;
     _Actor113100PierceCarradineWork* work     = task->work;
-    TaskFunc                         funcs[2] = { func_actor_113100_80132F40, func_actor_113100_80132FB4 };
+    TaskFunc                         funcs[2] = { func_actor_113100_80132F40, _actor113100StepWalk };
     VECTOR3                          pos;
     GfxCoord*                        coord;
     const AnimationRecord*           rec;
@@ -1370,309 +1382,308 @@ static void func_actor_113100_80132104(Task* task)
     }
 }
 
-/// Per-frame turn handler, one of the four bodies `func_actor_113100_80132FB4`
-/// dispatches through `D_actor_113100_80131E48`. It recovers the root
-/// coordinate's yaw from its 3x3 (`m[0][2]` over `m[2][2]`) and compares it
-/// with the heading the work block latched in `walkYaw`: more than 0x41 away
-/// it turns the root coordinate 0x40 toward `walkYaw` and only re-splats the
-/// identity 3x3, within 0x41 it turns the root coordinate to `walkYaw` and then
-/// rotates the local forward offset (0, 0, 0x200000) into `walk.velocity` with
-/// `ApplyMatrixLV`, raises the three halves at `walk.lastDistance` to 0x7FFF and
-/// publishes preset 0x7D3. Both arms clear `GfxCoord::composeStamp` -- the node's
-/// recompute bit -- and end at the same epilogue.
+/// Applies Pierce's bank/clip transition and its clip-selected head-turn ramp.
 ///
-/// `yaw` carries two different values on purpose: it holds the work block's
-/// `walkYaw` for the comparison, and the snapped heading on the turn arm.
-/// One variable for both is what puts the snapped value in `$a0` -- the
-/// pseudo then spans the whole body, so `$v0` (written by both `ratan2` and
-/// the identity constant) is denied it and the `(s16)angle` temporary takes
-/// `$v0` instead. `words` and `turnWords` are likewise two pointers rather
-/// than one: a single `words` would make the turn arm and the normal arm share
-/// a pseudo, which lengthens its life across the branch and adds a copy.
-static void func_actor_113100_801324DC(Task* task)
+/// Borrows initialized work, live model coordinates and a readable request with
+/// `_actor113100PlayAnimation`'s bank, clip and lifetime contract. Repeated clips retain
+/// their cursor. Slots 1..19 blend or reset and tick only for a changed clip.
+static inline void _actor113100ApplyAnimationRequest(_Actor113100PierceCarradineWork* work,
+                                                     TmdObject* model, const AnimationPlayRequest* request)
+{
+    s32 slotIndex;
+
+    enum { ACTOR_113100_FIRST_DRIVEN_SLOT = 1 };
+
+    if (request->source.index != work->model.bank) {
+        work->model.bank   = request->source.index;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], model, work->rig.poses,
+                             work->rig.slots);
+    }
+    // Repeated clips keep their cursor; a bank change invalidates the previous clip.
+    if (request->animationId != work->model.animId) {
+        work->model.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
+            for (slotIndex = ACTOR_113100_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
+            }
+        } else {
+            for (slotIndex = ACTOR_113100_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
+            }
+        }
+        // Seed the new pose before the actor's normal frame update can tick it.
+        for (slotIndex = ACTOR_113100_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
+        }
+        work->model.ticking = 1;
+    }
+    work->turnUp = D_actor_113100_801442E4[request->animationId];
+}
+
+/// Turns to the queued heading, then starts the walk at 32 parent-space units per tick.
+///
+/// Requires initialized body work and a live model root. Angles use 4096 units
+/// per turn; the yaw difference narrows to a signed halfword without shortest-turn
+/// wrapping. Steps by 64 until within 64, then snaps to `walkYaw`, rotates a
+/// 16.16 forward velocity, seeds all arrival gaps and plays clip 2 with a
+/// four-frame blend. Advances the walk step only on completion. Rebuilds a pure
+/// Y rotation and invalidates composition, retaining translation and stored Euler
+/// parameters. The caller integrates velocity after this step.
+static void _actor113100TurnAndBeginWalk(Task* task)
 {
     _Actor113100PierceCarradineWork* work;
-    GfxCoord*                        coord;
-    GfxRotationWords*                words;
-    GfxRotationWords*                turnWords;
-    VECTOR                           delta;
-    AnimationPlayRequest             preset;
-    s32                              angle;
-    s32                              angle16;
+    GfxCoord*                        rootCoord;
+    VECTOR                           forwardVelocity;
+    AnimationPlayRequest             walkRequest;
+    s32                              currentYaw;
+    s32                              currentYaw16;
     u16                              yaw;
-    s16                              diff;
+    s16                              yawGap;
 
-    coord = task->extra.tmd->coords;
-    work  = task->work;
-    angle = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-    yaw   = work->walkYaw;
-    diff  = yaw - angle;
-    if (ABS(diff) >= 0x41) {
-        angle16 = (s16)angle;
-        if (diff < 0) {
-            yaw = angle16 - 0x40;
+    enum { ACTOR_113100_WALK_SPEED_16_16 = 32 * 0x10000 };
+
+    rootCoord  = task->extra.tmd->coords;
+    work       = task->work;
+    currentYaw = ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]);
+    yaw        = work->walkYaw;
+    yawGap     = yaw - currentYaw;
+    if (ABS(yawGap) >= ACTOR_113100_YAW_STEP + 1) {
+        currentYaw16 = (s16)currentYaw;
+        if (yawGap < 0) {
+            yaw = currentYaw16 - ACTOR_113100_YAW_STEP;
         } else {
-            yaw = angle16 + 0x40;
+            yaw = currentYaw16 + ACTOR_113100_YAW_STEP;
         }
-        turnWords         = (GfxRotationWords*)&coord->coord;
-        turnWords->m00M01 = ONE;
-        turnWords->m02M10 = 0;
-        turnWords->m11M12 = ONE;
-        turnWords->m20M21 = 0;
-        turnWords->m22    = ONE;
-        RotMatrixY((s16)yaw, &coord->coord);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        gfxSetRotIdentity(&rootCoord->coord);
+        RotMatrixY((s16)yaw, &rootCoord->coord);
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
-        words         = (GfxRotationWords*)&coord->coord;
-        words->m00M01 = ONE;
-        words->m02M10 = 0;
-        words->m11M12 = ONE;
-        words->m20M21 = 0;
-        words->m22    = ONE;
-        RotMatrixY((s16)yaw, &coord->coord);
-        delta.vx = 0;
-        delta.vy = 0;
-        delta.vz = 0x200000;
-        ApplyMatrixLV(&coord->coord, &delta, &work->walk.velocity);
-        work->walk.lastDistance.vx  = ACTOR_WALK_DISTANCE_NONE;
-        work->walk.lastDistance.vy  = ACTOR_WALK_DISTANCE_NONE;
-        work->walk.lastDistance.vz  = ACTOR_WALK_DISTANCE_NONE;
-        preset.source.index         = 0;
-        preset.animationId          = 2;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 4;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_113100_801331E8(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+        gfxSetRotIdentity(&rootCoord->coord);
+        RotMatrixY((s16)yaw, &rootCoord->coord);
+        forwardVelocity.vx = 0;
+        forwardVelocity.vy = 0;
+        forwardVelocity.vz = ACTOR_113100_WALK_SPEED_16_16;
+        ApplyMatrixLV(&rootCoord->coord, &forwardVelocity, &work->walk.velocity);
+        work->walk.lastDistance.vx       = ACTOR_WALK_DISTANCE_NONE;
+        work->walk.lastDistance.vy       = ACTOR_WALK_DISTANCE_NONE;
+        work->walk.lastDistance.vz       = ACTOR_WALK_DISTANCE_NONE;
+        walkRequest.source.index         = ACTOR_113100_BODY_ANIMATION_BANK;
+        walkRequest.animationId          = ACTOR_113100_ANIM_WALK;
+        walkRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+        walkRequest.blendFrames          = ACTOR_113100_TURN_BLEND_FRAMES;
+        walkRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        _actor113100PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &walkRequest, 0);
         work->walk.motionStep++;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
 
-/// One of the four main-body handlers `_Actor113100PierceCarradineWork::walk.motionStep` dispatches
-/// through `D_actor_113100_80131E48`. It measures how far the work block's
-/// `walk.target.vx` / `walk.target.vz` have drifted from the root coordinate's
-/// translation -- each axis as the 16-bit magnitude of the difference, the
-/// signed 32-bit subtraction only picking the direction -- and once both
-/// magnitudes are no smaller than `walk.lastDistance.vx` / `.vz` it publishes the
-/// 0x7D3 preset (`field_4` the animation id, `field_C` 5) and clears the
-/// `walk.velocity` vector, bumping `walk.motionStep` on to the next handler. While
-/// either is still shrinking it latches the magnitudes back into
-/// `walk.lastDistance`, so the pair tracks the distance at the last check.
-static void func_actor_113100_8013264C(Task* task)
+/// Stops Pierce's walk when neither horizontal arrival gap gets smaller.
+///
+/// Requires a live root and initialized walk work. Gaps use root-parent units:
+/// the full-word sign chooses a low-halfword subtraction, then each gap narrows
+/// to a signed halfword. Previous gaps hold their absolute values. Arrival plays
+/// the queued bank-0 clip with a five-frame blend, clears XYZ velocity and advances
+/// the walk step. The queued clip must be loaded; position and fractional carry
+/// are retained. Otherwise updates only the X/Z previous gaps.
+static void _actor113100CheckWalkArrival(Task* task)
 {
     _Actor113100PierceCarradineWork* work;
-    GfxCoord*                        coord;
-    SVECTOR                          d;
-    s32                              dx;
-    s32                              dz;
-    AnimationPlayRequest             preset;
+    GfxCoord*                        rootCoord;
+    SVECTOR                          distance;
+    s32                              deltaX;
+    s32                              deltaZ;
+    AnimationPlayRequest             arrivalRequest;
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
-    if (work->walk.target.vx - coord->coord.t[0] >= 0) {
-        dx = (u16)work->walk.target.vx - (u16)coord->coord.t[0];
-    } else {
-        dx = (u16)coord->coord.t[0] - (u16)work->walk.target.vx;
-    }
-    d.vx = dx;
-    if (work->walk.target.vz - coord->coord.t[2] >= 0) {
-        dz = (u16)work->walk.target.vz - (u16)coord->coord.t[2];
-    } else {
-        dz = (u16)coord->coord.t[2] - (u16)work->walk.target.vz;
-    }
-    d.vz = dz;
-    if (d.vx >= work->walk.lastDistance.vx && d.vz >= work->walk.lastDistance.vz) {
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_113100_801331E8(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    // The full-word sign selects a low-halfword gap; signed narrowing is intentional.
+    deltaX      = _actorMotionWalkAxisGap(&work->walk.target.vx, &rootCoord->coord.t[0]);
+    distance.vx = deltaX;
+    deltaZ      = _actorMotionWalkAxisGap(&work->walk.target.vz, &rootCoord->coord.t[2]);
+    distance.vz = deltaZ;
+    if (distance.vx >= work->walk.lastDistance.vx && distance.vz >= work->walk.lastDistance.vz) {
+        arrivalRequest.source.index         = ACTOR_113100_BODY_ANIMATION_BANK;
+        arrivalRequest.animationId          = work->model.nextAnimId;
+        arrivalRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+        arrivalRequest.blendFrames          = ACTOR_113100_WALK_BLEND_FRAMES;
+        arrivalRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        _actor113100PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &arrivalRequest, 0);
         work->walk.velocity.vx = 0;
         work->walk.velocity.vy = 0;
         work->walk.velocity.vz = 0;
         work->walk.motionStep++;
         return;
     }
-    work->walk.lastDistance.vx = d.vx < 0 ? -d.vx : d.vx;
-    work->walk.lastDistance.vz = d.vz < 0 ? -d.vz : d.vz;
+    work->walk.lastDistance.vx = distance.vx < 0 ? -distance.vx : distance.vx;
+    work->walk.lastDistance.vz = distance.vz < 0 ? -distance.vz : distance.vz;
 }
 
-/// The 0x7D5 entry of `D_actor_113100_80144338`: the visibility control the
-/// setup handler and `func_actor_113100_80132F40` drive. This one takes its
-/// payload as a mode word rather than a pointer -- both call sites pass a
-/// literal, and a mode outside 0..3 is answered with 1, the "not handled"
-/// return the dispatch expects. All four modes lift the 0x8000 bit the setup
-/// handler raised on the work block's collision `body` and then rewrite the
-/// actor's own `TmdObject::flags`, whose `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit
-/// excludes active drawing and whose 0x4 is the flag `tmdCreateModel` seeds from `flags & 1`:
-/// mode 0 shows the model and clears 0x4; mode 1 hides it, hands the object to
-/// `tmdAllocPrimitiveBuffer` and clears 0x4; mode 2 hides it, latches 2 into
-/// `freeCountdown` -- the countdown `func_actor_113100_80132104` walks down to
-/// `tmdFreePrimitiveBuffer` -- and raises 0x4; mode 3 shows it and raises 0x4.
+/// Sets Pierce's body drawing, sphere-pair participation and buffer policy.
 ///
-/// `work` and `work2` are the same `Task::work` read twice. The second read
-/// becomes a register copy at the entry, which is what leaves the block in
-/// `$v1` for the node base mode 3 folds out of `work` while the hoisted `head`
-/// and the `freeCountdown` latch run off the copy in `$a1`; one read and one local
-/// for the node instead collapses all four arms onto a single register
-/// (98.517%).
-s32 func_actor_113100_80132790(Task* task, s32 msgId, s32 mode, s32 arg3)
+/// Requires initialized body work and a live TMD task. Modes 0/2 hide and 1/3 show;
+/// every accepted mode disables the body's sphere-pair pass. Modes 0/1 permit
+/// automatic buffers, and 1 requests a missing buffer immediately. Mode 2 disables
+/// automatic buffers and seeds a countdown of 2; two eligible ticks consume it,
+/// then the tick reading zero frees the buffers. Mode 3 disables automatic buffers without allocating.
+/// Other modes leave any pending release countdown intact. Ignores message ID and
+/// second payload. Returns 0 for modes 0..3, or 1 without changes for another mode.
+static s32 _actor113100SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg)
 {
     _Actor113100PierceCarradineWork* work;
-    _Actor113100PierceCarradineWork* work2;
-    WorldCollisionBody*              head;
-    WorldCollisionBody*              node;
-    TmdObject*                       obj;
-    s32                              i;
-    s32                              ret;
+    _Actor113100PierceCarradineWork* drawWork;
+    WorldCollisionBody*              body;
+    WorldCollisionBody*              bodyCursor;
+    TmdObject*                       model;
+    s32                              bodyIndex;
+    s32                              result;
 
-    work  = task->work;
-    obj   = task->extra.tmd;
-    work2 = task->work;
-    head  = &work2->body;
-    ret   = 0;
+    enum { ACTOR_113100_COLLISION_BODY_COUNT = 1 };
 
-    switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            node        = head;
-            for (i = 0; i <= 0; i++) {
-                node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                node++;
+    work     = task->work;
+    model    = task->extra.tmd;
+    drawWork = task->work;
+    body     = &drawWork->body;
+    result   = 0;
+
+    switch (drawMode) {
+        case ACTOR_113100_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyCursor    = body;
+            for (bodyIndex = 0; bodyIndex < ACTOR_113100_COLLISION_BODY_COUNT; bodyIndex++) {
+                bodyCursor->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                bodyCursor++;
             }
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            node        = head;
-            for (i = 0; i <= 0; i++) {
-                node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                node++;
+        case ACTOR_113100_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyCursor    = body;
+            for (bodyIndex = 0; bodyIndex < ACTOR_113100_COLLISION_BODY_COUNT; bodyIndex++) {
+                bodyCursor->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                bodyCursor++;
             }
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            node        = head;
-            for (i = 0; i <= 0; i++) {
-                node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                node++;
+        case ACTOR_113100_DRAW_HIDE_AND_RELEASE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyCursor    = body;
+            for (bodyIndex = 0; bodyIndex < ACTOR_113100_COLLISION_BODY_COUNT; bodyIndex++) {
+                bodyCursor->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                bodyCursor++;
             }
-            work2->freeCountdown = 2;
-            obj->flags          |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            drawWork->freeCountdown = ACTOR_113100_BUFFER_RELEASE_DELAY_TICKS;
+            model->flags           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            node        = &work->body;
-            for (i = 0; i <= 0; i++) {
-                node->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                node++;
+        case ACTOR_113100_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyCursor    = &work->body;
+            for (bodyIndex = 0; bodyIndex < ACTOR_113100_COLLISION_BODY_COUNT; bodyIndex++) {
+                bodyCursor->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                bodyCursor++;
             }
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
-/// The 0x7DD entry of `D_actor_113100_80144338`: the placement command. It
-/// latches its payload's position and rotation into the work block, flags the
-/// actor as placed through `walk.motion` / `walk.motionStep`, then applies the start
-/// preset in place -- the body of the 0x7D3 handler
-/// `func_actor_113100_801331E8` written out inline against a preset built on
-/// this function's own stack from `anim->animationId` and `anim->nextAnimId`.
-s32 func_actor_113100_801328EC(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim* anim)
+/// Copies a walk destination and starts Pierce's four-stage walking sequence.
+///
+/// Requires initialized body work and a live root. Borrows a readable placement
+/// through the call; XYZ position is in the root parent's frame, and Euler angles
+/// use 4096 units per turn. Only the final yaw is used by the closing turn.
+/// An optional readable clip pair selects the initial and queued arrival clips
+/// in bank 0; NULL selects clips 2 and 1. Clip IDs must name loaded entries 1..35.
+/// Starts at heading selection, applies the initial clip with a five-frame blend
+/// when playback is ticking, and selects its head-turn ramp. Repeated clips keep
+/// their cursor. Velocity and fractional carry are retained until later walk steps
+/// replace them. Ignores message ID, retains no payload pointer, and returns 0.
+static s32 _actor113100StartWalk(Task* task, s32 messageId, const ActorTransform* placement, const ActorMotionWalkAnim* walkAnim)
 {
-    _Actor113100PierceCarradineWork* work;
-    _Actor113100PierceCarradineWork* w;
-    AnimationPlayRequest             preset;
-    AnimationPlayRequest*            msg;
-    s32                              i;
-    TmdObject*                       ext;
+    _Actor113100PierceCarradineWork* playWork;
+    _Actor113100PierceCarradineWork* walkWork;
+    AnimationPlayRequest             walkRequest;
+    TmdObject*                       model;
 
-    w                    = task->work;
-    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
-    w->walk.motionStep   = 0;
-    w->walk.target.vx    = place->pos.vx;
-    w->walk.target.vy    = place->pos.vy;
-    w->walk.target.vz    = place->pos.vz;
-    w->walk.targetRot.vx = place->rot.vx;
-    w->walk.targetRot.vy = place->rot.vy;
-    w->walk.targetRot.vz = place->rot.vz;
-    preset.source.index  = 0;
-    if (anim != NULL) {
-        preset.animationId  = anim->animationId;
-        w->model.nextAnimId = anim->nextAnimId;
+    enum { ACTOR_113100_ANIM_DEFAULT_ARRIVAL = 1 };
+
+    walkWork                    = task->work;
+    walkWork->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    walkWork->walk.motionStep   = ACTOR_113100_WALK_STEP_QUEUE_HEADING;
+    walkWork->walk.target.vx    = placement->pos.vx;
+    walkWork->walk.target.vy    = placement->pos.vy;
+    walkWork->walk.target.vz    = placement->pos.vz;
+    walkWork->walk.targetRot.vx = placement->rot.vx;
+    walkWork->walk.targetRot.vy = placement->rot.vy;
+    walkWork->walk.targetRot.vz = placement->rot.vz;
+    walkRequest.source.index    = ACTOR_113100_BODY_ANIMATION_BANK;
+    if (walkAnim != NULL) {
+        walkRequest.animationId    = walkAnim->animationId;
+        walkWork->model.nextAnimId = walkAnim->nextAnimId;
     } else {
-        preset.animationId  = 2;
-        w->model.nextAnimId = 1;
+        walkRequest.animationId    = ACTOR_113100_ANIM_WALK;
+        walkWork->model.nextAnimId = ACTOR_113100_ANIM_DEFAULT_ARRIVAL;
     }
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+    walkRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+    walkRequest.blendFrames          = ACTOR_113100_WALK_BLEND_FRAMES;
+    walkRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
 
-    msg  = &preset;
-    work = task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, work->rig.poses,
-                             work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x14; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x14; i++) {
-                animationResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x14; i++) {
-            animationTickSlot(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    work->turnUp = D_actor_113100_801442E4[msg->animationId];
+    playWork = task->work;
+    model    = task->extra.tmd;
+    _actor113100ApplyAnimationRequest(playWork, model, &walkRequest);
     return 0;
 }
 
-void func_actor_113100_80132AD8(Task* task)
+/// Dispatches Pierce's billboard attachment, camera-facing tick or teardown.
+///
+/// Requires a live TMD task and state 0..2. Setup borrows the parent TMD task from
+/// `spawnArg2.pointer` and its coordinate index from `spawnArg1.value`; those
+/// resources must outlive the child. The selected callback may destroy the task.
+/// There is no bounds check or return value.
+static void _actor113100BillboardTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_113100_80131E24;
-    sp.funcs[task->state](task);
+    states = D_actor_113100_80131E24;
+    states.funcs[task->state](task);
 }
 
-static void func_actor_113100_80132B30(Task* task)
+/// Attaches the billboard 100 units above the selected parent model part.
+///
+/// Setup requires live child and parent TMD tasks, child coordinate 0 and a valid
+/// parent coordinate index in `spawnArg1.value`. Borrows the parent from
+/// `spawnArg2.pointer` and joins its teardown tree; ancestry must remain acyclic.
+/// The coordinate parent remains borrowed until teardown. Initially shows the
+/// model only while game flag 0xF1 is zero, then advances to the camera-facing tick.
+static void _actor113100AttachBillboard(Task* task)
 {
     TmdObject* model;
-    Task*      parent;
-    s32        index;
-    GfxCoord*  node;
-    GfxCoord*  part;
+    Task*      parentTask;
+    s32        parentPartIndex;
+    GfxCoord*  rootCoord;
+    GfxCoord*  parentCoords;
 
-    model  = task->extra.tmd;
-    parent = task->spawnArg2.pointer;
-    index  = task->spawnArg1.value;
-    node   = model->coords;
-    part   = parent->extra.tmd->coords;
+    enum { ACTOR_113100_BILLBOARD_Y_OFFSET = 100 };
 
-    node->coord.t[0]   = 0;
-    node->coord.t[1]   = 0x64;
-    node->coord.t[2]   = 0;
-    node->composeStamp = GRAPHICS_COORD_DIRTY;
-    node->parent       = &part[index];
+    model           = task->extra.tmd;
+    parentTask      = task->spawnArg2.pointer;
+    parentPartIndex = task->spawnArg1.value;
+    rootCoord       = model->coords;
+    parentCoords    = parentTask->extra.tmd->coords;
 
-    taskReparent(parent, task);
+    rootCoord->coord.t[0]   = 0;
+    rootCoord->coord.t[1]   = ACTOR_113100_BILLBOARD_Y_OFFSET;
+    rootCoord->coord.t[2]   = 0;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->parent       = &parentCoords[parentPartIndex];
+
+    taskReparent(parentTask, task);
     if (gameFlagGetNibble(GAME_FLAG_0F1) == 0) {
         model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
@@ -1681,40 +1692,53 @@ static void func_actor_113100_80132B30(Task* task)
     task->state += 1;
 }
 
-/// Builds the display matrix of the modelled part this actor is posed on.
-/// `spawnArg1` indexes the part in the model task's coordinate array: the part's
-/// `workm` is transposed into the actor coordinate, the stage view is multiplied
-/// in, and the part's X euler angle is applied, after which the coordinate's
-/// update flag is cleared so the GTE sees the new matrix.
-static void func_actor_113100_80132BDC(Task* task)
+/// Cancels the parent and camera rotations to face Pierce's billboard toward the camera.
+///
+/// Requires an attached child root, a live parent part selected by `spawnArg1.value`
+/// and the active mapped camera. Uses transpose(parent world rotation) times
+/// transpose(camera rotation), then applies the parent part's extracted local yaw
+/// as an X rotation. Retains local translation and marks composition dirty.
+/// The parent world matrix must already be current; no coordinate composition is
+/// performed here.
+static void _actor113100FaceBillboardToCamera(Task* task)
 {
-    MATRIX    sp10;
-    SVECTOR   sp30;
-    MATRIX*   view;
-    MATRIX*   coord;
-    GfxCoord* part;
-    GfxCoord* node;
-    s32       index;
+    Task*     parentTask;
+    MATRIX    inverseView;
+    SVECTOR   parentRotation;
+    MATRIX*   viewMatrix;
+    MATRIX*   billboardMatrix;
+    GfxCoord* parentPart;
+    GfxCoord* rootCoord;
+    s32       parentPartIndex;
 
-    index = task->spawnArg1.value;
-    node  = task->extra.tmd->coords;
-    part  = &((Task*)task->spawnArg2.pointer)->extra.tmd->coords[index];
-    view  = &viewGetMappedCamera(&gGameSession->location.loc)->transform;
-    coord = &node->coord;
-    TransposeMatrix(&part->workm, coord);
-    TransposeMatrix(view, &sp10);
-    MulMatrix0(coord, &sp10, coord);
-    gfxExtractSmallestEuler(&sp30, &part->coord);
-    RotMatrixX(sp30.vy, coord);
-    node->composeStamp = GRAPHICS_COORD_DIRTY;
+    parentPartIndex = task->spawnArg1.value;
+    rootCoord       = task->extra.tmd->coords;
+    parentTask      = task->spawnArg2.pointer;
+    parentPart      = &parentTask->extra.tmd->coords[parentPartIndex];
+    viewMatrix      = &viewGetMappedCamera(&gGameSession->location.loc)->transform;
+    billboardMatrix = &rootCoord->coord;
+    TransposeMatrix(&parentPart->workm, billboardMatrix);
+    TransposeMatrix(viewMatrix, &inverseView);
+    MulMatrix0(billboardMatrix, &inverseView, billboardMatrix);
+    gfxExtractSmallestEuler(&parentRotation, &parentPart->coord);
+    RotMatrixX(parentRotation.vy, billboardMatrix);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void func_actor_113100_80132C9C(Task* task)
+/// Dispatches an attached model's setup, inherited draw-policy tick or teardown.
+///
+/// Requires a live TMD task and state 0..2. Setup borrows the parent TMD task from
+/// `spawnArg2.pointer` and a valid coordinate index from `spawnArg1.value`; the
+/// parent coordinates and lighting must outlive the child. Setup joins the parent
+/// teardown tree. Each tick mirrors drawing and buffer policy, allocating a missing
+/// buffer when permitted. The selected callback may destroy the task. No bounds
+/// check or return value.
+static void _actor113100AttachedModelTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_113100_80131E30;
-    sp.funcs[task->state](task);
+    states = D_actor_113100_80131E30;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/model_placement_attach.inc.c"
@@ -1729,25 +1753,32 @@ void func_actor_113100_80132E98(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// The task's exit callback: it unlinks the work block's collision `body` and
-/// destroys the task.
-static void func_actor_113100_80132EF0(Task* arg0)
+/// Unlinks Pierce's collision sphere before releasing his body task and work.
+///
+/// Requires a live initialized work block whose body is linked. The task exit
+/// releases its work and descendants; no borrowed lighting or coordinates may be
+/// used afterwards.
+static void _actor113100Exit(Task* task)
 {
-    worldCollisionUnlinkBody(&((_Actor113100PierceCarradineWork*)arg0->work)->body);
-    enemyTaskExit(arg0);
+    _Actor113100PierceCarradineWork* work = task->work;
+
+    worldCollisionUnlinkBody(&work->body);
+    enemyTaskExit(task);
 }
 
-/// Points the model's light and colour matrices at the work block's own
-/// `model.light` / `model.color` pair; the setup handler calls it once.
-static void func_actor_113100_80132F24(Task* task)
+/// Makes Pierce's model borrow the light and color matrices in its work block.
+///
+/// Requires a live TMD task with allocated body work. The matrices remain borrowed
+/// until the model is destroyed, so the work block must outlive rendering.
+static void _actor113100BindLighting(Task* task)
 {
-    TmdObject*                       ext;
+    TmdObject*                       model;
     _Actor113100PierceCarradineWork* work;
 
-    ext           = task->extra.tmd;
-    work          = task->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
 }
 
 static void func_actor_113100_80132F40(Task* arg0)
@@ -1758,177 +1789,179 @@ static void func_actor_113100_80132F40(Task* arg0)
     work = arg0->work;
     flag = gameFlagGetNibble(GAME_FLAG_0ED);
     if (flag > 0 && work->lastAppearFlag == 0) {
-        func_actor_113100_80132790(arg0, 0, 1, 0);
+        _actor113100SetModelDraw(arg0, 0, ACTOR_113100_DRAW_SHOW, 0);
         func_mist_parking_80183BAC(0);
     }
     work->lastAppearFlag = flag;
 }
 
-/// Dispatches the actor's four main-body handlers by the animation slot index
-/// `walk.motionStep` counts up in `func_actor_113100_8013301C`.
-static void func_actor_113100_80132FB4(Task* arg0)
+/// Dispatches Pierce's heading, opening turn, arrival or closing-turn step.
+///
+/// Requires live initialized body work and a walk step in 0..3, in that order.
+/// The caller integrates the step's velocity after dispatch. The stack copy of
+/// the four callbacks is indexed without a bounds check; this is a motion-state
+/// index, independent of animation slot indices.
+static void _actor113100StepWalk(Task* task)
 {
     _Actor113100PierceCarradineWork* work;
-    TaskFuncTable4                   handlers;
+    TaskFuncTable4                   walkSteps;
 
-    work     = arg0->work;
-    handlers = D_actor_113100_80131E48;
-    handlers.funcs[work->walk.motionStep](arg0);
+    work      = task->work;
+    walkSteps = D_actor_113100_80131E48;
+    walkSteps.funcs[work->walk.motionStep](task);
 }
 
-/// Builds the offset from the root part's coordinate translation to
-/// `walk.target` and stores its yaw into `walkYaw`,
-/// then dispatches animation preset 0x7D3 through `func_actor_113100_801331E8`
-/// and counts the frame. The preset is built on this function's stack: it
-/// carries the slot index, the animation id and the two per-slot arguments.
+/// Queues the destination heading and starts Pierce's opening-turn clip.
 ///
-/// `preset` is declared before `delta` / `dir` on purpose -- the stack slots
-/// land at 0x10, 0x28 and 0x38 only in that order (GCC assigns the frame in
-/// declaration order, and the 16-byte `VECTOR` is 8-byte aligned).
-static void func_actor_113100_8013301C(Task* arg0)
+/// Requires initialized walk work and a live root coordinate. Normalizes the
+/// root-parent offset to `walk.target`, stores its yaw in `walkYaw` (4096 units per
+/// turn), and plays bank-0 clip 22 with a four-frame blend. Advances to the opening
+/// turn without changing the root rotation or velocity; that next step applies
+/// the queued heading.
+static void _actor113100QueueWalkHeading(Task* task)
 {
     _Actor113100PierceCarradineWork* work;
-    GfxCoord*                        coord;
-    AnimationPlayRequest             preset;
-    VECTOR                           delta;
-    SVECTOR                          dir;
+    GfxCoord*                        rootCoord;
+    AnimationPlayRequest             turnRequest;
+    VECTOR                           targetOffset;
+    SVECTOR                          direction;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    enum { ACTOR_113100_ANIM_OPENING_TURN = 22 };
 
-    delta.vx = work->walk.target.vx - coord->coord.t[0];
-    delta.vy = work->walk.target.vy - coord->coord.t[1];
-    delta.vz = work->walk.target.vz - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
-    work->walkYaw = ratan2(dir.vx, dir.vz);
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
 
-    preset.source.index         = 0;
-    preset.animationId          = 0x16;
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 4;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    func_actor_113100_801331E8(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+    targetOffset.vx = work->walk.target.vx - rootCoord->coord.t[0];
+    targetOffset.vy = work->walk.target.vy - rootCoord->coord.t[1];
+    targetOffset.vz = work->walk.target.vz - rootCoord->coord.t[2];
+    VectorNormalS(&targetOffset, &direction);
+    work->walkYaw = ratan2(direction.vx, direction.vz);
+
+    turnRequest.source.index         = ACTOR_113100_BODY_ANIMATION_BANK;
+    turnRequest.animationId          = ACTOR_113100_ANIM_OPENING_TURN;
+    turnRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+    turnRequest.blendFrames          = ACTOR_113100_TURN_BLEND_FRAMES;
+    turnRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    _actor113100PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &turnRequest, 0);
     work->walk.motionStep++;
 }
 
-static void func_actor_113100_801330E8(Task* arg0)
+/// Turns Pierce's root to the destination yaw, then returns the walk to idle.
+///
+/// Requires initialized walk work and a live root. Angles use 4096 units per turn;
+/// the target-minus-current yaw narrows to a signed halfword without shortest-turn
+/// wrapping. Steps by 64 until within 64, then snaps, plays the queued bank-0 clip
+/// with a five-frame blend and resets both motion selectors. The queued clip must
+/// be loaded. Rebuilds rotation using the extracted pitch and roll, retaining
+/// translation and stored Euler parameters, and invalidates composition.
+static void _actor113100TurnToArrivalYaw(Task* task)
 {
     _Actor113100PierceCarradineWork* work;
-    GfxRotationWords*                words;
-    GfxCoord*                        coord;
-    SVECTOR                          vec;
-    AnimationPlayRequest             preset;
-    s32                              vy;
-    s16                              diff;
+    GfxCoord*                        rootCoord;
+    SVECTOR                          rotation;
+    AnimationPlayRequest             closingRequest;
+    s32                              currentYaw;
+    s16                              yawGap;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
-    if (ABS(diff) >= 0x41) {
-        vy = vec.vy;
-        if (diff < 0) {
-            vec.vy = vy - 0x40;
+    gfxExtractSmallestEuler(&rotation, &rootCoord->coord);
+    yawGap = (u16)work->walk.targetRot.vy - (u16)rotation.vy;
+    if (ABS(yawGap) >= ACTOR_113100_YAW_STEP + 1) {
+        currentYaw = rotation.vy;
+        if (yawGap < 0) {
+            rotation.vy = currentYaw - ACTOR_113100_YAW_STEP;
         } else {
-            vec.vy = vy + 0x40;
+            rotation.vy = currentYaw + ACTOR_113100_YAW_STEP;
         }
     } else {
-        vec.vy                      = work->walk.targetRot.vy;
-        preset.source.index         = 0;
-        preset.animationId          = work->model.nextAnimId;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_actor_113100_801331E8(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+        rotation.vy                         = work->walk.targetRot.vy;
+        closingRequest.source.index         = ACTOR_113100_BODY_ANIMATION_BANK;
+        closingRequest.animationId          = work->model.nextAnimId;
+        closingRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+        closingRequest.blendFrames          = ACTOR_113100_WALK_BLEND_FRAMES;
+        closingRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        _actor113100PlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &closingRequest, 0);
         work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
-        work->walk.motionStep = 0;
+        work->walk.motionStep = ACTOR_113100_WALK_STEP_QUEUE_HEADING;
     }
 
-    words         = (GfxRotationWords*)&coord->coord;
-    words->m00M01 = ONE;
-    words->m02M10 = 0;
-    words->m11M12 = ONE;
-    words->m20M21 = 0;
-    words->m22    = ONE;
-    RotMatrix(&vec, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Rebuild only rotation; parent-space translation remains intact.
+    gfxSetRotIdentity(&rootCoord->coord);
+    RotMatrix(&rotation, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Selects this actor's animation bank and clip, then updates its animation mode.
+/// Applies a changed clip to Pierce's twenty-part rig and selects its head-turn ramp.
 ///
-/// A bank change invalidates the previous clip. A changed clip blends only
-/// when requested and the rig is already ticking; otherwise it resets.
-s32 func_actor_113100_801331E8(Task* task, s32 msgId, AnimationPlayRequest* preset, s32 arg3)
+/// Requires live model coordinates and allocated body work with `model.bank`
+/// initially `ACTOR_MODEL_STATE_NONE`. Borrows a nonoverlapping readable request
+/// through the call. The loaded bank is 0; clip IDs 1..35 index both its sets and
+/// the head-turn table, and stored IDs narrow to signed bytes. A bank change binds
+/// the rig and invalidates the previous clip. A changed clip blends for whole
+/// `blendFrames` (normally 0..2047) when blend is nonzero and the rig is ticking, or resets otherwise;
+/// slots 1..19 tick once before subsequent frame ticks are enabled. A repeated
+/// clip in the same bank keeps its cursor, but still selects the head-turn ramp.
+/// Coordinates, slots, poses and loaded clip data remain borrowed for playback's
+/// lifetime. Ignores message ID, collision choice and second payload. Returns 0.
+static s32 _actor113100PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _Actor113100PierceCarradineWork* work;
-    TmdObject*                       ext;
-    s32                              i;
+    TmdObject*                       model;
 
-    work = task->work;
-    ext  = task->extra.tmd;
-    if (preset->source.index != work->model.bank) {
-        work->model.bank   = preset->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], ext, work->rig.poses,
-                             work->rig.slots);
-    }
-    if (preset->animationId != work->model.animId) {
-        work->model.animId = preset->animationId;
-        if (preset->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x14; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, preset->blendFrames);
-            }
-        } else {
-            for (i = 1; i < 0x14; i++) {
-                animationResetSlot(&work->rig.anim, i, work->model.animId);
-            }
-        }
-        for (i = 1; i < 0x14; i++) {
-            animationTickSlot(&work->rig.anim, i);
-        }
-        work->model.ticking = 1;
-    }
-    work->turnUp = D_actor_113100_801442E4[preset->animationId];
+    work  = task->work;
+    model = task->extra.tmd;
+    _actor113100ApplyAnimationRequest(work, model, request);
     return 0;
 }
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// Message 0x7DB handler, listed in `D_actor_113100_80144338` after the 0x7D3 /
-/// 0x7D5 / 0x7DD ones. The payload halfword selects one of four actions: 0 and
-/// 1 clear and raise `TMD_OBJECT_SKIP_ACTIVE_DRAW` in the child task's
-/// `TmdObject::flags`, enabling and excluding active drawing; 2 and 3 set the
-/// work block's `turnUp` to 1 and 0. Nothing reads the opcode
-/// itself, hence `msgId`.
-s32 func_actor_113100_801333B8(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Shows or hides Pierce's billboard, or selects his head-turn ramp.
+///
+/// Requires initialized body work and a readable borrowed command through the call.
+/// Actions 0/1 show/hide the optional billboard; 2 ramps the head toward the player
+/// and 3 releases that turn. A later animation request can replace this ramp choice.
+/// Ignores the command context, message ID and second payload. Unknown actions and
+/// an absent billboard have no effect. Retains no payload pointer and returns 0.
+static s32 _actor113100ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
     _Actor113100PierceCarradineWork* work;
-    TmdObject*                       model;
+    TmdObject*                       billboardModel;
+
+    enum {
+        ACTOR_113100_COMMAND_SHOW_BILLBOARD = 0,
+        ACTOR_113100_COMMAND_HIDE_BILLBOARD = 1,
+        ACTOR_113100_COMMAND_AIM_HEAD       = 2,
+        ACTOR_113100_COMMAND_RELEASE_HEAD   = 3,
+        ACTOR_113100_HEAD_TURN_RELEASE      = 0,
+        ACTOR_113100_HEAD_TURN_AIM          = 1,
+    };
 
     work = task->work;
 
-    switch (msg->command) {
-        case 0:
+    switch (command->command) {
+        case ACTOR_113100_COMMAND_SHOW_BILLBOARD:
             if (work->billboardTask != NULL) {
-                model         = work->billboardTask->extra.tmd;
-                model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                billboardModel         = work->billboardTask->extra.tmd;
+                billboardModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
 
-        case 1:
+        case ACTOR_113100_COMMAND_HIDE_BILLBOARD:
             if (work->billboardTask != NULL) {
-                model         = work->billboardTask->extra.tmd;
-                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                billboardModel         = work->billboardTask->extra.tmd;
+                billboardModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
 
-        case 2:
-            work->turnUp = 1;
+        case ACTOR_113100_COMMAND_AIM_HEAD:
+            work->turnUp = ACTOR_113100_HEAD_TURN_AIM;
             break;
 
-        case 3:
-            work->turnUp = 0;
+        case ACTOR_113100_COMMAND_RELEASE_HEAD:
+            work->turnUp = ACTOR_113100_HEAD_TURN_RELEASE;
             break;
 
         default:
