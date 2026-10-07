@@ -651,10 +651,16 @@ static void _actor213000RightHandTask(Task* handTask)
 
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
-/// Links a fresh child root to a live parent part with zero translation and Euler angles.
+/// Attaches a fresh child-model part at the origin of a parent-model part.
 ///
-/// Borrows parentPart and invalidates composition; the existing matrix rotation
-/// is retained. The two coordinates must be distinct and ancestry must stay acyclic.
+/// Clears local translation and stored Euler angles (0x1000 units per turn),
+/// retaining the existing local rotation matrix. Composition uses that matrix,
+/// so the caller must supply the intended rotation.
+///
+/// Both coordinates must be live and distinct; the parent's ancestry must exclude
+/// `childRoot` and remain acyclic. The parent link is borrowed and must remain live
+/// while the child uses it. Marks the cached `workm` stale; compose the child before
+/// using that matrix.
 static inline void _actor213000LinkAttachmentRoot(GfxCoord* childRoot, GfxCoord* parentPart)
 {
     childRoot->parent       = parentPart;
