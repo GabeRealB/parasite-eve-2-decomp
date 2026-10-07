@@ -40,9 +40,21 @@ extern WorldCollisionSurfaceProperties* D_shelter_r47_8018A618[];
 
 extern WorldCollisionTrigger D_shelter_r47_8018787C[13];
 
-void func_shelter_r47_801807B4(Task* task);
+/// Dispatches this room's setup, per-frame event handler and teardown states.
+///
+/// Room-bank callback for Shelter area 47. `task->state` must be 0..2;
+/// enter at 0 with this overlay loaded. Setup installs the room's message table
+/// and starts ambience; state 1 advances the scripted terminal tour.
+void shelterR47RoomTask(Task* task);
 
-void func_shelter_r47_8017EC04(Task* task);
+/// Updates this room's telephone save and statistics menu.
+///
+/// The shared telephone controller owns the UI object in `spawnArg2.pointer`;
+/// the task must be initialized by the item menu's telephone flow. This room
+/// overlay, its telephone panels and their loaded resources must remain live
+/// until dismissal. The wrapper preserves the shared controller's task states
+/// and result handling.
+void shelterR47TelephoneMenuTask(Task* task);
 
 /// Draws the room's additive light glows for the current mapped camera view.
 ///

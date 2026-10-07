@@ -1719,7 +1719,7 @@ func_shelter_b2_laboratory_8017EAB4 = 0x8017EAB4; // type:func absolute:True own
 
 func_shelter_b3_incinerator_control_room_8017EA64 = 0x8017EA64; // type:func absolute:True owner=shelter_b3_incinerator_control_room
 
-func_shelter_r47_8017EC04 = 0x8017EC04; // type:func absolute:True owner=shelter_r47
+shelterR47TelephoneMenuTask = 0x8017EC04; // type:func absolute:True owner=shelter_r47
 
 func_shelter_b6_nursery_8017EAC4 = 0x8017EAC4; // type:func absolute:True owner=shelter_b6_nursery
 

@@ -154,7 +154,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ShelterR47MapTerminalWork, 0x30);
 
 /// Task spawned by the room's cap script; polled and cleared by
-/// `func_shelter_r47_80180714`.
+/// `_shelterR47RestoreActorsAfterTerminalTask`.
 extern Task* D_shelter_r47_8018A690;
 
 extern u8 D_shelter_r47_8018A694;
@@ -173,11 +173,35 @@ extern u8 D_shelter_r47_80186FAC[5];
 
 extern u8* D_shelter_r47_80187374[10];
 
-s32 func_shelter_r47_8018097C(Task* task);
+/// Steps and draws the console's subtractive circular wipe toward clear.
+///
+/// `task->work` must be a live `ShelterR47ConsoleWork`, with each wipe component
+/// in 0..255. Clears green, blue, red and finally grey in overlapping 32-level
+/// steps. Returns 1 only on the frame grey crosses below zero and is clamped;
+/// an already clear wipe returns 0. The RGB centre fades toward the grey rim.
+/// Requires space for 32 `POLY_G3` and 32 `DR_MODE` packets in the frame arena;
+/// links them into OT slot 11 for subtractive blending until GPU completion.
+s16 shelterR47ConsoleClearWipe(Task* task);
 
-s32 func_shelter_r47_80180C48(Task* task);
+/// Steps and draws the console's subtractive circular wipe toward black.
+///
+/// Uses the same work, component range and frame-arena contract as
+/// `shelterR47ConsoleClearWipe`. Fills red, blue, green and finally grey in
+/// overlapping 32-level steps. Returns 1 only on the frame grey reaches 256
+/// and is clamped to 255; an already filled wipe returns 0. The grey centre
+/// fades toward the RGB rim.
+s16 shelterR47ConsoleFillWipe(Task* task);
 
-void func_shelter_r47_80180F38(s16 x, s16 y, s16 id);
+/// Draws one composite control-console sprite at a screen-pixel origin.
+///
+/// `spriteId` must be 0..20: 0 header, 1..2 switch button, 3..12 status messages,
+/// 13..17 row labels, 18..19 row switch and 20 selection/reveal marker.
+/// `originX` and `originY` are relative to the display centre. Button sprites
+/// 1 and 2 are suppressed in view 18, where console switch 2 is off.
+/// The room's piece lists and textures must remain loaded. Requires a current
+/// OT and frame arena with one `POLY_FT4` per piece; packets in slot 10 remain
+/// borrowed by the GPU until the frame completes. No sprite bounds are checked.
+void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId);
 
 void func_shelter_r47_8018138C(Task* task);
 

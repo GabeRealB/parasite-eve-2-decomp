@@ -188,7 +188,7 @@ D_shelter_r47_80187254 = 0x80187254; // size:0x18 defined:True
 D_shelter_r47_8018726C = 0x8018726C; // size:0x18 defined:True
 D_shelter_r47_80187284 = 0x80187284; // size:0x18 defined:True
 
-func_shelter_r47_8017EC04 = 0x8017EC04; // type:func
+shelterR47TelephoneMenuTask = 0x8017EC04; // type:func
 
 shelterR47DrawViewGlowsTask = 0x801858BC; // type:func
 _telephoneDrawPlayDataRow = 0x8017D86C; // type:func
@@ -223,3 +223,17 @@ _actionPromptResetDefault = 0x80183284; // type:func
 _actionPromptReset = 0x8018585C; // type:func
 _roomCutsceneSoundTask = 0x80180540; // type:func
 _actionPromptHitTest = 0x801852A0; // type:func
+_shelterR47AdvanceTerminalTour = 0x8017fcc0; // type:func
+_shelterR47AmbienceTask = 0x80180324; // type:func
+_shelterR47RefuseKeyItem = 0x801805d0; // type:func
+_shelterR47ResolveRoomVariant = 0x801805d8; // type:func
+_shelterR47HandleSoundCommand = 0x8018061c; // type:func
+_shelterR47PlayCapCommandTask = 0x80180650; // type:func
+_shelterR47RestoreActorsAfterTerminalTask = 0x80180714; // type:func
+shelterR47RoomTask = 0x801807b4; // type:func
+_shelterR47PlayEntryScene8Task = 0x8018080c; // type:func
+_shelterR47PlayEntryScene7Task = 0x801808d4; // type:func
+_shelterR47HandleRoomCommand = 0x801801dc; // type:func
+shelterR47ConsoleClearWipe = 0x8018097c; // type:func
+shelterR47ConsoleFillWipe = 0x80180c48; // type:func
+shelterR47ConsoleDrawSprite = 0x80180f38; // type:func

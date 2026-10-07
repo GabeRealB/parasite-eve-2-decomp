@@ -345,7 +345,7 @@ static void func_shelter_r47_801816CC(Task* task)
         s16 x_                                       = work->messageX; \
         s16 y_                                       = work->messageY; \
         ((ShelterR47ConsoleWork*)task->work)->status = (st);           \
-        func_shelter_r47_80180F38(x_, y_, (id));                       \
+        shelterR47ConsoleDrawSprite(x_, y_, (id));                     \
     }
 
 /// Per-frame draw of the cap script's selection screen. While `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is
@@ -386,14 +386,14 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
         work->buttonFlash--;
     }
     work->headerX += (-0x98 - work->headerX) >> 2;
-    func_shelter_r47_80180F38(work->headerX, work->headerY, 0);
+    shelterR47ConsoleDrawSprite(work->headerX, work->headerY, 0);
     id = 1;
     if (arg1 == 0) {
         work->buttonY += (0x48 - work->buttonY) >> 2;
         if (work->buttonFlash == 0) {
-            func_shelter_r47_80180F38(work->buttonX, work->buttonY, id);
+            shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, id);
         } else {
-            func_shelter_r47_80180F38(work->buttonX, work->buttonY, 2);
+            shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, 2);
         }
         work->messageY += (0x58 - work->messageY) >> 2;
         func_shelter_r47_80181F14(task, work->messageY);
@@ -436,7 +436,7 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
         }
     } else {
         work->buttonY += (0x80 - work->buttonY) >> 2;
-        func_shelter_r47_80180F38(work->buttonX, work->buttonY, id);
+        shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, id);
         work->messageY += (0x90 - work->messageY) >> 2;
         func_shelter_r47_80181F14(task, work->messageY);
         switch (work->previousRow) {
@@ -483,10 +483,10 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
             work->rowX[i] = nx;
             if (work->row == i) {
                 ny = work->rowY[i];
-                func_shelter_r47_80180F38((s16)(nx + 0x18), ny, 0x14);
-                func_shelter_r47_80180F38(nx, ny, 0x12);
+                shelterR47ConsoleDrawSprite((s16)(nx + 0x18), ny, 0x14);
+                shelterR47ConsoleDrawSprite(nx, ny, 0x12);
             } else {
-                func_shelter_r47_80180F38(nx, work->rowY[i], 0x12);
+                shelterR47ConsoleDrawSprite(nx, work->rowY[i], 0x12);
             }
         }
     } else {
@@ -495,8 +495,8 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
                 nx            = work->rowX[i] + ((0x78 - work->rowX[i]) >> 2);
                 ny            = work->rowY[i];
                 work->rowX[i] = nx;
-                func_shelter_r47_80180F38((s16)(nx + 0x18), ny, 0x14);
-                func_shelter_r47_80180F38(nx, ny, 0x13);
+                shelterR47ConsoleDrawSprite((s16)(nx + 0x18), ny, 0x14);
+                shelterR47ConsoleDrawSprite(nx, ny, 0x13);
             } else {
                 switch (i) {
                     case 0:
@@ -515,7 +515,7 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
                         work->rowX[i] += (0xFA - work->rowX[i]) >> 2;
                         break;
                 }
-                func_shelter_r47_80180F38(work->rowX[i], work->rowY[i], 0x12);
+                shelterR47ConsoleDrawSprite(work->rowX[i], work->rowY[i], 0x12);
             }
         }
     }
@@ -531,12 +531,12 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
     work->labelX += (0x7E - x) >> 2;
     sel           = c;
     if ((u16)sel < 5) {
-        func_shelter_r47_80180F38(work->labelX, y, (s16)(sel + 0xD));
+        shelterR47ConsoleDrawSprite(work->labelX, y, (s16)(sel + 0xD));
     }
 }
 
 /// Draws the current reveal stop of status message `status` at row `y` through
-/// `func_shelter_r47_80180F38`, with a textured quad whose left edge follows
+/// `shelterR47ConsoleDrawSprite`, with a textured quad whose left edge follows
 /// the stop's x, advancing `revealPos` on odd animation frames. At the
 /// terminator it redraws the previous stop for eight frames out of every
 /// sixteen instead.
@@ -551,7 +551,7 @@ static void func_shelter_r47_80181F14(Task* task, s16 y)
     p    = D_shelter_r47_80187374[work->status] + work->revealPos;
     c    = *p;
     if (c != 0xFF) {
-        func_shelter_r47_80180F38(c - 0x9D, y, 0x14);
+        shelterR47ConsoleDrawSprite(c - 0x9D, y, 0x14);
         poly           = gGpuPrimCursor;
         gGpuPrimCursor = poly + 1;
         setPolyFT4(poly);
@@ -567,7 +567,7 @@ static void func_shelter_r47_80181F14(Task* task, s16 y)
     } else {
         c = p[-1];
         if ((u32)(gDisplayState.animFrame & 0xF) < 8) {
-            func_shelter_r47_80180F38(c - 0x9D, y, 0x14);
+            shelterR47ConsoleDrawSprite(c - 0x9D, y, 0x14);
         }
     }
 }
@@ -774,7 +774,7 @@ static void func_shelter_r47_80182CA4(Task* task)
 
     state = task->work;
     func_shelter_r47_80181914(task, 0);
-    if ((s16)func_shelter_r47_8018097C(task) != 0) {
+    if (shelterR47ConsoleClearWipe(task) != 0) {
         if (state->guideStep == 1) {
             capStartSequenceSlot(0xA, 0, 0);
         }
@@ -855,7 +855,7 @@ static void func_shelter_r47_80182F18(Task* task)
     s32 value;
 
     func_shelter_r47_80181914(task, 0);
-    if ((s16)func_shelter_r47_8018097C(task) != 0) {
+    if (shelterR47ConsoleClearWipe(task) != 0) {
         func_shelter_r47_801832EC(task);
         step = ((ShelterR47ConsoleWork*)task->work)->status;
         switch (step) {
@@ -891,7 +891,7 @@ static void func_shelter_r47_80182FDC(Task* task)
 
     state = task->work;
     func_shelter_r47_80181914(task, 1);
-    if ((s16)func_shelter_r47_80180C48(task) != 0) {
+    if (shelterR47ConsoleFillWipe(task) != 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_80186FAC[(u8)state->selection];
         state->revealPos                                           = 0;
         work                                                       = task->work;

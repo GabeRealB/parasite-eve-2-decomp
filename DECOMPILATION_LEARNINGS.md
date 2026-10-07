@@ -149051,7 +149051,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   (`if (kind != -1) { ...; index++; continue; } break;`).
 - **`goto advance` into another case's `task->state++; break;`.** Write the
   increment in each case; jump2's cross-jumping merges them
-  (`factoryPowerScene`, `storeToggleTask`, `func_shelter_r47_80180650`, first
+  (`factoryPowerScene`, `storeToggleTask`, `_shelterR47PlayCapCommandTask`, first
   try each). The known limit applies: cross-jumping runs after allocation, so
   a duplicated tail that mentions a pseudo in a close priority race swaps
   registers. `func_actor_107600_80132514` took two of its three `goto stop`

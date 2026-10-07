@@ -114,26 +114,51 @@ static TaskDesc             D_shelter_r47_80186F70[3];
 static TaskDesc             D_shelter_r47_80186F94[2];
 static ActionPromptHotspot  D_shelter_r47_80186FB4[9];
 static TaskDesc             D_shelter_r47_80187020;
-/// Piece lists of the sprites `func_shelter_r47_80180F38` draws, by sprite id.
+/// Piece lists of the sprites `shelterR47ConsoleDrawSprite` draws, by sprite id.
 static _ShelterR47SpritePart* D_shelter_r47_8018729C[];
 static TaskDesc               D_shelter_r47_801872F0;
 static s32                    func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, s32);
-static s32                    func_shelter_r47_801801DC(Task*, s32, s32, s32);
-static void                   func_shelter_r47_80180324(Task*);
-static s32                    func_shelter_r47_801805D0(Task*, s32, s32, s32);
-static s32                    func_shelter_r47_801805D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32                    func_shelter_r47_8018061C(Task*, s32, s32, s32);
-static void                   func_shelter_r47_80180650(Task*);
-static void                   func_shelter_r47_80180714(Task*);
-static void                   func_shelter_r47_8018080C(Task*);
-static void                   func_shelter_r47_801808D4(Task*);
+static s32                    _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode);
+static void                   _shelterR47AmbienceTask(Task* task);
+static s32                    _shelterR47RefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+static s32                    _shelterR47ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32                    _shelterR47HandleSoundCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
+static void                   _shelterR47PlayCapCommandTask(Task* task);
+static void                   _shelterR47RestoreActorsAfterTerminalTask(Task* task);
+static void                   _shelterR47PlayEntryScene8Task(Task* task);
+static void                   _shelterR47PlayEntryScene7Task(Task* task);
+
+/// Phases and loaded-resource choices of this room's CAP playback tasks.
+enum {
+    SHELTER_R47_CAP_START               = 0,
+    SHELTER_R47_CAP_WAIT                = 1,
+    SHELTER_R47_CAP_RELEASE             = 2,
+    SHELTER_R47_CAP_MAIN_RESOURCE       = 1,
+    SHELTER_R47_CAP_ALTERNATE_RESOURCE  = 2,
+    SHELTER_R47_CAP_MAIN_TEXTURE_X      = 576,
+    SHELTER_R47_CAP_ALTERNATE_TEXTURE_X = 320,
+    SHELTER_R47_CAP_TEXTURE_Y           = 256,
+};
+
+/// Console wipe: byte-scale colours stepped each frame, and a 32-wedge disc
+/// with 128 angle units per edge (4096 per turn), radius 256 screen pixels.
+enum {
+    SHELTER_R47_CONSOLE_WIPE_STEP        = 32,
+    SHELTER_R47_CONSOLE_WIPE_CLEAR_NEXT  = 160,
+    SHELTER_R47_CONSOLE_WIPE_FILL_NEXT   = 96,
+    SHELTER_R47_CONSOLE_WIPE_MAX         = 255,
+    SHELTER_R47_CONSOLE_WIPE_SEGMENTS    = 32,
+    SHELTER_R47_CONSOLE_WIPE_ANGLE_SHIFT = 7,
+    SHELTER_R47_CONSOLE_WIPE_TRIG_SHIFT  = 4,
+    SHELTER_R47_CONSOLE_WIPE_OT          = 11,
+};
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xDC" \
                               "2"
 #include "../../shared/telephone.h"
 
 static void func_shelter_r47_8017FB94(Task* task);
-static void func_shelter_r47_8017FCC0(Task* task);
+static void _shelterR47AdvanceTerminalTour(Task* unusedTask);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -144,25 +169,25 @@ static TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 static TaskMessageEntry D_shelter_r47_80186F2C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r47_801805D8 },
-    { 5105, func_shelter_r47_801805D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR47ResolveRoomVariant },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR47RefuseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r47_8017FE84 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_r47_801801DC },
-    { ROOM_MESSAGE_SOUND, func_shelter_r47_8018061C },
+    { ROOM_MESSAGE_COMMAND, _shelterR47HandleRoomCommand },
+    { ROOM_MESSAGE_SOUND, _shelterR47HandleSoundCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static AnimationPlayRequest D_shelter_r47_80186F5C = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 static TaskDesc D_shelter_r47_80186F70[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80180714, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80180324, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80180650, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterR47RestoreActorsAfterTerminalTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterR47AmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterR47PlayCapCommandTask, { .value = 0 } },
 };
 
 static TaskDesc D_shelter_r47_80186F94[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_8018080C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_801808D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterR47PlayEntryScene8Task, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterR47PlayEntryScene7Task, { .value = 0 } },
 };
 
 u8 D_shelter_r47_80186FAC[5] = {
@@ -520,7 +545,7 @@ static const char Telephone_Data_8017D638[];
 
 #include "../../shared/telephone.inc.c"
 
-void func_shelter_r47_8017EC04(Task* task)
+void shelterR47TelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -531,12 +556,12 @@ void func_shelter_r47_8017EC04(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// The three states of the room's main task, run by `func_shelter_r47_801807B4`:
+/// The three states of the room's main task, run by `shelterR47RoomTask`:
 /// set-up, the per-frame handler and the kill.
 static const TaskFuncTable3 D_shelter_r47_8017D6A4 = {
     {
         func_shelter_r47_8017FB94,
-        func_shelter_r47_8017FCC0,
+        _shelterR47AdvanceTerminalTour,
         taskKill,
     },
 };
@@ -567,56 +592,77 @@ static void func_shelter_r47_8017FB94(Task* task)
     task->state++;
 }
 
-static void func_shelter_r47_8017FCC0(Task* task)
+/// Advances the variant-1 event through the guided console, map tour and follow-up scenes.
+///
+/// Runs while the attachment wheel is closed. Event progress is saved in
+/// `GAME_FLAG_SHELTER_R47_EVENT_PROGRESS`; idle event state permits opening
+/// a terminal, and its released cutscene hold permits the following EVS scene.
+/// Terminal handles are handed to the event scripts; allocation failures still
+/// advance progress and hold the actors. `unusedTask` is ignored.
+static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
 {
-    u8 place = gGameSession->location.loc.variant;
+    enum {
+        SHELTER_R47_TOUR_OPEN_CONSOLE     = 1,
+        SHELTER_R47_TOUR_CONSOLE_FOLLOWUP = 2,
+        SHELTER_R47_TOUR_OPEN_MAP         = 3,
+        SHELTER_R47_TOUR_MAP_FOLLOWUP     = 4,
+        SHELTER_R47_TOUR_DONE             = 5,
+    };
+    u8 variant = gGameSession->location.loc.variant;
 
-    if (place != 1 || Gp_StateC08.mode == place) {
+    if (variant != 1 || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         return;
     }
     switch (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS)) {
-        case 1:
+        // Let each terminal release its hold before starting the next scripted phase.
+        case SHELTER_R47_TOUR_OPEN_CONSOLE:
             if (gGameSession->eventState == 0) {
                 D_shelter_r47_8018A690 = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 1, 0);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 sceneSetPlacedActorDrawMode(0, 0);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 2);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_CONSOLE_FOLLOWUP);
             }
             break;
-        case 2:
+        case SHELTER_R47_TOUR_CONSOLE_FOLLOWUP:
             if (gGameSession->cutsceneHold == 0) {
                 evsStartScriptWithSkip(D_actor_443500_80141D9C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_80142A74);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 3);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_OPEN_MAP);
             }
             break;
-        case 3:
+        case SHELTER_R47_TOUR_OPEN_MAP:
             if (gGameSession->eventState == 0) {
-                D_shelter_r47_8018A690 = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 2, 0);
+                D_shelter_r47_8018A690 = taskSpawnFromTable(&D_shelter_r47_80187618, 0, SHELTER_R47_MAP_MODE_TOUR, 0);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 sceneSetPlacedActorDrawMode(0, 0);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 4);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_MAP_FOLLOWUP);
             }
             break;
-        case 4:
+        case SHELTER_R47_TOUR_MAP_FOLLOWUP:
             if (gGameSession->cutsceneHold == 0) {
                 evsStartScriptWithSkip(D_actor_443500_80142C24, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_801432FC);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 5);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_DONE);
             }
             break;
     }
 }
 
-static inline void _shelterR47SwapEntryTriggers(void)
+/// Replaces the automatic entry event with the repeat entry CAP action.
+///
+/// Disables trigger 3 and enables trigger 12, retaining their other flag bits.
+/// Requires this overlay's thirteen-entry trigger table to remain loaded.
+static inline void _shelterR47EnableRepeatEntryTrigger(void)
 {
-    WorldCollisionTrigger* p;
-    WorldCollisionTrigger* q;
+    enum { SHELTER_R47_INITIAL_ENTRY_TRIGGER = 3,
+           SHELTER_R47_REPEAT_ENTRY_TRIGGER  = 12 };
+    WorldCollisionTrigger* initialEntryTrigger;
+    WorldCollisionTrigger* repeatEntryTrigger;
 
-    p         = (D_shelter_r47_8018787C + 3);
-    q         = p + 9;
-    p->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-    q->flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+    initialEntryTrigger         = &D_shelter_r47_8018787C[SHELTER_R47_INITIAL_ENTRY_TRIGGER];
+    repeatEntryTrigger          = &D_shelter_r47_8018787C[SHELTER_R47_REPEAT_ENTRY_TRIGGER];
+    initialEntryTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+    repeatEntryTrigger->flags  |= WORLD_COLLISION_TRIGGER_ENABLED;
 }
 
 static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
@@ -648,7 +694,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                     if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165) == 0) {
                         gameFlagSetNibble(GAME_FLAG_SHELTER_R47_165, 1);
                     }
-                    _shelterR47SwapEntryTriggers();
+                    _shelterR47EnableRepeatEntryTrigger();
                 }
                 break;
             case 4:
@@ -691,7 +737,7 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
                     Gp_FillAllyHp();
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
-                    _shelterR47SwapEntryTriggers();
+                    _shelterR47EnableRepeatEntryTrigger();
                 }
                 break;
             case 4:
@@ -756,34 +802,51 @@ static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s
     return 0;
 }
 
-/// Room request handler. Request 1 plays the room's cutscene through the shared
-/// runner once flag 0x13E is set (or runs CAP command 0x2A instead while the
-/// 2-bit flag 0x22 reads 1); the first time, it sets that flag and spawns entry
-/// 2 of the room's task table. Request 8 spawns entry 0 or 1 of the second task
-/// table, depending on which of flags 0x83 and 0x80 is set.
-static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles the room's cutscene and repeat-entry commands, returning zero.
+///
+/// Command 1 plays the first-use CAP command once; later uses run the view-44
+/// cutscene, or command 42 while packed object state 34 is 1. Command 8 selects
+/// entry scene 8 or 7 from the story branch. Other commands do nothing.
+/// The cutscene task borrows the singleton record until it finishes, so callers
+/// must serialize requests and keep this overlay and its loaded CAP resources live.
+/// The task, message ID and second payload are ignored.
+static s32 _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode)
 {
-    if (arg2 == 1) {
+    enum {
+        SHELTER_R47_COMMAND_CUTSCENE             = 1,
+        SHELTER_R47_COMMAND_ENTRY_SCENE          = 8,
+        SHELTER_R47_CUTSCENE_VIEW                = 44,
+        SHELTER_R47_CUTSCENE_RESOURCE            = 3,
+        SHELTER_R47_CUTSCENE_FOLLOWUP_COMMAND    = 10,
+        SHELTER_R47_CUTSCENE_UNAVAILABLE_COMMAND = 42,
+        SHELTER_R47_CUTSCENE_GATE_OBJECT         = 34,
+        SHELTER_R47_FIRST_USE_CAP_COMMAND        = 1,
+        SHELTER_R47_CUTSCENE_START_SOUND         = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 12),
+        SHELTER_R47_CUTSCENE_END_SOUND           = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 15),
+        SHELTER_R47_CUTSCENE_SCENE_SOUND         = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 13),
+        SHELTER_R47_CUTSCENE_AFTER_SCENE_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 14),
+    };
+    if (command == SHELTER_R47_COMMAND_CUTSCENE) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE) != 0) {
-            if (areaGetCurrentObjectState(0x22) == arg2) {
-                capRunCommandWithTransition(0x2A);
+            if (areaGetCurrentObjectState(SHELTER_R47_CUTSCENE_GATE_OBJECT) == command) {
+                capRunCommandWithTransition(SHELTER_R47_CUTSCENE_UNAVAILABLE_COMMAND);
                 return 0;
             }
-            D_shelter_r47_8018A698.view            = 0x2C;
-            D_shelter_r47_8018A698.capSlot         = arg2;
-            D_shelter_r47_8018A698.capFile         = 3;
+            D_shelter_r47_8018A698.view            = SHELTER_R47_CUTSCENE_VIEW;
+            D_shelter_r47_8018A698.capSlot         = command;
+            D_shelter_r47_8018A698.capFile         = SHELTER_R47_CUTSCENE_RESOURCE;
             D_shelter_r47_8018A698.skipScene       = 0;
-            D_shelter_r47_8018A698.startSound      = 0x542F000C;
-            D_shelter_r47_8018A698.endSound        = 0x542F000F;
-            D_shelter_r47_8018A698.sceneSound      = 0x542F000D;
-            D_shelter_r47_8018A698.afterSceneSound = 0x542F000E;
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xA, &D_shelter_r47_8018A698);
+            D_shelter_r47_8018A698.startSound      = SHELTER_R47_CUTSCENE_START_SOUND;
+            D_shelter_r47_8018A698.endSound        = SHELTER_R47_CUTSCENE_END_SOUND;
+            D_shelter_r47_8018A698.sceneSound      = SHELTER_R47_CUTSCENE_SCENE_SOUND;
+            D_shelter_r47_8018A698.afterSceneSound = SHELTER_R47_CUTSCENE_AFTER_SCENE_SOUND;
+            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_R47_CUTSCENE_FOLLOWUP_COMMAND, &D_shelter_r47_8018A698);
         } else {
             gameFlagSetNibble(GAME_FLAG_SHELTER_R47_FIRST_USE, 1);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_r47_80186F70, 2, 1, 0);
+            taskSpawnFromTable(D_shelter_r47_80186F70, 2, SHELTER_R47_FIRST_USE_CAP_COMMAND, 0);
         }
-    } else if (arg2 == 8) {
+    } else if (command == SHELTER_R47_COMMAND_ENTRY_SCENE) {
         if (gameFlagGetNibble(GAME_FLAG_083) > 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(D_shelter_r47_80186F94, 0, 0, 0);
@@ -795,19 +858,33 @@ static s32 func_shelter_r47_801801DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-static void func_shelter_r47_80180324(Task* task)
+/// Maintains room ambience across event holds and camera views.
+///
+/// State 0 starts the loop; state 1 stops it on entering an event and restarts
+/// or remixes it for views 2..4, stopping it in view 5. `spawnArg1.value` stores
+/// the previous view and `killCountdown` stores the previous event state;
+/// neither slot has its ordinary spawn/countdown meaning in this task.
+static void _shelterR47AmbienceTask(Task* task)
 {
+    enum {
+        SHELTER_R47_AMBIENCE_START              = 0,
+        SHELTER_R47_AMBIENCE_UPDATE             = 1,
+        SHELTER_R47_AMBIENCE_FADE_TICKS         = 60,
+        SHELTER_R47_AMBIENCE_VIEW_4_PAN         = 12,
+        SHELTER_R47_AMBIENCE_VIEW_4_ATTENUATION = 88,
+    };
     switch (task->state) {
-        case 0:
+        case SHELTER_R47_AMBIENCE_START:
             sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
             task->spawnArg1.value = gGameSession->location.loc.view;
             task->killCountdown   = gGameSession->eventState;
             task->state++;
             break;
-        case 1:
+        case SHELTER_R47_AMBIENCE_UPDATE:
+            // Event edges suspend/restart ambience; ready views update its spatial mix.
             if (gGameSession->eventState != task->killCountdown) {
                 if (gGameSession->eventState != 0) {
-                    sndEvtRequestScriptStop(SOUND_SHELTER_R47_AMBIENCE, 0x3C);
+                    sndEvtRequestScriptStop(SOUND_SHELTER_R47_AMBIENCE, SHELTER_R47_AMBIENCE_FADE_TICKS);
                 } else {
                     switch (gGameSession->location.loc.view) {
                         case 2:
@@ -815,7 +892,7 @@ static void func_shelter_r47_80180324(Task* task)
                             sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
                             break;
                         case 4:
-                            sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
+                            sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, SHELTER_R47_AMBIENCE_VIEW_4_PAN, SHELTER_R47_AMBIENCE_VIEW_4_ATTENUATION);
                             break;
                     }
                 }
@@ -828,13 +905,13 @@ static void func_shelter_r47_80180324(Task* task)
                             break;
                         case 4:
                             if (task->spawnArg1.value == 3) {
-                                sndEvtRequestScriptMix(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
+                                sndEvtRequestScriptMix(SOUND_SHELTER_R47_AMBIENCE, SHELTER_R47_AMBIENCE_VIEW_4_PAN, SHELTER_R47_AMBIENCE_VIEW_4_ATTENUATION);
                             } else {
-                                sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0xC, 0x58);
+                                sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, SHELTER_R47_AMBIENCE_VIEW_4_PAN, SHELTER_R47_AMBIENCE_VIEW_4_ATTENUATION);
                             }
                             break;
                         case 5:
-                            sndEvtRequestScriptStop(SOUND_SHELTER_R47_AMBIENCE, 0x3C);
+                            sndEvtRequestScriptStop(SOUND_SHELTER_R47_AMBIENCE, SHELTER_R47_AMBIENCE_FADE_TICKS);
                             break;
                     }
                 }
@@ -847,45 +924,62 @@ static void func_shelter_r47_80180324(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-static s32 func_shelter_r47_801805D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every room key-item-use request without changing state.
+static s32 _shelterR47RefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Message handler that copies the incoming record onto the outgoing one and
-/// forwards both to `mapShelterRoomVariantResolve`. Returns 1.
-static s32 func_shelter_r47_801805D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Copies and resolves a borrowed room-transition request, returning one.
+///
+/// `reply` must be writable for a complete `RoomEventMsg`; it may equal
+/// `request`. The map overlay's variant resolver must remain loaded for the call.
+/// Neither record is retained. The task and message ID are ignored.
+static s32 _shelterR47ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
     return 1;
 }
 
-static s32 func_shelter_r47_8018061C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts this room's sound entry 17 for cutscene sound command 99.
+///
+/// Other commands do nothing; all requests return zero. The task, message ID
+/// and second payload are ignored.
+static s32 _shelterR47HandleSoundCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
-    if (arg2 == 0x63) {
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 0x11), 0, 0);
+    enum {
+        SHELTER_R47_SOUND_COMMAND_CUTSCENE = 99,
+        SHELTER_R47_CUTSCENE_SOUND         = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 17),
+    };
+    if (command == SHELTER_R47_SOUND_COMMAND_CUTSCENE) {
+        sndEvtRequestScriptStart(SHELTER_R47_CUTSCENE_SOUND, 0, 0);
     }
     return 0;
 }
 
-static void func_shelter_r47_80180650(Task* task)
+/// Plays a command from the room's primary loaded CAP resource, then releases the player.
+///
+/// `spawnArg1.value` is the command index (the first-use caller supplies 1).
+/// States start playback, wait, then reset CAP and kill the task. The caller
+/// holds player control and keeps the room's CAP resources loaded until release.
+static void _shelterR47PlayCapCommandTask(Task* task)
 {
     switch (task->state) {
-        case 0:
+        case SHELTER_R47_CAP_START:
             Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x240, 0x100);
+            capSelectLoadedFile(SHELTER_R47_CAP_MAIN_RESOURCE);
+            capSetTexturePage(SHELTER_R47_CAP_MAIN_TEXTURE_X, SHELTER_R47_CAP_TEXTURE_Y);
             capRunCommandWithTransition(task->spawnArg1.value);
             task->state++;
             break;
-        case 1:
+        case SHELTER_R47_CAP_WAIT:
             if (capIsBusy() != 0) {
                 break;
             }
             task->state++;
             break;
-        case 2:
+        case SHELTER_R47_CAP_RELEASE:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
@@ -893,11 +987,17 @@ static void func_shelter_r47_80180650(Task* task)
     }
 }
 
-static void func_shelter_r47_80180714(Task* task)
+/// Restores actors and player control after a terminal requests its exit.
+///
+/// Requires a live non-NULL terminal in `D_shelter_r47_8018A690` with its exit
+/// handler loaded. Successful polling dispatches that exit before restoring the
+/// actors, clears the borrowed handle and kills this polling task. Variant 1
+/// also restores placed actor 0; a live companion is shown and released too.
+static void _shelterR47RestoreActorsAfterTerminalTask(Task* task)
 {
-    s32 out;
+    s32 terminalResult;
 
-    if (taskPollKill(D_shelter_r47_8018A690, &out) != 0) {
+    if (taskPollKill(D_shelter_r47_8018A690, &terminalResult) != 0) {
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         if (gGameSession->location.loc.variant == 1) {
@@ -912,36 +1012,43 @@ static void func_shelter_r47_80180714(Task* task)
     }
 }
 
-void func_shelter_r47_801807B4(Task* task)
+void shelterR47RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_r47_8017D6A4;
-    sp.funcs[task->state](task);
+    states = D_shelter_r47_8017D6A4;
+    states.funcs[task->state](task);
 }
 
-static void func_shelter_r47_8018080C(Task* task)
+/// Plays primary-resource entry scene 8, then releases the player and counts the visit.
+///
+/// Enter at state 0 with player control held and the room's CAP data loaded.
+/// Completion resets CAP and increments `GAME_FLAG_SHELTER_R47_165` up to 3.
+/// State 1 falls through to task teardown after releasing control.
+static void _shelterR47PlayEntryScene8Task(Task* task)
 {
-    s32 nibble;
+    enum { SHELTER_R47_ENTRY_COMMAND     = 8,
+           SHELTER_R47_ENTRY_VISIT_LIMIT = 3 };
+    s32 visitCount;
 
     switch (task->state) {
-        case 0:
+        case SHELTER_R47_CAP_START:
             capReset();
             Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x240, 0x100);
-            capRunCommandWithTransition(8);
+            capSelectLoadedFile(SHELTER_R47_CAP_MAIN_RESOURCE);
+            capSetTexturePage(SHELTER_R47_CAP_MAIN_TEXTURE_X, SHELTER_R47_CAP_TEXTURE_Y);
+            capRunCommandWithTransition(SHELTER_R47_ENTRY_COMMAND);
             task->state++;
             break;
-        case 1:
+        case SHELTER_R47_CAP_WAIT:
             if (capIsBusy() != 0) {
                 break;
             }
             capReset();
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            nibble = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165);
-            if (nibble < 3) {
-                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_165, nibble + 1);
+            visitCount = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165);
+            if (visitCount < SHELTER_R47_ENTRY_VISIT_LIMIT) {
+                gameFlagSetNibble(GAME_FLAG_SHELTER_R47_165, visitCount + 1);
             }
         default:
             taskKill(task);
@@ -949,18 +1056,23 @@ static void func_shelter_r47_8018080C(Task* task)
     }
 }
 
-static void func_shelter_r47_801808D4(Task* task)
+/// Plays alternate-resource entry scene 7, then releases the player.
+///
+/// Enter at state 0 with player control held and the room's CAP data loaded.
+/// State 1 resets CAP and falls through to task teardown after releasing control.
+static void _shelterR47PlayEntryScene7Task(Task* task)
 {
+    enum { SHELTER_R47_ALTERNATE_ENTRY_COMMAND = 7 };
     switch (task->state) {
-        case 0:
+        case SHELTER_R47_CAP_START:
             capReset();
             Gp_CapFile = 0;
-            capSelectLoadedFile(2);
-            capSetTexturePage(0x140, 0x100);
-            capRunCommandWithTransition(7);
+            capSelectLoadedFile(SHELTER_R47_CAP_ALTERNATE_RESOURCE);
+            capSetTexturePage(SHELTER_R47_CAP_ALTERNATE_TEXTURE_X, SHELTER_R47_CAP_TEXTURE_Y);
+            capRunCommandWithTransition(SHELTER_R47_ALTERNATE_ENTRY_COMMAND);
             task->state++;
             break;
-        case 1:
+        case SHELTER_R47_CAP_WAIT:
             if (capIsBusy() != 0) {
                 break;
             }
@@ -972,164 +1084,156 @@ static void func_shelter_r47_801808D4(Task* task)
     }
 }
 
-s32 func_shelter_r47_8018097C(Task* task)
+/// Draws the console's subtractive disc, with RGB at the rim when filling.
+///
+/// Borrows the wipe work and frame arena under the wipe functions' frame-arena contract.
+static inline void _shelterR47ConsoleDrawWipe(ShelterR47ConsoleWork* work, bool fillFromEdge)
+{
+    POLY_G3* triangle;
+    DR_MODE* drawMode;
+    s32      edgeAngle;
+    s16      segment;
+
+    for (segment = 0; segment < SHELTER_R47_CONSOLE_WIPE_SEGMENTS; segment++) {
+        triangle       = gGpuPrimCursor;
+        gGpuPrimCursor = triangle + 1;
+        setPolyG3(triangle);
+        if (fillFromEdge) {
+            setRGB0(triangle, work->wipeGrey, work->wipeGrey, work->wipeGrey);
+            setRGB1(triangle, work->wipeRed, work->wipeGreen, work->wipeBlue);
+            setRGB2(triangle, work->wipeRed, work->wipeGreen, work->wipeBlue);
+        } else {
+            setRGB0(triangle, work->wipeRed, work->wipeGreen, work->wipeBlue);
+            setRGB1(triangle, work->wipeGrey, work->wipeGrey, work->wipeGrey);
+            setRGB2(triangle, work->wipeGrey, work->wipeGrey, work->wipeGrey);
+        }
+        setSemiTrans(triangle, 1);
+        edgeAngle    = segment << SHELTER_R47_CONSOLE_WIPE_ANGLE_SHIFT;
+        triangle->x0 = 0;
+        triangle->y0 = 0;
+        triangle->x1 = rsin(edgeAngle) >> SHELTER_R47_CONSOLE_WIPE_TRIG_SHIFT;
+        triangle->y1 = rcos(edgeAngle) >> SHELTER_R47_CONSOLE_WIPE_TRIG_SHIFT;
+        edgeAngle   += (1 << SHELTER_R47_CONSOLE_WIPE_ANGLE_SHIFT);
+        triangle->x2 = rsin(edgeAngle) >> SHELTER_R47_CONSOLE_WIPE_TRIG_SHIFT;
+        triangle->y2 = rcos(edgeAngle) >> SHELTER_R47_CONSOLE_WIPE_TRIG_SHIFT;
+        addPrim(&gGpuCurrentOt[SHELTER_R47_CONSOLE_WIPE_OT], triangle);
+        drawMode       = gGpuPrimCursor;
+        gGpuPrimCursor = drawMode + 1;
+        setlen(drawMode, 1);
+        drawMode->code[0] = _get_mode(false, false, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));
+        addPrim(&gGpuCurrentOt[SHELTER_R47_CONSOLE_WIPE_OT], drawMode);
+    }
+}
+
+s16 shelterR47ConsoleClearWipe(Task* task)
 {
     ShelterR47ConsoleWork* work;
-    POLY_G3*               tri;
-    DR_MODE*               mode;
-    s32                    angle;
-    s32                    done;
-    s16                    i;
+    s32                    reachedEndpoint;
 
-    work = task->work;
-    done = 0;
+    work            = task->work;
+    reachedEndpoint = 0;
     if (work->wipeGreen != 0) {
-        work->wipeGreen -= 0x20;
+        work->wipeGreen -= SHELTER_R47_CONSOLE_WIPE_STEP;
         if (work->wipeGreen < 0) {
             work->wipeGreen = 0;
         }
     }
-    if (work->wipeGreen < 0xA0) {
+    if (work->wipeGreen < SHELTER_R47_CONSOLE_WIPE_CLEAR_NEXT) {
         if (work->wipeBlue != 0) {
-            work->wipeBlue -= 0x20;
+            work->wipeBlue -= SHELTER_R47_CONSOLE_WIPE_STEP;
             if (work->wipeBlue < 0) {
                 work->wipeBlue = 0;
             }
         }
     }
-    if (work->wipeBlue < 0xA0) {
+    if (work->wipeBlue < SHELTER_R47_CONSOLE_WIPE_CLEAR_NEXT) {
         if (work->wipeRed != 0) {
-            work->wipeRed -= 0x20;
+            work->wipeRed -= SHELTER_R47_CONSOLE_WIPE_STEP;
             if (work->wipeRed < 0) {
                 work->wipeRed = 0;
             }
         }
     }
-    if (work->wipeRed < 0xA0) {
+    if (work->wipeRed < SHELTER_R47_CONSOLE_WIPE_CLEAR_NEXT) {
         if (work->wipeGrey != 0) {
-            work->wipeGrey -= 0x20;
+            work->wipeGrey -= SHELTER_R47_CONSOLE_WIPE_STEP;
             if (work->wipeGrey < 0) {
-                work->wipeGrey = 0;
-                done           = 1;
+                work->wipeGrey  = 0;
+                reachedEndpoint = 1;
             }
         }
     }
-    for (i = 0; i < 0x20; i++) {
-        tri            = gGpuPrimCursor;
-        gGpuPrimCursor = tri + 1;
-        setPolyG3(tri);
-        setRGB0(tri, work->wipeRed, work->wipeGreen, work->wipeBlue);
-        setRGB1(tri, work->wipeGrey, work->wipeGrey, work->wipeGrey);
-        setRGB2(tri, work->wipeGrey, work->wipeGrey, work->wipeGrey);
-        setSemiTrans(tri, 1);
-        angle   = i << 7;
-        tri->x0 = 0;
-        tri->y0 = 0;
-        tri->x1 = rsin(angle) >> 4;
-        tri->y1 = rcos(angle) >> 4;
-        angle  += 0x80;
-        tri->x2 = rsin(angle) >> 4;
-        tri->y2 = rcos(angle) >> 4;
-        addPrim(&gGpuCurrentOt[11], tri);
-        mode           = gGpuPrimCursor;
-        gGpuPrimCursor = mode + 1;
-        setlen(mode, 1);
-        mode->code[0] = 0xE100004A;
-        addPrim(&gGpuCurrentOt[11], mode);
-    }
-    return done;
+    _shelterR47ConsoleDrawWipe(work, false);
+    return reachedEndpoint;
 }
 
-s32 func_shelter_r47_80180C48(Task* task)
+s16 shelterR47ConsoleFillWipe(Task* task)
 {
     ShelterR47ConsoleWork* work;
-    POLY_G3*               tri;
-    DR_MODE*               mode;
-    s32                    angle;
-    s32                    done;
-    s16                    i;
+    s32                    reachedEndpoint;
 
-    work = task->work;
-    done = 0;
-    if (work->wipeRed != 0xFF) {
-        work->wipeRed += 0x20;
-        if (work->wipeRed >= 0x100) {
-            work->wipeRed = 0xFF;
+    work            = task->work;
+    reachedEndpoint = 0;
+    if (work->wipeRed != SHELTER_R47_CONSOLE_WIPE_MAX) {
+        work->wipeRed += SHELTER_R47_CONSOLE_WIPE_STEP;
+        if (work->wipeRed >= (SHELTER_R47_CONSOLE_WIPE_MAX + 1)) {
+            work->wipeRed = SHELTER_R47_CONSOLE_WIPE_MAX;
         }
     }
-    if (work->wipeRed > 0x60) {
-        if (work->wipeBlue != 0xFF) {
-            work->wipeBlue += 0x20;
-            if (work->wipeBlue >= 0x100) {
-                work->wipeBlue = 0xFF;
+    if (work->wipeRed > SHELTER_R47_CONSOLE_WIPE_FILL_NEXT) {
+        if (work->wipeBlue != SHELTER_R47_CONSOLE_WIPE_MAX) {
+            work->wipeBlue += SHELTER_R47_CONSOLE_WIPE_STEP;
+            if (work->wipeBlue >= (SHELTER_R47_CONSOLE_WIPE_MAX + 1)) {
+                work->wipeBlue = SHELTER_R47_CONSOLE_WIPE_MAX;
             }
         }
     }
-    if (work->wipeBlue > 0x60) {
-        if (work->wipeGreen != 0xFF) {
-            work->wipeGreen += 0x20;
-            if (work->wipeGreen >= 0x100) {
-                work->wipeGreen = 0xFF;
+    if (work->wipeBlue > SHELTER_R47_CONSOLE_WIPE_FILL_NEXT) {
+        if (work->wipeGreen != SHELTER_R47_CONSOLE_WIPE_MAX) {
+            work->wipeGreen += SHELTER_R47_CONSOLE_WIPE_STEP;
+            if (work->wipeGreen >= (SHELTER_R47_CONSOLE_WIPE_MAX + 1)) {
+                work->wipeGreen = SHELTER_R47_CONSOLE_WIPE_MAX;
             }
         }
     }
-    if (work->wipeGreen > 0x60) {
-        if (work->wipeGrey != 0xFF) {
-            work->wipeGrey += 0x20;
-            if (work->wipeGrey >= 0x100) {
-                work->wipeGrey = 0xFF;
-                done           = 1;
+    if (work->wipeGreen > SHELTER_R47_CONSOLE_WIPE_FILL_NEXT) {
+        if (work->wipeGrey != SHELTER_R47_CONSOLE_WIPE_MAX) {
+            work->wipeGrey += SHELTER_R47_CONSOLE_WIPE_STEP;
+            if (work->wipeGrey >= (SHELTER_R47_CONSOLE_WIPE_MAX + 1)) {
+                work->wipeGrey  = SHELTER_R47_CONSOLE_WIPE_MAX;
+                reachedEndpoint = 1;
             }
         }
     }
-    for (i = 0; i < 0x20; i++) {
-        tri            = gGpuPrimCursor;
-        gGpuPrimCursor = tri + 1;
-        setPolyG3(tri);
-        setRGB0(tri, work->wipeGrey, work->wipeGrey, work->wipeGrey);
-        setRGB1(tri, work->wipeRed, work->wipeGreen, work->wipeBlue);
-        setRGB2(tri, work->wipeRed, work->wipeGreen, work->wipeBlue);
-        setSemiTrans(tri, 1);
-        angle   = i << 7;
-        tri->x0 = 0;
-        tri->y0 = 0;
-        tri->x1 = rsin(angle) >> 4;
-        tri->y1 = rcos(angle) >> 4;
-        angle  += 0x80;
-        tri->x2 = rsin(angle) >> 4;
-        tri->y2 = rcos(angle) >> 4;
-        addPrim(&gGpuCurrentOt[11], tri);
-        mode           = gGpuPrimCursor;
-        gGpuPrimCursor = mode + 1;
-        setlen(mode, 1);
-        mode->code[0] = 0xE100004A;
-        addPrim(&gGpuCurrentOt[11], mode);
-    }
-    return done;
+    _shelterR47ConsoleDrawWipe(work, true);
+    return reachedEndpoint;
 }
 
-/// Draws sprite `id` with its origin at (`x`, `y`), one raw-textured quad
-/// per piece into OT slot 10. Sprites 1 and 2 are skipped while
-/// the current view is 0x12.
-void func_shelter_r47_80180F38(s16 x, s16 y, s16 id)
+void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId)
 {
+    enum {
+        SHELTER_R47_CONSOLE_BUTTON_SPRITE       = 1,
+        SHELTER_R47_CONSOLE_BUTTON_SPRITE_COUNT = 2,
+        SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW   = 18,
+        SHELTER_R47_CONSOLE_SPRITE_OT           = 10,
+    };
     _ShelterR47SpritePart* part;
-    POLY_FT4*              p;
+    POLY_FT4*              quad;
 
-    part = D_shelter_r47_8018729C[id];
-    if (gGameSession->location.loc.view == 0x12 && (u16)(id - 1) < 2) {
+    part = D_shelter_r47_8018729C[spriteId];
+    if (gGameSession->location.loc.view == SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW && (u16)(spriteId - SHELTER_R47_CONSOLE_BUTTON_SPRITE) < SHELTER_R47_CONSOLE_BUTTON_SPRITE_COUNT) {
         return;
     }
     while (part->clutX != SHELTER_R47_SPRITE_PART_END) {
-        p              = gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        setPolyFT4(p);
-        setUVWH(p, part->u, part->v, part->w, part->h);
-        p->tpage = SHELTER_R47_SPRITE_PART_TPAGE;
-        setShadeTex(p, 1);
-        p->clut = getClut(part->clutX, part->clutY);
-        setXYWH(p, x + part->x, y + part->y, part->w, part->h);
-        addPrim(&gGpuCurrentOt[10], p);
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyFT4(quad);
+        setUVWH(quad, part->u, part->v, part->w, part->h);
+        quad->tpage = SHELTER_R47_SPRITE_PART_TPAGE;
+        setShadeTex(quad, 1);
+        quad->clut = getClut(part->clutX, part->clutY);
+        setXYWH(quad, originX + part->x, originY + part->y, part->w, part->h);
+        addPrim(&gGpuCurrentOt[SHELTER_R47_CONSOLE_SPRITE_OT], quad);
         part++;
     }
 }
