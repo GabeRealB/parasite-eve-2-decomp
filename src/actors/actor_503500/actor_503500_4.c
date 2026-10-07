@@ -3015,7 +3015,6 @@ static void func_actor_503500_8013FA74(Task* arg0)
     WorldCollisionContact*        rec;
     WorldCollisionContact*        rec2;
     GfxMatrix                     m;
-    GfxRotationWords*             ident;
     s32                           idx;
     s32                           i;
 
@@ -3031,12 +3030,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     coord->coord.t[0]      = D_actor_503500_8016F3AC[idx].vx;
     coord->coord.t[1]      = D_actor_503500_8016F3AC[idx].vy;
     coord->coord.t[2]      = D_actor_503500_8016F3AC[idx].vz;
-    m.rotationWords.m00M01 = ONE;
-    ident                  = &m.rotationWords;
-    ident->m02M10          = 0;
-    ident->m11M12          = ONE;
-    ident->m20M21          = 0;
-    ident->m22             = ONE;
+    gfxSetRotIdentity(&m.mat);
     RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
     coord->composeStamp       = GRAPHICS_COORD_DIRTY;
