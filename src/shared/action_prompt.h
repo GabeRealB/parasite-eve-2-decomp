@@ -89,7 +89,23 @@ static void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task);
 #endif
 static void ACTION_PROMPT_DRAW_CURSOR(s32 cursorX, s32 cursorY, s32 cursorMode);
 
-s32  actionPromptHitTest(ActionPromptHotspot* table, s16 x, s16 y);
+/// Selects the function identifier defined by the hotspot-test fragment.
+///
+/// The signature is `s32(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)`;
+/// coordinates are signed center-origin screen pixels. The default is
+/// `actionPromptHitTest`, with external linkage for same-package callers in
+/// other translation units. Acropolis security and Shelter R47 select an
+/// additional `_actionPromptHitTest` instance, declared static in each carrier's
+/// prologue before its callers. Rebind around that fragment inclusion and
+/// restore the default afterwards. The default prototype below is independent
+/// of this binding. This object-like alias substitutes only the identifier:
+/// it captures no arguments, repeats no evaluation and uses neither
+/// stringification nor token pasting.
+#ifndef ACTION_PROMPT_HIT_TEST
+#define ACTION_PROMPT_HIT_TEST actionPromptHitTest
+#endif
+
+s32  actionPromptHitTest(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 void actionPromptOutlineRect(ActionPromptRect* rect, u8 r, u8 g, u8 b);
 
 #endif /* SRC_SHARED_ACTION_PROMPT_H */

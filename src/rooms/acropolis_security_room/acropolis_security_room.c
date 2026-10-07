@@ -467,7 +467,7 @@ static void func_acropolis_security_room_8017FB20(Task* task);
 static void func_acropolis_security_room_8017FB54(Task* task);
 static void func_acropolis_security_room_8017FBA4(Task* task);
 static void func_acropolis_security_room_8017FC30(Task* task);
-static s32  func_acropolis_security_room_8017FCB0(ActionPromptHotspot* table, s16 x, s16 y);
+static s32  _actionPromptHitTest(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 static void _acropolisSecurityRoomShowReleasedLocks(s32 releasedLocks);
 static void func_acropolis_security_room_8017FE6C(Task* task);
 static void func_acropolis_security_room_8017FF0C(Task* task);
@@ -2760,7 +2760,7 @@ static void func_acropolis_security_room_8017EE44(Task* task)
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (func_acropolis_security_room_8017FCB0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
@@ -2998,10 +2998,14 @@ static void func_acropolis_security_room_8017FC30(Task* task)
     taskRequestKill(task, 0);
 }
 
-/// The second prompt's copy.
-#define actionPromptHitTest func_acropolis_security_room_8017FCB0
+/// Selects the private hotspot tester for the power-supply prompt.
+///
+/// The static instance uses the signature documented in `action_prompt.h`.
+#undef ACTION_PROMPT_HIT_TEST
+#define ACTION_PROMPT_HIT_TEST _actionPromptHitTest
 #include "../../shared/action_prompt_hit_test.inc.c"
-#undef actionPromptHitTest
+#undef ACTION_PROMPT_HIT_TEST
+#define ACTION_PROMPT_HIT_TEST actionPromptHitTest
 
 /// Shows the power-supply panel's released-lock pictures for the supplied flag value.
 ///

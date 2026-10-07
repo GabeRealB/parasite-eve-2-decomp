@@ -1,22 +1,26 @@
 /* Part of the action prompt library; see action_prompt.h. */
 
-/// Hit-tests (`x`, `y`) against the hotspot table `table`, terminated by
-/// `ACTION_PROMPT_HOTSPOT_END`: raises `hit` on every entry whose rectangle
-/// contains the point, including the far edges `x + w` and `y + h`, clears
-/// `hit` on the others, and answers whether any entry was hit.
-s32 actionPromptHitTest(ActionPromptHotspot* table, s16 x, s16 y)
+/// Updates every hotspot's hit flag for a point in center-origin screen pixels.
+///
+/// `hotspots` must remain writable through an entry whose `id` is
+/// `ACTION_PROMPT_HOTSPOT_END`. That sentinel's hit flag is left untouched.
+/// Rectangle edges, including `x + w` and `y + h`, are inside; the sums use
+/// signed integer arithmetic without narrowing to 16 bits. Sets each preceding
+/// entry's `hit` to 1 or 0 and returns 1 if any contains the point, otherwise 0.
+/// An empty table returns 0. The table remains owned by the caller.
+s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)
 {
-    s32 hit;
+    s32 anyHit = 0;
 
-    hit = 0;
-    while (table->id != ACTION_PROMPT_HOTSPOT_END) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y)) {
-            table->hit = 1;
-            hit        = 1;
+    // Refresh the whole table so overlapping rectangles keep independent hits.
+    while (hotspots->id != ACTION_PROMPT_HOTSPOT_END) {
+        if ((cursorX >= hotspots->x) && ((hotspots->x + hotspots->w) >= cursorX) && (cursorY >= hotspots->y) && ((hotspots->y + hotspots->h) >= cursorY)) {
+            hotspots->hit = 1;
+            anyHit        = 1;
         } else {
-            table->hit = 0;
+            hotspots->hit = 0;
         }
-        table++;
+        hotspots++;
     }
-    return hit;
+    return anyHit;
 }

@@ -66,7 +66,7 @@ static void _actionPromptDrawCursor(s32 cursorX, s32 cursorY, s32 cursorMode);
 static void func_shelter_r47_80185028(Task* task);
 static void func_shelter_r47_80185098(Task* task);
 static void func_shelter_r47_801851B8(Task* task);
-static s32  func_shelter_r47_801852A0(ActionPromptHotspot* table, s16 x, s16 y);
+static s32  _actionPromptHitTest(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 static void func_shelter_r47_80185354(Task* task);
 static void func_shelter_r47_80185450(Task* task);
 static void func_shelter_r47_80185510(Task* task);
@@ -1767,7 +1767,7 @@ static void func_shelter_r47_801844A0(Task* task)
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (func_shelter_r47_801852A0(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
@@ -1982,10 +1982,14 @@ static void func_shelter_r47_80185214(Task* task)
     states.funcs[task->state](task);
 }
 
-/// The second prompt's copy.
-#define actionPromptHitTest func_shelter_r47_801852A0
+/// Selects the private hotspot tester for the map-terminal prompt.
+///
+/// The static instance uses the signature documented in `action_prompt.h`.
+#undef ACTION_PROMPT_HIT_TEST
+#define ACTION_PROMPT_HIT_TEST _actionPromptHitTest
 #include "../../shared/action_prompt_hit_test.inc.c"
-#undef actionPromptHitTest
+#undef ACTION_PROMPT_HIT_TEST
+#define ACTION_PROMPT_HIT_TEST actionPromptHitTest
 
 static void func_shelter_r47_80185354(Task* task)
 {

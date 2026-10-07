@@ -101,3 +101,4 @@ _acropolisSecurityRoomDrawMonitorWash = 0x8017e0c4; // type:func
 _acropolisSecurityRoomShowReleasedLocks = 0x8017fd64; // type:func
 _acropolisSecurityRoomPowerSupplyRestoreRoomView = 0x80180010; // type:func
 _acropolisSecurityRoomDrawSweepLine = 0x80180a78; // type:func
+_actionPromptHitTest = 0x8017FCB0; // type:func
