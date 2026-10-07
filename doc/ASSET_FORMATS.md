@@ -622,6 +622,11 @@ the first package by name, and the others include that id.
 | `.path` | `movie_path`, `camera_path` | one position (or camera transform) per movie or scene frame |
 | `.motion` | `motion_curve` | baked per-frame motion of a prop or figure: positions, angles |
 
+A track can carry a per-step flag in a coordinate's spare bit:
+`dryfield_night_gas_station_motion_0AFC0` is 100 `SVECTOR` steps whose `vx`
+bit 0 is the visibility flag of the room's flicker sprites on that step, so the
+position and the flag are one sample and extract as one asset.
+
 `include` is the element width the initializer is spelled in - `'u8'`, `'u16'`
 or `'u32'`, whichever the object's C element type is made of - and the list is
 flat, so brace elision fills any array or struct of that one width. A record
