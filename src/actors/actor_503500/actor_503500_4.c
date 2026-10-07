@@ -2584,8 +2584,6 @@ static void func_actor_503500_8013ECBC(Task* arg0)
     Enemy*                 enemy;
     Task*                  parent;
     GfxCoord*              coord;
-    GfxCoord*              parts;
-    MATRIX*                mtx;
     WorldCollisionContact* rec;
 
     coord  = arg0->extra.tmd->coords;
@@ -2594,15 +2592,9 @@ static void func_actor_503500_8013ECBC(Task* arg0)
     memFillBytes(&D_actor_503500_80177A6C, 0, sizeof(D_actor_503500_80177A6C));
     arg0->work = &D_actor_503500_80177A6C;
 
-    parts                            = parent->extra.tmd->coords;
-    MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-    coord->parent                    = &parts[8];
-    mtx                              = &coord->coord;
-    MATRIX_PAIR(mtx, 0, 2)           = 0;
-    MATRIX_PAIR(mtx, 1, 1)           = 0x1000;
-    MATRIX_PAIR(mtx, 2, 0)           = 0;
-    mtx->m[2][2]                     = 0x1000;
-    enemy->field_4                   = mtx;
+    coord->parent = &parent->extra.tmd->coords[8];
+    gfxSetRotIdentity(&coord->coord);
+    enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
