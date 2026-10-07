@@ -2982,9 +2982,9 @@ static void func_actor_400600_801356E0(Task* arg0)
     TmdObject*                    dst;
     TmdObject*                    src;
     MATRIX*                       mdst;
-    GfxMatrix*                    pm;
-    GfxMatrix*                    pm2;
-    GfxMatrix                     m;
+    MATRIX*                       pm;
+    MATRIX*                       pm2;
+    MATRIX                        m;
 
     root              = arg0->extra.tmd->coords;
     work              = (_Actor400600ZebraStalkerWork*)arg0->work;
@@ -3001,18 +3001,18 @@ static void func_actor_400600_801356E0(Task* arg0)
         coord->coord.t[1] = 0;
         coord->coord.t[2] = 0;
         pm                = &m;
-        gfxSetRotIdentity(&pm->mat);
-        RotMatrixY(-0x180, &pm->mat);
+        gfxSetRotIdentity(pm);
+        RotMatrixY(-0x180, pm);
         mdst                   = &coord->coord;
-        mdst->m[0][0]          = pm->mat.m[0][0];
-        mdst->m[0][1]          = pm->mat.m[0][1];
-        mdst->m[0][2]          = pm->mat.m[0][2];
-        mdst->m[1][0]          = pm->mat.m[1][0];
-        mdst->m[1][1]          = pm->mat.m[1][1];
-        mdst->m[1][2]          = pm->mat.m[1][2];
-        mdst->m[2][0]          = pm->mat.m[2][0];
-        mdst->m[2][1]          = pm->mat.m[2][1];
-        mdst->m[2][2]          = pm->mat.m[2][2];
+        mdst->m[0][0]          = pm->m[0][0];
+        mdst->m[0][1]          = pm->m[0][1];
+        mdst->m[0][2]          = pm->m[0][2];
+        mdst->m[1][0]          = pm->m[1][0];
+        mdst->m[1][1]          = pm->m[1][1];
+        mdst->m[1][2]          = pm->m[1][2];
+        mdst->m[2][0]          = pm->m[2][0];
+        mdst->m[2][1]          = pm->m[2][1];
+        mdst->m[2][2]          = pm->m[2][2];
         src                    = arg0->extra.tmd;
         dst                    = task->extra.tmd;
         dst->texturePageOffset = src->texturePageOffset;
@@ -3042,18 +3042,18 @@ static void func_actor_400600_801356E0(Task* arg0)
             tmdBuildBufferHalf(dst);
         }
         pm2 = &m;
-        gfxSetRotIdentity(&pm2->mat);
-        RotMatrixY(0x180, &pm2->mat);
+        gfxSetRotIdentity(pm2);
+        RotMatrixY(0x180, pm2);
         mdst          = &coord->coord;
-        mdst->m[0][0] = pm2->mat.m[0][0];
-        mdst->m[0][1] = pm2->mat.m[0][1];
-        mdst->m[0][2] = pm2->mat.m[0][2];
-        mdst->m[1][0] = pm2->mat.m[1][0];
-        mdst->m[1][1] = pm2->mat.m[1][1];
-        mdst->m[1][2] = pm2->mat.m[1][2];
-        mdst->m[2][0] = pm2->mat.m[2][0];
-        mdst->m[2][1] = pm2->mat.m[2][1];
-        mdst->m[2][2] = pm2->mat.m[2][2];
+        mdst->m[0][0] = pm2->m[0][0];
+        mdst->m[0][1] = pm2->m[0][1];
+        mdst->m[0][2] = pm2->m[0][2];
+        mdst->m[1][0] = pm2->m[1][0];
+        mdst->m[1][1] = pm2->m[1][1];
+        mdst->m[1][2] = pm2->m[1][2];
+        mdst->m[2][0] = pm2->m[2][0];
+        mdst->m[2][1] = pm2->m[2][1];
+        mdst->m[2][2] = pm2->m[2][2];
         obj->lightMtx = &work->lightMtx;
         obj->colorMtx = &work->colorMtx;
     }
@@ -3763,7 +3763,7 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode)
     _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)task->work;
     SVECTOR                       targetDelta;
     SVECTOR                       localTarget;
-    GfxMatrix                     inverseRotation;
+    MATRIX                        inverseRotation;
     s16                           endZOrRadius;
 
     // Put the probe in body-local coordinates; contacts arrive on a later update.
@@ -3775,24 +3775,24 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode)
                 targetDelta.vx = work->targetPos.vx - task->extra.tmd->coords->coord.t[0];
                 targetDelta.vy = work->targetPos.vy - task->extra.tmd->coords->coord.t[1] - ACTOR_400600_FLOOR_TARGET_Y_OFFSET;
                 targetDelta.vz = work->targetPos.vz - task->extra.tmd->coords->coord.t[2];
-                gfxSetRotIdentity(&inverseRotation.mat);
-                inverseRotation.mat.t[0] = 0;
-                inverseRotation.mat.t[1] = 0;
-                inverseRotation.mat.t[2] = 0;
-                RotMatrixY(-work->yaw, &inverseRotation.mat);
-                ApplyMatrixSV(&inverseRotation.mat, &targetDelta, &localTarget);
+                gfxSetRotIdentity(&inverseRotation);
+                inverseRotation.t[0] = 0;
+                inverseRotation.t[1] = 0;
+                inverseRotation.t[2] = 0;
+                RotMatrixY(-work->yaw, &inverseRotation);
+                ApplyMatrixSV(&inverseRotation, &targetDelta, &localTarget);
             } else {
 
                 targetDelta.vx = work->targetPos.vx - task->extra.tmd->coords->coord.t[0];
                 targetDelta.vy = work->targetPos.vy - task->extra.tmd->coords->coord.t[1] - ACTOR_400600_CEILING_TARGET_Y_OFFSET;
                 targetDelta.vz = work->targetPos.vz - task->extra.tmd->coords->coord.t[2];
-                gfxSetRotIdentity(&inverseRotation.mat);
-                inverseRotation.mat.t[0] = 0;
-                inverseRotation.mat.t[1] = 0;
-                inverseRotation.mat.t[2] = 0;
-                RotMatrixY(-work->yaw, &inverseRotation.mat);
-                RotMatrixZ(-work->roll, &inverseRotation.mat);
-                ApplyMatrixSV(&inverseRotation.mat, &targetDelta, &localTarget);
+                gfxSetRotIdentity(&inverseRotation);
+                inverseRotation.t[0] = 0;
+                inverseRotation.t[1] = 0;
+                inverseRotation.t[2] = 0;
+                RotMatrixY(-work->yaw, &inverseRotation);
+                RotMatrixZ(-work->roll, &inverseRotation);
+                ApplyMatrixSV(&inverseRotation, &targetDelta, &localTarget);
             }
             work->capsule.ends[0].vx = localTarget.vx;
             work->capsule.ends[0].vy = localTarget.vy;
@@ -3831,21 +3831,21 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode)
 /// identity matrix for `angle`.
 static inline void _actor400600SetCoordRotation(GfxCoord* coord, s16 angle)
 {
-    GfxMatrix rot;
+    MATRIX    rot;
     MATRIX*   dst;
 
-    gfxSetRotIdentity(&rot.mat);
-    RotMatrixY(angle, &rot.mat);
+    gfxSetRotIdentity(&rot);
+    RotMatrixY(angle, &rot);
     dst          = &coord->coord;
-    dst->m[0][0] = rot.mat.m[0][0];
-    dst->m[0][1] = rot.mat.m[0][1];
-    dst->m[0][2] = rot.mat.m[0][2];
-    dst->m[1][0] = rot.mat.m[1][0];
-    dst->m[1][1] = rot.mat.m[1][1];
-    dst->m[1][2] = rot.mat.m[1][2];
-    dst->m[2][0] = rot.mat.m[2][0];
-    dst->m[2][1] = rot.mat.m[2][1];
-    dst->m[2][2] = rot.mat.m[2][2];
+    dst->m[0][0] = rot.m[0][0];
+    dst->m[0][1] = rot.m[0][1];
+    dst->m[0][2] = rot.m[0][2];
+    dst->m[1][0] = rot.m[1][0];
+    dst->m[1][1] = rot.m[1][1];
+    dst->m[1][2] = rot.m[1][2];
+    dst->m[2][0] = rot.m[2][0];
+    dst->m[2][1] = rot.m[2][1];
+    dst->m[2][2] = rot.m[2][2];
 }
 
 /// Sets the root rotation of the child task held in work field `child`, if it
