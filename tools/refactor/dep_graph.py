@@ -853,9 +853,20 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
     the result is still a dependency order. An item already processed imposes
     no wait, as in `_step_numbers`. `order` supplies the ranking: where there
     is a choice, the earlier item of the plain order goes first.
+
+    A step that its own unit leaves small is then filled from its surroundings:
+    ready items of other units in the same directory, then in the same family
+    (src/rooms, src/shared, ...), that would themselves have made only a small
+    step. A session costs nearly the same for one function as for sixteen -
+    the rules are read, the tree is built and verified either way - and a
+    quarter of the function steps held a single item. Only items that are
+    ready are taken, so the result is still a dependency order; a unit with
+    enough ready work for a step of its own is left whole. `local/
+    name_pass_no_fill` switches the filling off.
     """
     if not any(n > 1 for n in limits.values()):
         return order
+    fill = not os.path.exists(os.path.join(root, "local", "name_pass_no_fill"))
     import heapq
     rank = {g: i for i, g in enumerate(order)}
     pending = [g for g in order if any(u not in done for u in g)]
@@ -916,22 +927,41 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
         return kind, _unit_of(root, next(iter(files)))
 
     unit_of = {g: unit(g) for g in pending}
+
+    def near(g):
+        """The wider places a small step of `g`'s unit may be filled from."""
+        kind, where = unit_of[g]
+        folder = os.path.dirname(where)
+        return (kind, "dir", folder), (kind, "family", "/".join(folder.split("/")[:2]))
+
+    near_of = {g: near(g) for g in pending if unit_of[g]}
     heap = [(rank[g], g) for g in pending if left[g] == 0]
     heapq.heapify(heap)
     ready = collections.defaultdict(list)          # unit -> heap of (rank, group)
+    around = collections.defaultdict(list)         # directory or family -> the same
+    waiting = collections.Counter()                # unit -> ready items not yet placed
+
+    def offer(r, g):
+        heapq.heappush(ready[unit_of[g]], (r, g))
+        waiting[unit_of[g]] += len(g)
+        for place in near_of[g]:
+            heapq.heappush(around[place], (r, g))
+
     for r, g in heap:
         if unit_of[g]:
-            heapq.heappush(ready[unit_of[g]], (r, g))
+            offer(r, g)
     placed, steps = set(), []
 
     def release(g):
         placed.add(g)
+        if unit_of[g]:
+            waiting[unit_of[g]] -= len(g)
         for u in users.get(g, ()):
             left[u] -= 1
             if left[u] == 0:
                 heapq.heappush(heap, (rank[u], u))
                 if unit_of[u]:
-                    heapq.heappush(ready[unit_of[u]], (rank[u], u))
+                    offer(rank[u], u)
 
     while heap:
         _, g = heapq.heappop(heap)
@@ -956,6 +986,39 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
             heapq.heappop(queue)
             members.extend(h)
             release(h)              # may make this unit's next items ready
+        small = limit // 2
+        while fill and len(members) < small:
+            took = False
+            for place in near_of[g]:
+                pool, kept = around[place], []
+                while pool and len(members) < limit:
+                    r, h = heapq.heappop(pool)
+                    if h in placed:
+                        continue
+                    # Not a unit that still has a step's worth of its own.
+                    if unit_of[h] == key or waiting[unit_of[h]] >= small or len(members) + len(h) > limit:
+                        kept.append((r, h))
+                        continue
+                    members.extend(h)
+                    release(h)
+                    took = True
+                for item in kept:
+                    heapq.heappush(pool, item)
+                if took:
+                    break
+            if not took:
+                break
+            # What was taken may have made more of this unit ready.
+            while queue:
+                _, h = queue[0]
+                if h in placed:
+                    heapq.heappop(queue)
+                    continue
+                if len(members) + len(h) > limit:
+                    break
+                heapq.heappop(queue)
+                members.extend(h)
+                release(h)
         merged = tuple(sorted(members))
         for u in merged:
             comp[u] = merged
