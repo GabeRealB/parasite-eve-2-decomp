@@ -120,7 +120,7 @@ typedef struct {
 } Actor141000CtrlWork;
 STATIC_ASSERT_SIZEOF(Actor141000CtrlWork, 0x10);
 
-/// The rotation table `func_actor_141000_80132FD0` feeds to `RotMatrix`: 0x5A
+/// The rotation table `_actor141000ApplyFlightPathFrame` feeds to `RotMatrix`: 0x5A
 /// `SVECTOR` axis triples, one per frame of the ramp the controller's state 2
 /// climbs, ending at the entry index 0x59 the function clamps to.
 extern SVECTOR D_actor_141000_80134228[];
@@ -161,15 +161,15 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 extern TaskMessageEntry D_actor_141000_8013D788[];
 
 static void func_actor_141000_80132C7C(Task* task);
-static void func_actor_141000_80132D3C(Task* task);
-static void func_actor_141000_80132E04(Task* task);
-static void func_actor_141000_80132E24(Task* arg0);
-static void func_actor_141000_80132EB0(Task* arg0);
+static void _actor141000UpdateFlightController(Task* task);
+static void _actor141000ExitFlightController(Task* task);
+static void _actor141000UnfoldFlightModel(Task* task);
+static void _actor141000HoldFlightModel(Task* task);
 static void func_actor_141000_80132EF4(Task* arg0);
-static void func_actor_141000_80132FC8(Task* arg0);
-static s32  func_actor_141000_80132FD0(GfxCoord* arg0, s32 arg1);
-static void func_actor_141000_8013308C(GfxCoord* arg0, s32 arg1);
-static void func_actor_141000_80133204(Task* task);
+static void _actor141000IdleFlightModel(Task* task);
+static s32  _actor141000ApplyFlightPathFrame(GfxCoord* rootCoord, s32 pathFrame);
+static void _actor141000ScaleFlightModelZ(GfxCoord* rootCoord, s32 zScale);
+static void _actor141000AttachRingBeam(Task* task);
 static void func_actor_141000_80133260(Task* arg0);
 static void _actor141000UpdateAyaBreaWalker(Task* task);
 static void _actor141000TickAyaBreaBlink(Task* task);
@@ -186,27 +186,27 @@ static void _actor141000TurnAyaBreaToYaw(Task* task);
 /// sixteen quads every frame, then `taskKill`. Dispatched by
 /// `func_actor_141000_801331AC`.
 static const TaskFuncTable3 D_actor_141000_80131E24 = { {
-    func_actor_141000_80133204,
+    _actor141000AttachRingBeam,
     func_actor_141000_80133260,
     taskKill,
 } };
 
 /// The controller's three states - spawn, per-frame tick and `taskKill` -
-/// dispatched by `func_actor_141000_80132C24`.
+/// dispatched by `_actor141000FlightControllerTask`.
 static const TaskFuncTable3 D_actor_141000_80131E30 = { {
     func_actor_141000_80132C7C,
-    func_actor_141000_80132D3C,
+    _actor141000UpdateFlightController,
     taskKill,
 } };
 
 /// The controller's four animation states, dispatched by
-/// `func_actor_141000_80132D3C` through the controller work block's `state`
+/// `_actor141000UpdateFlightController` through the controller work block's `state`
 /// halfword.
 static const TaskFuncTable4 D_actor_141000_80131E3C = { {
-    func_actor_141000_80132E24,
-    func_actor_141000_80132EB0,
+    _actor141000UnfoldFlightModel,
+    _actor141000HoldFlightModel,
     func_actor_141000_80132EF4,
-    func_actor_141000_80132FC8,
+    _actor141000IdleFlightModel,
 } };
 
 /// The model actor's three states - spawn, per-frame tick and exit -
@@ -237,8 +237,8 @@ static TmdBone _gActor141000Model0230CSkeleton[1];
 static u32     _gActor141000Model0230CStream[54];
 
 static TmdSource _gActor141000Model0230C;
-void             func_actor_141000_80132C24(Task*);
-void             func_actor_141000_801330C0(Task*);
+static void      _actor141000FlightControllerTask(Task* task);
+static void      _actor141000SmokeTrailTask(Task* task);
 void             func_actor_141000_801331AC(Task*);
 
 static AnimationSet _gActor141000Animation084A0;
@@ -542,9 +542,9 @@ SVECTOR D_actor_141000_801348A8[6] = {
 };
 
 TaskDesc D_actor_141000_801348D8[3] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_141000_80132C24, { .model = &_gActor141000Model0230C } },
+    { { { TASK_BODY_TMD, 192 } }, _actor141000FlightControllerTask, { .model = &_gActor141000Model0230C } },
     { { { TASK_BODY_COORD, 192 } }, func_actor_141000_801331AC, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, func_actor_141000_801330C0, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _actor141000SmokeTrailTask, { .value = 0 } },
 };
 
 static TmdBone _gActor141000AyaBreaBodySkeleton[19] = {
@@ -1906,19 +1906,6 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
 #define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000425
 #include "../../shared/glow_draw_ring_beam.inc.c"
 
-/// Initializes a beam matrix's rotation to 4.12 identity, preserving translation.
-static inline void _actor141000InitBeamRotation(MATRIX* rotation)
-{
-    GfxRotationWords* words;
-
-    ((GfxRotationWords*)rotation)->m00M01 = ONE;
-    ((GfxRotationWords*)rotation)->m02M10 = 0;
-    words                                 = (GfxRotationWords*)rotation;
-    words->m11M12                         = ONE;
-    ((GfxRotationWords*)rotation)->m20M21 = 0;
-    words->m22                            = ONE;
-}
-
 /// Builds the attached beam's four six-point screen rings for its core and halo.
 ///
 /// Requires a live TMD parent in `spawnArg2.pointer` with controller work.
@@ -2002,7 +1989,7 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
     endY           = endScreen >> 16;
     screenAngle    = ratan2(screenDeltaX, screenDeltaY);
     screenDistance = gDisplayState.screenDistance;
-    _actor141000InitBeamRotation(&screenRotation);
+    gfxSetRotIdentity(&screenRotation);
     RotMatrixZ(screenAngle, &screenRotation);
     gte_SetRotMatrix(&screenRotation);
     for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_80134878); pointIndex++) {
@@ -2045,12 +2032,17 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
     }
 }
 
-void func_actor_141000_80132C24(Task* task)
+/// Dispatches the flying model's initialization, update or teardown state.
+///
+/// Requires the descriptor-created one-part TMD body and task state 0..2.
+/// The state indexes the three handlers without a bounds check; their work is
+/// owned by the task. Updates continue independently of actor freezing.
+static void _actor141000FlightControllerTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_141000_80131E30;
-    sp.funcs[task->state](task);
+    handlers = D_actor_141000_80131E30;
+    handlers.funcs[task->state](task);
 }
 
 /// Spawn state of the overlay's controller task: takes the display object's
@@ -2058,7 +2050,7 @@ void func_actor_141000_80132C24(Task* task)
 /// `Task::work` and sets its ring-beam level to full, un-parks the model (`field_C` bit
 /// 0x80 is the flag that keeps a `TmdObject` out of the coordinate update),
 /// republishes that coordinate onto the two scale helpers, spawns the attach
-/// task from `D_actor_141000_801348D8` and installs `func_actor_141000_80132E04`
+/// task from `D_actor_141000_801348D8` and installs `_actor141000ExitFlightController`
 /// as the exit callback before advancing to the per-frame state. A failed allocation kills
 /// the task instead of leaving a half-built controller behind.
 static void func_actor_141000_80132C7C(Task* task)
@@ -2077,20 +2069,23 @@ static void func_actor_141000_80132C7C(Task* task)
     task->work      = work;
     work->beamLevel = 0xFFF;
     obj->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    func_actor_141000_80132FD0(coord, 0);
-    func_actor_141000_8013308C(coord, 0);
+    _actor141000ApplyFlightPathFrame(coord, 0);
+    _actor141000ScaleFlightModelZ(coord, 0);
     taskSpawnFromTable(D_actor_141000_801348D8, 1, 0, task);
-    task->exitCallback = func_actor_141000_80132E04;
+    task->exitCallback = _actor141000ExitFlightController;
     task->state       += 1;
 }
 
-/// Per-frame state of the overlay's controller task: copies the four animation
-/// handlers onto the stack and runs the one the controller work block's `state`
-/// halfword selects, sign-extended. A pending effect bit spawns the controller's
-/// effect through the model's root coordinate, and the session's teardown flag
-/// kills the task instead of letting it tick again.
-static void func_actor_141000_80132D3C(Task* task)
+/// Advances the flying model's phase and emits smoke on odd game frames.
+///
+/// Requires initialized controller work and a live TMD body. `state` must be
+/// 0..3 (unfold, hold, follow the path, idle); its signed low halfword indexes
+/// the phase table without a bounds check. A ready session view tears down the
+/// task after the phase and smoke have run. Actor freezing does not gate this.
+static void _actor141000UpdateFlightController(Task* task)
 {
+    // Smoke: initial size 512, four ticks per atlas frame, motion variant 2.
+    enum { ACTOR_141000_FLIGHT_SMOKE_ARGUMENT = 0x24200 };
     Actor141000CtrlWork* work;
     TaskFuncTable4       handlers;
 
@@ -2098,56 +2093,67 @@ static void func_actor_141000_80132D3C(Task* task)
     handlers = D_actor_141000_80131E3C;
     handlers.funcs[(s16)work->state](task);
     if (gDisplayState.animFrame & 1) {
-        effectSpawn(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x24200, NULL);
+        effectSpawn(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, ACTOR_141000_FLIGHT_SMOKE_ARGUMENT, NULL);
     }
     if (gGameSession->viewReady != 0) {
         taskKill(task);
     }
 }
 
-/// `Task::exitCallback` the controller's spawn state installs: it only hands
-/// the task to `taskKill`.
-static void func_actor_141000_80132E04(Task* task)
+/// Releases the flying model controller through default task teardown.
+///
+/// Installed as the exit callback after controller initialization. The task
+/// owns its work and attached beam; direct default teardown releases them
+/// without dispatching this replacement callback again.
+static void _actor141000ExitFlightController(Task* task)
 {
     taskKill(task);
 }
 
-/// State 0 of the handler table at 0x80131E3C: ramps the actor's Z scale by
-/// 1/16 a frame and, on reaching 1.0, clamps it there and advances the state
-/// index `state` the dispatcher at 0x80132D3C walks.
-static void func_actor_141000_80132E24(Task* arg0)
+/// Unfolds the flying model along Z by 1/16 of unit scale per update.
+///
+/// Requires initialized controller work in phase 0 and a live TMD root.
+/// Restores path frame 0 before applying the absolute 4.12 Z scale, retaining
+/// unit X/Y scale. Reaching unit scale clamps it and advances to the hold phase.
+static void _actor141000UnfoldFlightModel(Task* task)
 {
+    enum { ACTOR_141000_UNFOLD_SCALE_STEP = ONE / 16 };
     Actor141000CtrlWork* work;
     u16                  scale;
 
-    work        = arg0->work;
-    scale       = work->scale + 0x100;
+    work        = task->work;
+    scale       = work->scale + ACTOR_141000_UNFOLD_SCALE_STEP;
     work->scale = scale;
-    if ((s16)scale >= 0x1000) {
-        work->scale = 0x1000;
+    if ((s16)scale >= ONE) {
+        work->scale = ONE;
         work->state = work->state + 1;
     }
-    func_actor_141000_80132FD0(arg0->extra.tmd->coords, 0);
-    func_actor_141000_8013308C(arg0->extra.tmd->coords, (s16)work->scale);
+    // Rebuild first so scaling does not compound across updates.
+    _actor141000ApplyFlightPathFrame(task->extra.tmd->coords, 0);
+    _actor141000ScaleFlightModelZ(task->extra.tmd->coords, (s16)work->scale);
 }
 
-/// State 1 of the handler table at 0x80131E3C: holds for 0x1F frames, then
-/// advances the state index `state` the dispatcher at 0x80132D3C walks.
-static void func_actor_141000_80132EB0(Task* arg0)
+/// Holds the unfolded model for 31 updates before its flight begins.
+///
+/// Requires initialized controller work in phase 1, with `ticks` initially
+/// zero. The increment stores a u16 before testing its signed low halfword.
+/// The final tick advances the phase; the transform remains unchanged.
+static void _actor141000HoldFlightModel(Task* task)
 {
+    enum { ACTOR_141000_FLIGHT_HOLD_TICKS = 31 };
     Actor141000CtrlWork* work;
     u16                  ticks;
 
-    work        = arg0->work;
+    work        = task->work;
     ticks       = work->ticks + 1;
     work->ticks = ticks;
-    if ((s16)ticks >= 0x1F) {
+    if ((s16)ticks >= ACTOR_141000_FLIGHT_HOLD_TICKS) {
         work->state = work->state + 1;
     }
 }
 
 /// State 2 of the handler table at 0x80131E3C: drives the model's rotation
-/// through `func_actor_141000_80132FD0` and, on the frame that runs the ramp's
+/// through `_actor141000ApplyFlightPathFrame` and, on the frame that runs the ramp's
 /// 0x5A entries out, advances the state index `state` the dispatcher at
 /// 0x80132D3C walks. Every eighth frame it spawns another actor from index 2
 /// of `D_actor_141000_801348D8` and copies this actor's world position onto
@@ -2166,7 +2172,7 @@ static void func_actor_141000_80132EF4(Task* arg0)
     frames       = work->frames + 1;
     work->frames = frames;
 
-    if (func_actor_141000_80132FD0(obj->coords, (s16)frames) != 0) {
+    if (_actor141000ApplyFlightPathFrame(obj->coords, (s16)frames) != 0) {
         work->state = work->state + 1;
         return;
     }
@@ -2183,93 +2189,94 @@ static void func_actor_141000_80132EF4(Task* arg0)
     }
 }
 
-static void func_actor_141000_80132FC8(Task* arg0)
+/// Leaves the flying model at its final transform after the path completes.
+///
+/// Phase 3 does no transform work; the enclosing controller update continues
+/// emitting smoke and checking for teardown. The task argument is unused.
+static void _actor141000IdleFlightModel(Task* task)
 {
 }
 
-/// Drives the model root one frame along the ramp the rotation table at
-/// 0x80134228 and its position table at 0x801344F8 hold: splat an identity
-/// matrix, let `RotMatrix` replace it with the frame's triple -- entry 0x59
-/// once `arg1` runs past the table's 0x5A entries -- copy that entry's
-/// position into the root's translation, drop X by 40 and clear `composeStamp`.
-/// Returns non-zero on the frame that ran past the table, which is what the
-/// state-2 handler at 0x80132EF4 advances `state` on.
-static s32 func_actor_141000_80132FD0(GfxCoord* arg0, s32 arg1)
+/// Applies one recorded flight transform to the model root.
+///
+/// `pathFrame` is a nonnegative frame index. Indices 0..89 select corresponding
+/// rotation and position triples; 90 or above hold entry 89 and return 1.
+/// In-range frames return 0. Angles use 4096 units per turn; positions use
+/// integer parent-frame coordinates with X shifted by -40. Replaces rotation
+/// and scale, preserves the matrix alignment bytes, and invalidates composition.
+static s32 _actor141000ApplyFlightPathFrame(GfxCoord* rootCoord, s32 pathFrame)
 {
-    GfxRotationWords* words;
-    SVECTOR*          pos;
-    s32               idx;
-    s32               ret;
+    enum { ACTOR_141000_FLIGHT_X_OFFSET = 40 };
+    const SVECTOR* position;
+    s32            pathIndex;
+    s32            pathFinished;
 
-    if (arg1 < 0x5A) {
-        idx = arg1;
-        ret = 0;
+    if (pathFrame < (s32)ARRAY_SIZE(D_actor_141000_80134228)) {
+        pathIndex    = pathFrame;
+        pathFinished = false;
     } else {
-        idx = 0x59;
-        ret = 1;
+        pathIndex    = (s32)ARRAY_SIZE(D_actor_141000_80134228) - 1;
+        pathFinished = true;
     }
-    words         = (GfxRotationWords*)&arg0->coord;
-    words->m00M01 = ONE;
-    words->m02M10 = 0;
-    words->m11M12 = ONE;
-    words->m20M21 = 0;
-    words->m22    = ONE;
-    RotMatrix(&D_actor_141000_80134228[idx], &arg0->coord);
-    pos                = &D_actor_141000_801344F8[idx];
-    arg0->coord.t[0]   = pos->vx;
-    arg0->coord.t[1]   = pos->vy;
-    arg0->coord.t[2]   = pos->vz;
-    arg0->coord.t[0]  -= 0x28;
-    arg0->composeStamp = GRAPHICS_COORD_DIRTY;
-    return ret;
+    gfxSetRotIdentity(&rootCoord->coord);
+    RotMatrix(&D_actor_141000_80134228[pathIndex], &rootCoord->coord);
+    position                = &D_actor_141000_801344F8[pathIndex];
+    rootCoord->coord.t[0]   = position->vx;
+    rootCoord->coord.t[1]   = position->vy;
+    rootCoord->coord.t[2]   = position->vz;
+    rootCoord->coord.t[0]  -= ACTOR_141000_FLIGHT_X_OFFSET;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    return pathFinished;
 }
 
-static void func_actor_141000_8013308C(GfxCoord* arg0, s32 arg1)
+/// Multiplies the flying model's rotation by a signed 4.12 local Z scale.
+///
+/// Requires a writable root matrix. X/Y scale are unit; translation is kept.
+/// This compounds with existing scale and leaves composition invalidation to
+/// the caller, which rebuilds the flight transform before each scale operation.
+static void _actor141000ScaleFlightModelZ(GfxCoord* rootCoord, s32 zScale)
 {
     VECTOR scale;
 
-    scale.vz = arg1;
-    scale.vx = 0x1000;
-    scale.vy = 0x1000;
-    ScaleMatrix(&arg0->coord, &scale);
+    scale.vz = zScale;
+    scale.vx = ONE;
+    scale.vy = ONE;
+    ScaleMatrix(&rootCoord->coord, &scale);
 }
 
-/// Callback of the model actor the controller's state 2 spawns every eighth
-/// frame -- index 2 of `D_actor_141000_801348D8`, pointed at the controller's
-/// own position. The first frame splats an identity matrix over the task's root
-/// coordinate and clears its `composeStamp`: the rotation part only, so the translation
-/// the spawner copied in survives. Every frame then runs the 5-frame countdown
-/// in `killCountdown`, spawning effect 0x60070 from that same coordinate
-/// (spawn arg 0x14200, no offset vector) each time it completes. The countdown
-/// is held while the freeze byte is set, and a room change or a script event
-/// taking over kills the task outright.
-void func_actor_141000_801330C0(Task* arg0)
+/// Emits smoke every five running-actor updates at a recorded trail position.
+///
+/// Requires the descriptor-created coordinate body and state 0 or 1. The first
+/// call installs unit rotation while retaining the spawner's translation.
+/// `killCountdown` counts elapsed updates, starting at zero; actor freezing
+/// holds it. A ready session view or forced event skip tears down the emitter,
+/// after any emission on that call. Spawned puffs manage their own lifetimes.
+static void _actor141000SmokeTrailTask(Task* task)
 {
-    GfxCoord*         coord;
-    GfxRotationWords* words;
-    u16               count;
+    enum {
+        ACTOR_141000_TRAIL_SMOKE_INTERVAL = 5,
+        // Smoke: initial size 512, four ticks per atlas frame, motion variant 1.
+        ACTOR_141000_TRAIL_SMOKE_ARGUMENT = 0x14200,
+    };
+    GfxCoord* coord;
+    u16       elapsedTicks;
 
-    coord = arg0->extra.coordBody->coord;
-    if (arg0->state == 0) {
-        words               = (GfxRotationWords*)&coord->coord;
-        words->m00M01       = ONE;
-        words->m02M10       = 0;
-        words->m11M12       = ONE;
-        words->m20M21       = 0;
-        words->m22          = ONE;
+    coord = task->extra.coordBody->coord;
+    if (task->state == 0) {
+        gfxSetRotIdentity(&coord->coord);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->state        += 1;
+        task->state        += 1;
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        count               = arg0->killCountdown + 1;
-        arg0->killCountdown = count;
-        if ((s16)count >= 5) {
-            arg0->killCountdown = 0;
-            effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x14200, NULL);
+        elapsedTicks        = task->killCountdown + 1;
+        task->killCountdown = elapsedTicks;
+        if ((s16)elapsedTicks >= ACTOR_141000_TRAIL_SMOKE_INTERVAL) {
+            task->killCountdown = 0;
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_141000_TRAIL_SMOKE_ARGUMENT, NULL);
         }
     }
     if ((gGameSession->viewReady != 0) || (gGameSession->evtSkipped != 0)) {
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 
@@ -2281,14 +2288,19 @@ void func_actor_141000_801331AC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Chains this actor's root coordinate under the spawner's root coordinate,
-/// hands the task to the spawner with `taskReparent`, arms `killCountdown` at
-/// 0x7FF and advances the state.
-static void func_actor_141000_80133204(Task* task)
+/// Attaches the ring beam's coordinate and teardown lifetime to its controller.
+///
+/// Requires a coordinate-body task in state 0 and a live TMD controller borrowed
+/// through `spawnArg2.pointer`. The parent must outlive beam drawing. Seeds the
+/// halo angle at 2047 in a 4096-unit turn and advances to the drawing state;
+/// this package leaves the angle fixed. The coordinate is already dirty from
+/// body creation, so the new parent is composed on the first draw.
+static void _actor141000AttachRingBeam(Task* task)
 {
-    task->extra.tmd->coords->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
+    enum { ACTOR_141000_BEAM_HALO_ANGLE = ACTOR_TRANSFORM_ANGLE_HALF_TURN - 1 };
+    task->extra.coordBody->coord->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
     taskReparent(task->spawnArg2.pointer, task);
-    task->killCountdown = 0x7FF;
+    task->killCountdown = ACTOR_141000_BEAM_HALO_ANGLE;
     task->state        += 1;
 }
 
@@ -2371,6 +2383,7 @@ static void _actor141000UpdateAyaBreaWalker(Task* task)
 /// Requires initialized work in the closed or half-open step and a live TMD.
 /// The terminated upload list is writable; its eye pixels remain borrowed until
 /// GPU transfer completes. The rectangle is borrowed only through this call.
+/// Its X counts two positions per VRAM word, width counts words, and Y/height count rows.
 /// The caller decrements the countdown; this resets it from the signed delay.
 static inline void _actor141000AdvanceAyaBreaBlinkImage(Task* task, _Actor141000AyaBreaWork* work,
                                                         GpuImageUpload* uploadList, const RECT* eyeRect)
@@ -2425,9 +2438,11 @@ static void _actor141000TickAyaBreaBlink(Task* task)
 /// Binds and applies a changed bank-0 walk clip to Aya's nineteen-part rig.
 ///
 /// Requires a live TMD task with initialized Aya work. Request is borrowed
-/// through the call and must not overlap playback state. Bank and clip must index loaded animation tables.
+/// through the call and must not overlap playback state. The bank must be 0
+/// and the clip a loaded entry 1..10; blend duration counts whole frames.
 /// Driven slots exclude root 0. Rebinding invalidates the old clip; an unchanged
 /// clip in the same bank leaves ticking and its current poses intact.
+/// The model, work-owned poses/slots and clip data must outlive playback.
 static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const AnimationPlayRequest* request)
 {
     _Actor141000AyaBreaWork* work;
@@ -2436,6 +2451,7 @@ static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const Anima
 
     work  = task->work;
     model = task->extra.tmd;
+    // A changed bank invalidates the old clip even if the clip IDs agree.
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
@@ -2453,6 +2469,7 @@ static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const Anima
                 animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
             }
         }
+        // Install the new pose before ordinary frame ticking resumes.
         for (slotIndex = ACTOR_141000_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationTickSlot(&work->rig.anim, slotIndex);
         }
@@ -2670,15 +2687,7 @@ static void _actor141000BeginAyaBreaWalk(Task* task)
 /// Invalidates world composition after installing the rotation.
 static inline void _actor141000RebuildAyaBreaRotation(GfxCoord* rootCoord, SVECTOR* rotation)
 {
-    GfxRotationWords* rotationWords;
-
-    // Rebuild rotation while preserving root translation.
-    rotationWords         = (GfxRotationWords*)&rootCoord->coord;
-    rotationWords->m00M01 = ONE;
-    rotationWords->m02M10 = 0;
-    rotationWords->m11M12 = ONE;
-    rotationWords->m20M21 = 0;
-    rotationWords->m22    = ONE;
+    gfxSetRotIdentity(&rootCoord->coord);
     RotMatrix(rotation, &rootCoord->coord);
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

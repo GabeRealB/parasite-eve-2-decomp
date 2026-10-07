@@ -81824,7 +81824,7 @@ the widening is the instruction the target wants.
 
 ## A field read twice (once into a chain, once as a call arg) must stay two reads
 
-`func_actor_141000_80133204` chains the actor's root coordinate under its
+`_actor141000AttachRingBeam` chains the actor's root coordinate under its
 spawner's and then reparents the task:
 
 ```
@@ -81851,14 +81851,14 @@ twice** reads as a source-shape difference, not a scheduling one: the fix is to
 write the read out again where it is used, keeping the expression inline.
 
 ```c
-task->extra.tmd->coords->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
+task->extra.coordBody->coord->parent = ((Task*)task->spawnArg2.pointer)->extra.tmd->coords;
 taskReparent(task->spawnArg2.pointer, task);
 ```
 
 Note the locals were introduced only to please the struct-usage style; the
 `M2C_FIELD` seed that scored 100% already had the two separate reads, so when a
 seed matches, the first rewrite has to preserve its *read count*, not just its
-expressions. Example: `func_actor_141000_80133204` (scratch `base_2.c`; the
+expressions. Example: `_actor141000AttachRingBeam` (scratch `base_2.c`; the
 hoisted `base_1.c` is the counter-example). Input `base_2.i`
 `9b927762e546b3b14d340f093c1ca426c5fa7d5c055dec676e9da171d90780a2`.
 
@@ -81893,7 +81893,7 @@ Generalizing: when two reads of one expression are separated by a call, the
 target's single register holding that value across the call *is* the evidence
 that the source read it once. Neither direction of the read count is the "safe"
 rewrite - the seed's count has to be preserved, whichever it is. Both this
-function's `base_2.c` and the `func_actor_141000_80133204` case are the seed
+function's `base_2.c` and the `_actor141000AttachRingBeam` case are the seed
 being rewritten into the style guide's shape and losing the match. Example:
 `func_dryfield_toilet_8017D8C8` (scratch `base_2.c`, with the local; the
 header-cleaned `base_1.c` without it is the counter-example). Input `base_2.i`
@@ -81929,9 +81929,9 @@ different signedness are one *cast*, not a type conflict, and the `u16`
 increment is the half that must survive: `addiu` + `sh` compiled from it.
 
 Worked example: `Actor141000CtrlWork::state` is the state index
-`func_actor_141000_80132D3C` (still `INCLUDE_ASM`) dispatches through, and
+`_actor141000UpdateFlightController` (then `INCLUDE_ASM`) dispatches through, and
 `ticks` the per-state frame counter, in
-`func_actor_141000_80132EB0`. Input `base_1.i`
+`_actor141000HoldFlightModel`. Input `base_1.i`
 `279709c8584b488114b24c88d0c6f01e665d0269628f0f0da14500e489a27dca`.
 
 ## A hoisted read also moves *which* value lives across the calls
@@ -81941,8 +81941,8 @@ in a local makes the **pointee** the value that must survive the calls, so it
 takes the callee-saved register and its load is scheduled to the top of the
 function. Keeping the read inline leaves the **base pointer** live instead.
 
-`func_actor_141000_80132E24` calls two helpers with
-`((TmdObject*)index->extra)->coords`. Written with `tmd = (TmdObject*)index->extra;`
+`_actor141000UnfoldFlightModel` calls two helpers with
+`task->extra.tmd->coords`. Written with `tmd = task->extra.tmd;`
 first, the object opens
 
 ```
@@ -81964,7 +81964,7 @@ A scratch score is evidence only about the C you actually scored. The port to
 the host file is a new candidate: score it in the scratch first rather than
 assuming the seed's 100% carries over to a struct-style rewrite of it.
 
-Example: `func_actor_141000_80132E24` (scratch `base_1.c`; the `tmd`-local shape
+Example: `_actor141000UnfoldFlightModel` (scratch `base_1.c`; the `tmd`-local shape
 is the counter-example that failed the overlay checksum). Input `base_1.i`
 `6eebf6fc90486fed6cad608d91068483eab7f8a516ed9387d802fa52140a4597`.
 
@@ -82000,12 +82000,12 @@ Follow the dispatch chain: `D_actor_141000_80131E30` is
 `task->state` as well. The controller's 0x10 block is therefore a type of its
 own.
 
-The two already-matched handlers `func_actor_141000_80132E24` and
-`func_actor_141000_80132EB0` reach that same block as `(_Actor141000AyaBreaWork*)`,
-because it shares `_Actor141000AyaBreaWork`'s `scale`/`state`/`ticks` halfword triple at
-0xA/0xC/0xE. Record that in the new type's doc comment and leave them alone: a
-header addition is additive and cannot move a matched body, whereas editing the
-sibling's `.c` is one of the ways a matched function gets lost.
+The two already-matched handlers `_actor141000UnfoldFlightModel` and
+`_actor141000HoldFlightModel` reach that same block through `Actor141000CtrlWork`,
+whose `scale`/`state`/`ticks` halfword triple sits at 0xA/0xC/0xE. Keep this
+controller block distinct from `_Actor141000AyaBreaWork`: allocation and task
+dispatch establish their different owners. A typed port must preserve each
+matched handler's access widths and expression shape.
 
 `func_actor_141000_80132C7C 2 attempts` - the seed scored 100% in the first
 build and the typed port `base_1.c` reproduces it instruction for instruction.
@@ -82044,7 +82044,7 @@ Two boundaries worth checking before concluding "scheduler":
   `((TmdObject*)index->extra)->coords`, so nothing lives across the `jal` - the
   frame is `sp-0x20` saving `$ra`/`$s0`/`$s1` and has no spill slot. A local
   kept live across the call is the opposite move (see the
-  `func_actor_141000_80132E24` entry above, where a `tmd` local broke the
+  `_actor141000UnfoldFlightModel` entry above, where a `tmd` local broke the
   match) and does not reproduce this shape.
 - **Hoist the pointer, not the load through it.** Reading
   `coord = obj->field_8` early puts `lw 8(v0)` on the pending-read list first,
@@ -82093,7 +82093,7 @@ Example: `_actor141000BeginAyaBreaWalk` (scratch `base_1.c`, first distinct buil
 
 ## A hard-register write reserves that register over its *scheduled* range, so a statement swap can move a local-alloc choice
 
-`func_actor_141000_80132FD0` sat at 90.745% with `regs=3`: the target keeps the
+`_actor141000ApplyFlightPathFrame` sat at 90.745% with `regs=3`: the target keeps the
 `vy` load (`lh $v1,0x2($s0)`) in `$v1`, ours took `$v0`, and sched2 then
 interleaved the following `lw` into the load's delay slot where the target has a
 `nop` (`insert=1 delete=2`). Everything else in the function already matched --
@@ -82121,7 +82121,7 @@ load and its store. 90.745% -> 100.000%, every penalty zero. A `$v0`/`$v1`
 mismatch on a straight-line tail is worth reading as "whose hard-register range
 covers this span" before it is read as a `QTY_CMP_PRI` tie.
 
-Example: `func_actor_141000_80132FD0` (permuter `5a6291d8121741f4`, isolated as
+Example: `_actor141000ApplyFlightPathFrame` (permuter `5a6291d8121741f4`, isolated as
 scratch `base_3.c`, 100%). Input `base_3.i`
 `ff5eb3bb586dde024affb7c730ec1cc70dbad86701feafb1ff8933b260e5961e`.
 
@@ -101458,7 +101458,7 @@ writes for the overwrite:
 
 Reaching for the union alone (`work->light.mat`, or a `s16` halfword view) keeps
 the first store on `$v1` too but leaves the other four on `$v1` as well, and the
-`4($a0)`/`8($a0)`/`0xC($a0)`/`0x10($a0)` group never appears. `func_actor_141000_801330C0`
+`4($a0)`/`8($a0)`/`0xC($a0)`/`0x10($a0)` group never appears. `_actor141000SmokeTrailTask`
 is the matched precedent for the splat half of this shape.
 
 The m2c seed is worth taking at face value here: it scored **87.78%**, and
