@@ -107,7 +107,8 @@ u16 cdSyncPollPause(void);
 /// Returns 1 unless the ready drive's probe reports both CdlStatError and
 /// response-byte-1 bit 0x40, resetting `diskRecoveryStep`; other polls return 0.
 /// Mode setup selects double speed and sector headers and waits three VBlanks.
-/// The probe uses raw parameters {0x0A, 0, 0}; their location is unproven.
+/// The SDK positions the probe using raw minute/second/sector bytes {0x0A, 0, 0};
+/// the minute is not valid packed BCD and the intended target is unproven.
 /// A rejected probe enters a state that polls shell-open status and resets
 /// movie playback to its initial step, but never returns completion or leaves
 /// that recovery state. Requires serialized drive use; command calls block.

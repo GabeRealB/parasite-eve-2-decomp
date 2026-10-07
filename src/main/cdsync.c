@@ -13,8 +13,9 @@ enum {
 
 /// Recovery probe parameters and the response-byte-1 mask that rejects it.
 ///
-/// The probe's first byte is preserved raw; its intended location and the
-/// device meaning of the rejection bit are unproven.
+/// The probe's minute byte is preserved raw despite its invalid packed-BCD
+/// encoding; its intended target and the rejection bit's device meaning are
+/// unproven.
 enum {
     CD_SYNC_DISC_PROBE                 = 0,
     CD_SYNC_DISC_WAIT_SHELL_OPEN       = 1,
@@ -165,27 +166,36 @@ u16 cdSyncPollPause(void)
     }
 }
 
-/// Restores data-read mode and issues the recovery probe into SDK response storage.
+/// Issues a disc-recovery read in double-speed 2340-byte sector mode.
 ///
-/// `commandBuffer` needs one parameter byte, `probeParameters` needs three,
-/// and `readResult` holds the SDK response (up to eight bytes). Calls block.
-static inline void _cdSyncIssueRecoveryReadProbe(u8* commandBuffer, u8* probeParameters, u8* readResult)
+/// Requires a ready disc and serialized drive use. Borrows writable storage:
+/// one byte in `modeParameters`, a whole `probeLocation`, and eight bytes in
+/// `readResult` for the SDK command response. Calls block; command return
+/// values are ignored, so SDK failures may leave `readResult` unchanged.
+/// No buffer pointer is retained.
+///
+/// The SDK sends Setloc before ReadN, using raw minute/second/sector bytes
+/// {0x0A, 0, 0}. The minute is not valid packed BCD; its intended target is
+/// unproven. The track byte is left untouched, although the SDK caches all
+/// four location bytes; only the first three are sent to the drive.
+static inline void _cdSyncIssueRecoveryReadProbe(u8 modeParameters[1], CdlLOC* probeLocation, u8 readResult[8])
 {
     CdControlB(CdlGetTN, NULL, NULL);
-    commandBuffer[0] = CdlModeSpeed | CdlModeSize1;
-    CdControlB(CdlSetmode, commandBuffer, NULL);
+    modeParameters[0] = CdlModeSpeed | CdlModeSize1;
+    CdControlB(CdlSetmode, modeParameters, NULL);
     VSync(CD_SYNC_RECOVERY_MODE_VBLANKS);
-    probeParameters[0] = CD_SYNC_RECOVERY_PROBE_MINUTE_BYTE;
-    probeParameters[1] = 0;
-    probeParameters[2] = 0;
-    CdControlB(CdlReadN, probeParameters, readResult);
+    // A non-null location makes the SDK position the drive before the read.
+    probeLocation->minute = CD_SYNC_RECOVERY_PROBE_MINUTE_BYTE;
+    probeLocation->second = 0;
+    probeLocation->sector = 0;
+    CdControlB(CdlReadN, &probeLocation->minute, readResult);
 }
 
 s16 cdSyncPollDiscRecovery(void)
 {
     u8          commandBuffer[8];
     u8          readResult[8];
-    u8          probeParameters[8];
+    CdlLOC      probeLocation;
     CdCmdQueue* state;
     s32         discReady;
     s32         shellOpened;
@@ -201,7 +211,7 @@ s16 cdSyncPollDiscRecovery(void)
             }
             if (discReady != 0) {
                 // Probe only after TOC readiness and the data-mode settling delay.
-                _cdSyncIssueRecoveryReadProbe(commandBuffer, probeParameters, readResult);
+                _cdSyncIssueRecoveryReadProbe(commandBuffer, &probeLocation, readResult);
                 if ((readResult[0] & CdlStatError) && (readResult[1] & CD_SYNC_RECOVERY_READ_REJECTED)) {
                     state->diskRecoveryStep += 1;
                 } else {
