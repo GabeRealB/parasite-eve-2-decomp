@@ -153353,3 +153353,82 @@ hand-ordered `ONE, ONE, ONE, 0, 0` blocks in `dryfield_breezeway_2.c` and the
 choice that mattered: where the function's matrix pointer is a real local that
 later code reads through (`madChaserDangleFall`/`Sway`'s `src`), keep the local
 and pass `&src->mat`; replacing its uses by `&rot` moved registers.
+
+### Identity blocks whose zero cells go through `$sp` and whose `ONE` cells go through a register: where the inline matches and where it does not (actors/pe/weapons, 2026-10-07)
+
+**Problem.** The last 94 hand-spelled identity blocks (`src/actors`, `src/pe`,
+`src/weapons`) were all `rotationWords` spellings. 76 became
+`gfxSetRotIdentity(<matrix>)` on the first build with their pointer and constant
+locals deleted. Nearly all the others were one shape: a matrix on the stack, cells
+`m00`, `m02`, `m20` written `rot.rotationWords.x` and `m11`, `m22` written
+`src->rotationWords.x` with `src = &rot`.
+
+**What the split is.** It is what `integrate.c` does to the inline, not a second
+pointer in the source. When the argument is a frame address with a nonzero
+offset (`(plus virtual-stack-vars 16)`), the parameter gets a constant
+equivalence and each inlined insn is retried with it substituted. A store of
+`0` becomes `(mem (plus fp N)) = 0` and is accepted; a store of `ONE` also has
+its source register replaced by `4096`, MIPS cannot store a nonzero constant,
+the whole substitution is rejected and the store stays on the pointer. The
+`.jump` dump already shows it; cse then makes the first cell direct as usual.
+So: zeros direct, `m11`/`m22` through a register = the inline was handed a
+frame address.
+
+**When the plain call does not give it.** If the matrix is the first object in
+the frame, `&rot.mat` expands to the bare virtual register, not a `plus`. The
+argument is then copied like any register (`(set (reg/v 90) (reg 77))`), no
+equivalence is recorded and all four later cells go through the pointer
+(`sw zero,4(s0)` against the target's `sw zero,20(sp)`). Keeping the pointer
+local and passing `&src->mat` gives the same wrong code.
+
+**What matched instead.** The matrix belongs to a helper inline of its own:
+
+```c
+static inline void _actor405800SetCoordRotation(GfxCoord* coord, s16 angle)
+{
+    GfxMatrix rot;
+
+    gfxSetRotIdentity(&rot.mat);
+    RotMatrixY(angle, &rot.mat);
+    ...copy the nine cells into coord->coord...
+}
+```
+
+Called four times this is `func_actor_405800_801375C4` exactly, and
+`_actor400500SetCoordYaw(child->extra.tmd->coords, -angle)` (identity,
+`RotMatrixY`, `_actor400500CopyRotation`) is three `actor_400500` arm-swing
+functions. The hand-written sources carried the signs of it: a `(s16)` cast on
+the angle at every site, even on the constant `-0x180` (the `s16` parameter),
+and a `src = &rot;` sitting statements above the block (the register the
+inlined callee's frame is addressed through). Presumably the callee's frame
+becomes a stack temporary whose address is such an equivalence at any offset;
+that step was inferred from the result, not read out of a dump.
+
+**Not converted (4 blocks).**
+- `func_actor_400500_8013973C` (1) and `func_actor_400500_8013A0B8` (2): the
+  run is clearly an inline (reload `task->work` and the root coordinate, mask
+  the three angles, identity, Z/X/Y, copy) but its matrix shares the caller's
+  `rot` slot with `gfxMakeRelativeTransform(..., &rot.mat)` in a sibling block.
+  A helper with its own `MATRIX` leaves `rot` undeclared; keeping both grows
+  the frame. The other use is probably an inline too (inlined frames in sibling
+  blocks can share a slot); find that one first.
+- `func_actor_403100_80132064` (1): matrix at frame offset 8, so the plain call
+  does produce the split, but the target keeps `&matrix` hoisted out of the
+  loop in a callee-saved register and spills `mode`. Plain call and a
+  `_PlaceCoord(coord, position)` helper with its own matrix both lose that
+  register (frame 96 against 104); keeping `identity` changes only which
+  s-registers are used.
+
+**Other cases.**
+- A global `GfxCoord` (`D_actor_403200_8015F970`, `D_actor_444000_801618B8`):
+  `gfxSetRotIdentity(&D.node.coord)` makes `D + 4` the first address computed
+  and everything else is derived from it (`addiu a0,v1,-4`). The target loads
+  `&D` and adds 4. `node = &D.node; gfxSetRotIdentity(&node->coord);` matches,
+  with the other statements left on `D.node.x`; the old `GfxMatrix* mtx` into
+  the `packed` view goes.
+- Pointer locals that had to stay, passed as `&p->mat`:
+  `func_actor_400500_801361EC` (`src`), `func_actor_400600_801356E0` and
+  `func_actor_405800_80135780` (`pm`, `pm2`). In the last two the copy that
+  follows also reads through the pointer, so they are not the helper above.
+- A TU without `main/gfx.h` compiles the call as an implicit declaration:
+  `actor_342100`, `pe/apobiosis` and `pe/energyshot` needed the include.
