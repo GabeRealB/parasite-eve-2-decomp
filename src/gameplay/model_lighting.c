@@ -2943,7 +2943,7 @@ void Gp_InitPlayClock(Task* task)
         taskKill(task);
         return;
     }
-    Gp_ResetHudFx(&work->hud);
+    hudReset(&work->hud);
     displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
     task->work         = work;
     work->hours        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime / 60;
@@ -3096,7 +3096,7 @@ void Gp_RestartSessionTask(Task* arg0)
     s32           flag;
 
     queue = &gCdCmdQueue;
-    Gp_StartAreaBgm(&arg0->killCountdown);
+    playClockAdvanceDeathSound(&arg0->killCountdown);
     arg0->spawnArg1.value += 0xA;
     if (arg0->spawnArg1.value < 0x100) {
         return;

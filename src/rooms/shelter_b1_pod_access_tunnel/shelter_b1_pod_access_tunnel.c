@@ -1383,7 +1383,7 @@ void func_shelter_b1_pod_access_tunnel_8017E44C(Task* task)
     VECTOR      vec;
 
     if (task->killCountdown < task->spawnArg1.value && gGameSession->location.loc.view == 0xB) {
-        view   = Gp_GetStageView(&gGameSession->location.loc);
+        view   = viewGetMappedCamera(&gGameSession->location.loc);
         vec.vx = 0;
         vec.vy = 0x10;
         vec.vz = 0;
@@ -1391,7 +1391,7 @@ void func_shelter_b1_pod_access_tunnel_8017E44C(Task* task)
         view->transform.t[0] += vec.vx;
         view->transform.t[1] += vec.vy;
         view->transform.t[2] += vec.vz;
-        Gp_TrySpawnViewTask(view);
+        viewQueueCamera(view);
         task->killCountdown++;
         return;
     }

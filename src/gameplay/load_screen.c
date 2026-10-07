@@ -167,7 +167,7 @@ void func_800AA548(s32 arg0)
     model->clutRowOffset     = 0;
     tmdBuildBufferHalf(model);
     tmdBuildBufferHalf(model);
-    Gp_LoadStageView();
+    viewApplyCurrentCamera();
     gameSetTaskSlot(taskSpawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
     gameSetTaskSlot(taskSpawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
     taskSpawn(9, 6, 0, 0);
@@ -267,7 +267,7 @@ void Gp_LoadWaitBoot(Task* task)
             sess->loadedCharacterId = save->state.characterId;
             sess->loadedConfigSet   = gPlayerStatus.resourceVariant;
         }
-        Gp_EnqueueAttach7Cd();
+        attachmentEnqueueHealingSoundLoad();
         task->state++;
     }
     color  = 8;

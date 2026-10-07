@@ -85,10 +85,10 @@ extern const char D_80093898[];
 
 static void Gp_DrawItemPrompt(s32 arg0, s32 arg1);
 
-/// Inline copy of `Gp_GetAttachLevel`.
+/// Inline copy of `attachmentGetEffectiveLevel`.
 static __inline__ s32 getAttachLevel(s32 idx);
 
-/// Inline copy of `Gp_IsStateF0Active`.
+/// Inline copy of `sceneIsBattleActive`.
 static __inline__ s32 isStateF0Active_(void);
 
 /// Reads column `field` of the `Gp_IdParamHi` row that attach `idx` uses at
@@ -113,7 +113,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2);
 
 static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2);
 
-/// Inline copy of `Gp_GetAttachLevels`.
+/// Inline copy of `attachmentGetLearnedLevels`.
 static __inline__ u8* getAttachLevels(void);
 
 /// Inline copy of `func_800A7E5C`: the HUD category can be swapped only
@@ -126,7 +126,7 @@ static __inline__ s32 hudSwapReady(s32 ignoreSwapLock);
 static __inline__ s32 cdIdleIfF0Active_(void);
 
 /// Inline copy of `func_800A7CB0`, which evaluates the same gate as
-/// `Gp_IsStateF0Active` but always returns 0.
+/// `sceneIsBattleActive` but always returns 0.
 static __inline__ u8 stateF0Gate_(void);
 
 static void Gp_UseItemTask(HudState* hud);
@@ -544,7 +544,7 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 #undef DRAW_PROMPT_LABEL
 #undef DRAW_PROMPT_COUNT
 
-/// Inline copy of `Gp_GetAttachLevel`.
+/// Inline copy of `attachmentGetEffectiveLevel`.
 static __inline__ s32 getAttachLevel(s32 idx)
 {
     PlayerStatus* p;
@@ -577,7 +577,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
     return lvl;
 }
 
-/// Inline copy of `Gp_IsStateF0Active`.
+/// Inline copy of `sceneIsBattleActive`.
 static __inline__ s32 isStateF0Active_(void)
 {
     SceneCombatState* combat;
@@ -1059,7 +1059,7 @@ static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2)
     }
 }
 
-/// Inline copy of `Gp_GetAttachLevels`.
+/// Inline copy of `attachmentGetLearnedLevels`.
 static __inline__ u8* getAttachLevels(void)
 {
     PlayerStatus* p;
@@ -1141,7 +1141,7 @@ static __inline__ s32 cdIdleIfF0Active_(void)
 }
 
 /// Inline copy of `func_800A7CB0`, which evaluates the same gate as
-/// `Gp_IsStateF0Active` but always returns 0.
+/// `sceneIsBattleActive` but always returns 0.
 static __inline__ u8 stateF0Gate_(void)
 {
     SceneCombatState* combat;
@@ -1743,7 +1743,7 @@ void Gp_HudTask(HudState* hud)
                 session = gGameSession;
                 if (session->hideHud == 0) {
                     if (session->sceneUpdatesPaused == 0) {
-                        Gp_HudTrackSlot0(&hud->targetHpReadout);
+                        hudDrawLockedTargetHp(&hud->targetHpReadout);
                     }
                 }
             }

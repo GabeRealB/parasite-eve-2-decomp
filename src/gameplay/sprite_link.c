@@ -365,7 +365,7 @@ static void Gp_LinkRoomObjects(Task* task)
     s32                                i;
 
     sess = &gGameSession->location.loc;
-    Gp_LoadStageView();
+    viewApplyCurrentCamera();
     Gp_GridParams = NULL;
     worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES);
     worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_ACTION);

@@ -530,8 +530,8 @@ void Gp_MenuRootTask(Task* arg0)
                 Stage_ReleasePrimBuf();
             }
             memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-            if (Gp_IsStateF0Active() == 0) {
-                Gp_EnqueueAttach7Cd();
+            if (sceneIsBattleActive() == 0) {
+                attachmentEnqueueHealingSoundLoad();
             }
             if (D_80114D88 == 1) {
                 Gp_LoadViewAndCd(1);
@@ -607,7 +607,7 @@ void Gp_MenuRootTask(Task* arg0)
                 Display_AcquireRef();
             }
             Gp_MenuLockDelay = 8;
-            func_800A7E4C();
+            hudDelayInputAfterMenu();
             taskCallExit(arg0);
             SndEvt_EnqueueTypeE();
             break;

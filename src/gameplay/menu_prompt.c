@@ -843,7 +843,7 @@ void Gp_PeGridPanelTask(Task* arg0)
     TextDrawReq req;
     UiObject*   obj;
     SPRT*       p;
-    u8*         levels;
+    const u8*   levels;
     s32         startX;
     s32         colStep;
     s32         row;
@@ -857,7 +857,7 @@ void Gp_PeGridPanelTask(Task* arg0)
     s32         level;
     s32         three;
     s32         capY;
-    u8*         colLevels;
+    const u8*   colLevels;
     s32         iconCol;
     s32         iconSlot;
     s32         baseSlot;
@@ -875,7 +875,7 @@ void Gp_PeGridPanelTask(Task* arg0)
     panelY = obj->panel.contentBottom.signedValue;
     for (; row < 3; row++) {
         for (col = 0, y = panelY - rowOff, x = startX, slot = 2; col < 4; col++) {
-            levels = Gp_GetAttachLevels() + (slot - row);
+            levels = attachmentGetLearnedLevels() + (slot - row);
             show   = 0;
             if (row == 0) {
                 level = levels[0];
@@ -916,7 +916,7 @@ void Gp_PeGridPanelTask(Task* arg0)
 
         iconSlot = (iconCol + 1) * 3 - 1;
         for (row = 0, baseSlot = iconSlot, markOff = 6; row < 3; row++) {
-            colLevels = Gp_GetAttachLevels();
+            colLevels = attachmentGetLearnedLevels();
             show      = 0;
             if (row == 0) {
                 colLevels += baseSlot;

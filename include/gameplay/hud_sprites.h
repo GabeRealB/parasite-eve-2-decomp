@@ -48,11 +48,22 @@ void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MAT
 /// leading-sign-bit-count state; retains no pointers.
 void gfxBuildDirectionRotation(const VECTOR* direction, MATRIX* out, s32 roll);
 
-s32 Gp_TrySpawnViewTask(ViewCamera* camera);
+/// Queues a one-shot camera application on the selected task list; returns 1 on success.
+///
+/// Borrows the readable camera until the bank-0 camera task applies it and
+/// exits. Keep the record and its owning overlay loaded until dispatch.
+/// Returns 0 on task allocation failure and does not apply the camera directly.
+s32 viewQueueCamera(const ViewCamera* camera);
 
 void Gp_SpawnViewTasks(void);
 
-ViewCamera* Gp_GetStageView(GameLocationKey* arg0);
+/// Borrows an area's camera selected by the live session's mapped view index.
+///
+/// `location` supplies only stage and area, both valid populated 1-based
+/// directory indices. Room/view mapping always comes from the live session;
+/// its nonzero result must fit the chosen area's camera array. Returns mutable
+/// room-owned storage without copying it; keep the owning overlay loaded.
+ViewCamera* viewGetMappedCamera(const GameLocationKey* location);
 
 void Gp_SpawnCurView(s32 arg0);
 

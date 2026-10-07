@@ -761,7 +761,7 @@ void func_800A57B0(HudState* hud)
 
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType != 2) {
-            Gp_DrawHudNumbers(0x2D, -0x64, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax, 0);
+            hudDrawHpReadout(0x2D, -0x64, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHpMax, HUD_HP_READOUT_COMPANION);
         }
     }
 }

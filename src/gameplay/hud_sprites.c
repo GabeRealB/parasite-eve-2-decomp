@@ -119,7 +119,7 @@ STATIC_ASSERT_SIZEOF(_HudTargetHpReadoutScratch, 0x1C);
 
 /// Stack workspace for one HUD hit-point readout.
 ///
-/// `Gp_DrawHudNumbers` keeps a single 48-byte slot, the size of a `UiObject`.
+/// `hudDrawHpReadout` keeps a single 48-byte slot, the size of a `UiObject`.
 /// Separate locals would not share it. The function stores a zero content
 /// origin, ordering-table index -3 and the initial panel state through
 /// `uiObject`, then uses the same bytes for the amount text and the frame.
@@ -206,7 +206,24 @@ static inline ViewCamera* _viewCameraCursorRef(ViewCamera* cursor)
 /// Resolve a camera-record cursor within its loaded room resource.
 #define gpViewAt(rows, index) _viewCameraCursorRef(&(rows)[index])
 
-static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout);
+/// Tests whether the live shooting-gallery session uses training ability levels.
+///
+/// Borrows a live player record and checks its resource variant only in the
+/// training stage/area. Returns 0 or 1 and retains no pointer.
+static __inline__ s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
+{
+    enum { ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4 };
+    s32 training;
+
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+        training = 0;
+    } else {
+        training = player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
+    }
+    return training;
+}
+
+static void _hudDrawTargetHpReadout(Enemy* enemy, HudTargetHpReadout* readout);
 
 static inline void _worldTargetRotatePosition(const MATRIX* rotation, SVECTOR* position);
 
@@ -300,6 +317,28 @@ static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
     viewOffset->composeStamp                                    = GRAPHICS_COORD_DIRTY;
     PARENT_OF(viewRotation, GfxCoord, coord.m)->composeStamp    = GRAPHICS_COORD_DIRTY;
     PARENT_OF(viewTranslation, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Applies the camera immediately before a one-based area cursor.
+///
+/// Destination component views belong to the initialized active view nodes.
+/// The cursor must follow a readable camera in the loaded area array; the
+/// record and the destination storage must be disjoint. Resets projection and
+/// invalidates all three caches, retaining no pointers.
+static __inline__ void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* rotation, VECTOR3* translation, GfxCoord* offset)
+{
+    *(_ViewRotation*)rotation->m = *(const _ViewRotation*)(cursor - 1)->transform.m;
+    *translation                 = *MATRIX_TRANS(&(cursor - 1)->transform);
+    cursor--;
+    offset->coord.t[0]           = 0;
+    offset->coord.t[1]           = 0;
+    offset->coord.t[2]           = 0;
+    gDisplayState.screenDistance = cursor->screenDistance;
+    gte_SetGeomScreen(cursor->screenDistance);
+    gte_SetGeomOffset(0, 0);
+    Gfx_ViewOffsetCoord.composeStamp                        = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(rotation, GfxCoord, coord)->composeStamp      = GRAPHICS_COORD_DIRTY;
+    PARENT_OF(translation, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 #undef DRAW_PROMPT_LABEL
@@ -470,21 +509,59 @@ void Gp_DrawHudSprites(HudState* hud)
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPlayerFrameScratch);
 }
 
-void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
-{
-    _HudHpReadoutScratch scratch;
-    TextDrawReq          req;
-    TILE*                tile;
-    SPRT*                sp;
-    POLY_FT4*            poly;
-    s32                  span;
-    s32                  right;
-    s32                  w;
-    s32                  order;
+/// Draws a readout amount, clamping a writable amount lvalue before text conversion.
+///
+/// Captures the function's `scratch` slot and `HUD_HP_TEXT_COLOR_RGB`.
+/// Pen X/Y are each evaluated once. `amountValue` is read by the clamp and
+/// conversion, so it must be a local lvalue without side effects.
+/// Writes only the slot's value view.
+#define HUD_DRAW_HP_AMOUNT(amountValue, penX, penY)                                                    \
+    {                                                                                                  \
+        if ((amountValue) < 0) {                                                                       \
+            (amountValue) = 0;                                                                         \
+        }                                                                                              \
+        scratch.value.request.x          = (penX);                                                     \
+        scratch.value.request.y          = (penY);                                                     \
+        scratch.value.request.otIndex    = -2;                                                         \
+        scratch.value.request.colorRgb   = HUD_HP_TEXT_COLOR_RGB;                                      \
+        scratch.value.request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                    \
+        scratch.value.request.alignment  = TEXT_ALIGNMENT_RIGHT;                                       \
+        scratch.value.request.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;                             \
+        textDrawString(&scratch.value.request, textItoaUnsigned(scratch.value.digits, (amountValue))); \
+    }
 
-    span = 0x25;
-    if (cur < 0) {
-        cur = 0;
+void hudDrawHpReadout(s32 x, s32 y, s32 hp, s32 hpMax, s32 layout)
+{
+    enum {
+        HUD_HP_COMPANION_BAR_PIXELS  = 37,
+        HUD_HP_ENEMY_BAR_PIXELS      = 45,
+        HUD_HP_FRAME_STYLE           = 0x40000 | USER_INTERFACE_PANEL_TITLE_STYLE,
+        HUD_HP_FILL_TILE_CODE        = 0x60,
+        HUD_HP_CAP_RAW_SPRITE_CODE   = 0x75,
+        HUD_HP_BAR_RAW_QUAD_CODE     = 0x2D,
+        HUD_HP_TEXT_COLOR_RGB        = 0x606060,
+        HUD_HP_HIDDEN_TEXT_COLOR_RGB = 0x037A78,
+        HUD_HP_BAR_CLUT              = 0x3C0B,
+        HUD_HP_BAR_TPAGE             = 0x3E,
+        HUD_HP_COMPANION_FILL_COLOR  = GPU_PACK_COLOR_WORD(0x1F, 0x74, 0x01, 0),
+        HUD_HP_ENEMY_FILL_COLOR      = GPU_PACK_COLOR_WORD(0x80, 0, 0, 0),
+        HUD_HP_FILL_PAYLOAD_WORDS    = sizeof(TILE) / sizeof(u32) - 1,
+        HUD_HP_CAP_PAYLOAD_WORDS     = sizeof(SPRT_8) / sizeof(u32) - 1,
+        HUD_HP_BAR_PAYLOAD_WORDS     = sizeof(POLY_FT4) / sizeof(u32) - 1
+    };
+    _HudHpReadoutScratch scratch;
+    TextDrawReq          labelRequest;
+    TILE*                fillTile;
+    SPRT*                capSprite;
+    POLY_FT4*            barQuad;
+    s32                  barSpan;
+    s32                  barRight;
+    s32                  fillWidth;
+    s32                  frameOtIndex;
+
+    barSpan = HUD_HP_COMPANION_BAR_PIXELS;
+    if (hp < 0) {
+        hp = 0;
     }
     y -= gDisplayState.vramYOffset;
     if (Pad_RemapState->hideHud != 0) {
@@ -492,160 +569,155 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
     }
 
     // Panel view of the readout slot. The amount text and frame reuse these bytes.
-    order                                               = -3;
+    frameOtIndex                                        = -3;
     scratch.uiObject.panel.contentOriginX.unsignedValue = 0;
     scratch.uiObject.panel.contentOriginY.unsignedValue = 0;
-    scratch.uiObject.panel.otIndex.signedValue          = order;
+    scratch.uiObject.panel.otIndex.signedValue          = frameOtIndex;
     scratch.uiObject.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
 
-    req.x          = x + 4;
-    req.y          = y + 8;
-    req.otIndex    = -2;
-    req.colorRgb   = 0x606060;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrHP);
+    labelRequest.x          = x + 4;
+    labelRequest.y          = y + 8;
+    labelRequest.otIndex    = -2;
+    labelRequest.colorRgb   = HUD_HP_TEXT_COLOR_RGB;
+    labelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    labelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&labelRequest, Gp_StrHP);
 
-    if (max >= 0) {
-        s32 val = cur;
+    if (hpMax >= 0) {
+        s32 amount = hp;
 
-        if (kind == 0) {
-            s32 tx = x + 0x2B;
-            s32 ty = y + 0xA;
+        if (layout == HUD_HP_READOUT_COMPANION) {
+            s32 amountX = x + 0x2B;
+            s32 amountY = y + 0xA;
 
-            if (val < 0) {
-                val = 0;
-            }
-            scratch.value.request.x          = tx;
-            scratch.value.request.y          = ty;
-            scratch.value.request.otIndex    = -2;
-            scratch.value.request.colorRgb   = 0x606060;
-            scratch.value.request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            scratch.value.request.alignment  = TEXT_ALIGNMENT_RIGHT;
-            scratch.value.request.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&scratch.value.request, textItoaUnsigned(scratch.value.digits, val));
+            HUD_DRAW_HP_AMOUNT(amount, amountX, amountY);
         } else {
-            s32 tx = x + 0x33;
-            s32 ty = y + 0xA;
+            s32 amountX = x + 0x33;
+            s32 amountY = y + 0xA;
 
-            if (val < 0) {
-                val = 0;
-            }
-            scratch.value.request.x          = tx;
-            scratch.value.request.y          = ty;
-            scratch.value.request.otIndex    = -2;
-            scratch.value.request.colorRgb   = 0x606060;
-            scratch.value.request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            scratch.value.request.alignment  = TEXT_ALIGNMENT_RIGHT;
-            scratch.value.request.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-            textDrawString(&scratch.value.request, textItoaUnsigned(scratch.value.digits, val));
-            span = 0x2D;
+            HUD_DRAW_HP_AMOUNT(amount, amountX, amountY);
+            barSpan = HUD_HP_ENEMY_BAR_PIXELS;
         }
 
-        if (max == 0) {
-            w = span;
+        // Scale known HP to the layout's pixel span, capped at a full bar.
+        if (hpMax == 0) {
+            fillWidth = barSpan;
         } else {
-            w = cur * span / max;
+            fillWidth = hp * barSpan / hpMax;
         }
 
-        if (w > 0) {
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            if (span < w) {
-                w = span;
+        if (fillWidth > 0) {
+            fillTile       = gGpuPrimCursor;
+            gGpuPrimCursor = fillTile + 1;
+            if (barSpan < fillWidth) {
+                fillWidth = barSpan;
             }
-            tile->x0 = x + 5;
-            tile->y0 = y + 0xE;
-            tile->w  = w;
-            tile->h  = 2;
-            if (kind == 0) {
-                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0x1f, 0x74, 0x01, 0);
+            fillTile->x0 = x + 5;
+            fillTile->y0 = y + 0xE;
+            fillTile->w  = fillWidth;
+            fillTile->h  = 2;
+            if (layout == HUD_HP_READOUT_COMPANION) {
+                GPU_PRIMITIVE_COLOR_WORD(fillTile, 0) = HUD_HP_COMPANION_FILL_COLOR;
             } else {
-                GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0x80, 0, 0, 0);
+                GPU_PRIMITIVE_COLOR_WORD(fillTile, 0) = HUD_HP_ENEMY_FILL_COLOR;
             }
-            setlen(tile, 3);
-            setcode(tile, 0x60);
-            addPrim(gGpuCurrentOt - 2, tile);
+            setlen(fillTile, HUD_HP_FILL_PAYLOAD_WORDS);
+            setcode(fillTile, HUD_HP_FILL_TILE_CODE);
+            addPrim(gGpuCurrentOt - 2, fillTile);
         }
 
-        sp             = gGpuPrimCursor;
-        gGpuPrimCursor = sp + 1;
-        sp->x0         = x + 4;
-        sp->u0         = 0x98;
-        sp->y0         = y + 0xB;
-        sp->v0         = 0x68;
-        sp->clut       = 0x3C0B;
-        setlen(sp, 3);
-        setcode(sp, 0x75);
-        addPrim(gGpuCurrentOt - 2, sp);
+        // Fixed-size sprites reserve SPRT slots but transmit only the SPRT_8 prefix.
+        capSprite       = gGpuPrimCursor;
+        gGpuPrimCursor  = capSprite + 1;
+        capSprite->x0   = x + 4;
+        capSprite->u0   = 0x98;
+        capSprite->y0   = y + 0xB;
+        capSprite->v0   = 0x68;
+        capSprite->clut = HUD_HP_BAR_CLUT;
+        setlen(capSprite, HUD_HP_CAP_PAYLOAD_WORDS);
+        setcode(capSprite, HUD_HP_CAP_RAW_SPRITE_CODE);
+        addPrim(gGpuCurrentOt - 2, capSprite);
 
-        sp             = gGpuPrimCursor;
-        gGpuPrimCursor = sp + 1;
-        right          = (span + x) - 2;
-        sp->x0         = right;
-        sp->y0         = y + 0xB;
-        sp->clut       = 0x3C0B;
-        sp->u0         = 0xA8;
-        sp->v0         = 0x68;
-        setlen(sp, 3);
-        setcode(sp, 0x75);
-        addPrim(gGpuCurrentOt - 2, sp);
+        capSprite       = gGpuPrimCursor;
+        gGpuPrimCursor  = capSprite + 1;
+        barRight        = (barSpan + x) - 2;
+        capSprite->x0   = barRight;
+        capSprite->y0   = y + 0xB;
+        capSprite->clut = HUD_HP_BAR_CLUT;
+        capSprite->u0   = 0xA8;
+        capSprite->v0   = 0x68;
+        setlen(capSprite, HUD_HP_CAP_PAYLOAD_WORDS);
+        setcode(capSprite, HUD_HP_CAP_RAW_SPRITE_CODE);
+        addPrim(gGpuCurrentOt - 2, capSprite);
 
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        poly->x0 = poly->x2 = x + 0xC;
-        poly->x1 = poly->x3 = right;
-        poly->y2 = poly->y3 = y + 0x13;
-        poly->u2 = poly->u0 = 0xA0;
-        poly->v3 = poly->v2 = 0x70;
-        poly->tpage         = 0x3E;
-        poly->y0 = poly->y1 = y + 0xB;
-        poly->v0            = 0x68;
-        poly->u1            = 0xA8;
-        poly->v1            = 0x68;
-        poly->clut          = 0x3C0B;
-        poly->u3            = 0xA8;
-        setlen(poly, 9);
-        setcode(poly, 0x2D);
-        addPrim(gGpuCurrentOt - 2, poly);
+        barQuad        = gGpuPrimCursor;
+        gGpuPrimCursor = barQuad + 1;
+        barQuad->x0 = barQuad->x2 = x + 0xC;
+        barQuad->x1 = barQuad->x3 = barRight;
+        barQuad->y2 = barQuad->y3 = y + 0x13;
+        barQuad->u2 = barQuad->u0 = 0xA0;
+        barQuad->v3 = barQuad->v2 = 0x70;
+        barQuad->tpage            = HUD_HP_BAR_TPAGE;
+        barQuad->y0 = barQuad->y1 = y + 0xB;
+        barQuad->v0               = 0x68;
+        barQuad->u1               = 0xA8;
+        barQuad->v1               = 0x68;
+        barQuad->clut             = HUD_HP_BAR_CLUT;
+        barQuad->u3               = 0xA8;
+        setlen(barQuad, HUD_HP_BAR_PAYLOAD_WORDS);
+        setcode(barQuad, HUD_HP_BAR_RAW_QUAD_CODE);
+        addPrim(gGpuCurrentOt - 2, barQuad);
     } else {
         scratch.hiddenAmount.x          = x + 0x33;
         scratch.hiddenAmount.y          = y + 0xA;
         scratch.hiddenAmount.otIndex    = -2;
-        scratch.hiddenAmount.colorRgb   = 0x37A78;
+        scratch.hiddenAmount.colorRgb   = HUD_HP_HIDDEN_TEXT_COLOR_RGB;
         scratch.hiddenAmount.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         scratch.hiddenAmount.alignment  = TEXT_ALIGNMENT_RIGHT;
         scratch.hiddenAmount.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
         textDrawString(&scratch.hiddenAmount, D_800938AC);
-        span = 0x2D;
+        barSpan = HUD_HP_ENEMY_BAR_PIXELS;
     }
 
     // The frame reuses the value request's bytes after the amount has been drawn.
     scratch.frame.rect.x = x;
     scratch.frame.rect.y = y;
-    scratch.frame.rect.w = span + 0xA;
+    scratch.frame.rect.w = barSpan + 0xA;
     scratch.frame.rect.h = 0x14;
-    uiDrawRectFrame(&scratch.frame.rect, -1, 0x40002, NULL);
+    uiDrawRectFrame(&scratch.frame.rect, -1, HUD_HP_FRAME_STYLE, NULL);
 }
 
-static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout)
+#undef HUD_DRAW_HP_AMOUNT
+
+/// Draws one enemy's HP at the radar-dependent anchor, easing its stored position.
+///
+/// Borrows the live enemy and writable readout; the saved enemy pointer is an
+/// identity comparison only. Uses one complete scratch reservation until the
+/// draw ends. A missing parameter record retains placement without drawing.
+static void _hudDrawTargetHpReadout(Enemy* enemy, HudTargetHpReadout* readout)
 {
+    enum {
+        HUD_TARGET_HP_ANCHOR_X               = 106,
+        HUD_TARGET_HP_ANCHOR_Y_WITH_RADAR    = -53,
+        HUD_TARGET_HP_ANCHOR_Y_WITHOUT_RADAR = -100,
+        HUD_TARGET_HP_EASE_SHIFT             = 3
+    };
     _HudTargetHpReadoutScratch* scratch;
-    s32                         val;
+    s32                         hpMax;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_HudTargetHpReadoutScratch);
     if (equipmentHasEffect(EQUIPMENT_EFFECT_MOTION_DETECTOR) != 0) {
-        scratch->x = 0x6A;
-        scratch->y = -0x35;
+        scratch->x = HUD_TARGET_HP_ANCHOR_X;
+        scratch->y = HUD_TARGET_HP_ANCHOR_Y_WITH_RADAR;
     } else {
-        scratch->x = 0x6A;
-        scratch->y = -0x64;
+        scratch->x = HUD_TARGET_HP_ANCHOR_X;
+        scratch->y = HUD_TARGET_HP_ANCHOR_Y_WITHOUT_RADAR;
     }
-    if (readout->enemy != arg0) {
+    if (readout->enemy != enemy) {
         // A new target starts at the anchor. The second store also lands in
         // `x`; both members are rewritten after the draw.
-        readout->enemy = arg0;
+        readout->enemy = enemy;
         readout->x     = scratch->x;
         readout->x     = scratch->y;
     } else {
@@ -653,17 +725,17 @@ static void Gp_HudTrackEnemy(Enemy* arg0, HudTargetHpReadout* readout)
         // drawn toward the anchor.
         scratch->stepX   = scratch->x - readout->x;
         scratch->stepY   = scratch->y - readout->y;
-        scratch->stepX >>= 3;
-        scratch->stepY >>= 3;
+        scratch->stepX >>= HUD_TARGET_HP_EASE_SHIFT;
+        scratch->stepY >>= HUD_TARGET_HP_EASE_SHIFT;
         scratch->x       = readout->x + scratch->stepX;
         scratch->y       = readout->y + scratch->stepY;
     }
-    if (arg0->param != NULL) {
-        val = arg0->param->hpMax;
-        if (arg0->node.state.parts.flags & WORLD_TARGET_HIDE_HP) {
-            val = -1;
+    if (enemy->param != NULL) {
+        hpMax = enemy->param->hpMax;
+        if (enemy->node.state.parts.flags & WORLD_TARGET_HIDE_HP) {
+            hpMax = HUD_HP_READOUT_HIDDEN_MAX;
         }
-        Gp_DrawHudNumbers(scratch->x - 8, scratch->y, arg0->hp, val, 1);
+        hudDrawHpReadout(scratch->x - 8, scratch->y, enemy->hp, hpMax, HUD_HP_READOUT_ENEMY);
     }
     readout->x = scratch->x;
     readout->y = scratch->y;
@@ -721,51 +793,56 @@ void Gp_UpdateLinkXforms(void)
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPlayerFrameScratch);
 }
 
-void Gp_StartAreaBgm(s16* arg0)
+void playClockAdvanceDeathSound(s16* completed)
 {
-    PlayerStatus* cfg;
-    s8            type;
-    u8            mode;
+    enum {
+        PLAY_CLOCK_DEATH_SOUND_BANK_ENTRY      = 0x70000001,
+        PLAY_CLOCK_COMPANION_DEATH_BANK_OFFSET = 0x31,
+        PLAY_CLOCK_DEATH_SOUND_PENDING         = 0,
+        PLAY_CLOCK_DEATH_SOUND_COMPLETE        = 1,
+        PLAY_CLOCK_COMPANION_KYLE              = 1,
+        PLAY_CLOCK_COMPANION_GROWTH_ROOM       = 3
+    };
+    PlayerStatus* player;
+    s8            companionType;
+    u8            restartMode;
 
-    cfg  = &gPlayerStatus;
-    mode = gGameSession->restartMode;
-    if (mode == 3 || mode == 0xFF || !cdCmdIsIdle() || *arg0 != 0) {
+    player      = &gPlayerStatus;
+    restartMode = gGameSession->restartMode;
+    if (restartMode == GAME_SESSION_RESTART_PRESERVE_DISPLAY || restartMode == GAME_SESSION_RESTART_ENDING || !cdCmdIsIdle() || *completed != PLAY_CLOCK_DEATH_SOUND_PENDING) {
         return;
     }
     if (gGameSession->deathSoundCountdown == GAME_SESSION_DEATH_SOUND_HOLD) {
-        *arg0 = 1;
+        *completed = PLAY_CLOCK_DEATH_SOUND_COMPLETE;
         return;
     }
+    // CD work and the caller's latch must clear before the signed byte advances.
     gGameSession->deathSoundCountdown--;
     if (gGameSession->deathSoundCountdown >= 0) {
         return;
     }
-    if (cfg->hp <= 0) {
-        sndEvtRequestScriptStart((gGameSession->deathVariant << 16) | 0x70000001, 0, 0);
+    if (player->hp <= 0) {
+        sndEvtRequestScriptStart((gGameSession->deathVariant << 16) | PLAY_CLOCK_DEATH_SOUND_BANK_ENTRY, 0, 0);
     } else {
-        type = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType;
-        if (type == 1) {
-            sndEvtRequestScriptStart(((gGameSession->deathVariant + 0x31) << 16) | 0x70000001, 0, 0);
-        } else if (type == 3) {
+        companionType = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType;
+        if (companionType == PLAY_CLOCK_COMPANION_KYLE) {
+            sndEvtRequestScriptStart(((gGameSession->deathVariant + PLAY_CLOCK_COMPANION_DEATH_BANK_OFFSET) << 16) | PLAY_CLOCK_DEATH_SOUND_BANK_ENTRY, 0, 0);
+        } else if (companionType == PLAY_CLOCK_COMPANION_GROWTH_ROOM) {
             sndEvtRequestScriptStop(SOUND_AREA_BANK_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             sndEvtRequestScriptStart(SOUND_SHELTER_B6_GROWTH_ALLY_DEATH, 0, 0);
         }
     }
-    *arg0 = 1;
+    *completed = PLAY_CLOCK_DEATH_SOUND_COMPLETE;
 }
 
-u8* Gp_GetAttachLevels(void)
+const u8* attachmentGetLearnedLevels(void)
 {
-    PlayerStatus* p;
-    s32           cond;
+    PlayerStatus* player;
+    s32           training;
 
-    p = &gPlayerStatus;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-        cond = 0;
-    } else {
-        cond = p->resourceVariant == 4;
-    }
-    if (cond == 0) {
+    player   = &gPlayerStatus;
+    training = _attachmentUsesTrainingLevels(player);
+    if (training == 0) {
         return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     }
     return Gp_DebugAttachLevels;
@@ -784,7 +861,7 @@ s32 attachmentIsTrainingMode(void)
     return player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
 }
 
-s32 Gp_IsStateF0Active(void)
+s32 sceneIsBattleActive(void)
 {
     SceneCombatState* combat;
 
@@ -801,16 +878,17 @@ s32 func_800A7550(void)
     return 0;
 }
 
-void Gp_ResetHudFx(HudState* hud)
+void hudReset(HudState* hud)
 {
-    PlayerStatus*    cfg;
-    HudHpMp*         hudHpMp;
+    PlayerStatus*    player;
+    HudHpMp*         displayedVitals;
     AttachmentState* attachment;
 
-    cfg                                   = &gPlayerStatus;
-    hudHpMp                               = &Gp_HpMpWork;
-    hudHpMp->hp                           = cfg->hp;
-    hudHpMp->mp                           = cfg->mp;
+    // Start from the live vitals without retaining a previous radar preview.
+    player                                = &gPlayerStatus;
+    displayedVitals                       = &Gp_HpMpWork;
+    displayedVitals->hp                   = player->hp;
+    displayedVitals->mp                   = player->mp;
     hud->radarRangeIcon                   = HUD_RADAR_RANGE_NONE;
     hud->radarRange                       = 0;
     attachment                            = &Gp_StateC08;
@@ -861,7 +939,7 @@ void Gp_PlayClockState2(Task* arg0)
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
         arg0->killCountdown = 0;
-        Gp_StartAreaBgm(&arg0->killCountdown);
+        playClockAdvanceDeathSound(&arg0->killCountdown);
         session                 = gGameSession;
         Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
         if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
@@ -876,16 +954,17 @@ void Gp_PlayClockState2(Task* arg0)
     }
 }
 
-void Gp_PlayClockState3(Task* arg0)
+void playClockWaitDeathFade(Task* task)
 {
-    Gp_StartAreaBgm(&arg0->killCountdown);
-    arg0->spawnArg1.value++;
-    if (arg0->spawnArg1.value == 0x40) {
+    enum { PLAY_CLOCK_DEATH_PRESENTATION_UPDATES = 64 };
+    playClockAdvanceDeathSound(&task->killCountdown);
+    task->spawnArg1.value++;
+    if (task->spawnArg1.value == PLAY_CLOCK_DEATH_PRESENTATION_UPDATES) {
         if (gGameSession->restartMode == GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
             gDisplayState.skipDraw = 1;
         }
-        arg0->spawnArg1.value = 0;
-        arg0->state++;
+        task->spawnArg1.value = 0;
+        task->state++;
     }
 }
 
@@ -904,31 +983,31 @@ void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-void Gp_HudTrackSlot0(HudTargetHpReadout* readout)
+void hudDrawLockedTargetHp(HudTargetHpReadout* readout)
 {
-    WorldTargetNode* target;
-    Task*            work;
-    GameActor*       actor;
-    WorldTargetNode* node;
+    WorldTargetNode* lockedTarget;
+    Task*            playerTask;
+    GameActor*       playerActor;
+    WorldTargetNode* targetNode;
 
-    work   = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    target = NULL;
-    if (work != NULL) {
-        actor = work->work;
-        if (actor != NULL) {
-            target = actor->targetNode;
+    playerTask   = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    lockedTarget = NULL;
+    if (playerTask != NULL) {
+        playerActor = playerTask->work;
+        if (playerActor != NULL) {
+            lockedTarget = playerActor->targetNode;
         }
-        node = gWorldTargetListHead;
-        if (node != NULL) {
+        targetNode = gWorldTargetListHead;
+        if (targetNode != NULL) {
             do {
-                if (node == target) {
-                    if (!(node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
-                        Gp_HudTrackEnemy(GP_NODE_ENEMY(node), readout);
+                if (targetNode == lockedTarget) {
+                    if (!(targetNode->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE)) {
+                        _hudDrawTargetHpReadout(GP_NODE_ENEMY(targetNode), readout);
                         return;
                     }
                 }
-                node = node->next;
-            } while (node != NULL);
+                targetNode = targetNode->next;
+            } while (targetNode != NULL);
         }
     }
 }
@@ -939,39 +1018,42 @@ static s32 _sceneIsBattleEndDelayClear(void)
     return gSceneCombatState.signals.bytes.endDelayFrames == 0;
 }
 
-void Gp_EnqueueAttach7Cd(void)
+void attachmentEnqueueHealingSoundLoad(void)
 {
-    sndLoadEnqueuePeFile(Gp_GetAttachLevel(7) + 0x15);
+    sndLoadEnqueuePeFile(attachmentGetEffectiveLevel(ATTACHMENT_INDEX_HEALING) + ATTACHMENT_INDEX_HEALING * ATTACHMENT_AREA_LEVEL_COUNT);
 }
 
-void Gp_DrawItemObtained(Task* arg0)
+void itemPickupNoticeTask(Task* task)
 {
-    UiObject* obj;
+    enum { ITEM_PICKUP_NOTICE_BONUS   = 2,
+           ITEM_PICKUP_NOTICE_INITIAL = 0 };
+    UiObject* panelObject;
 
-    obj = arg0->spawnArg2.pointer;
-    if (arg0->spawnArg1.value == 2) {
-        if (arg0->state == 0) {
-            uiSetPanelContentSize(&(obj)->panel, textMeasureLineWidth(Gp_StrBonusItem) + 0xA, 0);
-            obj->panel.bounds.unsignedRect.x -= 0xF;
-            obj->panel.bounds.unsignedRect.y += 9;
-            arg0->state++;
+    panelObject = task->spawnArg2.pointer;
+    if (task->spawnArg1.value == ITEM_PICKUP_NOTICE_BONUS) {
+        if (task->state == ITEM_PICKUP_NOTICE_INITIAL) {
+            // The bonus label needs a wider panel and a shifted placement once.
+            uiSetPanelContentSize(&panelObject->panel, textMeasureLineWidth(Gp_StrBonusItem) + 0xA, 0);
+            panelObject->panel.bounds.unsignedRect.x -= 0xF;
+            panelObject->panel.bounds.unsignedRect.y += 9;
+            task->state++;
         }
-        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 7, Gp_StrBonusItem, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 6, 7, Gp_StrBonusItem, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
-        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 7, Gp_StrItemObtained, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 6, 7, Gp_StrItemObtained, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
 
-void Gp_DrawItemTitle(Task* arg0)
+void itemPickupTitleTask(Task* task)
 {
-    UiObject* obj;
+    UiObject* panelObject;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, Gp_StrItem);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    panelObject         = task->spawnArg2.pointer;
+    panelObject->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawTitle(&panelObject->panel, Gp_StrItem);
+    if (panelObject->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            panelObject->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -1003,37 +1085,34 @@ static s32 _attachmentMakeTextId(s32 abilityIndex, s32 level)
     return (abilityIndex / 3) * 16 + (abilityIndex % 3) * 4 + level + ATTACHMENT_TEXT_ID_BASE;
 }
 
-s32 Gp_GetAttachLevel(s32 arg0)
+s32 attachmentGetEffectiveLevel(s32 abilityIndex)
 {
-    PlayerStatus* p;
-    s32           cond;
-    s32           ret;
-    u8*           table;
+    enum { ATTACHMENT_MIN_EFFECTIVE_LEVEL = 1 };
+    PlayerStatus* player;
+    s32           training;
+    s32           level;
+    const u8*     learnedLevels;
 
-    ret = 1;
-    if (arg0 < 0xC) {
-        p = &gPlayerStatus;
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-            cond = 0;
+    level = ATTACHMENT_MIN_EFFECTIVE_LEVEL;
+    if (abilityIndex < ATTACHMENT_SPELL_COUNT) {
+        player   = &gPlayerStatus;
+        training = _attachmentUsesTrainingLevels(player);
+        if (training == 0) {
+            learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
         } else {
-            cond = p->resourceVariant == 4;
+            learnedLevels = Gp_DebugAttachLevels;
         }
-        if (cond == 0) {
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-        } else {
-            table = Gp_DebugAttachLevels;
+        level = learnedLevels[abilityIndex];
+        if (level == 0) {
+            level = ATTACHMENT_MIN_EFFECTIVE_LEVEL;
         }
-        ret = table[arg0];
-        if (ret == 0) {
-            ret = 1;
-        }
-        if (p->statusFlags & PLAYER_STATUS_BERSERKER) {
-            if (ret < 3) {
-                ret++;
+        if (player->statusFlags & PLAYER_STATUS_BERSERKER) {
+            if (level < ATTACHMENT_AREA_LEVEL_COUNT) {
+                level++;
             }
         }
     }
-    return ret;
+    return level;
 }
 
 static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
@@ -1153,9 +1232,11 @@ void func_800A7DE0(void)
     attachment->soundStep          = ATTACHMENT_SOUND_IDLE;
 }
 
-void func_800A7E4C(void)
+void hudDelayInputAfterMenu(void)
 {
-    Gp_ItemGrantCooldown = 5;
+    enum { HUD_MENU_EXIT_INPUT_DELAY_UPDATES = 5 };
+
+    Gp_ItemGrantCooldown = HUD_MENU_EXIT_INPUT_DELAY_UPDATES;
 }
 
 static s32 func_800A7E5C(s32 arg0)
@@ -1391,44 +1472,26 @@ void viewApplyCoordTask(Task* task)
     taskKill(task);
 }
 
-void Gp_LoadStageView(void)
+void viewApplyCurrentCamera(void)
 {
-    GameLocationKey* sess;
+    GameLocationKey* location;
     ViewCameraTable* cameraTable;
     ViewCamera*      cameras;
-    ViewCamera*      camera;
-    GfxCoord*        c1;
-    MATRIX*          rot;
-    VECTOR3*         trans;
-    u8               idx;
+    GfxCoord*        viewOffset;
+    MATRIX*          viewRotation;
+    VECTOR3*         viewTranslation;
+    u8               cameraIndex;
 
-    sess        = &gGameSession->location.loc;
-    cameraTable = Gp_ViewTables[sess->stage - 1];
-    cameras     = cameraTable->cameras[sess->area - 1];
-    idx         = viewGetMappedIndex();
+    location    = &gGameSession->location.loc;
+    cameraTable = Gp_ViewTables[location->stage - 1];
+    cameras     = cameraTable->cameras[location->area - 1];
+    cameraIndex = viewGetMappedIndex();
 
-    rot    = &gGfxViewRotCoord.coord;
-    trans  = MATRIX_TRANS(&gGfxViewCoord.coord);
-    c1     = &Gfx_ViewOffsetCoord;
-    camera = gpViewAt(cameras, idx);
+    viewRotation    = &gGfxViewRotCoord.coord;
+    viewTranslation = MATRIX_TRANS(&gGfxViewCoord.coord);
+    viewOffset      = &Gfx_ViewOffsetCoord;
 
-    // Keep rotation and translation in their separate camera coordinate nodes.
-    *(_ViewRotation*)rot->m = *(_ViewRotation*)(camera - 1)->transform.m;
-    *trans                  = *MATRIX_TRANS(&(camera - 1)->transform);
-
-    camera--;
-
-    c1->coord.t[0] = 0;
-    c1->coord.t[1] = 0;
-    c1->coord.t[2] = 0;
-
-    gDisplayState.screenDistance = camera->screenDistance;
-    gte_SetGeomScreen(camera->screenDistance);
-    gte_SetGeomOffset(0, 0);
-
-    Gfx_ViewOffsetCoord.composeStamp                  = GRAPHICS_COORD_DIRTY;
-    PARENT_OF(rot, GfxCoord, coord)->composeStamp     = GRAPHICS_COORD_DIRTY;
-    PARENT_OF(trans, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
+    _viewApplyCameraCursor(&cameras[cameraIndex], viewRotation, viewTranslation, viewOffset);
 }
 
 void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MATRIX* out)
@@ -1445,9 +1508,12 @@ void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MAT
     SCRATCH_STACK_RELEASE_BLOCK(_GfxRelativeTransformScratch);
 }
 
-s32 Gp_TrySpawnViewTask(ViewCamera* camera)
+s32 viewQueueCamera(const ViewCamera* camera)
 {
-    return taskSpawn(0, 0xF, 0, camera) != NULL;
+    enum { VIEW_CAMERA_TASK_BANK = 0,
+           VIEW_CAMERA_TASK_TYPE = 0xF };
+
+    return taskSpawn(VIEW_CAMERA_TASK_BANK, VIEW_CAMERA_TASK_TYPE, 0, camera) != NULL;
 }
 
 void viewApplyCamera(const ViewCamera* camera)
@@ -1503,16 +1569,16 @@ void Gp_SpawnViewTasks(void)
     taskSpawn(0, 0x17, 0, 0);
 }
 
-ViewCamera* Gp_GetStageView(GameLocationKey* arg0)
+ViewCamera* viewGetMappedCamera(const GameLocationKey* location)
 {
     ViewCameraTable* cameraTable;
     ViewCamera*      cameras;
-    u8               idx;
+    u8               cameraIndex;
 
-    cameraTable = Gp_ViewTables[arg0->stage - 1];
-    cameras     = cameraTable->cameras[arg0->area - 1];
-    idx         = viewGetMappedIndex();
-    return &cameras[idx - 1];
+    cameraTable = Gp_ViewTables[location->stage - 1];
+    cameras     = cameraTable->cameras[location->area - 1];
+    cameraIndex = viewGetMappedIndex();
+    return &cameras[cameraIndex - 1];
 }
 
 void viewApplyCameraTask(Task* task)

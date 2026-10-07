@@ -1699,7 +1699,7 @@ static void func_actor_113100_80132BDC(Task* task)
     index = task->spawnArg1.value;
     node  = task->extra.tmd->coords;
     part  = &((Task*)task->spawnArg2.pointer)->extra.tmd->coords[index];
-    view  = &Gp_GetStageView(&gGameSession->location.loc)->transform;
+    view  = &viewGetMappedCamera(&gGameSession->location.loc)->transform;
     coord = &node->coord;
     TransposeMatrix(&part->workm, coord);
     TransposeMatrix(view, &sp10);

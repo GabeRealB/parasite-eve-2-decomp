@@ -44,13 +44,13 @@
 
 s32 D_80114F28;
 
-/// Inline copy of `Gp_IsStateF0Active`.
+/// Inline copy of `sceneIsBattleActive`.
 static __inline__ s32 isStateF0Active_(void);
 
 #undef DRAW_PROMPT_LABEL
 #undef DRAW_PROMPT_COUNT
 
-/// Inline copy of `Gp_IsStateF0Active`.
+/// Inline copy of `sceneIsBattleActive`.
 static __inline__ s32 isStateF0Active_(void)
 {
     SceneCombatState* combat;

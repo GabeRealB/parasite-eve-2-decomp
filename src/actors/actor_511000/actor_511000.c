@@ -237,7 +237,7 @@ static const EnemyTaskFuncTable3 D_actor_511000_80131E6C = {
 /// mode 0x18, one 0x24-byte `ViewCamera` per step of the kill countdown: the
 /// rotation and projection plane repeat down the table while the translation
 /// descends, so the spawn of a view task per index pans the camera as the
-/// actor goes down. Handed straight to `Gp_TrySpawnViewTask`, exactly as
+/// actor goes down. Handed straight to `viewQueueCamera`, exactly as
 /// `Gp_SpawnViewTasks` hands its own stage record.
 extern ViewCamera D_actor_511000_80147EE4[];
 
@@ -2782,7 +2782,7 @@ static void func_actor_511000_801330F0(Task* task)
         if (frame >= 0x78) {
             task->killCountdown = 0x77;
         }
-        Gp_TrySpawnViewTask(&D_actor_511000_80147EE4[task->killCountdown]);
+        viewQueueCamera(&D_actor_511000_80147EE4[task->killCountdown]);
         _actor511000PoseHelicopterSequenceFrame(task, D_actor_511000_80147344, D_actor_511000_80147704, task->killCountdown);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }

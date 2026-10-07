@@ -54,7 +54,7 @@ const TaskFuncTable6 Gp_PlayClockStates = { {
     Gp_InitPlayClock,
     Gp_TickPlayClock,
     Gp_PlayClockState2,
-    Gp_PlayClockState3,
+    playClockWaitDeathFade,
     Gp_RestartSessionTask,
     taskKill,
 } };

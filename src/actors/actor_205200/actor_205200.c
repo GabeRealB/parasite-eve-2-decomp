@@ -472,7 +472,7 @@ static void func_actor_205200_8014ACD4(Task* arg0)
 
     work->nearestCoord    = NULL;
     work->nearestDistance = -1;
-    view                  = Gp_GetStageView(&gGameSession->location.loc);
+    view                  = viewGetMappedCamera(&gGameSession->location.loc);
     for (i = 0; i < ARRAY_SIZE(work->partLive); i++) {
         if (work->partLive[i] == 1) {
             work->partCoords[i]->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -696,7 +696,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                 part->sparkTimer = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
                 effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, coord, NULL, &part->effectArg);
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
-                view = Gp_GetStageView(&gGameSession->location.loc);
+                view = viewGetMappedCamera(&gGameSession->location.loc);
                 d.vx = view->transform.t[0] + coord->coord.t[0];
                 d.vy = view->transform.t[1] + coord->coord.t[1];
                 d.vz = view->transform.t[2] + coord->coord.t[2];

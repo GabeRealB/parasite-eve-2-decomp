@@ -4215,7 +4215,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
         D_actor_403600_80160700.transform.t[i] = key->translation[i];
     }
     D_actor_403600_80160700.screenDistance = 0x149;
-    Gp_TrySpawnViewTask(&D_actor_403600_80160700);
+    viewQueueCamera(&D_actor_403600_80160700);
     func_actor_403600_80141F58(&work->worldCoord, work->hitCooldown);
     work->sceneFrame++;
     if (work->sceneFrame >= ACTOR_303600_ROT_SAMPLE_COUNT) {

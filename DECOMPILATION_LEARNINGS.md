@@ -8260,7 +8260,7 @@ return x;
 ```
 
 `if (cond) { return x; } return y;` flips to `bnez` and swaps the two
-tails. `Gp_GetAttachLevels` is the example; `attachmentIsTrainingMode` is the same
+tails. `attachmentGetLearnedLevels` is the example; `attachmentIsTrainingMode` is the same
 predicate returned as the `s32` itself.
 
 ## Comma-assign so `li sN,K` lands only on the else path
@@ -26271,7 +26271,7 @@ taskSpawn(0, 0xF, 0, (s32)(camera - 1));
 
 Same integer form (`idx * sizeof + (s32)cameras - sizeof`) also matches.
 Pairs with “Index-first cast for `addu rd, index, base`”. `Gp_SpawnViewTasks`
-is the example; the sibling `Gp_GetStageView` can keep `&cameras[idx - 1]`
+is the example; the sibling `viewGetMappedCamera` can keep `&cameras[cameraIndex - 1]`
 because that address is a return value, not a call argument.
 
 ## Two-phase switch table, then pin, so `lui v0` survives a later `$v1` walk
@@ -26995,7 +26995,7 @@ Assign the pointer at the top of the function, before the first call:
 CdCmdQueue* queue;
 
 queue = &gCdCmdQueue;
-Gp_StartAreaBgm(&arg0->killCountdown);
+playClockAdvanceDeathSound(&arg0->killCountdown);
 ...
 queue->suppressMoviePresentation = 1;
 ```
@@ -29654,7 +29654,7 @@ arg lands in `$s3` (99.5%, only those two swapped). Pinning `&global` to
 (93.7%). Leave the global pointer unpinned so the address is computed
 through `$v1` after `gGameSession` occupies `$v0`.
 
-`Gp_StartAreaBgm` is the example.
+`playClockAdvanceDeathSound` is the example.
 
 ## Wrap-around skip is `do { idx++; wrap; } while (empty && !flag)`
 
@@ -31821,7 +31821,7 @@ block    = (Type*)head;
 *scratch = head;
 ```
 
-`Gp_HudTrackEnemy` is the example.
+`_hudDrawTargetHpReadout` is the example.
 
 ## Evaluate an inlined helper's args before its body
 
@@ -39659,8 +39659,8 @@ for locals you merged that the original kept apart.
 
 ## Read `.lreg` and shorten the loser's range when two prim quantities swap registers
 
-`Gp_DrawHudNumbers` reached "instruction-for-instruction identical, two registers
-permuted": the target puts `span + x - 2` in `$a2` and `addPrim`'s `0xFFFFFF`
+`hudDrawHpReadout` reached "instruction-for-instruction identical, two registers
+permuted": the target puts `barSpan + x - 2` in `$a2` and `addPrim`'s `0xFFFFFF`
 bitfield mask in `$a3`, and every source ordering produced the opposite. No
 statement permutation of the three prim blocks (`SPRT`, `SPRT`, `POLY_FT4`),
 no declaration order, and no `register … asm()` pin on the value itself fixed
@@ -39670,7 +39670,7 @@ Dump `local_alloc`'s view instead of guessing. Compile the scratch `.c` by
 hand with `-dl` and read `<file>.lreg`:
 
 ```
-Register 90  used 4 times across 42 insns in block 21;   <- span + x - 2
+Register 90  used 4 times across 42 insns in block 21;   <- barSpan + x - 2
 Register 190 used 10 times across 99 insns in block 21;  <- 0xFFFFFF
 ;; Register 90 in 7.        <- $a3
 ;; Register 190 in 6.       <- $a2
@@ -39683,17 +39683,17 @@ formula predicts: length 40 → `$a3`, length 39 (`4/39 = 0.1026`) → `$a2`, an
 100% at every length from 38 down to 29.
 
 The lever is the *death* end of the range, not the birth: moving the
-`poly->x3 = right; poly->x1 = right;` pair earlier in the `POLY_FT4` block
+`barQuad->x3 = barRight; barQuad->x1 = barRight;` pair earlier in the `POLY_FT4` block
 shortens the range at local-alloc time, and the post-reload scheduler still
 emits those two `sh`s in the target's late position, so the instruction order
 is unchanged. Grouping them with the other X writes
 
 ```c
-poly->x2 = x + 0xC;
-poly->x0 = x + 0xC;
-poly->x3 = right;
-poly->x1 = right;
-poly->y3 = y + 0x13;
+barQuad->x2 = x + 0xC;
+barQuad->x0 = x + 0xC;
+barQuad->x3 = barRight;
+barQuad->x1 = barRight;
+barQuad->y3 = y + 0x13;
 ```
 
 was 99.75% → 100%. Note the two facts that make this work and that the earlier

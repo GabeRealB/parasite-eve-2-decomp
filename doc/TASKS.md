@@ -312,7 +312,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `0C` | `C0` | `func_80036A1C` | Memcard menu dispatcher (`mcmenu.c`) |
 | `0D` | `10` | `Text_BootTask` | Boot: load CLUT, spawn `Title_TaskDescs[0]`, kill self. `Boot` also spawns this |
 | `0E` | `2F` | `viewApplyCoordTask` | Type **2** (coordinate body). Gameplay dispatcher |
-| `0F` | `2F` | `viewApplyCameraTask` | Camera / view. `Gp_TrySpawnViewTask` / `Gp_SpawnViewTasks` |
+| `0F` | `2F` | `viewApplyCameraTask` | Camera / view. `viewQueueCamera` / `Gp_SpawnViewTasks` |
 | `10` | `40` | `func_800AD50C` | Gameplay state dispatcher (`D4.c`) |
 | `11` | `28` | `func_800AC0F0` | Pad-gated 3-way dispatcher. Gameflow / area code spawn this |
 | `12` | `10` | `mcSaveDialogTask` | Same as `0A` |

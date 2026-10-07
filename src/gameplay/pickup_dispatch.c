@@ -147,7 +147,7 @@ void Gp_MenuExitCallback(Task* arg0)
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if ((Gp_PendingRelatedId != 0) && (Gp_RelatedPending != 0)) {
-        if (Gp_IsStateF0Active() == 0) {
+        if (sceneIsBattleActive() == 0) {
             Gp_PendingRelatedId = 0;
         } else if (Gp_PendingRelatedId > 0) {
             func_801088D4(playerTask, 0, 1);
