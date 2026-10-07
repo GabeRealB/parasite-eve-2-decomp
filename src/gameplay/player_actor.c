@@ -1566,10 +1566,8 @@ void Gp_EffSprTask81(Task* arg0)
     ModelObjectCoordBody* body;
     GfxCoord*             coord;
     GfxCoord*             parent;
-    MATRIX*               m;
     MATRIX*               world;
     s16                   flag;
-    s32                   one;
 
     body   = arg0->extra.coordBody;
     mem    = arg0->spawnArg2.pointer;
@@ -1619,13 +1617,7 @@ void Gp_EffSprTask81(Task* arg0)
                     mem->index           = 1;
                     mem->age             = 0;
                     mem->scale         >>= 2;
-                    one                  = ONE;
-                    *(s32*)&coord->coord = one;
-                    m                    = &coord->coord;
-                    MATRIX_PAIR(m, 0, 2) = 0;
-                    MATRIX_PAIR(m, 1, 1) = one;
-                    MATRIX_PAIR(m, 2, 0) = 0;
-                    m->m[2][2]           = one;
+                    gfxSetRotIdentity(&coord->coord);
                 }
                 mem->age += (u16)gDisplayState.animFrame & 1;
             }
