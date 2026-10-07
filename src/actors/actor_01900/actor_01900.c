@@ -2106,7 +2106,7 @@ static void Actor01900_Fn042BC(Task* arg0)
             work->state = ACTOR_01900_STATE_SIDESTEP;
         }
     }
-    if (detectSightBlocked(arg0) != 1) {
+    if (_playerDetectionSightBlocked(arg0) != 1) {
         work->stateTimer++;
         coord               = arg0->extra.tmd->coords;
         chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -2791,7 +2791,7 @@ static void Actor01900_Fn06F40(Task* arg0)
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (detectSightBlocked(arg0) != 1) {
+    if (_playerDetectionSightBlocked(arg0) != 1) {
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
         if (!_actorRangeOutsideRadiusXZ(&turn->delta, work->noticeRange)) {
             if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {

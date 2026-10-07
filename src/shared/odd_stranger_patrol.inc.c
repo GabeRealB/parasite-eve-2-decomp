@@ -4,8 +4,8 @@
 /// waypoint the offset is taken from and flips once the actor closes inside
 /// 0xA0 of it, or after 0x15 frames in `stateTimer`, and the wrapped yaw toward
 /// that waypoint is clamped to +-0x20, added back to the facing yaw and the
-/// root rotation rescaled by 0x1194. The `detectPlayerOutOfReach` probe
-/// takes one 0xA step forward, the obstacle walk runs against `gridContacts`
+/// root rotation rescaled by 0x1194. The `_playerDetectionOutOfReach` probe
+/// gates a 0xA forward step, the obstacle walk runs against `gridContacts`
 /// (plus `hitContacts` through `oddStrangerPushContacts` when the spawn
 /// sub-type is 0x10), and each arm counts `stateTimer` up while the yaw stays
 /// inside 0x80.
@@ -69,7 +69,7 @@ void oddStrangerPatrol(Task* arg0)
         turn->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
         _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
-        if (work->blendActive == 0 && (detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_WALK_STEP) << 16) != 0) {
+        if (work->blendActive == 0 && (_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_WALK_STEP) << 16) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
         }
 #if ODD_STRANGER_VARIANT == 1
@@ -108,7 +108,7 @@ void oddStrangerPatrol(Task* arg0)
         }
 #endif
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (detectSightBlocked(arg0) != 1) {
+        if (_playerDetectionSightBlocked(arg0) != 1) {
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
             if (!_oddStrangerOutOfRange(&turn->delta, work->noticeRadius)) {
                 work->state = ODD_STRANGER_STATE_ALERT;

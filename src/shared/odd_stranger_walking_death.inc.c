@@ -56,7 +56,7 @@ void oddStrangerWalkingDeath(Task* arg0)
                 work->animRate    = 0x10;
                 work->blendActive = 0;
             }
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_WALK_STEP) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_WALK_STEP) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
             }
             _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));

@@ -305,7 +305,7 @@ void golemPawnRookTakeHits(Task* arg0)
         scratch->rootPos.vx      = self->workm.t[0];
         scratch->rootPos.vy      = self->workm.t[1];
         scratch->rootPos.vz      = self->workm.t[2];
-        if (detectSegmentHitsWall(&scratch->effectOffset, &scratch->rootPos) == 0) {
+        if (_playerDetectionSegmentOccluded(&scratch->effectOffset, &scratch->rootPos) == 0) {
             work->playerSpotted = 1;
         }
     }

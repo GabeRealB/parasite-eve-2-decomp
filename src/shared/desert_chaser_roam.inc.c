@@ -169,7 +169,7 @@ void desertChaserRoam(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #if !DESERT_CHASER_RUN_SEQUENCE
-    if (detectSightBlocked(arg0) != 1)
+    if (_playerDetectionSightBlocked(arg0) != 1)
 #endif
     {
         coord3               = arg0->extra.tmd->coords;

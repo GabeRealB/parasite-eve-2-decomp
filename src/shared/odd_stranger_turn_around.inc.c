@@ -56,7 +56,7 @@ void oddStrangerTurnAround(Task* arg0)
     if (work->turnYaw == work->turnYawTarget) {
         if (work->dashCount < 2 || _oddStrangerOutOfRange(&aim->delta, 0x384)
 #if ODD_STRANGER_SIGHT_TEST
-            || detectSightBlocked(arg0) == 1
+            || _playerDetectionSightBlocked(arg0) == 1
 #endif
             || work->grabCooldown != 0) {
             work->state = ODD_STRANGER_STATE_CIRCLE_DASH;
@@ -80,11 +80,11 @@ void oddStrangerTurnAround(Task* arg0)
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x28) != 0) {
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x28) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, 0x28);
         }
     } else {
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x14) != 0) {
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x14) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
         }
     }

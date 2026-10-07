@@ -1465,14 +1465,14 @@ static void func_actor_401800_80136560(Task* arg0)
     if (abs(chase->yawFromPlayer - chase->playerYaw) < 0x44) {
         if (((s16)work->sidestepDelay + work->sidestepCount / 2) < work->stateTimer) {
             if (abs(chase->turn) < 0x80) {
-                if (Actor401800_ChaseOutOfRange(&chase->delta, 0x708) && detectSightBlocked(arg0) != 1) {
+                if (Actor401800_ChaseOutOfRange(&chase->delta, 0x708) && _playerDetectionSightBlocked(arg0) != 1) {
                     work->state = ODD_STRANGER_STATE_SIDESTEP;
                 }
             }
         }
     }
     if (chase->turn < 0x200) {
-        if (!Actor401800_ChaseOutOfRange(&chase->delta, 0x44C) && detectSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
+        if (!Actor401800_ChaseOutOfRange(&chase->delta, 0x44C) && _playerDetectionSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
             work->state = ODD_STRANGER_STATE_GRAB;
         }
     }
@@ -1489,10 +1489,10 @@ static void func_actor_401800_80136560(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 3) {
         if (work->blendActive == 0) {
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x42) / 18) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x42) / 18) != 0) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x42) / 18);
             }
-        } else if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, (((work->chaseRate + 2) * 0x42) / 18) >> 2) != 0) {
+        } else if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, (((work->chaseRate + 2) * 0x42) / 18) >> 2) != 0) {
             actorMoveForwardNonzero(arg0->extra.tmd->coords, (((work->chaseRate + 2) * 0x42) / 18) >> 2);
         }
     } else if (work->rig.slots[1].status.fields.flags & 1) {
@@ -1685,7 +1685,8 @@ static void func_actor_401800_801381E4(Task* arg0)
 /// animation slots as `func_actor_401800_8013971C` but leaves `animId = 0xA`
 /// (with `animRequest = 1` and `blendActive` cleared), then, while that slot is
 /// still `0xA`, advances the actor along its own local Z by a fixed `-0x57`
-/// once `detectPlayerOutOfReach` says the path is clear. The `0xA` branch
+/// when `_playerDetectionOutOfReach` permits the step by facing and distance.
+/// The `0xA` branch
 /// then flips the slots to `0xB`/2 and ticks the animation a second time before
 /// the two contact records are rebuilt, after which work bit 0 picks `state`
 /// from the enemy's HP sign and its buildup bit (`reactionFlags`).
@@ -1713,7 +1714,7 @@ static void func_actor_401800_8013945C(Task* arg0)
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if ((work->animId == 0xA) && ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0)) {
+    if ((work->animId == 0xA) && ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0)) {
         actorStepForward(arg0->extra.tmd->coords, -0x57);
     }
     _oddStrangerDriveAnimation(arg0);
@@ -1999,7 +2000,7 @@ static void func_actor_401800_8013B784(Task* arg0)
     } else {
         work->lookYawTarget = aim->turn;
     }
-    if (work->lookYawTarget == aim->turn && detectSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
+    if (work->lookYawTarget == aim->turn && _playerDetectionSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
         work->state = ODD_STRANGER_STATE_GRAB;
     }
     coord     = arg0->extra.tmd->coords;

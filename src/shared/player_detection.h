@@ -1,9 +1,6 @@
-/* Enemy tests of whether the player can be engaged. A line-of-sight test
- * checks for a wall between the actor's and the player's head-height points. A
- * reach test checks whether the player is outside the actor's facing arc or
- * too far from a point ahead of it. A segment-versus-wall test is carried as a
- * package-private copy of gameplay's worldCollisionSegmentOccluded. Packages include only the
- * tests they carry.
+/* Enemy facing, distance and sight tests. Each actor translation unit carries
+ * its own static copies of the tests it uses. The segment test scans sight
+ * occluders, as does gameplay's worldCollisionSegmentOccluded.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -16,8 +13,6 @@
 #include <psyq/libgte.h>
 
 #include "common.h"
-
-#include "actors/actor.h"
 
 #include "main/coord.h"
 #include "main/task_types.h"
@@ -38,8 +33,8 @@ typedef struct {
 } PlayerDetectionSightScratch;
 STATIC_ASSERT_SIZEOF(PlayerDetectionSightScratch, 0x1C);
 
-s32 detectSightBlocked(Task* arg0);
-s32 detectPlayerOutOfReach(GfxCoord* coord, s16 range, s16 offset);
-s32 detectSegmentHitsWall(SVECTOR* arg0, SVECTOR* arg1);
+static s32 _playerDetectionSightBlocked(const Task* actor);
+static s32 _playerDetectionOutOfReach(const GfxCoord* actorCoord, s16 stopDistance, s16 forwardStep);
+static s32 _playerDetectionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* segmentEnd);
 
 #endif /* SRC_SHARED_PLAYER_DETECTION_H */

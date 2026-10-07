@@ -1,29 +1,45 @@
 /* Part of the player detection library; see player_detection.h. */
 
-/// Tests the segment from `arg0` to `arg1` against every occluder in
-/// `D_80115550` with ENABLED set, stopping at the first node that reports a hit
-/// (1); returns the last node's result, 0 when none was tested.
-s32 detectSegmentHitsWall(SVECTOR* arg0, SVECTOR* arg1)
+/// Writes end-minus-start normalized to 4096 per unit; inputs stay unchanged.
+static inline void _playerDetectionNormalizeSegment(const SVECTOR* segmentStart, const SVECTOR* segmentEnd, VECTOR* direction)
 {
-    VECTOR*                 vec;
-    WorldCollisionOccluder* node;
-    s32                     ret;
+    direction->vx = segmentEnd->vx - segmentStart->vx;
+    direction->vy = segmentEnd->vy - segmentStart->vy;
+    direction->vz = segmentEnd->vz - segmentStart->vz;
+    VectorNormal(direction, direction);
+}
 
-    ret     = 0;
-    node    = D_80115550;
-    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    vec->vx = arg1->vx - arg0->vx;
-    vec->vy = arg1->vy - arg0->vy;
-    vec->vz = arg1->vz - arg0->vz;
-    VectorNormal(vec, vec);
-    for (; node != NULL; node = node->next) {
-        if (node->flags & WORLD_COLLISION_OCCLUDER_ENABLED) {
-            ret = worldCollisionTestOccluderSegment(node, arg0, arg1, vec);
-            if (ret == 1) {
+/// Returns 1 when an enabled room sight occluder crosses the segment, else 0.
+///
+/// Endpoints use view-space game coordinates in the current composed view
+/// frame. Both crossing directions and quad edges count; endpoint and parallel
+/// intersections do not. The scan stops at the first hit. This tests sight
+/// occluders, independently of the room's movement collision grid.
+///
+/// The delta must fit signed halfwords and have squared length in 1..0x7FFFFFFF
+/// for SDK normalization to a direction with 4096 per unit. Inputs are neither
+/// changed nor retained. Keep them clear of the initialized scratch stack's
+/// 144-byte peak reservation. Scratch is released before return; GTE state
+/// is clobbered.
+static s32 _playerDetectionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* segmentEnd)
+{
+    VECTOR*                 direction;
+    WorldCollisionOccluder* occluder;
+    s32                     occluded;
+
+    occluded  = 0;
+    occluder  = D_80115550;
+    direction = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    // Normalize once; every enabled quad uses the same segment direction.
+    _playerDetectionNormalizeSegment(segmentStart, segmentEnd, direction);
+    for (; occluder != NULL; occluder = occluder->next) {
+        if (occluder->flags & WORLD_COLLISION_OCCLUDER_ENABLED) {
+            occluded = worldCollisionTestOccluderSegment(occluder, segmentStart, segmentEnd, direction);
+            if (occluded == 1) {
                 break;
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
-    return ret;
+    return occluded;
 }

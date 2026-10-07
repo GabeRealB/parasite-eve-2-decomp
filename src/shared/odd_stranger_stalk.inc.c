@@ -4,7 +4,7 @@
 /// `Actor01900_Fn042BC`: on the live-actor flag it resets the effect node, forks
 /// the first clip and seeds the animation slots, then walks both obstacle tables
 /// and aims the actor at the player with `gfxRotMatrixY` / `_actorRenderRescaleYaw`.
-/// `stateTimer` and `exitCounter` then count up under the `detectSightBlocked`
+/// `stateTimer` and `exitCounter` then count up under the `_playerDetectionSightBlocked`
 /// clip test: the still-aiming arm re-wraps the turn, drops the actor to state
 /// 0xB once the 0x44C range check fails inside 0x200 and re-arms at 0x1B past
 /// 0x5B frames, while the settled arm draws a turn direction from `gRandomLcgState`
@@ -71,7 +71,7 @@ void oddStrangerStalk(Task* arg0)
     chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
     chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
 #endif
-    if (detectSightBlocked(arg0) != 1) {
+    if (_playerDetectionSightBlocked(arg0) != 1) {
         work->stateTimer    = 0;
         coord               = arg0->extra.tmd->coords;
         chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -123,11 +123,11 @@ void oddStrangerStalk(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 2) {
         if (work->blendActive == 0) {
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_STALK_STEP) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_STALK_STEP) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_STALK_STEP);
             }
         } else {
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 5) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, 5) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 5);
             }
         }

@@ -32,7 +32,7 @@ void oddStrangerGrabRelease(Task* arg0)
         work->playerHeld = 0;
     }
     if ((u32)((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) - 0x10) < 7U) {
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->releaseStep) != 0) {
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, work->releaseStep) != 0) {
             actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->releaseStep);
         }
         if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
@@ -44,7 +44,7 @@ void oddStrangerGrabRelease(Task* arg0)
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         kind = enemy->node.state.parts.targeted;
         if (kind == 1) {
-            if (detectSightBlocked(arg0) == kind) {
+            if (_playerDetectionSightBlocked(arg0) == kind) {
                 work->state = ODD_STRANGER_STATE_ALERT;
             } else {
                 work->state = ODD_STRANGER_STATE_SIDESTEP;

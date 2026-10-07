@@ -2905,7 +2905,7 @@ static void func_actor_401300_80136238(Task* arg0)
     aim                                   = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {
-        if (detectSightBlocked(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
+        if (_playerDetectionSightBlocked(arg0) == 1 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->state = ACTOR_401300_STATE_WITHDRAW;
         } else {
             work->state = ACTOR_401300_STATE_CHASE;
@@ -3000,7 +3000,7 @@ static void func_actor_401300_801365F8(Task* arg0)
     angle               = ratan2(head[-1].delta.vx, delta->vz);
     run->turn           = _actorAngleNormalizeYaw(angle - ratan2(-c2->coord.m[2][0], c2->coord.m[2][2]));
     work->lookYawTarget = run->turn;
-    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (work->chaseRate + 2) * 30 * 1.5f / 18.0f)) {
+    if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, (work->chaseRate + 2) * 30 * 1.5f / 18.0f)) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, (work->chaseRate + 2) * 30 * 1.5f / 18.0f);
     }
     if (run->turn > 0x30) {
@@ -3179,7 +3179,7 @@ static void func_actor_401300_80136CE8(Task* arg0)
             }
             run->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
             gfxRotMatrixY(&arg0->extra.tmd->coords->coord, run->turn, 1);
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (s16)((float)((work->chaseRate + 2) * 30) * 1.5f / 18.0f)) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, (s16)((float)((work->chaseRate + 2) * 30) * 1.5f / 18.0f)) != 0) {
                 Actor401300_MoveBy(arg0->extra.tmd->coords, (s16)((float)((work->chaseRate + 2) * 30) * 1.5f / 18.0f));
             }
             _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
@@ -3267,11 +3267,11 @@ static void func_actor_401300_801376E4(Task* arg0)
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x28) != 0) {
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x28) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, 0x28);
         }
     } else {
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x14) != 0) {
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x14) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
         }
     }
@@ -3571,7 +3571,7 @@ static void func_actor_401300_80138CF8(Task* arg0)
         work->jointPairStep   = 8;
         work->hitBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if (work->animId == 0xA && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x57) != 0) {
+    if (work->animId == 0xA && (s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x57) != 0) {
         _actorMovementStepForward(arg0->extra.tmd->coords, -0x57);
     }
     func_actor_401300_80133A3C(arg0);
@@ -3914,7 +3914,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
     if (work->blendActive == 0) {
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, 0xA);
         }
     }
@@ -3978,7 +3978,7 @@ static void func_actor_401300_8013A208(Task* arg0)
     if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57) == 0) {
         func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
-    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, work->slideStep) != 0) {
+    if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, work->slideStep) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, work->slideStep);
     }
     if (work->slideStep > 0) {
@@ -4045,7 +4045,7 @@ static void func_actor_401300_8013A5C0(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 0x11) {
         work->stateTimer++;
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x10) != 0) {
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x10) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, -0x10);
         }
         if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57) == 0) {
@@ -4293,7 +4293,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
                 work->animRate    = 0x10;
                 work->blendActive = 0;
             }
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 0xA);
             }
             _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
@@ -4438,11 +4438,11 @@ static void func_actor_401300_8013CBAC(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 2) {
         if (work->blendActive == 0) {
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x16) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x16) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 0x16);
             }
         } else {
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 5) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 5) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 5);
             }
         }
@@ -4762,7 +4762,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
             }
             charge->turn += Actor401300_Yaw(arg0->extra.tmd->coords);
             gfxRotMatrixY(&arg0->extra.tmd->coords->coord, charge->turn, 1);
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x70) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x70) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 0x70);
             }
             Actor401300_ResetActorYaw(arg0);
@@ -4843,7 +4843,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     work->stateTimer                   = 0;
                 }
             }
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA8) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA8) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 0xA8);
             }
             Actor401300_ResetActorYaw(arg0);
@@ -4853,11 +4853,11 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
             if (work->stateTimer < 8) {
-                if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x79) != 0) {
+                if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x79) != 0) {
                     Actor401300_MoveForwardSave(save, arg0->extra.tmd->coords, -0x79);
                 }
             } else if ((u16)(work->stateTimer - 8) < 6) {
-                if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x19) != 0) {
+                if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x19) != 0) {
                     Actor401300_MoveForwardSave(save, arg0->extra.tmd->coords, -0x19);
                 }
             }
@@ -5069,7 +5069,7 @@ static void func_actor_401300_8013E930(Task* arg0)
             if (func_actor_401300_80132C78(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x57) == 0) {
                 cur = work->stateTimer;
                 if (cur < 0x11 && work->playerHeld == 0) {
-                    if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, (s16)(0x54 - cur * 0x54 / 16)) != 0) {
+                    if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, (s16)(0x54 - cur * 0x54 / 16)) != 0) {
                         Actor401300_MoveForwardNonzeroSave(save, arg0->extra.tmd->coords, 0x54 - work->stateTimer * 0x54 / 16);
                     }
                 }
@@ -5225,7 +5225,7 @@ static void func_actor_401300_8013F628(Task* arg0)
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
                 work->stateTimer  = 0;
             }
-            if (work->playerHeld == 0 && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x78) != 0) {
+            if (work->playerHeld == 0 && (s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x78) != 0) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 0x78);
             }
             Actor401300_ResetActorYaw(arg0);
@@ -5234,7 +5234,7 @@ static void func_actor_401300_8013F628(Task* arg0)
             work->hitBody.radius = 0x280;
             cur                  = work->stateTimer;
             if (cur < 0x11 && work->playerHeld == 0) {
-                if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x54 - cur * 0x54 / 16) != 0) {
+                if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x54 - cur * 0x54 / 16) != 0) {
                     actorMoveForwardNonzero(arg0->extra.tmd->coords, 0x54 - work->stateTimer * 0x54 / 16);
                 }
             }

@@ -869,10 +869,13 @@ borrowed pointer, its signed-halfword `_gFootstepWalkMode`, and its whole-frame
 publishes the live work for singleton message and animation handlers; task
 teardown releases the block without clearing the published pointer.
 
-The player detection tests enemies include - line of sight, reach and the
-segment-versus-wall query - have `src/shared/player_detection.h` as their
-interface. `PlayerDetectionSightScratch` is the scratch block of the
-line-of-sight test, private to that interface.
+`playerDetection` owns the included enemy facing, distance and sight tests,
+with `src/shared/player_detection.h` as their private implementation interface.
+Each carrier keeps static instances marked `_`. Sight tests scan enabled
+room occluders in view space; the reach test gates movement by the player's
+bearing and distance from a proposed step in the roots' common parent frame.
+`PlayerDetectionSightScratch` is the scratch block of the line-of-sight test,
+private to that interface.
 
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,

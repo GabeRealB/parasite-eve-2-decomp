@@ -1964,11 +1964,11 @@ static void func_actor_110600_80135454(Task* arg0)
     }
     if (work->blendActive == 0) {
         work->walker.speed = work->walkSpeed * work->animRate / 16;
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.speed) == 0)
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.speed) == 0)
             work->walker.speed = 0;
     } else {
         work->walker.speed = (u16)(work->flinchSpeedScale * work->animRate / 1520) / 2;
-        if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.speed) == 0)
+        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.speed) == 0)
             work->walker.speed = 0;
     }
     coord    = arg0->extra.tmd->coords;

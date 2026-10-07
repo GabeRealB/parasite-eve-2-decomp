@@ -1479,23 +1479,23 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
 }
 
 /// Copies the world positions of two coordinates into the scratch block and
-/// runs `detectSegmentHitsWall` on the segment between them. When it reports no
+/// runs `_playerDetectionSegmentOccluded` on the segment between them. When it reports no
 /// hit, `alertTimer` is rearmed to `ACTOR_00300_ALERT_TICKS` and `playerSeen`
 /// raised; otherwise `alertTimer` is cleared.
-#define _ACTOR00300_TEST_SIGHT_LINE(work, scratch, start, end)              \
-    do {                                                                    \
-        (scratch)->from.vx = (start)->workm.t[0];                           \
-        (scratch)->from.vy = (start)->workm.t[1];                           \
-        (scratch)->from.vz = (start)->workm.t[2];                           \
-        (scratch)->to.vx   = (end)->workm.t[0];                             \
-        (scratch)->to.vy   = (end)->workm.t[1];                             \
-        (scratch)->to.vz   = (end)->workm.t[2];                             \
-        if (detectSegmentHitsWall(&(scratch)->from, &(scratch)->to) != 0) { \
-            (work)->alertTimer = 0;                                         \
-        } else {                                                            \
-            (work)->alertTimer = ACTOR_00300_ALERT_TICKS;                   \
-            (work)->playerSeen = 1;                                         \
-        }                                                                   \
+#define _ACTOR00300_TEST_SIGHT_LINE(work, scratch, start, end)                        \
+    do {                                                                              \
+        (scratch)->from.vx = (start)->workm.t[0];                                     \
+        (scratch)->from.vy = (start)->workm.t[1];                                     \
+        (scratch)->from.vz = (start)->workm.t[2];                                     \
+        (scratch)->to.vx   = (end)->workm.t[0];                                       \
+        (scratch)->to.vy   = (end)->workm.t[1];                                       \
+        (scratch)->to.vz   = (end)->workm.t[2];                                       \
+        if (_playerDetectionSegmentOccluded(&(scratch)->from, &(scratch)->to) != 0) { \
+            (work)->alertTimer = 0;                                                   \
+        } else {                                                                      \
+            (work)->alertTimer = ACTOR_00300_ALERT_TICKS;                             \
+            (work)->playerSeen = 1;                                                   \
+        }                                                                             \
     } while (0)
 
 /// Maps a random byte to a hit-twist magnitude of 64..191 angle units.

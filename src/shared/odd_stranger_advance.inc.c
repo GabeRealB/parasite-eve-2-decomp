@@ -7,7 +7,7 @@
 /// yaw back in before rebuilding the root coordinate. After
 /// `_actorContactApplyGridPushback` resolves `gridContacts`, `hitContacts`
 /// go to `oddStrangerPushContacts` if no horizontal grid correction resulted. The
-/// `detectPlayerOutOfReach` probe takes one forward step out of
+/// `_playerDetectionOutOfReach` probe gates the forward step taken from
 /// `slideStep`, and that same countdown then runs down by 0xA a frame. The
 /// tail drops the actor to state 9 on the `rig.slots[1].status` bit or once the
 /// countdown is spent.
@@ -50,7 +50,7 @@ void oddStrangerAdvance(Task* arg0)
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
-    if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {
+    if ((_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->slideStep);
     }
     if (work->slideStep > 0) {

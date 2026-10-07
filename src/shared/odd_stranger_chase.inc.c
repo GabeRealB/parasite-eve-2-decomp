@@ -104,7 +104,7 @@ void oddStrangerChase(Task* arg0)
     if (work->exitCounter != 0) {
         work->slideStep = 2;
     }
-    if ((detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {
+    if ((_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, work->slideStep) << 0x10) != 0) {
         actorMoveForwardNonzero(arg0->extra.tmd->coords, (u16)work->slideStep);
     }
     gOddStrangerChaseDistance += (u16)work->slideStep;
@@ -128,7 +128,7 @@ void oddStrangerChase(Task* arg0)
             }
             if (yaw > 0x400
 #if ODD_STRANGER_SIGHT_TEST
-                && detectSightBlocked(arg0) != 1
+                && _playerDetectionSightBlocked(arg0) != 1
 #endif
                 && work->grabCooldown == 0) {
                 work->state = ODD_STRANGER_STATE_GRAB;

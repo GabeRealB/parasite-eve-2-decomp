@@ -1559,13 +1559,13 @@ static void func_actor_401000_80135AA4(Task* arg0)
                 angle = -angle;
             }
             if (angle < 0x80) {
-                if (_oddStrangerOutOfRange(&chase->delta, 0x708) && detectSightBlocked(arg0) != 1) {
+                if (_oddStrangerOutOfRange(&chase->delta, 0x708) && _playerDetectionSightBlocked(arg0) != 1) {
                     work->state = ODD_STRANGER_STATE_SIDESTEP;
                 }
             }
         }
     }
-    if (detectSightBlocked(arg0) != 1) {
+    if (_playerDetectionSightBlocked(arg0) != 1) {
         work->stateTimer++;
         coord               = arg0->extra.tmd->coords;
         chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -1602,11 +1602,11 @@ static void func_actor_401000_80135AA4(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 3) {
         if (work->blendActive == 0) {
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x78) / 0x12) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x78) / 0x12) != 0) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x78) / 0x12);
             }
         } else {
-            if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x78) / 0x12 >> 2) != 0) {
+            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x78) / 0x12 >> 2) != 0) {
                 actorMoveForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x78) / 0x12 >> 2);
             }
         }
@@ -1771,7 +1771,7 @@ static void func_actor_401000_801388F4(Task* arg0)
     _oddStrangerDriveAnimation(arg0);
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-    if (work->animId == 0xA && (s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0) {
+    if (work->animId == 0xA && (s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0) {
         _actorMovementStepForward(arg0->extra.tmd->coords, -0x57);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
