@@ -250,9 +250,25 @@ void Gp_PickupExitTask(Task* arg0);
 /// clear. Indexed by `id & 0x7F`.
 extern WeaponAttackRow Gp_IdParamLo[];
 
-void Gp_UseKeyItemRow(Task* arg0);
+/// Sends the selected collected item to the room and displays its use result.
+///
+/// spawnArg2 borrows the live task-owned UiObject. The collected-item list must
+/// have a valid selection and a live room task must be registered when state 0
+/// dispatches ROOM_MESSAGE_USE_KEY_ITEM.
+/// A used reply shows an item-name notice for up to 188 nominal 60-Hz ticks;
+/// a no-notice reply starts hiding immediately. Every other reply shows refusal.
+/// Acceptance of a used notice or Menu returns CANCEL. Refusal acceptance returns
+/// CONFIRM during a cutscene hold, otherwise DISMISS. Uses the panel's active
+/// state for input and timeout acceptance; the countdown also runs while inactive.
+void itemMenuUseKeyItemTask(Task* task);
 
-void Gp_KeyItemSubMenuTask(Task* arg0);
+/// Runs a collected item's Use command menu and resolves its child panels.
+///
+/// spawnArg2 borrows the live task-owned UiObject. Fits the singleton command
+/// list to a 96-pixel-wide panel on state 0. Cancel returns CONFIRM, Menu or a
+/// child's CANCEL propagates CANCEL. A child's CONFIRM closes that child and
+/// restores command input; its DISMISS returns CONFIRM to the parent item list.
+void itemMenuKeyItemCommandTask(Task* task);
 
 void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1);
 

@@ -1349,7 +1349,7 @@ void func_800CCDC8(Task* arg0)
     obj         = arg0->spawnArg2.pointer;
     queue       = &gCdCmdQueue;
     obj->result = USER_INTERFACE_RESULT_NONE;
-    flags       = 0x10;
+    flags       = ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
     if (arg0->state == 0) {
         table    = Gp_PreviewItems;
         table[2] = -1;
@@ -1375,9 +1375,9 @@ void func_800CCDC8(Task* arg0)
         }
     }
     if (arg0->state != 1) {
-        flags |= 0x100;
+        flags |= ITEM_MENU_PREVIEW_HIDDEN;
     }
-    func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
+    itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
 }
 
 /// Draws the quantity and its recessed row box using a wrapped 16-bit Y origin.
@@ -1767,18 +1767,18 @@ void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
 {
     s32 flags;
 
-    flags = arg3 + 0x10;
+    flags = arg3 + ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
     if (arg2 != 0) {
         if (((arg1->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (arg1->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
             _itemMenuSetPreviewItem(arg2, arg3);
         }
         if ((cdCmdIsIdle() & 0xFFFF) == 0) {
-            flags |= 0x100;
+            flags |= ITEM_MENU_PREVIEW_HIDDEN;
         }
     } else {
-        flags |= 0x100;
+        flags |= ITEM_MENU_PREVIEW_HIDDEN;
     }
-    func_800C7AE8(arg1, arg1->panel.contentLeft.signedValue + 2, arg1->panel.contentTop.signedValue + 2, flags);
+    itemMenuDrawPreview(arg1, arg1->panel.contentLeft.signedValue + 2, arg1->panel.contentTop.signedValue + 2, flags);
 }
 
 void itemMenuSetPreviewItem(s32 itemId, s32 loadProfile)

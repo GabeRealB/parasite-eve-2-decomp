@@ -751,9 +751,9 @@ void func_replay_bonus_80116AC0(Task* arg0)
         arg0->extraState.value = arg0->spawnArg1.value;
         arg0->killCountdown    = 0xBC;
         itemMenuSetPreviewItem(_replayBonusShopItem(arg0->extraState.value), CD_COMMAND_DISPLAY_LOAD_MENU);
-        arg0->spawnArg1.value = _replayBonusShopItem(arg0->extraState.value) + 0x20000;
+        arg0->spawnArg1.value = _replayBonusShopItem(arg0->extraState.value) + ITEM_MENU_INFO_NEXT_REPLAY;
     }
-    func_800C5F70(arg0);
+    itemMenuInfoTask(arg0);
     dt                  = gDisplayState.frameTicks;
     remaining           = (u16)arg0->killCountdown - dt;
     arg0->killCountdown = remaining;

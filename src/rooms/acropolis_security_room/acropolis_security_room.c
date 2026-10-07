@@ -3042,7 +3042,7 @@ static void _acropolisSecurityRoomShowReleasedLocks(s32 releasedLocks)
 }
 
 /// `TaskMessageEntry` handler for message 0x13F1, the "can this key item be used
-/// here?" query `Gp_UseKeyItemRow` sends to slot 7. `item` is the key item the
+/// here?" query `itemMenuUseKeyItemTask` sends to slot 7. `item` is the key item the
 /// player highlighted; each of the three ids this room accepts is recorded in
 /// the work block's `usedKey` for the lock the player confirmed to act on. Any
 /// other item clears `usedKey` and answers 0, which is the "cannot use that

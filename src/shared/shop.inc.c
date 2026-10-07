@@ -1042,9 +1042,9 @@ static void Shop_PreviewTask(Task* task)
     obj          = task->spawnArg2.pointer;
     task->status = 0;
     if ((cdCmdIsIdle() & 0xFFFF) && Shop_Data_801819EC == itemMenuGetPrimaryPreviewItem()) {
-        func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, 0x20);
+        itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, ITEM_MENU_PREVIEW_SCALE_SHOP);
     } else {
-        func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, 0x120);
+        itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, ITEM_MENU_PREVIEW_SCALE_SHOP | ITEM_MENU_PREVIEW_HIDDEN);
     }
     y = obj->panel.contentTop.signedValue + 0x50;
     if (item < 0x100) {

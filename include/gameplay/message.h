@@ -53,6 +53,21 @@ enum {
     ROOM_MESSAGE_ACTOR_EVENT = 0x13F4,
 };
 
+/// Uses a selected collected-item id at the room task, with a zero second payload.
+///
+/// Dispatched synchronously by the item menu; rooms may forward it to a live
+/// actor. Replies choose the menu presentation below, rather than guaranteeing
+/// that the item was consumed. Other replies are treated as refused by the menu;
+/// an absent handler or table returns the refused reply zero.
+enum { ROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+
+/// Item-menu presentation requested by a room's key-item-use reply.
+enum {
+    ROOM_KEY_ITEM_USE_REFUSED          = 0,
+    ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE = 1,
+    ROOM_KEY_ITEM_USE_NO_NOTICE        = 2
+};
+
 /// Angular scale and wrapping used by actor placement and facing records.
 enum {
     ACTOR_TRANSFORM_ANGLE_TURN      = 4096,

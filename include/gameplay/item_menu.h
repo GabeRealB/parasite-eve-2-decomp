@@ -100,9 +100,57 @@ enum {
 /// CONFIRM result carries `USER_INTERFACE_LIST_COMMAND_YES` or `_NO`.
 UiObject* itemMenuSpawnYesNoMenuDefaultNo(UiObject* parent);
 
-void func_800C5F70(Task* arg0);
+/// Item-information spawn flags above the low 16-bit inventory/packed item id.
+enum {
+    ITEM_MENU_INFO_ITEM_ID_MASK        = 0xFFFF,
+    ITEM_MENU_INFO_RELOCATED_PREVIEW   = 0x10000,
+    ITEM_MENU_INFO_NEXT_REPLAY         = 0x20000,
+    ITEM_MENU_INFO_UNRELOCATED_PREVIEW = 0x40000
+};
 
-void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Displays item specifications, identifies the item and polls dismissal input.
+///
+/// spawnArg1 carries the low 16-bit item id and ITEM_MENU_INFO_* flags;
+/// spawnArg2 borrows the live task-owned UiObject. Preview/caption loading must
+/// already be requested. NEXT_REPLAY changes the title and suppresses the
+/// dismissal sound; RELOCATED_PREVIEW takes precedence over UNRELOCATED_PREVIEW.
+/// Replaces any previous information panel and installs `itemMenuInfoTaskExit`.
+/// Captions start with five metadata lines, followed by description lines ending
+/// at NUL or \\Z. Loaded retail captions produce at most 72 description rows;
+/// alternate data must fit the list's signed-byte indices. Enemy ids >= 0x500
+/// use a tall preview and unscrolled text. Confirm/Cancel/Triangle returns
+/// CONFIRM, Menu returns CANCEL; input waits for the CD queue to become idle.
+/// Uses two-VBlank timing while open and restores every-VBlank timing on input.
+void itemMenuInfoTask(Task* task);
+
+/// Item-preview texture selectors, exclusive scale choices and drawing flags.
+///
+/// Selectors 0/1/2 correspond to menu, preview and relocated-preview load profiles.
+/// Scale choices use GTE factors 2560/4096 and 2720/4096 respectively. SMALL
+/// overrides TALL. HIDDEN suppresses only the picture; its recessed frame remains.
+enum {
+    ITEM_MENU_PREVIEW_TEXTURE_MENU      = 0,
+    ITEM_MENU_PREVIEW_TEXTURE_DIRECT    = 1,
+    ITEM_MENU_PREVIEW_TEXTURE_RELOCATED = 2,
+    ITEM_MENU_PREVIEW_TEXTURE_MASK      = 0xF,
+    ITEM_MENU_PREVIEW_SCALE_EQUIPMENT   = 0x10,
+    ITEM_MENU_PREVIEW_SCALE_SHOP        = 0x20,
+    ITEM_MENU_PREVIEW_SCALE_MASK        = 0xF0,
+    ITEM_MENU_PREVIEW_HIDDEN            = 0x100,
+    ITEM_MENU_PREVIEW_SMALL             = 0x200,
+    ITEM_MENU_PREVIEW_TALL              = 0x400
+};
+
+/// Queues an item-preview picture and its recessed frame in panel-relative pixels.
+///
+/// left/top locate the picture's top-left relative to the content origin.
+/// Default dimensions are 128x96, SMALL uses 80x60, TALL uses 128x127; scale
+/// flags change screen dimensions while retaining the texture extent. Unknown
+/// texture selectors use MENU and unknown scale choices leave dimensions intact.
+/// Borrows object without changing it; panel visibility does not suppress drawing.
+/// Requires loaded preview textures and writable GPU primitive/OT storage unless
+/// HIDDEN is set, which still requires storage for the frame.
+void itemMenuDrawPreview(const UiObject* object, s32 left, s32 top, s32 flags);
 
 extern ActionPrompt D_80114D28[2];
 

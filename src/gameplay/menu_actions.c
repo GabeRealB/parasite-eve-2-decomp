@@ -2823,9 +2823,9 @@ static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
     textDrawString(&req, text);
 
     if (cdCmdIsIdle() & 0xFFFF) {
-        func_800C7AE8(arg0, x, y, 0x200);
+        itemMenuDrawPreview(arg0, x, y, ITEM_MENU_PREVIEW_SMALL);
     } else {
-        func_800C7AE8(arg0, x, y, 0x300);
+        itemMenuDrawPreview(arg0, x, y, ITEM_MENU_PREVIEW_SMALL | ITEM_MENU_PREVIEW_HIDDEN);
     }
 
     color2          = 0x606060;
@@ -3589,10 +3589,10 @@ void func_800D5A48(Task* arg0)
         arg0->state = arg0->state + 1;
     }
     if (arg0->spawnArg1.value != 0) {
-        flags |= 0x400;
+        flags |= ITEM_MENU_PREVIEW_TALL;
     }
     if ((cdCmdIsIdle() & 0xFFFF) == 0) {
-        flags |= 0x100;
+        flags |= ITEM_MENU_PREVIEW_HIDDEN;
     }
-    func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
+    itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
 }

@@ -75,9 +75,6 @@ extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F3A0[11];
 extern WorldCoordRoomLights   D_dryfield_parking_lot_8017F9FC[1];
 extern TaskDesc               Actor00100_D1BA84;
 
-/// Requests use of the selected key-item ID in the first payload word.
-enum { ROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
-
 static s32  _dryfieldParkingLotRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32  _dryfieldParkingLotIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32  _dryfieldParkingLotIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);

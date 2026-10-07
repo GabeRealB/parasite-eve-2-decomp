@@ -6445,7 +6445,7 @@ h = 0x60;
 ```
 
 A three-`u16` stack vector for `gte_ldsv` / `gte_stsv` also keeps later
-coord adds as `lhu` while `(s16)vec.vx` at a call is `lh`. `func_800C7AE8`
+coord adds as `lhu` while `(s16)vec.vx` at a call is `lh`. `itemMenuDrawPreview`
 is the example.
 
 ## Don't name a later load from the same base as an earlier arg
@@ -26755,7 +26755,7 @@ stuck at 99.7% with only the register different.
 
 ## `s32` temp for `s16` switch key + store
 
-Switching on an `s16` field and then storing that same value back (`obj->field = child->field`)
+Switching on an `s16` field and then storing that same value back (`object->field = childObject->field`)
 emits `lh` for the signed compare plus a second `lhu` halfword copy. An `s16` temp does
 the same: the switch promotes it to `int` with `lh` and the store reloads with `lhu`.
 
@@ -26764,20 +26764,20 @@ Assign the field to an `s32` first. One `lh` sign-extends; the store reuses that
 of the null check) and is reused for another arm's store of the same constant.
 
 ```c
-s32 flag;
+s32 childResult;
 
-flag = child->result; /* lh v1 */
-switch (flag) {
+childResult = childObject->result; /* lh v1 */
+switch (childResult) {
     case -1:
-        obj->result = flag; /* sh v1, not a second lhu */
+        object->result = childResult; /* sh v1, not a second lhu */
         break;
     case 9:
-        obj->result = 6; /* sh a1 — same 6 as the case-6 compare */
+        object->result = 6; /* sh a1 — same 6 as the case-6 compare */
         break;
 }
 ```
 
-`Gp_KeyItemSubMenuTask` is the example. `s16 flag` stuck at 97.3% with `lhu a1` + `li a2,6`.
+`itemMenuKeyItemCommandTask` is the example. `s16 childResult` stuck at 97.3% with `lhu a1` + `li a2,6`.
 
 ## `&&` / `else if` so a flag is reloaded and `1` stays in `$v0`
 
@@ -32894,7 +32894,7 @@ the load.
 ## Do not hoist `one = 1` across a toast if/else
 
 A prompt with two text arms (error string vs item name) wants a literal
-`1` in the short arm and a named `one` only in the arm that reuses it
+`1` in the short arm and a named `drawMode` only in the arm that reuses it
 for several `textDrawUiLine` calls:
 
 ```
@@ -32915,15 +32915,15 @@ li    s0, 1
 sw    s0, 0x14(sp)
 ```
 
-Hoisting `one = 1` before the `if` parks `1` in `$s0` and steals the
-`bne` delay slot (`li s0, 1`), turns `uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_NORMAL)` into
-`move a1, s0`, and makes `if (obj->status == 1)` compare against the
-live `one` (`lw v0, 0(s1)` / `bne v0, s0`) instead of
+Hoisting `drawMode = 1` before the `if` parks `1` in `$s0` and steals the
+`bne` delay slot (`li s0, 1`), turns `uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL)` into
+`move a1, s0`, and makes `if (object->panel.control.word == 1)` compare against the
+live `drawMode` (`lw v0, 0(s1)` / `bne v0, s0`) instead of
 `lw s0` / `li v0, 1` / `bne s0, v0`. That last `$s0` load is also what
 the later `gGameSession->cutsceneHold == 1` reuses.
 
-Set `one = 1` only in the reuse arm; leave a bare `1` in the other.
-`Gp_UseKeyItemRow` is the example.
+Set `drawMode = 1` only in the reuse arm; leave a bare `1` in the other.
+`itemMenuUseKeyItemTask` is the example.
 
 ## Pin switch `tmp` to `$v0` so `table = tmp` is `move a3, v0`
 
@@ -66819,7 +66819,7 @@ signedness before reaching for a cast.
 
 ### A spilled draw counter can increment after the call in C and before it in MIPS
 
-`func_800C5F70` reached 99.759% with its feature counter increment before
+`itemMenuInfoTask` reached 99.759% with its feature counter increment before
 `func_8002E53C`. The remaining counter difference was only the stack store:
 `sw t7,0x160(sp)` appeared before the draw-order `lh`, but the target stored
 after that load. `.sched` showed the pseudo increment filling the earlier
@@ -66830,10 +66830,10 @@ might alias.
 Writing the increment **after the draw call** fixed the sequence:
 
 ```c
-func_8002E53C(&req, *names);
-featCount++;
-y += 0xB;
-if (featCount >= 2) {
+func_8002E53C(&req, *featureName);
+displayedFeatureCount++;
+rowY += 0xB;
+if (displayedFeatureCount >= 2) {
     break;
 }
 ```
@@ -66852,9 +66852,9 @@ record retained the target base-before-index address sequence:
 
 ```c
 descBase = Gp_ItemDescs;
-desc = descBase + item;
+desc = descBase + itemId;
 TOUCH_REG(desc);
-caliber = desc->classification & ITEM_SUBTYPE_MASK;
+caliberIndex = desc->classification & ITEM_SUBTYPE_MASK;
 ```
 
 The volatile fence kept the following color `lui` after the descriptor address.
@@ -66867,10 +66867,10 @@ reused text-color local. The eligible unpinned variant was also run through the
 permuter before the final manual register fix.
 
 *Note 2026-10-07:* the base and record locals and the fence are gone. An rvalue
-`Gp_ItemDescs[item].classification` already loads the base before the index
+`Gp_ItemDescs[itemId].classification` already loads the base before the index
 (only `&table[i]` scales the index first), and the colour's `lui` is fixed by
 the order of two stores. See the section at the end of this file named
-`func_800C5F70`.
+`itemMenuInfoTask`.
 
 
 ## `worldCollisionTestOccluderSegment`: remove pins, reuse the loop counter, preserve the scratch copy
@@ -86607,8 +86607,8 @@ The trap is the argument split. `TaskMessageHandler` is
 `s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)` - the handler gets the
 same four arguments `taskMessageDispatch` did - so `a1` is the message id and `a2`
 is the sender's third argument. This body compares `$a2`, which reads like the
-id at first glance; it is the *payload*. `Gp_UseKeyItemRow`
-(`src/gameplay/3688.c`) sends `taskMessageDispatch(slot, 0x13F1, item, 0)` with the
+id at first glance; it is the *payload*. `itemMenuUseKeyItemTask`
+(`src/gameplay/item_stats.c`) sends `taskMessageDispatch(roomTask, ROOM_MESSAGE_USE_KEY_ITEM, itemId, 0)` with the
 highlighted key item third, so the handler answers "is the highlighted item
 0x11B?", not "am I message 0x11B?". The matched C of the same query,
 `func_acropolis_security_room_8017FE24`, is the shape to copy.
@@ -143695,23 +143695,23 @@ full per-branch call lets cross-jumping merge the tails, leaving the string's
 A `t = -3; obj.drawOrder = t;` temp in the same function was a `u16` field
 declaration: the store emitted `li 0xfffd` without it. Every reader cast the
 field to `s16`, and declaring it `s16` matched the whole tree.
-## `a < b` and `b > a` are different code: the operands expand in written order (func_800C5F70, 2026-09-26)
+## `a < b` and `b > a` are different code: the operands expand in written order (itemMenuInfoTask, 2026-09-26)
 
-A page-down clamp ran `menu->firstVisibleItemIndex.unsignedValue += menu->visibleRowCount.unsignedValue;` and then tested
-`(menu->itemCount - menu->visibleRowCount.signedValue) < menu->firstVisibleItemIndex.signedValue`. Everything matched
+A page-down clamp ran `descriptionList->firstVisibleItemIndex.unsignedValue += descriptionList->visibleRowCount.unsignedValue;` and then tested
+`(descriptionList->itemCount - descriptionList->visibleRowCount.signedValue) < descriptionList->firstVisibleItemIndex.signedValue`. Everything matched
 except the registers around it, until a `SOFT_USE_REG` kept `visibleRowCount` alive
-across the add. Writing the test as `menu->firstVisibleItemIndex.signedValue > (menu->itemCount -
-menu->visibleRowCount.signedValue)` matched with no hack. A comparison's operands are expanded
+across the add. Writing the test as `descriptionList->firstVisibleItemIndex.signedValue > (descriptionList->itemCount -
+descriptionList->visibleRowCount.signedValue)` matched with no hack. A comparison's operands are expanded
 left to right. That order decides where the fresh loads of `itemCount` and
 `visibleRowCount` sit relative to the sign-extension of the stored sum, so sched1
 builds different lifetimes and local-alloc hands out different registers.
 When a hack only fixes the registers next to a comparison, try flipping the
 comparison before anything else.
 
-The same function had a steering `titleReq = &req30` alias. `req30` was
+The same function had a steering `titleReq = &labelRequest` alias. `labelRequest` was
 accessed partly through the pointer and partly directly. That mixture is what
 an inlined helper taking `TextDrawReq*` leaves behind: it is the
-`_gpDrawItemNameUnmarkedAt` body with the request passed in rather than
+item-row drawing body with the request passed in rather than
 declared locally.
 ## Two-copy `move a0,v0; move v1,v0` before a clamp is an `s16` local, and a copied helper result is two identical `return`s (_midiHandleNoteOn, 2026-09-26)
 
@@ -148784,7 +148784,7 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
 ### Unresolved, with the mechanism measured: five gameplay barriers, and how sched1 orders a block (2026-10-05)
 
 A dehack pass removed nothing from `Gp_EquipRelatedItem`, `func_800E5578`,
-`func_800C5F70`, `Gp_EffSprTask7C` and `_worldCoordScoreDirectionalLight`. What
+`itemMenuInfoTask`, `Gp_EffSprTask7C` and `_worldCoordScoreDirectionalLight`. What
 each barrier stands for is below; none of it is a fix.
 
 **sched1, as traced with `tools/trace_gcc.py` (it explains four of the five).**
@@ -148802,7 +148802,7 @@ pile up at the top of the block in source order; a `lui` of a constant sinks
 there while its `ori` stays where a load stall let it in; and a single-set
 address add is placed directly in front of the load that reads it.
 
-- `func_800C5F70`, `TOUCH_REG(desc)`: the target has `textColor`'s `lui` after
+- `itemMenuInfoTask`, `TOUCH_REG(desc)`: the target has `textColor`'s `lui` after
   the `&Gp_ItemDescs[item]` add. The `lui` is a leftover, the add is launched by
   the `lbu`, so the add always lands below it; sched2 keeps that order.
   The asm makes `desc` two-set, which stops the launch. `desc = Gp_ItemDescs;
@@ -148814,7 +148814,7 @@ address add is placed directly in front of the load that reads it.
   leftover, as said, but a leftover is also taken whenever a load stall leaves
   nothing else ready, and the store order decides who gets that slot. See the
   section at the end of this file with this function's name.
-- `func_800C5F70`, `SOFT_TOUCH_REG_USE(text, attr)`: `a1 = &Gp_StrAddHp` is the
+- `itemMenuInfoTask`, `SOFT_TOUCH_REG_USE(text, attr)`: `a1 = &Gp_StrAddHp` is the
   highest-LUID leftover. `flags = attr->features` is a load, wins the first
   leftover slot on hazard and launches the `attr` add, so `a1` ends above the
   add with `a0`. The target has it between the add and the load; the asm does
@@ -150669,7 +150669,7 @@ constant).
   (`Gp_PeListPanelTask`) is `switch (x) { case B: extra; /* fallthrough */
   case A: tail; break; }`; two nodes are tested lowest first.
 - **`==2; <3 -> out; ==3; ==4; j out` with state 3 running into state 4's
-  code** (`func_800C5F70`) is `case 2: ...; break; case 3: state = 4; /*
+  code** (`itemMenuInfoTask`) is `case 2: ...; break; case 3: state = 4; /*
   fallthrough */ case 4: ...; break; case 1: default: break;`. The fourth node
   below 2 is needed for the `slti 3`; which value it was is not recoverable.
 - **`default: goto kill;` with `state++; return; kill: taskKill(task);` after
@@ -152827,11 +152827,11 @@ for both a cse result and a schedule, check whether cse2 is the pass that still
 gets through (`-dt`). If it is, only a label explains the image, and a branch
 on a register with identical arms is the smallest source that leaves one.
 
-## A leftover is scheduled in the first load stall with nothing else ready; the order of two constant stores decides which one (func_800C5F70, 2026-10-07)
+## A leftover is scheduled in the first load stall with nothing else ready; the order of two constant stores decides which one (itemMenuInfoTask, 2026-10-07)
 
-**Was.** Two barriers in the item-specs panel. `SOFT_TOUCH_REG_USE(text, attr)`
-held `lui a1 / addiu a1` (the first label's string) between the `attr` address
-and `lw flags`; `TOUCH_REG(desc)` held `textColor`'s `lui` below the descriptor
+**Was.** Two barriers in the item-specs panel. `SOFT_TOUCH_REG_USE(text, armorStats)`
+held `lui a1 / addiu a1` (the first label's string) between the `armorStats` address
+and `lw armorFeatures`; `TOUCH_REG(desc)` held `textColorRgb`'s `lui` below the descriptor
 address. Around them: a `text` local for the string and `descBase` / `desc`
 locals for the table row. Both sites were recorded as unreachable ("needs a
 second dependent of the add", "needs the add in a pseudo set twice").
@@ -152855,10 +152855,10 @@ queued for a cycle, *unless* a launched insn is ready to fill the cycle. A text
 request ends
 
 ```c
-req.otIndex    = obj->panel.otIndex.signedValue + 1;   /* lh; addiu; sw */
-req.glyphTable = TEXT_GLYPH_TABLE_SMALL;               /* li 5; sb      */
-req.colorRgb   = 0x606060;                             /* sw            */
-req.alignment  = ...;  req.drawMode = ...;
+labelRequest.otIndex    = object->panel.otIndex.signedValue + 1;   /* lh; addiu; sw */
+labelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;               /* li 5; sb      */
+labelRequest.colorRgb   = 0x606060;                             /* sw            */
+labelRequest.alignment  = ...;  labelRequest.drawMode = ...;
 ```
 
 The stores are taken last-written first. With `glyphTable` written before
@@ -152871,13 +152871,13 @@ string's `a1` at the armor label, the constant's `ori` at the ammunition label
 the top). sched2 moves the two stores back into the image's order, so the
 image does not show which was written first; the leftover's position does.
 
-**Fix.** `req.colorRgb` before `req.glyphTable` in those two requests, nothing
+**Fix.** `colorRgb` before `glyphTable` in `labelRequest` and `categoryRequest`, nothing
 else. The `text` local is a literal at the call, and the descriptor is
-`Gp_ItemDescs[item].classification & ITEM_SUBTYPE_MASK` with no locals: an
+`Gp_ItemDescs[itemId].classification & ITEM_SUBTYPE_MASK` with no locals: an
 rvalue `table[i].field` forces the table's address before it scales the index
 (`lui; addiu; sll; addu`), which is what `descBase` had been imitating;
 `&table[i]` is pointer arithmetic and scales first (`sll; lui; addiu; addu`, the
-armor row's `attr`).
+armor row's `armorStats`).
 
 **What is fitted.** The order of the two stores, at both sites; commented
 there. Nothing else replaced the two asm statements, and three locals went.

@@ -436,11 +436,11 @@ void Gp_EquipSummaryTask(Task* arg0)
         func_800C7DA8(obj, item, 0, 0);
     }
 
-    flags = slot + 0x10;
+    flags = slot + ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
     if ((arg0->state != 1) || (item == 0)) {
-        flags |= 0x100;
+        flags |= ITEM_MENU_PREVIEW_HIDDEN;
     }
-    func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x16, flags);
+    itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x16, flags);
 
     if (arg0->state == 2) {
         if (cdCmdIsIdle()) {
@@ -650,13 +650,13 @@ void Gp_AmmoListTask(Task* arg0)
     }
 }
 
-/// Sets bit 0x100 in `flags`, which makes `func_800C7AE8` skip drawing the
+/// Sets bit 0x100 in `flags`, which makes `itemMenuDrawPreview` skip drawing the
 /// item preview, while the CD queue is still busy loading it.
-#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags) \
-    do {                                     \
-        if (cdCmdIsIdle() == 0) {            \
-            (flags) |= 0x100;                \
-        }                                    \
+#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags)     \
+    do {                                         \
+        if (cdCmdIsIdle() == 0) {                \
+            (flags) |= ITEM_MENU_PREVIEW_HIDDEN; \
+        }                                        \
     } while (0)
 
 void Gp_SelectWeaponMenuTask(Task* arg0)
@@ -681,24 +681,24 @@ void Gp_SelectWeaponMenuTask(Task* arg0)
     }
     val = inventoryGetNthWeaponForConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
     if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) || (val != cfg->weapon + 0x7F)) {
-        flags = 0x12;
+        flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
         if (val == 0) {
-            flags = 0x112;
+            flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
             goto draw;
         }
         if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
             _gpSetPreviewItemWalk(val, 2);
         }
     } else {
-        flags = 0x10;
+        flags = ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
         if (val == 0) {
-            flags = 0x110;
+            flags = ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
             goto draw;
         }
     }
     GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags);
 draw:
-    func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
+    itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
     func_800C7DA8(obj, val, 1, 0);
     Gp_AmmoListTask(arg0);
     obj->resultValue = 0;

@@ -1196,7 +1196,7 @@ static void func_dryfield_breezeway_8017FB30(Task* task, s16 arg1, s16 arg2)
 }
 
 /// `TaskMessageEntry` handler for message 0x13F1, the "can this key item be used
-/// here?" query `Gp_UseKeyItemRow` sends to slot 7. `item` is the key item the
+/// here?" query `itemMenuUseKeyItemTask` sends to slot 7. `item` is the key item the
 /// player highlighted; 0x11B is the only one the breezeway accepts, and the
 /// answer is latched in the work block's `keyItemAccepted` for
 /// `func_dryfield_breezeway_8017FE08` to pick its next state from.

@@ -355,18 +355,18 @@ void Gp_SelectAmmoMenuTask(Task* arg0)
         if (val != 0) {
             func_800C7DA8(obj, val, 1, 0);
         }
-        flags = 0x12;
+        flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
         if (val == 0) {
-            flags = 0x112;
+            flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
         } else {
             if (((obj->panel.control.word >> 16) == state) || (obj->panel.control.word == state)) {
                 GP_SET_PREVIEW_ITEM(val, 2);
             }
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
-                flags |= 0x100;
+                flags |= ITEM_MENU_PREVIEW_HIDDEN;
             }
         }
-        func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
+        itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
     }
 }
 
@@ -466,18 +466,18 @@ void Gp_SelectArmorMenuTask(Task* arg0)
     item = found;
     func_800C7DA8(obj, item, 1, 0);
 
-    flags = 0x12;
+    flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
     if (item == 0) {
-        flags = 0x112;
+        flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
     } else {
         if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
             GP_SET_PREVIEW_ITEM(item, 2);
         }
         if (cdCmdIsIdle() == 0) {
-            flags |= 0x100;
+            flags |= ITEM_MENU_PREVIEW_HIDDEN;
         }
     }
-    func_800C7AE8(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
+    itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
 
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
