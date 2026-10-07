@@ -69,7 +69,7 @@ void gluttonHitGroups1To2(Task* arg0)
         }
         coord = work->hits[2].body.coord;
     }
-    gluttonHitEffect(coord, id);
+    _gluttonHitEffect(coord, id);
     if (sc->attackKey != 0) {
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         param                    = damageGetPlayerAttackHitCooldown(sc->attackKey);

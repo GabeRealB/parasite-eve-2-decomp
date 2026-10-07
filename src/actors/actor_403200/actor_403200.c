@@ -20,6 +20,7 @@
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -3409,7 +3410,7 @@ static const _Actor403200ViewAnchors D_actor_403200_80131E64 = {
 static const EnemyTaskFuncTable3 gGluttonPropStates = {
     {
         gluttonPropSetup,
-        gluttonPropTick,
+        _gluttonPropTick,
         enemyDestroy,
     },
 };
@@ -3563,7 +3564,7 @@ static void func_actor_403200_80134D40(Task* arg0)
     }
 
     SCRATCH_STACK_RESERVE_BYTES(0xC);
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x12 && work->clip.prevSlot2Cue != frame) {
@@ -3630,7 +3631,7 @@ static void func_actor_403200_80134D40(Task* arg0)
 static const EnemyTaskFuncTable3 gGluttonThrowStates = {
     {
         gluttonThrowSpawn,
-        gluttonThrowFly,
+        _gluttonThrowFly,
         enemyDestroy,
     },
 };
@@ -3648,9 +3649,9 @@ static const EnemyTaskFuncTable3 gGluttonThrowStates = {
 static const EnemyTaskFuncTable5 gGluttonGlobStates = {
     {
         gluttonGlobSpawn,
-        gluttonGlobFall,
+        _gluttonGlobFall,
         gluttonGlobEngulf,
-        gluttonGlobHold,
+        _gluttonGlobHold,
         enemyDestroy,
     },
 };
@@ -3699,8 +3700,8 @@ static const EnemyTaskFuncTable5 gGluttonRainStates = {
 /// State handlers of the spinner enemy: spawn, wait, home, teardown.
 static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
     {
-        gluttonSpinnerSpawn,
-        gluttonSpinnerWait,
+        _gluttonSpinnerSpawn,
+        _gluttonSpinnerWait,
         gluttonSpinnerChase,
         enemyDestroy,
     },
@@ -3905,9 +3906,9 @@ s32 func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg, s32 arg
                 work->animId   = 0xA;
                 work->animStep = GLUTTON_ANIM_STEP_RESTART;
                 work->animRate = 0x7F;
-                gluttonTickAnim(task);
+                _gluttonTickAnim(task);
                 while (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-                    gluttonTickAnim(task);
+                    _gluttonTickAnim(task);
                 }
                 work->animRate                        = 0x10;
                 task->extra.tmd->coords->coord.t[0]   = -0xBB8;
@@ -4200,7 +4201,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     pos.vy = coord->workm.t[1];
     pos.vz = coord->workm.t[2];
     worldCoordUpdateActorColor(enemy, &pos, 0, 0);
-    gluttonTickAnim(task);
+    _gluttonTickAnim(task);
 
     D_actor_403200_8015F8F4.context.loc.stage = 0;
     D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
@@ -4484,7 +4485,7 @@ static void func_actor_403200_8013B3C8(Task* arg0)
             enemySpawnFromTable(gGluttonEscortTasks, 1, 7, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = 0xA;
     }
@@ -4597,7 +4598,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         }
     }
 
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     work->neckYawTarget = actorPositionYaw(arg0, &sc->offset, &gPlayerStatus);
 
@@ -4934,7 +4935,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
     }
 
     SCRATCH_STACK_RESERVE_BYTES(0x3C);
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && (work->animId == 0xF)) {
         work->animStep = GLUTTON_ANIM_STEP_RESTART;
         work->animId   = 0xE;
@@ -5201,7 +5202,7 @@ static void func_actor_403200_8013D028(Task* arg0)
         gGluttonLimbReach = (u16)gGluttonLimbReach + 0x258;
     }
 
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     if (_gluttonHasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) != 0 && enemy->hp > 0 &&
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403200_8015FA00, 0) == 0) {
@@ -5288,7 +5289,7 @@ static void func_actor_403200_8013D78C(Task* arg0)
         arg0->extra.tmd->coords->coord.t[2] = -0x1770;
         work->wallDistanceTarget            = 0xFA0;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = 1;
     }
@@ -5386,7 +5387,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
             work->lastSpawned = spawned;
             break;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = 7;
     }
@@ -5526,7 +5527,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
         }
     }
 
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = 0xA;
@@ -5604,9 +5605,9 @@ static void func_actor_403200_8013E2FC(Task* arg0)
         }
         if (work->animId == state && work->animStep == GLUTTON_ANIM_STEP_RESTART) {
             work->animRate = 0x60;
-            gluttonTickAnim(arg0);
+            _gluttonTickAnim(arg0);
             while ((u32)(work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) < 0x34) {
-                gluttonTickAnim(arg0);
+                _gluttonTickAnim(arg0);
             }
             work->animRate = 0x10;
         }
@@ -5614,7 +5615,7 @@ static void func_actor_403200_8013E2FC(Task* arg0)
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -5671,7 +5672,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
         work->neckYawEnabled   = 0;
         j                      = 0;
         while (j < work->collapseSkip / 4) {
-            gluttonTickAnim(arg0);
+            _gluttonTickAnim(arg0);
             j++;
             if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
                 break;
@@ -5686,7 +5687,7 @@ static void func_actor_403200_8013E5A8(Task* arg0)
     if (gGluttonLimbReach >= 0x1F5) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     state                                 = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (state == 0x1C && work->clip.prevSlot2Cue != state) {
@@ -5778,7 +5779,7 @@ static void func_actor_403200_8013E9C0(Task* arg0)
         return;
     }
     SCRATCH_STACK_RESERVE_BYTES(0xC);
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         work->limbPose    = 0;
@@ -5849,7 +5850,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
         work->limbPose    = 0;
     }
     sc = SCRATCH_STACK_RESERVE_BLOCK(_Actor403200IdleScratch);
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     coord        = arg0->extra.tmd->coords;
     toPlayer     = &sc->toPlayer;
@@ -6085,7 +6086,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
         if (gGluttonLimbReach >= 0x191) {
             gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         }
-        gluttonTickAnim(arg0);
+        _gluttonTickAnim(arg0);
         if (work->animId == 0x13 && (frame = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && frame < 0xD) {
             work->hostExposed = 1;
         } else {
@@ -6746,7 +6747,7 @@ static void func_actor_403200_8014123C(Task* arg0)
     if (work->stateChanged != 0) {
         work->stateTicks = 0;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if (work->stateTicks == 8) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
         sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -6846,6 +6847,6 @@ static void func_actor_403200_80141B40(Task* arg0)
         work->neckPitchEnabled = 0;
         work->neckYawEnabled   = 0;
     } else {
-        gluttonTickAnim(arg0);
+        _gluttonTickAnim(arg0);
     }
 }

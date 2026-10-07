@@ -1,78 +1,60 @@
 /* Part of the library; see glutton.h. Inline helpers the fragments use. */
 
-/// Rebuilds the model's root coordinate around the yaw it already faces and
-/// shrinks it uniformly to half size: `ratan2` of the rotation's Z basis gives
-/// the yaw, `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix`
-/// applies 0.5 on all three axes. The working matrix lives in a frame carved
-/// off the scratch stack, which is handed back once the rotation has been copied
-/// onto the coordinate. Written as an inline so the four scratch-head accesses
-/// stay absolute; see `Actor444000_RebuildRotation` in `actor_444000_4.c`.
-static __inline__ void gluttonShrinkRotation(GfxCoord* coord)
+/// Replaces a coordinate's rotation with its current yaw at half scale.
+///
+/// Discards pitch, roll and the previous scale, preserving translation, parent
+/// and stored angles; marks composition dirty. Requires a live writable
+/// coordinate and initialized scratch with one `ActorScaleRotScratch` plus
+/// nested axis-rotation capacity. All reservations are released before return.
+static __inline__ void _actorRenderRescaleYawHalf(GfxCoord* coord)
 {
-    ActorScaleRotScratch* sc;
-    s16                   ang;
+    ActorScaleRotScratch* yawScratch;
+    s16                   yaw;
 
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
+    yawScratch = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleRotScratch);
 
-    ang     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->yaw = ang;
-    gfxRotMatrixY(&sc->rotation, ang, 1);
-    sc->scale.vx = 0x800;
-    sc->scale.vy = 0x800;
-    sc->scale.vz = 0x800;
-    ScaleMatrix(&sc->rotation, &sc->scale);
+    yaw             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    yawScratch->yaw = yaw;
+    gfxRotMatrixY(&yawScratch->rotation, yaw, GRAPHICS_ROTATION_REPLACE);
+    yawScratch->scale.vx = ONE / 2;
+    yawScratch->scale.vy = ONE / 2;
+    yawScratch->scale.vz = ONE / 2;
+    ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
-    coord->coord.m[0][0] = sc->rotation.m[0][0];
-    coord->coord.m[0][1] = sc->rotation.m[0][1];
-    coord->coord.m[0][2] = sc->rotation.m[0][2];
-    coord->coord.m[1][0] = sc->rotation.m[1][0];
-    coord->coord.m[1][1] = sc->rotation.m[1][1];
-    coord->coord.m[1][2] = sc->rotation.m[1][2];
-    coord->coord.m[2][0] = sc->rotation.m[2][0];
-    coord->coord.m[2][1] = sc->rotation.m[2][1];
-    coord->coord.m[2][2] = sc->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    // Install only the rebuilt rotation, leaving translation intact.
+    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
-/// Rebuilds the model's root coordinate around the yaw it already faces and
-/// rescales it: `ratan2` of the rotation's Z basis gives the yaw,
-/// `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
-/// `xz` on both horizontal axes and `y` on the vertical one. The working
-/// matrix lives in a frame carved off the scratch stack, which is handed back
-/// once the rotation has been copied onto the coordinate. Written as an inline
-/// so the four scratch-head accesses stay absolute, like
-/// `gluttonShrinkRotation` above.
-static __inline__ void gluttonScaleRotation(GfxCoord* coord, s16 xz, s32 y)
+/// Replaces a coordinate's rotation with its current yaw at separate XZ and Y scales.
+///
+/// Both scales are signed Q12 (`ONE` is 1.0); X and Z take the s16 horizontal
+/// scale and Y takes the s32 vertical scale. Pitch and roll are discarded.
+/// Translation, parent and stored angles remain intact; composition is dirtied.
+/// Requires a live writable coordinate and initialized scratch with one
+/// `ActorScaleRotScratch` plus nested axis-rotation capacity. No pointer is retained.
+static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalScale, s32 verticalScale)
 {
-    ActorScaleRotScratch* sc;
-    s16                   ang;
+    ActorScaleRotScratch* yawScratch;
+    s16                   yaw;
 
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
+    yawScratch = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleRotScratch);
 
-    ang     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->yaw = ang;
-    gfxRotMatrixY(&sc->rotation, ang, 1);
-    sc->scale.vx = xz;
-    sc->scale.vy = y;
-    sc->scale.vz = xz;
-    ScaleMatrix(&sc->rotation, &sc->scale);
+    yaw             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    yawScratch->yaw = yaw;
+    gfxRotMatrixY(&yawScratch->rotation, yaw, GRAPHICS_ROTATION_REPLACE);
+    yawScratch->scale.vx = horizontalScale;
+    yawScratch->scale.vy = verticalScale;
+    yawScratch->scale.vz = horizontalScale;
+    ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
-    coord->coord.m[0][0] = sc->rotation.m[0][0];
-    coord->coord.m[0][1] = sc->rotation.m[0][1];
-    coord->coord.m[0][2] = sc->rotation.m[0][2];
-    coord->coord.m[1][0] = sc->rotation.m[1][0];
-    coord->coord.m[1][1] = sc->rotation.m[1][1];
-    coord->coord.m[1][2] = sc->rotation.m[1][2];
-    coord->coord.m[2][0] = sc->rotation.m[2][0];
-    coord->coord.m[2][1] = sc->rotation.m[2][1];
-    coord->coord.m[2][2] = sc->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    // Install only the rebuilt rotation, leaving translation intact.
+    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
 /// Horizontal gap from `coord` to the player's coordinate matrix `gPlayerStatus.coordMtx`, as an
@@ -120,6 +102,6 @@ static __inline__ s32 _gluttonScanGroup(GluttonHitScratch* sc, GluttonHitGroup* 
 /// part. Returns whether the attack key is still set afterwards.
 static __inline__ s32 _gluttonHitLanded(GluttonHitScratch* sc, GluttonHitGroup* group)
 {
-    gluttonHitEffect(group->body.coord, sc->attackKey);
+    _gluttonHitEffect(group->body.coord, sc->attackKey);
     return sc->attackKey != 0;
 }

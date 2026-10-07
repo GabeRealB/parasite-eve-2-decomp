@@ -1,54 +1,56 @@
+#include "main/sound_ids.h"
+
 /* Part of the Glutton library; see glutton.h. */
 
-/// Death throes of the grabbing enemy: bounce the model on the floor until it
-/// settles. While the model is still below the floor plane (`coord.t[1] > 0`)
-/// it is snapped back to -0x32, the step counter is cleared, the impact cue is
-/// enqueued with the object's own pan and half its depth, and the task steps
-/// on. Otherwise the body keeps falling by `fallStep`'s magnitude, drifts a
-/// fifteenth of `aim.travel` in x and z, has its colour refreshed from the model's
-/// world position, damps the two shake terms and has its rotation rebuilt at
-/// half scale.
-void gluttonGlobFall(Enemy* enemy, Task* task)
+/// Drops a spat glob onto the arena floor before its engulf state.
+///
+/// Requires the glob's live TMD body and projectile work. Each tick covers one
+/// fifteenth of its launch-to-player offset and adds the magnitude of its fall
+/// step to Y. Crossing Y = 0 starts the next state at height -50 and plays the
+/// landing cue. The fight-end flag destroys the enemy instead.
+static void _gluttonGlobFall(Enemy* enemy, Task* task)
 {
+    enum { GLUTTON_GLOB_FALL_TICKS = 15 };
     GluttonProjectileWork* work = task->work;
     GfxCoord*              coord;
-    VECTOR                 pos;
-    s32                    sfx;
-    s32                    pan;
-    s32                    drop;
-    s32                    bounce;
+    VECTOR                 worldPosition;
+    s32                    soundId;
+    s32                    audioPan;
+    s32                    height;
+    s32                    fallDistance;
 
     if (gGluttonEnded == 1) {
         enemyDestroy(enemy, task);
         return;
     }
 
-    coord = task->extra.tmd->coords;
-    drop  = coord->coord.t[1];
-    if (drop > 0) {
+    coord  = task->extra.tmd->coords;
+    height = coord->coord.t[1];
+    if (height > 0) {
         coord->coord.t[1] = -0x32;
         work->stateTicks  = 0;
-        sfx               = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4020000C;
-        pan               = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        sndEvtRequestScriptStart(sfx, pan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
+        soundId           = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_GLUTTON_CHUNK_LAND;
+        audioPan          = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
         task->state++;
         return;
     }
 
-    bounce            = ABS(work->fallStep);
-    coord->coord.t[1] = drop + bounce;
+    fallDistance      = ABS(work->fallStep);
+    coord->coord.t[1] = height + fallDistance;
 
-    task->extra.tmd->coords->coord.t[0]  += work->aim.travel.vx / 15;
-    task->extra.tmd->coords->coord.t[2]  += work->aim.travel.vz / 15;
+    task->extra.tmd->coords->coord.t[0]  += work->aim.travel.vx / GLUTTON_GLOB_FALL_TICKS;
+    task->extra.tmd->coords->coord.t[2]  += work->aim.travel.vz / GLUTTON_GLOB_FALL_TICKS;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    pos.vx = task->extra.tmd->coords->workm.t[0];
-    pos.vy = task->extra.tmd->coords->workm.t[1];
-    pos.vz = task->extra.tmd->coords->workm.t[2];
-    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &worldPosition, 0, 0);
 
+    // Fade the green and blue ambient terms after refreshing room lighting.
     work->colorMtx.t[1] >>= 1;
     work->colorMtx.t[2] >>= 2;
 
-    gluttonShrinkRotation(task->extra.tmd->coords);
+    _actorRenderRescaleYawHalf(task->extra.tmd->coords);
 }

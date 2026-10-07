@@ -20,7 +20,7 @@
 /// `esc0` / `esc1` and the `hp` load sit after `worldTargetAddReadoutAmount`, unlike the
 /// group 3-5 handler.
 ///
-/// Groups 6 and 7 share one `gluttonHitEffect` call through `coord` and `id`,
+/// Groups 6 and 7 share one `_gluttonHitEffect` call through `coord` and `id`,
 /// which is the one jump left here: written as the `||` of three scan-and-land
 /// pairs the group 3-5 handler uses, the three scans' match arms are laid out
 /// elsewhere and the function is two instructions longer. Their scans call
@@ -61,7 +61,7 @@ void gluttonHitGroups6To8(Task* arg0)
     if (id != 0) {
         coord = work->hits[7].body.coord;
     hit:
-        gluttonHitEffect(coord, id);
+        _gluttonHitEffect(coord, id);
         if (sc->attackKey != 0) {
             goto body;
         }

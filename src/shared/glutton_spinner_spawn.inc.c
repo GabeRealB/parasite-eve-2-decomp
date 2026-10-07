@@ -2,13 +2,22 @@
 
 /* Part of the Glutton library; see glutton.h. */
 
-/// Spawn state of the enemy dispatched through `D_actor_444000_80131F30`:
-/// allocate its `GluttonSpinnerWork`, parent the model object to the world
-/// coordinate, give it a random orientation off `gRandomLcgState`, point it at its
-/// own light and colour matrices and step the task on. Bails to
-/// `enemyDestroy` when the overlay is shutting down or the allocation fails.
-void gluttonSpinnerSpawn(Enemy* enemy, Task* task)
+/// Creates a visible floor spinner with its own lighting and chase delay.
+///
+/// Requires an enemy task with a live TMD model and root coordinate. The low
+/// spawn-argument half selects a 20-tick delay for 0, 40 for 1, and 80 otherwise.
+/// The model is parented to the view and receives three masked random rotations.
+/// The task owns the zeroed work block and its lighting matrices until teardown.
+/// Allocation failure or fight end destroys the enemy; success enters waiting.
+static void _gluttonSpinnerSpawn(Enemy* enemy, Task* task)
 {
+    enum { GLUTTON_SPINNER_DELAY_CLASS_SHORT  = 0,
+           GLUTTON_SPINNER_DELAY_CLASS_MEDIUM = 1,
+           GLUTTON_SPINNER_DELAY_CLASS_LONG   = 2,
+           GLUTTON_SPINNER_DELAY_SHORT        = 20,
+           GLUTTON_SPINNER_DELAY_MEDIUM       = 40,
+           GLUTTON_SPINNER_DELAY_LONG         = 80,
+           GLUTTON_SPINNER_ORIENTATION_MASK   = 0x4FF };
     GluttonSpinnerWork* work;
 
     if (gGluttonEnded == 1) {
@@ -27,17 +36,17 @@ void gluttonSpinnerSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->flags          = 0;
 
     switch ((u16)task->spawnArg1.value) {
-        case 0:
-            work->chaseDelay = 0x14;
+        case GLUTTON_SPINNER_DELAY_CLASS_SHORT:
+            work->chaseDelay = GLUTTON_SPINNER_DELAY_SHORT;
             break;
-        case 1:
-            work->chaseDelay = 0x28;
+        case GLUTTON_SPINNER_DELAY_CLASS_MEDIUM:
+            work->chaseDelay = GLUTTON_SPINNER_DELAY_MEDIUM;
             break;
-        case 2:
-            work->chaseDelay = 0x50;
+        case GLUTTON_SPINNER_DELAY_CLASS_LONG:
+            work->chaseDelay = GLUTTON_SPINNER_DELAY_LONG;
             break;
         default:
-            work->chaseDelay = 0x50;
+            work->chaseDelay = GLUTTON_SPINNER_DELAY_LONG;
             break;
     }
 
@@ -46,11 +55,11 @@ void gluttonSpinnerSpawn(Enemy* enemy, Task* task)
     work->chaseTicks = 0;
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & 0x4FF, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixZ(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & 0x4FF, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixZ(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gfxRotMatrixX(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & 0x4FF, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, (gRandomLcgState >> 16) & GLUTTON_SPINNER_ORIENTATION_MASK, GRAPHICS_ROTATION_COMPOSE);
 
     task->extra.tmd->lightMtx             = &work->lightMtx;
     task->extra.tmd->colorMtx             = &work->colorMtx;

@@ -15,20 +15,26 @@ typedef struct {
 } _GluttonHitEffectScratch;
 STATIC_ASSERT_SIZEOF(_GluttonHitEffectScratch, 0x10);
 
-/// Spawn the hit effect for attack `id` on `coord`. The effect kind comes from
-/// the attack's param 1; its offset from `coord` from param 0: kinds 2, 4, 6
-/// and 7 use one fixed offset, every other kind draws one of three off
-/// `gRandomLcgState`. The offset and the effect argument live in a block
-/// borrowed from the scratchpad stack for the duration of the call.
-void gluttonHitEffect(GfxCoord* coord, s32 id)
+/// Spawns a player attack's hit effect relative to the struck coordinate.
+///
+/// `attackKey` must select a valid weapon or attachment attack row; category bits
+/// are ignored. Reactions 2, 4, 6 and 7 use a fixed offset; other values choose
+/// one of three offsets with one LCG advance. Offsets use model units along
+/// `coord`'s local axes. Requires a live coordinate and initialized scratch with
+/// one `_GluttonHitEffectScratch` plus the spawner's nested capacity. The records
+/// are released before return; the effects must not rely on a live offset pointer
+/// into that released storage.
+static void _gluttonHitEffect(GfxCoord* coord, s32 attackKey)
 {
+    enum { GLUTTON_HIT_EFFECT_SIZE  = 0x500,
+           GLUTTON_HIT_EFFECT_COUNT = 3 };
     _GluttonHitEffectScratch* scratch = SCRATCH_STACK_RESERVE_BLOCK(_GluttonHitEffectScratch);
 
-    scratch->effectArg.spawnArgLo = 0x500;
+    scratch->effectArg.spawnArgLo = GLUTTON_HIT_EFFECT_SIZE;
     scratch->effectArg.coord      = coord;
-    scratch->effectArg.spawnArgHi = 3;
+    scratch->effectArg.spawnArgHi = GLUTTON_HIT_EFFECT_COUNT;
 
-    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+    switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
         case DAMAGE_PLAYER_REACTION_BUILDUP:
         case 4:
         case DAMAGE_PLAYER_REACTION_EXPLOSION:
@@ -36,7 +42,7 @@ void gluttonHitEffect(GfxCoord* coord, s32 id)
             scratch->offset.vx = 0;
             scratch->offset.vy = -0x190;
             scratch->offset.vz = 0x258;
-            effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &scratch->offset, &scratch->effectArg);
+            effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &scratch->offset, &scratch->effectArg);
             break;
         case DAMAGE_PLAYER_REACTION_NONE:
         case DAMAGE_PLAYER_REACTION_STAGGER:
@@ -51,19 +57,19 @@ void gluttonHitEffect(GfxCoord* coord, s32 id)
                     scratch->offset.vy = 0;
                     scratch->offset.vx = 0;
                     scratch->offset.vz = 0x384;
-                    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &scratch->offset, &scratch->effectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &scratch->offset, &scratch->effectArg);
                     break;
                 case 1:
                     scratch->offset.vx = 0x258;
                     scratch->offset.vy = -0xC8;
                     scratch->offset.vz = 0x2BC;
-                    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &scratch->offset, &scratch->effectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &scratch->offset, &scratch->effectArg);
                     break;
                 case 2:
                     scratch->offset.vx = -0x12C;
                     scratch->offset.vy = -0x320;
                     scratch->offset.vz = 0x320;
-                    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &scratch->offset, &scratch->effectArg);
+                    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &scratch->offset, &scratch->effectArg);
                     break;
             }
             break;

@@ -1,35 +1,41 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Walk the yaw `neckYaw` toward `arg1` (clamped to +/-0x200) by at most 0x71
-/// per call, turn model part 3 by it through `_actorRenderYawJointInWorld`, and
-/// refresh part 3, the root of the fifth escort's model and part 4.
-void gluttonTurnNeck(Task* task, s16 arg1)
+/// Moves the neck toward a target yaw and refreshes its dependent coordinates.
+///
+/// `yawTarget` uses 4096 angle units per turn, clamped to +/-0x200. The stored
+/// yaw closes by at most 0x71 per call and turns host part 3 in world space.
+/// Requires live host parts 3 and 4 and escort 4's root. Their compositions are
+/// refreshed after the turn so the pitched neck and attached limb follow it.
+static void _gluttonTurnNeck(Task* task, s16 yawTarget)
 {
+    enum { GLUTTON_NECK_YAW_LIMIT = 0x200,
+           GLUTTON_NECK_YAW_STEP  = 0x71 };
     GluttonWork* work = task->work;
-    s16          value;
+    s16          clampedYaw;
 
-    value = arg1;
-    if (arg1 > 0x200) {
-        value = 0x200;
+    clampedYaw = yawTarget;
+    if (yawTarget > GLUTTON_NECK_YAW_LIMIT) {
+        clampedYaw = GLUTTON_NECK_YAW_LIMIT;
     }
-    if (arg1 < -0x200) {
-        value = -0x200;
+    if (yawTarget < -GLUTTON_NECK_YAW_LIMIT) {
+        clampedYaw = -GLUTTON_NECK_YAW_LIMIT;
     }
 
-    if (work->neckYaw < value) {
-        if (value - work->neckYaw >= 0x72) {
-            work->neckYaw = work->neckYaw + 0x71;
+    if (work->neckYaw < clampedYaw) {
+        if (clampedYaw - work->neckYaw >= GLUTTON_NECK_YAW_STEP + 1) {
+            work->neckYaw = work->neckYaw + GLUTTON_NECK_YAW_STEP;
         } else {
-            work->neckYaw = value;
+            work->neckYaw = clampedYaw;
         }
-    } else if (value < work->neckYaw) {
-        if (abs(work->neckYaw - value) >= 0x72) {
-            work->neckYaw = work->neckYaw - 0x71;
+    } else if (clampedYaw < work->neckYaw) {
+        if (abs(work->neckYaw - clampedYaw) >= GLUTTON_NECK_YAW_STEP + 1) {
+            work->neckYaw = work->neckYaw - GLUTTON_NECK_YAW_STEP;
         } else {
-            work->neckYaw = value;
+            work->neckYaw = clampedYaw;
         }
     }
 
+    // Compose the animated joint before applying yaw in world space.
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&task->extra.tmd->coords[3]);
     _actorRenderYawJointInWorld(&task->extra.tmd->coords[3], work->neckYaw);

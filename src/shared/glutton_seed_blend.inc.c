@@ -1,32 +1,36 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Seed the blend: `blendRate` to 0x30 and `blendWeight` to 0x800. Slots 1 and up
-/// of each driving rig take that rate, and the same slots of its blend rig are
-/// reset to animation `blendAnimId`.
-void gluttonSeedBlend(Task* task)
+/// Starts the secondary clip used to blend the host and its first two escorts.
+///
+/// Requires initialized driving and secondary rigs in the host's work and a valid
+/// `blendAnimId` in all three animation tables. Sets the blend rate to three
+/// normal frames per tick and the driving-pose weight to one half. Host slots
+/// 1..7 and escort slots 1..3 have their driving rate set and secondary clip
+/// restarted; escort slot 0 is deliberately left alone.
+static void _gluttonSeedBlend(Task* task)
 {
     GluttonWork* work;
-    s32          i;
+    s32          slotIndex;
 
     work              = task->work;
-    work->blendRate   = 0x30;
-    work->blendWeight = 0x800;
-    i                 = 1;
+    work->blendRate   = 3 * ANIMATION_RATE_ONE;
+    work->blendWeight = ONE / 2;
+    slotIndex         = 1;
     do {
-        work->hostRig.slots[i].rate = work->blendRate;
-        animationResetSlot(&work->hostBlendRig.anim, i, work->blendAnimId);
-        i++;
-    } while (i < 8);
-    i = 1;
+        work->hostRig.slots[slotIndex].rate = work->blendRate;
+        animationResetSlot(&work->hostBlendRig.anim, slotIndex, work->blendAnimId);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->hostRig.slots));
+    slotIndex = 1;
     do {
-        work->escort0Rig.slots[i].rate = work->blendRate;
-        animationResetSlot(&work->escort0BlendRig.anim, i, work->blendAnimId);
-        i++;
-    } while (i < 4);
-    i = 1;
+        work->escort0Rig.slots[slotIndex].rate = work->blendRate;
+        animationResetSlot(&work->escort0BlendRig.anim, slotIndex, work->blendAnimId);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->escort0Rig.slots));
+    slotIndex = 1;
     do {
-        work->escort1Rig.slots[i].rate = work->blendRate;
-        animationResetSlot(&work->escort1BlendRig.anim, i, work->blendAnimId);
-        i++;
-    } while (i < 4);
+        work->escort1Rig.slots[slotIndex].rate = work->blendRate;
+        animationResetSlot(&work->escort1BlendRig.anim, slotIndex, work->blendAnimId);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->escort1Rig.slots));
 }

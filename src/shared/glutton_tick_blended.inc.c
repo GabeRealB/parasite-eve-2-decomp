@@ -1,44 +1,51 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Advance the host's and escort 0's and 1's rigs with each blend rig mixed in
-/// at weight `blendWeight`: every slot of a blend rig ticks at `blendRate`,
-/// every slot of a driving rig at `animRate` less 3, and the pose written to
-/// the driving rig is the mix of the two.
-void gluttonTickBlended(Task* arg0)
+/// Ticks both pose sources and mixes their rotations onto the three driving rigs.
+///
+/// Requires initialized host and escort-0/1 rigs with loaded clip data. Host slots
+/// 1..7 and escort slots 0..3 capture driving and secondary poses at rates
+/// `animRate - 3` and `blendRate`, in sixteenths of a frame per tick. Translation
+/// comes from the driving pose; rotation weights are `blendWeight` for the driving
+/// pose and `ONE - blendWeight` for the secondary pose. Weights normally lie in
+/// 0..ONE. Pose capture, blending and nested conversions require initialized
+/// scratch and overwrite GTE state; no pose pointer is retained.
+static void _gluttonTickBlended(Task* task)
 {
-    AnimationPose pose0;
-    AnimationPose pose1;
-    GluttonWork*  work     = arg0->work;
-    s32           blend    = work->blendWeight;
-    s32           invBlend = 0x1000 - blend;
-    s16           i;
+    enum { GLUTTON_HOST_BLENDED_SLOT_END = 11 };
+    AnimationPose drivingPose;
+    AnimationPose secondaryPose;
+    GluttonWork*  work            = task->work;
+    s32           drivingWeight   = work->blendWeight;
+    s32           secondaryWeight = ONE - drivingWeight;
+    s16           slotIndex;
 
-    for (i = 1; i < 8; i++) {
-        if (i < 11) {
-            work->hostBlendRig.slots[i].rate = work->blendRate;
-            work->hostRig.slots[i].rate      = work->animRate - 3;
-            animationTickSlotPose(&work->hostRig.anim, i, &pose0, 0);
-            animationTickSlotPose(&work->hostBlendRig.anim, i, &pose1, 0);
-            animationApplyPoseWithBlendedRotation(&work->hostRig.anim, i, &pose0, &pose1, blend, invBlend);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->hostRig.slots); slotIndex++) {
+        // All host slots use the blended side of this ten-slot split.
+        if (slotIndex < GLUTTON_HOST_BLENDED_SLOT_END) {
+            work->hostBlendRig.slots[slotIndex].rate = work->blendRate;
+            work->hostRig.slots[slotIndex].rate      = work->animRate - 3;
+            animationTickSlotPose(&work->hostRig.anim, slotIndex, &drivingPose, NULL);
+            animationTickSlotPose(&work->hostBlendRig.anim, slotIndex, &secondaryPose, NULL);
+            animationApplyPoseWithBlendedRotation(&work->hostRig.anim, slotIndex, &drivingPose, &secondaryPose, drivingWeight, secondaryWeight);
         } else {
-            work->hostRig.slots[i].rate = work->animRate - 3;
-            animationTickSlot(&work->hostRig.anim, i);
+            work->hostRig.slots[slotIndex].rate = work->animRate - 3;
+            animationTickSlot(&work->hostRig.anim, slotIndex);
         }
     }
 
-    for (i = 0; i < 4; i++) {
-        work->escort0BlendRig.slots[i].rate = work->blendRate;
-        work->escort0Rig.slots[i].rate      = work->animRate - 3;
-        animationTickSlotPose(&work->escort0Rig.anim, i, &pose0, 0);
-        animationTickSlotPose(&work->escort0BlendRig.anim, i, &pose1, 0);
-        animationApplyPoseWithBlendedRotation(&work->escort0Rig.anim, i, &pose0, &pose1, blend, invBlend);
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(work->escort0Rig.slots); slotIndex++) {
+        work->escort0BlendRig.slots[slotIndex].rate = work->blendRate;
+        work->escort0Rig.slots[slotIndex].rate      = work->animRate - 3;
+        animationTickSlotPose(&work->escort0Rig.anim, slotIndex, &drivingPose, NULL);
+        animationTickSlotPose(&work->escort0BlendRig.anim, slotIndex, &secondaryPose, NULL);
+        animationApplyPoseWithBlendedRotation(&work->escort0Rig.anim, slotIndex, &drivingPose, &secondaryPose, drivingWeight, secondaryWeight);
     }
 
-    for (i = 0; i < 4; i++) {
-        work->escort1BlendRig.slots[i].rate = work->blendRate;
-        work->escort1Rig.slots[i].rate      = work->animRate - 3;
-        animationTickSlotPose(&work->escort1Rig.anim, i, &pose0, 0);
-        animationTickSlotPose(&work->escort1BlendRig.anim, i, &pose1, 0);
-        animationApplyPoseWithBlendedRotation(&work->escort1Rig.anim, i, &pose0, &pose1, blend, invBlend);
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(work->escort1Rig.slots); slotIndex++) {
+        work->escort1BlendRig.slots[slotIndex].rate = work->blendRate;
+        work->escort1Rig.slots[slotIndex].rate      = work->animRate - 3;
+        animationTickSlotPose(&work->escort1Rig.anim, slotIndex, &drivingPose, NULL);
+        animationTickSlotPose(&work->escort1BlendRig.anim, slotIndex, &secondaryPose, NULL);
+        animationApplyPoseWithBlendedRotation(&work->escort1Rig.anim, slotIndex, &drivingPose, &secondaryPose, drivingWeight, secondaryWeight);
     }
 }

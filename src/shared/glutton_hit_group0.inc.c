@@ -54,7 +54,7 @@ void gluttonHitGroup0(Task* arg0)
     id    = _gluttonScanGroup(sc, &work->hits[0]);
 
     if (id != 0) {
-        gluttonHitEffect(work->hits[0].body.coord, id);
+        _gluttonHitEffect(work->hits[0].body.coord, id);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
         param                    = damageGetPlayerAttackHitCooldown(sc->attackKey);
         work->groups6To8Cooldown = param;

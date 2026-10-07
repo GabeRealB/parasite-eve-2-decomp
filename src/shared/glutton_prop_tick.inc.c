@@ -1,14 +1,17 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Per-frame state of the same table: refresh the model's root coordinate. The
-/// world position it then copies into a local is never used.
-void gluttonPropTick(Enemy* enemy, Task* arg1)
+/// Refreshes the composed root coordinate of a Glutton escort model.
+///
+/// The escort task must own a live TMD body and coordinate. The enemy argument
+/// is unused; it is retained for the enemy-state callback signature.
+static void _gluttonPropTick(Enemy* enemy, Task* task)
 {
-    VECTOR sp10;
+    VECTOR worldPosition;
 
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg1->extra.tmd->coords);
-    sp10.vx = arg1->extra.tmd->coords->workm.t[0];
-    sp10.vy = arg1->extra.tmd->coords->workm.t[1];
-    sp10.vz = arg1->extra.tmd->coords->workm.t[2];
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
+    // The original also samples this position, although no later code reads it.
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
 }

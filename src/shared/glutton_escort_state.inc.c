@@ -114,7 +114,7 @@ void gluttonEscortState(Task* arg0)
     v->vz               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     rot                 = arg0->extra.tmd->coords;
     work->neckYawTarget = actorYawTo(rot, v->vx, v->vz);
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if (work->animId == 0x10 && (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->animId   = 0xE;
         work->animStep = GLUTTON_ANIM_STEP_BLEND;

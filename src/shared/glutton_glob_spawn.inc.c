@@ -75,6 +75,6 @@ void gluttonGlobSpawn(Enemy* enemy, Task* task)
     work->stateTicks   = 0;
     work->playerCaught = 0;
 
-    gluttonShrinkRotation(task->extra.tmd->coords);
+    _actorRenderRescaleYawHalf(task->extra.tmd->coords);
     task->state++;
 }

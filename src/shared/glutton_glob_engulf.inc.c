@@ -42,11 +42,11 @@ void gluttonGlobEngulf(Enemy* enemy, Task* task)
     if (step < 10) {
         scale  = step * 0x190 + 0x800;
         shrink = 0x800 / step;
-        gluttonScaleRotation(task->extra.tmd->coords, scale, shrink);
+        _actorRenderRescaleYawXZ(task->extra.tmd->coords, scale, shrink);
     }
 
     if (work->stateTicks == 7) {
-        gluttonScaleRotation(task->extra.tmd->coords, 0x17A0, 0x800);
+        _actorRenderRescaleYawXZ(task->extra.tmd->coords, 0x17A0, 0x800);
 
         gap.vx = task->extra.tmd->coords->coord.t[0] -
                  player->extra.tmd->coords->coord.t[0];

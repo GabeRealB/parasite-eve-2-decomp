@@ -22,6 +22,7 @@
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -3057,7 +3058,7 @@ void func_actor_444000_801327E8(s16 action)
 /// rotation, normalised and GPF-scaled) and flag it for rebuild. The direction
 /// vector lives in an `SVECTOR` carved off the scratch stack and handed straight
 /// back; written as an inline so those scratch-head accesses stay absolute, the
-/// same reason as `gluttonShrinkRotation` above.
+/// same reason as `_actorRenderRescaleYawHalf` above.
 static __inline__ void Actor444000_StepForward(GfxCoord* coord)
 {
     u8*      head;
@@ -3133,7 +3134,7 @@ static void func_actor_444000_8013482C(Task* task)
         mat->rotationWords.m22        = ONE;
     }
 
-    gluttonTickAnim(task);
+    _gluttonTickAnim(task);
 
     frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x12 && work->clip.prevSlot2Cue != frame) {
@@ -3295,7 +3296,7 @@ static void func_actor_444000_8013482C(Task* task)
 
 /// Rebuild `coord`'s rotation around the yaw it already faces, left at full
 /// width but scaled by `y` vertically -- the squash the death sequence retracts
-/// each body with. The same shape as `gluttonScaleRotation` below, except
+/// each body with. The same shape as `_actorRenderRescaleYawXZ` below, except
 /// the vertical scale arrives as an `s16`, which is what puts its sign
 /// extension at the `scale.vy` store rather than at the call site. The working
 /// matrix lives in a frame carved off the scratch stack, handed back once the
@@ -3389,7 +3390,7 @@ static void func_actor_444000_80135448(Task* task)
         work->animStep                = GLUTTON_ANIM_STEP_BLEND;
         work->neckPitchTarget         = 0;
 
-        gluttonTickAnim(task);
+        _gluttonTickAnim(task);
 
         gGameSession->location.loc.variant = 3;
         id                                 = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54280007;
@@ -3400,7 +3401,7 @@ static void func_actor_444000_80135448(Task* task)
 
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->stateTicks = 0;
-        gluttonTickAnim(task);
+        _gluttonTickAnim(task);
     }
 
     if (!(work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
@@ -3408,7 +3409,7 @@ static void func_actor_444000_80135448(Task* task)
             gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         }
 
-        gluttonTickAnim(task);
+        _gluttonTickAnim(task);
 
         frame = work->hostRig.slots[3].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
         if (frame == 0x33 && work->prevSlot3Cue != frame) {
@@ -3840,7 +3841,7 @@ static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
 static const EnemyTaskFuncTable3 gGluttonPropStates = {
     {
         gluttonPropSetup,
-        gluttonPropTick,
+        _gluttonPropTick,
         enemyDestroy,
     },
 };
@@ -3849,7 +3850,7 @@ static const EnemyTaskFuncTable3 gGluttonPropStates = {
 static const EnemyTaskFuncTable3 gGluttonThrowStates = {
     {
         gluttonThrowSpawn,
-        gluttonThrowFly,
+        _gluttonThrowFly,
         enemyDestroy,
     },
 };
@@ -3859,9 +3860,9 @@ static const EnemyTaskFuncTable3 gGluttonThrowStates = {
 static const EnemyTaskFuncTable5 gGluttonGlobStates = {
     {
         gluttonGlobSpawn,
-        gluttonGlobFall,
+        _gluttonGlobFall,
         gluttonGlobEngulf,
-        gluttonGlobHold,
+        _gluttonGlobHold,
         enemyDestroy,
     },
 };
@@ -3900,8 +3901,8 @@ static const EnemyTaskFuncTable5 gGluttonRainStates = {
 /// State handlers of the spinner enemy: spawn, hidden wait, chase and teardown.
 static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
     {
-        gluttonSpinnerSpawn,
-        gluttonSpinnerWait,
+        _gluttonSpinnerSpawn,
+        _gluttonSpinnerWait,
         gluttonSpinnerChase,
         enemyDestroy,
     },
@@ -4091,11 +4092,11 @@ s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg, s32 arg
             case 1:
                 work->animId   = 0xA;
                 work->animStep = GLUTTON_ANIM_STEP_RESTART;
-                gluttonTickAnim(task);
-                gluttonTickAnim(task);
-                gluttonTickAnim(task);
+                _gluttonTickAnim(task);
+                _gluttonTickAnim(task);
+                _gluttonTickAnim(task);
                 work->animRate = 1;
-                gluttonTickAnim(task);
+                _gluttonTickAnim(task);
                 work->animRate                        = 0x10;
                 task->extra.tmd->coords->coord.t[0]   = -0xBB8;
                 task->extra.tmd->coords->coord.t[1]   = 0;
@@ -4475,7 +4476,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     } else {
         worldCoordUpdateActorColor(work->escorts[3], &pos, 0, 0);
     }
-    gluttonTickAnim(task);
+    _gluttonTickAnim(task);
 
     D_actor_444000_80161888.command.context.loc.stage = 0;
     D_actor_444000_80161888.command.context.loc.area  = 0x2C;
@@ -4583,7 +4584,7 @@ found2:
     if (id != 0) {
         coord = work->hits[4].body.coord;
     hit:
-        gluttonHitEffect(coord, id);
+        _gluttonHitEffect(coord, id);
         if (sc->attackKey != 0) {
             goto body;
         }
@@ -4610,7 +4611,7 @@ found3:
     if (id == 0) {
         goto out;
     }
-    gluttonHitEffect(work->hits[5].body.coord, id);
+    _gluttonHitEffect(work->hits[5].body.coord, id);
     if (sc->attackKey == 0) {
         goto out;
     }
@@ -4713,10 +4714,10 @@ static void func_actor_444000_8013D810(Task* arg0)
         work->animStep   = GLUTTON_ANIM_STEP_RESTART;
         work->stateTicks = 0;
         work->animRate   = 0x10;
-        gluttonTickAnim(arg0);
+        _gluttonTickAnim(arg0);
     } else {
         if (work->stateTicks < 0xA) {
-            gluttonTickAnim(arg0);
+            _gluttonTickAnim(arg0);
         }
         if (work->stateTicks == 2) {
             dying = arg0->work;
@@ -4801,7 +4802,7 @@ static void func_actor_444000_8013D96C(Task* arg0)
         work->neckYawEnabled   = 0;
     }
 
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     Actor444000_FlattenRotation(work->escorts[2]->task->extra.tmd->coords, 0);
     work->escorts[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4925,7 +4926,7 @@ static void func_actor_444000_8013E058(Task* task)
         coord->coord.t[1]                      = 0;
         slot3->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    gluttonTickAnim(task);
+    _gluttonTickAnim(task);
 
     cfg           = &gPlayerStatus;
     facing        = task->extra.tmd->coords;
@@ -5304,7 +5305,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_actor_444000_80161888.command, ACTOR_COMMAND_MESSAGE_APPLY);
     } else {
         sc = SCRATCH_STACK_RESERVE_BLOCK(_Actor444000CatchScratch);
-        gluttonTickAnim(arg0);
+        _gluttonTickAnim(arg0);
 
         if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0xF) {
             work->animStep = GLUTTON_ANIM_STEP_RESTART;
@@ -5581,7 +5582,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
         gGluttonLimbReach = (u16)gGluttonLimbReach + 0x258;
     }
 
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     if (_actor444000HasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
         target                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -5780,7 +5781,7 @@ static void func_actor_444000_801404C0(Task* arg0)
         }
     }
 
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = 0xA;
@@ -5870,7 +5871,7 @@ static void func_actor_444000_80140BBC(Task* arg0)
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -5925,7 +5926,7 @@ static void func_actor_444000_80140E28(Task* arg0)
         work->neckPitchEnabled = 0;
         work->neckYawEnabled   = 0;
         for (k = 0; k < work->collapseSkip / 8; k++) {
-            gluttonTickAnim(arg0);
+            _gluttonTickAnim(arg0);
         }
         work->animRate = 0x10;
         sndEvtRequestScriptStop((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -5933,7 +5934,7 @@ static void func_actor_444000_80140E28(Task* arg0)
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     frame                                 = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if (frame == 0x1C && work->clip.prevSlot2Cue != frame) {
@@ -5980,7 +5981,7 @@ static void func_actor_444000_8014105C(Task* arg0)
         work->limbPose    = 0;
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = 0xA;
     }
@@ -6043,7 +6044,7 @@ static void func_actor_444000_801411C8(Task* arg0)
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
         work->limbPose    = 0;
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
 
     if (work->attackDelay > 0) {
         work->attackDelay = work->attackDelay - 1;
@@ -6195,7 +6196,7 @@ static void func_actor_444000_80141618(Task* task)
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
     }
-    gluttonTickAnim(task);
+    _gluttonTickAnim(task);
     if (work->animId == 0x13 && (frame = work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 4 && frame < 0xD) {
         work->hostExposed = 1;
     } else {
@@ -6211,7 +6212,7 @@ static void func_actor_444000_80141618(Task* task)
         work->animId   = 1;
         work->animStep = GLUTTON_ANIM_STEP_BLEND;
         work->animRate = 0x10;
-        gluttonTickAnim(task);
+        _gluttonTickAnim(task);
     }
     if (work->stateTicks >= 0x14B || (work->animId == 1 && work->summonsAlive == 0)) {
         work->state = 3;
@@ -6929,7 +6930,7 @@ static void func_actor_444000_801434C4(Task* arg0)
         work->escorts[1]->task->extra.tmd->otOffset = 2;
         shelterB3GarbageIncineratorSetLiftCollisionWalls();
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     tick = work->stateTicks;
     if (tick % 60 == 0) {
         if (tick % 120 == 0) {
@@ -6968,7 +6969,7 @@ static void func_actor_444000_801435CC(Task* arg0)
         pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
-    gluttonTickAnim(arg0);
+    _gluttonTickAnim(arg0);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = 9;
     }
@@ -7065,7 +7066,7 @@ s32 func_actor_444000_80143F38(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
 /// Reset handler: when the work block is asking for a reset, stop the enemy's
 /// own model drawing and push that same flag word onto each of the seven
 /// escorts' models, then clear `neckPitchEnabled` and `neckYawEnabled`. Otherwise just run
-/// the ordinary re-arm in `gluttonTickAnim`.
+/// the ordinary re-arm in `_gluttonTickAnim`.
 static void func_actor_444000_80143F4C(Task* arg0)
 {
     GluttonWork* work;
@@ -7086,6 +7087,6 @@ static void func_actor_444000_80143F4C(Task* arg0)
         work->neckPitchEnabled = 0;
         work->neckYawEnabled   = 0;
     } else {
-        gluttonTickAnim(arg0);
+        _gluttonTickAnim(arg0);
     }
 }

@@ -1,44 +1,50 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Walk the pitch `neckPitch` toward `arg1` (clamped to 0..0x500) by at most
-/// 0x10 per call, then pitch model parts 3 and 4 about x: part 3 to half of
-/// it, part 4 against it, each net of the pitch it already has.
-void gluttonPitchNeck(Task* task, s16 arg1)
+/// Moves the neck toward a target pitch and applies it to the two neck parts.
+///
+/// `pitchTarget` uses 4096 angle units per turn, clamped to 0..0x500. The stored
+/// pitch closes by at most 0x10 per call. Host parts 3 and 4 must be live; their
+/// local X rotations become half the pitch and its negation respectively,
+/// relative to the current animation pose. Both composition caches are dirtied.
+static void _gluttonPitchNeck(Task* task, s16 pitchTarget)
 {
+    enum { GLUTTON_NECK_PITCH_LIMIT = 0x500,
+           GLUTTON_NECK_PITCH_STEP  = 0x10 };
     GluttonWork* work = task->work;
-    s16          value;
-    s16          pitch4;
-    s16          pitch3;
+    s16          clampedPitch;
+    s16          tipPitch;
+    s16          basePitch;
 
-    value = arg1;
-    if (arg1 > 0x500) {
-        value = 0x500;
+    clampedPitch = pitchTarget;
+    if (pitchTarget > GLUTTON_NECK_PITCH_LIMIT) {
+        clampedPitch = GLUTTON_NECK_PITCH_LIMIT;
     }
-    if (arg1 < 0) {
-        value = 0;
+    if (pitchTarget < 0) {
+        clampedPitch = 0;
     }
 
-    if (work->neckPitch < value) {
-        if (value - work->neckPitch >= 0x11) {
-            work->neckPitch = work->neckPitch + 0x10;
+    if (work->neckPitch < clampedPitch) {
+        if (clampedPitch - work->neckPitch >= GLUTTON_NECK_PITCH_STEP + 1) {
+            work->neckPitch = work->neckPitch + GLUTTON_NECK_PITCH_STEP;
         } else {
-            work->neckPitch = value;
+            work->neckPitch = clampedPitch;
         }
-    } else if (value < work->neckPitch) {
-        if (abs(work->neckPitch - value) >= 0x11) {
-            work->neckPitch = work->neckPitch - 0x10;
+    } else if (clampedPitch < work->neckPitch) {
+        if (abs(work->neckPitch - clampedPitch) >= GLUTTON_NECK_PITCH_STEP + 1) {
+            work->neckPitch = work->neckPitch - GLUTTON_NECK_PITCH_STEP;
         } else {
-            work->neckPitch = value;
+            work->neckPitch = clampedPitch;
         }
     }
 
-    pitch4 = -ratan2(task->extra.tmd->coords[4].coord.m[1][2],
-                     task->extra.tmd->coords[4].coord.m[2][2]);
-    pitch3 = -ratan2(task->extra.tmd->coords[3].coord.m[1][2],
-                     task->extra.tmd->coords[3].coord.m[2][2]);
+    // Replace the animated X pitches without disturbing the other axes.
+    tipPitch  = -ratan2(task->extra.tmd->coords[4].coord.m[1][2],
+                        task->extra.tmd->coords[4].coord.m[2][2]);
+    basePitch = -ratan2(task->extra.tmd->coords[3].coord.m[1][2],
+                        task->extra.tmd->coords[3].coord.m[2][2]);
 
-    gfxRotMatrixX(&task->extra.tmd->coords[3].coord, work->neckPitch / 2 - pitch3, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[3].coord, work->neckPitch / 2 - basePitch, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    gfxRotMatrixX(&task->extra.tmd->coords[4].coord, -work->neckPitch - pitch4, GRAPHICS_ROTATION_COMPOSE);
+    gfxRotMatrixX(&task->extra.tmd->coords[4].coord, -work->neckPitch - tipPitch, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
 }

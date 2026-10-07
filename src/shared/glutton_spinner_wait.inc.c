@@ -1,19 +1,20 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Waiting state of the spinner enemy (`D_actor_444000_80131F30`): hand the
-/// enemy back to `enemyDestroy` once `gGluttonEnded` is set;
-/// otherwise keep the model's flag word cleared, so it is not drawn, and step
-/// the task on once `gGluttonSpinnersReleased` is 1.
-void gluttonSpinnerWait(Enemy* arg0, Task* arg1)
+/// Keeps a spinner visible on the floor until the boss releases the set.
+///
+/// Requires the spinner's live TMD body. Release advances its task to the chase
+/// state; fight end destroys the enemy. Clearing the model flags enables normal
+/// drawing, including on the tick the state advances.
+static void _gluttonSpinnerWait(Enemy* enemy, Task* task)
 {
     if (gGluttonEnded == 1) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
 
     if (gGluttonSpinnersReleased == 1) {
-        arg1->state++;
+        task->state++;
     }
 
-    arg1->extra.tmd->flags = 0;
+    task->extra.tmd->flags = 0;
 }

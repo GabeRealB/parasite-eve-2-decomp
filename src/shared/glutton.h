@@ -9,7 +9,7 @@
  * installing a caught animation on the player; debris chunks from the owner's
  * part 3 that drop, slide and settle with smoke puffs; blobs launched high
  * off-screen that rain onto points on a ring around the host and splat flat;
- * and spinners that wait hidden, then spiral toward a target point. A shared
+ * and spinners that wait on the floor, then spiral toward a target point. A shared
  * end flag makes every sub-enemy tear itself down when the fight ends. It uses
  * _actorRenderYawJointInWorld and _actorContactApplyGridPushback from the existing
  * actor_contacts library.
@@ -386,37 +386,37 @@ typedef struct {
 } GluttonWork;
 STATIC_ASSERT_SIZEOF(GluttonWork, 0xF24);
 
-void gluttonBuildWall(Task* task, s16 scale, s16 drop, s16 index);
-void gluttonPoseLimb(Task* task);
-void gluttonTurnNeck(Task* task, s16 arg1);
-void gluttonPitchNeck(Task* task, s16 arg1);
-void gluttonSeedBlend(Task* task);
-void gluttonSwitchAnim(Task* arg0);
-void gluttonTickBlended(Task* arg0);
-void gluttonTickAnim(Task* arg0);
-void gluttonHitEffect(GfxCoord* coord, s32 id);
-void gluttonThrowSpawn(Enemy* enemy, Task* task);
-void gluttonThrowFly(Enemy* enemy, Task* task);
-void gluttonGlobSpawn(Enemy* enemy, Task* task);
-void gluttonGlobFall(Enemy* enemy, Task* task);
-void gluttonGlobEngulf(Enemy* enemy, Task* task);
-void gluttonGlobHold(Enemy* enemy, Task* task);
-void gluttonChunkSpawn(Enemy* enemy, Task* task);
-void gluttonChunkFall(Enemy* enemy, Task* task);
-void gluttonChunkSettle(Enemy* enemy, Task* task);
-void gluttonRainSpawn(Enemy* enemy, Task* task);
-void gluttonRainRise(Enemy* enemy, Task* task);
-void gluttonRainFall(Enemy* enemy, Task* task);
-void gluttonRainSplat(Enemy* enemy, Task* task);
-void gluttonSpinnerSpawn(Enemy* enemy, Task* task);
-void gluttonSpinnerChase(Enemy* enemy, Task* task);
-void gluttonExit(Task* arg0);
-void gluttonPropSetup(Enemy* enemy, Task* task);
-void gluttonPropTick(Enemy* enemy, Task* arg1);
-void gluttonSpinnerWait(Enemy* arg0, Task* arg1);
+void        gluttonBuildWall(Task* task, s16 scale, s16 drop, s16 index);
+static void _gluttonPoseLimb(Task* task);
+static void _gluttonTurnNeck(Task* task, s16 yawTarget);
+static void _gluttonPitchNeck(Task* task, s16 pitchTarget);
+static void _gluttonSeedBlend(Task* task);
+static void _gluttonSwitchAnim(Task* task);
+static void _gluttonTickBlended(Task* task);
+static void _gluttonTickAnim(Task* task);
+static void _gluttonHitEffect(GfxCoord* coord, s32 attackKey);
+void        gluttonThrowSpawn(Enemy* enemy, Task* task);
+static void _gluttonThrowFly(Enemy* enemy, Task* task);
+void        gluttonGlobSpawn(Enemy* enemy, Task* task);
+static void _gluttonGlobFall(Enemy* enemy, Task* task);
+void        gluttonGlobEngulf(Enemy* enemy, Task* task);
+static void _gluttonGlobHold(Enemy* enemy, Task* task);
+void        gluttonChunkSpawn(Enemy* enemy, Task* task);
+void        gluttonChunkFall(Enemy* enemy, Task* task);
+void        gluttonChunkSettle(Enemy* enemy, Task* task);
+void        gluttonRainSpawn(Enemy* enemy, Task* task);
+void        gluttonRainRise(Enemy* enemy, Task* task);
+void        gluttonRainFall(Enemy* enemy, Task* task);
+void        gluttonRainSplat(Enemy* enemy, Task* task);
+static void _gluttonSpinnerSpawn(Enemy* enemy, Task* task);
+void        gluttonSpinnerChase(Enemy* enemy, Task* task);
+void        gluttonExit(Task* arg0);
+void        gluttonPropSetup(Enemy* enemy, Task* task);
+static void _gluttonPropTick(Enemy* enemy, Task* task);
+static void _gluttonSpinnerWait(Enemy* enemy, Task* task);
 
-static inline void gluttonShrinkRotation(GfxCoord* coord);
-static inline void gluttonScaleRotation(GfxCoord* coord, s16 xz, s32 y);
+static inline void _actorRenderRescaleYawHalf(GfxCoord* coord);
+static inline void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalScale, s32 verticalScale);
 static inline void gluttonGapToCamera(GfxCoord* coord, SVECTOR* out);
 
 void gluttonGlobTask(Task* arg0);
