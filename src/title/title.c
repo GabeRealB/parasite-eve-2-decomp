@@ -303,7 +303,7 @@ static void Title_MenuTask(Task* task)
             Wip_SysFlags.skipTitleIntro = 0;
             if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_1) {
                 taskCallExit(task);
-                gDisplayState.demoScene = GameMain_GetResetCount() + 2;
+                gDisplayState.demoScene = gameMainGetInitializationCount() + 2;
                 gDisplayState.demoScene = gDisplayState.demoScene % 3 + 1;
                 printf(Title_DemoStartMsg);
                 taskSpawn(0, 3, 2, 0);
@@ -548,8 +548,8 @@ void Title_DemoStreamTask(Task* task)
             break;
         case 6:
             streamResetGameRestore();
-            Display_LoadImageStrips(gDisplayState.drawBuffer);
-            Display_LoadImageStrips(gDisplayState.drawBuffer ^ 1);
+            displayUploadBackgroundImage(gDisplayState.drawBuffer);
+            displayUploadBackgroundImage(gDisplayState.drawBuffer ^ 1);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
             task->state++;
             break;

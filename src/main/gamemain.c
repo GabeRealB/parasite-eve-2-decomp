@@ -8,7 +8,7 @@
 #include <psyq/libetc.h>
 #include <psyq/libgs.h>
 
-#include "types.h"
+#include "common.h"
 
 #include "boot.h"
 #include "cdaudio.h"
@@ -36,16 +36,6 @@
 #include "text.h"
 #include "main/tmd.h"
 #include "main/wipsys_types.h"
-
-enum {
-    DISPLAY_BACKGROUND_WIDTH           = 320,
-    DISPLAY_BACKGROUND_HEIGHT          = 240,
-    DISPLAY_BACKGROUND_BUFFER_STRIDE   = 272,
-    DISPLAY_BACKGROUND_ROW_BYTES       = 640,
-    DISPLAY_BACKGROUND_STRIP_WIDTH     = 16,
-    DISPLAY_BACKGROUND_STRIP_ROW_BYTES = 32,
-    DISPLAY_BACKGROUND_STRIP_COUNT     = 20U,
-};
 
 #define GameResetScratchHead() *SCRATCH_STACK_CURSOR_SLOT = SCRATCH_STACK_CURSOR_SLOT
 
@@ -105,10 +95,7 @@ static const u8 GameMain_PauseText[];
 
 static void GameMain_Init(void);
 
-/// Puts buffer `buf`'s draw and display environments, uploads the image the
-/// flip wants in it, and draws that buffer's ordering table unless drawing is
-/// suppressed.
-static inline void _displayPresentFrame(s32 buf);
+static inline void _displayPresentFrame(s32 bufferIndex);
 
 /// VSync callback: timed flip / strip load / audio tick (gamemain.c).
 static void Display_VSyncCallback(void);
@@ -120,11 +107,7 @@ static inline s32 _gameMainPauseBlocked(void);
 
 static void GameMain_ShowLoading(s32 arg0);
 
-/// Holds the frame back until the stream's timing table allows it: while the
-/// table is active, waits until the accumulated time reaches the current entry,
-/// adds this frame's time and advances the cursor (skipping -1 entries, stopping
-/// at 0). Returns the frame's elapsed time, remeasured if it waited.
-static inline s32 _gameMainPaceToStream(s32 start, s32 elapsed);
+static inline s32 _gameMainPaceToSceneTiming(s32 frameStartLines, s32 elapsedLines);
 
 static void GameMain_Loop(void);
 
@@ -132,7 +115,7 @@ static void Gfx_InitGraph(void);
 
 static void GameMain_SpawnBootTask(void);
 
-static void Display_PutEnvAndDraw(s32 arg0);
+static void _displayPresentGameFrame(s32 bufferIndex);
 
 static u32   D_8005EC64          = 0;
 s32          D_8005EC68          = 0;
@@ -195,18 +178,19 @@ static void GameMain_Init(void)
     memFillBytes(Pad_RemapState, 0, sizeof(*Pad_RemapState));
 }
 
-void Display_FlipDraw(s32 bufferIndex)
+void displayPresentTaskFrame(s32 bufferIndex)
 {
-    s32 mode;
+    s32 flipMode;
     u8  savedDrawBuffer;
 
-    mode = D_80070E38 & DISPLAY_FLIP_MODE_MASK;
-    if (mode != DISPLAY_FLIP_HOLD) {
+    flipMode = D_80070E38 & DISPLAY_FLIP_MODE_MASK;
+    if (flipMode != DISPLAY_FLIP_HOLD) {
         PutDrawEnv(&gDisplayState.drawEnv[bufferIndex]);
         PutDispEnv(&gDisplayState.dispEnv[bufferIndex]);
-        if (mode == DISPLAY_FLIP_FULL) {
+        if (flipMode == DISPLAY_FLIP_FULL) {
             if (D_8006EC30 != DISPLAY_IMAGE_NONE) {
-                Display_LoadImageStrips(bufferIndex);
+                displayUploadBackgroundImage(bufferIndex);
+                // Place the movie in this buffer, then restore the drawing tasks' selector.
                 savedDrawBuffer          = gDisplayState.drawBuffer;
                 gDisplayState.drawBuffer = bufferIndex;
                 streamPresentMovieFrame();
@@ -214,29 +198,33 @@ void Display_FlipDraw(s32 bufferIndex)
             }
             DrawOTag((u_long*)Gpu_OtBuffers[gDisplayState.otBuffer].tag);
         } else if (D_8006EC30 == DISPLAY_IMAGE_TRANSITION_STRIPS) {
-            Display_LoadImageStrips(bufferIndex);
+            displayUploadBackgroundImage(bufferIndex);
         } else if (D_8006EC30 == DISPLAY_IMAGE_ROOM_SLOT) {
             gfxRestoreAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, bufferIndex);
         }
+        // The snapshot is read as a signed byte; keep its high-bit behavior.
         if ((s8)D_80070E38 < DISPLAY_FLIP_SKIP_TASK_OT) {
-            DrawOTag(Gpu_OrderingTables[bufferIndex].tag);
+            DrawOTag((u_long*)Gpu_OrderingTables[bufferIndex].tag);
         }
     }
 }
 
-/// Puts buffer `buf`'s draw and display environments, uploads the image the
-/// flip wants in it, and draws that buffer's ordering table unless drawing is
-/// suppressed.
-static inline void _displayPresentFrame(s32 buf)
+/// Presents one game-loop framebuffer and its resident ordering table.
+///
+/// `bufferIndex` is 0 or 1 and must also be the current `drawBuffer` for movie
+/// placement. Apply its environments, upload the selected background and any
+/// available movie, then submit its OT unless `skipDraw` is nonzero. GPU users
+/// of reused buffers must have finished; image/movie storage must survive transfer.
+static inline void _displayPresentFrame(s32 bufferIndex)
 {
-    PutDrawEnv(&gDisplayState.drawEnv[buf]);
-    PutDispEnv(&gDisplayState.dispEnv[buf]);
+    PutDrawEnv(&gDisplayState.drawEnv[bufferIndex]);
+    PutDispEnv(&gDisplayState.dispEnv[bufferIndex]);
     if (gDisplayState.control.flags.imageSource != DISPLAY_IMAGE_NONE) {
-        Display_LoadImageStrips(buf);
+        displayUploadBackgroundImage(bufferIndex);
     }
     streamPresentMovieFrame();
     if (gDisplayState.skipDraw == 0) {
-        DrawOTag((u_long*)Gpu_OtBuffers[buf].tag);
+        DrawOTag((u_long*)Gpu_OtBuffers[bufferIndex].tag);
     }
 }
 
@@ -252,7 +240,7 @@ static void Display_VSyncCallback(void)
                 _displayPresentFrame(Display_PendingFlip);
                 Display_PendingFlip = -1;
             } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK) {
-                Display_FlipDraw(Display_PendingFlip);
+                displayPresentTaskFrame(Display_PendingFlip);
                 Display_PendingFlip = -1;
             }
         }
@@ -340,32 +328,51 @@ static void GameMain_ShowLoading(s32 arg0)
     }
 }
 
-/// Holds the frame back until the stream's timing table allows it: while the
-/// table is active, waits until the accumulated time reaches the current entry,
-/// adds this frame's time and advances the cursor (skipping -1 entries, stopping
-/// at 0). Returns the frame's elapsed time, remeasured if it waited.
-static inline s32 _gameMainPaceToStream(s32 start, s32 elapsed)
+/// Advances one scene deadline, passing at most one skip marker and retaining zero.
+///
+/// The borrowed timing buffer must contain every word examined by this step.
+static inline void _gameMainAdvanceSceneTimingCursor(CdCmdQueue* queue)
 {
-    CdCmdQueue* q;
-
-    q = &gCdCmdQueue;
-    if (q->paceToSceneTiming != 0) {
-        if (elapsed + q->timingElapsedLines < *q->timingCursor) {
-            while (((VSync(1) - start) & 0x7FFF) + q->timingElapsedLines < *q->timingCursor) {
-            }
-            elapsed                = (VSync(1) - start) & 0x7FFF;
-            q->timingElapsedLines += elapsed;
-        } else {
-            q->timingElapsedLines += elapsed;
-        }
-        if (*q->timingCursor != CD_COMMAND_TIMING_END) {
-            q->timingCursor++;
-            if (*q->timingCursor == CD_COMMAND_TIMING_SKIP) {
-                q->timingCursor++;
-            }
+    if (*queue->timingCursor != CD_COMMAND_TIMING_END) {
+        queue->timingCursor++;
+        if (*queue->timingCursor == CD_COMMAND_TIMING_SKIP) {
+            queue->timingCursor++;
         }
     }
-    return elapsed;
+}
+
+/// Waits for the current scene timing deadline and accounts for this loop's time.
+///
+/// `frameStartLines` is the VSync(1) scanline-counter origin, possibly negative
+/// to compensate for callback time. `elapsedLines` is its already measured
+/// nonnegative difference modulo 32768. Returns that difference, remeasured
+/// after waiting when needed. Inactive scene pacing leaves timing state intact.
+///
+/// Active pacing borrows a readable, aligned u32 timing cursor for this call.
+/// Deadlines count accumulated scanlines; comparisons and accumulation are
+/// unsigned. Advance one deadline, skip at most one following 0xFFFFFFFF word,
+/// and stay on a zero terminator while continuing to accumulate elapsed time.
+/// Each accessed word must fit the scene's live timing reservation. Deadlines
+/// must be reachable before this loop's 15-bit elapsed counter wraps.
+static inline s32 _gameMainPaceToSceneTiming(s32 frameStartLines, s32 elapsedLines)
+{
+    enum { GAME_MAIN_ELAPSED_SCANLINE_MASK = 0x7FFF };
+    CdCmdQueue* queue;
+
+    queue = &gCdCmdQueue;
+    if (queue->paceToSceneTiming != 0) {
+        if (elapsedLines + queue->timingElapsedLines < *queue->timingCursor) {
+            while (((VSync(1) - frameStartLines) & GAME_MAIN_ELAPSED_SCANLINE_MASK) + queue->timingElapsedLines < *queue->timingCursor) {
+            }
+            elapsedLines               = (VSync(1) - frameStartLines) & GAME_MAIN_ELAPSED_SCANLINE_MASK;
+            queue->timingElapsedLines += elapsedLines;
+        } else {
+            queue->timingElapsedLines += elapsedLines;
+        }
+        // Zero terminates advancement, rather than disabling time accounting.
+        _gameMainAdvanceSceneTimingCursor(queue);
+    }
+    return elapsedLines;
 }
 
 static void GameMain_Loop(void)
@@ -451,7 +458,7 @@ static void GameMain_Loop(void)
         }
 
         DrawSync(0);
-        elapsedLines = _gameMainPaceToStream(frameStart, (VSync(1) - frameStart) & 0x7FFF);
+        elapsedLines = _gameMainPaceToSceneTiming(frameStart, (VSync(1) - frameStart) & 0x7FFF);
 
         if (elapsedLines < D_8005EC6C) {
             gDisplayState.vsyncFlag = DISPLAY_VSYNC_GAME;
@@ -515,10 +522,15 @@ void gfxResetView(void)
     gfxSetRotIdentity(&GsWSMATRIX);
 }
 
-void Display_LoadImageStrips(s32 bufferIndex)
+void displayUploadBackgroundImage(s32 bufferIndex)
 {
+    enum {
+        DISPLAY_BACKGROUND_BUFFER_STRIDE    = 272,
+        DISPLAY_BACKGROUND_STRIP_ROW_BYTES  = FILE_SYSTEM_IMAGE_STRIP_WIDTH * 2,
+        DISPLAY_BACKGROUND_STRIP_INDEX_MASK = 0xFFFF,
+    };
     RECT rect;
-    s32  bufferY = bufferIndex;
+    s32  framebufferY = bufferIndex;
     s32  stripIndex;
     s32  sourceRowOffsetBytes;
     s32  stripIndex16;
@@ -534,8 +546,8 @@ void Display_LoadImageStrips(s32 bufferIndex)
                 rect.y = gDisplayState.vramYOffset;
             }
             rect.x = 0;
-            rect.w = DISPLAY_BACKGROUND_WIDTH;
-            rect.h = DISPLAY_BACKGROUND_HEIGHT - gDisplayState.vramYOffset;
+            rect.w = FILE_SYSTEM_IMAGE_WIDTH;
+            rect.h = FILE_SYSTEM_IMAGE_HEIGHT - gDisplayState.vramYOffset;
             LoadImage(&rect, Fs_ImgBuffers->strips[0]);
             return;
         }
@@ -545,34 +557,35 @@ void Display_LoadImageStrips(s32 bufferIndex)
             rect.y = DISPLAY_BACKGROUND_BUFFER_STRIDE;
         }
         rect.x      = 0;
-        rect.w      = DISPLAY_BACKGROUND_WIDTH;
+        rect.w      = FILE_SYSTEM_IMAGE_WIDTH;
         offsetYByte = gDisplayState.vramYOffset;
-        rect.h      = offsetYByte + DISPLAY_BACKGROUND_HEIGHT;
-        LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + ((-offsetYByte) * DISPLAY_BACKGROUND_ROW_BYTES)));
+        rect.h      = offsetYByte + FILE_SYSTEM_IMAGE_HEIGHT;
+        // Contiguous rows span the workspace's nominal column boundaries.
+        LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + ((-offsetYByte) * FILE_SYSTEM_IMAGE_ROW_BYTES)));
         return;
     }
     sourceRowOffsetBytes = 0;
     // Each strip is one 16-pixel column of the image workspace.
     if (gCdCmdQueue.imageLayout == FILE_SYSTEM_IMAGE_STRIPS) {
-        bufferY *= DISPLAY_BACKGROUND_BUFFER_STRIDE;
-        rect.w   = DISPLAY_BACKGROUND_STRIP_WIDTH;
-        offsetY  = gDisplayState.vramYOffset;
-        rect.y   = bufferY;
-        rect.h   = DISPLAY_BACKGROUND_HEIGHT;
+        framebufferY *= DISPLAY_BACKGROUND_BUFFER_STRIDE;
+        rect.w        = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+        offsetY       = gDisplayState.vramYOffset;
+        rect.y        = framebufferY;
+        rect.h        = FILE_SYSTEM_IMAGE_HEIGHT;
         if (offsetY > 0) {
             rect.h -= offsetY;
-            rect.y  = bufferY + offsetY;
+            rect.y  = framebufferY + offsetY;
         } else if (offsetY < 0) {
             sourceRowOffsetBytes = (-offsetY) * DISPLAY_BACKGROUND_STRIP_ROW_BYTES;
-            rect.h               = offsetY + DISPLAY_BACKGROUND_HEIGHT;
+            rect.h               = offsetY + FILE_SYSTEM_IMAGE_HEIGHT;
         }
         stripIndex = 0;
         do {
-            stripIndex16 = stripIndex & 0xFFFF;
-            rect.x       = stripIndex16 * DISPLAY_BACKGROUND_STRIP_WIDTH;
+            stripIndex16 = stripIndex & DISPLAY_BACKGROUND_STRIP_INDEX_MASK;
+            rect.x       = stripIndex16 * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
             LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers->strips[stripIndex16] + sourceRowOffsetBytes));
             stripIndex++;
-        } while ((u32)(stripIndex & 0xFFFF) < DISPLAY_BACKGROUND_STRIP_COUNT);
+        } while ((u32)(stripIndex & DISPLAY_BACKGROUND_STRIP_INDEX_MASK) < (u32)ARRAY_SIZE(Fs_ImgBuffers->strips));
     }
 }
 
@@ -652,17 +665,13 @@ static void GameMain_SpawnBootTask(void)
     }
 }
 
-static void Display_PutEnvAndDraw(s32 arg0)
+/// Standalone game-frame presenter retained in the resident image.
+///
+/// Follows `_displayPresentFrame`'s buffer and transfer-lifetime contract.
+/// No current code calls this entry; it shares the inline presenter's behavior.
+static void _displayPresentGameFrame(s32 bufferIndex)
 {
-    PutDrawEnv(&gDisplayState.drawEnv[arg0]);
-    PutDispEnv(&gDisplayState.dispEnv[arg0]);
-    if (gDisplayState.control.flags.imageSource != DISPLAY_IMAGE_NONE) {
-        Display_LoadImageStrips(arg0);
-    }
-    streamPresentMovieFrame();
-    if (gDisplayState.skipDraw == 0) {
-        DrawOTag((u_long*)Gpu_OtBuffers[arg0].tag);
-    }
+    _displayPresentFrame(bufferIndex);
 }
 
 // TODO
@@ -681,7 +690,7 @@ void GameMain(void)
     GameMain_Loop();
 }
 
-u32 GameMain_GetResetCount(void)
+u32 gameMainGetInitializationCount(void)
 {
     return D_8005EC64;
 }

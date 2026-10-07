@@ -62,8 +62,20 @@ s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3);
 
 s32 Display_DispatchModeId(s32 arg0);
 
-/// Put draw/disp env and optionally transfer framebuffer strips (gamemain.c).
-void Display_FlipDraw(s32 bufferIndex);
+/// Presents a task-owned framebuffer using the queued flip and image policy.
+///
+/// `bufferIndex` selects buffer 0 or 1 with prepared environments and task OT.
+/// The scheduling path must snapshot its flip and image controls before calling;
+/// the VSync callback also uses those snapshots. Hold mode makes no GPU calls.
+/// Full mode restores the background and movie when the image source is nonzero,
+/// draws the current game OT, then the task OT. Other modes restore only
+/// transition strips or the captured room slot before the task OT. The signed
+/// flip byte suppresses the task OT for values 0x10..0x7F; values 0x80..0xFF
+/// still draw it unless the low nibble selects hold.
+///
+/// Previous GPU users of reused storage must have finished; borrowed image,
+/// movie and primitive storage must remain valid through transfer and drawing.
+void displayPresentTaskFrame(s32 bufferIndex);
 
 /// Selects the image-memory primitive reservation for task-owned drawing.
 ///

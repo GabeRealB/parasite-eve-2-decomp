@@ -631,19 +631,19 @@ _spu_Fw1ts                  = 0x8002716C;
 //--- PA: 0x179D4   VA: 0x800271D4   subsegment: c, gamemain
 //--------------------------------------------------------------------
 GameMain_Init               = 0x800271D4; // type:func
-Display_FlipDraw               = 0x8002731C; // type:func
+displayPresentTaskFrame               = 0x8002731C; // type:func
 Display_VSyncCallback               = 0x80027498; // type:func
 GameMain_ShowLoading               = 0x8002764C; // type:func
 GameMain_Loop               = 0x8002785C; // type:func
 gfxResetView               = 0x80027E7C; // type:func
-Display_LoadImageStrips               = 0x80027F48; // type:func
+displayUploadBackgroundImage               = 0x80027F48; // type:func
 displaySetFrameTiming               = 0x800280F4; // type:func
 gpuClearFrameOrderingTable            = 0x80028180; // type:func
 Gfx_InitGraph               = 0x800281D4; // type:func
 GameMain_SpawnBootTask               = 0x80028290; // type:func
-Display_PutEnvAndDraw               = 0x800282D8; // type:func
+_displayPresentGameFrame               = 0x800282D8; // type:func
 GameMain                    = 0x8002838C; // type:func
-GameMain_GetResetCount               = 0x80028404; // type:func
+gameMainGetInitializationCount               = 0x80028404; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x18C14   VA: 0x80028414   subsegment: o, libgs/gs_123

@@ -283,11 +283,19 @@ Task* displayQueueModeTask(TaskDesc* descriptor, s32 spawnArg1, TaskSpawnArg spa
 /// steps after the desired image-memory region has been selected.
 void gpuResetAndInvalidateModelBuffers(void);
 
-/// Upload the room background into buffer 0 or 1, cropped by the applied shake.
+/// Uploads the decoded background into one 240-line framebuffer.
 ///
-/// The CD loader selects a contiguous 320x240 image or twenty 16x240 strips.
-/// Source offsets are bytes and remain word-aligned for the GPU transfer.
-void Display_LoadImageStrips(s32 bufferIndex);
+/// `bufferIndex` must be 0 or 1, selecting VRAM y=0 or y=272. The CD loader
+/// supplies a complete 320x240 RGB16 image in `Fs_ImgBuffers`, either contiguous
+/// rows or twenty 16x240 columns, selected by its image-layout field. Other
+/// layouts issue no transfer. This fixed geometry is independent of display mode.
+///
+/// The applied signed-byte shake moves the destination down for positive offsets
+/// and skips source rows for negative offsets, cropping the height to stay within
+/// the image. Normal requests are clamped to -8..8. Byte offsets remain word
+/// aligned. The decoded workspace must stay readable through GPU transfer;
+/// the call borrows it without allocating, clearing it or changing its layout.
+void displayUploadBackgroundImage(s32 bufferIndex);
 
 /// Returns presentation to the game loop using the current session's image-memory layout.
 ///

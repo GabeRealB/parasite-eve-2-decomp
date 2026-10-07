@@ -8422,7 +8422,7 @@ volatile `_gCdAudioState` matches.
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
 `Display_FrameFlipDraw` writes them (copies of `gDisplayState.control.flags.imageSource` /
-`gDisplayState.control.flags.flipMode`) and the VSync callback `Display_VSyncCallback` → `Display_FlipDraw` reads
+`gDisplayState.control.flags.flipMode`) and the VSync callback `Display_VSyncCallback` → `displayPresentTaskFrame` reads
 them. Without `volatile`:
 
 - successive `if (D_8006EC30 == …)` arms CSE the load (target reloads via a
@@ -8430,9 +8430,9 @@ them. Without `volatile`:
 - `(s8)D_80070E38 < 0x10` collapses to a single `lb` instead of
   `lbu` + `sll 24` + `sra 24`.
 
-**Writer/reader conflict on the same global.** The reader (`Display_FlipDraw`)
+**Writer/reader conflict on the same global.** The reader (`displayPresentTaskFrame`)
 needs `D_8006EC30` volatile, but the writer (`Display_FrameFlipDraw`) must put the
-store in the `jal ExitCriticalSection` / `jal Display_FlipDraw` delay slot.
+store in the `jal ExitCriticalSection` / `jal displayPresentTaskFrame` delay slot.
 Keep the global `volatile` and store through a non-volatile lvalue:
 
 ```c
@@ -12847,13 +12847,13 @@ and emits `addiu a0, a0, 0x48` / `addiu a0, s2, 0x20` instead — correct
 offsets, wrong CSE (~85%). Write the accesses by name:
 
 ```c
-PutDrawEnv(&gDisplayState.drawEnv[arg0]);
-PutDispEnv(&gDisplayState.dispEnv[arg0]);
+PutDrawEnv(&gDisplayState.drawEnv[bufferIndex]);
+PutDispEnv(&gDisplayState.dispEnv[bufferIndex]);
 if (gDisplayState.control.flags.imageSource != 0) { ... }
 if (gDisplayState.skipDraw == 0) { ... }
 ```
 
-`Display_PutEnvAndDraw` is the pure example.
+`_displayPresentGameFrame` is the pure example.
 
 ## `byte` is signed — cast to `u8` for `lbu`
 
@@ -19735,7 +19735,7 @@ rect.h = 0xF0 - field;
 LoadImage(&rect, Fs_ImgBuffers);
 ```
 
-`rect.w` then `rect.x` produces `addiu` first. `Display_LoadImageStrips` is the pure
+`rect.w` then `rect.x` produces `addiu` first. `displayUploadBackgroundImage` is the pure
 example — only that swap separated 99.4% from 100%.
 
 ## GTE LZC: compute store address after the latency nops
@@ -23601,9 +23601,9 @@ Related delay-slot / pin patterns used on the same function (exit + menu):
 asm volatile("" ::: "a0");
 taskCallExit(s4);
 
-/* GetResetCount result stays in v0; first demoScene store survives CSE */
+/* gameMainGetInitializationCount result stays in v0; first demoScene store survives CSE */
 register u32 v0 asm("v0");
-v0 = GameMain_GetResetCount();
+v0 = gameMainGetInitializationCount();
 ds = &gDisplayState;
 asm("" : "+r"(v0), "+r"(ds));
 v0 = v0 + 2;

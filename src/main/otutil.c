@@ -118,7 +118,7 @@ s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
         if (Display_PendingFlip != noPendingFlip) {
             D_8005EC78 = 0;
             frameStart = VSync(1) & 0x7FFF;
-            Display_FlipDraw(display->frameBuffer);
+            displayPresentTaskFrame(display->frameBuffer);
             Display_PendingFlip = noPendingFlip;
         } else {
             D_8005EC78 = D_8005EC74;
@@ -131,7 +131,7 @@ s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
         Display_PendingFlip = -2;
         D_80070E38          = display->control.flags.flipMode;
         *(u8*)&D_8006EC30   = display->control.flags.imageSource;
-        Display_FlipDraw(display->frameBuffer);
+        displayPresentTaskFrame(display->frameBuffer);
         Display_PendingFlip = -1;
     }
     gGpuCurrentOt = savedOt;
