@@ -153270,3 +153270,26 @@ _itemMenuClampArmorSelection(other, other->firstVisibleItemIndex.signedValue + o
 emits it out of line and calls it (296 instructions against 305, with a `jal`),
 despite the forward `static inline` declaration. The definition moved above
 its first caller.
+
+## `MATRIX_PAIR` identity blocks that mix two bases are one `gfxSetRotIdentity` (scene_runtime.c, effect_tasks.c)
+
+**Symptom.** Ten hand-written identity blocks in `src/gameplay/scene_runtime.c`
+and `effect_tasks.c` looked as if they needed two spellings of one matrix: five
+wrote cells 00, 02 and 20 through `&subjectRotation` and cells 11 and 22
+through a `subjectRotationStorage = &subjectRotation` pointer local; three
+wrote cell 00 through `&part->coord` and the rest through `headRotation`; one
+(`gfxComposeNodeWorldTransform`) and `Gp_EffCtlTask6D` held `ONE` in a
+`unitScale`/`one` local.
+
+**Finding.** None of that is in the image. Each block is
+`gfxSetRotIdentity(&matrix)` on the single natural expression
+(`&subjectRotation`, `&subjectPart->coord`, the `worldRotation` parameter),
+and all ten gave identical `.text` and relocations on the first build. The
+second base and the constant local were reproducing what the inline's own
+`rotationWords` pointer and its repeated `ONE` do to cse/regalloc. The
+pointer locals went too: `RotMatrix(&aimAngles, headRotation)` is
+`RotMatrix(&aimAngles, &subjectPart->coord)`.
+
+**Rule.** A stack matrix "reached two ways" in an identity block is not
+evidence of a union or of a second pointer in the source; try the inline on
+the plain expression before modelling one.
