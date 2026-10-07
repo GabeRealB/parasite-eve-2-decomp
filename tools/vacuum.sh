@@ -1562,7 +1562,7 @@ fast_port_from_worktree() {
 # once when the merge lock is taken, long before these call sites. With
 # concurrent orchestrator sessions that snapshot goes stale: weapons-1 rolled
 # trunk back to its own pre_port and took two commits another session had
-# landed in between (`matched func_p08_8011D1D8`, plus a learnings entry) with
+# landed in between (the P08 attack handler's match, plus a learnings entry) with
 # it. Silently - a hard reset reports nothing.
 #
 # So refuse to drop any commit this session did not make. `$func` is in scope at

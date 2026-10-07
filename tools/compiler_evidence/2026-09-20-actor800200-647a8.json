@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_800200_801647A8",
+  "function": "_actor800200TickClearanceEscape",
   "observation": "Splitting the reused constant gives exactly three local quantities; their fixed-ID small sort allocates q0 first despite its lower priority. Later dbr removes the now-redundant SI constant set.",
   "trace_manifest": {
     "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",

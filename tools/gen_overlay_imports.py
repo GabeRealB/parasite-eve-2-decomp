@@ -66,7 +66,7 @@ def referenced(family: str, by_name: dict[str, int]) -> dict[int, str]:
 
     * ``func_<VRAM>`` / ``D_<VRAM>`` - splat could not name the address. splat
       prefixes an overlay's *own* symbols with the segment name
-      (``func_m93r_8011D1C4``), so a bare token is by construction external.
+      (``func_<package>_<VRAM>``), so a bare token is by construction external.
       Where it points is irrelevant: rooms reference ``D_80188888`` in the
       dialogue block packed *after* the overlay, and two of them call addresses
       past the end of 2 MB RAM.

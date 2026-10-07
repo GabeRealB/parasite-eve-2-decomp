@@ -726,7 +726,7 @@
     },
     {
       "name": "hud26",
-      "function": "func_800A57B0",
+      "function": "attachmentTargetAll",
       "archived_input": "tools/giveups/func_800A57B0/sessions/0e45e381017a4bfcbbc172cb77813a37/aa351635f2f7f19031b3/base_26.i.gz",
       "input_sha256": "1a09111f6a20ea5c4f6398db0c6bc78f3ab5d080dcb769ef5aa00a9f299ed6f0",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
@@ -1091,7 +1091,7 @@
     },
     {
       "name": "hud29final",
-      "function": "func_800A57B0",
+      "function": "attachmentTargetAll",
       "archived_input": "tools/giveups/func_800A57B0/sessions/0e45e381017a4bfcbbc172cb77813a37/aa351635f2f7f19031b3/base_29.i.gz",
       "input_sha256": "a0b404d3b456445e5e9e8f43a03724fd6f01546487ce93cb1ae9ee3967940196",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",

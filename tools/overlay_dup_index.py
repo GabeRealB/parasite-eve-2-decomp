@@ -59,7 +59,7 @@ REF = re.compile(r"%(?:hi|lo)\(([A-Za-z_]\w*)\)|\b(?:jal|j)\s+([A-Za-z_]\w*)")
 ADDR = re.compile(r"^\s*/\* [0-9A-F]+ [0-9A-F]{8} [0-9A-F]{8} \*/")
 LOCAL = re.compile(r"\b(func|D|jtbl)_([A-Za-z0-9_]+?)_([0-9A-F]{8})\b")
 # An actor whose slots share one entry names its symbols by offset into the
-# image (`Actor01100_Fn0097C`, `_D074E8`, `_Jt…`), since one name has to serve
+# image (`Actor<id>_Fn<offset>`, `_D074E8`, `_Jt…`), since one name has to serve
 # every slot. They are the same kind of reference as `LOCAL`: two copies of a
 # body point at their own actor's data, and only the owner differs.
 OFFSET_LOCAL = re.compile(r"\b(Actor\d{5})_(Fn|D|Jt)([0-9A-F]+)\b")

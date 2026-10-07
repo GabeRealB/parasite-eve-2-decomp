@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_800200_801649D8",
+  "function": "_actor800200TickScheduleIdle",
   "date": "2026-09-20",
   "result": "100% and unscoped BUILD SUCCEEDED",
   "scope": "Local quantity eligibility by reusing a global temporary; branch default initialization",
