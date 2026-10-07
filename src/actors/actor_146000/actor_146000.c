@@ -607,7 +607,7 @@ void func_actor_146000_80131E24(Task* arg0)
         case 2:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
-            Gp_ApplyAreaRecs(D_dryfield_night_water_hole_80183618);
+            areaApplySavedUpdates(D_dryfield_night_water_hole_80183618);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x19;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = state;
             gDisplayState.spriteVariant                                = 1;

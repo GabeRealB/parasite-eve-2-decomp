@@ -948,7 +948,7 @@ static void func_dryfield_night_motel_lobby_8018103C(Task* task)
 
 static void func_dryfield_night_motel_lobby_80181138(Task* arg0)
 {
-    Gp_ApplyAreaRecs(D_dryfield_night_motel_lobby_801844AC);
+    areaApplySavedUpdates(D_dryfield_night_motel_lobby_801844AC);
     gGameSession->eventState = 1;
     taskKill(arg0->spawnArg2.pointer);
     gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN, 1);

@@ -52,7 +52,7 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
             ret = 2;
         }
         if (ROOM_EVENT_ACTIVE != 0) {
-            Gp_ApplyAreaRecs(gParkingLotAreaRecs);
+            areaApplySavedUpdates(gParkingLotAreaRecs);
             gameFlagSetNibble(GAME_FLAG_046, 1);
             gameFlagSetNibble(GAME_FLAG_097, 1);
         }

@@ -1044,7 +1044,7 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
                 gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BF, 2);
                 gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE, 1);
                 gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BE, 2);
-                Gp_ApplyAreaRecs(D_shelter_b4_reservoir_801874A0);
+                areaApplySavedUpdates(D_shelter_b4_reservoir_801874A0);
                 D_80114D08 = 0xA;
                 taskKill(task);
             }

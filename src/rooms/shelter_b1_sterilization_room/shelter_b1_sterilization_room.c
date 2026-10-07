@@ -514,7 +514,7 @@ static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 5 && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 0) {
         gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 3);
-        Gp_ApplyAreaRecs(D_shelter_b1_sterilization_room_8018C334);
+        areaApplySavedUpdates(D_shelter_b1_sterilization_room_8018C334);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 1);
             gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 2);

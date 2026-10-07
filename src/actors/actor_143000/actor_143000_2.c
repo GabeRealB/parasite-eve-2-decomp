@@ -392,9 +392,9 @@ void func_actor_143000_80133EE4(Task* arg0)
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x27);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 2);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
-                Gp_ApplyAreaRecs(D_shelter_b2_laboratory_80186488);
+                areaApplySavedUpdates(D_shelter_b2_laboratory_80186488);
                 if (gameFlagGetNibble(GAME_FLAG_083) == 0) {
-                    Gp_ApplyAreaRecs(D_shelter_b2_laboratory_8018649C);
+                    areaApplySavedUpdates(D_shelter_b2_laboratory_8018649C);
                 }
                 gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
                 gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);

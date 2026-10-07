@@ -1890,7 +1890,7 @@ static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg)
 {
     if ((gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == 9) && (gameFlagGetNibble(GAME_FLAG_0D1) == 3) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
-        Gp_ApplyAreaRecs(D_shelter_b2_main_corridor_80189644);
+        areaApplySavedUpdates(D_shelter_b2_main_corridor_80189644);
     }
 }
 

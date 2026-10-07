@@ -2807,7 +2807,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
             work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
             task->state   = 6;
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
-            Gp_ApplyAreaRecs(D_acropolis_security_room_80184F80);
+            areaApplySavedUpdates(D_acropolis_security_room_80184F80);
             taskKill(task->spawnArg2.pointer);
             return;
         } else {
@@ -2845,11 +2845,11 @@ static void func_acropolis_security_room_8017F300(Task* task)
             task->state              = 0xA;
             gGameSession->eventState = 1;
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
-            Gp_ApplyAreaRecs(D_acropolis_security_room_80184F50);
+            areaApplySavedUpdates(D_acropolis_security_room_80184F50);
             if (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) < 3) {
-                Gp_ApplyAreaRecs(D_acropolis_security_room_80184F78);
+                areaApplySavedUpdates(D_acropolis_security_room_80184F78);
             } else {
-                Gp_ApplyAreaRecs(D_acropolis_security_room_80184F7C);
+                areaApplySavedUpdates(D_acropolis_security_room_80184F7C);
             }
             taskKill(task->spawnArg2.pointer);
             return;

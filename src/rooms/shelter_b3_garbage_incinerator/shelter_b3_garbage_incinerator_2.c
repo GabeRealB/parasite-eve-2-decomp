@@ -972,7 +972,7 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
                 break;
             }
             gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_COMPLETE;
-            Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
+            areaApplySavedUpdates(D_shelter_b3_garbage_incinerator_8018FB6C);
             taskKill(task);
             return;
     }

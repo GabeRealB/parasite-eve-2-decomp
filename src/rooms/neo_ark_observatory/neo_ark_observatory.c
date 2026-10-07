@@ -1788,7 +1788,7 @@ s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     if ((gameFlagGetNibble(GAME_FLAG_0D1) == 3) && (gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == 9) &&
         ((in->areaId == GAME_AREA_NEO_ARK_NORTH_PROMENADE) || (in->areaId == GAME_AREA_NEO_ARK_SOUTH_PROMENADE)) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
-        Gp_ApplyAreaRecs(D_neo_ark_observatory_80187A28);
+        areaApplySavedUpdates(D_neo_ark_observatory_80187A28);
     }
     return 1;
 }

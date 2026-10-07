@@ -942,9 +942,9 @@ void func_dryfield_night_motel_room_6_8018189C(Task* arg0)
         case 5:
             Gp_FillPlayerHpMp();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_80186270);
+            areaApplySavedUpdates(D_dryfield_night_motel_room_6_80186270);
             if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
-                Gp_ApplyAreaRecs(D_dryfield_night_motel_room_6_801862B0);
+                areaApplySavedUpdates(D_dryfield_night_motel_room_6_801862B0);
             }
             gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
             gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 2);

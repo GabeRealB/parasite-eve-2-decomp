@@ -159,7 +159,7 @@ s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 6 : 4);
         if ((gameFlagGetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA) == 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0)) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA, 1);
-            Gp_ApplyAreaRecs(D_neo_ark_garden_80182BF8);
+            areaApplySavedUpdates(D_neo_ark_garden_80182BF8);
         }
     }
     if (arg2 == 7) {

@@ -2839,7 +2839,7 @@ void func_actor_444000_801321FC(s32 arg0)
             gGameSession->incineratorRoomGroup                         = 1;
             gGameSession->roomObjsDirty                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
-            Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
+            areaApplySavedUpdates(D_shelter_b3_garbage_incinerator_8018FB6C);
             if (arg0 == 1) {
                 work->framebufferBlend = taskSpawn(1, 0x2D, 0x10, 0);
             }

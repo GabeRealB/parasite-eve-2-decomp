@@ -2520,11 +2520,11 @@ static void _actor443500StartCapCommand5(s16 variantKey)
 }
 
 /// Applies the 0xFF-terminated area record list at `D_shelter_r47_8018A638` through
-/// `Gp_ApplyAreaRecs`. It is reached only through the function pointers in
+/// `areaApplySavedUpdates`. It is reached only through the function pointers in
 /// the actor's data.
 void func_actor_443500_80132048(void)
 {
-    Gp_ApplyAreaRecs(D_shelter_r47_8018A638);
+    areaApplySavedUpdates(D_shelter_r47_8018A638);
 }
 
 /// Stores the saved scene-event byte used to select stage music.

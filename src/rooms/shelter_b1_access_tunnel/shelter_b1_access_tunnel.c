@@ -574,7 +574,7 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
     mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM || in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) < 4) {
-            Gp_ApplyAreaRecs(D_shelter_b1_access_tunnel_8017FF44);
+            areaApplySavedUpdates(D_shelter_b1_access_tunnel_8017FF44);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, 4);
         }
     }

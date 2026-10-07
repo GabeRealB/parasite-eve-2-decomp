@@ -1240,7 +1240,7 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
             gameFlagSetNibble(GAME_FLAG_00E, 1);
-            Gp_ApplyAreaRecs(D_acropolis_cafeteria_8018C9D4);
+            areaApplySavedUpdates(D_acropolis_cafeteria_8018C9D4);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 4;
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 4);
             func_800ABFF8();

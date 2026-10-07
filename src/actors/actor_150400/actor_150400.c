@@ -414,7 +414,7 @@ void func_actor_150400_80131ECC(void)
         SetDispMask(1);
         gameFlagSetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED, 1);
         Gp_EnqueueConfigCd(1);
-        Gp_ApplyAreaRecs(D_shelter_b1_control_room_80183BE0);
+        areaApplySavedUpdates(D_shelter_b1_control_room_80183BE0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B2_MAIN_CORRIDOR;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;

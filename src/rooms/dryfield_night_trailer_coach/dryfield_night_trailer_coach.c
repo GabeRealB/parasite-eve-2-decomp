@@ -940,7 +940,7 @@ void func_dryfield_night_trailer_coach_8018243C(Task* task)
                 if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN) == 0) {
                     gameFlagSetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN, 1);
                     gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
-                    Gp_ApplyAreaRecs(D_dryfield_night_trailer_coach_8018C208);
+                    areaApplySavedUpdates(D_dryfield_night_trailer_coach_8018C208);
                     evsStartScriptWithSkip(D_dryfield_night_trailer_coach_801889A8, EVENT_SCRIPT_HUD_KEEP,
                                            D_dryfield_night_trailer_coach_80188F00);
                     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x13);

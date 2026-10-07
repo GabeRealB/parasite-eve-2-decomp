@@ -110,7 +110,7 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
                         gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED, 1);
                         gameFlagSetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED, 1);
                         gameFlagSetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_1, 0);
-                        Gp_ApplyAreaRecs(D_neo_ark_power_plant_1_80181C00);
+                        areaApplySavedUpdates(D_neo_ark_power_plant_1_80181C00);
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x16;
                         evsStartScriptWithSkip(D_neo_ark_power_plant_1_8017EB7C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_power_plant_1_8017EDBC);
                     }

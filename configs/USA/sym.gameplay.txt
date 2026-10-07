@@ -234,11 +234,11 @@ Gp_SetupDirWarp = 0x800ADA04; // type:func
 Gp_FadeDirWaitMsg = 0x800ADE74; // type:func
 Gp_CommitWarp = 0x800ADF3C; // type:func
 Gp_WarpPhase4 = 0x800AE150; // type:func
-Gp_MsgPlayerDirFacing = 0x800AE1F0; // type:func
-Gp_CommitDirWarp = 0x800AE36C; // type:func
-Gp_PostDirIfCapIdle = 0x800AE45C; // type:func
+directionAwaitStairClimb = 0x800AE1F0; // type:func
+directionCommitStairWarp = 0x800AE36C; // type:func
+directionDispatchCapInteraction = 0x800AE45C; // type:func
 Gp_RunDirAction = 0x800AE53C; // type:func
-Gp_ApplyAreaRecs = 0x800AE62C; // type:func
+areaApplySavedUpdates = 0x800AE62C; // type:func
 Gp_ApplyNewGameAreaFlags = 0x800AE7AC; // type:func
 Gp_RebuildAreaIdBits = 0x800AE9B0; // type:func
 

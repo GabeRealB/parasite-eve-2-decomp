@@ -767,7 +767,7 @@ static void func_neo_ark_altar_8017DF0C(Task* task)
             sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 3), SOUND_SCRIPT_STOP_NO_FADE);
             sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 0, 0);
             capRunCommandWithTransition(1);
-            Gp_ApplyAreaRecs(D_neo_ark_altar_8018007C);
+            areaApplySavedUpdates(D_neo_ark_altar_8018007C);
             break;
         case 2:
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 1);

@@ -1080,7 +1080,7 @@ static inline void Actor342000_EnterArea(void)
     gGameSession->eventRoomIndex                               = 6;
     gGameSession->incineratorRoomGroup                         = 1;
     gGameSession->roomObjsDirty                                = 1;
-    Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
+    areaApplySavedUpdates(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
 /// Event/sequence task body, idle while a cutscene, pause or mode switch is up.
@@ -1329,7 +1329,7 @@ void func_actor_342000_80164154(void)
     gGameSession->eventRoomIndex                               = 6;
     gGameSession->incineratorRoomGroup                         = 1;
     gGameSession->roomObjsDirty                                = 1;
-    Gp_ApplyAreaRecs(D_shelter_b3_garbage_incinerator_8018FB6C);
+    areaApplySavedUpdates(D_shelter_b3_garbage_incinerator_8018FB6C);
 }
 
 void func_actor_342000_801641B4(void)

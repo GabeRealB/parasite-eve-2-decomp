@@ -224,7 +224,7 @@ static void func_shelter_b3_incinerator_control_room_8017FC1C(Task* task)
     task->state++;
     if (gGameSession->location.loc.warp == 4) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x23);
-        Gp_ApplyAreaRecs(D_shelter_b3_incinerator_control_room_80182A40);
+        areaApplySavedUpdates(D_shelter_b3_incinerator_control_room_80182A40);
         Gp_FillAllyHp();
         evsStartScriptWithSkip(D_actor_142600_801360E4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_142600_80136804);
     }

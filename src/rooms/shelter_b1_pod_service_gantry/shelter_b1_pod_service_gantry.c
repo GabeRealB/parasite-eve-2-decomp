@@ -1558,7 +1558,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
                 break;
             }
             work->sceneTask = taskSpawnFromTable(D_actor_160900_8013FB50, 0, 0, 0);
-            Gp_ApplyAreaRecs(D_shelter_b1_pod_service_gantry_80182540);
+            areaApplySavedUpdates(D_shelter_b1_pod_service_gantry_80182540);
             gameFlagSetNibble(GAME_FLAG_118, 1);
             work->step++;
             break;

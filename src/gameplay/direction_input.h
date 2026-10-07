@@ -53,12 +53,39 @@ void Gp_WarpPhase4(void);
 
 void func_800AD6BC(void);
 
-void Gp_PostDirIfCapIdle(void);
+/// Consumes a CAP interaction request, dispatching it only while events and CAP are idle.
+///
+/// A room-message sentinel sends the command byte synchronously to the live
+/// room's `ROOM_MESSAGE_COMMAND` handler; otherwise the bytes select a CAP
+/// command and its event flags. CAP resources must remain live through playback.
+/// Busy events or playback discard the request. After dispatch or discard,
+/// clears the request and secondary hit; a newly entered trigger keeps the
+/// session's busy flag until the next direction tick.
+void directionDispatchCapInteraction(void);
 
 void Gp_RunDirAction(void);
 
-void Gp_MsgPlayerDirFacing(void);
+/// Updates the stair surface and waits for the climb to finish or encounter a warp.
+///
+/// Runs once per frame after the facing action starts the player's stair motion.
+/// Requires a live scripted player and the original latched trigger parameters.
+/// Parameter0's low nibble is the positive step count; bits 4..6 select a surface
+/// class, or flight 0..4 when bit 7 is set. Control bit 8 selects descent.
+/// Indexed rows must stay loaded and contain entries 0 through the step count;
+/// the player countdown must remain in 0..stepCount. Completion releases
+/// scripted control and clears the action. A warp hit while motion is pending
+/// pauses scene actors and advances to `directionCommitStairWarp` instead.
+void directionAwaitStairClimb(void);
 
-void Gp_CommitDirWarp(void);
+/// Resolves and commits the warp latched during a stair climb, then ends the action.
+///
+/// Requires a live room task and a secondary WARP hit in the active stage.
+/// Its first byte requests the area; the second byte's low nibble requests the
+/// arrival slot. The room resolves the reusable request in place with effects
+/// enabled, retaining the request's existing flag id. Only its area, arrival
+/// and room selectors are copied to the live
+/// save before the area-change task is spawned; the dispatch result and task
+/// allocation failure do not prevent request cleanup.
+void directionCommitStairWarp(void);
 
 #endif // GAMEPLAY_PRIVATE_DIRECTION_INPUT_H

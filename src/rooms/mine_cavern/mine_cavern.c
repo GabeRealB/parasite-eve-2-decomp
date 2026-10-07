@@ -453,7 +453,7 @@ void func_mine_cavern_8017E150(s8 arg0)
 
 void func_mine_cavern_8017E15C(void)
 {
-    Gp_ApplyAreaRecs(D_mine_cavern_8018E32C);
+    areaApplySavedUpdates(D_mine_cavern_8018E32C);
 }
 
 /// Room script callback: selects its argument as the scene music entry

@@ -115,7 +115,7 @@ void roomCutsceneTask(Task* task)
                     gameFlagSetNibble(0, 3);
                     gameFlagSetNibble(GAME_FLAG_00E, 4);
                     if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 1, 0, 0)) {
-                        Gp_ApplyAreaRecs(D_acropolis_square_80188888);
+                        areaApplySavedUpdates(D_acropolis_square_80188888);
                         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 5);
                     }
                 }

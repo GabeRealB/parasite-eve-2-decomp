@@ -880,7 +880,7 @@ WorldCoordRoomLighting D_acropolis_bridge_80189A8C[2] = {
     { D_acropolis_bridge_80190A0C, NULL },
 };
 
-// Two 12-byte direction-facing rows used by Gp_MsgPlayerDirFacing.
+// Two 12-byte direction-facing rows used by directionAwaitStairClimb.
 u8 D_acropolis_bridge_80189A9C[24] = {
     2,
     2,

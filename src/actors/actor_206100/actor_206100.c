@@ -3605,7 +3605,7 @@ static void func_actor_206100_8014FBE4(Task* task)
     work  = task->work;
     enemy = (Enemy*)task->spawnArg2.pointer;
     sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    Gp_ApplyAreaRecs(D_neo_ark_submarine_gallery_8018590C);
+    areaApplySavedUpdates(D_neo_ark_submarine_gallery_8018590C);
     work->goalY = work->waterLevel;
     worldTargetUnlinkNode(&enemy->node);
     sceneReleaseBattleRefWithRewards(task, 0);

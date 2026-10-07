@@ -107,7 +107,7 @@ void func_neo_ark_altar_8017D668(Task* task)
         case 5:
             if ((gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9) == 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0)) {
                 gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9, 1);
-                Gp_ApplyAreaRecs(D_neo_ark_altar_801800A0);
+                areaApplySavedUpdates(D_neo_ark_altar_801800A0);
             }
             sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SWITCH_TOGGLE, 0, 0);
             task->killCountdown = 0x1E;

@@ -1797,7 +1797,7 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == 3) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 2);
         evsStartScriptWithSkip(D_acropolis_sanctuary_80180B0C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_sanctuary_80181664);
-        Gp_ApplyAreaRecs(D_acropolis_sanctuary_80186418);
+        areaApplySavedUpdates(D_acropolis_sanctuary_80186418);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 5);
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);

@@ -634,7 +634,7 @@ void func_dryfield_night_water_tank_8017D5D0(Task* task)
             break;
         case 2:
             if (gGameSession->battleResetPending != 0) {
-                Gp_ApplyAreaRecs(D_dryfield_night_water_tank_801808B0);
+                areaApplySavedUpdates(D_dryfield_night_water_tank_801808B0);
                 gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, 2);
                 gameFlagSetNibble(GAME_FLAG_083, 1);
                 evsStartScriptWithSkip(D_actor_146300_80137C28, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_146300_80138570);

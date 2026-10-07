@@ -2152,7 +2152,7 @@ void func_actor_120300_801337C4(Task* arg0)
             return;
         case 1:
             if (gGameSession->eventState == 0) {
-                Gp_ApplyAreaRecs(D_dryfield_garage_80180204);
+                areaApplySavedUpdates(D_dryfield_garage_80180204);
                 arg0->state += 1;
             }
             break;

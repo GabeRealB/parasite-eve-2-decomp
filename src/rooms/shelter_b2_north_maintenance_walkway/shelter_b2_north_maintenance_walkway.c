@@ -789,7 +789,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
         evsStartScriptWithSkip(D_actor_341300_80165354, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_341300_80165834);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x20);
         gameFlagSetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, 1);
-        Gp_ApplyAreaRecs(D_shelter_b2_north_maintenance_walkway_80186380);
+        areaApplySavedUpdates(D_shelter_b2_north_maintenance_walkway_80186380);
     }
     return 0;
 }

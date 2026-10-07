@@ -191,7 +191,7 @@ SVECTOR D_shelter_b4_water_supply_801826E0[2] = { 0 };
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-// Four 16-byte direction-facing rows used by Gp_MsgPlayerDirFacing.
+// Four 16-byte direction-facing rows used by directionAwaitStairClimb.
 u8 D_shelter_b4_water_supply_801826FC[64] = {
     2,
     2,

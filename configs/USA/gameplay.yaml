@@ -128,7 +128,7 @@ segments:
       - [0x1824C, c, companion_load] # Gp_PickCompanion
       - [0x18E88, c, sprite_link] # spriteLinkViewCachedPackets
       - [0x19EBC, c, direction_input] # func_800AD6BC
-      - [0x1A9F0, c, direction_facing] # Gp_MsgPlayerDirFacing
+      - [0x1A9F0, c, direction_facing] # directionAwaitStairClimb
       - [0x1AFAC, c, area_transitions] # area flags and transition tasks
       - [0x1BD90, c, scene_runtime] # streamReadSceneImageSector
       - [0x22BB8, c, item_publish] # Gp_LookupBit2Item

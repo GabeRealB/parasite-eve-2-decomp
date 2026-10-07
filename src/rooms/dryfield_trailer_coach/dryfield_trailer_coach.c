@@ -1631,7 +1631,7 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 1);
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xF);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
-                Gp_ApplyAreaRecs(D_dryfield_trailer_coach_80189C50);
+                areaApplySavedUpdates(D_dryfield_trailer_coach_80189C50);
             } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_MONKEY_WRENCH) == 0 && gameFlagGetNibble(GAME_FLAG_DRYFIELD_TRAILER_COACH_04F) != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_0FD) == 0) {
                     gameFlagSetNibble(GAME_FLAG_0FD, 1);

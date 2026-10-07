@@ -180,16 +180,16 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
         gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_1BB, 2);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x36);
         Gp_FillPlayerHpMp();
-        Gp_ApplyAreaRecs(D_shelter_1f_tent_801842D4);
+        areaApplySavedUpdates(D_shelter_1f_tent_801842D4);
         evsStartScriptWithSkip(D_actor_460200_801362B8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_460200_80137890);
         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
-            Gp_ApplyAreaRecs(D_shelter_1f_tent_801843B0);
-            Gp_ApplyAreaRecs(D_shelter_1f_tent_801843B8);
+            areaApplySavedUpdates(D_shelter_1f_tent_801843B0);
+            areaApplySavedUpdates(D_shelter_1f_tent_801843B8);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             idx = 0x155;
             val = 0xB;
         } else {
-            Gp_ApplyAreaRecs(D_shelter_1f_tent_801843A8);
+            areaApplySavedUpdates(D_shelter_1f_tent_801843A8);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             idx = 0x155;
             val = 0xA;

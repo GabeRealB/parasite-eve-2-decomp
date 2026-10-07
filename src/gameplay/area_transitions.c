@@ -452,7 +452,7 @@ const TaskFuncTable3 Gp_DirTaskStates = { {
 const DirectionActionTable Gp_DirActionFns = { {
     [WORLD_COLLISION_TRIGGER_ACTION_WARP]       = Gp_DirAction0,
     [WORLD_COLLISION_TRIGGER_ACTION_FACING]     = Gp_DirAction1,
-    [WORLD_COLLISION_TRIGGER_ACTION_CAP]        = Gp_PostDirIfCapIdle,
+    [WORLD_COLLISION_TRIGGER_ACTION_CAP]        = directionDispatchCapInteraction,
     [WORLD_COLLISION_TRIGGER_ACTION_CALLBACK]   = Gp_RunDirAction,
     [WORLD_COLLISION_TRIGGER_ACTION_CLEAR]      = Gp_ClearDirCursor,
     [WORLD_COLLISION_TRIGGER_ACTION_ROOM]       = Gp_PostMsg13EF,
@@ -472,8 +472,8 @@ static const _DirectionFacingPhaseTable D_80093990 = { {
     [DIRECTION_FACING_PHASE_TURN]        = Gp_MsgPlayer3EE,
     [DIRECTION_FACING_PHASE_AWAIT_TURN]  = Gp_MsgPlayer3F0,
     [DIRECTION_FACING_PHASE_CLIMB]       = Gp_MsgPlayer3EF,
-    [DIRECTION_FACING_PHASE_AWAIT_CLIMB] = Gp_MsgPlayerDirFacing,
-    [DIRECTION_FACING_PHASE_WARP]        = Gp_CommitDirWarp,
+    [DIRECTION_FACING_PHASE_AWAIT_CLIMB] = directionAwaitStairClimb,
+    [DIRECTION_FACING_PHASE_WARP]        = directionCommitStairWarp,
 } };
 
 static inline s16 _gpStageFlagNibble(u16* table, s16 idx)

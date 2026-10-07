@@ -627,11 +627,11 @@ void func_actor_143400_80131E24(s32 arg0)
 }
 
 /// Applies the 0xFF-terminated area record list at `D_shelter_r47_8018A638` through
-/// `Gp_ApplyAreaRecs`. Reached only through the function pointers in the
+/// `areaApplySavedUpdates`. Reached only through the function pointers in the
 /// actor's data.
 void func_actor_143400_80131E6C(void)
 {
-    Gp_ApplyAreaRecs(D_shelter_r47_8018A638);
+    areaApplySavedUpdates(D_shelter_r47_8018A638);
 }
 
 /// Stores `arg0` in the gameplay byte `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent`. Reached only through the

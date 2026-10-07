@@ -1018,7 +1018,7 @@ s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstAr
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xE);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
-        Gp_ApplyAreaRecs(D_dryfield_water_tank_80188D1C);
+        areaApplySavedUpdates(D_dryfield_water_tank_80188D1C);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         evsStartScriptWithSkip(D_dryfield_water_tank_80184E0C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tank_801859DC);
     }

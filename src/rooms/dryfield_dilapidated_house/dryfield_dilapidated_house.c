@@ -2714,9 +2714,9 @@ void func_dryfield_dilapidated_house_8017E2B0(Task* task)
             return;
         case 7:
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-                Gp_ApplyAreaRecs(D_dryfield_dilapidated_house_80189AA0);
+                areaApplySavedUpdates(D_dryfield_dilapidated_house_80189AA0);
                 if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
-                    Gp_ApplyAreaRecs(D_dryfield_dilapidated_house_80189B24);
+                    areaApplySavedUpdates(D_dryfield_dilapidated_house_80189B24);
                 }
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 6);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 1);

@@ -4993,7 +4993,7 @@ static void func_actor_403100_801359DC(Task* arg0)
     work->stateFrames      = 0;
     work->sceneScale       = 0x1400;
     work->subState        += 1;
-    Gp_ApplyAreaRecs(D_dryfield_night_motel_balcony_8018F2CC);
+    areaApplySavedUpdates(D_dryfield_night_motel_balcony_8018F2CC);
 }
 static void func_actor_403100_80135AE0(Task* arg0)
 {

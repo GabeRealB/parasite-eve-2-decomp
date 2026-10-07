@@ -865,9 +865,9 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED, 1);
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_2, 0);
-            Gp_ApplyAreaRecs(D_neo_ark_power_plant_2_80182F70);
+            areaApplySavedUpdates(D_neo_ark_power_plant_2_80182F70);
             if (gameFlagGetNibble(GAME_FLAG_0F3) != 0) {
-                Gp_ApplyAreaRecs(D_neo_ark_power_plant_2_80182F94);
+                areaApplySavedUpdates(D_neo_ark_power_plant_2_80182F94);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x17;
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2E);

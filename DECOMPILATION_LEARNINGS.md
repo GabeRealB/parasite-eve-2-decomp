@@ -25990,7 +25990,7 @@ Gp_DirAltNibble = 0; /* $s2 — stored second in the epilogue */
 Gp_DirAlt = 0; /* $s3 — stored first, then s3 is restored */
 ```
 
-`Gp_CommitDirWarp` is the example. The load-order variant
+`directionCommitStairWarp` is the example. The load-order variant
 `Gp_DirAlt = 0; Gp_DirAltNibble = 0` stuck at 99.5% with only those two
 `%hi` registers swapped.
 
@@ -32032,7 +32032,7 @@ do {
 } while (idx != 0xFF);
 ```
 
-`Gp_ApplyAreaRecs` is the example.
+`areaApplySavedUpdates` is the example.
 
 ## Default case sits between `apply = 1; goto join` and `join:`
 
@@ -32085,7 +32085,7 @@ if (cond != 0) {
 
 A `switch` on 0..3 emits `slti` range checks. An `if`/`else` that assigns
 `apply = 0` in the default arm *before* the compare places that store
-ahead of `bne mask, expected`. `Gp_ApplyAreaRecs` is the example.
+ahead of `bne mask, expected`. `areaApplySavedUpdates` is the example.
 
 ## Don't reuse a saved-reg local for a `max` temp; nest the early string load
 
@@ -42437,7 +42437,7 @@ The last two statements of a straight-line block —
 
 ```c
 D_8007272D = 6;
-Gp_ApplyAreaRecs(&D_..._80189C50);
+areaApplySavedUpdates(&D_..._80189C50);
 ```
 
 compile to source order in the target (`lui v1` / `li v0` / `sb`, then
@@ -42453,7 +42453,7 @@ store's link to the call is an anti-dependence. The longer chain wins the ready
 list and the scheduler then follows it to the end, so both `la` halves emit
 before the store. Nothing about the *source* order changes this: writing the
 store into the argument with a comma operator
-(`Gp_ApplyAreaRecs((D_8007272D = 6, &rec))`) scores identically, and marking the
+(`areaApplySavedUpdates((D_8007272D = 6, &rec))`) scores identically, and marking the
 global `volatile` only stops the delay-slot fill, costing an extra `nop`.
 
 `SOFT_BARRIER()` between the two statements is the fix — it keeps the `la`
@@ -44086,7 +44086,7 @@ one call, writing it as a temporary
 
 ```c
 if (cond) { recs = D_80184F78; } else { recs = D_80184F7C; }
-Gp_ApplyAreaRecs(recs);
+areaApplySavedUpdates(recs);
 ```
 
 gives GCC 2.8.1 a pseudo-register for the address, and the pseudo is copied into
@@ -44101,7 +44101,7 @@ The target instead forms the address directly in `$a0`
 (`lui a0,%hi(...) / addiu a0,a0,%lo(...)`), which is what a **duplicated call**
 in each arm compiles to — cross-jumping then merges the two `jal`s back into
 one, so the instruction count is unchanged and only the register differs.
-Writing `Gp_ApplyAreaRecs(...)` inside both arms took
+Writing `areaApplySavedUpdates(...)` inside both arms took
 `func_acropolis_security_room_8017F300` from 99.79% (`regs=4`) to 100%.
 
 That `lui`-into-a-scratch-register pair is the diagnostic: it is the same rule
@@ -122429,7 +122429,7 @@ compiler SHA256
 `func_dryfield_night_parking_lot_8017D8D0` are the same function: all **121
 instruction words are byte-identical**, and the day body matched first try
 (100.000%, all penalties zero) as the night's C verbatim with one line changed —
-the `Gp_ApplyAreaRecs` argument.
+the `areaApplySavedUpdates` argument.
 
 `python3 tools/overlay_dup_index.py find func_dryfield_parking_lot_8017D8BC`
 reports `same body: 1 copies` and lists only the function itself, because
@@ -146617,15 +146617,15 @@ changes the dependence order so the entry copy is emitted first.
 `static inline u32* helper(ws, arg2)` it returns from. Reordering `ws = index`
 around the colour statements changes nothing.
 
-## A loop's back branch landing one insn past a reload of its test field: index loop plus an `int` local for the field (Gp_ApplyAreaRecs, 2026-09-27)
+## A loop's back branch landing one insn past a reload of its test field: index loop plus an `int` local for the field (areaApplySavedUpdates, 2026-09-27)
 
 **Shape.** The rotated exit test reads `lbu v1,0(a0)`, the preheader does
 `move s0,a0; lbu v1,0(s0)`, and the back branch targets the insn *after* that
 second load, reusing the `v1` its own exit test just loaded. The tree faked it
 with a `register asm("s0")` pin on a walking pointer and a `volatile` read.
 
-**Cause.** Two separate mechanisms. The `move s0,a0` plus reload is `recs[i]`
-with a counter: the biv `i` is eliminated and every `recs[i].field` becomes one
+**Cause.** Two separate mechanisms. The `move s0,a0` plus reload is `records[recordIndex]`
+with a counter: the biv `recordIndex` is eliminated and every `records[recordIndex].field` becomes one
 reduced giv seeded from `a0`, while the copied exit test still reads `a0`
 (a walked `rec++` pointer keeps the biv and buys a second `rec+3` giv instead).
 The skipped load is reorg's `redundant_insn` on the back branch, which needs the
@@ -146633,7 +146633,7 @@ body's first load to be the *same RTL* as the exit test's: with the field held
 in a `u8` local the body loads QImode and nothing is skipped; an `s32` local
 gives the same `zero_extend:SI` as the test.
 
-**Fix.** `for (i = 0; recs[i].stage != AREA_APPLY_END; i++) { s32 stage = recs[i].stage; ... }`.
+**Fix.** `for (recordIndex = 0; records[recordIndex].stage != AREA_APPLY_END; recordIndex++) { s32 stageId = records[recordIndex].stage; ... }`.
 ## `p = &s->field; TOUCH_REG(p);` ahead of a two-component read: the pointer is stepped, `p++` (tmdXformStreamVertsEnvLayer, 2026-09-27)
 
 **Symptom.** A loop-invariant address copy (`move t1,t8`) must open its block,
