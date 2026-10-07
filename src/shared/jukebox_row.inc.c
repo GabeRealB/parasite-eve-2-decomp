@@ -1,50 +1,61 @@
 /* Part of the jukebox library; see jukebox.h. */
 
-/// Row callback of the jukebox list: draws the row's track name, and on
-/// confirm, when the row is not the one already chosen, plays the select
-/// sound and, when the track differs from the one playing, fades the music
-/// out and hands the sequence id to the menu task to load.
-void jukeboxDrawRow(UiList* prompt, UiObject* obj)
+/// Draws a jukebox track row and publishes a newly confirmed selection to its menu task.
+///
+/// Borrows a live list, panel object and owner task. The current row must fit
+/// the selected track list: mode 0..3 after a clear, otherwise list 4, plus
+/// five outside training mode. Draws outlined large text in panel-relative
+/// pixels. Only an active row handles confirm; a changed row sounds confirm
+/// and records its index. If its sequence differs from the pending sequence,
+/// fades MIDI over 60 ticks, arms menu state 1 and drops the queued CD tail.
+/// Text and primitive storage must satisfy `textDrawString`'s frame lifetime.
+static void _jukeboxDrawRow(UiList* list, UiObject* object)
 {
-    JukeboxTrackLists work;
-    JukeboxTrack*     track;
-    s32               row;
-    s32               list;
-    s32               mode;
+    enum {
+        JUKEBOX_UNCLEARED_TRACK_LIST      = 4,
+        JUKEBOX_REGULAR_TRACK_LIST_OFFSET = 5,
+        JUKEBOX_MIDI_FADE_TICKS           = 60
+    };
+    JukeboxTrackLists   rowScratch;
+    const JukeboxTrack* track;
+    s32                 rowIndex;
+    s32                 listIndex;
+    s32                 rowInputEnabled;
 
-    row  = prompt->currentItemIndex;
-    work = _gJukeboxTrackLists;
+    rowIndex   = list->currentItemIndex;
+    rowScratch = _gJukeboxTrackLists;
 
-    list = 4;
+    listIndex = JUKEBOX_UNCLEARED_TRACK_LIST;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount != 0) {
-        list = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
+        listIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
     }
     if (attachmentIsTrainingMode() == 0) {
-        list += 5;
+        listIndex += JUKEBOX_REGULAR_TRACK_LIST_OFFSET;
     }
 
-    track               = &work.lists[list][row];
-    work.req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.unsignedValue;
-    work.req.y          = (prompt->rowTextY.signedValue - 3) + obj->panel.contentOriginY.unsignedValue;
-    work.req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    work.req.colorRgb   = prompt->colorRgb;
-    work.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
-    work.req.drawMode   = TEXT_DRAW_OUTLINED;
-    work.req.alignment  = TEXT_ALIGNMENT_LEFT;
-    textDrawString(&work.req, track->name);
+    // Resolve the rowIndex before its stack table storage becomes a text request.
+    track                     = &rowScratch.lists[listIndex][rowIndex];
+    rowScratch.req.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    rowScratch.req.y          = (list->rowTextY.signedValue - 3) + object->panel.contentOriginY.unsignedValue;
+    rowScratch.req.otIndex    = object->panel.otIndex.signedValue + 1;
+    rowScratch.req.colorRgb   = list->colorRgb;
+    rowScratch.req.glyphTable = TEXT_GLYPH_TABLE_LARGE;
+    rowScratch.req.drawMode   = TEXT_DRAW_OUTLINED;
+    rowScratch.req.alignment  = TEXT_ALIGNMENT_LEFT;
+    textDrawString(&rowScratch.req, (const u8*)track->name);
 
-    mode = prompt->rowInputEnabled;
-    if (mode == 1) {
+    rowInputEnabled = list->rowInputEnabled;
+    if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            if (obj->owner->spawnArg1.value != prompt->currentItemIndex) {
+            if (object->owner->spawnArg1.value != list->currentItemIndex) {
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-                if (obj->owner->status != track->sequenceId) {
-                    sndEvtRequestMidiStop(0, 0x3C);
-                    obj->owner->state  = mode;
-                    obj->owner->status = track->sequenceId;
+                if (object->owner->status != track->sequenceId) {
+                    sndEvtRequestMidiStop(0, JUKEBOX_MIDI_FADE_TICKS);
+                    object->owner->state  = rowInputEnabled;
+                    object->owner->status = track->sequenceId;
                     cdCmdDropQueuedTail();
                 }
-                obj->owner->spawnArg1.value = prompt->currentItemIndex;
+                object->owner->spawnArg1.value = list->currentItemIndex;
             }
         }
     }

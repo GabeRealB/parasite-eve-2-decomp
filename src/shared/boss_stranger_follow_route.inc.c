@@ -2,8 +2,10 @@
 
 /// Marks patrol arrival and selects the next node, wrapping at the route end marker.
 ///
-/// Requires the walker's live, nonempty patrol route; resets the turn counters
-/// and returns the new navigation index after storing it in `walker->node`.
+/// Requires a live, nonempty end-marked route whose byte cursor names its current
+/// node and whose following entry is readable. Advances the cursor with byte
+/// wrap, resetting it to zero at `OVERLAY_WALKER_ROUTE_END`. Clears both turn
+/// counters and returns the new navigation-node index stored in `walker->node`.
 static inline u8 _bossStrangerAdvancePatrolNode(BossStrangerWalker* walker)
 {
     BossStrangerRoute* routeAdvance;

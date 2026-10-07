@@ -1002,7 +1002,7 @@ JukeboxTrack D_dryfield_night_saloon_g_r_80185004[4] = {
 };
 
 UiListRowCallback D_dryfield_night_saloon_g_r_80185024[1] = {
-    jukeboxDrawRow,
+    _jukeboxDrawRow,
 };
 
 UiList D_dryfield_night_saloon_g_r_80185028 = { D_dryfield_night_saloon_g_r_80185024, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };

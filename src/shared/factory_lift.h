@@ -264,8 +264,6 @@ s32  factoryLiftRaise(Task* task);
 s32  factoryLiftLower(Task* task);
 s32  factoryLiftJamTurnOut(Task* task);
 s32  factoryLiftJamTurnBack(Task* task);
-s32  factoryHatchOpen(Task* task);
-s32  factoryHatchClose(Task* task);
 void factoryPowerScene(Task* task);
 void factoryWhiteoutScene(Task* task);
 void factoryBarrierCollision(Task* task);
@@ -273,7 +271,6 @@ void factoryLiftUpdate(Task* task);
 void factoryLiftBindLighting(Task* task);
 void factoryHatchInit(Task* task);
 void factoryHatchUpdate(Task* task);
-s32  factoryHatchWatch(Task* task);
 void factoryLampScene(Task* task);
 void factoryHatchScene(Task* task);
 void factoryRoomInit(Task* arg0);
@@ -301,6 +298,10 @@ void factoryPanelRun(Task* task);
 void factoryPromptTask(Task* task);
 void factoryPanelTrigger(Task* task, s32, s32, s32);
 void factoryPanelArmPrompt(Task* task);
+
+static s32 _factoryHatchOpen(Task* task);
+static s32 _factoryHatchClose(Task* task);
+static s32 _factoryHatchWatch(Task* task);
 
 /// Where `FACTORY_DRAW_GLOWS_TASK` draws the disc nibble 0x48 enables, and the two
 /// it alternates between by nibble 0x4A's value.

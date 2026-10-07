@@ -196,7 +196,7 @@ extern JukeboxTrack gJukeboxTracks4[];
 static const char D_mist_shooting_gallery_8017DB04[];
 
 /// The jukebox's track list, whose row callback is
-/// `jukeboxDrawRow`.
+/// `_jukeboxDrawRow`.
 extern UiList D_mist_shooting_gallery_80185338;
 
 /// The jukebox panel's descriptor; its update routine is the menu task
@@ -838,7 +838,7 @@ JukeboxTrack gJukeboxTracks4[4] = {
 };
 
 UiListRowCallback D_mist_shooting_gallery_80185334[1] = {
-    jukeboxDrawRow,
+    _jukeboxDrawRow,
 };
 
 UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };

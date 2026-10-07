@@ -121,7 +121,10 @@ static __inline__ s32 _diverClipHasBoundaryOrJump(Task* task)
 /// `clipIndex` must select a loaded clip supporting body slots 1..14. `rate`
 /// is in sixteenths of a frame and narrows to a signed byte when applied;
 /// `blendFrames` is in normal-rate frames (0..2047 keeps blend time nonnegative).
-/// The carrier's animation driver applies the request on a later update.
+/// Borrows the carrier's writable work; no pointer or clip data is retained.
+/// Replaces an earlier pending request, without ticking slots or changing the
+/// applied clip, status or frame counter. The carrier's animation driver applies
+/// the request on a later update, including when this clip already plays.
 static __inline__ void _diverRequestClipBlend(DiverWork* work, s16 clipIndex, s16 rate, s16 blendFrames)
 {
     work->animBlend   = blendFrames;

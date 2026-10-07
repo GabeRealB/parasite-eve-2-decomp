@@ -966,7 +966,7 @@ bearing and distance from a proposed step in the roots' common parent frame.
 private to that interface.
 
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
-chosen sequence. Its interface is `src/shared/jukebox.h` (`jukeboxDrawRow`,
+chosen sequence. Its interface is `src/shared/jukebox.h` (`_jukeboxDrawRow`,
 `jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the
 label drawn for that row. The saloon and shooting-gallery overlays each define
 their own tables, so the record stays in `include/rooms/rooms_shared_8018055c.h`

@@ -39,11 +39,11 @@ STATIC_ASSERT_SIZEOF(ViewFigureWork, 0x55C);
 
 void viewFigureSpawnState(Enemy* enemy, Task* task);
 void viewFigureStepAnim(Task* task);
-void viewFigureResetAnim(void);
-void viewFigureReseedAnim(void);
 s32  viewFigurePlayMessage(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3);
 
 static void _viewFigureExit(Task* task);
 static void _viewFigureTickAnim(void);
+static void _viewFigureResetAnim(void);
+static void _viewFigureReseedAnim(void);
 
 #endif /* SRC_SHARED_VIEW_FIGURE_H */

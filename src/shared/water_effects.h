@@ -23,6 +23,7 @@
 #ifndef SRC_SHARED_WATER_EFFECTS_H
 #define SRC_SHARED_WATER_EFFECTS_H
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/task_types.h"
 
@@ -42,6 +43,31 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
 static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radiusScale);
 #endif
 void waterDistortBandTask(Task* task);
+
+/// Redraws the Neo Ark water surfaces as vertically displaced framebuffer scanlines.
+///
+/// Draws only configured views of the bridge, island, garden, pavilion,
+/// submarine gallery and woodland path. Rows and spans use pixels centred on
+/// (160,120) of a 320x240 frame. Per-view horizontal planes use whole world Y;
+/// their view-space intersections supply Z/4 depth, quantized to 1024 OT tags
+/// before a signed view bias. The active camera must keep every biased index
+/// in bounds and the signed depth arithmetic in range. No clamp or negative-
+/// GTE-FLAG rejection occurs here.
+///
+/// Requires a composed view, valid projection distance, initialized scratch
+/// storage and a writable actor-buffer-2 prefix holding two 488-POLY_FT4 banks
+/// (0x9880 bytes). Each configured view emits at most 485 raw, opaque textured
+/// packets into the bank `otBuffer` selects, sampling that buffer's VRAM page.
+/// Both packet storage and sampled framebuffer contents must survive DMA;
+/// concurrent loading must not overwrite the selected packet bank.
+///
+/// The first active call seeds `killCountdown` as a signed-halfword wave phase
+/// and advances `state`. Later phase stores retain the low 16 bits. Phase
+/// advances by 32 angle units per active update while actors run, or while
+/// suspended in pavilion views 6 and 7. Sine/cosine use 4096 units
+/// per turn; wave scale is Q12. Eight-row ramps begin at the configured first
+/// row (unless it is row 1) and at a positive split's second span.
+/// Borrows no task work, releases its scratch block and overwrites GTE state.
 void waterRefractionTask(Task* task);
 
 #endif /* SRC_SHARED_WATER_EFFECTS_H */

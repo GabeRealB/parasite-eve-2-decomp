@@ -1,6 +1,12 @@
 /* Part of the bezier curve library; see bezier_curve.h. */
 
 /// Evaluates one coordinate, rounding down after each fixed-point Horner product.
+///
+/// Borrows four signed-halfword power-basis terms in coordinate units.
+/// `parameterQ16` has 16 fractional bits; the reverse sampler supplies 0..65535.
+/// Each signed 32-bit product must fit before its arithmetic right shift.
+/// Returns the coordinate in whole input units without final halfword narrowing;
+/// intermediate truncation can make it differ from a single final rounding.
 static inline s32 _bezierCurveEvaluateAxis(const _BezierCurveAxisCoefficients* coefficients, s32 parameterQ16)
 {
     s32 value;

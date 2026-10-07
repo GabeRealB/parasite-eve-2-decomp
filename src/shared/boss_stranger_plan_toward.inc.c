@@ -2,9 +2,12 @@
 
 /// Collects ordered occurrences of the two nearest nodes into the plan's slot lists.
 ///
-/// Each list takes up to eight entries. Retains the count-indexed marker writes,
-/// including the full-list overrun; valid caller orders have fewer than eight
-/// occurrences of each node. Borrows the live plan and navigation records.
+/// `actorNode` and `selfNode` must be initialized in the borrowed plan. Reads
+/// `orderCount` (0..255) navigation-order entries and stores their byte indices
+/// in ascending order. Each list takes up to eight entries, dropping later
+/// matches. The count-indexed end marker needs a spare byte: valid caller orders
+/// have fewer than eight occurrences of either node. A full list retains the
+/// marker overrun described by `BossStrangerPlanTowardScratch`.
 static inline void _bossStrangerCollectPlanSlots(const BossStrangerWalker* walker, BossStrangerPlanTowardScratch* plan)
 {
     plan->actorSlotCount = 0;
@@ -30,6 +33,10 @@ static inline void _bossStrangerCollectPlanSlots(const BossStrangerWalker* walke
 /// Ties keep the first pair. An empty list leaves the walker's cursor, goal slot
 /// and direction untouched, with `bestGap` at its no-pair sentinel. The main
 /// plan operation subsequently advances the cursor even in that case.
+/// Requires the two initialized, byte-indexed slot lists from collection.
+/// Differences promote to signed 32 bits, fit the stored signed halfword gap,
+/// and choose direction -1 for a negative gap or +1 otherwise. Borrows the
+/// writable walker and plan; their storage and the lists remain caller-owned.
 static inline void _bossStrangerSelectClosestPlanSlots(BossStrangerWalker* walker, BossStrangerPlanTowardScratch* plan)
 {
     s32 slotGap;

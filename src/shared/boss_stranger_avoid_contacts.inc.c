@@ -3,9 +3,12 @@
 /// Applies a normalized yaw-axis step to the walker and its accumulated XZ push.
 ///
 /// `parentYaw` uses 4096 units per turn; `signedDistance` is in game-coordinate
-/// units, with negative distances moving away. Borrows the caller's live scratch
-/// block, overwrites its rotation and direction, and retains GTE Q12 scaling.
-/// The caller initializes `push` and dirties the coordinate after the step.
+/// units along that yaw's +Z axis; a negative distance reverses the step.
+/// Borrows the caller's live scratch block, overwrites its rotation and direction,
+/// and retains GTE Q12 scaling.
+/// Adds XZ in full-width parent-coordinate translation, narrowing the summed
+/// `push` to signed halfwords. Y stays unchanged. The caller initializes `push`
+/// and dirties the coordinate after the step; no pointer is retained.
 static inline void _bossStrangerAccumulateAvoidanceStep(BossStrangerWalker* walker, ActorContactSteerScratch* scratch, s16 parentYaw, s16 signedDistance)
 {
     gfxRotMatrixY(&scratch->rot, parentYaw, GRAPHICS_ROTATION_REPLACE);

@@ -6,12 +6,12 @@
 void viewFigureStepAnim(Task* task)
 {
     if (gViewFigureWork->st.state == ACTOR_ENEMY_ANIM_BLEND) {
-        viewFigureReseedAnim();
+        _viewFigureReseedAnim();
         gViewFigureWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
     if (gViewFigureWork->st.state == ACTOR_ENEMY_ANIM_RESET) {
-        viewFigureResetAnim();
+        _viewFigureResetAnim();
         gViewFigureWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }

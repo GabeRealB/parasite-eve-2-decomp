@@ -5,6 +5,10 @@
 /// Reserves one uninitialized `SVECTOR` even at zero speed; a zero speed leaves
 /// `moveStep` intact. Nonzero speed uses the normalized local Z axis and GTE Q12
 /// scaling, adds XYZ to the parent-frame translation, and dirties the cache.
+/// `speed` is a signed distance in whole game-coordinate units per frame;
+/// negative steps run against facing. Borrows a live writable coordinate and
+/// walker, and releases its word-aligned scratch reservation before returning.
+/// GTE state changes. The enclosing tick supplies the freeze gate.
 static inline void _bossStrangerApplyFacingStep(BossStrangerWalker* walker, GfxCoord* coord, s16 speed)
 {
     SVECTOR* moveScratchEnd;

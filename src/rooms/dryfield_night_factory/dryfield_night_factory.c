@@ -66,7 +66,7 @@ static const TaskFuncTable3 _gFactoryHatchTaskStates = {
 /// The cutscene sequence's handler table: the flag watcher of state 0 and the
 /// two movements it arms.
 static const FactoryHatchStateFuncTable _gFactoryHatchStates = {
-    { factoryHatchWatch, factoryHatchOpen, factoryHatchClose },
+    { _factoryHatchWatch, _factoryHatchOpen, _factoryHatchClose },
 };
 
 SpriteBatch D_dryfield_night_factory_80189A14[2] = {

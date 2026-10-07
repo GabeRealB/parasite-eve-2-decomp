@@ -21,7 +21,8 @@
 
 #include "main/task_types.h"
 
-void jukeboxDrawRow(UiList* prompt, UiObject* obj);
 void jukeboxHostTask(Task* task);
+
+static void _jukeboxDrawRow(UiList* list, UiObject* object);
 
 #endif /* SRC_SHARED_JUKEBOX_H */

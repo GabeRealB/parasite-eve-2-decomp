@@ -1,13 +1,17 @@
 /* Part of the Diver library; see diver.h. */
 
-/// Installs only a joint's rotation and refreshes its composed transform.
+/// Replaces a joint's local rotation and refreshes its full-chain composed transform.
 ///
-/// Borrows a writable joint and separate readable MATRIX. Copies the nine
-/// coefficients, preserving local translation and the matrix's alignment bytes.
-/// Marks the cache dirty before composition; the parent chain must be live.
-static __inline__ void _diverInstallJointRotation(GfxCoord* joint, const MATRIX* rotation)
+/// Borrows a writable joint and a separate, word-aligned `localRotation` whose
+/// nine signed Q12 coefficients already use the joint's parent frame. Copies
+/// only the 3x3 basis, preserving local translation, alignment bytes and Euler
+/// storage. The source may leave its other MATRIX fields unspecified. Marks
+/// the cache dirty and composes using the current pass without advancing it.
+/// Requires a live acyclic parent chain and `actorRenderComposeCoord`'s cache
+/// contract; composition may update ancestor caches and changes GTE registers.
+static __inline__ void _actorRenderInstallJointRotation(GfxCoord* joint, const MATRIX* localRotation)
 {
-    memcpy(joint->coord.m, rotation->m, sizeof(joint->coord.m));
+    memcpy(joint->coord.m, localRotation->m, sizeof(joint->coord.m));
     joint->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(joint);
 }
@@ -30,6 +34,6 @@ static void _diverTurnJoint(GfxCoord* coord, s16 yaw)
     _diverAccumulateRotation(coord, rotation, &gGfxViewCoord);
     RotMatrixY(yaw, rotation);
     jointToUpdate = _diverLocalizeRotation(coord, rotation);
-    _diverInstallJointRotation(jointToUpdate, rotation);
+    _actorRenderInstallJointRotation(jointToUpdate, rotation);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }

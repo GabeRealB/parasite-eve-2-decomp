@@ -3,6 +3,9 @@
 /// Queues a subtractive textured quad from an accepted limb-shadow projection.
 ///
 /// Borrows the four packed screen-XY words and sorting depth in `scratch`.
+/// The projection must have a nonnegative GTE FLAG. `shade` is grey texture
+/// modulation in 0..255; the 4-bit texture is blended subtractively. `depth`
+/// is projection Z/4; depth shifting and masking select a tag in the current OT.
 /// The frame arena must have room for one word-aligned `POLY_FT4`, and the
 /// current ordering table must provide its 1024 depth tags. The packet remains
 /// live until the frame DMA finishes; the scratch block is not retained.
