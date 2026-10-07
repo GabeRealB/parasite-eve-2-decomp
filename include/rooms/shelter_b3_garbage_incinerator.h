@@ -28,7 +28,12 @@ extern u16 D_shelter_b3_garbage_incinerator_8018FBC8[2];
 extern AreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13];
 
 // shelter_b3_garbage_incinerator
-extern WorldCoordRoomLighting D_shelter_b3_garbage_incinerator_80187280[];
+/// Garbage-incinerator model-lighting descriptors indexed by room minus one.
+///
+/// Rooms 1..3 borrow the first light collection and 4..7 the second. All seven
+/// use default ambient minima (NULL tables). The overlay owns descriptors and
+/// mutable light arrays; their pointers must not survive unloading it.
+extern WorldCoordRoomLighting gShelterB3GarbageIncineratorRoomLighting[7];
 
 extern WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[];
 

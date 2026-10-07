@@ -53,7 +53,7 @@ extern TaskDesc D_map_neo_ark_8017A804[];
 /// This stage's flag table for `Gp_LookupStageFlag`.
 extern u16 D_map_neo_ark_8017A9A0[];
 
-/// This stage's entries in `Gp_RoomCoordTables`, `Gp_WarpTables`,
+/// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_WarpTables`,
 /// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
 /// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
 /// one pointer per room, into that room's package or, for some rooms, at a

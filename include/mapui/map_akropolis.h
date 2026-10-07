@@ -55,7 +55,7 @@ extern TaskDesc D_map_akropolis_8017A8AC[];
 /// This stage's flag table for `Gp_LookupStageFlag`.
 extern u16 D_map_akropolis_8017AA0C[];
 
-/// This stage's entries in `Gp_RoomCoordTables`, `Gp_RoomObjTables`,
+/// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_RoomObjTables`,
 /// `Gp_SprtTables`, `Gp_WarpTables`, `Gp_ViewCountTables`, `Gp_ViewTables`,
 /// `Gp_ViewIndexTables` and `Gp_RoomParamTables`: each leads to one pointer per
 /// room into that room's package.

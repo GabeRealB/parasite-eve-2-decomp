@@ -51,7 +51,7 @@ extern TaskDesc D_map_dryfield_full_8017A5AC[];
 /// This stage's flag table for `Gp_LookupStageFlag`.
 extern u16 D_map_dryfield_full_8017A738[];
 
-/// This stage's entries in `Gp_RoomCoordTables`, `Gp_WarpTables`,
+/// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_WarpTables`,
 /// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
 /// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
 /// one pointer per room into that room's package.

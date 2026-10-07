@@ -139,13 +139,24 @@ extern s32 gScreenWaveRamp;
    215100 (the caption drawing): their data here. */
 extern TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[];
 
-static s16 CapCaption_Data_801544EC;
-static s16 CapCaption_Data_801544EE;
+static s16 _gCapCaptionTexturePageX;
+static s16 _gCapCaptionTexturePageY;
 
-static s32 CapCaption_Data_801545E4;
-static s32 CapCaption_Data_801545E8;
+static s32 _gCapCaptionCaretPulseLevel;
+static s32 _gCapCaptionCaretPulseFalling;
 
 void func_shelter_b3_garbage_incinerator_8017F968(void);
+// This carrier borrows the caption storage defined by its third translation unit.
+#define CAP_CAPTION_GLYPH_CELLS       CapCaption_Data_8015E654
+#define CAP_CAPTION_SEQUENCE          CapCaption_Data_8015E658
+#define CAP_CAPTION_BLOCK_LEFT_X      CapCaption_Data_8015E65C
+#define CAP_CAPTION_FIRST_BASELINE_Y  CapCaption_Data_8015E65E
+#define CAP_CAPTION_BOTTOM_BASELINE_Y CapCaption_Data_8015E660
+#define CAP_CAPTION_RECORD_INDEX      CapCaption_Data_8015E662
+#define CAP_CAPTION_BLOCK_HEIGHT      CapCaption_Data_8015E664
+#define CAP_CAPTION_CARET_LEFT_X      CapCaption_Data_8015E668
+#define CAP_CAPTION_CARET_TIP_Y       CapCaption_Data_8015E66A
+#define CAP_CAPTION_CARET_DRAWS_LEFT  CapCaption_Data_8015E66C[0]
 #include "../../shared/cap_captions.h"
 
 /// Progress of the burn scene, held in `_ShelterB3GarbageIncineratorBlazeWork::sceneState`.
@@ -414,7 +425,7 @@ static TaskDesc D_shelter_b3_garbage_incinerator_80187184[1] = {
 
 #include "../../shared/cap_captions_schedule.inc.c"
 
-WorldCoordRoomLighting D_shelter_b3_garbage_incinerator_80187280[7] = {
+WorldCoordRoomLighting gShelterB3GarbageIncineratorRoomLighting[7] = {
     { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
     { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },
     { D_shelter_b3_garbage_incinerator_8018DCF0, NULL },

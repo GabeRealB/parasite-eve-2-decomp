@@ -364,7 +364,7 @@ static __inline__ WorldCoordRoomLighting* _worldCoordLookupRoomLighting(const Ga
     WorldCoordRoomLighting** areaLightingTables;
     WorldCoordRoomLighting*  roomLighting;
 
-    areaLightingTables = Gp_RoomCoordTables[location->stage - 1];
+    areaLightingTables = gWorldCoordRoomLightingTables[location->stage - 1];
     roomLighting       = NULL;
     if (areaLightingTables != NULL) {
         roomLighting = areaLightingTables[location->area - 1];

@@ -410,7 +410,7 @@ D_map_neo_ark_8017AA80 = 0x8017AA80; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AA28 = 0x8017AA28; // absolute:True owner=map_akropolis shared=mapui
 D_map_dryfield_8017A860 = 0x8017A860; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017A774 = 0x8017A774; // absolute:True owner=map_dryfield_full
-D_map_shelter_8017AEC4 = 0x8017AEC4; // absolute:True owner=map_shelter
+gMapShelterRoomLightingTables = 0x8017AEC4; // absolute:True owner=map_shelter
 D_map_neo_ark_8017A9FC = 0x8017A9FC; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AC6C = 0x8017AC6C; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AC9C = 0x8017AC9C; // absolute:True owner=map_dryfield

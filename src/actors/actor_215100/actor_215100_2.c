@@ -55,10 +55,9 @@
 
 #include "rooms/mist_shooting_gallery.h"
 #include "../../shared/paced_walk.h"
+#include "../../shared/cap_captions_types.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-static u8 CapCaption_Data_8015E66C[4];
+static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
@@ -100,33 +99,25 @@ extern AnimationSet* D_actor_215100_8015E5E8[25];
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
-extern TaskMessageEntry D_actor_215100_8015E5A0[];
-/// Glyph metrics table this overlay's caption metrics are read out of, the
-/// counterpart of gameplay's `Gp_CapGlyphs`. `func_actor_215100_8014B1B0`
-/// stores it and `func_actor_215100_8014C360` indexes it with a text stream's
-/// `code & 0x3FF`.
-static TextGlyphCell* CapCaption_Data_8015E654;
+extern TaskMessageEntry     D_actor_215100_8015E5A0[];
+static const TextGlyphCell* _gCapCaptionGlyphCells;
 
-/// Caption script table, and the script currently being played back with the
-/// entry it is up to.
+/// Caption script table.
 static CapCommandRef*     CapCaption_Data_8015E650;
-static CapSequenceRecord* CapCaption_Data_8015E658;
-static s16                CapCaption_Data_8015E65C;
-static s16                CapCaption_Data_8015E65E;
-static s16                CapCaption_Data_8015E660;
-static s16                CapCaption_Data_8015E662;
-static s16                CapCaption_Data_8015E664;
+static CapSequenceRecord* _gCapCaptionSequence;
+static s16                _gCapCaptionBlockLeftX;
+static s16                _gCapCaptionFirstBaselineY;
+static s16                _gCapCaptionBottomBaselineY;
+static s16                _gCapCaptionRecordIndex;
+static s16                _gCapCaptionBlockHeight;
 static s16                CapCaption_Data_8015E666;
-/// Frames left before the caret starts drawing.
-/// Caret grey level (pulses between 9 and 15) and its direction flag.
-static s32 CapCaption_Data_801545E4;
-static s32 CapCaption_Data_801545E8;
-/// Caret position.
-static u16          CapCaption_Data_8015E668;
-static u16          CapCaption_Data_8015E66A;
-static s16          CapCaption_Data_801544EC;
-static s16          CapCaption_Data_801544EE;
-extern RoomEventMsg D_actor_215100_8015E678;
+static s32                _gCapCaptionCaretPulseLevel;
+static s32                _gCapCaptionCaretPulseFalling;
+static u16                _gCapCaptionCaretLeftX;
+static u16                _gCapCaptionCaretTipY;
+static s16                _gCapCaptionTexturePageX;
+static s16                _gCapCaptionTexturePageY;
+extern RoomEventMsg       D_actor_215100_8015E678;
 /// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by an
 /// `upper` of `CAP_CAPTION_SCHEDULE_END`.
 static CapCaptionScheduleWindow CapCaption_Data_80154514[];
@@ -1747,32 +1738,72 @@ Task* D_actor_215100_8015E64C = NULL;
 
 static CapCommandRef* CapCaption_Data_8015E650 = NULL;
 
-static TextGlyphCell* CapCaption_Data_8015E654 = NULL;
+/// Glyph and title cells borrowed read-only from the selected loaded CAP file.
+///
+/// Text uses low-ten-bit indices; titles use low-byte selectors minus one.
+/// Every used index must exist in the file, which must remain loaded while
+/// captions are measured or drawn. Relocation republishes this pointer.
+static const TextGlyphCell* _gCapCaptionGlyphCells = NULL;
 
-static CapSequenceRecord* CapCaption_Data_8015E658 = NULL;
+/// Selected CAP sequence command and its following text records.
+///
+/// Borrowed from the loaded CAP file, which must remain live through selection
+/// and drawing. Slot zero is the sequence command; text records start at one
+/// and end at a record whose text reference is `CAP_TEXT_REF_END`. NULL hides
+/// captions. Selection requires a matching nonterminal key for measurement.
+static CapSequenceRecord* _gCapCaptionSequence = NULL;
 
-static s16 CapCaption_Data_8015E65C = 0;
+/// Biased left X of the selected caption's widest closed line, in screen pixels.
+///
+/// Cached as a signed halfword from (320 - width) / 2 - 5. Drawing uses its low
+/// halfword for packet coordinates; long lines may place it left of the screen.
+static s16 _gCapCaptionBlockLeftX = 0;
 
-static s16 CapCaption_Data_8015E65E = 0;
+/// First baseline of the selected caption block, in screen pixels.
+///
+/// Cached as a signed halfword from the bottom baseline minus subsequent
+/// closed-line heights. Drawing subtracts the caption draw-origin Y.
+static s16 _gCapCaptionFirstBaselineY = 0;
 
-static s16 CapCaption_Data_8015E660 = 0;
+/// Selected caption's bottom baseline in screen pixels.
+///
+/// Selection narrows the caller's word to a signed halfword. This anchors the
+/// first-baseline calculation and the caption box's bottom edge.
+static s16 _gCapCaptionBottomBaselineY = 0;
 
-static s16 CapCaption_Data_8015E662 = 0;
+/// Selected text-record slot within the current CAP sequence.
+///
+/// A signed-halfword index counting twelve-byte records; slot zero is the
+/// command, so selected text starts at one. The selected key must exist before
+/// the terminal slot and its index must fit in 1..32767 for metric calculation.
+static s16 _gCapCaptionRecordIndex = 0;
 
-static s16 CapCaption_Data_8015E664 = 0;
+/// Height of the selected caption's closed lines, in screen pixels.
+///
+/// Each line break commits its tallest nonnegative glyph height plus two,
+/// or two pixels for an empty line. The cached sum narrows to a signed halfword;
+/// an unfinished last line contributes nothing. Used to size the caption box.
+static s16 _gCapCaptionBlockHeight = 0;
 
 static s16 CapCaption_Data_8015E666 = 0;
 
-static u16 CapCaption_Data_8015E668 = 0;
+/// Continuation triangle's left X, retaining the low halfword of draw-coordinate pixels.
+///
+/// Updated at each text line break to the preceding pen X plus four. The
+/// triangle spans seven pixels to its right; no position is updated without a break.
+static u16 _gCapCaptionCaretLeftX = 0;
 
-static u16 CapCaption_Data_8015E66A = 0;
+/// Continuation triangle's tip Y, retaining the low halfword of draw-coordinate pixels.
+///
+/// Updated at each text line break to the preceding baseline minus two.
+/// Its upper edge is seven pixels above this tip; no VRAM Y offset is applied.
+static u16 _gCapCaptionCaretTipY = 0;
 
-static u8 CapCaption_Data_8015E66C[4] = {
-    0,
-    35,
-    192,
-    0,
-};
+/// Per-instance caret countdown and its uninterpreted retained bytes.
+///
+/// Selection resets `drawsLeft` to `CAP_CAPTION_CARET_DELAY_DRAWS`. Only eligible
+/// caret calls consume it; all initializer bytes remain stored verbatim.
+static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage = { 0, { 35, 192, 0 } };
 
 s32 D_actor_215100_8015E670;
 

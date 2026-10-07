@@ -21,6 +21,13 @@
 #include "common.h"
 #include "types.h"
 
+#include "cap_captions_types.h"
+
+// Selection resets the continuation-caret delay in eligible drawer calls.
+enum {
+    CAP_CAPTION_CARET_DELAY_DRAWS = 30
+};
+
 // Schedule states, the terminating upper bound, and the window-to-frame scale.
 enum {
     CAP_CAPTION_SCHEDULE_INIT            = 0,
@@ -49,11 +56,54 @@ typedef struct {
 } CapCaptionScheduleWindow;
 STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 
-/// Selects the current-caption void(void) function defined by the shared source.
+/// Selects per-carrier caption storage for the included implementation.
+///
+/// Bind before this header and retain through all caption fragments. Defaults
+/// name TU-local storage; the incinerator supplies its overlay-private globals.
+/// The glyph binding is a writable pointer lvalue to readable TextGlyphCell
+/// storage, accepting const cells. The sequence binding is a writable
+/// CapSequenceRecord* lvalue. Both borrow the loaded CAP file. Metric and
+/// record-index bindings are s16 lvalues; caret positions are u16, and
+/// CAP_CAPTION_CARET_DRAWS_LEFT is a writable u8 lvalue.
+/// Bindings have no side effects or token construction and may be read repeatedly.
+#ifndef CAP_CAPTION_GLYPH_CELLS
+#define CAP_CAPTION_GLYPH_CELLS _gCapCaptionGlyphCells
+#endif
+#ifndef CAP_CAPTION_SEQUENCE
+#define CAP_CAPTION_SEQUENCE _gCapCaptionSequence
+#endif
+#ifndef CAP_CAPTION_BLOCK_LEFT_X
+#define CAP_CAPTION_BLOCK_LEFT_X _gCapCaptionBlockLeftX
+#endif
+#ifndef CAP_CAPTION_FIRST_BASELINE_Y
+#define CAP_CAPTION_FIRST_BASELINE_Y _gCapCaptionFirstBaselineY
+#endif
+#ifndef CAP_CAPTION_BOTTOM_BASELINE_Y
+#define CAP_CAPTION_BOTTOM_BASELINE_Y _gCapCaptionBottomBaselineY
+#endif
+#ifndef CAP_CAPTION_RECORD_INDEX
+#define CAP_CAPTION_RECORD_INDEX _gCapCaptionRecordIndex
+#endif
+#ifndef CAP_CAPTION_BLOCK_HEIGHT
+#define CAP_CAPTION_BLOCK_HEIGHT _gCapCaptionBlockHeight
+#endif
+#ifndef CAP_CAPTION_CARET_LEFT_X
+#define CAP_CAPTION_CARET_LEFT_X _gCapCaptionCaretLeftX
+#endif
+#ifndef CAP_CAPTION_CARET_TIP_Y
+#define CAP_CAPTION_CARET_TIP_Y _gCapCaptionCaretTipY
+#endif
+#ifndef CAP_CAPTION_CARET_DRAWS_LEFT
+#define CAP_CAPTION_CARET_DRAWS_LEFT (_gCapCaptionCaretDelayStorage.drawsLeft)
+#endif
+
+/// Selects the void(void) function that queues the selected caption and its caret.
 ///
 /// Bind a function identifier before this header and retain it through
-/// cap_captions.inc.c. Room carriers use the default static instance; actor_215100
-/// binds its public export and an empty CAP_CAPTION_DRAW_CURRENT_LINKAGE.
+/// `cap_captions.inc.c`. Room carriers use the default static instance; actor_215100
+/// binds its public export and an empty `CAP_CAPTION_DRAW_CURRENT_LINKAGE`.
+/// All selected definitions take no arguments and return no value; the name
+/// binding does not determine linkage. Each carrier owns independent state.
 /// The alias has no arguments, captures or token construction.
 #ifndef CAP_CAPTION_DRAW_CURRENT
 #define CAP_CAPTION_DRAW_CURRENT _capCaptionDrawCurrent

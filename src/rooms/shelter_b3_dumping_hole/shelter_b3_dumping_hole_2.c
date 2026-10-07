@@ -187,9 +187,7 @@ static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2);
 
 extern u16 D_shelter_b3_dumping_hole_8018F4D4;
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-static u8 CapCaption_Data_8015E66C[4];
+static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage;
 // Scalar symbol view preserves the original byte/halfword address formation.
 
 extern u16 D_shelter_b3_dumping_hole_8018F4B0;
@@ -440,23 +438,23 @@ extern TaskMessageEntry         D_shelter_b3_dumping_hole_8018965C[2];
 extern EvsCommand               D_shelter_b3_dumping_hole_8018968C[];
 extern EvsCommand               D_shelter_b3_dumping_hole_801899A4[];
 extern TaskDesc                 D_shelter_b3_dumping_hole_8018AFBC;
-static CapSequenceRecord*       CapCaption_Data_8015E658;
-static s16                      CapCaption_Data_8015E662;
+static CapSequenceRecord*       _gCapCaptionSequence;
+static s16                      _gCapCaptionRecordIndex;
 static CapCaptionScheduleWindow CapCaption_Data_80154514[];
-static TextGlyphCell*           CapCaption_Data_8015E654;
+static const TextGlyphCell*     _gCapCaptionGlyphCells;
 static CapCommandRef*           CapCaption_Data_8015E650;
-static s16                      CapCaption_Data_8015E65C;
-static s16                      CapCaption_Data_8015E65E;
-static s16                      CapCaption_Data_8015E660;
-static s16                      CapCaption_Data_8015E664;
+static s16                      _gCapCaptionBlockLeftX;
+static s16                      _gCapCaptionFirstBaselineY;
+static s16                      _gCapCaptionBottomBaselineY;
+static s16                      _gCapCaptionBlockHeight;
 static s16                      CapCaption_Data_8015E666;
 
-static s16      CapCaption_Data_801544EC;
-static s16      CapCaption_Data_801544EE;
-static u16      CapCaption_Data_8015E668;
-static u16      CapCaption_Data_8015E66A;
-static s32      CapCaption_Data_801545E4;
-static s32      CapCaption_Data_801545E8;
+static s16      _gCapCaptionTexturePageX;
+static s16      _gCapCaptionTexturePageY;
+static u16      _gCapCaptionCaretLeftX;
+static u16      _gCapCaptionCaretTipY;
+static s32      _gCapCaptionCaretPulseLevel;
+static s32      _gCapCaptionCaretPulseFalling;
 static TaskDesc CapCaption_Data_801544FC;
 extern TaskDesc Actor04400_D107E4;
 extern TaskDesc D_actor_207000_801575F0;
@@ -1842,35 +1840,47 @@ SpriteView D_shelter_b3_dumping_hole_8018E050[37] = {
     { { .elements = D_shelter_b3_dumping_hole_8018CC80 }, D_shelter_b3_dumping_hole_8018D3B0, NULL },
 };
 
-WorldCoordLight D_shelter_b3_dumping_hole_8018E20C[2] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9988, -0x2B02, -2510 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2582, 2295 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9632, -0x2B02, 1990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 925, 820 }, { 0, 0 } },
+/// Two all-view directional lights for dumping-hole room index 1.
+///
+/// RGB uses Q12 intensity; transform translations supply the light directions.
+/// Gameplay parents and composes these mutable records while the room is loaded.
+static WorldCoordLight _gShelterB3DumpingHoleRoom1DirectionalLights[2] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9988, -0x2B02, -2510 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2871, 2582, 2295 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9632, -0x2B02, 1990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 925, 820 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_shelter_b3_dumping_hole_8018E2BC[3] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4A38, -3000, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 819, 737, 655 }, { 0, 0 } }, 3561, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2903, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4914, 409, 0 }, { 0, 0 } }, 1500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BB, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4914, 409, 0 }, { 0, 0 } }, 1500, 2000 },
+/// Three all-view point lights for dumping-hole room index 1.
+///
+/// Positions and falloff radii use world units; RGB intensities use Q12.
+/// Gameplay updates transforms and query attenuation in this room-owned storage.
+static WorldCoordPointLight _gShelterB3DumpingHoleRoom1PointLights[3] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4A38, -3000, -6000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 819, 737, 655 }, { 0, 0 } }, 3561, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2903, -4372, -1003 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4914, 409, 0 }, { 0, 0 } }, 1500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x34BB, -4372, -1003 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4914, 409, 0 }, { 0, 0 } }, 1500, 2000 },
 };
 
-WorldCoordRoomLights D_shelter_b3_dumping_hole_8018E3DC = { ARRAY_SIZE(D_shelter_b3_dumping_hole_8018E20C), D_shelter_b3_dumping_hole_8018E20C, ARRAY_SIZE(D_shelter_b3_dumping_hole_8018E2BC), D_shelter_b3_dumping_hole_8018E2BC, 0, NULL };
+WorldCoordRoomLights gShelterB3DumpingHoleRoom1Lights = { ARRAY_SIZE(_gShelterB3DumpingHoleRoom1DirectionalLights), _gShelterB3DumpingHoleRoom1DirectionalLights, ARRAY_SIZE(_gShelterB3DumpingHoleRoom1PointLights), _gShelterB3DumpingHoleRoom1PointLights, 0, NULL };
 
-WorldCoordPointLight D_shelter_b3_dumping_hole_8018E3F4[12] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1230, 1110, 985 }, { 0, 0 } }, 4202, 7241 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3A98, -3980, -9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1106, 987 }, { 0, 0 } }, 4339, 7000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9000, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1230, 1109, 984 }, { 0, 0 } }, 4124, 7086 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3A98, -3980, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1109, 987 }, { 0, 0 } }, 4239, 6981 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9000, -3980, -9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1106, 986 }, { 0, 0 } }, 4180, 7000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -3980, -9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1106, 985 }, { 0, 0 } }, 4275, 7000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4A38, -3000, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 1844, 1640 }, { 0, 0 } }, 3561, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2903, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 409, 0 }, { 0, 0 } }, 1500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BB, -4372, -1003 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 409, 0 }, { 0, 0 } }, 1500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4DF6, -2052, -4394 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 310, 3279, 1229 }, { 0, 0 } }, 1341, 1738 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4A91, -2181, -3367 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 3690, 4096 }, { 0, 0 } }, 1400, 2022 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6000, -9400, -3500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2215, 1970 }, { 0, 0 } }, 3000, 4000 },
+/// Twelve all-view point lights for dumping-hole room index 2.
+///
+/// Positions and falloff radii use world units; RGB intensities use Q12.
+/// Gameplay updates transforms and query attenuation in this room-owned storage.
+static WorldCoordPointLight _gShelterB3DumpingHoleRoom2PointLights[12] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -3980, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1230, 1110, 985 }, { 0, 0 } }, 4202, 7241 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3A98, -3980, -9000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1106, 987 }, { 0, 0 } }, 4339, 7000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9000, -3980, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1230, 1109, 984 }, { 0, 0 } }, 4124, 7086 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3A98, -3980, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1109, 987 }, { 0, 0 } }, 4239, 6981 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9000, -3980, -9000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1229, 1106, 986 }, { 0, 0 } }, 4180, 7000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -3980, -9000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1232, 1106, 985 }, { 0, 0 } }, 4275, 7000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4A38, -3000, -6000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 1844, 1640 }, { 0, 0 } }, 3561, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2903, -4372, -1003 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 409, 0 }, { 0, 0 } }, 1500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x34BB, -4372, -1003 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 409, 0 }, { 0, 0 } }, 1500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4DF6, -2052, -4394 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 310, 3279, 1229 }, { 0, 0 } }, 1341, 1738 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4A91, -2181, -3367 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 3690, ONE }, { 0, 0 } }, 1400, 2022 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6000, -9400, -3500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2215, 1970 }, { 0, 0 } }, 3000, 4000 },
 };
 
-WorldCoordRoomLights D_shelter_b3_dumping_hole_8018E874 = { 0, NULL, ARRAY_SIZE(D_shelter_b3_dumping_hole_8018E3F4), D_shelter_b3_dumping_hole_8018E3F4, 0, NULL };
+WorldCoordRoomLights gShelterB3DumpingHoleRoom2Lights = { 0, NULL, ARRAY_SIZE(_gShelterB3DumpingHoleRoom2PointLights), _gShelterB3DumpingHoleRoom2PointLights, 0, NULL };
 
 WorldCollisionTrigger D_shelter_b3_dumping_hole_8018E88C[8] = {
     { NULL, NULL, NULL, { 0x3F30, -5696, -5696, 0 }, { { 0, -6336, -4624, 0 }, { 0, -6336, 4624, 0 }, { 0, 6336, -4624, 0 }, { 0, 6336, 4624, 0 } }, { 4096, 0, 0, 0 }, { 0, 0, 4096, 0 }, 7832, 0, 30, 29, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1965,8 +1975,8 @@ WorldCollisionTrigger D_shelter_b3_dumping_hole_8018EF9C[8] = {
     { NULL, NULL, NULL, { 0x2DB0, -64, -8272, 0 }, { { -2000, 0, -368, 0 }, { 2000, 0, -368, 0 }, { -2000, 0, 368, 0 }, { 2000, 0, 368, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 2031, WORLD_COLLISION_TRIGGER_ACTION_CAP, 25, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b3_dumping_hole_8018F1FC[38] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b3_dumping_hole_8018F1FC) - 1 },
+WorldCoordRoomAmbientEntry gShelterB3DumpingHoleRoom1AmbientByView[38] = {
+    { .viewCount = ARRAY_SIZE(gShelterB3DumpingHoleRoom1AmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 208, 208, 208, 208 } },
     { .color = { 208, 208, 208, 208 } },
@@ -2006,8 +2016,8 @@ WorldCoordRoomAmbientEntry D_shelter_b3_dumping_hole_8018F1FC[38] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b3_dumping_hole_8018F32C[38] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b3_dumping_hole_8018F32C) - 1 },
+WorldCoordRoomAmbientEntry gShelterB3DumpingHoleRoom2AmbientByView[38] = {
+    { .viewCount = ARRAY_SIZE(gShelterB3DumpingHoleRoom2AmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -2097,32 +2107,72 @@ u16 D_shelter_b3_dumping_hole_8018F4B2 = 0xDF0D;
 
 static CapCommandRef* CapCaption_Data_8015E650 = NULL;
 
-static TextGlyphCell* CapCaption_Data_8015E654 = NULL;
+/// Glyph and title cells borrowed read-only from the selected loaded CAP file.
+///
+/// Text uses low-ten-bit indices; titles use low-byte selectors minus one.
+/// Every used index must exist in the file, which must remain loaded while
+/// captions are measured or drawn. Relocation republishes this pointer.
+static const TextGlyphCell* _gCapCaptionGlyphCells = NULL;
 
-static CapSequenceRecord* CapCaption_Data_8015E658 = NULL;
+/// Selected CAP sequence command and its following text records.
+///
+/// Borrowed from the loaded CAP file, which must remain live through selection
+/// and drawing. Slot zero is the sequence command; text records start at one
+/// and end at a record whose text reference is `CAP_TEXT_REF_END`. NULL hides
+/// captions. Selection requires a matching nonterminal key for measurement.
+static CapSequenceRecord* _gCapCaptionSequence = NULL;
 
-static s16 CapCaption_Data_8015E65C = 0;
+/// Biased left X of the selected caption's widest closed line, in screen pixels.
+///
+/// Cached as a signed halfword from (320 - width) / 2 - 5. Drawing uses its low
+/// halfword for packet coordinates; long lines may place it left of the screen.
+static s16 _gCapCaptionBlockLeftX = 0;
 
-static s16 CapCaption_Data_8015E65E = 0;
+/// First baseline of the selected caption block, in screen pixels.
+///
+/// Cached as a signed halfword from the bottom baseline minus subsequent
+/// closed-line heights. Drawing subtracts the caption draw-origin Y.
+static s16 _gCapCaptionFirstBaselineY = 0;
 
-static s16 CapCaption_Data_8015E660 = 0;
+/// Selected caption's bottom baseline in screen pixels.
+///
+/// Selection narrows the caller's word to a signed halfword. This anchors the
+/// first-baseline calculation and the caption box's bottom edge.
+static s16 _gCapCaptionBottomBaselineY = 0;
 
-static s16 CapCaption_Data_8015E662 = 0;
+/// Selected text-record slot within the current CAP sequence.
+///
+/// A signed-halfword index counting twelve-byte records; slot zero is the
+/// command, so selected text starts at one. The selected key must exist before
+/// the terminal slot and its index must fit in 1..32767 for metric calculation.
+static s16 _gCapCaptionRecordIndex = 0;
 
-static s16 CapCaption_Data_8015E664 = 0;
+/// Height of the selected caption's closed lines, in screen pixels.
+///
+/// Each line break commits its tallest nonnegative glyph height plus two,
+/// or two pixels for an empty line. The cached sum narrows to a signed halfword;
+/// an unfinished last line contributes nothing. Used to size the caption box.
+static s16 _gCapCaptionBlockHeight = 0;
 
 static s16 CapCaption_Data_8015E666 = 0;
 
-static u16 CapCaption_Data_8015E668 = 0;
+/// Continuation triangle's left X, retaining the low halfword of draw-coordinate pixels.
+///
+/// Updated at each text line break to the preceding pen X plus four. The
+/// triangle spans seven pixels to its right; no position is updated without a break.
+static u16 _gCapCaptionCaretLeftX = 0;
 
-static u16 CapCaption_Data_8015E66A = 0;
+/// Continuation triangle's tip Y, retaining the low halfword of draw-coordinate pixels.
+///
+/// Updated at each text line break to the preceding baseline minus two.
+/// Its upper edge is seven pixels above this tip; no VRAM Y offset is applied.
+static u16 _gCapCaptionCaretTipY = 0;
 
-static u8 CapCaption_Data_8015E66C[4] = {
-    0,
-    19,
-    111,
-    0,
-};
+/// Per-instance caret countdown and its uninterpreted retained bytes.
+///
+/// Selection resets `drawsLeft` to `CAP_CAPTION_CARET_DELAY_DRAWS`. Only eligible
+/// caret calls consume it; all initializer bytes remain stored verbatim.
+static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage = { 0, { 19, 111, 0 } };
 
 u16 D_shelter_b3_dumping_hole_8018F4D4 = 0;
 

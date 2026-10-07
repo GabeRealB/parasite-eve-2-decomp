@@ -50,7 +50,7 @@ STATIC_ASSERT_SIZEOF(WorldCoordRoomLights, 0x18);
 
 /// A room's light collection and minimum ambient colours by view.
 ///
-/// `Gp_RoomCoordTables` selects a stage's area table, then an area's room array.
+/// `gWorldCoordRoomLightingTables` selects a stage's area table, then an area's room array.
 /// Lookups require valid 1-based `GameLocationKey` stage, area and room indices;
 /// each containing table determines its own extent. Ambient lookups require a
 /// 1-based view: entry zero holds `viewCount`, followed by colours at entries

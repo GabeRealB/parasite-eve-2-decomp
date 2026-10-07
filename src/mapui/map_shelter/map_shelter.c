@@ -17,6 +17,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gfx_types.h"
@@ -706,9 +707,13 @@ static WorldCoordRoomLighting D_map_shelter_8017AE74[1] = {
     { &D_shelter_1f_heliport_s4_8017DE6C, NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE7C[2] = {
-    { &D_shelter_b3_dumping_hole_8018E3DC, D_shelter_b3_dumping_hole_8018F1FC },
-    { &D_shelter_b3_dumping_hole_8018E874, D_shelter_b3_dumping_hole_8018F32C },
+/// Dumping-hole lighting descriptors for Mine/Shelter area 39, rooms 1 and 2.
+///
+/// The map overlay owns these descriptors; their light and per-view ambient
+/// inputs belong to the loaded dumping-hole overlay and require its lifetime.
+static WorldCoordRoomLighting _gMapShelterDumpingHoleRoomLighting[2] = {
+    { &gShelterB3DumpingHoleRoom1Lights, gShelterB3DumpingHoleRoom1AmbientByView },
+    { &gShelterB3DumpingHoleRoom2Lights, gShelterB3DumpingHoleRoom2AmbientByView },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE8C[2] = {
@@ -736,56 +741,56 @@ static WorldCoordRoomLighting D_map_shelter_8017AEBC[1] = {
     { &D_shelter_r47_8018A5BC, NULL },
 };
 
-WorldCoordRoomLighting* D_map_shelter_8017AEC4[49] = {
-    D_mine_mesa_8018654C,
-    D_mine_cavern_80189010,
-    D_mine_tunnel_entrance_8017DB58,
-    D_mine_tunnel_8017E154,
-    D_mine_gorge_8017E7A8,
-    D_mine_refuge_801818F0,
-    D_mine_forked_tunnel_80183634,
-    D_mine_secret_passage_80180F9C,
-    D_shelter_b1_elevator_hall_80182DF8,
-    D_shelter_b1_south_maintenance_walkway_801823F4,
-    D_shelter_b1_storeroom_80184B60,
-    D_map_shelter_8017ADC4,
-    D_map_shelter_8017ADCC,
-    D_map_shelter_8017ADD4,
-    D_map_shelter_8017ADDC,
-    D_shelter_b1_sterilization_room_80189354,
-    D_map_shelter_8017ADE4,
-    D_map_shelter_8017ADEC,
-    D_map_shelter_8017ADF4,
-    D_shelter_b1_underground_parking_801877B4,
-    D_map_shelter_8017ADFC,
-    D_shelter_b2_pod_bottom_80181D24,
-    D_map_shelter_8017AE04,
-    D_map_shelter_8017AE0C,
-    D_map_shelter_8017AE14,
-    D_map_shelter_8017AE1C,
-    D_map_shelter_8017AE24,
-    D_map_shelter_8017AE2C,
-    D_map_shelter_8017AE34,
-    D_map_shelter_8017AE3C,
-    D_map_shelter_8017AE44,
-    D_map_shelter_8017AE4C,
-    D_map_shelter_8017AE54,
-    D_map_shelter_8017AE5C,
-    D_shelter_b2_pod_access_tunnel_80183E0C,
-    D_map_shelter_8017AE64,
-    D_map_shelter_8017AE6C,
-    D_map_shelter_8017AE74,
-    D_map_shelter_8017AE7C,
-    D_shelter_b3_garbage_incinerator_80187280,
-    D_map_shelter_8017AE8C,
-    D_map_shelter_8017AE9C,
-    D_map_shelter_8017AEA4,
-    D_map_shelter_8017AEAC,
-    D_shelter_b4_reservoir_801850E8,
-    D_map_shelter_8017AEB4,
-    D_map_shelter_8017AEBC,
-    D_shelter_r48_80183014,
-    D_shelter_r49_8017DA30,
+WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
+    [GAME_AREA_MINE_MESA - 1]                             = D_mine_mesa_8018654C,
+    [GAME_AREA_MINE_CAVERN - 1]                           = D_mine_cavern_80189010,
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = D_mine_tunnel_entrance_8017DB58,
+    [GAME_AREA_MINE_TUNNEL - 1]                           = D_mine_tunnel_8017E154,
+    [GAME_AREA_MINE_GORGE - 1]                            = D_mine_gorge_8017E7A8,
+    [GAME_AREA_MINE_REFUGE - 1]                           = D_mine_refuge_801818F0,
+    [GAME_AREA_MINE_FORKED_TUNNEL - 1]                    = D_mine_forked_tunnel_80183634,
+    [GAME_AREA_MINE_SECRET_PASSAGE - 1]                   = D_mine_secret_passage_80180F9C,
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = D_shelter_b1_elevator_hall_80182DF8,
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = D_shelter_b1_south_maintenance_walkway_801823F4,
+    [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = D_shelter_b1_storeroom_80184B60,
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = D_map_shelter_8017ADC4,
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = D_map_shelter_8017ADCC,
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = D_map_shelter_8017ADD4,
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = D_map_shelter_8017ADDC,
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = D_shelter_b1_sterilization_room_80189354,
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = D_map_shelter_8017ADE4,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = D_map_shelter_8017ADEC,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = D_map_shelter_8017ADF4,
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = D_shelter_b1_underground_parking_801877B4,
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = D_map_shelter_8017ADFC,
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = D_shelter_b2_pod_bottom_80181D24,
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = D_map_shelter_8017AE04,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = D_map_shelter_8017AE0C,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = D_map_shelter_8017AE14,
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = D_map_shelter_8017AE1C,
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = D_map_shelter_8017AE24,
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = D_map_shelter_8017AE2C,
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = D_map_shelter_8017AE34,
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = D_map_shelter_8017AE3C,
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = D_map_shelter_8017AE44,
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = D_map_shelter_8017AE4C,
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = D_map_shelter_8017AE54,
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = D_map_shelter_8017AE5C,
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = D_shelter_b2_pod_access_tunnel_80183E0C,
+    [GAME_AREA_SHELTER_R36 - 1]                           = D_map_shelter_8017AE64,
+    [GAME_AREA_SHELTER_R37 - 1]                           = D_map_shelter_8017AE6C,
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = D_map_shelter_8017AE74,
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = _gMapShelterDumpingHoleRoomLighting,
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = gShelterB3GarbageIncineratorRoomLighting,
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = D_map_shelter_8017AE8C,
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = D_map_shelter_8017AE9C,
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = D_map_shelter_8017AEA4,
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = D_map_shelter_8017AEAC,
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = D_shelter_b4_reservoir_801850E8,
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = D_map_shelter_8017AEB4,
+    [GAME_AREA_SHELTER_R47 - 1]                           = D_map_shelter_8017AEBC,
+    [GAME_AREA_SHELTER_R48 - 1]                           = D_shelter_r48_80183014,
+    [GAME_AREA_SHELTER_R49 - 1]                           = D_shelter_r49_8017DA30,
 };
 
 DirectionWarpEntry* D_map_shelter_8017AF88[49] = {

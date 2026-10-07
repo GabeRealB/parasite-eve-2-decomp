@@ -103,6 +103,16 @@ static void CapCaption_RunSchedule(Task* task)
     }
 }
 
+/// Queues the selected caption and, unless instant text is requested, its caret.
+///
+/// A null sequence, terminal record or busy gameplay CAP suppresses both draws.
+/// Requires a relocated CAP resource, a valid selected record and cached pixel
+/// metrics. Text/title cells and textures must remain loaded, and OT entries 2/3
+/// and primitive storage must be writable through GPU completion. The title's
+/// low byte selects no title (0) or glyph index + 1 (1..255); the published bank
+/// bit is retained but ignored. Drawing does not advance the selected record.
+/// Eligible caret calls consume its thirty-call delay, then draw and step its
+/// pulse; suppressed or instant-text draws freeze the caret state.
 CAP_CAPTION_DRAW_CURRENT_LINKAGE void CAP_CAPTION_DRAW_CURRENT(void)
 {
     enum {
@@ -111,15 +121,15 @@ CAP_CAPTION_DRAW_CURRENT_LINKAGE void CAP_CAPTION_DRAW_CURRENT(void)
         CAP_CAPTION_TITLE_BANK_TO_SELECTOR_SCALE = 0x10
     };
 
-    if ((CapCaption_Data_8015E658 != NULL) &&
-        (CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.offset != CAP_TEXT_REF_END) &&
+    if ((CAP_CAPTION_SEQUENCE != NULL) &&
+        (CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].textRef.offset != CAP_TEXT_REF_END) &&
         (capIsBusy() == 0)) {
         // The two retained arguments and title selector's bank bit are ignored.
-        _capCaptionDrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text,
+        _capCaptionDrawText(CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].textRef.text,
                             CAP_CAPTION_RETAINED_DRAW_ARG, CAP_CAPTION_RETAINED_REVEAL_ARG,
-                            CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.title |
-                                ((CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.flags & CAP_SEQUENCE_TITLE_BANK) * CAP_CAPTION_TITLE_BANK_TO_SELECTOR_SCALE));
-        if (!(CapCaption_Data_8015E658[CapCaption_Data_8015E662].trigger.soundAndTextFlags & CAP_SEQUENCE_INSTANT_TEXT)) {
+                            CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].control.text.title |
+                                ((CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].control.text.flags & CAP_SEQUENCE_TITLE_BANK) * CAP_CAPTION_TITLE_BANK_TO_SELECTOR_SCALE));
+        if (!(CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].trigger.soundAndTextFlags & CAP_SEQUENCE_INSTANT_TEXT)) {
             _capCaptionDrawContinueCaret();
         }
     }
@@ -228,7 +238,7 @@ static bool _capCaptionRelocateFile(CapFile* file)
     }
 
     // These tables stay owned by the loaded resource, including on repeat calls.
-    CapCaption_Data_8015E654 = file->glyphs.cells;
+    CAP_CAPTION_GLYPH_CELLS  = file->glyphs.cells;
     CapCaption_Data_8015E650 = file->commands.table->entries;
     return true;
 }
@@ -242,19 +252,19 @@ CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CapCaption_SelectScript(s16 arg0, s16 arg1
     CapSequenceRecord* caption;
     s16                entry;
 
-    caption                  = CapCaption_Data_8015E650[arg0].sequence;
-    CapCaption_Data_8015E658 = caption;
+    caption              = CapCaption_Data_8015E650[arg0].sequence;
+    CAP_CAPTION_SEQUENCE = caption;
     if (caption == NULL) {
         return 1;
     }
-    CapCaption_Data_8015E666    = arg1;
-    entry                       = _capCaptionFindRecordByKey(1);
-    CapCaption_Data_8015E662    = entry;
-    CapCaption_Data_8015E660    = arg2;
-    CapCaption_Data_8015E65C    = _capCaptionGetTextBlockLeftX(CapCaption_Data_8015E658[entry].textRef.text);
-    CapCaption_Data_8015E65E    = _capCaptionGetTextFirstBaselineY(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text);
-    CapCaption_Data_8015E664    = _capCaptionGetTextBlockHeight(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text);
-    CapCaption_Data_8015E66C[0] = 0x1E;
+    CapCaption_Data_8015E666      = arg1;
+    entry                         = _capCaptionFindRecordByKey(1);
+    CAP_CAPTION_RECORD_INDEX      = entry;
+    CAP_CAPTION_BOTTOM_BASELINE_Y = arg2;
+    CAP_CAPTION_BLOCK_LEFT_X      = _capCaptionGetTextBlockLeftX(CAP_CAPTION_SEQUENCE[entry].textRef.text);
+    CAP_CAPTION_FIRST_BASELINE_Y  = _capCaptionGetTextFirstBaselineY(CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].textRef.text);
+    CAP_CAPTION_BLOCK_HEIGHT      = _capCaptionGetTextBlockHeight(CAP_CAPTION_SEQUENCE[CAP_CAPTION_RECORD_INDEX].textRef.text);
+    CAP_CAPTION_CARET_DRAWS_LEFT  = CAP_CAPTION_CARET_DELAY_DRAWS;
     return 0;
 }
 
@@ -321,7 +331,7 @@ static s32 _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unu
     title     = titleIndex;
     text      = textStream;
     penX      = _capCaptionGetTextLineLeftX(textStream, 0) - CAP_CAPTION_DRAW_ORIGIN_X;
-    baselineY = (u16)CapCaption_Data_8015E65E - CAP_CAPTION_DRAW_ORIGIN_Y;
+    baselineY = (u16)CAP_CAPTION_FIRST_BASELINE_Y - CAP_CAPTION_DRAW_ORIGIN_Y;
 
     // Queue two blended background passes, then their draw-mode command.
     background     = gGpuPrimCursor;
@@ -332,14 +342,14 @@ static s32 _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unu
     setRGB1(background, 0, 0, 0);
     setRGB2(background, 0, CAP_CAPTION_BACKGROUND_GREEN, CAP_CAPTION_BACKGROUND_BLUE);
     setRGB3(background, 0, CAP_CAPTION_BACKGROUND_GREEN, CAP_CAPTION_BACKGROUND_BLUE);
-    background->x0 = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
-    background->y0 = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664;
-    background->x1 = (u16)CapCaption_Data_8015E65C - CapCaption_Data_8015E65C * 2 + CAP_CAPTION_BOX_RIGHT_ORIGIN_X;
-    background->y1 = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664;
-    background->x2 = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
-    background->y2 = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664 + (u16)CapCaption_Data_8015E664;
-    background->x3 = (u16)CapCaption_Data_8015E65C - CapCaption_Data_8015E65C * 2 + CAP_CAPTION_BOX_RIGHT_ORIGIN_X;
-    background->y3 = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664 + (u16)CapCaption_Data_8015E664;
+    background->x0 = (u16)CAP_CAPTION_BLOCK_LEFT_X - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+    background->y0 = ((u16)CAP_CAPTION_BOTTOM_BASELINE_Y - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CAP_CAPTION_BLOCK_HEIGHT;
+    background->x1 = (u16)CAP_CAPTION_BLOCK_LEFT_X - CAP_CAPTION_BLOCK_LEFT_X * 2 + CAP_CAPTION_BOX_RIGHT_ORIGIN_X;
+    background->y1 = ((u16)CAP_CAPTION_BOTTOM_BASELINE_Y - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CAP_CAPTION_BLOCK_HEIGHT;
+    background->x2 = (u16)CAP_CAPTION_BLOCK_LEFT_X - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+    background->y2 = ((u16)CAP_CAPTION_BOTTOM_BASELINE_Y - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CAP_CAPTION_BLOCK_HEIGHT + (u16)CAP_CAPTION_BLOCK_HEIGHT;
+    background->x3 = (u16)CAP_CAPTION_BLOCK_LEFT_X - CAP_CAPTION_BLOCK_LEFT_X * 2 + CAP_CAPTION_BOX_RIGHT_ORIGIN_X;
+    background->y3 = ((u16)CAP_CAPTION_BOTTOM_BASELINE_Y - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CAP_CAPTION_BLOCK_HEIGHT + (u16)CAP_CAPTION_BLOCK_HEIGHT;
     addPrim(&gGpuCurrentOt[CAP_CAPTION_BACKGROUND_OT_INDEX], background);
     backgroundCopy  = gGpuPrimCursor;
     gGpuPrimCursor  = backgroundCopy + 1;
@@ -359,20 +369,20 @@ static s32 _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unu
         setPolyFT4(flatQuad);
         setShadeTex(flatQuad, 1);
         title             = title - 1;
-        boxTopY           = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - (u16)CapCaption_Data_8015E664;
-        flatQuad->x0      = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
-        flatQuad->y0      = (boxTopY - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].height;
-        titleRightOffsetX = CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].width - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
-        flatQuad->x1      = (u16)CapCaption_Data_8015E65C + titleRightOffsetX;
-        flatQuad->y1      = (boxTopY - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].height;
-        flatQuad->x2      = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+        boxTopY           = ((u16)CAP_CAPTION_BOTTOM_BASELINE_Y - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - (u16)CAP_CAPTION_BLOCK_HEIGHT;
+        flatQuad->x0      = (u16)CAP_CAPTION_BLOCK_LEFT_X - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+        flatQuad->y0      = (boxTopY - gDisplayState.vramYOffset) - CAP_CAPTION_GLYPH_CELLS[title & CAP_CAPTION_TEXT_BYTE_MASK].height;
+        titleRightOffsetX = CAP_CAPTION_GLYPH_CELLS[title & CAP_CAPTION_TEXT_BYTE_MASK].width - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+        flatQuad->x1      = (u16)CAP_CAPTION_BLOCK_LEFT_X + titleRightOffsetX;
+        flatQuad->y1      = (boxTopY - gDisplayState.vramYOffset) - CAP_CAPTION_GLYPH_CELLS[title & CAP_CAPTION_TEXT_BYTE_MASK].height;
+        flatQuad->x2      = (u16)CAP_CAPTION_BLOCK_LEFT_X - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
         flatQuad->y2      = boxTopY - gDisplayState.vramYOffset;
-        titleRightOffsetX = CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].width - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
-        flatQuad->x3      = (u16)CapCaption_Data_8015E65C + titleRightOffsetX;
+        titleRightOffsetX = CAP_CAPTION_GLYPH_CELLS[title & CAP_CAPTION_TEXT_BYTE_MASK].width - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+        flatQuad->x3      = (u16)CAP_CAPTION_BLOCK_LEFT_X + titleRightOffsetX;
         flatQuad->y3      = boxTopY - gDisplayState.vramYOffset;
-        setUVWH(flatQuad, CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].u, CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].v, CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].width, CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].height);
+        setUVWH(flatQuad, CAP_CAPTION_GLYPH_CELLS[title & CAP_CAPTION_TEXT_BYTE_MASK].u, CAP_CAPTION_GLYPH_CELLS[title & CAP_CAPTION_TEXT_BYTE_MASK].v, CAP_CAPTION_GLYPH_CELLS[title & CAP_CAPTION_TEXT_BYTE_MASK].width, CAP_CAPTION_GLYPH_CELLS[title & CAP_CAPTION_TEXT_BYTE_MASK].height);
         flatQuad->clut  = CAP_CAPTION_TITLE_CLUT;
-        flatQuad->tpage = getTPage(0, GPU_BLEND_ADD, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
+        flatQuad->tpage = getTPage(0, GPU_BLEND_ADD, _gCapCaptionTexturePageX, _gCapCaptionTexturePageY);
         addPrim(&gGpuCurrentOt[CAP_CAPTION_TEXT_OT_INDEX], flatQuad);
     }
 
@@ -389,13 +399,13 @@ static s32 _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unu
         if (signedCode == CAP_CAPTION_TEXT_LINE_BREAK) {
             nextLineIndex            = lineIndex + 1;
             lineIndex                = nextLineIndex;
-            CapCaption_Data_8015E66A = baselineY - 2;
-            CapCaption_Data_8015E668 = penX + 4;
+            CAP_CAPTION_CARET_TIP_Y  = baselineY - 2;
+            CAP_CAPTION_CARET_LEFT_X = penX + 4;
             baselineY               += _capCaptionGetTextLineAdvance(&body[textIndex + 1]);
             if (centered != 0) {
                 penX = _capCaptionGetTextLineLeftX(textStream, nextLineIndex) - CAP_CAPTION_DRAW_ORIGIN_X;
             } else {
-                penX = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_DRAW_ORIGIN_X;
+                penX = (u16)CAP_CAPTION_BLOCK_LEFT_X - CAP_CAPTION_DRAW_ORIGIN_X;
             }
             textIndex++;
             continue;
@@ -441,22 +451,22 @@ static s32 _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unu
             setSemiTrans(glyphQuad, 1);
             glyphQuad->clut  = paletteIndex | CAP_CAPTION_GLYPH_CLUT_BASE;
             glyphQuad->x0    = penX;
-            glyphQuad->tpage = getTPage(0, GPU_BLEND_ADD, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
-            glyphQuad->y0    = glyphBaselineY - CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height;
-            glyphQuad->x1    = penX + CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width;
-            glyphQuad->y1    = glyphBaselineY - CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height;
+            glyphQuad->tpage = getTPage(0, GPU_BLEND_ADD, _gCapCaptionTexturePageX, _gCapCaptionTexturePageY);
+            glyphQuad->y0    = glyphBaselineY - CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height;
+            glyphQuad->x1    = penX + CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width;
+            glyphQuad->y1    = glyphBaselineY - CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height;
             glyphQuad->x2    = penX;
             glyphQuad->y2    = glyphBaselineY;
-            glyphQuad->x3    = penX + CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width;
+            glyphQuad->x3    = penX + CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width;
             glyphQuad->y3    = glyphBaselineY;
-            setUVWH(glyphQuad, CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].u, CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].v, CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width, CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height);
+            setUVWH(glyphQuad, CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].u, CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].v, CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width, CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height);
             addPrim(&gGpuCurrentOt[CAP_CAPTION_TEXT_OT_INDEX], glyphQuad);
             glyphOutline        = gGpuPrimCursor;
             gGpuPrimCursor      = glyphOutline + 1;
             *glyphOutline       = *glyphQuad;
-            glyphOutline->tpage = getTPage(0, GPU_BLEND_SUBTRACT, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
+            glyphOutline->tpage = getTPage(0, GPU_BLEND_SUBTRACT, _gCapCaptionTexturePageX, _gCapCaptionTexturePageY);
             addPrim(&gGpuCurrentOt[CAP_CAPTION_TEXT_OT_INDEX], glyphOutline);
-            penX = CapCaption_Data_8015E654[(s16)code].width + penX - 1;
+            penX = CAP_CAPTION_GLYPH_CELLS[(s16)code].width + penX - 1;
         }
         textIndex++;
     }
@@ -493,14 +503,14 @@ static s16 _capCaptionGetTextFirstBaselineY(const u16* textStream)
             lineHeight = 0;
         } else if (code != CAP_CAPTION_TEXT_SPACER) {
             if (code >= 0) {
-                if (lineHeight < CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
-                    lineHeight = CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
+                if (lineHeight < CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
+                    lineHeight = CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
                 }
             }
         }
         code = text[++textIndex];
     }
-    return CapCaption_Data_8015E660 - followingLinesHeight;
+    return CAP_CAPTION_BOTTOM_BASELINE_Y - followingLinesHeight;
 }
 
 /// Queues the pulsing continuation triangle after its draw-call countdown expires.
@@ -515,26 +525,26 @@ static void _capCaptionDrawContinueCaret(void)
     POLY_G3* caret;
     s32      grey;
 
-    if (CapCaption_Data_8015E66C[0] != 0) {
-        CapCaption_Data_8015E66C[0] -= 1;
+    if (CAP_CAPTION_CARET_DRAWS_LEFT != 0) {
+        CAP_CAPTION_CARET_DRAWS_LEFT -= 1;
         return;
     }
     caret          = gGpuPrimCursor;
     gGpuPrimCursor = caret + 1;
     setPolyG3(caret);
-    grey = (CapCaption_Data_801545E4 << 7) / CAP_CAPTION_CARET_PULSE_MAX;
+    grey = (_gCapCaptionCaretPulseLevel << 7) / CAP_CAPTION_CARET_PULSE_MAX;
     setRGB0(caret, grey, grey, grey);
-    grey = (CapCaption_Data_801545E4 * 192) / CAP_CAPTION_CARET_PULSE_MAX;
+    grey = (_gCapCaptionCaretPulseLevel * 192) / CAP_CAPTION_CARET_PULSE_MAX;
     setRGB1(caret, grey, grey, grey);
     setRGB2(caret, grey, grey, grey);
-    caret->x0 = CapCaption_Data_8015E668 + 3;
-    caret->y0 = CapCaption_Data_8015E66A;
-    caret->x1 = CapCaption_Data_8015E668;
-    caret->x2 = CapCaption_Data_8015E668 + 7;
-    caret->y1 = CapCaption_Data_8015E66A - 7;
-    caret->y2 = CapCaption_Data_8015E66A - 7;
+    caret->x0 = CAP_CAPTION_CARET_LEFT_X + 3;
+    caret->y0 = CAP_CAPTION_CARET_TIP_Y;
+    caret->x1 = CAP_CAPTION_CARET_LEFT_X;
+    caret->x2 = CAP_CAPTION_CARET_LEFT_X + 7;
+    caret->y1 = CAP_CAPTION_CARET_TIP_Y - 7;
+    caret->y2 = CAP_CAPTION_CARET_TIP_Y - 7;
     addPrim(&gGpuCurrentOt[2], caret);
-    _capCaptionStepCaretPulse(&CapCaption_Data_801545E4, &CapCaption_Data_801545E8);
+    _capCaptionStepCaretPulse(&_gCapCaptionCaretPulseLevel, &_gCapCaptionCaretPulseFalling);
 }
 
 /// Returns the biased screen-space left X of the widest closed caption line.
@@ -569,7 +579,7 @@ static s16 _capCaptionGetTextBlockLeftX(const u16* text)
             lineWidth += CAP_CAPTION_TEXT_ICON_WIDTH;
             code       = text[++textIndex];
         } else if (code >= 0) {
-            lineWidth += CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width - 1;
+            lineWidth += CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width - 1;
             code       = text[++textIndex];
         } else {
             code = text[++textIndex];
@@ -614,7 +624,7 @@ static s16 _capCaptionGetTextLineLeftX(const u16* text, s32 selectedLineIndex)
             lineWidth += CAP_CAPTION_TEXT_ICON_WIDTH;
             code       = text[++textIndex];
         } else if (code >= 0) {
-            lineWidth += CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width - 1;
+            lineWidth += CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width - 1;
             code       = text[++textIndex];
         } else {
             code = text[++textIndex];
@@ -646,8 +656,8 @@ static s16 _capCaptionGetTextBlockHeight(const u16* text)
             lineHeight   = 0;
         } else if (code != CAP_CAPTION_TEXT_SPACER) {
             if (code >= 0) {
-                if (lineHeight < CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
-                    lineHeight = CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
+                if (lineHeight < CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
+                    lineHeight = CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
                 }
             }
         }
@@ -678,8 +688,8 @@ static s32 _capCaptionGetTextLineAdvance(const u16* text)
             scanning   = 0;
             lineHeight = CAP_CAPTION_TEXT_END_LINE_ADVANCE;
         } else if (code >= 0) {
-            if (lineHeight < CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
-                lineHeight = CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
+            if (lineHeight < CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
+                lineHeight = CAP_CAPTION_GLYPH_CELLS[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
             }
             code = text[++textIndex];
         } else {
@@ -703,7 +713,7 @@ static s32 _capCaptionFindRecordByKey(s32 recordIndex)
     CapSequenceRecord* record;
 
     for (;;) {
-        record = _capSequenceRecordAt(CapCaption_Data_8015E658, recordIndex);
+        record = _capSequenceRecordAt(CAP_CAPTION_SEQUENCE, recordIndex);
         if (record->textRef.offset != CAP_TEXT_REF_END && record->key != CapCaption_Data_8015E666) {
             recordIndex++;
         } else {

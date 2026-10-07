@@ -417,13 +417,13 @@ D_shelter_b3_dumping_hole_8018B6A0 = 0x8018B6A0; // absolute:True owner=shelter_
 D_shelter_b3_dumping_hole_8018B6A4 = 0x8018B6A4; // absolute:True owner=shelter_b3_dumping_hole
 D_shelter_b3_dumping_hole_8018C410 = 0x8018C410; // absolute:True owner=shelter_b3_dumping_hole
 D_shelter_b3_dumping_hole_8018E050 = 0x8018E050; // absolute:True owner=shelter_b3_dumping_hole
-D_shelter_b3_dumping_hole_8018E3DC = 0x8018E3DC; // absolute:True owner=shelter_b3_dumping_hole shared=rooms
-D_shelter_b3_dumping_hole_8018E874 = 0x8018E874; // absolute:True owner=shelter_b3_dumping_hole
-D_shelter_b3_dumping_hole_8018F1FC = 0x8018F1FC; // absolute:True owner=shelter_b3_dumping_hole
-D_shelter_b3_dumping_hole_8018F32C = 0x8018F32C; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleRoom1Lights = 0x8018E3DC; // absolute:True owner=shelter_b3_dumping_hole shared=rooms
+gShelterB3DumpingHoleRoom2Lights = 0x8018E874; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleRoom1AmbientByView = 0x8018F1FC; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleRoom2AmbientByView = 0x8018F32C; // absolute:True owner=shelter_b3_dumping_hole
 D_shelter_b3_dumping_hole_8018F480 = 0x8018F480; // absolute:True owner=shelter_b3_dumping_hole
 func_shelter_b3_garbage_incinerator_8017DC7C = 0x8017DC7C; // type:func absolute:True owner=shelter_b3_garbage_incinerator
-D_shelter_b3_garbage_incinerator_80187280 = 0x80187280; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
+gShelterB3GarbageIncineratorRoomLighting = 0x80187280; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 D_shelter_b3_garbage_incinerator_801872B8 = 0x801872B8; // absolute:True owner=shelter_b3_garbage_incinerator
 D_shelter_b3_garbage_incinerator_801873F0 = 0x801873F0; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 D_shelter_b3_garbage_incinerator_8018740C = 0x8018740C; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
@@ -577,3 +577,5 @@ D_mappic_s4_06_8012F198 = 0x8012F198; // absolute:True owner=mappic_s4_06
 D_mappic_s4_06_8012F260 = 0x8012F260; // absolute:True owner=mappic_s4_06
 
 mapShelterRoomVariantResolve = 0x80179A04; // type:func
+_gMapShelterDumpingHoleRoomLighting = 0x8017ae7c;
+gMapShelterRoomLightingTables = 0x8017AEC4; // size:0xC4 defined:True

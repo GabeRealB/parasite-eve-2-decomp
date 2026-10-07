@@ -40,13 +40,31 @@ extern ViewCamera D_shelter_b3_dumping_hole_8018C410[];
 
 extern SpriteView D_shelter_b3_dumping_hole_8018E050[];
 
-extern WorldCoordRoomLights D_shelter_b3_dumping_hole_8018E3DC;
+/// Dumping-hole room index 1's two directional and three point lights, with no cone lights.
+///
+/// The loaded room overlay owns the record and its mutable coordinate/query
+/// storage. Selected by the map's room-lighting array; pointers must not outlive it.
+extern WorldCoordRoomLights gShelterB3DumpingHoleRoom1Lights;
 
-extern WorldCoordRoomLights D_shelter_b3_dumping_hole_8018E874;
+/// Dumping-hole room index 2's twelve point lights, with no cone lights.
+///
+/// The loaded room overlay owns the record and its mutable coordinate/query
+/// storage. Selected by the map's room-lighting array; pointers must not outlive it.
+extern WorldCoordRoomLights gShelterB3DumpingHoleRoom2Lights;
 
-extern WorldCoordRoomAmbientEntry D_shelter_b3_dumping_hole_8018F1FC[];
+/// Minimum ambient colours for dumping-hole room index 1's 37 views.
+///
+/// Entry zero counts the views; entries 1..37 use RGB levels in sixteenths of
+/// an 8-bit channel. Out-of-range views use the gameplay default. The loaded
+/// room overlay owns this read-only input and must remain loaded while used.
+extern WorldCoordRoomAmbientEntry gShelterB3DumpingHoleRoom1AmbientByView[38];
 
-extern WorldCoordRoomAmbientEntry D_shelter_b3_dumping_hole_8018F32C[];
+/// Minimum ambient colours for dumping-hole room index 2's 37 views.
+///
+/// Entry zero counts the views; entries 1..37 use RGB levels in sixteenths of
+/// an 8-bit channel. Out-of-range views use the gameplay default. The loaded
+/// room overlay owns this read-only input and must remain loaded while used.
+extern WorldCoordRoomAmbientEntry gShelterB3DumpingHoleRoom2AmbientByView[38];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b3_dumping_hole_8018F480[];
 

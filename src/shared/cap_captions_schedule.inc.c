@@ -25,6 +25,18 @@ static CapCaptionScheduleWindow CapCaption_Data_80154514[13] = {
     { CAP_CAPTION_SCHEDULE_END, 0, 0, 0 },
 };
 
-static s32 CapCaption_Data_801545E4 = 8;
+// Initial pulse state retained across caption selections.
+enum { CAP_CAPTION_CARET_INITIAL_LEVEL     = 8,
+       CAP_CAPTION_CARET_INITIAL_DIRECTION = 0 };
 
-static s32 CapCaption_Data_801545E8 = 0;
+/// Current continuation-caret brightness scale, inclusive integer range 8..15.
+///
+/// Drawing converts level / 15 to vertex intensities, then steps the pulse.
+/// Caption suppression and the initial caret countdown leave this level frozen.
+static s32 _gCapCaptionCaretPulseLevel = CAP_CAPTION_CARET_INITIAL_LEVEL;
+
+/// Continuation-caret pulse direction (0 rising, 1 falling).
+///
+/// Reverses after stepping to either brightness endpoint and persists across
+/// caption selections. Kept as a word because the pulse helper updates its address.
+static s32 _gCapCaptionCaretPulseFalling = CAP_CAPTION_CARET_INITIAL_DIRECTION;

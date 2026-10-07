@@ -50,13 +50,20 @@ extern TaskDesc D_map_shelter_8017AB30[];
 /// This stage's flag table for `Gp_LookupStageFlag`.
 extern u16 D_map_shelter_8017AD88[];
 
-/// This stage's entries in `Gp_RoomCoordTables`, `Gp_WarpTables`,
+/// Mine/Shelter model-lighting arrays indexed by `GameLocationKey.area - 1`.
+///
+/// Stage 4 has 49 area entries. Each leads to room descriptors indexed by
+/// `GameLocationKey.room - 1`; area 39 has two dumping-hole rooms and area 40
+/// seven incinerator rooms. Room extents are determined by each area's array.
+/// The map overlay must be loaded for the table and its local descriptors;
+/// pointers into a room overlay require that specific overlay to remain loaded.
+extern WorldCoordRoomLighting* gMapShelterRoomLightingTables[49];
+
+/// This stage's entries in `Gp_WarpTables`,
 /// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
 /// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
 /// one pointer per room into that room's package, except that some rooms'
-/// coordinate and object records are this overlay's own.
-extern WorldCoordRoomLighting* D_map_shelter_8017AEC4[];
-
+/// object records are this overlay's own.
 extern DirectionWarpEntry* D_map_shelter_8017AF88[];
 
 extern ViewCountTable D_map_shelter_8017B110;

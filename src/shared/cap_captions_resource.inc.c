@@ -20,8 +20,8 @@ static inline void _capCaptionLoadResource(s16 texturePageX, s16 texturePageY, s
     s32 slotIndex;
 
     dataOrdinal              = 0;
-    CapCaption_Data_801544EC = texturePageX;
-    CapCaption_Data_801544EE = texturePageY;
+    _gCapCaptionTexturePageX = texturePageX;
+    _gCapCaptionTexturePageY = texturePageY;
     for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_8006C338); slotIndex++) {
         if (D_8006C338[slotIndex].kind == FILE_SYSTEM_RESOURCE_DATA) {
             if (dataOrdinal == dataResourceIndex) {
