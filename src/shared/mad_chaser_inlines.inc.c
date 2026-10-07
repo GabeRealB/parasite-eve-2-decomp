@@ -182,11 +182,7 @@ static __inline__ void madChaserUpdateRotation(Task* arg0)
     work->rotation.vx           &= 0xFFF;
     work->rotation.vy           &= 0xFFF;
     work->rotation.vz           &= 0xFFF;
-    MATRIX_PAIR(m, 0, 0)         = 0x1000;
-    MATRIX_PAIR(m, 0, 2)         = 0;
-    MATRIX_PAIR(m, 1, 1)         = 0x1000;
-    MATRIX_PAIR(m, 2, 0)         = 0;
-    m->m[2][2]                   = 0x1000;
+    gfxSetRotIdentity(m);
     SCRATCH_STACK_CURSOR(MATRIX) = m;
     RotMatrixZ(work->rotation.vz, m);
     RotMatrixX(work->rotation.vx, m);
