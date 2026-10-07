@@ -3678,11 +3678,7 @@ static void _dryfieldDilapidatedHouseUpdateAttachmentTransform(Task* task)
     parentTask                          = task->spawnArg2.pointer;
     parentCoord                         = parentTask->extra.tmd->coords;
     attachmentMtx                       = &work->attachMtx;
-    MATRIX_PAIR(&work->attachMtx, 0, 0) = ONE;
-    MATRIX_PAIR(attachmentMtx, 0, 2)    = 0;
-    MATRIX_PAIR(attachmentMtx, 1, 1)    = ONE;
-    MATRIX_PAIR(attachmentMtx, 2, 0)    = 0;
-    attachmentMtx->m[2][2]              = ONE;
+    gfxSetRotIdentity(&work->attachMtx);
     attachmentMtx->t[0]                 = 0;
     attachmentMtx->t[1]                 = 0;
     attachmentMtx->t[2]                 = 0;
