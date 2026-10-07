@@ -270,7 +270,7 @@ Generalising the cluster:
   the source. Writing the `do`/`while` form instead emits a second decrement.
   The zero start also constant-folds the entry test, so an explicit
   `if (T[0] != 0)` in front of the loop is over-built. Worked example:
-  `func_actor_136100_80134A18`.
+  `_actor136100CopyPlayerSceneAnimations`.
 - **The induction variable competes for a register like anything else** (§1), so
   zeroing an index early or splitting one counter into two changes which
   register it gets. Several entries are register fixes wearing loop clothing.

@@ -243,7 +243,7 @@ A switch on an unsigned halfword that includes `case 0:` (even empty, shared wit
 
 `worldCoordSetModelLighting(tmd, &vec, …)` then `ScaleMatrix(tmd->colorMtx, &vec)` CSE the stack address into one pseudo that crosses the call. Local-alloc homes that pseudo in `$s2`; `index` then conflicts with `$s2` and takes `$s3`. Target rematerializes `addiu $a1, $sp, 0x18` and keeps `index` in `$s2`.
 
-Same split `func_actor_136100_UpdateShadow` already uses: pass `VECTOR* vec` into an inline that uses it only for `worldCoordSetModelLighting`. The caller's later `&vec` is a different CSE class and rematerializes. A function-wide `VECTOR *p = &vec` also frees `$s2` but saves `$s4`. Declaring the VECTOR first rematerializes too, but moves the slot to `0x10`.
+Same split `_actor136100UpdateBodyLighting` already uses: pass `VECTOR* samplePosition` into an inline that uses it only for `worldCoordSetModelLighting`. The caller's later `&vec` is a different CSE class and rematerializes. A function-wide `VECTOR *p = &vec` also frees `$s2` but saves `$s4`. Declaring the VECTOR first rematerializes too, but moves the slot to `0x10`.
 
 An independent `D_8007272D = 2` next to `index->state += 1` is overlapped by sched1 (`lw` of state before `sb` of 2). `SCHED_BARRIER()` between them restores `li $v0, 2; sb; lw $v0, 0x30($s2); nop`.
 
@@ -81278,7 +81278,7 @@ Preprocessed SHA256:
 
 ## A lone `addiu r,r,-1` after a scan loop is the delay-slot writeback, not a source decrement
 
-`func_actor_136100_80134A18` walks the null-terminated pointer table at
+`_actor136100CopyPlayerSceneAnimations` walks the null-terminated pointer table at
 `D_actor_136100_8013F180`, counts its live entries, and sends the table and
 count as message `0x3F7`. The target's loop tail is:
 
@@ -118281,9 +118281,9 @@ The cut renumbers every later unit, so rename `_2`→`_3` and so on, fix their
 `INCLUDE_ASM` paths, and move the bodies after the cut into the new `_2.c`.
 Before committing, count `bodies_of()` across the files to make sure none were lost.
 
-### A `sltu` result copied through a callee-saved home and back into `$v0` means a narrow flag local (func_actor_136100_80133904, 2026-09-17)
+### A `sltu` result copied through a callee-saved home and back into `$v0` means a narrow flag local (_actor136100TryStartFollowUpScene, 2026-09-17)
 
-**Symptom.** Target computes a flag as `sltu $v0,$zero,$v0; addu $s1,$v0,$zero; addu $v0,$s1,$zero`, and every earlier branch into the join carries `addu $v0,$s1,$zero` in its delay slot. With `s32 ready = 0; ... ready = D != 0; if (ready == 0 || ...)` GCC fuses the `sltu` straight into `$s1` and tests `$s1`, losing both copies (93.5%, branch=12). An inline helper returning the flag, or an extra `ok = ready;` copy, is copy-propagated away and changes nothing; `u8` adds masking.
+**Symptom.** Target computes a flag as `sltu $v0,$zero,$v0; addu $s1,$v0,$zero; addu $v0,$s1,$zero`, and every earlier branch into the join carries `addu $v0,$s1,$zero` in its delay slot. With `s32 interactionRequested = 0; ... interactionRequested = D != 0; if (interactionRequested == 0 || ...)` GCC fuses the `sltu` straight into `$s1` and tests `$s1`, losing both copies (93.5%, branch=12). An inline helper returning the flag, or an extra `ok = interactionRequested;` copy, is copy-propagated away and changes nothing; `u8` adds masking.
 
 **Fix.** Declare the flag `s16`. The HImode store keeps the SImode `sltu` in its own pseudo and the SImode test reads it back through a copy, which is exactly the three-insn shape; dbr then steals the join's copy into each delay slot. Matched at 100% with no other change.
 
@@ -118299,8 +118299,8 @@ the first argument's pseudo, which then lives across the call and lands in `$s0`
 A buffer at frame offset 0 avoids it (plain `fp`, no pseudo), but moves the slot.
 
 **Fix:** pass the first address through an inline helper's pointer parameter
-(`static inline void UpdateShadow(Task*, VECTOR* vec)` called with
-`(VECTOR*)&rec`). The slot stays shared and the later address is recomputed.
+(`static inline void _actor136100UpdateBodyLighting(Task*, VECTOR* samplePosition)` called with
+`&message.shadowPosition`). The slot stays shared and the later address is recomputed.
 Giving the helper a *local* `VECTOR` also avoids the merge, but the inline local
 gets a fresh frame slot. (`func_actor_136100_80133BC8`)
 
@@ -128301,10 +128301,10 @@ on both paths because the load it feeds is after the loop either way.
 Two further notes from the same function. The double read is not gratuitous —
 it is the sibling idiom: actor_136100's `ACTOR_136100_COPY_PLAYER_ANIMATION_SETS` macro
 re-derives `(task)->work` into its own `msgWork` for this same message 0x3F7,
-and its matched `func_actor_136100_80134A18` loads its dispatch target through
+and its matched `_actor136100CopyPlayerSceneAnimations` loads its dispatch target through
 `$a3` the same way, so the sibling's *source* hands over this detail along with
-the loop. And the loop itself is that sibling's `n = 0; while (table[n & 0xFFFF]
-!= 0) { n += 1; }`, guarded-scan form: its exit path carries exactly one
+the loop. And the loop itself is that sibling's `u16 setCount = 0;
+while (table[setCount] != NULL) { setCount += 1; }`, guarded-scan form: its exit path carries exactly one
 `addiu r,r,-1`, the delay-slot writeback, with no decrement in the C - the
 "Count the trailing `-1`s" entry above, reached here from a working sibling
 rather than from the count.
@@ -137650,7 +137650,7 @@ Compact committed sources, plans, scores and selected trace observations:
 
 ## A scheduling fix can promote a shared loop constant above the long-lived work pointer
 
-`func_actor_136100_80133238` started at 98.300% with matching control flow.
+`_actor136100UpdateBeforeBurnerBodyRequest` started at 98.300% with matching control flow.
 In two play-animation loop preheaders, sched1 put index/speed initialization
 before the final task-pointer load. The resulting speed/task conflict assigned
 speed to s3 and task to s4. The target needs the load and state store before
@@ -137681,11 +137681,11 @@ Input hashes: baseline `fb06a7cd796c559ece9744f1c1f381466868ad6707eafda9d15c9097
 barriers `e897dec6ab1886e3d537b1fee7fbcc7a159d97d239a3aea23b5833c172650307`,
 match `425623df0a6c9831335f4fdb484349adbaeeebc6d269669d3938865accd47121`.
 Plans, sources, dumps and conclusions are retained under
-`tools/permuter_findings/func_actor_136100_80133238/sessions/bff8656f768f41de98e19538cd32468a/d52a1df6ac613701ee21/`.
+`tools/permuter_findings/_actor136100UpdateBeforeBurnerBodyRequest/sessions/bff8656f768f41de98e19538cd32468a/d52a1df6ac613701ee21/`.
 The router's own candidate did not reproduce an improvement (distance 340 to
 545); the supported result above came from independent dump-driven experiments.
 
-## Empty-loop notes constrain the next real instruction; place a named boundary at the required store (func_actor_136100_80132748, 2026-09-20)
+## Empty-loop notes constrain the next real instruction; place a named boundary at the required store (_actor136100UpdateAfterBurnerBodyRequest, 2026-09-20)
 
 The retry reproduced 96.091% with matching topology. In six animation-loop
 preheaders, sched1 placed index=1 and invariant=10 before the animation-state
@@ -137711,7 +137711,7 @@ constant also becomes the preceding branch's delay-slot instruction, restoring
 the target load-delay nop. Base_3 ports the loops to `for` and stays exact;
 unscoped integration verification passes. The original C idiom remains unknown.
 
-**Idiom found (2026-09-26, func_actor_136100_80133238).** A statement macro
+**Idiom found (2026-09-26, _actor136100UpdateBeforeBurnerBodyRequest).** A statement macro
 wrapping just the store in `do { … } while (0)` puts the once-loop's
 `NOTE_INSN_LOOP_END` where the barrier was, so the index and invariant
 initialisers depend on the store (priority 2, then LUID order) and every
