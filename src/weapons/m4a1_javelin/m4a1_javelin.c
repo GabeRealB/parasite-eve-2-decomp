@@ -35,11 +35,15 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+
+#include "weapons/weapon.h"
 
 #include "overlay.h"
 #include "types.h"
@@ -103,7 +107,6 @@ static u16 D_m4a1_javelin_8011FAA0[6] = { 1, 0, 0, 0, 0, 2 };
 static u16 D_m4a1_javelin_8011FAAC[4] = { 0x12, 0x124, 0x248, 0x36C };
 
 static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation);
-void        func_m4a1_javelin_8011F5D4(Task* arg0);
 
 /// Allocates and initializes a Gouraud quad for a beam cap or connecting strip.
 ///
@@ -721,170 +724,184 @@ void m4a1JavelinContactFlashTask(Task* task)
     }
 }
 
-/// Per-frame firing state machine for the M4A1 javelin launcher, the sibling of
-/// `func_m4a1_grenade_8011D1EC`. State 0 arms the shot and raises the weapon
-/// (clip 8 instead of 1 when it was already up), state 1 waits for that clip.
-/// State 2 branches on `field_97F`: a held trigger (bit 0) drops into the
-/// three-round burst of state 3, a tap (bit 1) fires the single 0x101 javelin
-/// of state 5, and anything else falls straight into the burst. State 3 counts
-/// `field_934` down to each round, spending one javelin, playing `0x201D0004`
-/// and spawning the muzzle flash; on the frame `field_934` reaches 2 it drops
-/// the aim lock and spawns the 0x6003B impact marker, which state 4 also does
-/// before parking in state 7. States 5 and 6 run the flight timer and feed the
-/// tracked point to `_m4a1JavelinSetTrackedImpactPoint` (or clear it when nothing is
-/// in range) so the guide line is drawn. State 7 runs the recoil timer down and
-/// hands back to `playerActorFinishWeaponAttack` once `playerActorIsSlotAdvancingLinearly` is done or the timer has
-/// run out.
-///
-/// `gPlayerStatus.weaponSlotItem` is the low byte `playerActorUpdateWeaponCollisionKey` packs into
-/// `GameActor::collisionBodies[GAME_ACTOR_BODY_WEAPON].key`. Reading it through the struct rather than as a bare
-/// `extern u8` at 0x80073BAA is what keeps GCC from hoisting the `lbu` above
-/// the `actor->` stores: a scalar global and a struct field do not alias, so
-/// the scheduler is free to move the load, and the block comes out reordered.
-void func_m4a1_javelin_8011F5D4(Task* arg0)
+void m4a1JavelinAttackState(Task* playerTask)
 {
+    enum {
+        M4A1_JAVELIN_PHASE_PREPARE             = 0,
+        M4A1_JAVELIN_PHASE_WAIT_READY          = 1,
+        M4A1_JAVELIN_PHASE_SELECT_ATTACK       = 2,
+        M4A1_JAVELIN_PHASE_BURST               = 3,
+        M4A1_JAVELIN_PHASE_IMPACT              = 4,
+        M4A1_JAVELIN_PHASE_BEAM_DELAY          = 5,
+        M4A1_JAVELIN_PHASE_BEAM_ACTIVE         = 6,
+        M4A1_JAVELIN_PHASE_RECOVER             = 7,
+        M4A1_JAVELIN_PLAYER_ATTACK_STATE       = 4,
+        M4A1_JAVELIN_ANIMATION_READY           = 9,
+        M4A1_JAVELIN_ANIMATION_PRIMARY         = 0xA,
+        M4A1_JAVELIN_ANIMATION_SECONDARY       = 0xB,
+        M4A1_JAVELIN_READY_BLEND_FRAMES        = 1,
+        M4A1_JAVELIN_MOVING_READY_BLEND_FRAMES = 8,
+        M4A1_JAVELIN_IMPACT_SOUND              = SOUND_COMMON(0x17),
+        M4A1_JAVELIN_BURST_ROUNDS              = 3,
+        M4A1_JAVELIN_BURST_CANCEL_FRAMES       = 9,
+        M4A1_JAVELIN_SECONDARY_CANCEL_FRAMES   = 0x1C,
+        M4A1_JAVELIN_BURST_DELAY_FRAMES        = 3,
+        M4A1_JAVELIN_RECOVERY_COOLDOWN_FRAMES  = 0xC,
+        M4A1_JAVELIN_BEAM_DELAY_FRAMES         = 6,
+        M4A1_JAVELIN_BEAM_ACTIVE_FRAMES        = 0x1C,
+        M4A1_JAVELIN_ATTACK_SCRATCH_BYTES      = 0x58,
+        M4A1_JAVELIN_RIFLE_KEY_BASE            = WORLD_COLLISION_CONTACT_ATTACK | (29 << 8),
+        M4A1_JAVELIN_BEAM_KEY                  = WORLD_COLLISION_CONTACT_ATTACK | (29 << 8) | 0x1F,
+        M4A1_JAVELIN_WEAPON_ID                 = 29,
+        M4A1_JAVELIN_PRIMARY_SOUND             = SOUND_WEAPON(29, 4),
+        M4A1_JAVELIN_BEAM_SOUND                = SOUND_WEAPON(29, 5),
+        M4A1_JAVELIN_BURST_IMPACT_TICKS_LEFT   = 2,
+        M4A1_JAVELIN_SECONDARY_TURN_RATE_INDEX = 2,
+    };
     GameActor*  actor;
-    GfxCoord*   coord;
-    GfxCoord*   spot;
-    EffectWork* eff;
-    s32         anim;
-    s32         delay;
-    s32         tick;
-    u16         count;
+    GfxCoord*   rootCoord;
+    GfxCoord*   impactCoord;
+    EffectWork* effectWork;
+    s32         readyBlendFrames;
+    s32         burstDelay;
+    s32         beamTicksLeft;
+    u16         roundsLeft;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x58);
-    coord        = arg0->extra.tmd->coords;
-    actor        = arg0->work;
-    spot         = SCRATCH_STACK_CURSOR(GfxCoord);
-    spot->parent = NULL;
+    // Retain the full reservation; the trailing eight bytes have no recovered accesses.
+    SCRATCH_STACK_RESERVE_BYTES(M4A1_JAVELIN_ATTACK_SCRATCH_BYTES);
+    rootCoord           = playerTask->extra.tmd->coords;
+    actor               = playerTask->work;
+    impactCoord         = SCRATCH_STACK_CURSOR(GfxCoord);
+    impactCoord->parent = NULL;
 
     switch (actor->statePhase) {
-        case 0:
-            anim                                                  = 1;
-            actor->state                                          = 4;
+        case M4A1_JAVELIN_PHASE_PREPARE:
+            readyBlendFrames                                      = M4A1_JAVELIN_READY_BLEND_FRAMES;
+            actor->state                                          = M4A1_JAVELIN_PLAYER_ATTACK_STATE;
             actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
             actor->animationState                                 = 0;
-            actor->statePhase                                    += anim;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
+            actor->statePhase                                    += readyBlendFrames;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 8;
+                readyBlendFrames = M4A1_JAVELIN_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, M4A1_JAVELIN_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case M4A1_JAVELIN_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case M4A1_JAVELIN_PHASE_SELECT_ATTACK:
             actor->rumblePosted = 0;
-            if (actor->attackButton & 1) {
-                actor->statePhase                                     = 3;
-                actor->attackCancelTicks                              = 9;
+            if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) {
+                actor->statePhase                                     = M4A1_JAVELIN_PHASE_BURST;
+                actor->attackCancelTicks                              = M4A1_JAVELIN_BURST_CANCEL_FRAMES;
                 actor->turnRateIndex                                  = 0;
                 actor->stateTimer                                     = 0;
-                actor->actionValue                                    = 3;
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | 0x21D00;
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
-                playerActorSetWeaponAttackFlags(arg0, 0, 1);
-            } else if (actor->attackButton & 2) {
-                actor->statePhase                                     = 5;
-                actor->turnRateIndex                                  = 2;
-                actor->attackCancelTicks                              = 0x1C;
-                actor->stateTimer                                     = 6;
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x21D1F;
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
-                playerActorSetWeaponAttackFlags(arg0, 0, 0);
-                equipmentConsumeWeaponLoad(0x9C, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
-                eff = effectSpawn(EFFECT_JAVELIN_GUIDE_BEAM,
-                                  actor->equipmentTasks[1]->extra.tmd->coords,
-                                  0x1D, NULL);
-                if (eff != NULL) {
-                    taskReparent(actor->equipmentTasks[1], eff->task);
+                actor->actionValue                                    = M4A1_JAVELIN_BURST_ROUNDS;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | M4A1_JAVELIN_RIFLE_KEY_BASE;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
+                playerActorSetWeaponAttackFlags(playerTask, 0, 1);
+            } else if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
+                actor->statePhase                                     = M4A1_JAVELIN_PHASE_BEAM_DELAY;
+                actor->turnRateIndex                                  = M4A1_JAVELIN_SECONDARY_TURN_RATE_INDEX;
+                actor->attackCancelTicks                              = M4A1_JAVELIN_SECONDARY_CANCEL_FRAMES;
+                actor->stateTimer                                     = M4A1_JAVELIN_BEAM_DELAY_FRAMES;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = M4A1_JAVELIN_BEAM_KEY;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
+                playerActorSetWeaponAttackFlags(playerTask, 0, 0);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_JAVELIN_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                effectWork = effectSpawn(EFFECT_JAVELIN_GUIDE_BEAM,
+                                         actor->equipmentTasks[1]->extra.tmd->coords,
+                                         0x1D, NULL);
+                if (effectWork != NULL) {
+                    taskReparent(actor->equipmentTasks[1], effectWork->task);
                 }
-                worldCoordPlaySound(arg0->extra.tmd->coords, 0x201D0005, 1);
-                playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_JAVELIN_BEAM_SOUND, 1);
+                playerActorPlayChildSlotsWithBlend(playerTask, M4A1_JAVELIN_ANIMATION_SECONDARY, 0, 3);
                 break;
             }
             /* fallthrough */
-        case 3:
-            count = actor->actionValue;
+        case M4A1_JAVELIN_PHASE_BURST:
+            roundsLeft = actor->actionValue;
             if (actor->actionValue != 0) {
-                delay = actor->stateTimer;
-                if (delay == 0) {
-                    actor->actionValue                                    = count - 1;
-                    actor->stateTimer                                     = 3;
+                burstDelay = actor->stateTimer;
+                if (burstDelay == 0) {
+                    actor->actionValue                                    = roundsLeft - 1;
+                    actor->stateTimer                                     = M4A1_JAVELIN_BURST_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(0x9C, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_JAVELIN_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x201D0004, 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_JAVELIN_PRIMARY_SOUND, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
-                                0x1D, NULL);
-                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
+                                M4A1_JAVELIN_WEAPON_ID, NULL);
+                    playerActorPlayChildSlotsWithBlend(playerTask, M4A1_JAVELIN_ANIMATION_PRIMARY, 0, 2);
                 } else {
-                    delay--;
-                    actor->stateTimer = delay;
-                    if (delay == 2) {
+                    burstDelay--;
+                    actor->stateTimer = burstDelay;
+                    if (burstDelay == M4A1_JAVELIN_BURST_IMPACT_TICKS_LEFT) {
                         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                        if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                            effectSpawn(EFFECT_IMPACT_SPARK, spot, 0, NULL);
-                            worldCoordPlaySound(spot, 0x17, 1);
+                        if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                            effectSpawn(EFFECT_IMPACT_SPARK, impactCoord, 0, NULL);
+                            worldCoordPlaySound(impactCoord, M4A1_JAVELIN_IMPACT_SOUND, 1);
                         }
                     }
                 }
                 break;
             }
             /* fallthrough */
-        case 4:
-            actor->statePhase                                     = 7;
+        case M4A1_JAVELIN_PHASE_IMPACT:
+            actor->statePhase                                     = M4A1_JAVELIN_PHASE_RECOVER;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                effectSpawn(EFFECT_IMPACT_SPARK, spot, 0, NULL);
-                worldCoordPlaySound(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                effectSpawn(EFFECT_IMPACT_SPARK, impactCoord, 0, NULL);
+                worldCoordPlaySound(impactCoord, M4A1_JAVELIN_IMPACT_SOUND, 1);
             }
             break;
-        case 5:
-        case 6:
-            tick              = actor->stateTimer - 1;
-            actor->stateTimer = tick;
-            if (tick == 0) {
-                if (actor->statePhase == 5) {
-                    actor->statePhase                                     = 6;
-                    actor->stateTimer                                     = 0x1C;
+        case M4A1_JAVELIN_PHASE_BEAM_DELAY:
+        case M4A1_JAVELIN_PHASE_BEAM_ACTIVE:
+            beamTicksLeft     = actor->stateTimer - 1;
+            actor->stateTimer = beamTicksLeft;
+            if (beamTicksLeft == 0) {
+                if (actor->statePhase == M4A1_JAVELIN_PHASE_BEAM_DELAY) {
+                    actor->statePhase                                     = M4A1_JAVELIN_PHASE_BEAM_ACTIVE;
+                    actor->stateTimer                                     = M4A1_JAVELIN_BEAM_ACTIVE_FRAMES;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    actor->statePhase                                     = 7;
+                    actor->statePhase                                     = M4A1_JAVELIN_PHASE_RECOVER;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 }
             }
-            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                _m4a1JavelinSetTrackedImpactPoint(spot->workm.t);
-                eff = effectSpawn(EFFECT_M4A1_JAVELIN_CONTACT_FLASH, spot, 0, NULL);
-                if (eff != NULL) {
-                    taskReparent(actor->equipmentTasks[1], eff->task);
+            // The beam tracks this frame's contact; no contact clears the cached point.
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                _m4a1JavelinSetTrackedImpactPoint(impactCoord->workm.t);
+                effectWork = effectSpawn(EFFECT_M4A1_JAVELIN_CONTACT_FLASH, impactCoord, 0, NULL);
+                if (effectWork != NULL) {
+                    taskReparent(actor->equipmentTasks[1], effectWork->task);
                 }
             } else {
                 _m4a1JavelinSetTrackedImpactPoint(NULL);
             }
             break;
-        case 7:
+        case M4A1_JAVELIN_PHASE_RECOVER:
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
-                actor->attackControl.cooldownTicks = 0xC;
-                playerActorFinishWeaponAttack(arg0);
+                actor->attackControl.cooldownTicks = M4A1_JAVELIN_RECOVERY_COOLDOWN_FRAMES;
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x58);
+    SCRATCH_STACK_RELEASE_BYTES(M4A1_JAVELIN_ATTACK_SCRATCH_BYTES);
 }
 
 static TmdBone _gM4a1JavelinModel02D7CSkeleton[1] = {

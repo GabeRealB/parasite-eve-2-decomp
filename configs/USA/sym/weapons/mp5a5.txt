@@ -2,3 +2,4 @@
 mp5a5MuzzleFlashTask = 0x8011D1E0; // type:func
 _muzzleFlashDrawCore = 0x8011D468; // type:func
 _muzzleFlashDrawStreak = 0x8011D864; // type:func
+mp5a5AttackState = 0x8011dda4; // type:func

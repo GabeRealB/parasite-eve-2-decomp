@@ -33,4 +33,18 @@ void tonfaBatonSwingTrailTask(Task* task);
 /// through frame/exit dispatch; teardown follows `taskKill`'s lifetime rules.
 void tonfaBatonModelTask(Task* task);
 
+/// Runs the tonfa baton player strike, optional second strike and recovery.
+///
+/// After eight wind-up ticks, a new R1/R2 press queues the second strike.
+/// Each strike enables pair contacts for its own window and reports one hit.
+/// Active strike/recovery movement advances along the root's local forward
+/// axis. Requires the live baton model and 24 free scratch bytes.
+///
+/// Requires live player `GameActor` work, its model and initialized native
+/// animation slots, equipped weapon/contact storage and the matching weapon
+/// overlay loaded throughout dispatch and owned effects. Phase 0 enters
+/// normal mode state 4; later calls advance `GameActor::statePhase`. Frame counts
+/// are dispatch ticks. Releases its scratch reservation before returning.
+void tonfaBatonAttackState(Task* playerTask);
+
 #endif // INCLUDE_WEAPONS_TONFA_BATON_H

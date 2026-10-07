@@ -1,9 +1,10 @@
 D_m4a1_pyke_8011F56C = 0x8011F56C; // model named by a task descriptor
 
-func_m4a1_pyke_8011D1F8 = 0x8011D1F8; // type:func
+m4a1PykeNozzleTask = 0x8011D1F8; // type:func
 
 m4a1PykeFlameTask = 0x8011D7D4; // type:func
 _pykeFlameDrawNozzle = 0x8011D548; // type:func
 _pykeFlameDrawBlob = 0x8011DCEC; // type:func
 _pykeFlameDrawSplash = 0x8011E168; // type:func
 _pykeFlameRelease = 0x8011E4AC; // type:func
+m4a1PykeAttackState = 0x8011e4f8; // type:func

@@ -41,121 +41,120 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+#include "weapons/weapon.h"
+
 #include "../../shared/pyke_flame.h"
 
 /// Translation of the Pyke's effect coordinate frame inside its parent frame
 /// (the muzzle), `(0, 0x200, 0x40)`.
 static SVECTOR D_m4a1_pyke_8011E90C = { 0, 0x200, 0x40, 0 };
 
-void func_m4a1_pyke_8011E4F8(Task* arg0);
-
-/// Per-frame beam task for the M4A1 Pyke. Nothing runs while the player model
-/// is hidden (`field_C & 0x80`) or effects are hidden
-/// (`gRoomEffectState->effectControl >= 2`). State 0 hangs the task's own coordinate off
-/// `field_8` at the fixed muzzle offset with an identity rotation; state 1 then
-/// dispatches on `spawnArg1`:
-///
-/// - 1 draws the beam head at `workm.t` every frame and refreshes transient light slot
-///   1 with narrow (`0x80` / `0x400`) falloff and random red intensity in
-///   `0x400..0xB00`, arming the flare width in `scale`.
-/// - 2 widens that flare by 0x40 a frame up to 0x180, spawns effect `0x6017F`
-///   as a child of this task, and refreshes the light with a much wider
-///   (`0x400` / `0x4000`) falloff and red intensity in `0x800..0xF00`.
-/// - 3 and 4 switch back to sub-state 1 and 0, and 5 releases the pool block.
-///
-/// While `gRoomEffectState->effectControl` is non-zero the two drawing sub-states wind
-/// `age` back down instead of advancing.
-void func_m4a1_pyke_8011D1F8(Task* task)
+void m4a1PykeNozzleTask(Task* task)
 {
-    EffectWork*                    work;
-    GfxCoord*                      coord;
-    WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
-    GfxCoord*                      light;
-    EffectWork*                    eff;
-    u32                            ang;
+    enum {
+        M4A1_PYKE_NOZZLE_STATE_INIT        = 0,
+        M4A1_PYKE_NOZZLE_STATE_UPDATE      = 1,
+        M4A1_PYKE_NOZZLE_LIGHT_FRAMES      = 4,
+        M4A1_PYKE_NOZZLE_SPEED_STEP        = 64,
+        M4A1_PYKE_NOZZLE_SPEED_MAX         = 384,
+        M4A1_PYKE_NOZZLE_IDLE_LIGHT_INNER  = 128,
+        M4A1_PYKE_NOZZLE_IDLE_LIGHT_OUTER  = 1024,
+        M4A1_PYKE_NOZZLE_FIRE_LIGHT_INNER  = 1024,
+        M4A1_PYKE_NOZZLE_FIRE_LIGHT_OUTER  = 16384,
+        M4A1_PYKE_NOZZLE_LIGHT_RANDOM_MASK = 0x700,
+        M4A1_PYKE_NOZZLE_IDLE_RED_MIN      = 0x400,
+        M4A1_PYKE_NOZZLE_FIRE_RED_MIN      = 0x800,
+    };
+    EffectWork*                    effectWork;
+    GfxCoord*                      nozzleCoord;
+    WorldCoordTransientPointLight* transientLight;
+    WorldCoordPointLight*          pointLight;
+    GfxCoord*                      lightCoord;
+    EffectWork*                    flameWork;
+    u32                            lightRandom;
 
-    work      = task->spawnArg2.pointer;
-    coord     = task->extra.coordBody->coord;
-    lightSlot = &gWorldCoordTransientPointLights[1];
-    light     = &lightSlot->light.head.transform.coord;
-    slot      = &lightSlot->light;
+    effectWork     = task->spawnArg2.pointer;
+    nozzleCoord    = task->extra.coordBody->coord;
+    transientLight = &gWorldCoordTransientPointLights[1];
+    lightCoord     = &transientLight->light.head.transform.coord;
+    pointLight     = &transientLight->light;
     if ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) != 0) {
         return;
     }
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
         return;
     }
-    work->age++;
+    effectWork->age++;
     switch (task->state) {
-        case 0:
-            coord->parent = work->parent;
-            gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]   = D_m4a1_pyke_8011E90C.vx;
-            coord->coord.t[1]   = D_m4a1_pyke_8011E90C.vy;
-            coord->coord.t[2]   = D_m4a1_pyke_8011E90C.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            task->state = 1;
+        case M4A1_PYKE_NOZZLE_STATE_INIT:
+            nozzleCoord->parent = effectWork->parent;
+            gfxSetRotIdentity(&nozzleCoord->coord);
+            nozzleCoord->coord.t[0]   = D_m4a1_pyke_8011E90C.vx;
+            nozzleCoord->coord.t[1]   = D_m4a1_pyke_8011E90C.vy;
+            nozzleCoord->coord.t[2]   = D_m4a1_pyke_8011E90C.vz;
+            nozzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(nozzleCoord);
+            task->state = M4A1_PYKE_NOZZLE_STATE_UPDATE;
             break;
-        case 1:
+        case M4A1_PYKE_NOZZLE_STATE_UPDATE:
             switch (task->spawnArg1.value) {
-                case 0:
+                case M4A1_PYKE_NOZZLE_OFF:
                     break;
-                case 1:
+                case M4A1_PYKE_NOZZLE_IDLE:
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                        work->age--;
+                        effectWork->age--;
                         _pykeFlameDrawNozzle(
-                            MATRIX_TRANS(&coord->workm), work->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                            MATRIX_TRANS(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
                         break;
                     }
-                    actorRenderComposeCoord(coord);
-                    _pykeFlameDrawNozzle(MATRIX_TRANS(&coord->workm), work->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
-                    lightSlot->framesLeft = 4;
-                    slot->inner           = 0x80;
-                    slot->outer           = 0x400;
-                    ang                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState       = ang;
+                    actorRenderComposeCoord(nozzleCoord);
+                    _pykeFlameDrawNozzle(MATRIX_TRANS(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                    transientLight->framesLeft = M4A1_PYKE_NOZZLE_LIGHT_FRAMES;
+                    pointLight->inner          = M4A1_PYKE_NOZZLE_IDLE_LIGHT_INNER;
+                    pointLight->outer          = M4A1_PYKE_NOZZLE_IDLE_LIGHT_OUTER;
+                    lightRandom                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState            = lightRandom;
                     // Green halves the unsigned red halfword; blue quarters its signed value.
-                    slot->head.color.r = ((ang >> 16) & 0x700) + 0x400;
-                    slot->head.color.g = (u16)slot->head.color.r >> 1;
-                    slot->head.color.b = slot->head.color.r >> 2;
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-                    light->composeStamp = GRAPHICS_COORD_DIRTY;
-                    work->scale         = 0x40;
+                    pointLight->head.color.r = ((lightRandom >> 16) & M4A1_PYKE_NOZZLE_LIGHT_RANDOM_MASK) + M4A1_PYKE_NOZZLE_IDLE_RED_MIN;
+                    pointLight->head.color.g = (u16)pointLight->head.color.r >> 1;
+                    pointLight->head.color.b = pointLight->head.color.r >> 2;
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &nozzleCoord->workm, &lightCoord->coord);
+                    lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                    effectWork->scale        = M4A1_PYKE_NOZZLE_SPEED_STEP;
                     break;
-                case 2:
+                case M4A1_PYKE_NOZZLE_FIRE:
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                        work->age--;
+                        effectWork->age--;
                         break;
                     }
-                    actorRenderComposeCoord(coord);
-                    if (work->scale < 0x180) {
-                        work->scale = work->scale + 0x40;
+                    actorRenderComposeCoord(nozzleCoord);
+                    if (effectWork->scale < M4A1_PYKE_NOZZLE_SPEED_MAX) {
+                        effectWork->scale = effectWork->scale + M4A1_PYKE_NOZZLE_SPEED_STEP;
                     }
-                    eff = effectSpawn(EFFECT_M4A1_PYKE_FLAME, coord, (s32)(work->scale), NULL);
-                    if (eff != NULL) {
-                        taskReparent(task, eff->task);
+                    flameWork = effectSpawn(EFFECT_M4A1_PYKE_FLAME, nozzleCoord, (s32)effectWork->scale, NULL);
+                    if (flameWork != NULL) {
+                        taskReparent(task, flameWork->task);
                     }
-                    lightSlot->framesLeft = 4;
-                    slot->inner           = 0x400;
-                    slot->outer           = 0x4000;
-                    ang                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState       = ang;
-                    slot->head.color.r    = ((ang >> 16) & 0x700) + 0x800;
-                    slot->head.color.g    = (u16)slot->head.color.r >> 1;
-                    slot->head.color.b    = slot->head.color.r >> 2;
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-                    light->composeStamp = GRAPHICS_COORD_DIRTY;
+                    transientLight->framesLeft = M4A1_PYKE_NOZZLE_LIGHT_FRAMES;
+                    pointLight->inner          = M4A1_PYKE_NOZZLE_FIRE_LIGHT_INNER;
+                    pointLight->outer          = M4A1_PYKE_NOZZLE_FIRE_LIGHT_OUTER;
+                    lightRandom                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState            = lightRandom;
+                    pointLight->head.color.r   = ((lightRandom >> 16) & M4A1_PYKE_NOZZLE_LIGHT_RANDOM_MASK) + M4A1_PYKE_NOZZLE_FIRE_RED_MIN;
+                    pointLight->head.color.g   = (u16)pointLight->head.color.r >> 1;
+                    pointLight->head.color.b   = pointLight->head.color.r >> 2;
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &nozzleCoord->workm, &lightCoord->coord);
+                    lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                     break;
-                case 3:
-                    task->spawnArg1.value = 1;
+                case M4A1_PYKE_NOZZLE_RESET_IDLE:
+                    task->spawnArg1.value = M4A1_PYKE_NOZZLE_IDLE;
                     break;
-                case 4:
-                    task->spawnArg1.value = 0;
+                case M4A1_PYKE_NOZZLE_RESET_OFF:
+                    task->spawnArg1.value = M4A1_PYKE_NOZZLE_OFF;
                     break;
-                case 5:
-                    effectKillTask(work, task);
+                case M4A1_PYKE_NOZZLE_RELEASE:
+                    effectKillTask(effectWork, task);
                     break;
             }
             break;
@@ -179,147 +178,162 @@ void m4a1PykeFlameTask(Task* task)
 
 #include "../../shared/pyke_flame_release.inc.c"
 
-/// Per-frame firing state machine for the M4A1 Pyke. State 0 arms the shot and
-/// raises the weapon (clip 8 instead of 1 when it was already up), state 1
-/// waits for that clip. State 2 branches on `field_97F`: a held trigger (bit 0)
-/// drops into the three-round burst of state 3, a tap (bit 1) launches the dart
-/// (state 5) after telling the beam task (`field_914`) to go to sub-state 2,
-/// and anything else falls straight into the burst. State 3 counts `field_934`
-/// down to each round, spending one magazine round, playing `0x201C0004` and
-/// spawning the muzzle flash, and picks the lock-on target on the frame after.
-/// State 4 picks that target once and hands over to state 6. State 5 waits out
-/// `field_93E` and then asks `playerActorReadAttackButton` for held fire input: secondary
-/// input (`2`) with rounds still to spend rearms for another `0x14` frames, anything
-/// else ends the burst, parks the beam task at sub-state 3 or 4 and plays the
-/// `0x201C0005` tail. State 6 counts `field_979` down and drops out of the
-/// firing pose once the aim check fails or the trigger has been released.
-void func_m4a1_pyke_8011E4F8(Task* arg0)
+void m4a1PykeAttackState(Task* playerTask)
 {
+    enum {
+        M4A1_PYKE_PHASE_PREPARE             = 0,
+        M4A1_PYKE_PHASE_WAIT_READY          = 1,
+        M4A1_PYKE_PHASE_SELECT_ATTACK       = 2,
+        M4A1_PYKE_PHASE_BURST               = 3,
+        M4A1_PYKE_PHASE_IMPACT              = 4,
+        M4A1_PYKE_PHASE_FLAME               = 5,
+        M4A1_PYKE_PHASE_RECOVER             = 6,
+        M4A1_PYKE_PLAYER_ATTACK_STATE       = 4,
+        M4A1_PYKE_ANIMATION_READY           = 9,
+        M4A1_PYKE_ANIMATION_PRIMARY         = 0xA,
+        M4A1_PYKE_ANIMATION_SECONDARY       = 0xB,
+        M4A1_PYKE_ANIMATION_RELEASE         = 0xF,
+        M4A1_PYKE_READY_BLEND_FRAMES        = 1,
+        M4A1_PYKE_MOVING_READY_BLEND_FRAMES = 8,
+        M4A1_PYKE_IMPACT_SOUND              = SOUND_COMMON(0x17),
+        M4A1_PYKE_BURST_ROUNDS              = 3,
+        M4A1_PYKE_BURST_CANCEL_FRAMES       = 9,
+        M4A1_PYKE_SECONDARY_CANCEL_FRAMES   = 0x1C,
+        M4A1_PYKE_BURST_DELAY_FRAMES        = 3,
+        M4A1_PYKE_RECOVERY_COOLDOWN_FRAMES  = 0xC,
+        M4A1_PYKE_FUEL_INTERVAL_FRAMES      = 0x14,
+        M4A1_PYKE_FLAME_COOLDOWN_FRAMES     = 0x28,
+        M4A1_PYKE_WEAPON_ID                 = 28,
+        M4A1_PYKE_PRIMARY_SOUND             = SOUND_WEAPON(SOUND_BANK_M4A1_PYKE, 4),
+        M4A1_PYKE_FLAME_SOUND               = SOUND_PYKE_FIRE_TAIL,
+        M4A1_PYKE_BURST_IMPACT_TICKS_LEFT   = 2,
+        M4A1_PYKE_SECONDARY_TURN_RATE_INDEX = 2,
+    };
     GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  spot;
-    Task*      beam;
-    s32        anim;
-    s32        delay;
-    s32        spent;
+    GfxCoord*  rootCoord;
+    GfxCoord*  impactCoord;
+    Task*      nozzleTask;
+    s32        readyBlendFrames;
+    s32        burstDelay;
+    s32        remainingFuel;
 
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    SCRATCH_STACK_RESERVE_BYTES(0x50);
-    spot = SCRATCH_STACK_CURSOR(GfxCoord);
+    actor       = playerTask->work;
+    rootCoord   = playerTask->extra.tmd->coords;
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
     switch (actor->statePhase) {
-        case 0:
-            anim                                                  = 1;
-            actor->state                                          = 4;
+        case M4A1_PYKE_PHASE_PREPARE:
+            readyBlendFrames                                      = M4A1_PYKE_READY_BLEND_FRAMES;
+            actor->state                                          = M4A1_PYKE_PLAYER_ATTACK_STATE;
             actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
             actor->animationState                                 = 0;
-            actor->statePhase                                    += anim;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
+            actor->statePhase                                    += readyBlendFrames;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 8;
+                readyBlendFrames = M4A1_PYKE_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, M4A1_PYKE_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case M4A1_PYKE_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case M4A1_PYKE_PHASE_SELECT_ATTACK:
             actor->rumblePosted = 0;
-            if (actor->attackButton & 1) {
-                actor->statePhase        = 3;
+            if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) {
+                actor->statePhase        = M4A1_PYKE_PHASE_BURST;
                 actor->turnRateIndex     = 0;
                 actor->stateTimer        = 0;
-                actor->attackCancelTicks = 9;
-                actor->actionValue       = 3;
-                playerActorSetWeaponAttackFlags(arg0, 0, 1);
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
-            } else if (actor->attackButton & 2) {
-                beam                               = actor->weaponEffectTask;
-                actor->statePhase                  = 5;
-                actor->turnRateIndex               = 2;
-                actor->attackControl.cooldownTicks = 0x28;
-                actor->attackCancelTicks           = 0x1C;
-                actor->actionValue                 = 0x14;
-                if (beam != NULL) {
-                    beam->spawnArg1.value = 2;
+                actor->attackCancelTicks = M4A1_PYKE_BURST_CANCEL_FRAMES;
+                actor->actionValue       = M4A1_PYKE_BURST_ROUNDS;
+                playerActorSetWeaponAttackFlags(playerTask, 0, 1);
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
+            } else if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
+                nozzleTask                         = actor->weaponEffectTask;
+                actor->statePhase                  = M4A1_PYKE_PHASE_FLAME;
+                actor->turnRateIndex               = M4A1_PYKE_SECONDARY_TURN_RATE_INDEX;
+                actor->attackControl.cooldownTicks = M4A1_PYKE_FLAME_COOLDOWN_FRAMES;
+                actor->attackCancelTicks           = M4A1_PYKE_SECONDARY_CANCEL_FRAMES;
+                actor->actionValue                 = M4A1_PYKE_FUEL_INTERVAL_FRAMES;
+                if (nozzleTask != NULL) {
+                    nozzleTask->spawnArg1.value = M4A1_PYKE_NOZZLE_FIRE;
                 }
-                equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
-                worldCoordPlaySound(arg0->extra.tmd->coords, 0x201C0005, 1);
-                playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 2);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_PYKE_FLAME_SOUND, 1);
+                playerActorPlayChildSlotsWithBlend(playerTask, M4A1_PYKE_ANIMATION_SECONDARY, 0, 2);
                 break;
             }
             /* fallthrough */
-        case 3:
+        case M4A1_PYKE_PHASE_BURST:
             if (actor->actionValue != 0) {
-                delay = actor->stateTimer;
-                if (delay == 0) {
+                burstDelay = actor->stateTimer;
+                if (burstDelay == 0) {
                     actor->actionValue--;
-                    actor->stateTimer                                     = 3;
+                    actor->stateTimer                                     = M4A1_PYKE_BURST_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x201C0004, 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_PYKE_PRIMARY_SOUND, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
-                                0x1C, NULL);
-                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
+                                M4A1_PYKE_WEAPON_ID, NULL);
+                    playerActorPlayChildSlotsWithBlend(playerTask, M4A1_PYKE_ANIMATION_PRIMARY, 0, 2);
                     break;
                 }
-                actor->stateTimer = delay - 1;
-                if (delay - 1 == 2) {
+                actor->stateTimer = burstDelay - 1;
+                if (burstDelay - 1 == M4A1_PYKE_BURST_IMPACT_TICKS_LEFT) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                        worldCoordPlaySound(spot, 0x17, 1);
+                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                        worldCoordPlaySound(impactCoord, M4A1_PYKE_IMPACT_SOUND, 1);
                     }
                 }
                 break;
             }
             /* fallthrough */
-        case 4:
-            actor->statePhase                                     = 6;
+        case M4A1_PYKE_PHASE_IMPACT:
+            actor->statePhase                                     = M4A1_PYKE_PHASE_RECOVER;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                worldCoordPlaySound(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                worldCoordPlaySound(impactCoord, M4A1_PYKE_IMPACT_SOUND, 1);
             }
             break;
-        case 5:
+        case M4A1_PYKE_PHASE_FLAME:
+            // Sustain the nozzle in fuel intervals until secondary input or fuel runs out.
             if (actor->actionValue == 0) {
-                spent = playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_SECONDARY);
-                if (playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY && spent != 0) {
-                    actor->actionValue = 0x14;
-                    equipmentConsumeWeaponLoad(0x9B, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                remainingFuel = playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_SECONDARY);
+                if (playerActorReadAttackButton(playerTask) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY && remainingFuel != 0) {
+                    actor->actionValue = M4A1_PYKE_FUEL_INTERVAL_FRAMES;
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 } else {
-                    beam              = actor->weaponEffectTask;
-                    actor->statePhase = 6;
-                    if (beam != NULL) {
-                        beam->spawnArg1.value = spent != 0 ? 3 : 4;
+                    nozzleTask        = actor->weaponEffectTask;
+                    actor->statePhase = M4A1_PYKE_PHASE_RECOVER;
+                    if (nozzleTask != NULL) {
+                        nozzleTask->spawnArg1.value = remainingFuel != 0 ? M4A1_PYKE_NOZZLE_RESET_IDLE : M4A1_PYKE_NOZZLE_RESET_OFF;
                     }
                     sndEvtRequestScriptStop(SOUND_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                    playerActorPlayChildSlotsWithBlend(arg0, 0xF, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(playerTask, M4A1_PYKE_ANIMATION_RELEASE, 0, 2);
                 }
             } else {
                 actor->actionValue = (u16)actor->actionValue - 1;
             }
             break;
-        case 6:
+        case M4A1_PYKE_PHASE_RECOVER:
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
-                actor->attackControl.cooldownTicks = 0xC;
-                playerActorFinishWeaponAttack(arg0);
+                actor->attackControl.cooldownTicks = M4A1_PYKE_RECOVERY_COOLDOWN_FRAMES;
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 static TmdBone _gM4a1PykeModel01BCCSkeleton[1] = {

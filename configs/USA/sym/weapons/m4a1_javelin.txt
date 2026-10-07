@@ -11,3 +11,4 @@ _m4a1JavelinDrawBeamSegment = 0x8011dab0; // type:func
 _m4a1JavelinDrawGroundBeamSegment = 0x8011e4a8; // type:func
 _m4a1JavelinDrawMuzzleFlareLine = 0x8011ee78; // type:func
 _m4a1JavelinSetTrackedImpactPoint = 0x8011f4a4; // type:func
+m4a1JavelinAttackState = 0x8011f5d4; // type:func

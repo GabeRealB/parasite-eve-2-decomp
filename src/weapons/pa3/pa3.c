@@ -1,3 +1,5 @@
+#include "weapons/pa3.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -16,6 +18,7 @@
 #include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session_types.h"
+#include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
@@ -32,109 +35,116 @@
 #error "WEAPON_ID and PA3_FIELD_979 are per-package build parameters"
 #endif
 
-void func_pa3_8011D1DC(Task* arg0);
-
-/// Per-frame firing state machine for the shotgun. Case 0 arms the shot -
-/// clearing the recoil counters, priming the `field_979` grace at `PA3_FIELD_979` and the
-/// `field_934` frame delay at 0x1F - and queues the ready animation, using the
-/// long variant when the weapon was left dirty (`field_958`) or the actor is
-/// flagged in `field_975`; the muzzle grip bit in `field_12A` is set only for
-/// the 0xE weapon variant. Case 1 waits for that animation to reach its second
-/// slot. Case 2 fires, consuming the weapon's item, playing the report and spawning the
-/// flash. Case 3 re-acquires the lock-on target, sourcing the impact sound from
-/// the actor's own contact point on the 0xE variant. Case 4 runs out the
-/// `field_934` delay before playing the pump-action sound, and case 5 runs out
-/// the `field_979` grace and otherwise hands back to `playerActorFinishWeaponAttack`.
-void func_pa3_8011D1DC(Task* arg0)
+void pa3AttackState(Task* playerTask)
 {
+    enum {
+        PA3_PHASE_PREPARE              = 0,
+        PA3_PHASE_WAIT_READY           = 1,
+        PA3_PHASE_FIRE                 = 2,
+        PA3_PHASE_IMPACT               = 3,
+        PA3_PHASE_PUMP_DELAY           = 4,
+        PA3_PHASE_RECOVER              = 5,
+        PA3_PLAYER_ATTACK_STATE        = 4,
+        PA3_ANIMATION_READY            = 9,
+        PA3_ANIMATION_PRIMARY          = 0xA,
+        PA3_READY_BLEND_FRAMES         = 1,
+        PA3_MOVING_READY_BLEND_FRAMES  = 8,
+        PA3_IMPACT_SOUND               = SOUND_COMMON(0x17),
+        PA3_PUMP_DELAY_FRAMES          = 0x1F,
+        PA3_AMMUNITION_BUCKSHOT        = WEAPON_AMMUNITION_INDEX(0xAC),
+        PA3_AMMUNITION_FIREFLY         = WEAPON_AMMUNITION_INDEX(0xAD),
+        PA3_FIREFLY_CONTACT_SOUND_BASE = SOUND_WEAPON(0, 4),
+        PA3_FIRE_SOUND_BASE            = SOUND_WEAPON(0, 5),
+        PA3_PUMP_SOUND_BASE            = SOUND_WEAPON(0, 2),
+    };
     GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  spot;
-    s32        anim;
-    s32        hit;
+    GfxCoord*  rootCoord;
+    GfxCoord*  impactCoord;
+    s32        readyBlendFrames;
+    s32        gridImpact;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x50);
-    spot  = SCRATCH_STACK_CURSOR(GfxCoord);
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    actor       = playerTask->work;
+    rootCoord   = playerTask->extra.tmd->coords;
     switch (actor->statePhase) {
-        case 0:
-            actor->state             = 4;
-            actor->statePhase        = 1;
+        case PA3_PHASE_PREPARE:
+            actor->state             = PA3_PLAYER_ATTACK_STATE;
+            actor->statePhase        = PA3_PHASE_WAIT_READY;
             actor->attackCancelTicks = PA3_FIELD_979;
             actor->mode              = GAME_ACTOR_MODE_NORMAL;
             actor->turnRateIndex     = 0;
             actor->animationState    = 0;
             actor->rumblePosted      = 0;
-            actor->stateTimer        = 0x1F;
-            playerActorSetWeaponAttackFlags(arg0, 0, 0);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
-            if (gPlayerStatus.weaponSlotItem == 0xE) {
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
+            actor->stateTimer        = PA3_PUMP_DELAY_FRAMES;
+            playerActorSetWeaponAttackFlags(playerTask, 0, 0);
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
+            if (gPlayerStatus.weaponSlotItem == PA3_AMMUNITION_FIREFLY) {
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
             } else {
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= ~0x800;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= ~WORLD_COLLISION_BODY_SINGLE_CONTACT;
             }
-            anim = 1;
+            readyBlendFrames = PA3_READY_BLEND_FRAMES;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 8;
+                readyBlendFrames = PA3_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, PA3_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             /* fallthrough */
-        case 1:
+        case PA3_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case PA3_PHASE_FIRE:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-            worldCoordPlaySound(arg0->extra.tmd->coords,
-                                ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000005 | (WEAPON_ID << 16), 1);
+            worldCoordPlaySound(playerTask->extra.tmd->coords,
+                                ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_FIRE_SOUND_BASE | (WEAPON_ID << 16), 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 0x10) | WEAPON_ID, NULL);
-            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
+            playerActorPlayChildSlotsWithBlend(playerTask, PA3_ANIMATION_PRIMARY, 1, 3);
             break;
-        case 3:
+        case PA3_PHASE_IMPACT:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (gPlayerStatus.weaponSlotItem != 0xD) {
-                hit = playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot);
-                if (gPlayerStatus.weaponSlotItem == 0xE) {
-                    if (hit != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                        spot->workm.t[0] = actor->weaponContacts[0].point.vx;
-                        spot->workm.t[1] = actor->weaponContacts[0].point.vy;
-                        spot->workm.t[2] = actor->weaponContacts[0].point.vz;
-                        worldCoordPlaySound(spot,
-                                            ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000004 | (WEAPON_ID << 16), 1);
+            if (gPlayerStatus.weaponSlotItem != PA3_AMMUNITION_BUCKSHOT) {
+                gridImpact = playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord);
+                if (gPlayerStatus.weaponSlotItem == PA3_AMMUNITION_FIREFLY) {
+                    if (gridImpact != 0 || worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+                        impactCoord->workm.t[0] = actor->weaponContacts[0].point.vx;
+                        impactCoord->workm.t[1] = actor->weaponContacts[0].point.vy;
+                        impactCoord->workm.t[2] = actor->weaponContacts[0].point.vz;
+                        worldCoordPlaySound(impactCoord,
+                                            ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_FIREFLY_CONTACT_SOUND_BASE | (WEAPON_ID << 16), 1);
                     }
-                } else if (hit != 0) {
-                    worldCoordPlaySound(spot, 0x17, 1);
+                } else if (gridImpact != 0) {
+                    worldCoordPlaySound(impactCoord, PA3_IMPACT_SOUND, 1);
                 }
             }
             /* fallthrough */
-        case 4:
+        case PA3_PHASE_PUMP_DELAY:
+            // Pump timing and recovery checks run together through the fallthrough.
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
-                worldCoordPlaySound(arg0->extra.tmd->coords,
-                                    ((gPlayerStatus.weaponSlotItem - 0xD) << 0x18) | 0x20000002 | (WEAPON_ID << 16), 0);
+                worldCoordPlaySound(playerTask->extra.tmd->coords,
+                                    ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_PUMP_SOUND_BASE | (WEAPON_ID << 16), 0);
             }
             /* fallthrough */
-        case 5:
+        case PA3_PHASE_RECOVER:
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = 1;
-                playerActorFinishWeaponAttack(arg0);
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 /* Each package carries its own model. */

@@ -38,8 +38,19 @@
 #include "main/wipsys_types.h"
 
 #include "weapons/weapon.h"
+
 #include "../../shared/grenade_shell.h"
 #include "types.h"
+
+/// One frame's M4A1 grenade launch vector and temporary pitched rotation.
+///
+/// Reserved and released as one complete block during projectile initialization.
+/// The launch offset's unused fourth halfword is not initialized.
+typedef struct {
+    SVECTOR launchOffset;   // Local muzzle-to-projectile offset, in game coordinates
+    MATRIX  launchRotation; // Projectile local basis pitched for its initial flight direction
+} _M4a1GrenadeSpawnScratch;
+STATIC_ASSERT_SIZEOF(_M4a1GrenadeSpawnScratch, 0x28);
 
 static void _grenadeShellExit(Task* task);
 
@@ -59,7 +70,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_M4a1GrenadeFlightScratch, 0x34);
 
 void        func_m4a1_grenade_8011D1EC(Task* arg0);
-static void func_m4a1_grenade_8011D654(Task* arg0);
+static void _m4a1GrenadeInitProjectile(Task* task);
 static void func_m4a1_grenade_8011D994(Task* arg0);
 
 /// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms
@@ -202,92 +213,108 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x50);
 }
 
-/// Spawn state: allocates the grenade's work block, places the projectile a
-/// little above and in front of the muzzle coordinate, parents it to world,
-/// and links its two collision nodes.
-static void func_m4a1_grenade_8011D654(Task* arg0)
+/// Initializes a launched M4A1 grenade and links its owned collision bodies.
+///
+/// Requires a live projectile TMD task whose root is parented to the muzzle.
+/// The low halfword of spawnArg1.value is the weapon/round identity. A failed
+/// work allocation kills the task after releasing scratch; successful dispatch
+/// installs the shared exit callback and leaves work and collision storage owned
+/// by the task until teardown. The launch basis is pitched -1024 angle units
+/// before its normalized forward direction is stored at 4096 per unit.
+static void _m4a1GrenadeInitProjectile(Task* task)
 {
-    u8*                head;
-    SVECTOR*           blk;
-    SVECTOR*           vec;
-    MATRIX*            mtx;
-    TmdObject*         extra;
-    GfxCoord*          coord;
-    GfxCoord*          muzzle;
-    WeaponGrenadeWork* work;
+    enum {
+        M4A1_GRENADE_LAUNCH_Y             = 0x220,
+        M4A1_GRENADE_LAUNCH_Z             = 0x28,
+        M4A1_GRENADE_LAUNCH_PITCH         = -0x400,
+        M4A1_GRENADE_INITIAL_FLIGHT_TIMER = 10 << 16,
+        M4A1_GRENADE_PROJECTILE_RADIUS    = 0x94,
+        M4A1_GRENADE_CAPSULE_TIMER_SHIFT  = 10,
+    };
+    _M4a1GrenadeSpawnScratch* scratchEnd;
+    _M4a1GrenadeSpawnScratch* scratch;
+    SVECTOR*                  launchOffset;
+    SVECTOR*                  gteLaunchOffset;
+    MATRIX*                   launchRotation;
+    TmdObject*                projectileModel;
+    GfxCoord*                 projectileCoord;
+    GfxCoord*                 muzzleCoord;
+    WeaponGrenadeWork*        grenadeWork;
 
-    extra                         = arg0->extra.tmd;
-    head                          = SCRATCH_STACK_CURSOR(u8);
-    coord                         = extra->coords;
-    blk                           = (SVECTOR*)(head - 0x28);
-    SCRATCH_STACK_CURSOR(SVECTOR) = blk;
-    muzzle                        = coord->parent;
-    work                          = memCalloc(sizeof(WeaponGrenadeWork), 0);
-    vec                           = blk;
-    if (work == NULL) {
-        SCRATCH_STACK_RELEASE_BYTES(0x28);
-        taskKill(arg0);
+    projectileModel                                = task->extra.tmd;
+    scratchEnd                                     = SCRATCH_STACK_CURSOR(_M4a1GrenadeSpawnScratch);
+    projectileCoord                                = projectileModel->coords;
+    scratch                                        = scratchEnd - 1;
+    launchOffset                                   = &scratch->launchOffset;
+    SCRATCH_STACK_CURSOR(_M4a1GrenadeSpawnScratch) = scratch;
+    muzzleCoord                                    = projectileCoord->parent;
+    grenadeWork                                    = memCalloc(sizeof(WeaponGrenadeWork), 0);
+    gteLaunchOffset                                = launchOffset;
+    if (grenadeWork == NULL) {
+        SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeSpawnScratch);
+        taskKill(task);
         return;
     }
-    arg0->work         = work;
-    arg0->exitCallback = _grenadeShellExit;
-    arg0->state++;
-    memFillBytes(work, 0, sizeof(WeaponGrenadeWork));
-    blk->vx              = 0;
-    blk->vy              = 0x220;
-    blk->vz              = 0x28;
-    muzzle->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(muzzle);
-    coord->workm = muzzle->workm;
-    gte_SetRotMatrix(&muzzle->workm);
-    gte_SetTransMatrix(&muzzle->workm);
-    gte_ldv0(vec);
+    task->work         = grenadeWork;
+    task->exitCallback = _grenadeShellExit;
+    task->state++;
+    memFillBytes(grenadeWork, 0, sizeof(*grenadeWork));
+    launchOffset->vx          = 0;
+    launchOffset->vy          = M4A1_GRENADE_LAUNCH_Y;
+    launchOffset->vz          = M4A1_GRENADE_LAUNCH_Z;
+    muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(muzzleCoord);
+    projectileCoord->workm = muzzleCoord->workm;
+    gte_SetRotMatrix(&muzzleCoord->workm);
+    gte_SetTransMatrix(&muzzleCoord->workm);
+    gte_ldv0(gteLaunchOffset);
     gte_rtv0tr();
-    gte_stlvnl(coord->workm.t);
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
-    mtx                 = (MATRIX*)(head - 0x20);
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = 0;
-    *mtx                = coord->coord;
-    gfxRotMatrixX(mtx, -0x400, GRAPHICS_ROTATION_COMPOSE);
-    gfxReadMatrixZAxis(mtx, &work->dir);
-    VectorNormalSS(&work->dir, &work->dir);
-    work->flightTimer.word            = 0xA0000;
-    work->smokeInterval               = 1;
-    work->flightFrame                 = 0;
-    work->sphereBody.coord            = coord;
-    work->sphereBody.context.contacts = work->sphereContacts;
-    work->sphereBody.pos.vx           = 0;
-    work->sphereBody.pos.vy           = 0;
-    work->sphereBody.pos.vz           = 0;
-    work->sphereBody.key              = (u16)arg0->spawnArg1.value | 0x20000;
-    work->sphereBody.radius           = 0x94;
-    work->sphereBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->sphereBody);
-    worldCollisionInitContacts(work->sphereBody.context.contacts, 1, 0);
-    work->capsuleBody.context.capsule = &work->capsule;
-    work->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->capsule.contacts            = work->capsuleContacts;
-    work->capsuleBody.coord           = coord;
-    work->capsuleBody.pos.vx          = 0;
-    work->capsuleBody.pos.vy          = 0;
-    work->capsuleBody.pos.vz          = 0;
-    work->capsuleBody.key             = 0;
-    work->capsuleBody.radius          = 0;
-    work->capsule.ends[0].vx          = 0;
-    work->capsule.ends[0].vy          = 0;
-    work->capsule.ends[0].vz          = 0;
-    work->capsule.ends[1].vx          = 0;
-    work->capsule.ends[1].vz          = 0;
-    work->capsule.end0Radius          = 1;
-    work->capsule.end1Radius          = 1;
-    work->sphereBody.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->capsule.ends[1].vy          = -(work->flightTimer.word >> 10);
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->capsuleBody);
-    worldCollisionInitContacts(work->capsule.contacts, 1, 0);
-    work->capsuleBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
+    gte_stlvnl(projectileCoord->workm.t);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &projectileCoord->workm, &projectileCoord->coord);
+    launchRotation                = &(scratchEnd - 1)->launchRotation;
+    projectileCoord->parent       = &gGfxViewCoord;
+    projectileCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    projectileModel->flags        = 0;
+    *launchRotation               = projectileCoord->coord;
+    gfxRotMatrixX(launchRotation, M4A1_GRENADE_LAUNCH_PITCH, GRAPHICS_ROTATION_COMPOSE);
+    gfxReadMatrixZAxis(launchRotation, &grenadeWork->dir);
+    VectorNormalSS(&grenadeWork->dir, &grenadeWork->dir);
+    grenadeWork->flightTimer.word = M4A1_GRENADE_INITIAL_FLIGHT_TIMER;
+    grenadeWork->smokeInterval    = 1;
+    grenadeWork->flightFrame      = 0;
+    // The sphere records pair contacts; the trailing capsule probes room geometry.
+    grenadeWork->sphereBody.coord            = projectileCoord;
+    grenadeWork->sphereBody.context.contacts = grenadeWork->sphereContacts;
+    grenadeWork->sphereBody.pos.vx           = 0;
+    grenadeWork->sphereBody.pos.vy           = 0;
+    grenadeWork->sphereBody.pos.vz           = 0;
+    grenadeWork->sphereBody.key              = (u16)task->spawnArg1.value | WORLD_COLLISION_CONTACT_ATTACK;
+    grenadeWork->sphereBody.radius           = M4A1_GRENADE_PROJECTILE_RADIUS;
+    grenadeWork->sphereBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &grenadeWork->sphereBody);
+    worldCollisionInitContacts(grenadeWork->sphereBody.context.contacts, ARRAY_SIZE(grenadeWork->sphereContacts), 0);
+    grenadeWork->capsuleBody.context.capsule = &grenadeWork->capsule;
+    grenadeWork->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
+    grenadeWork->capsule.contacts            = grenadeWork->capsuleContacts;
+    grenadeWork->capsuleBody.coord           = projectileCoord;
+    grenadeWork->capsuleBody.pos.vx          = 0;
+    grenadeWork->capsuleBody.pos.vy          = 0;
+    grenadeWork->capsuleBody.pos.vz          = 0;
+    grenadeWork->capsuleBody.key             = 0;
+    grenadeWork->capsuleBody.radius          = 0;
+    grenadeWork->capsule.ends[0].vx          = 0;
+    grenadeWork->capsule.ends[0].vy          = 0;
+    grenadeWork->capsule.ends[0].vz          = 0;
+    grenadeWork->capsule.ends[1].vx          = 0;
+    grenadeWork->capsule.ends[1].vz          = 0;
+    grenadeWork->capsule.end0Radius          = 1;
+    grenadeWork->capsule.end1Radius          = 1;
+    grenadeWork->sphereBody.flags           |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    grenadeWork->capsule.ends[1].vy          = -(grenadeWork->flightTimer.word >> M4A1_GRENADE_CAPSULE_TIMER_SHIFT);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &grenadeWork->capsuleBody);
+    worldCollisionInitContacts(grenadeWork->capsule.contacts, ARRAY_SIZE(grenadeWork->capsuleContacts), 0);
+    grenadeWork->capsuleBody.flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
+    SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeSpawnScratch);
 }
 
 /// Flight state: steps the grenade along `dir`. A category-3 contact in
@@ -396,7 +423,7 @@ move:
 void func_m4a1_grenade_8011DE68(Task* task)
 {
     TaskFunc states[4] = {
-        func_m4a1_grenade_8011D654,
+        _m4a1GrenadeInitProjectile,
         func_m4a1_grenade_8011D994,
         _grenadeShellBlast,
         _grenadeShellExit,

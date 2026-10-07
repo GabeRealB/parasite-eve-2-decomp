@@ -8,7 +8,7 @@ func_hypervelocity_8011D830 = 0x8011D830; // type:func
 
 hypervelocityShockRingTask = 0x8011F168; // type:func
 
-func_hypervelocity_8011D1E8 = 0x8011D1E8; // type:func
+hypervelocityChargeEffectTask = 0x8011D1E8; // type:func
 spriteQuadDraw = 0x8011E494; // type:func
 jetConeDraw = 0x8011DF34; // type:func
 groundGlowDraw = 0x8011E8A0; // type:func
@@ -16,3 +16,5 @@ _hypervelocityDrawDischargeCone = 0x8011ec1c; // type:func
 _hypervelocityReleaseRound = 0x8011f11c; // type:func
 _hypervelocityQueueWeaponTeardown = 0x8011f694; // type:func
 _hypervelocityReleaseWeapon = 0x8011f6a0; // type:func
+_hypervelocityUpdateModelPose = 0x8011f374; // type:func
+hypervelocityAttackState = 0x8011f724; // type:func

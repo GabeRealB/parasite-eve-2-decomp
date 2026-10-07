@@ -34,6 +34,7 @@
 #include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/mem.h"
+#include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -41,6 +42,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+#include "weapons/weapon.h"
 
 #include "overlay.h"
 #include "gameplay/animation.h"
@@ -139,191 +142,211 @@ STATIC_ASSERT_SIZEOF(_HypervelocityRoundBody, 0x38);
 /// (the muzzle), `(0, 0x240, 0x80)`.
 static SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
 
+/// Low-nibble model component selector and charge-driven motions in spawnArg1.
+enum {
+    HYPERVELOCITY_MODEL_COMPONENT_MASK  = 0xF,
+    HYPERVELOCITY_MODEL_ROOT            = 0,
+    HYPERVELOCITY_MODEL_SLIDE           = 1,
+    HYPERVELOCITY_MODEL_HINGE           = 2,
+    HYPERVELOCITY_MODEL_CHARGE_SLIDE    = 0x10,
+    HYPERVELOCITY_MODEL_CHARGE_OPEN     = 0x20,
+    HYPERVELOCITY_CHARGE_REQUEST_CANCEL = -1,
+    HYPERVELOCITY_CHARGE_REQUEST_START  = 1,
+};
+
 static void _hypervelocityReleaseRound(Task* task);
 static void _hypervelocityReleaseWeapon(Task* task);
 
 static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames, s32 halfExtent, const u8* rgb);
-static void func_hypervelocity_8011F374(Task* arg0);
+static void _hypervelocityUpdateModelPose(Task* task);
 static void func_hypervelocity_8011F570(Task* arg0);
 static void _hypervelocityQueueWeaponTeardown(Task* task);
-void        func_hypervelocity_8011F724(Task* arg0);
 
-/// Per-frame task for the muzzle flare the hypervelocity round leaves behind.
-/// `Task::spawnArg2` is the `EffectWork` holding the flare's drift
-/// (`move` / `move.vy` / `move.vz`), its age (`age`), the ring
-/// brightness (`scale`), the ring radius (`angle`), the arc brightness
-/// (`period`) and the per-frame brightness step (`step`);
-/// `Task::extra` reaches the coordinate it hangs on and `Task::spawnArg1` is
-/// the charge counter the firing code drives. Nonzero effect control
-/// (`gRoomEffectState->effectControl`) freezes the task; cancellation at 4 or more restarts
-/// it at state 1.
-///
-/// - State 0 hangs the coordinate off `EffectWork::parent` at the fixed muzzle
-///   offset `D_hypervelocity_8011FB74` with an identity rotation, then falls
-///   through to state 1, which waits for `spawnArg1` to reach 1 before arming
-///   the charge at state 2.
-/// - State 2 charges: it jitters the drift, sparks every other frame, and
-///   refreshes transient light slot 1 with narrow (`0x100` / `0x1000`) falloff and
-///   random blue intensity in `0x400..0xB00`. A negative `spawnArg1` cancels back to state
-///   1; holding past frame 0x40 caps the charge at 0x18; once the charge is 2
-///   or more it seeds the ring and moves to state 3 with the brightness step
-///   scaled so the ring fills over `spawnArg1` frames.
-/// - State 3 fires: the light widens to `0x400` / `0x4000`, the ring brightens
-///   by `step` and grows by 8 a frame, both ring halves are drawn, and past
-///   half brightness the arc is drawn too with a one-shot report. Running the
-///   charge out spawns the discharge effect as a child task and moves to state
-///   4; a negative charge cancels back to state 1 with the stop sound.
-/// - State 4 fades the ring out 0x20 a frame while spawning smoke off a random
-///   one of the player's two hand coordinates, and returns to state 1 once the
-///   flare is 0x6F frames old or the charge goes negative.
-void func_hypervelocity_8011D1E8(Task* task)
+void hypervelocityChargeEffectTask(Task* task)
 {
-    u8                             rgb[3];
-    GfxCoord*                      coord;
-    GfxCoord*                      light;
-    GfxCoord*                      player;
-    EffectWork*                    work;
-    EffectWork*                    eff;
-    WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
-    s32                            pan;
+    enum {
+        HYPERVELOCITY_CHARGE_EFFECT_INIT                  = 0,
+        HYPERVELOCITY_CHARGE_EFFECT_IDLE                  = 1,
+        HYPERVELOCITY_CHARGE_EFFECT_CHARGE                = 2,
+        HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE             = 3,
+        HYPERVELOCITY_CHARGE_EFFECT_COOL                  = 4,
+        HYPERVELOCITY_CHARGE_EFFECT_TIMEOUT_FRAMES        = 65,
+        HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_FRAMES      = 24,
+        HYPERVELOCITY_CHARGE_EFFECT_RETIRE_AGE            = 111,
+        HYPERVELOCITY_CHARGE_EFFECT_BRIGHTNESS_UNIT       = 256,
+        HYPERVELOCITY_CHARGE_EFFECT_BRIGHTNESS_MAX        = 255,
+        HYPERVELOCITY_CHARGE_EFFECT_ARC_START_BRIGHTNESS  = 129,
+        HYPERVELOCITY_CHARGE_EFFECT_RADIUS_START          = 64,
+        HYPERVELOCITY_CHARGE_EFFECT_RADIUS_MAX            = 512,
+        HYPERVELOCITY_CHARGE_EFFECT_RADIUS_STEP           = 8,
+        HYPERVELOCITY_CHARGE_EFFECT_FADE_STEP             = 32,
+        HYPERVELOCITY_CHARGE_EFFECT_PARTICLE_SIZE         = 384,
+        HYPERVELOCITY_CHARGE_EFFECT_LIGHT_FRAMES          = 4,
+        HYPERVELOCITY_CHARGE_EFFECT_LIGHT_RANDOM_MASK     = 0x700,
+        HYPERVELOCITY_CHARGE_EFFECT_CHARGING_BLUE_MIN     = 1024,
+        HYPERVELOCITY_CHARGE_EFFECT_DISCHARGING_BLUE_MIN  = 2048,
+        HYPERVELOCITY_CHARGE_EFFECT_LIGHT_INNER           = 256,
+        HYPERVELOCITY_CHARGE_EFFECT_LIGHT_OUTER           = 4096,
+        HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_LIGHT_INNER = 1024,
+        HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_LIGHT_OUTER = 16384,
+        HYPERVELOCITY_CHARGE_EFFECT_DUST_ARGUMENT         = 0x2300,
+        HYPERVELOCITY_CHARGE_EFFECT_FIRST_HAND            = 15,
+        HYPERVELOCITY_CHARGE_EFFECT_HAND_STRIDE           = 3,
+        HYPERVELOCITY_CHARGE_EFFECT_DRIFT_AGE_MASK        = 15,
+        HYPERVELOCITY_CHARGE_EFFECT_CHARGE_DRIFT_SHIFT    = 5,
+        HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_DRIFT_SHIFT = 6,
+        HYPERVELOCITY_CHARGE_EFFECT_ARC_RADIUS            = 96,
+        HYPERVELOCITY_CHARGE_EFFECT_ARC_COUNTDOWN_SCALE   = 128,
+    };
+    u8                             tintRgb[3];
+    GfxCoord*                      muzzleCoord;
+    GfxCoord*                      lightCoord;
+    GfxCoord*                      playerCoords;
+    EffectWork*                    effectWork;
+    EffectWork*                    roundWork;
+    WorldCoordTransientPointLight* transientLight;
+    WorldCoordPointLight*          pointLight;
+    s32                            audioPan;
 
-    work      = task->spawnArg2.pointer;
-    lightSlot = &gWorldCoordTransientPointLights[1];
-    light     = &lightSlot->light.head.transform.coord;
-    slot      = &lightSlot->light;
-    coord     = task->extra.coordBody->coord;
+    effectWork     = task->spawnArg2.pointer;
+    transientLight = &gWorldCoordTransientPointLights[1];
+    lightCoord     = &transientLight->light.head.transform.coord;
+    pointLight     = &transientLight->light;
+    muzzleCoord    = task->extra.coordBody->coord;
 
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            task->state = 1;
+            task->state = HYPERVELOCITY_CHARGE_EFFECT_IDLE;
         }
         return;
     }
 
-    work->age = work->age + 1;
+    effectWork->age = effectWork->age + 1;
     switch (task->state) {
-        case 0:
-            coord->parent = work->parent;
-            gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]   = D_hypervelocity_8011FB74.vx;
-            coord->coord.t[1]   = D_hypervelocity_8011FB74.vy;
-            coord->coord.t[2]   = D_hypervelocity_8011FB74.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            task->state         = 1;
+        case HYPERVELOCITY_CHARGE_EFFECT_INIT:
+            muzzleCoord->parent = effectWork->parent;
+            gfxSetRotIdentity(&muzzleCoord->coord);
+            muzzleCoord->coord.t[0]   = D_hypervelocity_8011FB74.vx;
+            muzzleCoord->coord.t[1]   = D_hypervelocity_8011FB74.vy;
+            muzzleCoord->coord.t[2]   = D_hypervelocity_8011FB74.vz;
+            muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state               = HYPERVELOCITY_CHARGE_EFFECT_IDLE;
             /* fallthrough */
-        case 1:
-            if (task->spawnArg1.value == 1) {
-                task->state = 2;
-                work->age   = 0;
+        case HYPERVELOCITY_CHARGE_EFFECT_IDLE:
+            if (task->spawnArg1.value == HYPERVELOCITY_CHARGE_REQUEST_START) {
+                task->state     = HYPERVELOCITY_CHARGE_EFFECT_CHARGE;
+                effectWork->age = 0;
             }
             return;
-        case 2:
-            actorRenderComposeCoord(coord);
-            work->move.vy = -((work->age & 0xF) << 5);
-            if (work->age & 1) {
-                effectSpawn(EFFECT_SPARK_FADE, coord, 0x180, &work->move);
+        case HYPERVELOCITY_CHARGE_EFFECT_CHARGE:
+            // Charge may time out into discharge independently of the player's shot timer.
+            actorRenderComposeCoord(muzzleCoord);
+            effectWork->move.vy = -((effectWork->age & HYPERVELOCITY_CHARGE_EFFECT_DRIFT_AGE_MASK) << HYPERVELOCITY_CHARGE_EFFECT_CHARGE_DRIFT_SHIFT);
+            if (effectWork->age & 1) {
+                effectSpawn(EFFECT_SPARK_FADE, muzzleCoord, HYPERVELOCITY_CHARGE_EFFECT_PARTICLE_SIZE, &effectWork->move);
             }
-            lightSlot->framesLeft = 4;
-            slot->inner           = 0x100;
-            slot->outer           = 0x1000;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x400;
-            slot->head.color.r    = (u16)slot->head.color.b >> 1;
-            slot->head.color.g    = slot->head.color.b >> 1;
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-            light->composeStamp = GRAPHICS_COORD_DIRTY;
+            transientLight->framesLeft = HYPERVELOCITY_CHARGE_EFFECT_LIGHT_FRAMES;
+            pointLight->inner          = HYPERVELOCITY_CHARGE_EFFECT_LIGHT_INNER;
+            pointLight->outer          = HYPERVELOCITY_CHARGE_EFFECT_LIGHT_OUTER;
+            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            pointLight->head.color.b   = ((gRandomLcgState >> 16) & HYPERVELOCITY_CHARGE_EFFECT_LIGHT_RANDOM_MASK) + HYPERVELOCITY_CHARGE_EFFECT_CHARGING_BLUE_MIN;
+            pointLight->head.color.r   = (u16)pointLight->head.color.b >> 1;
+            pointLight->head.color.g   = pointLight->head.color.b >> 1;
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &muzzleCoord->workm, &lightCoord->coord);
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             if (task->spawnArg1.value < 0) {
                 task->spawnArg1.value = 0;
-                task->state           = 1;
+                task->state           = HYPERVELOCITY_CHARGE_EFFECT_IDLE;
                 return;
             }
-            if (work->age >= 0x41) {
-                task->spawnArg1.value = 0x18;
+            if (effectWork->age >= HYPERVELOCITY_CHARGE_EFFECT_TIMEOUT_FRAMES) {
+                task->spawnArg1.value = HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_FRAMES;
             }
             if (task->spawnArg1.value >= 2) {
-                work->scale  = 0;
-                work->angle  = 0x40;
-                work->period = 0;
-                work->step   = 0x100 / task->spawnArg1.value;
-                task->state  = 3;
+                effectWork->scale  = 0;
+                effectWork->angle  = HYPERVELOCITY_CHARGE_EFFECT_RADIUS_START;
+                effectWork->period = 0;
+                effectWork->step   = HYPERVELOCITY_CHARGE_EFFECT_BRIGHTNESS_UNIT / task->spawnArg1.value;
+                task->state        = HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE;
             }
             return;
-        case 3:
-            actorRenderComposeCoord(coord);
-            work->move.vy = -((work->age & 0xF) << 6);
-            effectSpawn(EFFECT_FLASH_BURST, coord, 0x180, &work->move);
-            lightSlot->framesLeft = 4;
-            slot->inner           = 0x400;
-            slot->outer           = 0x4000;
-            gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            slot->head.color.b    = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.r    = (u16)slot->head.color.b >> 1;
-            slot->head.color.g    = slot->head.color.b >> 1;
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &light->coord);
-            light->composeStamp = GRAPHICS_COORD_DIRTY;
-            work->scale        += work->step;
-            if (work->scale >= 0x100) {
-                work->scale = 0xFF;
+        case HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE:
+            // The request becomes a countdown; its zero tick owns the round spawn.
+            actorRenderComposeCoord(muzzleCoord);
+            effectWork->move.vy = -((effectWork->age & HYPERVELOCITY_CHARGE_EFFECT_DRIFT_AGE_MASK) << HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_DRIFT_SHIFT);
+            effectSpawn(EFFECT_FLASH_BURST, muzzleCoord, HYPERVELOCITY_CHARGE_EFFECT_PARTICLE_SIZE, &effectWork->move);
+            transientLight->framesLeft = HYPERVELOCITY_CHARGE_EFFECT_LIGHT_FRAMES;
+            pointLight->inner          = HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_LIGHT_INNER;
+            pointLight->outer          = HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_LIGHT_OUTER;
+            gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            pointLight->head.color.b   = ((gRandomLcgState >> 16) & HYPERVELOCITY_CHARGE_EFFECT_LIGHT_RANDOM_MASK) + HYPERVELOCITY_CHARGE_EFFECT_DISCHARGING_BLUE_MIN;
+            pointLight->head.color.r   = (u16)pointLight->head.color.b >> 1;
+            pointLight->head.color.g   = pointLight->head.color.b >> 1;
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &muzzleCoord->workm, &lightCoord->coord);
+            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            effectWork->scale       += effectWork->step;
+            if (effectWork->scale >= HYPERVELOCITY_CHARGE_EFFECT_BRIGHTNESS_UNIT) {
+                effectWork->scale = HYPERVELOCITY_CHARGE_EFFECT_BRIGHTNESS_MAX;
             }
-            work->angle += 8;
-            if (work->angle >= 0x201) {
-                work->angle = 0x200;
+            effectWork->angle += HYPERVELOCITY_CHARGE_EFFECT_RADIUS_STEP;
+            if (effectWork->angle >= HYPERVELOCITY_CHARGE_EFFECT_RADIUS_MAX + 1) {
+                effectWork->angle = HYPERVELOCITY_CHARGE_EFFECT_RADIUS_MAX;
             }
-            rgb[0] = work->scale >> 1;
-            rgb[1] = work->scale >> 1;
-            rgb[2] = work->scale;
-            effectDrawGouraudDisc(coord, work->angle, rgb);
-            effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-            if (work->scale >= 0x81) {
-                if (work->period == 0) {
-                    pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(SOUND_HYPERVELOCITY_DISCHARGE, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            tintRgb[0] = effectWork->scale >> 1;
+            tintRgb[1] = effectWork->scale >> 1;
+            tintRgb[2] = effectWork->scale;
+            effectDrawGouraudDisc(muzzleCoord, effectWork->angle, tintRgb);
+            effectDrawGouraudDisc(muzzleCoord, (s16)((u16)effectWork->angle * 2), tintRgb);
+            if (effectWork->scale >= HYPERVELOCITY_CHARGE_EFFECT_ARC_START_BRIGHTNESS) {
+                if (effectWork->period == 0) {
+                    audioPan = (s8)worldCoordGetOriginAudioPan(muzzleCoord);
+                    sndEvtRequestScriptStart(SOUND_HYPERVELOCITY_DISCHARGE, audioPan, (s8)worldCoordGetOriginAudioDepth(muzzleCoord));
                 }
-                work->period += (u16)work->step * 2;
-                if (work->period >= 0x100) {
-                    work->period = 0xFF;
+                effectWork->period += (u16)effectWork->step * 2;
+                if (effectWork->period >= HYPERVELOCITY_CHARGE_EFFECT_BRIGHTNESS_UNIT) {
+                    effectWork->period = HYPERVELOCITY_CHARGE_EFFECT_BRIGHTNESS_MAX;
                 }
-                rgb[0] = work->period >> 1;
-                rgb[1] = work->period >> 1;
-                rgb[2] = work->period;
-                effectDrawOuterGlowBand(coord, (s16)((u16)task->spawnArg1.value * 128), 0x60, rgb);
+                tintRgb[0] = effectWork->period >> 1;
+                tintRgb[1] = effectWork->period >> 1;
+                tintRgb[2] = effectWork->period;
+                effectDrawOuterGlowBand(muzzleCoord, (s16)((u16)task->spawnArg1.value * HYPERVELOCITY_CHARGE_EFFECT_ARC_COUNTDOWN_SCALE), HYPERVELOCITY_CHARGE_EFFECT_ARC_RADIUS, tintRgb);
             }
             if (task->spawnArg1.value < 0) {
                 sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_DISCHARGE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 task->spawnArg1.value = 0;
-                task->state           = 1;
+                task->state           = HYPERVELOCITY_CHARGE_EFFECT_IDLE;
                 return;
             }
             task->spawnArg1.value = task->spawnArg1.value - 1;
             if (task->spawnArg1.value == 0) {
-                task->state = 4;
-                eff         = effectSpawn(EFFECT_HYPERVELOCITY_ROUND, coord, 0, NULL);
-                if (eff != NULL) {
-                    taskReparent(task, eff->task);
+                task->state = HYPERVELOCITY_CHARGE_EFFECT_COOL;
+                roundWork   = effectSpawn(EFFECT_HYPERVELOCITY_ROUND, muzzleCoord, 0, NULL);
+                if (roundWork != NULL) {
+                    taskReparent(task, roundWork->task);
                 }
-                work->scale = 0xFF;
+                effectWork->scale = HYPERVELOCITY_CHARGE_EFFECT_BRIGHTNESS_MAX;
             }
             return;
-        case 4:
-            actorRenderComposeCoord(coord);
-            work->move.vy = -((work->age & 0xF) << 6);
-            effectSpawn(EFFECT_SPARK_FADE, coord, 0x180, &work->move);
-            if (work->angle > 0) {
-                rgb[0] = work->scale >> 1;
-                rgb[1] = work->scale >> 1;
-                rgb[2] = work->scale;
-                effectDrawGouraudDisc(coord, work->angle, rgb);
-                effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
-                effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-                work->scale = work->scale - 0x20;
-                work->angle = work->angle - 0x20;
+        case HYPERVELOCITY_CHARGE_EFFECT_COOL:
+            // Fade the ring and emit smoke from alternating randomly selected hands.
+            actorRenderComposeCoord(muzzleCoord);
+            effectWork->move.vy = -((effectWork->age & HYPERVELOCITY_CHARGE_EFFECT_DRIFT_AGE_MASK) << HYPERVELOCITY_CHARGE_EFFECT_DISCHARGE_DRIFT_SHIFT);
+            effectSpawn(EFFECT_SPARK_FADE, muzzleCoord, HYPERVELOCITY_CHARGE_EFFECT_PARTICLE_SIZE, &effectWork->move);
+            if (effectWork->angle > 0) {
+                tintRgb[0] = effectWork->scale >> 1;
+                tintRgb[1] = effectWork->scale >> 1;
+                tintRgb[2] = effectWork->scale;
+                effectDrawGouraudDisc(muzzleCoord, effectWork->angle, tintRgb);
+                effectDrawGouraudDisc(muzzleCoord, (s16)((u16)effectWork->angle * 2), tintRgb);
+                effectDrawScreenTint(tintRgb, GPU_BLEND_ADD);
+                effectWork->scale = effectWork->scale - HYPERVELOCITY_CHARGE_EFFECT_FADE_STEP;
+                effectWork->angle = effectWork->angle - HYPERVELOCITY_CHARGE_EFFECT_FADE_STEP;
             }
-            player          = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+            playerCoords    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effectSpawn(EFFECT_DUST_PUFF, &player[(((gRandomLcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
-            if (work->age >= 0x6F || task->spawnArg1.value < 0) {
-                task->state = 1;
+            effectSpawn(EFFECT_DUST_PUFF, &playerCoords[(((gRandomLcgState >> 16) & 1) * HYPERVELOCITY_CHARGE_EFFECT_HAND_STRIDE) + HYPERVELOCITY_CHARGE_EFFECT_FIRST_HAND], HYPERVELOCITY_CHARGE_EFFECT_DUST_ARGUMENT, NULL);
+            if (effectWork->age >= HYPERVELOCITY_CHARGE_EFFECT_RETIRE_AGE || task->spawnArg1.value < 0) {
+                task->state = HYPERVELOCITY_CHARGE_EFFECT_IDLE;
             }
             return;
     }
@@ -797,66 +820,81 @@ void hypervelocityDischargeConeTask(Task* task)
     }
 }
 
-static void func_hypervelocity_8011F374(Task* arg0)
+/// Copies the player's draw state and advances one attached Hypervelocity model component.
+///
+/// Low-nibble selectors are root (0), sliding component (1) and hinged component
+/// (2). Child tasks borrow the root weapon task's 0x10/0x20 charge-motion flags;
+/// the slide uses killCountdown as a 0..60 travel counter, the hinge uses stored
+/// pitch in 4096 angle units per turn. Requires live player/root/child models.
+/// Reserves sixteen unused scratch bytes per dispatch; their role is unproven.
+static void _hypervelocityUpdateModelPose(Task* task)
 {
-    Task*      parent;
-    TmdObject* extra;
-    TmdObject* playerExtra;
-    GfxCoord*  coord;
-    Task*      work;
-    s16        count;
+    enum {
+        HYPERVELOCITY_MODEL_SLIDE_MAX_TICKS      = 60,
+        HYPERVELOCITY_MODEL_SLIDE_UNITS_PER_TICK = 4,
+        HYPERVELOCITY_MODEL_HINGE_STEP           = 0x110,
+        HYPERVELOCITY_MODEL_HINGE_LIMIT          = -0x400,
+        HYPERVELOCITY_MODEL_PLAYER_ATTACK_STATE  = 4,
+        HYPERVELOCITY_MODEL_SCRATCH_BYTES        = 16,
+    };
+    Task*      weaponTask;
+    TmdObject* weaponModel;
+    TmdObject* playerModel;
+    GfxCoord*  modelCoord;
+    Task*      playerTask;
+    s16        slideTicksLeft;
 
-    parent      = arg0->parent;
-    work        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    extra       = arg0->extra.tmd;
-    playerExtra = work->extra.tmd;
-    coord       = extra->coords;
+    weaponTask  = task->parent;
+    playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    weaponModel = task->extra.tmd;
+    playerModel = playerTask->extra.tmd;
+    modelCoord  = weaponModel->coords;
 
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = playerExtra->flags;
-    extra->colorMtx     = playerExtra->colorMtx;
-    extra->lightMtx     = playerExtra->lightMtx;
+    modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    weaponModel->flags       = playerModel->flags;
+    weaponModel->colorMtx    = playerModel->colorMtx;
+    weaponModel->lightMtx    = playerModel->lightMtx;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x10);
-    switch (arg0->spawnArg1.value & 0xF) {
-        case 0:
-            if (*(u32*)&((GameActor*)work->work)->mode != 0x40000) {
-                arg0->spawnArg1.value = 0;
+    SCRATCH_STACK_RESERVE_BYTES(HYPERVELOCITY_MODEL_SCRATCH_BYTES);
+    switch (task->spawnArg1.value & HYPERVELOCITY_MODEL_COMPONENT_MASK) {
+        case HYPERVELOCITY_MODEL_ROOT:
+            if (((GameActor*)playerTask->work)->mode != GAME_ACTOR_MODE_NORMAL || ((GameActor*)playerTask->work)->state != HYPERVELOCITY_MODEL_PLAYER_ATTACK_STATE) {
+                task->spawnArg1.value = 0;
             }
             break;
-        case 1:
-            if (parent->spawnArg1.value & 0x10) {
-                if (arg0->killCountdown < 0x3C) {
-                    arg0->killCountdown = arg0->killCountdown + 1;
+        case HYPERVELOCITY_MODEL_SLIDE:
+            if (weaponTask->spawnArg1.value & HYPERVELOCITY_MODEL_CHARGE_SLIDE) {
+                if (task->killCountdown < HYPERVELOCITY_MODEL_SLIDE_MAX_TICKS) {
+                    task->killCountdown = task->killCountdown + 1;
                 }
-            } else if (arg0->killCountdown > 0) {
-                count               = arg0->killCountdown - 1;
-                arg0->killCountdown = count;
-                if (count == 0) {
+            } else if (task->killCountdown > 0) {
+                slideTicksLeft      = task->killCountdown - 1;
+                task->killCountdown = slideTicksLeft;
+                if (slideTicksLeft == 0) {
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_CANCEL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 }
             }
-            coord->coord.t[0] = 0;
-            coord->coord.t[1] = -arg0->killCountdown * 4;
-            coord->coord.t[2] = -0x16;
+            modelCoord->coord.t[0] = 0;
+            modelCoord->coord.t[1] = -task->killCountdown * HYPERVELOCITY_MODEL_SLIDE_UNITS_PER_TICK;
+            modelCoord->coord.t[2] = -0x16;
             break;
-        case 2:
-            if (parent->spawnArg1.value & 0x20) {
-                if (coord->param.rot.vx >= -0x3FF) {
-                    coord->param.rot.vx = coord->param.rot.vx - 0x110;
+        case HYPERVELOCITY_MODEL_HINGE:
+            if (weaponTask->spawnArg1.value & HYPERVELOCITY_MODEL_CHARGE_OPEN) {
+                if (modelCoord->param.rot.vx >= HYPERVELOCITY_MODEL_HINGE_LIMIT + 1) {
+                    modelCoord->param.rot.vx = modelCoord->param.rot.vx - HYPERVELOCITY_MODEL_HINGE_STEP;
                 }
-            } else if (coord->param.rot.vx < 0) {
-                coord->param.rot.vx = coord->param.rot.vx + 0x110;
+            } else if (modelCoord->param.rot.vx < 0) {
+                modelCoord->param.rot.vx = modelCoord->param.rot.vx + HYPERVELOCITY_MODEL_HINGE_STEP;
             }
-            coord->coord.t[0] = -0x14;
-            coord->coord.t[1] = -0x15C;
-            coord->coord.t[2] = 0xA8;
+            modelCoord->coord.t[0] = -0x14;
+            modelCoord->coord.t[1] = -0x15C;
+            modelCoord->coord.t[2] = 0xA8;
 
-            gfxSetRotIdentity(&coord->coord);
-            RotMatrixX(coord->param.rot.vx, &coord->coord);
+            gfxSetRotIdentity(&modelCoord->coord);
+            RotMatrixX(modelCoord->param.rot.vx, &modelCoord->coord);
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(HYPERVELOCITY_MODEL_SCRATCH_BYTES);
 }
 
 static void func_hypervelocity_8011F570(Task* arg0)
@@ -919,7 +957,7 @@ void func_hypervelocity_8011F6C0(Task* arg0)
 {
     TaskFunc states[4] = {
         func_hypervelocity_8011F570,
-        func_hypervelocity_8011F374,
+        _hypervelocityUpdateModelPose,
         _hypervelocityQueueWeaponTeardown,
         _hypervelocityReleaseWeapon,
     };
@@ -927,100 +965,110 @@ void func_hypervelocity_8011F6C0(Task* arg0)
     states[arg0->state](arg0);
 }
 
-/// Per-frame state machine for the hypervelocity's charge-up shot. Case 0 arms
-/// the charge: it resets the weapon slots, wakes the muzzle-glow task
-/// (`field_914`), sets the charge bit on the barrel effect task (`field_91C`)
-/// and starts the wind-up animation. Case 1 runs the charge while the fire
-/// button is still held (`field_962 & 0xA`): the charge ticks up, crosses a
-/// half-way mark at 60 that adds the second glow stage, and completes at 90 by
-/// consuming a round and firing. Releasing the button early jumps straight to
-/// case 3 and cancels both loops. Case 2 is the 0x15-tick recoil: for the last
-/// 18 ticks the forward axis of the player model's root coordinate is scaled
-/// by the remaining ticks over 378 (or 244 on the first tick) and subtracted
-/// from the coordinate's translation, pushing the player straight back.
-void func_hypervelocity_8011F724(Task* arg0)
+void hypervelocityAttackState(Task* playerTask)
 {
+    enum {
+        HYPERVELOCITY_PHASE_PREPARE             = 0,
+        HYPERVELOCITY_PHASE_CHARGE              = 1,
+        HYPERVELOCITY_PHASE_RECOIL              = 2,
+        HYPERVELOCITY_PHASE_RECOVER             = 3,
+        HYPERVELOCITY_PLAYER_ATTACK_STATE       = 4,
+        HYPERVELOCITY_ANIMATION_SECONDARY       = 0xB,
+        HYPERVELOCITY_ANIMATION_CHARGE          = 0xE,
+        HYPERVELOCITY_ANIMATION_RELEASE         = 0xF,
+        HYPERVELOCITY_RECOIL_FRAMES             = 0x15,
+        HYPERVELOCITY_CHARGE_FRAMES             = 90,
+        HYPERVELOCITY_SECOND_CHARGE_STAGE_FRAME = 60,
+        HYPERVELOCITY_RECOIL_PUSH_WINDOW        = 19,
+        HYPERVELOCITY_RECOIL_FIRST_PUSH_FRAME   = 18,
+        HYPERVELOCITY_RECOIL_DIVISOR            = 378,
+        HYPERVELOCITY_RECOIL_FIRST_PUSH_DIVISOR = 244,
+        HYPERVELOCITY_WEAPON_ID                 = 22,
+        HYPERVELOCITY_SECOND_STAGE_SOUND        = SOUND_WEAPON(SOUND_BANK_HYPERVELOCITY, 2),
+        HYPERVELOCITY_FIRE_SOUND                = SOUND_WEAPON(SOUND_BANK_HYPERVELOCITY, 7),
+    };
     _HypervelocityRecoilScratch* scratch;
     GameActor*                   actor;
-    GfxCoord*                    coord;
-    Task*                        eff;
-    s32                          div;
-    s32                          count;
-    s32                          step;
+    GfxCoord*                    rootCoord;
+    Task*                        weaponTask;
+    s32                          recoilDivisor;
+    s32                          chargeTicks;
+    s32                          recoilTicksLeft;
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_HypervelocityRecoilScratch);
-    actor   = arg0->work;
-    eff     = actor->equipmentTasks[1];
+    scratch    = SCRATCH_STACK_RESERVE_BLOCK(_HypervelocityRecoilScratch);
+    actor      = playerTask->work;
+    weaponTask = actor->equipmentTasks[1];
     switch (actor->statePhase) {
-        case 0:
+        case HYPERVELOCITY_PHASE_PREPARE:
             actor->mode                              = GAME_ACTOR_MODE_NORMAL;
-            actor->state                             = 4;
+            actor->state                             = HYPERVELOCITY_PLAYER_ATTACK_STATE;
             actor->movementMode                      = 0;
             actor->turnRateIndex                     = 0;
             actor->animationState                    = 0;
-            actor->statePhase                        = 1;
-            actor->weaponEffectTask->spawnArg1.value = 1;
+            actor->statePhase                        = HYPERVELOCITY_PHASE_CHARGE;
+            actor->weaponEffectTask->spawnArg1.value = HYPERVELOCITY_CHARGE_REQUEST_START;
             actor->stateTimer                        = 0;
-            eff->spawnArg1.value                    |= 0x10;
-            worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160003, 0);
-            worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160005, 0);
-            playerActorPlayChildSlotsWithBlend(arg0, 0xE, 0, 3);
+            weaponTask->spawnArg1.value             |= HYPERVELOCITY_MODEL_CHARGE_SLIDE;
+            worldCoordPlaySound(playerTask->extra.tmd->coords, SOUND_HYPERVELOCITY_CHARGE_START, 0);
+            worldCoordPlaySound(playerTask->extra.tmd->coords, SOUND_HYPERVELOCITY_CHARGE_LOOP, 0);
+            playerActorPlayChildSlotsWithBlend(playerTask, HYPERVELOCITY_ANIMATION_CHARGE, 0, 3);
             /* fallthrough */
-        case 1:
-            if (actor->padHeld & 0xA) {
-                count             = actor->stateTimer + 1;
-                actor->stateTimer = count;
-                if (count >= 0x5A) {
+        case HYPERVELOCITY_PHASE_CHARGE:
+            if (actor->padHeld & (PAD_BUTTON_R1 | PAD_BUTTON_R2)) {
+                chargeTicks       = actor->stateTimer + 1;
+                actor->stateTimer = chargeTicks;
+                if (chargeTicks >= HYPERVELOCITY_CHARGE_FRAMES) {
                     actor->rumblePosted = 0;
                     actor->statePhase++;
-                    eff->spawnArg1.value = 0;
-                    actor->stateTimer    = 0x15;
-                    equipmentConsumeWeaponLoad(0x95, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    weaponTask->spawnArg1.value = 0;
+                    actor->stateTimer           = HYPERVELOCITY_RECOIL_FRAMES;
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(HYPERVELOCITY_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160007, 1);
-                    playerActorResetChildSlots(arg0, 0xB);
-                } else if (count == 0x3C) {
-                    eff->spawnArg1.value |= 0x20;
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, HYPERVELOCITY_FIRE_SOUND, 1);
+                    playerActorResetChildSlots(playerTask, HYPERVELOCITY_ANIMATION_SECONDARY);
+                } else if (chargeTicks == HYPERVELOCITY_SECOND_CHARGE_STAGE_FRAME) {
+                    weaponTask->spawnArg1.value |= HYPERVELOCITY_MODEL_CHARGE_OPEN;
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160002, 0);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, HYPERVELOCITY_SECOND_STAGE_SOUND, 0);
                 }
                 sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_CANCEL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             } else {
-                actor->statePhase                        = 3;
-                actor->weaponEffectTask->spawnArg1.value = -1;
-                eff->spawnArg1.value                     = 0;
+                actor->statePhase                        = HYPERVELOCITY_PHASE_RECOVER;
+                actor->weaponEffectTask->spawnArg1.value = HYPERVELOCITY_CHARGE_REQUEST_CANCEL;
+                weaponTask->spawnArg1.value              = 0;
                 sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20160004, 0);
-                playerActorPlayChildSlotsWithBlend(arg0, 0xF, 0, 3);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, SOUND_HYPERVELOCITY_CHARGE_CANCEL, 0);
+                playerActorPlayChildSlotsWithBlend(playerTask, HYPERVELOCITY_ANIMATION_RELEASE, 0, 3);
             }
             break;
-        case 2:
-            step              = actor->stateTimer - 1;
-            actor->stateTimer = step;
-            if (step != 0) {
-                if (step < 0x13) {
-                    coord = arg0->extra.tmd->coords;
-                    div   = 0x17A;
-                    if (step == 0x12) {
-                        div = 0xF4;
+        case HYPERVELOCITY_PHASE_RECOIL:
+            // Push backward on the last eighteen ticks, with a stronger first step.
+            recoilTicksLeft   = actor->stateTimer - 1;
+            actor->stateTimer = recoilTicksLeft;
+            if (recoilTicksLeft != 0) {
+                if (recoilTicksLeft < HYPERVELOCITY_RECOIL_PUSH_WINDOW) {
+                    rootCoord     = playerTask->extra.tmd->coords;
+                    recoilDivisor = HYPERVELOCITY_RECOIL_DIVISOR;
+                    if (recoilTicksLeft == HYPERVELOCITY_RECOIL_FIRST_PUSH_FRAME) {
+                        recoilDivisor = HYPERVELOCITY_RECOIL_FIRST_PUSH_DIVISOR;
                     }
                     actor->movementSign = -1;
-                    gfxReadMatrixZAxis(&coord->coord, &scratch->forward);
-                    scratch->recoil.vx = -(scratch->forward.vx * actor->stateTimer / div);
-                    scratch->recoil.vy = -(scratch->forward.vy * actor->stateTimer / div);
-                    scratch->recoil.vz = -(scratch->forward.vz * actor->stateTimer / div);
-                    coord->coord.t[0] += scratch->recoil.vx;
-                    coord->coord.t[1] += scratch->recoil.vy;
-                    coord->coord.t[2] += scratch->recoil.vz;
+                    gfxReadMatrixZAxis(&rootCoord->coord, &scratch->forward);
+                    scratch->recoil.vx     = -(scratch->forward.vx * actor->stateTimer / recoilDivisor);
+                    scratch->recoil.vy     = -(scratch->forward.vy * actor->stateTimer / recoilDivisor);
+                    scratch->recoil.vz     = -(scratch->forward.vz * actor->stateTimer / recoilDivisor);
+                    rootCoord->coord.t[0] += scratch->recoil.vx;
+                    rootCoord->coord.t[1] += scratch->recoil.vy;
+                    rootCoord->coord.t[2] += scratch->recoil.vz;
                 }
             } else {
                 actor->statePhase++;
             }
             /* fallthrough */
-        case 3:
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
-                playerActorFinishWeaponAttack(arg0);
+        case HYPERVELOCITY_PHASE_RECOVER:
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }

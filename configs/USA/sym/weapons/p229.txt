@@ -3,3 +3,4 @@ D_p229_8011E5E4 = 0x8011E5E4; // model named by a task descriptor
 p229MuzzleFlashTask = 0x8011D1DC; // type:func
 _muzzleFlashDrawCore = 0x8011D464; // type:func
 _muzzleFlashDrawStreak = 0x8011D860; // type:func
+p229AttackState = 0x8011dda0; // type:func

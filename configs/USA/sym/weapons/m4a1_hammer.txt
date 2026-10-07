@@ -7,3 +7,4 @@ m4a1HammerGlowTask = 0x8011D1E0; // type:func
 spriteQuadDraw = 0x8011DE60; // type:func
 spriteQuadDrawCharge = 0x8011D904; // type:func
 _beamStripDraw = 0x8011E29C; // type:func
+m4a1HammerAttackState = 0x8011e710; // type:func

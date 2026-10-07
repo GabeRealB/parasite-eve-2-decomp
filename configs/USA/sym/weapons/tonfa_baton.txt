@@ -10,3 +10,4 @@ _tonfaBatonInitModelTask = 0x8011da48; // type:func
 _tonfaBatonUpdateModelPose = 0x8011da74; // type:func
 _tonfaBatonDeferModelTaskRemoval = 0x8011db6c; // type:func
 tonfaBatonModelTask = 0x8011db98; // type:func
+tonfaBatonAttackState = 0x8011dbfc; // type:func

@@ -45,7 +45,17 @@
 
 #include "actors/companion.h"
 
+#include "weapons/hypervelocity.h"
 #include "weapons/m4a1_hammer.h"
+#include "weapons/m4a1_javelin.h"
+#include "weapons/m4a1_pyke.h"
+#include "weapons/m93r.h"
+#include "weapons/m950.h"
+#include "weapons/mp5a5.h"
+#include "weapons/p08.h"
+#include "weapons/p229.h"
+#include "weapons/pa3.h"
+#include "weapons/tonfa_baton.h"
 
 #include "main/task_types.h"
 
@@ -695,7 +705,6 @@ extern AnimationBank D_actor_800200_8016F208;
 extern AnimationBank D_actor_800300_8016CB98;
 
 /// Weapon overlay entry points, at fixed addresses.
-void func_m93r_8011D1C4(Task* arg0);
 void func_m4a1_8011D1C4(Task* arg0);
 void func_m4a1_p1_8011D1C4(Task* arg0);
 void func_m4a1_p2_8011D1C4(Task* arg0);
@@ -703,12 +712,9 @@ void func_m4a1_p2_8011D1C4(Task* arg0);
 void func_grenade_pistol_8011D1D4(Task* arg0);
 void func_mm1_8011D1D4(Task* arg0);
 
-void func_p08_8011D1D8(Task* arg0);
 void func_p08_snail_8011D1D8(Task* arg0);
 void func_mongoose_8011D1D8(Task* arg0);
 
-void func_m950_8011D1DC(Task* arg0);
-void func_pa3_8011D1DC(Task* arg0);
 void func_sp12_8011D1DC(Task* arg0);
 void func_as12_8011D1DC(Task* arg0);
 void func_m249_8011D1DC(Task* arg0);
@@ -717,23 +723,10 @@ void func_m4a1_grenade_8011D1EC(Task* arg0);
 
 void func_m4a1_bayonet_8011DA34(Task* arg0);
 
-void func_tonfa_baton_8011DBFC(Task* arg0);
-
-void func_p229_8011DDA0(Task* arg0);
-
-void func_mp5a5_8011DDA4(Task* arg0);
 void func_mp5a5_p1_8011DDA4(Task* arg0);
 void func_mp5a5_p2_8011DDA4(Task* arg0);
 
 void func_gunblade_8011E040(Task* arg0);
-
-void func_m4a1_pyke_8011E4F8(Task* arg0);
-
-void func_m4a1_hammer_8011E710(Task* arg0);
-
-void func_m4a1_javelin_8011F5D4(Task* arg0);
-
-void func_hypervelocity_8011F724(Task* arg0);
 
 u16 D_80112964[5][2] = {
     { 16, 240 },
@@ -7467,10 +7460,10 @@ s8 playerActorReadAttackButton(Task* task)
 static const _PlayerActorWeaponAttacks D_800978BC = { {
     _playerActorNoWeaponAttack,
     func_p08_snail_8011D1D8,
-    func_m93r_8011D1C4,
-    func_m950_8011D1DC,
-    func_p08_8011D1D8,
-    func_p229_8011DDA0,
+    m93rAttackState,
+    m950AttackState,
+    p08AttackState,
+    p229AttackState,
     _playerActorNoWeaponAttack,
     _playerActorNoWeaponAttack,
     _playerActorNoWeaponAttack,
@@ -7478,24 +7471,24 @@ static const _PlayerActorWeaponAttacks D_800978BC = { {
     _playerActorNoWeaponAttack,
     func_grenade_pistol_8011D1D4,
     func_mm1_8011D1D4,
-    func_pa3_8011D1DC,
+    pa3AttackState,
     func_sp12_8011D1DC,
     func_as12_8011D1DC,
     func_m4a1_8011D1C4,
     func_m249_8011D1DC,
     _playerActorNoWeaponAttack,
-    func_tonfa_baton_8011DBFC,
+    tonfaBatonAttackState,
     func_m4a1_p1_8011D1C4,
     func_m4a1_p2_8011D1C4,
-    func_hypervelocity_8011F724,
+    hypervelocityAttackState,
     func_gunblade_8011E040,
     _playerActorNoWeaponAttack,
-    func_m4a1_hammer_8011E710,
+    m4a1HammerAttackState,
     func_m4a1_bayonet_8011DA34,
     func_m4a1_grenade_8011D1EC,
-    func_m4a1_pyke_8011E4F8,
-    func_m4a1_javelin_8011F5D4,
-    func_mp5a5_8011DDA4,
+    m4a1PykeAttackState,
+    m4a1JavelinAttackState,
+    mp5a5AttackState,
     func_mp5a5_p1_8011DDA4,
     func_mp5a5_p2_8011DDA4,
 } };

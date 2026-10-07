@@ -47830,7 +47830,7 @@ matches — verify with `./tools/build-and-verify.sh`, not with the scratch scor
 ## An extra scratch-pointer copy taken *before* the alloc failure test
 
 A scratchpad allocation whose block is later handed to a GTE `asm` operand can
-need **two** live pointers, not one. `func_m4a1_grenade_8011D654` carves 0x28
+need **two** live pointers, not one. `_m4a1GrenadeInitProjectile` carves 0x28
 bytes off `SCRATCH_STACK_CURSOR_SLOT` and passes the block to `gte_ldv0`; the target keeps
 `$s0` for the head store and the `vy`/`vz` writes and a *second* callee-saved
 `$s7` for the `lwc2` pair, with `move s7, s0` sitting in the `bnez` delay slot
@@ -52780,7 +52780,7 @@ The same fixed-scalar-vs-struct aliasing hole as the `gMcSaveData` entry above,
 seen from the other end: not a store that sinks, but a *load* that rises past a
 run of struct stores.
 
-`func_m4a1_javelin_8011F5D4` state 2 writes five `actor->` fields and then packs
+`m4a1JavelinAttackState` state 2 writes five `actor->` fields and then packs
 a byte of `gPlayerStatus` into `collisionBodies[GAME_ACTOR_BODY_WEAPON].key`. The target keeps every store ahead
 of the load:
 
@@ -55542,7 +55542,7 @@ actor->statePhase = 1;
 anim             = 1;
 ```
 
-`func_p08_8011D1D8` is the worked example, and the neighbouring statement
+`p08AttackState` is the worked example, and the neighbouring statement
 still matters: with the `state` store *after* the pair the copy appears
 but `reorder=1` remains, so keep the unrelated store ahead of both.
 
@@ -55613,7 +55613,7 @@ RotMatrixX(coord->angle, &mat->mat);
 ```
 
 The first store still comes out as `4(s0)` rather than `0(a1)`; that is the
-expected shape, not a leftover. `func_hypervelocity_8011F374` is the worked
+expected shape, not a leftover. `_hypervelocityUpdateModelPose` is the worked
 example (93.3% → 100% on that one change).
 
 ### A switch case that compares against the switch value needs the value in a local
@@ -55676,7 +55676,7 @@ s32 fade;   /* separate local for the later playerActorPlayChildSlotsWithBlend a
 ```
 
 Narrowing is only right when the local really is a halfword field's value —
-`func_p08_8011D1D8` is the case where a `u8` local is the false trail, because
+`p08AttackState` is the case where a `u8` local is the false trail, because
 there `reload_cse` has to fold the constant, not avoid it. Splitting the
 second, unrelated 1 into its own `s32` local keeps that distinction visible.
 
@@ -55781,7 +55781,7 @@ the differing immediates make the disassembly text differ.
 
 ## A bare `extern u8 G;` load hoists above struct stores; a struct member does not
 
-`func_mp5a5_8011DDA4` case 3 writes four `GameActor` fields and then folds a
+`mp5a5AttackState` case 3 writes four `GameActor` fields and then folds a
 byte global into the fourth:
 
 ```c
@@ -55856,7 +55856,7 @@ hoist, here it lets a store sink.
 
 ## Compute alias pointers before the early-return guards, not after
 
-**Problem.** `func_m4a1_pyke_8011D1F8` keeps five callee-saved pointers. Every
+**Problem.** `m4a1PykeNozzleTask` keeps five callee-saved pointers. Every
 instruction matched except that the task argument and one alias pointer had
 swapped registers — the ROM uses `s2` for the `Task*` and `s3` for the
 `WorldCoordPointLight*` member at `&gWorldCoordTransientPointLights[1].light`, ours used `s3` and `s2`.
@@ -55940,7 +55940,7 @@ pair (from the `s16` field). 97.4% → 100%.
 
 ## Store the decremented counter through one local, do not spell `x - 1` twice
 
-`func_m93r_8011D1C4` case 2 loads a frame-delay counter, takes one branch when
+`m93rAttackState` case 2 loads a frame-delay counter, takes one branch when
 it is zero and, on the other arm, stores `counter - 1` and takes a second
 branch when *that* is zero. The target spends a single register on it:
 
@@ -56018,7 +56018,7 @@ callee-saved copy and the store-back:
 
 Where that block sits relative to the plain loads decides the whole entry
 block's schedule, and it is worth several points. Written first — the order
-`func_m950_8011D1DC` and `func_mp5a5_8011DDA4` use — the `lui`/`ori` of the
+`m950AttackState` and `mp5a5AttackState` use — the `lui`/`ori` of the
 scratch-head address wins the ready list, the parameter copy `move $s2, $a0`
 slides down to fill the `lw` load-delay slot, and the `index->actor` load lands
 after the store-back. That is a 97.3% near-miss with `regs=11 reorder=2` in the
@@ -56036,7 +56036,7 @@ rec   = &actor->weaponShape;
 switch (actor->statePhase) {
 ```
 
-`func_p229_8011DDA0` went 97.3% → 100% on that move alone (the residue was
+`p229AttackState` went 97.3% → 100% on that move alone (the residue was
 `%hi`/`%lo` symbol names for `Wip_SysConfig.field_22` and `gMcSaveData.characterId`,
 `%hi`/`%lo` symbol names for `gPlayerStatus.weaponSlotItem` and `gMcSaveData.field_22`,
 which link identically). Only the relative position of the pinned block matters:
@@ -56100,8 +56100,8 @@ supports, so prefer it over grouping the two constant stores.
 
 "Store the decremented counter through one local, do not spell `x - 1` twice"
 covers the case where the ROM *speculates* the `addiu` into the guard branch's
-delay slot. `func_tonfa_baton_8011DBFC` needs the opposite in two of its cases,
-and the same C shape that matched `func_m93r_8011D1C4` is what gets it wrong.
+delay slot. `tonfaBatonAttackState` needs the opposite in two of its cases,
+and the same C shape that matched `m93rAttackState` is what gets it wrong.
 
 Cached in a local, the guard's slot always gets filled:
 
@@ -56252,7 +56252,7 @@ Both relocations resolve to `0x8007218A`, so this scores as a `regs` penalty
 and caps `build.sh` just under 100% while the overlay still checksums. Add the
 address of the base symbol to the offset before chasing it: if that equals the
 `D_` name, the hunk is cosmetic and `./tools/build-and-verify.sh` is the only
-verdict that counts. `func_hypervelocity_8011F724` stalled at 99.964% on
+verdict that counts. `hypervelocityAttackState` stalled at 99.964% on
 exactly this and matched the ROM unchanged.
 
 ## A merged tail that *carries a value* is still just three duplicated case bodies
@@ -56475,7 +56475,7 @@ double cast is about the shift, not about the load.
 
 ## A scalar `extern` lets GCC hoist a load over a struct store; the array it really belongs to does not
 
-`func_m4a1_hammer_8011E710` stalled at 97.3% with `regs`/`reorder` residue that
+`m4a1HammerAttackState` stalled at 97.3% with `regs`/`reorder` residue that
 no statement permutation and 8500 permuter iterations could shift. The block
 was one straight run of stores plus one global load:
 
@@ -149479,7 +149479,7 @@ attempts; left as it was.
   `for` loops with `break`; the second needs `tiersChecked = 0;` written before the clamp
   that precedes the loop (`for (; i < 0xD; i++)`), or `save` and `i` trade
   registers.
-- Not converted: `func_mp5a5_8011DDA4`'s `goto fire` from state 6 back into
+- Not converted: `mp5a5AttackState`'s `goto fire` from state 6 back into
   state 2. An inline for state 3's body called from both places is not merged
   back (12 insns longer, the copy's if/else arms laid out the other way round).
 ### Goto forms from the shelter rooms: a found-flag scan, a three-way merged body, `case 0: default:` (batch of 16, 2026-10-06)
@@ -149550,7 +149550,7 @@ attempts; left as it was.
   `sltiu x,2`. The nested form `if (x < 2) { if (x >= 0) { store; return; } }`
   keeps the two signed tests (`_mineMesaSetPlayerHeadAimMode`).
 - Not converted: **a backward `goto fire` from case 5 into case 2, which
-  falls through into case 3** (`func_m950_8011D1DC`, `func_m249_8011D1DC`).
+  falls through into case 3** (`m950AttackState`, `func_m249_8011D1DC`).
   Writing the start-shot and step-shot blocks as inlines called in both places
   fails two ways: in m950 the inlined step after `stateTimer = 4` is folded
   (`--timer == 0` is known false, so the copy becomes `stateTimer = 3`), and

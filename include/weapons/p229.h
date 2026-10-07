@@ -16,4 +16,19 @@
 /// Hidden room effects suspend updates, including aging and cleanup.
 void p229MuzzleFlashTask(Task* task);
 
+/// Runs the P229 player attack with narrow primary or wide secondary contacts.
+///
+/// Primary fire consumes one primary load and reports a grid impact; secondary
+/// fire consumes the secondary load, widens the weapon shape and attaches its
+/// flash to the weapon task. Recovery installs a 12- or 18-tick cooldown.
+///
+/// Requires live player `GameActor` work, its model and initialized native
+/// animation slots, equipped weapon/contact storage and the matching weapon
+/// overlay loaded throughout dispatch and owned effects. Phase 0 enters
+/// normal mode state 4; later calls advance `GameActor::statePhase`. Frame counts
+/// are dispatch ticks. Releases its scratch reservation before returning.
+/// Reserves 80 scratch bytes for a temporary impact node, in addition to
+/// the called helpers' reservations.
+void p229AttackState(Task* playerTask);
+
 #endif // INCLUDE_WEAPONS_P229_H

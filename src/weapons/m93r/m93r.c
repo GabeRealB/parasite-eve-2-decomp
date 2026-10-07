@@ -1,3 +1,5 @@
+#include "weapons/m93r.h"
+
 #include "types.h"
 
 #include "gameplay/animation.h"
@@ -12,132 +14,128 @@
 #include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session_types.h"
+#include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-void func_m93r_8011D1C4(Task* arg0);
+#include "weapons/weapon.h"
 
-/// Per-frame firing state machine for the M93R burst pistol. Case 0 arms the
-/// shot (four-tick reload window, `field_979` grace of 10) and queues the
-/// ready animation, choosing the long variant when the weapon was left dirty
-/// (`field_958`) or the actor is flagged in `field_975`; a two-handed grip
-/// (`field_97F == 1`) turns the single shot into a three-round burst. Case 1
-/// waits for that animation to reach its second slot. Case 2 fires one round
-/// per two frames - consuming ammo 0x81, playing the muzzle report and spawning
-/// the flash effect - and re-acquires the lock-on target on the off frame and
-/// again once the burst runs dry. Case 3 runs out the grace counter and hands
-/// back to `playerActorFinishWeaponAttack`, parking `field_940` at 10 when the player is still
-/// holding the fire button after the grace expired and at 0 otherwise.
-void func_m93r_8011D1C4(Task* arg0)
+void m93rAttackState(Task* playerTask)
 {
+    enum {
+        M93R_PHASE_PREPARE             = 0,
+        M93R_PHASE_WAIT_READY          = 1,
+        M93R_PHASE_BURST               = 2,
+        M93R_PHASE_RECOVER             = 3,
+        M93R_PLAYER_ATTACK_STATE       = 4,
+        M93R_ANIMATION_READY           = 9,
+        M93R_ANIMATION_PRIMARY         = 0xA,
+        M93R_READY_BLEND_FRAMES        = 1,
+        M93R_MOVING_READY_BLEND_FRAMES = 6,
+        M93R_IMPACT_SOUND              = SOUND_COMMON(0x17),
+        M93R_BURST_ROUNDS              = 3,
+        M93R_BURST_DELAY_FRAMES        = 1,
+        M93R_CANCEL_FRAMES             = 0xA,
+        M93R_HELD_COOLDOWN_FRAMES      = 0xA,
+        M93R_WEAPON_ID                 = 2,
+        M93R_FIRE_SOUND                = SOUND_WEAPON(2, 4),
+    };
     GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  spot;
-    s32        anim;
-    s32        delay;
-    /* Narrower than the field it feeds on purpose: an `s32 shots = 1` would join
-       the switch's SImode `1` in the same cse class and steal its register for
-       the `field_97F == 1` compare below. */
-    s16 shots;
-    /* Declared before the switch so it is initialised in the first case test's
-       delay slot, as the ROM does; case 3 reads it twice. */
-    s32 lockedOut;
+    GfxCoord*  rootCoord;
+    GfxCoord*  impactCoord;
+    s32        readyBlendFrames;
+    s32        burstDelay;
+    s16        burstRounds;
+    s32        cancelOnHeldInput;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x50);
-    spot      = SCRATCH_STACK_CURSOR(GfxCoord);
-    actor     = arg0->work;
-    coord     = arg0->extra.tmd->coords;
-    lockedOut = 0;
+    impactCoord       = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    actor             = playerTask->work;
+    rootCoord         = playerTask->extra.tmd->coords;
+    cancelOnHeldInput = 0;
     switch (actor->statePhase) {
-        case 0:
-            actor->state             = 4;
+        case M93R_PHASE_PREPARE:
+            actor->state             = M93R_PLAYER_ATTACK_STATE;
             actor->mode              = GAME_ACTOR_MODE_NORMAL;
             actor->turnRateIndex     = 0;
             actor->animationState    = 0;
-            actor->statePhase        = 1;
+            actor->statePhase        = M93R_PHASE_WAIT_READY;
             actor->rumblePosted      = 0;
             actor->stateTimer        = 0;
-            actor->attackCancelTicks = 0xA;
-            shots                    = 1;
-            if (actor->attackButton == 1) {
-                shots = 3;
+            actor->attackCancelTicks = M93R_CANCEL_FRAMES;
+            burstRounds              = 1;
+            if (actor->attackButton == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) {
+                burstRounds = M93R_BURST_ROUNDS;
             }
-            actor->actionValue = shots;
-            playerActorSetWeaponAttackFlags(arg0, 0, actor->attackButton == 1);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC00;
-            anim                                                  = 1;
+            actor->actionValue = burstRounds;
+            playerActorSetWeaponAttackFlags(playerTask, 0, actor->attackButton == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY);
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT);
+            readyBlendFrames                                      = M93R_READY_BLEND_FRAMES;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 6;
+                readyBlendFrames = M93R_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, M93R_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case M93R_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case M93R_PHASE_BURST:
+            // Keep contacts active for one frame between successive burst rounds.
             if (actor->actionValue != 0) {
-                delay = actor->stateTimer;
-                if (delay == 0) {
+                burstDelay = actor->stateTimer;
+                if (burstDelay == 0) {
                     actor->actionValue--;
-                    actor->stateTimer                                     = 1;
+                    actor->stateTimer                                     = M93R_BURST_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(0x81, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M93R_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20020004, 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, M93R_FIRE_SOUND, 1);
                     effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
-                                actor->equipmentTasks[1]->extra.tmd->coords, 2,
+                                actor->equipmentTasks[1]->extra.tmd->coords, M93R_WEAPON_ID,
                                 NULL);
-                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);
+                    playerActorPlayChildSlotsWithBlend(playerTask, M93R_ANIMATION_PRIMARY, 1, 2);
                     break;
                 }
-                /* Decrement through the local rather than storing `delay - 1`
-                   and re-testing `delay - 1 == 0`: the latter keeps `delay`
-                   live and turns the second test into a compare against the
-                   switch's `1`. */
-                delay--;
-                actor->stateTimer = delay;
-                if (delay == 0) {
+                burstDelay--;
+                actor->stateTimer = burstDelay;
+                if (burstDelay == 0) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                        worldCoordPlaySound(spot, 0x17, 1);
+                    if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                        worldCoordPlaySound(impactCoord, M93R_IMPACT_SOUND, 1);
                     }
                 }
             } else {
-                /* Spelled out in both arms rather than shared after the `if`;
-                   GCC cross-jumps the common tail itself, keeping only the
-                   `field_12A` load duplicated, which is what the ROM has. */
-                actor->statePhase                                     = 3;
+                actor->statePhase                                     = M93R_PHASE_RECOVER;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                    worldCoordPlaySound(spot, 0x17, 1);
+                if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                    worldCoordPlaySound(impactCoord, M93R_IMPACT_SOUND, 1);
                 }
             }
             break;
-        case 3:
+        case M93R_PHASE_RECOVER:
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
             if ((actor->padHeld & actor->actionPadMask) != 0) {
-                lockedOut = actor->attackCancelTicks == 0;
+                cancelOnHeldInput = actor->attackCancelTicks == 0;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 || lockedOut) {
-                if (lockedOut) {
-                    actor->attackControl.cooldownTicks = 0xA;
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 || cancelOnHeldInput) {
+                if (cancelOnHeldInput) {
+                    actor->attackControl.cooldownTicks = M93R_HELD_COOLDOWN_FRAMES;
                 } else {
                     actor->attackControl.cooldownTicks = 0;
                 }
-                playerActorFinishWeaponAttack(arg0);
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 static TmdBone _gM93rModel00520Skeleton[1] = {

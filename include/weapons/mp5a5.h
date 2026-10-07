@@ -15,4 +15,20 @@
 /// Hidden effects suspend updates, including aging and cleanup.
 void mp5a5MuzzleFlashTask(Task* task);
 
+/// Runs the MP5A5 player attack and repeats primary fire when its cooldown expires.
+///
+/// The two upgrade packages build this implementation with their weapon indices.
+/// Primary fire clips at the first contact; secondary fire widens the shape,
+/// attaches its flash to the weapon task and installs an 18-tick cooldown.
+/// Tracks the lock target every dispatch.
+///
+/// Requires live player `GameActor` work, its model and initialized native
+/// animation slots, equipped weapon/contact storage and the matching weapon
+/// overlay loaded throughout dispatch and owned effects. Phase 0 enters
+/// normal mode state 4; later calls advance `GameActor::statePhase`. Frame counts
+/// are dispatch ticks. Releases its scratch reservation before returning.
+/// Reserves 80 scratch bytes for a temporary impact node, in addition to
+/// the called helpers' reservations.
+void mp5a5AttackState(Task* playerTask);
+
 #endif // INCLUDE_WEAPONS_MP5A5_H

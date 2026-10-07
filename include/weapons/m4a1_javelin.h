@@ -23,4 +23,19 @@ void m4a1JavelinGuideBeamTask(Task* task);
 /// Pause/hide freezes animation; cancellation or frame 7 releases the work/task.
 void m4a1JavelinContactFlashTask(Task* task);
 
+/// Runs the M4A1 Javelin player attack, choosing rifle bursts or a tracked guide beam.
+///
+/// Primary input fires up to three rounds at four-tick intervals. Secondary
+/// input starts the guide beam, delays contacts for six ticks and enables them
+/// for 28 ticks; each dispatch updates or clears its tracked contact point.
+/// Requires 88 free scratch bytes; only the leading GfxCoord is accessed here,
+/// and the role of the trailing eight reserved bytes is unproven.
+///
+/// Requires live player `GameActor` work, its model and initialized native
+/// animation slots, equipped weapon/contact storage and the matching weapon
+/// overlay loaded throughout dispatch and owned effects. Phase 0 enters
+/// normal mode state 4; later calls advance `GameActor::statePhase`. Frame counts
+/// are dispatch ticks. Releases its scratch reservation before returning.
+void m4a1JavelinAttackState(Task* playerTask);
+
 #endif // INCLUDE_WEAPONS_M4A1_JAVELIN_H

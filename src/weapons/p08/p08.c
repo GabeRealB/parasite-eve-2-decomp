@@ -1,3 +1,5 @@
+#include "weapons/p08.h"
+
 #include "types.h"
 
 #include "gameplay/animation.h"
@@ -12,6 +14,7 @@
 #include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session_types.h"
+#include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -29,71 +32,83 @@
 #error "WEAPON_ID, P08_FLASH_EFFECT, P08_FLASH_WEAPON and P08_FIELD_940 are per-package build parameters"
 #endif
 
-void func_p08_8011D1D8(Task* arg0);
-
-void func_p08_8011D1D8(Task* arg0)
+void p08AttackState(Task* playerTask)
 {
+    enum {
+        P08_PHASE_PREPARE             = 0,
+        P08_PHASE_WAIT_READY          = 1,
+        P08_PHASE_FIRE                = 2,
+        P08_PHASE_IMPACT              = 3,
+        P08_PHASE_RECOVER             = 4,
+        P08_PLAYER_ATTACK_STATE       = 4,
+        P08_ANIMATION_READY           = 9,
+        P08_ANIMATION_PRIMARY         = 0xA,
+        P08_READY_BLEND_FRAMES        = 1,
+        P08_MOVING_READY_BLEND_FRAMES = 5,
+        P08_IMPACT_SOUND              = SOUND_COMMON(0x17),
+        P08_CANCEL_FRAMES             = 0xB,
+        P08_PRIMARY_SOUND_BASE        = SOUND_WEAPON(0, 4),
+    };
     GameActor* actor;
-    GfxCoord*  coord;
-    GfxCoord*  spot;
-    s32        anim;
+    GfxCoord*  rootCoord;
+    GfxCoord*  impactCoord;
+    s32        readyBlendFrames;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x50);
-    spot  = SCRATCH_STACK_CURSOR(GfxCoord);
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    actor       = playerTask->work;
+    rootCoord   = playerTask->extra.tmd->coords;
     switch (actor->statePhase) {
-        case 0:
-            actor->state             = 4;
-            actor->statePhase        = 1;
-            anim                     = 1;
+        case P08_PHASE_PREPARE:
+            actor->state             = P08_PLAYER_ATTACK_STATE;
+            actor->statePhase        = P08_PHASE_WAIT_READY;
+            readyBlendFrames         = P08_READY_BLEND_FRAMES;
             actor->mode              = GAME_ACTOR_MODE_NORMAL;
             actor->turnRateIndex     = 0;
             actor->animationState    = 0;
             actor->rumblePosted      = 0;
-            actor->attackCancelTicks = 0xB;
+            actor->attackCancelTicks = P08_CANCEL_FRAMES;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 5;
+                readyBlendFrames = P08_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, P08_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case P08_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case P08_PHASE_FIRE:
             actor->statePhase++;
-            playerActorSetWeaponAttackFlags(arg0, 0, 0);
+            playerActorSetWeaponAttackFlags(playerTask, 0, 0);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-            worldCoordPlaySound(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
+            worldCoordPlaySound(playerTask->extra.tmd->coords, P08_PRIMARY_SOUND_BASE | (WEAPON_ID << 16), 1);
             effectSpawn(P08_FLASH_EFFECT,
                         actor->equipmentTasks[1]->extra.tmd->coords,
                         P08_FLASH_WEAPON, NULL);
-            playerActorResetChildSlots(arg0, 0xA);
+            playerActorResetChildSlots(playerTask, P08_ANIMATION_PRIMARY);
             break;
-        case 3:
+        case P08_PHASE_IMPACT:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                worldCoordPlaySound(spot, 0x17, 1);
+            if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                worldCoordPlaySound(impactCoord, P08_IMPACT_SOUND, 1);
             }
             /* fallthrough */
-        case 4:
+        case P08_PHASE_RECOVER:
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = P08_FIELD_940;
-                playerActorFinishWeaponAttack(arg0);
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 /* Each package carries its own model. */

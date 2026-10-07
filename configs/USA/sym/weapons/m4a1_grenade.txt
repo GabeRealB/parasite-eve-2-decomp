@@ -2,3 +2,4 @@ D_m4a1_grenade_8011EA2C = 0x8011EA2C; // model named by a task descriptor
 D_m4a1_grenade_8012E1FC = 0x8012E1FC; // model buffer a task descriptor names
 _grenadeShellExit = 0x8011DE24; // type:func
 _grenadeShellBlast = 0x8011DDF8; // type:func
+_m4a1GrenadeInitProjectile = 0x8011d654; // type:func

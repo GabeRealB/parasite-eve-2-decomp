@@ -1,2 +1,3 @@
 // Overlay-local symbols for P08 (file 10304).
 D_p08_8011D924 = 0x8011D924; // model named by a task descriptor
+p08AttackState = 0x8011d1d8; // type:func

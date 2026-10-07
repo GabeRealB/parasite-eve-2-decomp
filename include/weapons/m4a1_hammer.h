@@ -35,4 +35,20 @@ void m4a1HammerGlowTask(Task* task);
 /// attachment position only before age 8, and releases its work at age 25.
 void m4a1HammerImpactFlashTask(Task* task);
 
+/// Runs the M4A1 Hammer player attack, choosing rifle bursts or the attachment discharge.
+///
+/// Primary input fires up to three rounds at four-tick intervals. Secondary
+/// input consumes an attachment load, widens and extends the weapon capsule
+/// and requests the charged glow. Recovery installs a 12-tick cooldown.
+/// Secondary discharge requires the live persistent Hammer glow task.
+///
+/// Requires live player `GameActor` work, its model and initialized native
+/// animation slots, equipped weapon/contact storage and the matching weapon
+/// overlay loaded throughout dispatch and owned effects. Phase 0 enters
+/// normal mode state 4; later calls advance `GameActor::statePhase`. Frame counts
+/// are dispatch ticks. Releases its scratch reservation before returning.
+/// Reserves 80 scratch bytes for a temporary impact node, in addition to
+/// the called helpers' reservations.
+void m4a1HammerAttackState(Task* playerTask);
+
 #endif // INCLUDE_WEAPONS_M4A1_HAMMER_H

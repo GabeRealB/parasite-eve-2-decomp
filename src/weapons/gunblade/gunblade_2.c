@@ -76,7 +76,7 @@ void func_gunblade_8011E040(Task* arg0);
 /// while anything else fires the gun and drops straight into the lock-on of
 /// state 6, spending a magazine round and spawning the muzzle flash. States
 /// 3-5 count `field_934` down: at 0 state 3 hands over to state 4 and spawns
-/// the beam effect (parented to the weapon task so `func_gunblade_8011E008`
+/// the beam effect (parented to the weapon task so `gunbladeRequestChargeFlash`
 /// can reach it), and any later state falls out to 7. State 4 asks
 /// `playerActorReadAttackButton` for held fire input; secondary input (2) advances to
 /// state 5 and, if there is still a round to spend, charges the beam and
@@ -207,7 +207,7 @@ void func_gunblade_8011E040(Task* arg0)
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = lvl | 0x21700;
                     equipmentConsumeWeaponLoad(0x96, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170008, 1);
-                    func_gunblade_8011E008(gPlayerStatus.weaponSlotItem);
+                    gunbladeRequestChargeFlash(gPlayerStatus.weaponSlotItem);
                 } else {
                     worldCoordPlaySound(arg0->extra.tmd->coords, sfx | 0x20170001, 0);
                 }

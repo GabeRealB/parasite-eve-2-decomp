@@ -31,15 +31,16 @@
 #include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session_types.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "weapons/weapon.h"
+
+#include "overlay.h"
 
 #include "../../shared/muzzle_flash.h"
 
@@ -53,8 +54,6 @@
 /// Muzzle offset of the weapon, in the firing hand's coordinate frame.
 static SVECTOR _gMuzzleOffset = { 0, 0x240, 0x40, 0 };
 
-void func_mp5a5_8011DDA4(Task* arg0);
-
 #include "../../shared/muzzle_flash_task.inc.c"
 
 void mp5a5MuzzleFlashTask(Task* task)
@@ -66,112 +65,125 @@ void mp5a5MuzzleFlashTask(Task* task)
 
 #include "../../shared/muzzle_flash_streak.inc.c"
 
-/// Per-frame firing state machine for the MP5A5 and its upgrades. State 0 arms the shot and
-/// starts the raise animation (clip 5 instead of 1 when the weapon was already
-/// up), state 1 waits for that clip, and states 2/3 count `field_934` down to
-/// the frame the round leaves the barrel. That frame branches on `field_97F`:
-/// single fire (`== 1`) spends one round, plays sound 4 of the weapon's bank, spawns the plain
-/// muzzle flash and runs the recoil clip, while burst fire spends 0x101, plays
-/// sound 5, holds the pose for 0x12 frames and reparents the longer flash
-/// effect under the weapon task. States 4/5 pick the lock-on target once (only
-/// while still below 6) and state 6 loops back to `fire` while the trigger is
-/// held, the ammo check passes and the burst timer has run out.
-void func_mp5a5_8011DDA4(Task* arg0)
+void mp5a5AttackState(Task* playerTask)
 {
+    enum {
+        MP5A5_PHASE_PREPARE             = 0,
+        MP5A5_PHASE_WAIT_READY          = 1,
+        MP5A5_PHASE_ARM_SHOT            = 2,
+        MP5A5_PHASE_SHOT_DELAY          = 3,
+        MP5A5_PHASE_PRIMARY_IMPACT      = 4,
+        MP5A5_PHASE_SECONDARY_IMPACT    = 5,
+        MP5A5_PHASE_RECOVER             = 6,
+        MP5A5_PLAYER_ATTACK_STATE       = 4,
+        MP5A5_ANIMATION_READY           = 9,
+        MP5A5_ANIMATION_PRIMARY         = 0xA,
+        MP5A5_READY_BLEND_FRAMES        = 1,
+        MP5A5_MOVING_READY_BLEND_FRAMES = 5,
+        MP5A5_IMPACT_SOUND              = SOUND_COMMON(0x17),
+        MP5A5_SECONDARY_SPREAD_RADIUS   = 0xC00,
+        MP5A5_SECONDARY_COOLDOWN_FRAMES = 0x12,
+        MP5A5_SECONDARY_ACTIVE_FRAMES   = 0x12,
+        MP5A5_PRIMARY_SHOT_DELAY_FRAMES = 3,
+        MP5A5_SECONDARY_KEY_BASE        = WORLD_COLLISION_CONTACT_ATTACK | 0x16,
+        MP5A5_PRIMARY_SOUND_BASE        = SOUND_WEAPON(0, 4),
+        MP5A5_SECONDARY_SOUND_BASE      = SOUND_WEAPON(0, 5),
+    };
     GameActor*             actor;
-    GfxCoord*              coord;
-    GfxCoord*              spot;
-    WorldCollisionCapsule* rec;
-    EffectWork*            eff;
-    s32                    anim;
+    GfxCoord*              rootCoord;
+    GfxCoord*              impactCoord;
+    WorldCollisionCapsule* weaponShape;
+    EffectWork*            flashWork;
+    s32                    readyBlendFrames;
 
-    SCRATCH_STACK_RESERVE_BYTES(0x50);
-    spot  = SCRATCH_STACK_CURSOR(GfxCoord);
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    actor       = playerTask->work;
+    rootCoord   = playerTask->extra.tmd->coords;
     switch (actor->statePhase) {
-        case 0:
-            actor->state                                          = 4;
+        case MP5A5_PHASE_PREPARE:
+            actor->state                                          = MP5A5_PLAYER_ATTACK_STATE;
             actor->turnRateIndex                                  = 2;
             actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
             actor->animationState                                 = 0;
             actor->stateTimer                                     = 1;
             actor->statePhase                                    += 1;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x400;
-            anim                                                  = 1;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
+            readyBlendFrames                                      = MP5A5_READY_BLEND_FRAMES;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 5;
+                readyBlendFrames = MP5A5_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, MP5A5_ANIMATION_READY, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case MP5A5_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case MP5A5_PHASE_ARM_SHOT:
         fire:
-            actor->statePhase   = 3;
+            actor->statePhase   = MP5A5_PHASE_SHOT_DELAY;
             actor->rumblePosted = 0;
             /* fallthrough */
-        case 3:
+        case MP5A5_PHASE_SHOT_DELAY:
             if (--actor->stateTimer == 0) {
-                rec = &actor->weaponShape;
-                if (actor->attackButton == 1) {
-                    actor->statePhase                                     = 4;
-                    actor->stateTimer                                     = 3;
+                weaponShape = &actor->weaponShape;
+                // Primary fire clips at its first contact; secondary fire keeps a wide shape.
+                if (actor->attackButton == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) {
+                    actor->statePhase                                     = MP5A5_PHASE_PRIMARY_IMPACT;
+                    actor->stateTimer                                     = MP5A5_PRIMARY_SHOT_DELAY_FRAMES;
                     actor->attackControl.cooldownTicks                    = 0;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | 0x20000 | (WEAPON_ID << 8);
-                    rec->end0Radius                                       = rec->end1Radius;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
-                    playerActorSetWeaponAttackFlags(arg0, 0, 1);
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | WORLD_COLLISION_CONTACT_ATTACK | (WEAPON_ID << 8);
+                    weaponShape->end0Radius                               = weaponShape->end1Radius;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
+                    playerActorSetWeaponAttackFlags(playerTask, 0, 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_PRIMARY_SOUND_BASE | (WEAPON_ID << 16), 1);
                     effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_ID, NULL);
                     equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(playerTask, MP5A5_ANIMATION_PRIMARY, 0, 2);
                 } else {
-                    actor->statePhase                                     = 5;
-                    actor->attackControl.cooldownTicks                    = 0x12;
-                    actor->stateTimer                                     = 0x12;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = 0x20016 | (WEAPON_ID << 8);
-                    rec->end0Radius                                       = 0xC00;
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0xF7FF;
-                    playerActorSetWeaponAttackFlags(arg0, 0, 0);
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20000005 | (WEAPON_ID << 16), 0);
+                    actor->statePhase                                     = MP5A5_PHASE_SECONDARY_IMPACT;
+                    actor->attackControl.cooldownTicks                    = MP5A5_SECONDARY_COOLDOWN_FRAMES;
+                    actor->stateTimer                                     = MP5A5_SECONDARY_ACTIVE_FRAMES;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = MP5A5_SECONDARY_KEY_BASE | (WEAPON_ID << 8);
+                    weaponShape->end0Radius                               = MP5A5_SECONDARY_SPREAD_RADIUS;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
+                    playerActorSetWeaponAttackFlags(playerTask, 0, 0);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_SECONDARY_SOUND_BASE | (WEAPON_ID << 16), 0);
                     equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
-                    eff = effectSpawn(EFFECT_MP5A5_ALT_FIRE_MUZZLE_FLASH,
-                                      actor->equipmentTasks[1]->extra.tmd->coords,
-                                      WEAPON_ID, NULL);
-                    if (eff != NULL) {
-                        taskReparent(actor->equipmentTasks[1], eff->task);
+                    flashWork = effectSpawn(EFFECT_MP5A5_ALT_FIRE_MUZZLE_FLASH,
+                                            actor->equipmentTasks[1]->extra.tmd->coords,
+                                            WEAPON_ID, NULL);
+                    if (flashWork != NULL) {
+                        taskReparent(actor->equipmentTasks[1], flashWork->task);
                     }
                 }
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             break;
-        case 4:
-        case 5:
-            if (actor->statePhase < 5 && playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                worldCoordPlaySound(spot, 0x17, 1);
+        case MP5A5_PHASE_PRIMARY_IMPACT:
+        case MP5A5_PHASE_SECONDARY_IMPACT:
+            if (actor->statePhase < MP5A5_PHASE_SECONDARY_IMPACT && playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
+                worldCoordPlaySound(impactCoord, MP5A5_IMPACT_SOUND, 1);
             }
-            actor->statePhase                                     = 6;
+            actor->statePhase                                     = MP5A5_PHASE_RECOVER;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             /* fallthrough */
-        case 6:
-            if (playerActorReadAttackButton(arg0) == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0 && actor->attackControl.cooldownTicks == 0) {
+        case MP5A5_PHASE_RECOVER:
+            // Reuse the shot-entry path when primary input survives the cooldown.
+            if (playerActorReadAttackButton(playerTask) == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0 && actor->attackControl.cooldownTicks == 0) {
                 goto fire;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
-                playerActorFinishWeaponAttack(arg0);
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    playerActorTrackLockTarget(arg0);
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    playerActorTrackLockTarget(playerTask);
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
 static TmdBone _gMp5a5Model01318Skeleton[1] = {

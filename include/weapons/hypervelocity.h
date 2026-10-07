@@ -33,8 +33,36 @@ void func_hypervelocity_8011D830(Task* task);
 /// and its owned effect work and coordinate body.
 void hypervelocityShockRingTask(Task* task);
 
-void func_hypervelocity_8011D1E8(Task* task);
+/// Runs the Hypervelocity's persistent charge glow, discharge and cooling smoke.
+///
+/// Bank-6 effect 0x24 owns a coordinate body and `EffectWork` in `spawnArg2.pointer`,
+/// attached to the work's borrowed muzzle parent. spawnArg1.value is a mutable
+/// request/countdown: 1 starts charging, negative cancels, and values at least
+/// 2 start the timed discharge. After 65 charging ticks it supplies a 24-tick
+/// discharge itself. The round is spawned when that countdown reaches zero.
+/// Cooling returns to idle when effect age reaches 111 or on a negative request.
+/// Non-running room effects pause dispatch; cancellation control resets to idle
+/// without releasing this persistent effect. Refreshes transient light slot 1.
+/// Requires the loaded weapon/gameplay overlays, a live player model with hand
+/// coordinates 15 and 18, current view/GTE state and room for spawned effects.
+/// Parent, task and owned work remain live until the player tears them down.
+void hypervelocityChargeEffectTask(Task* task);
 
 void func_hypervelocity_8011F6C0(Task* arg0);
+
+/// Runs the Hypervelocity player charge, cancellation and recoil phases.
+///
+/// Held R1 or R2 charges for 90 ticks, opening the second model component at
+/// 60. A completed charge consumes one round and starts 21 recoil ticks;
+/// the final eighteen push backward along the root's local forward axis.
+/// Requires the live persistent charge effect and weapon model tasks, plus
+/// 24 free scratch bytes for the recoil vectors.
+///
+/// Requires live player `GameActor` work, its model and initialized native
+/// animation slots, equipped weapon/contact storage and the matching weapon
+/// overlay loaded throughout dispatch and owned effects. Phase 0 enters
+/// normal mode state 4; later calls advance `GameActor::statePhase`. Frame counts
+/// are dispatch ticks. Releases its scratch reservation before returning.
+void hypervelocityAttackState(Task* playerTask);
 
 #endif // INCLUDE_WEAPONS_HYPERVELOCITY_H

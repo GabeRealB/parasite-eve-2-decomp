@@ -25,12 +25,17 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gfx.h"
+#include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+#include "weapons/weapon.h"
+
 #include "../../shared/blade_trail.h"
 #include "gameplay/animation.h"
 #include "gameplay/world_coords.h"
@@ -78,7 +83,6 @@ enum {
 };
 
 static void _tonfaBatonKillModelTask(Task* task);
-void        func_tonfa_baton_8011DBFC(Task* arg0);
 
 /// Stores a composed baton endpoint as a stationary world-space trail pose.
 ///
@@ -321,153 +325,169 @@ void tonfaBatonModelTask(Task* task)
     stateHandlers[task->state](task);
 }
 
-/// Per-frame swing state machine for the tonfa baton. Its tail is common to
-/// every state: it reads the model's forward axis out of its root coordinate's
-/// matrix and, only on a frame that set `swinging`, moves that coordinate
-/// forward by a `TONFA_BATON_ATTACK_ADVANCE_DIVISOR`th of it, which is what
-/// carries the lunge. Case 0 arms the swing (8-tick wind-up) and queues the
-/// ready animation. Cases 1 and 2 run the wind-up: on
-/// the tick it expires the weapon becomes solid, the swing report plays and the
-/// trail effect is parented to the weapon task; pressing again during the
-/// window (`field_966 & 0xA`) upgrades to the second swing, which case 2 turns
-/// into the follow-through, otherwise the state falls back to the 10-tick
-/// recovery of case 5. Case 3 is the follow-through: it re-arms the hitbox
-/// three ticks in and parks in case 4, whose 9 ticks clear the hit flag again.
-/// Cases 1/2 and 4 also play the connect sound once per swing when
-/// `worldCollisionCountContactsByKind` reports a hit.
-void func_tonfa_baton_8011DBFC(Task* arg0)
+/// Adds a strike's local forward step; advanceThisFrame must be 0 or 1.
+static inline void _tonfaBatonAdvanceAttack(GfxCoord* rootCoord, _TonfaBatonAttackScratch* scratch, s32 advanceThisFrame)
 {
-    GameActor*                actor;
-    GfxCoord*                 coord;
-    _TonfaBatonAttackScratch* scratch;
-    EffectWork*               eff;
-    s32                       delay;
-    s32                       step;
-    s32                       fade;
-    s32                       swinging;
+    gfxReadMatrixZAxis(&rootCoord->coord, &scratch->forward);
+    scratch->advance.vx    = (s16)(scratch->forward.vx / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * advanceThisFrame;
+    scratch->advance.vy    = (s16)(scratch->forward.vy / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * advanceThisFrame;
+    scratch->advance.vz    = (s16)(scratch->forward.vz / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * advanceThisFrame;
+    rootCoord->coord.t[0] += scratch->advance.vx;
+    rootCoord->coord.t[1] += scratch->advance.vy;
+    rootCoord->coord.t[2] += scratch->advance.vz;
+}
 
-    swinging = 0;
-    actor    = arg0->work;
-    scratch  = SCRATCH_STACK_RESERVE_BLOCK(_TonfaBatonAttackScratch);
+void tonfaBatonAttackState(Task* playerTask)
+{
+    enum {
+        TONFA_BATON_PHASE_PREPARE             = 0,
+        TONFA_BATON_PHASE_FIRST_STRIKE        = 1,
+        TONFA_BATON_PHASE_COMBO_QUEUED        = 2,
+        TONFA_BATON_PHASE_COMBO_STRIKE        = 3,
+        TONFA_BATON_PHASE_COMBO_RECOVER       = 4,
+        TONFA_BATON_PHASE_RECOVER             = 5,
+        TONFA_BATON_PLAYER_ATTACK_STATE       = 4,
+        TONFA_BATON_ANIMATION_PRIMARY         = 0xA,
+        TONFA_BATON_ANIMATION_SECONDARY       = 0xB,
+        TONFA_BATON_ANIMATION_RECOVER         = 0xE,
+        TONFA_BATON_FIRST_STRIKE_KEY          = 0x21317,
+        TONFA_BATON_COMBO_STRIKE_KEY          = 0x21315,
+        TONFA_BATON_WINDUP_FRAMES             = 8,
+        TONFA_BATON_COMBO_ADVANCE_FRAMES      = 0xC,
+        TONFA_BATON_RECOVERY_ADVANCE_FRAMES   = 0xA,
+        TONFA_BATON_COMBO_CONTACT_FRAMES      = 9,
+        TONFA_BATON_COMBO_CONTACT_START_TICKS = 3,
+        TONFA_BATON_FIRST_SWING_SOUND         = SOUND_WEAPON(TONFA_BATON_WEAPON_ID, 1),
+        TONFA_BATON_COMBO_SWING_SOUND         = SOUND_WEAPON(TONFA_BATON_WEAPON_ID, 2),
+        TONFA_BATON_FIRST_CONTACT_SOUND       = SOUND_WEAPON(TONFA_BATON_WEAPON_ID, 3),
+        TONFA_BATON_COMBO_CONTACT_SOUND       = SOUND_WEAPON(TONFA_BATON_WEAPON_ID, 4),
+    };
+    GameActor*                actor;
+    GfxCoord*                 rootCoord;
+    _TonfaBatonAttackScratch* scratch;
+    EffectWork*               trailWork;
+    s32                       windupTicksLeft;
+    s32                       comboTicksLeft;
+    s32                       contactTicksLeft;
+    s32                       advanceThisFrame;
+
+    advanceThisFrame = 0;
+    actor            = playerTask->work;
+    scratch          = SCRATCH_STACK_RESERVE_BLOCK(_TonfaBatonAttackScratch);
     switch (actor->statePhase) {
-        case 0:
-            actor->state          = 4;
-            actor->statePhase     = 1;
+        case TONFA_BATON_PHASE_PREPARE:
+            actor->state          = TONFA_BATON_PLAYER_ATTACK_STATE;
+            actor->statePhase     = TONFA_BATON_PHASE_FIRST_STRIKE;
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
             actor->movementMode   = 0;
             actor->turnRateIndex  = 0;
             actor->animationState = 0;
-            actor->stateTimer     = 8;
+            actor->stateTimer     = TONFA_BATON_WINDUP_FRAMES;
             actor->actionValue    = 0;
             weaponRecordUse(TONFA_BATON_WEAPON_ID);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key   = 0x21317;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & 0xF7FF) | 0x400;
-            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key   = TONFA_BATON_FIRST_STRIKE_KEY;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT)) | WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
+            playerActorPlayChildSlotsWithBlend(playerTask, TONFA_BATON_ANIMATION_PRIMARY, 1, 3);
             break;
-        case 1:
-        case 2:
-            delay = actor->stateTimer;
-            if (delay == 0) {
+        case TONFA_BATON_PHASE_FIRST_STRIKE:
+        case TONFA_BATON_PHASE_COMBO_QUEUED:
+            windupTicksLeft = actor->stateTimer;
+            if (windupTicksLeft == 0) {
                 actor->movementSign = 1;
-                swinging            = 1;
-                if (actor->padPressed & 0xA) {
-                    actor->statePhase = 2;
+                advanceThisFrame    = 1;
+                if (actor->padPressed & (PAD_BUTTON_R1 | PAD_BUTTON_R2)) {
+                    actor->statePhase = TONFA_BATON_PHASE_COMBO_QUEUED;
                 }
             } else {
-                delay--;
-                actor->stateTimer = delay;
-                if (delay == 0) {
-                    actor->equipmentTasks[1]->spawnArg1.value             = 1;
+                windupTicksLeft--;
+                actor->stateTimer = windupTicksLeft;
+                if (windupTicksLeft == 0) {
+                    actor->equipmentTasks[1]->spawnArg1.value             = TONFA_BATON_POSE_STRIKE;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    playerActorSetWeaponAttackFlags(arg0, 0, 0);
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130001, 0);
-                    eff = effectSpawn(EFFECT_TONFA_BATON_SWING_TRAIL,
-                                      actor->equipmentTasks[1]->extra.tmd->coords,
-                                      0, NULL);
-                    if (eff != NULL) {
-                        taskReparent(actor->equipmentTasks[1], eff->task);
+                    playerActorSetWeaponAttackFlags(playerTask, 0, 0);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_FIRST_SWING_SOUND, 0);
+                    trailWork = effectSpawn(EFFECT_TONFA_BATON_SWING_TRAIL,
+                                            actor->equipmentTasks[1]->extra.tmd->coords,
+                                            0, NULL);
+                    if (trailWork != NULL) {
+                        taskReparent(actor->equipmentTasks[1], trailWork->task);
                     }
                 }
             }
             if (actor->actionValue != 1 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 1;
-                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130003, 0);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_FIRST_CONTACT_SOUND, 0);
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(playerTask, 1, 0, 0) == 0) {
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                if (actor->statePhase == 2) {
-                    actor->statePhase = 3;
-                    actor->stateTimer = 0xC;
+                if (actor->statePhase == TONFA_BATON_PHASE_COMBO_QUEUED) {
+                    actor->statePhase = TONFA_BATON_PHASE_COMBO_STRIKE;
+                    actor->stateTimer = TONFA_BATON_COMBO_ADVANCE_FRAMES;
                     weaponRecordUse(TONFA_BATON_WEAPON_ID);
-                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = 0x21315;
-                    eff                                                = effectSpawn(
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = TONFA_BATON_COMBO_STRIKE_KEY;
+                    trailWork                                          = effectSpawn(
                         EFFECT_TONFA_BATON_SWING_TRAIL, actor->equipmentTasks[1]->extra.tmd->coords, 1,
                         NULL);
-                    if (eff != NULL) {
-                        taskReparent(actor->equipmentTasks[1], eff->task);
+                    if (trailWork != NULL) {
+                        taskReparent(actor->equipmentTasks[1], trailWork->task);
                     }
-                    playerActorResetChildSlots(arg0, 0xB);
+                    playerActorResetChildSlots(playerTask, TONFA_BATON_ANIMATION_SECONDARY);
                 } else {
-                    actor->statePhase                         = 5;
-                    actor->stateTimer                         = 0xA;
-                    actor->equipmentTasks[1]->spawnArg1.value = 0;
-                    playerActorResetChildSlots(arg0, 0xE);
+                    actor->statePhase                         = TONFA_BATON_PHASE_RECOVER;
+                    actor->stateTimer                         = TONFA_BATON_RECOVERY_ADVANCE_FRAMES;
+                    actor->equipmentTasks[1]->spawnArg1.value = TONFA_BATON_POSE_REST;
+                    playerActorResetChildSlots(playerTask, TONFA_BATON_ANIMATION_RECOVER);
                 }
             }
             break;
-        case 3:
+        case TONFA_BATON_PHASE_COMBO_STRIKE:
             if (actor->stateTimer != 0) {
                 actor->movementSign = 1;
-                swinging            = 1;
-                step                = actor->stateTimer - 1;
-                actor->stateTimer   = step;
-                if (step == 3) {
+                advanceThisFrame    = 1;
+                comboTicksLeft      = actor->stateTimer - 1;
+                actor->stateTimer   = comboTicksLeft;
+                if (comboTicksLeft == TONFA_BATON_COMBO_CONTACT_START_TICKS) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    playerActorSetWeaponAttackFlags(arg0, 0, 1);
-                    worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130002, 0);
-                } else if (step == 0) {
-                    actor->statePhase                         = 4;
-                    actor->stateTimer                         = 9;
-                    actor->equipmentTasks[1]->spawnArg1.value = 0;
+                    playerActorSetWeaponAttackFlags(playerTask, 0, 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_COMBO_SWING_SOUND, 0);
+                } else if (comboTicksLeft == 0) {
+                    actor->statePhase                         = TONFA_BATON_PHASE_COMBO_RECOVER;
+                    actor->stateTimer                         = TONFA_BATON_COMBO_CONTACT_FRAMES;
+                    actor->equipmentTasks[1]->spawnArg1.value = TONFA_BATON_POSE_REST;
                 }
             }
             /* fallthrough */
-        case 4:
-            if (actor->statePhase == 4) {
-                fade = actor->stateTimer;
-                fade--;
-                actor->stateTimer = fade;
-                if (fade == 0) {
+        case TONFA_BATON_PHASE_COMBO_RECOVER:
+            if (actor->statePhase == TONFA_BATON_PHASE_COMBO_RECOVER) {
+                contactTicksLeft = actor->stateTimer;
+                contactTicksLeft--;
+                actor->stateTimer = contactTicksLeft;
+                if (contactTicksLeft == 0) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 }
             }
             if (actor->actionValue != 2 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 2;
-                worldCoordPlaySound(arg0->extra.tmd->coords, 0x20130004, 0);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_COMBO_CONTACT_SOUND, 0);
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                playerActorFinishWeaponAttack(arg0);
+            if (playerActorIsSlotAdvancingLinearly(playerTask, 1, 0, 0) == 0) {
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
-        case 5:
+        case TONFA_BATON_PHASE_RECOVER:
             if (actor->stateTimer != 0) {
                 actor->movementSign = 1;
-                swinging            = 1;
+                advanceThisFrame    = 1;
                 actor->stateTimer   = actor->stateTimer - 1;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, 1, 0, 0) == 0) {
-                playerActorFinishWeaponAttack(arg0);
+            if (playerActorIsSlotAdvancingLinearly(playerTask, 1, 0, 0) == 0) {
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    coord = arg0->extra.tmd->coords;
-    gfxReadMatrixZAxis(&coord->coord, &scratch->forward);
-    scratch->advance.vx = (s16)(scratch->forward.vx / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * swinging;
-    scratch->advance.vy = (s16)(scratch->forward.vy / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * swinging;
-    scratch->advance.vz = (s16)(scratch->forward.vz / TONFA_BATON_ATTACK_ADVANCE_DIVISOR) * swinging;
-    coord->coord.t[0]  += scratch->advance.vx;
-    coord->coord.t[1]  += scratch->advance.vy;
-    coord->coord.t[2]  += scratch->advance.vz;
+    // Active strike and recovery phases advance along the model's local forward axis.
+    rootCoord = playerTask->extra.tmd->coords;
+    _tonfaBatonAdvanceAttack(rootCoord, scratch, advanceThisFrame);
     SCRATCH_STACK_RELEASE_BLOCK(_TonfaBatonAttackScratch);
 }
 

@@ -288,13 +288,13 @@ void func_gunblade_8011DAA4(Task* task)
     }
 }
 
-void func_gunblade_8011E008(s32 arg0)
+void gunbladeRequestChargeFlash(s32 ammunitionIndex)
 {
-    EffectWork* work = D_gunblade_8012E248;
+    EffectWork* trailWork = D_gunblade_8012E248;
 
-    if (work != NULL) {
-        D_gunblade_8012E244->spawnArg1.value = arg0;
-        work->index++;
+    if (trailWork != NULL) {
+        D_gunblade_8012E244->spawnArg1.value = ammunitionIndex;
+        trailWork->index++;
     }
 }
 
@@ -1205,7 +1205,7 @@ AnimationBank D_gunblade_8012E108 = { { {
 } } };
 
 /// The running beam task and its `EffectWork`, cached on entry to state 0 so
-/// `func_gunblade_8011E008` can reach them from outside the task.
+/// `gunbladeRequestChargeFlash` can reach them from outside the task.
 Task*       D_gunblade_8012E244 = NULL;
 EffectWork* D_gunblade_8012E248 = NULL;
 
