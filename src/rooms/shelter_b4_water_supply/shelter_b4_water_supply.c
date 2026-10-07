@@ -66,10 +66,6 @@
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
-#define D_shelter_b4_water_supply_801826A0 (D_shelter_b4_water_supply_80182690 + 2)
-#define D_shelter_b4_water_supply_801826C0 (D_shelter_b4_water_supply_80182690 + 6)
-#define D_shelter_b4_water_supply_801826D0 (D_shelter_b4_water_supply_80182690 + 8)
-
 /// Descriptor of the departure task spawned once the event block is staged.
 extern TaskDesc D_shelter_b4_water_supply_801825E4;
 
@@ -1319,22 +1315,22 @@ void func_shelter_b4_water_supply_8017EE54(Task* arg0)
             glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182670, 0x200, 0x800);
             break;
         case 6:
-            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_801826A0, 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[2], 0x200, 0);
         case 5:
             glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182680, 0x200, 0x800);
             break;
         case 7:
-            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_801826A0, 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[2], 0x200, 0);
             break;
         case 8:
             glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
             glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
             break;
         case 9:
-            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_801826D0, 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[8], 0x200, 0x800);
         case 10:
         case 11:
-            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_801826C0, 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[6], 0x200, 0x800);
             break;
     }
 }
