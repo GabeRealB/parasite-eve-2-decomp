@@ -5553,6 +5553,7 @@ EMBEDDED_ASSETS = {
     'actor_401800_model_11D14': {"source": 'actor_401800.pe2pkg', "vram": 0x80143B34, "size": 0x368, "ext": '.tmd', "type": 'model'},
     'actor_401800_model_12280': {"source": 'actor_401800.pe2pkg', "vram": 0x801440A0, "size": 0x394, "ext": '.tmd', "type": 'model'},
     'actor_401800_model_129F8': {"source": 'actor_401800.pe2pkg', "vram": 0x80144818, "size": 0x70C, "ext": '.tmd', "type": 'model'},
+    'actor_403100_image_21954': {"source": 'actor_403100.pe2pkg', "vram": 0x80153774, "size": 0x1E78, "ext": '.img', "type": 'image', "include": 'u32'},
     'actor_403200_model_10824': {"source": 'actor_403200.pe2pkg', "vram": 0x80142644, "size": 0x1B0C, "ext": '.tmd', "type": 'model'},
     'actor_403200_model_12884': {"source": 'actor_403200.pe2pkg', "vram": 0x801446A4, "size": 0x854, "ext": '.tmd', "type": 'model'},
     'actor_403200_model_13774': {"source": 'actor_403200.pe2pkg', "vram": 0x80145594, "size": 0xAE8, "ext": '.tmd', "type": 'model'},
