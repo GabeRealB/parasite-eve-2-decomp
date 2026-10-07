@@ -2055,18 +2055,17 @@ void Gp_EffCtlTask9B(Task* arg0)
 
 void Gp_EffSprTask30(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    GfxRotationWords* rot;
-    s16               flag;
-    s32               sub;
-    s32               ret;
-    s32               id;
-    s32               base;
-    SVECTOR           vec;
-    SVECTOR           dir;
-    SVECTOR           wpos;
-    u8                color[3];
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s32         sub;
+    s32         ret;
+    s32         id;
+    s32         base;
+    SVECTOR     vec;
+    SVECTOR     dir;
+    SVECTOR     wpos;
+    u8          color[3];
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -2081,12 +2080,7 @@ void Gp_EffSprTask30(Task* arg0)
     mem->age++;
     switch (arg0->state) {
         case 0:
-            rot             = (GfxRotationWords*)&coord->coord;
-            rot->m00M01     = ONE;
-            rot->m11M12     = ONE;
-            rot->m22        = ONE;
-            rot->m02M10     = 0;
-            rot->m20M21     = 0;
+            gfxSetRotIdentity(&coord->coord);
             mem->pos.vx     = arg0->spawnArg1.halves.low & 0xFFF;
             mem->scale      = 0x100;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
