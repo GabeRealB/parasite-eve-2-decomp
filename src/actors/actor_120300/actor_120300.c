@@ -128,9 +128,9 @@ extern s16           D_actor_120300_8014095C[];
 /// -1 skips the restart.
 extern s16 D_actor_120300_80140980[];
 
-extern s32 D_actor_120300_801409A8[6];
-extern s32 D_actor_120300_801409C0[24];
-extern s32 D_actor_120300_80140A20[9];
+extern SVECTOR                D_actor_120300_801409A8[3];
+extern SVECTOR                D_actor_120300_801409C0[12];
+extern WorldCollisionGridFace D_actor_120300_80140A20[3];
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_120300_80140A44[2];
@@ -1092,11 +1092,17 @@ s16 D_actor_120300_80140980[20] = {
     0,
 };
 
-s32 D_actor_120300_801409A8[6] = { 0xF000, 0, 0, 0xF000, 4096, 0 };
+SVECTOR D_actor_120300_801409A8[3] = {
+#include "assets/actor_120300_collision_0EB88.inc"
+};
 
-s32 D_actor_120300_801409C0[24] = { -0x3E7F380, 2460, -0x3E7F380, 2000, 3200, 2460, 3200, 2000, -0x3E7F380, 2000, -0x3E7F0C4, 2000, 3200, 2000, 3900, 2000, -0x3E7F0C4, 2000, -0x3E7F0C4, 2460, 3900, 2000, 3900, 2460 };
+SVECTOR D_actor_120300_801409C0[12] = {
+#include "assets/actor_120300_collision_0EBA0.inc"
+};
 
-s32 D_actor_120300_80140A20[9] = { 0x10000, 0x30002, 0, 0x50004, 0x70006, 1, 0x90008, 0xB000A, 2 };
+WorldCollisionGridFace D_actor_120300_80140A20[3] = {
+#include "assets/actor_120300_collision_0EC00.inc"
+};
 
 TaskMessageEntry D_actor_120300_80140A44[2] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor120300HandleModelDrawMessage },
