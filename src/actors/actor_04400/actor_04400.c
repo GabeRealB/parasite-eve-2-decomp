@@ -63,8 +63,8 @@ static const TaskFuncTable3 gMadChaserKnockdownSteps; // dispatcher table madCha
 static const TaskFuncTable3 gMadChaserWalkSteps;      // dispatcher table madChaserWalkState copies onto its stack
 static const TaskFuncTable5 gMadChaserLeapSteps;      // dispatcher table madChaserLeapState copies onto its stack
 static const TaskFuncTable5 Actor04400_D0009C;        // dispatcher table Actor04400_Fn06964 copies onto its stack
-static const TaskFuncTable3 Actor04400_D00150;        // dispatcher table Actor04400_Fn07CF0 copies onto its stack
-static const TaskFuncTable3 Actor04400_D0015C;        // dispatcher table Actor04400_Fn07D78 copies onto its stack
+static const TaskFuncTable3 Actor04400_D00150;        // dispatcher table _madChaserLurkIdleState copies onto its stack
+static const TaskFuncTable3 Actor04400_D0015C;        // dispatcher table _madChaserLurkLookState copies onto its stack
 static const TaskFuncTable4 Actor04400_D00174;        // dispatcher table Actor04400_Fn07F04 copies onto its stack
 static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table madChaserPullState copies onto its stack
 
@@ -79,8 +79,8 @@ static void Actor04400_Fn0685C(Task* arg0);
 static void Actor04400_Fn06964(Task* arg0);
 static void Actor04400_Fn06A24(Task* arg0);
 static void Actor04400_Fn06A78(Task* arg0);
-static void Actor04400_Fn07CF0(Task* arg0);
-static void Actor04400_Fn07D78(Task* arg0);
+static void _madChaserLurkIdleState(Task* task);
+static void _madChaserLurkLookState(Task* task);
 static void Actor04400_Fn07F04(Task* arg0);
 static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void _madChaserDropDeathHold(Task* task);
@@ -1100,8 +1100,8 @@ static void _madChaserRecoilRecover(Task* task)
 
 /// State handlers `Actor04400_Fn03538` dispatches by `state`.
 static const TaskFuncTable5 Actor04400_D00128 = { {
-    Actor04400_Fn07CF0,
-    Actor04400_Fn07D78,
+    _madChaserLurkIdleState,
+    _madChaserLurkLookState,
     madChaserLurkRiseState,
     madChaserLurkAlertState,
     Actor04400_Fn07F04,
@@ -1158,14 +1158,14 @@ static void Actor04400_Fn03538(Task* arg0)
     }
 }
 
-/// Sub-state handlers `Actor04400_Fn07CF0` dispatches by `subState`.
+/// Sub-state handlers `_madChaserLurkIdleState` dispatches by `subState`.
 static const TaskFuncTable3 Actor04400_D00150 = { {
     _madChaserLurkStartIdleHold,
     _madChaserLurkWait,
     _madChaserLurkIdleEnd,
 } };
 
-/// Sub-state handlers `Actor04400_Fn07D78` dispatches by `subState`.
+/// Sub-state handlers `_madChaserLurkLookState` dispatches by `subState`.
 static const TaskFuncTable3 Actor04400_D0015C = { {
     _madChaserLurkPrepareLook,
     _madChaserLurkStartLookHold,
@@ -1319,8 +1319,10 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 /// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
 /// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.
+#define MAD_CHASER_STEP_STATE             madChaserWalkState
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserTakeHitRequest
 #include "../../shared/mad_chaser_walk_state.inc.c"
+#undef MAD_CHASER_STEP_STATE
 #undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
 #include "../../shared/mad_chaser_leap_state.inc.c"
@@ -1417,23 +1419,29 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_recoil_heavy_end.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserWalkState  Actor04400_Fn07CF0
-#define gMadChaserWalkSteps Actor04400_D00150
+/// Runs the lurk idle hold, yielding to a claimed shared alert.
+///
+/// Requires live Mad Chaser work and `subState` in 0..2: start the idle hold,
+/// wait for its timeout or player proximity, then wait to enter the look state.
+#define MAD_CHASER_STEP_STATE _madChaserLurkIdleState
+#define gMadChaserWalkSteps   Actor04400_D00150
 // This lurk instance joins a shared alert instead of consuming a hit reaction.
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
-#undef madChaserWalkState
+#undef MAD_CHASER_STEP_STATE
 #undef gMadChaserWalkSteps
 #undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
-/// A further copy, under this file's own name.
-#define madChaserWalkState  Actor04400_Fn07D78
-#define gMadChaserWalkSteps Actor04400_D0015C
+/// Runs the lurk look sequence, yielding to a claimed shared alert.
+///
+/// Requires live Mad Chaser work and `subState` in 0..2: prepare the transition,
+/// start a timed look hold, then sway or face the player until rise or alert.
+#define MAD_CHASER_STEP_STATE _madChaserLurkLookState
+#define gMadChaserWalkSteps   Actor04400_D0015C
 // This lurk instance joins a shared alert instead of consuming a hit reaction.
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
-#undef madChaserWalkState
+#undef MAD_CHASER_STEP_STATE
 #undef gMadChaserWalkSteps
 #undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 

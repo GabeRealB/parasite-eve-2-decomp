@@ -75,8 +75,8 @@ static void func_actor_341700_801686AC(Task* arg0);
 static void func_actor_341700_801687B4(Task* arg0);
 static void func_actor_341700_80168874(Task* arg0);
 static void func_actor_341700_801688C8(Task* arg0);
-static void func_actor_341700_80169B40(Task* arg0);
-static void func_actor_341700_80169BC8(Task* arg0);
+static void _madChaserLurkIdleState(Task* task);
+static void _madChaserLurkLookState(Task* task);
 static void func_actor_341700_80169D54(Task* arg0);
 static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void func_actor_341700_8016A8EC(Task* arg0);
@@ -904,8 +904,8 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
 /// `MadChaserWork::state`; copied to the stack before dispatch. It sits
 /// between `madChaserRecoilRecover`'s jump table and this function's own.
 static const TaskFuncTable5 gMadChaserLurkStates = { {
-    func_actor_341700_80169B40,
-    func_actor_341700_80169BC8,
+    _madChaserLurkIdleState,
+    _madChaserLurkLookState,
     madChaserLurkRiseState,
     madChaserLurkAlertState,
     func_actor_341700_80169D54,
@@ -913,14 +913,14 @@ static const TaskFuncTable5 gMadChaserLurkStates = { {
 
 #include "../../shared/mad_chaser_lurk_tick.inc.c"
 
-/// Sub-state handlers `func_actor_341700_80169B40` dispatches by `subState`.
+/// Sub-state handlers `_madChaserLurkIdleState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkHoldSteps = { {
     _madChaserLurkStartIdleHold,
     _madChaserLurkWait,
     _madChaserLurkIdleEnd,
 } };
 
-/// Sub-state handlers `func_actor_341700_80169BC8` dispatches by `subState`.
+/// Sub-state handlers `_madChaserLurkLookState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserLurkCrouchSteps = { {
     _madChaserLurkPrepareLook,
     _madChaserLurkStartLookHold,
@@ -1089,8 +1089,10 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 /// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
 /// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.
+#define MAD_CHASER_STEP_STATE             madChaserWalkState
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserTakeHitRequest
 #include "../../shared/mad_chaser_walk_state.inc.c"
+#undef MAD_CHASER_STEP_STATE
 #undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
 #include "../../shared/mad_chaser_leap_state.inc.c"
@@ -1184,23 +1186,29 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_recoil_heavy_end.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserWalkState  func_actor_341700_80169B40
-#define gMadChaserWalkSteps gMadChaserLurkHoldSteps
+/// Runs the lurk idle hold, yielding to a claimed shared alert.
+///
+/// Requires live Mad Chaser work and `subState` in 0..2: start the idle hold,
+/// wait for its timeout or player proximity, then wait to enter the look state.
+#define MAD_CHASER_STEP_STATE _madChaserLurkIdleState
+#define gMadChaserWalkSteps   gMadChaserLurkHoldSteps
 // This lurk instance joins a shared alert instead of consuming a hit reaction.
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
-#undef madChaserWalkState
+#undef MAD_CHASER_STEP_STATE
 #undef gMadChaserWalkSteps
 #undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
-/// A further copy, under this file's own name.
-#define madChaserWalkState  func_actor_341700_80169BC8
-#define gMadChaserWalkSteps gMadChaserLurkCrouchSteps
+/// Runs the lurk look sequence, yielding to a claimed shared alert.
+///
+/// Requires live Mad Chaser work and `subState` in 0..2: prepare the transition,
+/// start a timed look hold, then sway or face the player until rise or alert.
+#define MAD_CHASER_STEP_STATE _madChaserLurkLookState
+#define gMadChaserWalkSteps   gMadChaserLurkCrouchSteps
 // This lurk instance joins a shared alert instead of consuming a hit reaction.
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
-#undef madChaserWalkState
+#undef MAD_CHASER_STEP_STATE
 #undef gMadChaserWalkSteps
 #undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
