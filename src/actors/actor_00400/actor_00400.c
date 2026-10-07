@@ -1453,19 +1453,19 @@ static void Actor00400_Fn012B0(Task* arg0, s16 arg1, s32 arg2)
     s32 temp_s2;
 
     temp_s2 = arg2 & 0xFF;
-    limbShadowDrawSegment(arg0, 1, 2, 0x258, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 2, 3, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 3, 4, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 4, 5, 0x1F4, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 1, 6, 0x320, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 6, 7, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 7, 8, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 1, 0xC, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 0xC, 0xD, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 0xD, 0xE, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 1, 9, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 9, 0xA, 0x12C, arg1, temp_s2);
-    limbShadowDrawSegment(arg0, 0xA, 0xB, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 1, 2, 0x258, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 2, 3, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 3, 4, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 4, 5, 0x1F4, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 1, 6, 0x320, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 6, 7, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 7, 8, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 1, 0xC, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 0xC, 0xD, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 0xD, 0xE, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 1, 9, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 9, 0xA, 0x12C, arg1, temp_s2);
+    _limbShadowDrawSegment(arg0, 0xA, 0xB, 0x12C, arg1, temp_s2);
 }
 
 /* Tracks the nearer of the two party members and stores the result in the

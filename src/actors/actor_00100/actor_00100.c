@@ -58,6 +58,7 @@
 #include "overlay.h"
 
 #include "rooms/mine_mesa.h"
+#include "../../shared/limb_shadows.h"
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
@@ -249,9 +250,7 @@ static __inline__ s16  _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motio
 static __inline__ s32  _actor00100FindAttackContact(WorldCollisionContact* contacts, SVECTOR* hitPosition);
 static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work);
 static s32             desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
-static void            _limbShadowDrawSegment(Task* actor, s16 firstJoint, s16 secondJoint, s16 width, s16 height, u8 shade);
-#define LIMB_SHADOW_DRAW_SEGMENT _limbShadowDrawSegment
-#include "../../shared/limb_shadows.h"
+
 static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1);
 static void Actor00100_Fn0375C(Task* arg0);
 static void Actor00100_Fn04270(Task* arg0);
@@ -1524,7 +1523,6 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
 }
 
 #include "../../shared/limb_shadows_segment.inc.c"
-#undef LIMB_SHADOW_DRAW_SEGMENT
 
 /// Advances the two animation rigs and mixes secondary rotation into slots 1..10.
 ///

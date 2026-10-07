@@ -4215,9 +4215,9 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->state != 0x15 && work->state != 0 && work->state != 0x16 && work->state != 7 && work->state != 8) {
                 height = actor->extra.tmd->coords->coord.t[1];
-                limbShadowDrawSegment(actor, 1, 3, 0x12C, (s32)height, 0xFF);
-                limbShadowDrawSegment(actor, 3, 4, 0xC8, (s32)height, 0xFF);
-                limbShadowDrawSegment(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
+                _limbShadowDrawSegment(actor, 1, 3, 0x12C, height, 0xFF);
+                _limbShadowDrawSegment(actor, 3, 4, 0xC8, height, 0xFF);
+                _limbShadowDrawSegment(actor, 1, 0xB, 0xFA, height, 0xFF);
                 if ((viewGetMappedIndex() & 0xFF) == 0x13) {
                     actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
@@ -4228,9 +4228,9 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
         case SCENE_COMBAT_ACTORS_PAUSED:
             if (work->state != 0x15 && work->state != 0 && work->state != 0x16 && work->state != 7 && work->state != 8) {
                 height = actor->extra.tmd->coords->coord.t[1];
-                limbShadowDrawSegment(actor, 1, 3, 0x12C, (s32)height, 0xFF);
-                limbShadowDrawSegment(actor, 3, 4, 0xC8, (s32)height, 0xFF);
-                limbShadowDrawSegment(actor, 1, 0xB, 0xFA, (s32)height, 0xFF);
+                _limbShadowDrawSegment(actor, 1, 3, 0x12C, height, 0xFF);
+                _limbShadowDrawSegment(actor, 3, 4, 0xC8, height, 0xFF);
+                _limbShadowDrawSegment(actor, 1, 0xB, 0xFA, height, 0xFF);
                 if ((viewGetMappedIndex() & 0xFF) == 0x13) {
                     actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {

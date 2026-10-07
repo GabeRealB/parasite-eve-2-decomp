@@ -591,8 +591,7 @@ the tables, and both the Mad Chaser and the Sucklerceph read them.
 a subtractive quad under the segment between two model parts. Its scratch block
 is `ActorLimbShadowScratch` in `include/actors/actor.h`, public because
 the shared floor drawer and `actor_400600`'s wall drawer use the same projection
-record. A carrier can select a static instance with `LIMB_SHADOW_DRAW_SEGMENT`,
-keeping the binding from the header through the fragment include.
+record. Each carrier includes its own static `_limbShadowDrawSegment` instance.
 
 `actorMotion` owns the included animation-request handlers and scripted-walk
 steps in `src/shared/actor_motion.h`. Playback serves actors whose work opens
