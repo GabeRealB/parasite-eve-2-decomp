@@ -103,13 +103,13 @@ D_shelter_b6_training_room_80184124 = 0x80184124; // size:0x150 defined:True
 D_shelter_b6_training_room_80184274 = 0x80184274; // size:0xA8 defined:True
 D_shelter_b6_training_room_8018431C = 0x8018431C; // size:0x18 defined:True
 
-func_shelter_b6_training_room_80181930 = 0x80181930; // type:func
+shelterB6TrainingRoomDrawBodyGlow = 0x80181930; // type:func
 
-func_shelter_b6_training_room_8018294C = 0x8018294C; // type:func
+shelterB6TrainingRoomSpawnShieldArcs = 0x8018294C; // type:func
 
 shelterB6TrainingRoomSetPartDestroyedSprites = 0x80182A14; // type:func
 
-func_shelter_b6_training_room_8017FC40 = 0x8017FC40; // type:func
+shelterB6TrainingRoomDrawSummonBeam = 0x8017FC40; // type:func
 
 func_shelter_b6_training_room_8017D874 = 0x8017D874; // type:func
 
@@ -117,7 +117,7 @@ shelterB6TrainingRoomOrangeBurstTask = 0x8017EE70; // type:func
 
 shelterB6TrainingRoomSummonRingTask = 0x8017F8B8; // type:func
 
-func_shelter_b6_training_room_80180DB4 = 0x80180DB4; // type:func
+shelterB6TrainingRoomChargeBurstTask = 0x80180DB4; // type:func
 
 shelterB6TrainingRoomRingBandTask = 0x801811AC; // type:func
 
@@ -127,9 +127,9 @@ shelterB6TrainingRoomHitFlashTask = 0x8018245C; // type:func
 
 shelterB6TrainingRoomSinkingSpriteTask = 0x801825C0; // type:func
 
-func_shelter_b6_training_room_801826E0 = 0x801826E0; // type:func
+shelterB6TrainingRoomDescendingSpriteTask = 0x801826E0; // type:func
 
-func_shelter_b6_training_room_80182804 = 0x80182804; // type:func
+shelterB6TrainingRoomHealSpiralTask = 0x80182804; // type:func
 
 shelterB6TrainingRoomGlowTask = 0x8017DDE8; // type:func
 _roomVisualEffectsDrawHaloBurstGlow = 0x8017F014; // type:func
@@ -140,3 +140,4 @@ streamedScenePlayThenHold = 0x8017DBBC; // type:func
 spriteQuadDraw = 0x80181BAC; // type:func
 _shelterB6TrainingRoomDrawRingBand = 0x80181368; // type:func
 _shelterB6TrainingRoomDrawEnergyStrip = 0x80181fdc; // type:func
+_shelterB6TrainingRoomDrawGroundBeam = 0x80180530; // type:func

@@ -40,9 +40,20 @@ extern WorldCollisionSurfaceProperties* D_shelter_b6_training_room_80185C38[];
 
 void func_shelter_b6_training_room_8017D8E8(Task* task);
 
-void func_shelter_b6_training_room_80181930(Task* task);
+/// Draws the paired enemy's yellow body glow and publishes its energy-arc anchor.
+///
+/// Requires a live TMD body with at least 19 coordinates and composed joint 1.
+/// While effects run, borrows joint 1 as the arc endpoint, draws two discs,
+/// and has a one-in-four chance to spawn a flash at a joint in 3..18.
+/// The model must outlive every arc borrowing that endpoint.
+void shelterB6TrainingRoomDrawBodyGlow(Task* task);
 
-void func_shelter_b6_training_room_8018294C(Task* task);
+/// Occasionally spawns a joint-attached energy arc for the shielded enemy.
+///
+/// While effects run, has a one-in-eight chance per call to select joint
+/// 1..18. Requires a TMD body with at least 19 coordinates, a live body-glow
+/// anchor, and model coordinates that outlive the spawned arc tasks.
+void shelterB6TrainingRoomSpawnShieldArcs(Task* task);
 
 /// Shows or hides the destroyed-part sprites for one training-room enemy part.
 ///
@@ -51,7 +62,19 @@ void func_shelter_b6_training_room_8018294C(Task* task);
 /// 2 and 6 of the current stage and area, whose sprite tables must be loaded.
 void shelterB6TrainingRoomSetPartDestroyedSprites(u8 partSlot, u8 destroyed);
 
-void func_shelter_b6_training_room_8017FC40(GfxCoord* coord, s16 size, u16 color);
+/// Draws a two-layer additive beam from the live summon-ring origin to an endpoint.
+///
+/// Borrows composed translations; does nothing before an origin is published
+/// or if either projection has negative GTE flags. `colorIndex` is 0..3 in
+/// the four-step RGB-nibble ramp. `radiusScale` is signed: each layer's pixel
+/// radius is radiusScale * layer * 64 / (SZ3 / 4), for layers 1 and 2.
+/// Accepted depths must be nonzero. Each layer also draws a ground glow,
+/// using the selected packed RGB value as its second palette lookup's offset;
+/// that lookup's backing-storage bounds remain unproven.
+/// Requires scratch-stack space and an unchecked GPU frame arena. The origin
+/// and endpoint must remain live through the call; queued packets live for
+/// the frame. Overwrites GTE transform and projection registers.
+void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusScale, u16 colorIndex);
 
 /// Runs the orange disc, halo burst and expanding outer-band effect.
 ///
@@ -68,7 +91,15 @@ void shelterB6TrainingRoomOrangeBurstTask(Task* task);
 /// still advances. Cancellation releases the effect.
 void shelterB6TrainingRoomSummonRingTask(Task* task);
 
-void func_shelter_b6_training_room_80180DB4(Task* task);
+/// Builds the orange charge glow, then releases three ring bands and a fading screen tint.
+///
+/// `spawnArg1.value` starts as a positive countdown in running effect ticks.
+/// Initialization resets rotation and starts the brightness ramp; expiry
+/// emits bands 0..2. Held effects redraw without advancing countdown or fade,
+/// although age advances. Cancellation or the completed fade releases the
+/// task's owned `EffectWork` and coordinate body. Other task states draw
+/// nothing and retain the effect until room-effect cancellation.
+void shelterB6TrainingRoomChargeBurstTask(Task* task);
 
 /// Expands and fades one of the three textured ring bands.
 ///
@@ -102,9 +133,22 @@ void shelterB6TrainingRoomHitFlashTask(Task* task);
 /// effect control it keeps its work and draws nothing, including cancellation.
 void shelterB6TrainingRoomSinkingSpriteTask(Task* task);
 
-void func_shelter_b6_training_room_801826E0(Task* task);
+/// Moves a four-frame additive sprite down local Y and occasionally sheds a sinking sprite.
+///
+/// Adds 32 coordinate units per running tick, cycles texture cells and draws
+/// on odd ages, then releases its owned `EffectWork` at age 60. Drawing uses
+/// the cached composed translation before this tick's movement is composed.
+/// Outside running effect control it retains its work and draws nothing,
+/// including cancellation.
+void shelterB6TrainingRoomDescendingSpriteTask(Task* task);
 
-void func_shelter_b6_training_room_80182804(Task* task);
+/// Emits descending sprites along the room's rising heal spiral for 21 running ticks.
+///
+/// The fixed centre has a 1000-unit XZ radius; successive spawn positions
+/// rise 200 coordinate units and advance a random 512..1023 angle units
+/// (4096 per turn). Holds outside running effect control. Releases the owned
+/// `EffectWork` on the callback after the 21st emission, even while held.
+void shelterB6TrainingRoomHealSpiralTask(Task* task);
 
 /// Draws the fixed room glows visible in the mapped camera view.
 ///

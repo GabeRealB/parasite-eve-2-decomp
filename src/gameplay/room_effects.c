@@ -963,13 +963,13 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1GolemFreezer1FloorMistTask, { NULL } },                                    // 0x1A6
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomOrangeBurstTask, { NULL } },                                   // 0x1A7
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomSummonRingTask, { NULL } },                                    // 0x1A8
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_80180DB4, { NULL } },                                 // 0x1A9
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomChargeBurstTask, { NULL } },                                   // 0x1A9
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomRingBandTask, { NULL } },                                      // 0x1AA
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomEnergyArcTask, { NULL } },                                     // 0x1AB
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomHitFlashTask, { NULL } },                                      // 0x1AC
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomSinkingSpriteTask, { NULL } },                                 // 0x1AD
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_801826E0, { NULL } },                                 // 0x1AE
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b6_training_room_80182804, { NULL } },                                 // 0x1AF
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomDescendingSpriteTask, { NULL } },                              // 0x1AE
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomHealSpiralTask, { NULL } },                                    // 0x1AF
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMotelLoftFallingShardTask, { NULL } },                                 // 0x1B0
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetPuffTask, { NULL } },                                             // 0x1B1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetPuffTask, { NULL } },                                        // 0x1B2

@@ -74,7 +74,7 @@ D_actor_205200_8015B458 = 0x8015B458; // size:0xC defined:True
 
 neoArkEveAccessTunnelSetPartDestroyedSprites = 0x8017E090; // type:func absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 
-func_shelter_b6_training_room_80181930 = 0x80181930; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomDrawBodyGlow = 0x80181930; // type:func absolute:True owner=shelter_b6_training_room
 
 shelterB6TrainingRoomSetPartDestroyedSprites = 0x80182A14; // type:func absolute:True owner=shelter_b6_training_room
 

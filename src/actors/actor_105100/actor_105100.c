@@ -1040,7 +1040,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
     func_actor_105100_80134130(arg1);
     _modelPlacementSetScaled(arg1, &work->placementMtx, work->scale, MODEL_PLACEMENT_SCALE_UNIFORM);
     if (work->shield.fields.active != 0) {
-        func_shelter_b6_training_room_8018294C(arg1);
+        shelterB6TrainingRoomSpawnShieldArcs(arg1);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
@@ -2291,7 +2291,7 @@ static void func_actor_105100_801354E8(Enemy* arg0, Task* arg1)
     coord      = arg1->extra.tmd->coords;
     switch (gSceneCombatState.actorControl) {
         case 1:
-            func_shelter_b6_training_room_8017FC40(coord, 0x80, beam->colorIndex);
+            shelterB6TrainingRoomDrawSummonBeam(coord, 0x80, beam->colorIndex);
             return;
         case 2:
             return;
@@ -2320,7 +2320,7 @@ static void func_actor_105100_801354E8(Enemy* arg0, Task* arg1)
     } else if (beam->lifeTicks < 0x10) {
         beam->colorIndex = 2;
     }
-    func_shelter_b6_training_room_8017FC40(coord, 0x80, beam->colorIndex);
+    shelterB6TrainingRoomDrawSummonBeam(coord, 0x80, beam->colorIndex);
     if (--beam->lifeTicks <= 0 || beam->contacts[0].key.value != 0 ||
         parentWork->summonPhase == ACTOR_105100_SUMMON_NONE) {
         parentWork->childCount = parentWork->childCount - 1;

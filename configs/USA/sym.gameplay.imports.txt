@@ -1339,7 +1339,7 @@ shelterB6TrainingRoomOrangeBurstTask = 0x8017EE70; // type:func absolute:True ow
 
 shelterB6TrainingRoomSummonRingTask = 0x8017F8B8; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_80180DB4 = 0x80180DB4; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomChargeBurstTask = 0x80180DB4; // type:func absolute:True owner=shelter_b6_training_room
 
 shelterB6TrainingRoomRingBandTask = 0x801811AC; // type:func absolute:True owner=shelter_b6_training_room
 
@@ -1349,9 +1349,9 @@ shelterB6TrainingRoomHitFlashTask = 0x8018245C; // type:func absolute:True owner
 
 shelterB6TrainingRoomSinkingSpriteTask = 0x801825C0; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_801826E0 = 0x801826E0; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomDescendingSpriteTask = 0x801826E0; // type:func absolute:True owner=shelter_b6_training_room
 
-func_shelter_b6_training_room_80182804 = 0x80182804; // type:func absolute:True owner=shelter_b6_training_room
+shelterB6TrainingRoomHealSpiralTask = 0x80182804; // type:func absolute:True owner=shelter_b6_training_room
 
 shelterR48InitRingsAndDrawGlowTask = 0x8017E3B8; // type:func absolute:True owner=shelter_r48
 
