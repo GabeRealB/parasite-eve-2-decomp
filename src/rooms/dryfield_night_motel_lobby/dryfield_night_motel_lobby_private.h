@@ -57,9 +57,15 @@ extern s32 D_dryfield_night_motel_lobby_801844D4;
 
 extern RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 
-/// Draws the keypad's seven digit slots, or blanks them all to `0xA` while the
-/// keypad is not yet in use; see `DryfieldNightMotelLobbyCashRegisterWork`.
-void func_dryfield_night_motel_lobby_801802A8(Task* task);
+/// Updates and draws the cash register's seven-slot digit display.
+///
+/// Borrows live `DryfieldNightMotelLobbyCashRegisterWork` from `task->work`.
+/// Closed entry resets every slot to the empty marker before drawing. A clear
+/// skips drawing for this frame and sets the newest slot to zero. Slots hold
+/// 0..9 or the empty marker 10, with the newest at index 0 on the right.
+/// Requires this overlay and its digit textures, a current ordering table, and
+/// writable GPU primitive storage for seven `POLY_FT4` packets when drawing.
+void dryfieldNightMotelLobbyDrawCashRegisterDisplay(Task* task);
 
 /// Applies one keypad press, `key` being the id of the hotspot pressed. Keys
 /// 0-9 shift that digit in at index 0, the double-zero key shifts in two

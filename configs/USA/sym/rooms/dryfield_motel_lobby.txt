@@ -64,7 +64,7 @@ D_dryfield_motel_lobby_80181034 = 0x80181034; // size:0x8 defined:True
 D_dryfield_motel_lobby_8018103C = 0x8018103C; // size:0x8 defined:True
 D_dryfield_motel_lobby_80181044 = 0x80181044; // size:0x20 defined:True
 
-func_dryfield_motel_lobby_8017E9E8 = 0x8017E9E8; // type:func
+dryfieldMotelLobbyTelephoneMenuTask = 0x8017E9E8; // type:func
 _telephoneDrawPlayDataRow = 0x8017D650; // type:func
 Telephone_DrawUsageRow = 0x8017DE1C; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E218; // type:func
@@ -89,3 +89,5 @@ _dryfieldMotelLobbyAcceptRoomTransition = 0x8017f414; // type:func
 _dryfieldMotelLobbyIgnoreRoomCommand = 0x8017f43c; // type:func
 _dryfieldMotelLobbyIgnoreRoomAction = 0x8017f444; // type:func
 _dryfieldMotelLobbyInitRoomTask = 0x8017f44c; // type:func
+_dryfieldMotelLobbyIdleRoomTask = 0x8017f490; // type:func
+dryfieldMotelLobbyTask = 0x8017f498; // type:func

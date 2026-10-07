@@ -42,8 +42,8 @@ TaskMessageEntry D_dryfield_night_motel_room_1_8017DA2C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_dryfield_night_motel_room_1_8017D690(Task* task);
-static void func_dryfield_night_motel_room_1_8017D6D4(Task* task);
+static void _dryfieldNightMotelRoom1InitRoomTask(Task* task);
+static void _dryfieldNightMotelRoom1IdleRoomTask(Task* unusedTask);
 
 /// Refuses every key-item use request in Dryfield night motel room 1.
 ///
@@ -73,23 +73,29 @@ static s32 _dryfieldNightMotelRoom1IgnoreRoomAction(Task* unusedTask, s32 unused
     return 0;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7 and advances to the next state.
-static void func_dryfield_night_motel_room_1_8017D690(Task* task)
+/// Registers night motel room 1's room-message receiver and advances to idle state 1.
+///
+/// Runs in room-task state 0. Borrows this overlay's message table and registers
+/// the live task in `GAME_TASK_SLOT_ROOM`; keep the overlay loaded while it can
+/// receive messages. Registration does not retain the task or clear on teardown.
+static void _dryfieldNightMotelRoom1InitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_motel_room_1_8017DA2C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
-/// Second state of the room task: the room has nothing to do each frame.
-static void func_dryfield_night_motel_room_1_8017D6D4(Task* task)
+/// Keeps night motel room 1's room-message receiver idle in state 1.
+///
+/// The task and its message table stay active between synchronous messages;
+/// the separate state-2 handler performs teardown. The argument is unused.
+static void _dryfieldNightMotelRoom1IdleRoomTask(Task* unusedTask)
 {
 }
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_night_motel_room_1_8017D5C4 = {
-    { func_dryfield_night_motel_room_1_8017D690, func_dryfield_night_motel_room_1_8017D6D4, taskKill },
+    { _dryfieldNightMotelRoom1InitRoomTask, _dryfieldNightMotelRoom1IdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a

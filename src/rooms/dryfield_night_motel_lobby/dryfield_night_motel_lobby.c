@@ -330,7 +330,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
                             work->hotspotId     = hs->id;
                             work->promptKind    = hs->promptKind;
                             task->state         = 3;
-                            func_dryfield_night_motel_lobby_801802A8(task);
+                            dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
                             return;
                         }
                         if (work->entryOpen == 0) {
@@ -345,7 +345,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
                         if (work->codeAccepted != 0) {
                             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
                             task->state                                                = 6;
-                            func_dryfield_night_motel_lobby_801802A8(task);
+                            dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
                             return;
                         }
                         break;
@@ -360,7 +360,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
             task->state = 5;
         }
     }
-    func_dryfield_night_motel_lobby_801802A8(task);
+    dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
 }
 
 #include "../../shared/action_prompt_outline_rect.inc.c"

@@ -88668,7 +88668,7 @@ difference - `task` and `work` swap `$s1` and `$s2`:
 ```asm
 addu $s1, $a0, $zero        # task -> $s1
 lw   $s2, 0x1C($s1)         # work = task->work
-jal  func_dryfield_night_motel_lobby_801802A8
+jal  dryfieldNightMotelLobbyDrawCashRegisterDisplay
  addiu $s0, $s0, %lo(D_80114D28)
 sw   $v0, 0x30($s1)         # task->state = 4
 ```
@@ -88678,7 +88678,7 @@ its first instruction is `lw $v1, 0x1C($a0)`. This call sets nothing, and the
 delay slot holds the prompt's `lo_sum` instead - because the parameter is
 *still in `$a0`*, untouched since the prologue copied it to `$s1`, so the
 original source passed it straight through and the argument costs no
-instruction. Writing `func_dryfield_night_motel_lobby_801802A8(task)` is
+instruction. Writing `dryfieldNightMotelLobbyDrawCashRegisterDisplay(task)` is
 therefore instruction-neutral, and it took the file to 100.0% with every
 penalty zero.
 
@@ -88732,7 +88732,7 @@ directly, exactly as m2c renders it:
 
 ```c
     temp_s1 = arg0->work;
-    func_dryfield_night_motel_lobby_801802A8(arg0);
+    dryfieldNightMotelLobbyDrawCashRegisterDisplay(arg0);
     D_80114D28.mode     = 0;
     D_80114D28.cursorSpeed = 0;
 ```
@@ -88743,7 +88743,7 @@ register, so it saves one register fewer than the target and leaves a `nop`
 where the target has work:
 
 ```asm
-jal  func_dryfield_night_motel_lobby_801802A8
+jal  dryfieldNightMotelLobbyDrawCashRegisterDisplay
  nop                        # target: addiu $s0, $s0, %lo(D_80114D28)
 lui   $v0, %hi(D_80114D28)  # target: lui $s0, ... before the jal
 addiu $v0, $v0, %lo(D_80114D28)
@@ -88759,7 +88759,7 @@ takes it to 100.0% with every penalty zero:
     ActionPrompt*                            prompt = &D_80114D28;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
-    func_dryfield_night_motel_lobby_801802A8(task);
+    dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
     prompt->mode     = 0;
     prompt->cursorSpeed = 0;
 ```
@@ -139947,34 +139947,34 @@ matched only when written against the global itself. Through a local
 `u8 *p = D` the stores scheduled into a different order (84-88%); indexing `D`
 directly gave every load and store the target's position at once.
 
-## A POLY_FT4 fill: `setShadeTex`/`tpage`/`clut` written before the XY stores decides the join block's local registers (func_dryfield_night_motel_lobby_801802A8, 2026-09-23)
+## A POLY_FT4 fill: `setShadeTex`/`tpage`/`clut` written before the XY stores decides the join block's local registers (dryfieldNightMotelLobbyDrawCashRegisterDisplay, 2026-09-23)
 
 **Target:** after the UV `if`/`else`, `li v1,0x3c; subu v1,v1,t0; li a0,0x54;
 subu a0,a0,t0; lbu a1,7(a2); ...`. It uses four block-local registers
-(`v0`-`a1`), so the loop's globals start at `a2` (`p`), `a3` (`i`) and `t0`
-(the `i * 0x18` giv).
+(`v0`-`a1`), so the loop's globals start at `a2` (`glyph`), `a3` (`slotIndex`) and `t0`
+(the `slotIndex * 0x18` giv).
 
 **Symptom:** the same statements with the XY stores first (`x0`...`y3`,
 then `tpage`, `clut`, `setShadeTex`) produce identical instructions, but every
-register is one lower (`p` in `a1`) and the `lbu` of `code` and the tag `lw`
+register is one lower (`glyph` in `a1`) and the `lbu` of `code` and the tag `lw`
 schedule late. That scored 85.8%. The final order of the stores is the same
 either way, because sched2 re-sorts them, so the object dump gives no hint of
 the source order.
 
-**Fix:** `setShadeTex(p, 1); p->tpage = ...; p->clut = ...;` and *then* the
+**Fix:** `setShadeTex(glyph, 1); glyph->tpage = ...; glyph->clut = ...;` and *then* the
 XY stores (97.7%, and 100% with the loop below). With the constant stores
 first in sched1's order, the `0xE`/`0x4000` quantities hold `v0` while the
 two x values are live. That pushes them into `v1`/`a0` and the `code` byte
-into `a1`. The XY coordinates must be written as `0x3C - i * 0x18` (a loop.c
-giv of `i`, copied from `i` with `move t0,a3` after the hoisted constants),
+into `a1`. The XY coordinates must be written as `0x3C - slotIndex * 0x18` (a loop.c
+giv of `slotIndex`, copied from `slotIndex` with `move t0,a3` after the hoisted constants),
 not as a user accumulator `x += 0x18`. The accumulator puts the copy before
 the constants and keeps `-0x48` out of the hoisted set.
 
 The digit-blanking loop in front of it is the reversed count-up loop from the
 `func_dryfield_night_motel_lobby_80180440` entry above:
-`for (i = 0; i < 7; i++) D[i] = 0xA;`. An explicit
-`u = 0xA; i = 6; d = &D[i]; for (; i >= 0; i--) *d-- = u;` also matches
-byte for byte, but only because the early `u = 0xA` stretches the constant's
+`for (slotIndex = 0; slotIndex < 7; slotIndex++) D[slotIndex] = 0xA;`. An explicit
+`textureU = 0xA; slotIndex = 6; d = &D[slotIndex]; for (; slotIndex >= 0; slotIndex--) *d-- = textureU;` also matches
+byte for byte, but only because the early `textureU = 0xA` stretches the constant's
 live range as far as the reversal does. Look for the reversed form first.
 
 ## A large constant in an if/else that allocates one register too high may be a variable shared by both arms (acropolisCafeteriaModelWanderTask, 2026-09-23)

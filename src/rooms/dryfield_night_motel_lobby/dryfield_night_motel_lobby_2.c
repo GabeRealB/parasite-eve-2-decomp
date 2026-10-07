@@ -83,6 +83,17 @@ static s16  func_dryfield_night_motel_lobby_80180734(void);
 static void _actionPromptResetDefault(Task* task);
 static void _dryfieldNightMotelLobbyDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
+/// Cash-register empty marker, glyph extent in texels/pixels, and display placement.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY      = 10,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE       = 24,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_RIGHT_X  = 60,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_TOP_Y    = -96,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_OT_INDEX = 10,
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_TPAGE    = 0xE,    // 4-bit texture page at VRAM (896, 0)
+    DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_CLUT     = 0x4000, // Palette at VRAM (0, 256)
+};
+
 static void func_dryfield_night_motel_lobby_80180E98(Task* task);
 static void func_dryfield_night_motel_lobby_80180FA4(Task* task);
 static void func_dryfield_night_motel_lobby_80180FD8(Task* task);
@@ -649,59 +660,71 @@ RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-void func_dryfield_night_motel_lobby_801802A8(Task* task)
+/// Selects a 24-texel cash-register digit or the empty glyph on the second row.
+///
+/// `glyph` must be writable and `digit` in 0..10; 10 selects the empty glyph.
+static inline void _dryfieldNightMotelLobbySetCashRegisterGlyph(POLY_FT4* glyph, u8 digit)
+{
+    u8 textureU;
+
+    if (digit == DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY) {
+        glyph->u0 = 0;
+        glyph->v0 = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->u1 = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->v1 = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->u2 = 0;
+        glyph->v2 = 2 * DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->u3 = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->v3 = 2 * DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+    } else {
+        textureU  = digit * DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->u0 = textureU;
+        glyph->v0 = 0;
+        glyph->u1 = textureU + DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->v1 = 0;
+        glyph->u2 = textureU;
+        glyph->v2 = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->u3 = textureU + DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+        glyph->v3 = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+    }
+}
+
+void dryfieldNightMotelLobbyDrawCashRegisterDisplay(Task* task)
 {
     DryfieldNightMotelLobbyCashRegisterWork* work = task->work;
-    POLY_FT4*                                p;
-    s32                                      i;
+    POLY_FT4*                                glyph;
+    s32                                      slotIndex;
     u8                                       digit;
-    u8                                       u;
 
+    // Closed entry leaves every slot empty, even on a frame that skips drawing.
     if (work->entryOpen == 0) {
-        for (i = 0; i < 7; i++) {
-            D_dryfield_night_motel_lobby_801844D8[i] = 0xA;
+        for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8); slotIndex++) {
+            D_dryfield_night_motel_lobby_801844D8[slotIndex] = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY;
         }
     }
     if (work->entryCleared == 0) {
-        for (i = 0; i < 7; i++) {
-            digit          = D_dryfield_night_motel_lobby_801844D8[i];
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            setPolyFT4(p);
-            if (digit == 0xA) {
-                p->u0 = 0;
-                p->v0 = 0x18;
-                p->u1 = 0x18;
-                p->v1 = 0x18;
-                p->u2 = 0;
-                p->v2 = 0x30;
-                p->u3 = 0x18;
-                p->v3 = 0x30;
-            } else {
-                u     = digit * 0x18;
-                p->u0 = u;
-                p->v0 = 0;
-                p->u1 = u + 0x18;
-                p->v1 = 0;
-                p->u2 = u;
-                p->v2 = 0x18;
-                p->u3 = u + 0x18;
-                p->v3 = 0x18;
-            }
-            setShadeTex(p, 1);
-            p->tpage = 0xE;
-            p->clut  = 0x4000;
-            p->x0    = 0x3C - i * 0x18;
-            p->y0    = -0x60;
-            p->x1    = 0x54 - i * 0x18;
-            p->y1    = -0x60;
-            p->x2    = 0x3C - i * 0x18;
-            p->y2    = -0x48;
-            p->x3    = 0x54 - i * 0x18;
-            p->y3    = -0x48;
-            addPrim(&gGpuCurrentOt[10], p);
+        // Newest digits occupy the right-hand slot; each packet is 24 pixels square.
+        for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8); slotIndex++) {
+            digit          = D_dryfield_night_motel_lobby_801844D8[slotIndex];
+            glyph          = gGpuPrimCursor;
+            gGpuPrimCursor = glyph + 1;
+            setPolyFT4(glyph);
+            _dryfieldNightMotelLobbySetCashRegisterGlyph(glyph, digit);
+            setShadeTex(glyph, 1);
+            glyph->tpage = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_TPAGE;
+            glyph->clut  = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_CLUT;
+            glyph->x0    = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_RIGHT_X - slotIndex * DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+            glyph->y0    = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_TOP_Y;
+            glyph->x1    = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_RIGHT_X + DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE - slotIndex * DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+            glyph->y1    = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_TOP_Y;
+            glyph->x2    = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_RIGHT_X - slotIndex * DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+            glyph->y2    = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_TOP_Y + DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+            glyph->x3    = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_RIGHT_X + DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE - slotIndex * DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+            glyph->y3    = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_TOP_Y + DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_GLYPH_SIZE;
+            addPrim(&gGpuCurrentOt[DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_OT_INDEX], glyph);
         }
     } else {
+        // A clear leaves a lone zero for the next frame and emits no glyph packets.
         D_dryfield_night_motel_lobby_801844D8[0] = 0;
     }
 }
@@ -918,7 +941,7 @@ static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
     ActionPrompt*                            prompt = D_80114D28;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
-    func_dryfield_night_motel_lobby_801802A8(task);
+    dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
@@ -934,7 +957,7 @@ static void func_dryfield_night_motel_lobby_8018103C(Task* task)
     ActionPrompt*                            prompt = D_80114D28;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
-    func_dryfield_night_motel_lobby_801802A8(task);
+    dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {

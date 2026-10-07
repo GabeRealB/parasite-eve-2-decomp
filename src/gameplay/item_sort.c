@@ -861,7 +861,7 @@ void func_800B92CC(Task* task)
             func_dryfield_gas_station_8017EA90(task);
             break;
         case GAME_LOCATION_KEY(2, 17, 0, 0):
-            func_dryfield_motel_lobby_8017E9E8(task);
+            dryfieldMotelLobbyTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(2, 27, 0, 0):
             func_dryfield_trailer_coach_80181364(task);

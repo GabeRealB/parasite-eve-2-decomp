@@ -750,7 +750,7 @@ WorldCollisionSurfaceProperties* D_dryfield_motel_room_2_801804B0[8] = {
     D_dryfield_motel_room_2_80180488,
 };
 
-static void func_dryfield_motel_room_2_8017D610(Task* task);
+static void _dryfieldMotelRoom2InitRoomTask(Task* task);
 
 /// Refuses every key-item use request in Dryfield Motel Room 2.
 ///
@@ -798,13 +798,16 @@ static s32 _dryfieldMotelRoom2IgnoreRoomAction(Task* unusedTask, s32 unusedMessa
     return DRYFIELD_MOTEL_ROOM_2_ACTION_IGNORED;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7 and advances to the next state.
-static void func_dryfield_motel_room_2_8017D610(Task* task)
+/// Registers motel room 2's room-message receiver and advances to idle state 1.
+///
+/// Runs in room-task state 0. Borrows this overlay's message table and registers
+/// the live task in `GAME_TASK_SLOT_ROOM`; keep the overlay loaded while it can
+/// receive messages. Registration does not retain the task or clear on teardown.
+static void _dryfieldMotelRoom2InitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_motel_room_2_8017D6BC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task idle between messages.
@@ -817,7 +820,7 @@ static void _dryfieldMotelRoom2IdleRoomTask(Task* unusedTask)
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_motel_room_2_8017D5C4 = {
-    { func_dryfield_motel_room_2_8017D610, _dryfieldMotelRoom2IdleRoomTask, taskKill },
+    { _dryfieldMotelRoom2InitRoomTask, _dryfieldMotelRoom2IdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a

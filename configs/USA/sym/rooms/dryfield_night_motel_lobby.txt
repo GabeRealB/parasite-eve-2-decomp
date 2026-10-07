@@ -123,3 +123,4 @@ _roomVariantParkingLotMsg = 0x8017FB08; // type:func
 _actionPromptEventEnd = 0x801810AC; // type:func
 _dryfieldNightMotelLobbyCashRegisterExitDelay = 0x80181218; // type:func
 _dryfieldNightMotelLobbyDrawFlare = 0x80182200; // type:func
+dryfieldNightMotelLobbyDrawCashRegisterDisplay = 0x801802a8; // type:func

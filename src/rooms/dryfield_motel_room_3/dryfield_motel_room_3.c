@@ -272,8 +272,8 @@ WorldCollisionSurfaceProperties* D_dryfield_motel_room_3_8017E524[8] = {
     D_dryfield_motel_room_3_8017E504,
 };
 
-static void func_dryfield_motel_room_3_8017D610(Task* task);
-static void func_dryfield_motel_room_3_8017D654(Task* task);
+static void _dryfieldMotelRoom3InitRoomTask(Task* task);
+static void _dryfieldMotelRoom3IdleRoomTask(Task* unusedTask);
 
 /// Refuses every key-item-use request in the motel room 3.
 ///
@@ -314,23 +314,29 @@ static s32 _dryfieldMotelRoom3IgnoreRoomAction(Task* unusedTask, s32 unusedMessa
     return 0;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7 and advances to the next state.
-static void func_dryfield_motel_room_3_8017D610(Task* task)
+/// Registers motel room 3's room-message receiver and advances to idle state 1.
+///
+/// Runs in room-task state 0. Borrows this overlay's message table and registers
+/// the live task in `GAME_TASK_SLOT_ROOM`; keep the overlay loaded while it can
+/// receive messages. Registration does not retain the task or clear on teardown.
+static void _dryfieldMotelRoom3InitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_motel_room_3_8017D6B4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
-/// Second state of the room task: the room has nothing to do each frame.
-static void func_dryfield_motel_room_3_8017D654(Task* task)
+/// Keeps motel room 3's room-message receiver idle in state 1.
+///
+/// The task and its message table stay active between synchronous messages;
+/// the separate state-2 handler performs teardown. The argument is unused.
+static void _dryfieldMotelRoom3IdleRoomTask(Task* unusedTask)
 {
 }
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_motel_room_3_8017D5C4 = {
-    { func_dryfield_motel_room_3_8017D610, func_dryfield_motel_room_3_8017D654, taskKill },
+    { _dryfieldMotelRoom3InitRoomTask, _dryfieldMotelRoom3IdleRoomTask, taskKill },
 };
 
 /// The room task's callback: runs the state `Task::state` selects from a

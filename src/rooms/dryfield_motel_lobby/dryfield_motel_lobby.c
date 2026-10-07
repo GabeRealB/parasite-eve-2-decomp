@@ -103,7 +103,7 @@ extern TaskMessageEntry D_dryfield_motel_lobby_8017F810[];
 #include "../../shared/telephone.h"
 
 static void _dryfieldMotelLobbyInitRoomTask(Task* task);
-static void func_dryfield_motel_lobby_8017F490(Task* task);
+static void _dryfieldMotelLobbyIdleRoomTask(Task* unusedTask);
 
 extern WorldCollisionGrid    D_dryfield_motel_lobby_8017FBE4[1];
 extern WorldCollisionTrigger D_dryfield_motel_lobby_80180AEC[4];
@@ -537,7 +537,7 @@ WorldCollisionSurfaceProperties* D_dryfield_motel_lobby_80181044[8] = {
 
 #include "../../shared/telephone.inc.c"
 
-void func_dryfield_motel_lobby_8017E9E8(Task* task)
+void dryfieldMotelLobbyTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -596,8 +596,11 @@ static void _dryfieldMotelLobbyInitRoomTask(Task* task)
     task->state++;
 }
 
-/// Per-frame state of the room task: the room has nothing to update.
-static void func_dryfield_motel_lobby_8017F490(Task* task)
+/// Keeps the lobby's room-message receiver idle in state 1.
+///
+/// The task and its message table stay active between synchronous messages;
+/// the separate state-2 handler performs teardown. The argument is unused.
+static void _dryfieldMotelLobbyIdleRoomTask(Task* unusedTask)
 {
 }
 
@@ -606,16 +609,15 @@ static void func_dryfield_motel_lobby_8017F490(Task* task)
 static const TaskFuncTable3 D_dryfield_motel_lobby_8017D644 = {
     {
         _dryfieldMotelLobbyInitRoomTask,
-        func_dryfield_motel_lobby_8017F490,
+        _dryfieldMotelLobbyIdleRoomTask,
         taskKill,
     },
 };
 
-/// The room task's update: copies the state table and runs the current state.
-void func_dryfield_motel_lobby_8017F498(Task* task)
+void dryfieldMotelLobbyTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_motel_lobby_8017D644;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_motel_lobby_8017D644;
+    stateHandlers.funcs[task->state](task);
 }
