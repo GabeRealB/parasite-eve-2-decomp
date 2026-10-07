@@ -658,7 +658,20 @@ including source defines as an index into its cell lists. Headerless geometry
 that code copies into a live grid is a `collisionPatch`, declared by its
 `pieces`.
 Camera views are not assets: a view is a matrix and a position, data like any
-placement. The known embedded ones:
+placement.
+
+**Morph targets and baked tracks are assets too.** A morph target is the second
+shape of a mesh, vertex for vertex (`dryfield_toilet`'s deltas and normals). A
+baked track is authored or exported content played back by index, hundreds of
+samples describing movement over time: a per-movie-frame player path
+(`acropolis_observatory`), a scripted prop's motion curve
+(`mine_forked_tunnel`), a slider path, and a camera moving frame by frame
+(`actor_303600`'s 570 view keys). That last one is the distinction from the
+sentence above: a room's fixed views, selected by id, are data; a per-frame
+camera track is an asset. What stays in C is what a programmer would type and
+tune by hand - a placement, a small offset table, a tuning constant, a table
+of rules such as `actor_548100`'s circuit graph. Classify by how the code uses
+the array, not by its shape. The known embedded ones:
 
 | Asset | Where | Note |
 |---|---|---|
