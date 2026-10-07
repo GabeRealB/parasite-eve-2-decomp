@@ -2,21 +2,27 @@
 
 #ifndef SRC_SHARED_PACED_WALK_PAIR_DRAW_FLAGS
 #define SRC_SHARED_PACED_WALK_PAIR_DRAW_FLAGS
-/// Replaces both models' draw flags from an `ACTOR_MESSAGE_PAIR_*` request.
+/// Replaces a paced walker and its paired model's flags from a draw request.
 ///
-/// The pointers may alias. Preserve each model's ordered replace and OR writes.
-static inline void _pacedWalkReplacePairDrawFlags(TmdObject* model, TmdObject* pairModel, s32 flags)
+/// Both pointers must refer to live, writable TMD objects and may alias.
+/// `requestFlags` uses `ACTOR_MESSAGE_PAIR_*` bits, not `TMD_OBJECT_*` masks:
+/// SHOW clears all existing object flags; without it, both models receive
+/// only `TMD_OBJECT_SKIP_ACTIVE_DRAW`. SKIP_AUTO_BUFFER independently adds
+/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Other request bits are ignored.
+static inline void _pacedWalkReplacePairDrawFlags(TmdObject* walkerModel, TmdObject* pairModel, s32 requestFlags)
 {
-    if (flags & ACTOR_MESSAGE_PAIR_SHOW) {
-        model->flags     = 0;
-        pairModel->flags = 0;
+    enum { PACED_WALK_PAIR_MODEL_NO_FLAGS = 0 };
+
+    if (requestFlags & ACTOR_MESSAGE_PAIR_SHOW) {
+        walkerModel->flags = PACED_WALK_PAIR_MODEL_NO_FLAGS;
+        pairModel->flags   = PACED_WALK_PAIR_MODEL_NO_FLAGS;
     } else {
-        model->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        pairModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        walkerModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        pairModel->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (flags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
-        model->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        pairModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (requestFlags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
+        walkerModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        pairModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
 }
 #endif
