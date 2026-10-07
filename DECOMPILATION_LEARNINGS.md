@@ -148901,6 +148901,11 @@ slot. `TOUCH_REG(stop)` at the end of the function is such a second set. What
 the source's second set was is not known. Not it: a `switch` (five cases over
 0..0x21 is a jump table), the constant as an inline's argument (single set).
 
+**Note, 2026-10-07.** Both the set-twice `index` and the `TOUCH_REG(stop)` are
+gone: one basic-block boundary between the reload and the table lookup explains
+the read order and the constant together. See "A constant kept above a call by
+a block boundary" at the end of this file.
+
 ## Measured and left (2026-10-05)
 
 - `Shop_QuantityTask` (`register s32 maxHeld asm("v0")`). The image has
@@ -152362,3 +152367,84 @@ build and `1` on the pinned one means the pin is a set count, not a register
 preference; the questions are then "where is this variable's other surviving
 assignment" and "is that other life in the same register in the target". If
 no value in the target can be the other life, plain C does not reach it.
+
+## A constant kept above a call by a block boundary, not by a second set (oddStrangerTick, 2026-10-07)
+
+**Problem.** Variant 2's image has `lhu v0; sh v0; lh v0; li s3,21; sll; addu;
+lw; jalr` and tests `state == s3` after the call. The source needed a
+set-twice `index` to keep the `lh` behind the `sh`, a `stop = 0x15` local, and
+`TOUCH_REG(stop)` at the end of the function.
+
+**What decides it** (`sched.c`, `schedule_block` and `adjust_priority`). In
+sched1 an insn with no dependent inside its block is tied to the block's last
+jump or call. When that is scheduled the insn is released through
+`adjust_priority`, and `birthing_insn_p` gives it `LAUNCH_PRIORITY` if its
+destination is live below and `REG_N_SETS == 1`. A single-set constant used in
+the next block therefore sinks to the end of its block: here below the call
+(`.sched`: `485 (7f000001)`), where its range is 8 insns, its priority 2500,
+and it takes `$s1` ahead of scratch (2236) and actor (2200). With the touch
+the set count is 2, the `li` is released at priority 1 and is scheduled last,
+which backward means the first slot nothing else wants: the load-use gap after
+the `lh`. Sched2 treats it the same way, but only among insns on its side of
+the call.
+
+`.greg` order, variant 2 (pseudo, refs/len, priority, register):
+
+| | work 82 | scratch 83 | actor 81 | stop 86 | enemy 80 |
+|---|---|---|---|---|---|
+| with touch | 52/293 8873 s0 | 12/161 2236 s1 | 22/400 2200 s2 | 4/141 567 s3 | 9/528 511 s4 |
+| no touch | s0 | 2236 s2 | 2200 s3 | 2/8 2500 **s1** | 511 s4 |
+| committed | 52/298 8724 s0 | 12/166 2168 s1 | 22/410 2146 s2 | 2/30 666 s3 | 9/538 501 s4 |
+
+Without the touch stop moves ahead of scratch and actor; nothing else swaps.
+
+**The three ways out, and which plain C reaches.**
+1. A second set of the constant's pseudo. Every live range of one pseudo is in
+   one register, and `$s3` appears in the image only at the `li` and the `beq`,
+   so the second set would have to be dead and still counted. Flow recounts
+   `REG_N_SETS` after deleting dead sets. Not reachable.
+2. The block not ending in a jump or call (`last == 0`: such insns enter the
+   ready list directly and are never launched). That needs a label between the
+   call and the test with an invisible second way in; every candidate
+   duplicates the call, which adds a reference to `actor` and swaps it with
+   scratch (`4*23/414 = 2222 > 3*12/168 = 2142`).
+3. The constant and the call in different blocks. The `li` then sinks only to
+   the end of the first block, which is the slot after the `lh`. The same
+   boundary keeps the `lh` after the `sh` with a plain
+   `work->prevState = (u16)work->state; index = work->state;`, so the set-twice
+   local is not needed either.
+
+**Fix (fitted).** Way 3, with a branch that jump2 deletes:
+
+```c
+work->prevState = (u16)work->state;
+index           = work->state;
+stop            = ODD_STRANGER_STATE_DEATH_BURN;
+if (index >= 0) {
+    handler = states.handlers[index];
+} else {
+    handler = states.handlers[index];
+}
+handler(actor);
+```
+
+The arms are cross-jumped after sched2 and the `bltz` to the next insn goes
+with them. The condition has to be one branch insn on a register already
+loaded, and must tell cse nothing about `index`: `index == stop` or `index !=
+0` lets cse fold `handlers[21]` or `handlers[0]` into one arm (`lw
+v0,116(sp)`), and the arms no longer merge. The arms cannot hold the call (way
+2's reference count). What the original tested there is not known.
+
+**Did not work.** A literal `if (index == DEATH_BURN) { dbg = 1; }` or
+`{ dbg = index; dbg++; }` with the later test also on the literal: the dead
+body and the branch are both gone before sched1 (the `.sched` block is the
+unsplit one), and the constant is a single-set pseudo again. Had the branch survived, its
+use would make three references, and `3/len` needs a range of 14 insns where
+the block gives about 11. A literal in the later test after an equal-armed
+`if`/`else`: the join ends cse's path, so the test loads its own constant.
+
+**Use.** When a constant sits before a call in a call-saved register and is
+used once after it, print the block's `.sched` trace. `7f000001` on the
+constant means it will sink; ask for a block boundary between it and the call
+before asking for a second set. A load that stays behind a store it does not
+depend on, in the same place, is the same boundary.
