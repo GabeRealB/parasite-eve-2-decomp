@@ -47,29 +47,33 @@ static inline void _actionPromptSetCursorVertices(POLY_FT4* cursorQuad, s32 curs
 
 /// Queues the point-and-click cursor as an opaque, unmodulated textured quad.
 ///
-/// `x` and `y` are pixels from the screen center, with Y increasing downward;
-/// callers supply X in [-160, 159] and Y in [-110, 110]. The 16-by-23 quad starts
-/// two pixels above and left of that point. Hidden mode queues nothing; hotspot
-/// mode selects the hotspot palette, and every other nonzero mode uses idle.
+/// `cursorX` and `cursorY` are pixels from the screen center, with Y increasing
+/// downward; callers supply X in [-160, 159] and Y in [-110, 110]. The quad starts
+/// two pixels above and left of that point; each vertex is narrowed to s16.
+/// `cursorMode` is `ACTION_PROMPT_MODE_HIDDEN` (0), `ACTION_PROMPT_MODE_IDLE` (1)
+/// or `ACTION_PROMPT_MODE_HOTSPOT` (2). Hidden queues nothing; hotspot selects
+/// its palette, and every other nonzero value uses the idle palette.
+///
 /// Requires a word-aligned packet arena with room for one `POLY_FT4` and a
-/// writable current ordering-table tag. The packet is borrowed until the GPU
-/// consumes the frame; this routine advances the arena cursor without a bound
-/// check and links the packet at `gGpuCurrentOt[0]`.
-void ACTION_PROMPT_DRAW_CURSOR(s32 x, s32 y, s32 mode)
+/// writable current ordering-table tag, with the cursor texture and palettes
+/// already in VRAM. The packet is borrowed until the GPU consumes the frame;
+/// this routine advances the arena cursor by `sizeof(POLY_FT4)` without a bound
+/// check and links the packet at `gGpuCurrentOt[0]`. Hidden mode touches neither.
+static void ACTION_PROMPT_DRAW_CURSOR(s32 cursorX, s32 cursorY, s32 cursorMode)
 {
     POLY_FT4* cursorQuad;
 
-    if (mode == ACTION_PROMPT_MODE_HIDDEN) {
+    if (cursorMode == ACTION_PROMPT_MODE_HIDDEN) {
         return;
     }
 
     cursorQuad     = gGpuPrimCursor;
     gGpuPrimCursor = cursorQuad + 1;
 
-    _actionPromptSetCursorVertices(cursorQuad, x, y);
+    _actionPromptSetCursorVertices(cursorQuad, cursorX, cursorY);
 
     cursorQuad->tpage = ACTION_PROMPT_CURSOR_TEXTURE_PAGE;
-    if (mode == ACTION_PROMPT_MODE_HOTSPOT) {
+    if (cursorMode == ACTION_PROMPT_MODE_HOTSPOT) {
         cursorQuad->clut = ACTION_PROMPT_CURSOR_HOTSPOT_CLUT;
     } else {
         cursorQuad->clut = ACTION_PROMPT_CURSOR_IDLE_CLUT;

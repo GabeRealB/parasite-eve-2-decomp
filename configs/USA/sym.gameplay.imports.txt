@@ -1028,7 +1028,7 @@ shelterB1NorthMaintenanceWalkwayRoomVisualEffectsMoteTask = 0x8017E8B8; // type:
 
 shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloTask = 0x8017F600; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway
 
-shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask = 0x8017F998; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway shared=rooms
+shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask = 0x8017F998; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway
 
 func_shelter_b1_north_maintenance_walkway_80180DA8 = 0x80180DA8; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway
 

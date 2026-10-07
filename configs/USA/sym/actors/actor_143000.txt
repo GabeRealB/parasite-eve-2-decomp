@@ -63,5 +63,5 @@ D_shelter_b2_laboratory_80186488 = 0x80186488; // absolute:True owner=shelter_b2
 D_shelter_b2_laboratory_8018649C = 0x8018649C; // absolute:True owner=shelter_b2_laboratory
 actionPromptOutlineRect = 0x80133334; // type:func
 actionPromptMoveCursors = 0x80131F80; // type:func
-actionPromptDrawCursor = 0x801323E0; // type:func
+_actionPromptDrawCursorDefault = 0x801323E0; // type:func
 actionPromptReset = 0x80133C90; // type:func

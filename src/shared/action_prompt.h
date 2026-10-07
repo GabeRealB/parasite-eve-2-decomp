@@ -6,8 +6,9 @@
  * Include this header in the prologue and each fragment at the position of
  * that function: action_prompt_reset, _move_cursors, _draw_cursor, _hit_test
  * _outline_rect and _event_end (each with the .inc.c suffix). A package includes only the
- * fragments it carries. The functions have external linkage, since some
- * packages call them from another of their files.
+ * fragments it carries. The cursor drawer has a static instance in each
+ * carrier; the other functions have external linkage, since some packages
+ * call them from another of their files.
  */
 
 #ifndef SRC_SHARED_ACTION_PROMPT_H
@@ -39,15 +40,22 @@ void actionPromptMoveCursors(Task* task);
 
 /// Selects the cursor drawer declared and called by the included prompt fragments.
 ///
-/// Bind to a function identifier with signature `void(s32 x, s32 y, s32 mode)`.
-/// The default is the overlay-shared drawer. Acropolis security and Shelter R47
-/// rebind it around both the move and draw fragments for an additional private
-/// instance, declared static in the carrier's prologue, then restore the default.
-/// This object-like binding captures no arguments and constructs no tokens.
+/// Bind to a translation-unit-local function identifier with signature
+/// `void(s32 cursorX, s32 cursorY, s32 cursorMode)`. Coordinates are center-origin
+/// screen pixels and the mode is an `ACTION_PROMPT_MODE_*` value. The default is
+/// `_actionPromptDrawCursorDefault`. Acropolis security and Shelter R47 select
+/// `_actionPromptDrawCursor` for an additional prompt.
+///
+/// Keep the same binding around the move and draw fragments. Declare an
+/// additional instance static in the carrier's prologue before its callers,
+/// then restore the default after its draw fragment. A binding supplied before
+/// this header also selects its static prototype. This object-like alias only
+/// substitutes the identifier: it captures no arguments, repeats no evaluation
+/// and uses neither stringification nor token pasting.
 #ifndef ACTION_PROMPT_DRAW_CURSOR
-#define ACTION_PROMPT_DRAW_CURSOR actionPromptDrawCursor
+#define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursorDefault
 #endif
-void ACTION_PROMPT_DRAW_CURSOR(s32 x, s32 y, s32 mode);
+static void ACTION_PROMPT_DRAW_CURSOR(s32 cursorX, s32 cursorY, s32 cursorMode);
 
 s32  actionPromptHitTest(ActionPromptHotspot* table, s16 x, s16 y);
 void actionPromptOutlineRect(ActionPromptRect* rect, u8 r, u8 g, u8 b);
