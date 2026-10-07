@@ -153784,3 +153784,34 @@ Left as unions: the storages a function names (`actor_143000`, `actor_260400`,
 `actor_260500`, `actor_451100`, `dryfield_trailer_coach`,
 `neo_ark_observatory`) and the `actor_160600` companion storage, which also
 holds a placement.
+
+## Bank-extension storages, last batch: code-referenced members and mixed records (2026-10-07)
+
+Follows the plain-batch entry above. The seven storages left - the
+`actor_160600` companion storage and those of `actor_143000`, `actor_260400`,
+`actor_260500`, `actor_451100`, `dryfield_trailer_coach` and
+`neo_ark_observatory` - are now their real objects too; no
+`...AnimationBankExtensionStorage` type remains.
+
+- **A member a function names is split by looking at how the target forms the
+  address.** Every code site here loads the member with its own `lui`/`addiu`
+  (`%hi/%lo(D_x + 0x50)`), never `addiu rX, rY, off` from a register holding a
+  neighbour, so each was its own symbol in the original and the split matches
+  with no regrouping. `actor_143000` loads two play requests in two branches of
+  one function, each with a fresh pair - the same shape `Actor450900AllyAnim`
+  needed an alias for while it was a union member.
+- **One base indexed past a sub-run keeps the run whole.**
+  `dryfield_trailer_coach` reads its second two-line menu as `table[i + 2]`
+  from the address of the first (`addu $v0, $a2, $t0` with `$a2 = 8`), so the
+  four menu pointers are one `u8*[4]`, not two `[2]`.
+- **Other record kinds end where their own content says.** An `EvsCommand`
+  script ends at its `END`/`RETURN` command and is 24 bytes a command; an
+  `ActorTransform` is 24 bytes and each one here is named by a script word; so
+  the object after the storage starts where a reference already put it.
+- **Strings stored in `.data` are unsized `u8 x[] = "..."`.** The union had
+  them as `u8[16]`, `u8[20]`, `u8[12]` to make the offsets add up; GCC aligns
+  a char array in `.data` to a word, so the unsized arrays (13, 19 and 11
+  bytes) land on the same addresses and the zero bytes after each are
+  alignment, not content. The symbol map carries the unpadded sizes.
+- A storage listed as "named from code" may not be: `actor_451100` has only
+  data references. The package scan decides, not the survey.
