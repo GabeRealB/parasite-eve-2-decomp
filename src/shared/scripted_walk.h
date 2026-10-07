@@ -244,9 +244,11 @@ static void SCRIPTED_WALK_BLEND_ANIM(void);
 #ifndef SCRIPTED_WALK_TO
 /// Selects the approach-message callback for one scripted walker instance.
 ///
-/// Bind to a function identifier with signature
+/// Bind to a TU-private function identifier with signature
 /// `s32 name(Task* task, s32 messageId, const VECTOR* target, s32 mode)` before
 /// this header, or rebind around an additional walk-to fragment inclusion.
+/// The header and fragment declare each instance `static`; callbacks are
+/// reached through that carrier's own message table.
 /// `SCRIPTED_WALK_WORK_T` must select the receiver's live allocation and
 /// `SCRIPTED_WALK_MODE` its writable signed-halfword mode. Restore the first
 /// instance's bindings afterwards. Declare an additional private instance
@@ -256,10 +258,10 @@ static void SCRIPTED_WALK_BLEND_ANIM(void);
 /// and actor_461800. actor_143900 selects `_scriptedWalkToSecond` for its
 /// second walker. This single-identifier binding takes no arguments, captures
 /// no locals and evaluates no objects; it uses no token pasting or stringification.
-#define SCRIPTED_WALK_TO scriptedWalkTo
+#define SCRIPTED_WALK_TO _scriptedWalkTo
 #endif
 
-s32 SCRIPTED_WALK_TO(Task* task, s32 messageId, const VECTOR* target, s32 mode);
+static s32 SCRIPTED_WALK_TO(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
 #ifndef SCRIPTED_WALK_PLACE
 /// Selects the private placement callback for one scripted walker instance.

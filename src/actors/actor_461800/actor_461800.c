@@ -458,7 +458,7 @@ TaskMessageEntry D_actor_461800_80139F5C[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor461800SetScriptedWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _scriptedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor461800ApplyScriptedWalkerCommand },
-    { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _scriptedWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

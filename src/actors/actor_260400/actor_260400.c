@@ -904,7 +904,7 @@ TaskMessageEntry D_actor_260400_80154BE8[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor260400SetScriptedWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _scriptedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_260400_8014AAA4 },
-    { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, _scriptedWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

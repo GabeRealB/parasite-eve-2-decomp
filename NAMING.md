@@ -707,7 +707,7 @@ function, carried by `actor_143900` (two walkers), `actor_146300`,
 is the whole block of a walker that carries two attachment tasks, the first
 walker of `actor_461800` and the second of `actor_143900`; the other walkers'
 blocks are their packages' own. The two fragments that take the block from the
-task, `_scriptedWalkUpdate` and `scriptedWalkTo`, declare it as
+task, `_scriptedWalkUpdate` and `_scriptedWalkTo`, declare it as
 `SCRIPTED_WALK_WORK_T`, which each carrier binds to the type its walker
 allocates. `SCRIPTED_WALK_WORK` selects that walker's borrowed work pointer
 for the animation and placement fragments. `SCRIPTED_WALK_MODE` selects its
@@ -737,6 +737,8 @@ The carrier declares an additional static instance in its prologue before its
 message table; actor_143900's second copy is `_scriptedWalkPlaceSecond`.
 `SCRIPTED_WALK_TO` selects the approach-message callback, with the receiver's
 allocated work type and signed-halfword mode bound around its fragment.
+It defaults to `_scriptedWalkTo`; the header and fragment declare each instance
+`static`, reached through that carrier's own message table.
 The carrier declares an additional private instance in its prologue before
 its message table; actor_143900's second copy is `_scriptedWalkToSecond`.
 

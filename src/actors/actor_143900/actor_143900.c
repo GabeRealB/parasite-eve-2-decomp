@@ -1673,7 +1673,7 @@ s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 #define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
 #include "../../shared/scripted_walk_to.inc.c"
 #undef SCRIPTED_WALK_TO
-#define SCRIPTED_WALK_TO scriptedWalkTo
+#define SCRIPTED_WALK_TO _scriptedWalkTo
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #undef SCRIPTED_WALK_WORK_T

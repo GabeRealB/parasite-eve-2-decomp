@@ -1,6 +1,6 @@
 /* Part of the scripted walk library; see scripted_walk.h. */
 
-/// Faces a planar destination and schedules its whole movement updates.
+/// Sets an approach heading and schedules whole movement updates toward a planar target.
 ///
 /// Handles `ACTOR_MESSAGE_WALK_TO`; `messageId` is unused and the result is zero.
 /// `task` must own a live TMD root and the allocation selected by
@@ -14,11 +14,12 @@
 /// modes use the 25-unit divisor but the update applies no translation.
 /// Heading uses 4096 units per turn and narrows to the signed halfword `st.yaw`.
 /// The root rotation is replaced at unit scale, preserving its translation.
-/// Stores floor(planar distance / step distance), narrowed without clamping to
-/// `st.travel`. Animation selection and composition invalidation belong to the
-/// caller/update. An initialized scratch stack needs 0x24 aligned bytes for
-/// the rotation helper; GTE state is overwritten and no target pointer is retained.
-s32 SCRIPTED_WALK_TO(Task* task, s32 messageId, const VECTOR* target, s32 mode)
+/// Divides `SquareRoot0`'s integer distance approximation by the step distance
+/// and stores the truncated quotient in the signed halfword `st.travel`.
+/// Animation selection and composition invalidation belong to the caller/update.
+/// An initialized scratch stack needs 0x24 aligned bytes for the rotation helper;
+/// `SquareRoot0` overwrites the GTE leading-zero registers. No pointer is retained.
+static s32 SCRIPTED_WALK_TO(Task* task, s32 messageId, const VECTOR* target, s32 mode)
 {
     GfxCoord*             rootCoord;
     SCRIPTED_WALK_WORK_T* work;
@@ -28,16 +29,17 @@ s32 SCRIPTED_WALK_TO(Task* task, s32 messageId, const VECTOR* target, s32 mode)
     s32                   planarDistance;
     s32                   targetYaw;
 
-    /// Replaces the root rotation with the heading for this approach.
+    /// Sets the approach yaw and replaces the model root's rotation at unit scale.
     ///
     /// Arguments must be side-effect-free pointers to this receiver's writable
     /// root and work block, and its signed target yaw in 4096 units per turn.
-    /// Work and yaw are evaluated repeatedly. Captures `SCRIPTED_WALK_MODE`,
-    /// read after storing yaw; backward mode adds half a turn before narrowing.
+    /// The root argument is evaluated once; work and heading are evaluated
+    /// repeatedly. Captures `SCRIPTED_WALK_MODE`, read after storing yaw;
+    /// backward mode adds half a turn before narrowing, facing away from the target.
     /// The rotation helper preserves translation and borrows 0x24 aligned
     /// scratch bytes. Call as a standalone statement in a compound block;
     /// the macro is undefined after its sole call.
-#define SCRIPTED_WALK_FACE_TARGET(modelRoot, walkerWork, heading)                            \
+#define SCRIPTED_WALK_SET_APPROACH_HEADING(modelRoot, walkerWork, heading)                   \
     {                                                                                        \
         (walkerWork)->st.yaw = (heading);                                                    \
         if (SCRIPTED_WALK_MODE == SCRIPTED_WALK_MODE_BACKWARD) {                             \
@@ -54,10 +56,10 @@ s32 SCRIPTED_WALK_TO(Task* task, s32 messageId, const VECTOR* target, s32 mode)
 
     // Backward travel keeps the model's front facing away from the destination.
     targetYaw = ratan2(deltaX, deltaZ);
-    SCRIPTED_WALK_FACE_TARGET(rootCoord, work, targetYaw);
-#undef SCRIPTED_WALK_FACE_TARGET
+    SCRIPTED_WALK_SET_APPROACH_HEADING(rootCoord, work, targetYaw);
+#undef SCRIPTED_WALK_SET_APPROACH_HEADING
 
-    // Travel counts updates; a fractional final step is discarded.
+    // Count whole updates using the SDK's approximate planar distance.
     planarDistance = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ);
     stepDistance   = SCRIPTED_WALK_SHORT_FORWARD_DISTANCE;
     switch (SCRIPTED_WALK_MODE) {
