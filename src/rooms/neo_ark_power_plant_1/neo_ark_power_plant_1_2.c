@@ -45,25 +45,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-/// The clip Neo Ark power plant 1 adds to the player's animation bank.
-///
-/// One of the room's event scripts sends `data.copy` to the player and then
-/// plays the clip; the room's other play request selects a base-bank clip. The
-/// copy takes two words from the start of this storage: the set pointer and the
-/// request's own source pointer. Those words occupy extended ids 47 and 48.
-/// Id 47 is the clip, id 48 holds the source pointer and is never played, and
-/// the stored word count sits past the copied span.
-typedef union {
-    struct {
-        AnimationSet*            sets[1]; // Player clip for extended id 47
-        AnimationBankCopyRequest copy;    // Copies the first two words of this storage
-    } data;                               // The records by name
-    s32 words[3];                         // The same storage as the copy reads it; the last word lies beyond the copied span
-} _NeoArkPowerPlant1AnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_NeoArkPowerPlant1AnimationBankExtensionStorage, 12);
-
-extern _NeoArkPowerPlant1AnimationBankExtensionStorage D_neo_ark_power_plant_1_8017EEC0;
-
 /// World positions `func_neo_ark_power_plant_1_8017DA18` draws its glows at;
 /// the second name is the one emitter it may spawn an effect at instead.
 extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
@@ -173,13 +154,27 @@ EvsCommand D_neo_ark_power_plant_1_8017EDBC[10] = {
 
 AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-_NeoArkPowerPlant1AnimationBankExtensionStorage D_neo_ark_power_plant_1_8017EEC0 = { .data = { { &_gNeoArkPowerPlant1Animation01530 }, { { .words = D_neo_ark_power_plant_1_8017EEC0.words }, 2 } } };
+/// Player clip for extended id 47.
+///
+/// One of the room's event scripts sends the player the copy request and then
+/// plays the clip; the room's other play request selects a base-bank clip.
+/// `D_neo_ark_power_plant_1_8017EEC4` copies two words starting here into the
+/// player's bank, which is one word past the end of this array: the read runs
+/// on through the first word of `D_neo_ark_power_plant_1_8017EEC4`, that
+/// request's own source pointer. That overrun is the original's and is kept as
+/// it is: the request carries a literal count larger than the table, while the
+/// table was stored with only its own entries. Id 48, which receives the source
+/// pointer, is never played.
+AnimationSet* D_neo_ark_power_plant_1_8017EEC0[1] = { &_gNeoArkPowerPlant1Animation01530 };
+
+// Installs the player's clip; the count is two, not the one entry of its source.
+AnimationBankCopyRequest D_neo_ark_power_plant_1_8017EEC4 = { { .sets = D_neo_ark_power_plant_1_8017EEC0 }, 2 };
 
 ActorTransform D_neo_ark_power_plant_1_8017EECC = { { 4800, 2, -0x2A94, 0 }, { 0, 0, 0, 0 } };
 
 EvsCommand D_neo_ark_power_plant_1_8017EEE4[13] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_power_plant_1_8017EEC0.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_power_plant_1_8017EEC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_power_plant_1_8017EECC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_power_plant_1_8017EEAC }, { .value = 0 } },
