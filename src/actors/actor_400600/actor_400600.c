@@ -3771,38 +3771,28 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode)
     switch (probeMode) {
         case ACTOR_400600_PROBE_TARGET:
             if (work->onCeiling == 0) {
-                GfxMatrix* matrix = &inverseRotation;
 
                 targetDelta.vx                       = work->targetPos.vx - task->extra.tmd->coords->coord.t[0];
                 targetDelta.vy                       = work->targetPos.vy - task->extra.tmd->coords->coord.t[1] - ACTOR_400600_FLOOR_TARGET_Y_OFFSET;
                 targetDelta.vz                       = work->targetPos.vz - task->extra.tmd->coords->coord.t[2];
-                inverseRotation.rotationWords.m00M01 = ONE;
-                inverseRotation.rotationWords.m02M10 = 0;
-                matrix->rotationWords.m11M12         = ONE;
-                inverseRotation.rotationWords.m20M21 = 0;
-                matrix->rotationWords.m22            = ONE;
+                gfxSetRotIdentity(&inverseRotation.mat);
                 inverseRotation.mat.t[0]             = 0;
                 inverseRotation.mat.t[1]             = 0;
                 inverseRotation.mat.t[2]             = 0;
-                RotMatrixY(-work->yaw, &matrix->mat);
-                ApplyMatrixSV(&matrix->mat, &targetDelta, &localTarget);
+                RotMatrixY(-work->yaw, &inverseRotation.mat);
+                ApplyMatrixSV(&inverseRotation.mat, &targetDelta, &localTarget);
             } else {
-                GfxMatrix* matrix = &inverseRotation;
 
                 targetDelta.vx                       = work->targetPos.vx - task->extra.tmd->coords->coord.t[0];
                 targetDelta.vy                       = work->targetPos.vy - task->extra.tmd->coords->coord.t[1] - ACTOR_400600_CEILING_TARGET_Y_OFFSET;
                 targetDelta.vz                       = work->targetPos.vz - task->extra.tmd->coords->coord.t[2];
-                inverseRotation.rotationWords.m00M01 = ONE;
-                inverseRotation.rotationWords.m02M10 = 0;
-                matrix->rotationWords.m11M12         = ONE;
-                inverseRotation.rotationWords.m20M21 = 0;
-                matrix->rotationWords.m22            = ONE;
+                gfxSetRotIdentity(&inverseRotation.mat);
                 inverseRotation.mat.t[0]             = 0;
                 inverseRotation.mat.t[1]             = 0;
                 inverseRotation.mat.t[2]             = 0;
-                RotMatrixY(-work->yaw, &matrix->mat);
-                RotMatrixZ(-work->roll, &matrix->mat);
-                ApplyMatrixSV(&matrix->mat, &targetDelta, &localTarget);
+                RotMatrixY(-work->yaw, &inverseRotation.mat);
+                RotMatrixZ(-work->roll, &inverseRotation.mat);
+                ApplyMatrixSV(&inverseRotation.mat, &targetDelta, &localTarget);
             }
             work->capsule.ends[0].vx = localTarget.vx;
             work->capsule.ends[0].vy = localTarget.vy;
