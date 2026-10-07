@@ -59,8 +59,6 @@
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
-#define D_shelter_b1_sterilization_room_80189334 (D_shelter_b1_sterilization_room_8018909C + 83)
-
 extern EvsCommand D_shelter_b1_sterilization_room_80188C94[];
 extern EvsCommand D_shelter_b1_sterilization_room_80188E14[];
 
@@ -1396,7 +1394,7 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
             work->step             = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF;
             // Scale the source group's Q12 direction, then jitter each component.
             gte_lddp(work->period);
-            gte_ldsv(&D_shelter_b1_sterilization_room_80189334[task->spawnArg1.value / SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION]);
+            gte_ldsv(&D_shelter_b1_sterilization_room_8018909C[83 + task->spawnArg1.value / SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION]);
             gte_gpf12();
             velocity = &work->move;
             gte_stsv(velocity);
