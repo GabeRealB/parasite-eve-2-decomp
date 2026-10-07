@@ -2459,26 +2459,35 @@ static void _actor460200SoldierCTask(Task* task)
     states[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Binds Soldier C's task-owned lighting matrices and samples light above its root.
+/// Binds Soldier C's task-owned lighting matrices and takes its initial light sample.
 ///
-/// Requires live, disjoint model/work/root storage and initialized room lighting
-/// and graphics scratch state. The model retains the two matrix pointers; work
-/// must live through model teardown. Root translation is in world units with
-/// negative Y upward. The lighting query reads only XYZ of the local vector.
+/// `model` and `work` must be live and writable; the model borrows `work->light`
+/// and `work->color` while lighting or drawing can use them. `rootCoord` is read
+/// only during this call. Its cached translation is used without composition
+/// or a change of coordinate frame, with 800 signed coordinate units subtracted
+/// from Y. A cache composed through the view includes that view transform.
+/// The world-position lighting query receives this sample unchanged.
+///
+/// Requires initialized room-light, view, scratch-stack and GTE state as for
+/// `worldCoordSetModelLighting`. The sample's three 32-bit components are read
+/// synchronously; no sample pointer is retained. Both matrix pointers are bound
+/// even when the query returns without updating them.
 static inline void _pacedWalkInitializeSoldierCModelLighting(TmdObject* model, PacedWalkWork* work, const GfxCoord* rootCoord)
 {
     enum {
-        PACED_WALK_SOLDIER_C_LIGHT_HEIGHT = 800,
-        PACED_WALK_SOLDIER_C_LIGHT_COUNT  = 3,
+        PACED_WALK_SOLDIER_C_LIGHT_SAMPLE_Y_OFFSET = 800,
+        PACED_WALK_SOLDIER_C_FIRST_LIGHT_INDEX     = 0,
+        PACED_WALK_SOLDIER_C_LIGHT_COUNT           = 3,
     };
-    VECTOR lightingPosition;
+    VECTOR3 lightingSample;
 
-    model->lightMtx     = &work->light;
-    model->colorMtx     = &work->color;
-    lightingPosition.vx = rootCoord->workm.t[0];
-    lightingPosition.vy = rootCoord->workm.t[1] - PACED_WALK_SOLDIER_C_LIGHT_HEIGHT;
-    lightingPosition.vz = rootCoord->workm.t[2];
-    worldCoordSetModelLighting(model, &lightingPosition, 0, PACED_WALK_SOLDIER_C_LIGHT_COUNT);
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    // Preserve the cached sample used at spawn, before the first animation update.
+    lightingSample.vx = rootCoord->workm.t[0];
+    lightingSample.vy = rootCoord->workm.t[1] - PACED_WALK_SOLDIER_C_LIGHT_SAMPLE_Y_OFFSET;
+    lightingSample.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingSample, PACED_WALK_SOLDIER_C_FIRST_LIGHT_INDEX, PACED_WALK_SOLDIER_C_LIGHT_COUNT);
 }
 
 /// Initializes Soldier C's paced-walk rig and starts its initial clip.
