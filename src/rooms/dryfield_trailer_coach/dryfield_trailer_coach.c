@@ -83,32 +83,6 @@
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// The clips the room adds to the player's animation bank, with the records
-/// stored after them.
-///
-/// The room's event scripts send `data.copy` to the player. The copy takes
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` words from the start of the storage,
-/// which is more than the clip table holds, so the request itself, the three
-/// topic strings and the first menu pointer are written into the bank after
-/// the clips. None of the room's animation requests selects those words.
-///
-/// The topic strings and menus belong to the room's two-line option task and
-/// have no other connection to the clips.
-typedef union {
-    struct {
-        AnimationSet*            sets[17];          // Player clips for extended ids 47-63; NULL at the three ids nothing requests
-        AnimationBankCopyRequest copy;              // Installs the first `ANIMATION_BANK_EXTENSION_CAPACITY` words of this storage
-        u8                       firearmsTopic[16]; // Shift-JIS "About firearms", NUL-terminated and zero-filled
-        u8                       shelterTopic[20];  // Shift-JIS "About the shelter", NUL-terminated and zero-filled
-        u8                       otherTopic[12];    // Shift-JIS "Anything else?", NUL-terminated and zero-filled
-        u8*                      topicMenus[4];     // Two two-line option menus, one after the other (firearms/shelter, then firearms/anything else)
-    } data;                                         // The records by name
-    s32 words[35];                                  // The same storage as the copy reads it; the last three words lie beyond the copied span
-} _DryfieldTrailerCoachAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_DryfieldTrailerCoachAnimationBankExtensionStorage, 140);
-
-extern _DryfieldTrailerCoachAnimationBankExtensionStorage D_dryfield_trailer_coach_80185368;
-
 /// The "%" suffix the room's percentage formatters append.
 static u8 Telephone_Data_80181A78[];
 
@@ -460,13 +434,47 @@ AnimationPlayRequest D_dryfield_trailer_coach_80185340 = { { .index = 1 }, 62, A
 
 AnimationPlayRequest D_dryfield_trailer_coach_80185354 = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-_DryfieldTrailerCoachAnimationBankExtensionStorage D_dryfield_trailer_coach_80185368 = { .data = { { &gActor420700Animation01C5C, &gActor420700Animation01EBC, &gActor420700Animation02328, &gActor420700Animation02F18, &gActor420700Animation0316C, &gActor420700Animation03404, &gActor420700Animation035D4, &gActor420700Animation03DD8, NULL, NULL, NULL, &gActor420700Animation00DE0, &gActor420700Animation013A8, &gActor420700Animation0164C, &gActor420700Animation01878, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 }, { { .words = D_dryfield_trailer_coach_80185368.words }, ANIMATION_BANK_EXTENSION_CAPACITY }, "\x8F\x65\x8A\xED\x82\xC9\x82\xC2\x82\xA2\x82\xC4", "\x83\x56\x83\x46\x83\x8B\x83\x5E\x81\x5B\x82\xC9\x82\xC2\x82\xA2\x82\xC4", "\x91\xBC\x82\xC9\x89\xBD\x82\xA9\x81\x48", { D_dryfield_trailer_coach_80185368.data.firearmsTopic, D_dryfield_trailer_coach_80185368.data.shelterTopic, D_dryfield_trailer_coach_80185368.data.firearmsTopic, D_dryfield_trailer_coach_80185368.data.otherTopic } } };
+/// Player clips for extended ids 47-63; the entries for ids 55-57 are NULL and
+/// nothing requests them. The first fifteen entries name sets of the room's
+/// actor package, the last two sets of the room itself.
+///
+/// The room's event scripts send the player its copy request.
+/// `D_dryfield_trailer_coach_801853AC` copies
+/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
+/// player's bank, which is 15 words past the end of this array: the read runs
+/// on through `D_dryfield_trailer_coach_801853AC`, the three topic strings
+/// `D_dryfield_trailer_coach_801853B4`, `D_dryfield_trailer_coach_801853C4` and
+/// `D_dryfield_trailer_coach_801853D8` with the padding after each, and the
+/// first word of `D_dryfield_trailer_coach_801853E4`. That overrun is the
+/// original's and is kept as it is: the request carries the bank's fixed
+/// capacity, while the table was stored with only its own entries. None of the
+/// room's animation requests selects a NULL entry or a word installed after the
+/// table.
+AnimationSet* D_dryfield_trailer_coach_80185368[17] = { &gActor420700Animation01C5C, &gActor420700Animation01EBC, &gActor420700Animation02328, &gActor420700Animation02F18, &gActor420700Animation0316C, &gActor420700Animation03404, &gActor420700Animation035D4, &gActor420700Animation03DD8, NULL, NULL, NULL, &gActor420700Animation00DE0, &gActor420700Animation013A8, &gActor420700Animation0164C, &gActor420700Animation01878, &_gDryfieldTrailerCoachAnimation07994, &_gDryfieldTrailerCoachAnimation07668 };
+
+// Installs the player's clips; the count is the bank's capacity, not the seventeen entries of its source.
+AnimationBankCopyRequest D_dryfield_trailer_coach_801853AC = { { .sets = D_dryfield_trailer_coach_80185368 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+
+// The topic strings and menus belong to the room's two-line option task and
+// have no connection to the clips. Shift-JIS "About firearms".
+u8 D_dryfield_trailer_coach_801853B4[] = "\x8F\x65\x8A\xED\x82\xC9\x82\xC2\x82\xA2\x82\xC4";
+
+// Shift-JIS "About the shelter".
+u8 D_dryfield_trailer_coach_801853C4[] = "\x83\x56\x83\x46\x83\x8B\x83\x5E\x81\x5B\x82\xC9\x82\xC2\x82\xA2\x82\xC4";
+
+// Shift-JIS "Anything else?".
+u8 D_dryfield_trailer_coach_801853D8[] = "\x91\xBC\x82\xC9\x89\xBD\x82\xA9\x81\x48";
+
+// Two two-line option menus, one after the other (firearms/shelter, then
+// firearms/anything else). The option task reads the second menu's lines from
+// the address of the first, so the four pointers are one array.
+u8* D_dryfield_trailer_coach_801853E4[4] = { D_dryfield_trailer_coach_801853B4, D_dryfield_trailer_coach_801853C4, D_dryfield_trailer_coach_801853B4, D_dryfield_trailer_coach_801853D8 };
 
 EvsCommand D_dryfield_trailer_coach_801853F4[58] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_8018504C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_80185368.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_trailer_coach_80184FD8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -575,7 +583,7 @@ EvsCommand D_dryfield_trailer_coach_80185C4C[11] = {
 };
 
 EvsCommand D_dryfield_trailer_coach_80185D54[98] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_80185368.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -697,7 +705,7 @@ EvsCommand D_dryfield_trailer_coach_80186684[17] = {
 
 EvsCommand D_dryfield_trailer_coach_8018681C[25] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_80185368.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
@@ -743,7 +751,7 @@ EvsCommand D_dryfield_trailer_coach_80186A74[15] = {
 
 EvsCommand D_dryfield_trailer_coach_80186BDC[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_80185368.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_801852A0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -760,7 +768,7 @@ EvsCommand D_dryfield_trailer_coach_80186BDC[14] = {
 
 EvsCommand D_dryfield_trailer_coach_80186D2C[35] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 27 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_80185368.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_801852A0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -798,7 +806,7 @@ EvsCommand D_dryfield_trailer_coach_80186D2C[35] = {
 
 EvsCommand D_dryfield_trailer_coach_80187074[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 28 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_80185368.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_trailer_coach_801853AC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_trailer_coach_80185038 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_801852A0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1732,7 +1740,7 @@ static void func_dryfield_trailer_coach_801826A0(Task* task)
     // the start of the table.
     i                  = 0;
     mode               = 1;
-    line               = D_dryfield_trailer_coach_80185368.data.topicMenus;
+    line               = D_dryfield_trailer_coach_801853E4;
     table              = line;
     task->work         = dialog;
     task->exitCallback = func_dryfield_trailer_coach_801827D0;

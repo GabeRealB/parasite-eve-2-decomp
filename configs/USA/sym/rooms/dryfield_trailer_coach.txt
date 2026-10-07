@@ -210,7 +210,12 @@ gActor420700Animation00DE0 = 0x80132C00; // absolute:True owner=actor_420700
 gActor420700Animation013A8 = 0x801331C8; // absolute:True owner=actor_420700
 gActor420700Animation0164C = 0x8013346C; // absolute:True owner=actor_420700 shared=actors
 gActor420700Animation01878 = 0x80133698; // absolute:True owner=actor_420700 shared=actors
-D_dryfield_trailer_coach_80185368 = 0x80185368; // size:0x8C defined:True
+D_dryfield_trailer_coach_80185368 = 0x80185368; // size:0x44 defined:True
+D_dryfield_trailer_coach_801853AC = 0x801853AC; // size:0x8 defined:True
+D_dryfield_trailer_coach_801853B4 = 0x801853B4; // size:0xD defined:True
+D_dryfield_trailer_coach_801853C4 = 0x801853C4; // size:0x13 defined:True
+D_dryfield_trailer_coach_801853D8 = 0x801853D8; // size:0xB defined:True
+D_dryfield_trailer_coach_801853E4 = 0x801853E4; // size:0x10 defined:True
 D_dryfield_trailer_coach_801853F4 = 0x801853F4; // size:0x570 defined:True
 D_dryfield_trailer_coach_80185964 = 0x80185964; // size:0x198 defined:True
 D_dryfield_trailer_coach_80185AFC = 0x80185AFC; // size:0x150 defined:True
