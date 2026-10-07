@@ -40,8 +40,8 @@ UiList Gp_InvLists[2] = {
 };
 
 UiListRowCallback Gp_ItemActionFns[3] = {
-    func_800BD6DC,
-    Gp_ItemActionConfirm,
+    itemMenuDrawTransferMoveRow,
+    itemMenuDrawSwitchRow,
     NULL,
 };
 

@@ -13,7 +13,7 @@
 /// Item-move `UiObjectDesc` table. `Gp_ItemMoveTask` spawns `[0]` / `[1]`
 /// and, when `spawnArg1 == 1`, `[9]`.
 /// `[4]` is the popup `Gp_ItemMoveRow` spawns on confirm when
-/// `owner->state == 1`, `[5]` the quantity-selection popup `func_800BD6DC`
+/// `owner->state == 1`, `[5]` the quantity-selection popup `itemMenuDrawTransferMoveRow`
 /// opens when moving ammo stacks, `[9]` also the "Move items" confirmation
 /// `Gp_ItemMoveChild` spawns when the pane is closed with items still selected
 /// (`Gp_CanMoveItems` result as arg1), and `[10]` an extra descriptor spawned

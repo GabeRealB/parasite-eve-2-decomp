@@ -41,9 +41,65 @@ enum { ITEM_MENU_LIST_ACTION_CANCEL_HANDLED = 0x21 };
 
 /// Commands a child dialog forwards through its inventory pane to the move screen.
 enum {
-    ITEM_MENU_RESULT_BEGIN_SWAP       = 0x23,
-    ITEM_MENU_RESULT_MOVE_ALL         = 0x26,
-    ITEM_MENU_RESULT_DISCARD_AND_EXIT = 0x27
+    ITEM_MENU_RESULT_CHANGE_PANE          = 0xA,
+    ITEM_MENU_RESULT_CANCEL_SWAP          = 0x24,
+    ITEM_MENU_RESULT_CONFIRM_SWAP_PARTNER = 0x25,
+    ITEM_MENU_RESULT_BEGIN_SWAP           = 0x23,
+    ITEM_MENU_RESULT_MOVE_ALL             = 0x26,
+    ITEM_MENU_RESULT_DISCARD_AND_EXIT     = 0x27
+};
+
+/// Transfer-pane indices, interaction states and the battle-field spawn flag.
+enum {
+    ITEM_MENU_PANE_CONTAINER             = 0,
+    ITEM_MENU_PANE_CARRIED               = 1,
+    ITEM_MENU_PANE_BROWSING              = 1,
+    ITEM_MENU_PANE_CHOOSING_SWAP_PARTNER = 2,
+    ITEM_MENU_PANE_BATTLE_FIELD_FLAG     = 0x100,
+    ITEM_MENU_PANE_INDEX_MASK            = 0xFF,
+    ITEM_MENU_PANE_MODE_ITEM_BOX         = 0,
+    ITEM_MENU_PANE_MODE_BATTLE_FIELD     = 1,
+    ITEM_MENU_PANE_VISIBLE_ROWS          = 10
+};
+
+/// Catalogue boundaries and the Acropolis container's M93R transfer restriction.
+enum {
+    ITEM_MENU_ITEM_RECOVERY_FIRST            = 1,
+    ITEM_MENU_ITEM_RECOVERY_COUNT            = 3,
+    ITEM_MENU_ITEM_COLA                      = 5,
+    ITEM_MENU_ITEM_MP_BOOST1                 = 6,
+    ITEM_MENU_ITEM_MP_BOOST2                 = 7,
+    ITEM_MENU_ITEM_PROTEIN_CAPSULE           = 0x3C,
+    ITEM_MENU_ITEM_RINGER                    = 0x3D,
+    ITEM_MENU_ARMOR_ITEM_FIRST               = 0x60,
+    ITEM_MENU_EQUIPMENT_ITEM_COUNT           = 0x20,
+    ITEM_MENU_M93R_ITEM_ID                   = 0x81,
+    ITEM_MENU_M93R_RESTRICTED_CONTAINER_KIND = 0x703,
+    ITEM_MENU_DUPLICATE_ARMOR_ITEM_ID        = 0xD,
+    ITEM_MENU_DUPLICATE_WEAPON_ITEM_ID       = 0x3D,
+    ITEM_MENU_NOTICE_NO_TRANSFER_SPACE       = 6,
+    ITEM_MENU_ACTION_PANEL_BOTTOM            = 100,
+    ITEM_MENU_NORMAL_COLOR_RGB               = 0x606060,
+    ITEM_MENU_LOADED_AMMO_COLOR_RGB          = 0x037A78
+};
+
+/// Quantity-panel notice states and timing in callback ticks / repeat ticks.
+enum {
+    ITEM_MENU_AMMO_NOTICE_NONE             = 0,
+    ITEM_MENU_AMMO_NOTICE_LOADED           = 1,
+    ITEM_MENU_AMMO_NOTICE_CAPACITY         = 2,
+    ITEM_MENU_AMMO_NOTICE_TICKS            = 188,
+    ITEM_MENU_AMMO_ACCELERATE_REPEAT_TICKS = 20,
+    ITEM_MENU_AMMO_BAR_BACKGROUND_RGB      = 0x102010
+};
+
+/// Supply item ids preserved even though no carried stack backs their charge.
+enum {
+    EQUIPMENT_SUPPLY_HYPERVELOCITY_BATTERY = 0xB9,
+    EQUIPMENT_SUPPLY_P229_MP5_BATTERY      = 0xB5,
+    EQUIPMENT_SUPPLY_HAMMER_BATTERY        = 0xBB,
+    EQUIPMENT_SUPPLY_PYKE_FUEL             = 0xBD,
+    EQUIPMENT_SUPPLY_JAVELIN_BATTERY       = 0xBE
 };
 
 /// Fixed extent and counter-to-grey conversion of the display transition overlay.
@@ -131,10 +187,10 @@ _ItemMenuMoveWork* Gp_ItemMoveWork;
 
 u16 Gp_MoveItemKey;
 
-/// UiList used by `Gp_ItemActionListTask`.
+/// UiList used by `_itemMenuTransferActionsTask`.
 extern UiList Gp_ItemActionList;
 
-/// UiList used by `Gp_ItemMenuListTask`. `field_10` is 1 when `spawnArg1` is 0.
+/// UiList used by `_itemMenuTransferExitMenuTask`. `selectedItemIndex` is Select when `spawnArg1` is 0.
 extern UiList Gp_ItemMenuList;
 
 extern UiListRowCallback D_8010D6B0[1];
@@ -142,7 +198,7 @@ extern UiListRowCallback D_8010D6B0[1];
 extern TaskMessageEntry D_8010D828[2];
 
 /* Kept next to Gp_ItemMoveChild's jump table so the overlay .rodata stays packed;
-   Gp_StrBullet follows before func_800BDF6C. */
+   Gp_StrBullet follows before _itemMenuAmmoSplitTask. */
 static const char Gp_StrBattleField[];
 
 static const char Gp_StrItemBox[];
@@ -151,7 +207,7 @@ static const char Gp_StrPlayerItem[];
 
 static const char Gp_StrBullet[];
 
-/* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
+/* After Gp_StrBullet from _itemMenuAmmoSplitTask so the overlay .rodata stays packed. */
 static const _ItemMenuPromptTexts Gp_ItemPromptTexts;
 
 /// Vector template used by `Gp_ItemPickupTilt`.
@@ -164,85 +220,54 @@ static const VECTOR D_80093DB0;
 /// `Gp_ItemMoveChild`. Always writes `resultValue = 0x34`.
 void Gp_ItemMoveTask(Task* arg0);
 
-/// Task callback for one `Gp_InvLists` inventory pane. `spawnArg1 >= 0x100`
-/// is masked to the low byte and `flags` is set so the title is
-/// `Gp_StrBattleField` ("Battle Field") instead of `Gp_StrItemBox` ("Item Box");
-/// dest (`spawnArg1 != 0`) uses `Gp_StrPlayerItem` ("Player Item"). Seeds the
-/// list from `Gp_MoveScanSrc[spawnArg1].rowCount` (visible rows capped at 10).
-/// First-state confirm/cancel is `result = USER_INTERFACE_RESULT_CANCEL`; later states write
-/// `0x24`. Circle (src) / Square (dest) / mask 3 switch panes (`0xA`)
-/// and play type-6 sound 2. Walks children through `_itemMenuHandlePaneChildResult`.
-void Gp_ItemPaneTask(Task* arg0);
+static void _itemMenuTransferPaneTask(Task* task);
 
-/// Task callback for the `Gp_ItemActionList` item list. On first run it copies
-/// `parent->flags`, clamps `field_E + field_12` to 0x64, then calls
-/// `Gp_FillItemActions` and `uiFitPanelToList`. Confirm (`Pad_MaskMenu`) is
-/// cancel (`result = USER_INTERFACE_RESULT_CANCEL`) when `owner->flags` is 0, else
-/// confirm; cancel (`Pad_MaskCancel`) is confirm. Child `result` of cancel, dismiss
-/// or confirm closes, remaps dismiss to confirm, or tears the child down.
-void Gp_ItemActionListTask(Task* arg0);
+static void _itemMenuTransferActionsTask(Task* task);
 
-/// Ammo quantity selector. Adjusts source/destination stacks within the
-/// stack limit, reserves equipped rounds, and applies the transfer on confirm.
-void func_800BDF6C(Task* task);
+static void _itemMenuAmmoSplitTask(Task* task);
 
-/// List-item callback for the item-move commands. Draws the
-/// `Gp_ItemPromptTexts` label for the current item. Confirm: All → `result = 0x26`, Select → confirm,
-/// Discard zeroes loaded ammunition quantities whose item is absent from
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems` and sets `result = 0x27`. Cancel once sets
-/// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
-/// strip.
-void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1);
+static void _itemMenuTransferExitRow(UiList* list, UiObject* object);
 
-void Gp_ItemMenuListTask(Task* arg0);
+static void _itemMenuTransferExitMenuTask(Task* task);
 
-/// Task callback. `spawnArg2` is the `UiObject`; on first run it is published
-/// as `Wip_UiHolder`. `spawnArg1` is a text pointer; when non-zero, two prompt
-/// lines are drawn at `field_18 + 0xF` / `+ 0x1E` in color `0x606060`.
-void Gp_HolderPromptTask(Task* arg0);
+static void _itemMenuHolderPromptTask(Task* task);
 
-s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request, s32 arg3);
+static s32 _itemPickupHandleLidActionRequest(Task* task, s32 messageId, CapActionRequest* request, s32 unused);
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
 static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1);
 
-/// The inventory scan an item pane lists; the pane's `spawnArg1` selects which
-/// of the two side-by-side scans it shows.
-static inline InventoryItemRange* _gpItemPaneScan(Task* task);
+static inline InventoryItemRange* _itemMenuGetPaneRange(const Task* task);
 
-/// Fills `Gp_ItemActionFns` and `arg0->field_4` / `field_5` from the selected
-/// inventory row (`Gp_MoveScanSrc[spawnArg1]` / `Gp_InvLists[spawnArg1].field_10`).
-static void Gp_FillItemActions(UiList* arg0, UiObject* arg1);
+static void _itemMenuFillTransferActions(UiList* list, UiObject* object);
 
-/// For each carried weapon, empties its primary and secondary ammunition
-/// counts when the carried items no longer include any of that item.
-static inline void _gpDropOrphanedWeaponLoads(void);
+static inline void _equipmentClearOrphanedWeaponLoads(void);
 
 static void _uiVisitChildObjects(const UiObject* object, UiObjectTaskFunc visitChild);
 
-static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1);
+static s32 _itemMenuIsTransferRestricted(s32 itemId, s32 battleFieldMode);
 
 static void _itemMenuHandlePaneChildResult(UiObject* child, Task* childTask);
 
 UiList            Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
-UiListRowCallback D_8010D6B0[1]     = { Gp_ItemMenuPrompt };
+UiListRowCallback D_8010D6B0[1]     = { _itemMenuTransferExitRow };
 UiList            Gp_ItemMenuList   = { D_8010D6B0, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 UiObjectDesc      D_8010D6D8        = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -100, -30, 200, 60 }, 36, 0, TASK_BODY_NONE, 192, Gp_ItemMoveTask, 0 };
 UiObjectDesc      D_8010D6F4[11]    = {
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 160 }, 56, 0, TASK_BODY_NONE, 192, Gp_ItemPaneTask, 0 },
-    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -104, 144, 160 }, 52, 0, TASK_BODY_NONE, 192, Gp_ItemPaneTask, 0 },
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 160 }, 56, 0, TASK_BODY_NONE, 192, _itemMenuTransferPaneTask, 0 },
+    { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -104, 144, 160 }, 52, 0, TASK_BODY_NONE, 192, _itemMenuTransferPaneTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 70, 46 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemActionListTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -100, -30, 200, 50 }, 8, 0, TASK_BODY_NONE, 192, func_800BDF6C, 0 },
+    { 0, { 0, 0, 70, 46 }, 16, 0, TASK_BODY_NONE, 192, _itemMenuTransferActionsTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -100, -30, 200, 50 }, 8, 0, TASK_BODY_NONE, 192, _itemMenuAmmoSplitTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { -58, -30, 116, 60 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemMenuListTask, 0 },
-    { 0, { -144, 64, 288, 40 }, 60, 0, TASK_BODY_NONE, 192, Gp_HolderPromptTask, 0 },
+    { 0, { -58, -30, 116, 60 }, 16, 0, TASK_BODY_NONE, 192, _itemMenuTransferExitMenuTask, 0 },
+    { 0, { -144, 64, 288, 40 }, 60, 0, TASK_BODY_NONE, 192, _itemMenuHolderPromptTask, 0 },
 };
-TaskMessageEntry D_8010D828[2] = { { CAP_ACTION_MESSAGE_REQUEST, Gp_BindItemObj2 }, { TASK_MESSAGE_TABLE_END, NULL } };
+TaskMessageEntry D_8010D828[2] = { { CAP_ACTION_MESSAGE_REQUEST, _itemPickupHandleLidActionRequest }, { TASK_MESSAGE_TABLE_END, NULL } };
 
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2.pointer, child)`.
@@ -399,7 +424,7 @@ static void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
 }
 
 /* Kept next to Gp_ItemMoveChild's jump table so the overlay .rodata stays packed;
-   Gp_StrBullet follows before func_800BDF6C. */
+   Gp_StrBullet follows before _itemMenuAmmoSplitTask. */
 static const char Gp_StrBattleField[] = "Battle Field";
 static const char Gp_StrItemBox[]     = "Item Box";
 static const char Gp_StrPlayerItem[]  = "Player Item";
@@ -570,362 +595,405 @@ void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1)
     }
 }
 
-/// The inventory scan an item pane lists; the pane's `spawnArg1` selects which
-/// of the two side-by-side scans it shows.
-static inline InventoryItemRange* _gpItemPaneScan(Task* task)
+/// Tests transfer restrictions without changing the selected row or context.
+///
+/// itemId must index the catalogue; battleFieldMode == 1 enforces NO_DISCARD.
+/// The Acropolis container kind 0x703 separately keeps the M93R in place.
+static inline s32 _itemMenuCheckTransferRestriction(s32 itemId, s32 battleFieldMode)
+{
+    s32 restricted;
+
+    restricted = 0;
+    if (Gp_ItemDescs[itemId].flags & ITEM_FLAG_NO_DISCARD) {
+        restricted = battleFieldMode == 1;
+    }
+    if ((Gp_MoveItemKey == ITEM_MENU_M93R_RESTRICTED_CONTAINER_KIND) && (itemId == ITEM_MENU_M93R_ITEM_ID) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == GAME_STAGE_ACROPOLIS)) {
+        restricted = 1;
+    }
+    return restricted;
+}
+
+/// Returns the borrowed item range selected by a transfer pane.
+///
+/// The pane task's first spawn word must already be normalized to index 0
+/// (container) or 1 (carried items). The screen owns the copied descriptors;
+/// their backing rows must remain live throughout the transfer screen.
+static inline InventoryItemRange* _itemMenuGetPaneRange(const Task* task)
 {
     return &Gp_MoveScanSrc + task->spawnArg1.value;
 }
 
-void Gp_ItemPaneTask(Task* arg0)
+/// Visits pane dialogs, allowing the callback to detach the current child.
+///
+/// Saves the successor before the call and compares it to the current head
+/// afterwards; the saved successor and pane owner must remain live.
+static inline void _itemMenuVisitPaneChildren(const UiObject* object, UiObjectTaskFunc visitChild)
 {
-    UiObject*           obj;
-    UiList*             menu;
-    InventoryItemRange* scan;
-    s32                 count;
-    s32                 n;
-    s32                 status;
-    Task*               owner;
-    Task*               child;
-    Task*               next;
-    Task*               head;
-    UiObjectTaskFunc    cb;
+    Task* owningTask;
+    Task* childTask;
+    Task* nextSibling;
+    Task* childHead;
 
-    menu        = &Gp_InvLists[(u8)arg0->spawnArg1.value];
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->state == 0) {
-        if (arg0->spawnArg1.value >= 0x100) {
-            arg0->spawnArg1.value = arg0->spawnArg1.value & 0xFF;
-            arg0->status          = 1;
+    owningTask = object->owner;
+    childTask  = owningTask->firstChild;
+    if (childTask != NULL) {
+        do {
+            nextSibling = childTask->nextSibling;
+            visitChild(childTask->spawnArg2.pointer, childTask);
+            childHead = owningTask->firstChild;
+            childTask = nextSibling;
+            if (childHead == NULL) {
+                break;
+            }
+        } while (childTask != childHead);
+    }
+}
+
+/// Updates one inventory pane of the container/carried-item transfer screen.
+///
+/// spawnArg2 borrows its live task-owned UiObject; spawnArg1 selects pane 0
+/// or 1, optionally with BATTLE_FIELD_FLAG. Initialization strips that flag,
+/// records the title mode in status and enters BROWSING. The parent can put
+/// the pane in CHOOSING_SWAP_PARTNER. Uses a shared list per pane, displaying
+/// at most ten rows. Publishes cancel, cancel-swap or change-pane commands
+/// and visits child dialogs while tolerating removal of the current child.
+/// Requires live range backing, menu resources and writable GPU storage.
+static void _itemMenuTransferPaneTask(Task* task)
+{
+    UiObject*           object;
+    UiList*             list;
+    InventoryItemRange* range;
+    s32                 paneCapacity;
+    s32                 rowsExceedCapacity;
+    s32                 itemCount;
+    s32                 panelControl;
+
+    list           = &Gp_InvLists[(u8)task->spawnArg1.value];
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == 0) {
+        if (task->spawnArg1.value >= ITEM_MENU_PANE_BATTLE_FIELD_FLAG) {
+            task->spawnArg1.value = task->spawnArg1.value & ITEM_MENU_PANE_INDEX_MASK;
+            task->status          = ITEM_MENU_PANE_MODE_BATTLE_FIELD;
         } else {
-            arg0->status = 0;
+            task->status = ITEM_MENU_PANE_MODE_ITEM_BOX;
         }
         {
-            s32 val;
+            s32 rowCount;
 
-            val                                 = _gpItemPaneScan(arg0)->rowCount;
-            menu->itemCount                     = val;
-            menu->visibleRowCount.unsignedValue = val;
-            if ((s8)val >= 0xB) {
-                menu->visibleRowCount.unsignedValue = 0xA;
+            rowCount                            = _itemMenuGetPaneRange(task)->rowCount;
+            list->itemCount                     = rowCount;
+            list->visibleRowCount.unsignedValue = rowCount;
+            if ((s8)rowCount > ITEM_MENU_PANE_VISIBLE_ROWS) {
+                list->visibleRowCount.unsignedValue = ITEM_MENU_PANE_VISIBLE_ROWS;
             }
         }
-        menu->selectedItemIndex                   = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        uiFitPanelToList(menu, &(obj)->panel);
-        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        arg0->state = arg0->state + 1;
+        list->selectedItemIndex                   = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
+        uiFitPanelToList(list, &(object)->panel);
+        list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        task->state = task->state + 1;
     }
 
-    if (arg0->spawnArg1.value == 0) {
-        if (arg0->status == 1) {
-            uiDrawPanelLabel(&(obj)->panel, Gp_StrBattleField);
+    if (task->spawnArg1.value == ITEM_MENU_PANE_CONTAINER) {
+        if (task->status == ITEM_MENU_PANE_MODE_BATTLE_FIELD) {
+            uiDrawPanelLabel(&(object)->panel, Gp_StrBattleField);
         } else {
-            uiDrawPanelLabel(&(obj)->panel, Gp_StrItemBox);
+            uiDrawPanelLabel(&(object)->panel, Gp_StrItemBox);
         }
     } else {
-        uiDrawPanelLabel(&(obj)->panel, Gp_StrPlayerItem);
+        uiDrawPanelLabel(&(object)->panel, Gp_StrPlayerItem);
     }
-    uiRefreshListViewport(menu, &(obj)->panel);
-    menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-    if (menu->selectedItemIndex >= menu->itemCount) {
-        menu->selectedItemIndex = menu->itemCount - 1;
+    uiRefreshListViewport(list, &(object)->panel);
+    list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+    if (list->selectedItemIndex >= list->itemCount) {
+        list->selectedItemIndex = list->itemCount - 1;
     }
-    n = menu->itemCount;
-    if (menu->visibleRowCount.signedValue >= n) {
-        menu->firstVisibleItemIndex.unsignedValue = 0;
+    itemCount = list->itemCount;
+    if (list->visibleRowCount.signedValue >= itemCount) {
+        list->firstVisibleItemIndex.unsignedValue = 0;
     }
-    if (menu->itemCount != 0) {
-        uiUpdateList(menu, &obj->panel);
+    if (list->itemCount != 0) {
+        uiUpdateList(list, &object->panel);
     }
 
-    scan  = _gpItemPaneScan(arg0);
-    count = scan->rowCount;
-    count = count < inventoryCountOccupiedRows(scan);
-    if (count != 0) {
-        obj->panel.style |= USER_INTERFACE_PANEL_SCREEN_BRIGHTEN;
+    // Preserve the overflow-highlight path; bounded ranges cannot exceed their capacity.
+    range              = _itemMenuGetPaneRange(task);
+    paneCapacity       = range->rowCount;
+    rowsExceedCapacity = paneCapacity < inventoryCountOccupiedRows(range);
+    if (rowsExceedCapacity != 0) {
+        object->panel.style |= USER_INTERFACE_PANEL_SCREEN_BRIGHTEN;
     } else {
-        obj->panel.style &= ~USER_INTERFACE_PANEL_SCREEN_BRIGHTEN;
+        object->panel.style &= ~USER_INTERFACE_PANEL_SCREEN_BRIGHTEN;
     }
 
-    status = obj->panel.control.word;
-    if (status == 1) {
-        if (menu->itemCount == 0) {
-            uiEaseAndDrawCursor(&(obj)->panel, obj->panel.contentLeft.signedValue + 4, obj->panel.contentTop.signedValue + 0xA);
+    panelControl = object->panel.control.word;
+    if (panelControl == USER_INTERFACE_PANEL_ACTIVE) {
+        if (list->itemCount == 0) {
+            uiEaseAndDrawCursor(&(object)->panel, object->panel.contentLeft.signedValue + 4, object->panel.contentTop.signedValue + 0xA);
         }
-        if (arg0->state == status) {
+        if (task->state == ITEM_MENU_PANE_BROWSING) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                obj->result             = USER_INTERFACE_RESULT_CANCEL;
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                object->result             = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                obj->result             = USER_INTERFACE_RESULT_CANCEL;
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                object->result             = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
-                if ((arg0->spawnArg1.value == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) || (arg0->spawnArg1.value == status && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
+                if ((task->spawnArg1.value == ITEM_MENU_PANE_CONTAINER && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) || (task->spawnArg1.value == ITEM_MENU_PANE_CARRIED && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                    obj->result = 0xA;
+                    object->result = ITEM_MENU_RESULT_CHANGE_PANE;
                 }
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-            obj->result = 0x24;
+            object->result = ITEM_MENU_RESULT_CANCEL_SWAP;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
-            if ((arg0->spawnArg1.value == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) || (arg0->spawnArg1.value == status && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
-                obj->result = 0xA;
+            if ((task->spawnArg1.value == ITEM_MENU_PANE_CONTAINER && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) || (task->spawnArg1.value == ITEM_MENU_PANE_CARRIED && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
+                object->result = ITEM_MENU_RESULT_CHANGE_PANE;
             }
         }
     }
 
-    cb    = _itemMenuHandlePaneChildResult;
-    owner = obj->owner;
-    child = owner->firstChild;
-    if (child != NULL) {
-        do {
-            next = child->nextSibling;
-            cb(child->spawnArg2.pointer, child);
-            head  = owner->firstChild;
-            child = next;
-            if (head == NULL) {
-                break;
-            }
-        } while (child != head);
-    }
+    _itemMenuVisitPaneChildren(object, _itemMenuHandlePaneChildResult);
 }
 
-void func_800BD6DC(UiList* arg0, UiObject* arg1)
+void itemMenuDrawTransferMoveRow(UiList* list, UiObject* object)
 {
-    TextDrawReq       req;
-    s32               flags;
-    InventoryItemRow* rec;
-    Task*             scanOwner;
-    Task*             owner;
-    s32               idx;
-    s32               selected;
-    s32               restricted;
-    s32               prompt;
-    s32               chooseQty;
-    s32               qty;
-    s32               item;
+    TextDrawReq       textRequest;
+    s32               battleFieldMode;
+    InventoryItemRow* selectedRow;
+    Task*             rangeTask;
+    Task*             actionTask;
+    s32               paneIndex;
+    s32               rowInputEnabled;
+    s32               transferRestricted;
+    s32               noticeId;
+    s32               chooseQuantity;
+    s32               quantity;
+    s32               itemId;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrMove2);
-    selected = arg0->rowInputEnabled;
-    if ((selected == 1) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
-        prompt    = -1;
-        chooseQty = 0;
-        idx       = arg1->owner->spawnArg1.value;
-        rec       = inventoryGetRow((&Gp_MoveScanSrc + (idx)), Gp_InvLists[idx].selectedItemIndex, 0);
-        item      = rec->itemId;
-        qty       = rec->qty;
+    textRequest.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    textRequest.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+    textRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    textRequest.colorRgb   = list->colorRgb;
+    textRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    textRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    textRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&textRequest, Gp_StrMove2);
+    rowInputEnabled = list->rowInputEnabled;
+    if ((rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+        noticeId       = -1;
+        chooseQuantity = 0;
+        paneIndex      = object->owner->spawnArg1.value;
+        selectedRow    = inventoryGetRow((&Gp_MoveScanSrc + (paneIndex)), Gp_InvLists[paneIndex].selectedItemIndex, 0);
+        itemId         = selectedRow->itemId;
+        quantity       = selectedRow->qty;
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        if ((u32)(item - 0xA0) < 0x20U) {
-            scanOwner = arg1->owner;
-            if (scanOwner->status != 0) {
-                if ((inventoryFindLastItemRowInRange(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1))) == NULL) && (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) == 0)) {
-                    prompt = 6;
+        // Item-box ammunition uses a quantity selector; battlefield stacks move whole.
+        if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+            rangeTask = object->owner;
+            if (rangeTask->status != 0) {
+                if ((inventoryFindLastItemRowInRange(itemId, (&Gp_MoveScanSrc + (rangeTask->spawnArg1.value ^ 1))) == NULL) && (inventoryCanAddItem((&Gp_MoveScanSrc + (object->owner->spawnArg1.value ^ 1)), itemId) == 0)) {
+                    noticeId = ITEM_MENU_NOTICE_NO_TRANSFER_SPACE;
                 }
-            } else if ((inventoryGetItemQuantity((&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1)), item) != 0) || (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0)) {
-                chooseQty = 1;
+            } else if ((inventoryGetItemQuantity((&Gp_MoveScanSrc + (rangeTask->spawnArg1.value ^ 1)), itemId) != 0) || (inventoryCanAddItem((&Gp_MoveScanSrc + (object->owner->spawnArg1.value ^ 1)), itemId) != 0)) {
+                chooseQuantity = 1;
             } else {
-                prompt = 6;
+                noticeId = ITEM_MENU_NOTICE_NO_TRANSFER_SPACE;
             }
-        } else if (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0) {
-            owner      = arg1->owner;
-            flags      = owner->parent->status;
-            restricted = 0;
-            if (Gp_ItemDescs[item].flags & ITEM_FLAG_NO_DISCARD) {
-                restricted = flags == 1;
-            }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == selected)) {
-                restricted = 1;
-            }
-            if (restricted != 0) {
-                prompt = 0x1E;
-            } else if ((u32)(item - 0x80) < 0x20U) {
-                if ((arg1->owner->spawnArg1.value != 1) || (item != (gPlayerStatus.weapon + 0x7F))) {
-                    if (prompt == -1) {
-                        equipmentClearRemovableLoads(item);
+        } else if (inventoryCanAddItem((&Gp_MoveScanSrc + (object->owner->spawnArg1.value ^ 1)), itemId) != 0) {
+            actionTask         = object->owner;
+            battleFieldMode    = actionTask->parent->status;
+            transferRestricted = _itemMenuCheckTransferRestriction(itemId, battleFieldMode);
+            if (transferRestricted != 0) {
+                noticeId = ITEM_MENU_NOTICE_CANNOT_MOVE_ITEM;
+            } else if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < (u32)ITEM_MENU_EQUIPMENT_ITEM_COUNT) {
+                if ((object->owner->spawnArg1.value != 1) || (itemId != (gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1)))) {
+                    if (noticeId == -1) {
+                        equipmentClearRemovableLoads(itemId);
                     }
                 } else {
-                    prompt = 7;
+                    noticeId = ITEM_MENU_NOTICE_CANNOT_MOVE_EQUIPPED_ITEM;
                 }
-            } else if (((u32)(item - 0x60) < 0x20U) && (arg1->owner->spawnArg1.value == 1) && (item == (gPlayerStatus.armor + 0x5F))) {
-                prompt = 7;
+            } else if (((u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < (u32)ITEM_MENU_EQUIPMENT_ITEM_COUNT) && (object->owner->spawnArg1.value == 1) && (itemId == (gPlayerStatus.armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1)))) {
+                noticeId = ITEM_MENU_NOTICE_CANNOT_MOVE_EQUIPPED_ITEM;
             }
         } else {
-            prompt = 6;
+            noticeId = ITEM_MENU_NOTICE_NO_TRANSFER_SPACE;
         }
-        if (prompt >= 0) {
-            itemMenuSpawnNotice(arg1, prompt, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        if (noticeId >= 0) {
+            itemMenuSpawnNotice(object, noticeId, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             return;
         }
-        if (chooseQty == 1) {
-            if (uiSpawnObject(&D_8010D6F4[5], item, 1, 1, arg1) != NULL) {
-                arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        // Show a preview or commit the whole selected row to the opposite pane.
+        if (chooseQuantity == 1) {
+            if (uiSpawnObject(&D_8010D6F4[5], itemId, 1, 1, object) != NULL) {
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else {
-            inventoryRemoveItemRow((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value)), rec, qty);
-            inventoryGiveItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item, qty);
-            arg1->result = USER_INTERFACE_RESULT_CONFIRM;
+            inventoryRemoveItemRow((&Gp_MoveScanSrc + (object->owner->spawnArg1.value)), selectedRow, quantity);
+            inventoryGiveItem((&Gp_MoveScanSrc + (object->owner->spawnArg1.value ^ 1)), itemId, quantity);
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
 
-void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1)
+void itemMenuDrawSwitchRow(UiList* list, UiObject* object)
 {
-    TextDrawReq       req;
-    s32               selected;
-    s32               idx;
-    InventoryItemRow* rec;
-    s32               item;
-    s32               flag;
-    s32               flags;
-    Task*             owner;
-    PlayerStatus*     cfg;
+    TextDrawReq             textRequest;
+    s32                     rowInputEnabled;
+    s32                     paneIndex;
+    const InventoryItemRow* selectedRow;
+    s32                     itemId;
+    s32                     transferRestricted;
+    s32                     battleFieldMode;
+    Task*                   actionTask;
+    const PlayerStatus*     player;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrSwitch);
+    textRequest.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    textRequest.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+    textRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    textRequest.colorRgb   = list->colorRgb;
+    textRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    textRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    textRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&textRequest, Gp_StrSwitch);
 
-    selected = arg0->rowInputEnabled;
-    if (selected == 1) {
+    rowInputEnabled = list->rowInputEnabled;
+    if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            idx  = arg1->owner->spawnArg1.value;
-            rec  = inventoryGetRow(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].selectedItemIndex, 0);
-            item = rec->itemId;
+            paneIndex   = object->owner->spawnArg1.value;
+            selectedRow = inventoryGetRow(&Gp_MoveScanSrc + paneIndex, Gp_InvLists[paneIndex].selectedItemIndex, 0);
+            itemId      = selectedRow->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
 
-            owner = arg1->owner;
-            flags = owner->parent->status;
-            flag  = 0;
-            if (Gp_ItemDescs[item].flags & ITEM_FLAG_NO_DISCARD) {
-                flag = flags == 1;
-            }
-            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == selected)) {
-                flag = 1;
-            }
-            if (flag) {
-                itemMenuSpawnNotice(arg1, ITEM_MENU_NOTICE_CANNOT_MOVE_ITEM, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
-                arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            } else if (arg1->owner->spawnArg1.value == 1) {
-                cfg = &gPlayerStatus;
-                if ((item == cfg->weapon + 0x7F) || (item == cfg->armor + 0x5F)) {
-                    itemMenuSpawnNotice(arg1, ITEM_MENU_NOTICE_CANNOT_MOVE_EQUIPPED_ITEM, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
-                    arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            actionTask         = object->owner;
+            battleFieldMode    = actionTask->parent->status;
+            transferRestricted = _itemMenuCheckTransferRestriction(itemId, battleFieldMode);
+            if (transferRestricted) {
+                itemMenuSpawnNotice(object, ITEM_MENU_NOTICE_CANNOT_MOVE_ITEM, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            } else if (object->owner->spawnArg1.value == 1) {
+                player = &gPlayerStatus;
+                if ((itemId == player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1)) || (itemId == player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) {
+                    itemMenuSpawnNotice(object, ITEM_MENU_NOTICE_CANNOT_MOVE_EQUIPPED_ITEM, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
+                    object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 } else {
-                    arg1->result = 0x23;
+                    object->result = ITEM_MENU_RESULT_BEGIN_SWAP;
                 }
             } else {
-                arg1->result = 0x23;
+                object->result = ITEM_MENU_RESULT_BEGIN_SWAP;
             }
         }
     }
 }
 
-/// Fills `Gp_ItemActionFns` and `arg0->field_4` / `field_5` from the selected
-/// inventory row (`Gp_MoveScanSrc[spawnArg1]` / `Gp_InvLists[spawnArg1].field_10`).
-static void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
+/// Builds the Move, Switch and Use rows for the currently selected transfer item.
+///
+/// Borrows a writable action list and its task-owned object. Its owner carries
+/// pane index 0/1 and the inherited battle-field mode; that pane's shared list
+/// selects a valid inventory row. An empty/missing row offers only Switch.
+/// Item-box consumables omit Switch; the supported recovery/use items add Use.
+/// Writes at most three shared callbacks and sets both row counts to that size.
+static void _itemMenuFillTransferActions(UiList* list, UiObject* object)
 {
-    InventoryItemRow*   rec;
-    s32                 item;
-    s32                 count;
-    s32                 idx;
-    UiListRowCallback*  table;
-    Task*               owner;
-    InventoryItemRange* scan;
+    const InventoryItemRow* selectedRow;
+    s32                     itemId;
+    s32                     actionCount;
+    s32                     paneIndex;
+    UiListRowCallback*      callbacks;
+    Task*                   actionTask;
+    InventoryItemRange*     range;
 
-    owner = arg1->owner;
-    idx   = owner->spawnArg1.value;
-    scan  = &Gp_MoveScanSrc + idx;
-    rec   = inventoryGetRow(scan, Gp_InvLists[idx].selectedItemIndex, 0);
-    item  = 0;
-    if (rec != NULL) {
-        item = rec->itemId;
+    actionTask  = object->owner;
+    paneIndex   = actionTask->spawnArg1.value;
+    range       = &Gp_MoveScanSrc + paneIndex;
+    selectedRow = inventoryGetRow(range, Gp_InvLists[paneIndex].selectedItemIndex, 0);
+    itemId      = INVENTORY_ITEM_NONE;
+    if (selectedRow != NULL) {
+        itemId = selectedRow->itemId;
     }
-    if (item == 0) {
-        Gp_ItemActionFns[0] = Gp_ItemActionConfirm;
-        count               = 1;
+    if (itemId == INVENTORY_ITEM_NONE) {
+        Gp_ItemActionFns[0] = itemMenuDrawSwitchRow;
+        actionCount         = 1;
     } else {
-        Gp_ItemActionFns[0] = func_800BD6DC;
-        table               = Gp_ItemActionFns;
-        count               = 1;
-        if (((u32)(item - 0xA0) >= 0x20U) || (arg1->owner->status != 0)) {
-            table[1] = Gp_ItemActionConfirm;
-            count    = 2;
+        Gp_ItemActionFns[0] = itemMenuDrawTransferMoveRow;
+        callbacks           = Gp_ItemActionFns;
+        actionCount         = 1;
+        if (((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) >= (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) || (object->owner->status != 0)) {
+            callbacks[1] = itemMenuDrawSwitchRow;
+            actionCount  = 2;
         }
-        if (((u32)(item - 1) < 3U) || (item == 5) || (item == 6) || (item == 7) || (item == 0x3C) || (item == 0x3D)) {
-            Gp_ItemActionFns[count] = itemMenuDrawUseRow;
-            count                   = count + 1;
+        if (((u32)(itemId - ITEM_MENU_ITEM_RECOVERY_FIRST) < (u32)ITEM_MENU_ITEM_RECOVERY_COUNT) || (itemId == ITEM_MENU_ITEM_COLA) || (itemId == ITEM_MENU_ITEM_MP_BOOST1) || (itemId == ITEM_MENU_ITEM_MP_BOOST2) || (itemId == ITEM_MENU_ITEM_PROTEIN_CAPSULE) || (itemId == ITEM_MENU_ITEM_RINGER)) {
+            Gp_ItemActionFns[actionCount] = itemMenuDrawUseRow;
+            actionCount                   = actionCount + 1;
         }
     }
-    arg0->visibleRowCount.unsignedValue = count;
-    arg0->itemCount                     = count;
+    list->visibleRowCount.unsignedValue = actionCount;
+    list->itemCount                     = actionCount;
 }
 
-void Gp_ItemActionListTask(Task* arg0)
+/// Updates the selected item's transfer-action popup and forwards child results.
+///
+/// spawnArg2 borrows its live task-owned UiObject and spawnArg1 is pane 0/1.
+/// On initialization inherits the pane's title mode, keeps the popup's bottom
+/// at or above screen Y=100 pixels and builds the action rows. Menu returns
+/// cancel in item-box mode and confirm in battle-field mode; Cancel returns
+/// confirm. A child's dismiss becomes confirm; a child's confirm closes the
+/// child and restores popup input. Uses the shared singleton action list.
+static void _itemMenuTransferActionsTask(Task* task)
 {
     Task*     childTask;
-    UiObject* obj;
-    UiList*   menu;
-    UiObject* child;
-    s32       flag;
-    Task*     parent;
+    UiObject* object;
+    UiList*   list;
+    UiObject* childObject;
+    s32       childResult;
+    Task*     parentTask;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    menu        = &Gp_ItemActionList;
-    if (arg0->state == 0) {
-        parent = arg0->parent;
-        if (parent != NULL) {
-            arg0->status = parent->status;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    list           = &Gp_ItemActionList;
+    if (task->state == 0) {
+        parentTask = task->parent;
+        if (parentTask != NULL) {
+            task->status = parentTask->status;
         }
-        if (((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h) >= 0x65) {
-            obj->panel.bounds.unsignedRect.y = 0x64 - obj->panel.bounds.unsignedRect.h;
+        if (((s16)object->panel.bounds.unsignedRect.y + (s16)object->panel.bounds.unsignedRect.h) > ITEM_MENU_ACTION_PANEL_BOTTOM) {
+            object->panel.bounds.unsignedRect.y = ITEM_MENU_ACTION_PANEL_BOTTOM - object->panel.bounds.unsignedRect.h;
         }
-        Gp_FillItemActions(menu, obj);
-        uiFitPanelToList(menu, &(obj)->panel);
-        arg0->state = arg0->state + 1;
+        _itemMenuFillTransferActions(list, object);
+        uiFitPanelToList(list, &(object)->panel);
+        task->state = task->state + 1;
     }
-    uiUpdateList(menu, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    uiUpdateList(list, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            if (obj->owner->status != 0) {
-                obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            if (object->owner->status != 0) {
+                object->result = USER_INTERFACE_RESULT_CONFIRM;
             } else {
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                obj->result             = USER_INTERFACE_RESULT_CANCEL;
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                object->result             = USER_INTERFACE_RESULT_CANCEL;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
-    childTask = arg0->firstChild;
+    childTask = task->firstChild;
     if (childTask != NULL) {
-        child = childTask->spawnArg2.pointer;
-        flag  = child->result;
-        switch (flag) {
+        childObject = childTask->spawnArg2.pointer;
+        childResult = childObject->result;
+        switch (childResult) {
             case USER_INTERFACE_RESULT_CANCEL:
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                obj->result             = flag;
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                object->result             = childResult;
                 break;
             case USER_INTERFACE_RESULT_DISMISS:
-                obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                object->result = USER_INTERFACE_RESULT_CONFIRM;
                 break;
             case USER_INTERFACE_RESULT_CONFIRM:
-                obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-                uiStartTreeClosing(child, child->owner);
+                object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+                uiStartTreeClosing(childObject, childObject->owner);
                 break;
         }
     }
@@ -933,79 +1001,191 @@ void Gp_ItemActionListTask(Task* arg0)
 
 static const char Gp_StrBullet[] = "Bullet";
 
-void func_800BDF6C(Task* task)
+/// Adjusts the preview stacks for directional input, preserving total and loaded rounds.
+///
+/// Requires an active live panel, valid split work and pad repeat state.
+/// Clamps both sides to capacity and carried rounds to the loaded minimum;
+/// updates only the preview and the task's notice status.
+static inline void _itemMenuAdjustAmmoSplitQuantities(Task* task, _ItemMenuAmmoSplitWork* split, PadState* pad, s32 repeatStep)
 {
-    u8                      buf[0x20];
-    s32                     color;
+    s32 loadedQuantity;
+    s32 loadedMinimum;
+    s32 stepToContainer;
+    s32 containerAfterMove;
+    s32 containerLimit;
+    s32 carriedAfterStep;
+    s32 containerAfterStep;
+    s32 carriedAfterClamp;
+    s32 carriedLimit;
+    s32 containerToMove;
+    s32 moveAllLimit;
+    s32 combinedQty;
+
+    // Step between sides, clamping to stack capacity and the loaded minimum.
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
+            loadedQuantity = split->carriedQty;
+            loadedMinimum  = split->loadedQty;
+            if (loadedMinimum < loadedQuantity) {
+                stepToContainer = 1;
+                if (pad->directionRepeatTicks >= (u32)ITEM_MENU_AMMO_ACCELERATE_REPEAT_TICKS) {
+                    stepToContainer = repeatStep;
+                }
+                split->containerQty += stepToContainer;
+                split->carriedQty   -= stepToContainer;
+                if (split->carriedQty < split->loadedQty) {
+                    split->containerQty += split->carriedQty - split->loadedQty;
+                    split->carriedQty    = split->loadedQty;
+                }
+                containerAfterMove = split->containerQty;
+                containerLimit     = split->stackLimit;
+                if (containerLimit < containerAfterMove) {
+                    split->containerQty = containerLimit;
+                    split->carriedQty   = split->carriedQty + (containerAfterMove - containerLimit);
+                    task->status        = ITEM_MENU_AMMO_NOTICE_CAPACITY;
+                }
+            } else if (loadedMinimum > 0) {
+                task->status = ITEM_MENU_AMMO_NOTICE_LOADED;
+            }
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
+            {
+                s32 step;
+
+                step = 1;
+                if (pad->directionRepeatTicks >= (u32)ITEM_MENU_AMMO_ACCELERATE_REPEAT_TICKS) {
+                    step = repeatStep;
+                }
+                split->containerQty = split->containerQty - step;
+                carriedAfterStep    = split->carriedQty + step;
+                split->carriedQty   = carriedAfterStep;
+                containerAfterStep  = split->containerQty;
+                if (containerAfterStep < 0) {
+                    split->carriedQty   = carriedAfterStep + containerAfterStep;
+                    split->containerQty = 0;
+                }
+            }
+            carriedAfterClamp = split->carriedQty;
+            carriedLimit      = split->stackLimit;
+            if (carriedLimit < carriedAfterClamp) {
+                split->carriedQty   = carriedLimit;
+                split->containerQty = split->containerQty + (carriedAfterClamp - carriedLimit);
+                task->status        = ITEM_MENU_AMMO_NOTICE_CAPACITY;
+            }
+        }
+    }
+    // The perpendicular axis suppresses the bulk-transfer shortcuts.
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT | PAD_BUTTON_LEFT) == 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_L1 | PAD_BUTTON_UP) != 0) {
+            if (split->carriedQty > split->loadedQty) {
+                s32 total;
+
+                total  = split->containerQty + split->carriedQty;
+                total -= split->loadedQty;
+                if (total < split->stackLimit) {
+                    split->carriedQty   = split->loadedQty;
+                    split->containerQty = total;
+                } else {
+                    split->containerQty = split->stackLimit;
+                    split->carriedQty   = split->loadedQty + (total - split->stackLimit);
+                    task->status        = ITEM_MENU_AMMO_NOTICE_CAPACITY;
+                }
+            } else if (split->loadedQty > 0) {
+                task->status = ITEM_MENU_AMMO_NOTICE_LOADED;
+            }
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_R2 | PAD_BUTTON_R1 | PAD_BUTTON_DOWN) != 0) {
+            containerToMove = split->containerQty;
+            if (containerToMove > 0) {
+                moveAllLimit = split->stackLimit;
+                combinedQty  = containerToMove + split->carriedQty;
+                if (combinedQty < moveAllLimit) {
+                    split->carriedQty   = combinedQty;
+                    split->containerQty = 0;
+                } else {
+                    split->carriedQty   = moveAllLimit;
+                    split->containerQty = combinedQty - split->stackLimit;
+                    task->status        = ITEM_MENU_AMMO_NOTICE_CAPACITY;
+                }
+            }
+        }
+    }
+}
+
+/// Divides one ammunition stack between container and carried inventories.
+///
+/// spawnArg1 is a consumable id 0xA0..0xBF; spawnArg2 borrows the live
+/// quantity-panel object. Allocates task-owned split work on initialization;
+/// allocation failure returns DISMISS. Quantities count rounds, including
+/// loaded carried rounds which remain immovable. The combined quantity must
+/// be positive, the drawn bar width positive, both ranges valid, and loaded
+/// rounds no greater than the carried total. Left/Right move one round (or
+/// accelerated steps after 20 repeat ticks); Up/L1/L2 and Down/R1/R2 move all
+/// movable rounds toward container and carried items respectively. Confirm
+/// commits only the difference and returns DISMISS. Cancel dismisses without
+/// committing; Menu returns CANCEL and deactivates input. Notice lifetime is
+/// 188 callback ticks. Requires menu textures and writable GPU/OT storage.
+static void _itemMenuAmmoSplitTask(Task* task)
+{
+    u8                      quantityText[0x20];
+    s32                     carriedColorRgb;
     s32                     width;
-    s32                     widthM2;
-    s32                     half;
+    s32                     barInteriorWidth;
+    s32                     barLeft;
     LINE_F2*                line;
-    UiObject*               obj;
+    UiObject*               object;
     s16                     panelY;
-    s16                     coord;
-    s32                     srcLimit;
-    s32                     remaining;
-    s32                     dstLimit;
-    s32                     moveAllLimit;
-    s32                     sourceQty;
-    s32                     equippedWidth;
+    s16                     lineCoordinate;
+    s32                     containerQuantity;
+    s32                     loadedBarWidth;
     s32                     textY;
     s32                     splitWidth;
     s32                     caretX;
-    s32                     status;
+    s32                     panelControl;
     s32                     caretY;
     s32                     usableWidth;
-    s32                     srcTotal;
-    s32                     dstTotal;
-    s32                     destAfterStep;
+    s32                     containerInitialQty;
+    s32                     carriedInitialQty;
     s32                     negWidth;
     s32                     halfWidth;
-    s32                     qty;
+    s32                     loadedQuantity;
     s32                     totalQty;
-    s32                     equipped;
-    s32                     srcAfterMove;
-    s32                     destAfterClamp;
-    s32                     sourceToMove;
-    s32                     combinedQty;
-    s32                     destQty;
+    s32                     carriedQuantity;
     s32                     repeatStep;
     s32                     transferQty;
-    s32                     stepToSource;
-    u8                      message;
-    s16                     result;
+    u8                      noticeStatus;
+    s16                     noticeTicksRemaining;
     PadState*               pad;
-    InventoryItemRange*     sourceScan;
-    InventoryItemRange*     dstScan;
+    InventoryItemRange*     containerRange;
+    InventoryItemRange*     carriedRange;
     _ItemMenuAmmoSplitWork* split;
 
-    obj         = task->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    width       = (obj->panel.contentRight.signedValue - obj->panel.contentLeft.signedValue) - 0x50;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrBullet);
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    width          = (object->panel.contentRight.signedValue - object->panel.contentLeft.signedValue) - 0x50;
+    uiDrawPanelLabel(&(object)->panel, Gp_StrBullet);
+    // Snapshot both stacks; loaded carried rounds stay on the carried side.
     if (task->state == 0) {
         split = memCalloc(sizeof(*split), 0);
         if (split == NULL) {
-            obj->result = USER_INTERFACE_RESULT_DISMISS;
+            object->result = USER_INTERFACE_RESULT_DISMISS;
             return;
         }
         task->work                 = split;
-        srcTotal                   = inventoryGetConsumableStackQuantity(&Gp_MoveScanSrc, task->spawnArg1.value);
-        split->containerQty        = srcTotal;
-        split->containerInitialQty = srcTotal;
-        dstTotal                   = inventoryGetConsumableStackQuantity(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
-        split->carriedQty          = dstTotal;
-        split->carriedInitialQty   = dstTotal;
+        containerInitialQty        = inventoryGetConsumableStackQuantity(&Gp_MoveScanSrc, task->spawnArg1.value);
+        split->containerQty        = containerInitialQty;
+        split->containerInitialQty = containerInitialQty;
+        carriedInitialQty          = inventoryGetConsumableStackQuantity(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
+        split->carriedQty          = carriedInitialQty;
+        split->carriedInitialQty   = carriedInitialQty;
         split->loadedQty           = equipmentGetLoadedConsumableQuantity(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
         uiSetPromptText(Gp_StrSetAmmoHelp, 0, 0);
-        split->stackLimit = Gp_StackLimits[task->spawnArg1.value - 0xA0].maxHeld;
+        split->stackLimit = Gp_StackLimits[task->spawnArg1.value - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
         task->state       = task->state + 1;
     }
     split = task->work;
-    itemMenuDrawItemRow(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, task->spawnArg1.value, 0x606060, 0);
-    task->status = 0;
-    totalQty     = split->containerQty + split->carriedQty;
-    color        = 0x606060;
+    itemMenuDrawItemRow(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, task->spawnArg1.value, ITEM_MENU_NORMAL_COLOR_RGB, 0);
+    task->status    = ITEM_MENU_AMMO_NOTICE_NONE;
+    totalQty        = split->containerQty + split->carriedQty;
+    carriedColorRgb = ITEM_MENU_NORMAL_COLOR_RGB;
     if (width < totalQty) {
         repeatStep = totalQty / width;
     } else {
@@ -1015,268 +1195,199 @@ void func_800BDF6C(Task* task)
     if (pad->directionRepeatTicks != 0) {
         pad->directionRepeatTicks += gDisplayState.frameTicks * 2;
     }
-    status = obj->panel.control.word;
-    if (status == 1) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-                qty      = split->carriedQty;
-                equipped = split->loadedQty;
-                if (equipped < qty) {
-                    stepToSource = 1;
-                    if (pad->directionRepeatTicks >= 0x14U) {
-                        stepToSource = repeatStep;
-                    }
-                    split->containerQty += stepToSource;
-                    split->carriedQty   -= stepToSource;
-                    if (split->carriedQty < split->loadedQty) {
-                        split->containerQty += split->carriedQty - split->loadedQty;
-                        split->carriedQty    = split->loadedQty;
-                    }
-                    srcAfterMove = split->containerQty;
-                    srcLimit     = split->stackLimit;
-                    if (srcLimit < srcAfterMove) {
-                        split->containerQty = srcLimit;
-                        split->carriedQty   = split->carriedQty + (srcAfterMove - srcLimit);
-                        task->status        = 2U;
-                    }
-                } else if (equipped > 0) {
-                    task->status = (u8)status;
-                }
-            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-                {
-                    s32 step;
+    panelControl = object->panel.control.word;
+    if (panelControl == USER_INTERFACE_PANEL_ACTIVE) {
+        _itemMenuAdjustAmmoSplitQuantities(task, split, pad, repeatStep);
 
-                    step = 1;
-                    if (pad->directionRepeatTicks >= 0x14U) {
-                        step = repeatStep;
-                    }
-                    split->containerQty = split->containerQty - step;
-                    destAfterStep       = split->carriedQty + step;
-                    split->carriedQty   = destAfterStep;
-                    remaining           = split->containerQty;
-                    if (remaining < 0) {
-                        split->carriedQty   = destAfterStep + remaining;
-                        split->containerQty = 0;
-                    }
-                }
-                destAfterClamp = split->carriedQty;
-                dstLimit       = split->stackLimit;
-                if (dstLimit < destAfterClamp) {
-                    split->carriedQty   = dstLimit;
-                    split->containerQty = split->containerQty + (destAfterClamp - dstLimit);
-                    task->status        = 2U;
-                }
-            }
-        }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_RIGHT | PAD_BUTTON_LEFT) == 0) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_L1 | PAD_BUTTON_UP) != 0) {
-                if (split->carriedQty > split->loadedQty) {
-                    s32 total;
-
-                    total  = split->containerQty + split->carriedQty;
-                    total -= split->loadedQty;
-                    if (total < split->stackLimit) {
-                        split->carriedQty   = split->loadedQty;
-                        split->containerQty = total;
-                    } else {
-                        split->containerQty = split->stackLimit;
-                        split->carriedQty   = split->loadedQty + (total - split->stackLimit);
-                        task->status        = 2;
-                    }
-                } else if (split->loadedQty > 0) {
-                    task->status = 1;
-                }
-            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_R2 | PAD_BUTTON_R1 | PAD_BUTTON_DOWN) != 0) {
-                sourceToMove = split->containerQty;
-                if (sourceToMove > 0) {
-                    moveAllLimit = split->stackLimit;
-                    combinedQty  = sourceToMove + split->carriedQty;
-                    if (combinedQty < moveAllLimit) {
-                        split->carriedQty   = combinedQty;
-                        split->containerQty = 0;
-                    } else {
-                        split->carriedQty   = moveAllLimit;
-                        split->containerQty = combinedQty - split->stackLimit;
-                        task->status        = 2U;
-                    }
-                }
-            }
-        }
+        // Apply only the net change; the preview has not touched inventory.
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             transferQty = split->containerQty - split->containerInitialQty;
             if (transferQty > 0) {
-                sourceScan = &Gp_MoveScanSrc;
-                inventoryGiveItem(sourceScan, task->spawnArg1.value, transferQty);
-                inventoryConsumeFirstStack(sourceScan + 1, task->spawnArg1.value, transferQty);
+                containerRange = &Gp_MoveScanSrc;
+                inventoryGiveItem(containerRange, task->spawnArg1.value, transferQty);
+                inventoryConsumeFirstStack(containerRange + 1, task->spawnArg1.value, transferQty);
             } else if (transferQty < 0) {
-                transferQty = -transferQty;
-                dstScan     = &Gp_MoveScanDst;
-                inventoryGiveItem(dstScan, task->spawnArg1.value, transferQty);
-                inventoryConsumeFirstStack(dstScan - 1, task->spawnArg1.value, transferQty);
+                transferQty  = -transferQty;
+                carriedRange = &Gp_MoveScanDst;
+                inventoryGiveItem(carriedRange, task->spawnArg1.value, transferQty);
+                inventoryConsumeFirstStack(carriedRange - 1, task->spawnArg1.value, transferQty);
             }
-            obj->result = USER_INTERFACE_RESULT_DISMISS;
+            object->result = USER_INTERFACE_RESULT_DISMISS;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            obj->result             = USER_INTERFACE_RESULT_CANCEL;
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            object->result             = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_DISMISS;
+            object->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
-    destQty = split->carriedQty;
-    if ((destQty == split->loadedQty) && (destQty > 0)) {
-        color = 0x37A78;
+    // Draw the split boundary and the immovable loaded-round segment.
+    carriedQuantity = split->carriedQty;
+    if ((carriedQuantity == split->loadedQty) && (carriedQuantity > 0)) {
+        carriedColorRgb = ITEM_MENU_LOADED_AMMO_COLOR_RGB;
     }
-    sourceQty   = split->containerQty;
-    usableWidth = width - 2;
-    widthM2     = usableWidth;
-    panelY      = obj->panel.contentTop.signedValue;
-    splitWidth  = ((s32)(sourceQty * usableWidth) / (s32)(sourceQty + split->carriedQty)) + 1;
-    textY       = panelY + 0x20;
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 0x20, textY, textItoaUnsigned(buf, (u32)sourceQty), 0x606060, TEXT_DRAW_OUTLINED,
+    containerQuantity = split->containerQty;
+    usableWidth       = width - 2;
+    barInteriorWidth  = usableWidth;
+    panelY            = object->panel.contentTop.signedValue;
+    splitWidth        = ((s32)(containerQuantity * usableWidth) / (s32)(containerQuantity + split->carriedQty)) + 1;
+    textY             = panelY + 0x20;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 0x20, textY, textItoaUnsigned(quantityText, (u32)containerQuantity), ITEM_MENU_NORMAL_COLOR_RGB, TEXT_DRAW_OUTLINED,
                    TEXT_ALIGNMENT_RIGHT);
-    textDrawUiLine(obj, obj->panel.contentRight.signedValue - 6, textY, textItoaUnsigned(buf, (u32)split->carriedQty), color, TEXT_DRAW_OUTLINED,
+    textDrawUiLine(object, object->panel.contentRight.signedValue - 6, textY, textItoaUnsigned(quantityText, (u32)split->carriedQty), carriedColorRgb, TEXT_DRAW_OUTLINED,
                    TEXT_ALIGNMENT_RIGHT);
     caretY    = panelY + 0x16;
     negWidth  = -width;
-    halfWidth = (s32)(negWidth + ((u32)negWidth >> 0x1F)) >> 1;
+    halfWidth = negWidth / 2;
     caretX    = halfWidth + splitWidth;
-    half      = halfWidth;
-    uiDrawFlatCaret(&(obj)->panel, caretX, caretY, 0x606060, USER_INTERFACE_CARET_DOWN);
-    uiDrawFlatCaret(&(obj)->panel, caretX, panelY + 0x1E, 0x606060, USER_INTERFACE_CARET_UP);
+    barLeft   = halfWidth;
+    uiDrawFlatCaret(&(object)->panel, caretX, caretY, ITEM_MENU_NORMAL_COLOR_RGB, USER_INTERFACE_CARET_DOWN);
+    uiDrawFlatCaret(&(object)->panel, caretX, panelY + 0x1E, ITEM_MENU_NORMAL_COLOR_RGB, USER_INTERFACE_CARET_UP);
     line                              = gGpuPrimCursor;
     gGpuPrimCursor                    = line + 1;
     GPU_PRIMITIVE_COLOR_WORD(line, 0) = GPU_PACK_COLOR_WORD(0x60, 0x60, 0x60, 0);
-    coord                             = obj->panel.contentOriginX.unsignedValue + caretX;
-    line->x1                          = coord;
-    line->x0                          = coord;
-    line->y0                          = (obj->panel.contentOriginY.unsignedValue + textY) - 0xA;
-    coord                             = (obj->panel.contentOriginY.unsignedValue + textY) - 2;
-    setlen(line, 3);
-    setcode(line, 0x40);
-    line->y1 = coord;
-    addPrim(gGpuCurrentOt + obj->panel.otIndex.signedValue + 1, line);
-    qty = split->loadedQty;
-    if (qty > 0) {
-        equippedWidth = ((s32)(qty * widthM2) / (s32)(split->containerQty + split->carriedQty)) + 2;
-        if (equippedWidth > 0) {
-            uiFillRectInterior(&(obj)->panel, (half + width) - equippedWidth, caretY, equippedWidth, 8, 0x37A78U);
+    lineCoordinate                    = object->panel.contentOriginX.unsignedValue + caretX;
+    line->x1                          = lineCoordinate;
+    line->x0                          = lineCoordinate;
+    line->y0                          = (object->panel.contentOriginY.unsignedValue + textY) - 0xA;
+    lineCoordinate                    = (object->panel.contentOriginY.unsignedValue + textY) - 2;
+    setLineF2(line);
+    line->y1 = lineCoordinate;
+    addPrim(gGpuCurrentOt + object->panel.otIndex.signedValue + 1, line);
+    loadedQuantity = split->loadedQty;
+    if (loadedQuantity > 0) {
+        loadedBarWidth = ((s32)(loadedQuantity * barInteriorWidth) / (s32)(split->containerQty + split->carriedQty)) + 2;
+        if (loadedBarWidth > 0) {
+            uiFillRectInterior(&(object)->panel, (barLeft + width) - loadedBarWidth, caretY, loadedBarWidth, 8, (u32)ITEM_MENU_LOADED_AMMO_COLOR_RGB);
         }
     }
-    uiDrawRecessedRect(&obj->panel, (s32)-width / 2, textY - 0xA, width, 8, 0x102010);
-    message = task->status;
-    if (message == 1) {
-        task->killCountdown = 0xBC;
+    uiDrawRecessedRect(&object->panel, (s32)-width / 2, textY - 0xA, width, 8, ITEM_MENU_AMMO_BAR_BACKGROUND_RGB);
+    noticeStatus = task->status;
+    if (noticeStatus == ITEM_MENU_AMMO_NOTICE_LOADED) {
+        task->killCountdown = ITEM_MENU_AMMO_NOTICE_TICKS;
         uiSetPromptText(Gp_StrAmmoLocked, 0, 0);
-    } else if (message == 2) {
-        task->killCountdown = 0xBC;
+    } else if (noticeStatus == ITEM_MENU_AMMO_NOTICE_CAPACITY) {
+        task->killCountdown = ITEM_MENU_AMMO_NOTICE_TICKS;
         uiSetPromptText(Gp_StrMaxCapacity, 0, 0);
     } else if (task->killCountdown > 0) {
-        result              = (u16)task->killCountdown - 1;
-        task->killCountdown = result;
-        if ((result << 0x10) == 0) {
+        noticeTicksRemaining = (u16)task->killCountdown - 1;
+        task->killCountdown  = noticeTicksRemaining;
+        if (noticeTicksRemaining == 0) {
             uiSetPromptText(Gp_StrSetAmmoHelp, 0, 0);
         }
     }
 }
 
-/* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
+/* After Gp_StrBullet from _itemMenuAmmoSplitTask so the overlay .rodata stays packed. */
 static const _ItemMenuPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };
 /// Vector template used by `Gp_ItemPickupTilt`.
 static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 
-/// For each carried weapon, empties its primary and secondary ammunition
-/// counts when the carried items no longer include any of that item.
-static inline void _gpDropOrphanedWeaponLoads(void)
+/// Clears removable weapon-load quantities whose consumable is no longer carried.
+///
+/// Scans every carried weapon row and clears only primary/secondary quantities,
+/// keeping their selected ids. Empty/unavailable selections and built-in Battery
+/// or Fuel supply ids are exempt even though they have no carried stack. The
+/// live carried range and its backing rows must be valid; saved loads remain
+/// owned by the live save. These exemptions correspond to EquipmentWeaponSupply.
+static inline void _equipmentClearOrphanedWeaponLoads(void)
 {
-    InventoryItemRange*  scan;
-    InventoryItemRow*    rec;
-    EquipmentWeaponLoad* slot;
-    s32                  i;
+    InventoryItemRange*  carriedRange;
+    InventoryItemRow*    row;
+    EquipmentWeaponLoad* load;
+    s32                  rowIndex;
     s32                  loadedItemId;
 
-    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    rec  = inventoryGetRangeTable(scan);
-    i    = 0;
-    rec  = &rec[scan->firstRow];
-    if (scan->rowCount != 0) {
+    carriedRange = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    row          = inventoryGetRangeTable(carriedRange);
+    rowIndex     = 0;
+    row          = &row[carriedRange->firstRow];
+    if (carriedRange->rowCount != 0) {
         do {
-            if ((u8)(rec->itemId + 0x80) < 0x20) {
-                slot         = equipmentGetWeaponLoad(rec->itemId);
-                loadedItemId = slot->primaryItemId;
-                // Battery 0xB9 is a built-in primary supply and has no carried stack.
-                if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != 0xB9)) {
-                    if (inventoryGetItemQuantity(scan, loadedItemId) == 0) {
-                        slot->primaryQty = 0;
+            if ((u8)(row->itemId + EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems)) {
+                load         = equipmentGetWeaponLoad(row->itemId);
+                loadedItemId = load->primaryItemId;
+
+                if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != EQUIPMENT_SUPPLY_HYPERVELOCITY_BATTERY)) {
+                    if (inventoryGetItemQuantity(carriedRange, loadedItemId) == 0) {
+                        load->primaryQty = 0;
                     }
                 }
-                loadedItemId = slot->secondaryItemId;
-                // Built-in secondary supplies (Battery 0xB5/0xBB/0xBE, Fuel 0xBD) have no carried stack.
-                if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) && (loadedItemId != 0xB5) && (loadedItemId != 0xBB) &&
-                    (loadedItemId != 0xBD) && (loadedItemId != 0xBE)) {
-                    if (inventoryGetItemQuantity(scan, loadedItemId) == 0) {
-                        slot->secondaryQty = 0;
+                loadedItemId = load->secondaryItemId;
+
+                if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) && (loadedItemId != EQUIPMENT_SUPPLY_P229_MP5_BATTERY) && (loadedItemId != EQUIPMENT_SUPPLY_HAMMER_BATTERY) &&
+                    (loadedItemId != EQUIPMENT_SUPPLY_PYKE_FUEL) && (loadedItemId != EQUIPMENT_SUPPLY_JAVELIN_BATTERY)) {
+                    if (inventoryGetItemQuantity(carriedRange, loadedItemId) == 0) {
+                        load->secondaryQty = 0;
                     }
                 }
             }
-            i++;
-            rec++;
-        } while (i < scan->rowCount);
+            rowIndex++;
+            row++;
+        } while (rowIndex < carriedRange->rowCount);
     }
 }
 
-void Gp_ItemMenuPrompt(UiList* arg0, UiObject* arg1)
+/// Draws and handles the All, Select and Discard transfer-exit commands.
+///
+/// Borrows the shared list and its task-owned object; currentItemIndex is 0..2.
+/// All is skipped when spawnArg1 is zero (not all container rows fit). All
+/// publishes MOVE_ALL, Select returns CONFIRM, and Discard clears orphaned
+/// weapon-load quantities before publishing DISCARD_AND_EXIT. Cancel first
+/// selects Discard and marks actionResult to suppress same-frame activation;
+/// a subsequent cancel on that row performs Discard.
+static void _itemMenuTransferExitRow(UiList* list, UiObject* object)
 {
     _ItemMenuPromptTexts labels;
-    s32                  row;
+    s32                  rowIndex;
 
     labels = Gp_ItemPromptTexts;
-    if (arg0->currentItemIndex == ITEM_MENU_PROMPT_ALL) {
-        if (arg1->owner->spawnArg1.value == 0) {
-            arg0->colorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
-            if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-                arg0->navigationStep  = USER_INTERFACE_LIST_STEP_NEXT;
-                arg0->actionResult    = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
-                arg0->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
+    if (list->currentItemIndex == ITEM_MENU_PROMPT_ALL) {
+        if (object->owner->spawnArg1.value == 0) {
+            list->colorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
+            if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+                list->navigationStep  = USER_INTERFACE_LIST_STEP_NEXT;
+                list->actionResult    = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
+                list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
             }
         }
     }
-    row = arg0->currentItemIndex;
-    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, labels.label[row], arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    rowIndex = list->currentItemIndex;
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, labels.label[rowIndex], list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (arg0->currentItemIndex == ITEM_MENU_PROMPT_DISCARD) {
-            if (arg0->actionResult == ITEM_MENU_LIST_ACTION_CANCEL_HANDLED) {
-                arg0->actionResult = USER_INTERFACE_RESULT_NONE;
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (list->currentItemIndex == ITEM_MENU_PROMPT_DISCARD) {
+            if (list->actionResult == ITEM_MENU_LIST_ACTION_CANCEL_HANDLED) {
+                list->actionResult = USER_INTERFACE_RESULT_NONE;
                 return;
             }
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            switch (arg0->currentItemIndex) {
+            switch (list->currentItemIndex) {
                 case ITEM_MENU_PROMPT_ALL:
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                    arg1->result = 0x26;
+                    object->result = ITEM_MENU_RESULT_MOVE_ALL;
                     break;
                 case ITEM_MENU_PROMPT_SELECT:
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                    arg1->result = USER_INTERFACE_RESULT_CONFIRM;
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
                 case ITEM_MENU_PROMPT_DISCARD:
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-                    _gpDropOrphanedWeaponLoads();
-                    arg1->result = 0x27;
+                    _equipmentClearOrphanedWeaponLoads();
+                    object->result = ITEM_MENU_RESULT_DISCARD_AND_EXIT;
                     break;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            if (arg0->selectedItemIndex == ITEM_MENU_PROMPT_DISCARD) {
-                _gpDropOrphanedWeaponLoads();
-                arg1->result = 0x27;
+            if (list->selectedItemIndex == ITEM_MENU_PROMPT_DISCARD) {
+                _equipmentClearOrphanedWeaponLoads();
+                object->result = ITEM_MENU_RESULT_DISCARD_AND_EXIT;
             } else {
-                arg0->actionResult      = ITEM_MENU_LIST_ACTION_CANCEL_HANDLED;
-                arg0->selectedItemIndex = ITEM_MENU_PROMPT_DISCARD;
+                list->actionResult      = ITEM_MENU_LIST_ACTION_CANCEL_HANDLED;
+                list->selectedItemIndex = ITEM_MENU_PROMPT_DISCARD;
             }
         }
     }
@@ -1517,18 +1628,14 @@ static void _uiVisitChildObjects(const UiObject* object, UiObjectTaskFunc visitC
     }
 }
 
-static s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
+/// Tests whether the current transfer context forbids moving or swapping an item.
+///
+/// itemId must index the ordinary item catalogue. battleFieldMode == 1 enforces
+/// NO_DISCARD; other values do not. Independently, the Acropolis container kind
+/// 0x703 keeps the M93R in place. Returns 0 or 1 without changing inventory.
+static s32 _itemMenuIsTransferRestricted(s32 itemId, s32 battleFieldMode)
 {
-    s32 ret;
-
-    ret = 0;
-    if (Gp_ItemDescs[arg0].flags & ITEM_FLAG_NO_DISCARD) {
-        ret = arg1 == 1;
-    }
-    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == GAME_STAGE_ACROPOLIS)) {
-        ret = 1;
-    }
-    return ret;
+    return _itemMenuCheckTransferRestriction(itemId, battleFieldMode);
 }
 
 /// Handles a child dialog's result for its inventory pane.
@@ -1571,94 +1678,129 @@ static void _itemMenuHandlePaneChildResult(UiObject* child, Task* childTask)
     }
 }
 
-void Gp_ItemMenuListTask(Task* arg0)
+/// Updates the All/Select/Discard menu shown before leaving the transfer screen.
+///
+/// spawnArg2 borrows the live task-owned UiObject. spawnArg1 is whether every
+/// container row fits in the carried range: zero starts on Select, nonzero on
+/// All. Uses a shared singleton list and one row callback for all three rows.
+static void _itemMenuTransferExitMenuTask(Task* task)
 {
-    UiObject* obj;
-    UiList*   menu;
+    UiObject* object;
+    UiList*   list;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    menu        = &Gp_ItemMenuList;
-    if (arg0->state == 0) {
-        uiFitPanelToList(menu, &(obj)->panel);
-        if (arg0->spawnArg1.value == 0) {
-            menu->selectedItemIndex = ITEM_MENU_PROMPT_SELECT;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    list           = &Gp_ItemMenuList;
+    if (task->state == 0) {
+        uiFitPanelToList(list, &(object)->panel);
+        if (task->spawnArg1.value == 0) {
+            list->selectedItemIndex = ITEM_MENU_PROMPT_SELECT;
         } else {
-            menu->selectedItemIndex = ITEM_MENU_PROMPT_ALL;
+            list->selectedItemIndex = ITEM_MENU_PROMPT_ALL;
         }
-        menu->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        arg0->state += 1;
+        list->flags  = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        task->state += 1;
     }
-    uiUpdateList(menu, &obj->panel);
+    uiUpdateList(list, &object->panel);
 }
 
-void Gp_HolderPromptTask(Task* arg0)
+/// Draws the holder's two outlined lines, borrowing readable encoded text.
+///
+/// object must remain live and promptText must satisfy textSkipLines' stream
+/// bounds. Hidden panels still scan; normal RGB is fixed rather than panel-selected.
+static inline void _itemMenuDrawHolderPromptLines(UiObject* object, const u8* promptText)
 {
-    UiObject* obj;
-    u8*       val;
-    s32       color;
-    s32       one;
-    const u8* text;
+    s32       colorRgb;
+    s32       drawMode;
+    const u8* secondLine;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->state == 0) {
-        Wip_UiHolder = obj;
-        arg0->state += 1;
+    colorRgb = ITEM_MENU_NORMAL_COLOR_RGB;
+    drawMode = TEXT_DRAW_OUTLINED;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, promptText, colorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+    secondLine = textSkipLines(promptText, 1);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0x1E, secondLine, colorRgb, drawMode, TEXT_ALIGNMENT_LEFT);
+}
+
+/// Publishes the transfer screen's prompt panel and draws two text lines.
+///
+/// spawnArg2 borrows its live task-owned UiObject, published as Wip_UiHolder
+/// on initialization. spawnArg1 is NULL or borrowed encoded text, kept live
+/// while drawn and replaceable through uiSetPromptText. Uses fixed normal RGB
+/// and outlined left-aligned text at contentLeft+2, contentTop+15/+30 pixels.
+/// Text must satisfy textDrawUiLine and textSkipLines, including a readable
+/// predecessor byte when the first byte is N/n. Requires loaded text resources
+/// and writable GPU/OT storage; clearing the holder belongs to the parent.
+static void _itemMenuHolderPromptTask(Task* task)
+{
+    UiObject* object;
+    const u8* promptText;
+
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == 0) {
+        Wip_UiHolder = object;
+        task->state += 1;
     }
-    val = arg0->spawnArg1.pointer;
-    if (val != 0) {
-        color = 0x606060;
-        one   = 1;
-        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, val, color, one, TEXT_ALIGNMENT_LEFT);
-        text = textSkipLines(val, one);
-        textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x1E, text, color, one, TEXT_ALIGNMENT_LEFT);
+    promptText = task->spawnArg1.pointer;
+    if (promptText != 0) {
+        _itemMenuDrawHolderPromptLines(object, promptText);
     }
 }
 
-s32 Gp_BindItemObj2(Task* arg0, s32 arg1, CapActionRequest* request, s32 arg3)
+/// Starts a placed container's lid action and retains its CAP completion request.
+///
+/// The message table dispatches CAP_ACTION_MESSAGE_REQUEST with a writable
+/// request; messageId and the second payload are ignored. spawnArg2 borrows
+/// the placed Enemy. Records action-requested status and retains request in
+/// extraState until the lid animation completes, so its complete storage must
+/// stay live across frames. If the place's two-bit state is already 2, sets
+/// done immediately. Leaves accepted unchanged and returns zero.
+static s32 _itemPickupHandleLidActionRequest(Task* task, s32 messageId, CapActionRequest* request, s32 unused)
 {
-    s32    flag;
-    Enemy* enemy;
+    enum { ITEM_PICKUP_LID_ACTION_REQUESTED = 1,
+           ITEM_PICKUP_PLACE_COLLECTED      = 2 };
+    s32          actionRequested;
+    const Enemy* enemy;
 
-    enemy                    = arg0->spawnArg2.pointer;
-    flag                     = 1;
-    arg0->status             = flag;
-    arg0->extraState.pointer = request;
-    if (areaGetCurrentObjectState((u8)enemy->placeKey) == 2) {
-        request->done = flag;
+    enemy                    = task->spawnArg2.pointer;
+    actionRequested          = ITEM_PICKUP_LID_ACTION_REQUESTED;
+    task->status             = actionRequested;
+    task->extraState.pointer = request;
+    if (areaGetCurrentObjectState((u8)enemy->placeKey) == ITEM_PICKUP_PLACE_COLLECTED) {
+        request->done = actionRequested;
     }
     return 0;
 }
 
-void Gp_PublishItemObj(Task* arg0)
+void itemPickupPublishPlacedObjectTask(Task* task)
 {
-    Enemy* enemy = arg0->spawnArg2.pointer;
-    s32    count;
+    const Enemy* enemy = task->spawnArg2.pointer;
+    s32          packQuantity;
 
+    // Publish the place flag index and kind before selecting pickup quantity.
     Gp_PubItemId  = (u8)enemy->placeKey;
     Gp_PubItemLoc = enemy->workType;
-    if (enemy->workType < 0xA0) {
-        if (Gp_PubItemLoc >= 0x60 && Gp_PubItemLoc < 0x80) {
+    if (enemy->workType < INVENTORY_CONSUMABLE_ITEM_FIRST) {
+        if (Gp_PubItemLoc >= ITEM_MENU_ARMOR_ITEM_FIRST && Gp_PubItemLoc < EQUIPMENT_WEAPON_ITEM_FIRST) {
             if (inventoryIsItemLimitReached(Gp_PubItemLoc) != 0) {
-                Gp_PubItemLoc = 0xD;
+                Gp_PubItemLoc = ITEM_MENU_DUPLICATE_ARMOR_ITEM_ID;
             }
-        } else if (Gp_PubItemLoc >= 0x80 && Gp_PubItemLoc < 0xA0) {
+        } else if (Gp_PubItemLoc >= EQUIPMENT_WEAPON_ITEM_FIRST && Gp_PubItemLoc < INVENTORY_CONSUMABLE_ITEM_FIRST) {
             if (inventoryIsItemLimitReached(Gp_PubItemLoc) != 0) {
-                Gp_PubItemLoc = 0x3D;
+                Gp_PubItemLoc = ITEM_MENU_DUPLICATE_WEAPON_ITEM_ID;
             }
         }
         Gp_PubItemQty   = 1;
         Gp_PubItemReady = 1;
     } else {
-        count           = Gp_StackLimits[Gp_PubItemLoc - 0xA0].packQty;
+        packQuantity    = Gp_StackLimits[Gp_PubItemLoc - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
         Gp_PubItemReady = 1;
-        Gp_PubItemQty   = count;
+        Gp_PubItemQty   = packQuantity;
     }
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
     Wip_UiHolder        = NULL;
-    arg0->killCountdown = 1;
-    arg0->state         = arg0->state + 1;
+    task->killCountdown = 1;
+    task->state         = task->state + 1;
 }
 
 /// Queues a screen-sized subtractive overlay for a display transition.

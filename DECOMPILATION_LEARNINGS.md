@@ -26362,7 +26362,7 @@ front.
 
 Assign `child = next` *before* the reloaded-`firstChild == NULL` break
 so `move a1, s0` fills that `beqz` delay slot. `_uiVisitChildObjects` is the
-helper; `Gp_ItemPaneTask` and `Gp_ItemMoveTask` inline the same walk with
+helper; `_itemMenuTransferPaneTask` and `Gp_ItemMoveTask` inline the same walk with
 `_itemMenuHandlePaneChildResult` / `Gp_ItemMoveChild`.
 
 ## Snapshot `(u16)s32` before an early-out so `lhu` fills the load delay
@@ -27617,7 +27617,7 @@ if (arg0 == 0) {
 `playerStateSetStatusEffects` is the example. `flags = value; ... &= ~flags` stuck at
 99.969% with only that `nor` source swapped.
 
-## Split `spawnArg1` (`s32 val`) from the `textSkipLines` result
+## Split `spawnArg1` (`promptText`) from the `textSkipLines` result
 
 A two-line prompt (`textDrawUiLine` / `textSkipLines` / `textDrawUiLine`)
 that keeps the string in one `const u8* text` — assign from `spawnArg1`, then
@@ -27625,20 +27625,20 @@ that keeps the string in one `const u8* text` — assign from `spawnArg1`, then
 the `UiObject*` lands in `$s3` and the string in `$s2`. The target wants the
 object in `$s2` and the string in `$s3`.
 
-Keep `spawnArg1` as an `s32 val` used only through the first draw + skip, and
-a separate `const u8* text` for the skip result (same shape as `_itemMenuDrawTwoLinePrompt`):
+Keep `spawnArg1.pointer` as a borrowed `const u8* promptText` used only through the first draw + skip, and
+a separate `const u8* secondLine` for the skip result (same shape as `_itemMenuDrawTwoLinePrompt`):
 
 ```c
-val = arg0->spawnArg1;
-if (val != 0) {
-    textDrawUiLine(..., (u8*)val, ...);
-    text = textSkipLines((const u8*)val, one);
-    textDrawUiLine(..., text, ...);
+promptText = task->spawnArg1.pointer;
+if (promptText != NULL) {
+    textDrawUiLine(..., promptText, ...);
+    secondLine = textSkipLines(promptText, 1);
+    textDrawUiLine(..., secondLine, ...);
 }
 ```
 
 `register UiObject* obj asm("s2")` also matches, but the split temps are
-enough. `Gp_HolderPromptTask` is the example.
+enough. `_itemMenuHolderPromptTask` is the example.
 
 ## Store via `(T*)(head - K)` before assigning `vec`
 
@@ -28800,7 +28800,7 @@ if (item < 0xA0) {
 }
 ```
 
-`Gp_PublishItemObj` is the example. `func(item)` stuck at 96% with only that
+`itemPickupPublishPlacedObjectTask` is the example. `func(item)` stuck at 96% with only that
 delay slot and the compare's `andi` dest different.
 
 ## Volatile `field + K` reloads into dest; pin `v0` + `+r` for `lbu v0; addiu dest, v0, K`
@@ -29218,7 +29218,7 @@ if (obj->owner->flags != 0) {
 }
 ```
 
-`Gp_ItemActionListTask` is the example. The swapped store order stuck at 95.7%
+`_itemMenuTransferActionsTask` is the example. The swapped store order stuck at 95.7%
 with a separate `sh` on the -1 path.
 
 ## Switch case order: fall-through-to-epilogue last
@@ -29228,7 +29228,7 @@ must be emitted last. Putting a later simple-store case after it inserts
 `j end; nop` after the call. Source order `-1`, `9`, `6` (store, store,
 teardown+call) matches the target body order.
 
-`Gp_ItemActionListTask` is the example. Case order `-1`, `6`, `9` stuck at 95.7%
+`_itemMenuTransferActionsTask` is the example. Case order `-1`, `6`, `9` stuck at 95.7%
 with the case-9 `sh` after the teardown `jal`.
 
 ## Start the dest-arg local at `extra` and reload between the two loads
@@ -30758,7 +30758,7 @@ jal   inventoryGetRow
 Omitting it schedules `addu a0, a2, a0` into the delay slot and drops
 one instruction. Add an unused `s32 arg2` to the real prototype (it
 does not change the callee) and pass `0`. Same rule as overlay imports
-of main (`uiUpdatePanelContentLayout`). `Gp_FillItemActions` is the example.
+of main (`uiUpdatePanelContentLayout`). `_itemMenuFillTransferActions` is the example.
 
 ## Store the first vtable slot through the global, then take its address
 
@@ -30779,7 +30779,7 @@ table         = Gp_ItemActionFns;
 table[1]      = func_B;
 ```
 
-`Gp_FillItemActions` is the example. Pair with `count = 1` *before*
+`_itemMenuFillTransferActions` is the example. Pair with `count = 1` *before*
 `(u32)(id - 0xA0) >= 0x20 || flags != 0` so `li a1, 1` sits in the
 `sltiu` delay slot.
 
@@ -31832,23 +31832,23 @@ block    = (Type*)head;
 
 ## Evaluate an inlined helper's args before its body
 
-`Gp_ItemUseRestricted(item, owner->parent->flags)` is written out in
-`Gp_ItemActionConfirm` (no `jal`). Computing `flags` only inside
+`_itemMenuIsTransferRestricted(itemId, actionTask->parent->status)` is written out in
+`itemMenuDrawSwitchRow` (no `jal`). Computing `flags` only inside
 `if (desc->flags & ITEM_FLAG_NO_DISCARD)` loads `owner` after the bit test, leaves
 `flag` in `$a0`, and inserts nops. Evaluate the second argument
 first so `owner` stays in `$a0` and `parent` / `flags` load before
 the `andi`:
 
 ```c
-owner = arg1->owner;
-flags = owner->parent->flags;
-flag  = 0;
-if (Gp_ItemDescs[item].flags & ITEM_FLAG_NO_DISCARD) {
-    flag = flags == 1;
+actionTask = object->owner;
+battleFieldMode = actionTask->parent->status;
+transferRestricted = 0;
+if (Gp_ItemDescs[itemId].flags & ITEM_FLAG_NO_DISCARD) {
+    transferRestricted = battleFieldMode == 1;
 }
 ```
 
-Compare `gMcSaveData.field_7` to the already-live `selected == 1`
+Compare `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage` to the already-live `rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE`
 temp (`$s2`), not a fresh `1`, so the `bne` reuses that register.
 
 ## Index the slot table in the loop so `lui` stays in `$a0`
@@ -32699,7 +32699,7 @@ if (arg0->currentItemIndex == 0) {
 
 The 16-byte stack copy itself is `texts = Gp_ItemPromptTexts` of a 4-pointer
 struct, not element-wise assignment. Pin the later item-walk locals
-(`i` in `$s2`, scan pointer in `$s3`) so they do not swap. `Gp_ItemMenuPrompt`
+(`i` in `$s2`, scan pointer in `$s3`) so they do not swap. `_itemMenuTransferExitRow`
 is the example.
 
 ## D4 fade overlay: `Gp_FadeTiles`/`Gp_FadeTpages` + split `0xE1000000 | 0x240`
@@ -34385,28 +34385,28 @@ clobbers the base and the stores must happen before `sll` reuses `$v0`:
 }
 ```
 
-`Gp_ItemPaneTask` is the example.
+`_itemMenuTransferPaneTask` is the example.
 
 ## Three `uiDrawPanelLabel` calls CSE to one `jal` with `lui a1`; a `char*` temp uses `$v0`
 
 A 3-way title pick compiled as
 
 ```c
-if (arg0->spawnArg1 == 0) {
-    if (arg0->status == 1) {
-        uiDrawPanelLabel(&obj->panel, Gp_StrBattleField);
+if (task->spawnArg1.value == 0) {
+    if (task->status == 1) {
+        uiDrawPanelLabel(&object->panel, Gp_StrBattleField);
     } else {
-        uiDrawPanelLabel(&obj->panel, Gp_StrItemBox);
+        uiDrawPanelLabel(&object->panel, Gp_StrItemBox);
     }
 } else {
-    uiDrawPanelLabel(&obj->panel, Gp_StrPlayerItem);
+    uiDrawPanelLabel(&object->panel, Gp_StrPlayerItem);
 }
 ```
 
 shares one `jal uiDrawPanelLabel` and loads each string with `lui a1` /
 `addiu a1, a1, %lo(...)`. Assigning through `char* text` first emits
 `lui v0` / `addiu a1, v0` and hoists the else-string into the
-`bnez spawnArg1` delay instead of `move a0, s2`. `Gp_ItemPaneTask` is the
+`bnez spawnArg1` delay instead of `move a0, s2`. `_itemMenuTransferPaneTask` is the
 example.
 
 ## `count = count < func()` emits `slt s0, s0, v0` / `beqz s0`
@@ -34419,13 +34419,13 @@ writes the `slt` onto `$s0`:
 count = scan->rowCount;
 count = count < inventoryCountOccupiedRows(scan);
 if (count != 0) {
-    obj->field_4 |= 0x20000;
+    object->panel.style |= 0x20000;
 } else {
-    obj->field_4 &= ~0x20000;
+    object->panel.style &= ~0x20000;
 }
 ```
 
-`Gp_ItemPaneTask` is the example.
+`_itemMenuTransferPaneTask` is the example.
 
 ## Inline a recalc helper so `status` stays in `$a1` and the old current stays in `$a3`
 
@@ -34687,7 +34687,7 @@ from `$sN` (`move a1, s5`, `move extra, s5`, `move a2, s7`) instead of
 `li ..., 1` / `move ..., v0`. Unpin the flag so Pad's jal delay is `li a1, 1`
 and `uiSpawnObject(..., one, one, ...)` is `move a2, v0` / `move a3, v0`.
 Pinning the flag to get the other `$s` coloring is what produces
-`move a3, a2`. `func_800BD6DC` is the example.
+`move a3, a2`. `itemMenuDrawTransferMoveRow` is the example.
 
 ## Barrier a copied src so `subu` keeps the original register
 
@@ -146586,7 +146586,7 @@ to `$a2`, `prim` gets `$a1`, and the copy is deleted as a no-op.
 **Fix.** Store the global from the table and take the working pointer from the
 global, as sibling functions that start from the cursor do. The read may sit
 right after the store or just before the loop; both match.
-## A `u16` pinned to `$a0` across range checks: test the struct field and the published global, with no local (Gp_PublishItemObj, 2026-09-27)
+## A `u16` pinned to `$a0` across range checks: test the struct field and the published global, with no local (itemPickupPublishPlacedObjectTask, 2026-09-27)
 
 **Shape.** `lbu a0; sh a0,Id; lhu a0; sh a0,Loc`, then `andi 0xFFFF` kept on
 every range check of the loaded value, including the `x - 0x80` test after a
@@ -149664,7 +149664,7 @@ attempts; left as it was.
   written at both sites with a `return` in the early one. The value local
   that was reassigned between two stores only reproduced cse's reuse of one
   register.
-- **`result = K; goto set_result;` from three arms** (`func_800BDF6C`) is
+- **`result = K; goto set_result;` from three arms** (`_itemMenuAmmoSplitTask`) is
   `obj->result = K;` in each arm of an `if / else if` chain, as in the effect
   tasks. An arm that stores a second field has to store it *first*
   (`control.word = INACTIVE; result = CANCEL;`): the merged `sh` is the arm's
@@ -149677,7 +149677,7 @@ attempts; left as it was.
   with the body in each arm. Both constants load into the same register, so
   the compare and the body merge and leave `j; li v0,3`.
 - **`if (a) { if (p) goto act; } if (b) { if (q) goto act; } if (!r) goto
-  out; act:`** is `if ((a && p) || (b && q) || r)` (`Gp_ItemPaneTask`, both
+  out; act:`** is `if ((a && p) || (b && q) || r)` (`_itemMenuTransferPaneTask`, both
   copies, including the one whose three arms each stored `result = 0xA`
   before `goto children`).
 - **A view dispatch with `goto drop` from one case into the next and `goto

@@ -23,24 +23,39 @@ extern UiObjectDesc D_8010D6D8;
 /// or starts a move / restriction prompt.
 void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1);
 
-/// Move action in `Gp_ItemActionFns`. Draws `Gp_StrMove2`, checks destination
-/// capacity and item/equipment restrictions, then opens a prompt or quantity
-/// selector, or transfers the selected stack and sets `result` to confirm.
-void func_800BD6DC(UiList* arg0, UiObject* arg1);
+/// Draws the transfer popup's Move row and handles its confirmation.
+///
+/// Borrows a live row list/object whose owner carries pane index 0/1; the pane's
+/// selected row and both range backings must be valid. On active-row Confirm,
+/// checks opposite-pane capacity and transfer/equipment restrictions. Item-box
+/// ammunition opens the quantity panel; battlefield ammunition moves whole.
+/// Other transferable rows move whole, clearing removable loads on unequipped
+/// weapons first. Successful whole-row moves return CONFIRM; notices or an
+/// allocated quantity child deactivate popup input. Requires menu/text resources
+/// and writable GPU storage. Does not retain the list or object.
+void itemMenuDrawTransferMoveRow(UiList* list, UiObject* object);
 
-/// List-item confirm for `Gp_ItemActionFns`. Draws `Gp_StrSwitch`, then on confirm
-/// looks up the selected inventory row and inlines `Gp_ItemUseRestricted` against
-/// `owner->parent->flags`. A true result opens prompt `0x1E`; dest inventory
-/// (`spawnArg1 == 1`) plus an equipped weapon/armor (`field_21+0x7F` /
-/// `field_23+0x5F`) opens prompt `7`; otherwise `result = 0x23`.
-void Gp_ItemActionConfirm(UiList* arg0, UiObject* arg1);
+/// Draws Switch and requests selection of a transfer swap partner.
+///
+/// Borrows a live row list/object; its owner carries pane index 0/1 and its
+/// parent is the inventory pane. That pane's selected row must be valid.
+/// Active-row Confirm checks battle-field NO_DISCARD, the Acropolis M93R
+/// restriction and selected carried weapon/armor, opening a notice when blocked.
+/// Otherwise publishes the begin-swap command 0x23; this callback does not
+/// exchange rows. Requires menu/text resources and writable GPU storage.
+void itemMenuDrawSwitchRow(UiList* list, UiObject* object);
 
-/// First state of the `D_80096E70` dispatcher. `spawnArg2` is the picked-up
-/// object's `Enemy`: copies the low byte of its `placeKey` and its `workType`
-/// into `Gp_PubItemId` / `Gp_PubItemLoc`, remaps owned 0x60–0x7F
-/// items to 0xD and 0x80–0x9F items to 0x3D, then publishes a stack
-/// count in `Gp_PubItemQty`.
-void Gp_PublishItemObj(Task* arg0);
+/// Publishes a placed object's pickup id, flag index and pack quantity.
+///
+/// spawnArg2 borrows the placed Enemy through this callback. Publishes its
+/// placeKey low byte as the object flag index and workType as its place kind.
+/// Kinds 0..0x9F publish one item; already-owned armor/weapon kinds become
+/// Belt Pouch/Ringer. The other branch requires consumable kinds 0xA0..0xBF
+/// and reads their pack quantities without a bounds check or bank normalization.
+/// Producer exclusion of banked/reserved kinds from that read is unproven.
+/// Marks publication ready, restores every-VBlank timing, clears the UI holder
+/// and advances the pickup dispatcher after a one-tick countdown.
+void itemPickupPublishPlacedObjectTask(Task* task);
 
 extern UiObjectDesc D_8010D348;
 
@@ -979,7 +994,7 @@ extern InventoryItemRange Gp_MoveScanDst;
 /// `selectedItemIndex` is the range-relative row passed to `inventoryGetRow`.
 extern UiList Gp_InvLists[];
 
-/// Action-button callbacks for `Gp_ItemActionList`, filled by `Gp_FillItemActions`.
+/// Action-button callbacks for `Gp_ItemActionList`, filled by `_itemMenuFillTransferActions`.
 extern UiListRowCallback Gp_ItemActionFns[];
 
 extern u8 Gp_StrAll[];
