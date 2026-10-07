@@ -149675,7 +149675,7 @@ attempts; left as it was.
 - The desert chaser's hand-expanded turns (`facing = coords; angle = ratan2;
   delta = angle - ratan2(...); wrapped = delta; <wrap loops>`) are
   `_actorAngleTurnToOffset(coords, x, z)`; all seven sites of `desertChaserRoam`,
-  `desertChaserTurnStep` and `desertChaserTurnStepProbe` matched with the
+  `_desertChaserTurnRightState` and `_desertChaserTurnLeftState` matched with the
   call, and 22 locals went.
 - Not converted: `func_acropolis_bridge_801856E0`. Its switch has
   `if (enough) break; state = 0; goto hide;` in cases 0 and 1,
@@ -153610,12 +153610,12 @@ which has several uses until the jump pass after cse1 removes the dead arms, and
 cse1 forgets everything at a multiply-used label.
 
 Fix: the guard's second condition is a small predicate inline with a `switch`
-on the (constant) part, `_desertChaserPartHasDust(part)` in
+on the (constant) part, `_desertChaserPartSupportsDust(part)` in
 `src/shared/desert_chaser.h` - the same set of parts the out-of-line
 `_desertChaserSpawnPartDust` supports through its `supportedPart` flag:
 
 ```c
-if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(9)) {
+if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(9)) {
     effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], ..., &effectOffset);
 }
 ```

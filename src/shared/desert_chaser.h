@@ -500,12 +500,13 @@ STATIC_ASSERT_SIZEOF(DesertChaserDamageScratch, 0x30);
 /// A state reserves one block a tick. It measures the turn to the player,
 /// spreads it over the ticks the state has left, rebuilds the root's
 /// rotation about Y at the heading that gives, and slides the root along the
-/// new facing: backward in the step, forward in the probe. The block is
+/// new facing: backward in `_desertChaserTurnRightState`, forward in
+/// `_desertChaserTurnLeftState`. The block is
 /// released before the state returns, and nothing in it carries over to the
 /// next tick. Angles are 4096ths of a turn.
 typedef struct {
     SVECTOR offset;       // Player's position minus the root's, world units; `vx` and `vz` give the bearing. Then the root's Z axis after the turn, normalised and scaled to the slide added to the root's X and Z
-    s16     turn;         // Turn from the facing to the player, wrapped to [-0x800, 0x800]. Past a quarter turn on one side - the negative in the step, the positive in the probe - half a turn is taken off, so the chaser turns its back on the player instead
+    s16     turn;         // Turn from the facing to the player, wrapped to [-0x800, 0x800]. Past a quarter turn on one side - negative in the right turn, positive in the left turn - the facing target reverses, so the chaser turns its back on the player instead
     s16     heading;      // Heading the root's rotation is rebuilt at: the facing plus `turn` / `stepsLeft`
     s16     stepsLeft;    // Ticks the turn is spread over: 30 less the ticks the state has run, with 1 in place of 0
     byte    unknown_E[2]; // Reserved with the block and never accessed; role unproven
@@ -606,13 +607,14 @@ enum {
     DESERT_CHASER_CUE_DUST_PERIOD_SHIFT = 12
 };
 
-/// Whether a model part has a dust offset: the parts _desertChaserSpawnPartDust
-/// supports. Every animation-cue puff tests it with a constant part beside the
-/// room-effect mode, so the test leaves no instruction; it is recognisable only
-/// by its effect on how far a run of such guards shares the mode constant.
-static inline s32 _desertChaserPartHasDust(s32 part)
+/// Returns whether a model-part index supports a Desert Chaser dust puff.
+///
+/// Parts 0, 1, 7, 9, 14 and 17 have dust anchors; every other integer returns
+/// zero. This tests eligibility only: it reads no model or room-effect state
+/// and emits no puff. The animation cues use constant indices.
+static inline s32 _desertChaserPartSupportsDust(s32 modelPart)
 {
-    switch (part) {
+    switch (modelPart) {
         case 0:
         case 1:
         case 7:
@@ -648,12 +650,21 @@ static void _desertChaserExit(Task* task);
 #endif
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
+/// Turn-state timing, alignment threshold and the state resumed on completion.
+///
+/// Timing counts ticks and angles use 4096 units per turn.
+enum {
+    DESERT_CHASER_TURN_TICKS       = 30,
+    DESERT_CHASER_TURN_ALIGNED_YAW = 0x20,
+    DESERT_CHASER_STATE_PURSUE     = 0x1C
+};
+
 void        desertChaserPursue(Task* arg0);
 void        desertChaserRoam(Task* arg0);
 void        desertChaserApproach(Task* arg0);
 void        desertChaserStrike(Task* arg0);
-void        desertChaserTurnStep(Task* arg0);
-void        desertChaserTurnStepProbe(Task* arg0);
+static void _desertChaserTurnRightState(Task* task);
+static void _desertChaserTurnLeftState(Task* task);
 static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey);
 static void _desertChaserThrowPlayer(Task* task);
 void        desertChaserSteer(Task* arg0);

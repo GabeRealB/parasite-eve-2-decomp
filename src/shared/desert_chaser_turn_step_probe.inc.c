@@ -1,84 +1,81 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-void desertChaserTurnStepProbe(Task* arg0)
+/// Runs the armed chaser's left-turn animation and forward shuffle.
+///
+/// Requires a live model, `DesertChaserWork` and spawn-argument `Enemy`, and
+/// the player root in the model root's parent frame. Angles use 4096 units
+/// per turn; translation uses that frame's coordinate units. Each tick spreads
+/// the remaining turn over 30 minus the elapsed ticks (zero becomes one).
+/// A player more than a quarter-turn to the right is faced away from instead.
+/// The shuffle moves 26 units forward unconditionally, then requests an
+/// 8-unit backward step subject to actor freeze and applies root-grid pushback.
+/// Alignment within 0x20 angle units or a settled clip resumes pursuit.
+/// Reserves and releases one 16-byte scratch block around the nested animation,
+/// rotation and movement helpers; no pointer to it survives the call.
+static void _desertChaserTurnLeftState(Task* task)
 {
-    TmdObject*                   obj;
-    Enemy*                       ctx;
+    TmdObject*                   model;
+    Enemy*                       enemy;
     DesertChaserWork*            work;
-    GfxCoord*                    coord;
-    GfxCoord*                    coord2;
-    GfxCoord*                    targetCoord;
-    GfxCoord*                    facing2;
-    DesertChaserTurnStepScratch* head;
     DesertChaserTurnStepScratch* scratch;
-    s16                          yaw;
-    s16                          z;
-    s16                          steps;
-    s32                          firstDelta;
+    s16                          nextHeading;
+    s16                          ticksLeft;
+    s32                          playerTurn;
 
-    head    = SCRATCH_STACK_CURSOR(DesertChaserTurnStepScratch);
-    scratch = (SCRATCH_STACK_CURSOR(DesertChaserTurnStepScratch) = head - 1);
-    work    = arg0->work;
-    ctx     = arg0->spawnArg2.pointer;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserTurnStepScratch);
+    work    = task->work;
+    enemy   = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj = arg0->extra.tmd;
+        model = task->extra.tmd;
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->hitFlag = 0;
 #endif
-        obj->flags                                            = 0;
-        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        model->flags                                          = 0;
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = DESERT_CHASER_FRONT_RADIUS;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        ctx->node.state.parts.flags                           = 0;
+        enemy->node.state.parts.flags                         = 0;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->animId                                          = DESERT_CHASER_CLIP_TURN_PROBE;
-        work->animRate                                        = 0x10;
+        work->animRate                                        = ANIMATION_RATE_ONE;
         work->stateTimer                                      = 0;
     }
     work->stateTimer += 1;
-    _desertChaserAnimTick(arg0);
-    targetCoord         = arg0->extra.tmd->coords;
-    head[-1].offset.vx  = (s16)(gPlayerStatus.coordMtx->t[0] - targetCoord->coord.t[0]);
-    scratch->offset.vy  = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
-    z                   = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
-    scratch->offset.vz  = z;
-    firstDelta          = _actorAngleTurnToOffset(arg0->extra.tmd->coords, head[-1].offset.vx, z);
-    scratch->turn       = (s16)firstDelta;
-    work->lookYawTarget = (u16)firstDelta;
+    _desertChaserAnimTick(task);
+
+    // Turn toward the player, or toward the opposite bearing after crossing behind.
+    playerTurn          = _actorAngleTurnToPlayer(task, &scratch->offset, &gPlayerStatus);
+    scratch->turn       = playerTurn;
+    work->lookYawTarget = playerTurn;
     if (scratch->turn > 0) {
-        if (abs(scratch->turn) >= 0x401) {
-            work->lookYawTarget = firstDelta - 0x800;
-            scratch->turn      -= 0x800;
+        if (abs(scratch->turn) >= ACTOR_TRANSFORM_ANGLE_HALF_TURN / 2 + 1) {
+            work->lookYawTarget = playerTurn - ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+            scratch->turn      -= ACTOR_TRANSFORM_ANGLE_HALF_TURN;
         }
     }
-    steps              = 0x1E - work->stateTimer;
-    scratch->stepsLeft = steps;
-    if (steps == 0) {
+    ticksLeft          = DESERT_CHASER_TURN_TICKS - work->stateTimer;
+    scratch->stepsLeft = ticksLeft;
+    if (ticksLeft == 0) {
         scratch->stepsLeft = 1;
     }
-    facing2          = arg0->extra.tmd->coords;
-    yaw              = ((s16)scratch->turn / (s16)scratch->stepsLeft) + ratan2((s32)-facing2->coord.m[2][0], (s32)facing2->coord.m[2][2]);
-    scratch->heading = yaw;
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
-    gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &scratch->offset);
-    VectorNormalSS(&scratch->offset, &scratch->offset);
-    gte_lddp(0x1A);
-    gte_ldsv(&scratch->offset);
-    gte_gpf12();
-    gte_stsv(&scratch->offset);
-    coord               = arg0->extra.tmd->coords;
-    coord->coord.t[0]  += scratch->offset.vx;
-    coord2              = arg0->extra.tmd->coords;
-    coord2->coord.t[2] += scratch->offset.vz;
-    _actorMovementStepForward(arg0->extra.tmd->coords, -8);
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
+    nextHeading      = scratch->turn / scratch->stepsLeft + ratan2(-task->extra.tmd->coords->coord.m[2][0], task->extra.tmd->coords->coord.m[2][2]);
+    scratch->heading = nextHeading;
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, nextHeading, GRAPHICS_ROTATION_REPLACE);
+
+    // The clip's shuffle is unconditional; the additional movement respects freeze.
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &scratch->offset);
+    _actorMovementBuildDisplacement(&scratch->offset, 26);
+    task->extra.tmd->coords->coord.t[0] += scratch->offset.vx;
+    task->extra.tmd->coords->coord.t[2] += scratch->offset.vz;
+    _actorMovementStepForward(task->extra.tmd->coords, -8);
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts));
 #if DESERT_CHASER_RUN_SEQUENCE
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 #endif
-    if (abs(scratch->turn) < 0x20) {
-        work->state = 0x1C;
+    if (abs(scratch->turn) < DESERT_CHASER_TURN_ALIGNED_YAW) {
+        work->state = DESERT_CHASER_STATE_PURSUE;
     }
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->state = 0x1C;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        work->state = DESERT_CHASER_STATE_PURSUE;
     }
     SCRATCH_STACK_RELEASE_BLOCK(DesertChaserTurnStepScratch);
 }

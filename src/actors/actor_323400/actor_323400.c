@@ -1045,7 +1045,7 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                     effectOffset.vz        = 0;
                     effectOffset.vx        = 0;
                     effectOffset.vy        = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(9)) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(9)) {
                         effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544), &effectOffset);
                     }
                     return DESERT_CHASER_SOUND_STEP_2;
@@ -1064,7 +1064,7 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         effectOffset.vz        = 0;
                         effectOffset.vx        = 0;
                         effectOffset.vy        = 0x2BC;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(7)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(7)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544), &effectOffset);
                         }
                         return DESERT_CHASER_SOUND_STEP_1;
@@ -1083,7 +1083,7 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         effectOffset.vz         = 0;
                         effectOffset.vx         = 0;
                         effectOffset.vy         = 0x258;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(14)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(14)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544), &effectOffset);
                         }
                         return DESERT_CHASER_SOUND_STEP_2;
@@ -1102,7 +1102,7 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         effectOffset.vz         = 0;
                         effectOffset.vx         = 0;
                         effectOffset.vy         = 0x258;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(17)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(17)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 544), &effectOffset);
                         }
                         return DESERT_CHASER_SOUND_STEP_1;
@@ -1123,7 +1123,7 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                     effectOffset.vz        = 0;
                     effectOffset.vx        = 0;
                     effectOffset.vy        = 0;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(0)) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(0)) {
                         effectSpawn(EFFECT_DUST_PUFF, task->extra.tmd->coords, (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2560), &effectOffset);
                     }
                     return DESERT_CHASER_SOUND_CUE_05;
@@ -1171,13 +1171,13 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                     effectOffset.vz        = 0;
                     effectOffset.vx        = 0;
                     effectOffset.vy        = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(9)) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(9)) {
                         effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512), &effectOffset);
                     }
                     effectOffset.vz = 0;
                     effectOffset.vx = 0;
                     effectOffset.vy = 0x2BC;
-                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(7)) {
+                    if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(7)) {
                         effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512), &effectOffset);
                     }
                     return 0;
@@ -1196,13 +1196,13 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         effectOffset.vz        = 0;
                         effectOffset.vx        = 0;
                         effectOffset.vy        = 0x258;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(14)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(14)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1152), &effectOffset);
                         }
                         effectOffset.vz = 0;
                         effectOffset.vx = 0;
                         effectOffset.vy = 0x258;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(17)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(17)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1152), &effectOffset);
                         }
                         return 0;
@@ -1221,25 +1221,25 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         effectOffset.vz        = 0;
                         effectOffset.vx        = 0;
                         effectOffset.vy        = 0x2BC;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(9)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(9)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512), &effectOffset);
                         }
                         effectOffset.vz = 0;
                         effectOffset.vx = 0;
                         effectOffset.vy = 0x2BC;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(7)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(7)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 576), &effectOffset);
                         }
                         effectOffset.vz = 0;
                         effectOffset.vx = 0;
                         effectOffset.vy = 0x258;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(14)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(14)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 768), &effectOffset);
                         }
                         effectOffset.vz = 0;
                         effectOffset.vx = 0;
                         effectOffset.vy = 0x258;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(17)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(17)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 832), &effectOffset);
                         }
                         return 0;
@@ -1258,13 +1258,13 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         effectOffset.vz        = 0;
                         effectOffset.vx        = 0;
                         effectOffset.vy        = 0x258;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(14)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(14)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 512), &effectOffset);
                         }
                         effectOffset.vz = 0;
                         effectOffset.vx = 0;
                         effectOffset.vy = 0x258;
-                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartHasDust(17)) {
+                        if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && _desertChaserPartSupportsDust(17)) {
                             effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 768), &effectOffset);
                         }
                         return 0;
