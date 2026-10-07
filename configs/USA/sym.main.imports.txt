@@ -308,4 +308,4 @@ D_80114B34 = 0x80114B34; // absolute:True size:0x48
 
 mapDryfieldSetupMovieBuffers = 0x80179954; // type:func absolute:True owner=map_dryfield shared=mapui
 
-func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func absolute:True owner=acropolis_plaza shared=rooms
+acropolisPlazaPollStreamCommands = 0x8017D6D4; // type:func absolute:True owner=acropolis_plaza shared=rooms

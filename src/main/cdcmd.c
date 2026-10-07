@@ -699,7 +699,7 @@ static void CdCmd_ProcessPhase1(void)
         case 7:
             if (p->cdOperationPending != 0) {
                 if ((p->activeRequest.entry.cmd >> 4) == 7) {
-                    func_acropolis_plaza_8017D6D4();
+                    acropolisPlazaPollStreamCommands();
                     return;
                 }
                 _cdCmdHandleMoviePlayback();
@@ -843,7 +843,7 @@ static void CdCmd_ProcessPhase2(void)
         case 7:
             if (p->cdOperationPending != 0) {
                 if ((p->activeRequest.entry.cmd >> 4) == 7) {
-                    func_acropolis_plaza_8017D6D4();
+                    acropolisPlazaPollStreamCommands();
                 } else {
                     _cdCmdHandleMoviePlayback();
                 }
@@ -1406,7 +1406,7 @@ void CdCmd_Dispatch(void)
                         _cdCmdHandleMoviePlayback();
                         break;
                     case 7:
-                        func_acropolis_plaza_8017D6D4();
+                        acropolisPlazaPollStreamCommands();
                         break;
                     case 5:
                         CdCmd_HandleMount();

@@ -138,6 +138,14 @@ void acropolisPlazaSirenLightTask(Task* task);
 /// storage. Scratch is released each tick; effect teardown owns the work block.
 void acropolisPlazaLightFlareTask(Task* task);
 
-void func_acropolis_plaza_8017D6D4(void);
+/// Services the plaza's queued play, reset and resume movie commands.
+///
+/// Called by the resident CD dispatcher while this overlay and the selected
+/// movie/workspaces are loaded. Reads the queue head: play/reset use its signed
+/// 16-bit big-endian sector offset; resume uses the saved absolute sector.
+/// A reset also clears the movie input/output buffer selectors before initialization.
+/// Polls CD readiness and playback, retiring the request only on completion.
+/// Other opcodes and unrecognized steps are left untouched.
+void acropolisPlazaPollStreamCommands(void);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_PLAZA_H

@@ -277,7 +277,17 @@ acropolisPlazaSirenLightTask = 0x801802C0; // type:func
 
 acropolisPlazaLightFlareTask = 0x801811D0; // type:func
 
-func_acropolis_plaza_8017D6D4 = 0x8017D6D4; // type:func
+acropolisPlazaPollStreamCommands = 0x8017D6D4; // type:func
 screenFadeInTileTask = 0x8017DA58; // type:func
 _acropolisPlazaFadeToWhiteTask = 0x8017d8ac; // type:func
 _acropolisPlazaLetterboxTask = 0x8017ff18; // type:func
+_acropolisPlazaUpdateSceneCollisionWalls = 0x8017dd90; // type:func
+_acropolisPlazaApplyStreamCamera = 0x8017de24; // type:func
+_acropolisPlazaUpdateAmbienceVoice = 0x8017f770; // type:func
+_acropolisPlazaUpdateSceneAmbience = 0x8017f9ec; // type:func
+_acropolisPlazaMovieDisplayTask = 0x8017dbfc; // type:func
+_acropolisPlazaStreamedSceneTask = 0x8017dfe0; // type:func
+_acropolisPlazaFirstSceneTask = 0x8017e7e4; // type:func
+_acropolisPlazaStreamSceneTask = 0x8017e9a8; // type:func
+_acropolisPlazaRepeatSceneTask = 0x8017f48c; // type:func
+_acropolisPlazaStartMovieDisplayTask = 0x80180270; // type:func
