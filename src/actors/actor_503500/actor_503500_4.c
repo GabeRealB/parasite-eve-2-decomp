@@ -4964,11 +4964,10 @@ static void func_actor_503500_80144300(Task* arg0)
     WorldCollisionContact*         contacts;
     EffectWork*                    eff;
     Task*                          child;
-    GfxRotationWords*              m;
     VECTOR                         v;
     s32                            pan;
-
     coord = arg0->extra.tmd->coords;
+
     work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
@@ -4990,12 +4989,7 @@ static void func_actor_503500_80144300(Task* arg0)
         v.vz = arg0->spawnArg2.value;
         ApplyMatrixLV(&coord->coord, &v, &work->velocity.vector);
     } else {
-        m         = (GfxRotationWords*)&coord->coord;
-        m->m00M01 = ONE;
-        m->m02M10 = 0;
-        m->m11M12 = ONE;
-        m->m20M21 = 0;
-        m->m22    = ONE;
+        gfxSetRotIdentity(&coord->coord);
     }
     contacts = work->contacts;
 
