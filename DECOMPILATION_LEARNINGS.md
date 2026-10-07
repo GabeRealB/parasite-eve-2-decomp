@@ -82789,7 +82789,7 @@ offsets is not evidence that the byte arithmetic was the original. Here the
 residual gap was entirely m2c's control-flow shape — its `do`/`while` rotation
 of `for (i = 1; i < 0x14; i++)` — and the body turned out to be the actors'
 shared per-frame tick, so copying the already-matched sibling
-(`func_actor_335800_80163568`, `_actor361100TickAyaBrea`) reached 100% with
+(`_actor335800FlintUpdate`, `_actor361100TickAyaBrea`) reached 100% with
 every penalty zero in one build.
 
 Inputs: `base_1.i`
@@ -84383,7 +84383,7 @@ signature; diff the object dump's displacements before reading the penalty mix
 as evidence about registers.
 ## A byte store through a pointer evicts a cached scalar global pointer load: the duplicate `lw` is CSE's QImode rule
 
-`func_actor_335800_801620F0` loads `gGameSession` twice around its stores, and the
+`_actor335800SetSceneRoom` loads `gGameSession` twice around its stores, and the
 second load is the whole match:
 
 ```
@@ -84635,7 +84635,7 @@ reorder=2`) → 100.000% in one build.
 What transfers is the *body shape*, not the sibling's header. Its
 `step`/`limit`/`turnCount` trio is this overlay's `step`/`limit`/`field_4C2`
 (0x490/0x4B0/0x4C2), and that last field is a state index: this overlay's
-dispatcher `func_actor_335800_80163B78` copies the four-entry table
+dispatcher `_actor335800FlintRunWalkStep` copies the four-entry table
 `D_actor_335800_80161E68` onto the stack and indexes it with a sign-extending
 `lh` of 0x4C2, so the body's `field_4C2++` is what advances the state. Pair the
 twin with the overlay's *table* before writing the fields: the counter, the
@@ -99048,7 +99048,7 @@ wherever a field the header types `u8` is written with a negative literal.
 Example: `func_actor_800300_80161E80`. Inputs: `base_4.i` (cast, 98.967%) vs
 `base_5.i` `7b2f8ae7fea2eafd2a121c527b925db97241e3d7d74dd57735d9ca0f84c3ea62` (99.008%).
 
-## A value the target keeps across blocks in $a0 is a hard register, and pinning it is what frees $a0 (func_actor_335800_8016224C, 2026-09-16)
+## A value the target keeps across blocks in $a0 is a hard register, and pinning it is what frees $a0 (_actor335800RestorePlayerView, 2026-09-16)
 
 **Problem.** 98.79% with `regs=7` and nothing else: an `$a0`/`$a1` swap. The flag
 written to `D_8007216C` and `gGameSession->location.loc.view` sits in `$a0` in the target
@@ -99083,7 +99083,7 @@ the block is in `used` for every quantity in it, and `basic_block_live_at_start`
 does not know about pseudos. A function-local pin is the only C that says this:
 
 ```c
-void func_actor_335800_8016224C(void)
+void _actor335800RestorePlayerView(void)
 {
     register u8    areaId asm("a0");
     ...
@@ -99164,7 +99164,7 @@ m2c typed this function's only argument `s8`, from the two `sb $a2,0x14($v0)` /
 `sb $a2,0x1C($v0)` stores it feeds:
 
 ```c
-void func_actor_335800_801622C0(s8 arg0) { ... }   /* 81.50% */
+void _actor335800SetSceneSpriteBatchesHidden(s8 hidden) { ... }   /* 81.50% */
 ```
 
 A QImode parameter has to be widened before the tests, so the object grew
@@ -99172,7 +99172,7 @@ A QImode parameter has to be widened before the tests, so the object grew
 record pointer in `$a0` -- while the target had `move $a2,$a0` as its very
 second instruction and no extension at all. Storing into a byte field needs no
 widening and neither does an equality test against a constant, so **an incoming
-argument the target never extends is 32-bit**: `s32 index` is the whole fix, and
+argument the target never extends is 32-bit**: `s32 hidden` is the whole fix, and
 it scored 100.00% on the next build. Read the extension off the *incoming*
 register before the first use; a narrow type that only ever reaches an `sb` is
 unobservable in m2c's output and m2c guesses there.
@@ -99183,21 +99183,21 @@ The same build settled the field accesses. The target computes
 `&gGameSession->location.loc` sub-object, exactly as `GameSession.location` exists for:
 
 ```c
-g    = gGameSession;
-sess = &g->location.loc;
-rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
+session  = gGameSession;
+location = &session->location.loc;
+views    = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
 ```
 
-Keeping `g` for `g->spriteVariant` matters as much as taking `sess` for the two
+Keeping `session` for `session->spriteVariant` matters as much as taking `location` for the two
 bytes -- the halfword load stays on the un-adjusted base (`lhu $v1,0x74($a0)`),
 which is what pins `$a0` to `gGameSession` and frees `$a2` for the argument.
 The table points to an array of `SpriteView`, so the pointer at 0x1CC is
-`rec[38].batches` (38 * 0xC + 4). Indexing the array expresses the access
+`views[ACTOR_335800_SCENE_SPRITE_VIEW_INDEX].batches` (38 * 0xC + 4). Indexing the array expresses the access
 without a private overlay-local cast or a wider record type.
 
 ## A constant in a branch's delay slot means it was live in a register from an earlier block
 
-`func_actor_335800_801621B4` picks one of four warp payloads and dispatches it.
+`_actor335800PlacePlayerAfterScene` picks one of four warp payloads and dispatches it.
 The target carries the message id in the delay slot of the *position* test,
 three blocks before the call that uses it:
 
@@ -99241,7 +99241,7 @@ accumulates the resources every rejected candidate references, so an `$a1`
 read there makes it reject the `li` and steal the fall-through `sll` instead
 (98.42%, `reorder=1`). From the else arm it is out of the scan's path and the
 delay slot fills as the target has it. `register s32 msgId asm("a1")` also
-reaches 100% — the same pin idiom as `func_actor_335800_8016224C`'s
+reaches 100% — the same pin idiom as `_actor335800RestorePlayerView`'s
 `areaId asm("a0")` in the same file — but the soft use keeps the unit unpinned.
 
 Diagnosis hint: a `li` for a call argument sitting in a delay slot several
@@ -129022,7 +129022,7 @@ spelling out:
 Splitting `temp_v0` from `var_v0_2` hands `local-alloc` two quantities where
 `x--` hands it one whose value dies at the subtract, so the subtract's
 destination can share the load's register. `_actor213000UpdateBody` and
-`func_actor_335800_80163568` are the same tail written the plain way. Worth
+`_actor335800FlintUpdate` are the same tail written the plain way. Worth
 checking on any seed whose tail carries a `var_vN` assigned in two branches, and
 it is cheap: that one statement was the last 0.19% (`base_6` 99.811% ->
 `base_5` 100.000%). The other 8 bytes of this function's frame were the
@@ -146045,7 +146045,7 @@ swaps the two non-aliasing stores back into the target's order. Where a pinned
 local stands in for a field that is copied and then reused, try the store
 order that needs no reload before keeping the local.
 
-## A cross-block byte local pinned to `$a0` is an inline helper whose parameter has another width (func_actor_335800_8016224C, 2026-09-27)
+## A cross-block byte local pinned to `$a0` is an inline helper whose parameter has another width (_actor335800RestorePlayerView, 2026-09-27)
 
 A `view = 6; if (z >= 0xC53) view = 5;` choice stored into two view fields
 matched only with `register u8 view asm("a0")`. Unpinned, the local spans

@@ -87,6 +87,19 @@ enum {
     ACTOR_335800_FLINT_FACE_TARGET_STEP = 0
 };
 
+/// Balcony Z ranges, placement-table entries and ordinary views used by the scenes.
+enum {
+    ACTOR_335800_BALCONY_LOW_SCENE_Z         = 1001,
+    ACTOR_335800_BALCONY_SPLIT_Z             = 3155,
+    ACTOR_335800_BALCONY_HIGH_SCENE_Z        = 5570,
+    ACTOR_335800_BALCONY_LOW_PLACEMENT       = 1,
+    ACTOR_335800_BALCONY_HIGH_PLACEMENT      = 2,
+    ACTOR_335800_BALCONY_LOW_EXIT_PLACEMENT  = 3,
+    ACTOR_335800_BALCONY_HIGH_EXIT_PLACEMENT = 4,
+    ACTOR_335800_BALCONY_LOW_VIEW            = 6,
+    ACTOR_335800_BALCONY_HIGH_VIEW           = 5
+};
+
 /// Values of `_Actor335800GaryDouglasWork::lightState`.
 enum {
     ACTOR_335800_GARY_DOUGLAS_LIGHT_DIMMED        = -1, // The matrices are at half strength and no ground shadow is drawn
@@ -128,7 +141,7 @@ extern TaskDesc             D_actor_335800_80164DE0[];
 extern AnimationPlayRequest D_actor_335800_80164E7C;
 
 /// The warp-payload table the two dispatchers reach by entry:
-/// `func_actor_335800_801621B4` selects an entry of it by index.
+/// `_actor335800PlacePlayerAfterScene` selects an entry of it by index.
 extern ActorTransform D_actor_335800_80164EA4[5];
 extern EvsCommand     D_actor_335800_80165FC0[];
 extern EvsCommand     D_actor_335800_80166098[];
@@ -158,12 +171,12 @@ static void func_actor_335800_80162F9C(Task* arg0);
 static void func_actor_335800_80162FF4(Task* arg0);
 static void func_actor_335800_80162FFC(Task* task);
 static void func_actor_335800_80163124(Task* task);
-static void func_actor_335800_80163568(Task* task);
+static void _actor335800FlintUpdate(Task* task);
 static void _actor335800FlintInit(Task* task);
 static void _actor335800FlintExit(Task* task);
 static void _actor335800FlintBindLighting(Task* task);
 static void _actor335800FlintIdle(Task* task);
-static void func_actor_335800_80163B78(Task* arg0);
+static void _actor335800FlintRunWalkStep(Task* task);
 static void _actor335800FlintFaceTarget(Task* task);
 static void _actor335800FlintBeginApproach(Task* task);
 static void _actor335800FlintTurnToYaw(Task* task);
@@ -199,10 +212,10 @@ static const TaskFuncTable4 D_actor_335800_80161E3C = { {
 static const VECTOR D_actor_335800_80161E4C = { 0, 0, 0x200000, 0 };
 
 /// Spawn, tick and teardown handlers of the child block, dispatched by
-/// `func_actor_335800_80163A34`.
+/// `_actor335800FlintTask`.
 static const TaskFuncTable3 D_actor_335800_80161E5C = { {
     _actor335800FlintInit,
-    func_actor_335800_80163568,
+    _actor335800FlintUpdate,
     _actor335800FlintExit,
 } };
 
@@ -219,10 +232,10 @@ static const TaskFuncTable4 D_actor_335800_80161E68 = { {
 /// `_actor335800FlintBeginApproach`.
 static const VECTOR D_actor_335800_80161E78 = { 0, 0, 0x200000, 0 };
 
-void func_actor_335800_80161E88(Task*);
-void func_actor_335800_80162364(Task*);
-void func_actor_335800_801624DC(Task*);
-void func_actor_335800_80162588(Task*);
+static void _actor335800SceneGroundShadowTask(Task* task);
+void        func_actor_335800_80162364(Task*);
+void        func_actor_335800_801624DC(Task*);
+void        func_actor_335800_80162588(Task*);
 
 extern ActorTransform           D_actor_335800_80164F80;
 extern AnimationPlayRequest     D_actor_335800_80164E54;
@@ -235,12 +248,12 @@ extern AnimationBankCopyRequest D_actor_335800_80164E24;
 extern ActorTransform           D_actor_335800_80164EA4[5];
 extern ActorTransform           D_actor_335800_80164F98;
 extern ActorTransform           D_actor_335800_80164FB0;
-void                            func_actor_335800_80162040(void);
-void                            func_actor_335800_80162060(void);
+static void                     _actor335800StageSceneAudioStart(void);
+static void                     _actor335800StartScenePlayback(void);
 static void                     _actor335800FinishStreamedScene(void);
 void                            func_actor_335800_801620C0(void);
 void                            func_actor_335800_801623D8(void);
-void                            func_actor_335800_80162408(void);
+static void                     _actor335800EnableDisplay(void);
 static void                     _actor335800SetStageAmbientMuted(s32 muted);
 void                            func_actor_335800_80162558(void);
 
@@ -263,23 +276,20 @@ static s32                      _actor335800FlintPlayAnimation(Task* task, s32 m
 static s32                      _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static s32                      _actor335800FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 static s32                      _actor335800FlintIgnoreCommand(Task* task, s32 messageId, s32 unusedCommand, s32 unusedArg);
-void                            func_actor_335800_80162040(void);
-void                            func_actor_335800_80162060(void);
 void                            func_actor_335800_801620A0(void);
-void                            func_actor_335800_801620F0(u8);
-void                            func_actor_335800_80162114(void);
-void                            func_actor_335800_801621B4(s32);
-void                            func_actor_335800_8016224C(void);
-void                            func_actor_335800_801622C0(s32);
-void                            func_actor_335800_80162408(void);
-void                            func_actor_335800_80162428(s8);
-void                            func_actor_335800_80162434(s32);
-void                            func_actor_335800_80162460(void);
-void                            func_actor_335800_80162484(void);
+static void                     _actor335800SetSceneRoom(u8 room);
+static void                     _actor335800PlacePlayerForScene(void);
+static void                     _actor335800PlacePlayerAfterScene(s32 faceQuarterTurn);
+static void                     _actor335800RestorePlayerView(void);
+static void                     _actor335800SetSceneSpriteBatchesHidden(s32 hidden);
+static void                     _actor335800SetSceneEvent(s8 sceneEvent);
+static void                     _actor335800StopStageMusic(s32 fadeTicks);
+static void                     _actor335800SetPostSceneObjective(void);
+static void                     _actor335800LockAttachmentsAndCancelEffects(void);
 void                            func_actor_335800_80162558(void);
 static void                     _actor335800GaryDouglasPartTask(Task* task);
 void                            func_actor_335800_80162F10(Task*);
-void                            func_actor_335800_80163A34(Task*);
+static void                     _actor335800FlintTask(Task* task);
 
 static AnimationPackedPose _gActor335800Animation0255CBank1[6] = {
 #include "assets/actor_335800_animation_0255C_bank1.inc"
@@ -370,7 +380,7 @@ static AnimationSet _gActor335800Animation02F98 = {
 };
 
 TaskDesc D_actor_335800_80164DE0[4] = {
-    { { { TASK_BODY_COORD, 192 } }, func_actor_335800_80161E88, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _actor335800SceneGroundShadowTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_335800_801624DC, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_335800_80162364, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_actor_335800_80162588, { .value = 0 } },
@@ -466,9 +476,9 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_801623D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162408 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165048 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162040 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162558 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
@@ -480,7 +490,7 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E54 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165034 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162060 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 49 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165020 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
@@ -550,7 +560,7 @@ EvsCommand D_actor_335800_80165798[19] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_801620A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162484 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800LockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E90 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = D_actor_335800_80164EA4 } }, { .value = 0 } },
@@ -560,7 +570,7 @@ EvsCommand D_actor_335800_80165798[19] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_8016502C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162408 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -568,26 +578,26 @@ EvsCommand D_actor_335800_80165798[19] = {
 };
 
 EvsCommand D_actor_335800_80165960[21] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162484 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800LockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E40 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162114 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800PlacePlayerForScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162558 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162060 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 140 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 39 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801622C0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetSceneSpriteBatchesHidden }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801622C0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetSceneSpriteBatchesHidden }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 42 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 37 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_actor_335800_801620F0 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162460 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor335800SetSceneRoom }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SetPostSceneObjective }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
@@ -610,13 +620,13 @@ EvsCommand D_actor_335800_80165B58[26] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_8016224C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800RestorePlayerView }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801621B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800PlacePlayerAfterScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = func_actor_335800_80162428 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor335800SetSceneEvent }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
@@ -628,7 +638,7 @@ EvsCommand D_actor_335800_80165DC8[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165044 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 300 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 37 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801621B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800PlacePlayerAfterScene }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 180 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x401F000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 1 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -637,7 +647,7 @@ EvsCommand D_actor_335800_80165DC8[21] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_8016224C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800RestorePlayerView }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -649,7 +659,7 @@ EvsCommand D_actor_335800_80165FC0[9] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165050 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162040 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165038 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_335800_80165960 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_335800_80165B58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -660,9 +670,9 @@ EvsCommand D_actor_335800_80166098[10] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E7C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_80162434 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800StopStageMusic }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165058 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162040 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165038 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_335800_80165960 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = D_actor_335800_80165DC8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -952,7 +962,7 @@ static AnimationSet** _gActor335800FlintAnimationBanks[1] = {
     _gActor335800FlintAnimationBank,
 };
 
-TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &_gActor335800FlintBody } };
+TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor335800FlintTask, { .model = &_gActor335800FlintBody } };
 
 TaskMessageEntry D_actor_335800_80172EA8[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor335800FlintPlayAnimation },
@@ -965,36 +975,57 @@ TaskMessageEntry D_actor_335800_80172EA8[6] = {
 
 static inline void _actor335800SetView(s32 view);
 
-/// Places the root part 1000 units short of its pose `D_actor_335800_80164F80`
-/// and moves it along Z at `killCountdown` (100) per frame; once past the pose
-/// height the velocity drops by 6 a frame until it falls below -60, which ends
-/// the move. A ground shadow is drawn every frame. The
-/// task kills itself once the session's `viewReady` flag is set, or a few
-/// frames into state 2.
-void func_actor_335800_80161E88(Task* task)
+/// Places a shadow coordinate behind the scene pose in its parent's frame.
+static inline void _actor335800PlaceSceneShadow(GfxCoord* coord, const ActorTransform* placement)
 {
+    enum { ACTOR_335800_SHADOW_START_Z_OFFSET = 1000 };
+    const SVECTOR* rotation;
+
+    coord->coord.t[0]   = placement->pos.vx;
+    coord->coord.t[1]   = placement->pos.vy;
+    coord->coord.t[2]   = placement->pos.vz - ACTOR_335800_SHADOW_START_Z_OFFSET;
+    rotation            = &placement->rot;
+    coord->param.rot.vx = rotation->vx;
+    coord->param.rot.vy = rotation->vy;
+    coord->param.rot.vz = rotation->vz;
+    RotMatrix(&coord->param.rot, &coord->coord);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Moves and draws the scene's temporary ground shadow, then ends its task.
+///
+/// Requires a coordinate body and initial state 0. The shadow starts 1000
+/// parent-coordinate units behind the scene pose, moving +Z at 100 units per
+/// tick. After passing the pose it loses 6 units of speed each tick, stops
+/// below -60 and lingers for four ticks. A ready view ends either active phase.
+/// `killCountdown` holds signed speed, then elapsed linger ticks. The final
+/// ground projection remains after teardown, as in the binary.
+static void _actor335800SceneGroundShadowTask(Task* task)
+{
+    enum {
+        ACTOR_335800_SHADOW_INIT          = 0,
+        ACTOR_335800_SHADOW_MOVING        = 1,
+        ACTOR_335800_SHADOW_LINGERING     = 2,
+        ACTOR_335800_SHADOW_INITIAL_SPEED = 100,
+        ACTOR_335800_SHADOW_DECELERATION  = 6,
+        ACTOR_335800_SHADOW_STOP_SPEED    = -60,
+        ACTOR_335800_SHADOW_LINGER_TICKS  = 4,
+        ACTOR_335800_SHADOW_HALF_SIZE     = 2048
+    };
     GfxCoord* coord;
-    VECTOR3   pos;
-    SVECTOR*  rot;
+    VECTOR3   groundPoint;
 
     coord = task->extra.coordBody->coord;
     switch (task->state) {
-        case 0:
-            coord->coord.t[0]   = D_actor_335800_80164F80.pos.vx;
-            coord->coord.t[1]   = D_actor_335800_80164F80.pos.vy;
-            coord->coord.t[2]   = D_actor_335800_80164F80.pos.vz - 1000;
-            rot                 = &D_actor_335800_80164F80.rot;
-            coord->param.rot.vx = rot->vx;
-            coord->param.rot.vy = rot->vy;
-            coord->param.rot.vz = rot->vz;
-            RotMatrix(&coord->param.rot, &coord->coord);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            task->killCountdown = 100;
+        case ACTOR_335800_SHADOW_INIT:
+            _actor335800PlaceSceneShadow(coord, &D_actor_335800_80164F80);
+            task->killCountdown = ACTOR_335800_SHADOW_INITIAL_SPEED;
             task->state++;
-        case 1:
+            // Initialization also performs the first movement tick.
+        case ACTOR_335800_SHADOW_MOVING:
             if (D_actor_335800_80164F80.pos.vz < coord->coord.t[2]) {
-                task->killCountdown -= 6;
-                if (task->killCountdown < -60) {
+                task->killCountdown -= ACTOR_335800_SHADOW_DECELERATION;
+                if (task->killCountdown < ACTOR_335800_SHADOW_STOP_SPEED) {
                     task->killCountdown = 0;
                     task->state++;
                 }
@@ -1004,8 +1035,8 @@ void func_actor_335800_80161E88(Task* task)
                 taskKill(task);
             }
             break;
-        case 2:
-            if (++task->killCountdown < 4) {
+        case ACTOR_335800_SHADOW_LINGERING:
+            if (++task->killCountdown < ACTOR_335800_SHADOW_LINGER_TICKS) {
                 if (gGameSession->viewReady != 0) {
                     taskKill(task);
                 }
@@ -1017,19 +1048,26 @@ void func_actor_335800_80161E88(Task* task)
             taskKill(task);
             break;
     }
-    if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.coordBody->coord->workm), &pos) != 0) {
-        effectDrawGroundShadow(&pos, 0x800, gRoomEffectState->groundShadowShade);
+    // Sample the coordinate refresh list's composed position, including the final tick.
+    if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.coordBody->coord->workm), &groundPoint) != 0) {
+        effectDrawGroundShadow(&groundPoint, ACTOR_335800_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
 }
 
-/// Script callback: queues the replacement overlay load.
-void func_actor_335800_80162040(void)
+/// Stages audio start for the selected streamed scene for a later CD-queue commit.
+///
+/// Requires a selected scene and playback storage that survives consumption;
+/// without a selected slot the previous deferred request is retained.
+static void _actor335800StageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-/// Script callback: queues the overlay load.
-void func_actor_335800_80162060(void)
+/// Queues playback of the selected streamed scene and marks its audio as starting.
+///
+/// Selection and playback buffers must survive consumption, with CD-queue
+/// capacity available. No selected slot enters scene-playing mode immediately.
+static void _actor335800StartScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
@@ -1052,52 +1090,66 @@ void func_actor_335800_801620C0(void)
     taskSpawnFromTable(D_actor_335800_80164DE0, 0, 0, 0);
 }
 
-void func_actor_335800_801620F0(u8 arg0)
+/// Selects the saved and live scene room and requests deferred object relinking.
+///
+/// `room` is a valid byte-sized room key in the current area. This updates the
+/// live save slot without loading a room or requesting a view image.
+static void _actor335800SetSceneRoom(u8 room)
 {
-    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = arg0;
-    gGameSession->roomObjsDirty                                                                  = 1;
+    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
+    gGameSession->roomObjsDirty                                                                  = true;
 }
 
-void func_actor_335800_80162114(void)
+/// Places the live player at the corresponding end of the balcony for the scene.
+///
+/// Requires the player's live TMD root when its slot exists. Z in 1001..3154
+/// selects the low end, 3155..5569 the high end, with yaw 1024 in a 4096-unit
+/// turn. Other positions and an absent player are unchanged. Payloads are
+/// borrowed by synchronous placement messages; the second test reads Z again.
+static void _actor335800PlacePlayerForScene(void)
 {
-    Task*      slot;
-    TmdObject* extra;
-    GfxCoord*  coord;
+    Task*     playerTask;
+    GfxCoord* coord;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (slot != NULL) {
-        extra = slot->extra.tmd;
-        coord = extra->coords;
-        if ((u32)(coord->coord.t[2] - 0xC53) < 0x96F) {
-            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[2], 0);
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (playerTask != NULL) {
+        coord = playerTask->extra.tmd->coords;
+        if ((u32)(coord->coord.t[2] - ACTOR_335800_BALCONY_SPLIT_Z) < ACTOR_335800_BALCONY_HIGH_SCENE_Z - ACTOR_335800_BALCONY_SPLIT_Z) {
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_335800_80164EA4[ACTOR_335800_BALCONY_HIGH_PLACEMENT], 0);
         }
-        if ((u32)(coord->coord.t[2] - 0x3E9) < 0x86A) {
-            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[1], 0);
+        if ((u32)(coord->coord.t[2] - ACTOR_335800_BALCONY_LOW_SCENE_Z) < ACTOR_335800_BALCONY_SPLIT_Z - ACTOR_335800_BALCONY_LOW_SCENE_Z) {
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_335800_80164EA4[ACTOR_335800_BALCONY_LOW_PLACEMENT], 0);
         }
     }
 }
 
-void func_actor_335800_801621B4(s32 arg0)
+/// Places the player at the balcony end selected by the live root's Z position.
+///
+/// Z at least 3155 selects the high end; otherwise the low end. Nonzero
+/// `faceQuarterTurn` selects yaw 1024, zero yaw 2047 (4096 units per turn).
+/// Uses table entries 1..4 and borrowed synchronous placement payloads. An
+/// absent player is unchanged; a present player requires its live TMD root.
+static void _actor335800PlacePlayerAfterScene(s32 faceQuarterTurn)
 {
-    Task*     slot;
+    Task*     playerTask;
     GfxCoord* coord;
-    s32       lowIdx;
-    s32       highIdx;
+    s32       lowPlacementIndex;
+    s32       highPlacementIndex;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (slot != NULL) {
-        coord  = slot->extra.tmd->coords;
-        lowIdx = 1;
-        if (arg0 != 0) {
-            highIdx = 2;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (playerTask != NULL) {
+        coord             = playerTask->extra.tmd->coords;
+        lowPlacementIndex = ACTOR_335800_BALCONY_LOW_PLACEMENT;
+        if (faceQuarterTurn != 0) {
+            highPlacementIndex = ACTOR_335800_BALCONY_HIGH_PLACEMENT;
         } else {
-            lowIdx  = 3;
-            highIdx = 4;
+            lowPlacementIndex  = ACTOR_335800_BALCONY_LOW_EXIT_PLACEMENT;
+            highPlacementIndex = ACTOR_335800_BALCONY_HIGH_EXIT_PLACEMENT;
         }
-        if (coord->coord.t[2] >= 0xC53) {
-            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[highIdx], 0);
+        if (coord->coord.t[2] >= ACTOR_335800_BALCONY_SPLIT_Z) {
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_335800_80164EA4[highPlacementIndex], 0);
         } else {
-            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x3E9, &D_actor_335800_80164EA4[lowIdx], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_335800_80164EA4[lowPlacementIndex], 0);
         }
     }
 }
@@ -1114,45 +1166,62 @@ static inline void _actor335800SetView(s32 view)
     gGameSession->roomObjsDirty                                = 1;
 }
 
-void func_actor_335800_8016224C(void)
+/// Restores balcony view 5 or 6 from the player's position after scene playback.
+///
+/// Z at least 3155 selects view 5; otherwise view 6. Updates the live save and
+/// session, requesting image reload and object relinking. An absent player
+/// leaves both unchanged; a present player requires its live TMD root.
+static void _actor335800RestorePlayerView(void)
 {
-    Task* slot;
+    Task* playerTask;
     s16   view;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (slot != NULL) {
-        view = 6;
-        if (slot->extra.tmd->coords->coord.t[2] >= 0xC53) {
-            view = 5;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (playerTask != NULL) {
+        view = ACTOR_335800_BALCONY_LOW_VIEW;
+        if (playerTask->extra.tmd->coords->coord.t[2] >= ACTOR_335800_BALCONY_SPLIT_Z) {
+            view = ACTOR_335800_BALCONY_HIGH_VIEW;
         }
         _actor335800SetView(view);
     }
 }
 
-/// Sets `SpriteBatch::hidden` on two sprite commands of the area's 39th view
-/// record: 1 keeps their sprites out of the ordering table and also sets game
-/// flag 0x7F's nibble to 1, 0 draws them again.
-void func_actor_335800_801622C0(s32 arg0)
+/// Shows or hides the balcony scene's two sprite ranges and arms the lamp burst.
+///
+/// Requires loaded night-balcony sprites (stage 3, area 29, sprite variant 1).
+/// View 39 owns five batch records, including its terminator;
+/// this changes only batches 2 and 3. `hidden` 0 shows, 1 hides and requests
+/// the room's lamp burst through flag 0x7F, other values do nothing. Showing
+/// does not reset the flag. The sprite arrays remain owned by the room overlay.
+static void _actor335800SetSceneSpriteBatchesHidden(s32 hidden)
 {
-    GameSession*     g;
-    GameLocationKey* sess;
-    SpriteView*      rec;
+    enum {
+        ACTOR_335800_SCENE_SPRITES_VISIBLE     = 0,
+        ACTOR_335800_SCENE_SPRITES_HIDDEN      = 1,
+        ACTOR_335800_SCENE_SPRITE_VIEW_INDEX   = 38,
+        ACTOR_335800_SCENE_FIRST_SPRITE_BATCH  = 2,
+        ACTOR_335800_SCENE_SECOND_SPRITE_BATCH = 3,
+        ACTOR_335800_LAMP_BURST_REQUESTED      = 1
+    };
+    GameSession*     session;
+    GameLocationKey* location;
+    SpriteView*      views;
     SpriteBatch*     batches;
 
-    g    = gGameSession;
-    sess = &g->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1];
-    switch (arg0) {
-        case 0:
-            batches           = rec[38].batches;
-            batches[2].hidden = 0;
-            batches[3].hidden = 0;
+    session  = gGameSession;
+    location = &session->location.loc;
+    views    = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
+    switch (hidden) {
+        case ACTOR_335800_SCENE_SPRITES_VISIBLE:
+            batches                                                = views[ACTOR_335800_SCENE_SPRITE_VIEW_INDEX].batches;
+            batches[ACTOR_335800_SCENE_FIRST_SPRITE_BATCH].hidden  = ACTOR_335800_SCENE_SPRITES_VISIBLE;
+            batches[ACTOR_335800_SCENE_SECOND_SPRITE_BATCH].hidden = ACTOR_335800_SCENE_SPRITES_VISIBLE;
             break;
-        case 1:
-            batches           = rec[38].batches;
-            batches[2].hidden = arg0;
-            batches[3].hidden = arg0;
-            gameFlagSetNibble(GAME_FLAG_07F, 1);
+        case ACTOR_335800_SCENE_SPRITES_HIDDEN:
+            batches                                                = views[ACTOR_335800_SCENE_SPRITE_VIEW_INDEX].batches;
+            batches[ACTOR_335800_SCENE_FIRST_SPRITE_BATCH].hidden  = hidden;
+            batches[ACTOR_335800_SCENE_SECOND_SPRITE_BATCH].hidden = hidden;
+            gameFlagSetNibble(GAME_FLAG_07F, ACTOR_335800_LAMP_BURST_REQUESTED);
             break;
     }
 }
@@ -1176,27 +1245,44 @@ void func_actor_335800_801623D8(void)
     taskSpawnFromTable(D_dryfield_night_motel_balcony_80182834, 0, 0, 0);
 }
 
-void func_actor_335800_80162408(void)
+/// Enables display output at the scene's presentation or skip-recovery boundary.
+static void _actor335800EnableDisplay(void)
 {
-    SetDispMask(1);
+    SetDispMask(true);
 }
 
-void func_actor_335800_80162428(s8 arg0)
+/// Selects the signed-byte scene event in the live save for stage music selection.
+///
+/// The scene passes event 7. Stage music reads this value when choosing its
+/// music-table column; this callback does not issue a sound request itself.
+static void _actor335800SetSceneEvent(s8 sceneEvent)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = arg0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
-void func_actor_335800_80162434(s32 arg0)
+/// Requests that the selected stage sequence stop over the low 16 bits of `fadeTicks`.
+///
+/// Duration counts audio updates and is rounded down to a multiple of four by
+/// sound dispatch. Queue admission and playback matching follow `sndEvtRequestMidiStop`;
+/// its result is ignored. The scene passes 1, producing an immediate stop.
+static void _actor335800StopStageMusic(s32 fadeTicks)
 {
-    sndEvtRequestMidiStop(gStageSceneMusicEntry, arg0 & 0xFFFF);
+    enum { ACTOR_335800_MUSIC_FADE_TICKS_MASK = 0xFFFF };
+    sndEvtRequestMidiStop(gStageSceneMusicEntry, fadeTicks & ACTOR_335800_MUSIC_FADE_TICKS_MASK);
 }
 
-void func_actor_335800_80162460(void)
+/// Selects map objective code 24 after the balcony scene changes rooms.
+static void _actor335800SetPostSceneObjective(void)
 {
-    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x18);
+    enum { ACTOR_335800_POST_SCENE_OBJECTIVE = 24 };
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_335800_POST_SCENE_OBJECTIVE);
 }
 
-void func_actor_335800_80162484(void)
+/// Locks attachment commands for the scene and requests cancellation of room effects.
+///
+/// Preserves other attachment flags. Effect cancellation is deferred to room
+/// effect processing. Normal attachment/HUD updates later clear the lock.
+static void _actor335800LockAttachmentsAndCancelEffects(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();
@@ -1545,22 +1631,12 @@ s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, ActorCommand* request, s32 
     return 0;
 }
 
-/// Per-frame tick of the child block: runs the motion handler `walk.motion`
-/// selects, adds the 16.16 velocity `walk.velocity` onto the accumulator `walk.carry`,
-/// moves the coordinate by the integer part and keeps only the fraction, then
-/// ticks the animation slots, draws the ground shadow and rebuilds the colour
-/// matrix while visible, and counts `freeCountdown` down to the buffer free.
-static void func_actor_335800_80163568(Task* task)
+/// Applies Flint's signed 16.16 XYZ velocity and retains the unsigned fractions.
+///
+/// Borrows initialized work and a live writable root. Composition is marked
+/// dirty even while stationary; integer halves are signed, fractions zero-extended.
+static inline void _actor335800FlintIntegrateVelocity(_Actor335800FlintWork* work, GfxCoord* coord)
 {
-    TmdObject*             ext      = task->extra.tmd;
-    _Actor335800FlintWork* work     = (_Actor335800FlintWork*)task->work;
-    TaskFunc               funcs[2] = { _actor335800FlintIdle, func_actor_335800_80163B78 };
-    VECTOR3                pos;
-    GfxCoord*              coord;
-    s32                    i;
-
-    funcs[work->walk.motion](task);
-    coord                     = task->extra.tmd->coords;
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
     work->walk.carry[2].word += work->walk.velocity.vz;
@@ -1571,21 +1647,58 @@ static void func_actor_335800_80163568(Task* task)
     work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
     work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
     work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
+}
+
+/// Advances the nineteen-part rig's driven slots once when playback is enabled.
+///
+/// Work-owned rig bindings and their borrowed model coordinates and animation
+/// data must remain live. Slot 0 is not driven; slots 1..18 advance in order.
+static inline void _actor335800FlintTickAnimation(_Actor335800FlintWork* work)
+{
+    enum { ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT = 1 };
+    s32 slotIndex;
+
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
+}
+
+/// Updates Flint's scripted walk, animation, visible lighting and delayed buffer release.
+///
+/// Requires initialized work and a live nineteen-part TMD body. Motion is 0
+/// (idle) or 1 (walking), indexing two handlers without a bounds check. Movement
+/// and slots 1..18 continue while hidden. The shadow samples part 1's previous
+/// composed position before lighting recomposes it. A nonnegative release
+/// countdown frees buffers on the tick that finds zero, then becomes inactive at -1.
+static void _actor335800FlintUpdate(Task* task)
+{
+    enum {
+        ACTOR_335800_FLINT_SHADOW_HALF_SIZE = 512,
+        ACTOR_335800_FLINT_LIGHT_COUNT      = 3
+    };
+    TmdObject*             model             = task->extra.tmd;
+    _Actor335800FlintWork* work              = task->work;
+    TaskFunc               motionHandlers[2] = { _actor335800FlintIdle, _actor335800FlintRunWalkStep };
+    VECTOR3                groundPoint;
+    GfxCoord*              coord;
+
+    motionHandlers[work->walk.motion](task);
+    coord = task->extra.tmd->coords;
+    _actor335800FlintIntegrateVelocity(work, coord);
+    _actor335800FlintTickAnimation(work);
+    // Hidden Flint still moves and animates; only shadow and lighting are gated.
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, ACTOR_335800_FLINT_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, ACTOR_335800_FLINT_LIGHT_COUNT);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
@@ -1682,16 +1795,18 @@ static s32 _actor335800FlintStartWalk(Task* task, s32 messageId, const ActorTran
     return 0;
 }
 
-/// State dispatcher of the child block: copies its three-handler table onto
-/// the stack and, unless the game is frozen, runs the entry `Task::state`
-/// selects.
-void func_actor_335800_80163A34(Task* task)
+/// Dispatches Flint's spawn, frame-update or teardown state while actors are running.
+///
+/// Requires a live TMD task with state 0 (initialize), 1 (update) or 2 (exit).
+/// States 1 and 2 require initialized task-owned work. Frozen actor control
+/// skips every state, including initialization and teardown; indexing is unchecked.
+static void _actor335800FlintTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_335800_80161E5C;
+    handlers = D_actor_335800_80161E5C;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        handlers.funcs[task->state](task);
     }
 }
 
@@ -1756,16 +1871,20 @@ static void _actor335800FlintIdle(Task* task)
 {
 }
 
-/// Motion handler 1 of the child block: copies the four-handler table onto
-/// the stack and runs the entry `walk.motionStep` selects.
-static void func_actor_335800_80163B78(Task* arg0)
+/// Runs the current step of Flint's scripted walk.
+///
+/// Requires initialized task-owned work and a live TMD root. `walk.motionStep`
+/// must be 0 (face target), 1 (begin approach), 2 (check arrival), or 3 (turn to
+/// closing yaw); indexing is unchecked. The frame update dispatches this only
+/// while `walk.motion` is `ACTOR_WALK_MOTION_WALKING`.
+static void _actor335800FlintRunWalkStep(Task* task)
 {
     TaskFuncTable4         handlers;
     _Actor335800FlintWork* work;
 
-    work     = (_Actor335800FlintWork*)arg0->work;
+    work     = task->work;
     handlers = D_actor_335800_80161E68;
-    handlers.funcs[work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](task);
 }
 
 /// Faces Flint's root toward the latched walk destination and advances the step.
