@@ -121,24 +121,27 @@ CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void)
     }
 }
 
-/// Steps distinct writable caret level/direction words by one within 8..15.
+/// Advances the continuation caret's brightness pulse by one level.
 ///
-/// falling is 0 while rising and 1 while falling; the endpoint reversals take
-/// place after the step. At 8 the direction must be rising, and at 15 falling.
-/// The caller draws the old level before calling this.
-static inline void _capCaptionStepCaretPulse(s32* greyLevel, s32* falling)
+/// `pulseLevel` is an integer scale in 8..15; the drawer converts level / 15
+/// to separate vertex RGB intensities. `falling` is 0 while rising and 1 while
+/// falling. The pointers borrow distinct writable s32 words for this call.
+/// At 8 the direction must be rising, and at 15 falling. Reversal follows the
+/// increment/decrement; no clamping is performed. The drawer advances this
+/// state only after emitting a caret, so hidden or countdown calls freeze it.
+static inline void _capCaptionStepCaretPulse(s32* pulseLevel, s32* falling)
 {
     enum { CAP_CAPTION_CARET_PULSE_RISING  = 0,
            CAP_CAPTION_CARET_PULSE_FALLING = 1 };
 
     if (*falling == CAP_CAPTION_CARET_PULSE_RISING) {
-        (*greyLevel)++;
-        if (*greyLevel >= CAP_CAPTION_CARET_PULSE_MAX) {
+        (*pulseLevel)++;
+        if (*pulseLevel >= CAP_CAPTION_CARET_PULSE_MAX) {
             *falling = CAP_CAPTION_CARET_PULSE_FALLING;
         }
     } else {
-        (*greyLevel)--;
-        if (*greyLevel <= CAP_CAPTION_CARET_PULSE_MIN) {
+        (*pulseLevel)--;
+        if (*pulseLevel <= CAP_CAPTION_CARET_PULSE_MIN) {
             *falling = CAP_CAPTION_CARET_PULSE_RISING;
         }
     }
