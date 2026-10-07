@@ -1557,9 +1557,6 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     GfxMatrix         ma;
     GfxMatrix         mb;
     GfxMatrix         mc;
-    GfxRotationWords* ia;
-    GfxRotationWords* ib;
-    GfxRotationWords* ic;
     GfxCoord*         base;
     GfxCoord*         c1;
     GfxCoord*         c2;
@@ -1593,25 +1590,10 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     }
 
     m2 = &c2->coord;
-    ia = &ma.rotationWords;
-    ib = &mb.rotationWords;
-    ic = &mc.rotationWords;
 
-    ma.rotationWords.m00M01 = ONE;
-    ma.rotationWords.m02M10 = 0;
-    ia->m11M12              = ONE;
-    ma.rotationWords.m20M21 = 0;
-    ia->m22                 = ONE;
-    mb.rotationWords.m00M01 = ONE;
-    mb.rotationWords.m02M10 = 0;
-    ib->m11M12              = ONE;
-    mb.rotationWords.m20M21 = 0;
-    ib->m22                 = ONE;
-    mc.rotationWords.m00M01 = ONE;
-    mc.rotationWords.m02M10 = 0;
-    ic->m11M12              = ONE;
-    mc.rotationWords.m20M21 = 0;
-    ic->m22                 = ONE;
+    gfxSetRotIdentity(&ma.mat);
+    gfxSetRotIdentity(&mb.mat);
+    gfxSetRotIdentity(&mc.mat);
 
     gfxExtractEulerAngles(m2, &rot1);
     m3 = &c3->coord;
@@ -1626,11 +1608,7 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     _diverTurnJoint(c2, (s16)work->lookYaw / 3);
     _diverTurnJoint(c3, (s16)work->lookYaw / 3);
 
-    mc.rotationWords.m00M01 = ONE;
-    mc.rotationWords.m02M10 = 0;
-    ic->m11M12              = ONE;
-    mc.rotationWords.m20M21 = 0;
-    ic->m22                 = ONE;
+    gfxSetRotIdentity(&mc.mat);
 
     RotMatrixY((s16)work->lookYaw / 3, &mc.mat);
     TransposeMatrix(&c1->coord, &t1);
