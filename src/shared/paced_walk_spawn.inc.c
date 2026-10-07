@@ -42,6 +42,6 @@ void pacedWalkSpawn(Enemy* enemy, Task* task)
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = gPacedWalkMsgTable;
-    pacedWalkUpdate(task);
+    PACED_WALK_UPDATE(task);
     task->state++;
 }

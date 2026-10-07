@@ -1,13 +1,53 @@
 /* Part of the paced walk library; see paced_walk.h. */
 
-/// The actor's step body. States 1 and 2 reseed the animation slots (blending
-/// over `blendFrames` and from the clip's start) and advance to 3; state 3 walks the root coordinate 12
-/// units per frame while the walk clip has `travel` left, switching to clip 1
-/// with argument 0xA when it runs out, then ticks the slots.
-void pacedWalkUpdate(Task* task)
+// A carrier can include the update for more than one paced walker.
+#ifndef SRC_SHARED_PACED_WALK_COMPLETE_TRAVEL_TICK
+#define SRC_SHARED_PACED_WALK_COMPLETE_TRAVEL_TICK
+
+/// Consumes an attempted walk step and records the idle choice at arrival.
+///
+/// Borrows writable `work` with nonzero signed-halfword `st.travel`.
+/// Only a decremented result of zero records clip 1 and ten whole normal-rate
+/// frames for a later blend. Leaves the request state and playing tracks intact.
+static __inline__ void _pacedWalkCompleteTravelTick(PacedWalkWork* work)
 {
+    enum {
+        PACED_WALK_ANIM_IDLE         = 1,
+        PACED_WALK_IDLE_BLEND_FRAMES = 10,
+    };
+
+    work->st.travel--;
+    if (work->st.travel == 0) {
+        work->blendFrames = PACED_WALK_IDLE_BLEND_FRAMES;
+        work->st.animId   = PACED_WALK_ANIM_IDLE;
+    }
+}
+#endif
+
+/// Processes a paced walker's animation request or one attempted travel step.
+///
+/// `task` must own a live TMD model and `PacedWalkWork` with its twenty-slot
+/// rig bound to model coordinates and loaded clips. The selected animation
+/// helpers must use the same task and work block. Keep borrowed model and clip
+/// storage live, with the movement and animation helpers' scratch/GTE state
+/// initialized. BLEND captures the old poses and RESET restarts the requested
+/// tracks; each enters TICK and returns without an ordinary animation tick.
+/// Other states besides TICK do nothing.
+///
+/// TICK attempts a 12-parent-coordinate-unit step along the normalized local
+/// Z axis only for requested walk clip 4 with nonzero `st.travel`, then ticks
+/// non-root slots 1 through 19. Travel counts attempted calls, even when actor
+/// freezing suppresses movement; the signed-halfword count is not clamped.
+/// At zero it records idle clip 1 and a ten-frame blend duration, leaving TICK
+/// and the playing tracks intact. A later reseed request applies a clip change.
+void PACED_WALK_UPDATE(Task* task)
+{
+    enum {
+        PACED_WALK_ANIM_WALK  = 4,
+        PACED_WALK_STEP_UNITS = 12,
+    };
+
     PacedWalkWork* work;
-    s16            animId;
 
     work = task->work;
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
@@ -21,18 +61,14 @@ void pacedWalkUpdate(Task* task)
         return;
     }
     if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
-        // The loop-end note ends cse's first block here, so the pause check
+        // The loop-end note ends cse's first block here, so the actor-freeze check
         // loads its own 1 instead of reusing the state test's.
         do {
         } while (0);
-        animId = work->st.animId;
-        if (animId == 4 && work->st.travel != 0) {
-            _actorMovementStepForward(task->extra.tmd->coords, 0xC);
-            work->st.travel--;
-            if (work->st.travel == 0) {
-                work->blendFrames = 0xA;
-                work->st.animId   = 1;
-            }
+        if (work->st.animId == PACED_WALK_ANIM_WALK && work->st.travel != 0) {
+            _actorMovementStepForward(task->extra.tmd->coords, PACED_WALK_STEP_UNITS);
+            // Frozen actors still consume the scheduled travel attempt.
+            _pacedWalkCompleteTravelTick(work);
         }
         PACED_WALK_TICK_ANIM(task);
         return;

@@ -1,10 +1,11 @@
-/* The walk of the NPCs that cutscene scripts move around, in the version that
- * keeps its work block in Task::work. The 'walk to' message (0x7DD) aims the
- * model's root coordinate at a target and records the distance in twelfths;
- * the per-frame body reseeds the 20-slot rig in states 1 and 2, then in state
- * 3 steps the root 12 units forward per frame while the walk clip has travel
- * left, switches to the idle clip with a 10-frame blend when it runs out, and
- * ticks the rig.
+/* Animation requests and scripted travel for twenty-part NPCs whose work
+ * block lives at Task::work. The walk-to message aims the model root and
+ * records the remaining twelve-unit travel attempts. An update consumes a
+ * blend or reset request before ordinary ticking. Tick updates advance the
+ * root only for walk clip 4, counting an attempt even when actor freezing
+ * suppresses movement, then advance slots 1 through 19. Arrival records idle
+ * clip 1 and a ten-frame blend duration without changing the playing tracks
+ * or request state; a later reseed request applies a clip change.
  *
  * Include this header in the prologue and each fragment at its function's
  * position. A file with several walkers, as actor_460200 has, includes the
@@ -115,7 +116,23 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 #define PACED_WALK_BLEND_ANIM _pacedWalkBlendAnim
 #endif
 
-void        pacedWalkUpdate(Task* task);
+#ifndef PACED_WALK_UPDATE
+/// Function identifier selecting a paced walker's request and movement update.
+///
+/// Defaults to `pacedWalkUpdate`, with signature `void (Task* task)`.
+/// The update requires a live `PacedWalkWork` at `Task::work`, independent of
+/// `PACED_WALK_WORK_T`. Select the matching tick, reset and blend instances
+/// with the three animation bindings before including the update fragment.
+/// Bind before this header for its declaration, or undefine and rebind around
+/// a further fragment copy. Declare additional private instances `static` in
+/// the carrier's prologue; their definitions inherit that linkage. Restore the
+/// first binding afterwards if later fragments call the first walker.
+/// This object-like alias evaluates no arguments, captures no locals and uses
+/// no stringification or token pasting. Header guards select the default once.
+#define PACED_WALK_UPDATE pacedWalkUpdate
+#endif
+
+void        PACED_WALK_UPDATE(Task* task);
 static void PACED_WALK_TICK_ANIM(Task* task);
 static void PACED_WALK_RESET_ANIM(Task* task);
 static void PACED_WALK_BLEND_ANIM(Task* task);

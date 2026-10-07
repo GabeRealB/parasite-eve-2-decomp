@@ -27,7 +27,7 @@ void pacedWalkFrame(Enemy* enemy, Task* task)
     pos.vy = coord->workm.t[1] - 800;
     pos.vz = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &pos, 0, 3);
-    pacedWalkUpdate(task);
+    PACED_WALK_UPDATE(task);
     walkerDrawShadow(task);
     if (work->smoking != 0 && !(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         if (task->killCountdown & 1) {

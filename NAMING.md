@@ -702,6 +702,11 @@ callers, defaulting to `_pacedWalkBlendAnim`. Its header and fragment declare
 each instance `static`; a carrier declares additional instances `static` in
 its prologue and binds `PACED_WALK_WORK_T` to their allocated type around the
 definitions. That type also provides `blendFrames` in whole normal-rate frames.
+`PACED_WALK_UPDATE` selects an update definition and its shared-fragment callers,
+defaulting to `pacedWalkUpdate`. Additional private instances keep the subsystem
+prefix (for example `_pacedWalkUpdateSoldierC`) and are declared `static` in the
+carrier's prologue. The update always uses `PacedWalkWork`; the work-type binding
+only selects the reusable animation and placement helpers' work type.
 
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
 model and turns its head toward the player during talk scenes, carried by

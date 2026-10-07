@@ -18,7 +18,7 @@ s32 pacedWalkPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
-        pacedWalkUpdate(task);
+        PACED_WALK_UPDATE(task);
         return 0;
     }
     return -1;

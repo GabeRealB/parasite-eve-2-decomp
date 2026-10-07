@@ -110,6 +110,7 @@ static void func_actor_460200_80133254(Task* task);
 static void _pacedWalkTickSoldierBAnim(Task* task);
 static void _pacedWalkResetSoldierBAnim(Task* task);
 static void _pacedWalkBlendSoldierBAnim(Task* task);
+static void _pacedWalkUpdateSoldierC(Task* task);
 static void func_actor_460200_801338C0(Enemy* enemy, Task* task);
 static void func_actor_460200_80133A04(Enemy* enemy, Task* task);
 static void func_actor_460200_80133A88(Task* task);
@@ -2150,10 +2151,9 @@ AnimationSet* D_actor_460200_8015153C[17] = {
     &_gActor460200Animation1F6B4,
 };
 
-void        func_actor_460200_80132210(void);
-void        func_actor_460200_801322B8(void);
-void        func_actor_460200_80132390(void);
-static void func_actor_460200_801336B4(Task* task);
+void func_actor_460200_80132210(void);
+void func_actor_460200_801322B8(void);
+void func_actor_460200_80132390(void);
 
 #include "../../shared/screen_negative_capture.inc.c"
 
@@ -2393,13 +2393,15 @@ s32 func_actor_460200_80133568(Task* task, s32 arg1, ActorCommand* args, s32 arg
 
 #include "../../shared/stride_walk_sub_model.inc.c"
 
-/// The third walker's copy.
-#define pacedWalkUpdate       func_actor_460200_801336B4
+#undef PACED_WALK_UPDATE
+// Soldier C's update and animation helpers operate on its PacedWalkWork.
+#define PACED_WALK_UPDATE     _pacedWalkUpdateSoldierC
 #define PACED_WALK_TICK_ANIM  _pacedWalkTickSoldierCAnim
 #define PACED_WALK_RESET_ANIM _pacedWalkResetSoldierCAnim
 #define PACED_WALK_BLEND_ANIM _pacedWalkBlendSoldierCAnim
 #include "../../shared/paced_walk_update.inc.c"
-#undef pacedWalkUpdate
+#undef PACED_WALK_UPDATE
+#define PACED_WALK_UPDATE pacedWalkUpdate
 #undef PACED_WALK_TICK_ANIM
 #undef PACED_WALK_RESET_ANIM
 #undef PACED_WALK_BLEND_ANIM
@@ -2415,7 +2417,7 @@ void func_actor_460200_8013386C(Task* task)
 /// hands it back to `enemyDestroy`: it allocates the `PacedWalkWork` block (the
 /// matrix pair its sub-model reads through `TmdObject::lightMtx`/`colorMtx`
 /// plus the animation state below), parks the enemy in `PacedWalkWork::enemy`
-/// and runs the step body `func_actor_460200_801336B4` once in state 2.
+/// and runs the step body `_pacedWalkUpdateSoldierC` once in state 2.
 static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
 {
     PacedWalkWork* work;
@@ -2451,12 +2453,12 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
     animationInitContext(&work->rig.anim, (AnimationSet**)&D_actor_460200_80151538, obj, work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = D_actor_460200_801514FC;
-    func_actor_460200_801336B4(task);
+    _pacedWalkUpdateSoldierC(task);
     task->state += 1;
 }
 
 #define walkerFrame      func_actor_460200_80133A04
-#define walkerUpdate     func_actor_460200_801336B4
+#define walkerUpdate     _pacedWalkUpdateSoldierC
 #define walkerDrawShadow func_actor_460200_80133AB0
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -2502,7 +2504,7 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args,
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         work->st.field_6 = 0;
-        func_actor_460200_801336B4(task);
+        _pacedWalkUpdateSoldierC(task);
         return 0;
     }
     return -1;
