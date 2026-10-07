@@ -53,6 +53,54 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/no9_golem.h"
 
+/// Native clips used by the fight's movement and hit reactions.
+enum {
+    ACTOR_521100_ANIM_IDLE        = 1,
+    ACTOR_521100_ANIM_GUARD_START = 14,
+    ACTOR_521100_ANIM_GUARD_END   = 15,
+    ACTOR_521100_ANIM_STAGGER     = 16,
+    ACTOR_521100_ANIM_FLINCH      = 17,
+    ACTOR_521100_ANIM_WALK        = 18,
+};
+
+/// Initial and resolved responses used by the body's hit handler.
+enum {
+    ACTOR_521100_HIT_RESPONSE_NORMAL  = 0,
+    ACTOR_521100_HIT_RESPONSE_GUARD   = 1,
+    ACTOR_521100_HIT_RESPONSE_STAGGER = 2,
+};
+
+/// Phases and random-table index shared by the hit reactions.
+enum {
+    ACTOR_521100_REACTION_BEGIN           = 0,
+    ACTOR_521100_REACTION_WAIT            = 1,
+    ACTOR_521100_RECOVERY_WAIT_INDEX_MASK = 0xF,
+};
+
+/// Resumes approach or the saved route after a hit reaction, then draws its wait.
+///
+/// `bodyWork` must be a side-effect-free pointer expression to the live work
+/// block; it is evaluated repeatedly. `waitFrameTable` is evaluated once and
+/// supplies sixteen read-only frame counts. Consumes one LCG draw. Expands
+/// to a braced block; use only as a statement inside an existing block.
+#define ACTOR_521100_RESUME_AFTER_HIT(bodyWork, waitFrameTable)                                             \
+    {                                                                                                       \
+        const u16* waitFrames;                                                                              \
+        u32        randomState;                                                                             \
+        if ((bodyWork)->resumeRoute == 0) {                                                                 \
+            (bodyWork)->state    = ACTOR_521100_STATE_APPROACH;                                             \
+            (bodyWork)->subState = 0;                                                                       \
+        } else {                                                                                            \
+            (bodyWork)->state    = ACTOR_521100_STATE_WALK_ROUTE;                                           \
+            (bodyWork)->subState = (bodyWork)->resumeRouteLeg;                                              \
+        }                                                                                                   \
+        (bodyWork)->animationId  = ACTOR_521100_ANIM_IDLE;                                                  \
+        waitFrames               = (waitFrameTable);                                                        \
+        randomState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
+        gRandomLcgState          = randomState;                                                             \
+        (bodyWork)->stateCounter = waitFrames[(randomState >> 16) & ACTOR_521100_RECOVERY_WAIT_INDEX_MASK]; \
+    }
+
 extern TaskMessageEntry D_actor_521100_8015F6FC[8];
 
 s32 func_actor_521100_80135BEC(Task*, s32, s32, s32);
@@ -80,7 +128,7 @@ extern s16 D_actor_521100_8015F570[];
 
 extern s16 D_actor_521100_8015F684[];
 
-/// The three waypoints the state-6 body `func_actor_521100_80134774` walks the
+/// The three waypoints the state-6 body `_actor521100WalkRouteState` walks the
 /// actor to, one per phase `subState` it switches on: `(-4000, 0, -2000)` for
 /// phases 0 and 2, and `(-5250, 0, -1200)` for phase 1. Only `vx` and `vz` are
 /// read, and only when the actor is too far from the player for that phase to
@@ -90,12 +138,12 @@ extern VECTOR D_actor_521100_8015F654[];
 /// Sixteen frames of the burn-out effect the state bodies at `subState == 1`
 /// pick between on their last frame, indexed by the 4 bits under the top half
 /// of an LCG draw (`(rng >> 16) & 0xF`). The sibling state body
-/// `func_actor_521100_801357F0` reads the table one slot down at 0x8015F5F4.
+/// `_actor521100FlinchState` reads the table one slot down at 0x8015F5F4.
 extern u16 D_actor_521100_8015F634[];
 
 /// The other sixteen-frame burn-out table, read by the state-5 body
-/// `func_actor_521100_801357F0` off the same LCG draw bits the state-3 body
-/// `func_actor_521100_8013570C` indexes `D_actor_521100_8015F634` with.
+/// `_actor521100FlinchState` off the same LCG draw bits the state-3 body
+/// `_actor521100StaggerState` indexes `D_actor_521100_8015F634` with.
 extern u16 D_actor_521100_8015F5F4[];
 
 /// The burn-out effect table the sequence resets read, one 0x20-byte table
@@ -144,29 +192,29 @@ static void func_actor_521100_80133104(Task* arg0);
 static void func_actor_521100_8013334C(Task* arg0);
 static void func_actor_521100_801335B4(Task* arg0);
 static void func_actor_521100_801339B0(Task* arg0);
-static void func_actor_521100_80134658(Task* arg0);
-static void func_actor_521100_80134774(Task* arg0);
-static void func_actor_521100_80134C38(Task* arg0);
-static void func_actor_521100_80134D88(Task* arg0);
-static void func_actor_521100_80135024(Task* arg0);
-static void func_actor_521100_80135230(Task* arg0);
+static void _actor521100GuardState(Task* task);
+static void _actor521100WalkRouteState(Task* task);
+static void _actor521100TurnTowardTargetYaw(Task* task);
+static void _actor521100PlayFootsteps(Task* task);
+static void _actor521100ApplyHitTwist(Task* task);
+static void _actor521100TickEventFire(Task* task);
 static void func_actor_521100_801353CC(Enemy* arg0, Task* arg1);
 static void func_actor_521100_80135414(Enemy* arg0, Task* arg1);
 static void func_actor_521100_80135478(Enemy* arg0, Task* arg1);
 static void func_actor_521100_801355C8(Task* arg0);
-static void func_actor_521100_80135680(Task* arg0);
-static void func_actor_521100_8013570C(Task* arg0);
-static void func_actor_521100_801357F0(Task* arg0);
-static void func_actor_521100_801358D4(Task* arg0);
-static void func_actor_521100_80135964(Task* arg0);
-static void func_actor_521100_80135A34(Task* arg0);
-static void func_actor_521100_80135B40(Enemy* enemy, Task* task);
-static void func_actor_521100_80135B80(Enemy* arg0, Task* task);
+static void _actor521100TryStartAttack(Task* task);
+static void _actor521100StaggerState(Task* task);
+static void _actor521100FlinchState(Task* task);
+static void _actor521100StepRootPosition(Task* task);
+static void _actor521100TickAnimation(Task* task);
+static void _actor521100UpdateLighting(Task* task);
+static void _actor521100AttachGunblade(Enemy* unusedEnemy, Task* task);
+static void _actor521100UpdateGunbladeDrawMode(Enemy* unusedEnemy, Task* task);
 
 static TmdSource _gActor521100No9GolemDryfieldBody;
 static TmdSource _gActor521100No9GolemDryfieldGunblade;
 void             func_actor_521100_80135378(Task*);
-void             func_actor_521100_80135AE4(Task*);
+static void      _actor521100GunbladeTask(Task* task);
 
 static AnimationPackedPose _gActor521100Animation05474Bank1[6] = {
 #include "assets/actor_521100_animation_05474_bank1.inc"
@@ -1589,7 +1637,7 @@ s16 D_actor_521100_8015F684[48] = {
 
 TaskDesc D_actor_521100_8015F6E4[2] = {
     { { { TASK_BODY_TMD, 96 } }, func_actor_521100_80135378, { .model = &_gActor521100No9GolemDryfieldBody } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_521100_80135AE4, { .model = &_gActor521100No9GolemDryfieldGunblade } },
+    { { { TASK_BODY_TMD, 96 } }, _actor521100GunbladeTask, { .model = &_gActor521100No9GolemDryfieldGunblade } },
 };
 
 TaskMessageEntry D_actor_521100_8015F6FC[8] = {
@@ -1604,7 +1652,7 @@ TaskMessageEntry D_actor_521100_8015F6FC[8] = {
 };
 
 static void           func_actor_521100_80131E8C(Enemy* enemy, Task* task);
-static __inline__ s32 Actor521100_GetHitType(s32 key);
+static __inline__ s32 _actor521100GetBaseHitResponse(s32 attackKey);
 
 /// Spawn state of the actor: allocates its 0x6C0 work block, registers the
 /// enemy on the lock-on list with its parameter record, contact table and body
@@ -1773,12 +1821,22 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     task->state    = 1;
 }
 
-static __inline__ s32 Actor521100_GetHitType(s32 key)
+/// Returns the golem's initial response to a player attack: normal or guard.
+///
+/// Attachment keys (bit 15) always request a guard; weapon keys select the
+/// 48-entry response table with their low six bits, which must be in 0..47.
+/// Category and other bits are ignored. The hit handler may turn a guard into
+/// a normal hit during a grab or a stagger when struck off-axis or attacking.
+static __inline__ s32 _actor521100GetBaseHitResponse(s32 attackKey)
 {
-    if (key & 0x8000) {
-        return 1;
+    enum {
+        ACTOR_521100_ATTACK_KEY_ATTACHMENT = 0x8000,
+        ACTOR_521100_ATTACK_KEY_ROW_MASK   = 0x3F,
+    };
+    if (attackKey & ACTOR_521100_ATTACK_KEY_ATTACHMENT) {
+        return ACTOR_521100_HIT_RESPONSE_GUARD;
     }
-    return D_actor_521100_8015F684[key & 0x3F];
+    return D_actor_521100_8015F684[attackKey & ACTOR_521100_ATTACK_KEY_ROW_MASK];
 }
 
 static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
@@ -1802,7 +1860,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
     s32                           r2;
     s32                           angle;
     s32                           angle2;
-    s32                           hitType;
+    s32                           hitResponse;
     s32                           i;
     s16                           diff;
     s16                           wrap;
@@ -1862,10 +1920,10 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
         dz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         scratch->delta.vector.vz = dz;
         damage                   = Gp_ComputeDamage(work->bodyContacts[i].key.value, SquareRoot0(dx * dx + dz * dz), 0, 0);
-        hitType                  = Actor521100_GetHitType(work->bodyContacts[i].key.value);
-        if (hitType == 1) {
+        hitResponse              = _actor521100GetBaseHitResponse(work->bodyContacts[i].key.value);
+        if (hitResponse == ACTOR_521100_HIT_RESPONSE_GUARD) {
             if (work->state == ACTOR_521100_STATE_GRAB) {
-                hitType = 0;
+                hitResponse = ACTOR_521100_HIT_RESPONSE_NORMAL;
             } else {
                 diff    = work->yaw - (ratan2((s16)scratch->delta.vector.vx, (s16)scratch->delta.vector.vz) & 0xFFF);
                 absDiff = abs(diff);
@@ -1877,12 +1935,12 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                     wrap = diff + 0x1000;
                 }
                 if ((wrap >= 0x301) || (work->attackLive == 1)) {
-                    hitType = 2;
+                    hitResponse = ACTOR_521100_HIT_RESPONSE_STAGGER;
                 }
             }
         }
-        switch (hitType) {
-            case 0:
+        switch (hitResponse) {
+            case ACTOR_521100_HIT_RESPONSE_NORMAL:
                 rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 r               = rng >> 0x10;
                 angle           = (r & 0x7F) + 0x40;
@@ -1915,7 +1973,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                     sndEvtRequestScriptStart((s32)sound, pan, depth);
                 }
                 break;
-            case 1:
+            case ACTOR_521100_HIT_RESPONSE_GUARD:
                 work->state    = ACTOR_521100_STATE_GUARD;
                 work->subState = 0;
                 if (work->bodyContacts[i].key.value & 0x8000) {
@@ -1928,7 +1986,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
                 depth = (s8)worldCoordGetOriginAudioDepth(coord);
                 sndEvtRequestScriptStart((s32)sound, pan1, depth);
                 break;
-            case 2:
+            case ACTOR_521100_HIT_RESPONSE_STAGGER:
                 work->state      = ACTOR_521100_STATE_STAGGER;
                 work->subState   = 0;
                 work->attackLive = 0;
@@ -2031,7 +2089,7 @@ static void func_actor_521100_80132958(Task* arg0)
                     gRandomLcgState    = rng;
                     work->stateCounter = tbl[(rng >> 16) & 0xF];
                 } else if (func_actor_521100_80132C70(arg0) == 0) {
-                    func_actor_521100_80135680(arg0);
+                    _actor521100TryStartAttack(arg0);
                 }
                 break;
             case 1:
@@ -2062,7 +2120,7 @@ static void func_actor_521100_80132958(Task* arg0)
                     timer              = tbl1[(rng1 >> 16) & 0xF];
                     work->stateCounter = timer;
                     if (timer == 0) {
-                        func_actor_521100_80135680(arg0);
+                        _actor521100TryStartAttack(arg0);
                         if (work->state == ACTOR_521100_STATE_APPROACH) {
                             tbl2               = D_actor_521100_8015F614;
                             rng2               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2301,7 +2359,7 @@ static void func_actor_521100_80133104(Task* arg0)
 /// playing: `D_actor_521100_8015F894[animationId]` is the clip's own length, read
 /// signed and again unsigned because the cue frames below need it both ways,
 /// and `animationFrame` is the frame counter the blend in
-/// `func_actor_521100_80135964` ticks. The counter is re-read at each cue
+/// `_actor521100TickAnimation` ticks. The counter is re-read at each cue
 /// rather than carried, so the effects spawned in between cannot leave a stale
 /// copy behind.
 ///
@@ -2826,120 +2884,96 @@ static void func_actor_521100_801339B0(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor521100GrabScratch);
 }
 
-/// Step-4 body of the burn-out sequence, the fourth of the ones the dispatcher
-/// `func_actor_521100_801355C8` runs off `state`. `subState` is a
-/// three-phase latch: phase 0 disables `weaponAttack` and `forearmAttack` and
-/// asks the slot blend for clip 0xE, phase 1 waits out 5 blended frames and
-/// asks for clip 0xF, and phase 2 waits out 0x26 of them and then either drops
-/// the actor to the approach or, when `resumeRoute` asks for it, on to state 6
-/// at sub-state `resumeRouteLeg`. Phase 2 latches clip 1 for the blend and draws
-/// the approach's first wait, `stateCounter`, out of `D_actor_521100_8015F634`,
-/// the same 4-bit draw `func_actor_521100_8013570C` makes.
-static void func_actor_521100_80134658(Task* arg0)
+/// Runs the guard reaction, then resumes approach or the interrupted route.
+///
+/// Requires the body's live work block. Entry stops movement and disables both
+/// attack spheres; the two guard clips run for 5 and 38 animation ticks.
+/// Completion restores idle and draws the next approach wait in frames.
+static void _actor521100GuardState(Task* task)
 {
+    enum {
+        ACTOR_521100_GUARD_WAIT_END     = 2,
+        ACTOR_521100_GUARD_START_FRAMES = 5,
+        ACTOR_521100_GUARD_END_FRAMES   = 38,
+    };
     Actor521100Work* work;
-    u16*             tbl;
-    u32              rng;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->subState) {
-        case 0:
-            work->animationId          = 0xE;
-            work->subState             = 1;
+        case ACTOR_521100_REACTION_BEGIN:
+            work->animationId          = ACTOR_521100_ANIM_GUARD_START;
+            work->subState             = ACTOR_521100_REACTION_WAIT;
             work->forwardSpeed         = 0;
             work->turnSpeed            = 0;
             work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
-        case 1:
-            if (work->animationFrame >= 5) {
-                work->animationId = 0xF;
-                work->subState    = 2;
+        case ACTOR_521100_REACTION_WAIT:
+            if (work->animationFrame >= ACTOR_521100_GUARD_START_FRAMES) {
+                work->animationId = ACTOR_521100_ANIM_GUARD_END;
+                work->subState    = ACTOR_521100_GUARD_WAIT_END;
             }
             return;
-        case 2:
-            if (work->animationFrame >= 0x26) {
-                if (work->resumeRoute == 0) {
-                    work->state    = ACTOR_521100_STATE_APPROACH;
-                    work->subState = 0;
-                } else {
-                    work->state    = ACTOR_521100_STATE_WALK_ROUTE;
-                    work->subState = work->resumeRouteLeg;
-                }
-                work->animationId  = 1;
-                tbl                = D_actor_521100_8015F634;
-                rng                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState    = rng;
-                work->stateCounter = tbl[(rng >> 16) & 0xF];
+        case ACTOR_521100_GUARD_WAIT_END:
+            if (work->animationFrame >= ACTOR_521100_GUARD_END_FRAMES) {
+                ACTOR_521100_RESUME_AFTER_HIT(work, D_actor_521100_8015F634);
             }
             return;
     }
 }
-/// State-6 body of the burn-out sequence, the last one the dispatcher
-/// `func_actor_521100_801355C8` runs off `state`. `subState` is a
-/// three-phase latch again and `D_actor_521100_8015F654` holds one waypoint per
-/// phase; every phase asks for the same motion (`animationId` 0x12,
-/// `forwardSpeed` 0x14, `turnSpeed` 0x78) and builds the
-/// vector from the attach coordinate's translation to its target into the
-/// 0x18-byte scratch, of which only the `vec` half is written.
+/// Walks the Dryfield fight's three route legs and turns to attack a nearby player.
 ///
-/// Phase 0 aims at the player (`gPlayerStatus.coordMtx->t`) and hands the actor
-/// back to state 1, speed zeroed, once it is within 0x7D0 of it and the
-/// player's own Z is past -0x5DC; otherwise it aims at waypoint 0 and steps the
-/// phase to 1 on arrival within 0x3C. Those two paths leave the switch
-/// directly, while the ones that reach neither clear `state` and
-/// `subState` - or raise `resumeRoute` only, in the location's view 2 -
-/// and then clear `resumeRouteLeg`. Phase 1 aims at the player and falls back to
-/// waypoint 1 past 0x7D0, re-aiming at the player from 0x3C of that waypoint;
-/// the within-0x7D0 path and the re-aim one both stop the actor (`targetYaw`
-/// re-aimed, `forwardSpeed` 0, `turnSpeed` 0x78, `state` 1, `subState` 0),
-/// while on the far one the phase steps to 2 and both `resumeRoute` /
-/// `resumeRouteLeg` are cleared, or both raised in view 2. Phase 2 aims at
-/// waypoint 2 and, from the coordinate's X past -0xFA0, clears `state` and
-/// `subState` (the session check there only clears `subState`), then drops
-/// both flags.
-///
-/// `sc2` is a second view of the same scratch that only phase 0's else branch
-/// reads: CSE folds its initialisation into a copy of `sc`.
-static void func_actor_521100_80134774(Task* arg0)
+/// Requires the body's live root coordinate and work block. Targets use the
+/// root's parent frame and integer game units; yaw uses 4096 units per turn.
+/// View 2 retains a route leg for resumption after an attack or hit reaction.
+/// Reserves and releases one ActorFaceScratch block for the target delta.
+static void _actor521100WalkRouteState(Task* task)
 {
+    enum {
+        ACTOR_521100_ROUTE_FIRST           = 0,
+        ACTOR_521100_ROUTE_SECOND          = 1,
+        ACTOR_521100_ROUTE_RETURN          = 2,
+        ACTOR_521100_ROUTE_VIEW            = 2,
+        ACTOR_521100_ROUTE_WALK_SPEED      = 20,
+        ACTOR_521100_ROUTE_TURN_SPEED      = 120,
+        ACTOR_521100_ROUTE_ATTACK_DISTANCE = 2000,
+        ACTOR_521100_ROUTE_WAYPOINT_RADIUS = 60,
+        ACTOR_521100_ROUTE_PLAYER_Z_LIMIT  = -1500,
+        ACTOR_521100_ROUTE_RETURN_X        = -4000,
+    };
     Actor521100Work*  work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    ActorFaceScratch* sc2;
-    ActorFaceScratch* head;
-    s16               state;
+    GfxCoord*         rootCoord;
+    ActorFaceScratch* scratch;
+    s16               routeLeg;
 
-    head                                   = SCRATCH_STACK_CURSOR(ActorFaceScratch);
-    sc                                     = head - 1;
-    sc2                                    = sc;
-    SCRATCH_STACK_CURSOR(ActorFaceScratch) = sc;
-    work                                   = arg0->work;
-    coord                                  = arg0->extra.tmd->coords;
-    state                                  = work->subState;
-    switch (state) {
-        case 0:
-            work->animationId  = 0x12;
-            work->forwardSpeed = 0x14;
-            work->turnSpeed    = 0x78;
-            sc->delta.vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            sc->delta.vy       = 0;
-            sc->delta.vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            if ((SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x7D0) && (gPlayerStatus.coordMtx->t[2] < -0x5DC)) {
-                work->targetYaw    = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    routeLeg  = work->subState;
+    // Attack near the player; otherwise follow the current room waypoint.
+    switch (routeLeg) {
+        case ACTOR_521100_ROUTE_FIRST:
+            work->animationId  = ACTOR_521100_ANIM_WALK;
+            work->forwardSpeed = ACTOR_521100_ROUTE_WALK_SPEED;
+            work->turnSpeed    = ACTOR_521100_ROUTE_TURN_SPEED;
+            scratch->delta.vx  = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            scratch->delta.vy  = 0;
+            scratch->delta.vz  = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            if ((SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_ATTACK_DISTANCE) && (gPlayerStatus.coordMtx->t[2] < ACTOR_521100_ROUTE_PLAYER_Z_LIMIT)) {
+                work->targetYaw    = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                 work->forwardSpeed = 0;
-                work->turnSpeed    = 0x78;
+                work->turnSpeed    = ACTOR_521100_ROUTE_TURN_SPEED;
                 work->state        = ACTOR_521100_STATE_ATTACK;
                 work->subState     = 0;
             } else {
-                sc2->delta.vx   = D_actor_521100_8015F654[0].vx - coord->coord.t[0];
-                sc2->delta.vy   = 0;
-                sc2->delta.vz   = D_actor_521100_8015F654[0].vz - coord->coord.t[2];
-                work->targetYaw = ratan2((s16)sc2->delta.vx, (s16)sc2->delta.vz) & 0xFFF;
-                if (SquareRoot0((sc2->delta.vx * sc2->delta.vx) + (sc2->delta.vz * sc2->delta.vz)) < 0x3C) {
-                    work->subState = 1;
+                scratch->delta.vx = D_actor_521100_8015F654[ACTOR_521100_ROUTE_FIRST].vx - rootCoord->coord.t[0];
+                scratch->delta.vy = 0;
+                scratch->delta.vz = D_actor_521100_8015F654[ACTOR_521100_ROUTE_FIRST].vz - rootCoord->coord.t[2];
+                work->targetYaw   = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+                if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_WAYPOINT_RADIUS) {
+                    work->subState = ACTOR_521100_ROUTE_SECOND;
                 } else {
-                    if (gGameSession->location.loc.view != 2) {
+                    if (gGameSession->location.loc.view != ACTOR_521100_ROUTE_VIEW) {
                         work->state       = ACTOR_521100_STATE_APPROACH;
                         work->subState    = 0;
                         work->resumeRoute = 0;
@@ -2950,60 +2984,60 @@ static void func_actor_521100_80134774(Task* arg0)
                 }
             }
             break;
-        case 1:
-            work->animationId  = 0x12;
-            work->forwardSpeed = 0x14;
-            work->turnSpeed    = 0x78;
-            sc->delta.vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            sc->delta.vy       = 0;
-            sc->delta.vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x7D0) {
-                work->targetYaw    = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+        case ACTOR_521100_ROUTE_SECOND:
+            work->animationId  = ACTOR_521100_ANIM_WALK;
+            work->forwardSpeed = ACTOR_521100_ROUTE_WALK_SPEED;
+            work->turnSpeed    = ACTOR_521100_ROUTE_TURN_SPEED;
+            scratch->delta.vx  = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            scratch->delta.vy  = 0;
+            scratch->delta.vz  = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_ATTACK_DISTANCE) {
+                work->targetYaw    = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                 work->forwardSpeed = 0;
-                work->turnSpeed    = 0x78;
+                work->turnSpeed    = ACTOR_521100_ROUTE_TURN_SPEED;
                 work->state        = ACTOR_521100_STATE_ATTACK;
                 work->subState     = 0;
             } else {
-                sc->delta.vx    = D_actor_521100_8015F654[1].vx - coord->coord.t[0];
-                sc->delta.vy    = 0;
-                sc->delta.vz    = D_actor_521100_8015F654[1].vz - coord->coord.t[2];
-                work->targetYaw = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-                if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x3C) {
-                    sc->delta.vx       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                    sc->delta.vy       = 0;
-                    sc->delta.vz       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                    work->targetYaw    = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
+                scratch->delta.vx = D_actor_521100_8015F654[ACTOR_521100_ROUTE_SECOND].vx - rootCoord->coord.t[0];
+                scratch->delta.vy = 0;
+                scratch->delta.vz = D_actor_521100_8015F654[ACTOR_521100_ROUTE_SECOND].vz - rootCoord->coord.t[2];
+                work->targetYaw   = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+                if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_WAYPOINT_RADIUS) {
+                    scratch->delta.vx  = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+                    scratch->delta.vy  = 0;
+                    scratch->delta.vz  = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+                    work->targetYaw    = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                     work->forwardSpeed = 0;
-                    work->turnSpeed    = 0x78;
+                    work->turnSpeed    = ACTOR_521100_ROUTE_TURN_SPEED;
                     work->state        = ACTOR_521100_STATE_ATTACK;
                     work->subState     = 0;
-                } else if (gGameSession->location.loc.view != 2) {
-                    work->subState       = 2;
+                } else if (gGameSession->location.loc.view != ACTOR_521100_ROUTE_VIEW) {
+                    work->subState       = ACTOR_521100_ROUTE_RETURN;
                     work->resumeRoute    = 0;
                     work->resumeRouteLeg = 0;
                 } else {
                     work->resumeRoute    = 1;
-                    work->resumeRouteLeg = 1;
+                    work->resumeRouteLeg = ACTOR_521100_ROUTE_SECOND;
                 }
             }
             break;
-        case 2:
-            work->animationId  = 0x12;
-            work->forwardSpeed = 0x14;
-            work->turnSpeed    = 0x78;
-            sc->delta.vx       = D_actor_521100_8015F654[2].vx - coord->coord.t[0];
-            sc->delta.vy       = 0;
-            sc->delta.vz       = D_actor_521100_8015F654[2].vz - coord->coord.t[2];
-            work->targetYaw    = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-            if (coord->coord.t[0] < -0xFA0) {
-                if (SquareRoot0((sc->delta.vx * sc->delta.vx) + (sc->delta.vz * sc->delta.vz)) < 0x3C) {
+        case ACTOR_521100_ROUTE_RETURN:
+            work->animationId  = ACTOR_521100_ANIM_WALK;
+            work->forwardSpeed = ACTOR_521100_ROUTE_WALK_SPEED;
+            work->turnSpeed    = ACTOR_521100_ROUTE_TURN_SPEED;
+            scratch->delta.vx  = D_actor_521100_8015F654[ACTOR_521100_ROUTE_RETURN].vx - rootCoord->coord.t[0];
+            scratch->delta.vy  = 0;
+            scratch->delta.vz  = D_actor_521100_8015F654[ACTOR_521100_ROUTE_RETURN].vz - rootCoord->coord.t[2];
+            work->targetYaw    = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (rootCoord->coord.t[0] < ACTOR_521100_ROUTE_RETURN_X) {
+                if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_WAYPOINT_RADIUS) {
                     work->state    = ACTOR_521100_STATE_APPROACH;
                     work->subState = 0;
-                } else if (gGameSession->location.loc.view == state) {
+                } else if (gGameSession->location.loc.view == routeLeg) {
                     work->subState = 0;
                 }
             } else {
-                if (gGameSession->location.loc.view != state) {
+                if (gGameSession->location.loc.view != routeLeg) {
                     work->state = ACTOR_521100_STATE_APPROACH;
                 }
                 work->subState = 0;
@@ -3014,234 +3048,245 @@ static void func_actor_521100_80134774(Task* arg0)
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
-/// Steers the actor's heading towards the work block's `targetYaw` at up to
-/// `turnSpeed` of turn per frame, then builds the result into the attach
-/// coordinate as a pure-yaw rotation. The heading error is `targetYaw` minus
-/// the coordinate's own Z-axis yaw (`ratan2` of `m[0][2]` over `m[2][2]`,
-/// masked to the 12 bits the rotation is measured in), taken signed; the new
-/// `yaw` is the target when the error is within the turn limit, and the
-/// current yaw stepped by that limit otherwise. Errors past half a turn take
-/// the short way round the wrap: the limit only has to beat `0x1000` minus the
-/// error (or the error plus `0x1000`) to snap, so the turn never crosses into
-/// the far half. `yaw` is a signed halfword, as the sibling overlays' work
-/// blocks declare theirs; this body is the same one `Actor02500_Fn016FC` and
-/// `func_actor_300700_80164794` carry.
-static void func_actor_521100_80134C38(Task* arg0)
+/// Turns the body toward targetYaw by at most turnSpeed angle units this tick.
+///
+/// Requires a live root and work block with targetYaw in 0..4095 and a
+/// nonnegative turnSpeed. Chooses the shorter arc and replaces the root's
+/// rotation with pure yaw at unit scale, retaining its translation. Reserves
+/// and releases one ActorFaceScratch block for the rotation vector.
+static void _actor521100TurnTowardTargetYaw(Task* task)
 {
     Actor521100Work*  work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               ang;
-    u16               want;
-    s16               diff;
-    s32               adiff;
-    s32               step;
-    s32               cur;
-    s32               next;
-    s32               wrapStep;
+    GfxCoord*         rootCoord;
+    ActorFaceScratch* scratch;
+    s32               currentYaw;
+    u16               targetYaw;
+    s16               signedDifference;
+    s32               differenceMagnitude;
+    s32               turnStep;
+    s32               currentStepYaw;
+    s32               nextYaw;
+    s32               wrappedTurnStep;
 
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->targetYaw;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
+    scratch             = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    rootCoord           = task->extra.tmd->coords;
+    work                = task->work;
+    currentYaw          = ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    targetYaw           = work->targetYaw;
+    signedDifference    = targetYaw - currentYaw;
+    differenceMagnitude = signedDifference >= 0 ? signedDifference : -signedDifference;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step = work->turnSpeed;
-        if (step >= adiff) {
-            work->yaw = want;
+    // Choose the shorter arc, including when the headings straddle zero.
+    work->yaw = currentYaw;
+    if (differenceMagnitude < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        turnStep = work->turnSpeed;
+        if (turnStep >= differenceMagnitude) {
+            work->yaw = targetYaw;
         } else {
-            next = work->yaw;
-            if (diff <= 0) {
-                next -= step;
+            nextYaw = work->yaw;
+            if (signedDifference <= 0) {
+                nextYaw -= turnStep;
             } else {
-                next += step;
+                nextYaw += turnStep;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        step = work->turnSpeed;
-        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+        turnStep = work->turnSpeed;
+        if (signedDifference > 0 ? turnStep >= ACTOR_TRANSFORM_ANGLE_TURN - signedDifference : turnStep >= ACTOR_TRANSFORM_ANGLE_TURN + signedDifference) {
             work->yaw = work->targetYaw;
         } else {
-            wrapStep = work->turnSpeed;
-            cur      = work->yaw;
-            if (diff > 0) {
-                work->yaw = cur - wrapStep;
+            wrappedTurnStep = work->turnSpeed;
+            currentStepYaw  = work->yaw;
+            if (signedDifference > 0) {
+                work->yaw = currentStepYaw - wrappedTurnStep;
             } else {
-                work->yaw = cur + wrapStep;
+                work->yaw = currentStepYaw + wrappedTurnStep;
             }
         }
     }
-    sc->rot.vx = 0;
-    sc->rot.vy = work->yaw;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    scratch->rot.vx = 0;
+    scratch->rot.vy = work->yaw;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
-/// Plays the actor's footstep cues: a sound is queued on the frame the
-/// animation record the cue body reads has dropped `flags` bit 0x20 (or 0x10)
-/// while `Actor521100Work::lastCueFlags` still holds it, panned and
-/// depth-attenuated from the actor's display coordinate. The record is the one
-/// `animationGetCurrentRecord` returns for the slot at 0x3C - the second of the 0x28-byte
-/// slots the actor work blocks lay out from 0x14, the same one the other actor
-/// overlays' cue bodies play from. The cue id is the `Enemy` work id's bits
-/// 12+ placed in bits 8-11 with the overlay's 0x401C tag, 1 for the 0x20 foot
-/// and 2 for the 0x10 one, and the record's two bits are latched for the next
-/// frame at the end.
-static void func_actor_521100_80134D88(Task* arg0)
+/// Plays the body's two footstep cues when their slot-1 record bits fall.
+///
+/// Requires a live Enemy in spawnArg2 and an initialized body animation rig.
+/// Cue 2 plays character-bank entry 1 and cue 1 entry 2, with the placement
+/// index identifying the sound instance. Pan and depth are narrowed to signed
+/// bytes. A missing current record leaves the previous cue bits unchanged.
+static void _actor521100PlayFootsteps(Task* task)
 {
-    s32                    snd;
-    s32                    pan;
-    s32                    pan2;
+    enum {
+        ACTOR_521100_FOOTSTEP_CUE_2 = SOUND_CHARACTER(0x1C, 1),
+        ACTOR_521100_FOOTSTEP_CUE_1 = SOUND_CHARACTER(0x1C, 2),
+    };
+    Enemy*                 enemy;
+    s32                    soundScript;
+    s32                    cue2Pan;
+    s32                    cue1Pan;
     Actor521100Work*       work;
-    GfxCoord*              coord;
-    const AnimationRecord* rec;
+    GfxCoord*              rootCoord;
+    const AnimationRecord* record;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    rec   = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
-    if (rec != NULL) {
-        if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->lastCueFlags & ANIMATION_RECORD_CUE_2)) {
-            snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0001;
-            pan = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    record    = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
+    if (record != NULL) {
+        if (!(record->flags & ANIMATION_RECORD_CUE_2) && (work->lastCueFlags & ANIMATION_RECORD_CUE_2)) {
+            enemy       = task->spawnArg2.pointer;
+            soundScript = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_521100_FOOTSTEP_CUE_2;
+            cue2Pan     = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundScript, cue2Pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
-        if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->lastCueFlags & ANIMATION_RECORD_CUE_1)) {
-            snd  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401C0002;
-            pan2 = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(snd, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+        if (!(record->flags & ANIMATION_RECORD_CUE_1) && (work->lastCueFlags & ANIMATION_RECORD_CUE_1)) {
+            enemy       = task->spawnArg2.pointer;
+            soundScript = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_521100_FOOTSTEP_CUE_1;
+            cue1Pan     = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundScript, cue1Pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
-        work->lastCueFlags = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
+        work->lastCueFlags = (u16)(record->flags & ANIMATION_RECORD_CUE_MASK);
     }
 }
 
 #include "../../shared/no9_golem_aim_head.inc.c"
-/// Untwists the chest coordinate (`coords[3]`), which `func_actor_521100_801322F8`
-/// left rotated by the random residual in `Actor521100Work::hitTwist` on the
-/// frame the actor took a hit. The residual is turned into a matrix and
-/// multiplied into that coordinate's own by `Gp_MulMatrix0`'s three `rtir`
-/// passes - `rtir` multiplies the GTE rotation matrix by the vector in
-/// `IR1..IR3`, so the body loads the coordinate's matrix, then each row of the
-/// scratch matrix in turn, storing each result back over the coordinate. The
-/// two angles are then stepped 0x20 towards zero; `hitTwistActive`, the flag
-/// the hit body armed, survives while either is still moving and is cleared on the
-/// frame both arrive, which is what the update body tests before calling this.
+/// Composes a hit rotation into the chest's local rotation; changes GTE state.
 ///
-/// Same body as `Actor02000_Fn01698` and `_actor510900ApplyHitTwist`.
-static void func_actor_521100_80135024(Task* arg0)
+/// Both matrices must remain live, with Q12 coefficients; the chest is writable.
+/// Translation is untouched. The chest supplies the GTE matrix and the hit
+/// rotation supplies its three columns; each result overwrites the chest.
+static __inline__ void _actor521100ComposeHitRotation(MATRIX* chestRotation, const MATRIX* hitRotation)
 {
+    gte_SetRotMatrix(chestRotation);
+    gte_ldclmv(hitRotation);
+    gte_rtir();
+    gte_stclmv(chestRotation);
+    gte_ldclmv(&hitRotation->m[0][1]);
+    gte_rtir();
+    gte_stclmv(&chestRotation->m[0][1]);
+    gte_ldclmv(&hitRotation->m[0][2]);
+    gte_rtir();
+    gte_stclmv(&chestRotation->m[0][2]);
+}
+
+/// Applies the residual hit rotation to the chest and decays it toward zero.
+///
+/// Requires the body's live model and work block. X and Y angles use 4096 units
+/// per turn and decay by 32 units per tick; hitTwistActive clears when both
+/// reach zero. Reserves and releases one MATRIX block and changes GTE state.
+static void _actor521100ApplyHitTwist(Task* task)
+{
+    enum { ACTOR_521100_HIT_TWIST_DECAY_STEP = 32 };
     Actor521100Work* work;
-    GfxCoord*        coord;
-    MATRIX*          matrix;
+    GfxCoord*        bodyCoords;
+    MATRIX*          twistMatrix;
     s32              angleX;
     s32              angleY;
-    s32              absX;
-    s32              nextX;
-    s32              absY;
-    s32              nextY;
-    s32              active;
+    s32              absAngleX;
+    s32              nextAngleX;
+    s32              absAngleY;
+    s32              nextAngleY;
+    s32              decayActive;
 
     SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    matrix = SCRATCH_STACK_CURSOR(MATRIX);
-    active = 0;
-    work   = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    RotMatrix(&work->hitTwist, matrix);
-    gte_SetRotMatrix(&coord[3].coord);
-    gte_ldclmv(matrix);
-    gte_rtir();
-    gte_stclmv(&coord[3].coord);
-    gte_ldclmv(&matrix->m[0][1]);
-    gte_rtir();
-    gte_stclmv(&coord[3].coord.m[0][1]);
-    gte_ldclmv(&matrix->m[0][2]);
-    gte_rtir();
-    gte_stclmv(&coord[3].coord.m[0][2]);
+    twistMatrix = SCRATCH_STACK_CURSOR(MATRIX);
+    decayActive = 0;
+    work        = task->work;
+    bodyCoords  = task->extra.tmd->coords;
+    RotMatrix(&work->hitTwist, twistMatrix);
+    // Compose the hit rotation into the chest before decaying its two angles.
+    _actor521100ComposeHitRotation(&bodyCoords[3].coord, twistMatrix);
     angleX = work->hitTwist.vx;
     if (angleX != 0) {
-        absX = __builtin_abs(angleX);
-        if (absX < 0x21) {
+        absAngleX = __builtin_abs(angleX);
+        if (absAngleX < ACTOR_521100_HIT_TWIST_DECAY_STEP + 1) {
             work->hitTwist.vx = 0;
         } else {
-            nextX = angleX - 0x20;
+            nextAngleX = angleX - ACTOR_521100_HIT_TWIST_DECAY_STEP;
             if (angleX <= 0) {
-                nextX = angleX + 0x20;
+                nextAngleX = angleX + ACTOR_521100_HIT_TWIST_DECAY_STEP;
             }
-            work->hitTwist.vx = nextX;
-            active            = 1;
+            work->hitTwist.vx = nextAngleX;
+            decayActive       = 1;
         }
     }
     angleY = work->hitTwist.vy;
     if (angleY != 0) {
-        absY = __builtin_abs(angleY);
-        if (absY < 0x21) {
+        absAngleY = __builtin_abs(angleY);
+        if (absAngleY < ACTOR_521100_HIT_TWIST_DECAY_STEP + 1) {
             work->hitTwist.vy = 0;
         } else {
-            nextY = angleY - 0x20;
+            nextAngleY = angleY - ACTOR_521100_HIT_TWIST_DECAY_STEP;
             if (angleY <= 0) {
-                nextY = angleY + 0x20;
+                nextAngleY = angleY + ACTOR_521100_HIT_TWIST_DECAY_STEP;
             }
-            work->hitTwist.vy = nextY;
-            active            = 1;
+            work->hitTwist.vy = nextAngleY;
+            decayActive       = 1;
         }
     }
-    if (active == 0) {
+    if (decayActive == 0) {
         work->hitTwistActive = 0;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x20);
+    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
-/// The burn-out tick `func_actor_521100_80135414` runs while `eventBurnStage`
-/// is non-zero. `stateCounter` counts the frames since the last effect and
-/// fires one once it reaches `D_actor_521100_8015F8CC[eventBurnStage]` — every
-/// 7 frames while the body is alight in stage 1, then 0xE and 0x1C as it burns
-/// down. Every effect splashes part 3 of the model's coordinate array; in
-/// stage 1 a second one lands on a random other part, picked out of
-/// `D_actor_521100_8015F8BC` by the top three bits of an LCG draw.
-/// `stateElapsed` is the sequence's own clock, walking the stage 1 -> 2 at
-/// 0xF0 frames, 2 -> 3 at 0x14A and 3 -> 0 at 0x1A4, where the tick stops.
-static void func_actor_521100_80135230(Task* arg0)
+/// Spawns and fades the event's body fire over 420 ticks.
+///
+/// Call once per event frame with eventBurnStage in 1..3. Bursts occur every
+/// 7, 14 or 28 ticks at the chest; stage 1 also picks one of eight body parts.
+/// At ticks 240 and 330 the stage advances; tick 420 disables further bursts.
+/// The signed-halfword timer comparisons and increments retain their wraps.
+static void _actor521100TickEventFire(Task* task)
 {
+    enum {
+        ACTOR_521100_FIRE_NONE       = 0,
+        ACTOR_521100_FIRE_FULL       = 1,
+        ACTOR_521100_FIRE_FADING     = 2,
+        ACTOR_521100_FIRE_LAST       = 3,
+        ACTOR_521100_FIRE_FADE_FRAME = 240,
+        ACTOR_521100_FIRE_LAST_FRAME = 330,
+        ACTOR_521100_FIRE_END_FRAME  = 420,
+    };
     Actor521100Work* work;
-    u16              timer;
-    s16*             tbl;
-    s16              part;
+    u16              burstFrames;
+    u16              elapsedFrames;
+    const s16*       fireParts;
+    s16              partIndex;
 
-    work               = arg0->work;
-    timer              = work->stateCounter + 1;
-    work->stateCounter = timer;
-    if ((s16)timer >= D_actor_521100_8015F8CC[work->eventBurnStage]) {
+    work               = task->work;
+    burstFrames        = work->stateCounter + 1;
+    work->stateCounter = burstFrames;
+    if ((s16)burstFrames >= D_actor_521100_8015F8CC[work->eventBurnStage]) {
         work->stateCounter = 0U;
-        effectSpawnHit(EFFECT_HIT_KIND_BLAST, &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
-        if (work->eventBurnStage == 1) {
-            tbl             = D_actor_521100_8015F8BC;
+        effectSpawnHit(EFFECT_HIT_KIND_BLAST, &task->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+        if (work->eventBurnStage == ACTOR_521100_FIRE_FULL) {
+            fireParts       = D_actor_521100_8015F8BC;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            part            = tbl[(gRandomLcgState >> 16) & 7];
-            effectSpawnHit(EFFECT_HIT_KIND_BLAST, &arg0->extra.tmd->coords[part], NULL, &work->hitEffectArg);
+            partIndex       = fireParts[(gRandomLcgState >> 16) & (ARRAY_SIZE(D_actor_521100_8015F8BC) - 1)];
+            effectSpawnHit(EFFECT_HIT_KIND_BLAST, &task->extra.tmd->coords[partIndex], NULL, &work->hitEffectArg);
         }
     }
-    timer              = work->stateElapsed + 1;
-    work->stateElapsed = timer;
-    if ((s16)timer == 0xF0) {
-        work->eventBurnStage = 2;
+    // The overall fire clock advances independently of the burst interval.
+    elapsedFrames      = work->stateElapsed + 1;
+    work->stateElapsed = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_521100_FIRE_FADE_FRAME) {
+        work->eventBurnStage = ACTOR_521100_FIRE_FADING;
     }
-    if (work->stateElapsed == 0x14A) {
-        work->eventBurnStage = 3;
+    if (work->stateElapsed == ACTOR_521100_FIRE_LAST_FRAME) {
+        work->eventBurnStage = ACTOR_521100_FIRE_LAST;
     }
-    if (work->stateElapsed >= 0x1A4) {
-        work->eventBurnStage = 0;
+    if (work->stateElapsed >= ACTOR_521100_FIRE_END_FRAME) {
+        work->eventBurnStage = ACTOR_521100_FIRE_NONE;
     }
 }
 
-/// State handlers of the actor's second part, which `func_actor_521100_80135AE4`
-/// dispatches through: the setup `func_actor_521100_80135B40`, the per-frame
-/// tick `func_actor_521100_80135B80` and `enemyDestroy`.
+/// State handlers of the actor's second part, which `_actor521100GunbladeTask`
+/// dispatches through: the setup `_actor521100AttachGunblade`, the per-frame
+/// tick `_actor521100UpdateGunbladeDrawMode` and `enemyDestroy`.
 static const EnemyTaskFuncTable3 D_actor_521100_80131E40 = { {
-    func_actor_521100_80135B40,
-    func_actor_521100_80135B80,
+    _actor521100AttachGunblade,
+    _actor521100UpdateGunbladeDrawMode,
     enemyDestroy,
 } };
 
@@ -3279,11 +3324,11 @@ static void func_actor_521100_80135414(Enemy* arg0, Task* arg1)
 
     temp_s0                      = arg1->work;
     arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    func_actor_521100_80135964(arg1);
-    func_actor_521100_80135A34(arg1);
+    _actor521100TickAnimation(arg1);
+    _actor521100UpdateLighting(arg1);
     no9GolemDrawShadow(arg1);
     if (temp_s0->eventBurnStage != 0) {
-        func_actor_521100_80135230(arg1);
+        _actor521100TickEventFire(arg1);
     }
 }
 
@@ -3302,7 +3347,7 @@ static void func_actor_521100_80135478(Enemy* arg0, Task* arg1)
     one     = 1;
     switch (state) {
         case 1:
-            func_actor_521100_80135A34(arg1);
+            _actor521100UpdateLighting(arg1);
             no9GolemDrawShadow(arg1);
             return;
         case 0:
@@ -3322,18 +3367,18 @@ static void func_actor_521100_80135478(Enemy* arg0, Task* arg1)
     }
     func_actor_521100_801322F8(arg1, temp_a1, one);
     func_actor_521100_801355C8(arg1);
-    func_actor_521100_80134C38(arg1);
-    func_actor_521100_801358D4(arg1);
-    func_actor_521100_80134D88(arg1);
-    func_actor_521100_80135964(arg1);
+    _actor521100TurnTowardTargetYaw(arg1);
+    _actor521100StepRootPosition(arg1);
+    _actor521100PlayFootsteps(arg1);
+    _actor521100TickAnimation(arg1);
     no9GolemAimHead(arg1);
     if (temp_s1->hitTwistActive != 0) {
-        func_actor_521100_80135024(arg1);
+        _actor521100ApplyHitTwist(arg1);
     }
     temp_s2->composeStamp                   = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(temp_s2);
-    func_actor_521100_80135A34(arg1);
+    _actor521100UpdateLighting(arg1);
     no9GolemDrawShadow(arg1);
 }
 
@@ -3353,46 +3398,52 @@ static void func_actor_521100_801355C8(Task* arg0)
             func_actor_521100_801339B0(arg0);
             return;
         case ACTOR_521100_STATE_STAGGER:
-            func_actor_521100_8013570C(arg0);
+            _actor521100StaggerState(arg0);
             return;
         case ACTOR_521100_STATE_GUARD:
-            func_actor_521100_80134658(arg0);
+            _actor521100GuardState(arg0);
             return;
         case ACTOR_521100_STATE_FLINCH:
-            func_actor_521100_801357F0(arg0);
+            _actor521100FlinchState(arg0);
             return;
         case ACTOR_521100_STATE_WALK_ROUTE:
-            func_actor_521100_80134774(arg0);
+            _actor521100WalkRouteState(arg0);
         default:
             return;
     }
 }
 
-/// Steps the actor into state 1 once its `yaw` has come within 45 degrees of
-/// `targetYaw` with the player nearer than 0xDAC (`playerDistance`), then
-/// stops it: both speeds are zeroed.
-static void func_actor_521100_80135680(Task* arg0)
+/// Starts an attack when the player is within 3500 units and 45 degrees of facing.
+///
+/// Requires the approach state's current playerDistance, yaw and targetYaw.
+/// Both limits are strict. On entry to attack, clears subState and both speeds;
+/// otherwise leaves the work block unchanged. Headings use 4096 units per turn.
+static void _actor521100TryStartAttack(Task* task)
 {
+    enum {
+        ACTOR_521100_ATTACK_FACING_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+        ACTOR_521100_ATTACK_DISTANCE     = 3500,
+    };
     Actor521100Work* work;
-    s16              delta;
-    s16              angle;
-    s16              wrapped;
-    s32              magnitude;
+    s16              signedDifference;
+    s16              facingError;
+    s16              wrappedDifference;
+    s32              differenceMagnitude;
 
-    work      = arg0->work;
-    delta     = work->targetYaw - work->yaw;
-    magnitude = abs(delta);
-    if (magnitude < 0x800) {
-        angle = magnitude;
+    work                = task->work;
+    signedDifference    = work->targetYaw - work->yaw;
+    differenceMagnitude = abs(signedDifference);
+    if (differenceMagnitude < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        facingError = differenceMagnitude;
     } else {
-        if (delta > 0) {
-            wrapped = 0x1000 - delta;
+        if (signedDifference > 0) {
+            wrappedDifference = ACTOR_TRANSFORM_ANGLE_TURN - signedDifference;
         } else {
-            wrapped = delta + 0x1000;
+            wrappedDifference = signedDifference + ACTOR_TRANSFORM_ANGLE_TURN;
         }
-        angle = wrapped;
+        facingError = wrappedDifference;
     }
-    if ((angle < 0x200) && (work->playerDistance < 0xDAC)) {
+    if ((facingError < ACTOR_521100_ATTACK_FACING_LIMIT) && (work->playerDistance < ACTOR_521100_ATTACK_DISTANCE)) {
         work->state        = ACTOR_521100_STATE_ATTACK;
         work->subState     = 0;
         work->forwardSpeed = 0;
@@ -3400,211 +3451,206 @@ static void func_actor_521100_80135680(Task* arg0)
     }
 }
 
-/// Step-3 body of the burn-out sequence, the third of the three the dispatcher
-/// `func_actor_521100_801355C8` runs off `state`. `subState` is its own
-/// two-phase latch: phase 0 disables `weaponAttack` and `forearmAttack` and
-/// asks the slot blend for clip 0x10, phase 1 waits out 0x37 blended frames and
-/// then either drops the actor to the approach or, when `resumeRoute` asks for
-/// it, on to state 6 at sub-state `resumeRouteLeg`. Either way it latches clip 1
-/// for the blend and draws the approach's first wait, `stateCounter`, out of
-/// `D_actor_521100_8015F634`.
-static void func_actor_521100_8013570C(Task* arg0)
+/// Runs the stagger reaction and resumes approach or the interrupted route.
+///
+/// Entry stops movement and disables both attack spheres. After 55 animation
+/// ticks, restores idle and draws the next approach wait in frames.
+static void _actor521100StaggerState(Task* task)
 {
+    enum { ACTOR_521100_STAGGER_FRAMES = 0x37 };
     Actor521100Work* work;
-    u16*             tbl;
-    u32              rng;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->subState) {
-        case 0:
-            work->animationId          = 0x10;
-            work->subState             = 1;
+        case ACTOR_521100_REACTION_BEGIN:
+            work->animationId          = ACTOR_521100_ANIM_STAGGER;
+            work->subState             = ACTOR_521100_REACTION_WAIT;
             work->forwardSpeed         = 0;
             work->turnSpeed            = 0;
             work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
-        case 1:
-            if (work->animationFrame >= 0x37) {
-                if (work->resumeRoute == 0) {
-                    work->state    = ACTOR_521100_STATE_APPROACH;
-                    work->subState = 0;
-                } else {
-                    work->state    = ACTOR_521100_STATE_WALK_ROUTE;
-                    work->subState = work->resumeRouteLeg;
-                }
-                work->animationId  = 1;
-                tbl                = D_actor_521100_8015F634;
-                rng                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState    = rng;
-                work->stateCounter = tbl[(rng >> 16) & 0xF];
+        case ACTOR_521100_REACTION_WAIT:
+            if (work->animationFrame >= ACTOR_521100_STAGGER_FRAMES) {
+                ACTOR_521100_RESUME_AFTER_HIT(work, D_actor_521100_8015F634);
             }
             return;
     }
 }
-/// Step-5 body of the burn-out sequence, the same two-phase `subState` latch
-/// `func_actor_521100_8013570C` runs with the longer timing: phase 0 disables
-/// `weaponAttack` and `forearmAttack` and asks the slot blend for clip 0x11,
-/// phase 1 waits out 0x48 blended frames and then either drops the actor to the
-/// approach or, when `resumeRoute` asks for it, on to state 6 at sub-state
-/// `resumeRouteLeg`. Either way it latches clip 1 for the blend and draws the
-/// approach's first wait, `stateCounter`, out of `D_actor_521100_8015F5F4`.
-static void func_actor_521100_801357F0(Task* arg0)
+/// Runs the plain-hit flinch and resumes approach or the interrupted route.
+///
+/// Entry stops movement and disables both attack spheres. After 72 animation
+/// ticks, restores idle and draws the next approach wait in frames.
+static void _actor521100FlinchState(Task* task)
 {
+    enum { ACTOR_521100_FLINCH_FRAMES = 0x48 };
     Actor521100Work* work;
-    u16*             tbl;
-    u32              rng;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->subState) {
-        case 0:
-            work->animationId          = 0x11;
-            work->subState             = 1;
+        case ACTOR_521100_REACTION_BEGIN:
+            work->animationId          = ACTOR_521100_ANIM_FLINCH;
+            work->subState             = ACTOR_521100_REACTION_WAIT;
             work->forwardSpeed         = 0;
             work->turnSpeed            = 0;
             work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
-        case 1:
-            if (work->animationFrame >= 0x48) {
-                if (work->resumeRoute == 0) {
-                    work->state    = ACTOR_521100_STATE_APPROACH;
-                    work->subState = 0;
-                } else {
-                    work->state    = ACTOR_521100_STATE_WALK_ROUTE;
-                    work->subState = work->resumeRouteLeg;
-                }
-                work->animationId  = 1;
-                tbl                = D_actor_521100_8015F5F4;
-                rng                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState    = rng;
-                work->stateCounter = tbl[(rng >> 16) & 0xF];
+        case ACTOR_521100_REACTION_WAIT:
+            if (work->animationFrame >= ACTOR_521100_FLINCH_FRAMES) {
+                ACTOR_521100_RESUME_AFTER_HIT(work, D_actor_521100_8015F5F4);
             }
             return;
     }
 }
-/// Snapshots the attach coordinate's translation into `prevRootPos`, then
-/// walks the coordinate forward: 0x80 up, and along its own facing axis
-/// (`m[0][2]` / `m[2][2]`) scaled by `forwardSpeed` in 12-bit fixed
-/// point.
-static void func_actor_521100_801358D4(Task* arg0)
+#undef ACTOR_521100_RESUME_AFTER_HIT
+
+/// Saves the root's pre-move position and applies this tick's translation.
+///
+/// Requires the body's live root and work block. X and Z move forwardSpeed
+/// game units along the root's Q12 facing axis; Y advances by 128 units.
+/// The saved translation narrows to signed halfwords for collision rollback;
+/// the snapshot's fourth component is untouched. The caller dirties the root.
+static void _actor521100StepRootPosition(Task* task)
 {
-    GfxCoord*        coord;
+    enum {
+        ACTOR_521100_MOVEMENT_FRACTION_BITS = 12,
+        ACTOR_521100_ROOT_VERTICAL_STEP     = 128,
+    };
+    GfxCoord*        rootCoord;
     Actor521100Work* work;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    work->prevRootPos.vx = coord->coord.t[0];
-    work->prevRootPos.vy = coord->coord.t[1];
-    work->prevRootPos.vz = coord->coord.t[2];
-    coord->coord.t[0]   += (coord->coord.m[0][2] * work->forwardSpeed) >> 12;
-    coord->coord.t[1]   += 0x80;
-    coord->coord.t[2]   += (coord->coord.m[2][2] * work->forwardSpeed) >> 12;
+    work->prevRootPos.vx   = rootCoord->coord.t[0];
+    work->prevRootPos.vy   = rootCoord->coord.t[1];
+    work->prevRootPos.vz   = rootCoord->coord.t[2];
+    rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * work->forwardSpeed) >> ACTOR_521100_MOVEMENT_FRACTION_BITS;
+    rootCoord->coord.t[1] += ACTOR_521100_ROOT_VERTICAL_STEP;
+    rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * work->forwardSpeed) >> ACTOR_521100_MOVEMENT_FRACTION_BITS;
 }
 
-/// Blends every animation slot towards the clip latched in `animationId` while
-/// it differs from `seededAnimationId`, the clip the slots carry, then ticks
-/// them once they agree: the blend runs slots 1..18 through
-/// `animationSeekSlotWithBlend` with the length `D_actor_521100_8015F894` gives
-/// the incoming clip, and the tick counts the agreeing frames in
-/// `animationFrame`.
-static void func_actor_521100_80135964(Task* arg0)
+/// Starts a changed body clip with its blend, or ticks all driven slots.
+///
+/// Requires a valid nonnegative animationId and the initialized nineteen-slot
+/// body rig. Drives slots 1..18, leaving the root slot alone. A new clip resets
+/// animationFrame; an unchanged one increments it with halfword wrap before
+/// ticking. Native clip ids below 21 use the blend table; other clips use zero.
+static void _actor521100TickAnimation(Task* task)
 {
+    enum { ACTOR_521100_NATIVE_BLEND_LIMIT = 21 };
     Actor521100Work* work;
-    s32              i;
-    s32              val;
+    s32              slotIndex;
+    s32              blendFrames;
 
-    work = arg0->work;
-    val  = 0;
+    work        = task->work;
+    blendFrames = 0;
     if (work->animationId != work->seededAnimationId) {
         work->seededAnimationId = work->animationId;
         work->animationFrame    = 0;
-        if (work->animationId < 0x15) {
-            val = D_actor_521100_8015F894[work->animationId];
+        if (work->animationId < ACTOR_521100_NATIVE_BLEND_LIMIT) {
+            blendFrames = D_actor_521100_8015F894[work->animationId];
         }
-        i = 1;
+        slotIndex = 1;
         do {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->animationId, 0, val);
-            i++;
-        } while (i < 0x13);
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animationId, 0, blendFrames);
+            slotIndex++;
+        } while (slotIndex < ARRAY_SIZE(work->rig.slots));
         return;
     }
-    i                     = 1;
-    work->animationFrame += i;
+    slotIndex             = 1;
+    work->animationFrame += slotIndex;
     do {
-        animationTickSlot(&work->rig.anim, i);
-        i++;
-    } while (i < 0x13);
+        animationTickSlot(&work->rig.anim, slotIndex);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
 }
 
-/// Colours the actor from the world position of its second model coordinate,
-/// handing it to `worldCoordUpdateActorColor` with zero for the unused arguments.
-static void func_actor_521100_80135A34(Task* arg0)
+/// Updates body lighting and colour from model coordinate 1's cached translation.
+///
+/// Requires a live body Enemy/model and a valid coordinate-1 cache. The lighting
+/// query borrows only the three initialized position words during the
+/// call; the resulting matrices are also used by the child gunblade model.
+static void _actor521100UpdateLighting(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR    vec;
+    GfxCoord* sampleCoord;
+    VECTOR3   samplePosition;
 
-    coord  = &arg0->extra.tmd->coords[1];
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    sampleCoord       = &task->extra.tmd->coords[1];
+    samplePosition.vx = sampleCoord->workm.t[0];
+    samplePosition.vy = sampleCoord->workm.t[1];
+    samplePosition.vz = sampleCoord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
 }
 
 #include "../../shared/no9_golem_draw_shadow.inc.c"
 
-/// Task body of the actor's second part: copies `D_actor_521100_80131E40`
-/// onto the stack and runs the handler for `Task::state` on the task's
-/// `Enemy`.
-void func_actor_521100_80135AE4(Task* task)
+/// Dispatches the child gunblade's attach, draw-update or destroy task state.
+///
+/// Requires a live child task and Enemy with Task.state in 0..2. The callback
+/// table is copied by value; the destroy state releases the enemy and task.
+static void _actor521100GunbladeTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = D_actor_521100_80131E40;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    handlers = D_actor_521100_80131E40;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Setup state of the actor's second part: hangs its model coordinate under
-/// the parent model's ninth coordinate, draws it under the parent work block's
-/// light and colour matrices, shows it and moves the task on to its tick.
-static void func_actor_521100_80135B40(Enemy* enemy, Task* task)
+/// Attaches the gunblade model to the body's weapon hand and starts its draw update.
+///
+/// Requires the live parent body task, its nineteen-part model and work block.
+/// Borrows parent coordinate 8 and the body's lighting matrices; the task
+/// hierarchy keeps that parent alive for the child's lifetime. unusedEnemy
+/// is retained for the EnemyTaskFunc callback signature.
+static void _actor521100AttachGunblade(Enemy* unusedEnemy, Task* task)
 {
-    Task*            parent;
-    TmdObject*       obj;
-    Actor521100Work* work;
-    GfxCoord*        coord;
-    GfxCoord*        parentCoords;
+    enum {
+        ACTOR_521100_GUNBLADE_HAND_COORD = 8,
+        ACTOR_521100_GUNBLADE_UPDATE     = 1,
+    };
+    Task*            bodyTask;
+    TmdObject*       gunbladeModel;
+    Actor521100Work* bodyWork;
+    GfxCoord*        gunbladeRoot;
+    GfxCoord*        bodyCoords;
 
-    parent       = task->parent;
-    obj          = task->extra.tmd;
-    parentCoords = parent->extra.tmd->coords;
-    coord        = obj->coords;
-    work         = parent->work;
+    bodyTask      = task->parent;
+    gunbladeModel = task->extra.tmd;
+    bodyCoords    = bodyTask->extra.tmd->coords;
+    gunbladeRoot  = gunbladeModel->coords;
+    bodyWork      = bodyTask->work;
 
-    coord->parent = &parentCoords[8];
-    obj->lightMtx = &work->light;
-    obj->flags    = 0;
-    obj->colorMtx = &work->color;
-    task->state   = 1;
+    gunbladeRoot->parent    = &bodyCoords[ACTOR_521100_GUNBLADE_HAND_COORD];
+    gunbladeModel->lightMtx = &bodyWork->light;
+    gunbladeModel->flags    = 0;
+    gunbladeModel->colorMtx = &bodyWork->color;
+    task->state             = ACTOR_521100_GUNBLADE_UPDATE;
 }
 
-static void func_actor_521100_80135B80(Enemy* arg0, Task* task)
+/// Makes the gunblade follow the body's requested draw flags during events.
+///
+/// Requires the live parent work block and child model. Bit 0 permits active
+/// drawing and bit 1 suppresses automatic buffer allocation. weaponHidden
+/// overrides both with active-draw exclusion alone. Outside events the flags
+/// are unchanged. unusedEnemy is retained for the callback signature.
+static void _actor521100UpdateGunbladeDrawMode(Enemy* unusedEnemy, Task* task)
 {
-    TmdObject*       obj;
-    Actor521100Work* work;
-    s16              mode;
+    TmdObject*       gunbladeModel;
+    Actor521100Work* bodyWork;
+    s16              drawFlags;
 
-    work = task->parent->work;
-    obj  = task->extra.tmd;
-    if (work->inEvent != 0) {
-        mode       = ((work->modelDrawFlags & 1) == 0) << 7;
-        obj->flags = mode;
-        if (work->modelDrawFlags & 2) {
-            obj->flags = mode | TMD_OBJECT_SKIP_AUTO_BUFFER;
+    bodyWork      = task->parent->work;
+    gunbladeModel = task->extra.tmd;
+    if (bodyWork->inEvent != 0) {
+        drawFlags            = ((bodyWork->modelDrawFlags & ACTOR_MESSAGE_PAIR_SHOW) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        gunbladeModel->flags = drawFlags;
+        if (bodyWork->modelDrawFlags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
+            gunbladeModel->flags = drawFlags | TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
-        if (work->weaponHidden != 0) {
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        if (bodyWork->weaponHidden != 0) {
+            gunbladeModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
 }

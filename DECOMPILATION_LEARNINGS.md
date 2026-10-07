@@ -75769,7 +75769,7 @@ it; the function's *other* block begins at a code label, which is why the same
 construct there keeps its constant.
 
 That asymmetry is also why this function needs `TOUCH_REG(i)` on the addend and
-the table lookup does not. Writing `work->animationFrame += i` alone scores 95.918%
+the table lookup does not. Writing `work->animationFrame += slotIndex` alone scores 95.918%
 with the addend folded to `addiu v0,v0,1`: `i` is known to be 1 on that path, so
 constant propagation folds it before global alloc — `.greg` already reads
 `(plus:SI (subreg:SI (reg:HI 2 v0) 0) (const_int 1))`, versus `(reg/v:SI 16 s0)`
@@ -79134,7 +79134,7 @@ Preprocessed SHA256:
 - `base_1.c` (100.000%): `68a26fa87590a7ede5c2d64f7a2441e3324225e078a13bc814ed8c1479c06d03`
 - `base_2.c` (90.118%, controlled isolation): `862b9d3b0d57696d4568d96268946b461bb1240129eea627a3e36487c4a9bcf3`
 
-A second copy of the body, `func_actor_521100_80134D88`, separates the same way
+A second copy of the body, `_actor521100PlayFootsteps`, separates the same way
 and is the cheaper read on the rule: m2c's seed scored 89.412% with `regs` 20 /
 `insert` 4 / `delete` 4 and the parked-`$v0` shape above, and moving the `(s8)`
 onto the `worldCoordGetOriginAudioPan` call took it to 100.000% on the first build, `snd` in
@@ -98150,7 +98150,7 @@ lw   v0,0x18(a1)      /* target                  */
 sw   v0,0x18(a1)
 ```
 
-`func_actor_521100_801358D4` (62.2% from the m2c seed, `insert=6 delete=7`)
+`_actor521100StepRootPosition` (62.2% from the m2c seed, `insert=6 delete=7`)
 snapshots the attach coordinate's translation into the work block — where the
 loads really are narrowed — then advances those same three words in place. One
 field cannot be both widths, and the type is the one the RMW needs: the seed's
@@ -98204,7 +98204,7 @@ spelling that fixes it.
 
 ## An angle-wrap body wants `abs()` and an `s32` magnitude: the `if` form adds an allocno
 
-`func_actor_521100_80135680` measures the 12-bit angle difference between two
+`_actor521100TryStartAttack` measures the 12-bit angle difference between two
 `u16` fields, wraps it into [-0x800, 0x800] and tests the magnitude against
 0x200. m2c's shape types that magnitude `s16` (its `var_a1`) and inverts the
 test, which costs an `sll`/`sra` pair the target does not have: an HImode value
@@ -98265,7 +98265,7 @@ Preprocessed SHA256: `base_2.i`
 `70513f61f77350f49ca9d6cda69bebbf103f1fa483354611b7806c1a11929f42`, `base_3.i`
 `c4ba5b3923dd15a269357e7911312b9446a91e6042b1706f15d28e0923a60af0`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Session: `nonmatchings/func_actor_521100_80135680-vacuum` (`base_2.i.greg`,
+Session: `nonmatchings/_actor521100TryStartAttack-vacuum` (`base_2.i.greg`,
 `base_3.i.greg`, `base_3_diff`).
 
 ## A pointer cached in a local is its own allocno: read the global the target reloads (func_actor_521100_80135DDC, 2026-09-16)
@@ -106978,9 +106978,9 @@ work->stateCounter = tbl[(rng >> 16) & 0xF];
 
 Read the target's two halves: when `lui %hi` of the table sits several
 instructions above its `addiu %lo`, with unrelated insns between them, the
-source named the base. `func_actor_521100_8013570C` is the worked example
+source named the base. `_actor521100StaggerState` is the worked example
 (89.0% -> 100%, `regs=19 reorder=2 insert=2 delete=2` -> all zero, from this
-single change) — and the sibling `func_actor_521100_80135230` in the same
+single change) — and the sibling `_actor521100TickEventFire` in the same
 overlay already carried the pointer-local form, which is what suggested it.
 
 ## A scratch-head pointer taken by a chained assignment keeps a `move $sN,$vN` the two-statement form folds away (func_actor_521100_801368B0, 2026-09-16)
@@ -107014,7 +107014,7 @@ in `actor_300700`; the siblings differ only in whether the stored value is also 
 variable the rest of the body reads. Reach for the chained form whenever the target
 stores a freshly computed scratch pointer and keeps it in a callee-saved register.
 
-## A `move r,r` of a just-loaded value is cse replacing a repeated read, and the local that caused it looks like the fix (func_actor_521100_80135964, 2026-09-16)
+## A `move r,r` of a just-loaded value is cse replacing a repeated read, and the local that caused it looks like the fix (_actor521100TickAnimation, 2026-09-16)
 
 **Symptom:** the target's first block reads one halfword three times and then
 copies one of the reads:
@@ -107033,7 +107033,7 @@ sll   v0,a1,1           # index reuses the copy, not v1
 
 The `addu a1,v1,zero` reads like an allocation wobble; it is not. The source
 read `work->animationId` a *second* time in the SImode context (`if (work->animationId
-< 0x15) { val = Table[work->animationId]; }`), and cse had the first read's value
+< 0x15) { blendFrames = Table[work->animationId]; }`), and cse had the first read's value
 still in its table, so it replaced the second load with a register copy. The seed
 hoisted one read into a local (`anim = work->animationId;`) and reused the local in
 both places - which is the usual advice, and here it is exactly what removes the
@@ -107043,7 +107043,7 @@ Writing the field out again also keeps the first load's register live past the
 copy, which is why the copy's destination (`$a1`) is not the same register.
 
 **The same block's other half is a width bug on the value carried into the call.**
-m2c read the blend length the walk is seeded with as `s16 val`, so `val = 0` was
+m2c read the blend length the walk is seeded with as `s16 blendFrames`, so `blendFrames = 0` was
 an HImode pseudo (`movhi_internal2/2`); global alloc gave that pseudo `$a1`,
 leaving no register for the cse copy and pushing the zero through
 `lhu`/`sll 16`/`sra 16` on the way. Declaring the local `s32` - the width of the
@@ -107066,7 +107066,7 @@ Inputs: `base_1.i`
 `85b240bc0a51153a36da60a301702638cea4b5a3b291ef2ba224d5378395d072`
 (100.000%); seed `base.i`
 `84010c899c66a35df0cdc0585ccc15ddb625128fbddcf78045750ae556ae7fc1`
-(88.415%). Scratch `nonmatchings/func_actor_521100_80135964-vacuum`.
+(88.415%). Scratch `nonmatchings/_actor521100TickAnimation-vacuum`.
 
 ## `archive_giveup.py --permuter-findings` returns before the session snapshot, so the documented pre-cleanup command archives nothing (func_actor_521100_80136AE0, 2026-09-16)
 
@@ -107161,12 +107161,12 @@ Inputs: `base_2.i`
 `6dd765da9dbae0bed270f08eeb6f187879c6863a43437cd3ab906e74432743ba`,
 source `base_2.c` `af3be70374726d9dfb13f67b97ac8adccf867ef72901095f6ef27b0cbab4c565`.
 
-## A halfword re-read after its own store collapses to a `move` only when the read is signed (func_actor_521100_80134C38, 2026-09-16)
+## A halfword re-read after its own store collapses to a `move` only when the read is signed (_actor521100TurnTowardTargetYaw, 2026-09-16)
 
 The "turn towards a target yaw" body - `ratan2` of the coordinate's Z axis,
 step the difference by a limit, wrap the far half, `RotMatrix` the result - is
 the same 84 instruction words in `Actor02500_Fn016FC` (actor_102500),
-`func_actor_300700_80164794` and `func_actor_521100_80134C38`. Porting the
+`func_actor_300700_80164794` and `_actor521100TurnTowardTargetYaw`. Porting the
 `actor_300700` source into 521100 and renaming the fields scored **89.85%**
 (`regs=13 branch=8 insert=5 delete=3`). The bodies are identical; the headers
 are not: `Actor521100Work` then declared the current-yaw field `yaw` as `u16`
@@ -107266,7 +107266,7 @@ source `base_2.c` `926d1d5e177295b8fb24e19513f5d9a133f0f5e8117685fa45e18332bd3db
 
 ## An `s16` table index is scaled by 2 and combine folds that scale into the mask *and* the shift: write `(X >> 16) & 7`, not `(X >> 15) & 7`
 
-`func_actor_521100_80135230` picks one of the eight `s16` slots of
+`_actor521100TickEventFire` picks one of the eight `s16` slots of
 `D_actor_521100_8015F8BC` out of the high half of an LCG draw. The target is
 
 ```
@@ -107293,7 +107293,7 @@ for an LCG draw - the family takes `(gRandomLcgState >> 16)` everywhere else.
 
 ## Holding a table base in a local pointer across an unrelated computation re-homes the whole block
 
-`func_actor_521100_80135230`'s second `effectSpawnHit` call indexes the model's
+`_actor521100TickEventFire`'s second `effectSpawnHit` call indexes the model's
 coordinate array by a table lookup. Writing the table inline matches the
 instruction stream exactly but lands every register of the block one home off
 (`regs=19 insert=2 delete=2`), and no amount of juggling the index expression
@@ -107333,9 +107333,9 @@ source `base_2.c`
 `base_14.i` `c63ec453fa37dfbd5e86110995db41efab15fa77b1e5a33cd6b84496ba3e7b01`
 (100.000%), source `base_14.c`
 `2447010d23239b6b66cfd59d8a2b0e8c221ff52d06d740c00342d053b4f6deac`. Scratch
-`nonmatchings/func_actor_521100_80135230-vacuum`.
+`nonmatchings/_actor521100TickEventFire-vacuum`.
 
-## A no-argument call at a matched caller says nothing about the callee's signature (func_actor_521100_801357F0, 2026-09-16)
+## A no-argument call at a matched caller says nothing about the callee's signature (_actor521100FlinchState, 2026-09-16)
 
 The dispatcher `func_actor_521100_801355C8` was matched first, so its case-5
 body was declared `void f(void)` and called as `f();` - the target's `jal` has a
@@ -107347,9 +107347,9 @@ mis-shaping the whole body (86.3%, `stack=6 regs=32 insert=3 delete=3`).
 Both views are true at once: `$a0` is not set up at the call site because the
 caller's own `index` is *already* in it, so passing the argument in C costs no
 instruction. Declaring the parameter in the prototype and definition and writing
-`func_actor_521100_801357F0(index);` left the caller's object unchanged - the
+`_actor521100FlinchState(index);` left the caller's object unchanged - the
 overlay still checksums - and the callee then matched its sibling
-`func_actor_521100_8013570C`'s shape exactly.
+`_actor521100StaggerState`'s shape exactly.
 
 So do not read a matched caller's argument list as evidence about its callees.
 Check the callee's prologue for a live incoming register and take the argument
@@ -107363,7 +107363,7 @@ source `base.c`
 `base_1.i` `14b58096d53aa2dae7292e52979668207a700de639c5d8bfd5c3097e5361cef4`
 (100.000%), source `base_1.c`
 `67502914dfac4660de6071a83e46c3514bb4025aec3460ab83928f5aa2a291bb`. Scratch
-`nonmatchings/func_actor_521100_801357F0-vacuum`.
+`nonmatchings/_actor521100FlinchState-vacuum`.
 
 ## A copy followed by an in-place `addiu` is a combine-blocked copy+modify, not an address computation (func_actor_521100_80133104, 2026-09-16)
 
@@ -107474,7 +107474,7 @@ The halfword-load-width entries above all ask what the *field* is. This case
 asks what the *use* is: the heading at 0x4AE of the block
 `func_actor_521100_801360C4` works on was declared `u16` when this was matched
 (the block was then typed `Actor521100Work`, whose `yaw` the matched
-`func_actor_521100_80134C38` stores a `u16` `ratan2` result into), and the
+`_actor521100TurnTowardTargetYaw` stores a `u16` `ratan2` result into), and the
 function passes it to `gfxRotMatrixY(MATRIX*, s32, s32)`, where the target
 loads `lh $a1,0x4AE($s0)`. The sign extension is requested by the call site,
 not by the field:
@@ -107710,7 +107710,7 @@ position of the *use*, not the assignment - and the scheduler therefore places
 the load by the surrounding expression, not by where the C reads the field.
 
 `Actor521100Work::animationFrame` was `u16` in the header at the time
-(`func_actor_521100_80135964` really does `lhu` it for `animationFrame += i`;
+(`_actor521100TickAnimation` really does `lhu` it for `animationFrame += slotIndex`;
 the field is `s16` now, which matches as well), and the overlay's other bodies
 wrote `(s16)work->animationFrame`. Doing the same into an `s16` local gives
 
@@ -107772,7 +107772,7 @@ the inert store move).
 
 ## An m2c seed that spells a table index in the target's *byte* units doubles it: `srl 14 / andi 0x3C` against the target's `srl 15 / andi 0x1E`
 
-`func_actor_521100_80134658` (the step-4 burn-out body) picks one of sixteen
+`_actor521100GuardState` (the guard state) picks one of sixteen
 `u16` frames out of `D_actor_521100_8015F634` on the high half of an LCG draw,
 and the target's lookup is the pair
 
@@ -107811,7 +107811,7 @@ work->stateCounter = tbl[(rng >> 16) & 0xF];   /* folds to srl 15 / andi 0x1E */
 Nothing else was needed. The work pointer moved `$a2` -> `$a3` on its own once
 the draw's operands matched; `regs=32 stack=8 insert=3 delete=3` at 89.029% was
 entirely this expression plus the register home it dragged along. The body is
-`func_actor_521100_8013570C`'s two-case sibling three functions away, already
+`_actor521100StaggerState`'s two-case sibling three functions away, already
 matched and already carrying exactly this draw - copying its expression shape
 and its `u16* tbl; u32 rng;` declarations is what reached 100.000% on the
 second build.
@@ -107822,11 +107822,11 @@ source `base.c` `5df0210be510c5d79b7f15d15657fbc37ad1a295aa442468dbc9e7b1fcc6176
 `base_1.i` `75eaf7fe8120dfff41adad5c8b57c3227b7289db38f49613d3ed221fa9b42cb1`
 (100.000%), source `base_1.c`
 `f5c2543f0f40a51abb4883359fbfc931b53e1b4f0f05eabc8b3344a1b18bb4f1`. Scratch
-`nonmatchings/func_actor_521100_80134658-vacuum`.
+`nonmatchings/_actor521100GuardState-vacuum`.
 
-## A scratch-stack head read as a scalar is a *fixed scalar* MEM: it exempts itself from the struct loads beside it and drops every priority in the block by one (func_actor_521100_80135024, 2026-09-16)
+## A scratch-stack head read as a scalar is a *fixed scalar* MEM: it exempts itself from the struct loads beside it and drops every priority in the block by one (_actor521100ApplyHitTwist, 2026-09-16)
 
-**Problem.** `func_actor_521100_80135024` reached 97.557% with perfect structure
+**Problem.** `_actor521100ApplyHitTwist` reached 97.557% with perfect structure
 (19/19 blocks, 131/131 instructions) and 6 diff hunks, all inside the first
 block's prologue: the two `s`-saves around `move s4,zero`, and `lw s3,0x1c(v1)` /
 `addiu a0,s3,0x678` hoisted above the scratch store instead of sitting after it
@@ -107900,7 +107900,7 @@ source `base_1.c` `cb2ffab3886c6cf58d30c7362bac1b40421e18a66f62d0949e30dadcb1146
 `base_2.i` `b54740ff4bdd35215d8df304e75488370bc7c4cb799b0ddcc84dc2c210a30dfe`
 (100.000%), source `base_2.c`
 `32a3452f1157b1b95a9afc2b2eaad663fd642cf01b3ed82a4a24fce2da2ccdd2`. Scratch
-`nonmatchings/func_actor_521100_80135024-vacuum`.
+`nonmatchings/_actor521100ApplyHitTwist-vacuum`.
 
 ## A pointer *assigned* in three arms is a global allocno, and its `high` half comes apart from its `lo_sum` half (func_actor_521100_801335B4, 2026-09-16)
 
@@ -107965,7 +107965,7 @@ searches on this function and beat the distance only by mutations that broke
 semantics (one deleted the `tbl` assignment altogether); the fix was found by
 following the `.lreg`/`.greg` allocno lists, not by the search.
 
-## `do { } while (0)` is an allocation *weight*: `loop_depth` multiplies the references `global.c` ranks allocnos by (func_actor_521100_80134774, 2026-09-16)
+## `do { } while (0)` is an allocation *weight*: `loop_depth` multiplies the references `global.c` ranks allocnos by (_actor521100WalkRouteState, 2026-09-16)
 
 `global.c`'s `allocno_compare` sorts the allocnos it walks by
 
@@ -108026,7 +108026,7 @@ source `base_6.c`
 `base_9.i` `8ec0a562b5f73f07c66a75b850b5ce2ac07ad1d42e2243603409d5bc1d98af4e`
 (100.000%), source `base_9.c`
 `650e4885433856bd5c2269a7ff6ae035d39b0a01f525b443bd15229cf2836ef0`. Scratch
-`nonmatchings/func_actor_521100_80134774-vacuum`; the block emission order (`goto
+`nonmatchings/_actor521100WalkRouteState-vacuum`; the block emission order (`goto
 game`) and the second scratch pointer were already in the seed from earlier
 builds, so the search only had the weight left to find.
 
@@ -150339,7 +150339,7 @@ attempts; left as it was.
   and the condition is `node == NULL || turn(...) < 0x201`; an inline
   returning the whole predicate materialises it (`li v1,1 / move v1,zero`).
 - **A stop tail shared by a near arm and a far-then-near arm, with a third
-  arm jumped to out of a `do { } while (0)`** (`func_actor_521100_80134774`):
+  arm jumped to out of a `do { } while (0)`** (`_actor521100WalkRouteState`):
   write the tail out in both arms, near arm first:
   `if (near) { stop } else { ...; if (close) { re-aim; stop } else { third } }`.
   The later copy survives, which is the image's order; with the far arm first
