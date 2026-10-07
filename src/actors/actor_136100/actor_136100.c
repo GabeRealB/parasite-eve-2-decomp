@@ -206,13 +206,13 @@ extern TaskDesc D_actor_136100_80140744[];
 extern ActorTransform D_actor_136100_8013F3C4;
 extern ActorTransform D_actor_136100_8013F3DC;
 
-extern AnimationSet* D_actor_136100_8013F180[8];
-extern AnimationSet* D_actor_136100_8013F1A0[13];
-extern AnimationSet* D_actor_136100_8013F1D4[6];
-extern s16           D_actor_136100_8013F218[];
-extern s32           D_actor_136100_8013F224[8];
-extern s32           D_actor_136100_8013F244[32];
-extern s32           D_actor_136100_8013F2C4[12];
+extern AnimationSet*          D_actor_136100_8013F180[8];
+extern AnimationSet*          D_actor_136100_8013F1A0[13];
+extern AnimationSet*          D_actor_136100_8013F1D4[6];
+extern s16                    D_actor_136100_8013F218[];
+extern SVECTOR                D_actor_136100_8013F224[4];
+extern SVECTOR                D_actor_136100_8013F244[16];
+extern WorldCollisionGridFace D_actor_136100_8013F2C4[4];
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_136100_8013F2F4[2];
@@ -1003,11 +1003,17 @@ s16 D_actor_136100_8013F218[6] = {
     -1,
 };
 
-s32 D_actor_136100_8013F224[8] = { 0xF000, 0, 0, 0xF000, 4096, 0, 0, 4096 };
+SVECTOR D_actor_136100_8013F224[4] = {
+#include "assets/actor_136100_collision_0D404.inc"
+};
 
-s32 D_actor_136100_8013F244[32] = { -0x12B0BB8, 8400, -0x12B0BB8, 7000, 0xF448, 8400, 0xF448, 7000, -0x12B0BB8, 7000, -0x12B0708, 7000, 0xF448, 7000, 0xF8F8, 7000, -0x12B0708, 7000, -0x12B0708, 8400, 0xF8F8, 7000, 0xF8F8, 8400, -0x12B0708, 8400, -0x12B0BB8, 8400, 0xF8F8, 8400, 0xF448, 8400 };
+SVECTOR D_actor_136100_8013F244[16] = {
+#include "assets/actor_136100_collision_0D424.inc"
+};
 
-s32 D_actor_136100_8013F2C4[12] = { 0x10000, 0x30002, 0, 0x50004, 0x70006, 1, 0x90008, 0xB000A, 2, 0xD000C, 0xF000E, 3 };
+WorldCollisionGridFace D_actor_136100_8013F2C4[4] = {
+#include "assets/actor_136100_collision_0D4A4.inc"
+};
 
 TaskMessageEntry D_actor_136100_8013F2F4[2] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor136100SetModelDraw },
