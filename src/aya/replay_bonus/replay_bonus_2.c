@@ -114,7 +114,7 @@ static void func_replay_bonus_80117194(Task* arg0)
                 break;
             case 6:
                 displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-                func_replay_bonus_80116EC0();
+                replayBonusPrepareClearedSave();
                 gDisplayState.gameMode  = DISPLAY_GAME_MODAL;
                 arg0->spawnArg2.pointer = uiSpawnObject(&D_800611E4, 0, 1, 1, NULL);
                 break;
@@ -151,7 +151,7 @@ static s32 func_replay_bonus_801173A8(void)
     s32         mask;
     s32         one;
 
-    spend = func_replay_bonus_80115CA4();
+    spend = replayBonusGetTotalExp();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
@@ -196,7 +196,7 @@ static s16 func_replay_bonus_80117484(s32 arg0, s32 arg1)
     s32         one;
     s32         result;
 
-    spend = func_replay_bonus_80115CA4();
+    spend = replayBonusGetTotalExp();
     p     = D_replay_bonus_80118F78;
     idx   = 0;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
@@ -398,7 +398,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             D_replay_bonus_80119227           = 0;
             D_replay_bonus_801192AC           = 0;
             D_replay_bonus_801192BC           = memCalloc(sizeof(ReplayBonusPictureDecode), false);
-            temp_v0                           = func_replay_bonus_80115C68();
+            temp_v0                           = replayBonusCreatePictureVlcTable();
             D_replay_bonus_80119228           = NULL;
             D_replay_bonus_80119225           = 0;
             D_replay_bonus_801192BC->vlcTable = temp_v0;
@@ -1006,15 +1006,10 @@ static void func_replay_bonus_80118F00(s32 arg0)
 }
 
 /* The package's data, in address order. */
-void func_replay_bonus_801159A0(Task* arg0);
 void func_replay_bonus_80115ED0(Task* arg0);
-void func_replay_bonus_80116964(Task* arg0);
-void func_replay_bonus_801166AC(Task* arg0);
-void func_replay_bonus_80116AC0(Task* arg0);
-void func_replay_bonus_80116D68(Task* arg0);
 
 /// Task descriptor of the picture decoder.
-TaskDesc D_replay_bonus_80118F6C = { { { TASK_BODY_NONE, 0xC0 } }, func_replay_bonus_801159A0, { NULL } };
+TaskDesc D_replay_bonus_80118F6C = { { { TASK_BODY_NONE, 0xC0 } }, replayBonusDecodePictureTask, { NULL } };
 
 ShopTier D_replay_bonus_80118F78[SHOP_TIER_COUNT] = {
     { 0x38A4, { 0x6D, 0x37, 0x2 } },
@@ -1125,17 +1120,17 @@ UiList D_replay_bonus_80119130 = { D_replay_bonus_8011912C, 1, { 1 }, 0, 0xF };
 
 UiObjectDesc D_replay_bonus_80119154 = { 2, { -144, -104, 208, 160 }, 0x3C, 0, 0, 0xC0, func_replay_bonus_80115ED0, 0 };
 
-UiObjectDesc D_replay_bonus_80119170 = { 2, { -144, -96, 160, 160 }, 0x3C, 0, 0, 0xC0, func_replay_bonus_80116964, 0 };
+UiObjectDesc D_replay_bonus_80119170 = { 2, { -144, -96, 160, 160 }, 0x3C, 0, 0, 0xC0, replayBonusQuitWarningTask, 0 };
 
-UiObjectDesc D_replay_bonus_8011918C = { 2, { -72, -64, 144, 56 }, 0x30, 0, 0, 0xC0, func_replay_bonus_801166AC, 0 };
+UiObjectDesc D_replay_bonus_8011918C = { 2, { -72, -64, 144, 56 }, 0x30, 0, 0, 0xC0, replayBonusBalancePanelTask, 0 };
 
-UiObjectDesc D_replay_bonus_801191A8 = { 2, { -72, 8, 144, 56 }, 0x34, 0, 0, 0xC0, func_replay_bonus_801166AC, 0 };
+UiObjectDesc D_replay_bonus_801191A8 = { 2, { -72, 8, 144, 56 }, 0x34, 0, 0, 0xC0, replayBonusBalancePanelTask, 0 };
 
-UiObjectDesc D_replay_bonus_801191C4 = { 2, { -144, -104, 288, 208 }, 0x2C, 0, 0, 0xC0, func_replay_bonus_80116AC0, 0 };
+UiObjectDesc D_replay_bonus_801191C4 = { 2, { -144, -104, 288, 208 }, 0x2C, 0, 0, 0xC0, replayBonusUnlockedItemPanelTask, 0 };
 
-UiObjectDesc D_replay_bonus_801191E0 = { 2, { -144, -104, 288, 208 }, 0x28, 0, 0, 0xC0, func_replay_bonus_80116AC0, 0 };
+UiObjectDesc D_replay_bonus_801191E0 = { 2, { -144, -104, 288, 208 }, 0x28, 0, 0, 0xC0, replayBonusUnlockedItemPanelTask, 0 };
 
-UiObjectDesc D_replay_bonus_801191FC = { 2, { -72, -32, 144, 40 }, 0x2C, 0, 0, 0xC0, func_replay_bonus_80116D68, 0 };
+UiObjectDesc D_replay_bonus_801191FC = { 2, { -72, -32, 144, 40 }, 0x2C, 0, 0, 0xC0, replayBonusExtraBpPanelTask, 0 };
 
 TaskDesc D_replay_bonus_80119218 = { { { TASK_BODY_NONE, 0xC0 } }, func_replay_bonus_8011797C, { NULL } };
 

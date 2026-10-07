@@ -188,11 +188,11 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ReplayBonusTotals, 0x18);
 
 /// Replay-bonus item-id table (`0x4E` ids, then a `0xFFFF` terminator).
-/// `func_replay_bonus_80117598` tests membership; `func_replay_bonus_80115D60`
+/// `func_replay_bonus_80117598` tests membership; `_replayBonusBuildItemList`
 /// walks the same list when filling the owner task's `s16` item-id array.
 extern u16 D_replay_bonus_8011908C[];
 
-/// Double-buffered MDEC strip pixels. `func_replay_bonus_801158C0` LoadImage's
+/// Double-buffered MDEC strip pixels. `_replayBonusUploadPictureStrip` LoadImage's
 /// one 16-pixel-wide column from `buf[(flip << 5) * (s16)height]`.
 extern u8* D_replay_bonus_8011925C;
 
@@ -222,7 +222,7 @@ extern u16 D_replay_bonus_80119270;
 
 extern ShopTier D_replay_bonus_80118F78[SHOP_TIER_COUNT];
 
-/// TaskDesc for the MDEC stream worker (`func_replay_bonus_801159A0`).
+/// TaskDesc for the MDEC stream worker (`replayBonusDecodePictureTask`).
 extern TaskDesc D_replay_bonus_80118F6C;
 
 /// Stream phase: 0 idle, 1 running, 2 finished. Spawn is skipped when
@@ -300,10 +300,67 @@ static inline s32 replayBonusItemBp(s32 id)
     return price;
 }
 
-u16* func_replay_bonus_80115C68(void);
+/// Allocates and builds the credits pictures' VLC table on the auxiliary heap.
+///
+/// The caller owns the table and must keep that heap intact until decoding
+/// ends, then release it with `memFreeFromHeap(table, true)`. Allocation
+/// failure is not handled before the SDK builds the table.
+u16* replayBonusCreatePictureVlcTable(void);
 
-s32 func_replay_bonus_80115CA4(void);
+/// Returns the completed run's EXP balance plus the cost of every learned level.
+///
+/// Reads the first twelve saved ability levels (each 0..3). Discounts apply
+/// separately to each level, using this run's mode and previous clear count.
+/// The signed result is an EXP amount, also compared with unsigned shop ceilings.
+s32 replayBonusGetTotalExp(void);
 
-void func_replay_bonus_80116EC0(void);
+/// Replaces the live save with a cleared-game save carrying the replay awards.
+///
+/// Requires computed replay totals and the completed run's live save and player
+/// status. Preserves options, identification and usage history, raises records
+/// and shop unlocks, and sets the next game's EXP/BP in both save and player.
+/// Run progress and inventory are reset; this does not write the memory card.
+void replayBonusPrepareClearedSave(void);
+
+/// Decodes one borrowed credits picture into VRAM using auxiliary-heap buffers.
+///
+/// `task->spawnArg2.pointer` is a `ReplayBonusPictureDecode` whose record, VLC
+/// table and resource bitstream remain live until the task ends. Dimensions
+/// must fit signed halfwords: width is at least 32, height is positive, and
+/// both are multiples of 16 pixels. The destination must fit VRAM.
+/// `resourceIndex` is 0..49; its expanded bitstream must fit
+/// `width * height * 2` bytes. Requests are serialized because the buffers
+/// and MDEC completion callback are shared. Releases its two scratch buffers
+/// on normal completion, retaining the caller's picture and VLC table.
+void replayBonusDecodePictureTask(Task* task);
+
+/// Presents completed-run balances or the base next-replay awards.
+///
+/// `task->spawnArg2.pointer` is its live UI object. Spawn argument 1 is 0 for
+/// Balance, which opens a child panel after the hold, or 1 for NEXT REPLAY
+/// BONUS, which confirms after the hold. Cancellation and child confirmation
+/// also confirm the parent. Balance shows EXP in hand and BP including item
+/// credit; NEXT REPLAY BONUS shows mode-scaled awards before extra BP.
+void replayBonusBalancePanelTask(Task* task);
+
+/// Asks whether to quit without saving the cleared-game data, defaulting to No.
+///
+/// `task->spawnArg2.pointer` is its live UI object. Child Yes/No commands are
+/// returned in `resultValue` with a confirm result for the screen controller.
+void replayBonusQuitWarningTask(Task* task);
+
+/// Shows one item of the shop tier unlocked by this clear, then confirms.
+///
+/// `task->spawnArg2.pointer` is its live UI object and spawn argument 1 starts
+/// as the item column (0..2). Reuses that argument for `itemMenuInfoTask`'s
+/// item id and next-replay flag, retaining the column in `extraState`.
+/// Confirms immediately when no tier remains; does not grant inventory items.
+void replayBonusUnlockedItemPanelTask(Task* task);
+
+/// Shows the extra BP awarded when every shop tier is already unlocked.
+///
+/// `task->spawnArg2.pointer` is its live UI object. Confirms when the active
+/// panel's hold expires or Cancel/Menu is pressed; currency is applied later.
+void replayBonusExtraBpPanelTask(Task* task);
 
 #endif // SRC_AYA_REPLAY_BONUS_REPLAY_BONUS_PRIVATE_H

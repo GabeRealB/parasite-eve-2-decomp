@@ -22,7 +22,6 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/sound.h"
-#include "main/stream_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/text.h"
@@ -39,248 +38,295 @@ extern u8           D_replay_bonus_8011906C[];
 extern UiObjectDesc D_replay_bonus_80119154;
 extern UiObjectDesc D_replay_bonus_801191A8;
 
-static void       func_replay_bonus_801158C0(void);
-void              func_replay_bonus_801159A0(Task* arg0);
-static inline u16 _replayBonusUpgradeCost(s32 slot, s32 from);
-static void       func_replay_bonus_80115D60(UiList* list, UiObject* ctx);
+/// Hold duration in nominal 60-Hz ticks and the replay panels' text colour.
+enum {
+    REPLAY_BONUS_PANEL_HOLD_TICKS = 188,
+    REPLAY_BONUS_PANEL_TEXT_COLOR = 0x606060,
+};
+
+static void       _replayBonusUploadPictureStrip(void);
+static inline s32 _replayBonusUpgradeCost(s32 abilitySlot, s32 previousLevel);
+static void       _replayBonusBuildItemList(UiList* list, UiObject* object);
 static inline s32 _replayBonusTotalBp(UiList* list, UiObject* ctx);
-void              func_replay_bonus_801166AC(Task* arg0);
-void              func_replay_bonus_80116964(Task* arg0);
 static inline s32 _replayBonusShopTier(void);
-static inline s32 _replayBonusShopItem(s32 col);
-void              func_replay_bonus_80116AC0(Task* arg0);
-void              func_replay_bonus_80116D68(Task* arg0);
+static inline s32 _replayBonusShopItem(s32 itemColumn);
 
-static void func_replay_bonus_801158C0(void)
+/// Uploads the completed 16-bit credits-picture strip and advances its buffer.
+static void _replayBonusUploadPictureStrip(void)
 {
+    enum { REPLAY_BONUS_STRIP_PIXEL_BYTES_SHIFT = 5,
+           REPLAY_BONUS_STRIP_WIDTH_SHIFT       = 4 };
     RECT rect;
-    s32  height;
-    s32  next;
-    s32  row;
-    s32  xoff;
+    s32  imageWidth;
+    s32  nextStrip;
+    s32  stripIndex;
+    s32  stripXOffset;
 
-    rect.w = 0x10;
-    row    = D_replay_bonus_8011926E;
-    xoff   = row * 0x10;
-    rect.x = D_replay_bonus_80119268 + xoff;
-    rect.h = D_replay_bonus_80119266;
-    rect.y = D_replay_bonus_8011926A;
-    LoadImage(&rect, (u_long*)(D_replay_bonus_8011925C + ((D_replay_bonus_80119270 << 5) * (s16)D_replay_bonus_80119266)));
-    height                  = D_replay_bonus_80119264;
+    rect.w       = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+    stripIndex   = D_replay_bonus_8011926E;
+    stripXOffset = stripIndex * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
+    rect.x       = D_replay_bonus_80119268 + stripXOffset;
+    rect.h       = D_replay_bonus_80119266;
+    rect.y       = D_replay_bonus_8011926A;
+    LoadImage(&rect, (u_long*)(D_replay_bonus_8011925C + ((D_replay_bonus_80119270 << REPLAY_BONUS_STRIP_PIXEL_BYTES_SHIFT) * (s16)D_replay_bonus_80119266)));
+    // The callback releases the strip before the task queues the other buffer.
+    imageWidth              = D_replay_bonus_80119264;
     D_replay_bonus_8011926C = 0;
     D_replay_bonus_80119270 = D_replay_bonus_80119270 ^ 1;
-    next                    = (D_replay_bonus_8011926E = (u16)D_replay_bonus_8011926E + 1);
-    next                    = (s16)next;
-    if (height < 0) {
-        height += 0xF;
+    nextStrip               = (D_replay_bonus_8011926E = (u16)D_replay_bonus_8011926E + 1);
+    nextStrip               = (s16)nextStrip;
+    if (imageWidth < 0) {
+        imageWidth += FILE_SYSTEM_IMAGE_STRIP_WIDTH - 1;
     }
-    if (next == (height >> 4) - 1) {
+    if (nextStrip == (imageWidth >> REPLAY_BONUS_STRIP_WIDTH_SHIFT) - 1) {
         DecDCToutCallback(NULL);
     }
 }
 
-void func_replay_bonus_801159A0(Task* arg0)
+/// Feeds the expanded credits picture to MDEC and requests its first strip.
+static inline void _replayBonusStartPictureDecode(Task* task)
 {
-    ReplayBonusPictureDecode* picture;
-    s32                       state;
-    s32                       width;
-    s32                       bufSize;
-    s32                       imgWidth;
-    s32                       strip;
-    s32                       next;
-    u16                       w;
-    u16                       x;
-    u16                       h;
-    u16                       y;
-    void*                     vlcBuf;
-    u_long*                   bs;
+    enum { REPLAY_BONUS_STRIP_WORDS_PER_ROW = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2 };
+    s32 nextState;
 
-    state   = arg0->state;
-    picture = arg0->spawnArg2.pointer;
-    switch (state) {
-        case 0:
+    DecDCToutCallback(_replayBonusUploadPictureStrip);
+    DecDCTin(D_replay_bonus_80119260, MDEC_IMAGE_MODE_RGB16_MASK_BIT);
+    DecDCTout((u_long*)D_replay_bonus_8011925C, (s16)D_replay_bonus_80119266 * REPLAY_BONUS_STRIP_WORDS_PER_ROW);
+    D_replay_bonus_8011926E = 0;
+    nextState               = task->state;
+    D_replay_bonus_8011926C = 1;
+    task->state             = nextState + 1;
+}
+
+void replayBonusDecodePictureTask(Task* task)
+{
+    enum {
+        REPLAY_BONUS_DECODE_INITIALIZE        = 0,
+        REPLAY_BONUS_DECODE_VLC               = 1,
+        REPLAY_BONUS_DECODE_START_MDEC        = 2,
+        REPLAY_BONUS_DECODE_STRIPS            = 3,
+        REPLAY_BONUS_STRIP_WIDTH_SHIFT        = 4,
+        REPLAY_BONUS_STRIP_PIXEL_BYTES_SHIFT  = 5,
+        REPLAY_BONUS_DOUBLE_STRIP_BYTES_SHIFT = 6,
+        REPLAY_BONUS_STRIP_WORDS_PER_ROW      = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2,
+        REPLAY_BONUS_PICTURE_PIXEL_BYTES      = sizeof(u16),
+    };
+    ReplayBonusPictureDecode* picture;
+    s32                       decodeState;
+    s32                       vlcImageWidth;
+    s32                       decodedWordCount;
+    s32                       outputImageWidth;
+    s32                       completedStrips;
+    u16                       pictureWidth;
+    u16                       vramX;
+    u16                       pictureHeight;
+    u16                       vramY;
+    u_long*                   decodedBitstream;
+    u_long*                   bitstream;
+
+    decodeState = task->state;
+    picture     = task->spawnArg2.pointer;
+    switch (decodeState) {
+        case REPLAY_BONUS_DECODE_INITIALIZE:
+            // Expand VLC in slices, then feed one picture to MDEC.
             D_replay_bonus_80119270 = 0;
-            w                       = picture->width;
-            x                       = picture->vramX;
-            D_replay_bonus_80119264 = w;
-            h                       = picture->height;
-            D_replay_bonus_80119266 = h;
-            D_replay_bonus_80119268 = x;
-            y                       = picture->vramY;
-            D_replay_bonus_8011926A = y;
+            pictureWidth            = picture->width;
+            vramX                   = picture->vramX;
+            D_replay_bonus_80119264 = pictureWidth;
+            pictureHeight           = picture->height;
+            D_replay_bonus_80119266 = pictureHeight;
+            D_replay_bonus_80119268 = vramX;
+            vramY                   = picture->vramY;
+            D_replay_bonus_8011926A = vramY;
             DecDCTReset(0);
-            D_replay_bonus_8011925C = memMalloc((s16)D_replay_bonus_80119266 << 6, true);
-            vlcBuf                  = memMalloc(D_replay_bonus_80119264 * (s16)D_replay_bonus_80119266 * 2, true);
-            bs                      = D_8006C338[picture->resourceIndex].data;
-            D_replay_bonus_80119260 = vlcBuf;
-            bufSize                 = DecDCTBufSize(bs);
-            width                   = D_replay_bonus_80119264;
-            if (width < 0) {
-                width += 0xF;
+            D_replay_bonus_8011925C = memMalloc((s16)D_replay_bonus_80119266 << REPLAY_BONUS_DOUBLE_STRIP_BYTES_SHIFT, true);
+            decodedBitstream        = memMalloc(D_replay_bonus_80119264 * (s16)D_replay_bonus_80119266 * REPLAY_BONUS_PICTURE_PIXEL_BYTES, true);
+            bitstream               = D_8006C338[picture->resourceIndex].data;
+            D_replay_bonus_80119260 = decodedBitstream;
+            decodedWordCount        = DecDCTBufSize(bitstream);
+            vlcImageWidth           = D_replay_bonus_80119264;
+            if (vlcImageWidth < 0) {
+                vlcImageWidth += FILE_SYSTEM_IMAGE_STRIP_WIDTH - 1;
             }
-            DecDCTvlcSize2((bufSize / (width >> 4)) + 2);
+            DecDCTvlcSize2((decodedWordCount / (vlcImageWidth >> REPLAY_BONUS_STRIP_WIDTH_SHIFT)) + 2);
             if ((DecDCTvlc2(D_8006C338[picture->resourceIndex].data, D_replay_bonus_80119260, picture->vlcTable) << 0x10) == 0) {
-                arg0->state = 2;
+                task->state = REPLAY_BONUS_DECODE_START_MDEC;
                 return;
             }
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
             return;
-        case 1:
+        case REPLAY_BONUS_DECODE_VLC:
             if (DecDCTvlc2(NULL, NULL, picture->vlcTable) != 0) {
                 return;
             }
-            arg0->state = arg0->state + 1;
-        case 2:
-            DecDCToutCallback(func_replay_bonus_801158C0);
-            DecDCTin(D_replay_bonus_80119260, 2);
-            DecDCTout((u_long*)D_replay_bonus_8011925C, (s16)D_replay_bonus_80119266 * 8);
-            D_replay_bonus_8011926E = 0;
-            next                    = arg0->state;
-            D_replay_bonus_8011926C = 1;
-            arg0->state             = next + 1;
+            task->state = task->state + 1;
+        case REPLAY_BONUS_DECODE_START_MDEC:
+            _replayBonusStartPictureDecode(task);
             return;
-        case 3:
+        case REPLAY_BONUS_DECODE_STRIPS:
+            // Output sizes count 32-bit words; buffer offsets count bytes.
             if (D_replay_bonus_8011926C == 0) {
-                imgWidth = D_replay_bonus_80119264;
-                strip    = D_replay_bonus_8011926E;
-                if (imgWidth < 0) {
-                    imgWidth += 0xF;
+                outputImageWidth = D_replay_bonus_80119264;
+                completedStrips  = D_replay_bonus_8011926E;
+                if (outputImageWidth < 0) {
+                    outputImageWidth += FILE_SYSTEM_IMAGE_STRIP_WIDTH - 1;
                 }
-                if (strip == (imgWidth >> 4) - 1) {
+                // The retained stop count leaves the final 16-pixel column untouched.
+                if (completedStrips == (outputImageWidth >> REPLAY_BONUS_STRIP_WIDTH_SHIFT) - 1) {
                     memFreeFromHeap(D_replay_bonus_8011925C, true);
                     memFreeFromHeap(D_replay_bonus_80119260, true);
-                    taskRequestKill(arg0, 0);
+                    taskRequestKill(task, 0);
                     return;
                 }
-                DecDCTout((u_long*)(D_replay_bonus_8011925C + ((D_replay_bonus_80119270 << 5) * (s16)D_replay_bonus_80119266)), (s16)D_replay_bonus_80119266 * 8);
+                DecDCTout((u_long*)(D_replay_bonus_8011925C + ((D_replay_bonus_80119270 << REPLAY_BONUS_STRIP_PIXEL_BYTES_SHIFT) * (s16)D_replay_bonus_80119266)), (s16)D_replay_bonus_80119266 * REPLAY_BONUS_STRIP_WORDS_PER_ROW);
                 D_replay_bonus_8011926C = 1;
             }
             break;
     }
 }
 
-u16* func_replay_bonus_80115C68(void)
+u16* replayBonusCreatePictureVlcTable(void)
 {
-    u16* table = memMalloc(STREAM_VLC_TABLE_BYTES, true);
+    u16* table = memMalloc(sizeof(DECDCTTAB), true);
 
     DecDCTvlcBuild(table);
     return table;
 }
 
-/// EXP cost of attachment `slot` one level above `from`.
-static inline u16 _replayBonusUpgradeCost(s32 slot, s32 from)
+/// Discounted EXP cost of learning the next level of a wheel ability.
+///
+/// `abilitySlot` is 0..11 and `previousLevel` is 0..2. Positive game modes
+/// pay 4/5 of the base cost; a cleared normal game pays 2/5. Each level
+/// rounds down separately, using the completed run's mode and clear count.
+static inline s32 _replayBonusUpgradeCost(s32 abilitySlot, s32 previousLevel)
 {
-    return Gp_IdParamHi.rows[slot * 3 + from + 1].column.expCost;
+    s32 expCost = Gp_IdParamHi.rows[abilitySlot * ATTACHMENT_AREA_LEVEL_COUNT + previousLevel + 1].column.expCost;
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
+        expCost = (expCost * 4) / 5;
+    } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
+        expCost = (expCost * 2) / 5;
+    }
+    return expCost;
 }
 
-s32 func_replay_bonus_80115CA4(void)
+s32 replayBonusGetTotalExp(void)
 {
-    u8* levels;
-    s32 spend;
-    s32 i;
-    s32 j;
-    s32 val;
+    const u8* learnedLevels;
+    s32       totalExp;
+    s32       abilitySlot;
+    s32       previousLevel;
+    s32       upgradeExpCost;
 
-    levels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-    spend  = gPlayerStatus.exp;
-    i      = 0;
+    learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
+    totalExp      = gPlayerStatus.exp;
+    abilitySlot   = 0;
     do {
-        if (*levels != 0) {
-            for (j = 0; j < *levels; ++j) {
-                val = _replayBonusUpgradeCost(i, j);
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
-                    val = (val * 4) / 5;
-                } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
-                    val = (val * 2) / 5;
-                }
-                spend += val;
+        if (*learnedLevels != 0) {
+            for (previousLevel = 0; previousLevel < *learnedLevels; ++previousLevel) {
+                upgradeExpCost = _replayBonusUpgradeCost(abilitySlot, previousLevel);
+                totalExp      += upgradeExpCost;
             }
         }
-        i      += 1;
-        levels += 1;
-    } while (i < 0xC);
-    return spend;
+        abilitySlot   += 1;
+        learnedLevels += 1;
+    } while (abilitySlot < ATTACHMENT_SPELL_COUNT);
+    return totalExp;
 }
 
-static void func_replay_bonus_80115D60(UiList* list, UiObject* ctx)
+/// Fills the Complete Bonus list with non-consumable rows and collected ids.
+///
+/// The UI owner supplies writable `s16` item-id storage. The saved table's
+/// 256 rows and the whitelist's eight collectible ids emit at most 264 ids,
+/// fitting its 300-element allocation. Navigation still requires at most 127
+/// emitted rows for the signed-byte UI indices; legal-run limits are unproven.
+/// Starts the list on its last nine rows, clamping an empty or short list to 0.
+static void _replayBonusBuildItemList(UiList* list, UiObject* object)
 {
-    InventoryItemRow* rec;
-    s16*              ids;
-    s16*              dest;
-    s32               count;
-    s32               i;
-    s32               found;
-    s32               j;
-    u16*              p;
-    u8                item;
-    u8                id;
+    enum {
+        REPLAY_BONUS_ITEM_WHITELIST_COUNT = 78,
+        REPLAY_BONUS_COLLECTION_ID_LIMIT  = 0x200,
+        REPLAY_BONUS_LIST_VISIBLE_ROWS    = 9,
+    };
+    /// Tests the fixed whitelist and writes a 0/1 membership result.
+    ///
+    /// Arguments are side-effect-free scalar/lvalue identifiers, evaluated
+    /// repeatedly; result, cursor and index must be distinct. `retryLabel` must
+    /// be unique in the function. The scan excludes the terminator and keeps
+    /// the two scan labels separate. Requires this function's whitelist-count enum.
+#define REPLAY_BONUS_FIND_ITEM_IN_WHITELIST(itemId, result, cursor, index, retryLabel) \
+    {                                                                                  \
+        (result) = 1;                                                                  \
+        (cursor) = D_replay_bonus_8011908C;                                            \
+        (index)  = 0;                                                                  \
+    retryLabel:                                                                        \
+        if (*(cursor) != (itemId)) {                                                   \
+            (index)  += 1;                                                             \
+            (cursor) += 1;                                                             \
+            if ((index) >= REPLAY_BONUS_ITEM_WHITELIST_COUNT) {                        \
+                (result) = 0;                                                          \
+            } else {                                                                   \
+                goto retryLabel;                                                       \
+            }                                                                          \
+        }                                                                              \
+    }
 
-    rec   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-    count = 0;
-    ids   = ((s16*)ctx->owner->work);
-    dest  = ids;
-    i     = count;
+    const InventoryItemRow* savedRow;
+    s16*                    itemIds;
+    s16*                    nextItemId;
+    s32                     itemCount;
+    s32                     itemIndex;
+    s32                     listed;
+    s32                     whitelistIndex;
+    const u16*              whitelistItem;
+    u8                      consumableIndex;
+    u8                      itemId;
+
+    // Each eligible saved row contributes once, independent of quantity.
+    savedRow   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
+    itemCount  = 0;
+    itemIds    = object->owner->work;
+    nextItemId = itemIds;
+    itemIndex  = itemCount;
     do {
-        item = rec->itemId;
-        if (item != 0) {
-            item += 0x60;
-            if ((u8)item >= 0x20U) {
-                found = 1;
-                id    = rec->itemId;
-                p     = D_replay_bonus_8011908C;
-                j     = 0;
-            loop_4:
-                if (*p != id) {
-                    j += 1;
-                    p += 1;
-                    if (j >= 0x4E) {
-                        found = 0;
-                    } else {
-                        goto loop_4;
-                    }
-                }
-                if (found != 0) {
-                    count += 1;
-                    *dest  = rec->itemId;
-                    dest  += 1;
+        consumableIndex = savedRow->itemId;
+        if (consumableIndex != INVENTORY_ITEM_NONE) {
+            consumableIndex -= INVENTORY_CONSUMABLE_ITEM_FIRST;
+            if ((u8)consumableIndex >= (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                itemId = savedRow->itemId;
+                REPLAY_BONUS_FIND_ITEM_IN_WHITELIST(itemId, listed, whitelistItem, whitelistIndex, scanSavedItem);
+                if (listed != 0) {
+                    itemCount  += 1;
+                    *nextItemId = savedRow->itemId;
+                    nextItemId += 1;
                 }
             }
         }
-        i   += 1;
-        rec += 1;
-    } while (i < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows));
+        itemIndex += 1;
+        savedRow  += 1;
+    } while (itemIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows));
 
-    i = 0x101;
+    // Collection ids contribute once per whitelisted id, after saved rows.
+    itemIndex = INVENTORY_COLLECTION_ID_PARTHENON_KEY;
     do {
-        if (inventoryHasCollectedBit(i) != 0) {
-            found = 1;
-            p     = D_replay_bonus_8011908C;
-            j     = 0;
-        loop_13:
-            if (*p != i) {
-                j += 1;
-                p += 1;
-                if (j >= 0x4E) {
-                    found = 0;
-                } else {
-                    goto loop_13;
-                }
-            }
-            if (found != 0) {
-                ids[count] = i;
-                count     += 1;
+        if (inventoryHasCollectedBit(itemIndex) != 0) {
+            REPLAY_BONUS_FIND_ITEM_IN_WHITELIST(itemIndex, listed, whitelistItem, whitelistIndex, scanCollectedItem);
+            if (listed != 0) {
+                itemIds[itemCount] = itemIndex;
+                itemCount         += 1;
             }
         }
-        i += 1;
-    } while (i < 0x200);
+        itemIndex += 1;
+    } while (itemIndex < REPLAY_BONUS_COLLECTION_ID_LIMIT);
 
-    list->visibleRowCount.unsignedValue       = 9;
-    list->itemCount                           = count;
+    list->visibleRowCount.unsignedValue       = REPLAY_BONUS_LIST_VISIBLE_ROWS;
+    list->itemCount                           = itemCount;
     list->firstVisibleItemIndex.unsignedValue = list->itemCount - list->visibleRowCount.unsignedValue;
     if (list->firstVisibleItemIndex.signedValue < 0) {
         list->firstVisibleItemIndex.unsignedValue = 0;
     }
     list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
+#undef REPLAY_BONUS_FIND_ITEM_IN_WHITELIST
 }
 static const char D_replay_bonus_80115774[] = "Complete Bonus";
 static const char D_replay_bonus_80115784[] = "GET ITEM";
@@ -358,7 +404,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         }
         itemMenuClearPreviewItems();
         D_80067634 = 0;
-        func_replay_bonus_80115D60(list, obj);
+        _replayBonusBuildItemList(list, obj);
         uiFitPanelToList(list, &(obj)->panel);
         list->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         list->topInset                            = 0xF;
@@ -371,7 +417,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         totals->totalBp                           = acc;
         totals->nextBp                            = acc;
         list->firstVisibleItemIndex.unsignedValue = list->itemCount - list->visibleRowCount.unsignedValue;
-        tmp                                       = func_replay_bonus_80115CA4();
+        tmp                                       = replayBonusGetTotalExp();
         exp                                       = cfg->exp;
         D_replay_bonus_80119274.totalExp          = tmp;
         totals->nextExp                           = exp;
@@ -395,7 +441,7 @@ void func_replay_bonus_80115ED0(Task* arg0)
         if (D_replay_bonus_80119274.nextExp > 0x98967F) {
             D_replay_bonus_80119274.nextExp = 0x98967F;
         }
-        tmp   = func_replay_bonus_80115CA4();
+        tmp   = replayBonusGetTotalExp();
         p     = D_replay_bonus_80118F78;
         spend = tmp;
         idx   = 0;
@@ -548,347 +594,401 @@ static const char D_replay_bonus_801157A8[] = "Balance";
 static const char D_replay_bonus_801157B0[] = "NEXT REPLAY BONUS";
 static const char D_replay_bonus_801157C4[] = "EXP";
 
-void func_replay_bonus_801166AC(Task* arg0)
+void replayBonusBalancePanelTask(Task* task)
 {
-    u8            buf[0x20];
-    TextDrawReq   req;
-    TextDrawReq   req2;
-    UiObject*     obj;
-    UiObject*     childObj;
-    Task*         child;
-    PlayerStatus* cfg;
-    s32           xOff;
-    s32           negX;
-    s32           color;
-    s32           value;
-    s32           remaining;
-    s32           ot;
-    s32           ot2;
-    s32           flag;
+    enum {
+        REPLAY_BONUS_BALANCE_CURRENT    = 0,
+        REPLAY_BONUS_BALANCE_NEXT       = 1,
+        REPLAY_BONUS_BALANCE_INITIALIZE = 0,
+        REPLAY_BONUS_BALANCE_HOLD       = 1,
+    };
 
-    cfg = &gPlayerStatus;
-    obj = arg0->spawnArg2.pointer;
-    if (arg0->state == 0) {
-        arg0->killCountdown = 0xBC;
-        arg0->state         = arg0->state + 1;
+    /// Builds and draws a small outlined EXP/BP label using the caller's request.
+    ///
+    /// Arguments are side-effect-free lvalues/scalars, evaluated repeatedly.
+    /// The request, object and OT index must refer to distinct objects. Pixel
+    /// coordinates are relative to the panel origin; preserves request order.
+#define REPLAY_BONUS_DRAW_BALANCE_LABEL(request, object, xOffset, yOffset, color, index, caption) \
+    {                                                                                             \
+        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);          \
+        (request).y          = (object)->panel.contentOriginY.unsignedValue + (yOffset);          \
+        (index)              = (object)->panel.otIndex.signedValue;                               \
+        (request).colorRgb   = (color);                                                           \
+        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                            \
+        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                               \
+        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                \
+        (request).otIndex    = (index) + 1;                                                       \
+        textDrawString(&(request), (caption));                                                    \
     }
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->spawnArg1.value == 0) {
-        uiDrawPanelLabel(&(obj)->panel, D_replay_bonus_801157A8);
+
+    u8                  numberText[0x20];
+    TextDrawReq         expLabel;
+    TextDrawReq         bpLabel;
+    UiObject*           object;
+    UiObject*           childObject;
+    Task*               childTask;
+    const PlayerStatus* playerStatus;
+    s32                 leftInset;
+    s32                 rightInset;
+    s32                 textColor;
+    s32                 balance;
+    s32                 holdTicksLeft;
+    s32                 expOtIndex;
+    s32                 bpOtIndex;
+    s32                 childResult;
+
+    playerStatus = &gPlayerStatus;
+    object       = task->spawnArg2.pointer;
+    if (task->state == REPLAY_BONUS_BALANCE_INITIALIZE) {
+        task->killCountdown = REPLAY_BONUS_PANEL_HOLD_TICKS;
+        task->state         = task->state + 1;
+    }
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_CURRENT) {
+        uiDrawPanelLabel(&(object)->panel, D_replay_bonus_801157A8);
     } else {
-        uiDrawPanelLabel(&(obj)->panel, D_replay_bonus_801157B0);
+        uiDrawPanelLabel(&(object)->panel, D_replay_bonus_801157B0);
     }
-    color          = 0x606060;
-    xOff           = obj->panel.contentLeft.signedValue + 2;
-    req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req.y          = obj->panel.contentOriginY.unsignedValue - 8;
-    ot             = obj->panel.otIndex.signedValue;
-    req.colorRgb   = color;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    req.otIndex    = ot + 1;
-    textDrawString(&req, D_replay_bonus_801157C4);
-    value = cfg->exp;
-    if (arg0->spawnArg1.value == 1) {
-        value = D_replay_bonus_80119274.nextExp;
+    textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
+    leftInset = object->panel.contentLeft.signedValue + 2;
+    REPLAY_BONUS_DRAW_BALANCE_LABEL(expLabel, object, leftInset, -8, textColor, expOtIndex, D_replay_bonus_801157C4);
+    balance = playerStatus->exp;
+    if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_NEXT) {
+        balance = D_replay_bonus_80119274.nextExp;
     }
-    negX = -xOff;
-    textDrawUiLine(obj, negX, -2, textItoaSigned(buf, value), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    req2.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req2.y          = obj->panel.contentOriginY.unsignedValue + 0xB;
-    ot2             = obj->panel.otIndex.signedValue;
-    req2.colorRgb   = color;
-    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req2.alignment  = TEXT_ALIGNMENT_LEFT;
-    req2.drawMode   = TEXT_DRAW_OUTLINED;
-    req2.otIndex    = ot2 + 1;
-    textDrawString(&req2, D_replay_bonus_801157C8);
-    value = D_replay_bonus_80119274.totalBp;
-    if (arg0->spawnArg1.value == 1) {
-        value = D_replay_bonus_80119274.nextBp;
+    rightInset = -leftInset;
+    textDrawUiLine(object, rightInset, -2, textItoaSigned(numberText, balance), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    REPLAY_BONUS_DRAW_BALANCE_LABEL(bpLabel, object, leftInset, 0xB, textColor, bpOtIndex, D_replay_bonus_801157C8);
+    balance = D_replay_bonus_80119274.totalBp;
+    if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_NEXT) {
+        balance = D_replay_bonus_80119274.nextBp;
     }
-    textDrawUiLine(obj, negX, 0x11, textItoaSigned(buf, value), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    if (arg0->state == 1) {
-        remaining           = (u16)arg0->killCountdown - 1;
-        arg0->killCountdown = remaining;
-        if ((remaining << 0x10) <= 0) {
-            if (arg0->spawnArg1.value == 0) {
-                uiSpawnObject(&D_replay_bonus_801191A8, 1, 1, 1, obj);
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-                arg0->state             = arg0->state + 1;
+    textDrawUiLine(object, rightInset, 0x11, textItoaSigned(numberText, balance), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    // The current-balance hold opens the next-balance panel as a child.
+    if (task->state == REPLAY_BONUS_BALANCE_HOLD) {
+        holdTicksLeft       = (u16)task->killCountdown - 1;
+        task->killCountdown = holdTicksLeft;
+        if ((holdTicksLeft << 0x10) <= 0) {
+            if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_CURRENT) {
+                uiSpawnObject(&D_replay_bonus_801191A8, REPLAY_BONUS_BALANCE_NEXT, 1, 1, object);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                task->state                = task->state + 1;
             } else {
-                obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                object->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         }
     }
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
-    child = arg0->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        flag     = childObj->result;
-        if (flag == USER_INTERFACE_RESULT_CONFIRM) {
-            obj->result = flag;
+    childTask = task->firstChild;
+    if (childTask != NULL) {
+        childObject = childTask->spawnArg2.pointer;
+        childResult = childObject->result;
+        if (childResult == USER_INTERFACE_RESULT_CONFIRM) {
+            object->result = childResult;
         }
     }
+#undef REPLAY_BONUS_DRAW_BALANCE_LABEL
 }
 
 static const char D_replay_bonus_801157C8[] = "BP";
 
-void func_replay_bonus_80116964(Task* arg0)
+void replayBonusQuitWarningTask(Task* task)
 {
-    UiObject* obj;
-    UiObject* spawned;
-    Task*     child;
-    UiObject* childObj;
-    s16       flag;
-    u16       copied;
-    s32       color;
+    enum {
+        REPLAY_BONUS_QUIT_SIZE_PANEL = 0,
+        REPLAY_BONUS_QUIT_OPEN_MENU  = 1,
+    };
+    UiObject* object;
+    UiObject* yesNoMenu;
+    Task*     childTask;
+    UiObject* childObject;
+    s16       childResult;
+    u16       selectedCommand;
+    s32       textColor;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawTitle(&(obj)->panel, "WARNING");
-    if (arg0->state == 0) {
-        obj->resultValue = 0x34;
-        uiSizePanelForText(&(obj)->panel, D_replay_bonus_8011906C, 0, 0);
-        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 4);
-        arg0->state = arg0->state + 1;
-    } else if (arg0->state == 1) {
-        spawned = itemMenuSpawnYesNoMenuDefaultNo(obj);
-        if (spawned != NULL) {
-            spawned->owner->spawnArg1.value      |= ITEM_MENU_DIALOG_SYSTEM_CURSOR_SOUND;
-            spawned->panel.bounds.unsignedRect.y += 0x10;
-            arg0->state                           = arg0->state + 1;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawTitle(&(object)->panel, "WARNING");
+    if (task->state == REPLAY_BONUS_QUIT_SIZE_PANEL) {
+        object->resultValue = USER_INTERFACE_LIST_COMMAND_NO;
+        uiSizePanelForText(&(object)->panel, D_replay_bonus_8011906C, 0, 0);
+        uiSetPanelContentSize(&(object)->panel, 0, uiGetTextRowsHeight(3) + 4);
+        task->state = task->state + 1;
+    } else if (task->state == REPLAY_BONUS_QUIT_OPEN_MENU) {
+        yesNoMenu = itemMenuSpawnYesNoMenuDefaultNo(object);
+        if (yesNoMenu != NULL) {
+            yesNoMenu->owner->spawnArg1.value      |= ITEM_MENU_DIALOG_SYSTEM_CURSOR_SOUND;
+            yesNoMenu->panel.bounds.unsignedRect.y += 0x10;
+            task->state                             = task->state + 1;
         }
     }
-    color = 0x606060;
-    textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, D_replay_bonus_80119014, color, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    child = arg0->firstChild;
-    if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        flag     = childObj->result;
-        if ((flag == USER_INTERFACE_RESULT_CANCEL) || (flag == USER_INTERFACE_RESULT_CONFIRM)) {
-            copied           = childObj->resultValue;
-            obj->result      = USER_INTERFACE_RESULT_CONFIRM;
-            obj->resultValue = copied;
+    textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, D_replay_bonus_80119014, textColor, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    // The controller needs the Yes/No command even when the child cancels.
+    childTask = task->firstChild;
+    if (childTask != NULL) {
+        childObject = childTask->spawnArg2.pointer;
+        childResult = childObject->result;
+        if ((childResult == USER_INTERFACE_RESULT_CANCEL) || (childResult == USER_INTERFACE_RESULT_CONFIRM)) {
+            selectedCommand     = childObject->resultValue;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = selectedCommand;
         }
     }
 }
 
-/// Shop tier offered for the current spend and game mode, skipping tiers
-/// already bought; -1 once every tier has been bought.
+/// Shop tier unlocked by this clear's total EXP and game mode.
+///
+/// Begins at the first inclusive EXP ceiling, adds the mode (0..3) and caps
+/// at the top tier, then wraps past unlocked tiers. Returns -1 if all thirteen
+/// tiers are unlocked. Reads the completed run without modifying its unlocks.
 static inline s32 _replayBonusShopTier(void)
 {
-    ShopTier*   p;
-    u32         spend;
-    s32         idx;
-    s32         i;
-    McSaveData* save;
-    s32         mask;
-    s32         one;
+    const ShopTier*   tierRow;
+    u32               totalExp;
+    s32               tierIndex;
+    s32               tiersChecked;
+    const McSaveData* saveData;
+    s32               unlockedTiers;
+    s32               tierBit;
 
-    spend = func_replay_bonus_80115CA4();
-    p     = D_replay_bonus_80118F78;
-    idx   = 0;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
+    totalExp  = replayBonusGetTotalExp();
+    tierRow   = D_replay_bonus_80118F78;
+    tierIndex = 0;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == SHOP_TIER_ALL_MASK) {
         return -1;
     }
-    for (i = 0; i < 0xD; i++, p++) {
-        if (p->expCeiling >= spend) {
-            idx = i;
+    // Start at the EXP ceiling, then apply the mode boost.
+    for (tiersChecked = 0; tiersChecked < SHOP_TIER_COUNT; tiersChecked++, tierRow++) {
+        if (tierRow->expCeiling >= totalExp) {
+            tierIndex = tiersChecked;
             break;
         }
     }
-    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    idx += save->state.gameMode;
-    i    = 0;
-    if (idx >= 0xD) {
-        idx = 0xC;
+    saveData     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    tierIndex   += saveData->state.gameMode;
+    tiersChecked = 0;
+    if (tierIndex >= SHOP_TIER_COUNT) {
+        tierIndex = SHOP_TIER_COUNT - 1;
     }
-    one  = 1;
-    mask = save->state.shopTiers;
-    for (; i < 0xD; i++) {
-        if ((mask & (one << idx)) == 0) {
+    tierBit       = 1;
+    unlockedTiers = saveData->state.shopTiers;
+    // Search cyclically for the first tier not already unlocked.
+    for (; tiersChecked < SHOP_TIER_COUNT; tiersChecked++) {
+        if ((unlockedTiers & (tierBit << tierIndex)) == 0) {
             break;
         }
-        idx += 1;
-        if (idx >= 0xD) {
-            idx -= 0xD;
+        tierIndex += 1;
+        if (tierIndex >= SHOP_TIER_COUNT) {
+            tierIndex -= SHOP_TIER_COUNT;
         }
     }
-    return idx;
+    return tierIndex;
 }
 
-/// Item in column `col` of the shop tier currently on offer, or 0 when none is.
-static inline s32 _replayBonusShopItem(s32 col)
+/// Item id in column `itemColumn` (0..2) of the tier unlocked by this clear.
+///
+/// Returns `INVENTORY_ITEM_NONE` when every tier is already unlocked.
+static inline s32 _replayBonusShopItem(s32 itemColumn)
 {
-    s32 tier;
+    s32 tierIndex;
 
-    tier = _replayBonusShopTier();
-    if (tier < 0) {
-        return 0;
+    tierIndex = _replayBonusShopTier();
+    if (tierIndex < 0) {
+        return INVENTORY_ITEM_NONE;
     }
-    return D_replay_bonus_80118F78[tier].items[col];
+    return D_replay_bonus_80118F78[tierIndex].items[itemColumn];
 }
 
-void func_replay_bonus_80116AC0(Task* arg0)
+void replayBonusUnlockedItemPanelTask(Task* task)
 {
-    s32       remaining;
-    s32       dt;
-    UiObject* obj;
+    enum { REPLAY_BONUS_ITEM_CONFIRMED_HOLD_TICKS = 0x7FFF };
+    s32       holdTicksLeft;
+    s32       frameTicks;
+    UiObject* object;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (arg0->state == 0) {
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (task->state == 0) {
         if (D_replay_bonus_80119274.shopTier < 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
             return;
         }
-        arg0->extraState.value = arg0->spawnArg1.value;
-        arg0->killCountdown    = 0xBC;
-        itemMenuSetPreviewItem(_replayBonusShopItem(arg0->extraState.value), CD_COMMAND_DISPLAY_LOAD_MENU);
-        arg0->spawnArg1.value = _replayBonusShopItem(arg0->extraState.value) + ITEM_MENU_INFO_NEXT_REPLAY;
+        // The information task takes over the state and first spawn argument.
+        task->extraState.value = task->spawnArg1.value;
+        task->killCountdown    = REPLAY_BONUS_PANEL_HOLD_TICKS;
+        itemMenuSetPreviewItem(_replayBonusShopItem(task->extraState.value), CD_COMMAND_DISPLAY_LOAD_MENU);
+        task->spawnArg1.value = _replayBonusShopItem(task->extraState.value) + ITEM_MENU_INFO_NEXT_REPLAY;
     }
-    itemMenuInfoTask(arg0);
-    dt                  = gDisplayState.frameTicks;
-    remaining           = (u16)arg0->killCountdown - dt;
-    arg0->killCountdown = remaining;
-    if ((remaining << 0x10) <= 0) {
-        obj->result         = USER_INTERFACE_RESULT_CONFIRM;
-        arg0->killCountdown = 0x7FFF;
+    itemMenuInfoTask(task);
+    frameTicks          = gDisplayState.frameTicks;
+    holdTicksLeft       = (u16)task->killCountdown - frameTicks;
+    task->killCountdown = holdTicksLeft;
+    if ((holdTicksLeft << 0x10) <= 0) {
+        object->result      = USER_INTERFACE_RESULT_CONFIRM;
+        task->killCountdown = REPLAY_BONUS_ITEM_CONFIRMED_HOLD_TICKS;
     }
 }
 
-void func_replay_bonus_80116D68(Task* arg0)
+void replayBonusExtraBpPanelTask(Task* task)
 {
-    u8          buf[0x20];
-    TextDrawReq req;
-    UiObject*   obj;
-    s32         xOff;
-    s32         bonus;
-    s32         color;
-    s32         remaining;
-    s32         ot;
+    u8          numberText[0x20];
+    TextDrawReq bpLabel;
+    UiObject*   object;
+    s32         leftInset;
+    s32         extraBonusBp;
+    s32         textColor;
+    s32         holdTicksLeft;
+    s32         otIndex;
 
-    obj   = arg0->spawnArg2.pointer;
-    bonus = D_replay_bonus_80119274.extraBonusBp;
-    uiDrawPanelLabel(&(obj)->panel, "EXTRA BONUS\0\0\0\0");
-    if (arg0->state == 0) {
-        arg0->killCountdown = 0xBC;
-        arg0->state         = arg0->state + 1;
+    object       = task->spawnArg2.pointer;
+    extraBonusBp = D_replay_bonus_80119274.extraBonusBp;
+    uiDrawPanelLabel(&(object)->panel, "EXTRA BONUS\0\0\0\0");
+    if (task->state == 0) {
+        task->killCountdown = REPLAY_BONUS_PANEL_HOLD_TICKS;
+        task->state         = task->state + 1;
     }
-    color          = 0x606060;
-    xOff           = obj->panel.contentLeft.signedValue + 2;
-    req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req.y          = obj->panel.contentOriginY.unsignedValue;
-    ot             = obj->panel.otIndex.signedValue;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.colorRgb   = color;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    req.otIndex    = ot + 1;
-    textDrawString(&req, D_replay_bonus_801157C8);
-    textDrawUiLine(obj, -xOff, 6, textItoaSigned(buf, bonus), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    remaining           = (u16)arg0->killCountdown - 1;
-    arg0->killCountdown = remaining;
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (((remaining << 0x10) <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    textColor          = REPLAY_BONUS_PANEL_TEXT_COLOR;
+    leftInset          = object->panel.contentLeft.signedValue + 2;
+    bpLabel.x          = object->panel.contentOriginX.unsignedValue + leftInset;
+    bpLabel.y          = object->panel.contentOriginY.unsignedValue;
+    otIndex            = object->panel.otIndex.signedValue;
+    bpLabel.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    bpLabel.colorRgb   = textColor;
+    bpLabel.alignment  = TEXT_ALIGNMENT_LEFT;
+    bpLabel.drawMode   = TEXT_DRAW_OUTLINED;
+    bpLabel.otIndex    = otIndex + 1;
+    textDrawString(&bpLabel, D_replay_bonus_801157C8);
+    textDrawUiLine(object, -leftInset, 6, textItoaSigned(numberText, extraBonusBp), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    holdTicksLeft       = (u16)task->killCountdown - 1;
+    task->killCountdown = holdTicksLeft;
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+        if (((holdTicksLeft << 0x10) <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
 
-void func_replay_bonus_80116EC0(void)
+void replayBonusPrepareClearedSave(void)
 {
-    McSaveData    copy;
-    McSaveData*   dst;
-    McSaveData*   save;
-    PlayerStatus* cfg;
-    u8*           p;
-    s32           i;
-    s32           j;
-    s32           sum;
-    s32           shift;
-    s32           exp;
+    enum {
+        MEMORY_CARD_SAVE_COUNT_NEW             = 0xFF,
+        MEMORY_CARD_SAVE_POINT_OPENING         = 15,
+        REPLAY_BONUS_MAX_CLEAR_COUNT           = 99,
+        REPLAY_BONUS_MAX_STARTING_BALANCE      = 9999999,
+        REPLAY_BONUS_FIRST_RANK_EXP_CEILING    = 69000,
+        REPLAY_BONUS_HIGH_RANK_MIN_GAME_MODE   = 2,
+        REPLAY_BONUS_RANK_FIRST                = 1,
+        REPLAY_BONUS_RANK_HIGH                 = 2,
+        REPLAY_BONUS_CARRIED_ABILITY_USE_COUNT = 18,
+        REPLAY_BONUS_SHOP_STOCK_LEVEL_BITS     = 2,
+        REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK     = 3,
+    };
+    /// Retains the highest learned level in one packed two-bit shop slot.
+    ///
+    /// `slot` is 0..11 and `level` is 0..3; both must be side-effect-free.
+    /// `shift` is a separate writable s32 lvalue; `level` must not alias stock.
+    /// Arguments are evaluated
+    /// repeatedly. The live save owns the stock, which is updated in place.
+#define REPLAY_BONUS_RETAIN_SHOP_ABILITY_LEVEL(slot, level, shift)                                                                   \
+    {                                                                                                                                \
+        (shift) = (slot) * REPLAY_BONUS_SHOP_STOCK_LEVEL_BITS;                                                                       \
+        if ((s32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> (shift)) & REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK) < (level)) { \
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock &= ~(REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK << (shift));                  \
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock |= (level) << (shift);                                                \
+        }                                                                                                                            \
+    }
 
-    cfg  = &gPlayerStatus;
-    copy = gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    McSaveData    completedSave;
+    McSaveData*   newSave;
+    McSaveData*   saveData;
+    PlayerStatus* playerStatus;
+    const u8*     learnedLevel;
+    s32           historyIndex;
+    s32           abilitySlot;
+    s32           nextBp;
+    s32           stockLevelShift;
+    s32           nextExp;
+
+    // Reset run progress, then restore persistent options and history.
+    playerStatus  = &gPlayerStatus;
+    completedSave = gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     mcResetSaveData();
-    dst                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    dst->state.clearCount   = copy.state.clearCount;
-    dst->state.vibration    = copy.state.vibration;
-    dst->state.demoScene    = copy.state.demoScene;
-    dst->state.moveMode     = copy.state.moveMode;
-    dst->state.buttonLayout = copy.state.buttonLayout;
-    dst->state.musicVolume  = copy.state.musicVolume;
-    dst->state.cursorMode   = copy.state.cursorMode;
-    dst->state.soundMode    = copy.state.soundMode;
-    i                       = 0;
+    newSave                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    newSave->state.clearCount   = completedSave.state.clearCount;
+    newSave->state.vibration    = completedSave.state.vibration;
+    newSave->state.demoScene    = completedSave.state.demoScene;
+    newSave->state.moveMode     = completedSave.state.moveMode;
+    newSave->state.buttonLayout = completedSave.state.buttonLayout;
+    newSave->state.musicVolume  = completedSave.state.musicVolume;
+    newSave->state.cursorMode   = completedSave.state.cursorMode;
+    newSave->state.soundMode    = completedSave.state.soundMode;
+    historyIndex                = 0;
     do {
-        dst->state.itemSeenBits[i] = copy.state.itemSeenBits[i];
-        i                         += 1;
-    } while (i < 0x60);
-    i = 0;
+        newSave->state.itemSeenBits[historyIndex] = completedSave.state.itemSeenBits[historyIndex];
+        historyIndex                             += 1;
+    } while (historyIndex < ARRAY_SIZE(completedSave.state.itemSeenBits));
+    // Carry eighteen ability-use entries; the final halfword stays reset.
+    historyIndex = 0;
     do {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[i] = copy.state.attachUseCounts[i];
-        i                                                          += 1;
-    } while (i < 0x12);
-    i = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[historyIndex] = completedSave.state.attachUseCounts[historyIndex];
+        historyIndex                                                          += 1;
+    } while (historyIndex < REPLAY_BONUS_CARRIED_ABILITY_USE_COUNT);
+    historyIndex = 0;
     do {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[i] = copy.state.weaponUseCounts[i];
-        i                                                          += 1;
-    } while (i < 0x20);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[historyIndex] = completedSave.state.weaponUseCounts[historyIndex];
+        historyIndex                                                          += 1;
+    } while (historyIndex < ARRAY_SIZE(completedSave.state.weaponUseCounts));
 
-    save                   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    save->state.saveCount  = 0xFF;
-    save->state.maxExp     = copy.state.maxExp;
-    save->state.maxBp      = copy.state.maxBp;
-    save->state.shopTiers  = copy.state.shopTiers;
-    save->state.shopStock  = copy.state.shopStock;
-    save->state.replayRank = copy.state.replayRank;
-    save->state.clearCount++;
-    if (save->state.clearCount >= 100) {
-        save->state.clearCount = 99;
+    saveData                   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    saveData->state.saveCount  = MEMORY_CARD_SAVE_COUNT_NEW;
+    saveData->state.maxExp     = completedSave.state.maxExp;
+    saveData->state.maxBp      = completedSave.state.maxBp;
+    saveData->state.shopTiers  = completedSave.state.shopTiers;
+    saveData->state.shopStock  = completedSave.state.shopStock;
+    saveData->state.replayRank = completedSave.state.replayRank;
+    saveData->state.clearCount++;
+    if (saveData->state.clearCount >= REPLAY_BONUS_MAX_CLEAR_COUNT + 1) {
+        saveData->state.clearCount = REPLAY_BONUS_MAX_CLEAR_COUNT;
     }
-    if (save->state.maxExp < D_replay_bonus_80119274.totalExp) {
-        save->state.maxExp = D_replay_bonus_80119274.totalExp;
+    if (saveData->state.maxExp < D_replay_bonus_80119274.totalExp) {
+        saveData->state.maxExp = D_replay_bonus_80119274.totalExp;
     }
-    if (save->state.maxBp < D_replay_bonus_80119274.totalBp) {
-        save->state.maxBp = D_replay_bonus_80119274.totalBp;
+    if (saveData->state.maxBp < D_replay_bonus_80119274.totalBp) {
+        saveData->state.maxBp = D_replay_bonus_80119274.totalBp;
     }
-    sum = D_replay_bonus_80119274.nextBp + D_replay_bonus_80119274.extraBonusBp;
-    if (sum > 0x98967F) {
-        sum = 0x98967F;
+    // Apply the replay awards to both resident and saved currency.
+    nextBp = D_replay_bonus_80119274.nextBp + D_replay_bonus_80119274.extraBonusBp;
+    if (nextBp > REPLAY_BONUS_MAX_STARTING_BALANCE) {
+        nextBp = REPLAY_BONUS_MAX_STARTING_BALANCE;
     }
-    cfg->bp               = sum;
-    save->state.savePoint = 0xF;
-    exp                   = D_replay_bonus_80119274.nextExp;
-    cfg->exp              = exp;
-    save->state.playerExp = exp;
-    save->state.playerBp  = cfg->bp;
-    if (copy.state.gameMode >= 2) {
-        save->state.replayRank = 2;
-    } else if (save->state.replayRank <= 0) {
-        if (D_replay_bonus_80119274.totalExp > 0x10D88) {
-            save->state.replayRank = 1;
+    playerStatus->bp          = nextBp;
+    saveData->state.savePoint = MEMORY_CARD_SAVE_POINT_OPENING;
+    nextExp                   = D_replay_bonus_80119274.nextExp;
+    playerStatus->exp         = nextExp;
+    saveData->state.playerExp = nextExp;
+    saveData->state.playerBp  = playerStatus->bp;
+    if (completedSave.state.gameMode >= REPLAY_BONUS_HIGH_RANK_MIN_GAME_MODE) {
+        saveData->state.replayRank = REPLAY_BONUS_RANK_HIGH;
+    } else if (saveData->state.replayRank <= 0) {
+        if (D_replay_bonus_80119274.totalExp > REPLAY_BONUS_FIRST_RANK_EXP_CEILING) {
+            saveData->state.replayRank = REPLAY_BONUS_RANK_FIRST;
         }
     }
-    p = copy.state.attachLevels;
-    j = 0;
+    // Shop ability stock retains the highest level learned on any clear.
+    learnedLevel = completedSave.state.attachLevels;
+    abilitySlot  = 0;
     do {
-        shift = j * 2;
-        if ((s32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> shift) & 3) < *p) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock &= ~(3 << shift);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock |= *p << shift;
-        }
-        j += 1;
-        p += 1;
-    } while (j < 0xC);
+        REPLAY_BONUS_RETAIN_SHOP_ABILITY_LEVEL(abilitySlot, *learnedLevel, stockLevelShift);
+        abilitySlot  += 1;
+        learnedLevel += 1;
+    } while (abilitySlot < ATTACHMENT_SPELL_COUNT);
     if (D_replay_bonus_80119274.shopTier >= 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers |= 1 << D_replay_bonus_80119274.shopTier;
     }
+#undef REPLAY_BONUS_RETAIN_SHOP_ABILITY_LEVEL
 }

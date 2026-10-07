@@ -4596,16 +4596,16 @@ does **not** match from a `rank` local. `rank = 2; goto store;` plus `rank = 1` 
 Write the two stores as literals and let GCC cross-jump them:
 
 ```c
-if (copy.field_F >= 2) {
-    save->field_92A = 2;
-} else if (save->field_92A <= 0) {
-    if (totals.unk0 > 0x10D88) {
-        save->field_92A = 1;
+if (completedSave.state.gameMode >= 2) {
+    saveData->state.replayRank = 2;
+} else if (saveData->state.replayRank <= 0) {
+    if (D_replay_bonus_80119274.totalExp > 0x10D88) {
+        saveData->state.replayRank = 1;
     }
 }
 ```
 
-`func_replay_bonus_80116EC0` is the example. The same function also needs `SOFT_BARRIER()` after five stack `lw`s of saved fields and before `save->field_92B = 0xFF`: without it the constant store lifts above the loads (`li v0, 0xFF; sb` first, then the `lw`s).
+`replayBonusPrepareClearedSave` is the example. The same function also needs `SOFT_BARRIER()` after five stack `lw`s of saved fields and before `saveData->state.saveCount = 0xFF`: without it the constant store lifts above the loads (`li v0, 0xFF; sb` first, then the `lw`s).
 
 ## sched1 hoists a carried phi to the block head, which moves the cross-jump merge point
 
@@ -5104,7 +5104,7 @@ reload's home. The same body exists at 0x474 in `actor_110300` and 0x4B4 in
 A matched sibling (`func_replay_bonus_80117484`) does
 
 ```
-jal   func_replay_bonus_80115CA4
+jal   replayBonusGetTotalExp
 move  s0, a1
 lui   v1, %hi(table)
 addiu a1, v1, %lo(table)
@@ -5122,7 +5122,7 @@ with `SCHED_BARRIER()` after the call, then assign the table pointer *before*
 copying the result into `spend`:
 
 ```c
-tmp = func_replay_bonus_80115CA4();
+tmp = replayBonusGetTotalExp();
 SCHED_BARRIER();
 p     = D_replay_bonus_80118F78;
 spend = tmp;
@@ -5138,18 +5138,18 @@ extraState = col` coalesces the load into `$s2` and sinks the store into the
 delay instead. Write through a temp, barrier, then the copy:
 
 ```c
-temp             = arg0->spawnArg1;
-arg0->extraState = temp;
+temp             = task->spawnArg1.value;
+task->extraState.value = temp;
 SCHED_BARRIER();
 col = temp;
-tmp = func_replay_bonus_80115CA4();
+tmp = replayBonusGetTotalExp();
 ```
 
 Split the column index across the two inlined copies (`col` / `col2`) so the
 `UiObject*` (live across every call) outranks it for `$s1`. The first item
 fetch is `item = 0; if (result >= 0) item = table[result].items[col]` (`bltz`);
 the second is `if (result < 0) item2 = 0; else item2 = …` (`bgez` with `lui`
-in the delay). `func_replay_bonus_80116AC0` is the example.
+in the delay). `replayBonusUnlockedItemPanelTask` is the example.
 
 ## Join the increment half of a shared `state += 1` tail without `goto`
 
@@ -5203,15 +5203,15 @@ tail, coalesces `high`+`lo_sum` into `$a1` in each arm, and the independent
 `a0 = obj` copy fills the branch:
 
 ```c
-if (arg0->spawnArg1 == 0) {
-    uiDrawPanelLabel(&obj->panel, D_replay_bonus_801157A8);
+if (task->spawnArg1.value == 0) {
+    uiDrawPanelLabel(&object->panel, D_replay_bonus_801157A8);
 } else {
-    uiDrawPanelLabel(&obj->panel, D_replay_bonus_801157B0);
+    uiDrawPanelLabel(&object->panel, D_replay_bonus_801157B0);
 }
 ```
 
 A ternary argument and a `UiPanel *panel` hoist both kept the `$v0` form.
-`func_replay_bonus_801166AC` is the example.
+`replayBonusBalancePanelTask` is the example.
 
 The same split applies when the shared tail argument is an integer. A
 `s16 next` set to 7 in the `== 4` arm and 9 in the else, then one call,
@@ -5410,7 +5410,7 @@ rect.y = vram_y;
 LoadImage(&rect, (u_long*)(buf + ((flip << 5) * (s16)h)));
 ```
 
-`func_replay_bonus_801158C0` is the example (MDEC strip callback). Pair with
+`_replayBonusUploadPictureStrip` is the example (MDEC strip callback). Pair with
 `next = (g = (u16)g + 1); next = (s16)next;` so the unsigned increment's
 `sh` is before `bgez` and the xor-store of the flip flag can fill that delay;
 a separate `g = next;` after the xor assignment lengthens `g`'s address live
@@ -64312,9 +64312,9 @@ A task switch whose later case does
 
 ```
 D_flag = 0;
-next = arg0->state;
+next = task->state;
 D_busy = 1;
-arg0->state = next + 1;
+task->state = next + 1;
 ```
 
 and whose earlier case ends with the same increment wants `lw v0, state` *between*
@@ -64324,14 +64324,14 @@ the two stores, `li v1, 1` for the busy flag, and the earlier case to
 Sharing `next` through `goto advance_inc` / `state = next + 1` makes it a
 global allocno. local-alloc then gives `$v0` to the same-block `li 1` and the
 `%hi(D_busy)`, so `next` lands in `$a0`, the `lw` hoists above the `lui`, and
-the leftover is `regs` plus one insert/delete. `func_replay_bonus_801159A0` is
+the leftover is `regs` plus one insert/delete. `replayBonusDecodePictureTask` is
 the example.
 
 Keep `next` in the later case only so it competes in local-alloc and wins `$v0`
 from the `li 1`. Write the earlier case as a plain
 
 ```c
-arg0->state = arg0->state + 1;
+task->state = task->state + 1;
 return;
 ```
 
@@ -150420,7 +150420,7 @@ attempts; left as it was.
   `_worldCollisionCopyContactPoint(out, contact)`; six gotos went with it. So a
   `goto` out of a `for (;;)` whose hit block repeats elsewhere is worth one try
   as "inline for the block, `break` for the jump". A block-scoped local in the
-  loop body has the same effect (`func_replay_bonus_80115D60`, below).
+  loop body has the same effect (`_replayBonusBuildItemList`, below).
 - **`i = 0; if ((u32)sector < (u32)len) { do { ...; goto after; } while (i < len); }`
   was `for (i = 0; i < len; i++) { ...; break; }`** (`Fs_LoadFile`, five
   scans). The odd entry test comparing `sector` is cse's doing: `sltu` takes a
@@ -150467,7 +150467,7 @@ attempts; left as it was.
     gives the same RTL.
   - `step = 6; goto case6;` in `Gp_StepCdAudioCmd`: an inline for state 6's
     body called from both states is not merged at all (39 insns longer).
-  - `func_replay_bonus_80115D60`'s two `found = 1; L: if (*p != id) { j++; p++;
+  - `_replayBonusBuildItemList`'s two `found = 1; L: if (*p != id) { j++; p++;
     if (j >= N) found = 0; else goto L; }` scans. `for (;;)` with `if/else
     break` is rotated (the `found = 0; break;` is the first unconditional exit
     jump). With a block-local `u16 listed = *p;` at the top of the body both
