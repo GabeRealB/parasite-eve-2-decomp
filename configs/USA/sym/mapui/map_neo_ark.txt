@@ -158,7 +158,7 @@ D_neo_ark_power_plant_1_8017F1E8 = 0x8017F1E8; // absolute:True owner=neo_ark_po
 D_neo_ark_power_plant_1_801800B4 = 0x801800B4; // absolute:True owner=neo_ark_power_plant_1 shared=rooms
 D_neo_ark_power_plant_1_801814F0 = 0x801814F0; // absolute:True owner=neo_ark_power_plant_1
 D_neo_ark_power_plant_1_80181BE0 = 0x80181BE0; // absolute:True owner=neo_ark_power_plant_1
-func_neo_ark_savanna_zone_8017D954 = 0x8017D954; // type:func absolute:True owner=neo_ark_savanna_zone shared=rooms
+func_neo_ark_savanna_zone_8017D954 = 0x8017D954; // type:func absolute:True owner=neo_ark_savanna_zone
 D_neo_ark_savanna_zone_8017F9E4 = 0x8017F9E4; // absolute:True owner=neo_ark_savanna_zone
 D_neo_ark_savanna_zone_8017F9F4 = 0x8017F9F4; // absolute:True owner=neo_ark_savanna_zone
 D_neo_ark_savanna_zone_8017F9FC = 0x8017F9FC; // absolute:True owner=neo_ark_savanna_zone shared=rooms

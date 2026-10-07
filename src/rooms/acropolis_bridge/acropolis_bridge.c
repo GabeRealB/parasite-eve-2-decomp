@@ -163,6 +163,66 @@ enum {
     ACROPOLIS_BRIDGE_KEYPAD_ERROR_BATCH          = 34
 };
 
+/// Cutscene views, keypad result and post-movie bridge placement variant.
+enum {
+    ACROPOLIS_BRIDGE_VIEW_OVERVIEW                  = 6,
+    ACROPOLIS_BRIDGE_VIEW_KEYPAD                    = 8,
+    ACROPOLIS_BRIDGE_VIEW_KEYPAD_MOVIE              = 9,
+    ACROPOLIS_BRIDGE_KEYPAD_CANCELLED               = 0,
+    ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE        = 2,
+    ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE = 3
+};
+
+/// Actor commands for revealing the enemies and starting their movie presentation.
+///
+/// The reveal command uses the promenade context; keypad acceptance uses the bridge.
+enum {
+    ACROPOLIS_BRIDGE_COMMAND_CONTEXT_MOVIE      = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_PROMENADE << 8),
+    ACROPOLIS_BRIDGE_COMMAND_CONTEXT_KEYPAD     = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_BRIDGE << 8),
+    ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES = 1,
+    ACROPOLIS_BRIDGE_COMMAND_KEYPAD_ACCEPTED    = 2
+};
+
+/// Enemy behavior indices used by this room's state dispatcher.
+enum {
+    ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE     = 0,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_PATROL_SUNK  = 1,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_CHASE        = 2,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_RETREAT      = 3,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_FOLLOW_MOVIE = 4,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_DEATH_EFFECT = 7
+};
+
+/// Enemy animation requests and clips; playback rates use `ANIMATION_RATE_ONE`.
+enum {
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_BLEND   = 1,
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET   = 2,
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_PLAYING = 3,
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_PATROL          = 1,
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_CHASE           = 2,
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_BOB             = 3,
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION        = 4,
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_YAW_REROLL_TICK = 5,
+    ACROPOLIS_BRIDGE_ENEMY_ANIM_YAW_REROLL_WORD = (ACROPOLIS_BRIDGE_ENEMY_ANIM_YAW_REROLL_TICK << 16) |
+                                                  ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION
+};
+
+/// Root Y thresholds in game-coordinate units; the two chase gates retain their different values.
+enum {
+    ACROPOLIS_BRIDGE_ENEMY_CHASE_START_Y = 701,
+    ACROPOLIS_BRIDGE_ENEMY_CHASE_KEEP_Y  = 801,
+    ACROPOLIS_BRIDGE_ENEMY_SINK_LIMIT    = 1800
+};
+
+/// Presentation root Y gates in coordinate units and restart delay in updates.
+enum {
+    ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_PATH_Y_OFFSET = 200,
+    ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_SCALE_START_Y = 500,
+    ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_MIN_Y   = -989,
+    ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_POSE_MAX_Y    = 800,
+    ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_TICKS   = 8
+};
+
 /// Work block of the task that runs the bridge's code keypad screen, allocated
 /// by its first state and kept at `Task::work`.
 ///
@@ -256,7 +316,7 @@ extern EffectUnitQuadCorner D_acropolis_bridge_8018990C[4];
 extern EnemyParams D_acropolis_bridge_80190C5C;
 
 static void _actionPromptResetDefault(Task* task);
-static void func_acropolis_bridge_8017DC68(Task* arg0);
+static void _acropolisBridgeWaitForKeypadResult(Task* task);
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
@@ -305,14 +365,13 @@ static void func_acropolis_bridge_8017D98C(Task* task);
 static void _acropolisBridgeRoomIdle(Task* task);
 static void _acropolisBridgeUpdateModelVisibility(Task* task);
 static void func_acropolis_bridge_8017DB60(Task* task);
-static void func_acropolis_bridge_8017DBA0(Task* task);
+static void _acropolisBridgeWaitForKeypadCaption(Task* task);
 static void func_acropolis_bridge_8017DC1C(Task* task);
-static void func_acropolis_bridge_8017DD24(Task* task);
+static void _acropolisBridgeResumeAfterKeypad(Task* task);
 static void _acropolisBridgeAdvanceCutsceneState(Task* task);
 static void func_acropolis_bridge_8017DD9C(Task* task);
-static void func_acropolis_bridge_8017DDEC(Task* task);
+static void _acropolisBridgeFinishKeypadMovie(Task* task);
 static void func_acropolis_bridge_8017DE94(Task* task);
-static s16  func_acropolis_bridge_8017E024(void);
 static void func_acropolis_bridge_8017E04C(Task* task);
 static void func_acropolis_bridge_8017E1D0(Task* task);
 static void func_acropolis_bridge_8017E3A0(Task* task);
@@ -325,7 +384,6 @@ static void func_acropolis_bridge_8017F4CC(Task* task);
 static void func_acropolis_bridge_8017F544(Task* task);
 static void func_acropolis_bridge_8017F658(Task* task);
 static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize, s16 brightness);
-static void func_acropolis_bridge_8018581C(Task* task);
 static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task);
 static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task);
 
@@ -389,9 +447,9 @@ STATIC_ASSERT_SIZEOF(_AcropolisBridgeHitScratch, 0xC);
 
 static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
-void func_acropolis_bridge_8017DEE4(Task*);
-void func_acropolis_bridge_8017F280(Task*);
-s32  func_acropolis_bridge_801820A0(Task*, s32, s32, s32);
+void        func_acropolis_bridge_8017DEE4(Task*);
+static void _acropolisBridgeKeypadCursorTask(Task* task);
+s32         func_acropolis_bridge_801820A0(Task*, s32, s32, s32);
 
 extern WorldCollisionGrid    D_acropolis_bridge_8018A89C[1];
 extern WorldCollisionGrid    D_acropolis_bridge_8018B694[1];
@@ -402,7 +460,7 @@ extern WorldCollisionTrigger D_acropolis_bridge_8018B9FC[7];
 extern WorldCoordRoomLights      D_acropolis_bridge_80190A0C[1];
 extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
 extern PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5];
-void                             func_acropolis_bridge_8017D954(void);
+static void                      _acropolisBridgePrepareArrivalScene(void);
 static void                      _acropolisBridgeSelectArrivalSpriteFrame(s32 frame);
 
 static SVECTOR _gAcropolisBridgeModel0AD9CVerts[171];
@@ -437,14 +495,14 @@ extern _AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780;
 
 extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BE8;
 extern WorldCollisionFootstepSounds D_acropolis_bridge_80190BF4;
-s32                                 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32                          _acropolisBridgeEnemyApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static s32                          _acropolisBridgeEnemySetModelDraw(Task* task, s32 messageId, s32 drawRequest, s32 unusedArg);
-void                                func_acropolis_bridge_80185F28(Task*);
-void                                func_acropolis_bridge_801861A0(Task*);
-void                                func_acropolis_bridge_801863A8(Task*);
-void                                func_acropolis_bridge_80186618(Task*);
-void                                func_acropolis_bridge_80186BBC(Task*);
-void                                func_acropolis_bridge_80187078(Task*);
+static void                         _acropolisBridgeEnemyPatrolSunk(Task* task);
+static void                         _acropolisBridgeEnemyChase(Task* task);
+static void                         _acropolisBridgeEnemyRetreat(Task* task);
+static void                         _acropolisBridgeEnemyFollowMovie(Task* task);
+static void                         _acropolisBridgeEnemyAnimateAtPlacement(Task* task);
+static void                         _acropolisBridgeEnemyDefeatedBob(Task* task);
 void                                func_acropolis_bridge_80187310(Task*);
 void                                func_acropolis_bridge_801874DC(Task*);
 static void                         _acropolisBridgeEnemyInactive(Task* task);
@@ -490,7 +548,7 @@ AnimationPlayRequest D_acropolis_bridge_80188EA0 = { { .index = 1 }, 1, ANIMATIO
 EvsSceneKey D_acropolis_bridge_80188EB4 = { 1, 11, 11 };
 
 EvsCommand D_acropolis_bridge_80188EBC[26] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_bridge_8017D954 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisBridgePrepareArrivalScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_bridge_80188EA0 }, { .value = 0 } },
@@ -538,7 +596,7 @@ SVECTOR D_acropolis_bridge_80189240[190] = {
 #include "assets/acropolis_bridge_path_0BC80.inc"
 };
 
-TaskDesc D_acropolis_bridge_80189830 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_bridge_8017F280, { .value = 0 } };
+TaskDesc D_acropolis_bridge_80189830 = { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadCursorTask, { .value = 0 } };
 
 ActionPromptHotspot D_acropolis_bridge_8018983C[12] = {
     { 20, -41, 20, 21, 1, 0, 0 },
@@ -2507,21 +2565,21 @@ u8* D_acropolis_bridge_80191720[9] = {
 };
 
 TaskMessageEntry D_acropolis_bridge_80191744[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_acropolis_bridge_801856E0 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _acropolisBridgeEnemyApplyCommand },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _acropolisBridgeEnemySetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 void (*D_acropolis_bridge_8019175C[9])(Task*) = {
     _acropolisBridgeEnemyInactive,
-    func_acropolis_bridge_80185F28,
-    func_acropolis_bridge_801861A0,
-    func_acropolis_bridge_801863A8,
-    func_acropolis_bridge_80186618,
-    func_acropolis_bridge_80187078,
+    _acropolisBridgeEnemyPatrolSunk,
+    _acropolisBridgeEnemyChase,
+    _acropolisBridgeEnemyRetreat,
+    _acropolisBridgeEnemyFollowMovie,
+    _acropolisBridgeEnemyDefeatedBob,
     func_acropolis_bridge_80187310,
     func_acropolis_bridge_801874DC,
-    func_acropolis_bridge_80186BBC,
+    _acropolisBridgeEnemyAnimateAtPlacement,
 };
 
 _AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, func_acropolis_bridge_80187D80, { .model = &_gAcropolisBridgeModel13870 } }, { 0 } };
@@ -2675,10 +2733,10 @@ void func_acropolis_bridge_8017D878(Task* task)
 
 /// State handlers of the room's cutscene task.
 static const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
-    { func_acropolis_bridge_8017DB60, func_acropolis_bridge_8017DBA0, _acropolisBridgeAdvanceCutsceneState,
-      func_acropolis_bridge_8017DC1C, func_acropolis_bridge_8017DC68, func_acropolis_bridge_8017DD24,
+    { func_acropolis_bridge_8017DB60, _acropolisBridgeWaitForKeypadCaption, _acropolisBridgeAdvanceCutsceneState,
+      func_acropolis_bridge_8017DC1C, _acropolisBridgeWaitForKeypadResult, _acropolisBridgeResumeAfterKeypad,
       _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState,
-      _acropolisBridgeAdvanceCutsceneState, func_acropolis_bridge_8017DD9C, func_acropolis_bridge_8017DDEC,
+      _acropolisBridgeAdvanceCutsceneState, func_acropolis_bridge_8017DD9C, _acropolisBridgeFinishKeypadMovie,
       func_acropolis_bridge_8017DE94, taskKill }
 };
 
@@ -2699,7 +2757,11 @@ void func_acropolis_bridge_8017D8D0(Task* task)
     states.funcs[task->state](task);
 }
 
-void func_acropolis_bridge_8017D954(void)
+/// Requests room-effect cancellation and locks attachment actions for the arrival scene.
+///
+/// Called at the start of the arrival event script; the attachment lock persists
+/// until the surrounding scene restores control.
+static void _acropolisBridgePrepareArrivalScene(void)
 {
     roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
@@ -2759,14 +2821,18 @@ static void func_acropolis_bridge_8017DB60(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-static void func_acropolis_bridge_8017DBA0(Task* arg0)
+/// Waits for the switch caption, then opens the keypad view under scripted control.
+///
+/// Advances the live cutscene task once CAP is idle. Hides the HUD and player
+/// model and holds player control while the following state starts the keypad.
+static void _acropolisBridgeWaitForKeypadCaption(Task* task)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_IS_BUSY, 0, 0) == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_KEYPAD;
         gGameSession->hideHud                                      = 1;
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        arg0->state = (s32)(arg0->state + 1);
+        task->state = task->state + 1;
     }
 }
 
@@ -2779,33 +2845,43 @@ static void func_acropolis_bridge_8017DC1C(Task* arg0)
     D_acropolis_bridge_80191798 = temp_v0;
 }
 
-static void func_acropolis_bridge_8017DC68(Task* arg0)
+/// Collects the keypad result and selects the overview or bridge movie view.
+///
+/// Polls the live keypad task once per tick until it requests exit. A cancelled
+/// entry restores the overview and HUD; acceptance selects the movie view and
+/// synchronously broadcasts the reveal command using a stack-owned payload.
+/// The result remains available to the next cutscene state.
+static void _acropolisBridgeWaitForKeypadResult(Task* task)
 {
-    ActorCommand msg = { { { 1, 0xB } }, 1 };
+    ActorCommand movieCommand = { { { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE } }, ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES };
 
     if (taskPollKill(D_acropolis_bridge_80191798, &D_acropolis_bridge_801917A0) != 0) {
-        if (D_acropolis_bridge_801917A0 == 0) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
+        if (D_acropolis_bridge_801917A0 == ACROPOLIS_BRIDGE_KEYPAD_CANCELLED) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
             gGameSession->hideHud                                      = 0;
-            arg0->state                                                = (s32)(arg0->state + 1);
+            task->state                                                = task->state + 1;
         } else {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 9;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-            arg0->state = (s32)(arg0->state + 1);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_KEYPAD_MOVIE;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &movieCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+            task->state = task->state + 1;
         }
     }
 }
 
-static void func_acropolis_bridge_8017DD24(Task* arg0)
+/// Shows the player after the keypad and ends a cancelled movie sequence.
+///
+/// Cancellation resumes player control and kills the cutscene task. Acceptance
+/// shows the model but keeps scripted control held and advances toward the movie.
+static void _acropolisBridgeResumeAfterKeypad(Task* task)
 {
-    if (D_acropolis_bridge_801917A0 == 0) {
+    if (D_acropolis_bridge_801917A0 == ACROPOLIS_BRIDGE_KEYPAD_CANCELLED) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-    arg0->state += 1;
+    task->state += 1;
 }
 
 /// Advances the linear bridge cutscene by one state without other effects.
@@ -2825,20 +2901,26 @@ static void func_acropolis_bridge_8017DD9C(Task* arg0)
     arg0->state                 = next;
 }
 
-static void func_acropolis_bridge_8017DDEC(Task* arg0)
+/// Finishes the keypad movie and selects the following bridge room variant.
+///
+/// Waits for the live movie task to request exit, then shows the placed actors,
+/// selects the overview, updates both saved and live room selectors and requests
+/// a room-object refresh. Marks bridge progress complete, resumes player control
+/// and advances the cutscene; the movie's result value is ignored.
+static void _acropolisBridgeFinishKeypadMovie(Task* task)
 {
-    s32 unused[2]; // never read; the target still reserves sp+0x10..sp+0x18 for it
-    s32 killed;
+    s32 stackReservation[2]; // Preserves the target's otherwise unused eight-byte stack storage.
+    s32 movieResult;
 
-    if (taskPollKill(D_acropolis_bridge_8019179C, &killed) != 0) {
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 1, 0x7D5);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-        gGameSession->location.loc.room                            = 2;
+    if (taskPollKill(D_acropolis_bridge_8019179C, &movieResult) != 0) {
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, 1, ACTOR_MESSAGE_SET_MODEL_DRAW);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
+        gGameSession->location.loc.room                            = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
         gGameSession->roomObjsDirty                                = 1;
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, 3);
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-        arg0->state = arg0->state + 1;
+        task->state = task->state + 1;
     }
 }
 
@@ -2890,7 +2972,13 @@ void func_acropolis_bridge_8017DEE4(Task* arg0)
     D_acropolis_bridge_801917A4[0] = queue->movieFrame;
 }
 
-static s16 func_acropolis_bridge_8017E024(void)
+/// Returns the enemy presentation's signed root Y sample for the current movie frame.
+///
+/// Uses the captured STR frame plus one, in game-coordinate units. The keypad
+/// movie stops at frame 180, so its captured frames 0..180 select samples 1..181
+/// of the 190-record path. The caller subtracts its own root-height offset.
+/// The room path and captured frame must remain live.
+static s16 _acropolisBridgeGetMovieEnemyHeight(void)
 {
     return D_acropolis_bridge_80189240[D_acropolis_bridge_801917A4[0] + 1].vy;
 }
@@ -3279,11 +3367,15 @@ static void _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 o
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
-/// Two-state dispatcher of the room's prompt script task: state 0 resets the
-/// action prompts, state 1 moves and draws their cursors.
-void func_acropolis_bridge_8017F280(Task* task)
+/// Dispatches keypad cursor setup and the continuing cursor update.
+///
+/// Requires task state 0 or 1. Setup initializes both gameplay-owned prompts
+/// and advances to state 1; updates move, classify and draw the selected ports
+/// from `Task::spawnArg1.value` (1 port 0, 2 port 1, otherwise both).
+/// The keypad controller owns this task's lifetime; no work block is allocated.
+static void _acropolisBridgeKeypadCursorTask(Task* task)
 {
-    TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
+    TaskFunc states[] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }
@@ -4665,49 +4757,49 @@ static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickSc
 
 #include "../../shared/boss_stranger_tick.inc.c"
 
-/// Handles the room's 0x7DB broadcast for the bridge enemy. Message 0x0B01/1
-/// (the bridge is being lowered) restores the model's default flag set while
-/// the enemy is still in one of its first three spawn variants, and message
-/// 0x0E01/2 (the bridge run has ended) decides whether the enemy is armed for
-/// this variant: variant 0 needs `gSceneCombatState.battleRefs` to be set at all, variant 1 needs
-/// it to be at least 2 and variant 2 at least 3. When it is, the enemy and the
-/// work block are given the stat block's starting HP and the behaviour state
-/// advances to 4; otherwise the state resets to 0 and the mesh is hidden behind
-/// the default flag set. Always reports success.
-s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Applies enemy reveal and movie-start commands, returning 1.
+///
+/// Borrows a readable `ActorCommand` for the synchronous dispatch. The reveal
+/// command reveals placements 0..2. Keypad acceptance admits those placements
+/// when battle references are nonzero, at least two, and at least three,
+/// respectively; admitted enemies regain their configured HP and enter the
+/// movie-following state. Rejected or other placements become inactive and hidden.
+/// Other commands leave the enemy unchanged; the remaining message words are ignored.
+static s32 _acropolisBridgeEnemyApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
-    _AcropolisBridgeEnemyWork* work  = (_AcropolisBridgeEnemyWork*)task->work;
-    Enemy*                     enemy = (Enemy*)task->spawnArg2.pointer;
-    TmdObject*                 extra = task->extra.tmd;
-    s32                        variant;
-    u16                        sub;
+    _AcropolisBridgeEnemyWork* work  = task->work;
+    Enemy*                     enemy = task->spawnArg2.pointer;
+    TmdObject*                 model = task->extra.tmd;
+    s32                        placementIndex;
+    u16                        commandId;
 
-    if (msg->context.key == 0xB01 && msg->command == 1) {
-        variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        switch (variant) {
+    if (command->context.key == ACROPOLIS_BRIDGE_COMMAND_CONTEXT_MOVIE && command->command == ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES) {
+        placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        switch (placementIndex) {
             case 0:
             case 1:
             case 2:
-                extra->flags = 0;
+                model->flags = 0;
                 break;
         }
     }
-    if (msg->context.key == 0xE01) {
-        sub = msg->command;
-        if (sub == 2) {
-            variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-            switch (variant) {
+    // Admit each placement only when its battle-reference threshold is met.
+    if (command->context.key == ACROPOLIS_BRIDGE_COMMAND_CONTEXT_KEYPAD) {
+        commandId = command->command;
+        if (commandId == ACROPOLIS_BRIDGE_COMMAND_KEYPAD_ACCEPTED) {
+            placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+            switch (placementIndex) {
                 case 0:
                     if (gSceneCombatState.battleRefs != 0) {
                         break;
                     }
-                    work->state = 0;
+                    work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;
                     goto hide;
                 case 1:
                     if (gSceneCombatState.battleRefs >= 2) {
                         break;
                     }
-                    work->state = 0;
+                    work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;
                     goto hide;
                 case 2:
                     if (gSceneCombatState.battleRefs < 3) {
@@ -4715,7 +4807,7 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg, s32
                     }
                     break;
                 default:
-                    work->state = 0;
+                    work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;
                     goto hide;
             }
             {
@@ -4723,10 +4815,10 @@ s32 func_acropolis_bridge_801856E0(Task* task, s32 msgId, ActorCommand* msg, s32
                 enemy->hp = hp;
                 work->hp  = hp;
             }
-            work->state = 4;
+            work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_FOLLOW_MOVIE;
             goto done;
         reset:
-            work->state = 0;
+            work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;
         hide:
             task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
@@ -4735,54 +4827,64 @@ done:
     return 1;
 }
 
-/// Drives the bridge enemy's three animation slots from the state word at
-/// `animRequest`. Request 1 restarts every slot on animation `animId` with the
-/// blend value the room's `D_acropolis_bridge_801915E4` table holds for the
-/// (previous, next) animation pair, state 2 resets them without a blend, and
-/// both then latch `animId` as `prevAnimId` and hand over to
-/// state 3, which just ticks the slots once per frame and counts frames in
-/// `animFrame`. Every path first copies `animRate` into each slot's
-/// `rate`.
-static void func_acropolis_bridge_8018581C(Task* task)
+/// Commits a started clip and resets its per-update counter.
+///
+/// Requires writable work aliases captured for the playback phase and request.
+/// Latches the started clip, selects playing and clears the update count;
+/// neither pointer is retained.
+static inline void _acropolisBridgeCommitEnemyAnimation(_AcropolisBridgeEnemyWork* playbackWork,
+                                                        _AcropolisBridgeEnemyWork* requestWork)
 {
-    _AcropolisBridgeEnemyWork* work;
-    _AcropolisBridgeEnemyWork* start;
-    _AcropolisBridgeEnemyWork* reset;
-    _AcropolisBridgeEnemyWork* tick;
-    s32                        i;
-    s32                        j;
-    s32                        k;
+    playbackWork->prevAnimId = playbackWork->animId;
+    requestWork->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_PLAYING;
+    requestWork->animFrame   = 0;
+}
 
-    work = (_AcropolisBridgeEnemyWork*)task->work;
-    if (work->animRequest == 1) {
-        start = (_AcropolisBridgeEnemyWork*)task->work;
-        for (i = 1; i < 4; i++) {
-            start->rig.slots[i].rate = start->animRate;
-            animationSeekSlotWithBlend(&start->rig.anim, i, start->animId, 0,
-                                       D_acropolis_bridge_801915E4[start->prevAnimId][start->animId]);
+/// Starts or advances the bridge enemy's three driven animation slots.
+///
+/// Requires live enemy work and animation rig storage. Blend and reset requests
+/// restart slots 1..3 and clear the update counter; blend duration is selected
+/// by the previous and requested clip, each in 0..5. A playing request advances
+/// all three slots and increments the signed-halfword update counter once.
+/// Every driven slot receives the requested rate, in sixteenths of normal speed.
+/// Other request values leave playback unchanged.
+static void _acropolisBridgeEnemyUpdateAnimation(Task* task)
+{
+    enum { ACROPOLIS_BRIDGE_ENEMY_FIRST_DRIVEN_SLOT = 1 };
+    _AcropolisBridgeEnemyWork* work;
+    _AcropolisBridgeEnemyWork* blendWork;
+    _AcropolisBridgeEnemyWork* resetWork;
+    _AcropolisBridgeEnemyWork* playbackWork;
+    s32                        blendSlot;
+    s32                        resetSlot;
+    s32                        playingSlot;
+
+    work = task->work;
+    if (work->animRequest == ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_BLEND) {
+        blendWork = task->work;
+        for (blendSlot = ACROPOLIS_BRIDGE_ENEMY_FIRST_DRIVEN_SLOT; blendSlot < ARRAY_SIZE(blendWork->rig.slots); blendSlot++) {
+            blendWork->rig.slots[blendSlot].rate = blendWork->animRate;
+            animationSeekSlotWithBlend(&blendWork->rig.anim, blendSlot, blendWork->animId, 0,
+                                       D_acropolis_bridge_801915E4[blendWork->prevAnimId][blendWork->animId]);
         }
-        start->prevAnimId = start->animId;
-        work->animRequest = 3;
-        work->animFrame   = 0;
+        _acropolisBridgeCommitEnemyAnimation(blendWork, work);
         return;
     }
-    if (work->animRequest == 2) {
-        reset = (_AcropolisBridgeEnemyWork*)task->work;
-        for (j = 1; j < 4; j++) {
-            reset->rig.slots[j].rate = reset->animRate;
-            animationResetSlot(&reset->rig.anim, j, reset->animId);
+    if (work->animRequest == ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET) {
+        resetWork = task->work;
+        for (resetSlot = ACROPOLIS_BRIDGE_ENEMY_FIRST_DRIVEN_SLOT; resetSlot < ARRAY_SIZE(resetWork->rig.slots); resetSlot++) {
+            resetWork->rig.slots[resetSlot].rate = resetWork->animRate;
+            animationResetSlot(&resetWork->rig.anim, resetSlot, resetWork->animId);
         }
-        reset->prevAnimId = reset->animId;
-        work->animRequest = 3;
-        work->animFrame   = 0;
+        _acropolisBridgeCommitEnemyAnimation(resetWork, work);
         return;
     }
-    if (work->animRequest == 3) {
+    if (work->animRequest == ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_PLAYING) {
         work->animFrame++;
-        tick = (_AcropolisBridgeEnemyWork*)task->work;
-        for (k = 1; k < 4; k++) {
-            tick->rig.slots[k].rate = tick->animRate;
-            animationTickSlot(&tick->rig.anim, k);
+        playbackWork = task->work;
+        for (playingSlot = ACROPOLIS_BRIDGE_ENEMY_FIRST_DRIVEN_SLOT; playingSlot < ARRAY_SIZE(playbackWork->rig.slots); playingSlot++) {
+            playbackWork->rig.slots[playingSlot].rate = playbackWork->animRate;
+            animationTickSlot(&playbackWork->rig.anim, playingSlot);
         }
     }
 }
@@ -4932,7 +5034,7 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     work->yaw         = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     work->animRequest = 2;
     work->animId      = 2;
-    func_acropolis_bridge_8018581C(task);
+    _acropolisBridgeEnemyUpdateAnimation(task);
     enemy->coord      = &task->extra.tmd->coords[3];
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = 0;
@@ -5089,26 +5191,24 @@ static __inline__ void _acropolisBridgeResetEnemyScaleDuringShrink(_AcropolisBri
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Runs the bridge enemy's approach state. On the first frame (work block still
-/// live) it parks the walker in step 3, clears the hand-over flag, swaps bit 15
-/// between the two behaviour flag words, rebuilds the scale matrix and restarts
-/// the animation slots on animation 1. Every frame after that it sinks the
-/// model root by 0x2D until `sinkDepth` reaches 0x708, and
-/// shrinks the walker by 0x33 a frame down to 0x801 -- rebuilding the scale
-/// matrix as it goes -- tagging the enemy's link node on every frame it is
-/// already that small, then ticks the walker and the animation slots. The
-/// behaviour state becomes 2 once the player is at or above the bridge.
-void func_acropolis_bridge_80185F28(Task* task)
+/// Patrols while sinking and shrinking the bridge enemy below its spawn height.
+///
+/// Requires a live model, enemy and work block. Entry disables the attack sphere,
+/// keeps the receiving body enabled and resets patrol playback. The root offset
+/// increases toward 1800 coordinate units and the Q12 scale shrinks toward half
+/// size; their final steps are not clamped. A route arrival changes the walker's
+/// speed tuning. Player root Y at least 701 selects the chase state.
+static void _acropolisBridgeEnemyPatrolSunk(Task* task)
 {
     _AcropolisBridgeEnemyWork* work;
     BossStrangerWalker*        walker;
-    BossStrangerWalker*        walker2;
+    BossStrangerWalker*        arrivedWalker;
     Enemy*                     enemy;
-    PlayerStatus*              cfg;
+    PlayerStatus*              player;
 
-    cfg   = &gPlayerStatus;
-    work  = (_AcropolisBridgeEnemyWork*)task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
+    player = &gPlayerStatus;
+    work   = task->work;
+    enemy  = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         work->walker.state            = BOSS_STRANGER_WALKER_PATROL;
         work->walker.routeData.cursor = 0;
@@ -5120,17 +5220,18 @@ void func_acropolis_bridge_80185F28(Task* task)
         walker->speedTarget    = 0x20;
         walker->speed          = 0;
         walker->speedStep      = 1;
-        work->animRequest      = 2;
-        work->animId           = 1;
+        work->animRequest      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+        work->animId           = ACROPOLIS_BRIDGE_ENEMY_ANIM_PATROL;
         work->animRate         = ANIMATION_RATE_ONE;
     }
     if (work->walker.routeData.arrived == 1) {
-        walker2              = &work->walker;
-        walker2->speedTarget = 0x20;
-        walker2->speed       = 0x60;
-        walker2->speedStep   = 2;
+        arrivedWalker              = &work->walker;
+        arrivedWalker->speedTarget = 0x20;
+        arrivedWalker->speed       = 0x60;
+        arrivedWalker->speedStep   = 2;
     }
-    if (work->sinkDepth < 0x708) {
+    // Sink and shrink without clamping the final steps.
+    if (work->sinkDepth < ACROPOLIS_BRIDGE_ENEMY_SINK_LIMIT) {
         work->sinkDepth += 0x2D;
         task->extra.tmd->coords->coord.t[1] =
             work->baseHeight + work->sinkDepth;
@@ -5143,9 +5244,9 @@ void func_acropolis_bridge_80185F28(Task* task)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
     _bossStrangerTick(&work->walker);
-    func_acropolis_bridge_8018581C(task);
-    if (cfg->coordMtx->t[1] >= 0x2BD) {
-        work->state = 2;
+    _acropolisBridgeEnemyUpdateAnimation(task);
+    if (player->coordMtx->t[1] >= ACROPOLIS_BRIDGE_ENEMY_CHASE_START_Y) {
+        work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_CHASE;
     }
 }
 
@@ -5203,42 +5304,40 @@ static __inline__ s16 _acropolisBridgeAttackLanded(const Task* task)
     return 1;
 }
 
-/// Runs the bridge enemy's spawn state. On the first frame (work block still
-/// live) it tags the link node and uses `damagePackEnemyAttackKey` to set the
-/// attack body's key, sets bit 15 of both behaviour flag words, seeds the walker's
-/// first patrol step and starts the reset animation. Every frame after that it
-/// counts `sinkDepth` down 0x3C at a time -- raising the
-/// model root by it while it runs -- scales the model up until it reaches full
-/// size, ticks the walker and the animation slots, and finally advances to
-/// state 3 once the work block reports it is done, or resets to state 1 when
-/// the player has dropped below the bridge.
-void func_acropolis_bridge_801861A0(Task* task)
+/// Raises and grows the enemy while chasing with its attack sphere enabled.
+///
+/// Requires live enemy/model/work storage. Entry engages battle, configures the
+/// chase and starts playback at five times normal speed, retaining current walker
+/// speed. Each update reduces the sink offset and grows the Q12 scale without
+/// clamping the final step. An attack contact selects retreat; player root Y
+/// below 801 subsequently overrides that selection with submerged patrol.
+static void _acropolisBridgeEnemyChase(Task* task)
 {
     _AcropolisBridgeEnemyWork* work;
     BossStrangerWalker*        walker;
     Enemy*                     enemy;
-    PlayerStatus*              cfg;
-    u16                        height;
+    PlayerStatus*              player;
+    u16                        entrySpeed;
 
-    cfg  = &gPlayerStatus;
-    work = (_AcropolisBridgeEnemyWork*)task->work;
+    player = &gPlayerStatus;
+    work   = task->work;
     if (work->stateEntered != 0) {
-        enemy = (Enemy*)task->spawnArg2.pointer;
+        enemy = task->spawnArg2.pointer;
         sceneEngageBattle(1);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        height                        = work->walker.speed;
+        entrySpeed                    = work->walker.speed;
         walker                        = &work->walker;
         work->walker.turnLimit        = 0x100;
         walker->speedTarget           = 0xA0;
         walker->speedStep             = 6;
-        walker->speed                 = height;
+        walker->speed                 = entrySpeed;
         work->walker.state            = BOSS_STRANGER_WALKER_CHASE;
         work->attack.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->attack.key              = damagePackEnemyAttackKey(enemy, 0);
         enemy->node.state.parts.flags = 0;
-        work->animRequest             = 2;
-        work->animId                  = 2;
+        work->animRequest             = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+        work->animId                  = ACROPOLIS_BRIDGE_ENEMY_ANIM_CHASE;
         work->animRate                = 5 * ANIMATION_RATE_ONE;
     }
     if (work->sinkDepth > 0) {
@@ -5247,39 +5346,36 @@ void func_acropolis_bridge_801861A0(Task* task)
             work->baseHeight + work->sinkDepth;
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    if (work->walker.scale < 0x1000) {
+    if (work->walker.scale < ONE) {
         _acropolisBridgeGrowEnemyScale(work);
     }
     _bossStrangerTick(&work->walker);
-    func_acropolis_bridge_8018581C(task);
+    _acropolisBridgeEnemyUpdateAnimation(task);
+    // The player-height gate deliberately overrides an attack-contact transition.
     if (_acropolisBridgeAttackLanded(task)) {
-        work->state = 3;
+        work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_RETREAT;
     }
-    if (cfg->coordMtx->t[1] < 0x321) {
-        work->state = 1;
+    if (player->coordMtx->t[1] < ACROPOLIS_BRIDGE_ENEMY_CHASE_KEEP_Y) {
+        work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_PATROL_SUNK;
     }
 }
 
-/// Runs the bridge enemy's retreat state. On the first frame (work block still
-/// live) it parks the walker in step 3, clears the hand-over flag, drops bit 15
-/// of the hit box's flags, rebuilds the scale matrix and restarts the animation slots
-/// on animation 1. Every frame after that it sinks the model root by 0x2D
-/// until `sinkDepth` reaches 0x708, shrinks the walker by
-/// 0x46 a frame down to 0x500 -- rebuilding the scale matrix as it goes, and
-/// once it is that small tagging the enemy's link node instead -- then ticks
-/// the walker and the animation slots. When the hand-over flag is set the
-/// behaviour state becomes 1 while the player is below the bridge and 2
-/// otherwise.
-void func_acropolis_bridge_801863A8(Task* task)
+/// Sinks and shrinks the enemy after its attack while resuming its patrol route.
+///
+/// Requires live enemy/model/work storage. Entry disables the attack sphere,
+/// resets the route cursor and restarts patrol playback. The sink offset and Q12
+/// scale retain their unclamped final steps. Once the route cursor advances,
+/// player root Y below 801 selects submerged patrol; otherwise chase resumes.
+static void _acropolisBridgeEnemyRetreat(Task* task)
 {
     _AcropolisBridgeEnemyWork* work;
     BossStrangerWalker*        walker;
     Enemy*                     enemy;
-    PlayerStatus*              cfg;
+    PlayerStatus*              player;
 
-    cfg   = &gPlayerStatus;
-    work  = (_AcropolisBridgeEnemyWork*)task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
+    player = &gPlayerStatus;
+    work   = task->work;
+    enemy  = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         work->walker.state            = BOSS_STRANGER_WALKER_PATROL;
         work->walker.routeData.cursor = 0;
@@ -5290,11 +5386,11 @@ void func_acropolis_bridge_801863A8(Task* task)
         walker->speedTarget    = 0x20;
         walker->speed          = 0x80;
         walker->speedStep      = 3;
-        work->animRequest      = 2;
-        work->animId           = 1;
+        work->animRequest      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+        work->animId           = ACROPOLIS_BRIDGE_ENEMY_ANIM_PATROL;
         work->animRate         = ANIMATION_RATE_ONE;
     }
-    if (work->sinkDepth < 0x708) {
+    if (work->sinkDepth < ACROPOLIS_BRIDGE_ENEMY_SINK_LIMIT) {
         work->sinkDepth += 0x2D;
         task->extra.tmd->coords->coord.t[1] =
             work->baseHeight + work->sinkDepth;
@@ -5307,12 +5403,13 @@ void func_acropolis_bridge_801863A8(Task* task)
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
     _bossStrangerTick(&work->walker);
-    func_acropolis_bridge_8018581C(task);
+    _acropolisBridgeEnemyUpdateAnimation(task);
+    // Finish retreat only after the patrol route has advanced.
     if (work->walker.routeData.cursor != 0) {
-        if (cfg->coordMtx->t[1] < 0x321) {
-            work->state = 1;
+        if (player->coordMtx->t[1] < ACROPOLIS_BRIDGE_ENEMY_CHASE_KEEP_Y) {
+            work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_PATROL_SUNK;
         } else {
-            work->state = 2;
+            work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_CHASE;
         }
     }
 }
@@ -5356,37 +5453,59 @@ static __inline__ void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, 
                              (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
-/// Runs the bridge enemy's plunge into the gorge. On the first frame (work
-/// block still live) it disables the hit box, clears the enemy's link node tag,
-/// seeds the three behaviour parameters and moves the model root out over the
-/// gorge -- the X and Z it drops to depend on which of the three spawn variants
-/// this is -- then loads the light-blend colour matrix and gives the root a
-/// random yaw. Every frame after that the fall height comes from
-/// `func_acropolis_bridge_8017E024`, and the model is spun on its own yaw and
-/// scaled down once it is past 0x1F4, four units of scale per unit of depth.
-/// Three chances to restart the scream animation are rolled on the way down --
-/// on crossing 0x1F4, then one in sixteen frames while the animation has run
-/// long enough, then one in thirty-two frames below 0x320 with the second
-/// animation slot finished -- and the yaw is re-rolled while animation 4 is in
-/// its fifth playback step. Landing on a kind-1 surface plays the impact sound
-/// and hands over to state 7.
-void func_acropolis_bridge_80186618(Task* task)
+/// Updates the movie-driven root height, yaw and unclamped Q12 presentation scale.
+///
+/// Requires the live model, enemy work and movie frame. Uses a signed root Y
+/// sample minus 200; scale is `ONE` below Y 500 and loses four Q12 units per
+/// additional coordinate unit. Yaw uses 4096 units per turn. Marks the root dirty.
+static inline void _acropolisBridgeUpdateMovieEnemyTransform(Task* task, _AcropolisBridgeEnemyWork* work)
+{
+    VECTOR scale;
+    s32    scaleAmount;
+    s32    heightForScale;
+
+    task->extra.tmd->coords->coord.t[1] =
+        _acropolisBridgeGetMovieEnemyHeight() - ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_PATH_Y_OFFSET;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    heightForScale                        = task->extra.tmd->coords->coord.t[1];
+    if (heightForScale < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_SCALE_START_Y) {
+        scaleAmount = ONE;
+        scale.vx = scale.vy = scale.vz = scaleAmount;
+    } else {
+        scaleAmount     = ONE;
+        heightForScale -= ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_SCALE_START_Y;
+        heightForScale *= 4;
+        scaleAmount    -= heightForScale;
+        scale.vx = scale.vy = scale.vz = scaleAmount;
+    }
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
+    ScaleMatrix(&task->extra.tmd->coords->coord, &scale);
+}
+
+/// Positions and animates the enemy in step with the keypad movie.
+///
+/// Requires live enemy/model/work storage and the captured keypad movie frame.
+/// Entry disables attacks, initializes presentation colors and yaw and selects the X/Z
+/// position for placements 0..2. Root Y follows the movie path minus 200 units.
+/// Height controls an unclamped Q12 scale; playback completion and random rolls
+/// restart the reaction clip. Its fifth update randomizes yaw. Contact with
+/// a player or companion enters the death-effect state, sounding contact only
+/// while HP remains positive.
+static void _acropolisBridgeEnemyFollowMovie(Task* task)
 {
     _AcropolisBridgeEnemyWork* work;
-    _AcropolisBridgeEnemyWork* anim;
+    _AcropolisBridgeEnemyWork* reloadedWork;
     Enemy*                     enemy;
-    VECTOR                     scale;
-    s32                        amount;
-    s32                        height;
 
-    work  = (_AcropolisBridgeEnemyWork*)task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    // Select the placement-specific movie origin and fixed presentation colors.
     if (work->stateEntered != 0) {
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = 0;
         work->animRate                = 2 * ANIMATION_RATE_ONE;
-        work->animRequest             = 2;
-        work->animId                  = 1;
+        work->animRequest             = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+        work->animId                  = ACROPOLIS_BRIDGE_ENEMY_ANIM_PATROL;
         switch (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
             case 0:
                 task->extra.tmd->coords->coord.t[0] = -0x22C4;
@@ -5416,86 +5535,79 @@ void func_acropolis_bridge_80186618(Task* task)
         gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->yaw              = gRandomLcgState >> 16;
     }
-    task->extra.tmd->coords->coord.t[1] =
-        func_acropolis_bridge_8017E024() - 0xC8;
-    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    height                                = task->extra.tmd->coords->coord.t[1];
-    if (height < 0x1F4) {
-        amount   = 0x1000;
-        scale.vx = scale.vy = scale.vz = amount;
-    } else {
-        amount   = 0x1000;
-        height  -= 0x1F4;
-        height  *= 4;
-        amount  -= height;
-        scale.vx = scale.vy = scale.vz = amount;
-    }
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
-    ScaleMatrix(&task->extra.tmd->coords->coord, &scale);
-    if (task->extra.tmd->coords->coord.t[1] < 0x1F4 &&
-        work->animId != 4) {
-        work->animRequest = 2;
-        work->animId      = 4;
+    _acropolisBridgeUpdateMovieEnemyTransform(task, work);
+    if (task->extra.tmd->coords->coord.t[1] < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_SCALE_START_Y &&
+        work->animId != ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION) {
+        work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+        work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
         _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
     }
-    if (work->animId == 4) {
-        if (task->extra.tmd->coords->coord.t[1] >= -0x3DD &&
-            (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + 8) < work->animFrame) {
+    if (work->animId == ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION) {
+        if (task->extra.tmd->coords->coord.t[1] >= ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_MIN_Y &&
+            (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_TICKS) < work->animFrame) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 0xF) == 0) {
                 work->animRate    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + ANIMATION_RATE_ONE;
-                work->animRequest = 2;
-                work->animId      = 4;
+                work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+                work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
                 _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
             }
         }
     }
-    if (task->extra.tmd->coords->coord.t[1] < 0x320) {
-        anim = (_AcropolisBridgeEnemyWork*)task->work;
-        if (anim->rig.slots[1].currentPose.indices.recordIndex == anim->rig.slots[1].nextPose.indices.recordIndex) {
+    if (task->extra.tmd->coords->coord.t[1] < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_POSE_MAX_Y) {
+        reloadedWork = task->work;
+        if (reloadedWork->rig.slots[1].currentPose.indices.recordIndex == reloadedWork->rig.slots[1].nextPose.indices.recordIndex) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 0x1F) == 0) {
                 work->animRate    = ANIMATION_RATE_ONE;
-                work->animRequest = 2;
-                work->animId      = 4;
+                work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+                work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
                 _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
             }
         }
     }
-    // Animation 4 at its fifth tick, compared as one word.
-    if (*(s32*)&work->animId == 0x50004) {
+    // Compare the adjacent clip and update halfwords with one word load.
+    if (*(s32*)&work->animId == ACROPOLIS_BRIDGE_ENEMY_ANIM_YAW_REROLL_WORD) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->yaw       = gRandomLcgState >> 16;
     }
+    // Player and companion bodies trigger the death presentation.
     if (_acropolisBridgeEnemyHasPlayerContact(work->bodyContacts) != 0) {
         if (work->hp > 0) {
             _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_CONTACT_SOUND);
         }
-        work->state = 7;
+        work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_DEATH_EFFECT;
     }
-    func_acropolis_bridge_8018581C(task);
+    _acropolisBridgeEnemyUpdateAnimation(task);
 }
 
-/// Runs the bridge enemy's fall at its current position. Seeds the hit-box,
-/// animation and colour state on entry, then scales and spins the model by
-/// height, rolls chances to restart its scream and enters state 7 on landing.
-void func_acropolis_bridge_80186BBC(Task* task)
+/// Animates the enemy at its existing placement after the keypad movie.
+///
+/// Requires live enemy/model/work storage. Entry disables attacks and initializes
+/// presentation colors, playback and yaw without relocating the root. Root Y controls
+/// an unclamped Q12 scale; playback completion and random rolls restart the
+/// reaction clip. Its fifth update randomizes yaw. Contact with a player or
+/// companion enters the death-effect state and sounds contact if HP is positive.
+/// This handler does not integrate vertical movement.
+static void _acropolisBridgeEnemyAnimateAtPlacement(Task* task)
 {
     _AcropolisBridgeEnemyWork* work;
-    _AcropolisBridgeEnemyWork* anim;
+    _AcropolisBridgeEnemyWork* reloadedWork;
     Enemy*                     enemy;
     VECTOR                     scale;
-    s32                        amount;
-    s32                        height;
+    s32                        scaleAmount;
+    s32 // Derive the scale from the existing root height.
+        heightForScale;
 
-    work  = (_AcropolisBridgeEnemyWork*)task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    // Initialize playback and colors while retaining the placed root.
     if (work->stateEntered != 0) {
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = 0;
         work->animRate                = 2 * ANIMATION_RATE_ONE;
-        work->animRequest             = 2;
-        work->animId                  = 1;
+        work->animRequest             = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+        work->animId                  = ACROPOLIS_BRIDGE_ENEMY_ANIM_PATROL;
         work->colorMtx.t[1]           = 0x80;
         work->colorMtx.t[0]           = 0x80;
         work->colorMtx.t[2]           = 0x5A0;
@@ -5512,88 +5624,88 @@ void func_acropolis_bridge_80186BBC(Task* task)
         work->yaw                     = gRandomLcgState >> 16;
     }
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    height                                = task->extra.tmd->coords->coord.t[1];
-    if (height < 0x1F4) {
-        amount   = 0x1000;
-        scale.vx = scale.vy = scale.vz = amount;
+    heightForScale                        = task->extra.tmd->coords->coord.t[1];
+    if (heightForScale < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_SCALE_START_Y) {
+        scaleAmount = ONE;
+        scale.vx = scale.vy = scale.vz = scaleAmount;
     } else {
-        amount   = 0x1000;
-        height  -= 0x1F4;
-        height  *= 4;
-        amount  -= height;
-        scale.vx = scale.vy = scale.vz = amount;
+        scaleAmount     = ONE;
+        heightForScale -= ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_SCALE_START_Y;
+        heightForScale *= 4;
+        scaleAmount    -= heightForScale;
+        scale.vx = scale.vy = scale.vz = scaleAmount;
     }
     gfxRotMatrixY(&task->extra.tmd->coords->coord, work->yaw, 1);
     ScaleMatrix(&task->extra.tmd->coords->coord, &scale);
-    if (task->extra.tmd->coords->coord.t[1] < 0x1F4 &&
-        work->animId != 4) {
-        work->animRequest = 2;
-        work->animId      = 4;
+    if (task->extra.tmd->coords->coord.t[1] < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_SCALE_START_Y &&
+        work->animId != ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION) {
+        work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+        work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
         _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
     }
-    if (work->animId == 4) {
-        if (task->extra.tmd->coords->coord.t[1] >= -0x3DD &&
-            (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + 8) < work->animFrame) {
+    if (work->animId == ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION) {
+        if (task->extra.tmd->coords->coord.t[1] >= ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_MIN_Y &&
+            (s32)((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) + ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_RETRY_TICKS) < work->animFrame) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 0xF) == 0) {
                 work->animRate    = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) * 2) + ANIMATION_RATE_ONE;
-                work->animRequest = 2;
-                work->animId      = 4;
+                work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+                work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
                 _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
             }
         }
     }
-    if (task->extra.tmd->coords->coord.t[1] < 0x320) {
-        anim = (_AcropolisBridgeEnemyWork*)task->work;
-        if (anim->rig.slots[1].currentPose.indices.recordIndex == anim->rig.slots[1].nextPose.indices.recordIndex) {
+    if (task->extra.tmd->coords->coord.t[1] < ACROPOLIS_BRIDGE_ENEMY_PRESENTATION_POSE_MAX_Y) {
+        reloadedWork = task->work;
+        if (reloadedWork->rig.slots[1].currentPose.indices.recordIndex == reloadedWork->rig.slots[1].nextPose.indices.recordIndex) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 0x1F) == 0) {
                 work->animRate    = ANIMATION_RATE_ONE;
-                work->animRequest = 2;
-                work->animId      = 4;
+                work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+                work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_REACTION;
                 _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND);
             }
         }
     }
-    // Animation 4 at its fifth tick, compared as one word.
-    if (*(s32*)&work->animId == 0x50004) {
+    // Compare the adjacent clip and update halfwords with one word load.
+    if (*(s32*)&work->animId == ACROPOLIS_BRIDGE_ENEMY_ANIM_YAW_REROLL_WORD) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->yaw       = gRandomLcgState >> 16;
     }
+    // Player and companion bodies trigger the death presentation.
     if (_acropolisBridgeEnemyHasPlayerContact(work->bodyContacts) != 0) {
         if (work->hp > 0) {
             _acropolisBridgePlayEnemySound(task, enemy, ACROPOLIS_BRIDGE_ENEMY_CONTACT_SOUND);
         }
-        work->state = 7;
+        work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_DEATH_EFFECT;
     }
-    func_acropolis_bridge_8018581C(task);
+    _acropolisBridgeEnemyUpdateAnimation(task);
 }
 
-/// Runs the bridge enemy's fall. On the first frame (work block still live) it
-/// clears bit 15 of the hit box's flags and sets it in the model's, tags the link node,
-/// seeds the three behaviour parameters and gives the model root coordinate a
-/// random yaw from the shared LCG. Every frame after that it eases
-/// `sinkDepth` back to zero three units at a time, sets the model
-/// root height from it and adds an `rsin` bob driven by the frame counter. Once
-/// the enemy is resting on a kind-1 surface it also drifts the model root
-/// towards the camera position by a sixteenth of the normalized direction,
-/// yawing the root by 0x10 first.
-void func_acropolis_bridge_80187078(Task* task)
+/// Bobs the defeated enemy and pushes it away from the player on body contact.
+///
+/// Requires live enemy/model/work storage. Entry disables attacks, retains body
+/// contacts, prevents lock-on and blends into the bobbing clip. The sink offset
+/// eases toward zero without clamping, with a sine offset added to root Y.
+/// On player/companion contact the root turns by 16 angle units and moves in X/Z
+/// by the negative normalized 3D player offset scaled to 16 coordinate units.
+/// Angles use 4096 units per turn; the displacement retains halfword truncation.
+static void _acropolisBridgeEnemyDefeatedBob(Task* task)
 {
     _AcropolisBridgeEnemyWork* work;
     Enemy*                     enemy;
     GfxCoord*                  coord;
-    SVECTOR                    dir;
-    SVECTOR*                   d;
+    SVECTOR                    displacement;
+    SVECTOR*                   displacementPtr;
 
-    work  = (_AcropolisBridgeEnemyWork*)task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->animRequest             = 1;
-        work->animId                  = 3;
+        work->animRequest             = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_BLEND;
+        work->animId                  = ACROPOLIS_BRIDGE_ENEMY_ANIM_BOB;
         work->animRate                = ANIMATION_RATE_ONE;
         gRandomLcgState               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gfxRotMatrixY(&task->extra.tmd->coords->coord, gRandomLcgState >> 16, 1);
@@ -5605,23 +5717,24 @@ void func_acropolis_bridge_80187078(Task* task)
     task->extra.tmd->coords->coord.t[1] = work->baseHeight + work->sinkDepth;
     task->extra.tmd->coords->coord.t[1] +=
         rsin((gDisplayState.animFrame << 5) + task->extra.tmd->coords->coord.t[0]) >> 6;
+    // Player or companion contact triggers a push away from the player root.
     if (_acropolisBridgeEnemyHasPlayerContact(work->bodyContacts) != 0) {
-        coord  = task->extra.tmd->coords;
-        dir.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-        d      = &dir;
-        d->vy  = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-        d->vz  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+        coord               = task->extra.tmd->coords;
+        displacement.vx     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+        displacementPtr     = &displacement;
+        displacementPtr->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
+        displacementPtr->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
         gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x10, 0);
-        VectorNormalSS(d, d);
+        VectorNormalSS(displacementPtr, displacementPtr);
         gte_lddp(-0x10);
-        gte_ldsv(d);
+        gte_ldsv(displacementPtr);
         gte_gpf12();
-        gte_stsv(d);
-        task->extra.tmd->coords->coord.t[0] += dir.vx;
-        task->extra.tmd->coords->coord.t[2] += dir.vz;
+        gte_stsv(displacementPtr);
+        task->extra.tmd->coords->coord.t[0] += displacement.vx;
+        task->extra.tmd->coords->coord.t[2] += displacement.vz;
     }
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_acropolis_bridge_8018581C(task);
+    _acropolisBridgeEnemyUpdateAnimation(task);
 }
 
 /// Runs the bridge enemy's collapse sequence. On the first frame (work block
@@ -5630,7 +5743,7 @@ void func_acropolis_bridge_80187078(Task* task)
 /// parameters, gives the model root coordinate a random yaw from the shared
 /// LCG, drops the enemy's actor slots, arms the pending `gSceneCombatState` request
 /// and restarts the frame counter. Every frame after that it ticks the counter
-/// up to 100, runs `func_acropolis_bridge_8018581C` and, on frames 10, 22, 28
+/// up to 100, runs `_acropolisBridgeEnemyUpdateAnimation` and, on frames 10, 22, 28
 /// and 34, steps the light mode and model flags through the fade-out.
 void func_acropolis_bridge_80187310(Task* task)
 {
@@ -5657,7 +5770,7 @@ void func_acropolis_bridge_80187310(Task* task)
     }
     if (work->deathFrame < 0x65) {
         work->deathFrame++;
-        func_acropolis_bridge_8018581C(task);
+        _acropolisBridgeEnemyUpdateAnimation(task);
         step = work->deathFrame;
         switch (step) {
             case 10:
@@ -5683,7 +5796,7 @@ void func_acropolis_bridge_80187310(Task* task)
 /// kill if the enemy still had HP, spawns the death effect on the model's
 /// second part coordinate, switches the model to light mode 1, shakes the pad
 /// and restarts the frame counter. Every frame after that it ticks the counter
-/// up to 100, runs `func_acropolis_bridge_8018581C` and, on frames 2, 30 and
+/// up to 100, runs `_acropolisBridgeEnemyUpdateAnimation` and, on frames 2, 30 and
 /// 44, steps the model flags / light mode through the fade-out.
 void func_acropolis_bridge_801874DC(Task* task)
 {
@@ -5715,7 +5828,7 @@ void func_acropolis_bridge_801874DC(Task* task)
     }
     if (work->deathFrame < 0x65) {
         work->deathFrame++;
-        func_acropolis_bridge_8018581C(task);
+        _acropolisBridgeEnemyUpdateAnimation(task);
         step = work->deathFrame;
         switch (step) {
             case 2:
@@ -5792,22 +5905,26 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
     }
 }
 
-/// The first of the leading `count` contact records whose kind is 0x20000:
-/// copies its point to `pos` and returns its key, or returns 0 when none is
-/// found before an empty record or the end.
-static inline s32 _acropolisBridgeFindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+/// Returns the first attack key in a contiguous contact prefix and copies its point.
+///
+/// Borrows `contactCount` readable entries and writable `hitPoint` for this call.
+/// Stops at the first zero key or the signed count; a nonpositive count reads
+/// nothing. Returns zero and leaves the point unchanged when no attack is found.
+/// Copies only XYZ in world-coordinate units, preserving the point's fourth
+/// halfword. Contact flags do not affect the scan; no pointers are retained.
+static inline s32 _acropolisBridgeFindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount)
 {
-    s16 i;
+    s16 contactIndex;
 
-    for (i = 0; i < count; i++) {
-        if (records[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            hitPoint->vx = contacts[contactIndex].point.vx;
+            hitPoint->vy = contacts[contactIndex].point.vy;
+            hitPoint->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
@@ -5898,7 +6015,7 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
     }
 
     block      = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisBridgeHitScratch);
-    hit        = _acropolisBridgeFindHit(&block->point, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
+    hit        = _acropolisBridgeFindAttackContact(&block->point, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
     block->key = hit;
     if (hit != 0) {
         func_acropolis_bridge_801876A8(task, hit);
