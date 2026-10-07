@@ -1554,9 +1554,9 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     MATRIX           t1;
     MATRIX           t2;
     MATRIX           t3;
-    GfxMatrix        ma;
-    GfxMatrix        mb;
-    GfxMatrix        mc;
+    MATRIX           ma;
+    MATRIX           mb;
+    MATRIX           mc;
     GfxCoord*        base;
     GfxCoord*        c1;
     GfxCoord*        c2;
@@ -1591,32 +1591,32 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
 
     m2 = &c2->coord;
 
-    gfxSetRotIdentity(&ma.mat);
-    gfxSetRotIdentity(&mb.mat);
-    gfxSetRotIdentity(&mc.mat);
+    gfxSetRotIdentity(&ma);
+    gfxSetRotIdentity(&mb);
+    gfxSetRotIdentity(&mc);
 
     gfxExtractEulerAngles(m2, &rot1);
     m3 = &c3->coord;
     gfxExtractEulerAngles(m3, &rot2);
-    RotMatrixX(rot1.vx, &ma.mat);
-    RotMatrixX(rot2.vx, &mb.mat);
-    _actor00400CopyRotation(&ma.mat, m2);
-    _actor00400CopyRotation(&mb.mat, m3);
+    RotMatrixX(rot1.vx, &ma);
+    RotMatrixX(rot2.vx, &mb);
+    _actor00400CopyRotation(&ma, m2);
+    _actor00400CopyRotation(&mb, m3);
     actorRenderComposeCoord(c1);
     actorRenderComposeCoord(c2);
     actorRenderComposeCoord(c3);
     _diverTurnJoint(c2, (s16)work->lookYaw / 3);
     _diverTurnJoint(c3, (s16)work->lookYaw / 3);
 
-    gfxSetRotIdentity(&mc.mat);
+    gfxSetRotIdentity(&mc);
 
-    RotMatrixY((s16)work->lookYaw / 3, &mc.mat);
+    RotMatrixY((s16)work->lookYaw / 3, &mc);
     TransposeMatrix(&c1->coord, &t1);
     TransposeMatrix(m2, &t2);
     TransposeMatrix(m3, &t3);
     MulMatrix(&t1, &t2);
     MulMatrix(&t1, &t3);
-    MulMatrix(&t1, &mc.mat);
+    MulMatrix(&t1, &mc);
     _actor00400CopyRotation(&t1, &c4->coord);
 }
 
@@ -2046,13 +2046,13 @@ static void Actor00400_Fn0237C(Task* arg0)
 static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 {
     VECTOR           scale;
-    GfxMatrix        rot;
+    MATRIX           rot;
     SVECTOR          euler0;
-    GfxMatrix        ma;
+    MATRIX           ma;
     SVECTOR          euler1;
-    GfxMatrix        mb;
+    MATRIX           mb;
     SVECTOR          euler2;
-    GfxMatrix        mc;
+    MATRIX           mc;
     _Actor00400Work* work;
     GfxCoord*        base;
     GfxCoord*        c2;
@@ -2087,12 +2087,12 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((s32) - (work->upperNeckAngles.vx * 0x10) >> 6);
                 work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((s32) - (work->upperNeckAngles.vy * 0x10) >> 6);
                 work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((s32) - (work->upperNeckAngles.vz * 0x10) >> 6);
-                gfxSetRotIdentity(&rot.mat);
-                RotMatrix(&work->lowerNeckAngles, &rot.mat);
-                _actor00400CopyRotation(&rot.mat, &c2->coord);
-                gfxSetRotIdentity(&rot.mat);
-                RotMatrix(&work->upperNeckAngles, &rot.mat);
-                _actor00400CopyRotation(&rot.mat, &c3->coord);
+                gfxSetRotIdentity(&rot);
+                RotMatrix(&work->lowerNeckAngles, &rot);
+                _actor00400CopyRotation(&rot, &c2->coord);
+                gfxSetRotIdentity(&rot);
+                RotMatrix(&work->upperNeckAngles, &rot);
+                _actor00400CopyRotation(&rot, &c3->coord);
                 if ((abs(work->lowerNeckAngles.vx) < 0x30) && (abs(work->lowerNeckAngles.vy) < 0x30) && (abs(work->lowerNeckAngles.vz) < 0x30) &&
                     (abs(work->upperNeckAngles.vx) < 0x30) && (abs(work->upperNeckAngles.vy) < 0x30) && (abs(work->upperNeckAngles.vz) < 0x30)) {
                     work->neckPhase = ACTOR_00400_NECK_RETRACTED;
@@ -2107,28 +2107,28 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 
                 gfxExtractEulerAngles(&c4->coord, &euler2);
                 work->neckScale = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
-                gfxSetRotIdentity(&ma.mat);
+                gfxSetRotIdentity(&ma);
                 scale.vx = 0x1000;
                 scale.vy = 0x1000;
                 scale.vz = work->neckScale;
-                ScaleMatrix(&ma.mat, &scale);
-                _actor00400CopyRotation(&ma.mat, &base[2].coord);
-                gfxSetRotIdentity(&mb.mat);
+                ScaleMatrix(&ma, &scale);
+                _actor00400CopyRotation(&ma, &base[2].coord);
+                gfxSetRotIdentity(&mb);
                 scale.vx = 0x1000;
                 scale.vy = 0x1000;
                 scale.vz = 0x1000;
-                ScaleMatrix(&mb.mat, &scale);
-                _actor00400CopyRotation(&mb.mat, &base[3].coord);
-                gfxSetRotIdentity(&mc.mat);
+                ScaleMatrix(&mb, &scale);
+                _actor00400CopyRotation(&mb, &base[3].coord);
+                gfxSetRotIdentity(&mc);
                 scale.vx = 0x1000;
                 scale.vy = 0x1000;
                 invScale = 0x1000000 / work->neckScale;
                 scale.vz = invScale;
-                ScaleMatrix(&mc.mat, &scale);
-                gfxSetRotIdentity(&rot.mat);
-                RotMatrix(&euler2, &rot.mat);
-                MulMatrix(&mc.mat, &rot.mat);
-                _actor00400CopyRotation(&mc.mat, &c4->coord);
+                ScaleMatrix(&mc, &scale);
+                gfxSetRotIdentity(&rot);
+                RotMatrix(&euler2, &rot);
+                MulMatrix(&mc, &rot);
+                _actor00400CopyRotation(&mc, &c4->coord);
                 base[2].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[3].composeStamp = GRAPHICS_COORD_DIRTY;
                 base[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2147,28 +2147,28 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 
             gfxExtractEulerAngles(&c4->coord, &euler2);
             work->neckScale = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 3);
-            gfxSetRotIdentity(&ma.mat);
+            gfxSetRotIdentity(&ma);
             scale.vx = 0x1000;
             scale.vy = 0x1000;
             scale.vz = work->neckScale;
-            ScaleMatrix(&ma.mat, &scale);
-            _actor00400CopyRotation(&ma.mat, &base[2].coord);
-            gfxSetRotIdentity(&mb.mat);
+            ScaleMatrix(&ma, &scale);
+            _actor00400CopyRotation(&ma, &base[2].coord);
+            gfxSetRotIdentity(&mb);
             scale.vx = 0x1000;
             scale.vy = 0x1000;
             scale.vz = 0x1000;
-            ScaleMatrix(&mb.mat, &scale);
-            _actor00400CopyRotation(&mb.mat, &base[3].coord);
-            gfxSetRotIdentity(&mc.mat);
+            ScaleMatrix(&mb, &scale);
+            _actor00400CopyRotation(&mb, &base[3].coord);
+            gfxSetRotIdentity(&mc);
             scale.vx = 0x1000;
             scale.vy = 0x1000;
             invScale = 0x1000000 / work->neckScale;
             scale.vz = invScale;
-            ScaleMatrix(&mc.mat, &scale);
-            gfxSetRotIdentity(&rot.mat);
-            RotMatrix(&euler2, &rot.mat);
-            MulMatrix(&mc.mat, &rot.mat);
-            _actor00400CopyRotation(&mc.mat, &c4->coord);
+            ScaleMatrix(&mc, &scale);
+            gfxSetRotIdentity(&rot);
+            RotMatrix(&euler2, &rot);
+            MulMatrix(&mc, &rot);
+            _actor00400CopyRotation(&mc, &c4->coord);
         } else {
             MATRIX* m2;
             MATRIX* m3;
@@ -2183,12 +2183,12 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
             work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((euler1.vx - work->upperNeckAngles.vx) >> 1);
             work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((euler1.vy - work->upperNeckAngles.vy) >> 1);
             work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((euler1.vz - work->upperNeckAngles.vz) >> 1);
-            gfxSetRotIdentity(&rot.mat);
-            RotMatrix(&work->lowerNeckAngles, &rot.mat);
-            _actor00400CopyRotation(&rot.mat, m2);
-            gfxSetRotIdentity(&rot.mat);
-            RotMatrix(&work->upperNeckAngles, &rot.mat);
-            _actor00400CopyRotation(&rot.mat, m3);
+            gfxSetRotIdentity(&rot);
+            RotMatrix(&work->lowerNeckAngles, &rot);
+            _actor00400CopyRotation(&rot, m2);
+            gfxSetRotIdentity(&rot);
+            RotMatrix(&work->upperNeckAngles, &rot);
+            _actor00400CopyRotation(&rot, m3);
         }
         base[2].composeStamp = GRAPHICS_COORD_DIRTY;
         base[3].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2988,7 +2988,7 @@ static void Actor00400_Fn04580(Task* arg0)
     Enemy*           obj  = arg0->spawnArg2.pointer;
     TmdObject*       ctx  = arg0->extra.tmd;
     TaskFuncTable10  fns;
-    GfxMatrix        m;
+    MATRIX           m;
     _Actor00400Work* w;
     _Actor00400Work* w2;
     _Actor00400Work* w3;
@@ -3037,19 +3037,19 @@ static void Actor00400_Fn04580(Task* arg0)
             Actor00400_Fn016A4(arg0, work->lookDisabled);
             w2    = arg0->work;
             coord = arg0->extra.tmd->coords;
-            gfxSetRotIdentity(&m.mat);
-            RotMatrixZ(w2->rotation.vz, &m.mat);
-            RotMatrixY(w2->rotation.vy, &m.mat);
+            gfxSetRotIdentity(&m);
+            RotMatrixZ(w2->rotation.vz, &m);
+            RotMatrixY(w2->rotation.vy, &m);
             dst                 = &coord->coord;
-            dst->m[0][0]        = m.mat.m[0][0];
-            dst->m[0][1]        = m.mat.m[0][1];
-            dst->m[0][2]        = m.mat.m[0][2];
-            dst->m[1][0]        = m.mat.m[1][0];
-            dst->m[1][1]        = m.mat.m[1][1];
-            dst->m[1][2]        = m.mat.m[1][2];
-            dst->m[2][0]        = m.mat.m[2][0];
-            dst->m[2][1]        = m.mat.m[2][1];
-            dst->m[2][2]        = m.mat.m[2][2];
+            dst->m[0][0]        = m.m[0][0];
+            dst->m[0][1]        = m.m[0][1];
+            dst->m[0][2]        = m.m[0][2];
+            dst->m[1][0]        = m.m[1][0];
+            dst->m[1][1]        = m.m[1][1];
+            dst->m[1][2]        = m.m[1][2];
+            dst->m[2][0]        = m.m[2][0];
+            dst->m[2][1]        = m.m[2][1];
+            dst->m[2][2]        = m.m[2][2];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Actor00400_Fn01B90(arg0);
             if ((s16)obj->hp <= 0) {
@@ -3234,24 +3234,24 @@ static inline void _actor00400ApplyRootRotation(Task* task)
 {
     _Actor00400Work* work;
     GfxCoord*        coord;
-    GfxMatrix        m;
+    MATRIX           m;
     MATRIX*          dst;
 
     work  = task->work;
     coord = task->extra.tmd->coords;
-    gfxSetRotIdentity(&m.mat);
-    RotMatrixZ(work->rotation.vz, &m.mat);
-    RotMatrixY(work->rotation.vy, &m.mat);
+    gfxSetRotIdentity(&m);
+    RotMatrixZ(work->rotation.vz, &m);
+    RotMatrixY(work->rotation.vy, &m);
     dst                 = &coord->coord;
-    dst->m[0][0]        = m.mat.m[0][0];
-    dst->m[0][1]        = m.mat.m[0][1];
-    dst->m[0][2]        = m.mat.m[0][2];
-    dst->m[1][0]        = m.mat.m[1][0];
-    dst->m[1][1]        = m.mat.m[1][1];
-    dst->m[1][2]        = m.mat.m[1][2];
-    dst->m[2][0]        = m.mat.m[2][0];
-    dst->m[2][1]        = m.mat.m[2][1];
-    dst->m[2][2]        = m.mat.m[2][2];
+    dst->m[0][0]        = m.m[0][0];
+    dst->m[0][1]        = m.m[0][1];
+    dst->m[0][2]        = m.m[0][2];
+    dst->m[1][0]        = m.m[1][0];
+    dst->m[1][1]        = m.m[1][1];
+    dst->m[1][2]        = m.m[1][2];
+    dst->m[2][0]        = m.m[2][0];
+    dst->m[2][1]        = m.m[2][1];
+    dst->m[2][2]        = m.m[2][2];
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -4003,7 +4003,7 @@ static void Actor00400_Fn06B7C(Task* arg0)
     Enemy*           obj              = arg0->spawnArg2.pointer;
     TmdObject*       ctx              = arg0->extra.tmd;
     void             (*fns[2])(Task*) = { Actor00400_Fn08A88, Actor00400_Fn08B40 };
-    GfxMatrix        m;
+    MATRIX           m;
     _Actor00400Work* w;
     _Actor00400Work* w2;
     _Actor00400Work* w3;
@@ -4046,19 +4046,19 @@ static void Actor00400_Fn06B7C(Task* arg0)
             work->animStatus = work->rig.slots[1].status.fields.flags;
             w2               = arg0->work;
             coord            = arg0->extra.tmd->coords;
-            gfxSetRotIdentity(&m.mat);
-            RotMatrixZ(w2->rotation.vz, &m.mat);
-            RotMatrixY(w2->rotation.vy, &m.mat);
+            gfxSetRotIdentity(&m);
+            RotMatrixZ(w2->rotation.vz, &m);
+            RotMatrixY(w2->rotation.vy, &m);
             dst                 = &coord->coord;
-            dst->m[0][0]        = m.mat.m[0][0];
-            dst->m[0][1]        = m.mat.m[0][1];
-            dst->m[0][2]        = m.mat.m[0][2];
-            dst->m[1][0]        = m.mat.m[1][0];
-            dst->m[1][1]        = m.mat.m[1][1];
-            dst->m[1][2]        = m.mat.m[1][2];
-            dst->m[2][0]        = m.mat.m[2][0];
-            dst->m[2][1]        = m.mat.m[2][1];
-            dst->m[2][2]        = m.mat.m[2][2];
+            dst->m[0][0]        = m.m[0][0];
+            dst->m[0][1]        = m.m[0][1];
+            dst->m[0][2]        = m.m[0][2];
+            dst->m[1][0]        = m.m[1][0];
+            dst->m[1][1]        = m.m[1][1];
+            dst->m[1][2]        = m.m[1][2];
+            dst->m[2][0]        = m.m[2][0];
+            dst->m[2][1]        = m.m[2][1];
+            dst->m[2][2]        = m.m[2][2];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Actor00400_Fn01B90(arg0);
             if ((s16)obj->hp <= 0) {
@@ -4164,7 +4164,7 @@ static void Actor00400_Fn070C0(Task* arg0)
     Enemy*           obj              = arg0->spawnArg2.pointer;
     GfxCoord*        coord0           = ctx->coords;
     void             (*fns[2])(Task*) = { Actor00400_Fn0A468, Actor00400_Fn0A4BC };
-    GfxMatrix        m;
+    MATRIX           m;
     _Actor00400Work* w;
     _Actor00400Work* w2;
     _Actor00400Work* w3;
@@ -4207,19 +4207,19 @@ static void Actor00400_Fn070C0(Task* arg0)
             work->animStatus = work->rig.slots[1].status.fields.flags;
             w2               = arg0->work;
             coord            = arg0->extra.tmd->coords;
-            gfxSetRotIdentity(&m.mat);
-            RotMatrixZ(w2->rotation.vz, &m.mat);
-            RotMatrixY(w2->rotation.vy, &m.mat);
+            gfxSetRotIdentity(&m);
+            RotMatrixZ(w2->rotation.vz, &m);
+            RotMatrixY(w2->rotation.vy, &m);
             dst                 = &coord->coord;
-            dst->m[0][0]        = m.mat.m[0][0];
-            dst->m[0][1]        = m.mat.m[0][1];
-            dst->m[0][2]        = m.mat.m[0][2];
-            dst->m[1][0]        = m.mat.m[1][0];
-            dst->m[1][1]        = m.mat.m[1][1];
-            dst->m[1][2]        = m.mat.m[1][2];
-            dst->m[2][0]        = m.mat.m[2][0];
-            dst->m[2][1]        = m.mat.m[2][1];
-            dst->m[2][2]        = m.mat.m[2][2];
+            dst->m[0][0]        = m.m[0][0];
+            dst->m[0][1]        = m.m[0][1];
+            dst->m[0][2]        = m.m[0][2];
+            dst->m[1][0]        = m.m[1][0];
+            dst->m[1][1]        = m.m[1][1];
+            dst->m[1][2]        = m.m[1][2];
+            dst->m[2][0]        = m.m[2][0];
+            dst->m[2][1]        = m.m[2][1];
+            dst->m[2][2]        = m.m[2][2];
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             Actor00400_Fn01B90(arg0);
             if ((s16)obj->hp <= 0) {
