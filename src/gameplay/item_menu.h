@@ -171,10 +171,25 @@ extern const char D_80097220[];
 /// toolchain left it in the alignment gap.
 extern const char Gp_StrSpecs2[16];
 
-void func_800CB6FC(UiObject* arg0, Task* arg1);
+/// Applies a weapon add-on and shows the previous weapon, result and returned items.
+///
+/// object and task must remain live; spawnArg1 selects SMG/Rifle Clip Holder,
+/// Snail Magazine, Hammer, Pyke, Javelin, M203 or M9. State 0 consumes the
+/// selected carried row in `Gp_SelItemRec`, changes the carried weapon variant,
+/// transfers its loads and gives back displaced add-ons. The task owns the
+/// allocated result work. Refusal delegates to `itemMenuNoticeTask` without
+/// consuming the item. Active result updates count down from 188; timeout or
+/// Confirm/Cancel returns DISMISS, and Menu returns CANCEL.
+void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task);
 
-/// `arg5` is supplied by the attachment menu but unused by this renderer.
-void Gp_DrawStackLeft(UiObject* arg0, s32 arg1, s32 arg2, InventoryItemRow* arg3, s32 arg4, s32 arg5);
+/// Draws a carried consumable's quantity remaining outside weapon loads.
+///
+/// A NULL row or an id outside 0xA0..0xBF draws nothing. row is borrowed from
+/// the live carried range; loaded rounds/supply units are subtracted from qty.
+/// Uses `itemMenuDrawQuantity`'s row pixels and GPU-storage contract, with the
+/// origin-Y subtraction promoted to s32 rather than wrapping to u16. Drawing
+/// is independent of panel visibility. unused is ignored; colorRgb is 24-bit RGB.
+void itemMenuDrawUnloadedConsumableQuantity(const UiObject* object, s32 x, s32 y, const InventoryItemRow* row, s32 colorRgb, s32 unused);
 
 void Gp_CheckItemInfoButton(UiObject* arg0);
 
@@ -185,7 +200,15 @@ void Gp_CheckItemInfoButton(UiObject* arg0);
 /// slot uses a dark fill, while a populated slot has an unfilled frame.
 void itemMenuDrawItemSlotRow(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState);
 
-void Gp_ItemRowSelect(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
+/// Requests and draws the selected attachment's equipment-scale item preview.
+///
+/// loadProfile must be 0..2; selection updates use its low byte under
+/// `itemMenuSetPreviewItem`'s contract. A nonzero item is requested only when
+/// either control half denotes ACTIVE. Id 0 or a non-idle CD queue suppresses
+/// the picture while retaining its frame. The preview starts at contentLeft/Top
+/// + 2 pixels and uses `itemMenuDrawPreview`'s resource contract. unusedList
+/// is ignored; object and the preview resources are borrowed for this update.
+void itemMenuUpdateSelectionPreview(UiList* unusedList, const UiObject* object, s32 itemId, s32 loadProfile);
 
 void Gp_ItemCmdMenuTask(Task* arg0);
 
@@ -201,9 +224,26 @@ void Gp_ItemCmdMenuTask(Task* arg0);
 /// synchronizes the displayed values with live stats.
 void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId);
 
-void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2);
+/// Consumes a selected item, raises one ordinary P.E. level and refills MP.
+///
+/// itemId must be an ordinary P.E. item id 15..50; it identifies one of twelve
+/// abilities and a level 1..3. State 0 consumes `Gp_SelItemRec` once, raises the
+/// saved level only if lower, recalculates maximum MP and fills live/displayed
+/// MP. object and task must stay live. The 188-update countdown runs even while
+/// inactive; active Menu returns CANCEL, and timeout or Confirm/Cancel returns
+/// DISMISS. Item selection and carried-row validity are the caller's responsibility.
+void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId);
 
-void func_800CC41C(UiObject* arg0, Task* arg1);
+/// Uses an elemental item to invoke the next available level in its P.E. group.
+///
+/// spawnArg1 must be Skull Crystal, Medicine Wheel, Holy Water or Ofuda
+/// (54..57), selecting one of four three-ability groups. State 0 chooses the
+/// lower of the first two levels, preferring the first on a tie; when both
+/// reach 3 it chooses the third. An entirely capped group still invokes its
+/// third ability at level 3. The derived ordinary item id is retained in
+/// extraState for later updates under `itemMenuInvokeParasiteEnergyItem`'s
+/// live-object, selected-row and dismissal contract.
+void itemMenuInvokeElementBoostPanel(UiObject* object, Task* task);
 
 /// Updates the shared OK, Cancel or Yes/No dialog list and publishes its answer.
 ///
@@ -214,11 +254,32 @@ void func_800CC41C(UiObject* arg0, Task* arg1);
 /// resultValue. Each update clears result before polling the shared list.
 void itemMenuDialogTask(Task* task);
 
-void Gp_PeListPanelTask(Task* arg0);
+/// Runs the four elemental P.E. lists and their EXP/current/maximum-MP header.
+///
+/// spawnArg2 borrows the live task-owned UiObject. State 0 spawns the four
+/// element children, with only the first active. Child CONFIRM sets resultValue
+/// to 1; child CONFIRM/CANCEL propagates its result. Multiple child results
+/// are processed in sibling-ring order without closing any children here.
+void itemMenuParasiteEnergyListTask(Task* task);
 
-void Gp_ItemCountHeaderTask(Task* arg0);
+/// Draws occupied carried rows against capacity in the inventory's Total header.
+///
+/// spawnArg2 borrows the live task-owned UiObject. `Gp_ItemCountShow` values
+/// 1/0 request hiding/reopening, with a sixteen-tick reopening delay. Counts
+/// are inventory rows, including equipment rows, rather than item quantities.
+/// Resets result to NONE and draws the header independently of its visibility.
+void itemMenuInventoryCountTask(Task* task);
 
-void Gp_PickupTask(Task* arg0);
+/// Runs the published pickup's title, confirmation or inventory-full child panels.
+///
+/// spawnArg2 borrows the live task-owned UiObject. Published id/quantity must
+/// remain stable until teardown. A nonzero spawnArg1 collects the item bit
+/// immediately and opens a timeout-only obtained notice with a Yes answer;
+/// zero checks inventory capacity and asks Yes/No or shows the full warning.
+/// CONFIRM closes that child and activates the root; CANCEL propagates its
+/// result and answer. Ordinary ids passed to the capacity predicate must obey
+/// `inventoryCanAddItem`'s catalogue contract.
+void itemPickupPanelTask(Task* task);
 
 /// Opens a Yes/No child menu with Yes selected, transferring input from parent.
 ///

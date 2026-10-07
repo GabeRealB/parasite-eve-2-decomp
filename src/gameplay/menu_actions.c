@@ -935,7 +935,7 @@ void func_800CFA60(Task* arg0)
 
 void func_800CFAA8(UiObject* arg0, Task* arg1)
 {
-    Gp_InvokePeItemPanel(arg0, arg1, arg1->spawnArg1.value);
+    itemMenuInvokeParasiteEnergyItem(arg0, arg1, arg1->spawnArg1.value);
 }
 
 void itemMenuDrawOkRow(UiList* list, UiObject* object)

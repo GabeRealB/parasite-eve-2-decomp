@@ -6410,7 +6410,7 @@ addu   v0, v0, s0
 ```
 
 Declare the spilled `field_1C` copy immediately after the `TextDrawReq`
-locals so it sits at the next stack slot. `Gp_PeListPanelTask` is the example.
+locals so it sits at the next stack slot. `itemMenuParasiteEnergyListTask` is the example.
 
 ## Nest `if (x != 0)` so a redundant `beqz` survives range checks
 
@@ -24024,7 +24024,7 @@ previewItemIds[4] = emptyItemId;
 ```
 
 A counted `for` loop is not unrolled. `itemMenuClearPreviewItems` is the example;
-`func_800CCDC8` inlines the same five stores.
+`_itemPickupPreviewTask` inlines the same five stores.
 
 ## Nested `!= 0` then `== 1` keeps the extra `beqz`
 
@@ -27321,7 +27321,7 @@ if (arg2 != 0) {
 
 The `+r` barrier on `tmp` is the existing "delay slot ahead of `lui`"
 trick: without it, `lui %hi(table)` steals the `beq` delay instead of
-`move a1, a3`. `Gp_ItemRowSelect` is the example (same 3-slot table loop as
+`move a1, a3`. `itemMenuUpdateSelectionPreview` is the example (same 3-slot table loop as
 `itemMenuSetPreviewItem`).
 
 ## Incoming-arg copies use arg order; explicit locals use register order
@@ -29025,7 +29025,7 @@ addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(
 `gpuSetPrimitiveBlendMode` is the example. The hoisted `ds` form stuck at 87%
 with only those registers and the `addu` operands swapped.
 
-## Overlay `save + i*stride` so two `lbu`s share `$v0` and `$v1`
+## Byte-view `save + i*stride` so two `lbu`s share `$v0` and `$v1`
 
 `save->arr[i*3] > save->arr[i*3 + 1]` computes the address twice.
 GCC copies it (`move v1, v0`), loads the first byte into `$a0`
@@ -29042,20 +29042,22 @@ sltu  a0, v0, a0
 The target keeps one base in `$v0`, first load in `$v1`, second
 clobbering the base (`lbu v0, off+1(v0)`), then `sltu a0, v0, v1`.
 
-Form a `McSaveData*` overlay on the byte at `i * 3` from the record and read
-`p->arr[0]` / `p->arr[1]`. The shared pointer pins the base, so the
-first load cannot take `$v0` and lands in `$v1`:
+Form a byte view of the save record displaced by the element's three-slot
+group, and read the level bytes at their named member offsets. The shared
+pointer pins the base, so the first load cannot take `$v0` and lands in `$v1`:
 
 ```c
-p    = (McSaveData*)&((u8*)&save->state.saveChecksum)[idx * 3];
-slot = p->state.attachLevels[0] > p->state.attachLevels[1];
+saveBytesForElement = (u8*)save + elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT;
+abilitySelection = saveBytesForElement[OFFSET_OF(McSaveData, state.attachLevels)] >
+                   saveBytesForElement[OFFSET_OF(McSaveData, state.attachLevels) + 1];
 ```
 
-Later accesses must rematerialize through `save` (`save->arr[slot +
-idx * 3]`), not `p`. Reusing `p` folds the address into one `addu`
+Later accesses must rematerialize through `save`
+(`save->state.attachLevels[abilitySelection + elementIndex * ITEM_MENU_INVOKE_ABILITIES_PER_ELEMENT]`),
+not `saveBytesForElement`. Reusing the byte view folds the address into one `addu`
 and shuffles `save` / `idx*3` out of `$t0` / `$a2`.
 
-`func_800CC41C` is the example. The two-index form stuck at 97.8%
+`itemMenuInvokeElementBoostPanel` is the example. The two-index form stuck at 97.8%
 with only that extra `move` and the first load in `$a0`.
 
 ## Pin the wrap dest so `temp = delta` is `move v1, s0`
@@ -29623,7 +29625,7 @@ y2 = obj->baseY - 6;
 req2.y = y2 + yOff;
 ```
 
-`Gp_ItemCountHeaderTask` is the example. Reusing `y` stuck at 99.917%.
+`itemMenuInventoryCountTask` is the example. Reusing `y` stuck at 99.917%.
 
 ## Copy the incoming arg first, pin the hoisted constant to `$s2`
 
@@ -33879,7 +33881,7 @@ Keep the item id live (`asm volatile("" :: "r"(item))`) so a later
 `(u32)(item - 0xA0) < 0x20U` is `addiu v0, s3, -0xA0` / `sltiu v0`
 instead of clobbering `$s3` in place. Split the last-block `0x606060`
 into a new `$v1` temp so `lui v1, 0x60` fills that `beqz` delay.
-`Gp_PickupTitleTask` is the example.
+`_itemPickupTitleTask` is the example.
 
 ## D4 overlay: hold `lhu` until after `tile` when `$a1` is reused
 
@@ -34169,7 +34171,7 @@ that `mult`'s latency with `addiu s0, s0, -0x5BC` (from
 `&gMcSaveData.carriedItems` back to the struct base). A volatile asm after
 the `% 3` of `i` keeps `n % 3 + 1` from sliding into that same slot.
 
-`Gp_InvokePeItemPanel` is the example.
+`itemMenuInvokeParasiteEnergyItem` is the example.
 
 ## `x += shift; store x` so `addu` writes the addend, not the sum temp
 
@@ -36321,7 +36323,7 @@ example.
 `(-w) >> 1` is `negu` / `sra ..., 1`. A nearby `func(..., 1)` (or any
 live `1` in a temp) CSEs with the shift amount and turns it into
 `li t1, 1` / `srav`. Keep that `1` unborn until after the shifts so the
-shift keeps the immediate form. `Gp_InvokePeItemPanel` wants the `srav`
+shift keeps the immediate form. `itemMenuInvokeParasiteEnergyItem` wants the `srav`
 form because its `1` is a live `jal` arg (`a2`) set up *before* the shift.
 
 An inlined helper's parameter is a common source: its `arg = 1` copy sits
@@ -49122,7 +49124,7 @@ unused frame space does not prove that the original declared an aggregate.
 **Correction (2026-09-27):** `func_acropolis_fire_escape_8017E594` previously
 used an unused `s16[12]` to grow its frame from 8 to 32 bytes. Natural PE grid
 indexing, `page = i / 3; column = i % 3; attachLevels[column + page * 3]`,
-reproduces that frame without any array. As in `Gp_InvokePeItemPanel` below,
+reproduces that frame without any array. As in `itemMenuInvokeParasiteEnergyItem` below,
 combine cancels the index arithmetic but leaves `use` nodes for removed
 pseudos; reload can allocate their stack slots. Here loop.c also hoists the
 division multiplier before combine, leaving the target's unused
@@ -65638,16 +65640,16 @@ conversion diagnostic. Using the equivalent `partCount * 0x50 + 0x34` made the
 base scores agree. The final C restores `(partCount * sizeof(GfxCoord)) +
 sizeof(TmdObject)` and still matches. Always check the permuter's base score.
 
-## func_800CCDC8: reuse the clearing pointer for the preview loop
+## _itemPickupPreviewTask: reuse the clearing pointer for the preview loop
 
 After clearing `Gp_PreviewItems` through a local pointer, keep that same
 pointer as the loop's walking pointer. Write the fixed first-slot arm as
-`Gp_PreviewItems[0] = item`, and the other arm as `*table = -1`.
-Using `table[0] = item` while walking a separate `p` kept the full table
+`Gp_PreviewItems[0] = itemId`, and the other arm as `*previewItemIds = ITEM_PICKUP_PREVIEW_EMPTY`.
+Using `previewItemIds[0] = itemId` while walking a separate `p` kept the full table
 address live across the loop (99.068%). Naming the global first slot fixed
-the `%lo` store but retained an extra `move a1,v1` for `p = table`
+the `%lo` store but retained an extra `move a1,v1` for `p = previewItemIds`
 (98.203%, `insert=1` and shifted branch offsets). Removing that copy by
-walking `table` itself reached 100% without pins or empty asm.
+walking `previewItemIds` itself reached 100% without pins or empty asm.
 
 The `.jump2` dump identified the extra pointer copy; `.lreg` and `.greg`
 showed the separate initialization and loop pseudos. Nonzero branch penalties
@@ -66493,7 +66495,7 @@ the final control-flow graph is already correct.
 
 ## Place a rematerialized config pointer inside the call block to avoid a dead high half
 
-`func_800CB6FC` needs `gPlayerStatus` materialized into a reload register
+`itemMenuApplyWeaponAddonPanel` needs `gPlayerStatus` materialized into a reload register
 (`lui t1; addiu t1`) after eight calls. Assigning `cfg = &gPlayerStatus`
 immediately before its field access kept it in `$a0`. Moving the assignment
 before the slot-lookup calls made `.lreg` report 3 references across 92 insns
@@ -118525,7 +118527,7 @@ leave code: a `beqz` survives. So do a bare single `case 1` and `default: break;
 which are no different from the `if`. If you see the kept counter, check the
 `.loop` dump for `giv of insn N not worth while, 0 vs M` on a `mult 2 add 0` giv.
 
-## A pointer walk closed by `(s32)p < (s32)(start + N)` is an eliminated index loop: write `arr[i].field` (func_800CB6FC, 2026-10-03)
+## A pointer walk closed by `(s32)p < (s32)(start + N)` is an eliminated index loop: write `arr[i].field` (itemMenuApplyWeaponAddonPanel, 2026-10-03)
 
 **Symptom.** A matched body walks a stack array with
 `do { ... p++; } while ((s32)p < (s32)(start + 8));`. The casts are there
@@ -118543,8 +118545,8 @@ written.
 **Fix.** Index the array directly, with a counter of its own:
 
 ```c
-for (carried = 0; carried < ARRAY_SIZE(table.pairs); carried++) {
-    if (lookup(variants[carried].weaponItemId) != 0) {
+for (carriedVariantIndex = 0; carriedVariantIndex < ARRAY_SIZE(scratch.variantTable.variants); carriedVariantIndex++) {
+    if (lookup(variants[carriedVariantIndex].weaponItemId) != 0) {
 ```
 
 Taking the element's address first, `p = &variants[carried];`, does **not**
@@ -143789,7 +143791,7 @@ operand order `(idx << 4) + (s32)rec->field_0` still matters (`&field_0[idx]`
 is 95.6%). `actorTintEffect` became a wrapper over the same helper and all its
 users still match.
 
-## A `(plus K+off-reg)` `addu` operand swap after inlining: combine's complex-first rule, fixed by the helper temp's width (Gp_PickupTitleTask, 2026-09-26)
+## A `(plus K+off-reg)` `addu` operand swap after inlining: combine's complex-first rule, fixed by the helper temp's width (_itemPickupTitleTask, 2026-09-26)
 Inlining `itemMenuDrawQuantity` (`textBaseY = object->panel.contentOriginY.unsignedValue - 3; textRequest.y = textBaseY + y;`) with
 `y = obj->panel.contentTop.signedValue + 0xF` matched everything but
 `addu v0,s0,v0` for target `addu v0,v0,s0` (baseY first). The inline's
@@ -145234,7 +145236,7 @@ shared `fileIndex = itemId` gave that pseudo too few refs to beat its sibling fo
 `$s2`; an `if`/`else if` chain repeating the assignment in each arm adds the
 refs, and jump2 cross-jumps the copies back into the single target block.
 
-## `row*3` recomputed next to `col = i - row*3` means `col` first held the quotient (Gp_InvokePeItemPanel, 2026-09-26)
+## `row*3` recomputed next to `col = i - row*3` means `col` first held the quotient (itemMenuInvokeParasiteEnergyItem, 2026-09-26)
 
 The target splits a slot into page and column and indexes with
 `col + row * 3`, recomputing `row*3` (`move a0,a2` then two `sll/addu` pairs).
@@ -150684,7 +150686,7 @@ constant).
   not an induction variable and nothing is reduced. The image's mark is
   `addiu v0,t0,1; sw v0; move t0,v0`.
 - **`if (x != A) { if (x == B) { extra; goto store; } } else { store: tail; }`**
-  (`Gp_PeListPanelTask`) is `switch (x) { case B: extra; /* fallthrough */
+  (`itemMenuParasiteEnergyListTask`) is `switch (x) { case B: extra; /* fallthrough */
   case A: tail; break; }`; two nodes are tested lowest first.
 - **`==2; <3 -> out; ==3; ==4; j out` with state 3 running into state 4's
   code** (`itemMenuInfoTask`) is `case 2: ...; break; case 3: state = 4; /*
@@ -150712,7 +150714,7 @@ constant).
   store and explicit top-tested loops now form `_gluttonRecordContactYaw`,
   inlined at one level; the two wrap `goto`s are gone, with the outer wrapper
   retained.
-- Not converted: `func_800CC41C` (`slot = K; goto store;` over a second
+- Not converted: `itemMenuInvokeElementBoostPanel` (`slot = K; goto store;` over a second
   computation of `slot`). The image keeps the result in `slot`'s register at
   the join. An inline with two `return`s puts the result in the return
   pseudo (`$v0` against `$a0`, with or without assigning `slot` first), a

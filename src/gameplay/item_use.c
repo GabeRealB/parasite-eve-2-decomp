@@ -526,7 +526,7 @@ void func_800D6334(Task* task)
             name.alignment  = TEXT_ALIGNMENT_LEFT;
             name.drawMode   = TEXT_DRAW_OUTLINED;
             textDrawString(&name, itemGetText(item, ITEM_TEXT_NAME, 0));
-            Gp_DrawStackLeft(panel, x - 15, y + 16, selected, 0x606060, 0);
+            itemMenuDrawUnloadedConsumableQuantity(panel, x - 15, y + 16, selected, 0x606060, 0);
         } else {
             item = 0;
         }

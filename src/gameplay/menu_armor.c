@@ -360,7 +360,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     if (rec != NULL) {
         val = rec->itemId;
     }
-    Gp_ItemRowSelect(menu, obj, val, 2);
+    itemMenuUpdateSelectionPreview(menu, obj, val, 2);
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
             obj->result = USER_INTERFACE_RESULT_CANCEL;
