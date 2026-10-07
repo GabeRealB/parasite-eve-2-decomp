@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+#include "gameplay/attachment_state.h"
 #include "gameplay/inventory.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
@@ -36,7 +37,7 @@ static inline s32 _gpIsEquippedItem(s32 id);
 
 static void _itemMenuSizeAttachmentPicker(UiList* list, UiObject* unused);
 
-static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 itemId);
+static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 packedAbilityId);
 
 const char Gp_StrPEnergy[] = "P.Energy";
 
@@ -388,29 +389,36 @@ void Gp_EquipSelectMenuTask(Task* arg0)
     }
 }
 
-/// Maps the packed PE element, energy and level to a one-based preview file index.
+/// Returns the one-based P.E. preview file index for a packed catalogue id.
 ///
-/// Only two element bits are used; level zero selects the level-one image.
-static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 itemId)
+/// The caller supplies ids 0x300..0x4FF. Bits 4..5 select the element,
+/// bits 2..3 the energy slot, and bits 0..1 the learned level. Higher bits
+/// are ignored; level zero uses the level-one image. Energy slots 0..2
+/// produce indices 1..36. Slot 3 is unchecked: it overlaps the next element's
+/// indices, or produces 37..39 for the last element.
+static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 packedAbilityId)
 {
     enum {
         ITEM_MENU_PREVIEW_ELEMENT_MASK         = 0x30,
+        ITEM_MENU_PREVIEW_ELEMENT_SHIFT        = 4,
         ITEM_MENU_PREVIEW_ENERGY_MASK          = 0x0C,
+        ITEM_MENU_PREVIEW_ENERGY_SHIFT         = 2,
         ITEM_MENU_PREVIEW_LEVEL_MASK           = 0x03,
         ITEM_MENU_PREVIEW_ENERGIES_PER_ELEMENT = 3,
-        ITEM_MENU_PREVIEW_LEVELS_PER_ENERGY    = 3
+        ITEM_MENU_PREVIEW_LEVEL_UNLEARNED      = 0,
+        ITEM_MENU_PREVIEW_LEVEL_FIRST          = 1
     };
     s32 level;
     s32 element;
     s32 energyIndex;
 
-    level       = itemId & ITEM_MENU_PREVIEW_LEVEL_MASK;
-    element     = (itemId & ITEM_MENU_PREVIEW_ELEMENT_MASK) >> 4;
-    energyIndex = (itemId & ITEM_MENU_PREVIEW_ENERGY_MASK) >> 2;
-    if (level == 0) {
-        level = 1;
+    level       = packedAbilityId & ITEM_MENU_PREVIEW_LEVEL_MASK;
+    element     = (packedAbilityId & ITEM_MENU_PREVIEW_ELEMENT_MASK) >> ITEM_MENU_PREVIEW_ELEMENT_SHIFT;
+    energyIndex = (packedAbilityId & ITEM_MENU_PREVIEW_ENERGY_MASK) >> ITEM_MENU_PREVIEW_ENERGY_SHIFT;
+    if (level == ITEM_MENU_PREVIEW_LEVEL_UNLEARNED) {
+        level = ITEM_MENU_PREVIEW_LEVEL_FIRST;
     }
-    return (element * ITEM_MENU_PREVIEW_ENERGIES_PER_ELEMENT + energyIndex) * ITEM_MENU_PREVIEW_LEVELS_PER_ENERGY + level;
+    return (element * ITEM_MENU_PREVIEW_ENERGIES_PER_ELEMENT + energyIndex) * ATTACHMENT_AREA_LEVEL_COUNT + level;
 }
 
 void itemMenuEnqueuePreviewLoad(s32 itemId, s32 loadProfile)
