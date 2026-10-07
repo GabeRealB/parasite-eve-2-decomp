@@ -3315,7 +3315,6 @@ static void func_actor_503500_80138A30(Task* arg0)
 {
     _Actor503500LargeChainWork* work;
     GfxMatrix                   m;
-    GfxRotationWords*           ident;
     SVECTOR                     v;
     s32                         idx;
     s16                         hp;
@@ -3337,12 +3336,7 @@ static void func_actor_503500_80138A30(Task* arg0)
         func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_SHOOT);
         return;
     }
-    m.rotationWords.m00M01 = ONE;
-    ident                  = &m.rotationWords;
-    ident->m02M10          = 0;
-    ident->m11M12          = ONE;
-    ident->m20M21          = 0;
-    ident->m22             = ONE;
+    gfxSetRotIdentity(&m.mat);
     RotMatrix(&work->tipOrbitAngles, &m.mat);
     gte_SetRotMatrix(&m.mat);
     gte_ldv0(&D_actor_503500_8016F0C8);
