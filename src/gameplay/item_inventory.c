@@ -980,7 +980,7 @@ void func_800B8014(void)
     stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     if (stageAreaKey == GAME_LOCATION_KEY(1, 0x14, 0, 0)) {
-        Gp_ResetInventory();
+        inventoryInitializeShootingGalleryLoadout();
         inventoryGiveItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 1);
         equipmentEquipCarriedWeapon(0x81);
     }

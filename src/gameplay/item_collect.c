@@ -874,11 +874,11 @@ void inventoryResetCarriedRange(void)
 void func_800BC4BC(void)
 {
     gPlayerStatus.resourceVariant = 1;
-    Gp_InitModeEquip();
+    equipmentEnsureM93rEquipped();
 }
 
 void func_800BC4E4(void)
 {
     gPlayerStatus.resourceVariant = 2;
-    Gp_InitModeEquip();
+    equipmentEnsureM93rEquipped();
 }

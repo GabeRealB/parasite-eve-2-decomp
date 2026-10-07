@@ -1910,7 +1910,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
             if (capIsBusy() == 0) {
                 gPlayerStatus.resourceVariant                       = 3;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
-                Gp_ClearInventory();
+                inventoryRestoreCarriedLoadout();
                 gGameSession->hideHud = 1;
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5), 0, 0);
                 gDisplayState.spriteVariant                                = 1;

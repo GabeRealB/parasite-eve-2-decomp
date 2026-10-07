@@ -7540,7 +7540,7 @@ static s32 func_801062DC(Task* arg0, s32 arg1)
     ret  = 0;
     item = gPlayerStatus.weapon;
     flag = arg1 != 1;
-    if (Gp_UnequipRelated(item + 0x7F, flag) == 1) {
+    if (equipmentCanReloadSelectedWeaponConsumable(item + 0x7F, flag) == 1) {
         func_801088D4(arg0, flag, ret);
         ret = 1;
     }
@@ -8165,7 +8165,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
         if (actor->actionValue != 0) {
             Gp_FlushPendingRelated(gPlayerStatus.weapon + 0x7F, actor->stateAux);
         } else {
-            Gp_FillRelated(gPlayerStatus.weapon + 0x7F, actor->stateAux);
+            equipmentReloadSelectedWeaponConsumable(gPlayerStatus.weapon + 0x7F, actor->stateAux);
         }
     }
     Gp_UpdateLockTarget(arg0);

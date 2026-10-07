@@ -59,13 +59,30 @@ s32 inventoryRemoveItemRow(InventoryItemRange* range, InventoryItemRow* row, s32
 /// countdown contract. The task's item-id spawn argument is preserved.
 void itemMenuApplyPouchPanel(UiObject* object, Task* task);
 
-void Gp_UiBoostMp(struct UiObject* arg0, Task* arg1);
+/// Applies the selected permanent MP boost and displays its timed notice.
+///
+/// On state zero, adds one to the saved MP bonus if below 250, recalculates
+/// maximum MP, restores current MP and consumes the selected writable item row.
+/// Captures prior HP/MP for the child statistics panel. The selected item must
+/// be a non-consumable row id below 0xA0; no inventory range is supplied.
+/// Mode must be 0..3 and the armor selector 0..32 for maximum-MP recalculation.
+/// Object and its owner task must remain live under `itemMenuNoticeTask`'s
+/// contract. Every call temporarily selects the MP-increased notice, yielding
+/// DISMISS or CANCEL, and restores the task's whole item-id spawn argument.
+void itemMenuApplyMpBoostPanel(UiObject* object, Task* task);
 
-/// HP counterpart of `Gp_UiBoostMp`: adds 5 to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus`
-/// (clamped below 250), recomputes max HP (same body as `equipmentRecalculateMaxHp`),
-/// heals current HP to that max, then consumes `Gp_SelItemRec` and spawns
-/// `Gp_BoostPanelDesc`. `itemMenuNoticeTask` is called with `spawnArg1` forced to 0x1C.
-void Gp_UiBoostHp(struct UiObject* arg0, Task* arg1);
+/// Applies the selected permanent HP boost and displays its timed notice.
+///
+/// On state zero, adds five to the saved byte-sized HP bonus if below 250;
+/// the addend is not clamped to 250. Recalculates maximum HP with unsigned
+/// 16-bit intermediate sums and a signed 250-point cap, then restores current
+/// HP and consumes the selected writable item row. Mode must be 0..3 and armor
+/// selector 0..32. Captures prior HP/MP for the child statistics panel.
+/// The selected item must have a row id below 0xA0; no range is supplied.
+/// Object and its owner task must remain live under `itemMenuNoticeTask`'s
+/// contract. Every call selects the HP-increased notice, yielding DISMISS or
+/// CANCEL, and restores the task's whole item-id spawn argument.
+void itemMenuApplyHpBoostPanel(UiObject* object, Task* task);
 
 /// Exact selectors for effects supplied by armour, attached items or active wards.
 ///
@@ -167,9 +184,24 @@ void equipmentClearSelectedRemovableLoads(s32 weaponItemId, s32 loadSelection);
 /// The range descriptor is not modified and no pointer is retained.
 void inventoryConsumeFirstStack(InventoryItemRange* range, s32 itemId, s32 quantity);
 
-s32 Gp_FillRelated(s32 arg0, s32 arg1);
+/// Reloads the consumable currently selected in one of a carried weapon's loads.
+///
+/// Weapon item id must be 0x80..0x9F before the unchecked saved-record lookup.
+/// Zero selection reads primaryItemId; every nonzero selection reads secondary.
+/// Uses the live carried range and `equipmentLoadWeaponConsumable`'s capacity,
+/// stock and primary-preference rules. Returns loaded units, or -1 on failure;
+/// empty or unavailable selections fail. Inventory quantities stay intact.
+s32 equipmentReloadSelectedWeaponConsumable(s32 weaponItemId, s32 loadSelection);
 
-s32 Gp_UnequipRelated(s32 arg0, s32 arg1);
+/// Returns 1 if a selected weapon consumable has compatible positive stock, else 0.
+///
+/// Weapon item id must be 0x80..0x9F before the unchecked saved-record lookup.
+/// Zero selection reads primaryItemId; every nonzero selection reads secondary.
+/// Checks the live carried range through `equipmentLoadWeaponConsumable`,
+/// including the selected weapon's existing loads in available stock. A full
+/// load can qualify. Empty/unavailable selections fail. Changes no load, row
+/// or identification flag and retains no pointer.
+s32 equipmentCanReloadSelectedWeaponConsumable(s32 weaponItemId, s32 loadSelection);
 
 /// Result of a row-address lookup that finds no row within its range.
 enum { INVENTORY_ROW_NOT_FOUND = -1 };
@@ -190,7 +222,14 @@ s32 inventoryIndexOfRow(const InventoryItemRange* range, const InventoryItemRow*
 /// its item. `unused` is ignored and is retained for the caller's argument setup.
 InventoryItemRow* inventoryGetRow(const InventoryItemRange* range, s32 rowIndex, s32 unused);
 
-void Gp_InitModeEquip(void);
+/// Equips a carried M93R when no weapon is selected and refills its 9mm P.B. load.
+///
+/// Existing weapon selections stay intact. An equipped M93R is reloaded only
+/// when its primary selection is empty or already 9mm P.B.; other ammunition
+/// stays selected. The live carried range must fit its readable table and
+/// equipment selection must be 0..32. Equipping borrows writable carried rows;
+/// reload failure is ignored and inventory stock is not consumed.
+void equipmentEnsureM93rEquipped(void);
 
 /// Clears all 128 collection bits in the live save.
 ///

@@ -104,20 +104,29 @@ enum {
 /// transfers or resetting the backing table can replace the returned item.
 InventoryItemRow* inventoryGiveItem(const InventoryItemRange* range, s32 itemId, s32 quantity);
 
-/// Unequips `gPlayerStatus.weapon` (ids 1..32 use the same slot clear as
-/// `equipmentClearRemovableLoads`), resets the `Gp_DefaultScan` item table, copies that scan
-/// into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, adds one of item 0x6C, heals current HP/MP
-/// to max, zeros the 4x3 `Gp_DebugAttachLevels` table, and clears `Gp_StateC08.activeIndex`
-/// / `wheelIndex`.
-void Gp_ResetInventory(void);
+/// Initializes the shooting gallery's temporary carried loadout and training spells.
+///
+/// Unequips the current weapon and clears its removable loads, preserving
+/// built-in supply charge. Empties the default saved range (rows 20..29), makes
+/// it the carried range, adds one PsySuit and requests that armor selection.
+/// An already-selected PsySuit keeps its stats and leaves the new row unmarked.
+/// Restores HP/MP to their maxima
+/// and initializes built-in weapon supplies. Clears the twelve training wheel
+/// spells, enables level-one Pyrokinesis and selects the first wheel spell.
+/// Normal carried rows 0..19 stay saved. Mode must be 0..3 and current weapon
+/// and armor selectors 0..32.
+void inventoryInitializeShootingGalleryLoadout(void);
 
-/// Unequips `gPlayerStatus.weapon` (same slot clear as `Gp_ResetInventory`),
-/// zeros the `Gp_DefaultScan` item table, writes `{0, 0x14, 0}` into
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, and if that table has an equipped 0x60–0x7F
-/// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP
-/// (`equipmentRecalculateMaxHp` / `equipmentRecalculateMaxMp`). Heals current HP/MP to max, then
-/// clears `Gp_StateC08.activeIndex` / `wheelIndex`.
-void Gp_ClearInventory(void);
+/// Restores the normal carried range and its equipped armor after gallery training.
+///
+/// Unequips the current weapon and clears its removable loads. Empties the
+/// temporary saved range (rows 20..29), then selects saved rows 0..19, leaving
+/// their contents intact. The first valid equipped-armor row restores the
+/// player's armor selector and maximum HP/MP; absent such a row, these values
+/// stay intact. Restores current HP/MP, initializes built-in weapon supplies
+/// and selects the first wheel spell. Mode must be 0..3 and equipment selectors
+/// 0..32. The carried descriptor's unproven fourth byte is retained.
+void inventoryRestoreCarriedLoadout(void);
 
 /// Stores one packed two-bit object state in the live save's current stage.
 ///

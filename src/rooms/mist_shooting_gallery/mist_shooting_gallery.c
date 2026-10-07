@@ -1904,13 +1904,13 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
                 gPlayerStatus.resourceVariant                       = 4;
                 gGameSession->hideHud                               = 1;
-                Gp_ResetInventory();
+                inventoryInitializeShootingGalleryLoadout();
             }
             if (dst->warp == 5) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
                 gPlayerStatus.resourceVariant                       = 3;
                 gGameSession->hideHud                               = 1;
-                Gp_ClearInventory();
+                inventoryRestoreCarriedLoadout();
             }
         }
     }

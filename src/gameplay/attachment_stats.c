@@ -1414,8 +1414,8 @@ static __inline__ void hudWaitEndAction(HudState* hud)
     }
     p    = &gPlayerStatus;
     item = p->weapon + 0x7F;
-    Gp_FillRelated(item, 0);
-    Gp_FillRelated(item, 1);
+    equipmentReloadSelectedWeaponConsumable(item, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+    equipmentReloadSelectedWeaponConsumable(item, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
         cond = 0;
     } else {

@@ -35,6 +35,17 @@ enum {
 /// Number of saved rows selected when resetting the carried range.
 enum { INVENTORY_INITIAL_CARRIED_ROWS = 20 };
 
+/// Permanent-boost limits and Notice text selectors used by the item panels.
+enum {
+    ITEM_MENU_BOOST_STATE_INIT                = 0,
+    ITEM_MENU_BOOST_BONUS_LIMIT               = 250,
+    ITEM_MENU_BOOST_HP_INCREMENT              = 5,
+    ITEM_MENU_BOOST_MP_INCREMENT              = 1,
+    ITEM_MENU_BOOST_NOTICE_HP_INCREASED       = 0x1C,
+    ITEM_MENU_BOOST_NOTICE_MP_INCREASED       = 0x1D,
+    ITEM_MENU_BOOST_STATS_OPENING_DELAY_TICKS = 1
+};
+
 /// Layout of the packed saved object states addressed by an object id.
 enum {
     AREA_OBJECT_STATE_BITS       = 2,
@@ -290,6 +301,38 @@ static inline void _inventoryClearItems(const InventoryItemRange* range)
         table[tableRowIndex].qty        = 0;
     }
 }
+/// Sums the quantities of every matching item row in a readable range.
+///
+/// The range must fit its table. This includes loaded ammunition in row totals.
+static inline s32 _inventorySumMatchingRowQuantities(const InventoryItemRange* range, s32 itemId)
+{
+    InventoryItemRow*       table;
+    const InventoryItemRow* row;
+    s32                     rowIndex;
+    s32                     quantity;
+    s32                     rowCount;
+    s32                     firstRow;
+    s32                     scanRowCount;
+
+    quantity = 0;
+    table    = _gpScanTable(range);
+    rowIndex = 0;
+    rowCount = range->rowCount;
+    firstRow = range->firstRow;
+    if (rowCount != 0) {
+        scanRowCount = rowCount;
+
+        row = gpItemRowAt(table, firstRow);
+        do {
+            if (row->itemId == itemId) {
+                quantity += row->qty;
+            }
+            rowIndex++;
+            row++;
+        } while (rowIndex < scanRowCount);
+    }
+    return quantity;
+}
 /// Recomputes maximum HP from the mode, permanent bonus and equipped armour.
 ///
 /// The save mode must index the base-stat table and armour must be 0..32.
@@ -431,70 +474,60 @@ void itemMenuApplyPouchPanel(UiObject* object, Task* task)
     }
 }
 
-void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
+void itemMenuApplyMpBoostPanel(UiObject* object, Task* task)
 {
-    PlayerStatus* cfg;
+    PlayerStatus* status;
     McSaveData*   save;
-    s32           saved;
+    s32           savedSpawnArg;
 
-    if (arg1->state == 0) {
-        cfg            = &gPlayerStatus;
-        Gp_HpMpWork.hp = cfg->hp;
+    if (task->state == ITEM_MENU_BOOST_STATE_INIT) {
+        // Capture the before-values, then apply and consume this one-time boost.
+        status         = &gPlayerStatus;
+        Gp_HpMpWork.hp = status->hp;
         save           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        Gp_HpMpWork.mp = cfg->mp;
-        if (save->state.mpBonus < 0xFA) {
-            save->state.mpBonus = save->state.mpBonus + 1;
+        Gp_HpMpWork.mp = status->mp;
+        if (save->state.mpBonus < ITEM_MENU_BOOST_BONUS_LIMIT) {
+            save->state.mpBonus = save->state.mpBonus + ITEM_MENU_BOOST_MP_INCREMENT;
         }
         equipmentRecalculateMaxMp();
-        cfg->mp = cfg->mpMax;
-        _inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
-        uiSpawnObject(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
+        status->mp = status->mpMax;
+        _inventoryRemoveItemRow(NULL, Gp_SelItemRec, 1);
+        uiSpawnObject(&Gp_BoostPanelDesc, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_BOOST_STATS_OPENING_DELAY_TICKS, object);
     }
-    saved                 = arg1->spawnArg1.value;
-    arg1->spawnArg1.value = 0x1D;
-    itemMenuNoticeTask(arg1);
-    arg1->spawnArg1.value = saved;
+    // The notice advances this task; restore the caller's item argument afterwards.
+    savedSpawnArg         = task->spawnArg1.value;
+    task->spawnArg1.value = ITEM_MENU_BOOST_NOTICE_MP_INCREASED;
+    itemMenuNoticeTask(task);
+    task->spawnArg1.value = savedSpawnArg;
 }
 
-void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
+void itemMenuApplyHpBoostPanel(UiObject* object, Task* task)
 {
-    PlayerStatus* cfg;
+    PlayerStatus* status;
     McSaveData*   save;
-    s32           saved;
-    s32           hp;
-    u16           val;
+    s32           savedSpawnArg;
+    s32           previousHp;
 
-    if (arg1->state == 0) {
-        cfg            = &gPlayerStatus;
-        hp             = cfg->hp;
-        Gp_HpMpWork.hp = hp;
+    if (task->state == ITEM_MENU_BOOST_STATE_INIT) {
+        // Preserve the displayed before-values; the bonus threshold precedes addition.
+        status         = &gPlayerStatus;
+        previousHp     = status->hp;
+        Gp_HpMpWork.hp = previousHp;
         save           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        Gp_HpMpWork.mp = cfg->mp;
-        if (save->state.hpBonus < 0xFA) {
-            save->state.hpBonus = save->state.hpBonus + 5;
+        Gp_HpMpWork.mp = status->mp;
+        if (save->state.hpBonus < ITEM_MENU_BOOST_BONUS_LIMIT) {
+            save->state.hpBonus = save->state.hpBonus + ITEM_MENU_BOOST_HP_INCREMENT;
         }
-        val        = Gp_StatRows[save->state.gameMode].baseHp.hp;
-        cfg->hpMax = val;
-        val       += save->state.hpBonus;
-        cfg->hpMax = val;
-        if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-            val       += Gp_ModStatAttrs[cfg->armor - 1].hpBonus;
-            cfg->hpMax = val;
-        }
-        if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
-            cfg->hpMax = PLAYER_STATUS_STAT_MAX;
-        }
-        if (cfg->hpMax < hp) {
-            cfg->hp = cfg->hpMax;
-        }
-        cfg->hp = cfg->hpMax;
-        _inventoryRemoveItemRow(0, Gp_SelItemRec, 1);
-        uiSpawnObject(&Gp_BoostPanelDesc, 0, 0, 1, arg0);
+        _equipmentRecalculateMaxHp();
+        status->hp = status->hpMax;
+        _inventoryRemoveItemRow(NULL, Gp_SelItemRec, 1);
+        uiSpawnObject(&Gp_BoostPanelDesc, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_BOOST_STATS_OPENING_DELAY_TICKS, object);
     }
-    saved                 = arg1->spawnArg1.value;
-    arg1->spawnArg1.value = 0x1C;
-    itemMenuNoticeTask(arg1);
-    arg1->spawnArg1.value = saved;
+    // The notice advances this task; restore the caller's item argument afterwards.
+    savedSpawnArg         = task->spawnArg1.value;
+    task->spawnArg1.value = ITEM_MENU_BOOST_NOTICE_HP_INCREASED;
+    itemMenuNoticeTask(task);
+    task->spawnArg1.value = savedSpawnArg;
 }
 
 s32 equipmentHasEffect(s32 effectSelector)
@@ -614,129 +647,110 @@ s32 equipmentHasEffect(s32 effectSelector)
     return effectActive;
 }
 
-void Gp_ResetInventory(void)
+void inventoryInitializeShootingGalleryLoadout(void)
 {
+    enum {
+        INVENTORY_SHOOTING_GALLERY_ARMOR_ITEM_ID = 0x6C,
+        ATTACHMENT_TRAINING_SPELLS_PER_ELEMENT   = 3,
+        ATTACHMENT_TRAINING_ELEMENT_COUNT        = ATTACHMENT_SPELL_COUNT / ATTACHMENT_TRAINING_SPELLS_PER_ELEMENT,
+        ATTACHMENT_TRAINING_INITIAL_LEVEL        = 1
+    };
     PlayerStatus* status;
-    s32           i;
-    s32           j;
+    s32           elementIndex;
+    s32           spellIndex;
 
     status = &gPlayerStatus;
     if (status->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-        _gpClearEquipSlot(status->weapon + 0x7F);
+        _gpClearEquipSlot(status->weapon + EQUIPMENT_WEAPON_ITEM_FIRST - 1);
         status->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
     }
 
+    // Use the separate saved range so normal carried items survive training.
     _inventoryClearItems(&Gp_DefaultScan);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems = Gp_DefaultScan;
-    inventoryAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x6C, 1);
-    equipmentEquipCarriedArmor(0x6C);
+    inventoryAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, INVENTORY_SHOOTING_GALLERY_ARMOR_ITEM_ID, 1);
+    equipmentEquipCarriedArmor(INVENTORY_SHOOTING_GALLERY_ARMOR_ITEM_ID);
 
     gPlayerStatus.hp = gPlayerStatus.hpMax;
     gPlayerStatus.mp = gPlayerStatus.mpMax;
     equipmentInitializeWeaponSupplies();
 
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 3; j++) {
-            Gp_DebugAttachLevels[j + i * 3] = 0;
+    // Reset only the twelve wheel spells, leaving the six item-cast slots intact.
+    for (elementIndex = 0; elementIndex < ATTACHMENT_TRAINING_ELEMENT_COUNT; elementIndex++) {
+        for (spellIndex = 0; spellIndex < ATTACHMENT_TRAINING_SPELLS_PER_ELEMENT; spellIndex++) {
+            Gp_DebugAttachLevels[spellIndex + elementIndex * ATTACHMENT_TRAINING_SPELLS_PER_ELEMENT] = 0;
         }
     }
-    Gp_DebugAttachLevels[0] = 1;
+    Gp_DebugAttachLevels[ATTACHMENT_INDEX_PYROKINESIS] = ATTACHMENT_TRAINING_INITIAL_LEVEL;
 
-    Gp_StateC08.activeIndex = 0;
-    Gp_StateC08.wheelIndex  = 0;
+    Gp_StateC08.activeIndex = ATTACHMENT_INDEX_PYROKINESIS;
+    Gp_StateC08.wheelIndex  = ATTACHMENT_INDEX_PYROKINESIS;
 }
 
-void Gp_ClearInventory(void)
+void inventoryRestoreCarriedLoadout(void)
 {
-    PlayerStatus*       status;
-    InventoryItemRange* scan;
-    InventoryItemRow*   rec;
-    s32                 i;
+    enum { EQUIPMENT_ARMOR_ITEM_FIRST = 0x60 };
+    PlayerStatus*             status;
+    const InventoryItemRange* range;
+    const InventoryItemRow*   row;
+    s32                       rowIndex;
 
     status = &gPlayerStatus;
     if (status->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-        _gpClearEquipSlot(status->weapon + 0x7F);
+        _gpClearEquipSlot(status->weapon + EQUIPMENT_WEAPON_ITEM_FIRST - 1);
         status->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
     }
 
+    // Discard temporary rows, then recover the armor marked in normal inventory.
     _inventoryClearItems(&Gp_DefaultScan);
     _inventorySetCarriedRange(INVENTORY_INITIAL_CARRIED_ROWS);
-    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    range = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
 
-    rec = &_gpScanTable(scan)[scan->firstRow];
-    for (i = 0; i < scan->rowCount; i++, rec++) {
-        if (rec->attachSlot == INVENTORY_ATTACHMENT_EQUIPPED_ARMOR && (u32)(rec->itemId - 0x60) < 0x20) {
-            status->armor = rec->itemId - 0x5F;
+    row = &_gpScanTable(range)[range->firstRow];
+    for (rowIndex = 0; rowIndex < range->rowCount; rowIndex++, row++) {
+        if (row->attachSlot == INVENTORY_ATTACHMENT_EQUIPPED_ARMOR && (u32)(row->itemId - EQUIPMENT_ARMOR_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus)) {
+            status->armor = row->itemId - (EQUIPMENT_ARMOR_ITEM_FIRST - 1);
             _equipmentRecalculateMaxHp();
             equipmentRecalculateMaxMp();
             break;
         }
     }
 
-    Gp_StateC08.wheelIndex  = 0;
-    Gp_StateC08.activeIndex = 0;
+    Gp_StateC08.wheelIndex  = ATTACHMENT_INDEX_PYROKINESIS;
+    Gp_StateC08.activeIndex = ATTACHMENT_INDEX_PYROKINESIS;
     gPlayerStatus.hp        = gPlayerStatus.hpMax;
     gPlayerStatus.mp        = gPlayerStatus.mpMax;
     equipmentInitializeWeaponSupplies();
 }
 
-void Gp_InitModeEquip(void)
+void equipmentEnsureM93rEquipped(void)
 {
-    PlayerStatus*       cfg;
-    InventoryItemRange* scan;
-    InventoryItemRow*   tmp;
-    InventoryItemRow*   table;
-    InventoryItemRow*   row;
-    s32                 i;
-    s32                 acc;
-    s32                 count;
-    s32                 start;
-    s32                 limit;
+    enum {
+        EQUIPMENT_M93R_ITEM_ID        = 0x81,
+        EQUIPMENT_M93R_SELECTOR       = EQUIPMENT_M93R_ITEM_ID - EQUIPMENT_WEAPON_ITEM_FIRST + 1,
+        EQUIPMENT_M93R_9MM_PB_ITEM_ID = 0xA0
+    };
+    PlayerStatus*             status;
+    const InventoryItemRange* range;
+    s32                       weaponQuantity;
+    s32                       weaponItemId;
+    u8                        primaryItemId;
 
-    s32 weaponItemId;
-    u8  primaryItemId;
-
-    cfg = &gPlayerStatus;
-    acc = 0;
-    if (cfg->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
-        scan         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-        weaponItemId = 0x81;
-        switch (scan->tableId) {
-            case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-                tmp = Gp_ItemTable2;
-                break;
-            case INVENTORY_ITEM_TABLE_INDIRECT:
-                tmp = Gp_ItemTable1;
-                break;
-            default:
-                tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
-                break;
-        }
-        table = tmp;
-        i     = 0;
-        count = scan->rowCount;
-        start = scan->firstRow;
-        if (count != 0) {
-            limit = count;
-
-            row = gpItemRowAt(table, start);
-            do {
-                if (row->itemId == weaponItemId) {
-                    acc += row->qty;
-                }
-                i++;
-                row++;
-            } while (i < limit);
-        }
-        if (acc != 0) {
-            equipmentEquipCarriedWeapon(0x81);
+    status = &gPlayerStatus;
+    if (status->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
+        range          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+        weaponItemId   = EQUIPMENT_M93R_ITEM_ID;
+        weaponQuantity = _inventorySumMatchingRowQuantities(range, weaponItemId);
+        if (weaponQuantity != 0) {
+            equipmentEquipCarriedWeapon(EQUIPMENT_M93R_ITEM_ID);
         }
     }
-    if (cfg->weapon == 2) {
-        weaponItemId  = 0x81;
+    // Keep an already selected alternate ammunition type intact.
+    if (status->weapon == EQUIPMENT_M93R_SELECTOR) {
+        weaponItemId  = EQUIPMENT_M93R_ITEM_ID;
         primaryItemId = _equipmentGetWeaponLoad(weaponItemId)->primaryItemId;
-        if ((primaryItemId == INVENTORY_ITEM_NONE) || (primaryItemId == 0xA0)) {
-            equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, 0x81, 0xA0, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
+        if ((primaryItemId == INVENTORY_ITEM_NONE) || (primaryItemId == EQUIPMENT_M93R_9MM_PB_ITEM_ID)) {
+            equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, EQUIPMENT_M93R_ITEM_ID, EQUIPMENT_M93R_9MM_PB_ITEM_ID, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
         }
     }
 }
@@ -1007,36 +1021,36 @@ void inventoryConsumeFirstStack(InventoryItemRange* range, s32 itemId, s32 quant
     _inventoryConsumeFirstStack(range, itemId, quantity);
 }
 
-s32 Gp_FillRelated(s32 arg0, s32 arg1)
+s32 equipmentReloadSelectedWeaponConsumable(s32 weaponItemId, s32 loadSelection)
 {
-    EquipmentWeaponLoad* slot;
-    const u8*            primaryItemId;
-    s32                  ret;
+    const EquipmentWeaponLoad* weaponLoad;
+    const u8*                  primaryItemId;
+    s32                        loadedQuantity;
 
-    slot          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    primaryItemId = &slot->primaryItemId;
-    if (arg1 != 0) {
-        ret = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, slot->secondaryItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
+    weaponLoad    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    primaryItemId = &weaponLoad->primaryItemId;
+    if (loadSelection != EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+        loadedQuantity = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, weaponLoad->secondaryItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
     } else {
-        ret = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, *primaryItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
+        loadedQuantity = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, *primaryItemId, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY);
     }
-    return ret;
+    return loadedQuantity;
 }
 
-s32 Gp_UnequipRelated(s32 arg0, s32 arg1)
+s32 equipmentCanReloadSelectedWeaponConsumable(s32 weaponItemId, s32 loadSelection)
 {
-    EquipmentWeaponLoad*       slot;
+    const EquipmentWeaponLoad* weaponLoad;
     const EquipmentWeaponLoad* secondaryLoad;
-    s32                        ret;
+    s32                        checkResult;
 
-    slot          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg0 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    secondaryLoad = slot;
-    if (arg1 == 0) {
-        ret = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, slot->primaryItemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY);
+    weaponLoad    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    secondaryLoad = weaponLoad;
+    if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+        checkResult = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, weaponLoad->primaryItemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY);
     } else {
-        ret = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg0, secondaryLoad->secondaryItemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY);
+        checkResult = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, secondaryLoad->secondaryItemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY);
     }
-    return ret == 0;
+    return checkResult == EQUIPMENT_WEAPON_LOAD_CHECK_ONLY;
 }
 
 s32 areaGetCurrentObjectState(s32 objectId)

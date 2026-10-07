@@ -24472,24 +24472,24 @@ a single `slot` used in both arms puts `addu` *in* the delay slot and both
 else-path field through it:
 
 ```c
-slot = &D_80072330[arg0];
-alt  = slot;
-if (arg1 == 0) {
-    ret = func(&((GpItemBlock*)D_80072330)->scan, arg0, slot->field_0, 0);
+weaponLoad = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+secondaryLoad = weaponLoad;
+if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+    checkResult = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, weaponLoad->primaryItemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY);
 } else {
-    ret = func(&((GpItemBlock*)D_80072330)->scan, arg0, alt->field_2, 0);
+    checkResult = equipmentLoadWeaponConsumable(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weaponItemId, secondaryLoad->secondaryItemId, EQUIPMENT_WEAPON_LOAD_CHECK_ONLY);
 }
-return ret == 0;
+return checkResult == EQUIPMENT_WEAPON_LOAD_CHECK_ONLY;
 ```
 
-`alt = slot` inside the else is deleted as redundant. `return func(...)` in
-each arm inverts the branch and schedules `sltiu` before `lw ra`. The `ret`
+`secondaryLoad = weaponLoad` inside the else is deleted as redundant. `return func(...)` in
+each arm inverts the branch and schedules `sltiu` before `lw ra`. The `checkResult`
 local plus a call in both arms keeps `bnez` / `lw ra; sltiu` and duplicates
 the `addiu a0, v0, off` / `move a1, a2` setup.
 
-A separate `extern` for the nearby BSS symbol rematerializes `%hi/%lo`. An
-overlay struct on the same base (`GpItemBlock.scan` at +0x3F4) is what
-emits `addiu a0, v0, 0x3F4`. `Gp_UnequipRelated` is the pure example.
+A separate `extern` for the nearby BSS symbol rematerializes `%hi/%lo`. The
+containing save record (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`,
+at +0x3F4 relative to the original interior base) is what emits `addiu a0, v0, 0x3F4`. `equipmentCanReloadSelectedWeaponConsumable` is the pure example.
 
 ## Write a dead `||` as one expression, not `if` / `else if`
 
@@ -28748,7 +28748,7 @@ if (rec->itemId == item) {
 }
 ```
 
-`Gp_InitModeEquip` is the example. The rest of the loop is the same shape
+`equipmentEnsureM93rEquipped` is the example. The rest of the loop is the same shape
 as `inventoryGetItemQuantity` (`gpItemRowAt(table, firstRow)`, `rowLimit = rowCount`). A literal
 `== 0x81` after the switch stuck at 84% with the table in `$v1` and no
 `$t0`.
@@ -32193,7 +32193,7 @@ if (i < end) {
 ```
 
 Pinning only `loop_end` merges `end` into `$a1` and delays `base = table`.
-`Gp_UiBoostMp` is the example.
+`itemMenuApplyMpBoostPanel` is the example.
 
 ## Pass-through `$a3` so its save stays in the prologue pair
 
@@ -34423,26 +34423,26 @@ if (count != 0) {
 
 `Gp_ItemPaneTask` is the example.
 
-## Inline a recalc helper so `cfg` stays in `$a1` and the old current stays in `$a3`
+## Inline a recalc helper so `status` stays in `$a1` and the old current stays in `$a3`
 
-`Gp_UiBoostMp` `jal`s `equipmentRecalculateMaxMp` then `cfg->field_1c = cfg->field_1e`,
-so `cfg`/`save` live in `$s0`/`$s1`. The HP sibling must write the
-`equipmentRecalculateMaxHp` body inline (no `jal`): `cfg` stays in `$a1`, `save` in
-`$t0`. Cache original `field_18` in an `s32` so the `Gp_HpMpWork` store is
+`itemMenuApplyMpBoostPanel` `jal`s `equipmentRecalculateMaxMp` then `status->mp = status->mpMax`,
+so `status`/`save` live in `$s0`/`$s1`. The HP sibling must write the
+`_equipmentRecalculateMaxHp` body inline (no `jal`): `status` stays in `$a1`, `save` in
+`$t0`. Cache original `hp` in an `s32` so the `Gp_HpMpWork` store is
 `lh a3` / `sw a3` and the clamp is `slt v0, v0, a3`:
 
 ```c
-hp                 = cfg->field_18;
-Gp_HpMpWork.field_0 = hp;
+previousHp      = status->hp;
+Gp_HpMpWork.hp = previousHp;
 ...
-if (cfg->field_1a < hp) {
-    cfg->field_18 = cfg->field_1a;
+if (status->hpMax < previousHp) {
+    status->hp = status->hpMax;
 }
-cfg->field_18 = cfg->field_1a;
+status->hp = status->hpMax;
 ```
 
 Calling `equipmentRecalculateMaxHp()` instead emits a `jal` and reallocates those
-pointers into callee-saved regs. `Gp_UiBoostHp` is the example.
+pointers into callee-saved regs. `itemMenuApplyHpBoostPanel` is the example.
 
 ## Split an unaligned 4-byte copy so `lui` / `li a1` / `addiu $t4` match the jal args
 
@@ -34483,7 +34483,7 @@ inventoryAddItem(dest, item, 1);
 A 4x3 byte-clear of `Gp_DebugAttachLevels` then wants `addu v0, v0, a2` (index first).
 `levels[col + i] = 0` is `addu v0, a2, v0`. Write
 `*(u8*)((col + i) + (s32)levels) = 0` inside `for (; item < 4; item++, i += 3)`.
-`Gp_ResetInventory` is the example.
+`inventoryInitializeShootingGalleryLoadout` is the example.
 
 ## Don't pin a post-call dest to `$a3` when `$a3` is also the last call arg
 
@@ -36492,7 +36492,7 @@ asm volatile("" ::"r"(cfg));
 ```
 
 Zero extra uses leaves `cfg` in `$t2`; several extra uses promote it to
-`$t0` and steal the first base. `Gp_ClearInventory` is the example.
+`$t0` and steal the first base. `inventoryRestoreCarriedLoadout` is the example.
 
 ## Empty `asm volatile("")` so a `beqz` delay fills from the fail-path increment
 
@@ -36513,7 +36513,7 @@ if ((u32)(id - 0x60) < 0x20U) {
 i++;
 ```
 
-`Gp_ClearInventory` is the example.
+`inventoryRestoreCarriedLoadout` is the example.
 
 ## Do not pin `$v0` if a later unsigned `/ 100` needs `mfhi v0`
 
@@ -50232,7 +50232,7 @@ ahead of a `do`/`while` (rather than a `for` whose init runs after the copy)
 puts `move v1, zero` before `move a1, a2`, and moving `row = 0;` ahead of
 `levels = …` in the prologue schedules `move a3, zero` before the
 `lui`/`addiu` pair. The cast-sum store, not `levels[col + k]`, is what gives
-`addu v0, v0, t0` instead of `addu v0, t0, v0`; `Gp_ResetInventory` in
+`addu v0, v0, t0` instead of `addu v0, t0, v0`; `inventoryInitializeShootingGalleryLoadout` in
 `src/gameplay/268.c` writes the same loop the same way.
 
 ## A jump table a few bytes into the leading rodata needs `rodata_head`
@@ -81227,9 +81227,9 @@ three stores as `index->state` and the target agrees byte for byte — but the
 target keeps the value in one register the whole arm while the C reloads it:
 
 ```
-target:   jal  Gp_ClearInventory
+target:   jal  inventoryRestoreCarriedLoadout
           sb   $s1, 0x5C5($s0)      /* and later sh $s1, %lo(D_80071076) */
-candidate:jal  Gp_ClearInventory
+candidate:jal  inventoryRestoreCarriedLoadout
           lbu  $v0, 0x30($s1)       /* a fresh load per store site */
           sb   $v0, 0x5C5($s0)
 ```
@@ -143063,7 +143063,7 @@ it falls to global-alloc behind the pointers.
 ... }`). When the lowest `$s` registers hold values that live only within one
 iteration, try giving them per-block scope before touching anything else.
 
-## A loop over a table window wants its row as a second counter (Gp_ResetInventory, 2026-09-26)
+## A loop over a table window wants its row as a second counter (inventoryInitializeShootingGalleryLoadout, 2026-09-26)
 
 **Symptom.** A loop zeroing rows `firstRow .. firstRow + rowCount` of a
 `InventoryItemRow` table: the target computes `firstRow * 4 + table` *after* the
@@ -144687,7 +144687,7 @@ giv, and the hoisted computation becomes a copy of it. Writing every access as
 split), matched with no pins. A `cfg = &gPlayerStatus` local set before the
 `while` is what put its `lui` ahead of the loop-entry test; referenced directly,
 loop.c hoisted it into the preheader after the test.
-## A switch on a field just stored as a constant is not folded when the store is an inlined helper's (Gp_ClearInventory, 2026-09-26)
+## A switch on a field just stored as a constant is not folded when the store is an inlined helper's (inventoryRestoreCarriedLoadout, 2026-09-26)
 
 **Symptom.** The target stores `0` to a scan window's `table` byte and then
 immediately reloads it (`lbu v1,2(a3)`) and runs the full `switch` on it. Writing
