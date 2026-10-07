@@ -693,7 +693,7 @@ matched the same way — `next = D_80114C68; TOUCH_REG(next);` ahead of
 ticks.)
 ## A loop that walks one field per step needs the *field* address computed before the index, or the member offset stays a displacement
 
-`func_actor_323300_80162208` (actors/actor_323300) sets or clears
+`_actor323300WomanSetModelDraw` (actors/actor_323300) sets or clears
 `WORLD_COLLISION_BODY_PAIR_ENABLED` in the halfword at 0x49E of its 0x504 work block, stepped by 0x20: one `WorldCollisionBody`'s
 `flags` (`WorldCollisionBody` is 0x20 bytes, `flags` at 0x1E) on the collision body at 0x480.
 Retail's induction variable is the *field* address, carrying both offsets:
@@ -738,7 +738,7 @@ slot), and the same for the `|= 4` tail of cases 2 and 3. See "Cross-jumping run
 in `jump2`, after reload and `sched2`" above; writing the store out in every case
 is what matches.
 
-Inputs: scratch `nonmatchings/func_actor_323300_80162208-vacuum`, `base_1.c`
+Inputs: scratch `nonmatchings/_actor323300WomanSetModelDraw-vacuum`, `base_1.c`
 88.988%, `base_2.c` 68.356%, `base_3.c` 99.767%, `base_4.c` and the renamed
 `base_5.c` 100.000% and byte-identical to each other. Preprocessed `base_3.i`
 `bb2accbef022260f...`, `base_4.i` `2c39bf304a0adcb6...`; assembly
@@ -747,7 +747,7 @@ Inputs: scratch `nonmatchings/func_actor_323300_80162208-vacuum`, `base_1.c`
 
 ## A four-case switch's decision tree tests case 1 first, then splits at 2
 
-The dispatch of `func_actor_323300_80162208` compares in the order `a2 == 1`,
+The dispatch of `_actor323300WomanSetModelDraw` compares in the order `a2 == 1`,
 then `a2 < 2`, then `a2 == 0`, and only then `a2 == 2` / `a2 == 3`:
 
 ```
@@ -1603,7 +1603,7 @@ family are written the same way (`func_actor_323000_80164C58`), so read the
 matched twin before restructuring one.
 
 The same diagnosis applies to the form where the arms assign a *local* and one
-call follows — and there the collapse is not jump.c's at all. `func_actor_323300_80161FE8`
+call follows — and there the collapse is not jump.c's at all. `_actor323300WomanUpdate`
 had
 
 ```c
@@ -2496,7 +2496,7 @@ insns after sched1: birth is `2 * insn_number`, death is
 `2 * insn_number + output_p`, so a quantity's span is fixed by the instruction
 sequence and only `n_refs` is reachable from the source.
 
-**Symptom.** `func_actor_323300_801634B0` (24 insns, one block) builds a
+**Symptom.** `_actor323300StrangerExit` (24 insns, one block) builds a
 three-link coordinate chain and sat at 96.04% with every register mirrored.
 Retail allocates the `{base, node}` quantity into `$v0`; the build allocated it
 *after* a band of five short-lived quantities, so it fell through to `$v1`. In
@@ -82721,7 +82721,7 @@ when `branch` and `insert` accompany a single `regs`, the address shift, not the
 control flow, is usually what they are measuring.**
 ## m2c's `ptr + K` scales by `sizeof`, so a byte offset in the `.s` lands in the wrong element
 
-**Problem.** `func_actor_323300_80163510` came back from m2c at 99.71% with the
+**Problem.** `_actor323300StrangerInitLighting` came back from m2c at 99.71% with the
 only difference two `addiu` immediates: the target had `addiu a0,s1,0x50` and
 `addiu a1,s1,0x88`, m2c had produced `addiu a0,s1,0x1900` and `addiu a1,s1,0x2A80`.
 
@@ -82755,7 +82755,7 @@ worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
 `short m[3][3]` followed by `long t[3]`, and 18 bytes of `short` pad to 20, so
 `t` sits at 0x14 and not 0x10. Computing `workm.t` as `0x24 + 0x10` gives 0x84
 and a two-instruction diff that no amount of register work explains. The
-sibling `func_actor_323300_8016359C` walks the same array at 0xA0/0xF0/0x140/0x190
+sibling `_actor323300StrangerTurnBody` walks the same array at 0xA0/0xF0/0x140/0x190
 (indices 2/3/4/5), which is what confirms the array reading over a struct of
 byte offsets.
 
@@ -82767,7 +82767,7 @@ off it and the displacement disappears from the encoding.
 
 The same overlay can carry more than one work block: `index->work` is the
 0x504 `_Actor323300WomanWork` in most of `actor_323300`, but the 0x6B0 block
-`func_actor_323300_80162BE4` allocates in this one. Check the `memCalloc`
+`_actor323300StrangerSpawn` allocates in this one. Check the `memCalloc`
 argument at the allocation site before assuming a function's `work` is the
 overlay's named work struct.
 
@@ -82794,16 +82794,16 @@ Inputs: `base_1.i`
 
 A two-entry dispatch table built on the frame and indexed by a signed
 `short` is a common actor shape (`func_actor_206100_8014F5B4`,
-`Actor00400_Fn0A468`, `func_actor_323300_801626F4`). m2c has no model of
+`Actor00400_Fn0A468`, `_actor323300WomanDispatchTurn`). m2c has no model of
 the frame, so it prints the table's *base* as a bare `sp` symbol, reads the
 slot through it, and then hands the two function addresses to the result as
 *call arguments*:
 
 ```c
-void func_actor_323300_801626F4(void *arg0) {
+void _actor323300WomanDispatchTurn(void *arg0) {
     M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x4FE) * 4)),
               M2C_UNK (**)(M2C_UNK *, M2C_UNK *), 0x10)(
-        &func_actor_323300_80162748, &func_actor_323300_801627B4);
+        &_actor323300WomanStartTurn, &_actor323300WomanTurnTowardTarget);
 }
 ```
 
@@ -82818,15 +82818,15 @@ The body is the sibling verbatim — only the selector offset and the two
 symbols differ:
 
 ```c
-void func_actor_323300_801626F4(Task* arg0)
+static void _actor323300WomanDispatchTurn(Task* task)
 {
-    _Actor323300WomanWork* work                = (_Actor323300WomanWork*)arg0->work;
-    void             (*states[2])(Task*) = {
-        func_actor_323300_80162748,
-        func_actor_323300_801627B4,
+    _Actor323300WomanWork* work = task->work;
+    TaskFunc turnHandlers[2] = {
+        _actor323300WomanStartTurn,
+        _actor323300WomanTurnTowardTarget,
     };
 
-    states[work->walk.motionStep](arg0);
+    turnHandlers[work->walk.motionStep](task);
 }
 ```
 
@@ -82856,7 +82856,7 @@ for (i = 1; i < 0x13; i++) {
 emits `addiu v1, s0, 0x28` / `sb a1, 0x1D(v1)` / `addiu v1, v1, 0x28`: the
 strength-reduced induction variable carries only `i*0x28` and the invariant
 `0x14 + 9` stays in the displacement, so `$v1` walks from the work base rather
-than from a `AnimationSlot*` at `&slots[1]`. `func_actor_323300_80162748` is the
+than from a `AnimationSlot*` at `&slots[1]`. `_actor323300WomanStartTurn` is the
 example (`_Actor503500Actor361100Model06038Work` / `Actor503500Work` are the same shape
 already written this way). Input `base_1.i`
 `8080b9c2b7f7099aa79305af544c7edb78587a6b3e880f99af0e2b1363f1bd62`.
@@ -82877,7 +82877,7 @@ callee `func_actor_323300_801628B8` opens with `lw $s1, 0x1C($a0)` and
 `f(index, 0x7D3, &D_..., 0)` -- passing `index` costs no instruction, and the two
 trailing arguments the callee never reads are invisible in its body. Check the
 callee's first `lw` off `$a0` before trusting m2c's argument split; the sibling
-`func_actor_323300_801627B4` spells the identical call with an explicit
+`_actor323300WomanTurnTowardTarget` spells the identical call with an explicit
 `addu $a0, $s1, $zero`.
 
 ## A load the target hoists above a store is a load written *before* that store
@@ -108954,7 +108954,7 @@ form. Inputs: `base_1.i` SHA256
 
 Confirmed independently on `func_actor_401000_8013CEF0` (2026-09-16), the same TU's state-10 twin.
 Its m2c seed carried *two* artifacts, this one and the `ptr + K`-scales-by-`sizeof` shape from the
-`func_actor_323300_80163510` entry above (`temp_s0 + 0x8F0` on a 0xC24-byte struct, which GCC
+`_actor323300StrangerInitLighting` entry above (`temp_s0 + 0x8F0` on a 0xC24-byte struct, which GCC
 materialised as `lui`/`ori`/`addu` rather than an `addiu`). Repairing only the scaling moved the seed
 90.75% → 99.765% with the three `$v1` operands untouched, so the two symptoms are **independent**:
 a seed well below 99% on instruction count can still be this class underneath. Fix them one at a
@@ -126156,7 +126156,7 @@ pins, no empty asm, no permuter run (matched on the second build). Scratch
 `nonmatchings/_actor341300TurnPlayerTowardScenePlacementTask-vacuum`.
 ## Write an `s16` division as `/ 2`; m2c's `(u32)(x << 16) >> 31` spelling re-derives the shift after the narrowing
 
-The target of `func_actor_323300_8016359C` narrows a clamped `s16` into a *new*
+The target of `_actor323300StrangerTurnBody` narrows a clamped `s16` into a *new*
 register and keeps the sign-extension's shift alive to sign-test it:
 
 ```
@@ -126204,14 +126204,14 @@ Both are the same predicate - the upper clamp has already pinned the copy to
 0x400 whenever `value` is out of range upwards - and the target's assembly is
 what says which spelling the source used.
 
-Inputs: scratch `nonmatchings/func_actor_323300_8016359C-vacuum`, `base.c` (m2c)
+Inputs: scratch `nonmatchings/_actor323300StrangerTurnBody-vacuum`, `base.c` (m2c)
 93.094% (`regs=28`, `insert=1`), `base_2.c` 96.727% (`regs=3`, `insert=2`),
 `base_3.c` 100.000%. Preprocessed `base_2.i`
 `ba6475a6987f2dcf...`, `base_3.i` `f3ad0714aec5e589...`, assembly
 `d47e45f71fddb317...` / `7b0ea0bc1dcddb97...`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## The `-2` reset store's position decides whether the target's one load is reloaded: a store through one pointer kills the CSE entry for a load through another (func_actor_323300_80163718, 2026-09-17)
+## The `-2` reset store's position decides whether the target's one load is reloaded: a store through one pointer kills the CSE entry for a load through another (_actor323300StrangerPlayAnimation, 2026-09-17)
 
 The shape is the starting preset every actor family writes:
 
@@ -126256,13 +126256,13 @@ real and source-level, not a compiler version artefact. And writing the index
 as `table[arg2->field_0]` re-derives it from memory, which is the same extra
 load by another route.
 
-Inputs: scratch `nonmatchings/func_actor_323300_80163718-vacuum`, `base_2.c`
+Inputs: scratch `nonmatchings/_actor323300StrangerPlayAnimation-vacuum`, `base_2.c`
 92.377%, `base_3.c` 94.579%, `base_4.c` 100.000%. Preprocessed `base_3.i`
 `b7d5e247b7ceaaab...`, `base_4.i` `e809f34408bacfbc...`, assembly
 `6293e8e00353066b...` / `a52cd79b2144077e...`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A call argument that is a load through a parameter keeps that parameter live into the call sequence: hoist it to a local (func_actor_323300_80163718, 2026-09-17)
+## A call argument that is a load through a parameter keeps that parameter live into the call sequence: hoist it to a local (_actor323300StrangerPlayAnimation, 2026-09-17)
 
 Passing `index->extra` inline as the third argument of a call inside
 the `if` body made `index` live until the call sequence, where `$a0` is
@@ -126300,13 +126300,13 @@ source's spelling rather than a scheduling preference. A `move aN,a0` at the
 top of a function is the signature: it says some parameter's live range
 overlaps the point where its own argument register is reused.
 
-Inputs: scratch `nonmatchings/func_actor_323300_80163718-vacuum`, `base_3.c`
+Inputs: scratch `nonmatchings/_actor323300StrangerPlayAnimation-vacuum`, `base_3.c`
 94.579%, `base_4.c` 100.000%. Preprocessed `base_3.i`
 `b7d5e247b7ceaaab...`, `base_4.i` `e809f34408bacfbc...`, assembly
 `6293e8e00353066b...` / `a52cd79b2144077e...`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A `li`+`lui` double constant is read off the high word's *bits*, not its digits: `0x3F300000` is 2^-12, not 1.1875 * 2^-12 (func_actor_323300_80162DF0, 2026-09-17)
+## A `li`+`lui` double constant is read off the high word's *bits*, not its digits: `0x3F300000` is 2^-12, not 1.1875 * 2^-12 (_actor323300StrangerUpdate, 2026-09-17)
 
 A soft-float expression the target materialises as `li a2,0` / `lui a3,0x3f30`
 is the double `0x3F30000000000000`. The `lui` holds the high word, i.e. sign,
@@ -126336,13 +126336,13 @@ half of the pair, so an operand that looks like two unrelated `lui`/`ori` pairs
 is usually one double's low and high word in memory order (little-endian MIPS
 puts the low word in the lower-numbered register).
 
-Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_4.c`
+Inputs: scratch `nonmatchings/_actor323300StrangerUpdate-vacuum`, `base_4.c`
 90.739% (`lui a3,0x3f33`), `base_5.c` 100.000%. Preprocessed `base_4.i`
 `8554e6abc3ac27bc...`, `base_5.i` `4b72a01ea866e3db...`. Assembly
 `bde2f8b32e10e8e2...` / `d94b8b542c67924d...`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A coordinate used on both sides of a call wants one local element pointer (func_actor_323300_80162DF0, 2026-09-17)
+## A coordinate used on both sides of a call wants one local element pointer (_actor323300StrangerUpdate, 2026-09-17)
 
 Three uses of `extra->coords[k]` in one block - the copy `unscaledParts[i] = ...`, the
 `ScaleMatrix(&...->coord, ...)` and a `coord.t[1]` store on the far side of that
@@ -126378,14 +126378,14 @@ and each `t[1]` store follows the *second* and *third* ScaleMatrix. Putting the
 first store after the first ScaleMatrix scored 90.739% with the two middle blocks
 swapped in the object and nothing else different.
 
-Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_2.c`
+Inputs: scratch `nonmatchings/_actor323300StrangerUpdate-vacuum`, `base_2.c`
 79.242%, `base_3.c` 83.961%, `base_4.c` 90.739%, `base_5.c` 100.000%.
 Preprocessed `base_2.i` `49cfdd3f42eed24e...`, `base_4.i` `8554e6abc3ac27bc...`,
 `base_5.i` `4b72a01ea866e3db...`. Assembly `a51302cbc942eb12...`,
 `bde2f8b32e10e8e2...`, `d94b8b542c67924d...`. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## The comparison direction, not the nesting, picks which arm falls through (func_actor_323300_80162DF0, 2026-09-17)
+## The comparison direction, not the nesting, picks which arm falls through (_actor323300StrangerUpdate, 2026-09-17)
 
 `beqz v0, .L` with `slti v0, x, N` in front of it is a source test spelled
 `x < N`; `bnez v0, .L` on the same `slti` is `x >= N`. The two spellings of one
@@ -126414,7 +126414,7 @@ compare constant: `x > 0x1000` and `x >= 0x1001` both come out as
 `slti v0,x,0x1001`, so that immediate says nothing about which of the two the
 source used - only the branch polarity above it is evidence.
 
-Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_1.c`
+Inputs: scratch `nonmatchings/_actor323300StrangerUpdate-vacuum`, `base_1.c`
 75.687% (`beqz v0,...` with everything else already right), `base_5.c` 100.000%.
 Preprocessed `base_5.i` `4b72a01ea866e3db...`. Assembly `d94b8b542c67924d...`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -138167,7 +138167,7 @@ Input hashes: base_1.i `06e372d135cc2a46481166e82ad44154772404a9f87106f4e1349d48
 base_3.i `925619814e0d0f53cfd01c4b627a58069c5c9d367d61c1dafc80b7b29f8b98dd`;
 base_4.i `0a61a063f2ec2e4f4a2d96b888c4d74fcf965d9f47ae146bf7fb0159d9edd05b`.
 
-## A retained second definition can fix allocation but expose a sched2 dependency (func_actor_323300_80162BE4, 2026-09-20)
+## A retained second definition can fix allocation but expose a sched2 dependency (_actor323300StrangerSpawn, 2026-09-20)
 
 The retry baseline was 99.924%, with only a model pointer in v0 instead of v1.
 High-address, model and count local quantities occupied disjoint intervals and
@@ -138196,7 +138196,7 @@ The discarded DEF_REG output never affects program behavior. This supports
 the coupled set-count, allocation and scheduling mechanism for this function;
 it does not reconstruct the original source spelling.
 
-Evidence: tools/permuter_findings/func_actor_323300_80162BE4/, including
+Evidence: tools/permuter_findings/_actor323300StrangerSpawn/, including
 LEARNINGS.md, planned experiments, primary dumps and
 PERMUTER_EVIDENCE/manual-primary/analysis/base1/ (traced assembly unchanged).
 The router separately improved an alternate 188->181 with a once-only dst=nrm
@@ -145103,7 +145103,7 @@ extra copies also add references to `coord`, which then outranked the local
 reused as both the "player is near" flag and the sound id; splitting that into
 `value` and `sound` restored the order. Reading `coord` before `work` at entry
 shortened the constant's range by one insn and was also needed.
-## A per-part translation copy is Psy-Q `setVector` on `&array[i]` (func_actor_323300_80162BE4, 2026-09-26)
+## A per-part translation copy is Psy-Q `setVector` on `&array[i]` (_actor323300StrangerSpawn, 2026-09-26)
 
 A loop saving each part's translation stores the first member off the array
 giv (`sw v1,0x540(a1)`) and the other two off a pointer computed in the body

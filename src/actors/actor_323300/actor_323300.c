@@ -139,8 +139,8 @@ extern AnimationPlayRequest D_actor_323300_801725B4;
 extern AnimationPlayRequest D_actor_323300_801725C8;
 extern AnimationPlayRequest D_actor_323300_801725DC;
 
-/// Animation source table `func_actor_323300_80163718` indexes by
-/// `_Actor323300StrangerWork::bank`. `func_actor_323300_80162BE4`
+/// Animation source table `_actor323300StrangerPlayAnimation` indexes by
+/// `_Actor323300StrangerWork::bank`. `_actor323300StrangerSpawn`
 /// applies the preset `D_actor_323300_80174A74` through it and places the
 /// actor at `D_actor_323300_80174AB0`.
 extern AnimationSet*        D_actor_323300_80174A60[4];
@@ -148,38 +148,46 @@ extern AnimationSet**       D_actor_323300_80174A70[1];
 extern AnimationPlayRequest D_actor_323300_80174A74;
 extern ActorTransform       D_actor_323300_80174AB0;
 
-/// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
+/// Tuning for the toilet-event woman's turn, sound and delayed buffer release.
+enum {
+    ACTOR_323300_WOMAN_VIEW2_ATTENUATION          = 40, // Signed sound-script attenuation; pan stays zero
+    ACTOR_323300_WOMAN_TURN_STEP                  = ACTOR_TRANSFORM_ANGLE_TURN / 64,
+    ACTOR_323300_WOMAN_TURN_START                 = 0,
+    ACTOR_323300_WOMAN_TURN_RATE                  = ANIMATION_RATE_ONE / 2,
+    ACTOR_323300_WOMAN_IDLE_RATE                  = 22, // Sixteenths of a normal-rate animation frame per tick
+    ACTOR_323300_WOMAN_BUFFER_FREE_DELAY          = 2,  // Active actor ticks before freeing on the next zero-count tick
+    ACTOR_323300_WOMAN_DRAW_SHOW_SKIP_AUTO_BUFFER = 3,
+};
 
 static void func_actor_323300_80161E78(Task* arg0);
-static void func_actor_323300_80161FE8(Task* arg0);
-s32         func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3);
-static void func_actor_323300_8016269C(Task* arg0);
-static void func_actor_323300_801626D0(Task* arg0);
-static void func_actor_323300_801626EC(Task* arg0);
-static void func_actor_323300_801626F4(Task* arg0);
-static void func_actor_323300_80162748(Task* arg0);
-static void func_actor_323300_801627B4(Task* arg0);
-static void func_actor_323300_801634B0(Task* arg0);
-static void func_actor_323300_80163510(Task* arg0);
-static void func_actor_323300_8016359C(Task* arg0, s16 arg1);
+static void _actor323300WomanUpdate(Task* task);
+static s32  _actor323300WomanSetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static void _actor323300WomanExit(Task* task);
+static void _actor323300WomanBindLighting(Task* task);
+static void _actor323300WomanIdle(Task* task);
+static void _actor323300WomanDispatchTurn(Task* task);
+static void _actor323300WomanStartTurn(Task* task);
+static void _actor323300WomanTurnTowardTarget(Task* task);
+static void _actor323300StrangerExit(Task* task);
+static void _actor323300StrangerInitLighting(Task* task);
+static void _actor323300StrangerTurnBody(Task* task, s16 turnAngle);
 static s32  _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
-static s32  func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
+static s32  _actor323300StrangerPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 
 /// State table `func_actor_323300_80162630` copies onto the stack and indexes
 /// by `Task::state`: spawn, per-frame runner and exit of the woman.
 static const TaskFuncTable3 D_actor_323300_80161E24 = { {
     func_actor_323300_80161E78,
-    func_actor_323300_80161FE8,
-    func_actor_323300_8016269C,
+    _actor323300WomanUpdate,
+    _actor323300WomanExit,
 } };
 
-s32 func_actor_323300_80162208(Task*, s32, s32, s32);
 s32 func_actor_323300_80162360(Task* task, s32 msgId, ActorCommand* msg, ActorTransform* place);
 
 static TmdSource _gActor323300AnmcWoman1Body;
 static TmdSource _gActor323300LesserStrangerBody;
 void             func_actor_323300_80162630(Task*);
-void             func_actor_323300_80163840(Task*);
+static void      _actor323300StrangerTask(Task* task);
 
 static AnimationSet _gActor323300Animation11FC4;
 static AnimationSet _gActor323300Animation123E0;
@@ -330,13 +338,13 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_323300_8017255C[2] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_323300_80162630, { .model = &_gActor323300AnmcWoman1Body } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_323300_80163840, { .model = &_gActor323300LesserStrangerBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor323300StrangerTask, { .model = &_gActor323300LesserStrangerBody } },
 };
 
 TaskMessageEntry D_actor_323300_80172574[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_323300_80162208 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor323300WomanSetModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_323300_80162360 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -435,9 +443,55 @@ AnimationPlayRequest D_actor_323300_80174A88[2] = {
 
 ActorTransform D_actor_323300_80174AB0 = { { -1700, 0, -1457, 0 }, { 0, -1024, 0, 0 } };
 
-static void func_actor_323300_80162BE4(Task* arg0);
-static void func_actor_323300_80162DF0(Task* arg0);
-static void func_actor_323300_80163188(GfxCoord* coord, s16 angle);
+static void _actor323300StrangerSpawn(Task* task);
+static void _actor323300StrangerUpdate(Task* task);
+static void _actor323300StrangerTurnJoint(GfxCoord* joint, s16 yawDelta);
+
+/// Saves a model's rest XYZ components into a morph's borrowed snapshot buffers.
+///
+/// The source and buffers must cover the record's vertex and normal counts.
+/// Normals are saved only when target normals exist; fourth halfwords are
+/// untouched. The record and snapshot remain owned by the loaded room, and
+/// the saved shape must remain unchanged until its transformation finishes.
+static inline void _modelMorphSaveRestShape(const Task* task, const ModelMorph* morph)
+{
+    const TmdSource* source;
+    SVECTOR*         savedVertices;
+    SVECTOR*         savedNormals;
+    const SVECTOR*   vertices;
+    const SVECTOR*   normals;
+    s32              elementIndex;
+
+    source        = task->extra.tmd->source;
+    savedVertices = morph->savedVertices;
+    savedNormals  = morph->savedNormals;
+    vertices      = source->verts;
+    for (elementIndex = 0; elementIndex < morph->savedVertexCount; elementIndex++) {
+        savedVertices[elementIndex].vx = vertices[elementIndex].vx;
+        savedVertices[elementIndex].vy = vertices[elementIndex].vy;
+        savedVertices[elementIndex].vz = vertices[elementIndex].vz;
+    }
+    if (morph->targetNormals != NULL) {
+        normals = source->normals;
+        for (elementIndex = 0; elementIndex < morph->normalCount; elementIndex++) {
+            savedNormals[elementIndex].vx = normals[elementIndex].vx;
+            savedNormals[elementIndex].vy = normals[elementIndex].vy;
+            savedNormals[elementIndex].vz = normals[elementIndex].vz;
+        }
+    }
+}
+
+/// Installs nine local rotation coefficients and refreshes a joint's composed transform.
+///
+/// Source rotation must be separate, readable and word-aligned. Translation,
+/// alignment bytes and parent links stay intact. The joint's acyclic ancestor
+/// chain remains live; composition may update ancestor caches and GTE registers.
+static inline void _actorRenderInstallJointRotation(GfxCoord* joint, const MATRIX* localRotation)
+{
+    memcpy(joint->coord.m, localRotation->m, sizeof(joint->coord.m));
+    joint->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(joint);
+}
 
 /// Allocates the `_Actor323300WomanWork` this actor's whole lifetime runs on,
 /// links `body` with its one-entry contact table, then binds the message
@@ -459,7 +513,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     work->model.bank       = ACTOR_MODEL_STATE_NONE;
     work->loopSoundEnabled = 1;
     work->freeCountdown    = -1;
-    func_actor_323300_801626D0(arg0);
+    _actor323300WomanBindLighting(arg0);
     extra                  = arg0->extra.tmd;
     body                   = &work->body;
     body->coord            = extra->coords + 1;
@@ -474,146 +528,135 @@ static void func_actor_323300_80161E78(Task* arg0)
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, 1, 0);
     arg0->msgTable = D_actor_323300_80172574;
-    func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+    _actor323300WomanSetModelDraw(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_8017259C, 0);
     _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
     sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
-    arg0->exitCallback = func_actor_323300_8016269C;
+    arg0->exitCallback = _actor323300WomanExit;
     arg0->state       += 1;
 }
 
-/// Per-frame runner of the woman: dispatches on `walk.motion` through the
-/// two-entry handler table it builds on the stack, ticks the 18 animation
-/// slots and, while `loopSoundEnabled` is set, posts the room's sound. Slot
-/// 1's `ANIMATION_SLOT_FOLLOWED_JUMP` retriggers the script; otherwise a ready
-/// view queues `sndEvtRequestScriptMix` for its first matching instance.
-/// Both requests use pan 0 and attenuation 40 in view 2, 0 elsewhere.
-/// The pan/attenuation pair `location.loc.view` picks between is built
-/// twice so the two calls cross-jump into a shared `jal`. Then, unless
-/// `TmdObject::flags` says the model is hidden, draws the ground shadow under
-/// coordinate 1, empties `contact`, refreshes that coordinate's matrix and
-/// colour, and ticks the `freeCountdown` that frees the model's buffers when
-/// it reaches zero.
-static void func_actor_323300_80161FE8(Task* arg0)
+/// Advances the toilet-event woman's motion, animation, sound and buffer-release delay.
+///
+/// Requires a live model and woman work with motion 0 (idle) or 1 (turning).
+/// Tracks 1..18 advance when playback is initialized. While loop sound is
+/// active, a control jump on track 1 retriggers the toilet script; a ready view
+/// otherwise updates its pan and attenuation (pan 0; attenuation 40 in view 2,
+/// 0 elsewhere). Visible frames draw the ground shadow, clear contacts and
+/// refresh lighting. The pending buffer release counts active actor ticks;
+/// the tick entering with zero frees the buffers and changes the count to -1.
+static void _actor323300WomanUpdate(Task* task)
 {
-    TmdObject*             extra               = arg0->extra.tmd;
-    _Actor323300WomanWork* work                = arg0->work;
-    void                   (*states[2])(Task*) = {
-        func_actor_323300_801626EC,
-        func_actor_323300_801626F4,
+    TmdObject*             model             = task->extra.tmd;
+    _Actor323300WomanWork* work              = task->work;
+    TaskFunc               motionHandlers[2] = {
+        _actor323300WomanIdle,
+        _actor323300WomanDispatchTurn,
     };
     VECTOR3 groundPoint;
-    s32     i;
+    s32     slotIndex;
 
-    states[work->walk.motion](arg0);
+    motionHandlers[work->walk.motion](task);
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
         if (work->loopSoundEnabled != 0) {
+            // Clip jumps retrigger the script; a ready view otherwise updates the current mix.
             if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
                 if (gGameSession->location.loc.view == 2) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, ACTOR_323300_WOMAN_VIEW2_ATTENUATION);
                 } else {
                     sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0);
                 }
             } else if (gGameSession->viewReady != 0) {
                 if (gGameSession->location.loc.view == 2) {
-                    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
+                    sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, ACTOR_323300_WOMAN_VIEW2_ATTENUATION);
                 } else {
                     sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0);
                 }
             }
         }
     }
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&arg0->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
             effectDrawGroundShadow(&groundPoint, 0x200, gRoomEffectState->groundShadowShade);
         }
         worldCollisionClearContacts(&work->contact);
-        arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(extra, arg0->extra.tmd->coords[1].workm.t, 0, 3);
+        task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(&task->extra.tmd->coords[1]);
+        worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(extra);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
 }
 
-/// Message-0x7D5 handler: the four-way visibility/mode switch on the message's
-/// mode word, plus the pair-test toggles `_Actor323300WomanWork::body` needs.
+/// Sets the woman's visibility, collision pair tests and model-buffer policy.
 ///
-/// Mode 0 hides the model -- `TmdObject::flags` bit 0x80, the bit
-/// `func_actor_323300_80161FE8` tests before drawing the ground shadow -- and
-/// clears `TMD_OBJECT_SKIP_AUTO_BUFFER` without allocating. Mode 1 shows it,
-/// puts the node back in the pair walk, allocates the buffers and clears
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER`. Mode 2 hides it, arms the `freeCountdown`
-/// the the per-frame runner frees the buffers with, and sets
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER` so the missing-buffer sweep does not refill
-/// them. Mode 3 shows it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. The countdown
-/// itself does not test that bit. Anything else returns 1 and leaves the
-/// object alone; the handled modes return 0.
-///
-/// The node's `WorldCollisionBody::flags` halfword is the induction variable, strided by one
-/// `WorldCollisionBody` per step: the block owns a single node, so the walk covers one
-/// element, but retail keeps the array shape. `WORLD_COLLISION_BODY_PAIR_ENABLED`
-/// takes the node in and out of body-pair tests without unlinking it.
-s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
+/// Requires a live TMD model and woman work. Modes 0/1 hide/show and enable
+/// automatic buffer recovery; mode 1 also allocates both buffer halves.
+/// Mode 2 hides, disables recovery and sets the two-tick buffer-free delay;
+/// mode 3 shows and disables recovery. Showing enables body-pair tests and
+/// hiding disables them without unlinking the body. No mode cancels an
+/// already pending free. Returns 0 for modes 0..3, 1 otherwise. The message
+/// ID and second payload are ignored.
+static s32 _actor323300WomanSetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
     _Actor323300WomanWork* work;
-    TmdObject*             extra;
-    u16*                   flags;
-    s32                    i;
-    s32                    ret;
+    TmdObject*             model;
+    u16*                   bodyFlags;
+    s32                    bodyIndex;
+    s32                    result;
 
-    extra = arg0->extra.tmd;
-    work  = arg0->work;
-    ret   = 0;
+    model  = task->extra.tmd;
+    work   = task->work;
+    result = 0;
 
     switch (mode) {
-        case 0:
-            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            flags         = &work->body.flags;
-            for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyFlags     = &work->body.flags;
+            for (bodyIndex = 0; bodyIndex < 1; bodyIndex++) {
+                bodyFlags[bodyIndex * (sizeof(WorldCollisionBody) / sizeof(*bodyFlags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            flags         = &work->body.flags;
-            for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyFlags     = &work->body.flags;
+            for (bodyIndex = 0; bodyIndex < 1; bodyIndex++) {
+                bodyFlags[bodyIndex * (sizeof(WorldCollisionBody) / sizeof(*bodyFlags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            tmdAllocPrimitiveBuffer(extra);
-            extra->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            flags         = &work->body.flags;
-            for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyFlags     = &work->body.flags;
+            for (bodyIndex = 0; bodyIndex < 1; bodyIndex++) {
+                bodyFlags[bodyIndex * (sizeof(WorldCollisionBody) / sizeof(*bodyFlags))] &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            work->freeCountdown = 2;
-            extra->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->freeCountdown = ACTOR_323300_WOMAN_BUFFER_FREE_DELAY;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            extra->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            flags         = &work->body.flags;
-            for (i = 0; i < 1; i++) {
-                flags[i * (sizeof(WorldCollisionBody) / sizeof(*flags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        case ACTOR_323300_WOMAN_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyFlags     = &work->body.flags;
+            for (bodyIndex = 0; bodyIndex < 1; bodyIndex++) {
+                bodyFlags[bodyIndex * (sizeof(WorldCollisionBody) / sizeof(*bodyFlags))] |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
 
-    return ret;
+    return result;
 }
 
 /// Message 0x7DB handler, listed in `D_actor_323300_80172574` after the 0x7D3 /
@@ -637,7 +680,7 @@ s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTra
     w = arg0->work;
     switch (msg->command) {
         case 0:
-            func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            _actor323300WomanSetModelDraw(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 10:
             spawned         = taskSpawnFromTable(D_actor_323300_8017255C, 1, 0, 0);
@@ -717,51 +760,68 @@ void func_actor_323300_80162630(Task* task)
     }
 }
 
-static void func_actor_323300_8016269C(Task* arg0)
+/// Unlinks the woman's collision body before releasing her enemy and task storage.
+///
+/// Requires initialized woman work and a live enemy in the task's second
+/// spawn argument. Teardown releases the work and its borrowed lighting
+/// matrices; the stopped model's remaining storage follows task teardown.
+static void _actor323300WomanExit(Task* task)
 {
-    worldCollisionUnlinkBody(&((_Actor323300WomanWork*)arg0->work)->body);
-    enemyTaskExit(arg0);
+    _Actor323300WomanWork* work = task->work;
+
+    worldCollisionUnlinkBody(&work->body);
+    enemyTaskExit(task);
 }
 
-static void func_actor_323300_801626D0(Task* arg0)
+/// Binds the woman's model to the lighting matrices in her work block.
+///
+/// The live model borrows both matrices until teardown; this does not initialize
+/// their coefficients. Woman work must remain allocated while the model draws.
+static void _actor323300WomanBindLighting(Task* task)
 {
-    TmdObject*             ext;
+    TmdObject*             model;
     _Actor323300WomanWork* work;
 
-    ext           = arg0->extra.tmd;
-    work          = arg0->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
 }
 
-/// Index 0 of the two-entry table `func_actor_323300_80161FE8` builds on its
-/// stack: the empty "hold" state.
-static void func_actor_323300_801626EC(Task* arg0)
+/// Leaves the woman's idle motion unchanged; animation and sound run in the frame update.
+static void _actor323300WomanIdle(Task* task)
 {
 }
 
-/// Index 1 of that table: re-dispatches on `walk.motionStep` through a second
-/// two-entry table, the preset start and the turn-to-face step.
-static void func_actor_323300_801626F4(Task* arg0)
+/// Dispatches the woman's in-place turn to its start or tracking step.
+///
+/// Requires initialized woman work with `walk.motionStep` 0 (start) or 1
+/// (tracking). Each handler receives the live task; the table has no bounds check.
+static void _actor323300WomanDispatchTurn(Task* task)
 {
-    _Actor323300WomanWork* work                = arg0->work;
-    void                   (*states[2])(Task*) = {
-        func_actor_323300_80162748,
-        func_actor_323300_801627B4,
+    _Actor323300WomanWork* work            = task->work;
+    TaskFunc               turnHandlers[2] = {
+        _actor323300WomanStartTurn,
+        _actor323300WomanTurnTowardTarget,
     };
 
-    states[work->walk.motionStep](arg0);
+    turnHandlers[work->walk.motionStep](task);
 }
 
-static void func_actor_323300_80162748(Task* arg0)
+/// Starts the woman's turn clip at half a normal animation frame per tick.
+///
+/// Requires turn step 0 and initialized woman work. Tracks 1..18 are set to
+/// rate 8 in sixteenths of a frame, the unused walk velocity is cleared, and
+/// the turn advances to step 1. The target position does not move the model.
+static void _actor323300WomanStartTurn(Task* task)
 {
     _Actor323300WomanWork* work;
-    s32                    i;
+    s32                    slotIndex;
 
-    work = arg0->work;
-    _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725C8, 0);
-    for (i = 1; i < 0x13; i++) {
-        work->rig.slots[i].rate = 8;
+    work = task->work;
+    _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725C8, 0);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = ACTOR_323300_WOMAN_TURN_RATE;
     }
     work->walk.velocity.vx = 0;
     work->walk.velocity.vy = 0;
@@ -769,55 +829,48 @@ static void func_actor_323300_80162748(Task* arg0)
     work->walk.motionStep++;
 }
 
-/// State handler at index 1 of the two-entry table `func_actor_323300_801626F4`
-/// dispatches, the turn-to-face body. Euler-extracts the root coordinate into `vec`
-/// and, while the yaw gap to the target `work->walk.targetRot.vy` stays under 0x41,
-/// snaps `vec.vy` to that target, plays anim 0x7D3 through
-/// `_actorMotionPlayAnim19` and parks all 18 animation slots at 0x16 --
-/// `walk.motion` and `walk.motionStep` go back to zero, so the handler re-runs. A wider
-/// gap steps `vec.vy` toward the target by 0x40 instead. Either way the root
-/// coordinate is rebuilt as the identity matrix rotated by `vec`, with `composeStamp`
-/// cleared so the next `actorRenderComposeCoord` recomputes it.
-static void func_actor_323300_801627B4(Task* arg0)
+/// Turns the woman's root toward the requested yaw without changing its translation.
+///
+/// Requires turn step 1 and a live nineteen-part model. Angles use 4096 units
+/// per turn. The yaw difference is narrowed to signed 16 bits; each tick steps
+/// 64 units or snaps when the gap is at most 64. Arrival selects its completion clip,
+/// sets tracks 1..18 to rate 22 sixteenths of a frame and returns to idle motion.
+/// The root rotation is rebuilt from the extracted Euler angles, discarding
+/// scale and marking its composed transform dirty.
+static void _actor323300WomanTurnTowardTarget(Task* task)
 {
     _Actor323300WomanWork* work;
-    GfxMatrix*             words;
-    GfxCoord*              coord;
-    SVECTOR                vec;
-    s16                    diff;
-    s32                    vy;
-    s32                    i;
+    GfxCoord*              root;
+    SVECTOR                rootAngles;
+    s16                    yawGap;
+    s32                    currentYaw;
+    s32                    slotIndex;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
+    root = task->extra.tmd->coords;
+    work = task->work;
 
-    gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
-    if (ABS(diff) >= 0x41) {
-        vy = vec.vy;
-        if (diff < 0) {
-            vec.vy = vy - 0x40;
+    gfxExtractSmallestEuler(&rootAngles, &root->coord);
+    yawGap = (u16)work->walk.targetRot.vy - (u16)rootAngles.vy;
+    if (ABS(yawGap) >= ACTOR_323300_WOMAN_TURN_STEP + 1) {
+        currentYaw = rootAngles.vy;
+        if (yawGap < 0) {
+            rootAngles.vy = currentYaw - ACTOR_323300_WOMAN_TURN_STEP;
         } else {
-            vec.vy = vy + 0x40;
+            rootAngles.vy = currentYaw + ACTOR_323300_WOMAN_TURN_STEP;
         }
     } else {
-        vec.vy = work->walk.targetRot.vy;
-        _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725DC, 0);
-        for (i = 1; i < 0x13; i++) {
-            work->rig.slots[i].rate = 0x16;
+        rootAngles.vy = work->walk.targetRot.vy;
+        _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725DC, 0);
+        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            work->rig.slots[slotIndex].rate = ACTOR_323300_WOMAN_IDLE_RATE;
         }
         work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
-        work->walk.motionStep = 0;
+        work->walk.motionStep = ACTOR_323300_WOMAN_TURN_START;
     }
 
-    words                       = (GfxMatrix*)&coord->coord;
-    words->rotationWords.m00M01 = ONE;
-    words->rotationWords.m02M10 = 0;
-    words->rotationWords.m11M12 = ONE;
-    words->rotationWords.m20M21 = 0;
-    words->rotationWords.m22    = ONE;
-    RotMatrix(&vec, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    gfxSetRotIdentity(&root->coord);
+    RotMatrix(&rootAngles, &root->coord);
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 #include "../../shared/actor_motion_play19.inc.c"
@@ -826,153 +879,134 @@ static void func_actor_323300_801627B4(Task* arg0)
 
 #include "../../shared/model_morph_blend.inc.c"
 
-static void func_actor_323300_80162BE4(Task* arg0)
+/// Initializes the Lesser Stranger's transformation task and rest-shape snapshot.
+///
+/// Allocates zeroed work from the primary heap; failure tears the task down.
+/// Requires its nineteen-part model and the loaded toilet overlay's morph
+/// record and writable snapshot buffers (325 vertices and 1604 normals).
+/// Only XYZ components are saved, leaving each snapshot's fourth halfword
+/// intact. The room's snapshot is shared, so another instance must not overwrite
+/// it during this transformation. Model lighting borrows the allocated work;
+/// part translations come from the first clip's initialized pose.
+static void _actor323300StrangerSpawn(Task* task)
 {
     _Actor323300StrangerWork* work;
-    TmdObject*                extra;
-    TmdSource*                src;
+    TmdObject*                model;
     GfxCoord*                 coord;
-    ModelMorph*               morph;
-    SVECTOR*                  dst;
-    SVECTOR*                  nrm;
-    SVECTOR*                  verts;
-    SVECTOR*                  normals;
-    s32                       i;
-    s32                       part;
+    s32                       partIndex;
 
-    extra              = arg0->extra.tmd;
-    arg0->exitCallback = func_actor_323300_801634B0;
+    model              = task->extra.tmd;
+    task->exitCallback = _actor323300StrangerExit;
     work               = memCalloc(sizeof(_Actor323300StrangerWork), 0);
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
-    arg0->work                    = work;
-    work->animId                  = ACTOR_MODEL_STATE_NONE;
-    work->bank                    = ACTOR_MODEL_STATE_NONE;
-    work->transformCountdown      = ACTOR_323300_TRANSFORM_START;
-    extra->clutRowOffset          = 2;
-    extra->layerTexturePageOffset = 2;
-    extra->layerClutRowOffset     = 4;
-    extra->texturePageOffset      = 0;
-    extra->shading.colorBlend     = TMD_OBJECT_COLOR_BLEND_ONE - 1;
-    extra->flags                 &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    tmdBuildBufferHalf(extra);
-    tmdBuildBufferHalf(extra);
-    func_actor_323300_80163718(arg0, 0x7D3, &D_actor_323300_80174A74, 0);
-    _actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_80174AB0, 0);
+    task->work               = work;
+    work->animId             = ACTOR_MODEL_STATE_NONE;
+    work->bank               = ACTOR_MODEL_STATE_NONE;
+    work->transformCountdown = ACTOR_323300_TRANSFORM_START;
+    // Select the transformation palettes and build both primitive-buffer halves.
+    model->clutRowOffset          = 2;
+    model->layerTexturePageOffset = 2;
+    model->layerClutRowOffset     = 4;
+    model->texturePageOffset      = 0;
+    model->shading.colorBlend     = TMD_OBJECT_COLOR_BLEND_ONE - 1;
+    model->flags                 &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    tmdBuildBufferHalf(model);
+    tmdBuildBufferHalf(model);
+    _actor323300StrangerPlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_80174A74, 0);
+    _actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_80174AB0, 0);
 
-    // Snapshot the model's rest shape into the room's morph record.
-    morph = &D_dryfield_toilet_801865D0;
-    src   = arg0->extra.tmd->source;
-    dst   = morph->savedVertices;
-    nrm   = morph->savedNormals;
-    verts = src->verts;
-    for (i = 0; i < morph->savedVertexCount; i++) {
-        dst[i].vx = verts[i].vx;
-        dst[i].vy = verts[i].vy;
-        dst[i].vz = verts[i].vz;
-    }
-    if (morph->targetNormals != NULL) {
-        normals = src->normals;
-        for (i = 0; i < morph->normalCount; i++) {
-            nrm[i].vx = normals[i].vx;
-            nrm[i].vy = normals[i].vy;
-            nrm[i].vz = normals[i].vz;
-        }
-    }
+    // The room owns the shared rest snapshot for this transformation.
+    _modelMorphSaveRestShape(task, &D_dryfield_toilet_801865D0);
 
-    func_actor_323300_80163510(arg0);
-    // Record where the first clip's pose leaves each part, for the tick to shorten parts 4 and 5 from.
-    for (part = 1; part < 0x13; part++) {
-        coord = &arg0->extra.tmd->coords[part];
-        setVector(&work->partBasePos[part], coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
+    _actor323300StrangerInitLighting(task);
+    // Save the first clip's part translations before the transformation shortens parts 4 and 5.
+    for (partIndex = 1; partIndex < (s32)ARRAY_SIZE(work->partBasePos); partIndex++) {
+        coord = &task->extra.tmd->coords[partIndex];
+        setVector(&work->partBasePos[partIndex], coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
     }
-    arg0->state += 1;
+    task->state += 1;
 }
 
-/// Per-frame runner of the Lesser Stranger, which carries its transformation
-/// one step on: it ticks the 18 slots once a clip has been applied, turns
-/// `_Actor323300StrangerWork::transformCountdown` into the 0..0xFFF ramp
-/// `_modelMorphBlend` deforms the model's vertices by, and stores that ramp in
-/// `TmdObject::shading.colorBlend`, the colour weight with 12 fractional bits
-/// used by the shading handlers. Once the countdown is below
-/// `ACTOR_323300_TRANSFORM_TURN` the turn angle handed to
-/// `func_actor_323300_8016359C` is a quarter of what has elapsed since.
+/// Advances the Lesser Stranger from the room's full morph to its rest shape, then turns its body.
 ///
-/// The three coordinate nodes at parts 3..5 are then scaled: each is copied
-/// off into `unscaledParts[0..2]` first, then scaled in place through
-/// `ScaleMatrix` -- parts 3 and 4 to 0.2 on Y, part 5 by one -- and the
-/// *copies* become the parents of parts 4, 5 and 6, so the scale does not
-/// compound down the part chain. Parts 4 and 5 are drawn in toward their
-/// parents on Y by the ramp: each keeps its recorded `partBasePos` height at
-/// a zero ramp and a fifth of it at a full one. Part 6's shading is rebound to
-/// its own translation before the countdown drops.
-static void func_actor_323300_80162DF0(Task* arg0)
+/// Requires initialized Stranger work, tracks 1..18, live model coordinates and
+/// the unchanged room-owned rest snapshot. The countdown starts at 0x3000 and
+/// falls by 64 per active actor tick. It holds ramp 4095 through 0x2000, falls
+/// to zero at 0x1000, then grows the body turn by a quarter of elapsed units.
+/// Ramp coefficients have 12 fractional bits. Parts 3 and 4 are scaled to
+/// 819/4096 on Y; parts 4 and 5 shorten toward one fifth of their saved Y
+/// translation at full ramp. Parts 4..6 borrow unscaled coordinate copies in
+/// the work block to prevent the scale propagating down the chain. Their parent
+/// links must be restored before that block is released. The full-morph shape
+/// and the reason for the constant Y scale remain unproven.
+static void _actor323300StrangerUpdate(Task* task)
 {
     _Actor323300StrangerWork* work;
-    TmdObject*                extra;
+    TmdObject*                model;
     GfxCoord*                 coord;
-    VECTOR                    vec;
-    s32                       blend;
-    s32                       i;
+    VECTOR                    scale;
+    s32                       morphRamp;
+    s32                       slotIndex;
 
-    work  = arg0->work;
-    extra = arg0->extra.tmd;
+    work  = task->work;
+    model = task->extra.tmd;
 
     if (work->ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 
     // Morph ramp: full until the countdown reaches the morph stage, zero from the turn stage on.
-    blend = work->transformCountdown;
-    if (blend >= ACTOR_323300_TRANSFORM_MORPH) {
-        blend = TMD_OBJECT_COLOR_BLEND_ONE - 1;
-    } else if (blend > ACTOR_323300_TRANSFORM_TURN) {
-        blend -= ACTOR_323300_TRANSFORM_TURN;
+    morphRamp = work->transformCountdown;
+    if (morphRamp >= ACTOR_323300_TRANSFORM_MORPH) {
+        morphRamp = TMD_OBJECT_COLOR_BLEND_ONE - 1;
+    } else if (morphRamp > ACTOR_323300_TRANSFORM_TURN) {
+        morphRamp -= ACTOR_323300_TRANSFORM_TURN;
     } else {
-        blend = 0;
+        morphRamp = 0;
     }
 
-    _modelMorphBlend(arg0, &D_dryfield_toilet_801865D0, blend);
-    extra->shading.colorBlend = blend;
+    _modelMorphBlend(task, &D_dryfield_toilet_801865D0, morphRamp);
+    model->shading.colorBlend = morphRamp;
 
     if (work->transformCountdown < ACTOR_323300_TRANSFORM_TURN) {
-        func_actor_323300_8016359C(arg0, (s16)(((ACTOR_323300_TRANSFORM_TURN - work->transformCountdown) << 14) >> 16));
+        _actor323300StrangerTurnBody(task, (s16)(((ACTOR_323300_TRANSFORM_TURN - work->transformCountdown) << 14) >> 16));
     }
 
     // Scale parts 3 to 5 in place, hanging each next part from an unscaled copy.
 
-    coord                  = &arg0->extra.tmd->coords[3];
+    coord                  = &task->extra.tmd->coords[3];
     work->unscaledParts[0] = *coord;
-    vec.vx                 = 0x1000;
-    vec.vy                 = 0x333;
-    vec.vz                 = 0x1000;
-    ScaleMatrix(&coord->coord, &vec);
+    scale.vx               = ONE;
+    scale.vy               = ONE / 5;
+    scale.vz               = ONE;
+    ScaleMatrix(&coord->coord, &scale);
 
-    coord                  = &arg0->extra.tmd->coords[4];
+    coord                  = &task->extra.tmd->coords[4];
     work->unscaledParts[1] = *coord;
     coord->parent          = &work->unscaledParts[0];
-    vec.vx                 = 0x1000;
-    vec.vy                 = 0x333;
-    vec.vz                 = 0x1000;
-    ScaleMatrix(&coord->coord, &vec);
-    coord->coord.t[1] = work->partBasePos[4].vy - work->partBasePos[4].vy * 0.8 * blend / 4096.0;
+    scale.vx               = ONE;
+    scale.vy               = ONE / 5;
+    scale.vz               = ONE;
+    ScaleMatrix(&coord->coord, &scale);
+    coord->coord.t[1] = work->partBasePos[4].vy - work->partBasePos[4].vy * 0.8 * morphRamp / (double)ONE;
 
-    coord                  = &arg0->extra.tmd->coords[5];
+    coord                  = &task->extra.tmd->coords[5];
     work->unscaledParts[2] = *coord;
     coord->parent          = &work->unscaledParts[1];
-    vec.vx                 = 0x1000;
-    vec.vy                 = 0x1000;
-    vec.vz                 = 0x1000;
-    ScaleMatrix(&coord->coord, &vec);
-    coord->coord.t[1] = work->partBasePos[5].vy - work->partBasePos[5].vy * 0.8 * blend / 4096.0;
+    scale.vx               = ONE;
+    scale.vy               = ONE;
+    scale.vz               = ONE;
+    ScaleMatrix(&coord->coord, &scale);
+    coord->coord.t[1] = work->partBasePos[5].vy - work->partBasePos[5].vy * 0.8 * morphRamp / (double)ONE;
 
-    coord         = &arg0->extra.tmd->coords[6];
+    coord         = &task->extra.tmd->coords[6];
     coord->parent = &work->unscaledParts[2];
-    worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
+    worldCoordSetModelLighting(model, coord->workm.t, 0, 3);
 
     work->transformCountdown -= ACTOR_323300_TRANSFORM_STEP;
     if (work->transformCountdown < 0) {
@@ -980,112 +1014,109 @@ static void func_actor_323300_80162DF0(Task* arg0)
     }
 }
 
-/// Turns joint `coord` by `angle` about the world Y axis and then by half of it
-/// about X, so the joint is pitched as well as turned: builds its world
-/// rotation in a matrix carved off the scratchpad head, applies both turns,
-/// converts the result back into the parent's frame, writes the 3x3 into the
-/// joint and refreshes it.
-static void func_actor_323300_80163188(GfxCoord* coord, s16 angle)
+/// Adds world-space yaw and half as much pitch to a Stranger joint, then refreshes it.
+///
+/// `yawDelta` is signed in 4096 units per turn; pitch uses division toward zero.
+/// Requires a writable joint with a non-NULL parent and a live acyclic chain
+/// reaching `gGfxViewCoord`, plus word-aligned scratch-stack space for one
+/// `MATRIX`. Only the nine rotation coefficients change; translation and parent
+/// links stay intact. The scratch block is released before return and GTE
+/// working registers change.
+static void _actor323300StrangerTurnJoint(GfxCoord* joint, s16 yawDelta)
 {
-    MATRIX* rotation;
+    MATRIX* worldRotation;
 
-    SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
-    rotation = SCRATCH_STACK_CURSOR(MATRIX);
-    _actorRenderAccumulateRotation(coord, rotation, &gGfxViewCoord);
-    RotMatrixY(angle, rotation);
-    RotMatrixX(angle / 2, rotation);
-    _actorRenderLocalizeRotation(coord, rotation);
-    memcpy(coord->coord.m, rotation->m, sizeof(coord->coord.m));
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+    worldRotation = SCRATCH_STACK_RESERVE_BLOCK(MATRIX);
+    // Apply the extra yaw and pitch in world space, then return to the parent frame.
+    _actorRenderAccumulateRotation(joint, worldRotation, &gGfxViewCoord);
+    RotMatrixY(yawDelta, worldRotation);
+    RotMatrixX(yawDelta / 2, worldRotation);
+    _actorRenderLocalizeRotation(joint, worldRotation);
+    _actorRenderInstallJointRotation(joint, worldRotation);
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
-/// Exit callback of the Lesser Stranger: puts parts 4 to 6 back under the
-/// model's own parts 3 to 5, off the `_Actor323300StrangerWork::unscaledParts`
-/// copies that go away with the work block, and kills the task.
-static void func_actor_323300_801634B0(Task* arg0)
+/// Restores the Stranger's model parent links before task teardown releases its work.
+///
+/// Parts 4, 5 and 6 are returned to model parts 3, 4 and 5 respectively, ending
+/// their borrowing of `unscaledParts`. Requires the live model coordinates;
+/// `taskKill` then releases work and schedules or performs body teardown.
+static void _actor323300StrangerExit(Task* task)
 {
-    GfxCoord* base;
-    GfxCoord* node;
-    GfxCoord* sub;
+    GfxCoord* coords;
+    GfxCoord* part4;
+    GfxCoord* parent;
 
+    // Restore links before taskKill releases the work-owned parent copies.
     do {
-        base         = arg0->extra.tmd->coords;
-        sub          = base + 3;
-        node         = base + 4;
-        node->parent = sub;
+        coords        = task->extra.tmd->coords;
+        parent        = coords + 3;
+        part4         = coords + 4;
+        part4->parent = parent;
     } while (0);
-    sub                               = arg0->extra.tmd->coords + 5;
-    sub->parent                       = node;
-    arg0->extra.tmd->coords[6].parent = sub;
-    taskKill(arg0);
+    parent                            = task->extra.tmd->coords + 5;
+    parent->parent                    = part4;
+    task->extra.tmd->coords[6].parent = parent;
+    taskKill(task);
 }
 
-/// Sets `_Actor323300StrangerWork::light` and `color` to identity, lends them
-/// to the model object as `TmdObject::lightMtx` / `colorMtx`, then re-derives model part 1's world
-/// matrix -- clearing its dirty flag, rebuilding it from its parent and
-/// rebinding the actor's shading to the part's translation.
-static void func_actor_323300_80163510(Task* arg0)
+/// Initializes identity lighting matrices for the Stranger and samples lighting at part 1.
+///
+/// Requires the live model and allocated Stranger work. The model borrows the
+/// work's light and colour matrices through teardown. Only their nine rotation
+/// coefficients are initialized; translation stays intact. Part 1's composed
+/// transform is refreshed before sampling the world's first three lights.
+static void _actor323300StrangerInitLighting(Task* task)
 {
     _Actor323300StrangerWork* work;
     GfxMatrix*                light;
     GfxMatrix*                color;
     GfxCoord*                 coords;
-    TmdObject*                extra;
+    TmdObject*                model;
 
-    extra  = arg0->extra.tmd;
-    work   = arg0->work;
-    coords = extra->coords;
+    model  = task->extra.tmd;
+    work   = task->work;
+    coords = model->coords;
 
-    work->light.rotationWords.m00M01 = ONE;
-    light                            = &work->light;
-    light->rotationWords.m02M10      = 0;
-    light->rotationWords.m11M12      = ONE;
-    light->rotationWords.m20M21      = 0;
-    light->rotationWords.m22         = ONE;
+    light = &work->light;
+    color = &work->color;
+    gfxSetRotIdentity(&light->mat);
+    gfxSetRotIdentity(&color->mat);
 
-    work->color.rotationWords.m00M01 = ONE;
-    color                            = &work->color;
-    color->rotationWords.m02M10      = 0;
-    color->rotationWords.m11M12      = ONE;
-    color->rotationWords.m20M21      = 0;
-    color->rotationWords.m22         = ONE;
-
-    extra->lightMtx = &light->mat;
-    extra->colorMtx = &color->mat;
+    model->lightMtx = &light->mat;
+    model->colorMtx = &color->mat;
 
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&coords[1]);
-    worldCoordSetModelLighting(extra, coords[1].workm.t, 0, 3);
+    worldCoordSetModelLighting(model, coords[1].workm.t, 0, 3);
 }
 
-/// Re-aims the per-part coordinate nodes at index 5 and index 2 from one turn
-/// angle: the angle is clamped to +-0x400 -- a quarter turn either way -- then
-/// `func_actor_323300_80163188` rebuilds node 5 from two thirds of it and node
-/// 2 from half, and nodes 5 down to 2 have their dirty flag cleared so the next
-/// `actorRenderComposeCoord` re-derives them. The lower clamp tests `arg1` rather than
-/// the clamped copy; that is the same test, because the upper clamp has already
-/// pinned the copy to 0x400 whenever the angle was out of range upwards.
-static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
+/// Turns Stranger joints 5 and 2 by linked yaw-and-pitch angles.
+///
+/// `turnAngle` uses 4096 units per turn and is clamped to +/-1024. Joint 5
+/// receives two thirds of the clamped angle; joint 2 receives half. Both receive
+/// half their yaw as world pitch. Requires live model coordinates and the
+/// joint helper's parent-chain and scratch-stack contract. Parts 2..5 are
+/// marked dirty afterwards because the joint turns affect descendant caches.
+static void _actor323300StrangerTurnBody(Task* task, s16 turnAngle)
 {
-    s16 var;
+    s16 clampedAngle;
 
-    var = arg1;
-    if (var > 0x400) {
-        var = 0x400;
+    clampedAngle = turnAngle;
+    if (clampedAngle > (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
+        clampedAngle = (ACTOR_TRANSFORM_ANGLE_TURN / 4);
     }
-    if (arg1 < -0x400) {
-        var = -0x400;
+    if (turnAngle < -(ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
+        clampedAngle = -(ACTOR_TRANSFORM_ANGLE_TURN / 4);
     }
 
-    func_actor_323300_80163188(&arg0->extra.tmd->coords[5], (var * 2) / 3);
-    func_actor_323300_80163188(&arg0->extra.tmd->coords[2], var / 2);
+    _actor323300StrangerTurnJoint(&task->extra.tmd->coords[5], (clampedAngle * 2) / 3);
+    _actor323300StrangerTurnJoint(&task->extra.tmd->coords[2], clampedAngle / 2);
 
-    arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-    arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-    arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Selects the private placement handler for the Lesser Stranger model task.
@@ -1093,42 +1124,43 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 #include "../../shared/actor_messages_place_euler.inc.c"
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
-/// Play-animation handler of the Lesser Stranger, the twin of
-/// `_actorMotionPlayAnim19` for a block that keeps its playback values as the
-/// words of `_Actor323300StrangerWork`. A request for a bank the rig is not
-/// bound to rebinds it: the bank is stored, the clip id is reset to
-/// `ACTOR_MODEL_STATE_NONE` and the bank's sets go to `animationInitContext`
-/// with the rig's context, pose buffer and slots. A different clip id then
-/// restarts every slot 1..0x12 -- through `animationSeekSlotWithBlend` when
-/// the request asks for a blend and a clip has been applied before, through
-/// `animationResetSlot` otherwise -- ticks them once and sets `ticking`.
-static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
+/// Applies a borrowed animation request to the Lesser Stranger's nineteen-part rig.
+///
+/// The request's bank index must be 0 and its clip index 1..3 in that bank's
+/// loaded table. A bank change rebinds the rig and invalidates the selected clip.
+/// A changed clip resets tracks 1..18, or blends from the existing pose when
+/// requested and playback was initialized; blend duration is in normal-rate
+/// frames. The tracks are ticked once to apply the pose. Repeating the selected
+/// clip does nothing, including ignoring new blend settings. Request storage
+/// is read only during this call; bank data and model storage remain borrowed.
+/// Returns 0; the message ID and second payload are ignored.
+static s32 _actor323300StrangerPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _Actor323300StrangerWork* work;
-    TmdObject*                ext;
-    s32                       i;
+    TmdObject*                model;
+    s32                       slotIndex;
 
-    work = arg0->work;
-    ext  = arg0->extra.tmd;
-    if (arg2->source.index != work->bank) {
-        work->bank   = arg2->source.index;
+    work  = task->work;
+    model = task->extra.tmd;
+    if (request->source.index != work->bank) {
+        work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_323300_80174A70[work->bank], ext,
+        animationInitContext(&work->rig.anim, D_actor_323300_80174A70[work->bank], model,
                              work->rig.poses, work->rig.slots);
     }
-    if (arg2->animationId != work->animId) {
-        work->animId = arg2->animationId;
-        if (arg2->blend != ANIMATION_BLEND_RESET && work->ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, arg2->blendFrames);
+    if (request->animationId != work->animId) {
+        work->animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET && work->ticking != 0) {
+            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, request->blendFrames);
             }
         } else {
-            for (i = 1; i < 0x13; i++) {
-                animationResetSlot(&work->rig.anim, i, work->animId);
+            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationResetSlot(&work->rig.anim, slotIndex, work->animId);
             }
         }
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
         work->ticking = 1;
     }
@@ -1136,20 +1168,22 @@ static s32 func_actor_323300_80163718(Task* arg0, s32 arg1, AnimationPlayRequest
 }
 
 static const TaskFuncTable3 D_actor_323300_80161E6C = { {
-    func_actor_323300_80162BE4,
-    func_actor_323300_80162DF0,
-    func_actor_323300_801634B0,
+    _actor323300StrangerSpawn,
+    _actor323300StrangerUpdate,
+    _actor323300StrangerExit,
 } };
 
-/// Per-frame dispatcher of the Lesser Stranger: runs its spawn, tick or exit
-/// state from `D_actor_323300_80161E6C` by `Task::state`, skipping the frame
-/// while the global freeze byte is set.
-void func_actor_323300_80163840(Task* task)
+/// Dispatches the Lesser Stranger's spawn, transformation or exit state each active frame.
+///
+/// `Task::state` must be 0 (spawn), 1 (update) or 2 (exit), with a live model
+/// and the work expected by that state. The global actor-control gate pauses
+/// all three states. The state table is copied by value and has no bounds check.
+static void _actor323300StrangerTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_323300_80161E6C;
+    stateHandlers = D_actor_323300_80161E6C;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
