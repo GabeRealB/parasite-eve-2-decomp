@@ -83,6 +83,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+#define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 
@@ -3141,7 +3143,7 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     } else {
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-        if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
             if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
                 while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
@@ -3218,7 +3220,7 @@ static void func_acropolis_bridge_8017E3A0(Task* task)
         work->blinkCount++;
     }
 
-    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
@@ -3258,7 +3260,7 @@ static void func_acropolis_bridge_8017E4FC(Task* task)
         work->blinkCount++;
     }
 
-    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
@@ -3622,7 +3624,7 @@ static void func_acropolis_bridge_8017F544(Task* task)
         task->state = 6;
     }
     func_acropolis_bridge_8017E60C(work->code, 0);
-    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;

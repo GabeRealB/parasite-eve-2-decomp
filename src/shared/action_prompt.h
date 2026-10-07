@@ -8,10 +8,11 @@
  * _outline_rect and _event_end (each with the .inc.c suffix). A package includes only the
  * fragments it carries. The cursor drawer has a static instance in each
  * carrier, as does the event-end state (declared in its carrier's prologue);
- * reset and cursor-motion instances are also static. The hotspot test and
- * outline default to external linkage for callers in the same package's other
- * files. Declare reset instances in the carrier's prologue; reset and motion
- * bindings can select additional private instances there.
+ * reset and cursor-motion instances are also static. Hotspot tests are static
+ * except the shrine and night motel lobby copies called from another file;
+ * the outline defaults to external linkage. Declare reset instances in the
+ * carrier's prologue; reset and motion bindings can select additional private
+ * instances there.
  */
 
 #ifndef SRC_SHARED_ACTION_PROMPT_H
@@ -89,23 +90,38 @@ static void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task);
 #endif
 static void ACTION_PROMPT_DRAW_CURSOR(s32 cursorX, s32 cursorY, s32 cursorMode);
 
-/// Selects the function identifier defined by the hotspot-test fragment.
+/// Selects the function identifier declared here and defined by the hotspot-test fragment.
 ///
 /// The signature is `s32(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)`;
-/// coordinates are signed center-origin screen pixels. The default is
-/// `actionPromptHitTest`, with external linkage for same-package callers in
-/// other translation units. Acropolis security and Shelter R47 select an
-/// additional `_actionPromptHitTest` instance, declared static in each carrier's
-/// prologue before its callers. Rebind around that fragment inclusion and
-/// restore the default afterwards. The default prototype below is independent
-/// of this binding. This object-like alias substitutes only the identifier:
-/// it captures no arguments, repeats no evaluation and uses neither
-/// stringification nor token pasting.
+/// the default is `actionPromptHitTest`, with external linkage for the shrine
+/// and night motel lobby's same-package callers in other translation units.
+/// Other ordinary carriers bind `_actionPromptHitTestDefault` before this
+/// header and declare it static in their prologues. The binding selects this
+/// header's prototype as well as the fragment's definition; keep it through
+/// every caller that spells the binding, including the factory panel fragment.
+///
+/// Acropolis security and Shelter R47 bind an additional `_actionPromptHitTest`,
+/// declared static in each carrier's prologue, around its fragment inclusion.
+/// Restore the carrier's original binding afterwards. This object-like alias
+/// substitutes only the identifier: it captures no arguments, repeats no
+/// evaluation and uses neither stringification nor token pasting.
 #ifndef ACTION_PROMPT_HIT_TEST
 #define ACTION_PROMPT_HIT_TEST actionPromptHitTest
 #endif
 
-s32  actionPromptHitTest(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+/// Refreshes every hotspot's hit flag and reports whether any contains the point.
+///
+/// Coordinates are signed center-origin screen pixels, with Y increasing
+/// downward. Rectangle edges, including `x + w` and `y + h`, are inside;
+/// the sums use signed 32-bit arithmetic without narrowing to 16 bits.
+/// Overlapping rectangles are all marked, and zero-sized dimensions can hit
+/// their edge. Each preceding entry's `hit` becomes 1 or 0; the return is 1
+/// for any hit, otherwise 0, independently of the entries' choice ids.
+///
+/// `hotspots` must provide writable entries followed by a readable entry whose
+/// `id` is `ACTION_PROMPT_HOTSPOT_END`. The sentinel's other fields are untouched;
+/// an empty table returns 0. Storage remains owned by the caller.
+s32  ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 void actionPromptOutlineRect(ActionPromptRect* rect, u8 r, u8 g, u8 b);
 
 #endif /* SRC_SHARED_ACTION_PROMPT_H */

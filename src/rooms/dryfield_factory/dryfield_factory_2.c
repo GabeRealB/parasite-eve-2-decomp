@@ -48,6 +48,8 @@
 #include "rooms/dryfield_night_factory.h"
 
 #include "rooms/room_common.h"
+static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+#define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"

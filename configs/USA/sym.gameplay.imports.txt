@@ -1304,7 +1304,7 @@ func_shelter_b4_water_supply_8017EE54 = 0x8017EE54; // type:func absolute:True o
 
 shelterB4WaterSupplyWaterRippleTask = 0x8017F24C; // type:func absolute:True owner=shelter_b4_water_supply
 
-shelterB4WaterSupplyWaterDriftTask = 0x8017F6D4; // type:func absolute:True owner=shelter_b4_water_supply shared=rooms
+shelterB4WaterSupplyWaterDriftTask = 0x8017F6D4; // type:func absolute:True owner=shelter_b4_water_supply
 
 func_shelter_b4_water_supply_801809DC = 0x801809DC; // type:func absolute:True owner=shelter_b4_water_supply
 

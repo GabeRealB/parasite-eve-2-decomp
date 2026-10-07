@@ -62,6 +62,8 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+#define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 #include "../../shared/action_prompt.h"
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
@@ -183,7 +185,7 @@ extern ActorTransform D_dryfield_breezeway_80181E40[];
 extern ActionPromptHotspot D_dryfield_breezeway_80182E00[];
 
 /// This room's prop hotspot table: an `ActionPromptHotspot` run ended by
-/// `ACTION_PROMPT_HOTSPOT_END`. `actionPromptHitTest` hit-tests the action
+/// `ACTION_PROMPT_HOTSPOT_END`. `_actionPromptHitTestDefault` hit-tests the action
 /// cursor against it. Its entries are the room's interactive props:
 /// `func_dryfield_breezeway_8017E464` clears every entry's `hit` through it
 /// before the first frame -- both tables', so the key-item prompt above starts
@@ -802,7 +804,7 @@ static void func_dryfield_breezeway_8017E65C(Task* task)
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
@@ -851,7 +853,7 @@ static void func_dryfield_breezeway_8017E81C(Task* task)
     RotMatrixY(rsin(gDisplayState.animFrame * 0x10), &coord->coord);
     func_dryfield_breezeway_8017EB8C(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
-    if (actionPromptHitTest(hs, work->lineEndX, work->lineEndY) != 0) {
+    if (_actionPromptHitTestDefault(hs, work->lineEndX, work->lineEndY) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
             if (hs->hit != 0) {

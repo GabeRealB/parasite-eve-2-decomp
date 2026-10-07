@@ -77,6 +77,8 @@
 
 #include "rooms/room_common.h"
 #include "rooms/shop_tier.h"
+static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+#define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
@@ -2450,7 +2452,7 @@ static void func_shelter_b1_underground_parking_80184468(Task* task)
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
