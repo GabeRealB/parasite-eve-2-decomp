@@ -809,6 +809,26 @@ static s16 _shelterB3GarbageIncineratorMoveLiftWithActor(Task* task)
     return 0;
 }
 
+/// Moves the session, and the live save, to room `room` of this area and marks
+/// the room's objects for rebuilding.
+///
+/// The image has this four-store sequence at four places in the lift task.
+/// What it shows about the room number is its width: in the one arm that sets
+/// room 5, after the task has tested the pending trigger against 5, the stores
+/// load a new 5 instead of taking the register of that test, while the 1 stored
+/// next to them does come from the register of the `kind == 1` test. cse hands a
+/// byte store the first wider register that holds its constant, 16-bit before
+/// 32-bit, so the 5 was held in a 16-bit value. A 16-bit `room` (signed or
+/// unsigned) gives that; `u8` and `s32` do not. Whether the original had a
+/// helper here or a 16-bit local in that arm is not known.
+static inline void _shelterB3GarbageIncineratorSetRoom(s16 room)
+{
+    gGameSession->location.loc.room                            = room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
+    gGameSession->eventRoomIndex                               = room - 1;
+    gGameSession->roomObjsDirty                                = 1;
+}
+
 /// Drives the room's moving model through the session's stage for it
 /// (`incineratorDescentPhase`, 0 to 3). The first frame sets up the work block and places the
 /// model at the pose for the recorded stage. In stage 0 it waits for pending
@@ -832,8 +852,6 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
     TmdObject*                            tail;
     GfxCoord*                             lift;
     _ShelterB3GarbageIncineratorLiftWork* done_work;
-    s32                                   want;
-    s32                                   t;
 
     if (gGameSession->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         return;
@@ -884,33 +902,20 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             if (Gp_TakePendingObj4C(&id, (u8*)&kind, &arg) == 0) {
                 break;
             }
-            t    = id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC);
-            want = WORLD_COLLISION_TRIGGER_ACTION_ROOM;
-            if (t != want) {
+            if ((id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) != WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
                 break;
             }
-            /* MATCHING CARRIER: ends both compare operands here. Otherwise cse
-             * carries `t == 5` into the else arm below and stores its 5 from
-             * that register, keeping it live across the calls. */
-            DEF_REG(t);
-            DEF_REG(want);
             if (kind == 1) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, 0, 0);
                 if (gGameSession->location.loc.room < 4) {
-                    gGameSession->location.loc.room                            = 2;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-                    gGameSession->eventRoomIndex                               = 1;
-                    gGameSession->roomObjsDirty                                = 1;
-                    gGameSession->eventRoomIndex                               = gGameSession->location.loc.room - 1;
-                    gGameSession->incineratorRoomGroup                         = 0;
+                    _shelterB3GarbageIncineratorSetRoom(2);
+                    gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
+                    gGameSession->incineratorRoomGroup = 0;
                 } else {
-                    gGameSession->location.loc.room                            = 5;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 5;
-                    gGameSession->eventRoomIndex                               = 4;
-                    gGameSession->roomObjsDirty                                = 1;
-                    gGameSession->eventRoomIndex                               = gGameSession->location.loc.room - 1;
-                    gGameSession->incineratorRoomGroup                         = 1;
+                    _shelterB3GarbageIncineratorSetRoom(5);
+                    gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
+                    gGameSession->incineratorRoomGroup = 1;
                 }
                 func_shelter_b3_garbage_incinerator_80180FE4(5, 0, 0x3C);
                 gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_MOVING;
@@ -942,15 +947,9 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
 
             if (liftWork->arrivalView != gGameSession->location.loc.view) {
                 if (gGameSession->location.loc.room < 4) {
-                    gGameSession->location.loc.room                            = 3;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 3;
-                    gGameSession->eventRoomIndex                               = 2;
-                    gGameSession->roomObjsDirty                                = 1;
+                    _shelterB3GarbageIncineratorSetRoom(3);
                 } else {
-                    gGameSession->location.loc.room                            = 6;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 6;
-                    gGameSession->eventRoomIndex                               = 5;
-                    gGameSession->roomObjsDirty                                = 1;
+                    _shelterB3GarbageIncineratorSetRoom(6);
                 }
                 task->state++;
             }
