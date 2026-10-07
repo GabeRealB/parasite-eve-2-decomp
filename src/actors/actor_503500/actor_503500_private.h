@@ -430,7 +430,14 @@ extern TaskDesc D_actor_503500_8016E9F0[5];
 
 extern TaskMessageEntry D_actor_503500_8016EA2C[];
 
-void func_actor_503500_80135828(Task* arg0, s8* arg1);
+/// Inherits an attached child's draw suppression, translucency and buffer policy.
+///
+/// Requires a live child model and parent model while its root remains attached
+/// to anything other than the view. A view-parented model is left alone. Clearing
+/// inherited auto-buffer suppression allocates the child's primitive buffer;
+/// setting it schedules release in two caller update frames through the writable
+/// signed-byte `bufferFreeCountdown`. The caller owns that countdown and release.
+void actor503500SyncAttachedModelDrawState(Task* task, s8* bufferFreeCountdown);
 
 /// Clears the boss's enemy pointer for slot 0..16.
 ///
@@ -455,7 +462,14 @@ Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot);
 /// `unusedTask` is ignored; the query reads the package's one boss work block.
 s32 actor503500IsSlotEmpty(Task* unusedTask, s32 slot);
 
-void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2);
+/// Enables a scale on boss model part 5, 11 or 16, using 4096 for one unit.
+///
+/// `task` must be the live boss with its twenty-part model; `scale` is borrowed
+/// for this call and its XYZ values are copied. Parts 5/11 are reparented to
+/// private copies of parts 4/10; part 16 is scaled in place by pose updates.
+/// The enable bit persists until work initialization. Other indices in 0..19
+/// set only their bit and do not copy a scale or change the hierarchy.
+void actor503500SetBossPartScale(Task* task, s32 partIndex, const SVECTOR* scale);
 
 /// Stores a slot enemy's busy report in the boss work block.
 ///
@@ -508,7 +522,13 @@ s32 actor503500TryReserveSlotEffects(s32 slot, s32 effectCost);
 /// Releases enemy slot 0..16's entire effect-budget reservation.
 void actor503500ReleaseSlotEffects(s32 slot);
 
-s16 func_actor_503500_80136134(Task* arg0);
+/// Measures the player's bearing relative to the supplied model root's heading.
+///
+/// Returns [-2048, 2048) at 4096 units per turn. Both translations must share a
+/// parent frame; X/Z differences narrow to signed halfwords before the bearing
+/// is measured. Heading comes from the root matrix's Z axis. No transform is
+/// composed and the boss's cached bearing is not changed.
+s16 actor503500MeasurePlayerBearing(Task* task);
 
 /// Returns the boss's latched health-exhausted flag.
 ///
@@ -516,9 +536,20 @@ s16 func_actor_503500_80136134(Task* arg0);
 /// defeated. The flag remains set until the boss work block is initialized.
 s32 actor503500IsDefeated(void);
 
-s16 func_actor_503500_80136218(void);
+/// Returns the boss's last attack-state bearing to the player.
+///
+/// The signed angle is relative to the boss's stored yaw, at 4096 units per
+/// turn in [-2048, 2048). Initialization gives zero; only attack-state updates
+/// refresh it, so slot enemies can read a bearing from an earlier attack.
+s16 actor503500GetPlayerBearing(void);
 
-void func_actor_503500_80137290(s32 arg0);
+/// Acquires a projectile task's lifetime share of the package's effect budget.
+///
+/// `effectCost` is its `ACTOR_503500_PROJECTILE_EFFECT_COST_*` weight. Adds to
+/// aggregate entry 17 without admission checking and narrows to an unsigned
+/// halfword; budget admission later sums it as signed. A normal task exit
+/// balances the acquisition through `actor503500ReleaseProjectileEffectCost`.
+void actor503500AcquireProjectileEffectCost(s32 effectCost);
 
 /// Lifetime budget weights released by the package's projectile task exits.
 enum {

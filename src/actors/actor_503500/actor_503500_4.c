@@ -929,7 +929,7 @@ static void func_actor_503500_8013B460(Task* arg0)
             work->stateFrames++;
             if (work->stateFrames >= ACTOR_503500_LARGE_ORB_EMITTER_ATTACK_LAUNCH_FRAME) {
                 offset = -0x12C;
-                angle  = func_actor_503500_80136134(arg0->parent);
+                angle  = actor503500MeasurePlayerBearing(arg0->parent);
                 side   = work->side;
                 if (side != 0) {
                     offset = 0x12C;
@@ -1444,7 +1444,7 @@ static void func_actor_503500_8013C558(Task* arg0)
             vec.vx = ONE;
             vec.vy = ONE;
             vec.vz = work->shrinkScale;
-            func_actor_503500_80135E20(arg0->parent, ACTOR_503500_REAR_PART_BOSS_PART, &vec);
+            actor503500SetBossPartScale(arg0->parent, ACTOR_503500_REAR_PART_BOSS_PART, &vec);
             work->shrinkScale -= work->shrinkStep;
             work->shrinkStep  -= ACTOR_503500_REAR_PART_SHRINK_STEP_DECREASE;
             if (work->shrinkStep <= 0) {
@@ -3131,7 +3131,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
         actor503500IsSlotEmpty(arg0->parent, arg0->spawnArg1.value < 0xF ? 0xA : 0xB) == 0) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-        func_actor_503500_80135828(arg0, &work->bufferFreeCountdown);
+        actor503500SyncAttachedModelDrawState(arg0, &work->bufferFreeCountdown);
     }
 
     switch (gSceneCombatState.actorControl) {
@@ -3165,7 +3165,7 @@ static void func_actor_503500_8013FF0C(Task* arg0)
 /// parent coordinate into `tipTarget`; step 1 ramps `curlWeight` to 0x2000 and
 /// re-aims once `tipArrived` is set; steps 2..4 ramp it back to 0. While in
 /// steps 0..1, `func_actor_503500_80142310` ends the state after 120 frames
-/// or when `func_actor_503500_80136218`'s reading leaves the window the slot
+/// or when `actor503500GetPlayerBearing`'s reading leaves the window the slot
 /// (and whether its partner slot is empty) allows.
 static void func_actor_503500_801400A4(Task* arg0)
 {
@@ -3176,7 +3176,7 @@ static void func_actor_503500_801400A4(Task* arg0)
     _Actor503500LungingChainWork* work;
     GfxCoord*                     coord;
     s32                           keep;
-    s32                           dist;
+    s32                           playerBearing;
 
     work  = arg0->work;
     coord = arg0->extra.tmd->coords;
@@ -3259,43 +3259,43 @@ static void func_actor_503500_801400A4(Task* arg0)
             }
             break;
     }
-    keep = 0;
-    dist = func_actor_503500_80136218();
+    keep          = 0;
+    playerBearing = actor503500GetPlayerBearing();
     switch (arg0->spawnArg1.value) {
         case 13:
             if (actor503500IsSlotEmpty(arg0, 0xE) != 0) {
-                if (dist < -1900 || dist > 1000) {
+                if (playerBearing < -1900 || playerBearing > 1000) {
                     keep = 1;
                 }
-            } else if (dist > 1000 && dist < 1700) {
+            } else if (playerBearing > 1000 && playerBearing < 1700) {
                 keep = 1;
             }
             break;
         case 14:
             if (actor503500IsSlotEmpty(arg0, 0xD) != 0) {
-                if (dist < -1900 || dist > 1000) {
+                if (playerBearing < -1900 || playerBearing > 1000) {
                     keep = 1;
                 }
-            } else if (dist < -1900 || dist > 1699) {
+            } else if (playerBearing < -1900 || playerBearing > 1699) {
                 keep = 1;
             }
             break;
         case 15:
             if (actor503500IsSlotEmpty(arg0, 0x10) != 0) {
-                if (dist < -1000 || dist > 1900) {
+                if (playerBearing < -1000 || playerBearing > 1900) {
                     keep = 1;
                 }
-            } else if (dist < -1699 || dist > 1900) {
+            } else if (playerBearing < -1699 || playerBearing > 1900) {
                 keep = 1;
             }
             break;
         case 16:
             if (actor503500IsSlotEmpty(arg0, 0xF) != 0) {
-                if (dist < -1000 || dist > 1900) {
+                if (playerBearing < -1000 || playerBearing > 1900) {
                     keep = 1;
                 }
-            } else if (dist < -1000) {
-                if (dist >= -1699) {
+            } else if (playerBearing < -1000) {
+                if (playerBearing >= -1699) {
                     keep = 1;
                 }
             }
@@ -4363,12 +4363,12 @@ static void func_actor_503500_80142980(Task* arg0)
                 rot.vy = 0;
                 rot.vz = 0;
                 if (side != 0) {
-                    func_actor_503500_80135E20(arg0->parent, 5, &rot);
+                    actor503500SetBossPartScale(arg0->parent, 5, &rot);
                     work->velocity.fixed.vx.word = -0x100000;
                     work->velocity.fixed.vy.word = 0;
                     work->velocity.fixed.vz.word = 0;
                 } else {
-                    func_actor_503500_80135E20(arg0->parent, 0xB, &rot);
+                    actor503500SetBossPartScale(arg0->parent, 0xB, &rot);
                     work->velocity.fixed.vx.word = 0x100000;
                     work->velocity.fixed.vy.word = 0;
                     work->velocity.fixed.vz.word = 0;
@@ -5015,7 +5015,7 @@ static void func_actor_503500_80144300(Task* arg0)
     taskReparent(arg0, child);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 5), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-    func_actor_503500_80137290(1);
+    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_BALLISTIC);
     arg0->exitCallback = func_actor_503500_8014473C;
     arg0->state       += 1;
 }
@@ -5210,7 +5210,7 @@ static void func_actor_503500_801448E8(Task* arg0)
     child            = eff->task;
     work->effectTask = child;
     taskReparent(arg0, child);
-    func_actor_503500_80137290(3);
+    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_LINGERING);
     arg0->exitCallback = func_actor_503500_80144DA8;
     arg0->state       += 1;
 }

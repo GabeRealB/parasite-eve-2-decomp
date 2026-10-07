@@ -1272,7 +1272,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
     }
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0A), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-    func_actor_503500_80137290(6);
+    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_PINK_FLASH);
     arg0->exitCallback = func_actor_503500_80145480;
     arg0->state       += 1;
 }
@@ -1476,7 +1476,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     taskReparent(arg0, child);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-    func_actor_503500_80137290(6);
+    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_YELLOW_FLASH);
     arg0->exitCallback = func_actor_503500_80145950;
     arg0->state       += 1;
 }
@@ -1642,7 +1642,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
         pan2 = (s8)worldCoordGetOriginAudioPan(coord);
         sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0E), pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     }
-    func_actor_503500_80137290(8);
+    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_ORANGE_FLASH);
     arg0->exitCallback = func_actor_503500_80145E98;
     arg0->state       += 1;
 }

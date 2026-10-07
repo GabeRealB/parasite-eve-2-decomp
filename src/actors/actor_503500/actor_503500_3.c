@@ -76,6 +76,20 @@ enum {
     ACTOR_503500_ATTACK_REAR_YAW_OFFSET       = 2000,
 };
 
+/// One-time exposure commands and the room event selecting the later attack tables.
+enum {
+    ACTOR_503500_PROGRESS_ARM_0_EXPOSED        = 1 << 0,
+    ACTOR_503500_PROGRESS_ARM_1_EXPOSED        = 1 << 1,
+    ACTOR_503500_PROGRESS_YELLOW_FLASH_EXPOSED = 1 << 2,
+    ACTOR_503500_PROGRESS_ROOM_EVENT_SENT      = 1 << 3,
+    ACTOR_503500_PROGRESS_ARM_1_SHIFT          = 1,
+    ACTOR_503500_PROGRESS_YELLOW_FLASH_SHIFT   = 2,
+    ACTOR_503500_PROGRESS_ROOM_EVENT_SHIFT     = 3,
+};
+
+/// HP damage multiplier for this boss and its attached targets' critical hits.
+enum { ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER = 4 };
+
 /// What the pink-flash emitter is doing, as held in `_Actor503500PinkFlashEmitterWork::state`.
 enum {
     ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE   = 0, // A target; waits for the boss to command an attack
@@ -229,9 +243,9 @@ extern u16 D_actor_503500_80176D64[];
 /// by `mist_r18`, which has no module header for it either. Declared as an
 /// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
 /// the preceding `scriptedEffectTask` store ordered before it.
-static s32  func_actor_503500_80133684(Task* arg0);
+static s32  _actor503500CheckPartLossProgress(Task* task);
 static void _actor503500ScheduleTargetable(Task* task, s8 targetable, s16 delayFrames);
-static void func_actor_503500_801338E8(Task* arg0);
+static void _actor503500StepAttackState(Task* task);
 static void func_actor_503500_80134408(Task* arg0);
 static void func_actor_503500_801345F4(Task* arg0);
 static void func_actor_503500_80134A24(Task* arg0);
@@ -245,9 +259,7 @@ static void _actor503500CommandSlot(Actor503500Work* work, s32 slot, s32 command
 static void func_actor_503500_80136450(Task* arg0);
 static void func_actor_503500_801369E4(Task* arg0);
 static void func_actor_503500_80136A80(Task* arg0);
-/// Republishes the boss's four cached matrices (`arg1`) and/or re-seeds its
-/// display state (`arg2`).
-static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2);
+static void _actor503500UpdateBodyCollisionGrid(Task* task, s32 initializeFaces, s32 moveAway);
 static void _actor503500EnterCombatState(Task* task, s32 state);
 static void func_actor_503500_801374BC(Task* arg0);
 static void func_actor_503500_801398D0(Task* arg0);
@@ -271,18 +283,18 @@ static void func_actor_503500_80136DDC(Task* arg0);
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
-static void func_actor_503500_80136228(Task* arg0);
+static void _actor503500ExitBoss(Task* task);
 
 extern _Actor503500PinkFlashEmitterWork D_actor_503500_80176D88;
 
 extern _Actor503500LargeChainWork D_actor_503500_80176EE8[2];
 
-static void func_actor_503500_8013A900(Task* arg0);
+static void _actor503500LargeChainExit(Task* task);
 
 /// Re-places a display node and its record table: `arg2` is the node's
 /// `WorldCollisionContact` table and `arg3` the record count.
 static void func_actor_503500_80134EAC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
-static void func_actor_503500_80138288(Task* arg0);
+static void _actor503500PinkFlashEmitterExit(Task* task);
 static void func_actor_503500_801382F4(Task* arg0);
 static void func_actor_503500_801382FC(Task* arg0);
 static void func_actor_503500_80138378(Task* arg0);
@@ -311,7 +323,7 @@ static const TaskFuncTable3 D_actor_503500_80131E44 = {
     {
         func_actor_503500_80132F64,
         func_actor_503500_80133270,
-        func_actor_503500_80136228,
+        _actor503500ExitBoss,
     },
 };
 
@@ -432,12 +444,12 @@ static void func_actor_503500_80132F64(Task* arg0)
     }
     work->enemies[0] = enemy;
     (sceneAcquireBattleRef)(0x23);
-    func_actor_503500_80136B64(arg0, 1, 0);
+    _actor503500UpdateBodyCollisionGrid(arg0, 1, 0);
     for (i = 17; i >= 0; i--) {
         D_actor_503500_80176D64[i] = 0;
     }
     actor503500HandlePlayAnimation(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, D_actor_503500_8016EAC0, 0);
-    arg0->exitCallback = func_actor_503500_80136228;
+    arg0->exitCallback = _actor503500ExitBoss;
     arg0->msgTable     = D_actor_503500_8016EA2C;
     arg0->state       += 1;
 }
@@ -508,7 +520,7 @@ static void func_actor_503500_80133270(Task* arg0)
             }
             func_actor_503500_80136A88(arg0);
             func_actor_503500_80136AEC(arg0);
-            func_actor_503500_80136B64(arg0, 0, 0);
+            _actor503500UpdateBodyCollisionGrid(arg0, 0, 0);
             func_actor_503500_801334CC(arg0);
             func_actor_503500_80136304(arg0);
             func_actor_503500_80135178(arg0);
@@ -574,143 +586,178 @@ static void func_actor_503500_801334CC(Task* arg0)
     }
 }
 
-static s32 func_actor_503500_80133684(Task* arg0)
+/// Exposes replacement targets after part loss and reports the later fight phase.
+///
+/// Returns 1 to defer idle attack selection while issuing an exposure command or
+/// while a phase transition awaits its room event. The event is sent once, when
+/// player control, health, attachment mode and display state allow it. Slots
+/// 10/11 must remain live until their exposure commands have been sent.
+static s32 _actor503500CheckPartLossProgress(Task* task)
 {
+    enum {
+        ACTOR_503500_PROGRESS_LARGE_ORB_0_SLOT = 4,
+        ACTOR_503500_PROGRESS_LARGE_ORB_1_SLOT = 5,
+    };
     Actor503500Work* work;
-    Enemy**          slots;
-    Enemy*           slot1;
-    s32              ret;
+    Enemy**          slotEnemies;
+    Enemy*           pinkEmitter;
+    s32              deferAttack;
 
-    ret   = 0;
-    work  = arg0->work;
-    slots = work->enemies;
+    deferAttack = 0;
+    work        = task->work;
+    slotEnemies = work->enemies;
 
     if (work->state != ACTOR_503500_STATE_PART_LOST) {
-        if (!(work->progressFlags & 1) && (slots[4] == NULL)) {
-            slots[10]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
-            ret                            = 1;
-            work->progressFlags           |= 1;
+        // Losing each outer target exposes the target it previously protected.
+        if (!(work->progressFlags & ACTOR_503500_PROGRESS_ARM_0_EXPOSED) && (slotEnemies[ACTOR_503500_PROGRESS_LARGE_ORB_0_SLOT] == NULL)) {
+            slotEnemies[ACTOR_503500_SLOT_ARM_0]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
+            deferAttack                                               = 1;
+            work->progressFlags                                      |= ACTOR_503500_PROGRESS_ARM_0_EXPOSED;
         }
-        if (!((work->progressFlags >> 1) & 1) && (slots[5] == NULL)) {
-            slots[11]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
-            ret                            = 1;
-            work->progressFlags           |= 2;
+        if (!((work->progressFlags >> ACTOR_503500_PROGRESS_ARM_1_SHIFT) & 1) && (slotEnemies[ACTOR_503500_PROGRESS_LARGE_ORB_1_SLOT] == NULL)) {
+            slotEnemies[ACTOR_503500_SLOT_ARM_1]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
+            deferAttack                                               = 1;
+            work->progressFlags                                      |= ACTOR_503500_PROGRESS_ARM_1_EXPOSED;
         }
-        if (!((work->progressFlags >> 2) & 1) && (slots[1] == NULL)) {
-            if (slots[12] != NULL) {
-                slots[12]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
-                ret                            = 1;
-                work->progressFlags           |= 4;
+        if (!((work->progressFlags >> ACTOR_503500_PROGRESS_YELLOW_FLASH_SHIFT) & 1) && (slotEnemies[ACTOR_503500_SLOT_PINK_FLASH_EMITTER] == NULL)) {
+            if (slotEnemies[ACTOR_503500_SLOT_YELLOW_FLASH_EMITTER] != NULL) {
+                slotEnemies[ACTOR_503500_SLOT_YELLOW_FLASH_EMITTER]->task->killCountdown = ACTOR_503500_SLOT_COMMAND_BECOME_TARGET;
+                deferAttack                                                              = 1;
+                work->progressFlags                                                     |= ACTOR_503500_PROGRESS_YELLOW_FLASH_EXPOSED;
             }
         }
     }
 
-    if (!((work->progressFlags >> 3) & 1) &&
-        ((((slot1 = slots[1], slot1 == NULL)) && (slots[12] == NULL)) ||
-         (slots[7] == NULL) || (slots[8] == NULL) || (slots[10] == NULL) ||
-         (slots[11] == NULL) || ((slots[9] == NULL) && (slot1 == NULL)) ||
-         ((slots[4]->hp == 0) && (slots[5]->hp == 0)))) {
+    // Keep deferring attacks even when presentation gates postpone the event.
+    if (!((work->progressFlags >> ACTOR_503500_PROGRESS_ROOM_EVENT_SHIFT) & 1) &&
+        ((((pinkEmitter = slotEnemies[ACTOR_503500_SLOT_PINK_FLASH_EMITTER], pinkEmitter == NULL)) && (slotEnemies[ACTOR_503500_SLOT_YELLOW_FLASH_EMITTER] == NULL)) ||
+         (slotEnemies[ACTOR_503500_SLOT_CHAIN_BASE_0] == NULL) || (slotEnemies[ACTOR_503500_SLOT_CHAIN_BASE_1] == NULL) || (slotEnemies[ACTOR_503500_SLOT_ARM_0] == NULL) ||
+         (slotEnemies[ACTOR_503500_SLOT_ARM_1] == NULL) || ((slotEnemies[ACTOR_503500_SLOT_SMALL_ORB_EMITTER] == NULL) && (pinkEmitter == NULL)) ||
+         ((slotEnemies[ACTOR_503500_PROGRESS_LARGE_ORB_0_SLOT]->hp == 0) && (slotEnemies[ACTOR_503500_PROGRESS_LARGE_ORB_1_SLOT]->hp == 0)))) {
         if ((((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode != GAME_ACTOR_MODE_SCRIPTED) &&
             (gPlayerStatus.hp > 0) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL)) {
             if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
-                work->progressFlags |= 8;
+                work->progressFlags |= ACTOR_503500_PROGRESS_ROOM_EVENT_SENT;
             }
         }
-        ret = 1;
+        deferAttack = 1;
     }
-    return ret;
+    return deferAttack;
 }
 
-/// Boss attack picker. Every frame it stores the player's yaw
-/// relative to the boss (wrapped into [-0x800, 0x800)) in `playerBearing`. Step 0
-/// updates the height band `heightBand` from the target's Y with hysteresis,
-/// buckets `|yaw|` into `bearingBand`, then walks that band's
-/// `Actor503500AttackChoice` list until the running weight reaches the random
-/// byte in `randomRoll`, stores
-/// the chosen attack in `runningAttack` and runs it at once. Step 1 keeps running
-/// it. A non-zero result, an empty list (0x1E) or running off the end of the
-/// list (0xF) goes to `attackDelay` after `_actor503500EnterCombatState(arg0, 0)`.
-static void func_actor_503500_801338E8(Task* arg0)
+/// Updates the attack picker's player-height band with asymmetric hysteresis.
+///
+/// Uses the saved previous band and the live player Y in game coordinates.
+static inline void _actor503500ClassifyAttackHeight(Actor503500Work* work)
 {
-    Actor503500Work*         work;
-    GfxCoord*                coord;
-    Actor503500AttackChoice* choice;
-    s32                      bit;
-    s16*                     thr;
-    s32                      angle;
-    s32                      absAngle;
-    u32                      sum;
-    u32                      r;
-    s32                      ret;
+    enum {
+        ACTOR_503500_HEIGHT_BAND_UPPER    = 0,
+        ACTOR_503500_HEIGHT_BAND_MIDDLE   = 1,
+        ACTOR_503500_HEIGHT_BAND_LOWER    = 2,
+        ACTOR_503500_HEIGHT_UPPER_EXIT_Y  = -2799,
+        ACTOR_503500_HEIGHT_UPPER_ENTER_Y = -3200,
+        ACTOR_503500_HEIGHT_LOWER_ENTER_Y = -799,
+        ACTOR_503500_HEIGHT_LOWER_EXIT_Y  = -1200,
+    };
+    switch (work->previousHeightBand) {
+        case ACTOR_503500_HEIGHT_BAND_UPPER:
+            if (gPlayerStatus.coordMtx->t[1] >= ACTOR_503500_HEIGHT_UPPER_EXIT_Y) {
+                work->heightBand = ACTOR_503500_HEIGHT_BAND_MIDDLE;
+            }
+            break;
+        case ACTOR_503500_HEIGHT_BAND_MIDDLE:
+            if (gPlayerStatus.coordMtx->t[1] >= ACTOR_503500_HEIGHT_LOWER_ENTER_Y) {
+                work->heightBand = ACTOR_503500_HEIGHT_BAND_LOWER;
+            } else if (gPlayerStatus.coordMtx->t[1] < ACTOR_503500_HEIGHT_UPPER_ENTER_Y) {
+                work->heightBand = ACTOR_503500_HEIGHT_BAND_UPPER;
+            }
+            break;
+        case ACTOR_503500_HEIGHT_BAND_LOWER:
+            if (gPlayerStatus.coordMtx->t[1] < ACTOR_503500_HEIGHT_LOWER_EXIT_Y) {
+                work->heightBand = ACTOR_503500_HEIGHT_BAND_MIDDLE;
+            }
+            break;
+    }
+}
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    angle = ratan2(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0], gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]) - work->yaw;
-    while (angle >= 0x800) {
-        angle -= 0x1000;
+/// Picks a weighted boss attack, then runs it once per attack-state frame.
+///
+/// Refreshes the player's relative bearing in [-2048, 2048), at 4096 units per
+/// turn. Picking selects one of two sets of three height bands and four bearing
+/// bands; height changes have hysteresis. The low random byte selects the first
+/// cumulative weight reaching it. An empty list waits 30 idle frames, and a roll
+/// beyond its total waits 15. A picked attack runs immediately and thereafter
+/// until its nonzero result supplies the next idle delay in frames.
+static void _actor503500StepAttackState(Task* task)
+{
+    enum {
+        ACTOR_503500_ATTACK_STATE_PICK                   = 0,
+        ACTOR_503500_ATTACK_STATE_RUN                    = 1,
+        ACTOR_503500_ATTACK_UNSELECTED_IDLE_DELAY_FRAMES = 15,
+        ACTOR_503500_ATTACK_EMPTY_IDLE_DELAY_FRAMES      = 30,
+    };
+    Actor503500Work*               work;
+    GfxCoord*                      coord;
+    const Actor503500AttackChoice* choice;
+    s32                            attackTableIndex;
+    const s16*                     bearingThreshold;
+    s32                            playerBearing;
+    s32                            bearingMagnitude;
+    u32                            cumulativeWeight;
+    u32                            randomRoll;
+    s32                            idleDelay;
+
+    work          = task->work;
+    coord         = task->extra.tmd->coords;
+    playerBearing = ratan2(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0], gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]) - work->yaw;
+    while (playerBearing >= ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        playerBearing -= ACTOR_TRANSFORM_ANGLE_TURN;
     }
-    while (angle < -0x800) {
-        angle += 0x1000;
+    while (playerBearing < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        playerBearing += ACTOR_TRANSFORM_ANGLE_TURN;
     }
-    work->playerBearing = angle;
+    work->playerBearing = playerBearing;
     switch ((s8)work->stateStep) {
-        case 0:
+        case ACTOR_503500_ATTACK_STATE_PICK:
+            // Classify the current player position only when choosing an attack.
             work->previousHeightBand  = work->heightBand;
             work->previousBearingBand = work->bearingBand;
-            switch (work->previousHeightBand) {
-                case 0:
-                    if (gPlayerStatus.coordMtx->t[1] >= -0xAEF) {
-                        work->heightBand = 1;
-                    }
-                    break;
-                case 1:
-                    if (gPlayerStatus.coordMtx->t[1] >= -0x31F) {
-                        work->heightBand = 2;
-                    } else if (gPlayerStatus.coordMtx->t[1] < -0xC80) {
-                        work->heightBand = 0;
-                    }
-                    break;
-                case 2:
-                    if (gPlayerStatus.coordMtx->t[1] < -0x4B0) {
-                        work->heightBand = 1;
-                    }
-                    break;
+            _actor503500ClassifyAttackHeight(work);
+            bearingThreshold = D_actor_503500_8016EF28[(work->progressFlags >> ACTOR_503500_PROGRESS_ROOM_EVENT_SHIFT) & 1][work->heightBand];
+            bearingMagnitude = abs(playerBearing);
+            for (work->bearingBand = 0; *bearingThreshold++ < bearingMagnitude; work->bearingBand++) {
             }
-            thr      = D_actor_503500_8016EF28[(work->progressFlags >> 3) & 1][work->heightBand];
-            absAngle = abs(angle);
-            for (work->bearingBand = 0; *thr++ < absAngle; work->bearingBand++) {
-            }
-            bit    = (work->progressFlags >> 3) & 1;
-            choice = D_actor_503500_8016EF10[bit][work->heightBand][work->bearingBand];
-            r      = (u8)work->randomRoll;
+            attackTableIndex = (work->progressFlags >> ACTOR_503500_PROGRESS_ROOM_EVENT_SHIFT) & 1;
+            choice           = D_actor_503500_8016EF10[attackTableIndex][work->heightBand][work->bearingBand];
+            randomRoll       = (u8)work->randomRoll;
             if (choice->attack != NULL) {
-                sum = choice->weight;
-                while (sum < r) {
+                cumulativeWeight = choice->weight;
+                while (cumulativeWeight < randomRoll) {
                     if (choice[1].attack == NULL) {
-                        _actor503500EnterCombatState(arg0, ACTOR_503500_STATE_IDLE);
-                        work->attackDelay = 0xF;
+                        _actor503500EnterCombatState(task, ACTOR_503500_STATE_IDLE);
+                        work->attackDelay = ACTOR_503500_ATTACK_UNSELECTED_IDLE_DELAY_FRAMES;
                         return;
                     }
                     choice++;
-                    sum += choice->weight;
+                    cumulativeWeight += choice->weight;
                 }
                 work->runningAttack = choice->attack;
                 work->stateStep++;
             } else {
-                _actor503500EnterCombatState(arg0, ACTOR_503500_STATE_IDLE);
-                work->attackDelay = 0x1E;
+                _actor503500EnterCombatState(task, ACTOR_503500_STATE_IDLE);
+                work->attackDelay = ACTOR_503500_ATTACK_EMPTY_IDLE_DELAY_FRAMES;
                 return;
             }
-        case 1:
-            ret = work->runningAttack(arg0, work);
-            if (ret != 0) {
-                _actor503500EnterCombatState(arg0, ACTOR_503500_STATE_IDLE);
-                work->attackDelay = ret;
+        case ACTOR_503500_ATTACK_STATE_RUN:
+            idleDelay = work->runningAttack(task, work);
+            if (idleDelay != 0) {
+                _actor503500EnterCombatState(task, ACTOR_503500_STATE_IDLE);
+                work->attackDelay = idleDelay;
             }
             break;
         default:
-            _actor503500EnterCombatState(arg0, ACTOR_503500_STATE_IDLE);
+            _actor503500EnterCombatState(task, ACTOR_503500_STATE_IDLE);
             break;
     }
 }
@@ -766,8 +813,10 @@ s32 actor503500AttackArmStrike(Task* task, Actor503500Work* work)
 
 /// Starts a selected side-chain attack and remembers its slot for completion.
 ///
-/// `slot` is the halfword selected from the side's descriptor list; cooldowns
-/// count upkeep frames. The boss work block remains live throughout the attack.
+/// `slot` is the selected large chain, lunging chain or chain-base slot (2/3,
+/// 13..16 or 7/8). `cooldownFrames` counts boss idle upkeep ticks and narrows to
+/// a signed halfword. The command starts the slot's busy period and the running
+/// attack enters its wait phase; the live work block retains its attack timer.
 static inline void _actor503500StartSideChainAttack(Actor503500Work* work, s16 slot, s32 cooldownFrames)
 {
     _actor503500CommandSlot(work, slot, ACTOR_503500_SLOT_COMMAND_ATTACK, cooldownFrames);
@@ -1049,7 +1098,7 @@ s32 actor503500AttackSideChain(Task* task, Actor503500Work* work)
 /// unlinks the enemy node, stores the summed `hp` of occupied slots
 /// 1..16 in `gGameSession->bossPartsHpSum` and plays sound 0x40230010 at the
 /// part's position. Step 1 counts 0x1F frames, then posts message 0x13F4
-/// under the same gates as `func_actor_503500_80133684`.
+/// under the same gates as `_actor503500CheckPartLossProgress`.
 static void func_actor_503500_80134408(Task* arg0)
 {
     Actor503500Work* work;
@@ -1333,52 +1382,56 @@ static void func_actor_503500_80134C68(Task* arg0)
     }
 }
 
-/// One contact record of `func_actor_503500_80134EAC`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enemy* enemy, GfxCoord* coord, WorldCollisionContact* arg2, s32 i)
+/// Applies one unique player/companion attack contact to the boss while hits are enabled.
+///
+/// `contacts[0..contactIndex]` must be readable; earlier equal keys suppress this
+/// record. `task`, `work` and `enemy` belong to the live boss, and `coord` is its
+/// model root. Damage uses the attacker's distance in game units. Death replaces
+/// status reactions; a landed hit raises the cooldown to the attack's frame count.
+static inline void _actor503500HandleHit(Task* task, Actor503500Work* work, Enemy* enemy, GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    VECTOR    d;
-    SVECTOR   pos;
-    MATRIX    mtx;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       j;
+    VECTOR    attackerOffset;
+    SVECTOR   worldPosition;
+    MATRIX    worldRotation;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
+    attackerCoord = gPlayerActorTasks[(attackKey >> 7) & 1]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &worldPosition);
+    attackerOffset.vx = attackerCoord->coord.t[0] - worldPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - worldPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - worldPosition.vz;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
         effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    enemy->hp -= dmg;
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    enemy->hp -= damage;
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
     if (enemy->hp <= 0) {
-        _actor503500EnterCombatState(arg0, ACTOR_503500_STATE_DEFEATED);
+        _actor503500EnterCombatState(task, ACTOR_503500_STATE_DEFEATED);
         work->defeated = 1;
     } else {
-        switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+        switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
             case DAMAGE_PLAYER_REACTION_NONE:
             case 4:
             case 5:
@@ -1391,17 +1444,17 @@ static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enem
                 damageStartEnemyStagger(enemy);
                 break;
             case DAMAGE_PLAYER_REACTION_BUILDUP:
-                damageStartEnemyBuildup(enemy, id, 0);
+                damageStartEnemyBuildup(enemy, attackKey, 0);
                 break;
             case DAMAGE_PLAYER_REACTION_POISON:
-                damageTryStartEnemyDamageOverTime(enemy, id, 0);
+                damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
                 break;
         }
     }
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, NULL, &work->hitEffect);
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, NULL, &work->hitEffect);
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
@@ -1658,45 +1711,42 @@ static void func_actor_503500_80135644(Task* arg0)
     }
 }
 
-/// Copies bits 0x80 and 2, and `TMD_OBJECT_SKIP_AUTO_BUFFER`, from the parent
-/// model's flags onto `arg0`'s model, unless that model is attached to
-/// `gGfxViewCoord`. Clearing `TMD_OBJECT_SKIP_AUTO_BUFFER` also calls
-/// `tmdAllocPrimitiveBuffer`; setting it writes 2 to `*arg1`.
-void func_actor_503500_80135828(Task* arg0, s8* arg1)
+void actor503500SyncAttachedModelDrawState(Task* task, s8* bufferFreeCountdown)
 {
-    TmdObject* obj;
-    TmdObject* pobj;
-    u16        flags;
-    u16        flags2;
+    enum { ACTOR_503500_ATTACHED_BUFFER_FREE_DELAY_FRAMES = 2 };
+    TmdObject* model;
+    TmdObject* parentModel;
+    u16        drawFlags;
+    u16        policyFlags;
 
-    obj = arg0->extra.tmd;
-    if (obj->coords->parent != &gGfxViewCoord) {
-        flags = obj->flags;
-        pobj  = arg0->parent->extra.tmd;
-        if (flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            if (!(pobj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-                obj->flags = flags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model = task->extra.tmd;
+    if (model->coords->parent != &gGfxViewCoord) {
+        drawFlags   = model->flags;
+        parentModel = task->parent->extra.tmd;
+        if (drawFlags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
+            if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+                model->flags = drawFlags & ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-        } else if (pobj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
-            obj->flags = flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        } else if (parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
+            model->flags = drawFlags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
-        flags2 = obj->flags;
-        if (flags2 & 2) {
-            if (!(pobj->flags & TMD_OBJECT_SEMI_TRANS)) {
-                obj->flags = flags2 & ~2;
+        policyFlags = model->flags;
+        if (policyFlags & TMD_OBJECT_SEMI_TRANS) {
+            if (!(parentModel->flags & TMD_OBJECT_SEMI_TRANS)) {
+                model->flags = policyFlags & ~TMD_OBJECT_SEMI_TRANS;
             }
-        } else if (pobj->flags & TMD_OBJECT_SEMI_TRANS) {
-            obj->flags = flags2 | 2;
+        } else if (parentModel->flags & TMD_OBJECT_SEMI_TRANS) {
+            model->flags = policyFlags | TMD_OBJECT_SEMI_TRANS;
         }
-        flags2 = obj->flags;
-        if (flags2 & TMD_OBJECT_SKIP_AUTO_BUFFER) {
-            if (!(pobj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-                obj->flags = flags2 & ~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                tmdAllocPrimitiveBuffer(obj);
+        policyFlags = model->flags;
+        if (policyFlags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
+            if (!(parentModel->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
+                model->flags = policyFlags & ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+                tmdAllocPrimitiveBuffer(model);
             }
-        } else if (pobj->flags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
-            obj->flags = flags2 | TMD_OBJECT_SKIP_AUTO_BUFFER;
-            *arg1      = 2;
+        } else if (parentModel->flags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
+            model->flags         = policyFlags | TMD_OBJECT_SKIP_AUTO_BUFFER;
+            *bufferFreeCountdown = ACTOR_503500_ATTACHED_BUFFER_FREE_DELAY_FRAMES;
         }
     }
 }
@@ -1761,8 +1811,10 @@ s32 actor503500HandlePlayAnimation(Task* task, s32 messageId, const AnimationPla
 
 /// Restarts boss state progress and schedules targetability three upkeep ticks later.
 ///
-/// The state is stored as a signed halfword; targetability is supplied separately
-/// so combat entry can test its full-width state argument before truncation.
+/// Clears the state/attack phases and frame counters and restores ordinary OT
+/// depth. The selected attack slot and idle delay are retained. `state` narrows
+/// to a signed halfword; the separate signed-byte `targetable` preserves combat
+/// entry's full-width state comparison before that narrowing.
 static inline void _actor503500ResetBossState(Task* task, s32 state, s8 targetable)
 {
     enum { ACTOR_503500_STATE_TARGETABLE_DELAY_FRAMES = 3 };
@@ -1883,36 +1935,33 @@ s32 actor503500IsSlotEmpty(Task* unusedTask, s32 slot)
     return D_actor_503500_80176574.work.enemies[slot] == NULL;
 }
 
-/// Sets the scale of boss part `arg1` (5, 11 or 16) from `arg2` and marks it
-/// in `scaledParts` for `func_actor_503500_80136DDC`. Parts 5 and 11 also seed
-/// the private copy of model part 4 / 10 and link it from the next part's
-/// `parent`; any other `arg1` only sets its bit.
-void func_actor_503500_80135E20(Task* arg0, s32 arg1, SVECTOR* arg2)
+void actor503500SetBossPartScale(Task* task, s32 partIndex, const SVECTOR* scale)
 {
     Actor503500Work* work = &D_actor_503500_80176574.work;
 
-    switch (arg1) {
+    // Insert a scaled parent for the arms; the rear part uses its animated pose.
+    switch (partIndex) {
         case 5:
-            work->part5Scale.vx               = arg2->vx;
-            work->part5Scale.vy               = arg2->vy;
-            work->part5Scale.vz               = arg2->vz;
-            work->part5Parent                 = arg0->extra.tmd->coords[4];
-            arg0->extra.tmd->coords[5].parent = &work->part5Parent;
+            work->part5Scale.vx               = scale->vx;
+            work->part5Scale.vy               = scale->vy;
+            work->part5Scale.vz               = scale->vz;
+            work->part5Parent                 = task->extra.tmd->coords[4];
+            task->extra.tmd->coords[5].parent = &work->part5Parent;
             break;
         case 11:
-            work->part11Scale.vx               = arg2->vx;
-            work->part11Scale.vy               = arg2->vy;
-            work->part11Scale.vz               = arg2->vz;
-            work->part11Parent                 = arg0->extra.tmd->coords[10];
-            arg0->extra.tmd->coords[11].parent = &work->part11Parent;
+            work->part11Scale.vx               = scale->vx;
+            work->part11Scale.vy               = scale->vy;
+            work->part11Scale.vz               = scale->vz;
+            work->part11Parent                 = task->extra.tmd->coords[10];
+            task->extra.tmd->coords[11].parent = &work->part11Parent;
             break;
         case 16:
-            work->part16Scale.vx = arg2->vx;
-            work->part16Scale.vy = arg2->vy;
-            work->part16Scale.vz = arg2->vz;
+            work->part16Scale.vx = scale->vx;
+            work->part16Scale.vy = scale->vy;
+            work->part16Scale.vz = scale->vz;
             break;
     }
-    work->scaledParts |= 1 << arg1;
+    work->scaledParts |= 1 << partIndex;
 }
 
 void actor503500SetSlotBusy(Task* unusedTask, s32 slot, s16 busy)
@@ -1997,26 +2046,24 @@ void actor503500ReleaseSlotEffects(s32 slot)
     D_actor_503500_80176D64[slot] = 0;
 }
 
-/// Yaw from the actor's first part to `gPlayerStatus.coordMtx`'s translation, relative to
-/// the part's own heading, wrapped into [-0x800, 0x800).
-s16 func_actor_503500_80136134(Task* arg0)
+s16 actor503500MeasurePlayerBearing(Task* task)
 {
     GfxCoord* coord;
-    SVECTOR   vec;
-    s16       angle;
+    SVECTOR   playerOffset;
+    s16       playerBearing;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    vec.vy = 0;
-    vec.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    angle  = ratan2(vec.vx, vec.vz) - ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
-    while (angle >= 0x800) {
-        angle -= 0x1000;
+    coord           = task->extra.tmd->coords;
+    playerOffset.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+    playerOffset.vy = 0;
+    playerOffset.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+    playerBearing   = ratan2(playerOffset.vx, playerOffset.vz) - ratan2(coord->coord.m[0][2], coord->coord.m[2][2]);
+    while (playerBearing >= ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        playerBearing -= ACTOR_TRANSFORM_ANGLE_TURN;
     }
-    while (angle < -0x800) {
-        angle += 0x1000;
+    while (playerBearing < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        playerBearing += ACTOR_TRANSFORM_ANGLE_TURN;
     }
-    return angle;
+    return playerBearing;
 }
 
 s32 actor503500IsDefeated(void)
@@ -2024,23 +2071,27 @@ s32 actor503500IsDefeated(void)
     return D_actor_503500_80176574.work.defeated;
 }
 
-s16 func_actor_503500_80136218(void)
+s16 actor503500GetPlayerBearing(void)
 {
     return D_actor_503500_80176574.work.playerBearing;
 }
 
-/// Exit callback of the boss task: tears down the second body part's display
-/// node, clears the enemy's `recs` back-pointer slot and destroys it.
-static void func_actor_503500_80136228(Task* arg0)
+/// Removes the boss's live collision geometry and target before destroying its task.
+///
+/// The static work storage is retained. The room's body mesh is moved 8000 units
+/// along Y before the target sphere is unlinked and its contact pointer cleared.
+static void _actor503500ExitBoss(Task* task)
 {
-    Enemy* enemy;
+    Actor503500Work* work;
+    Enemy*           enemy;
 
-    enemy = arg0->spawnArg2.pointer;
-    func_actor_503500_80136B64(arg0, 0, 1);
-    worldCollisionUnlinkBody(&((Actor503500Work*)arg0->work)->body);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy = task->spawnArg2.pointer;
+    _actor503500UpdateBodyCollisionGrid(task, 0, 1);
+    work = task->work;
+    worldCollisionUnlinkBody(&work->body);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_80136280(Task* arg0)
@@ -2073,12 +2124,12 @@ static void func_actor_503500_80136304(Task* arg0)
 
     switch (work->state) {
         case ACTOR_503500_STATE_IDLE:
-            if (func_actor_503500_80133684(arg0) == 0) {
+            if (_actor503500CheckPartLossProgress(arg0) == 0) {
                 func_actor_503500_80136450(arg0);
             }
             break;
         case ACTOR_503500_STATE_ATTACK:
-            func_actor_503500_801338E8(arg0);
+            _actor503500StepAttackState(arg0);
             break;
         case ACTOR_503500_STATE_PART_LOST:
             func_actor_503500_801369E4(arg0);
@@ -2398,45 +2449,54 @@ static void func_actor_503500_80136AEC(Task* arg0)
     worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
-/// Rebuilds the live vector set `D_shelter_r48_80183EEC` from its template in the world
-/// frame of the actor's second attach coordinate. `arg1` also recopies the
-/// four `field_C` records; `arg2` raises the offset by 0x1F40 in Y.
-static void func_actor_503500_80136B64(Task* arg0, s32 arg1, s32 arg2)
+/// Updates the boss body's four-face region in the loaded room collision grid.
+///
+/// Both grid descriptors and their pools must be live. `initializeFaces` copies
+/// the four topology records at set-up; every call transforms four normals and
+/// eight vertices by boss model part 1. `moveAway` adds 8000 game units along Y
+/// during teardown. The rest of the room mesh and its cell lists are retained.
+static void _actor503500UpdateBodyCollisionGrid(Task* task, s32 initializeFaces, s32 moveAway)
 {
-    MATRIX              mtx;
-    SVECTOR             ofs;
-    s32                 i;
-    SVECTOR*            src;
-    SVECTOR*            dst;
-    WorldCollisionGrid* out = D_shelter_r48_80183EEC;
-    WorldCollisionGrid* in  = &D_actor_503500_8016F03C;
+    enum {
+        ACTOR_503500_BODY_GRID_FACE_COUNT    = 4,
+        ACTOR_503500_BODY_GRID_NORMAL_COUNT  = 4,
+        ACTOR_503500_BODY_GRID_VERTEX_COUNT  = 8,
+        ACTOR_503500_BODY_GRID_EXIT_Y_OFFSET = 8000,
+    };
+    MATRIX                    worldRotation;
+    SVECTOR                   worldPosition;
+    s32                       elementIndex;
+    const SVECTOR*            sourceVector;
+    SVECTOR*                  destinationVector;
+    WorldCollisionGrid*       roomGrid = D_shelter_r48_80183EEC;
+    const WorldCollisionGrid* bodyGrid = &D_actor_503500_8016F03C;
 
-    if (arg1 != 0) {
-        for (i = 0; i < 4; i++) {
-            out->faces[i] = in->faces[i];
+    if (initializeFaces != 0) {
+        for (elementIndex = 0; elementIndex < ACTOR_503500_BODY_GRID_FACE_COUNT; elementIndex++) {
+            roomGrid->faces[elementIndex] = bodyGrid->faces[elementIndex];
         }
     }
-    gfxComposeNodeWorldTransform(&arg0->extra.tmd->coords[1], &mtx, &ofs);
-    if (arg2 != 0) {
-        ofs.vy += 0x1F40;
+    gfxComposeNodeWorldTransform(&task->extra.tmd->coords[1], &worldRotation, &worldPosition);
+    if (moveAway != 0) {
+        worldPosition.vy += ACTOR_503500_BODY_GRID_EXIT_Y_OFFSET;
     }
-    gte_SetRotMatrix(&mtx);
-    dst = out->normals;
-    src = in->normals;
-    for (i = 0; i < 4; i++, dst++, src++) {
-        gte_ldv0(src);
+    gte_SetRotMatrix(&worldRotation);
+    destinationVector = roomGrid->normals;
+    sourceVector      = bodyGrid->normals;
+    for (elementIndex = 0; elementIndex < ACTOR_503500_BODY_GRID_NORMAL_COUNT; elementIndex++, destinationVector++, sourceVector++) {
+        gte_ldv0(sourceVector);
         gte_rtv0();
-        gte_stsv(dst);
+        gte_stsv(destinationVector);
     }
-    dst = out->vertices;
-    src = in->vertices;
-    for (i = 0; i < 8; i++, dst++, src++) {
-        gte_ldv0(src);
+    destinationVector = roomGrid->vertices;
+    sourceVector      = bodyGrid->vertices;
+    for (elementIndex = 0; elementIndex < ACTOR_503500_BODY_GRID_VERTEX_COUNT; elementIndex++, destinationVector++, sourceVector++) {
+        gte_ldv0(sourceVector);
         gte_rtv0();
-        gte_stsv(dst);
-        dst->vx += ofs.vx;
-        dst->vy += ofs.vy;
-        dst->vz += ofs.vz;
+        gte_stsv(destinationVector);
+        destinationVector->vx += worldPosition.vx;
+        destinationVector->vy += worldPosition.vy;
+        destinationVector->vz += worldPosition.vz;
     }
 }
 
@@ -2664,9 +2724,10 @@ void func_actor_503500_80137238(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_actor_503500_80137290(s32 arg0)
+void actor503500AcquireProjectileEffectCost(s32 effectCost)
 {
-    D_actor_503500_80176D64[0x11] += arg0;
+    enum { ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX = ACTOR_503500_SLOT_COUNT };
+    D_actor_503500_80176D64[ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX] += effectCost;
 }
 
 void actor503500ReleaseProjectileEffectCost(s32 effectCost)
@@ -2680,7 +2741,7 @@ static const TaskFuncTable3 D_actor_503500_80131F4C = {
     {
         func_actor_503500_801372C8,
         func_actor_503500_8013815C,
-        func_actor_503500_80138288,
+        _actor503500PinkFlashEmitterExit,
     },
 };
 
@@ -2744,7 +2805,7 @@ static void func_actor_503500_801372C8(Task* arg0)
     D_actor_503500_80176D88.hitEffect.spawnArgHi = 3;
     D_actor_503500_80176D88.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     _actor503500PinkFlashEmitterEnterState(arg0, ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
-    arg0->exitCallback = func_actor_503500_80138288;
+    arg0->exitCallback = _actor503500PinkFlashEmitterExit;
     arg0->state       += 1;
 }
 
@@ -2952,55 +3013,61 @@ static void func_actor_503500_80137678(Task* arg0)
     }
 }
 
-/// One contact record of `func_actor_503500_80137C90`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor503500PinkFlashEmitterWork* work, Enemy* enemy, GfxCoord* coord, WorldCollisionContact* arg2, s32 i)
+/// Applies one unique attack contact and places its effects on the pink emitter's sphere.
+///
+/// `contacts[0..contactIndex]` must be readable; earlier equal keys and an active
+/// hit cooldown suppress damage. All task, work, enemy and model pointers must
+/// remain live. Death starts the dying state and still applies status reactions.
+/// The nonzero contact offset is pulled to radius 800 in game units, then taken
+/// into `coord`'s local frame. Its cached world transform must already be current.
+static inline void _actor503500PinkFlashEmitterHandleHit(Task* task, _Actor503500PinkFlashEmitterWork* work, Enemy* enemy, GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    VECTOR    d;
-    SVECTOR   pos;
-    MATRIX    mtx;
-    MATRIX    rot;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+    enum { ACTOR_503500_PINK_FLASH_HIT_EFFECT_RADIUS = 800 };
+    VECTOR    attackerOffset;
+    SVECTOR   effectPosition;
+    MATRIX    worldRotation;
+    MATRIX    inverseRotation;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       criticalHit;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    attackerCoord = gPlayerActorTasks[(attackKey >> 7) & 1]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    criticalHit       = 0;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage     *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        criticalHit = 1;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    enemy->hp -= dmg;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    enemy->hp -= damage;
     if (enemy->hp <= 0) {
-        _actor503500PinkFlashEmitterEnterState(arg0, ACTOR_503500_PINK_FLASH_EMITTER_STATE_DYING);
+        _actor503500PinkFlashEmitterEnterState(task, ACTOR_503500_PINK_FLASH_EMITTER_STATE_DYING);
     }
-    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+    switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
         case DAMAGE_PLAYER_REACTION_NONE:
         case 4:
         case 5:
@@ -3013,34 +3080,35 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor50350
             damageStartEnemyStagger(enemy);
             break;
         case DAMAGE_PLAYER_REACTION_BUILDUP:
-            damageStartEnemyBuildup(enemy, id, 0);
+            damageStartEnemyBuildup(enemy, attackKey, 0);
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
-            damageTryStartEnemyDamageOverTime(enemy, id, 0);
+            damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
             break;
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = arg2[i].point.vx - coord->workm.t[0];
-    pos.vy = arg2[i].point.vy - coord->workm.t[1];
-    pos.vz = arg2[i].point.vz - coord->workm.t[2];
-    scale  = 0x320000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
+    // Project the contact onto the sphere, then express the effect point locally.
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];
+    radialScale       = (ACTOR_503500_PINK_FLASH_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz);
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;
+    gte_SetRotMatrix(&inverseRotation);
+    gte_ldv0(&effectPosition);
     gte_rtv0();
-    gte_stsv(&pos);
-    pos.vx += D_actor_503500_8016F068.vx;
-    pos.vy += D_actor_503500_8016F068.vy;
-    pos.vz += D_actor_503500_8016F068.vz;
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+    gte_stsv(&effectPosition);
+    effectPosition.vx += D_actor_503500_8016F068.vx;
+    effectPosition.vy += D_actor_503500_8016F068.vy;
+    effectPosition.vz += D_actor_503500_8016F068.vz;
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (criticalHit != 0) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
     }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
@@ -3083,7 +3151,7 @@ static void func_actor_503500_8013815C(Task* arg0)
         work->bufferFreeCountdown--;
     }
     if (work->state != ACTOR_503500_PINK_FLASH_EMITTER_STATE_DYING) {
-        func_actor_503500_80135828(arg0, &work->bufferFreeCountdown);
+        actor503500SyncAttachedModelDrawState(arg0, &work->bufferFreeCountdown);
     }
 
     switch (gSceneCombatState.actorControl) {
@@ -3107,17 +3175,23 @@ static void func_actor_503500_8013815C(Task* arg0)
     }
 }
 
-static void func_actor_503500_80138288(Task* arg0)
+/// Releases the pink emitter's effect reservation, detaches its model and destroys it.
+///
+/// The static work block remains allocated; the sphere is unlinked and the
+/// enemy's contact pointer is cleared before enemy/task teardown.
+static void _actor503500PinkFlashEmitterExit(Task* task)
 {
-    Enemy* enemy;
+    _Actor503500PinkFlashEmitterWork* work;
+    Enemy*                            enemy;
 
-    enemy = arg0->spawnArg2.pointer;
-    actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    worldCollisionUnlinkBody(&((_Actor503500PinkFlashEmitterWork*)arg0->work)->body);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy = task->spawnArg2.pointer;
+    actor503500ReleaseSlotEffects(task->spawnArg1.value);
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    work                            = task->work;
+    worldCollisionUnlinkBody(&work->body);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_801382F4(Task* arg0)
@@ -3219,7 +3293,7 @@ static const TaskFuncTable3 D_actor_503500_80131F9C = {
     {
         func_actor_503500_8013852C,
         func_actor_503500_80138898,
-        func_actor_503500_8013A900,
+        _actor503500LargeChainExit,
     },
 };
 
@@ -3303,7 +3377,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     work->tipPosition.vz       = D_actor_503500_8016F0A8[arg0->spawnArg1.value].vz;
     work->tipSpeedLimit.word   = 0x800000;
     work->tipAdvancing         = 1;
-    arg0->exitCallback         = func_actor_503500_8013A900;
+    arg0->exitCallback         = _actor503500LargeChainExit;
     arg0->state               += 1;
 }
 
@@ -3330,7 +3404,7 @@ static void func_actor_503500_80138898(Task* arg0)
         actor503500IsSlotEmpty(arg0->parent, arg0->spawnArg1.value < 3 ? 0xA : 0xB) == 0) {
         tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-        func_actor_503500_80135828(arg0, &work->bufferFreeCountdown);
+        actor503500SyncAttachedModelDrawState(arg0, &work->bufferFreeCountdown);
     }
 
     switch (gSceneCombatState.actorControl) {
@@ -3759,55 +3833,61 @@ static void func_actor_503500_801398D0(Task* arg0)
     }
 }
 
-/// One contact record of `func_actor_503500_80139A20`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500LargeChainWork* work, Enemy* enemy, GfxCoord* coord, WorldCollisionContact* arg2, s32 i)
+/// Applies one unique attack contact and places its effects on the large chain's tip sphere.
+///
+/// `contacts[0..contactIndex]` must be readable; earlier equal keys and an active
+/// hit cooldown suppress damage. The pointers belong to a live large-chain task;
+/// `coord` is its tip. Death replaces status reactions. The nonzero contact
+/// offset is pulled to radius 800 in game units, then taken into the tip's local
+/// frame; its cached world transform must already be current.
+static inline void _actor503500LargeChainHandleHit(Task* task, _Actor503500LargeChainWork* work, Enemy* enemy, GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    SVECTOR   pos;
-    MATRIX    rot;
-    MATRIX    mtx;
-    VECTOR    d;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+    enum { ACTOR_503500_LARGE_CHAIN_HIT_EFFECT_RADIUS = 800 };
+    SVECTOR   effectPosition;
+    MATRIX    inverseRotation;
+    MATRIX    worldRotation;
+    VECTOR    attackerOffset;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       criticalHit;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    src  = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerCoord     = gPlayerActorTasks[(attackKey >> 7) & 1]->extra.tmd->coords;
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    criticalHit       = 0;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage     *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        criticalHit = 1;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    enemy->hp -= dmg;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    enemy->hp -= damage;
     if (enemy->hp <= 0) {
-        _actor503500LargeChainEnterState(arg0, ACTOR_503500_LARGE_CHAIN_STATE_DYING);
+        _actor503500LargeChainEnterState(task, ACTOR_503500_LARGE_CHAIN_STATE_DYING);
     } else {
-        switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+        switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
             case DAMAGE_PLAYER_REACTION_NONE:
             case 4:
             case 5:
@@ -3820,35 +3900,36 @@ static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500Large
                 damageStartEnemyStagger(enemy);
                 break;
             case DAMAGE_PLAYER_REACTION_BUILDUP:
-                damageStartEnemyBuildup(enemy, id, 0);
+                damageStartEnemyBuildup(enemy, attackKey, 0);
                 break;
             case DAMAGE_PLAYER_REACTION_POISON:
-                damageTryStartEnemyDamageOverTime(enemy, id, 0);
+                damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
                 break;
         }
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = arg2[i].point.vx - coord->workm.t[0];
-    pos.vy = arg2[i].point.vy - coord->workm.t[1];
-    pos.vz = arg2[i].point.vz - coord->workm.t[2];
-    scale  = 0x320000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
+    // Project the contact onto the sphere, then express the effect point locally.
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];
+    radialScale       = (ACTOR_503500_LARGE_CHAIN_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz);
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;
+    gte_SetRotMatrix(&inverseRotation);
+    gte_ldv0(&effectPosition);
     gte_rtv0();
-    gte_stsv(&pos);
-    pos.vx += D_actor_503500_8016F0B0.vx;
-    pos.vy += D_actor_503500_8016F0B0.vy;
-    pos.vz += D_actor_503500_8016F0B0.vz;
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+    gte_stsv(&effectPosition);
+    effectPosition.vx += D_actor_503500_8016F0B0.vx;
+    effectPosition.vy += D_actor_503500_8016F0B0.vy;
+    effectPosition.vz += D_actor_503500_8016F0B0.vz;
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (criticalHit != 0) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
     }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
@@ -4071,17 +4152,23 @@ static void func_actor_503500_8013A470(SVECTOR* pts, GfxCoord* coords, s32 phase
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
 
-static void func_actor_503500_8013A900(Task* arg0)
+/// Releases the large chain's effect reservation, detaches its model and destroys it.
+///
+/// The static per-slot work block remains allocated; the tip sphere is unlinked
+/// and the enemy's contact pointer is cleared before enemy/task teardown.
+static void _actor503500LargeChainExit(Task* task)
 {
-    Enemy* enemy;
+    _Actor503500LargeChainWork* work;
+    Enemy*                      enemy;
 
-    enemy = arg0->spawnArg2.pointer;
-    actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    worldCollisionUnlinkBody(&((_Actor503500LargeChainWork*)arg0->work)->body);
-    enemy->recs = 0;
-    arg0->work  = NULL;
-    enemyDestroy(enemy, arg0);
+    enemy = task->spawnArg2.pointer;
+    actor503500ReleaseSlotEffects(task->spawnArg1.value);
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    work                            = task->work;
+    worldCollisionUnlinkBody(&work->body);
+    enemy->recs = NULL;
+    task->work  = NULL;
+    enemyDestroy(enemy, task);
 }
 
 static void func_actor_503500_8013A96C(Task* arg0)

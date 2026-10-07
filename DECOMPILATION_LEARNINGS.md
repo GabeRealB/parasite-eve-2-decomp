@@ -68740,7 +68740,7 @@ count goes back to where it started.
 
 ## A `regs=1` penalty can be a scaled-pointer constant, not an allocation problem
 
-**Problem:** `func_actor_503500_80138288` scored 99.815% straight out of the m2c
+**Problem:** `_actor503500PinkFlashEmitterExit` scored 99.815% straight out of the m2c
 bootstrap with `stack=0 branch=0 regs=1 reorder=0 insert=0 delete=0`. The
 `regs` label invites a dive into `.lreg` / `.greg`, which has nothing to say
 here.
@@ -69802,10 +69802,10 @@ already passed to the first call.
 
 ## Which reload is skipped tells you which blocks share a flags local
 
-`func_actor_503500_80135828` copies three bits of a parent model's `field_C`
-in three `if (f & bit) { if (!(p->field_C & bit)) o->field_C = f & ~bit; }
-else if (p->field_C & bit) o->field_C = f | bit;` blocks, re-reading
-`f = o->field_C` before each. With one `u16 f` for all three (95.8%), the
+`actor503500SyncAttachedModelDrawState` copies three bits of a parent model's `flags`
+in three `if (f & bit) { if (!(p->flags & bit)) o->flags = f & ~bit; }
+else if (p->flags & bit) o->flags = f | bit;` blocks, re-reading
+`f = o->flags` before each. With one `u16 f` for all three (95.8%), the
 first block's no-store path jumped past the second reload and tested the old
 register directly; the target does that only after the *second* block, and
 keeps block 1's value in `$a2` but blocks 2-3 in `$v1`. One local for block 1
@@ -70167,7 +70167,7 @@ delay slot and the `j` reappears.
 
 ## `lui/addiu` base in the wrong one of two arg regs: hoist the index into a local so the base is emitted later
 
-`func_actor_503500_801338E8` indexes `tbl[(w->progressFlags >> 3) & 1][w->heightBand]`
+`_actor503500StepAttackState` indexes `tbl[(w->progressFlags >> 3) & 1][w->heightBand]`
 twice with the same shape. The first lookup matched; the second came out with the
 table base in `$a1` and the `lb` of `heightBand` in `$a0`, the reverse of the
 target (99.85%, `regs` only). Both are block-local, so local-alloc decides:
@@ -70305,7 +70305,7 @@ bumps into the clause after the counter, `for (i = 0; i < 8; i++, dst++, src++)`
 reproduces the target order (99.5% regs/reorder -> 100%). Hoisting the two
 global tables into local pointers (`VecSet* out = &D_x;`) was the other half:
 it gives the `lui/addiu` pairs a callee-saved home across the call instead of
-rematerialising `%hi/%lo` at each use. `func_actor_503500_80136B64`.
+rematerialising `%hi/%lo` at each use. `_actor503500UpdateBodyCollisionGrid`.
 
 ### `lh 2(aN)` off an `addiu aN, sN, off` with other uses at `off(sN)`: a pointer local
 **Problem.** `func_actor_503500_801353F0` clamps a 16.16 `VECTOR` field and then
@@ -149855,7 +149855,7 @@ attempts; left as it was.
   something else keep their `return`. Second try.
 - **`ret = 1; if (c) { call; flags |= 8; goto done; } } else { done: ret = 1; }`**
   with a comment that `ret` had to be dead across the call
-  (`func_actor_503500_80133684`) is `if (a) { if (c) { call; flags |= 8; } }
+  (`_actor503500CheckPartLossProgress`) is `if (a) { if (c) { call; flags |= 8; } }
   ret = 1;`. The `li a1,1` in the delay slot of the branch around the call is
   reorg copying the join's first insn, not a second assignment.
 - **`if (hp > 0) { ...; if (hp > 0) goto skip; } if (player.hp <= 0) hp = 1;
