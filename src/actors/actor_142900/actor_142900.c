@@ -22,6 +22,17 @@
 
 #include "rooms/shelter_b2_elevator.h"
 
+/// Shared shake phases; scripts request STOPPED, RUNNING or BEGIN_FADE.
+enum {
+    ACTOR_142900_SCREEN_SHAKE_STOPPED    = 0,
+    ACTOR_142900_SCREEN_SHAKE_RUNNING    = 1,
+    ACTOR_142900_SCREEN_SHAKE_BEGIN_FADE = 2,
+    ACTOR_142900_SCREEN_SHAKE_FADING     = 3,
+};
+
+/// Duration of the shared amplitude ramp, in shake-task callbacks.
+enum { ACTOR_142900_SCREEN_SHAKE_FADE_TICKS = 20 };
+
 /// The clips the package's scene adds to the companion's animation bank, with
 /// the companion's play requests stored after them.
 ///
@@ -95,10 +106,7 @@ extern s32      D_actor_142900_801382AC;
 
 extern ActorTransform D_actor_142900_801378A0;
 void                  func_actor_142900_80131F5C(void);
-void                  func_actor_142900_80131FDC(s32);
-
-void func_actor_142900_80131F5C(void);
-void func_actor_142900_80131FDC(s32);
+static void           _actor142900SetScreenShakePhase(s32 phase);
 
 static AnimationSet _gActor142900Animation0161C;
 static AnimationSet _gActor142900Animation018BC;
@@ -111,7 +119,7 @@ static AnimationSet _gActor142900Animation052A4;
 static AnimationSet _gActor142900Animation05564;
 static AnimationSet _gActor142900Animation057B8;
 
-void func_actor_142900_80131E24(Task*);
+static void _actor142900ScreenShakeTask(Task* task);
 
 static AnimationPackedPose _gActor142900Animation005C8Bank1[7] = {
 #include "assets/actor_142900_animation_005C8_bank1.inc"
@@ -622,7 +630,7 @@ static AnimationSet _gActor142900Animation057B8 = {
 // Descriptor 0's handler has the two-argument enemy shape, not a `TaskFunc`'s.
 TaskDesc D_actor_142900_80137600[2] = {
     { { { TASK_BODY_NONE, 192 } }, (TaskFunc)enemyDestroy, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_142900_80131E24, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor142900ScreenShakeTask, { .value = 0 } },
 };
 
 _Actor142900CompanionAnimationBankExtensionStorage D_actor_142900_80137618 = { .data = {
@@ -655,10 +663,10 @@ EvsCommand D_actor_142900_801378D0[87] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_142900_80137764.data.playRequests[5] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_142900_80131FDC }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor142900SetScreenShakePhase }, { .value = ACTOR_142900_SCREEN_SHAKE_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_142900_80131FDC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor142900SetScreenShakePhase }, { .value = ACTOR_142900_SCREEN_SHAKE_BEGIN_FADE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x541A0003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -735,7 +743,7 @@ EvsCommand D_actor_142900_801380F8[18] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_142900_80131FDC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor142900SetScreenShakePhase }, { .value = ACTOR_142900_SCREEN_SHAKE_STOPPED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -756,32 +764,63 @@ s32 D_actor_142900_801382A8;
 
 s32 D_actor_142900_801382AC;
 
-void func_actor_142900_80131E24(Task* arg0)
+/// Steps the active fade and returns its reduced vertical offset in pixels.
+///
+/// The shared countdown must be in [1, 20] and `task` must be live, with its
+/// signed 16-bit phase counter in `killCountdown`. The last step selects
+/// STOPPED so the caller clears the display instead of applying this result.
+static inline s32 _actor142900FadeScreenShake(Task* task, s32 offsetY)
 {
-    extern void displaySetShakeY();
-    s32         var_a0;
+    enum { ACTOR_142900_SCREEN_SHAKE_FADE_PHASE_STEP = 5 };
 
-    if (D_actor_142900_801382AC == 2) {
-        D_actor_142900_801382AC = 3;
-        D_actor_142900_801382A8 = 0x14;
+    offsetY                 = offsetY * D_actor_142900_801382A8 / ACTOR_142900_SCREEN_SHAKE_FADE_TICKS;
+    D_actor_142900_801382A8 = D_actor_142900_801382A8 - 1;
+    task->killCountdown     = task->killCountdown + ACTOR_142900_SCREEN_SHAKE_FADE_PHASE_STEP;
+    if (D_actor_142900_801382A8 == 0) {
+        D_actor_142900_801382AC = ACTOR_142900_SCREEN_SHAKE_STOPPED;
     }
-    var_a0 = rsin((arg0->killCountdown << 0xC) / 60) / 1024;
-    if (D_actor_142900_801382AC == 1) {
-        arg0->killCountdown = arg0->killCountdown + 1;
+    return offsetY;
+}
+
+/// Applies the elevator scene's vertical shake and ends its task when stopped.
+///
+/// Descriptor 1 spawns a zeroed, bodyless task. Its signed 16-bit
+/// `killCountdown` counts the sine phase, advancing once per callback while
+/// running and five times per callback during the 20-callback fade. The
+/// 60-count cycle produces offsets in [-4, 4] pixels before fading; each
+/// counter update retains the task field's 16-bit wrap. Stopping clears the
+/// persistent display offset before task teardown.
+static void _actor142900ScreenShakeTask(Task* task)
+{
+    /// Sine cadence in callbacks and its Q12 amplitude conversion to pixels.
+    enum {
+        ACTOR_142900_SCREEN_SHAKE_CYCLE_TICKS      = 60,
+        ACTOR_142900_SCREEN_SHAKE_AMPLITUDE_PIXELS = 4,
+        ACTOR_142900_SCREEN_SHAKE_SINE_DIVISOR     = ONE / ACTOR_142900_SCREEN_SHAKE_AMPLITUDE_PIXELS,
+    };
+
+    // The display callee narrows to s8; its prototype adds a conversion absent here.
+    extern void displaySetShakeY();
+    s32         offsetY;
+
+    if (D_actor_142900_801382AC == ACTOR_142900_SCREEN_SHAKE_BEGIN_FADE) {
+        D_actor_142900_801382AC = ACTOR_142900_SCREEN_SHAKE_FADING;
+        D_actor_142900_801382A8 = ACTOR_142900_SCREEN_SHAKE_FADE_TICKS;
     }
-    if (D_actor_142900_801382AC == 3) {
-        var_a0                  = var_a0 * D_actor_142900_801382A8 / 20;
-        D_actor_142900_801382A8 = D_actor_142900_801382A8 - 1;
-        arg0->killCountdown     = arg0->killCountdown + 5;
-        if (D_actor_142900_801382A8 == 0) {
-            D_actor_142900_801382AC = 0;
-        }
+    // Convert the phase to a Q12 turn; signed division truncates toward zero.
+    offsetY = rsin((task->killCountdown * ONE) / ACTOR_142900_SCREEN_SHAKE_CYCLE_TICKS) / ACTOR_142900_SCREEN_SHAKE_SINE_DIVISOR;
+    if (D_actor_142900_801382AC == ACTOR_142900_SCREEN_SHAKE_RUNNING) {
+        task->killCountdown = task->killCountdown + 1;
     }
-    if (D_actor_142900_801382AC == 0) {
+    if (D_actor_142900_801382AC == ACTOR_142900_SCREEN_SHAKE_FADING) {
+        // Fade the amplitude as the phase speeds up; the last callback clears it.
+        offsetY = _actor142900FadeScreenShake(task, offsetY);
+    }
+    if (D_actor_142900_801382AC == ACTOR_142900_SCREEN_SHAKE_STOPPED) {
         displaySetShakeY(0);
-        taskKill(arg0);
+        taskKill(task);
     } else {
-        displaySetShakeY(var_a0);
+        displaySetShakeY(offsetY);
     }
 }
 
@@ -798,10 +837,19 @@ void func_actor_142900_80131F5C(void)
     }
 }
 
-void func_actor_142900_80131FDC(s32 arg0)
+/// Requests the elevator scene's shared vertical screen-shake phase.
+///
+/// Scripts pass STOPPED (0), RUNNING (1) or BEGIN_FADE (2). Every RUNNING
+/// request attempts to spawn descriptor 1, even if already running; callers
+/// must keep at most one shake task live. Spawn failure still updates the
+/// phase. STOPPED and BEGIN_FADE take effect on the next shake-task callback;
+/// this function does not clear the display offset itself.
+static void _actor142900SetScreenShakePhase(s32 phase)
 {
-    if (arg0 == 1) {
-        taskSpawnFromTable(D_actor_142900_80137600, 1, 0, 0);
+    enum { ACTOR_142900_SCREEN_SHAKE_TASK_INDEX = 1 };
+
+    if (phase == ACTOR_142900_SCREEN_SHAKE_RUNNING) {
+        taskSpawnFromTable(D_actor_142900_80137600, ACTOR_142900_SCREEN_SHAKE_TASK_INDEX, 0, 0);
     }
-    D_actor_142900_801382AC = arg0;
+    D_actor_142900_801382AC = phase;
 }

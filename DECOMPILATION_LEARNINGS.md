@@ -129009,7 +129009,7 @@ Inputs: `base_6.i`
 `eb4df25afd253d5a45efa2192a4d341fa9ce7e9820495e753c4a5a85ca6fdaf0` (99.811%),
 `base_5.i`
 `5cf3885a51647b8b632550bfd225a9bfc1af43c696739733fb01b1508d5d131e` (100.000%).
-## A narrow prototype parameter sign-extends at *every* call site; a block-scope old-style declaration is what removes it (func_actor_142900_80131E24, 2026-09-17)
+## A narrow prototype parameter sign-extends at *every* call site; a block-scope old-style declaration is what removes it (_actor142900ScreenShakeTask, 2026-09-17)
 
 The caller-side complement of the `s16`/`s32` parameter entry above. `displaySetShakeY`
 is declared `void displaySetShakeY(s8 offsetY)` in `include/main/display.h`, and it
@@ -129018,7 +129018,7 @@ a full SImode value behaves identically. GCC emits the call-site conversion anyw
 port defines `PROMOTE_PROTOTYPES` (`config/mips/mips.h`), so `convert_arguments`
 (`c-typeck.c`) runs `convert_for_assignment(s8, val)` and then `default_conversion` on the
 result — net `sign_extend:SI (subreg:QI (reg/v:SI 81) 0)`, which expands to an
-`sll a0,a0,0x18 / sra a0,a0,0x18` pair. In `func_actor_142900_80131E24` that pair is the
+`sll a0,a0,0x18 / sra a0,a0,0x18` pair. In `_actor142900ScreenShakeTask` that pair is the
 *only* difference from the target across all 78 instructions: everything else — home
 registers, sched order, block layout — is already identical, so the pair is pure noise the
 register allocator does not react to.
@@ -129037,10 +129037,10 @@ at *block* scope inside the function with an empty parameter list, which is comp
 the prototype and hides it from that call.
 
 ```c
-void func_actor_142900_80131E24(Task* arg0)
+static void _actor142900ScreenShakeTask(Task* task)
 {
     extern void displaySetShakeY();   /* no prototype here -> no conversion */
-    s32         var_a0;
+    s32         offsetY;
 ```
 
 Scope is the whole trick, so the near misses need ruling out explicitly. A file-scope
@@ -129049,12 +129049,12 @@ old-style declaration does *not* work: when an old-style declaration meets a pro
 prototype is a hard `conflicting types` error, not a silent override. Only the block-scope
 empty-list form removes the prototype in effect at the call.
 
-Inputs: scratch `nonmatchings/func_actor_142900_80131E24-vacuum`; `base_3.c` 100.000%
+Inputs: scratch `nonmatchings/_actor142900ScreenShakeTask-vacuum`; `base_3.c` 100.000%
 (`83ddb76d87cbfa99303bc4ec0a55a2c09af568f2ef7ca803f1d025ab915da52b`,
 preprocessed `c9ddb4019c73e0e76a4fc7a67c9297e85ee911f20e5a53f7175fe9d24bcfc77c`).
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## The magic constant does not name the divisor — the shift after `mfhi` does (func_actor_142900_80131E24, 2026-09-17)
+## The magic constant does not name the divisor — the shift after `mfhi` does (_actor142900ScreenShakeTask, 2026-09-17)
 
 m2c renders a signed division by a constant as `MULT_HI(x, magic)` plus a `>>`, and both of
 those it prints are its own reconstruction, not the target's instruction. `sra a3,3` on a
@@ -129064,7 +129064,8 @@ serves both divisors at different shifts, because `mfhi` leaves the high half of
 >> 3` at face value and writing `/ 10` produced the right magic with the wrong shift
 (`sra v0,a3,0x2`), one instruction off in the middle of an otherwise exact 78-instruction
 function. Read the shift operand off the target and write the division in C as
-`var_a0 * D_actor_142900_801382A8 / 20`; GCC regenerates magic and shift together.
+`offsetY * D_actor_142900_801382A8 / ACTOR_142900_SCREEN_SHAKE_FADE_TICKS`; GCC
+regenerates magic and shift together.
 ## A 100.00% score is normalized text: two `j`s can still name the wrong label, and only the checksum catches it (func_actor_120500_8013241C, 2026-09-17)
 
 `build.sh` scored this body 100.00% with every penalty zero and an empty

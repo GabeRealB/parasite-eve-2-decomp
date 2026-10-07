@@ -127,3 +127,5 @@ _gActor142900Animation057B8 = 0x801375D8; // size:0x28 defined:True
 D_actor_142900_80137600 = 0x80137600; // size:0x18 defined:True
 
 D_shelter_b2_elevator_8017E9F8 = 0x8017E9F8; // absolute:True owner=shelter_b2_elevator shared=rooms
+_actor142900ScreenShakeTask = 0x80131e24; // type:func
+_actor142900SetScreenShakePhase = 0x80131fdc; // type:func
