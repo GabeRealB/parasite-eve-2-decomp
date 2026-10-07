@@ -1,29 +1,22 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// When the recoil ends, returns to the walk (upright) or claims the alert hold
-/// and goes to the alert state.
-void madChaserRecoilHeavyEnd(Task* arg0)
+/// Returns heavy recoil to walking or alert when slot 1 reaches a boundary.
+///
+/// Requires live work/enemy storage and the interrupted stance in stateScratch.
+/// Boundary, jump and held-pose status all qualify without consuming the status.
+/// Upright stance selects combat walking; low stance claims alert ownership and
+/// selects alert behavior. Both reset the sub-state and retain task/animation.
+static void _madChaserRecoilHeavyEnd(Task* task)
 {
     MadChaserWork* work;
-    s32            cond;
 
-    work = (MadChaserWork*)arg0->work;
-    if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        if (work->stateScratch == 1) {
-            work           = (MadChaserWork*)arg0->work;
-            work->state    = 3;
-            work->subState = 0;
+    work = task->work;
+    if (_madChaserAnimHasBoundaryStatusInline(task)) {
+        if (work->stateScratch == MAD_CHASER_STANCE_UPRIGHT) {
+            _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_WALK);
         } else {
-            _madChaserSetAlertHold(arg0, 1);
-            work           = (MadChaserWork*)arg0->work;
-            work->state    = 5;
-            work->subState = 0;
+            _madChaserSetAlertHold(task, 1);
+            _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_ALERT);
         }
     }
 }

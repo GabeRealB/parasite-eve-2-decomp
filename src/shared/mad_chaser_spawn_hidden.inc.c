@@ -4,7 +4,9 @@
 ///
 /// Model matrices, enemy contacts and animation storage borrow work until
 /// task teardown; the clip bank and message table remain overlay-owned.
-/// Requires a live nine-part model, zeroed work, enemy and loaded clip bank.
+/// Requires model == task->extra.tmd, live nine-part coordinates, zeroed work,
+/// a live enemy and a loaded clip bank. Neither storage nor a battle reference
+/// is allocated here; the caller owns initialization of slots and collision.
 static __inline__ void _madChaserBindHiddenResources(Task* task, TmdObject* model, MadChaserWork* work, Enemy* enemy)
 {
     enum {

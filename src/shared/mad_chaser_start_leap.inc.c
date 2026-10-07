@@ -1,28 +1,38 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Saves the root Y as the ground height in `moveStartPos.vy`, requests animation 8
-/// at speed 0x10, clears the frame counter and the jump motion, sets
-/// `hasLeaped` and advances the sub-state.
-void madChaserStartLeap(Task* arg0)
+/// Starts the leap windup and saves the height to which it will land.
+///
+/// Requires live work and root coordinates in the world frame under the view.
+/// Saves root Y narrowed to s16, blends clip 8 over eight normal-rate frames,
+/// clears the frame counter/acceleration and seeds vertical speed at -300 parent
+/// units per callback. Marks hasLeaped, clears busy/anchored and advances the
+/// sub-state. Animation playback and the subsequent motion belong to the caller.
+static void _madChaserStartLeap(Task* task)
 {
+    enum {
+        MAD_CHASER_LEAP_WINDUP_CLIP            = 8,
+        MAD_CHASER_LEAP_WINDUP_BLEND_FRAMES    = MAD_CHASER_LEAP_WINDUP_CLIP,
+        MAD_CHASER_LEAP_INITIAL_VERTICAL_SPEED = -300,
+    };
     MadChaserWork* work;
-    MadChaserWork* work2;
-    s16            tmp;
+    MadChaserWork* requestWork;
+    s16            requestValue;
 
-    work                   = (MadChaserWork*)arg0->work;
-    work->moveStartPos.vy  = arg0->extra.tmd->coords->coord.t[1];
-    work2                  = (MadChaserWork*)arg0->work;
-    tmp                    = 8;
-    work2->animBlendFrames = tmp;
-    work2->animId          = tmp;
-    work2->animRate        = ANIMATION_RATE_ONE;
-    tmp                    = 1;
-    work2->animRequest     = tmp;
-    work->stateFrames      = 0;
-    work->moveAccel        = 0;
-    work->moveSpeed        = -0x12C;
-    work->hasLeaped        = tmp;
-    work->busy             = 0;
-    work->anchored         = 0;
-    work->subState         = work->subState + 1;
+    work                  = task->work;
+    work->moveStartPos.vy = task->extra.tmd->coords->coord.t[1];
+    requestWork           = task->work;
+    // Reuse the request value to retain the initializer's emitted store sequence.
+    requestValue                 = MAD_CHASER_LEAP_WINDUP_BLEND_FRAMES;
+    requestWork->animBlendFrames = requestValue;
+    requestWork->animId          = requestValue;
+    requestWork->animRate        = ANIMATION_RATE_ONE;
+    requestValue                 = MAD_CHASER_ANIM_REQUEST_BLEND;
+    requestWork->animRequest     = requestValue;
+    work->stateFrames            = 0;
+    work->moveAccel              = 0;
+    work->moveSpeed              = MAD_CHASER_LEAP_INITIAL_VERTICAL_SPEED;
+    work->hasLeaped              = requestValue;
+    work->busy                   = 0;
+    work->anchored               = 0;
+    work->subState               = work->subState + 1;
 }

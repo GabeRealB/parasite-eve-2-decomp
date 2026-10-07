@@ -1,102 +1,123 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Sub-state handler: slides the model's root toward `pullPoint` in x/z,
-/// accelerating with `moveSpeed`; after 90 frames it also eases y in and marks
-/// `busy`. Within 800 units it advances `subState`; if the enemy's HP is
-/// gone instead, it queues the follow-up animation (or clears `busy` when
-/// state 4 is pending).
-void madChaserPulledLimp(Task* arg0)
+/// Requests the dead pull's stance-specific settle animation or releases busy.
+///
+/// Requires live work and a valid settle-table entry for every non-leap clip.
+/// Retains four-frame normal-rate blending and reloads the task's live work.
+static __inline__ void _madChaserPulledLimpRequestSettle(Task* task, MadChaserWork* work)
 {
-    TmdObject*     obj;
+    s16 settleClip;
+
+    if (work->hitReaction != MAD_CHASER_HIT_REACTION_BLAST) {
+        work->busy = 1;
+        if (work->animId == MAD_CHASER_PULL_LEAP_CLIP) {
+            if (work->hasLeaped == 0) {
+                MadChaserWork* requestWork = task->work;
+
+                requestWork->animBlendFrames = MAD_CHASER_PULL_SETTLE_BLEND_FRAMES;
+                requestWork->animRate        = ANIMATION_RATE_ONE;
+                requestWork->animId          = MAD_CHASER_PULL_LOW_SETTLE_CLIP;
+                requestWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+            } else {
+                MadChaserWork* requestWork = task->work;
+
+                requestWork->animBlendFrames = MAD_CHASER_PULL_SETTLE_BLEND_FRAMES;
+                requestWork->animRate        = ANIMATION_RATE_ONE;
+                requestWork->animId          = MAD_CHASER_PULL_UPRIGHT_SETTLE_CLIP;
+                requestWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+            }
+        } else {
+            MadChaserWork* requestWork;
+
+            settleClip                   = gMadChaserSettleAnims[work->animId - 1];
+            requestWork                  = task->work;
+            requestWork->animBlendFrames = MAD_CHASER_PULL_SETTLE_BLEND_FRAMES;
+            requestWork->animRate        = ANIMATION_RATE_ONE;
+            requestWork->animId          = settleClip;
+            requestWork->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
+        }
+    } else {
+        work->busy = 0;
+    }
+}
+
+/// Accelerates the limp root toward the room's pull point until capture.
+///
+/// Requires live work, enemy/model storage and pullPoint in the root's parent
+/// frame. Increments the u16 frame count and s16 acceleration/speed each call.
+/// Before signed frame 90, horizontal distance is moveSpeed/64 per callback;
+/// later it is moveSpeed/32, busy is set and Y eases by 1/16 of its remaining
+/// offset. Direction and motion fields narrow to s16; coordinates use game units.
+/// A 3D distance below 800 advances the sub-state before checking HP. Otherwise,
+/// dead non-blast enemies request their settle clip blended over four normal-rate
+/// frames; a dead blast clears busy. The caller updates animation and collision.
+static void _madChaserPulledLimp(Task* task)
+{
+    enum {
+        MAD_CHASER_LIMP_PULL_FAST_FRAME          = 90,
+        MAD_CHASER_LIMP_PULL_SPEED_FRACTION_BITS = 6,
+        MAD_CHASER_LIMP_PULL_Y_EASE_SHIFT        = 4,
+    };
+    TmdObject*     model;
     MadChaserWork* work;
     Enemy*         enemy;
-    GfxCoord*      coord;
-    GfxCoord*      c;
-    VECTOR         d;
-    SVECTOR        dir;
-    VECTOR         sq;
-    VECTOR*        out;
-    s16            angle;
-    s16            next;
+    GfxCoord*      root;
+    GfxCoord*      liveRoot;
+    VECTOR         pullOffset;
+    SVECTOR        pullDirection;
+    VECTOR         squaredOffset;
+    VECTOR*        squareResult;
+    s16            pullHeading;
 
-    obj   = arg0->extra.tmd;
-    work  = (MadChaserWork*)arg0->work;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    coord = obj->coords;
+    model = task->extra.tmd;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    root  = model->coords;
     work->stateFrames++;
     work->moveAccel++;
     work->moveSpeed += work->moveAccel;
-    if ((s16)work->stateFrames < 0x5A) {
-        s32 step = work->moveSpeed >> 6;
+    if ((s16)work->stateFrames < MAD_CHASER_LIMP_PULL_FAST_FRAME) {
+        s32 stepDistance = work->moveSpeed >> MAD_CHASER_LIMP_PULL_SPEED_FRACTION_BITS;
 
-        c      = arg0->extra.tmd->coords;
-        dir.vx = work->pullPoint.vx - c->coord.t[0];
-        dir.vy = 0;
-        dir.vz = work->pullPoint.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        angle                                 = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        liveRoot         = task->extra.tmd->coords;
+        pullDirection.vx = work->pullPoint.vx - liveRoot->coord.t[0];
+        pullDirection.vy = 0;
+        pullDirection.vz = work->pullPoint.vz - liveRoot->coord.t[2];
+        VectorNormalSS(&pullDirection, &pullDirection);
+        pullHeading                           = ratan2(pullDirection.vx, pullDirection.vz);
+        task->extra.tmd->coords->coord.t[0]  += ((rsin(pullHeading) << 4) * stepDistance) >> 16;
+        task->extra.tmd->coords->coord.t[2]  += ((rcos(pullHeading) << 4) * stepDistance) >> 16;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
-        s32 step;
+        s32 stepDistance;
 
-        work->busy = 1;
-        step       = work->moveSpeed >> 5;
-        c          = arg0->extra.tmd->coords;
-        dir.vx     = work->pullPoint.vx - c->coord.t[0];
-        dir.vy     = 0;
-        dir.vz     = work->pullPoint.vz - c->coord.t[2];
-        VectorNormalSS(&dir, &dir);
-        angle                                 = ratan2(dir.vx, dir.vz);
-        arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * step) >> 16;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        coord->coord.t[1]                    += (work->pullPoint.vy - coord->coord.t[1]) >> 4;
+        work->busy       = 1;
+        stepDistance     = work->moveSpeed >> (MAD_CHASER_LIMP_PULL_SPEED_FRACTION_BITS - 1);
+        liveRoot         = task->extra.tmd->coords;
+        pullDirection.vx = work->pullPoint.vx - liveRoot->coord.t[0];
+        pullDirection.vy = 0;
+        pullDirection.vz = work->pullPoint.vz - liveRoot->coord.t[2];
+        VectorNormalSS(&pullDirection, &pullDirection);
+        pullHeading                           = ratan2(pullDirection.vx, pullDirection.vz);
+        task->extra.tmd->coords->coord.t[0]  += ((rsin(pullHeading) << 4) * stepDistance) >> 16;
+        task->extra.tmd->coords->coord.t[2]  += ((rcos(pullHeading) << 4) * stepDistance) >> 16;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        root->coord.t[1]                     += (work->pullPoint.vy - root->coord.t[1]) >> MAD_CHASER_LIMP_PULL_Y_EASE_SHIFT;
     }
-    d.vx = coord->coord.t[0] - work->pullPoint.vx;
-    d.vy = coord->coord.t[1] - work->pullPoint.vy;
-    d.vz = coord->coord.t[2] - work->pullPoint.vz;
-    out  = &sq;
-    gte_ldlvl(&d);
+    // Measure capture in 3D before allowing a dead enemy to settle.
+    pullOffset.vx = root->coord.t[0] - work->pullPoint.vx;
+    pullOffset.vy = root->coord.t[1] - work->pullPoint.vy;
+    pullOffset.vz = root->coord.t[2] - work->pullPoint.vz;
+    squareResult  = &squaredOffset;
+    gte_ldlvl(&pullOffset);
     gte_sqr0();
-    gte_stlvnl(out);
-    if (SquareRoot0(sq.vx + sq.vy + sq.vz) < 800) {
+    gte_stlvnl(squareResult);
+    if (SquareRoot0(squaredOffset.vx + squaredOffset.vy + squaredOffset.vz) < MAD_CHASER_PULL_CAPTURE_DISTANCE) {
         work->subState++;
         return;
     }
     if (enemy->hp <= 0) {
         sndEvtRequestScriptStop(SOUND_MAD_CHASER_ALERT_CRY, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        if (work->hitReaction != MAD_CHASER_HIT_REACTION_BLAST) {
-            work->busy = 1;
-            if (work->animId == 8) {
-                if (work->hasLeaped == 0) {
-                    MadChaserWork* w = (MadChaserWork*)arg0->work;
-
-                    w->animBlendFrames = 4;
-                    w->animRate        = ANIMATION_RATE_ONE;
-                    w->animId          = 5;
-                    w->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
-                } else {
-                    MadChaserWork* w = (MadChaserWork*)arg0->work;
-
-                    w->animBlendFrames = 4;
-                    w->animRate        = ANIMATION_RATE_ONE;
-                    w->animId          = 6;
-                    w->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
-                }
-            } else {
-                MadChaserWork* w;
-
-                next               = gMadChaserSettleAnims[work->animId - 1];
-                w                  = (MadChaserWork*)arg0->work;
-                w->animBlendFrames = 4;
-                w->animRate        = ANIMATION_RATE_ONE;
-                w->animId          = next;
-                w->animRequest     = MAD_CHASER_ANIM_REQUEST_BLEND;
-            }
-        } else {
-            work->busy = 0;
-        }
+        _madChaserPulledLimpRequestSettle(task, work);
     }
 }

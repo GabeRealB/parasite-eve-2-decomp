@@ -92,6 +92,21 @@ enum {
     MAD_CHASER_LURK_LOOK_DISTANCE  = 5000
 };
 
+/// Stance-table values saved for recoil recovery and pull selection.
+enum {
+    MAD_CHASER_STANCE_LOW     = 0,
+    MAD_CHASER_STANCE_UPRIGHT = 1
+};
+
+/// Capture distance in parent-coordinate units and clips used by both pull steps.
+enum {
+    MAD_CHASER_PULL_CAPTURE_DISTANCE    = 800,
+    MAD_CHASER_PULL_SETTLE_BLEND_FRAMES = 4,
+    MAD_CHASER_PULL_LEAP_CLIP           = 8,
+    MAD_CHASER_PULL_LOW_SETTLE_CLIP     = 5,
+    MAD_CHASER_PULL_UPRIGHT_SETTLE_CLIP = 6
+};
+
 /// Work block of a Mad Chaser task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It holds
@@ -194,7 +209,7 @@ void        madChaserPinPart(Task* arg0, s16 part, SVECTOR3* pos);
 void        madChaserBeginDeath(Task* arg0);
 void        madChaserCreepUntilHit(Task* arg0);
 
-void        madChaserStartLeap(Task* arg0);
+static void _madChaserStartLeap(Task* task);
 static void _madChaserLurkStartIdleHold(Task* task);
 static void _madChaserStartAlert(Task* task);
 void        madChaserBurst(Task* arg0);
@@ -209,8 +224,8 @@ static void _madChaserSpawnHidden(Task* task);
 void        madChaserWalkStart(Task* arg0);
 void        madChaserWalkApproach(Task* arg0);
 static void _madChaserLeapAttack(Task* task);
-void        madChaserLeapTurnAway(Task* arg0);
-void        madChaserLeapRebound(Task* arg0);
+static void _madChaserLeapTurnAway(Task* task);
+static void _madChaserLeapRebound(Task* task);
 void        madChaserDangleFrame(Task* arg0);
 void        madChaserDangleFall(Task* arg0);
 void        madChaserDangleLand(Task* arg0);
@@ -231,9 +246,9 @@ void        madChaserEmergeHopBack(Task* arg0);
 void        madChaserEmergeBackOff(Task* arg0);
 void        madChaserEmergeHighArc(Task* arg0);
 void        madChaserEmergeFlipOver(Task* arg0);
-void        madChaserPulledStruggle(Task* arg0);
-void        madChaserPulledIn(Task* arg0);
-void        madChaserPulledLimp(Task* arg0);
+static void _madChaserPulledStruggle(Task* task);
+static void _madChaserPulledIn(Task* task);
+static void _madChaserPulledLimp(Task* task);
 static void _madChaserQueueSoundBank(void);
 static void _madChaserSetAlertHold(Task* task, s32 claim);
 static s16  _madChaserTakeHitRequest(Task* task);
@@ -244,7 +259,7 @@ static void _madChaserKnockdownStart(Task* task);
 static void _madChaserKnockdownRise(Task* task);
 static void _madChaserKnockdownEnd(Task* task);
 void        madChaserWalkFinish(Task* arg0);
-void        madChaserLeapLand(Task* arg0);
+static void _madChaserLeapLand(Task* task);
 static void _madChaserAlertCry(Task* task);
 static void _madChaserAlertRelease(Task* task);
 static void _madChaserAlertStartSidestep(Task* task);
@@ -256,8 +271,8 @@ void        madChaserDeathWaitAnim(Task* task);
 void        madChaserDeathTurnTranslucent(Task* arg0);
 static void _madChaserDespawn(Task* task);
 void        madChaserRecoilLight(Task* arg0);
-void        madChaserRecoilHeavy(Task* arg0);
-void        madChaserRecoilHeavyEnd(Task* arg0);
+static void _madChaserRecoilHeavy(Task* task);
+static void _madChaserRecoilHeavyEnd(Task* task);
 void        madChaserLurkRiseState(Task* arg0);
 static void _madChaserLurkWait(Task* task);
 static void _madChaserLurkIdleEnd(Task* task);
@@ -267,8 +282,8 @@ void        madChaserLurkRiseEnd(Task* arg0);
 static void _madChaserLurkAlertStartSidestep(Task* task);
 static void _madChaserLurkShiftStart(Task* task);
 static void _madChaserLurkShiftStartSidestep(Task* task);
-void        madChaserPullStart(Task* arg0);
-void        madChaserPullReact(Task* arg0);
+static void _madChaserPullStart(Task* task);
+static void _madChaserPullReact(Task* task);
 static void _madChaserVanish(Task* task);
 static void _madChaserVanishFree(Task* task);
 static void _madChaserDeathRequestSettle(Task* task);
@@ -298,7 +313,7 @@ void        madChaserPullState(Task* arg0);
 void        madChaserTask(Task* arg0);
 void        madChaserLeapState(Task* arg0);
 void        madChaserDangleState(Task* arg0);
-void        madChaserVanishState(Task* arg0);
+static void _madChaserVanishState(Task* task);
 void        madChaserRecoilLightState(Task* arg0);
 static s16  _madChaserJoinAlert(Task* task);
 void        madChaserDeathPause(Task* arg0);

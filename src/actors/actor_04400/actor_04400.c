@@ -773,7 +773,7 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     madChaserDeathTick,
     _madChaserDespawnState,
     madChaserEmergeTick,
-    madChaserVanishState,
+    _madChaserVanishState,
     madChaserDropDeathTick,
     madChaserShrinkDeathTick,
 } };
@@ -809,11 +809,11 @@ static const TaskFuncTable3 gMadChaserWalkSteps = { {
 
 /// Sub-state handlers `madChaserLeapState` dispatches by `subState`.
 static const TaskFuncTable5 gMadChaserLeapSteps = { {
-    madChaserStartLeap,
+    _madChaserStartLeap,
     _madChaserLeapAttack,
-    madChaserLeapTurnAway,
-    madChaserLeapRebound,
-    madChaserLeapLand,
+    _madChaserLeapTurnAway,
+    _madChaserLeapRebound,
+    _madChaserLeapLand,
 } };
 
 /// Sub-state handlers `Actor04400_Fn06964` dispatches by `subState`.
@@ -1203,12 +1203,12 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
 
 /// Sub-state handlers `madChaserPullState` dispatches by `subState`.
 static const TaskFuncTable6 gMadChaserPullSteps = { {
-    madChaserPullStart,
-    madChaserPullReact,
-    madChaserPulledStruggle,
-    madChaserPulledIn,
-    madChaserPulledLimp,
-    madChaserPulledIn,
+    _madChaserPullStart,
+    _madChaserPullReact,
+    _madChaserPulledStruggle,
+    _madChaserPulledIn,
+    _madChaserPulledLimp,
+    _madChaserPulledIn,
 } };
 
 /// State handlers `madChaserDropDeathTick` dispatches by `state`.
@@ -1339,8 +1339,8 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 /// A further copy, under this file's own name.
 #define madChaserRecoilLightState Actor04400_Fn06A24
-#define madChaserRecoilLight      madChaserRecoilHeavy
-#define madChaserRecoilRecover    madChaserRecoilHeavyEnd
+#define madChaserRecoilLight      _madChaserRecoilHeavy
+#define madChaserRecoilRecover    _madChaserRecoilHeavyEnd
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilLightState
 #undef madChaserRecoilLight

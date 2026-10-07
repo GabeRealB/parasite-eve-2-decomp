@@ -6,12 +6,12 @@
 /// positive values move right along heading plus a quarter turn. The shifts
 /// retain the signed low 20 product bits before division by 16 and s16 narrowing.
 /// Requires the task's live work and model root.
-static __inline__ void _madChaserLurkAlertMoveRight(Task* task, MadChaserWork* work, s32 distanceAtNormalRate)
+static __inline__ void _madChaserLurkAlertMoveRight(Task* task, const MadChaserWork* work, s32 distanceAtNormalRate)
 {
     enum { MAD_CHASER_LURK_ALERT_RATE_FRACTION_BITS = 4 };
-    MadChaserWork* rateWork;
-    s16            sideHeading;
-    s16            stepDistance;
+    const MadChaserWork* rateWork;
+    s16                  sideHeading;
+    s16                  stepDistance;
 
     sideHeading                           = work->rotation.vy + ACTOR_TRANSFORM_ANGLE_TURN / 4;
     rateWork                              = task->work;

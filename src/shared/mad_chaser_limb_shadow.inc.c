@@ -2,6 +2,8 @@
 
 /// Queues one accepted Mad Chaser shadow projection with subtractive blending.
 ///
+/// Requires a nonnegative projection FLAG. shade is grey texture modulation
+/// (0..255); depth is the projection sorting Z/4, wrapped to one of 1024 tags.
 /// Borrows the scratch result only during this call. The frame arena must have
 /// room for one word-aligned POLY_FT4 and the current ordering table must have
 /// 1024 depth tags. The packet remains live until frame DMA completes.

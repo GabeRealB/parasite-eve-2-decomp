@@ -38,6 +38,7 @@
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
+#include "main/random.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -104,7 +105,7 @@ static const TaskFuncTable10 gMadChaserHiddenTaskStates = { {
     madChaserDeathTick,
     _madChaserDespawnState,
     madChaserEmergeTick,
-    madChaserVanishState,
+    _madChaserVanishState,
     madChaserDropDeathTick,
     madChaserShrinkDeathTick,
 } };
@@ -141,11 +142,11 @@ static const TaskFuncTable3 gMadChaserWalkSteps = { {
 
 /// Sub-state handlers `madChaserLeapState` dispatches by `subState`.
 static const TaskFuncTable5 gMadChaserLeapSteps = { {
-    madChaserStartLeap,
+    _madChaserStartLeap,
     _madChaserLeapAttack,
-    madChaserLeapTurnAway,
-    madChaserLeapRebound,
-    madChaserLeapLand,
+    _madChaserLeapTurnAway,
+    _madChaserLeapRebound,
+    _madChaserLeapLand,
 } };
 
 /// Sub-state handlers `func_actor_341700_801687B4` dispatches by `subState`.
@@ -958,12 +959,12 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
 
 /// Sub-state handlers `madChaserPullState` dispatches by `subState`.
 static const TaskFuncTable6 gMadChaserPullSteps = { {
-    madChaserPullStart,
-    madChaserPullReact,
-    madChaserPulledStruggle,
-    madChaserPulledIn,
-    madChaserPulledLimp,
-    madChaserPulledIn,
+    _madChaserPullStart,
+    _madChaserPullReact,
+    _madChaserPulledStruggle,
+    _madChaserPulledIn,
+    _madChaserPulledLimp,
+    _madChaserPulledIn,
 } };
 
 /// Five state handlers, indexed by `MadChaserWork::state`; copied to
@@ -1105,8 +1106,8 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 /// A further copy, under this file's own name.
 #define madChaserRecoilLightState func_actor_341700_80168874
-#define madChaserRecoilLight      madChaserRecoilHeavy
-#define madChaserRecoilRecover    madChaserRecoilHeavyEnd
+#define madChaserRecoilLight      _madChaserRecoilHeavy
+#define madChaserRecoilRecover    _madChaserRecoilHeavyEnd
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef madChaserRecoilLightState
 #undef madChaserRecoilLight
