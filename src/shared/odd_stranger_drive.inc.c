@@ -1,31 +1,48 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// The actor's per-frame animation driver. A pending clip change in
-/// `animRequest` either cross-fades every pose slot from the previous clip to the
-/// requested one (1) or restarts them on it (2); a blend request in `blendRequest`
-/// restarts the blend context on `blendAnimId`. The slots are then advanced,
-/// blended while `blendActive` is set (cleared once the pose context reports its
-/// end), the head yaw in `lookYaw` eases toward `lookYawTarget` by at most 0x100 a
-/// frame and turns two joints of the model by it, and the animation event for
-/// the current state and frame is played at the model's pan and depth.
-void oddStrangerDrive(Task* arg0)
+/// Restarts the primary part tracks and records the requested animation as applied.
+///
+/// Requires a bound primary rig and a loaded set covering slots 1..18. Reset
+/// installs normal rate; the driver reapplies the requested rate before ticking.
+static __inline__ void _oddStrangerRestartPrimaryAnimation(OddStrangerWork* work)
 {
+    s32 slotIndex;
+
+    for (slotIndex = ODD_STRANGER_FIRST_ANIMATED_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = work->animRate;
+        animationResetSlot(&work->rig.anim, slotIndex, work->animId);
+    }
+    work->appliedAnim = work->animId;
+}
+
+/// Applies animation requests, advances the parts, and updates look and sound.
+///
+/// Requires both rigs bound to live nineteen-part storage and a loaded bank.
+/// Slot 0 is the placed root; slots 1..18 animate. A crossfade requires both
+/// `appliedAnim` and `animId` to index the 45-by-45 transition table and the
+/// requested set to be loaded. Rates use sixteenths of a frame per call;
+/// `animFrames` counts calls modulo 65536. Applying a primary request clears
+/// the counter and sound latch before advancing this call's poses.
+/// The secondary rig mixes rotations of slots 1..10; translations stay primary.
+/// Look angles use 4096 units per turn. Sound uses the enemy's place instance.
+static void _oddStrangerDriveAnimation(Task* task)
+{
+    enum {
+        ODD_STRANGER_LOOK_YAW_STEP  = 0x100, // 4096 units per turn
+        ODD_STRANGER_LOOK_YAW_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 4
+    };
+
     OddStrangerWork* seekWork;
     OddStrangerWork* resetWork;
     OddStrangerWork* secondaryWork;
     OddStrangerWork* tickWork;
     OddStrangerWork* work;
     Enemy*           enemy;
-    s32              animation;
-    s16              state;
+    s32              animationId;
+    s16              request;
     s32              seekIndex;
-    s32              resetIndex;
     s32              secondaryIndex;
     s32              tickIndex;
-    s32              seekSlotIndex;
-    s32              resetSlotIndex;
-    s32              secondarySlotIndex;
-    s32              tickSlotIndex;
     s32              targetAngle;
     s32              currentAngle;
     s32              targetAngleBits;
@@ -37,110 +54,94 @@ void oddStrangerDrive(Task* arg0)
     s32              soundId;
     s32              pan;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    state = work->animRequest;
-    if (state == ODD_STRANGER_ANIM_REQUEST_BLEND) {
+    work    = task->work;
+    enemy   = task->spawnArg2.pointer;
+    request = work->animRequest;
+    if (request == ODD_STRANGER_ANIM_REQUEST_BLEND) {
         // Keep the copy before the comparison so it fills the branch delay slot.
-        seekWork = arg0->work;
-        if (work->appliedAnim != (s16)work->animId) {
-            seekIndex = 1;
-            do {
-                seekSlotIndex                   = seekIndex;
+        seekWork = task->work;
+        if (work->appliedAnim != work->animId) {
+            for (seekIndex = ODD_STRANGER_FIRST_ANIMATED_SLOT; seekIndex < ARRAY_SIZE(seekWork->rig.slots); seekIndex++) {
                 work->rig.slots[seekIndex].rate = seekWork->animRate;
-                animation                       = (s16)seekWork->animId;
-                animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0,
-                                           gOddStrangerTransitions[seekWork->appliedAnim][animation]);
-                seekIndex += 1;
-            } while (seekIndex < 0x13);
-            seekWork->appliedAnim = (s16)seekWork->animId;
+                animationId                     = seekWork->animId;
+                animationSeekSlotWithBlend(&seekWork->rig.anim, seekIndex, animationId, 0,
+                                           gOddStrangerTransitions[seekWork->appliedAnim][animationId]);
+            }
+            seekWork->appliedAnim = seekWork->animId;
         }
         work->animRequest  = ODD_STRANGER_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
-    } else if (state == ODD_STRANGER_ANIM_REQUEST_RESET) {
+    } else if (request == ODD_STRANGER_ANIM_REQUEST_RESET) {
         resetWork = work;
-        // Preserve the separate work pointer for the reset loop.
-        resetIndex = 1;
-        do {
-            resetSlotIndex                   = resetIndex;
-            work->rig.slots[resetIndex].rate = resetWork->animRate;
-            animationResetSlot(&resetWork->rig.anim, resetSlotIndex,
-                               (s16)resetWork->animId);
-            resetIndex += 1;
-        } while (resetIndex < 0x13);
-        resetWork->appliedAnim = (s16)resetWork->animId;
-        work->animRequest      = ODD_STRANGER_ANIM_REQUEST_PLAYING;
-        work->animFrames       = 0;
-        work->lastCueFrame     = 0;
+        _oddStrangerRestartPrimaryAnimation(resetWork);
+        work->animRequest  = ODD_STRANGER_ANIM_REQUEST_PLAYING;
+        work->animFrames   = 0;
+        work->lastCueFrame = 0;
     }
+    // Restart the secondary tracks, retaining the primary rig's rate stores.
     if (work->blendRequest == ODD_STRANGER_ANIM_REQUEST_RESET) {
-        secondaryWork              = arg0->work;
-        secondaryIndex             = 1;
-        secondaryWork->blendRate   = 0x30;
-        secondaryWork->blendWeight = 0x800;
-        do {
-            secondarySlotIndex                            = secondaryIndex;
+        secondaryWork              = task->work;
+        secondaryWork->blendRate   = 3 * ANIMATION_RATE_ONE;
+        secondaryWork->blendWeight = ONE / 2;
+        for (secondaryIndex = ODD_STRANGER_FIRST_ANIMATED_SLOT; secondaryIndex < ARRAY_SIZE(secondaryWork->blend.slots); secondaryIndex++) {
             secondaryWork->rig.slots[secondaryIndex].rate = secondaryWork->blendRate;
-            animationResetSlot(&secondaryWork->blend.anim, secondarySlotIndex,
+            animationResetSlot(&secondaryWork->blend.anim, secondaryIndex,
                                secondaryWork->blendAnimId);
-            secondaryIndex += 1;
-        } while (secondaryIndex < 0x13);
+        }
         work->blendRequest = ODD_STRANGER_ANIM_REQUEST_PLAYING;
     }
     work->animFrames = (u16)(work->animFrames + 1);
-    if ((s16)work->blendActive == 0) {
-        tickWork  = arg0->work;
-        tickIndex = 1;
-        do {
-            tickSlotIndex                       = tickIndex;
+    if (work->blendActive == 0) {
+        tickWork = task->work;
+        for (tickIndex = ODD_STRANGER_FIRST_ANIMATED_SLOT; tickIndex < ARRAY_SIZE(tickWork->rig.slots); tickIndex++) {
             tickWork->rig.slots[tickIndex].rate = tickWork->animRate;
-            animationTickSlot(&tickWork->rig.anim, tickSlotIndex);
-            tickIndex += 1;
-        } while (tickIndex < 0x13);
+            animationTickSlot(&tickWork->rig.anim, tickIndex);
+        }
     } else {
-        oddStrangerTickBlended(arg0);
+        _oddStrangerTickBlendedAnimation(task);
         if (work->blend.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->blendActive = 0;
         }
     }
-    targetAngle      = (s16)work->lookYawTarget;
-    currentAngle     = (s16)work->lookYaw;
+    // Ease the look, then distribute a clamped quarter-turn over the upper joints.
+    targetAngle      = work->lookYawTarget;
+    currentAngle     = work->lookYaw;
     targetAngleBits  = (u16)work->lookYawTarget;
     currentAngleBits = (u16)work->lookYaw;
     if (currentAngle < targetAngle) {
-        if ((targetAngle - currentAngle) >= 0x101) {
-            work->lookYaw = currentAngleBits + 0x100;
+        if ((targetAngle - currentAngle) > ODD_STRANGER_LOOK_YAW_STEP) {
+            work->lookYaw = currentAngleBits + ODD_STRANGER_LOOK_YAW_STEP;
         } else {
             work->lookYaw = targetAngleBits;
         }
-    } else if ((currentAngle - targetAngle) >= 0x101) {
-        work->lookYaw = currentAngleBits - 0x100;
+    } else if ((currentAngle - targetAngle) > ODD_STRANGER_LOOK_YAW_STEP) {
+        work->lookYaw = currentAngleBits - ODD_STRANGER_LOOK_YAW_STEP;
     } else {
         work->lookYaw = targetAngleBits;
     }
-    angle        = (s16)work->lookYaw;
+    angle        = work->lookYaw;
     clampedAngle = (u16)work->lookYaw;
     if (angle != 0) {
-        if (angle >= 0x401) {
-            clampedAngle = 0x400;
+        if (angle > ODD_STRANGER_LOOK_YAW_LIMIT) {
+            clampedAngle = ODD_STRANGER_LOOK_YAW_LIMIT;
         }
-        if (angle < -0x400) {
-            clampedAngle = -0x400;
+        if (angle < -ODD_STRANGER_LOOK_YAW_LIMIT) {
+            clampedAngle = -ODD_STRANGER_LOOK_YAW_LIMIT;
         }
         signedTurn = (s16)clampedAngle * 2 / 3;
-        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[5], signedTurn);
-        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[2], (s16)clampedAngle / 2);
-        arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[5], signedTurn);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[2], (s16)clampedAngle / 2);
+        task->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    sound = oddStrangerAnimEvent(work);
+    sound = _oddStrangerTakeAnimationSound(work);
     if (sound != 0) {
         soundId = sound | (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, (s32)pan,
-                                 (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, pan,
+                                 (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }

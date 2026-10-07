@@ -32,7 +32,7 @@ void oddStrangerPatrol(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         work->stateTimer = 0;
         if ((arg0->spawnArg1.value >> 16) == 0x10) {
             work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -48,7 +48,7 @@ void oddStrangerPatrol(Task* arg0)
         turn->delta.vy = 0;
         turn->delta.vz = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
 #endif
-        if (!oddStrangerOutOfRange(&turn->delta, 0xA0) || work->stateTimer >= 0x15) {
+        if (!_oddStrangerOutOfRange(&turn->delta, 0xA0) || work->stateTimer >= 0x15) {
             if (work->patrolTarget == 0) {
                 work->patrolTarget = 1;
             } else {
@@ -56,7 +56,7 @@ void oddStrangerPatrol(Task* arg0)
             }
             work->stateTimer = 0;
         }
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         coord               = arg0->extra.tmd->coords;
         turn->angle         = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = turn->angle;
@@ -110,9 +110,9 @@ void oddStrangerPatrol(Task* arg0)
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if (detectSightBlocked(arg0) != 1) {
             actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
-            if (!oddStrangerOutOfRange(&turn->delta, work->noticeRadius)) {
+            if (!_oddStrangerOutOfRange(&turn->delta, work->noticeRadius)) {
                 work->state = ODD_STRANGER_STATE_ALERT;
-            } else if (!oddStrangerOutOfRange(&turn->delta, 0xFA0)) {
+            } else if (!_oddStrangerOutOfRange(&turn->delta, 0xFA0)) {
                 coord       = arg0->extra.tmd->coords;
                 turn->angle = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
                 if (ABS(turn->angle) < 0x300) {

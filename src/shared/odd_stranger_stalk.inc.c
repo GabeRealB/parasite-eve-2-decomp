@@ -56,7 +56,7 @@ void oddStrangerStalk(Task* arg0)
     }
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
@@ -77,7 +77,7 @@ void oddStrangerStalk(Task* arg0)
         chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
         if (chase->turn < 0x200) {
-            if (!oddStrangerOutOfRange(&chase->delta, 0x44C) && work->grabCooldown == 0) {
+            if (!_oddStrangerOutOfRange(&chase->delta, 0x44C) && work->grabCooldown == 0) {
                 work->state = ODD_STRANGER_STATE_GRAB;
             }
         }

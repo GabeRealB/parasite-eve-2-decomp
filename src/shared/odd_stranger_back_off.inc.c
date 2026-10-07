@@ -25,10 +25,10 @@ void oddStrangerBackOff(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         return;
     }
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                 = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
@@ -38,7 +38,7 @@ void oddStrangerBackOff(Task* arg0)
         work->animId      = 0x11;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->stateTimer  = 0;
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
     }
     if (aim->turn >= 0x81) {
         aim->turn = 0x80;

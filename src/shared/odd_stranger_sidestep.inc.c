@@ -72,7 +72,7 @@ void oddStrangerSidestep(Task* arg0)
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->animRate    = 0xC;
         work->blendActive = 0;
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         gfxRotMatrixY(&mat, aim->turn, 1);
         dir = &work->sidestepDir;
         gfxReadMatrixZAxis(&mat, dir);
@@ -81,7 +81,7 @@ void oddStrangerSidestep(Task* arg0)
         work->sidestepCount++;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
         gte_lddp(work->sidestepStep);

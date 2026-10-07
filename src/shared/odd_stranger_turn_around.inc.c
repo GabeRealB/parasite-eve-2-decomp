@@ -37,7 +37,7 @@ void oddStrangerTurnAround(Task* arg0)
         work->lookYawTarget     = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
         coord               = arg0->extra.tmd->coords;
         aim->turn           = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -51,10 +51,10 @@ void oddStrangerTurnAround(Task* arg0)
     head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
     aim                                     = head - 1;
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     if (work->turnYaw == work->turnYawTarget) {
-        if (work->dashCount < 2 || oddStrangerOutOfRange(&aim->delta, 0x384)
+        if (work->dashCount < 2 || _oddStrangerOutOfRange(&aim->delta, 0x384)
 #if ODD_STRANGER_SIGHT_TEST
             || detectSightBlocked(arg0) == 1
 #endif

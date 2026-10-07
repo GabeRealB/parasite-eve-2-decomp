@@ -30,7 +30,7 @@ void oddStrangerHoldAim(Task* arg0)
 #else
         work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
 #endif
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         work->stateTimer = 0;
         return;
     }
@@ -53,6 +53,6 @@ void oddStrangerHoldAim(Task* arg0)
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }

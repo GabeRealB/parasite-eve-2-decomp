@@ -1,51 +1,51 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Enter the live-actor state: reinstate the model buffers, seed the
-/// `animRequest` / `animRate` animation pair, fold the current `animId`
-/// state onto the 0x17/0x18 pair, then hold in `oddStrangerDrive`
-/// until the clip's record index (`rig.slots[1].currentPose.indices.recordIndex`) passes 6 (state 0x17) or 9 (state
-/// 0x18), or the `rig.slots[1].status` word reports the actor gone. The un-flagged path
-/// halves `animRate` down to the +-0x10 turntable step and retires the actor
-/// once the enemy is spent. Same body as `func_actor_401300_80135DDC`, which
-/// drops the frame-count loop's `rig.slots[1].status` guard and its own 0x36 test.
-void oddStrangerStunned(Task* arg0)
+/// Oscillates a lying pose while `ODD_STRANGER_STATE_STATUS_HOLD` lasts.
+///
+/// Entry restores the model and targeting, resets a back/front lying clip,
+/// and advances to cue 6/9 before allowing reverse ticks. Later calls halve
+/// the signed rate and switch at +/-1 to the opposite normal-rate direction.
+/// Expired buildup selects `ODD_STRANGER_STATE_DOWN`; variant 1 also exits
+/// when HP is nonpositive. Requires loaded lying clips and live work and enemy.
+static void _oddStrangerStatusHold(Task* task)
 {
     OddStrangerWork* work;
     Enemy*           enemy;
     TmdObject*       tmd;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        tmd                           = arg0->extra.tmd;
+        tmd                           = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
         tmd->flags                    = 0;
         tmdAllocPrimitiveBuffer(tmd);
         work->animRequest     = ODD_STRANGER_ANIM_REQUEST_RESET;
-        work->animRate        = 0x10;
+        work->animRate        = ANIMATION_RATE_ONE;
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #if ODD_STRANGER_VARIANT == 1
-        if (work->animId == 11 || work->animId == 23) {
+        if (work->animId == ODD_STRANGER_ANIM_DOWN_BACK || work->animId == ODD_STRANGER_ANIM_STATUS_BACK) {
 #else
-        if (work->animId == 11) {
+        if (work->animId == ODD_STRANGER_ANIM_DOWN_BACK) {
 #endif
-            work->animId = 0x17;
+            work->animId = ODD_STRANGER_ANIM_STATUS_BACK;
 #if ODD_STRANGER_VARIANT == 1
-        } else if (work->animId == 12 || work->animId == 25 || work->animId == 24) {
+        } else if (work->animId == ODD_STRANGER_ANIM_DOWN_FRONT || work->animId == ODD_STRANGER_ANIM_REFALL_FRONT || work->animId == ODD_STRANGER_ANIM_STATUS_FRONT) {
 #else
-        } else if (work->animId == 12 || work->animId == 25) {
+        } else if (work->animId == ODD_STRANGER_ANIM_DOWN_FRONT || work->animId == ODD_STRANGER_ANIM_REFALL_FRONT) {
 #endif
-            work->animId = 0x18;
+            work->animId = ODD_STRANGER_ANIM_STATUS_FRONT;
         }
-        if ((u16)(work->animId - 0x17) >= 2) {
-            work->animId = 0x17;
+        if ((u16)(work->animId - ODD_STRANGER_ANIM_STATUS_BACK) >= 2) {
+            work->animId = ODD_STRANGER_ANIM_STATUS_BACK;
         }
+        // Start from bank records and advance beyond the initial pose before reversing.
         do {
-            oddStrangerDrive(arg0);
-            if (work->animId == 0x17 && (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 6) {
+            _oddStrangerDriveAnimation(task);
+            if (work->animId == ODD_STRANGER_ANIM_STATUS_BACK && (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 6) {
                 break;
             }
-            if (work->animId == 0x18 && (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 9) {
+            if (work->animId == ODD_STRANGER_ANIM_STATUS_FRONT && (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 9) {
                 break;
             }
 #if ODD_STRANGER_VARIANT == 1
@@ -53,18 +53,18 @@ void oddStrangerStunned(Task* arg0)
 #else
         } while (1);
 #endif
-        work->animRate = 0x20;
+        work->animRate = 2 * ANIMATION_RATE_ONE;
         return;
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work->animRate                        = work->animRate / 2;
     if (work->animRate == 1) {
-        work->animRate = -0x10;
+        work->animRate = -ANIMATION_RATE_ONE;
     }
     if (work->animRate == -1) {
-        work->animRate = 0x10;
+        work->animRate = ANIMATION_RATE_ONE;
     }
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(task);
     if (damageTickEnemyBuildup(enemy) == 1) {
         enemy->reactionFlags &= ~ENEMY_REACTION_BUILDUP;
         work->state           = ODD_STRANGER_STATE_DOWN;

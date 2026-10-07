@@ -47,7 +47,7 @@ void oddStrangerGrab(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, msg, 0);
         Gp_SpawnPadLerp(0xC, 8, 0x8F);
     }
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);

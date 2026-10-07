@@ -3,8 +3,8 @@
  * transition table, or a hard restart) and can overlay a secondary clip on
  * slots 1-10, mixed by weight. Each frame the driver also eases a head yaw
  * toward its target by up to 0x100 and turns joints 5 and 2 by 2/3 and 1/2 of
- * it, then plays the state's animation sound event. A 0x7D3 message puts it
- * into a scripted pose.
+ * it, then consumes the current clip's sound cue. An animation message selects
+ * a script clip and reenters DOWN without requesting a playback restart.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -64,6 +64,8 @@
 #include "common.h"
 
 #include "actors/actor.h"
+
+#include "gameplay/message.h"
 #include "overlay.h"
 
 /// Uniform model-root scale for yaw rebuilds in both variants, with 12 fractional bits.
@@ -122,6 +124,42 @@ enum {
     ODD_STRANGER_ANIM_REQUEST_BLEND   = 1, // seek the slots to the animation, blending over the frames the transition table gives
     ODD_STRANGER_ANIM_REQUEST_RESET   = 2, // restart the slots on the animation
     ODD_STRANGER_ANIM_REQUEST_PLAYING = 3  // the request has been applied
+};
+
+/// Animation-set indices used by the shared state and cue handlers.
+///
+/// These select each carrier's bank, not state-table slots. The status clips
+/// alias the ordinary lying clips; the script slots are assigned by message
+/// selector, with their contents not established by this interface.
+enum {
+    ODD_STRANGER_ANIM_WALK              = 2,
+    ODD_STRANGER_ANIM_RUN               = 3,
+    ODD_STRANGER_ANIM_GRAB_REACH        = 4,
+    ODD_STRANGER_ANIM_GRAB_PULL         = 5,
+    ODD_STRANGER_ANIM_GRAB_STRIKE       = 6,
+    ODD_STRANGER_ANIM_GRAB_RELEASE      = 7,
+    ODD_STRANGER_ANIM_RISE_BACK         = 8,
+    ODD_STRANGER_ANIM_ALERT             = 9,
+    ODD_STRANGER_ANIM_DOWN_BACK         = 11,
+    ODD_STRANGER_ANIM_DOWN_FRONT        = 12,
+    ODD_STRANGER_ANIM_FLINCH            = 13,
+    ODD_STRANGER_ANIM_DORMANT_SCRIPTED  = 16,
+    ODD_STRANGER_ANIM_SIDESTEP_NEGATIVE = 20,
+    ODD_STRANGER_ANIM_SIDESTEP_POSITIVE = 21,
+    ODD_STRANGER_ANIM_STATUS_BACK       = 23,
+    ODD_STRANGER_ANIM_STATUS_FRONT      = 24,
+    ODD_STRANGER_ANIM_REFALL_FRONT      = 25,
+    ODD_STRANGER_ANIM_SCRIPT_0          = 34,
+    ODD_STRANGER_ANIM_SCRIPT_1          = 35,
+    ODD_STRANGER_ANIM_SCRIPT_2          = 36,
+    ODD_STRANGER_ANIM_SCRIPT_3          = 37,
+    ODD_STRANGER_ANIM_SCRIPT_4          = 39
+};
+
+/// The model root is placed separately; secondary rotation mixing covers parts 1..10.
+enum {
+    ODD_STRANGER_FIRST_ANIMATED_SLOT = 1,
+    ODD_STRANGER_LAST_BLENDED_SLOT   = 10
 };
 
 /// Work block of the Odd Stranger task, in both of its packages.
@@ -258,58 +296,63 @@ STATIC_ASSERT_SIZEOF(OddStrangerTransformStorage, 0x20);
 
 #include "main/task_types.h"
 
-void oddStrangerTickBlended(Task* arg0);
-void oddStrangerDrive(Task* arg0);
-s32  oddStrangerPlayMessage(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
+static void _oddStrangerTickBlendedAnimation(Task* task);
+static void _oddStrangerDriveAnimation(Task* task);
+static s32  _oddStrangerPlayMessage(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unused);
 
-s32 oddStrangerAnimEvent(OddStrangerWork* work);
+static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work);
 
-void oddStrangerExit(Task* task);
-s32  oddStrangerApplyCommand(Task* arg0, s32 arg1, u16* arg2, s32 arg3);
-void oddStrangerGrabRelease(Task* arg0);
-void oddStrangerBackOff(Task* arg0);
-void oddStrangerSidestep(Task* arg0);
-void oddStrangerAdvance(Task* arg0);
-void oddStrangerFacePlayer(Task* arg0);
-void oddStrangerScriptPose8(Task* arg0);
-void oddStrangerScriptPoseD(Task* arg0);
-void oddStrangerScriptPose3(Task* arg0);
-void oddStrangerScriptPoseB(Task* arg0);
-void oddStrangerScriptPose2(Task* arg0);
-void oddStrangerDie(Task* arg0);
-void oddStrangerHoldAim(Task* arg0);
+static void _oddStrangerExit(Task* task);
+static s32  _oddStrangerApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused);
+void        oddStrangerGrabRelease(Task* arg0);
+void        oddStrangerBackOff(Task* arg0);
+void        oddStrangerSidestep(Task* arg0);
+void        oddStrangerAdvance(Task* arg0);
+void        oddStrangerFacePlayer(Task* arg0);
+static void _oddStrangerRiseBack(Task* task);
+static void _oddStrangerFlinch(Task* task);
+static void _oddStrangerPlayRun(Task* task);
+static void _oddStrangerPlayDown(Task* task);
+static void _oddStrangerPlayWalk(Task* task);
+void        oddStrangerDie(Task* arg0);
+void        oddStrangerHoldAim(Task* arg0);
 
-void oddStrangerSpawnHitEffect(Task* arg0, s16 arg1, s32 arg2);
-void oddStrangerIdle(Task* arg0);
-void oddStrangerDormant(Task* arg0);
-void oddStrangerGrab(Task* arg0);
-void oddStrangerGrabHold(Task* arg0);
-void oddStrangerStunned(Task* arg0);
-void oddStrangerTurnAround(Task* arg0);
+static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey);
+static void _oddStrangerDown(Task* task);
+static void _oddStrangerDormantScripted(Task* task);
+void        oddStrangerGrab(Task* arg0);
+void        oddStrangerGrabHold(Task* arg0);
+static void _oddStrangerStatusHold(Task* task);
+void        oddStrangerTurnAround(Task* arg0);
 
 void oddStrangerChase(Task* arg0);
 void oddStrangerPatrol(Task* arg0);
 
-/// Whether the XZ offset `d` reaches at least `r`: `overlayOutOfRange` with
-/// the scratch cursor published before the squares.
-static __inline__ s32 oddStrangerOutOfRange(SVECTOR* d, s16 r)
+/// Returns whether the XZ offset reaches or exceeds the radius from its origin.
+///
+/// `offset` and `radius` use the same model-coordinate units; Y is ignored.
+/// Signed halfwords are squared in s32, so a negative radius has the same
+/// result as its magnitude. Requires one free `OverlayRangeScratch` on the
+/// initialized scratch stack, restored before returning 0 or 1. The sum of
+/// the squared offsets must fit s32 (the two -32768 extremes together do not).
+static __inline__ s32 _oddStrangerOutOfRange(const SVECTOR* offset, s16 radius)
 {
-    OverlayRangeScratch* head;
-    OverlayRangeScratch* blk;
-    s32                  ret;
+    OverlayRangeScratch* savedCursor;
+    OverlayRangeScratch* scratch;
+    s32                  outside;
 
-    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-    blk                                       = head - 1;
-    head[-1].dx                               = d->vx;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = blk;
-    blk->dz                                   = d->vz;
-    blk->radius                               = r;
-    head[-1].dx                              *= head[-1].dx;
-    blk->dz                                  *= blk->dz;
-    blk->radius                              *= blk->radius;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
-    ret                                       = head[-1].dx + blk->dz >= blk->radius;
-    return ret;
+    savedCursor                               = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    scratch                                   = savedCursor - 1;
+    scratch->dx                               = offset->vx;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
+    scratch->dz                               = offset->vz;
+    scratch->radius                           = radius;
+    scratch->dx                              *= scratch->dx;
+    scratch->dz                              *= scratch->dz;
+    scratch->radius                          *= scratch->radius;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = savedCursor;
+    outside                                   = scratch->dx + scratch->dz >= scratch->radius;
+    return outside;
 }
 
 void oddStrangerStalk(Task* arg0);

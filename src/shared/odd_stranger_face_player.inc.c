@@ -23,7 +23,7 @@ void oddStrangerFacePlayer(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         work->hitBody.radius = ODD_STRANGER_BODY_RADIUS;
         sceneEngageBattle(1);
         return;
@@ -46,6 +46,6 @@ void oddStrangerFacePlayer(Task* arg0)
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }

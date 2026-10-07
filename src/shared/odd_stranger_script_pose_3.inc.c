@@ -1,30 +1,34 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// State 2: restarts clip 3 at rate 0x10 on entry and keeps driving it.
-void oddStrangerScriptPose3(Task* arg0)
+/// Plays the run clip in place for `ODD_STRANGER_STATE_PLAY_RUN`.
+///
+/// On entry restores drawing and targeting, resets the clip at normal rate,
+/// and drops secondary blending and attack pairing. Grid collision follows
+/// the carrier variant. Each call advances playback; there is no state exit.
+static void _oddStrangerPlayRun(Task* task)
 {
-    TmdObject*       obj;
+    TmdObject*       model;
     OddStrangerWork* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRequest      = ODD_STRANGER_ANIM_REQUEST_RESET;
-        work->animRate         = 0x10;
-        work->animId           = 3;
-        work->blendActive      = 0;
-        work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        model                                                     = task->extra.tmd;
+        ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
+        model->flags                                              = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRequest       = ODD_STRANGER_ANIM_REQUEST_RESET;
+        work->animRate          = ANIMATION_RATE_ONE;
+        work->animId            = ODD_STRANGER_ANIM_RUN;
+        work->blendActive       = 0;
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 #if ODD_STRANGER_BODY2_GRID
-        work->gridBody.flags = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 #else
-        work->gridBody.flags = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
 #endif
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(task);
     } else {
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        oddStrangerDrive(arg0);
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        _oddStrangerDriveAnimation(task);
     }
 }

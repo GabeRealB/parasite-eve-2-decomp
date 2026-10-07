@@ -36,7 +36,7 @@ void oddStrangerGrabHold(Task* arg0)
 #endif
     }
     work->grabAnimFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
     arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);

@@ -16,7 +16,7 @@ void oddStrangerGrabRelease(Task* arg0)
         work->animRate    = 0x10;
         work->animId      = 7;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         msg              = &gOddStrangerPlayerAnim;
         msg->animationId = 3;
         if (cfg->hp > 0) {
@@ -40,7 +40,7 @@ void oddStrangerGrabRelease(Task* arg0)
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         kind = enemy->node.state.parts.targeted;
         if (kind == 1) {

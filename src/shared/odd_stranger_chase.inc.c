@@ -38,7 +38,7 @@ void oddStrangerChase(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        oddStrangerDrive(arg0);
+        _oddStrangerDriveAnimation(arg0);
         work->dashRateStep        = 8;
         work->stateTimer          = 0;
         work->exitCounter         = 0;
@@ -50,7 +50,7 @@ void oddStrangerChase(Task* arg0)
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
     chase                                   = head - 1;
     arg0->extra.tmd->coords->composeStamp   = GRAPHICS_COORD_DIRTY;
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
 #if ODD_STRANGER_VARIANT == 1
     if (ActorContact_PushContact(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1) {
 #else

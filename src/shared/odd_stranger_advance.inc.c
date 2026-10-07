@@ -59,7 +59,7 @@ void oddStrangerAdvance(Task* arg0)
             work->slideStep = 0;
         }
     }
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) || work->slideStep == 0) {
         work->state = ODD_STRANGER_STATE_TURN_AROUND;
     }

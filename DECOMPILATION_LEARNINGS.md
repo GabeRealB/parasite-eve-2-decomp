@@ -9751,7 +9751,7 @@ between the two tables again.
 
 **When the table sits at a `4 mod 8` offset *inside its own unit's* `.rodata`,
 that pad has no cut to escape through - move the section base instead.**
-`actor_401000`'s `func_actor_401000_8013D694` matched at 100.00% in scratch and
+`actor_401000`'s `_oddStrangerPlayMessage` matched at 100.00% in scratch and
 failed only its own overlay, `cmp -l` showing 13 bytes wrong: the table four
 bytes late, everything from the next unit's table on identical. The leading
 rodata's assembly content ends at `0x26C` and GCC's `.align 3` ahead of the
@@ -26101,7 +26101,7 @@ a byte comparison, so the load has to be `lhu`. The union is only needed when th
 same field must *keep* two widths at once.
 
 **`lhu` vs `lw` is the same class, and its tell is the opcode alone.** In
-`oddStrangerStunned` the loop guard tests bits `0x102` at
+`_oddStrangerStatusHold` the loop guard tests bits `0x102` at
 `OddStrangerWork` + 0x68, and the target loads a **word** (`lw $v0, 0x68($s0)`)
 while 13 guards in the same overlay read that offset with `lhu`. `0x102` fits a
 `u16`, so the constant-fits-the-type tell above stays silent: only the opcode
@@ -84339,7 +84339,7 @@ on the state access. Inputs: `base_2.i`
 
 ## A ported `similar` sibling's struct starts at offset 0 — the leading pad is part of the layout
 
-`oddStrangerExit` (USA/actors/actor_401800) is the case sections 26
+`_oddStrangerExit` (USA/actors/actor_401800) is the case sections 26
 and 27 describe: BRIEF listed `Actor01900_Fn0A6CC` at 1.00 in `shape` and
 `calls`, `overlay_dup_index.py find` reported a single copy — itself — and the
 sibling's matched C in `src/actors/lib/actor_101900_text.c` is the whole control
@@ -85746,7 +85746,7 @@ worldCollisionUnlinkBody(&work->attackBody);
 ```
 
 The BRIEF's "similar matched bodies" list is the shortcut: the same-shaped
-teardown exists in several actors (`oddStrangerExit` is 1.00 shape
+teardown exists in several actors (`_oddStrangerExit` is 1.00 shape
 and calls), and it already spells the pattern out. Do not copy its *offsets*
 though - actor 401300 keeps its three nodes at 0x970/0xAB0/0xBF0 where 01900 and
 401800 keep theirs at 0x8C8/0xA08/0xB48. Only the shape transfers.
@@ -97339,7 +97339,7 @@ something to read. Example: `func_actor_421600_8013E9D8`. Inputs: `base_2.i`
 `a5fac8bb0c991fc5d6b006606a115c03937d73dcabd15bc38780ccf248936585` (100.000%),
 `base.c` `8d046d78a99c4533238d9d50c1355bf918e0348adf343e92340ebf9e76c55ece`
 (99.717%, tried `if/else` with the test on the field: same 99.717%).
-## sched1 schedules one basic block at a time, so a load hoisted *across a branch* was hoisted in the source (oddStrangerScriptPose8, 2026-09-16)
+## sched1 schedules one basic block at a time, so a load hoisted *across a branch* was hoisted in the source (_oddStrangerRiseBack, 2026-09-16)
 
 `schedule_block` takes a single block: `head` and `tail` are
 `basic_block_head[b]` / `basic_block_end[b]`, and `schedule_insns` calls it once
@@ -97350,7 +97350,7 @@ anything across a branch boundary is `reorg`, and it moves an instruction into a
 *delay slot* -- not above a branch, and not out of a block.
 
 So when the target has an instruction on the far side of a branch from where m2c
-put it, the answer is in the C, not in the scheduler. `oddStrangerScriptPose8`
+put it, the answer is in the C, not in the scheduler. `_oddStrangerRiseBack`
 scored 90.53% (`regs=1`, `insert=3`) on one such line: the target loads the enemy
 pointer *unconditionally*, and m2c had the load at its use, inside the `if`.
 
@@ -97460,7 +97460,7 @@ and the m2c shape matches there. A jump to the target's exact instruction count
 with only `regs`/`reorder` left is the tell that the RTL is right and allocation
 is all that remains.
 
-## The pad on the far side of a compiler-generated table puts the cut *and* the word in the table's own unit (func_actor_401800_8013DCBC, 2026-09-16)
+## The pad on the far side of a compiler-generated table puts the cut *and* the word in the table's own unit (_oddStrangerPlayMessage, 2026-09-16)
 
 A run in the package can end with the `.align 3` pad for the table *after* it
 rather than the one before: `jtbl_actor_401800_80132074` (5 entries, image
@@ -97473,7 +97473,7 @@ answers are opposite:
   inside the previous unit's object. Leave the cut at the table, keep the pad
   with the previous unit, and write it there in C — no `units` cut, so no unit
   renumbering.
-- **Pad behind the table** (`func_actor_401800_8013DCBC`): the table is at a
+- **Pad behind the table** (`_oddStrangerPlayMessage`): the table is at a
   4-mod-8 address, so it can only be reproduced in an object whose `.rodata`
   *starts* there. The cut is unavoidable, and it has to move the function too
   (`units = ["0xBE9C"]` for a function at image `0xBE9C`), because the table is
@@ -97484,7 +97484,7 @@ answers are opposite:
 
 ```c
 /* actor_401800_2.c — the table's 5 entries, then the original object's pad. */
-s32 func_actor_401800_8013DCBC(...) { ... }
+s32 _oddStrangerPlayMessage(...) { ... }
 
 const s32 D_actor_401800_80132088 = 0;
 ```
@@ -108124,7 +108124,7 @@ wrong instinct is to hunt for the symbol it names. (Third instance of this rule 
 
 Both fixes were applied at once: 100.000% on the first build, all penalties zero.
 
-## A halfword field's signedness is pinned by the read nothing can narrow (oddStrangerDormant, 2026-09-16)
+## A halfword field's signedness is pinned by the read nothing can narrow (_oddStrangerDormantScripted, 2026-09-16)
 
 The twin transcription above was again worth six attempts' worth of progress: the m2c seed
 scored 74.948% and a straight transcription of `func_actor_401300_801397F8` (the brief's
@@ -108603,10 +108603,10 @@ Two habits avoid it: put a new inline helper above its first caller, and after a
 100% scratch match, confirm the helper the function relies on is defined before
 the function in the host file.
 
-## Which variable a shared tail assigns through decides the register every implied equality canonicalises to (`func_actor_401800_80133B78`, 2026-09-16)
+## Which variable a shared tail assigns through decides the register every implied equality canonicalises to (`_oddStrangerTakeAnimationSound`, 2026-09-16)
 
-`func_actor_401800_80133B78` is a 20-case switch over `animId` that returns a
-`0x400A00xx` event id when `field_5A & 0x3FF` reaches a value its state cares
+`_oddStrangerTakeAnimationSound` is a 20-case switch over `animId` that returns a
+`0x400A00xx` event id when `work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK` reaches a value its state cares
 about, latched by `lastCueFrame`. Its matched sibling `Actor01900_Fn01A7C`
 (`src/actors/lib/actor_101900_text.c`) gives the statement shape, and copying it
 produced 97.067% — every block in place, `regs`/`stack` at zero, and a 2-instruction
@@ -108624,17 +108624,17 @@ substitution outright:
                           (reg/v:SI 81)) ...)
 ```
 
-`prev` (82) became `id` (81). The store is `work->lastCueFrame = prev;` on the
-fall-through of `if (prev != id)`, so `record_jump_equiv` had recorded the
+`latchedCueIndex` (82) became `cueIndex` (81). The store is `work->lastCueFrame = latchedCueIndex;` on the
+fall-through of `if (latchedCueIndex != cueIndex)`, so `record_jump_equiv` had recorded the
 implied equality, and `make_regs_eqv` (cse.c) picks the canonical register of the
 merged quantity by lifetime — "Among pseudos, if NEW will live longer than any
 other reg of the same qty, and that is beyond the current basic block, make it
-the new canonical replacement". `id` is assigned in every case including the
-last, `prev` only in the three two-check cases, so `id` outlives it and every
-`prev` use after the branch was rewritten.
+the new canonical replacement". `cueIndex` is assigned in every case including the
+last, `latchedCueIndex` only in the three two-check cases, so `cueIndex` outlives it and every
+`latchedCueIndex` use after the branch was rewritten.
 
 The rewritten store could no longer cross-jump with the state-machine tail's
-store (the `field_5A & 0x3FF` one all the other cases fall into), and `reorg`
+store (the `work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK` one all the other cases fall into), and `reorg`
 then declined to fill the second check's delay slot with the `lui`: the taken
 path of that branch is `sw $v0`, which needs exactly the register the `lui`
 writes. Hence the `nop`, and a two-instruction mismatch that no amount of
@@ -108643,13 +108643,13 @@ looking at the scheduler explains.
 The fix is to give the shared tail the same variable:
 
 ```c
-            prev            = work->field_5A & 0x3FF;
-            work->lastCueFrame = prev;
+            latchedCueIndex            = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
+            work->lastCueFrame = latchedCueIndex;
             break;
 ```
 
-instead of `work->lastCueFrame = work->field_5A & 0x3FF;`. `prev` then lives past
-`id`'s last use, becomes the canonical register, and the store keeps it —
+instead of `work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;`. `latchedCueIndex` then lives past
+`cueIndex`'s last use, becomes the canonical register, and the store keeps it —
 100.000%, all penalties zero. Both spellings assemble to the same `lhu; andi; sw`
 in the tail itself; which one the source used is only visible two cases away, in
 the register the *other* stores were rewritten to.
@@ -108719,7 +108719,7 @@ store can only follow the `r` store:
 Moving the statement up one slot in the helper —
 `blk = (...)  (head - 0xC); blk->dx = d->vx; *(RangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk; blk->dz = d->vz; ...` —
 gave 100.000% with every penalty zero, and the unscoped build still matched the
-helper's two other call sites in the same TU (`oddStrangerDormant`,
+helper's two other call sites in the same TU (`_oddStrangerDormantScripted`,
 `func_actor_80137714`), which turn out to be insensitive to the order.
 
 Two consequences. Reordering statements *inside* an inlined helper is the lever
@@ -108865,7 +108865,7 @@ over the affected overlays rather than as the tail of the match that triggered
 it. The match itself is unaffected: it lands in the overlay's own `.c` and the
 promotion is deferred.
 
-## An m2c seed's *widths* and *strides* are guesses too, not just its parameters (oddStrangerApplyCommand, 2026-09-16)
+## An m2c seed's *widths* and *strides* are guesses too, not just its parameters (_oddStrangerApplyCommand, 2026-09-16)
 
 The companion to the section above: that one is the seed dropping a parameter, this one is the seed
 reading the right address at the wrong width or stride. Both leave a 91% seed whose penalties
@@ -108880,8 +108880,9 @@ target:  lbu  v0,0x0(a2) / sb v0,0xC18(a0)    <- three bytes stored
          lhu  v1,0x0(a2) / li v0,0x301        <- then compared a halfword at a time
 ```
 
-Only the *comparisons* are halfword; the stores really are bytes. A `u16* arg2` with bytes read as
-`((u8*)arg2)[i]` and compares as `arg2[0]` / `arg2[1]` reproduces both widths from one parameter —
+Only the *comparisons* are halfword; the stores really are bytes. A `const ActorCommand* command` with its stage and area bytes read directly,
+the command narrowed to its low byte for the cache, and comparisons through
+`command->context.key` / `command->command` reproduces both widths from one parameter —
 the same shape `Actor01900_Fn0A5A4`, the matching sibling, already had.
 
 **Strides.** `&obj->field_8->coord` came out of m2c as `M2C_FIELD(..., s32 **, 8) + 4`, which in C is
@@ -109046,7 +109047,7 @@ Inputs: `base_1.i` SHA256
 `101111bdef09f992b82e9ff1bb137e842b982bead64a56a0cc773a54867db1e2`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## An m2c seed's flattened scratch helper is the twin's `static __inline__`, two head stores and all (oddStrangerDormant, 2026-09-16)
+## An m2c seed's flattened scratch helper is the twin's `static __inline__`, two head stores and all (_oddStrangerDormantScripted, 2026-09-16)
 
 The seed for this actor state body scored 76.5% with `insert=16 delete=19
 branch=4 regs=54 reorder=6`, and the whole residual was one inlined helper m2c
@@ -109247,7 +109248,7 @@ flag `expand_expr` widens the load with, which is the whole difference between `
 `s16` field with `(u16)` reads is the 100.000% form; the `u16` field with `(s16)` reads scores
 99.976% on the single store constant.
 
-## A jump-table switch's `addiu $-K` / `sltiu $N` dispatch is GCC's; switch on the raw field (oddStrangerIdle, 2026-09-16)
+## A jump-table switch's `addiu $-K` / `sltiu $N` dispatch is GCC's; switch on the raw field (_oddStrangerDown, 2026-09-16)
 
 Once a `switch` becomes a jump table, `expand_end_case` in `stmt.c` builds the
 range check out of the case values themselves: `range = maxval - minval` folded
@@ -109524,7 +109525,7 @@ M2C_FIELD(temp_a3, M2C_UNK *, -1) = M2C_UNALIGNED32(M2C_ERROR(/* Unable to handl
 ```
 
 `M2C_ERROR(desc)` expands to `(0)` and `M2C_UNALIGNED32` to its argument, so the
-seed compiles to two plain `sw`s per 8-byte copy. `oddStrangerSpawnHitEffect`
+seed compiles to two plain `sw`s per 8-byte copy. `_oddStrangerSpawnHitEffect`
 carries twelve of those copies — one per switch arm — so its m2c seed holds 108
 of the target's 260 instructions and scores 29.585% with `delete=165`. Iterating
 on that seed is hopeless: the missing 152 instructions are not a register or
@@ -114132,7 +114133,7 @@ and a `j` back to the post-switch tail:
 ```
 
 Write the store out in full in every case, the shape the already-matched
-`func_actor_401800_8013DCBC` uses — the `0x7D3` handler of `actor_401800`,
+`_oddStrangerPlayMessage` uses — the `0x7D3` handler of `actor_401800`,
 whose two calling cases differ but whose five per-case stores are the same
 shape. Cross-jumping re-merges them at the end of the last case: case 4 falls
 into it, cases 1-3 get a `j` with their `li v0,N` in the delay slot, and the
@@ -127836,7 +127837,7 @@ work->lastCueIndex = work->rig.slots[0].currentPose.indices.recordIndex & 0x3FF;
 
 Slot 1 is what is watched (`0x3E`), slot 0 is what is remembered (`0x16`, stored
 to `lastCueIndex` as an `s16` but loaded `lhu` before the mask). The `+ 1` on the
-coordinate argument is one `GfxCoord`, i.e. `+ 0x50`; `oddStrangerDormant`
+coordinate argument is one `GfxCoord`, i.e. `+ 0x50`; `_oddStrangerDormantScripted`
 is the same guard one actor over (`field_5A` / `field_8B4`, `field_8 + 5` =
 `0x190`) and is the body to read first. `Actor110600_ScaleRotation` in
 `actor_110600.c` already spells the inlined rescale, so the whole function is a
@@ -147829,7 +147830,7 @@ set, past conditional exits - and one saved register disappeared); and
 order, where `indices[spriteSlot + (frame - 120) * 4]` through a flat pointer local
 distributed the `- 480` into the displacement (`lbu v0, -480(a2)`).
 
-Related, from three animation ticks (`oddStrangerDrive`, `desertChaserAnimTick`,
+Related, from three animation ticks (`_oddStrangerDriveAnimation`, `desertChaserAnimTick`,
 `func_actor_403000_80133AF8`): `(s8*)((to + from * 45) + (u32)table)` is
 `table[from][to]` on `s8 table[45][45]` named directly - `addu v0, a2, v0` /
 `addu v0, v0, s5`. A slot pointer local walked beside it (`seekSlot += 1`) put

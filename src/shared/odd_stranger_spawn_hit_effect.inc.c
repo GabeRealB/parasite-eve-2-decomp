@@ -1,81 +1,79 @@
-#include "gameplay/room_effects.h"
-
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Spawn the effect a hit record `arg2` names at one of twelve model offsets
-/// picked by the signed damage `arg1`: the `gRandomLcgState` draw's low bits
-/// bucket `|arg1|` into below 0x200 / above 0x600 / positive / non-positive,
-/// each selecting from its own run of `gOddStrangerHitOffsets`. The chosen
-/// offset goes into the work block's `effectOffset` and the `effectArg` argument
-/// record, which anchors it at the model's second coordinate part, scale
-/// 0x300 and count 2 — the effect `effectSpawnHit` then spawns hangs off the
-/// part the vector's `pad` names. The 8-byte scratch the offset is built in is
-/// carved off and given back around the call. Same body as
-/// `Actor00100_Fn03340`, which keeps its record inline and scales by 0x100.
-void oddStrangerSpawnHitEffect(Task* arg0, s16 arg1, s32 arg2)
+/// Spawns a player attack's hit effect at an offset chosen by its bearing.
+///
+/// `hitYaw` is the signed hit bearing relative to the enemy's facing, in
+/// 4096 units per turn, normally -2048..2048. Front, rear and signed side
+/// sectors select an offset; its `pad` selects a live model part. `attackKey`
+/// must name a valid player attack row. The effect arguments use part 1,
+/// low half 0x300 and repeat count 2; the effect kind interprets the low half.
+/// Requires one free scratch `SVECTOR` plus nested spawner capacity. Variant 1
+/// keeps the offset in work; variant 2 lends scratch through the spawn call.
+static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
 {
-    SVECTOR*         sc;
-    s32              mag;
+    SVECTOR*         hitOffset;
+    s32              yawMagnitude;
     OddStrangerWork* work;
 
-    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    mag  = (arg1 >= 0) ? arg1 : -arg1;
-    work = arg0->work;
-    if (mag < 0x200) {
+    hitOffset    = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    yawMagnitude = (hitYaw >= 0) ? hitYaw : -hitYaw;
+    work         = task->work;
+    if (yawMagnitude < ACTOR_TRANSFORM_ANGLE_TURN / 8) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
-                *sc = gOddStrangerHitOffsets[0];
+                *hitOffset = gOddStrangerHitOffsets[0];
                 break;
             case 1:
-                *sc = gOddStrangerHitOffsets[1];
+                *hitOffset = gOddStrangerHitOffsets[1];
                 break;
             case 2:
-                *sc = gOddStrangerHitOffsets[2];
+                *hitOffset = gOddStrangerHitOffsets[2];
                 break;
             case 3:
-                *sc = gOddStrangerHitOffsets[3];
+                *hitOffset = gOddStrangerHitOffsets[3];
                 break;
             default:
-                *sc = gOddStrangerHitOffsets[4];
+                *hitOffset = gOddStrangerHitOffsets[4];
                 break;
         }
-    } else if (mag > 0x600) {
+    } else if (yawMagnitude > 3 * ACTOR_TRANSFORM_ANGLE_TURN / 8) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
-                *sc = gOddStrangerHitOffsets[5];
+                *hitOffset = gOddStrangerHitOffsets[5];
                 break;
             case 1:
-                *sc = gOddStrangerHitOffsets[6];
+                *hitOffset = gOddStrangerHitOffsets[6];
                 break;
             default:
-                *sc = gOddStrangerHitOffsets[7];
+                *hitOffset = gOddStrangerHitOffsets[7];
                 break;
         }
-    } else if (arg1 > 0) {
+    } else if (hitYaw > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *sc = gOddStrangerHitOffsets[8];
+            *hitOffset = gOddStrangerHitOffsets[8];
         } else {
-            *sc = gOddStrangerHitOffsets[9];
+            *hitOffset = gOddStrangerHitOffsets[9];
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *sc = gOddStrangerHitOffsets[10];
+            *hitOffset = gOddStrangerHitOffsets[10];
         } else {
-            *sc = gOddStrangerHitOffsets[11];
+            *hitOffset = gOddStrangerHitOffsets[11];
         }
     }
-    work->effectArg.coord      = &arg0->extra.tmd->coords[1];
+    // The selected vector names both a local offset and the receiving model part.
+    work->effectArg.coord      = &task->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x300;
     work->effectArg.spawnArgHi = 2;
 #if ODD_STRANGER_HIT_FX_OFFSET
-    work->effectOffset = *sc;
-    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->effectOffset, &work->effectArg);
+    work->effectOffset = *hitOffset;
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitOffset->pad], &work->effectOffset, &work->effectArg);
 #else
-    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &work->effectArg);
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitOffset->pad], hitOffset, &work->effectArg);
 #endif
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }

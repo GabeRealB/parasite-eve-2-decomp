@@ -18,7 +18,7 @@
 /// state-0x1A arm gates on `rig.slots[1].status` bit 0x100, dispatches the one-shot actions
 /// off `stateTimer - 0x19`, and from 0x1A on rebuilds the root coordinate through
 /// `ratan2` at scale `0x1194 - (stateTimer - 0x14) * 0xB`. Both arms end in
-/// `oddStrangerDrive` and `actorResetYaw` on nodes 2..10.
+/// `_oddStrangerDriveAnimation` and `actorResetYaw` on nodes 2..10.
 void oddStrangerWalkingDeath(Task* arg0)
 {
 #if !ODD_STRANGER_HIT_FX_OFFSET
@@ -105,7 +105,7 @@ void oddStrangerWalkingDeath(Task* arg0)
             }
             break;
     }
-    oddStrangerDrive(arg0);
+    _oddStrangerDriveAnimation(arg0);
     actorResetYaw(arg0->extra.tmd->coords + 2);
     actorResetYaw(arg0->extra.tmd->coords + 3);
     actorResetYaw(arg0->extra.tmd->coords + 4);
