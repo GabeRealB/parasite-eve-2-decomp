@@ -3271,12 +3271,12 @@ static void func_actor_403000_8013603C(Task* arg0)
         t = work->stateFrame;
         if (t > 0x64) {
             if ((t - 0x64) * 0x3C < 0x1000) {
-                actorRescaleYawY(arg0->extra.tmd->coords, ONE, 0x1000 - (t - 0x64) * 0x6B);
+                _actorRenderRescaleYawY(arg0->extra.tmd->coords, ONE, ONE - (t - 0x64) * 0x6B);
             } else {
-                actorRescaleYawY(arg0->extra.tmd->coords, ONE, 0);
+                _actorRenderRescaleYawY(arg0->extra.tmd->coords, ONE, 0);
             }
         } else {
-            actorRescaleYawY(arg0->extra.tmd->coords, ONE, 0x1000);
+            _actorRenderRescaleYawY(arg0->extra.tmd->coords, ONE, ONE);
         }
     }
 }
@@ -3341,12 +3341,12 @@ static void func_actor_403000_801365D0(Task* arg0)
         t = work->stateFrame;
         if (t > 0x46) {
             if ((t - 0x46) * 0x3C < 0x1000) {
-                actorRescaleYawY(arg0->extra.tmd->coords, ONE, 0x1000 - (t - 0x46) * 0x6B);
+                _actorRenderRescaleYawY(arg0->extra.tmd->coords, ONE, ONE - (t - 0x46) * 0x6B);
             } else {
-                actorRescaleYawY(arg0->extra.tmd->coords, ONE, 0);
+                _actorRenderRescaleYawY(arg0->extra.tmd->coords, ONE, 0);
             }
         } else {
-            actorRescaleYawY(arg0->extra.tmd->coords, ONE, 0x1000);
+            _actorRenderRescaleYawY(arg0->extra.tmd->coords, ONE, ONE);
         }
     }
 }

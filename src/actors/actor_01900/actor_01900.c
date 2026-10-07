@@ -2792,7 +2792,7 @@ static void Actor01900_Fn06904(Task* arg0)
         }
         cur = work->stateTimer;
         if (cur >= 0x1A) {
-            actorRescaleYawY(arg0->extra.tmd->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
+            _actorRenderRescaleYawY(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE, ACTOR_01900_ROOT_SCALE - (cur - 0x14) * 0xB);
         }
     }
 }
@@ -3320,7 +3320,7 @@ static void Actor01900_Fn0892C(Task* arg0)
             }
             cur = work->stateTimer;
             if (cur >= 0x1A) {
-                actorRescaleYawY(arg0->extra.tmd->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
+                _actorRenderRescaleYawY(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE, ACTOR_01900_ROOT_SCALE - (cur - 0x14) * 0xB);
             }
             break;
     }

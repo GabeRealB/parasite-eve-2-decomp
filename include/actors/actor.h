@@ -1403,40 +1403,42 @@ static __inline__ void actorResetYaw(GfxCoord* coord)
     SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
 }
 
-/// `_actorRenderRescaleYaw` with a separate scale on Y.
-static __inline__ void actorRescaleYawY(GfxCoord* coord, s32 scale, s16 scaleY)
+/// Replaces a coordinate's rotation with its current yaw and separate horizontal and vertical scales.
+///
+/// `coord` must be live, writable and word-aligned, separate from the scratch
+/// stack. Heading comes from the local matrix's horizontal terms in 4096 units
+/// per turn; a zero pair gives yaw zero. Pitch, roll and previous scale are
+/// replaced. `horizontalScale` applies to X/Z as a signed 32-bit Q12 factor;
+/// `verticalScale` applies to Y as a signed 16-bit Q12 factor. `ONE` is unity,
+/// zero collapses the corresponding axes, and negative factors reverse them.
+/// Scaling retains each product's low 32 bits, shifts arithmetically by 12,
+/// and narrows the coefficients to signed halfwords without saturation.
+/// Translation, parent and stored Euler angles stay intact; composition is
+/// marked dirty for its next refresh.
+///
+/// The initialized scratch stack needs 0x58 free word-aligned bytes: one
+/// `ActorScaleRotScratch` block plus the nested axis-rotation workspace.
+/// Both reservations are released before return; no pointer is retained.
+static __inline__ void _actorRenderRescaleYawY(GfxCoord* coord, s32 horizontalScale, s16 verticalScale)
 {
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
+    ActorScaleRotScratch* yawScratch;
+    s16                   yaw;
 
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
+    yawScratch = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleRotScratch);
 
-    ang      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->yaw = ang;
-    gfxRotMatrixY(&blk->rotation, ang, 1);
-    blk->scale.vx = scale;
-    blk->scale.vy = scaleY;
-    blk->scale.vz = scale;
-    ScaleMatrix(&blk->rotation, &blk->scale);
+    // Recover the heading before replacing the old rotation and axis scales.
+    yaw             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    yawScratch->yaw = yaw;
+    gfxRotMatrixY(&yawScratch->rotation, yaw, GRAPHICS_ROTATION_REPLACE);
+    yawScratch->scale.vx = horizontalScale;
+    yawScratch->scale.vy = verticalScale;
+    yawScratch->scale.vz = horizontalScale;
+    ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
-    coord->coord.m[0][0] = (u16)(head - 1)->rotation.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->rotation.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->rotation.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->rotation.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->rotation.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->rotation.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->rotation.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->rotation.m[2][1];
-    m22                  = (u16)blk->rotation.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
+    // Install only the scaled basis, leaving local translation intact.
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// The first of the leading twelve contact records whose kind is 0x20000:

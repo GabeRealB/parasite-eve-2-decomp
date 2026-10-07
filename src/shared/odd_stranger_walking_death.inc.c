@@ -17,7 +17,8 @@
 /// and spawns the three tinted key-frame effects at counts 3, 5 and 6; the
 /// state-0x1A arm gates on `rig.slots[1].status` bit 0x100, dispatches the one-shot actions
 /// off `stateTimer - 0x19`, and from 0x1A on rebuilds the root coordinate through
-/// `ratan2` at scale `0x1194 - (stateTimer - 0x14) * 0xB`. Both arms end in
+/// its current yaw, keeping X/Z at `ODD_STRANGER_ROOT_SCALE` and reducing Y
+/// by `(stateTimer - 0x14) * 0xB`. Both arms end in
 /// `_oddStrangerDriveAnimation` and `actorResetYaw` on nodes 2..10.
 void oddStrangerWalkingDeath(Task* arg0)
 {
@@ -101,7 +102,7 @@ void oddStrangerWalkingDeath(Task* arg0)
             }
             cur = work->stateTimer;
             if (cur >= 0x1A) {
-                actorRescaleYawY(arg0->extra.tmd->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
+                _actorRenderRescaleYawY(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE, ODD_STRANGER_ROOT_SCALE - (cur - 0x14) * 0xB);
             }
             break;
     }

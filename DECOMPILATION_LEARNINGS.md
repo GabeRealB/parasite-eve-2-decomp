@@ -143181,7 +143181,7 @@ were imitating; the walk form gave an extra giv for `&v->vz` instead.
 Symptom: a body with `goto` parent-chain loops pinned to `s0`/`s2` and two
 cross-jumped copies of the `ActorScaleRotScratch` rescale, each pinning the
 scratch head. Both are inlined helpers: `_actorRenderTransformLocalPointToWorld` /
-`actorTransformToView` for the walk, and one `actorRescaleYawY` call per arm
+`actorTransformToView` for the walk, and one `_actorRenderRescaleYawY` call per arm
 of an `if` for the rescale (jump2 merges the shared tail itself).
 
 The two walk helpers differ only in setup scheduling. `actorTransformToView`

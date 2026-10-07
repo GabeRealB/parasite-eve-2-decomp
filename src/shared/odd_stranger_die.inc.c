@@ -5,8 +5,9 @@
 /// light-mode pair at 0x1D / 0x29, the 0x600A5 spawn at 0x1D, and the
 /// `TmdObject.flags` writes at 0x2F / 0x3F. From 0x1A on the tail rebuilds
 /// the actor's root coordinate: a Y rotation taken from the model root's
-/// facing, scaled by 0x1194 less 0xB per tick past 0x14, written back through
-/// `coord.m` with `composeStamp` cleared so the local matrix is recomputed.
+/// facing, with X/Z held at `ODD_STRANGER_ROOT_SCALE` and Y reduced by 0xB
+/// per tick past 0x14, written back through `coord.m` with `composeStamp`
+/// cleared so the composed matrix is recomputed.
 /// Same body as `Actor01900_Fn06904`, minus that one's 0x13 release argument;
 /// the second body's grid collision follows `ODD_STRANGER_BODY2_GRID`.
 void oddStrangerDie(Task* arg0)
@@ -51,7 +52,7 @@ void oddStrangerDie(Task* arg0)
         }
         cur = work->stateTimer;
         if (cur >= 0x1A) {
-            actorRescaleYawY(arg0->extra.tmd->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
+            _actorRenderRescaleYawY(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE, ODD_STRANGER_ROOT_SCALE - (cur - 0x14) * 0xB);
         }
     }
 }

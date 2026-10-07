@@ -10,15 +10,22 @@
 /// tracking the model.
 void gluttonRainSplat(Enemy* enemy, Task* task)
 {
+    // Signed Q12 factors for the initial and expanded splat shapes.
+    enum {
+        GLUTTON_SPLAT_INITIAL_HORIZONTAL_SCALE  = 0x4000,
+        GLUTTON_SPLAT_INITIAL_VERTICAL_SCALE    = 0x66,
+        GLUTTON_SPLAT_EXPANDED_HORIZONTAL_SCALE = 0x4C00,
+        GLUTTON_SPLAT_EXPANDED_VERTICAL_SCALE   = 0x199,
+    };
     GluttonProjectileWork* work;
 
     work = task->work;
     work->stateTicks++;
     if (work->stateTicks < 0xA) {
-        actorRescaleYawY(task->extra.tmd->coords, 0x4000, 0x66);
+        _actorRenderRescaleYawY(task->extra.tmd->coords, GLUTTON_SPLAT_INITIAL_HORIZONTAL_SCALE, GLUTTON_SPLAT_INITIAL_VERTICAL_SCALE);
         work->attackBody.radius = work->stateTicks * 0x40 + 0x100;
     } else {
-        actorRescaleYawY(task->extra.tmd->coords, 0x4C00, 0x199);
+        _actorRenderRescaleYawY(task->extra.tmd->coords, GLUTTON_SPLAT_EXPANDED_HORIZONTAL_SCALE, GLUTTON_SPLAT_EXPANDED_VERTICAL_SCALE);
         work->attackBody.radius = 0x380;
     }
 

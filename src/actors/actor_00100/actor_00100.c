@@ -2392,10 +2392,10 @@ static void Actor00100_Fn04270(Task* arg0)
 
     if (work->stateTimer > 0xA) {
         v = (work->stateTimer - 0xA) * 107;
-        if (v < 0x1000) {
-            actorRescaleYawY(arg0->extra.tmd->coords, 0x1000, 0x1000 - v);
+        if (v < ONE) {
+            _actorRenderRescaleYawY(arg0->extra.tmd->coords, ONE, ONE - v);
         } else {
-            actorRescaleYawY(arg0->extra.tmd->coords, 0x1000, 0);
+            _actorRenderRescaleYawY(arg0->extra.tmd->coords, ONE, 0);
         }
     }
 }

@@ -2234,7 +2234,7 @@ static void _actor356100Approach(Task* actor)
 /// light mode 1 and spawns effect 0x600A5 at model coordinate 2, 0x29 sets
 /// `field_C` to 2, 0x2F switches light mode 2 and 0x33 sets `field_C` to 0x80.
 /// From 0x1A on, the root rotation is rebuilt in the 0x34-byte scratch block
-/// as a uniform 0x1194 scale whose Y shrinks by 0xB per frame past 0x14, and
+/// with X/Z held at `ACTOR_356100_ROOT_SCALE` and Y reduced by 0xB per frame past 0x14, and
 /// written back into the root coordinate with `composeStamp` cleared. Same body as
 /// `Actor01900_Fn06904`.
 static void func_actor_356100_80167358(Task* arg0)
@@ -2273,7 +2273,7 @@ static void func_actor_356100_80167358(Task* arg0)
         }
         cur = work->stateTimer;
         if (cur >= 0x1A) {
-            actorRescaleYawY(arg0->extra.tmd->coords, 0x1194, 0x1194 - (cur - 0x14) * 0xB);
+            _actorRenderRescaleYawY(arg0->extra.tmd->coords, ACTOR_356100_ROOT_SCALE, ACTOR_356100_ROOT_SCALE - (cur - 0x14) * 0xB);
         }
     }
 }
