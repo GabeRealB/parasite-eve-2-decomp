@@ -412,18 +412,6 @@ extern TaskDesc D_actor_503500_8016E9F0[5];
 
 extern TaskMessageEntry D_actor_503500_8016EA2C[];
 
-/// Identity rotation, written two halfwords per word store. Being inline is
-/// what matches: the argument is expanded as an address sum, so the caller's
-/// `&mats[i]` / `&coord[i].coord` is recomputed each iteration instead of strength-reduced.
-static inline void func_actor_503500_SetRotIdentity(MATRIX* m)
-{
-    MATRIX_PAIR(m, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = 0x1000;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = 0x1000;
-}
-
 void func_actor_503500_80135828(Task* arg0, s8* arg1);
 
 /// Clears the boss's enemy pointer for slot 0..16.

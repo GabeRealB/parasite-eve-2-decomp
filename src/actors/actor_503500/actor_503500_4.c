@@ -3383,7 +3383,7 @@ static void func_actor_503500_80140654(Task* arg0)
                     }
                     p++;
                 } while (j++ < 3);
-                func_actor_503500_SetRotIdentity(&coord[i].coord);
+                gfxSetRotIdentity(&coord[i].coord);
                 RotMatrix(&rot, &part->coord);
                 part->composeStamp = GRAPHICS_COORD_DIRTY;
             }
@@ -3926,7 +3926,7 @@ static void func_actor_503500_80141FC8(Task* arg0)
     switch (work->stateStep) {
         case 0:
             for (i = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; i++) {
-                func_actor_503500_SetRotIdentity(&work->blendStart[i]);
+                gfxSetRotIdentity(&work->blendStart[i]);
                 // The view shifted by i matrices puts blendStart[i] at
                 // blendStart[0]; this `(work + i) + offset` association is
                 // what lets the pointer derive from the giv the indexed store

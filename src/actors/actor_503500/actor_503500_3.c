@@ -3526,7 +3526,7 @@ static void func_actor_503500_80139014(Task* arg0)
                     }
                     p++;
                 } while (j++ < 3);
-                func_actor_503500_SetRotIdentity(&coord[i].coord);
+                gfxSetRotIdentity(&coord[i].coord);
                 RotMatrix(&rot, &part->coord);
                 part->composeStamp = GRAPHICS_COORD_DIRTY;
             }
