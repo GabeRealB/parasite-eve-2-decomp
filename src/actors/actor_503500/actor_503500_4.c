@@ -3014,7 +3014,7 @@ static void func_actor_503500_8013FA74(Task* arg0)
     _Actor503500LungingChainWork* work;
     WorldCollisionContact*        rec;
     WorldCollisionContact*        rec2;
-    GfxMatrix                     m;
+    MATRIX                        m;
     s32                           idx;
     s32                           i;
 
@@ -3030,9 +3030,9 @@ static void func_actor_503500_8013FA74(Task* arg0)
     coord->coord.t[0] = D_actor_503500_8016F3AC[idx].vx;
     coord->coord.t[1] = D_actor_503500_8016F3AC[idx].vy;
     coord->coord.t[2] = D_actor_503500_8016F3AC[idx].vz;
-    gfxSetRotIdentity(&m.mat);
-    RotMatrix(&D_actor_503500_8016F3CC[idx], &m.mat);
-    MulMatrix0(&coord->coord, &m.mat, &coord->coord);
+    gfxSetRotIdentity(&m);
+    RotMatrix(&D_actor_503500_8016F3CC[idx], &m);
+    MulMatrix0(&coord->coord, &m, &coord->coord);
     coord->composeStamp       = GRAPHICS_COORD_DIRTY;
     work->bufferFreeCountdown = -1;
     tmd->lightMtx             = &work->lightMtx;
@@ -4263,7 +4263,7 @@ static void func_actor_503500_8014271C(Task* arg0)
 static void func_actor_503500_80142980(Task* arg0)
 {
     SVECTOR              rot;
-    GfxMatrix            m;
+    MATRIX               m;
     s8                   param1[8];
     s8                   param2[8];
     _Actor503500ArmWork* work;
@@ -4331,14 +4331,14 @@ static void func_actor_503500_80142980(Task* arg0)
                     param2[3] = 2;
                 }
                 work->loadCommandSlot = cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-                gfxComposeNodeWorldTransform(coord, &m.mat, &rot);
+                gfxComposeNodeWorldTransform(coord, &m, &rot);
                 // Copy the nine coefficients as four words and a halfword; preserve the alignment halfword.
                 in  = (s32*)&m;
                 out = (s32*)&coord->coord;
                 for (k = 0; k < 4; k++) {
                     *out++ = *in++;
                 }
-                coord->coord.m[2][2] = m.mat.m[2][2];
+                coord->coord.m[2][2] = m.m[2][2];
                 coord->coord.t[0]    = rot.vx;
                 coord->coord.t[1]    = rot.vy;
                 coord->coord.t[2]    = rot.vz;
@@ -4428,16 +4428,16 @@ static void func_actor_503500_80142980(Task* arg0)
     rot.vx = work->spin.fixed.vx.word >> 16;
     rot.vy = work->spin.fixed.vy.word >> 16;
     rot.vz = work->spin.fixed.vz.word >> 16;
-    gfxSetRotIdentity(&m.mat);
-    RotMatrix(&rot, &m.mat);
+    gfxSetRotIdentity(&m);
+    RotMatrix(&rot, &m);
     gte_SetRotMatrix(&coord->coord);
-    gte_ldclmv(&m.mat);
+    gte_ldclmv(&m);
     gte_rtir();
     gte_stclmv(&coord->coord);
-    gte_ldclmv((char*)&m.mat + 2);
+    gte_ldclmv((char*)&m + 2);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 2);
-    gte_ldclmv((char*)&m.mat + 4);
+    gte_ldclmv((char*)&m + 4);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 4);
     work->positionCarry.fixed.vx.word += work->velocity.fixed.vx.word;
