@@ -215,25 +215,33 @@ typedef struct {
 } OverlayRangeScratch;
 STATIC_ASSERT_SIZEOF(OverlayRangeScratch, 0xC);
 
-/// Whether the XZ offset `d` reaches at least `r` from its origin.
-static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r)
+/// Returns 1 when the horizontal offset reaches or exceeds the radius, else 0.
+///
+/// `offset` and `radius` use the same game-coordinate units; Y and `pad` are
+/// ignored, and the offset is unchanged. The signed 16-bit radius is squared,
+/// so its sign does not affect the result. The squared X/Z sum must fit s32;
+/// the pair (-32768, -32768) is outside that contract.
+///
+/// Requires an initialized scratch-stack cursor and one free, word-aligned
+/// `OverlayRangeScratch` below it, separate from `offset`. Restores the cursor
+/// before returning; the temporary block's contents remain until reused.
+static __inline__ s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius)
 {
-    OverlayRangeScratch* head;
-    OverlayRangeScratch* blk;
-    s32                  ret;
+    OverlayRangeScratch* savedCursor;
+    OverlayRangeScratch* scratch;
 
-    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-    head[-1].dx                               = d->vx;
-    blk                                       = head - 1;
-    blk->dz                                   = d->vz;
-    blk->radius                               = r;
-    head[-1].dx                              *= head[-1].dx;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = blk;
-    blk->dz                                  *= blk->dz;
-    blk->radius                              *= blk->radius;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
-    ret                                       = head[-1].dx + blk->dz >= blk->radius;
-    return ret;
+    savedCursor                               = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    scratch                                   = savedCursor - 1;
+    scratch->dx                               = offset->vx;
+    scratch->dz                               = offset->vz;
+    scratch->radius                           = radius;
+    scratch->dx                              *= scratch->dx;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
+    scratch->dz                              *= scratch->dz;
+    scratch->radius                          *= scratch->radius;
+    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = savedCursor;
+    // Read the released block before any other reservation can reuse it.
+    return scratch->dx + scratch->dz >= scratch->radius;
 }
 
 /// Values of `OverlayEncounterSlot::status`.

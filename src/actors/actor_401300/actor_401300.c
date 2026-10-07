@@ -3245,7 +3245,7 @@ static void func_actor_401300_801376E4(Task* arg0)
     func_actor_401300_80133A3C(arg0);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->turnYaw == work->turnYawTarget) {
-        if (work->field_D1C < 2 || overlayOutOfRange(&chase->delta, 0x384)) {
+        if (work->field_D1C < 2 || _actorRangeOutsideRadiusXZ(&chase->delta, 0x384)) {
             work->state = ACTOR_401300_STATE_WITHDRAW;
         } else {
             work->state = ACTOR_401300_STATE_GRAB;
@@ -3416,7 +3416,7 @@ static void func_actor_401300_80138160(Task* arg0)
     func_actor_401300_80133A3C(arg0);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &pos, gPlayerStatus.coordMtx);
-        if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
+        if (abs(angle) < 0x10 && !_actorRangeOutsideRadiusXZ(&pos, 0x44C)) {
             work->playerAnim.source.sets      = D_actor_401300_801588F0;
             work->playerButtonHold.pressCount = 8;
             if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
@@ -3441,7 +3441,7 @@ static void func_actor_401300_80138160(Task* arg0)
         pos.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy = 0;
         pos.vz = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!overlayOutOfRange(p, 0x578)) {
+        if (!_actorRangeOutsideRadiusXZ(p, 0x578)) {
             VectorNormalSS(p, p);
             gte_lddp(10);
             gte_ldsv(p);
@@ -3773,7 +3773,7 @@ static void func_actor_401300_80139520(Task* arg0)
     delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     d->vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (!overlayOutOfRange(d, 3000)) {
+    if (!_actorRangeOutsideRadiusXZ(d, 3000)) {
         work->state = ACTOR_401300_STATE_ALERT;
     }
     if (gSceneCombatState.signals.bytes.actionFlags & SCENE_COMBAT_ACTION_NOISE) {
@@ -3843,7 +3843,7 @@ static void func_actor_401300_801397F8(Task* arg0)
     delta.vx           = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     d->vy              = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (!overlayOutOfRange(d, 3000)) {
+    if (!_actorRangeOutsideRadiusXZ(d, 3000)) {
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sceneEngageBattle(1);
         work->state = ACTOR_401300_STATE_ALERT;
@@ -3892,7 +3892,7 @@ static void func_actor_401300_80139AB0(Task* arg0)
     turn->delta.vx = work->patrolPoints[work->patrolTarget].x - arg0->extra.tmd->coords->coord.t[0];
     turn->delta.vy = 0;
     turn->delta.vz = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!overlayOutOfRange(&turn->delta, 0xA0)) {
+    if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0xA0)) {
         if (work->patrolTarget == 0) {
             work->patrolTarget = 1;
         } else {
@@ -3923,9 +3923,9 @@ static void func_actor_401300_80139AB0(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
-    if (!overlayOutOfRange(&turn->delta, 0x7D0)) {
+    if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0x7D0)) {
         work->state = ACTOR_401300_STATE_ALERT;
-    } else if (!overlayOutOfRange(&turn->delta, 0xFA0)) {
+    } else if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0xFA0)) {
         coord       = arg0->extra.tmd->coords;
         turn->angle = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         if (ABS(turn->angle) < 0x300) {
@@ -4421,7 +4421,7 @@ static void func_actor_401300_8013CBAC(Task* arg0)
     aim->turn           = _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->lookYawTarget = aim->turn;
     if (aim->turn < 0x200) {
-        if (!overlayOutOfRange(&aim->delta, 0x44C)) {
+        if (!_actorRangeOutsideRadiusXZ(&aim->delta, 0x44C)) {
             work->state = ACTOR_401300_STATE_GRAB;
         }
     }
@@ -4743,7 +4743,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
             charge->turn        = actorYawTo(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
             if (work->stateTimer >= 0xB) {
                 if (abs(charge->turn) < 0x200) {
-                    if (!overlayOutOfRange(&charge->delta, 0x7D0)) {
+                    if (!_actorRangeOutsideRadiusXZ(&charge->delta, 0x7D0)) {
                         work->animId      = 0x1C;
                         work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
                         work->stateTimer  = 0;

@@ -3066,7 +3066,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     d->vz                                             = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
     blk                                               = top - 1;
 
-    if (overlayOutOfRange(d, 0x1770) || gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED ||
+    if (_actorRangeOutsideRadiusXZ(d, 0x1770) || gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED ||
         (gGameSession->location.loc.variant != gSceneCombatState.signals.bytes.battlePhase && gGameSession->location.loc.variant != 4)) {
         arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else {

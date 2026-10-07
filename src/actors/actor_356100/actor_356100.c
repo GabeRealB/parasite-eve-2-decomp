@@ -1432,7 +1432,7 @@ static void func_actor_356100_80164158(Task* arg0)
     work->lookYawTarget = aim->turn;
     diff                = aim->yawFromPlayer - aim->playerYaw;
     if (ABS(diff) < 0x44 && (((s16)work->sidestepCount / 2) + 3) < work->stateTimer && ABS(aim->turn) < 0x80) {
-        if (overlayOutOfRange(&aim->delta, 0x708)) {
+        if (_actorRangeOutsideRadiusXZ(&aim->delta, 0x708)) {
             work->state = ACTOR_356100_STATE_SIDESTEP;
         }
     }
@@ -1443,7 +1443,7 @@ static void func_actor_356100_80164158(Task* arg0)
         work->animRequest  = ACTOR_356100_ANIM_REQUEST_BLEND;
     }
     if (aim->turn < 0x200) {
-        if (!overlayOutOfRange(&aim->delta, 0x44C)) {
+        if (!_actorRangeOutsideRadiusXZ(&aim->delta, 0x44C)) {
             work->state = ACTOR_356100_STATE_GRAB;
         }
     }
@@ -1668,7 +1668,7 @@ static void func_actor_356100_801653F4(Task* arg0)
     chase->delta.vy   = gPlayerStatus.coordMtx->t[1] - cur->coord.t[1];
     chase->delta.vz   = gPlayerStatus.coordMtx->t[2] - cur->coord.t[2];
     if (work->turnYaw == work->turnYawTarget) {
-        if (work->circleCount < 2 || overlayOutOfRange(&chase->delta, 0x384)) {
+        if (work->circleCount < 2 || _actorRangeOutsideRadiusXZ(&chase->delta, 0x384)) {
             value = ACTOR_356100_STATE_CIRCLE;
         } else {
             value = ACTOR_356100_STATE_GRAB;
@@ -1850,7 +1850,7 @@ static void func_actor_356100_80166018(Task* arg0)
     func_actor_356100_80163508(arg0);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
         angle = actorMatrixPositionYaw(arg0, &pos, gPlayerStatus.coordMtx);
-        if (abs(angle) < 0x10 && !overlayOutOfRange(&pos, 0x44C)) {
+        if (abs(angle) < 0x10 && !_actorRangeOutsideRadiusXZ(&pos, 0x44C)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 D_actor_356100_80173244.source.sets = &D_actor_356100_80173228[2];
             } else {
@@ -1873,7 +1873,7 @@ static void func_actor_356100_80166018(Task* arg0)
         pos.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy = 0;
         pos.vz = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!overlayOutOfRange(p, 0x578)) {
+        if (!_actorRangeOutsideRadiusXZ(p, 0x578)) {
             VectorNormalSS(p, p);
             gte_lddp(10);
             gte_ldsv(p);
@@ -2031,7 +2031,7 @@ static void func_actor_356100_80166CF0(Task* arg0)
     aim->turn           = ang;
     work->lookYawTarget = ang;
     if (aim->turn < 0x200) {
-        if (!overlayOutOfRange(&aim->delta, 0x384)) {
+        if (!_actorRangeOutsideRadiusXZ(&aim->delta, 0x384)) {
             work->state = ACTOR_356100_STATE_GRAB;
         }
     }
@@ -2146,7 +2146,7 @@ static void func_actor_356100_80167584(Task* arg0)
     coord = arg0->extra.tmd->coords;
     d     = &delta;
     Actor356100_PositionDelta(coord, d);
-    if (!overlayOutOfRange(d, 3000)) {
+    if (!_actorRangeOutsideRadiusXZ(d, 3000)) {
         work->state = ACTOR_356100_STATE_ALERT;
     }
     func_actor_356100_80163508(arg0);
@@ -2209,7 +2209,7 @@ static void func_actor_356100_80167818(Task* arg0)
     coord              = arg0->extra.tmd->coords;
     d                  = &delta;
     Actor356100_PositionDelta(coord, d);
-    if (!overlayOutOfRange(d, 3000)) {
+    if (!_actorRangeOutsideRadiusXZ(d, 3000)) {
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         work->state = ACTOR_356100_STATE_ALERT;
     }
@@ -2268,7 +2268,7 @@ static void func_actor_356100_80167A7C(Task* arg0)
     turn              = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn->delta.vy    = 0;
     turn->delta.vz    = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!overlayOutOfRange(&turn->delta, 0xA0)) {
+    if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0xA0)) {
         if (work->patrolTarget == 0) {
             work->patrolTarget = 1;
         } else {

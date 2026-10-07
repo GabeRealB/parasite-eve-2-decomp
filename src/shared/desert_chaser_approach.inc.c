@@ -112,9 +112,9 @@ void desertChaserApproach(Task* arg0)
         if ((ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == gDisplayState.animFrame % 15)
 #endif
         {
-            if (!overlayOutOfRange(&scratch->delta, 2000)) {
+            if (!_actorRangeOutsideRadiusXZ(&scratch->delta, 2000)) {
                 DESERT_CHASER_NOTICE(work);
-            } else if (!overlayOutOfRange(&scratch->delta, 4000)) {
+            } else if (!_actorRangeOutsideRadiusXZ(&scratch->delta, 4000)) {
                 coord          = arg0->extra.tmd->coords;
                 angle          = ratan2(scratch->delta.vx, scratch->delta.vz);
                 delta          = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);

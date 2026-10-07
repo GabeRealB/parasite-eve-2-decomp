@@ -2102,7 +2102,7 @@ static void Actor01900_Fn042BC(Task* arg0)
     work->lookYawTarget  = chase->turn;
     diff                 = chase->yawFromPlayer - chase->playerYaw;
     if (ABS(diff) < 0x44 && work->sidestepDelay + work->sidestepCount / 2 < work->stateTimer && ABS(chase->turn) < 0x80) {
-        if (overlayOutOfRange(&chase->delta, 0x708)) {
+        if (_actorRangeOutsideRadiusXZ(&chase->delta, 0x708)) {
             work->state = ACTOR_01900_STATE_SIDESTEP;
         }
     }
@@ -2112,7 +2112,7 @@ static void Actor01900_Fn042BC(Task* arg0)
         chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
         work->lookYawTarget = chase->turn;
         if (chase->turn < 0x200) {
-            if (!overlayOutOfRange(&chase->delta, 0x2BC)) {
+            if (!_actorRangeOutsideRadiusXZ(&chase->delta, 0x2BC)) {
                 work->state = ACTOR_01900_STATE_STRIKE;
             }
         }
@@ -2329,7 +2329,7 @@ static void Actor01900_Fn0551C(Task* arg0)
     Actor01900_Fn01C94(arg0);
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->turnYaw == work->turnYawTarget) {
-        if (work->circleCount < 2 || overlayOutOfRange(&chase->delta, 0x384)) {
+        if (work->circleCount < 2 || _actorRangeOutsideRadiusXZ(&chase->delta, 0x384)) {
             work->state = ACTOR_01900_STATE_CIRCLE;
         }
     }
@@ -2520,7 +2520,7 @@ static void Actor01900_Fn06100(Task* arg0)
     aim->turn           = _actorAngleNormalizeYaw(ratan2(aim->delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->lookYawTarget = aim->turn;
     if (aim->turn < 0x200) {
-        overlayOutOfRange(&aim->delta, 0x384);
+        _actorRangeOutsideRadiusXZ(&aim->delta, 0x384);
     }
     if (aim->turn > 0x40) {
         aim->turn = 0x40;
@@ -2702,7 +2702,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
     delta.vx               = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     d->vy                  = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz                  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (!overlayOutOfRange(d, work->noticeRange)) {
+    if (!_actorRangeOutsideRadiusXZ(d, work->noticeRange)) {
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
             work->state = ACTOR_01900_STATE_ALERT;
@@ -2750,7 +2750,7 @@ static void Actor01900_Fn06F40(Task* arg0)
     turn->delta.vx = work->patrolPoints[work->patrolTarget].x - arg0->extra.tmd->coords->coord.t[0];
     turn->delta.vy = 0;
     turn->delta.vz = work->patrolPoints[work->patrolTarget].z - arg0->extra.tmd->coords->coord.t[2];
-    if (!overlayOutOfRange(&turn->delta, 0xA0) || work->stateTimer >= 0x15) {
+    if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0xA0) || work->stateTimer >= 0x15) {
         if (work->patrolTarget == 0) {
             work->patrolTarget = 1;
         } else {
@@ -2793,11 +2793,11 @@ static void Actor01900_Fn06F40(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (detectSightBlocked(arg0) != 1) {
         actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
-        if (!overlayOutOfRange(&turn->delta, work->noticeRange)) {
+        if (!_actorRangeOutsideRadiusXZ(&turn->delta, work->noticeRange)) {
             if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
                 work->state = ACTOR_01900_STATE_ALERT;
             }
-        } else if (!overlayOutOfRange(&turn->delta, 0xFA0)) {
+        } else if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0xFA0)) {
             coord       = arg0->extra.tmd->coords;
             turn->angle = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
             if (ABS(turn->angle) < 0x300) {
@@ -3260,7 +3260,7 @@ static void Actor01900_Fn09694(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {
-        if (overlayOutOfRange(&aim->delta, 0x2BC)) {
+        if (_actorRangeOutsideRadiusXZ(&aim->delta, 0x2BC)) {
             work->state = ACTOR_01900_STATE_ALERT;
         } else {
             work->state = ACTOR_01900_STATE_STEP_BACK;

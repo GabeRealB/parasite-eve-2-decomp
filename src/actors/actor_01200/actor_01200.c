@@ -870,7 +870,7 @@ static void Actor01200_Fn01040(Enemy* arg0, Task* arg1)
     delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     d->vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (!overlayOutOfRange(d, 2000)) {
+    if (!_actorRangeOutsideRadiusXZ(d, 2000)) {
         sceneEngageBattle(1);
         work->state = ACTOR_01200_STATE_ROUSE;
     }
@@ -924,12 +924,12 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     gfxRotMatrixY(&arg1->extra.tmd->coords->coord, turn->angle, 1);
     actorStepForward(arg1->extra.tmd->coords, 0x14);
     _actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-    if (overlayOutOfRange(&turn->delta, 1000)) {
+    if (_actorRangeOutsideRadiusXZ(&turn->delta, 1000)) {
         work->chaseFarFrames++;
     } else {
         work->chaseFarFrames = 0;
     }
-    if (!overlayOutOfRange(&turn->delta, 1000)) {
+    if (!_actorRangeOutsideRadiusXZ(&turn->delta, 1000)) {
         work->chaseNearFrames++;
     } else {
         work->chaseNearFrames = 0;
@@ -944,7 +944,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     turn->delta.vx                        = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
     turn->delta.vy                        = 0;
     turn->delta.vz                        = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
-    overlayOutOfRange(&turn->delta, 3000);
+    _actorRangeOutsideRadiusXZ(&turn->delta, 3000);
     if (work->chaseFarFrames >= 0xF1) {
         work->state = ACTOR_01200_STATE_RETURN;
     }
@@ -1414,7 +1414,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
     if (_actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts))) {
         work->stateFrame++;
     }
-    if (!overlayOutOfRange(&turn->delta, 400) || work->stateFrame > 0x60) {
+    if (!_actorRangeOutsideRadiusXZ(&turn->delta, 400) || work->stateFrame > 0x60) {
         if (work->patrolIndex == 0) {
             work->patrolIndex = 1;
         } else {
@@ -1429,10 +1429,10 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
     turn->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
     turn->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
     turn->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
-    if (!overlayOutOfRange(&turn->delta, 2000)) {
+    if (!_actorRangeOutsideRadiusXZ(&turn->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
         angle = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (_actorAngleNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
+        if (_actorAngleNormalizeYaw(angle) < 0x400 || !_actorRangeOutsideRadiusXZ(&turn->delta, 1000)) {
             work->state = ACTOR_01200_STATE_CHASE;
         }
     }
@@ -1498,7 +1498,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     actorStepForward(arg1->extra.tmd->coords, 8);
     _actorContactApplyGridPushback(arg1->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     work->stateFrame++;
-    if (!overlayOutOfRange(&turn->delta, 0x50) || work->stateFrame >= 0xDD) {
+    if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0x50) || work->stateFrame >= 0xDD) {
         work->state = ACTOR_01200_STATE_PATROL;
     }
     if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {

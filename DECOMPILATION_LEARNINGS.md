@@ -88193,12 +88193,12 @@ push between the squarings, so reads of the block keep it alive and `sched`
 still slides it (and the dependent stores) down next to the pop:
 
 ```c
-blk->dx *= blk->dx;
-*(OverlayRangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;
-blk->dz *= blk->dz;
-blk->radius *= blk->radius;
-*(u8**)SCRATCH_STACK_CURSOR_SLOT = head;
-ret = blk->dx + blk->dz >= blk->radius;   /* after the pop: slt + xori */
+scratch->dx *= scratch->dx;
+SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
+scratch->dz *= scratch->dz;
+scratch->radius *= scratch->radius;
+SCRATCH_STACK_CURSOR(OverlayRangeScratch) = savedCursor;
+return scratch->dx + scratch->dz >= scratch->radius;   /* after the pop: slt + xori */
 ```
 
 Tell: two adjacent absolute stores to one address in the target means a read
@@ -102490,10 +102490,10 @@ first head write as dead, or lets CSE share one pseudo for the constant address
 so the writes go through a hard register instead of `$at` - 15+ builds of
 reordering never converged.
 
-**Fix.** Reuse the matched `overlayOutOfRange` inline
-(`src/actors/lib/actor_101900_text.c`) verbatim, including its mix of
-`((Scratch*)(head - 0xC))->dx` and `blk->dz` accesses, the head push placed
-between the `dx` and `dz` squares, and `ret = dx + dz >= r` returned; call it as
+**Fix.** Reuse the matched `_actorRangeOutsideRadiusXZ` inline
+(`include/overlay.h`) verbatim, including its staged `scratch->dx` and
+`scratch->dz` accesses, the head push placed
+between the `dx` and `dz` squares, and `return scratch->dx + scratch->dz >= scratch->radius`; call it as
 `if (!Inline(d, r))` with `d = &delta` written as in its caller. Statement order
 inside the helper (`dz` store before `r`) is load-bearing. Grep for an existing
 inline by this asm signature before reconstructing it.
@@ -105928,7 +105928,7 @@ arg0->field_14 = 0;
 obj->field_C   = 0;
 ```
 
-The rest of the function is `overlayOutOfRange`'s scratch-block radius
+The rest of the function is `_actorRangeOutsideRadiusXZ`'s scratch-block radius
 test verbatim (see "A scratch push the pop overwrites is deleted by `flow`");
 porting that inline took it from 77% to 97% in one step.
 
@@ -108676,7 +108676,7 @@ and not an allocation.
 `oddStrangerPatrol` is the patrol body its twins `Actor01900_Fn06F40`
 and `func_actor_401300_80139AB0` are, with the helpers inlined. Written the same
 way — the waypoint delta into `s->delta`, then
-`if (!overlayOutOfRange(&s->delta, 0xA0) || work->stateTimer >= 0x15)` — it
+`if (!_actorRangeOutsideRadiusXZ(&s->delta, 0xA0) || work->stateTimer >= 0x15)` — it
 scored 95.168% with 22 instructions too few, all of the loss inside one block:
 the target stores the three delta fields **twice**, re-materialising
 `work->patrolPoints[work->patrolTarget].x - coord->t[0]` for the second store of each.
@@ -108707,8 +108707,8 @@ re-materialise the two expressions feeding them.
 ## An inlined helper's statement order is a scheduling lever (`oddStrangerPatrol`, 2026-09-16)
 
 With the triplet duplicated the score was 99.779%: two instructions left, both
-the same store. The TU's `overlayOutOfRange` helper writes
-`*(OverlayRangeScratch**)SCRATCH_STACK_CURSOR_SLOT = blk;` after `blk->dz` / `blk->radius`
+the same store. The sibling's `_actorRangeOutsideRadiusXZ` helper writes
+`SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;` after `scratch->dz` / `scratch->radius`
 and after `dx *= dx`; the target has it immediately after the `dx` store, before
 `dz` and `radius`.
 
@@ -108733,7 +108733,7 @@ helper's two other call sites in the same TU (`_oddStrangerDormantScripted`,
 
 Two consequences. Reordering statements *inside* an inlined helper is the lever
 — no spelling at the call site can move a store past a later one. And when a
-matched sibling's helper does not need the change (`overlayOutOfRange`
+matched sibling's helper does not need the change (`_actorRangeOutsideRadiusXZ`
 keeps the other order, and its twin's store still lands late), take the target's
 order as the retail order of *this* TU rather than treating it as a local hack:
 the helper is one function with one source order, and the siblings that matched
@@ -109082,7 +109082,7 @@ the head twice, once with a `-0xC` value.
 
 The fix is to write the helper back out as the twin has it, as its own
 `static __inline__` with the twin's statement order and its 3-field
-`...RangeScratch` struct (the shared helper is now `overlayOutOfRange` in
+`...RangeScratch` struct (the shared helper is now `_actorRangeOutsideRadiusXZ` in
 `include/overlay.h`),
 and to read the predicate straight from it — the seed's `(a + b) < c` is
 already the helper's `a + b >= c` negated by the `if (!...)`, not an m2c
@@ -109452,9 +109452,9 @@ forward-declare the helper and leave the definition where it is — compiles
 without a warning and silently loses the inline:
 
 ```c
-static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r);         /* declaration only */
-void func_actor_401000_80138F50(Actor401000* arg0) { ... overlayOutOfRange(d, r) ... }
-static __inline__ s32 overlayOutOfRange(SVECTOR* d, s16 r) { ... }  /* below the caller */
+static __inline__ s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius);         /* declaration only */
+void func_actor_401000_80138F50(Actor401000* arg0) { ... _actorRangeOutsideRadiusXZ(offset, radius) ... }
+static __inline__ s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius) { ... }  /* below the caller */
 ```
 
 The object then carries `jal .text+0x102` to an out-of-line copy of the helper
@@ -109710,7 +109710,7 @@ arithmetic rather than structural — the scratch `target.o` matches, the linked
 image does not:
 
 ```
-build/USA/src/.../actor_401000.c.s   jal   overlayOutOfRange   <- should be the 31-insn inline
+build/USA/src/.../actor_401000.c.s   jal   _actorRangeOutsideRadiusXZ   <- should be the 31-insn inline
 .map  pristine  oddStrangerSidestep  0x801374d4
 .map  rebuilt   oddStrangerSidestep  0x80137458   (-0x7C, the missing inline)
 ```
@@ -109865,7 +109865,7 @@ Three things made it one-shot:
    one you have.
 
 Where the twin stops helping is where a helper got *inlined differently*: the
-target's inlined `overlayOutOfRange` stores `blk->radius` before `blk->dz` and
+target's inlined `_actorRangeOutsideRadiusXZ` stores `scratch->radius` before `scratch->dz` and
 issues both `*SCRATCH_STACK_CURSOR_SLOT` stores after the three `mult`s, where the helper's
 literal source order is dx, dz, radius, square, store-head. That is the scheduler
 moving independent store/load pairs around a `static __inline__` body, not a
@@ -113031,7 +113031,7 @@ constant in `$v1`. That block was the *only* difference in the whole function.
 **Cause.** Both helpers that produce this block inline to byte-identical assembly
 in the functions they were written for — `Actor00100_OutsideRadius`
 (`include/actors/actor_400100_motion.h`) in the 400100 shared bodies, and
-`overlayOutOfRange` (local to `src/actors/actor_401300/actor_401300.c`) in
+`_actorRangeOutsideRadiusXZ` (`include/overlay.h`) in
 `func_actor_401300_80139520`. An inlined body cannot be recovered from its own
 output, so the two are interchangeable *as assembly* and not interchangeable *as
 RTL*: they differ in how many intermediate pseudos they create and in what order.
@@ -113039,14 +113039,14 @@ RTL*: they differ in how many intermediate pseudos they create and in what order
 (`qty_compare_1`), so pseudo numbering alone decides which of two simultaneously
 free registers the block pointer wins. The 400100 shape (`scratch = head - 1;`
 through the typed pointer, `SCRATCH_STACK_CURSOR_SLOT` armed before the field stores) numbers
-the constant first and hands it `$a0`; the 401300 shape (`u8* head`, the first
-store through a fresh `((Scratch*)(head - 0xC))` temporary, `blk` assigned after
-it, `SCRATCH_STACK_CURSOR_SLOT` armed after the first multiply) numbers the block pointer
+the constant first and hands it `$a0`; the 401300 shape (`scratch = savedCursor - 1;`,
+the first store to `scratch->dx`,
+`SCRATCH_STACK_CURSOR_SLOT` armed after the first multiply) numbers the block pointer
 first.
 
 **Fix.** Give the overlay the 401300-shaped helper rather than reusing the 400100
-one. Naming it `overlayOutOfRange` in the overlay's own
-`include/actors/actor_356100.h` and calling it scored 100.00% with all penalties
+one. Using `_actorRangeOutsideRadiusXZ` from
+`include/overlay.h` and calling it scored 100.00% with all penalties
 zero, first try; keeping `Actor00100_OutsideRadius` did not, across two attempts
 that fixed everything else. The two shared helpers are still untouched, so the
 matched 400100 callers are unaffected.

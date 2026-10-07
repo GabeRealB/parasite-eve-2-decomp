@@ -423,6 +423,13 @@ state, with distances in parent-coordinate units. Its inline interface is
 the `_` marker. Collision correction and animation scheduling belong to their
 own subsystems.
 
+`actorRange` owns the shared horizontal offset-versus-radius predicates used
+by actor awareness, attack reach, waypoint arrival and target eligibility.
+Its inline interface is `include/overlay.h`; each translation unit keeps a
+static instance marked `_`. Offsets and radii use the same game-coordinate
+units, Y is ignored, and equality meets the radius. The scratch stack supplies
+temporary arithmetic storage rather than owning the test's inputs.
+
 `animDriver` owns the included animation-request driver used by the four
 actor families carrying `src/shared/anim_driver_tick.inc.c`. Its private
 implementation interface is `src/shared/anim_driver.h`. Each translation
