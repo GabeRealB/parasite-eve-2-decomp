@@ -12,6 +12,7 @@
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
+#include "gameplay/actor_render_shadow_types.h"
 #include "gameplay/animation.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
@@ -201,32 +202,54 @@ extern SVECTOR   D_actor_207200_80153F18;
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1);
-static void func_actor_207200_8014C870(Task* arg0, s32 arg1);
-static s32  func_actor_207200_8014CE20(GfxCoord* arg0, u32* arg1);
-static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1);
-static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1);
-static void func_actor_207200_8014CFEC(Task* arg0);
-static void func_actor_207200_8014D128(Task* arg0);
-static void func_actor_207200_8014D41C(Task* arg0);
-static void func_actor_207200_8014D49C(Task* arg0);
-static void func_actor_207200_8014D5C4(Task* arg0);
-static void func_actor_207200_8014D65C(Task* arg0);
-static void func_actor_207200_8014D70C(Enemy* arg0, Task* task);
-static void func_actor_207200_8014D77C(Task* task);
-static void func_actor_207200_8014D7E8(Task* arg0);
-static void func_actor_207200_8014D8DC(Task* arg0);
-static void func_actor_207200_8014D97C(Task* arg0, GfxCoord* arg1);
-static void func_actor_207200_8014DAF8(Task* dst, Task* src);
-static void func_actor_207200_8014DB4C(Task* arg0);
+/// Restores a root transform and applies signed Q12 Y scale in borrowed scratch.
+///
+/// All pointers must be live and separate; the scratch reservation belongs to
+/// the caller. Translation is retained and the composition cache becomes dirty.
+static __inline__ void _actor207200CreepingStrangerApplyRootScale(GfxCoord* rootCoord, const MATRIX* unscaled, const s16* scaleY, ActorScaleScratch* scratch)
+{
+    scratch->scale.vx = ONE;
+    scratch->scale.vy = *scaleY;
+    scratch->scale.vz = ONE;
+    rootCoord->coord  = *unscaled;
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&rootCoord->coord, &scratch->matrix);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Shift of this enemy placement's instance tag within a sound-script request.
+enum { ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT = 8 };
+
+static void            _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task* task);
+static void            _actor207200CreepingStrangerDormantTick(Task* task);
+static void            _actor207200CreepingStrangerActiveTick(Task* task);
+static __inline__ void _actor207200CreepingStrangerTickAnimation(Task* task);
+static void            func_actor_207200_8014C870(Task* arg0, s32 arg1);
+static s32             _actor207200CreepingStrangerMeasurePlayer(GfxCoord* reference, u32* rangeOut);
+static void            func_actor_207200_8014CA84(Enemy* arg0, Task* arg1);
+static void            func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1);
+static void            func_actor_207200_8014CFEC(Task* arg0);
+static void            func_actor_207200_8014D128(Task* arg0);
+static void            _actor207200CreepingStrangerConsumeReactions(Task* task);
+static void            _actor207200CreepingStrangerUpdateBehavior(Task* task);
+static void            _actor207200CreepingStrangerStepForward(Task* task);
+static void            _actor207200CreepingStrangerAnimate(Task* task);
+static void            func_actor_207200_8014D70C(Enemy* arg0, Task* task);
+static void            _actor207200CreepingStrangerDrawGroundShadow(Task* task);
+static void            _actor207200CreepingStrangerFlatten(Task* task);
+static void            _actor207200CreepingStrangerUpdateTarget(Task* task);
+static void            _actor207200CreepingStrangerCollapseHeadPart(Task* task, GfxCoord* partCoord);
+static void            _actor207200CreepingStrangerCopyBurstTextures(Task* burstTask, Task* sourceTask);
+static void            _actor207200CreepingStrangerExit(Task* task);
 
 /// The large enemy's state handlers - spawn, live tick and teardown tick -
-/// which `func_actor_207200_8014D280` dispatches through by task state.
+/// which `_actor207200CreepingStrangerTask` dispatches through by task state.
 static const EnemyTaskFuncTable3 D_actor_207200_80149E30 = {
-    { func_actor_207200_8014B278, func_actor_207200_8014D2DC, func_actor_207200_8014CA84 }
+    { _actor207200CreepingStrangerSpawnState, func_actor_207200_8014D2DC, func_actor_207200_8014CA84 }
 };
 
-void func_actor_207200_8014D280(Task*);
+static void _actor207200CreepingStrangerTask(Task* task);
 
 EnemyParams D_actor_207200_8014E7D4 = { D_actor_207200_8014E7CC, 250, 15, 48, 1, 50, 10, 0, 0 };
 
@@ -622,7 +645,7 @@ static AnimationSet _gActor207200Animation0A080 = {
     { NULL, _gActor207200Animation0A080Bank1, NULL, NULL, _gActor207200Animation0A080Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_207200_80153EC8 = { { { TASK_BODY_TMD, 96 } }, func_actor_207200_8014D280, { .model = &_gActor207200CreepingStrangerBody } };
+TaskDesc D_actor_207200_80153EC8 = { { { TASK_BODY_TMD, 96 } }, _actor207200CreepingStrangerTask, { .model = &_gActor207200CreepingStrangerBody } };
 
 AnimationSet* D_actor_207200_80153ED4[13] = {
     NULL,
@@ -669,52 +692,59 @@ s16 D_actor_207200_80153F20[20] = {
     0,
 };
 
-static void            func_actor_207200_8014B628(Task* arg0);
-static void            func_actor_207200_8014B87C(Task* arg0);
 static void            func_actor_207200_8014BEF4(Task* arg0);
-static __inline__ void Actor207200_TickAnim(Task* arg0);
 static __inline__ void Actor207200_UpdateColor(Enemy* enemy, Task* actor);
 
-static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
+/// Creates the Creeping Stranger's seven-part rig and five collision spheres.
+///
+/// Requires the live model task and its owning Enemy. The zeroed work block is
+/// owned by the task; model lighting, contacts and effect records borrow it.
+/// Starts slots 1..6 at idle, acquires a battle reference and advances task
+/// state 0 to 1. Allocation failure destroys the enemy and task immediately.
+static void _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_207200_CREEPING_STRANGER_BODY_ID                = 0x2B,
+           ACTOR_207200_CREEPING_STRANGER_HIT_EFFECT_SCALE       = 0x100,
+           ACTOR_207200_CREEPING_STRANGER_HEAD_LOSS_EFFECT_SCALE = 0x400 };
     _Actor207200CreepingStrangerWork* work;
-    TmdObject*                        obj;
-    GfxCoord*                         coord;
-    GfxCoord*                         part6;
-    GfxCoord*                         part3;
-    s32                               i;
+    TmdObject*                        model;
+    GfxCoord*                         rootCoord;
+    GfxCoord*                         sideAttackCoord;
+    GfxCoord*                         headCoord;
+    s32                               slotIndex;
 
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(_Actor207200CreepingStrangerWork), false);
-    part6 = coord + 6;
-    part3 = coord + 3;
+    // Bind the task-owned rig and lighting, then publish the head hit table.
+    model           = task->extra.tmd;
+    rootCoord       = model->coords;
+    work            = memCalloc(sizeof(*work), false);
+    sideAttackCoord = rootCoord + 6;
+    headCoord       = rootCoord + 3;
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->work          = work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    worldTargetLinkNode(&arg0->node);
-    arg0->coord                  = coord;
-    arg0->node.state.parts.flags = 0;
-    arg0->bodyPos.vx             = 0;
-    arg0->bodyPos.vy             = 0;
-    arg0->bodyPos.vz             = 0;
-    arg0->param                  = &D_actor_207200_8014E7D4;
-    arg0->recs                   = work->headContacts;
-    arg0->hp                     = (u16)D_actor_207200_8014E7D4.hpMax;
-    work->rotation.vy            = (coord)->param.rot.vy;
-    animationInitContext(&work->rig.anim, D_actor_207200_80153ED4, obj, work->rig.poses, work->rig.slots);
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationResetSlot(&work->rig.anim, i, ACTOR_207200_ANIM_IDLE);
+    task->work              = work;
+    model->flags            = 0;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx         = &work->lightMtx;
+    model->colorMtx         = &work->colorMtx;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->coord                  = rootCoord;
+    enemy->node.state.parts.flags = 0;
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vy             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->param                  = &D_actor_207200_8014E7D4;
+    enemy->recs                   = work->headContacts;
+    enemy->hp                     = D_actor_207200_8014E7D4.hpMax;
+    work->rotation.vy             = rootCoord->param.rot.vy;
+    animationInitContext(&work->rig.anim, D_actor_207200_80153ED4, model, work->rig.poses, work->rig.slots);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationResetSlot(&work->rig.anim, slotIndex, ACTOR_207200_ANIM_IDLE);
     }
-    (sceneAcquireBattleRef)(0);
+    sceneAcquireBattleRef(0);
 
     work->animId      = ACTOR_207200_ANIM_IDLE;
     work->appliedAnim = ACTOR_207200_ANIM_IDLE;
@@ -724,7 +754,8 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     work->blocked     = 0;
     work->hitCooldown = 0;
 
-    work->senseBody.coord            = coord;
+    // Link sensing, body and head spheres; attack spheres start disabled.
+    work->senseBody.coord            = rootCoord;
     work->senseBody.context.contacts = work->senseContacts;
     work->senseBody.pos.vx           = 0;
     work->senseBody.pos.vy           = 0;
@@ -737,29 +768,29 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
 
     work->body.pos.vy           = -0x12C;
     work->body.pos.vz           = -0xB4;
-    work->body.coord            = coord;
+    work->body.coord            = rootCoord;
     work->body.context.contacts = work->bodyContacts;
     work->body.pos.vx           = 0;
-    work->body.key              = 0x3002B;
+    work->body.key              = (WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_207200_CREEPING_STRANGER_BODY_ID);
     work->body.radius           = 0x12C;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->senseBody.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
 
-    work->headBody.coord            = part3;
+    work->headBody.coord            = headCoord;
     work->headBody.context.contacts = work->headContacts;
     work->headBody.pos.vx           = 0;
     work->headBody.pos.vy           = 0;
     work->headBody.pos.vz           = 0;
-    work->headBody.key              = 0x3002B;
+    work->headBody.key              = (WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_207200_CREEPING_STRANGER_BODY_ID);
     work->headBody.radius           = 0x96;
     work->headBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->body.flags               |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->headBody);
     worldCollisionInitContacts(work->headContacts, ARRAY_SIZE(work->headContacts), 0);
 
-    work->frontAttackBody.coord            = part3;
+    work->frontAttackBody.coord            = headCoord;
     work->frontAttackBody.context.contacts = work->frontAttackContacts;
     work->frontAttackBody.pos.vx           = 0;
     work->frontAttackBody.pos.vy           = 0x50;
@@ -771,7 +802,7 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->frontAttackBody);
     worldCollisionInitContacts(work->frontAttackContacts, ARRAY_SIZE(work->frontAttackContacts), 0);
 
-    work->sideAttackBody.coord            = part6;
+    work->sideAttackBody.coord            = sideAttackCoord;
     work->sideAttackBody.context.contacts = work->sideAttackContacts;
     work->sideAttackBody.pos.vx           = 0xFA;
     work->sideAttackBody.pos.vy           = 0;
@@ -784,53 +815,60 @@ static void func_actor_207200_8014B278(Enemy* arg0, Task* arg1)
     worldCollisionInitContacts(work->sideAttackContacts, ARRAY_SIZE(work->sideAttackContacts), 0);
     work->sideAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    work->headHitEffectArg.coord       = arg1->extra.tmd->coords + 3;
-    work->headHitEffectArg.spawnArgLo  = 0x100;
+    // Keep hit effects attached to the struck part throughout its lifetime.
+    work->headHitEffectArg.coord       = task->extra.tmd->coords + 3;
+    work->headHitEffectArg.spawnArgLo  = ACTOR_207200_CREEPING_STRANGER_HIT_EFFECT_SCALE;
     work->headHitEffectArg.spawnArgHi  = 1;
-    work->headLossEffectArg.coord      = arg1->extra.tmd->coords + 3;
-    work->headLossEffectArg.spawnArgLo = 0x400;
+    work->headLossEffectArg.coord      = task->extra.tmd->coords + 3;
+    work->headLossEffectArg.spawnArgLo = ACTOR_207200_CREEPING_STRANGER_HEAD_LOSS_EFFECT_SCALE;
     work->headLossEffectArg.spawnArgHi = 3;
-    work->bodyHitEffectArg.coord       = arg1->extra.tmd->coords + 1;
-    work->bodyHitEffectArg.spawnArgLo  = 0x100;
+    work->bodyHitEffectArg.coord       = task->extra.tmd->coords + 1;
+    work->bodyHitEffectArg.spawnArgLo  = ACTOR_207200_CREEPING_STRANGER_HIT_EFFECT_SCALE;
     work->bodyHitEffectArg.spawnArgHi  = 1;
     work->hasBurst                     = 0;
-    arg1->exitCallback                 = func_actor_207200_8014DB4C;
-    arg1->state++;
+    task->exitCallback                 = _actor207200CreepingStrangerExit;
+    task->state++;
 }
 
-/// `ACTOR_207200_STATE_DORMANT` of the enemy: while it still has its head, a
-/// player-body contact in `senseContacts` (through `wakeRequested`, or the
-/// global flag `gSceneCombatState.signals.bytes.enemyAlert`) wakes it -
-/// `ACTOR_207200_STATE_ACTIVE`, a random 0..89 delay in `wakeDelay` and
-/// `sceneEngageBattle(1)`. Then runs the idle cycle in `animId`: the idle loop
-/// restarts after 0x5B frames and rolls a 30% chance of the fidget, which plays
-/// the room-tagged sound on frame 5 and returns to the idle loop after 0x2D
-/// frames.
-static void func_actor_207200_8014B628(Task* arg0)
+/// Runs dormant sensing and the idle/fidget cycle.
+///
+/// A headed enemy wakes on player contact or the room alert and chooses a
+/// delay in 0..89 frames. Sensing is then disabled. Headless bodies keep the
+/// idle cycle without sensing or random fidgets; the fidget sounds at frame 5.
+static void _actor207200CreepingStrangerDormantTick(Task* task)
 {
+    enum { ACTOR_207200_CREEPING_STRANGER_DORMANT_SCRATCH_BYTES = 8,
+           ACTOR_207200_CREEPING_STRANGER_WAKE_DELAY_LIMIT      = 90,
+           ACTOR_207200_CREEPING_STRANGER_IDLE_FRAMES           = 91,
+           ACTOR_207200_CREEPING_STRANGER_FIDGET_CHANCE_PERCENT = 30,
+           ACTOR_207200_CREEPING_STRANGER_FIDGET_SOUND_FRAME    = 5,
+           ACTOR_207200_CREEPING_STRANGER_FIDGET_FRAMES         = 45,
+           ACTOR_207200_CREEPING_STRANGER_SOUND_FIDGET          = 0x40480004 };
     _Actor207200CreepingStrangerWork* work;
-    GfxCoord*                         obj;
-    s32                               id;
-    s32                               pan;
-    u32                               rnd;
-    u16                               hi;
+    GfxCoord*                         rootCoord;
+    s32                               soundEventId;
+    s32                               audioPan;
+    u32                               randomState;
+    Enemy*                            enemy;
+    u16                               randomHigh;
 
-    SCRATCH_STACK_RESERVE_BYTES(8);
-    work = arg0->work;
-    obj  = arg0->extra.tmd->coords;
+    // Retain the untouched scratch reservation around sensing and idle playback.
+    SCRATCH_STACK_RESERVE_BYTES(ACTOR_207200_CREEPING_STRANGER_DORMANT_SCRATCH_BYTES);
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     if (work->headLost == 0) {
         if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
             work->wakeRequested = 1;
         }
         if (work->wakeRequested != 0 || gSceneCombatState.signals.bytes.enemyAlert != 0) {
-            rnd                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            hi                     = rnd >> 16;
+            randomState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomHigh             = randomState >> 16;
             work->activeStage      = ACTOR_207200_ACTIVE_STAGE_DELAY;
             work->forwardSpeed     = 0;
             work->state            = ACTOR_207200_STATE_ACTIVE;
-            gRandomLcgState        = rnd;
+            gRandomLcgState        = randomState;
             work->senseBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->wakeDelay        = hi % 90;
+            work->wakeDelay        = randomHigh % ACTOR_207200_CREEPING_STRANGER_WAKE_DELAY_LIMIT;
             sceneEngageBattle(1);
         }
         worldCollisionClearContacts(work->senseContacts);
@@ -839,53 +877,84 @@ static void func_actor_207200_8014B628(Task* arg0)
         case ACTOR_207200_ANIM_IDLE:
             work->field_498    = 1;
             work->forwardSpeed = 0;
-            if (work->animFrames >= 0x5B) {
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_IDLE_FRAMES) {
                 work->animFrames  = 0;
                 work->appliedAnim = ACTOR_207200_ANIM_NONE;
                 if (work->headLost == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if ((u16)((gRandomLcgState >> 16) % 100) < 30) {
+                    if ((u16)((gRandomLcgState >> 16) % 100) < ACTOR_207200_CREEPING_STRANGER_FIDGET_CHANCE_PERCENT) {
                         work->animId = ACTOR_207200_ANIM_FIDGET;
                     }
                 }
             }
             break;
         case ACTOR_207200_ANIM_FIDGET:
-            if (work->animFrames == 5) {
-                id  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480004;
-                pan = (s8)worldCoordGetOriginAudioPan(obj);
-                sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(obj));
+            if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_FIDGET_SOUND_FRAME) {
+                enemy        = task->spawnArg2.pointer;
+                soundEventId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT) | ACTOR_207200_CREEPING_STRANGER_SOUND_FIDGET;
+                audioPan     = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                sndEvtRequestScriptStart(soundEventId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             }
-            if (work->animFrames >= 0x2D) {
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_FIDGET_FRAMES) {
                 work->animId     = ACTOR_207200_ANIM_IDLE;
                 work->animFrames = 0;
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_207200_CREEPING_STRANGER_DORMANT_SCRATCH_BYTES);
 }
 
-/// `ACTOR_207200_STATE_ACTIVE` of the enemy, stepped by `activeStage`. The
-/// delay stage waits out the random delay in `wakeDelay`; the crawl moves to the
-/// front attack once the player is within 0x385 and inside +/-0x200 of the
-/// facing angle, otherwise crawls on and picks a turn direction every 75 frames;
-/// the two turn stages turn the model by `turnStep` (+/-25) on frames 30..50
-/// and re-check the angle after 60 frames; the attack and cry stages play the
-/// room-tagged sounds and enable `frontAttackBody` or `sideAttackBody` for their
-/// strike frames, the front attack rolling a 40% chance of the cry before
-/// returning to the crawl. Every stage drops back to the dormant state once the
-/// head is lost.
-static void func_actor_207200_8014B87C(Task* arg0)
+/// Advances the delayed crawl, turns, attacks and cry of an active enemy.
+///
+/// Requires the initialized rig, contacts and live player. Decisions use
+/// bearing in 4096ths of a turn and planar range in game-coordinate units.
+/// Crawl speed samples frames 20..39; front strikes are enabled on 42..44
+/// and side strikes on 30..59. Head loss returns completed turns, attacks and
+/// cries to idle; the crawl stage retains its speed sampling.
+static void _actor207200CreepingStrangerActiveTick(Task* task)
 {
+    enum { ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_RANGE_LIMIT = 901,
+           ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_BEARING     = 512,
+           ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_FIRST_FRAME   = 20,
+           ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_END_FRAME     = 40,
+           ACTOR_207200_CREEPING_STRANGER_CRAWL_FRAMES             = 75,
+           ACTOR_207200_CREEPING_STRANGER_TURN_FIRST_FRAME         = 30,
+           ACTOR_207200_CREEPING_STRANGER_TURN_LAST_FRAME          = 50,
+           ACTOR_207200_CREEPING_STRANGER_TURN_FRAMES              = 60,
+           ACTOR_207200_CREEPING_STRANGER_TURN_STEP                = 25,
+           ACTOR_207200_CREEPING_STRANGER_SIDE_STRIKE_FIRST_FRAME  = 30,
+           ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_SOUND_FRAME = 30,
+           ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_FRAMES      = 60,
+           ACTOR_207200_CREEPING_STRANGER_CRY_FRAMES               = 90,
+           ACTOR_207200_CREEPING_STRANGER_FRONT_STRIKE_FIRST_FRAME = 42,
+           ACTOR_207200_CREEPING_STRANGER_FRONT_STRIKE_END_FRAME   = 45,
+           ACTOR_207200_CREEPING_STRANGER_SIDE_STRIKE_END_FRAME    = 60,
+           ACTOR_207200_CREEPING_STRANGER_SIDE_ATTACK_FRAMES       = 90,
+           ACTOR_207200_CREEPING_STRANGER_CRY_CHANCE_PERCENT       = 40,
+           ACTOR_207200_CREEPING_STRANGER_CRY_SOUND_FRAME          = 10,
+           ACTOR_207200_CREEPING_STRANGER_SOUND_FRONT_ATTACK       = 0x40480002,
+           ACTOR_207200_CREEPING_STRANGER_SOUND_FRONT_HIT          = 0x40480005,
+           ACTOR_207200_CREEPING_STRANGER_SOUND_CRY                = 0x40480006 };
     _Actor207200CreepingStrangerWork* work;
-    GfxCoord*                         coord;
-    s32                               angle;
-    u32                               dist;
-    s32                               id;
-    s16                               state;
+    GfxCoord*                         rootCoord;
+    s32                               playerBearing;
+    u32                               playerRange;
+    s16                               turnAnim;
+    Enemy*                            soundEnemy;
+    s32                               soundEventId;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    /// Starts one action sound tagged with this enemy's placement index.
+    ///
+    /// Captures task, rootCoord, soundEnemy and soundEventId in this handler.
+    /// soundId is evaluated once; the pointers must be live and stable.
+    /// Pan/depth narrow to signed bytes. Use within a compound statement.
+#define ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND(soundId)                                                                          \
+    soundEnemy   = task->spawnArg2.pointer;                                                                                                \
+    soundEventId = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT) | (soundId); \
+    sndEvtRequestScriptStart(soundEventId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord))
+
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     switch (work->activeStage) {
         case ACTOR_207200_ACTIVE_STAGE_DELAY:
             work->animId = ACTOR_207200_ANIM_IDLE;
@@ -894,8 +963,8 @@ static void func_actor_207200_8014B87C(Task* arg0)
             }
             break;
         case ACTOR_207200_ACTIVE_STAGE_CRAWL:
-            angle = func_actor_207200_8014CE20(arg0->extra.tmd->coords, &dist);
-            if (work->headLost == 0 && dist < 0x385 && ABS(angle) < 0x200) {
+            playerBearing = _actor207200CreepingStrangerMeasurePlayer(task->extra.tmd->coords, &playerRange);
+            if (work->headLost == 0 && playerRange < ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_RANGE_LIMIT && ABS(playerBearing) < ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_BEARING) {
                 work->forwardSpeed    = 0;
                 work->activeStage     = ACTOR_207200_ACTIVE_STAGE_FRONT_ATTACK;
                 work->headBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -904,21 +973,21 @@ static void func_actor_207200_8014B87C(Task* arg0)
             work->animId          = ACTOR_207200_ANIM_CRAWL;
             work->field_498       = 0;
             work->headBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            if (work->animFrames >= 20 && work->animFrames < 40) {
-                work->forwardSpeed = D_actor_207200_80153F20[work->animFrames - 20];
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_FIRST_FRAME && work->animFrames < ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_END_FRAME) {
+                work->forwardSpeed = D_actor_207200_80153F20[work->animFrames - ACTOR_207200_CREEPING_STRANGER_CRAWL_STEP_FIRST_FRAME];
             } else {
                 work->forwardSpeed = 0;
             }
-            if (work->animFrames >= 75) {
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_CRAWL_FRAMES) {
                 work->animFrames = 0;
                 if (work->headLost == 0) {
-                    if (ABS(angle) > 0x200 || work->blocked != 0) {
-                        if (angle < 0) {
-                            work->turnStep    = -25;
+                    if (ABS(playerBearing) > ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_BEARING || work->blocked != 0) {
+                        if (playerBearing < 0) {
+                            work->turnStep    = -ACTOR_207200_CREEPING_STRANGER_TURN_STEP;
                             work->activeStage = ACTOR_207200_ACTIVE_STAGE_TURN_YAW_DOWN;
                             work->animId      = ACTOR_207200_ANIM_TURN_YAW_DOWN;
                         } else {
-                            work->turnStep    = 25;
+                            work->turnStep    = ACTOR_207200_CREEPING_STRANGER_TURN_STEP;
                             work->activeStage = ACTOR_207200_ACTIVE_STAGE_TURN_YAW_UP;
                             work->animId      = ACTOR_207200_ANIM_TURN_YAW_UP;
                         }
@@ -927,68 +996,68 @@ static void func_actor_207200_8014B87C(Task* arg0)
             }
             break;
         case ACTOR_207200_ACTIVE_STAGE_TURN_YAW_UP:
-            state              = ACTOR_207200_ANIM_TURN_YAW_UP;
+            turnAnim           = ACTOR_207200_ANIM_TURN_YAW_UP;
             work->forwardSpeed = 0;
-            work->animId       = state;
-            if (work->animFrames >= 30 && work->animFrames <= 50) {
+            work->animId       = turnAnim;
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_TURN_FIRST_FRAME && work->animFrames <= ACTOR_207200_CREEPING_STRANGER_TURN_LAST_FRAME) {
                 work->rotation.vx  = 0;
                 work->rotation.vz  = 0;
                 work->rotation.vy += work->turnStep;
-                RotMatrix(&work->rotation, &coord->coord);
+                RotMatrix(&work->rotation, &rootCoord->coord);
             }
-            if (work->animFrames >= 60) {
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_TURN_FRAMES) {
                 if (work->headLost != 0) {
                     work->state  = ACTOR_207200_STATE_DORMANT;
                     work->animId = ACTOR_207200_ANIM_IDLE;
                 } else {
-                    angle = func_actor_207200_8014CE20(arg0->extra.tmd->coords, &dist);
-                    if (ABS(angle) < 0x200 || work->blocked != 0) {
+                    playerBearing = _actor207200CreepingStrangerMeasurePlayer(task->extra.tmd->coords, &playerRange);
+                    if (ABS(playerBearing) < ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_BEARING || work->blocked != 0) {
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_CRAWL;
                         work->blocked     = 0;
                         work->animFrames  = 0;
                         work->animId      = ACTOR_207200_ANIM_CRAWL;
-                    } else if (angle < 0) {
-                        work->turnStep    = -25;
+                    } else if (playerBearing < 0) {
+                        work->turnStep    = -ACTOR_207200_CREEPING_STRANGER_TURN_STEP;
                         work->animFrames  = 0;
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_TURN_YAW_DOWN;
                         work->animId      = ACTOR_207200_ANIM_TURN_YAW_DOWN;
                     } else {
-                        work->turnStep    = 25;
+                        work->turnStep    = ACTOR_207200_CREEPING_STRANGER_TURN_STEP;
                         work->animFrames  = 0;
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_TURN_YAW_UP;
-                        work->animId      = state;
+                        work->animId      = turnAnim;
                     }
                 }
             }
             break;
         case ACTOR_207200_ACTIVE_STAGE_TURN_YAW_DOWN:
-            state              = ACTOR_207200_ANIM_TURN_YAW_DOWN;
+            turnAnim           = ACTOR_207200_ANIM_TURN_YAW_DOWN;
             work->forwardSpeed = 0;
-            work->animId       = state;
-            if (work->animFrames >= 30 && work->animFrames <= 50) {
+            work->animId       = turnAnim;
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_TURN_FIRST_FRAME && work->animFrames <= ACTOR_207200_CREEPING_STRANGER_TURN_LAST_FRAME) {
                 work->rotation.vx  = 0;
                 work->rotation.vz  = 0;
                 work->rotation.vy += work->turnStep;
-                RotMatrix(&work->rotation, &coord->coord);
+                RotMatrix(&work->rotation, &rootCoord->coord);
             }
-            if (work->animFrames >= 60) {
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_TURN_FRAMES) {
                 if (work->headLost != 0) {
                     work->state  = ACTOR_207200_STATE_DORMANT;
                     work->animId = ACTOR_207200_ANIM_IDLE;
                 } else {
-                    angle = func_actor_207200_8014CE20(arg0->extra.tmd->coords, &dist);
-                    if (ABS(angle) < 0x200 || work->blocked != 0) {
+                    playerBearing = _actor207200CreepingStrangerMeasurePlayer(task->extra.tmd->coords, &playerRange);
+                    if (ABS(playerBearing) < ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_BEARING || work->blocked != 0) {
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_CRAWL;
                         work->blocked     = 0;
                         work->animFrames  = 0;
                         work->animId      = ACTOR_207200_ANIM_CRAWL;
-                    } else if (angle < 0) {
-                        work->turnStep    = -25;
+                    } else if (playerBearing < 0) {
+                        work->turnStep    = -ACTOR_207200_CREEPING_STRANGER_TURN_STEP;
                         work->animFrames  = 0;
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_TURN_YAW_DOWN;
-                        work->animId      = state;
+                        work->animId      = turnAnim;
                     } else {
-                        work->turnStep    = 25;
+                        work->turnStep    = ACTOR_207200_CREEPING_STRANGER_TURN_STEP;
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_TURN_YAW_UP;
                         work->animFrames  = 0;
                         work->animId      = ACTOR_207200_ANIM_TURN_YAW_UP;
@@ -998,28 +1067,27 @@ static void func_actor_207200_8014B87C(Task* arg0)
             break;
         case ACTOR_207200_ACTIVE_STAGE_FRONT_ATTACK:
             work->forwardSpeed = 0;
-            if (work->animFrames == 30) {
+            if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_SOUND_FRAME) {
                 work->frontAttackLanded = 0;
-                id                      = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480002;
-                sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_FRONT_ATTACK);
             }
-            if (work->animFrames == 42) {
+            // Pair tests run only during the strike; sound a registered hit afterward.
+            if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_FRONT_STRIKE_FIRST_FRAME) {
                 work->frontAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            if (work->animFrames == 45) {
+            if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_FRONT_STRIKE_END_FRAME) {
                 work->frontAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            if (work->frontAttackLanded != 0 && work->animFrames == 45) {
-                id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480005;
-                sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->frontAttackLanded != 0 && work->animFrames == ACTOR_207200_CREEPING_STRANGER_FRONT_STRIKE_END_FRAME) {
+                ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_FRONT_HIT);
             }
-            if (work->animId == ACTOR_207200_ANIM_FRONT_ATTACK && work->animFrames >= 60) {
+            if (work->animId == ACTOR_207200_ANIM_FRONT_ATTACK && work->animFrames >= ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_FRAMES) {
                 if (work->headLost != 0) {
                     work->state  = ACTOR_207200_STATE_DORMANT;
                     work->animId = ACTOR_207200_ANIM_IDLE;
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if ((u16)((gRandomLcgState >> 16) % 100) < 40) {
+                    if ((u16)((gRandomLcgState >> 16) % 100) < ACTOR_207200_CREEPING_STRANGER_CRY_CHANCE_PERCENT) {
                         work->activeStage = ACTOR_207200_ACTIVE_STAGE_CRY;
                         work->animId      = ACTOR_207200_ANIM_CRY;
                     } else {
@@ -1034,13 +1102,13 @@ static void func_actor_207200_8014B87C(Task* arg0)
             break;
         case ACTOR_207200_ACTIVE_STAGE_SIDE_ATTACK:
             work->forwardSpeed = 0;
-            if (work->animFrames == 30) {
+            if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_SIDE_STRIKE_FIRST_FRAME) {
                 work->sideAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            if (work->animFrames == 60) {
+            if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_SIDE_STRIKE_END_FRAME) {
                 work->sideAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            if (work->animFrames >= 90) {
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_SIDE_ATTACK_FRAMES) {
                 if (work->headLost != 0) {
                     work->state  = ACTOR_207200_STATE_DORMANT;
                     work->animId = ACTOR_207200_ANIM_IDLE;
@@ -1054,11 +1122,10 @@ static void func_actor_207200_8014B87C(Task* arg0)
         case ACTOR_207200_ACTIVE_STAGE_CRY:
             work->animId       = ACTOR_207200_ANIM_CRY;
             work->forwardSpeed = 0;
-            if (work->animFrames == 10) {
-                id = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480006;
-                sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_CRY_SOUND_FRAME) {
+                ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_CRY);
             }
-            if (work->animFrames >= 90) {
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_CRY_FRAMES) {
                 if (work->headLost != 0) {
                     work->state  = ACTOR_207200_STATE_DORMANT;
                     work->animId = ACTOR_207200_ANIM_IDLE;
@@ -1070,6 +1137,8 @@ static void func_actor_207200_8014B87C(Task* arg0)
             }
             break;
     }
+
+#undef ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND
 }
 
 /// Per-frame collision handling. Each six-record table's `worldCollisionResolvePushback`
@@ -1143,7 +1212,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
         switch ((u32)work->bodyContacts[i].key.parts.kind) {
             case 1:
                 if (work->headLost == 0 && (u16)work->activeStage - ACTOR_207200_ACTIVE_STAGE_CRAWL < 3U) {
-                    angle = func_actor_207200_8014CE20(arg0->extra.tmd->coords, &dist);
+                    angle = _actor207200CreepingStrangerMeasurePlayer(arg0->extra.tmd->coords, &dist);
                     if (abs(angle) > 0x200 && dist < 2000) {
                         work->animId      = angle < 0 ? ACTOR_207200_ANIM_SIDE_ATTACK_YAW_DOWN : ACTOR_207200_ANIM_SIDE_ATTACK_YAW_UP;
                         work->animFrames  = 0;
@@ -1338,25 +1407,28 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
     }
 }
 
-/// `func_actor_207200_8014D65C`'s body, inlined: blend slots 1..6 into `animId`
-/// when it differs from `appliedAnim`, otherwise advance them by one frame and
-/// count it in `animFrames`.
-static __inline__ void Actor207200_TickAnim(Task* arg0)
+/// Applies a changed animation request or advances the six animated parts.
+///
+/// Requires the initialized seven-part rig: slot 0 is retained, slots 1..6
+/// blend from their current poses over eight frames. A changed request resets
+/// `animFrames`; an unchanged request increments the signed halfword counter.
+static __inline__ void _actor207200CreepingStrangerTickAnimation(Task* task)
 {
+    enum { ACTOR_207200_CREEPING_STRANGER_ANIMATION_BLEND_FRAMES = 8 };
     _Actor207200CreepingStrangerWork* work;
-    s32                               i;
+    s32                               slotIndex;
 
-    work = arg0->work;
+    work = task->work;
     if (work->animId != work->appliedAnim) {
         work->appliedAnim = work->animId;
         work->animFrames  = 0;
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, 8);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, ACTOR_207200_CREEPING_STRANGER_ANIMATION_BLEND_FRAMES);
         }
     } else {
         work->animFrames++;
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }
@@ -1445,7 +1517,7 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
                         work->deathPhase = ACTOR_207200_DEATH_PHASE_DESTROY;
                     }
                     if (work->hasBurst == 0) {
-                        func_actor_207200_8014D7E8(arg1);
+                        _actor207200CreepingStrangerFlatten(arg1);
                         if (work->phaseFrames == 0xA) {
                             obj->flags = TMD_OBJECT_SEMI_TRANS;
                         }
@@ -1458,9 +1530,9 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
                     enemyDestroy(arg0, arg1);
                     return;
             }
-            Actor207200_TickAnim(arg1);
-            func_actor_207200_8014D97C(arg1, &arg1->extra.tmd->coords[2]);
-            func_actor_207200_8014D97C(arg1, &arg1->extra.tmd->coords[3]);
+            _actor207200CreepingStrangerTickAnimation(arg1);
+            _actor207200CreepingStrangerCollapseHeadPart(arg1, &arg1->extra.tmd->coords[2]);
+            _actor207200CreepingStrangerCollapseHeadPart(arg1, &arg1->extra.tmd->coords[3]);
             arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
             arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
@@ -1469,24 +1541,28 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
     }
 }
 
-/// Measures the model held in pointer slot 3 from coordinate `arg0`: returns
-/// its bearing in `arg0`'s own frame, folded into -0x800..0x800, and stores
-/// in `*arg1` the planar x/z distance between the two coordinates' local
-/// translations. The work is staged in a block of the scratch stack.
-static s32 func_actor_207200_8014CE20(GfxCoord* arg0, u32* arg1)
+/// Returns the player's bearing and writes its planar range from `reference`.
+///
+/// Bearing uses composed caches in the same frame, in 4096ths of a turn,
+/// wrapped to -2048..2048. Range uses local X/Z translations in a common parent
+/// frame, narrowing each difference to signed 16 bits before squaring; the
+/// squared sum must fit a nonnegative signed word. `rangeOut` receives game
+/// units. Requires the live player, both coordinates and a writable output;
+/// borrows and releases one `ActorBearingScratch` and changes GTE state.
+static s32 _actor207200CreepingStrangerMeasurePlayer(GfxCoord* reference, u32* rangeOut)
 {
-    GfxCoord*            other;
-    ActorBearingScratch* blk;
-    s32                  angle;
+    GfxCoord*            playerCoord;
+    ActorBearingScratch* scratch;
+    s32                  playerBearing;
 
-    other         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    blk           = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
-    angle         = _actorAngleBearingInFrame(blk, arg0, other);
-    blk->delta.vx = other->coord.t[0] - arg0->coord.t[0];
-    blk->delta.vz = other->coord.t[2] - arg0->coord.t[2];
-    *arg1         = SquareRoot0(blk->delta.vx * blk->delta.vx + blk->delta.vz * blk->delta.vz);
+    playerCoord       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    scratch           = SCRATCH_STACK_RESERVE_BLOCK(ActorBearingScratch);
+    playerBearing     = _actorAngleBearingInFrame(scratch, reference, playerCoord);
+    scratch->delta.vx = playerCoord->coord.t[0] - reference->coord.t[0];
+    scratch->delta.vz = playerCoord->coord.t[2] - reference->coord.t[2];
+    *rangeOut         = SquareRoot0(scratch->delta.vx * scratch->delta.vx + scratch->delta.vz * scratch->delta.vz);
     SCRATCH_STACK_RELEASE_BLOCK(ActorBearingScratch);
-    return angle;
+    return playerBearing;
 }
 
 /// Spawns the pair of effects that carry this actor's death animation, hands
@@ -1507,7 +1583,7 @@ static void func_actor_207200_8014CFEC(Task* arg0)
     D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstHead;
     effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
     if (effect != NULL) {
-        func_actor_207200_8014DAF8(effect->task, arg0);
+        _actor207200CreepingStrangerCopyBurstTextures(effect->task, arg0);
     }
     effArg = &work->headLossEffectArg;
     effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
@@ -1535,21 +1611,21 @@ static void func_actor_207200_8014D128(Task* arg0)
             D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstHead;
             effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
             if (effect != NULL) {
-                func_actor_207200_8014DAF8(effect->task, arg0);
+                _actor207200CreepingStrangerCopyBurstTextures(effect->task, arg0);
             }
             break;
         case 2:
             D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstArm;
             effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 5, 0, NULL);
             if (effect != NULL) {
-                func_actor_207200_8014DAF8(effect->task, arg0);
+                _actor207200CreepingStrangerCopyBurstTextures(effect->task, arg0);
             }
             break;
         case 3:
             D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstLeg;
             effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 2, 0, NULL);
             if (effect != NULL) {
-                func_actor_207200_8014DAF8(effect->task, arg0);
+                _actor207200CreepingStrangerCopyBurstTextures(effect->task, arg0);
             }
             break;
     }
@@ -1557,12 +1633,16 @@ static void func_actor_207200_8014D128(Task* arg0)
     effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 2, 0x300, NULL);
 }
 
-void func_actor_207200_8014D280(Task* arg0)
+/// Dispatches task states 0 spawn, 1 live and 2 death for the Creeping Stranger.
+///
+/// Requires a live Enemy in `spawnArg2.pointer` and a state in 0..2. The
+/// selected handler may destroy the enemy and task; neither is used afterward.
+static void _actor207200CreepingStrangerTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = D_actor_207200_80149E30;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    handlers = D_actor_207200_80149E30;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Per-frame tick of the actor's live state. `gSceneCombatState.actorControl` gates it: mode 1
@@ -1578,7 +1658,7 @@ static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1)
     switch (gSceneCombatState.actorControl) {
         case 1:
             func_actor_207200_8014D70C(arg0, arg1);
-            func_actor_207200_8014D77C(arg1);
+            _actor207200CreepingStrangerDrawGroundShadow(arg1);
             return;
         case 0:
             arg1->extra.tmd->flags       = 0;
@@ -1589,97 +1669,95 @@ static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = 1;
             return;
     }
-    func_actor_207200_8014D41C(arg1);
-    func_actor_207200_8014D8DC(arg1);
+    _actor207200CreepingStrangerConsumeReactions(arg1);
+    _actor207200CreepingStrangerUpdateTarget(arg1);
     func_actor_207200_8014BEF4(arg1);
-    func_actor_207200_8014D49C(arg1);
-    func_actor_207200_8014D5C4(arg1);
-    func_actor_207200_8014D65C(arg1);
-    func_actor_207200_8014D97C(arg1, &arg1->extra.tmd->coords[2]);
-    func_actor_207200_8014D97C(arg1, &arg1->extra.tmd->coords[3]);
+    _actor207200CreepingStrangerUpdateBehavior(arg1);
+    _actor207200CreepingStrangerStepForward(arg1);
+    _actor207200CreepingStrangerAnimate(arg1);
+    _actor207200CreepingStrangerCollapseHeadPart(arg1, &arg1->extra.tmd->coords[2]);
+    _actor207200CreepingStrangerCollapseHeadPart(arg1, &arg1->extra.tmd->coords[3]);
     arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
     func_actor_207200_8014D70C(arg0, arg1);
-    func_actor_207200_8014D77C(arg1);
+    _actor207200CreepingStrangerDrawGroundShadow(arg1);
 }
 
-/// Consumes the pending flag bits on the actor's spawn object once the actor
-/// has been set up. Bit 0x1 (the "flag 1" request) is cleared first; bit 0x2
-/// then starts the status hold - `ACTOR_207200_STATE_STATUS_HOLD` with the
-/// fidget animation requested afresh and every frame counter reset - and clears
-/// itself; bits 0xC (the "flag 4"
-/// request) are cleared last. Nothing happens while the whole byte is zero.
-static void func_actor_207200_8014D41C(Task* arg0)
+/// Consumes hit-reaction requests and starts the buildup hold when requested.
+///
+/// Requires initialized task work and a live Enemy in `spawnArg2.pointer`.
+/// Stagger and damage-over-time requests are acknowledged without a new pose;
+/// buildup stops forward motion and requests the fidget afresh.
+static void _actor207200CreepingStrangerConsumeReactions(Task* task)
 {
-    Enemy*                            obj;
+    Enemy*                            enemy;
     _Actor207200CreepingStrangerWork* work;
-    u8                                flags;
+    u8                                pendingReactions;
 
-    obj   = arg0->spawnArg2.pointer;
-    flags = obj->reactionFlags;
-    work  = arg0->work;
-    if (flags != 0) {
-        if (flags & ENEMY_REACTION_STAGGER) {
-            obj->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
+    enemy            = task->spawnArg2.pointer;
+    pendingReactions = enemy->reactionFlags;
+    work             = task->work;
+    if (pendingReactions != 0) {
+        if (pendingReactions & ENEMY_REACTION_STAGGER) {
+            enemy->reactionFlags = pendingReactions & ENEMY_REACTION_STAGGER_CLEAR;
         }
-        if (obj->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            obj->reactionFlags = obj->reactionFlags & ENEMY_REACTION_BUILDUP_CLEAR;
-            work->state        = ACTOR_207200_STATE_STATUS_HOLD;
-            work->appliedAnim  = ACTOR_207200_ANIM_IDLE;
-            work->phaseFrames  = 0;
-            work->forwardSpeed = 0;
-            work->animId       = ACTOR_207200_ANIM_FIDGET;
-            work->animFrames   = 0;
+        if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+            enemy->reactionFlags = enemy->reactionFlags & ENEMY_REACTION_BUILDUP_CLEAR;
+            work->state          = ACTOR_207200_STATE_STATUS_HOLD;
+            work->appliedAnim    = ACTOR_207200_ANIM_IDLE;
+            work->phaseFrames    = 0;
+            work->forwardSpeed   = 0;
+            work->animId         = ACTOR_207200_ANIM_FIDGET;
+            work->animFrames     = 0;
         }
-        flags = obj->reactionFlags;
-        if (flags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            obj->reactionFlags = flags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
+        pendingReactions = enemy->reactionFlags;
+        if (pendingReactions & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+            enemy->reactionFlags = pendingReactions & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 }
 
-/// Per-frame tick of the enemy's behaviour, driven by `work->state`. The kill
-/// countdown on the task is decremented first and clamped at zero. The dormant
-/// and active states hand the actor to their own tick bodies; the status hold
-/// counts `work->phaseFrames` up to 0x3D frames before requesting the fidget
-/// animation afresh, and drops back to the dormant state once `damageTickEnemyBuildup`
-/// reports that the status buildup is done; the recoil waits until
-/// `work->animFrames` reaches 0x69 and then returns to the dormant state, with
-/// the idle animation when the head is lost (`work->headLost != 0`) and with
-/// `work->wakeRequested` set otherwise.
-static void func_actor_207200_8014D49C(Task* arg0)
+/// Ticks the kill countdown and dispatches the current behavior.
+///
+/// The countdown narrows back to signed 16 bits before clamping at zero.
+/// Buildup holds replay the fidget every 61 ticks until the damage subsystem
+/// ends the hold. Recoil ends at frame 105; a headed enemy then requests wake.
+static void _actor207200CreepingStrangerUpdateBehavior(Task* task)
 {
+    enum { ACTOR_207200_CREEPING_STRANGER_STATUS_HOLD_LOOP_FRAMES = 61,
+           ACTOR_207200_CREEPING_STRANGER_RECOIL_FRAMES           = 105 };
     _Actor207200CreepingStrangerWork* work;
     s16                               countdown;
 
-    work                = arg0->work;
-    countdown           = (u16)arg0->killCountdown - 1;
-    arg0->killCountdown = countdown;
+    // Decrement in the retained 16-bit domain, then clamp a negative result.
+    work                = task->work;
+    countdown           = (u16)task->killCountdown - 1;
+    task->killCountdown = countdown;
     if (countdown < 0) {
-        arg0->killCountdown = 0;
+        task->killCountdown = 0;
     }
     switch (work->state) {
         case ACTOR_207200_STATE_DORMANT:
-            func_actor_207200_8014B628(arg0);
+            _actor207200CreepingStrangerDormantTick(task);
             break;
         case ACTOR_207200_STATE_ACTIVE:
-            func_actor_207200_8014B87C(arg0);
+            _actor207200CreepingStrangerActiveTick(task);
             break;
         case ACTOR_207200_STATE_STATUS_HOLD:
             work->phaseFrames = work->phaseFrames + 1;
-            if (work->phaseFrames >= 0x3D) {
+            if (work->phaseFrames >= ACTOR_207200_CREEPING_STRANGER_STATUS_HOLD_LOOP_FRAMES) {
                 work->appliedAnim = ACTOR_207200_ANIM_IDLE;
                 work->animId      = ACTOR_207200_ANIM_FIDGET;
                 work->animFrames  = 0;
                 work->phaseFrames = 0;
             }
-            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
                 work->state = ACTOR_207200_STATE_DORMANT;
             }
             break;
         case ACTOR_207200_STATE_RECOIL:
-            if (work->animFrames >= 0x69) {
+            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_RECOIL_FRAMES) {
                 if (work->headLost != 0) {
                     work->state  = ACTOR_207200_STATE_DORMANT;
                     work->animId = ACTOR_207200_ANIM_IDLE;
@@ -1692,35 +1770,38 @@ static void func_actor_207200_8014D49C(Task* arg0)
     }
 }
 
-/// Walks the model's root part forward. While the enemy still has its head
-/// (`work->headLost == 0`) the part's current translation is remembered in
-/// `work->prevRootPos`, and the part is then displaced along its own forward
-/// axis - the third basis column of its local matrix, scaled by
-/// `work->forwardSpeed` - and lifted by 0x80.
-static void func_actor_207200_8014D5C4(Task* arg0)
+/// Advances the root along its local Z basis and adds the per-tick Y step.
+///
+/// `forwardSpeed` is in parent-frame game units and the basis is Q12. X/Z
+/// products shift arithmetically; Y gains 128 even when forward speed is zero
+/// or the head is lost. A headed enemy first saves its position for collision
+/// rollback. Composition is invalidated by the caller after the pose update.
+static void _actor207200CreepingStrangerStepForward(Task* task)
 {
+    enum { ACTOR_207200_CREEPING_STRANGER_BASIS_FRACTION_BITS = 12,
+           ACTOR_207200_CREEPING_STRANGER_ROOT_Y_STEP         = 128 };
     _Actor207200CreepingStrangerWork* work;
-    GfxCoord*                         coord;
+    GfxCoord*                         rootCoord;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     if (work->headLost == 0) {
-        work->prevRootPos.vx = coord->coord.t[0];
-        work->prevRootPos.vy = coord->coord.t[1];
-        work->prevRootPos.vz = coord->coord.t[2];
+        work->prevRootPos.vx = rootCoord->coord.t[0];
+        work->prevRootPos.vy = rootCoord->coord.t[1];
+        work->prevRootPos.vz = rootCoord->coord.t[2];
     }
-    coord->coord.t[0] += (coord->coord.m[0][2] * work->forwardSpeed) >> 12;
-    coord->coord.t[1] += 0x80;
-    coord->coord.t[2] += (coord->coord.m[2][2] * work->forwardSpeed) >> 12;
+    // Keep the X, Y, Z update order and signed Q12 products.
+    rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * work->forwardSpeed) >> ACTOR_207200_CREEPING_STRANGER_BASIS_FRACTION_BITS;
+    rootCoord->coord.t[1] += ACTOR_207200_CREEPING_STRANGER_ROOT_Y_STEP;
+    rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * work->forwardSpeed) >> ACTOR_207200_CREEPING_STRANGER_BASIS_FRACTION_BITS;
 }
 
-/// Applies the work's `animId` to slots 1..6. When it differs from
-/// `appliedAnim` the applied id follows it, `animFrames` restarts and every slot
-/// is blended into the new set over 8 frames; otherwise `animFrames` ticks and
-/// the slots are simply advanced by one.
-static void func_actor_207200_8014D65C(Task* arg0)
+/// Updates the live Creeping Stranger's requested animation and frame counter.
+///
+/// Uses the same six-slot playback operation as the death tick.
+static void _actor207200CreepingStrangerAnimate(Task* task)
 {
-    Actor207200_TickAnim(arg0);
+    _actor207200CreepingStrangerTickAnimation(task);
 }
 
 /// Colours the actor from the *second* attach coordinate of its model: takes a
@@ -1746,152 +1827,161 @@ static void func_actor_207200_8014D70C(Enemy* arg0, Task* task)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// Draws the enemy's ground quad under its model root, at the translation of
-/// the root part's `workm`, staged in a `VECTOR3` on the scratch stack.
-static void func_actor_207200_8014D77C(Task* task)
+/// Draws the raw-texture ground shadow at the composed model root.
+///
+/// The quad half-side is 448 game units. Borrows all 24 bytes of an
+/// `ActorRenderGroundShadowCentreScratch` for the call; only its leading
+/// centre vector is accessed. Requires an up-to-date root composition cache.
+static void _actor207200CreepingStrangerDrawGroundShadow(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR3*  vec;
+    enum { ACTOR_207200_CREEPING_STRANGER_SHADOW_HALF_SIDE   = 448,
+           ACTOR_207200_CREEPING_STRANGER_SHADOW_RAW_TEXTURE = 0 };
+    GfxCoord*                             rootCoord;
+    ActorRenderGroundShadowCentreScratch* shadowScratch;
 
-    coord   = task->extra.tmd->coords;
-    vec     = (VECTOR3*)SCRATCH_STACK_RESERVE_BYTES(0x18);
-    vec->vx = coord->workm.t[0];
-    vec->vy = coord->workm.t[1];
-    vec->vz = coord->workm.t[2];
-    effectDrawGroundShadow(vec, 0x1C0, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x18);
+    rootCoord                = task->extra.tmd->coords;
+    shadowScratch            = SCRATCH_STACK_RESERVE_BLOCK(ActorRenderGroundShadowCentreScratch);
+    shadowScratch->centre.vx = rootCoord->workm.t[0];
+    shadowScratch->centre.vy = rootCoord->workm.t[1];
+    shadowScratch->centre.vz = rootCoord->workm.t[2];
+    effectDrawGroundShadow(&shadowScratch->centre, ACTOR_207200_CREEPING_STRANGER_SHADOW_HALF_SIDE, ACTOR_207200_CREEPING_STRANGER_SHADOW_RAW_TEXTURE);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorRenderGroundShadowCentreScratch);
 }
 
-/// Rebuilds the first coordinate node of the actor's model from the transform
-/// stored in `work->savedRootMtx`, scaled along Y by `work->flattenScaleY` (a
-/// 0x1000-per-unit scale, decaying by 0x50 a frame while it sits above 0x200). The
-/// `ActorScaleScratch` block that holds the scaling matrix and its `VECTOR` is
-/// borrowed from the scratch stack and released again; the node's
-/// `composeStamp` is cleared so the next `actorRenderComposeCoord` recomputes it.
-static void func_actor_207200_8014D7E8(Task* arg0)
+/// Flattens the corpse from the saved death transform without compounding scale.
+///
+/// Decreases the signed Q12 Y factor by 80 while it exceeds 512; the final step
+/// may undershoot. X/Z stay at unity. Requires the saved root matrix and one
+/// free `ActorScaleScratch`; restores the root before scaling and marks it dirty.
+static void _actor207200CreepingStrangerFlatten(Task* task)
 {
-    GfxCoord*                         coord;
-    ActorScaleScratch*                head;
+    enum { ACTOR_207200_CREEPING_STRANGER_FLATTEN_CUTOFF_Q12 = 0x200,
+           ACTOR_207200_CREEPING_STRANGER_FLATTEN_STEP_Q12   = 0x50 };
+    GfxCoord*                         rootCoord;
+    ActorScaleScratch*                scratchHead;
     ActorScaleScratch*                scratch;
     _Actor207200CreepingStrangerWork* work;
 
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    work                                    = arg0->work;
-    scratch                                 = head - 1;
+    scratchHead                             = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = task->work;
+    scratch                                 = scratchHead - 1;
     SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
-    coord                                   = arg0->extra.tmd->coords;
-    if (work->flattenScaleY >= 0x201) {
-        work->flattenScaleY -= 0x50;
+    rootCoord                               = task->extra.tmd->coords;
+    if (work->flattenScaleY > ACTOR_207200_CREEPING_STRANGER_FLATTEN_CUTOFF_Q12) {
+        work->flattenScaleY -= ACTOR_207200_CREEPING_STRANGER_FLATTEN_STEP_Q12;
     }
-    scratch->scale.vx = ONE;
-    scratch->scale.vy = work->flattenScaleY;
-    scratch->scale.vz = ONE;
-    coord->coord      = work->savedRootMtx;
-    gfxSetRotIdentity(&scratch->matrix);
-    ScaleMatrix(&scratch->matrix, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor207200CreepingStrangerApplyRootScale(rootCoord, &work->savedRootMtx, &work->flattenScaleY, scratch);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
-/// Re-picks the model part the enemy's `coord` points at and relinks its
-/// lock-on node. Once `headLost` is set it is always the second part;
-/// before that it is the fourth part while the model in pointer slot 3 lies
-/// within a quarter turn of the root's heading, and the second otherwise.
-static void func_actor_207200_8014D8DC(Task* arg0)
+/// Publishes and relinks the model part used for lock-on.
+///
+/// A headless enemy targets part 1. With a head, a player bearing strictly
+/// inside a quarter turn targets part 3, otherwise part 1. Bearing uses the
+/// composed root/player caches; model parts and the Enemy must stay live.
+static void _actor207200CreepingStrangerUpdateTarget(Task* task)
 {
     _Actor207200CreepingStrangerWork* work;
-    Enemy*                            ctx;
-    GfxCoord*                         coord;
-    s32                               dist;
-    s32                               angle;
+    Enemy*                            enemy;
+    GfxCoord*                         targetCoord;
+    u32                               playerRange;
+    s32                               playerBearing;
 
-    work = arg0->work;
-    ctx  = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->headLost != 0) {
-        coord = arg0->extra.tmd->coords + 1;
+        targetCoord = task->extra.tmd->coords + 1;
     } else {
-        angle = func_actor_207200_8014CE20(arg0->extra.tmd->coords, &dist);
-        if (angle < 0) {
-            angle = -angle;
+        playerBearing = _actor207200CreepingStrangerMeasurePlayer(task->extra.tmd->coords, &playerRange);
+        if (playerBearing < 0) {
+            playerBearing = -playerBearing;
         }
-        if (angle < 0x400) {
-            coord = arg0->extra.tmd->coords + 3;
+        if (playerBearing < (ACTOR_TRANSFORM_ANGLE_TURN / 4)) {
+            targetCoord = task->extra.tmd->coords + 3;
         } else {
-            coord = arg0->extra.tmd->coords + 1;
+            targetCoord = task->extra.tmd->coords + 1;
         }
     }
-    ctx->coord = coord;
-    worldTargetLinkNode(&ctx->node);
+    enemy->coord = targetCoord;
+    worldTargetLinkNode(&enemy->node);
 }
 
-/// While `work->headLost` is set, runs each column of the node's rotation
-/// matrix through GTE `gpf 12` with a zero interpolation factor, zeroing the
-/// 3x3 part, and clears `composeStamp` so the node is recomputed.
-static void func_actor_207200_8014D97C(Task* arg0, GfxCoord* arg1)
+/// Collapses one head-associated part after head loss, retaining its translation.
+///
+/// Callers pass model parts 2 and 3. Each Q12 basis column is multiplied by
+/// zero through the GTE, then composition is marked dirty. Requires initialized
+/// work and a live part coordinate; changes GTE interpolation registers.
+static void _actor207200CreepingStrangerCollapseHeadPart(Task* task, GfxCoord* partCoord)
 {
-    SVECTOR vec;
-    MATRIX* m;
-
-    if (((_Actor207200CreepingStrangerWork*)arg0->work)->headLost != 0) {
-        m = &arg1->coord;
-        gte_ReadMatrixColumn(m, 0, &vec);
-        gte_lddp(0);
-        gte_ldsv(&vec);
-        gte_gpf12();
-        gte_stsv(&vec);
-        gte_WriteMatrixColumn(&vec, m, 0);
-
-        gte_ReadMatrixColumn(m, 1, &vec);
-        gte_lddp(0);
-        gte_ldsv(&vec);
-        gte_gpf12();
-        gte_stsv(&vec);
-        gte_WriteMatrixColumn(&vec, m, 1);
-
-        gte_ReadMatrixColumn(m, 2, &vec);
-        gte_lddp(0);
-        gte_ldsv(&vec);
-        gte_gpf12();
-        gte_stsv(&vec);
-        gte_WriteMatrixColumn(&vec, m, 2);
-
-        arg1->composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-}
-
-/// Copies the texture page and CLUT from `src`'s model onto `dst`'s and, when
-/// `dst` has a stream buffer, processes it twice so both halves pick the new
-/// pair up. The enemy calls it with a freshly spawned effect as `dst` and
-/// itself as `src`.
-static void func_actor_207200_8014DAF8(Task* dst, Task* src)
-{
-    TmdObject* to;
-    TmdObject* from;
-
-    from                  = src->extra.tmd;
-    to                    = dst->extra.tmd;
-    to->texturePageOffset = from->texturePageOffset;
-    to->clutRowOffset     = from->clutRowOffset;
-    if (to->buffer != NULL) {
-        tmdBuildBufferHalf(to);
-        tmdBuildBufferHalf(to);
-    }
-}
-
-static void func_actor_207200_8014DB4C(Task* arg0)
-{
-    Enemy*                            ctx;
+    SVECTOR                           columnValue;
+    MATRIX*                           rotation;
     _Actor207200CreepingStrangerWork* work;
 
-    ctx       = arg0->spawnArg2.pointer;
-    work      = arg0->work;
-    ctx->recs = 0;
-    worldTargetUnlinkNode(&ctx->node);
+    /// Collapses one Q12 basis column through the GTE, retaining translation.
+    ///
+    /// columnIndex must be a compile-time constant in 0..2. Pointer arguments
+    /// must be stable, side-effect-free expressions and are evaluated repeatedly.
+    /// Borrows columnValue; changes GTE state. Use within a compound statement.
+#define ACTOR_207200_CREEPING_STRANGER_COLLAPSE_COLUMN(rotation, columnIndex, columnValue) \
+    gte_ReadMatrixColumn((rotation), (columnIndex), (columnValue));                        \
+    gte_lddp(0);                                                                           \
+    gte_ldsv((columnValue));                                                               \
+    gte_gpf12();                                                                           \
+    gte_stsv((columnValue));                                                               \
+    gte_WriteMatrixColumn((columnValue), (rotation), (columnIndex))
+
+    work = task->work;
+    if (work->headLost != 0) {
+        rotation = &partCoord->coord;
+        ACTOR_207200_CREEPING_STRANGER_COLLAPSE_COLUMN(rotation, 0, &columnValue);
+
+        ACTOR_207200_CREEPING_STRANGER_COLLAPSE_COLUMN(rotation, 1, &columnValue);
+
+        ACTOR_207200_CREEPING_STRANGER_COLLAPSE_COLUMN(rotation, 2, &columnValue);
+
+        partCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    }
+#undef ACTOR_207200_CREEPING_STRANGER_COLLAPSE_COLUMN
+}
+
+/// Gives a newly spawned burst model the enemy model's texture placement.
+///
+/// Requires two live TMD tasks. Copies the texture-page and CLUT-row offsets;
+/// if the burst model owns a primitive buffer, rebuilds both alternating halves
+/// so they reflect the new placement. Neither task or model is retained.
+static void _actor207200CreepingStrangerCopyBurstTextures(Task* burstTask, Task* sourceTask)
+{
+    TmdObject* burstModel;
+    TmdObject* sourceModel;
+
+    sourceModel                   = sourceTask->extra.tmd;
+    burstModel                    = burstTask->extra.tmd;
+    burstModel->texturePageOffset = sourceModel->texturePageOffset;
+    burstModel->clutRowOffset     = sourceModel->clutRowOffset;
+    if (burstModel->buffer != NULL) {
+        tmdBuildBufferHalf(burstModel);
+        tmdBuildBufferHalf(burstModel);
+    }
+}
+
+/// Detaches the Creeping Stranger's targets and collision bodies before release.
+///
+/// Exit callback installed only after successful setup. Clears the Enemy's
+/// borrowed contact table, unlinks its target and all five bodies, then releases
+/// the Enemy and task through `enemyTaskExit`; both are invalid afterward.
+static void _actor207200CreepingStrangerExit(Task* task)
+{
+    Enemy*                            enemy;
+    _Actor207200CreepingStrangerWork* work;
+
+    enemy       = task->spawnArg2.pointer;
+    work        = task->work;
+    enemy->recs = NULL;
+    worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->senseBody);
     worldCollisionUnlinkBody(&work->body);
     worldCollisionUnlinkBody(&work->headBody);
     worldCollisionUnlinkBody(&work->frontAttackBody);
     worldCollisionUnlinkBody(&work->sideAttackBody);
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }

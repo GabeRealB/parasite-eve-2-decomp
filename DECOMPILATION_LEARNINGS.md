@@ -10221,7 +10221,7 @@ one delete-and-re-split.
 **Save the sharer's already-matched C before you delete its `.c`.** splat
 regenerates a missing unit from `asm/`, so every function that was already
 decompiled in that file comes back as `INCLUDE_ASM` and the overlay silently
-loses work that still checksums. `actor_207200` had `func_actor_207200_8014DB4C`
+loses work that still checksums. `actor_207200` had `_actor207200CreepingStrangerExit`
 matched at the end of its single unit; promoting `ActorsShared8014df20` from the
 middle of that unit cut the file in two and the re-split reverted that body.
 Copy the file aside first, then paste the matched functions (and the externs
@@ -47324,9 +47324,9 @@ casts across all the field's users is the one to keep.
 
 The per-use rule above does not stop at a function boundary. In
 `actor_207200_2`, `_Actor207200CreepingStrangerWork.animFrames` is loaded `lhu`
-by its increment in `func_actor_207200_8014D65C` and by the range checks in
-`func_actor_207200_8014B87C`, and `lh` + `slti 0x69` in
-`func_actor_207200_8014D49C`. The field was first matched as `u16`, with the
+by its increment in `_actor207200CreepingStrangerAnimate` and by the range checks in
+`_actor207200CreepingStrangerActiveTick`, and `lh` + `slti 0x69` in
+`_actor207200CreepingStrangerUpdateBehavior`. The field was first matched as `u16`, with the
 `lh` coming from a cast at each signed comparison:
 
 ```c
@@ -62750,13 +62750,13 @@ delete=3 reorder=2`), and all of m2c's damage was its two-temp
 
 `overlay_dup_index.py find` decides equality on splat's disassembly *text*, so a
 copy whose only difference is struct-field displacements — `0x3A0($a2)` against
-`0x49C($a2)` — is not a copy as far as it is concerned. `func_actor_207200_8014D7E8`
+`0x49C($a2)` — is not a copy as far as it is concerned. `_actor207200CreepingStrangerFlatten`
 never appeared next to its twin there.
 
 The `similar` subcommand is the fuzzy tier beside it: it ranks *already-matched*
 bodies in four classes — `shape` (opcode order, operands dropped), `fields`,
 `calls`, `cflow` — and BRIEF.md embeds the top few, starring any candidate that
-scores in more than one class. For `func_actor_207200_8014D7E8` the whole body
+scores in more than one class. For `_actor207200CreepingStrangerFlatten` the whole body
 came back at 1.00 in `shape`, `calls` *and* `cflow` at once. Diffing the two
 disassemblies confirmed they are instruction-for-instruction identical with
 every displacement changed: the same `ActorsShared80135b58` shape compiled
@@ -81737,7 +81737,7 @@ missing unit `.s` files but never removes ones whose unit has moved.
 
 ## `TOUCH_REG` keeps a provably-constant counter out of a later `add`
 
-`func_actor_207200_8014D65C` is the sibling of `func_actor_207200_8014AF2C`
+`_actor207200CreepingStrangerAnimate` is the sibling of `func_actor_207200_8014AF2C`
 (same body, 7 slots at `0x48C` instead of 3 at `0x28C`). Removing m2c's temp for
 the call argument — the fix recorded above — still left one mismatch: the else
 path's counter update came out `addiu $v0,$v0,1` where the target has
@@ -81820,7 +81820,7 @@ Input SHA256 (`base_7.i`, the matching candidate):
 
 ## Statement order picks which chain fills a `mult` delay slot, and that decides the instruction count
 
-`func_actor_207200_8014D5C4` ends with three independent updates to one
+`_actor207200CreepingStrangerStepForward` ends with three independent updates to one
 coordinate: a `mult`-scaled change to `t[0]`, a constant `t[1] += 0x80`, and a
 second `mult`-scaled change to `t[2]`. m2c had emitted `t[1]` first, and the
 result scored 92.6% with `reorder=3 delete=1` — one instruction short.
@@ -99452,7 +99452,7 @@ a new basic block and the table does not reach it.
 
 `TOUCH_REG(i);` before the add (`"+r"`, so the empty asm may rewrite `i`) puts
 `addu` back. This idiom is everywhere in this family's animation-slot bodies -
-`ActorsShared8014af2c`, `func_actor_207200_8014D65C`, `Actor03800_Fn02998`
+`ActorsShared8014af2c`, `_actor207200CreepingStrangerAnimate`, `Actor03800_Fn02998`
 (`src/actors/lib/actor_103800_text.c`, three times) - and those already-matched
 siblings are the shortest path to the source shape.
 
