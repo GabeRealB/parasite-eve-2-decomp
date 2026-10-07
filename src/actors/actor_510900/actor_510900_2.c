@@ -3574,7 +3574,6 @@ static void func_actor_510900_8013A9BC(Task* task)
 static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
 {
     GfxCoord*                    coord;
-    GfxRotationWords*            mat;
     _Actor510900BlastSourceWork* work;
 
     coord = task->extra.tmd->coords;
@@ -3583,13 +3582,8 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    mat                 = (GfxRotationWords*)&coord->coord;
     task->work          = work;
-    mat->m00M01         = ONE;
-    mat->m11M12         = ONE;
-    mat->m22            = ONE;
-    mat->m02M10         = 0;
-    mat->m20M21         = 0;
+    gfxSetRotIdentity(&coord->coord);
     coord->coord.t[0]   = -0x17D4;
     coord->coord.t[1]   = -0x456;
     coord->coord.t[2]   = 0x17C;
