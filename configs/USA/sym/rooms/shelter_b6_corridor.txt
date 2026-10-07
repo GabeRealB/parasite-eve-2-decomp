@@ -74,7 +74,7 @@ shelterB6CorridorDrawViewGlowsTask = 0x8017E238; // type:func
 
 shelterB6CorridorPlayerHitGlowTask = 0x8017ECA8; // type:func
 _glowDrawCapsule = 0x8017E360; // type:func
-screenWaveGridTask = 0x8017D5D0; // type:func
+_screenWaveGridTask = 0x8017D5D0; // type:func
 _shelterB6CorridorRejectKeyItemUse = 0x8017dea8; // type:func
 _shelterB6CorridorIgnoreRoomAction = 0x8017e020; // type:func
 _shelterB6CorridorInitRoom = 0x8017e064; // type:func

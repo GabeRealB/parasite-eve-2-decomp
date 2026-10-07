@@ -102,7 +102,7 @@ typedef struct {
 } ScreenWaveGridOscillator;
 STATIC_ASSERT_SIZEOF(ScreenWaveGridOscillator, 0x8);
 
-/// One grid line's sine wave in `screenWaveTask`'s 10x30 screen ripple.
+/// One grid line's sine wave in `_screenWaveTask`'s 10x30 screen ripple.
 ///
 /// The task keeps one per vertical grid edge (11 columns) and one per
 /// horizontal edge (30 rows), in the arrays their packages own as

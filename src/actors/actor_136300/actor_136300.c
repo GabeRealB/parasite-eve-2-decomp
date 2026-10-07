@@ -190,7 +190,7 @@ void func_actor_136300_801328E0(s32);
 void func_actor_136300_80132910(s32);
 
 TaskDesc D_actor_136300_80132AC4[2] = {
-    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

@@ -134,7 +134,7 @@ static void _actor342100TriggerBlazeDeath(void);
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 /// Single-entry spawn table of the screen-wave task
-/// `screenWaveGridTask`: `func_actor_342100_80163408` starts entry 0
+/// `_screenWaveGridTask`: `func_actor_342100_80163408` starts entry 0
 /// and hands it the address of the work block's `blaze.wave` as its ramp.
 extern TaskDesc D_actor_342100_801648DC[];
 
@@ -201,7 +201,7 @@ extern ScreenWaveGridOscillator gScreenWaveColumns[10];
 extern ScreenWaveGridOscillator gScreenWaveRows[30];
 
 /// Double-buffered 8 by 30 meshes of textured quads, one mesh per frame
-/// buffer. `screenWaveGridTask` builds them once and moves their corners.
+/// buffer. `_screenWaveGridTask` builds them once and moves their corners.
 extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
 void func_actor_342100_80162AB0(Task*);
@@ -275,7 +275,7 @@ static AnimationSet _gActor342100Animation02A94 = {
 };
 
 TaskDesc D_actor_342100_801648DC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

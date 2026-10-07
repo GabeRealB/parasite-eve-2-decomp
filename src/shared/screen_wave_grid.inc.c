@@ -14,31 +14,64 @@ typedef struct {
 } _ScreenWaveGridScratch;
 STATIC_ASSERT_SIZEOF(_ScreenWaveGridScratch, 0x138);
 
-/// Screen-wave task, spawned through `D_actor_205200_8014CA44` with the
-/// context `func_actor_205200_8014AB98` fills. State 0 seeds random phases and
-/// speeds for the 9 column and 30 row waves and builds, for each display
-/// buffer, a grid of textured quads that re-draws the frame buffer. State 1
-/// ramps the amplitude up to the context's peak, back down once its phase is
-/// `SCREEN_WAVE_RAMP_FALLING`, and kills the task at
-/// `SCREEN_WAVE_RAMP_FINISHED`; each frame it displaces every quad
-/// vertex by the sine of its row and column waves.
-void screenWaveGridTask(Task* arg0)
+/// Redraws the captured frame through a persistent, double-buffered 8-by-30 mesh.
+///
+/// `task->spawnArg2.pointer` borrows a `ScreenWaveCtx` with positive `span`;
+/// it must remain live through the task's final drawing tick. Only one wave
+/// task may use a package's wave globals at a time. The first tick resets the
+/// ramp to rising, seeds nine column and thirty row waves, sets the display's
+/// Y shake to -8 pixels, and fixes each buffer's UVs and optional RGB tint.
+/// Later ticks move the corners and submit the current buffer's 240 quads.
+///
+/// Ramp strength is `frame * scale / span`; its peak corresponds to
+/// `scale / 32` pixels of sine displacement. X is signed, Y uses the absolute
+/// displacement, and the top edge stays fixed. Actor freezes stop phase
+/// advancement and a falling ramp, while a rising ramp continues. A finished
+/// ramp kills the task and clears the shake, but still draws that tick.
+/// Each tick borrows and releases one 0x138-byte scratch-stack snapshot and
+/// brackets the ordering table with mask-bit setting commands.
+static void _screenWaveGridTask(Task* task)
 {
-    _ScreenWaveGridScratch*   scratch;
-    _ScreenWaveGridScratch*   head;
-    ScreenWaveCtx*            ctx;
-    ScreenWaveGridOscillator* cols;
-    POLY_FT4*                 p;
-    DR_STP*                   stp;
-    s32                       i;
-    s32                       j;
-    s32                       k;
-    s32                       rowIndex;
-    s32                       rowBack;
-    s32                       u0;
-    s32                       u1;
-    s32                       v0;
-    s32                       v1;
+    enum {
+        SCREEN_WAVE_TASK_SEED           = 0,
+        SCREEN_WAVE_TASK_DRAW           = 1,
+        SCREEN_WAVE_PINNED_ROW          = -1,
+        SCREEN_WAVE_QUAD_COLUMNS        = ARRAY_SIZE(SCREEN_WAVE_GRID[0][0]),
+        SCREEN_WAVE_ROW_WAVES           = ARRAY_SIZE(SCREEN_WAVE_GRID[0]),
+        SCREEN_WAVE_CELL_WIDTH          = 40,
+        SCREEN_WAVE_CELL_HEIGHT         = 8,
+        SCREEN_WAVE_CAPTURE_WIDTH       = 320,
+        SCREEN_WAVE_RIGHT_PAGE_X        = 128,
+        SCREEN_WAVE_FRAMEBUFFER_Y_SHIFT = 8,
+        SCREEN_WAVE_BUFFER_V_OFFSET     = 16,
+        SCREEN_WAVE_LEFT_X              = -160,
+        SCREEN_WAVE_ROW_ZERO_Y          = -104,
+        SCREEN_WAVE_PINNED_TOP_Y        = -112,
+        SCREEN_WAVE_ROW_PHASE_SHIFT     = 9,
+        SCREEN_WAVE_COLUMN_PHASE_SHIFT  = 10,
+        SCREEN_WAVE_SINE_GAIN_SHIFT     = 3,
+        SCREEN_WAVE_DISPLACEMENT_SHIFT  = 20,
+        SCREEN_WAVE_TEXTURE_16_BIT      = 2,
+        SCREEN_WAVE_QUAD_OT_INDEX       = 3,
+        SCREEN_WAVE_MASK_SET_OT_INDEX   = 1023,
+        SCREEN_WAVE_MASK_CLEAR_OT_INDEX = 0,
+    };
+
+    _ScreenWaveGridScratch*   waveSnapshot;
+    _ScreenWaveGridScratch*   scratchTop;
+    ScreenWaveCtx*            rampContext;
+    ScreenWaveGridOscillator* columnWaves;
+    POLY_FT4*                 quad;
+    DR_STP*                   maskCommand;
+    s32                       index;
+    s32                       quadRow;
+    s32                       quadColumn;
+    s32                       waveRow;
+    s32                       reverseWaveRow;
+    s32                       leftU;
+    s32                       rightU;
+    s32                       topV;
+    s32                       bottomV;
     s32                       waveX0;
     s32                       waveY0;
     s32                       waveX1;
@@ -47,167 +80,171 @@ void screenWaveGridTask(Task* arg0)
     s32                       waveY2;
     s32                       waveX3;
     s32                       waveY3;
-    ScreenWaveGridOscillator* row;
-    POLY_FT4(*grid)
-    [8];
-    s32 tpage0;
-    s32 tpage1;
+    ScreenWaveGridOscillator* rowWave;
+    POLY_FT4(*meshRows)
+    [SCREEN_WAVE_QUAD_COLUMNS];
+    s32 leftTexturePage;
+    s32 rightTexturePage;
 
-    head                                         = SCRATCH_STACK_CURSOR(_ScreenWaveGridScratch);
+    scratchTop                                   = SCRATCH_STACK_CURSOR(_ScreenWaveGridScratch);
     gCdCmdQueue.imageMdecMode                    = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    SCRATCH_STACK_CURSOR(_ScreenWaveGridScratch) = head - 1;
-    cols                                         = head[-1].columns;
-    scratch                                      = head - 1;
-    switch (arg0->state) {
-        case 0:
-            for (i = 0; i < 9; i++) {
-                gScreenWaveColumns[i].phase  = 0;
-                gScreenWaveColumns[i].offset = (u32)rand() >> 3;
-                gScreenWaveColumns[i].speed  = ((rand() * 100) >> 15) + 20;
+    SCRATCH_STACK_CURSOR(_ScreenWaveGridScratch) = scratchTop - 1;
+    columnWaves                                  = scratchTop[-1].columns;
+    waveSnapshot                                 = scratchTop - 1;
+    switch (task->state) {
+        case SCREEN_WAVE_TASK_SEED:
+            // Seed the ramp and build the UVs and tint once for both buffers.
+            for (index = 0; index < SCREEN_WAVE_QUAD_COLUMNS + 1; index++) {
+                gScreenWaveColumns[index].phase  = 0;
+                gScreenWaveColumns[index].offset = (u32)rand() >> 3;
+                gScreenWaveColumns[index].speed  = ((rand() * 100) >> 15) + 20;
             }
-            for (i = 0; i < 30; i++) {
-                gScreenWaveRows[i].phase  = 0;
-                gScreenWaveRows[i].offset = (u32)rand() >> 3;
-                gScreenWaveRows[i].speed  = ((rand() * 100) >> 15) + 20;
+            for (index = 0; index < SCREEN_WAVE_ROW_WAVES; index++) {
+                gScreenWaveRows[index].phase  = 0;
+                gScreenWaveRows[index].offset = (u32)rand() >> 3;
+                gScreenWaveRows[index].speed  = ((rand() * 100) >> 15) + 20;
             }
             gScreenWaveRamp       = 0;
-            gScreenWaveCtx        = arg0->spawnArg2.pointer;
+            gScreenWaveCtx        = task->spawnArg2.pointer;
             gScreenWaveCtx->frame = 0;
             gScreenWaveCtx->state = SCREEN_WAVE_RAMP_RISING;
             displaySetShakeY(DISPLAY_SHAKE_MIN);
-            for (i = 0; i < 2; i++) {
-                tpage0 = getTPage(2, 0, 0, i << 8);
-                tpage1 = getTPage(2, 0, 128, i << 8);
-                grid   = &SCREEN_WAVE_GRID[i][1];
-                for (j = -1; j < 29; j++) {
-                    p = grid[j];
-                    for (k = 0; k < 8; p++, k++) {
-                        setPolyFT4(p);
+            for (index = 0; index < ARRAY_SIZE(SCREEN_WAVE_GRID); index++) {
+                leftTexturePage  = getTPage(SCREEN_WAVE_TEXTURE_16_BIT, GPU_BLEND_AVERAGE, 0, index << SCREEN_WAVE_FRAMEBUFFER_Y_SHIFT);
+                rightTexturePage = getTPage(SCREEN_WAVE_TEXTURE_16_BIT, GPU_BLEND_AVERAGE, SCREEN_WAVE_RIGHT_PAGE_X, index << SCREEN_WAVE_FRAMEBUFFER_Y_SHIFT);
+                // Bias the mesh by one row so logical row -1 is its pinned top strip.
+                meshRows = &SCREEN_WAVE_GRID[index][1];
+                for (quadRow = SCREEN_WAVE_PINNED_ROW; quadRow < SCREEN_WAVE_ROW_WAVES - 1; quadRow++) {
+                    quad = meshRows[quadRow];
+                    for (quadColumn = 0; quadColumn < SCREEN_WAVE_QUAD_COLUMNS; quad++, quadColumn++) {
+                        setPolyFT4(quad);
                         if (gScreenWaveCtx->modulateTexture == SCREEN_WAVE_TEXTURE_RAW) {
-                            setShadeTex(p, 1);
+                            setShadeTex(quad, 1);
                         } else {
-                            setShadeTex(p, 0);
-                            p->r0 = gScreenWaveCtx->r;
-                            p->g0 = gScreenWaveCtx->g;
-                            p->b0 = gScreenWaveCtx->b;
+                            setShadeTex(quad, 0);
+                            quad->r0 = gScreenWaveCtx->r;
+                            quad->g0 = gScreenWaveCtx->g;
+                            quad->b0 = gScreenWaveCtx->b;
                         }
-                        u0 = k * 40;
-                        u1 = (k + 1) * 40;
-                        if (u1 == 320) {
-                            u1 = 319;
+                        leftU  = quadColumn * SCREEN_WAVE_CELL_WIDTH;
+                        rightU = (quadColumn + 1) * SCREEN_WAVE_CELL_WIDTH;
+                        if (rightU == SCREEN_WAVE_CAPTURE_WIDTH) {
+                            rightU = SCREEN_WAVE_CAPTURE_WIDTH - 1;
                         }
-                        if (u0 < 128) {
-                            p->tpage = tpage0;
+                        if (leftU < SCREEN_WAVE_RIGHT_PAGE_X) {
+                            quad->tpage = leftTexturePage;
                         } else {
-                            p->tpage = tpage1;
-                            u0      -= 128;
-                            u1      -= 128;
+                            quad->tpage = rightTexturePage;
+                            leftU      -= SCREEN_WAVE_RIGHT_PAGE_X;
+                            rightU     -= SCREEN_WAVE_RIGHT_PAGE_X;
                         }
-                        v1 = (j + 1) * 8 + i * 16;
-                        if (j != -1) {
-                            v0 = j * 8 + i * 16;
+                        bottomV = (quadRow + 1) * SCREEN_WAVE_CELL_HEIGHT + index * SCREEN_WAVE_BUFFER_V_OFFSET;
+                        if (quadRow != SCREEN_WAVE_PINNED_ROW) {
+                            topV = quadRow * SCREEN_WAVE_CELL_HEIGHT + index * SCREEN_WAVE_BUFFER_V_OFFSET;
                         } else {
-                            v0 = i * 16 + 8;
-                            v1 = i * 16;
+                            topV    = index * SCREEN_WAVE_BUFFER_V_OFFSET + SCREEN_WAVE_CELL_HEIGHT;
+                            bottomV = index * SCREEN_WAVE_BUFFER_V_OFFSET;
                         }
-                        p->u0 = u0;
-                        p->v0 = v0;
-                        p->u1 = u1;
-                        p->v1 = v0;
+                        quad->u0 = leftU;
+                        quad->v0 = topV;
+                        quad->u1 = rightU;
+                        quad->v1 = topV;
                         do {
-                            p->u2 = u0;
-                            p->v2 = v1;
-                            p->u3 = u1;
+                            quad->u2 = leftU;
+                            quad->v2 = bottomV;
+                            quad->u3 = rightU;
                         } while (0);
-                        p->v3 = v1;
+                        quad->v3 = bottomV;
                     }
                 }
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 1:
-            ctx = gScreenWaveCtx;
-            switch (ctx->state) {
+        case SCREEN_WAVE_TASK_DRAW:
+            rampContext = gScreenWaveCtx;
+            switch (rampContext->state) {
                 case SCREEN_WAVE_RAMP_RISING:
-                    if (ctx->frame < ctx->span) {
-                        ctx->frame++;
+                    if (rampContext->frame < rampContext->span) {
+                        rampContext->frame++;
                     }
                     break;
                 case SCREEN_WAVE_RAMP_FALLING:
-                    if (ctx->frame > 0) {
+                    if (rampContext->frame > 0) {
                         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                            ctx->frame--;
+                            rampContext->frame--;
                         }
                     } else {
-                        ctx->state = SCREEN_WAVE_RAMP_FINISHED;
+                        rampContext->state = SCREEN_WAVE_RAMP_FINISHED;
                     }
                     break;
                 case SCREEN_WAVE_RAMP_FINISHED:
-                    taskKill(arg0);
+                    taskKill(task);
                     displaySetShakeY(0);
                     break;
             }
             gScreenWaveRamp = gScreenWaveCtx->frame * gScreenWaveCtx->scale / gScreenWaveCtx->span;
-            // Advance every wave, and copy its phase and offset - the two
-            // halfwords the vertex pass reads - into the scratch block as one word.
-            for (i = 0; i < ARRAY_SIZE(scratch->columns); i++) {
+            // Snapshot only the phase/offset word; speed and the unknown tail
+            // stay untouched. The globals and scratch entries are word-aligned.
+            for (index = 0; index < ARRAY_SIZE(waveSnapshot->columns); index++) {
                 if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                    gScreenWaveColumns[i].phase += gScreenWaveColumns[i].speed;
+                    gScreenWaveColumns[index].phase += gScreenWaveColumns[index].speed;
                 }
-                *(s32*)&cols[i] = *(s32*)&gScreenWaveColumns[i];
+                *(s32*)&columnWaves[index] = *(s32*)&gScreenWaveColumns[index];
             }
-            for (i = 0; i < ARRAY_SIZE(scratch->rows); i++) {
+            for (index = 0; index < ARRAY_SIZE(waveSnapshot->rows); index++) {
                 if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                    gScreenWaveRows[i].phase += gScreenWaveRows[i].speed;
+                    gScreenWaveRows[index].phase += gScreenWaveRows[index].speed;
                 }
-                *(s32*)&scratch->rows[i] = *(s32*)&gScreenWaveRows[i];
+                *(s32*)&waveSnapshot->rows[index] = *(s32*)&gScreenWaveRows[index];
             }
-            rowIndex = -1;
-            for (j = -1; j < 29; rowIndex += 2, j++, rowIndex--) {
-                rowBack = -rowIndex;
-                row     = scratch->rows - rowBack;
-                grid    = &SCREEN_WAVE_GRID[gDisplayState.drawBuffer][1];
-                p       = grid[j];
-                for (k = 0; k < 8; k++, p++) {
-                    if (j != -1) {
-                        waveX0 = gScreenWaveRamp * (rsin((j << 9) + cols[k].phase + cols[k].offset) << 3);
-                        p->x0  = k * 40 + (s16)((waveX0 >> 20) - 160);
-                        waveY0 = gScreenWaveRamp * (rsin((k << 10) + row->phase + row->offset) << 3);
-                        p->y0  = j * 8 + (s16)((ABS(waveY0) >> 20) - 104);
-                        waveX1 = gScreenWaveRamp * (rsin((j << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
-                        p->x1  = (k + 1) * 40 + (s16)((waveX1 >> 20) - 160);
-                        waveY1 = gScreenWaveRamp * (rsin(((k + 1) << 10) + row->phase + row->offset) << 3);
-                        p->y1  = j * 8 + (s16)((ABS(waveY1) >> 20) - 104);
+            // Displace this buffer's corners; only the top strip lacks a top-edge wave.
+            waveRow = SCREEN_WAVE_PINNED_ROW;
+            for (quadRow = SCREEN_WAVE_PINNED_ROW; quadRow < SCREEN_WAVE_ROW_WAVES - 1; waveRow += 2, quadRow++, waveRow--) {
+                reverseWaveRow = -waveRow;
+                rowWave        = waveSnapshot->rows - reverseWaveRow;
+                meshRows       = &SCREEN_WAVE_GRID[gDisplayState.drawBuffer][1];
+                quad           = meshRows[quadRow];
+                for (quadColumn = 0; quadColumn < SCREEN_WAVE_QUAD_COLUMNS; quadColumn++, quad++) {
+                    if (quadRow != SCREEN_WAVE_PINNED_ROW) {
+                        waveX0   = gScreenWaveRamp * (rsin((quadRow << SCREEN_WAVE_ROW_PHASE_SHIFT) + columnWaves[quadColumn].phase + columnWaves[quadColumn].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        quad->x0 = quadColumn * SCREEN_WAVE_CELL_WIDTH + (s16)((waveX0 >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_LEFT_X);
+                        waveY0   = gScreenWaveRamp * (rsin((quadColumn << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + rowWave->phase + rowWave->offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        quad->y0 = quadRow * SCREEN_WAVE_CELL_HEIGHT + (s16)((ABS(waveY0) >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_ROW_ZERO_Y);
+                        waveX1   = gScreenWaveRamp * (rsin((quadRow << SCREEN_WAVE_ROW_PHASE_SHIFT) + columnWaves[quadColumn + 1].phase + columnWaves[quadColumn + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        quad->x1 = (quadColumn + 1) * SCREEN_WAVE_CELL_WIDTH + (s16)((waveX1 >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_LEFT_X);
+                        waveY1   = gScreenWaveRamp * (rsin(((quadColumn + 1) << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + rowWave->phase + rowWave->offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        quad->y1 = quadRow * SCREEN_WAVE_CELL_HEIGHT + (s16)((ABS(waveY1) >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_ROW_ZERO_Y);
                     } else {
-                        p->x0 = k * 40 - 160;
-                        p->y0 = -112;
-                        p->x1 = (k + 1) * 40 - 160;
-                        p->y1 = -112;
+                        quad->x0 = quadColumn * SCREEN_WAVE_CELL_WIDTH + SCREEN_WAVE_LEFT_X;
+                        quad->y0 = SCREEN_WAVE_PINNED_TOP_Y;
+                        quad->x1 = (quadColumn + 1) * SCREEN_WAVE_CELL_WIDTH + SCREEN_WAVE_LEFT_X;
+                        quad->y1 = SCREEN_WAVE_PINNED_TOP_Y;
                     }
                     {
-                        ScreenWaveGridOscillator* next = row + 1;
-                        waveX2                         = gScreenWaveRamp * (rsin(((j + 1) << 9) + cols[k].phase + cols[k].offset) << 3);
-                        p->x2                          = k * 40 + (s16)((waveX2 >> 20) - 160);
-                        waveY2                         = gScreenWaveRamp * (rsin((k << 10) + row[1].phase + next->offset) << 3);
-                        p->y2                          = (j + 1) * 8 + (s16)((ABS(waveY2) >> 20) - 104);
-                        waveX3                         = gScreenWaveRamp * (rsin(((j + 1) << 9) + cols[k + 1].phase + cols[k + 1].offset) << 3);
-                        p->x3                          = (k + 1) * 40 + (s16)((waveX3 >> 20) - 160);
-                        waveY3                         = gScreenWaveRamp * (rsin(((k + 1) << 10) + row[1].phase + next->offset) << 3);
-                        p->y3                          = (j + 1) * 8 + (s16)((ABS(waveY3) >> 20) - 104);
+                        ScreenWaveGridOscillator* nextRowWave = rowWave + 1;
+                        waveX2                                = gScreenWaveRamp * (rsin(((quadRow + 1) << SCREEN_WAVE_ROW_PHASE_SHIFT) + columnWaves[quadColumn].phase + columnWaves[quadColumn].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        quad->x2                              = quadColumn * SCREEN_WAVE_CELL_WIDTH + (s16)((waveX2 >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_LEFT_X);
+                        waveY2                                = gScreenWaveRamp * (rsin((quadColumn << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + rowWave[1].phase + nextRowWave->offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        quad->y2                              = (quadRow + 1) * SCREEN_WAVE_CELL_HEIGHT + (s16)((ABS(waveY2) >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_ROW_ZERO_Y);
+                        waveX3                                = gScreenWaveRamp * (rsin(((quadRow + 1) << SCREEN_WAVE_ROW_PHASE_SHIFT) + columnWaves[quadColumn + 1].phase + columnWaves[quadColumn + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        quad->x3                              = (quadColumn + 1) * SCREEN_WAVE_CELL_WIDTH + (s16)((waveX3 >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_LEFT_X);
+                        waveY3                                = gScreenWaveRamp * (rsin(((quadColumn + 1) << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + rowWave[1].phase + nextRowWave->offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        quad->y3                              = (quadRow + 1) * SCREEN_WAVE_CELL_HEIGHT + (s16)((ABS(waveY3) >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_ROW_ZERO_Y);
                     }
-                    addPrim(&gGpuCurrentOt[3], p);
+                    addPrim(&gGpuCurrentOt[SCREEN_WAVE_QUAD_OT_INDEX], quad);
                 }
-                SOFT_USE_REG(p);
+                SOFT_USE_REG(quad);
             }
             break;
     }
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(&gGpuCurrentOt[1023], stp);
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(&gGpuCurrentOt[0], stp);
+    // Enable mask-bit writes at the back of the ordering table, then clear them at the front.
+    maskCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = maskCommand + 1;
+    SetDrawStp(maskCommand, 1);
+    addPrim(&gGpuCurrentOt[SCREEN_WAVE_MASK_SET_OT_INDEX], maskCommand);
+    maskCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = maskCommand + 1;
+    SetDrawStp(maskCommand, 0);
+    addPrim(&gGpuCurrentOt[SCREEN_WAVE_MASK_CLEAR_OT_INDEX], maskCommand);
     SCRATCH_STACK_RELEASE_BLOCK(_ScreenWaveGridScratch);
 }

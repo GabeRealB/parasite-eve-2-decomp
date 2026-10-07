@@ -300,7 +300,7 @@ STATIC_ASSERT_SIZEOF(_Actor206100ShotWork, 0x68);
 extern ScreenWaveCtx D_actor_206100_80158CCC;
 
 /// Child task `func_actor_206100_8014CB68` starts with the tint above as its
-/// spawn arg.  Its callback is `screenWaveTask`.
+/// spawn arg.  Its callback is `_screenWaveTask`.
 extern TaskDesc D_actor_206100_80158AF0[];
 
 /// Spawn-state body: hands the freshly spawned enemy its model, its part
@@ -973,7 +973,7 @@ static AnimationSet _gActor206100Animation0ECA8 = {
 };
 
 TaskDesc D_actor_206100_80158AF0[2] = {
-    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

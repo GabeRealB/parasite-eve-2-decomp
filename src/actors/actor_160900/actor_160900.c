@@ -622,7 +622,7 @@ static AnimationSet _gActor160900Animation0D334 = {
 };
 
 TaskDesc D_actor_160900_8013F17C[2] = {
-    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

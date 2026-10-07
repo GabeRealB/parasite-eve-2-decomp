@@ -57,7 +57,7 @@
 #include "../../shared/glow_draw.h"
 
 /// This room's grid object continues four unread bytes past the quad array,
-/// so `screenWaveGridTask` indexes `quads` rather than the whole object.
+/// so `_screenWaveGridTask` indexes `quads` rather than the whole object.
 #define SCREEN_WAVE_GRID gScreenWaveGrid.quads
 #include "../../shared/screen_wave.h"
 
@@ -90,7 +90,7 @@ typedef struct {
 } _ShelterB6CorridorScreenWaveGrid;
 STATIC_ASSERT_SIZEOF(_ShelterB6CorridorScreenWaveGrid, 19204);
 
-/// This room's screen-wave meshes. `screenWaveGridTask` indexes `quads`
+/// This room's screen-wave meshes. `_screenWaveGridTask` indexes `quads`
 /// through `SCREEN_WAVE_GRID`.
 extern _ShelterB6CorridorScreenWaveGrid gScreenWaveGrid;
 
@@ -128,7 +128,7 @@ static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessag
 s32        func_shelter_b6_corridor_8017E028(Task*, s32, s32, s32);
 
 TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
-    { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

@@ -266,4 +266,4 @@ gScreenWaveRows = 0x8013C8DC; // size:0xC0 defined:True
 D_actor_136300_8013C99C = 0x8013C99C; // size:0xC defined:True
 
 D_dryfield_night_garage_80183380 = 0x80183380; // absolute:True owner=dryfield_night_garage
-screenWaveTask = 0x80131E40; // type:func
+_screenWaveTask = 0x80131E40; // type:func

@@ -1,25 +1,38 @@
 /* Part of the screen wave library; see screen_wave.h. */
 
-/// Runs the screen wave from an event. Called with zero or less, it sets the
-/// MDEC decode mode to 2, fills the package's `gScreenWaveSpawnCtx` (peak 0x60
-/// reached in one step, tinted 0x40/0x80/0x80) and spawns the wave task from
-/// `gScreenWaveTaskDesc` with it; called with a positive value, it stores that
-/// value as `state`, so `SCREEN_WAVE_RAMP_FALLING` fades it out and
-/// `SCREEN_WAVE_RAMP_FINISHED` ends it.
-void screenWaveRun(s32 arg0)
+/// Starts or steers the package's screen wave from a one-word event-script request.
+///
+/// A non-positive `request` seeds the persistent `gScreenWaveSpawnCtx` for a
+/// one-frame rise to strength 0x60, tinted RGB 0x40/0x80/0x80, enables 16-bit
+/// image mask bits and spawns task-table entry 0. A positive request stores
+/// its low signed halfword as the ramp state: `SCREEN_WAVE_RAMP_FALLING`
+/// fades the wave, and `SCREEN_WAVE_RAMP_FINISHED` ends it. Zero requests
+/// another spawn, so it cannot request a rising ramp on an existing task.
+///
+/// Scripts must avoid overlapping spawns, keep the package loaded until its
+/// wave ends, and send state requests after the wave's initialization tick,
+/// which resets the context's state to rising. Spawn failure is not reported.
+static void _screenWaveRun(s32 request)
 {
+    enum {
+        SCREEN_WAVE_SCRIPT_RISE_FRAMES   = 1,
+        SCREEN_WAVE_SCRIPT_PEAK_STRENGTH = 0x60,
+        SCREEN_WAVE_SCRIPT_RED           = 0x40,
+        SCREEN_WAVE_SCRIPT_GREEN_BLUE    = 0x80,
+    };
+
     CdCmdQueue* queue = &gCdCmdQueue;
 
-    if (arg0 <= 0) {
+    if (request <= 0) {
         queue->imageMdecMode                = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-        gScreenWaveSpawnCtx.span            = 1;
-        gScreenWaveSpawnCtx.scale           = 0x60;
-        gScreenWaveSpawnCtx.r               = 0x40;
+        gScreenWaveSpawnCtx.span            = SCREEN_WAVE_SCRIPT_RISE_FRAMES;
+        gScreenWaveSpawnCtx.scale           = SCREEN_WAVE_SCRIPT_PEAK_STRENGTH;
+        gScreenWaveSpawnCtx.r               = SCREEN_WAVE_SCRIPT_RED;
         gScreenWaveSpawnCtx.modulateTexture = SCREEN_WAVE_MODULATE_TEXTURE;
-        gScreenWaveSpawnCtx.g               = 0x80;
-        gScreenWaveSpawnCtx.b               = 0x80;
+        gScreenWaveSpawnCtx.g               = SCREEN_WAVE_SCRIPT_GREEN_BLUE;
+        gScreenWaveSpawnCtx.b               = SCREEN_WAVE_SCRIPT_GREEN_BLUE;
         taskSpawnFromTable(gScreenWaveTaskDesc, 0, 0, &gScreenWaveSpawnCtx);
         return;
     }
-    gScreenWaveSpawnCtx.state = arg0;
+    gScreenWaveSpawnCtx.state = request;
 }

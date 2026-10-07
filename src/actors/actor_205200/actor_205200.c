@@ -249,7 +249,7 @@ u16* D_actor_205200_8014CA34[4] = {
 };
 
 TaskDesc D_actor_205200_8014CA44[2] = {
-    { { { TASK_BODY_NONE, 192 } }, screenWaveGridTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

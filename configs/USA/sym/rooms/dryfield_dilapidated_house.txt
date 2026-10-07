@@ -201,7 +201,7 @@ func_dryfield_dilapidated_house_80182744 = 0x80182744; // type:func
 dryfieldDilapidatedHouseFlameConeTask = 0x80183C8C; // type:func
 
 dryfieldDilapidatedHouseFlameRingTask = 0x80183D5C; // type:func
-screenWaveTask = 0x8017D64C; // type:func
+_screenWaveTask = 0x8017D64C; // type:func
 screenNegativeFilter = 0x8017E48C; // type:func
 bezierCurveEvaluate = 0x8017F418; // type:func
 bezierCurveCoefficients = 0x80181290; // type:func

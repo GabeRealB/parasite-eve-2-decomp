@@ -247,7 +247,7 @@ void                              func_dryfield_dilapidated_house_801812E8(Task*
 void                              func_dryfield_dilapidated_house_8018145C(Task*);
 
 TaskDesc D_dryfield_dilapidated_house_80183E48[2] = {
-    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

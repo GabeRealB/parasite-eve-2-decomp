@@ -510,7 +510,7 @@ static AnimationSet _gActor121300Animation09D84 = {
 };
 
 TaskDesc D_actor_121300_8013BBCC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, screenWaveTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

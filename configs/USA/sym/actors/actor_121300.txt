@@ -82,7 +82,7 @@ dryfieldR08SetShatteredLampCount = 0x8017F334; // type:func absolute:True owner=
 dryfieldR08SetLampSpritesHidden = 0x8017F340; // type:func absolute:True owner=dryfield_r08
 
 dryfieldR08SelectLightingBank = 0x8017F438; // type:func absolute:True owner=dryfield_r08
-screenWaveTask = 0x80131EB0; // type:func
+_screenWaveTask = 0x80131EB0; // type:func
 actorMsgPlaceYawPitchRoll = 0x8013411C; // type:func
 actorMsgSetDrawMode = 0x801341A8; // type:func
 _actor121300FadeInTask = 0x801326ec; // type:func

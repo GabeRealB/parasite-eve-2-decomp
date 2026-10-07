@@ -111,5 +111,5 @@ _gActor160900Animation0D334Records = 0x8013EE98; // size:0x294 defined:True
 _gActor160900Animation0D334Indices = 0x8013F12C; // size:0x28 defined:True
 _gActor160900Animation0D334 = 0x8013F154; // size:0x28 defined:True
 gScreenWaveRows = 0x8013FC08; // size:0xB4 defined:True
-screenWaveTask = 0x80131EB0; // type:func
+_screenWaveTask = 0x80131EB0; // type:func
 actorMsgPlaceYawPitchRoll = 0x80134624; // type:func

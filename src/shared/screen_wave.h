@@ -1,14 +1,20 @@
 /* The screen-wave effect: a task that redraws the rendered frame as a grid of
  * textured quads whose corners sine waves push around, used by rooms and actors
- * that shake the view. It comes in two versions: screenWaveTask emits a 10x30
- * grid from the primitive cursor every frame, while screenWaveGridTask keeps a
+ * that shake the view. It comes in two versions: _screenWaveTask emits a 10x30
+ * grid from the primitive cursor every frame, while _screenWaveGridTask keeps a
  * prebuilt, double-buffered 8x30 grid of 40x8 quads and only moves their
  * corners.
  *
+ * Each included function has static per-carrier linkage.
+ * Only one wave task may be active per package, since its context, strength
+ * and oscillators share the package's globals. The task borrows its spawn
+ * context, which must remain live through its final drawing tick.
+ *
  * Include this header in the prologue and screen_wave.inc.c or
  * screen_wave_grid.inc.c at the task's position; screen_wave_run.inc.c, the
- * event callback that starts and steers the wave, goes at its own position. The task's state belongs to
- * the package, which declares and defines it at its own positions under these
+ * event callback that starts and steers the wave, goes at its own position.
+ * The task's storage belongs to the package, which declares and defines it
+ * at its own positions under these
  * names - declaring it here would move it, since bss is laid out in
  * first-declaration order:
  *
@@ -17,8 +23,8 @@
  *   ScreenWaveOscillator  gScreenWaveColumns[]       per-column phase, offset and speed
  *   ScreenWaveOscillator  gScreenWaveRows[]          per-row phase, offset and speed
  *   POLY_FT4              gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
- *   ScreenWaveCtx         gScreenWaveSpawnCtx        the context screenWaveRun fills
- *   TaskDesc              gScreenWaveTaskDesc[]      the wave task screenWaveRun spawns
+ *   ScreenWaveCtx         gScreenWaveSpawnCtx        the context _screenWaveRun fills
+ *   TaskDesc              gScreenWaveTaskDesc[]      the wave task _screenWaveRun spawns
  *
  * The grid task's records are the eight-byte ScreenWaveGridOscillator rather
  * than ScreenWaveOscillator.
@@ -39,7 +45,7 @@
 
 #include "overlay.h"
 
-/// Quad array `screenWaveGridTask` indexes, `[buffer][row][column]`.
+/// Quad array `_screenWaveGridTask` indexes, `[buffer][row][column]`.
 ///
 /// Defaults to `gScreenWaveGrid` when that object is the array. A package
 /// whose object continues past the array defines this as the array member
@@ -49,9 +55,9 @@
 #define SCREEN_WAVE_GRID gScreenWaveGrid
 #endif
 
-void screenWaveTask(Task* arg0);
-void screenWaveGridTask(Task* arg0);
+static void _screenWaveTask(Task* task);
+static void _screenWaveGridTask(Task* task);
 
-void screenWaveRun(s32 arg0);
+static void _screenWaveRun(s32 request);
 
 #endif /* SRC_SHARED_SCREEN_WAVE_H */
