@@ -3609,8 +3609,6 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     s32                    angle;
     s32                    i;
     u32                    randomState;
-    GfxMatrix*             worldMatrix;
-    GfxMatrix*             modelMatrix;
 
     model      = task->extra.tmd;
     modelCoord = model->coords;
@@ -3626,22 +3624,12 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     model->flags                      = TMD_OBJECT_SEMI_TRANS;
     model->shading.screenFadeDistance = 0;
     work->worldCoord.parent           = &gGfxViewCoord;
-    worldMatrix                       = (GfxMatrix*)&work->worldCoord.coord;
-    worldMatrix->rotationWords.m00M01 = ONE;
-    worldMatrix->rotationWords.m02M10 = 0;
-    worldMatrix->rotationWords.m11M12 = ONE;
-    worldMatrix->rotationWords.m20M21 = 0;
-    worldMatrix->rotationWords.m22    = ONE;
-    modelMatrix                       = (GfxMatrix*)&modelCoord->coord;
+    gfxSetRotIdentity(&work->worldCoord.coord);
     work->worldCoord.coord.t[0]       = 0;
     work->worldCoord.coord.t[1]       = 0;
     work->worldCoord.coord.t[2]       = 0;
     modelCoord->parent                = worldCoord;
-    modelMatrix->rotationWords.m00M01 = ONE;
-    modelMatrix->rotationWords.m02M10 = 0;
-    modelMatrix->rotationWords.m11M12 = ONE;
-    modelMatrix->rotationWords.m20M21 = 0;
-    modelMatrix->rotationWords.m22    = ONE;
+    gfxSetRotIdentity(&modelCoord->coord);
     modelCoord->coord.t[0]            = 0;
     modelCoord->coord.t[1]            = 0x744;
     modelCoord->coord.t[2]            = 0;
