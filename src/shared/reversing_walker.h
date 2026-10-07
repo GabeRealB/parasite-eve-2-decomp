@@ -38,13 +38,24 @@ typedef struct {
 } ReverseWalkWork;
 STATIC_ASSERT_SIZEOF(ReverseWalkWork, 0x4C8);
 
-void reverseWalkUpdate(Task* arg0);
-s32  reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim);
-void reverseWalkSpawn(Task* arg0);
-void reverseWalkFaceTarget(Task* task);
-void reverseWalkBeginMove(Task* arg0);
-void reverseWalkTurnToYaw(Task* arg0);
-s32  reverseWalkVisibilityMsg(Task* task, s32 arg1, s32 mode, s32 arg3);
+/// Bank and clips used by the reversing walker's default walk sequence.
+enum {
+    REVERSE_WALK_ANIMATION_BANK     = 0,
+    REVERSE_WALK_ANIMATION_IDLE     = 1,
+    REVERSE_WALK_ANIMATION_FORWARD  = 2,
+    REVERSE_WALK_ANIMATION_BACKWARD = 3,
+};
+
+/// The facing step begins each new walk and is restored when the walk ends.
+enum { REVERSE_WALK_STEP_FACE_TARGET = 0 };
+
+void        reverseWalkUpdate(Task* arg0);
+static s32  _reverseWalkStartWalkMsg(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* animations);
+void        reverseWalkSpawn(Task* arg0);
+static void _reverseWalkOrientForWalk(Task* task);
+static void _reverseWalkBeginMove(Task* task);
+static void _reverseWalkTurnToYaw(Task* task);
+static s32  _reverseWalkSetDrawModeMsg(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 
 /* Defined by each package. */
 void reverseWalkIdle(Task* arg0);

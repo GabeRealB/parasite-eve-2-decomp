@@ -1,67 +1,91 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
-/// Spawn-placement message handler: seeds the work block's position and
-/// rotation from `place`, picks the start animation from `anim` (or anim 3,
-/// 2 once `walksForward` is set) and installs it with the body of
-/// `_actorMotionPlayAnim19` written out inline. Returns 0.
-s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
+/// Binds the selected bank and applies a changed walk clip to the nineteen-part rig.
+///
+/// Requires a live TMD task with initialized `ReverseWalkWork` and a borrowed
+/// request with a loaded bank and clip. Drives slots 1..18; a bank change
+/// invalidates the old clip. The collision choice is ignored.
+/// An unchanged clip in the same bank leaves playback alone. The rig borrows
+/// work-owned slots/poses and the model's coordinates until playback ends.
+static inline void _reverseWalkApplyAnimationRequest(Task* task, const AnimationPlayRequest* request)
 {
-    ReverseWalkWork*      work;
-    ReverseWalkWork*      w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
+    enum { REVERSE_WALK_FIRST_DRIVEN_SLOT = 1 };
+    ReverseWalkWork* work;
+    TmdObject*       model;
+    s32              slotIndex;
 
-    w                    = task->work;
-    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
-    w->walk.motionStep   = 0;
-    w->walk.target.vx    = place->pos.vx;
-    w->walk.target.vy    = place->pos.vy;
-    w->walk.target.vz    = place->pos.vz;
-    w->walk.targetRot.vx = place->rot.vx;
-    w->walk.targetRot.vy = place->rot.vy;
-    w->walk.targetRot.vz = place->rot.vz;
-    preset.source.index  = 0;
-    if (anim != NULL) {
-        preset.animationId  = anim->animationId;
-        w->model.nextAnimId = anim->nextAnimId;
-    } else {
-        if (w->walksForward != 0) {
-            preset.animationId = 2;
-        } else {
-            preset.animationId = 3;
-        }
-        w->model.nextAnimId = 1;
-    }
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-
-    msg  = &preset;
-    work = task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
+    work  = task->work;
+    model = task->extra.tmd;
+    if (request->source.index != work->model.bank) {
+        work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
-                             work->rig.slots);
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses, work->rig.slots);
     }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+    if (request->animationId != work->model.animId) {
+        work->model.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
+            for (slotIndex = REVERSE_WALK_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
             }
         } else {
-            for (i = 1; i < 0x13; i++) {
-                animationResetSlot(&work->rig.anim, i, work->model.animId);
+            for (slotIndex = REVERSE_WALK_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
             }
         }
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        // Seed the pose before the normal frame update resumes ticking.
+        for (slotIndex = REVERSE_WALK_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
         work->model.ticking = 1;
     }
+}
+
+/// Starts a scripted walk to a borrowed destination and final yaw.
+///
+/// Handles `ACTOR_MESSAGE_WALK_TO` on a live TMD task with `ReverseWalkWork`;
+/// the model bank must initially be `ACTOR_MODEL_STATE_NONE`. Destination XYZ
+/// uses the root's parent-coordinate units; Euler angles use 4096 per turn.
+/// Both payloads are read only and may expire after dispatch; neither may
+/// overlap the work. Optional clip IDs select loaded entries 1..4 in bank 0;
+/// the start ID narrows to s8 and the queued arrival ID narrows from u8 to s8.
+/// NULL selects clip 2 forward or 3 backward, then clip 1 on arrival.
+/// Starts a changed clip on slots 1..18 with a five-frame blend if already
+/// ticking, or a reset.
+/// Restarts the walk at step 0 even when the clip is unchanged. Existing
+/// velocity/carry remain until subsequent steps replace them. Ignores the
+/// message ID and returns 0.
+static s32 _reverseWalkStartWalkMsg(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* animations)
+{
+    enum { REVERSE_WALK_START_BLEND_FRAMES = 5 };
+    ReverseWalkWork*     work;
+    AnimationPlayRequest request;
+
+    // Copy the target; movement begins on the following walk steps.
+    work                    = task->work;
+    work->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    work->walk.motionStep   = REVERSE_WALK_STEP_FACE_TARGET;
+    work->walk.target.vx    = destination->pos.vx;
+    work->walk.target.vy    = destination->pos.vy;
+    work->walk.target.vz    = destination->pos.vz;
+    work->walk.targetRot.vx = destination->rot.vx;
+    work->walk.targetRot.vy = destination->rot.vy;
+    work->walk.targetRot.vz = destination->rot.vz;
+    request.source.index    = REVERSE_WALK_ANIMATION_BANK;
+    if (animations != NULL) {
+        request.animationId    = animations->animationId;
+        work->model.nextAnimId = animations->nextAnimId;
+    } else {
+        if (work->walksForward != 0) {
+            request.animationId = REVERSE_WALK_ANIMATION_FORWARD;
+        } else {
+            request.animationId = REVERSE_WALK_ANIMATION_BACKWARD;
+        }
+        work->model.nextAnimId = REVERSE_WALK_ANIMATION_IDLE;
+    }
+    request.blend                = ANIMATION_BLEND_INTERPOLATE;
+    request.blendFrames          = REVERSE_WALK_START_BLEND_FRAMES;
+    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+
+    _reverseWalkApplyAnimationRequest(task, &request);
     return 0;
 }

@@ -75,13 +75,13 @@ static const TaskFuncTable3 D_actor_350700_80161E24 = { {
 /// turn to face `target`, start moving, approach until arrival, then turn to
 /// the placement yaw.
 static const TaskFuncTable4 D_actor_350700_80161E30 = { {
-    reverseWalkFaceTarget,
-    reverseWalkBeginMove,
+    _reverseWalkOrientForWalk,
+    _reverseWalkBeginMove,
     _actorMotionArrive19,
-    reverseWalkTurnToYaw,
+    _reverseWalkTurnToYaw,
 } };
 
-/// The constant local-space offset `reverseWalkBeginMove` rotates:
+/// The constant local-space offset `_reverseWalkBeginMove` rotates:
 /// straight ahead along the part's own +Z.
 static const VECTOR _gReverseWalkForward = { 0, 0, 0x200000, 0 };
 
@@ -265,8 +265,8 @@ TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 TaskMessageEntry gReverseWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, reverseWalkVisibilityMsg },
-    { ACTOR_MESSAGE_WALK_TO, reverseWalkStartMsg },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _reverseWalkSetDrawModeMsg },
+    { ACTOR_MESSAGE_WALK_TO, _reverseWalkStartWalkMsg },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor350700ReverseWalkCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };

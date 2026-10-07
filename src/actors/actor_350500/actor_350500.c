@@ -50,10 +50,10 @@ static const TaskFuncTable3 D_actor_350500_80161E24 = { {
 /// `target`, start moving, approach until arrival, then turn to the placement
 /// yaw.
 static const TaskFuncTable4 D_actor_350500_80161E30 = { {
-    reverseWalkFaceTarget,
-    reverseWalkBeginMove,
+    _reverseWalkOrientForWalk,
+    _reverseWalkBeginMove,
     _actorMotionArrive19,
-    reverseWalkTurnToYaw,
+    _reverseWalkTurnToYaw,
 } };
 
 /// Local-space offset the start-moving step rotates: straight ahead along
@@ -201,8 +201,8 @@ TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 TaskMessageEntry gReverseWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, reverseWalkVisibilityMsg },
-    { ACTOR_MESSAGE_WALK_TO, reverseWalkStartMsg },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _reverseWalkSetDrawModeMsg },
+    { ACTOR_MESSAGE_WALK_TO, _reverseWalkStartWalkMsg },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_350500_80162ABC },
     { TASK_MESSAGE_TABLE_END, NULL },
 }; /// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,

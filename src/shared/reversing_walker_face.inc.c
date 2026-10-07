@@ -1,38 +1,48 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
-/// State handler at index 0 of `D_actor_350700_80161E30`: turns the root part
-/// toward `work->walk.target`, taking the yaw of the normalised offset from the
-/// part's own translation with `ratan2` -- turned half a revolution away while
-/// `walksForward` is clear -- and rebuilding the local matrix from that yaw alone.
-/// Clearing `composeStamp` makes the coordinate tree recompute the world matrix, and
-/// bumping `walk.motionStep` moves on to the next handler.
-void reverseWalkFaceTarget(Task* task)
+/// Installs a root rotation in both its stored Euler angles and local matrix.
+///
+/// Requires a live coordinate and a separate readable rotation, in 4096 units
+/// per turn. Translation is retained and composition is invalidated.
+static inline void _reverseWalkApplyFacingRotation(GfxCoord* rootCoord, const SVECTOR* rotation)
+{
+    rootCoord->param.rot.vx = rotation->vx;
+    rootCoord->param.rot.vy = rotation->vy;
+    rootCoord->param.rot.vz = rotation->vz;
+    RotMatrix(&rootCoord->param.rot, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Faces the root toward the destination, or almost half a turn away for backing.
+///
+/// Walk step 0 requires live work and a root coordinate with translation in the
+/// destination's frame. Normalizes the XYZ offset and obtains yaw in 4096 units
+/// per turn. Backing adds 2047 units, one unit short of half a turn.
+/// Replaces pitch, roll and scale with a yaw rotation, invalidates composition
+/// and advances to step 1.
+static void _reverseWalkOrientForWalk(Task* task)
 {
     ReverseWalkWork* work;
-    GfxCoord*        coord;
-    VECTOR           delta;
-    SVECTOR          dir;
-    SVECTOR          rot;
+    GfxCoord*        rootCoord;
+    VECTOR           targetOffset;
+    SVECTOR          targetDirection;
+    SVECTOR          facingRotation;
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
 
-    delta.vx = work->walk.target.vx - coord->coord.t[0];
-    delta.vy = work->walk.target.vy - coord->coord.t[1];
-    delta.vz = work->walk.target.vz - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
+    targetOffset.vx = work->walk.target.vx - rootCoord->coord.t[0];
+    targetOffset.vy = work->walk.target.vy - rootCoord->coord.t[1];
+    targetOffset.vz = work->walk.target.vz - rootCoord->coord.t[2];
+    VectorNormalS(&targetOffset, &targetDirection);
 
-    rot.vx = 0;
-    rot.vy = ratan2(dir.vx, dir.vz);
-    rot.vz = 0;
+    facingRotation.vx = 0;
+    facingRotation.vy = ratan2(targetDirection.vx, targetDirection.vz);
+    facingRotation.vz = 0;
     if (work->walksForward == 0) {
-        rot.vy += 0x7FF;
+        facingRotation.vy += ACTOR_TRANSFORM_ANGLE_HALF_TURN - 1;
     }
 
-    coord->param.rot.vx = rot.vx;
-    coord->param.rot.vy = rot.vy;
-    coord->param.rot.vz = rot.vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    _reverseWalkApplyFacingRotation(rootCoord, &facingRotation);
     work->walk.motionStep++;
 }
