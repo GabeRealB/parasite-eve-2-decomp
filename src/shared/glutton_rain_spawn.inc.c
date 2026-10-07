@@ -26,7 +26,6 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     Enemy*                 owner;
     Task*                  parent;
     Task*                  player;
-    GfxMatrix*             mtx;
     SVECTOR                vec;
     s32                    dist;
     s32                    rnd;
@@ -126,13 +125,8 @@ void gluttonRainSpawn(Enemy* enemy, Task* task)
     // The attack body rides a node of its own, which the later states keep on
     // the blob.
     work->bodyCoord.node.parent = &gGfxViewCoord;
-    mtx                         = &work->bodyCoord.packed.coord;
-    mtx->rotationWords.m00M01   = ONE;
-    mtx->rotationWords.m02M10   = 0;
-    mtx->rotationWords.m11M12   = ONE;
-    mtx->rotationWords.m20M21   = 0;
-    mtx->rotationWords.m22      = ONE;
-    gfxRotMatrixY(&mtx->mat, 0, 1);
+    gfxSetRotIdentity(&work->bodyCoord.node.coord);
+    gfxRotMatrixY(&work->bodyCoord.node.coord, 0, 1);
 
     actorLinkWorkObj(&work->bodyCoord.node, &work->attackBody, work->attackContacts, &vec, 0x100, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
                      ARRAY_SIZE(work->attackContacts));
