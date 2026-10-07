@@ -1949,13 +1949,12 @@ void effectSpriteTask42(Task* task)
 
 void func_800F91AC(Task* arg0)
 {
-    EffectWork*       mem;
-    GfxCoord*         coord;
-    GfxRotationWords* rot;
-    s16               flag;
-    s16               width;
-    s32               half;
-    s32               i;
+    EffectWork* mem;
+    GfxCoord*   coord;
+    s16         flag;
+    s16         width;
+    s32         half;
+    s32         i;
 
     mem   = arg0->spawnArg2.pointer;
     flag  = gRoomEffectState->effectControl;
@@ -1965,13 +1964,8 @@ void func_800F91AC(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        coord->parent       = mem->parent;
-        rot                 = (GfxRotationWords*)&coord->coord;
-        rot->m00M01         = ONE;
-        rot->m02M10         = 0;
-        rot->m11M12         = ONE;
-        rot->m20M21         = 0;
-        rot->m22            = ONE;
+        coord->parent = mem->parent;
+        gfxSetRotIdentity(&coord->coord);
         coord->coord.t[0]   = mem->pos.vx;
         coord->coord.t[1]   = mem->pos.vy;
         coord->coord.t[2]   = mem->pos.vz;
