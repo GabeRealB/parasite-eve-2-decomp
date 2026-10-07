@@ -114405,7 +114405,7 @@ target.o SHA256 `2504643904e51e32e84c6119cc887e0dd3787a4123478f79af76e324d14a221
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_801369D8-vacuum`.
 
-## A `switch` index off a halfword field wants an `s32` temp: an HImode one lands on `lhu` + `sll 16` / `sra 16` (func_actor_110600_80137DB0, 2026-09-16)
+## A `switch` index off a halfword field wants an `s32` temp: an HImode one lands on `lhu` + `sll 16` / `sra 16` (_actor110600EnrageState, 2026-09-16)
 
 The target loads its switch index sign-extended — `lh $a0, 0xBE2($s0)` — while
 the *same field* incremented four instructions away in case 0 is `lhu $v0,
@@ -114429,13 +114429,13 @@ to be spelled out. Widen the temp and the index and the compare become one
 SImode value:
 
 ```c
-    s32 state;
+    s32 enrageStage;
 
-    state           = work->enrageStage;
+    enrageStage     = work->enrageStage;
     work->blendActive = 0;
-    switch (state) {
+    switch (enrageStage) {
     case 1:
-        if (work->animRate == state) { ... }
+        if (work->animRate == enrageStage) { ... }
 ```
 
 which is `lh $a0, 0xBE2($s0)` and `bne $v1, $a0` — 100%. The declaration is
@@ -114456,19 +114456,19 @@ value shared with a switch index needs an SI local" reaches `lhu` for its
 switch by widening to `u32`; the difference here is only that the target's
 index is *signed*, so the wider local is `s32`.
 
-`func_actor_110600_80137DB0` (100%). Inputs: `base_1.i` SHA256
+`_actor110600EnrageState` (100%). Inputs: `base_1.i` SHA256
 `6658bb0f2a18d5bc91e191d9e3815db4c65afec6a41ff861009c3ca5f47ff79b`; the `s16`
 variant `base_2.i` SHA256
 `e1a7949cc1052895ba038034a7b08e132306a9cc82b20eb852dc434e4715ed7f`;
 target.o SHA256 `8a1da1a275b141ede219dfcdedded41c353f96e2d9b152a4abbcbc07df26637f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80137DB0-vacuum`. Sibling
+Scratch `nonmatchings/_actor110600EnrageState-vacuum`. Sibling
 `func_actor_110600_80138D7C` is the same halving tail with no switch, and its
 matched body reads the same way.
 
-## A memory chain re-mentioned after a `jal` re-loads; bind the first use to a local and re-state the chain for the second (func_actor_110600_80135A18, 2026-09-16)
+## A memory chain re-mentioned after a `jal` re-loads; bind the first use to a local and re-state the chain for the second (_actor110600AlertState, 2026-09-16)
 
-**Problem.** `func_actor_110600_80135A18` (actors, `actor_110600`) measures the
+**Problem.** `_actor110600AlertState` (actors, `actor_110600`) measures the
 delta from the model to the camera-target matrix and feeds it to two `ratan2`
 calls in a row. The source reads `index->field_2C->field_8` twice — once for the
 three `SVECTOR` components, once for the second `ratan2` after the first has
@@ -114528,11 +114528,11 @@ Inputs: `base_6.i` (97.58%) SHA256
 `43519b6f340fc9fbec0783834986860873541b3a37c35a1bfb35445262de3c14`; target.o
 SHA256 `473fe51cfcf0052fd935787ed67443fdeacb8eac1c1c42e599797e282ff089dc`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80135A18-vacuum`.
+Scratch `nonmatchings/_actor110600AlertState-vacuum`.
 
-## Writing the call in both arms of an `if`/`else` also breaks the cse jump-equivalence a *later* identical test would otherwise reuse (func_actor_110600_80137684, 2026-09-16)
+## Writing the call in both arms of an `if`/`else` also breaks the cse jump-equivalence a *later* identical test would otherwise reuse (_actor110600DeathThrashState, 2026-09-16)
 
-`func_actor_110600_80137684` tests `animId` against `0x16` twice, the second
+`_actor110600DeathThrashState` tests `animId` against `0x16` twice, the second
 time after a `jal`. The m2c-shaped single-call seed scores 80.8% with a frame one
 word too big: `$s2` is saved and restored, and the second test compares the
 reloaded field with the *register holding the first load* instead of a fresh
@@ -114565,7 +114565,7 @@ recorded equivalence is gone. The reload compares against `li v0,0x16` and no
 `$s2` is needed. The duplicated `lw $v0,0x2c($s1)` in each arm of the target is
 the other tell of the two-call source.
 
-## A pointer bound to a local *before* the block's other statements is what puts its load in `$a0` in slot 2 (func_actor_110600_80137684, 2026-09-16)
+## A pointer bound to a local *before* the block's other statements is what puts its load in `$a0` in slot 2 (_actor110600DeathThrashState, 2026-09-16)
 
 Same function, after the cross-jump fix: `lw $v1,0x20($s1)` sat immediately
 before its store, one instruction late (a load-delay `nop` above it, every
@@ -114602,9 +114602,9 @@ Inputs: `base_3.i` (100%) SHA256
 `3fc71084412daadf07ac462b5b4f6ce98462dbb464b4366e9c4f243076d4e3e9`; target.o
 SHA256 `14a6e22ec8603a58a683f5e0f5645d287dd1f153a7cc710df569814f05aad82d`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80137684-vacuum`.
+Scratch `nonmatchings/_actor110600DeathThrashState-vacuum`.
 
-## A load is never hoisted over a store with a different base register — the order is a source-order decision (func_actor_110600_80137980, 2026-09-16)
+## A load is never hoisted over a store with a different base register — the order is a source-order decision (_actor110600LurkAlertState, 2026-09-16)
 
 `sched.c`'s `true_dependence` / `anti_dependence` both end in
 `memrefs_conflict_p`, which resolves two `(plus (reg N) const)` addresses by
@@ -114638,12 +114638,12 @@ allocated first, and keeps the lowest free register even when it is *born*
 second. Here the object pointer stayed in `$v1` although its assignment was
 written after the enemy's, which is what the target does too.
 
-The entry above on `func_actor_110600_80137684` is the other half of this — the
+The entry above on `_actor110600DeathThrashState` is the other half of this — the
 same binding decides the load's register through `find_free_reg`'s interval
 scan. Both levers are the same edit; one fixes the order, the other the home.
 This one scored 99.785% for the binding and 100% once the two loads' order
 matched. The 9% before that was the angle wrap, copied verbatim from the
-already-matched sibling `func_actor_110600_80135A18` in the same unit: m2c's
+already-matched sibling `_actor110600AlertState` in the same unit: m2c's
 `(temp & 0x8000)` bit test and two live `var_v0` / `var_v1` locals cost
 `sll`/`sra`/`andi`/`beqz` and an out-of-place `addiu` + `move` where the
 sibling's `if (angle < 0)` with two `goto` loops gives the target's `bgez` and
@@ -114653,7 +114653,7 @@ Inputs: `base_3.i` SHA256
 `cd028631c7c49b639148b678be0917b51acca199ab7abffcab2fc8f737db756e`; target.o
 SHA256 `419e3593688ace0aa8571144eadd5afd9df115a41808e59459aa6cfcbcc4fb91`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80137980-vacuum`.
+Scratch `nonmatchings/_actor110600LurkAlertState-vacuum`.
 
 ## An undeclared callee leaves the CALL_INSN with no argument uses, and the post-reload scheduler ranks the call differently — moving a nearby parameter copy a clock (func_actor_110600_80132654, 2026-09-16)
 
@@ -114783,11 +114783,11 @@ the two flag chains, so the `attackBody` chain's load (born second) finds `$v0`
 still marked and takes `$v1`; the `gridBody` chain is born after the store, so
 it reuses `$v0`. Swap the two flag statements and both chains move to the other
 register. `QTY_CMP_PRI = floor_log2(refs) * refs * size / (death - birth)` is
-what keeps the short-lived first quantity first (see the `func_actor_110600_80137980`
+what keeps the short-lived first quantity first (see the `_actor110600LurkAlertState`
 entry above for the same formula driving a load's home).
 
 Fix: copy the statement order from an already-matched sibling in the same unit
-that writes the same fields. Both `func_actor_110600_80135A18` and
+that writes the same fields. Both `_actor110600AlertState` and
 `func_actor_110600_80136888` write `attackBody.flags` before `gridBody.flags`,
 and that order — not the one the m2c dump or the target's own instruction order
 suggests — is the one that matches. Reading the siblings first would have saved
@@ -114806,7 +114806,7 @@ Scratch `nonmatchings/func_actor_110600_80135194-vacuum`.
 The `lhu` / `addiu` / `sh` / `sll` / `sra` / `slti` shape above is the
 read-modify-write case; a **loop counter** compared against a narrow constant
 canonicalises one step further, and the constant disappears entirely.
-`func_actor_110600_80135B84` walks a `WorldCollisionContact` table at 0xAB0 with the
+`_actor110600AttackState` walks a `WorldCollisionContact` table at 0xAB0 with the
 `0xFFFF0000 == 0x10000` kind test every actor overlay repeats, and the target's
 back edge is:
 
@@ -114873,7 +114873,7 @@ Inputs: `base_3.i` SHA256
 `523fccce504839d5eba9bae83a819b4d3544821b3a77f65d9847b12393eae14e`; target.o
 SHA256 `0d48fd6f50e88f48391c021f0ba0a02575b7e46b4f7fee8edf040fe7b48b8de0`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80135B84-vacuum`.
+Scratch `nonmatchings/_actor110600AttackState-vacuum`.
 
 ## A three-case `switch` balances into a tree rooted at the middle value; source-order compares are an if/else-if chain
 
@@ -136138,7 +136138,7 @@ Traced base_3 input: `e87b6b499f116fe62e7aff10edf457c429fee3ccbaeeef31bafa304263
 Traced base_5 input: `adb585d1973d8e39f396f75fd9f8d35b8faeba6523ec02c1afe2a0ab8040ecd3`.
 
 
-## A memory input places a retained unused definition after a conflicting multiply result dies (func_actor_110600_801377FC, 2026-09-20)
+## A memory input places a retained unused definition after a conflicting multiply result dies (_actor110600LurkState, 2026-09-20)
 
 The baseline matched 99.845%, with only the Z-square operand in v1 instead of
 v0. Local allocation tied the dying operand to its longer-lived result.
@@ -136178,7 +136178,7 @@ volatile asm or broad memory clobber would add unrelated dependencies. The
 original C spelling remains unknown; the discarded variants' detailed
 scheduler hazard decisions were not traced.
 
-Evidence: `tools/permuter_findings/func_actor_110600_801377FC/`, retained
+Evidence: `tools/permuter_findings/_actor110600LurkState/`, retained
 `PERMUTER_EVIDENCE/manual-matching-analysis/`. The router found no discovery;
 these are manual controlled experiments. Preprocessed input SHA256:
 

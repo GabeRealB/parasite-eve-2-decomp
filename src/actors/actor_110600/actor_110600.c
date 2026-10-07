@@ -159,6 +159,9 @@ enum {
     ACTOR_110600_ANIM_SCRIPTED_REQUEST4 = 0x28,
 };
 
+/// Clip shared by the ordinary alert and the wake-up from lurk.
+enum { ACTOR_110600_ANIM_ALERT = 21 };
+
 /// Actor-specific message slots; both payload words are ignored.
 enum {
     ACTOR_110600_MESSAGE_ALERT  = 2007,
@@ -280,8 +283,8 @@ static const _Actor110600StateTable D_actor_110600_80131F3C;
 
 // Animation sets supplied by the paired actor overlay.
 
-/// Twelve `SVECTOR` hit positions `func_actor_110600_80135E20` picks from by
-/// damage magnitude. The fourth halfword (`pad`, unused by the effect) is the
+/// Twelve `SVECTOR` hit positions `_actor110600SpawnHitEffect` picks from by
+/// relative hit yaw. The fourth halfword (`pad`, unused by the effect) is the
 /// model part index the spawned effect anchors to.
 extern SVECTOR D_actor_110600_801485C4[12];
 
@@ -304,13 +307,10 @@ static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz);
 static s32  _actor110600Alert(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 static void func_actor_110600_801388A4(Task* arg0);
 
-/// The remaining entries of `D_actor_110600_80131F3C` that are still only
-/// present as assembly, so that the table can name them. `func_actor_110600_80135A18`
-/// (state 4) and the ones above carry their own documentation.
 static void func_actor_110600_80135454(Task* arg0);
 static void func_actor_110600_80136B20(Task* arg0);
 static void func_actor_110600_801372CC(Task* arg0);
-static void func_actor_110600_801377FC(Task* arg0);
+static void _actor110600LurkState(Task* task);
 static void func_actor_110600_80138980(Task* arg0);
 static void func_actor_110600_80138A70(Task* arg0);
 static void func_actor_110600_80138AFC(Task* arg0);
@@ -320,16 +320,9 @@ static void _actor110600TickAnimation(Task* task);
 
 static s32 _actor110600PollAnimationSound(_Actor110600Work* work);
 
-/// Aiming stage: wraps the yaw from the model's root coordinate to the camera
-/// target `gPlayerStatus.coordMtx` against the coordinate's own yaw into `lookYawTarget`, ticks
-/// the model, and moves the actor to state 3 once slot 1 of `rig` reports
-/// `ANIMATION_SLOT_REACHED_BOUNDARY`.
-static void func_actor_110600_80135A18(Task* arg0);
+static void _actor110600AlertState(Task* task);
 
-/// Picks one of twelve hit positions out of `D_actor_110600_801485C4` by damage
-/// magnitude `arg1`, then spawns effect `damageGetPlayerAttackEffectId(arg2)` on the model
-/// part that entry names.
-static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2);
+static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey);
 
 /// Per-tick walker step. Opens a scratch frame and runs the chase, close-in
 /// or patrol, then the speed ramp and the optional ground and avoidance steps.
@@ -385,8 +378,9 @@ STATIC_ASSERT_SIZEOF(_Actor110600ShudderStepStorage, 8);
 /// allocation.
 extern _Actor110600ShudderStepStorage D_actor_110600_80148688;
 
-/// Argument record `func_actor_110600_80135E20` fills for `effectSpawnHit`:
-/// model part 1's coordinate, scale 0x100 and count 3.
+/// Argument record `_actor110600SpawnHitEffect` passes to `effectSpawnHit`:
+/// model part 1's coordinate, low spawn argument 0x100 and high argument 3.
+/// The selected effect kind determines whether the high argument is a count.
 extern EffectSpawnArg D_actor_110600_80148698;
 
 static void _actor110600Exit(Task* task);
@@ -1102,21 +1096,21 @@ static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale);
 static void            _actor110600TickBlendedSlots(Task* task);
 static __inline__ void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags);
 static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker);
-static void            func_actor_110600_80134AB4(Enemy* enemy, Task* task);
+static void            _actor110600Spawn(Enemy* enemy, Task* task);
 static void            func_actor_110600_80135194(Task* arg0);
-static __inline__ s32  Actor110600_TickShake(void);
+static __inline__ s32  _actor110600TickFootstepShake(void);
 static __inline__ s32  _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts);
-static void            func_actor_110600_80135B84(Task* arg0);
-static __inline__ s32  Actor110600_FindHit(SVECTOR* point, WorldCollisionContact* recs, s16 count);
+static void            _actor110600AttackState(Task* task);
+static __inline__ s32  _actor110600FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount);
 static void            func_actor_110600_80136888(Task* arg0);
 static void            func_actor_110600_801369D8(Task* arg0);
 static __inline__ void Actor110600_ApplyShrink(Task* arg0, _Actor110600Work* work, s16 y);
 static void            func_actor_110600_80136ECC(Task* arg0);
 static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale);
-static void            func_actor_110600_80137684(Task* arg0);
-static void            func_actor_110600_80137980(Task* arg0);
-static void            func_actor_110600_80137AF4(Task* arg0);
-static void            func_actor_110600_80137DB0(Task* arg0);
+static void            _actor110600DeathThrashState(Task* task);
+static void            _actor110600LurkAlertState(Task* task);
+static void            _actor110600ShudderState(Task* task);
+static void            _actor110600EnrageState(Task* task);
 static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
@@ -1463,7 +1457,8 @@ static s32 _actor110600PollAnimationSound(_Actor110600Work* work)
 /// Advances main slots 1..18 at the actor's current sixteenth-frame rate.
 ///
 /// Requires live actor work, an initialized rig and loaded referenced tracks.
-/// Reloads the task's work binding for each full tick; slot 0 is untouched.
+/// Rates use sixteenths of a frame per tick and narrow to each slot's signed
+/// byte. Borrows the task's work for this call and leaves slot 0 untouched.
 static __inline__ void _actor110600TickMainSlots(Task* task)
 {
     _Actor110600Work* work;
@@ -1481,7 +1476,10 @@ static __inline__ void _actor110600TickMainSlots(Task* task)
 /// Seeks main slots 1..18 to the requested clip using signed frame durations.
 ///
 /// Both clip IDs must be in 0..44 and select loaded tracks and pose storage.
-/// Sets rates before capturing transition poses and records the applied clip.
+/// Rates narrow to signed bytes in sixteenths of a frame per tick; table
+/// entries are signed whole normal-rate frames. Captures a ticked pose, seeks
+/// each existing track to its start with that duration, and records the applied
+/// clip. Slot 0 is untouched.
 static __inline__ void _actor110600SeekRequestedAnimation(_Actor110600Work* work)
 {
     _Actor110600Work* seekWork;
@@ -1501,7 +1499,8 @@ static __inline__ void _actor110600SeekRequestedAnimation(_Actor110600Work* work
 
 /// Restarts main slots 1..18 on the requested loaded clip and records its ID.
 ///
-/// Reset replaces each preceding rate write with normal rate; the ordinary
+/// Requires live work and loaded tracks for every driven slot. Reset replaces
+/// each preceding rate write with normal rate; the ordinary
 /// tick following this request reapplies `animRate`. Slot 0 is untouched.
 static __inline__ void _actor110600ResetRequestedAnimation(_Actor110600Work* work)
 {
@@ -1543,35 +1542,36 @@ static __inline__ void _actor110600ResetBlendAnimation(Task* task)
         blendWork->rig.slots[blendSlotIndex].rate = blendWork->blendRate;
         animationResetSlot(&blendWork->blendRig.anim, blendSlotIndex, blendWork->blendAnimId);
         blendSlotIndex += 1;
-    } while (blendSlotIndex < ARRAY_SIZE(blendWork->rig.slots));
+    } while (blendSlotIndex < ARRAY_SIZE(blendWork->blendRig.slots));
 }
 
 /// Restarts a requested pose and runs it for 99 hidden ticks.
 ///
-/// Requires the requested loaded clip and initialized rigs/work. Resetting
-/// slots 1..18 uses normal rate; each hidden tick reapplies the current rate.
+/// `work` must be the task's live work, with initialized rigs and a loaded
+/// requested clip. Resetting slots 1..18 uses normal rate; each hidden tick
+/// reapplies the current rate in sixteenths of a frame per tick.
 /// Slot 0 is untouched. The driver performs one ordinary tick afterwards.
 static __inline__ void _actor110600SettleRequestedAnimation(Task* task, _Actor110600Work* work)
 {
     enum { ACTOR_110600_SETTLE_TICK_END = 100 };
     _Actor110600Work* settleWork;
-    s32               index;
+    s32               slotOrTickIndex;
 
-    settleWork = work;
-    index      = 1;
+    settleWork      = work;
+    slotOrTickIndex = 1;
     do {
-        work->rig.slots[index].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&settleWork->rig.anim, index, settleWork->animId);
-        index += 1;
-    } while (index < ARRAY_SIZE(work->rig.slots));
+        work->rig.slots[slotOrTickIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&settleWork->rig.anim, slotOrTickIndex, settleWork->animId);
+        slotOrTickIndex += 1;
+    } while (slotOrTickIndex < ARRAY_SIZE(work->rig.slots));
     settleWork->appliedAnim = settleWork->animId;
 
     // Reuse the reset cursor as the hidden-tick counter.
-    index = 1;
+    slotOrTickIndex = 1;
     do {
         _actor110600TickMainSlots(task);
-        index += 1;
-    } while (index < ACTOR_110600_SETTLE_TICK_END);
+        slotOrTickIndex += 1;
+    } while (slotOrTickIndex < ACTOR_110600_SETTLE_TICK_END);
 }
 
 /// Applies animation requests, advances the actor's poses and sounds their cues.
@@ -1722,26 +1722,87 @@ static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
+/// Binds the walker's two-node patrol to its actor-owned navigation storage.
+///
+/// Requires live work and leaves node/order/route contents for the layout step.
+/// The route's otherwise unread byte is retained at its spawn value of 2.
+static __inline__ void _actor110600BindPatrolStorage(_Actor110600Work* work)
 {
-    SVECTOR                pos;
-    VECTOR                 world;
-    WorldCollisionContact* savedRecs;
-    WorldCollisionBody*    obj;
-    WorldCollisionBody*    bodyObj;
-    WorldCollisionContact* contactRecs;
-    WorldCollisionContact* walkRecs;
-    GfxCoord*              coord;
-    TmdObject*             model;
-    s16                    enabled;
-    u32                    placement;
-    TmdObject*             boundModel;
-    _Actor110600Work*      work;
-    _Actor110600Work*      boundWork;
+    work->walker.nav                   = &work->walker.navData;
+    work->walker.route                 = &work->walker.routeData;
+    work->walker.navData.nodeCount     = ARRAY_SIZE(work->navNodes);
+    work->walker.navData.orderCount    = ARRAY_SIZE(work->navNodes);
+    work->walker.routeData.field_4     = 2;
+    work->walker.navData.nodes         = work->navNodes;
+    work->walker.navData.nodeOrder     = work->navNodeOrder;
+    work->walker.routeData.nodeIndices = work->routeNodeIndices;
+}
 
-    model = task->extra.tmd;
-    coord = model->coords;
-    if (((task->spawnArg1.value >> 16) & 0xF) != 2) {
+/// Allocates the Boss Stranger work and binds its model, bodies and patrol.
+///
+/// Requires a live enemy/task pair, a nineteen-part model, the paired actor
+/// animation overlay and initialized collision, target and scratch services.
+/// Spawn-argument nibbles select movement tuning, notice ranges, patrol radius
+/// and initial behavior. Mode 2 skips primitive-buffer allocation. A saved
+/// spawn state selects RESTORED in modes 0/1; mode 3 retains zero-filled HIDDEN.
+/// Allocation failure destroys the enemy. Success installs the exit callback,
+/// links three work-backed collision bodies and advances the task state; work
+/// and model storage must remain live until teardown.
+static void _actor110600Spawn(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_110600_SPAWN_BEHAVIOR_SHIFT     = 16,
+        ACTOR_110600_SPAWN_BEHAVIOR_MASK      = 0xF,
+        ACTOR_110600_SPAWN_PATROL             = 0,
+        ACTOR_110600_SPAWN_HIDDEN_OR_RESTORED = 1,
+        ACTOR_110600_SPAWN_HIDDEN_NO_BUFFER   = 2,
+        ACTOR_110600_SPAWN_KEEP_HIDDEN        = 3,
+        ACTOR_110600_SPAWN_IDLE               = 4,
+        ACTOR_110600_MOVEMENT_TUNING_MASK     = 0xF0,
+        ACTOR_110600_MOVEMENT_TUNING_STANDARD = 0,
+        ACTOR_110600_MOVEMENT_TUNING_LARGE    = 0x10,
+        ACTOR_110600_MOVEMENT_TUNING_LARGEST  = 0x20,
+        ACTOR_110600_STANDARD_ANIMATION_RATE  = 20,
+        ACTOR_110600_MODEL_SCALE_LARGE        = 4500, // Q12 uniform scale
+        ACTOR_110600_MODEL_SCALE_LARGEST      = 6500, // Q12 uniform scale
+        ACTOR_110600_NOTICE_TUNING_MASK       = 0xF00,
+        ACTOR_110600_NOTICE_TUNING_SHORT      = 0,
+        ACTOR_110600_NOTICE_TUNING_MEDIUM     = 0x100,
+        ACTOR_110600_NOTICE_TUNING_LONG       = 0x200,
+        ACTOR_110600_PATROL_TUNING_MASK       = 0xF000,
+        ACTOR_110600_PATROL_TUNING_SHORT      = 0,
+        ACTOR_110600_PATROL_TUNING_MEDIUM     = 0x1000,
+        ACTOR_110600_PATROL_TUNING_LONG       = 0x2000,
+        ACTOR_110600_PATROL_NODE_YAW_STEP     = 0x764,
+        ACTOR_110600_INITIAL_WALK_CLIP        = 2,
+        ACTOR_110600_GRID_BODY_ID             = 13,
+        ACTOR_110600_GRID_BODY_RADIUS         = 420,
+        ACTOR_110600_GRID_BODY_HEIGHT         = 292,
+        ACTOR_110600_HIT_BODY_RADIUS          = 330,
+        ACTOR_110600_HIT_BODY_HEIGHT          = 700,
+        ACTOR_110600_HIT_BODY_FORWARD         = 400,
+        ACTOR_110600_ATTACK_PART              = 3,
+        ACTOR_110600_INITIAL_TURN_LIMIT       = 0x20,
+    };
+
+    SVECTOR                attackLocalPosition;
+    VECTOR                 worldPosition;
+    WorldCollisionContact* walkerContacts;
+    WorldCollisionBody*    hitBody;
+    WorldCollisionBody*    attackBody;
+    WorldCollisionContact* hitContacts;
+    WorldCollisionContact* gridContacts;
+    GfxCoord*              rootCoord;
+    TmdObject*             model;
+    s16                    sphereKind;
+    u32                    placementIndex;
+    TmdObject*             lightingModel;
+    _Actor110600Work*      work;
+    _Actor110600Work*      lightingWork;
+
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    if (((task->spawnArg1.value >> ACTOR_110600_SPAWN_BEHAVIOR_SHIFT) & ACTOR_110600_SPAWN_BEHAVIOR_MASK) != ACTOR_110600_SPAWN_HIDDEN_NO_BUFFER) {
         model->flags = 0;
         tmdAllocPrimitiveBuffer(model);
     }
@@ -1751,149 +1812,146 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback   = _actor110600Exit;
-    boundWork            = task->work;
-    boundModel           = task->extra.tmd;
-    boundModel->lightMtx = &boundWork->lightMtx;
-    boundModel->colorMtx = &boundWork->colorMtx;
-    enemy->field_4       = &coord->coord;
-    enemy->field_48      = 0;
-    enemy->bodyPos.vx    = 0;
-    enemy->bodyPos.vy    = 0;
-    enemy->bodyPos.vz    = 0;
-    enemy->coord         = task->extra.tmd->coords + 3;
+    // Publish the work-backed model and enemy bindings before starting playback.
+    task->exitCallback      = _actor110600Exit;
+    lightingWork            = task->work;
+    lightingModel           = task->extra.tmd;
+    lightingModel->lightMtx = &lightingWork->lightMtx;
+    lightingModel->colorMtx = &lightingWork->colorMtx;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    enemy->bodyPos.vx       = 0;
+    enemy->bodyPos.vy       = 0;
+    enemy->bodyPos.vz       = 0;
+    enemy->coord            = task->extra.tmd->coords + ACTOR_110600_ATTACK_PART;
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
     enemy->param                  = &D_actor_110600_80138F14;
     enemy->hpMax = enemy->hp = D_actor_110600_80138F14.hpMax;
-    contactRecs              = work->hitContacts;
-    enemy->recs              = contactRecs;
+    hitContacts              = work->hitContacts;
+    enemy->recs              = hitContacts;
     animationInitContext(&work->rig.anim, D_actor_110600_8014850C, model, work->rig.poses, work->rig.slots);
     animationInitContext(&work->blendRig.anim, D_actor_110600_8014850C, model, work->blendRig.poses, work->blendRig.slots);
     work->animRequest   = ACTOR_110600_ANIM_REQUEST_RESET;
     work->blendActive   = 0;
-    work->animId        = 2;
+    work->animId        = ACTOR_110600_INITIAL_WALK_CLIP;
     work->lookYaw       = 0;
     work->lookYawTarget = 0;
     _actor110600TickAnimation(task);
-    walkRecs                        = work->gridContacts;
+    // Link the world-space grid sphere and the model-relative hit/attack spheres.
+    gridContacts                    = work->gridContacts;
     work->enrageTint                = 0;
     work->enraged                   = 0;
     work->gridBody.coord            = &gGfxViewCoord;
-    savedRecs                       = walkRecs;
-    work->gridBody.context.contacts = walkRecs;
+    walkerContacts                  = gridContacts;
+    work->gridBody.context.contacts = gridContacts;
     work->gridBody.pos.vx           = (u16)task->extra.tmd->coords->coord.t[0];
-    work->gridBody.pos.vy           = (s16)((u16)task->extra.tmd->coords->coord.t[1] - 0x124);
+    work->gridBody.pos.vy           = (s16)((u16)task->extra.tmd->coords->coord.t[1] - ACTOR_110600_GRID_BODY_HEIGHT);
     work->gridBody.pos.vz           = (u16)task->extra.tmd->coords->coord.t[2];
-    work->gridBody.key              = 0x3000D;
-    work->gridBody.radius           = 0x1A4;
-    work->gridBody.flags = enabled = 1;
+    work->gridBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_110600_GRID_BODY_ID;
+    work->gridBody.radius           = ACTOR_110600_GRID_BODY_RADIUS;
+    work->gridBody.flags = sphereKind = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     work->gridBody.flags = (u16)(work->gridBody.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     worldCollisionInitContacts(work->gridBody.context.contacts, ARRAY_SIZE(work->gridContacts), 0);
-    obj                   = &work->hitBody;
-    obj->coord            = task->extra.tmd->coords;
-    obj->context.contacts = contactRecs;
-    obj->pos.vx           = 0;
-    obj->pos.vy           = 0;
-    obj->pos.vz           = 0;
-    obj->key              = 0x30000;
-    obj->radius           = 0x14A;
-    obj->flags            = enabled;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, obj);
-    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
-    work->hitBody.pos.vy = -0x2BC;
-    bodyObj              = &work->attackBody;
-    work->hitBody.key    = 0x30000;
-    work->hitBody.pos.vx = 0;
-    work->hitBody.pos.vz = 0x190;
-    pos.vx               = 0;
-    pos.vy               = 0;
-    pos.vz               = 0;
-    _actor110600LinkAttackBody(bodyObj, task->extra.tmd->coords + 3, work->attackContacts, &pos, enabled);
-    worldCollisionInitContacts(bodyObj->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
-    task->msgTable      = D_actor_110600_80148624;
-    work->childTask0    = 0;
-    work->childTask1    = 0;
-    work->field_8B0     = 0;
-    work->rootDirty     = enabled;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    world.vx = coord->workm.t[0];
-    world.vy = coord->workm.t[1];
-    world.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(task->extra.tmd, &world, 0, 3);
-    work->walker.coord      = coord;
-    work->walker.recs       = savedRecs;
+    hitBody                   = &work->hitBody;
+    hitBody->coord            = task->extra.tmd->coords;
+    hitBody->context.contacts = hitContacts;
+    hitBody->pos.vx           = 0;
+    hitBody->pos.vy           = 0;
+    hitBody->pos.vz           = 0;
+    hitBody->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY;
+    hitBody->radius           = ACTOR_110600_HIT_BODY_RADIUS;
+    hitBody->flags            = sphereKind;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, hitBody);
+    hitBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(hitBody->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
+    work->hitBody.pos.vy   = -ACTOR_110600_HIT_BODY_HEIGHT;
+    attackBody             = &work->attackBody;
+    work->hitBody.key      = WORLD_COLLISION_CONTACT_ENEMY_BODY;
+    work->hitBody.pos.vx   = 0;
+    work->hitBody.pos.vz   = ACTOR_110600_HIT_BODY_FORWARD;
+    attackLocalPosition.vx = 0;
+    attackLocalPosition.vy = 0;
+    attackLocalPosition.vz = 0;
+    _actor110600LinkAttackBody(attackBody, task->extra.tmd->coords + ACTOR_110600_ATTACK_PART, work->attackContacts, &attackLocalPosition, sphereKind);
+    worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
+    task->msgTable          = D_actor_110600_80148624;
+    work->childTask0        = 0;
+    work->childTask1        = 0;
+    work->field_8B0         = 0;
+    work->rootDirty         = true;
+    rootCoord->parent       = &gGfxViewCoord;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    worldPosition.vx = rootCoord->workm.t[0];
+    worldPosition.vy = rootCoord->workm.t[1];
+    worldPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(task->extra.tmd, &worldPosition, 0, 3);
+    work->walker.coord      = rootCoord;
+    work->walker.recs       = walkerContacts;
     work->walker.recCount   = ARRAY_SIZE(work->gridContacts);
     work->walker.avoidCount = ARRAY_SIZE(work->hitContacts);
     work->walker.state      = BOSS_STRANGER_WALKER_IDLE;
-    work->walker.avoidRecs  = contactRecs;
+    work->walker.avoidRecs  = hitContacts;
     work->walker.scale      = 0;
-    work->walker.turnLimit  = 0x20;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 3, 0, 0)) {
+    work->walker.turnLimit  = ACTOR_110600_INITIAL_TURN_LIMIT;
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0, 0)) {
         work->walker.lockHeight = 0;
     } else {
-        work->walker.lockHeight = enabled;
+        work->walker.lockHeight = true;
     }
-    work->walker.skipGround            = 0;
-    work->walker.skipAvoid             = 1;
-    work->walker.playerId              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
-    work->walker.nav                   = &work->walker.navData;
-    work->walker.route                 = &work->walker.routeData;
-    work->walker.navData.nodeCount     = ARRAY_SIZE(work->navNodes);
-    work->walker.navData.orderCount    = 2;
-    work->walker.routeData.field_4     = 2;
-    work->walker.navData.nodes         = work->navNodes;
-    work->walker.navData.nodeOrder     = work->navNodeOrder;
-    work->walker.routeData.nodeIndices = work->routeNodeIndices;
-    work->walker.playerId              = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
-    switch (task->spawnArg1.value & 0xF0) {
-        case 0:
-            work->animRate         = 20;
-            work->baseRate         = 20;
-            work->walker.scale     = 0x1000;
+    work->walker.skipGround = 0;
+    work->walker.skipAvoid  = 1;
+    work->walker.playerId   = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+    // Bind the two-node patrol to storage owned by this work block.
+    _actor110600BindPatrolStorage(work);
+    work->walker.playerId = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+    switch (task->spawnArg1.value & ACTOR_110600_MOVEMENT_TUNING_MASK) {
+        case ACTOR_110600_MOVEMENT_TUNING_STANDARD:
+            work->animRate         = ACTOR_110600_STANDARD_ANIMATION_RATE;
+            work->baseRate         = ACTOR_110600_STANDARD_ANIMATION_RATE;
+            work->walker.scale     = ONE;
             work->walkSpeed        = 10;
             work->flinchSpeedScale = 75;
             break;
-        case 0x10:
-            work->animRate         = 16;
-            work->baseRate         = 16;
-            work->walker.scale     = 4500;
+        case ACTOR_110600_MOVEMENT_TUNING_LARGE:
+            work->animRate         = ANIMATION_RATE_ONE;
+            work->baseRate         = ANIMATION_RATE_ONE;
+            work->walker.scale     = ACTOR_110600_MODEL_SCALE_LARGE;
             work->walkSpeed        = 8;
             work->flinchSpeedScale = 66;
             break;
-        case 0x20:
-            work->animRate         = 16;
-            work->baseRate         = 16;
-            work->walker.scale     = 6500;
+        case ACTOR_110600_MOVEMENT_TUNING_LARGEST:
+            work->animRate         = ANIMATION_RATE_ONE;
+            work->baseRate         = ANIMATION_RATE_ONE;
+            work->walker.scale     = ACTOR_110600_MODEL_SCALE_LARGEST;
             work->walkSpeed        = 14;
             work->flinchSpeedScale = 63;
             break;
         default:
-            work->animRate     = 20;
-            work->walker.scale = 0x1000;
+            work->animRate     = ACTOR_110600_STANDARD_ANIMATION_RATE;
+            work->walker.scale = ONE;
             break;
     }
-    placement = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    if ((s16)(placement & 1) == 1) {
-        work->animRate += placement >> 1;
+    // Alternate small rate offsets between placed instances.
+    placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    if ((s16)(placementIndex & 1) == 1) {
+        work->animRate += placementIndex >> 1;
     } else {
-        work->animRate -= placement >> 1;
+        work->animRate -= placementIndex >> 1;
     }
-    switch (task->spawnArg1.value & 0xF00) {
-        case 0:
+    switch (task->spawnArg1.value & ACTOR_110600_NOTICE_TUNING_MASK) {
+        case ACTOR_110600_NOTICE_TUNING_SHORT:
             work->noticeRangeAhead  = 3000;
             work->noticeRangeAround = 500;
             break;
-        case 0x100:
+        case ACTOR_110600_NOTICE_TUNING_MEDIUM:
             work->noticeRangeAhead  = 4000;
             work->noticeRangeAround = 1000;
             break;
-        case 0x200:
+        case ACTOR_110600_NOTICE_TUNING_LONG:
             work->noticeRangeAhead  = 6000;
             work->noticeRangeAround = 2000;
             break;
@@ -1902,37 +1960,37 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
             work->noticeRangeAround = 2000;
             break;
     }
-    switch (task->spawnArg1.value & 0xF000) {
-        case 0:
-            _actor110600LayPatrolNodes(&work->walker, 1500, 0x764);
+    switch (task->spawnArg1.value & ACTOR_110600_PATROL_TUNING_MASK) {
+        case ACTOR_110600_PATROL_TUNING_SHORT:
+            _actor110600LayPatrolNodes(&work->walker, 1500, ACTOR_110600_PATROL_NODE_YAW_STEP);
             break;
-        case 0x1000:
-            _actor110600LayPatrolNodes(&work->walker, 3000, 0x764);
+        case ACTOR_110600_PATROL_TUNING_MEDIUM:
+            _actor110600LayPatrolNodes(&work->walker, 3000, ACTOR_110600_PATROL_NODE_YAW_STEP);
             break;
-        case 0x2000:
-            _actor110600LayPatrolNodes(&work->walker, 4000, 0x764);
+        case ACTOR_110600_PATROL_TUNING_LONG:
+            _actor110600LayPatrolNodes(&work->walker, 4000, ACTOR_110600_PATROL_NODE_YAW_STEP);
             break;
         default:
-            _actor110600LayPatrolNodes(&work->walker, 5000, 0x764);
+            _actor110600LayPatrolNodes(&work->walker, 5000, ACTOR_110600_PATROL_NODE_YAW_STEP);
             break;
     }
-    switch ((task->spawnArg1.value >> 16) & 0xF) {
-        case 1:
+    switch ((task->spawnArg1.value >> ACTOR_110600_SPAWN_BEHAVIOR_SHIFT) & ACTOR_110600_SPAWN_BEHAVIOR_MASK) {
+        case ACTOR_110600_SPAWN_HIDDEN_OR_RESTORED:
             if (enemy->spawnState == 0) {
                 work->state = ACTOR_110600_STATE_HIDDEN;
             } else {
                 work->state = ACTOR_110600_STATE_RESTORED;
             }
             break;
-        case 2:
+        case ACTOR_110600_SPAWN_HIDDEN_NO_BUFFER:
             work->state = ACTOR_110600_STATE_HIDDEN;
             break;
-        case 3:
+        case ACTOR_110600_SPAWN_KEEP_HIDDEN:
             break;
-        case 4:
+        case ACTOR_110600_SPAWN_IDLE:
             work->state = ACTOR_110600_STATE_IDLE;
             break;
-        case 0:
+        case ACTOR_110600_SPAWN_PATROL:
         default:
             if (enemy->spawnState == 0) {
                 work->state = ACTOR_110600_STATE_PATROL;
@@ -1942,7 +2000,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
             break;
     }
     _actor110600InitWalkerScale(&work->walker);
-    work->prevState = -1;
+    work->prevState = ACTOR_110600_PREV_STATE_NONE;
     task->state    += 1;
 }
 
@@ -1997,10 +2055,18 @@ static void func_actor_110600_80135194(Task* arg0)
     _actor110600TickAnimation(arg0);
 }
 
-static __inline__ s32 Actor110600_TickShake(void)
+/// Advances the shared five-tick footstep shake and reports its end.
+///
+/// The overlay-wide counter starts at zero and cycles through 1..4 then zero.
+/// Alternates vertical display shake between 1 and 0, leaving it at zero on
+/// completion. Returns 1 on that fifth tick, otherwise 0. All actors in this
+/// overlay share the counter.
+static __inline__ s32 _actor110600TickFootstepShake(void)
 {
+    enum { ACTOR_110600_FOOTSTEP_SHAKE_TICKS = 5 };
+
     D_actor_110600_8014865C++;
-    if (D_actor_110600_8014865C == 5)
+    if (D_actor_110600_8014865C == ACTOR_110600_FOOTSTEP_SHAKE_TICKS)
         D_actor_110600_8014865C = 0;
     if (!(D_actor_110600_8014865C & 1))
         displaySetShakeY(0);
@@ -2088,53 +2154,48 @@ static void func_actor_110600_80135454(Task* arg0)
     }
     work->lastFootstepCueIndex = (s32)(work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK);
     if (work->footstepShake != 0) {
-        if (Actor110600_TickShake() != 0)
+        if (_actor110600TickFootstepShake() != 0)
             work->footstepShake = 0;
     }
 }
 
-/// Aiming stage: points the model at the player. Entering on a live
-/// actor re-arms it — clear the model object, drop bit 0x8000 of
-/// `attackBody.flags` and set 0x4000 of `gridBody.flags`, tag the enemy's link
-/// node, then park the stage timer at 0x15 with `animRate` reloaded from
-/// `baseRate`. The yaw of the delta from the model's root coordinate to
-/// `gPlayerStatus.coordMtx`'s translation goes through `ratan2`, has the coordinate's own
-/// yaw (`ratan2` of `-m[2][0]`, `m[2][2]`) subtracted, and is wrapped into
-/// [-0x800, 0x800] before it lands in `lookYawTarget`; the model is ticked and the
-/// actor moves on (state 3) once slot 1 of `rig` reports
-/// `ANIMATION_SLOT_REACHED_BOUNDARY`.
-/// Both translations are measured in their low 16 bits, so all three delta
-/// reads are `u16`.
-static void func_actor_110600_80135A18(Task* arg0)
+/// Plays the alert clip while looking toward the player, then starts chasing.
+///
+/// Requires live actor work, enemy and loaded alert tracks. Entry restores the
+/// normal model/grid behavior and the variant playback rate. The look target
+/// is a signed yaw in 4096 units per turn, measured from halfword-truncated
+/// player/root offsets in their common parent frame. Main slot 1 reaching its
+/// boundary selects CHASE; this handler does not step the walker.
+static void _actor110600AlertState(Task* task)
 {
     _Actor110600Work* work;
-    TmdObject*        obj;
+    TmdObject*        model;
     Enemy*            enemy;
-    GfxCoord*         coord;
-    SVECTOR           delta;
-    SVECTOR*          d;
-    s16               angle;
+    GfxCoord*         rootCoord;
+    SVECTOR           playerOffset;
+    SVECTOR*          offset;
+    s16               playerTurn;
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj->flags                    = 0;
+        model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_BLEND;
-        work->animId                  = 0x15;
+        work->animId                  = ACTOR_110600_ANIM_ALERT;
         work->animRate                = work->baseRate;
     }
-    coord               = arg0->extra.tmd->coords;
-    d                   = &delta;
-    delta.vx            = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy               = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
-    work->lookYawTarget = angle;
-    _actor110600TickAnimation(arg0);
+    rootCoord           = task->extra.tmd->coords;
+    offset              = &playerOffset;
+    playerOffset.vx     = (u16)gPlayerStatus.coordMtx->t[0] - (u16)rootCoord->coord.t[0];
+    offset->vy          = (u16)gPlayerStatus.coordMtx->t[1] - (u16)rootCoord->coord.t[1];
+    offset->vz          = (u16)gPlayerStatus.coordMtx->t[2] - (u16)rootCoord->coord.t[2];
+    playerTurn          = _actorAngleTurnToOffset(task->extra.tmd->coords, playerOffset.vx, offset->vz);
+    work->lookYawTarget = playerTurn;
+    _actor110600TickAnimation(task);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
@@ -2160,80 +2221,91 @@ static __inline__ s32 _actor110600HasPlayerBodyContact(const WorldCollisionConta
     return false;
 }
 
-/// Firing stage. Entering on a live actor re-arms it: clear the model object,
-/// take 0x8000 off `attackBody.flags` and put 0x4000 on `gridBody.flags`, tag
-/// the enemy's link node, and pick one of the two patrol modes off
-/// `enraged` — a zeroed one packs the model pair with 1 and holds the stage
-/// at `animId` 5 for 0x10 ticks, a set one packs it with 0 and holds mode 4
-/// for 0x1A. `walker.state` is raised and `walker` is re-armed
-/// for a fresh patrol (`speedTarget` cleared, `speed` reloaded from its own
-/// value, `speedStep` = 8) with `lookYawTarget` / `lookYaw` cleared and
-/// `walker.turnLimit` parked at 0x10 to cover the first ten ticks. Every tick after
-/// that raises `stateFrame`, which retires `walker.turnLimit` once it passes 0xB, and
-/// ticks the model; slot 1's cue index then drives the pair of flag edges the
-/// mode owns — 0xF raises and 0x15 drops 0x8000 in mode 4, 0x10 / 0x13 the
-/// same in mode 5. Slot 1's `ANIMATION_SLOT_REACHED_BOUNDARY` moves the actor on
-/// (state 3). Finally, while the first `WorldCollisionContact` record still carries the
-/// 0x10000 kind tag, the model root's pan and depth are played as sound
-/// 0x401D000D and 0x8000 comes off `attackBody.flags`.
-static void func_actor_110600_80135B84(Task* arg0)
+/// Runs an animation-timed swing and disables it after a player-body contact.
+///
+/// Requires live actor work, enemy, initialized attack contacts and the selected
+/// attack tracks. Enraged actors use attack 0/clip 4 at 26 sixteenths per tick;
+/// others use attack 1/clip 5 at normal rate. Entry ramps walker speed toward
+/// zero and clears look yaw; this handler configures movement without ticking
+/// the walker. Turn control stops at tick 11. Slot-1 cues delimit pair testing;
+/// its boundary returns to CHASE. A retained player/companion contact sounds the
+/// hit and disables pair testing without clearing that contact.
+static void _actor110600AttackState(Task* task)
 {
+    enum {
+        ACTOR_110600_ATTACK_NORMAL            = 1,
+        ACTOR_110600_ATTACK_ENRAGED           = 0,
+        ACTOR_110600_ATTACK_CLIP              = 5,
+        ACTOR_110600_ATTACK_ENRAGED_CLIP      = 4,
+        ACTOR_110600_ATTACK_ENRAGED_RATE      = 26,
+        ACTOR_110600_ATTACK_BRAKE_STEP        = 8,
+        ACTOR_110600_ATTACK_TURN_LIMIT        = 0x10,
+        ACTOR_110600_ATTACK_TURN_STOP_TICK    = 11,
+        ACTOR_110600_ATTACK_ENRAGED_START_CUE = 15,
+        ACTOR_110600_ATTACK_ENRAGED_END_CUE   = 21,
+        ACTOR_110600_ATTACK_START_CUE         = 16,
+        ACTOR_110600_ATTACK_END_CUE           = 19,
+    };
+
     _Actor110600Work*   work;
+    _Actor110600Work*   attackWork;
     BossStrangerWalker* walker;
     Enemy*              enemy;
-    TmdObject*          obj;
-    u16                 ramp;
+    TmdObject*          model;
+    u16                 entrySpeed;
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj->flags                    = 0;
+        model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_BLEND;
-        if (((_Actor110600Work*)arg0->work)->enraged != 0) {
-            work->attackBody.key = damagePackEnemyAttackKey(enemy, 0);
-            work->animId         = 4;
-            work->animRate       = 0x1A;
+        attackWork                    = task->work;
+        if (attackWork->enraged != 0) {
+            work->attackBody.key = damagePackEnemyAttackKey(enemy, ACTOR_110600_ATTACK_ENRAGED);
+            work->animId         = ACTOR_110600_ATTACK_ENRAGED_CLIP;
+            work->animRate       = ACTOR_110600_ATTACK_ENRAGED_RATE;
         } else {
-            work->attackBody.key = damagePackEnemyAttackKey(enemy, 1);
-            work->animId         = 5;
-            work->animRate       = 0x10;
+            work->attackBody.key = damagePackEnemyAttackKey(enemy, ACTOR_110600_ATTACK_NORMAL);
+            work->animId         = ACTOR_110600_ATTACK_CLIP;
+            work->animRate       = ANIMATION_RATE_ONE;
         }
         work->walker.state     = BOSS_STRANGER_WALKER_CHASE;
         walker                 = &work->walker;
-        ramp                   = work->walker.speed;
+        entrySpeed             = work->walker.speed;
         walker->speedTarget    = 0;
-        walker->speedStep      = 8;
-        walker->speed          = ramp;
-        work->walker.turnLimit = 0x10;
+        walker->speedStep      = ACTOR_110600_ATTACK_BRAKE_STEP;
+        walker->speed          = entrySpeed;
+        work->walker.turnLimit = ACTOR_110600_ATTACK_TURN_LIMIT;
         work->lookYaw          = 0;
         work->lookYawTarget    = 0;
         work->stateFrame       = 0;
     }
     work->stateFrame++;
-    if (work->stateFrame >= 0xB) {
+    if (work->stateFrame >= ACTOR_110600_ATTACK_TURN_STOP_TICK) {
         work->walker.turnLimit = 0;
     }
-    _actor110600TickAnimation(arg0);
-    if (work->animId == 4) {
+    _actor110600TickAnimation(task);
+    // Arm pair testing only inside the selected swing's cue window.
+    if (work->animId == ACTOR_110600_ATTACK_ENRAGED_CLIP) {
         switch (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
-            case 0xF:
+            case ACTOR_110600_ATTACK_ENRAGED_START_CUE:
                 work->attackBody.flags = (u16)(work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 break;
-            case 0x15:
+            case ACTOR_110600_ATTACK_ENRAGED_END_CUE:
                 work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
                 break;
         }
     }
-    if (work->animId == 5) {
+    if (work->animId == ACTOR_110600_ATTACK_CLIP) {
         switch (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
-            case 0x10:
+            case ACTOR_110600_ATTACK_START_CUE:
                 work->attackBody.flags = (u16)(work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 break;
-            case 0x13:
+            case ACTOR_110600_ATTACK_END_CUE:
                 work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
                 break;
         }
@@ -2242,84 +2314,108 @@ static void func_actor_110600_80135B84(Task* arg0)
         work->state = ACTOR_110600_STATE_CHASE;
     }
     if (_actor110600HasPlayerBodyContact(work->attackContacts)) {
-        sndEvtRequestScriptStart(SOUND_STRANGER_ATTACK_HIT, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
-                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        sndEvtRequestScriptStart(SOUND_STRANGER_ATTACK_HIT, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
+                                 (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
 }
 
-static void func_actor_110600_80135E20(Task* arg0, s16 arg1, s32 arg2)
+/// Spawns the attack's hit effect at a model position selected by hit yaw.
+///
+/// `hitYaw` is the signed relative bearing in 4096 units per turn, normally
+/// -2048..2048; `attackKey` is the packed damaging-contact key. Front/rear hits
+/// use different random position groups; side hits use the yaw's sign. The
+/// position record's fourth halfword selects model part 2, 7 or 9. Requires a
+/// live model and loaded effect resources. Reuses the overlay's effect argument
+/// record and releases its scratch SVECTOR after spawning. Placement copies
+/// XYZ during the call; the effect's retained offset pointer has no later C reader.
+static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
 {
-    SVECTOR* sc;
-    s32      mag;
+    enum {
+        ACTOR_110600_HIT_FRONT_YAW_LIMIT      = 0x200,
+        ACTOR_110600_HIT_REAR_YAW_LIMIT       = 0x600,
+        ACTOR_110600_HIT_EFFECT_ARGUMENT_LOW  = 0x100,
+        ACTOR_110600_HIT_EFFECT_ARGUMENT_HIGH = 3,
+    };
 
-    sc  = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    mag = (arg1 >= 0) ? arg1 : -arg1;
-    if (mag < 0x200) {
+    SVECTOR* hitPosition;
+    s32      absoluteHitYaw;
+
+    hitPosition = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    // Use yaw sectors to choose the effect position; the rear mask keeps only bit 1.
+    absoluteHitYaw = (hitYaw >= 0) ? hitYaw : -hitYaw;
+    if (absoluteHitYaw < ACTOR_110600_HIT_FRONT_YAW_LIMIT) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 3) {
             case 0:
-                *sc = D_actor_110600_801485C4[0];
+                *hitPosition = D_actor_110600_801485C4[0];
                 break;
             case 1:
-                *sc = D_actor_110600_801485C4[1];
+                *hitPosition = D_actor_110600_801485C4[1];
                 break;
             case 2:
-                *sc = D_actor_110600_801485C4[2];
+                *hitPosition = D_actor_110600_801485C4[2];
                 break;
             case 3:
-                *sc = D_actor_110600_801485C4[3];
+                *hitPosition = D_actor_110600_801485C4[3];
                 break;
             default:
-                *sc = D_actor_110600_801485C4[4];
+                *hitPosition = D_actor_110600_801485C4[4];
                 break;
         }
-    } else if (mag > 0x600) {
+    } else if (absoluteHitYaw > ACTOR_110600_HIT_REAR_YAW_LIMIT) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         switch ((s32)(gRandomLcgState >> 16) & 2) {
             case 0:
-                *sc = D_actor_110600_801485C4[5];
+                *hitPosition = D_actor_110600_801485C4[5];
                 break;
             case 1:
-                *sc = D_actor_110600_801485C4[6];
+                *hitPosition = D_actor_110600_801485C4[6];
                 break;
             default:
-                *sc = D_actor_110600_801485C4[7];
+                *hitPosition = D_actor_110600_801485C4[7];
                 break;
         }
-    } else if (arg1 > 0) {
+    } else if (hitYaw > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *sc = D_actor_110600_801485C4[8];
+            *hitPosition = D_actor_110600_801485C4[8];
         } else {
-            *sc = D_actor_110600_801485C4[9];
+            *hitPosition = D_actor_110600_801485C4[9];
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((gRandomLcgState >> 16) & 1) {
-            *sc = D_actor_110600_801485C4[10];
+            *hitPosition = D_actor_110600_801485C4[10];
         } else {
-            *sc = D_actor_110600_801485C4[11];
+            *hitPosition = D_actor_110600_801485C4[11];
         }
     }
-    D_actor_110600_80148698.coord      = &arg0->extra.tmd->coords[1];
-    D_actor_110600_80148698.spawnArgLo = 0x100;
-    D_actor_110600_80148698.spawnArgHi = 3;
-    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], sc, &D_actor_110600_80148698);
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    D_actor_110600_80148698.coord      = &task->extra.tmd->coords[1];
+    D_actor_110600_80148698.spawnArgLo = ACTOR_110600_HIT_EFFECT_ARGUMENT_LOW;
+    D_actor_110600_80148698.spawnArgHi = ACTOR_110600_HIT_EFFECT_ARGUMENT_HIGH;
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[hitPosition->pad], hitPosition, &D_actor_110600_80148698);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-static __inline__ s32 Actor110600_FindHit(SVECTOR* point, WorldCollisionContact* recs, s16 count)
+/// Returns the first attack contact key and copies its world-space XYZ.
+///
+/// Scans at most `contactCount` readable elements, stopping at the first zero
+/// key. The nonnegative count is in contacts, not bytes; callers supply five
+/// hit-body or twelve grid-body contacts. A zero result leaves `hitPoint`
+/// unchanged; a hit preserves its unused fourth halfword. Contacts are borrowed
+/// and never changed.
+static __inline__ s32 _actor110600FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount)
 {
-    s16 i;
-    for (i = 0; i < count; i++) {
-        if (!recs[i].key.value)
+    s16 contactIndex;
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (!contacts[contactIndex].key.value)
             break;
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
-            point->vx = recs[i].point.vx;
-            point->vy = recs[i].point.vy;
-            point->vz = recs[i].point.vz;
-            return recs[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            hitPoint->vx = contacts[contactIndex].point.vx;
+            hitPoint->vy = contacts[contactIndex].point.vy;
+            hitPoint->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
@@ -2352,9 +2448,9 @@ static void func_actor_110600_80136210(Task* arg0)
         return;
     }
     scratch         = SCRATCH_STACK_RESERVE_BLOCK(_Actor110600HitScratch);
-    scratch->hitKey = Actor110600_FindHit(&scratch->hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    scratch->hitKey = _actor110600FindAttackContact(&scratch->hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     if (!scratch->hitKey) {
-        scratch->hitKey = Actor110600_FindHit(&scratch->hitPos, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        scratch->hitKey = _actor110600FindAttackContact(&scratch->hitPos, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     }
     if (scratch->hitKey) {
         state = work->state;
@@ -2398,7 +2494,7 @@ static void func_actor_110600_80136210(Task* arg0)
         angle                 = yaw - ratan2((s32)-facing->workm.m[2][0], (s32)facing->workm.m[2][2]);
         scratch->hitYaw       = angle;
         scratch->hitYaw       = _actorAngleNormalizeYaw(scratch->hitYaw);
-        func_actor_110600_80135E20(arg0, scratch->hitYaw, scratch->hitKey);
+        _actor110600SpawnHitEffect(arg0, scratch->hitYaw, scratch->hitKey);
         work->lookYaw       = 0;
         work->lookYawTarget = 0;
         if ((work->enraged == 0) && (enemy->hp < (s32)((u16)D_actor_110600_80138F14.hpMax >> 1))) {
@@ -2965,274 +3061,308 @@ static void func_actor_110600_801372CC(Task* arg0)
     }
 }
 
-/// The turn-away stage, the pick-up twin of the `animId` == 0x16 leg of
-/// `func_actor_110600_80136888`: entering on a live actor clears the model
-/// object, takes 0x8000 off `attackBody.flags` and 0x4000 off
-/// `gridBody.flags`, tags the enemy's link node with 1 and parks the timer at
-/// `animRate` = 0x20 with `animRequest` re-armed, `walker.turnLimit` / `lookYaw` /
-/// `lookYawTarget` cleared. Every tick after that steps the shared handler and, at
-/// 0x16, rolls `gRandomLcgState` and turns the model's root coordinate by the yaw
-/// the roll's low nibble picks — 0x32 while it is under 0xA, -0x78 past it —
-/// clearing the coordinate's `composeStamp`. Once `animFrames` has run up to 0x1F the
-/// stage drops the timer to 0x10, re-arms `animRequest` and steps to 0x21, where
-/// slot 1's `ANIMATION_SLOT_REACHED_BOUNDARY` walks it on to state 0xC.
-static void func_actor_110600_80137684(Task* arg0)
+/// Thrashes through two clips before handing the corpse to DEATH_BURN.
+///
+/// Entry disables attacks and grid correction and makes the enemy un-lockable.
+/// Requires live actor work/model/enemy and clips 22 and 33. Clip 22 plays at
+/// two frames per tick while random signed yaw jerks mark the root dirty. At
+/// tick 31 it requests clip 33 at normal rate; that clip's slot-1 boundary
+/// selects DEATH_BURN. No local code selects this state.
+static void _actor110600DeathThrashState(Task* task)
 {
+    enum {
+        ACTOR_110600_DEATH_THRASH_CLIP            = 22,
+        ACTOR_110600_DEATH_TRANSITION_CLIP        = 33,
+        ACTOR_110600_DEATH_THRASH_TICKS           = 31,
+        ACTOR_110600_DEATH_THRASH_RATE            = 2 * ANIMATION_RATE_ONE,
+        ACTOR_110600_DEATH_THRASH_FORWARD_YAW     = 50,
+        ACTOR_110600_DEATH_THRASH_REVERSE_YAW     = -120,
+        ACTOR_110600_DEATH_THRASH_RANDOM_MASK     = 15,
+        ACTOR_110600_DEATH_THRASH_FORWARD_CHOICES = 10,
+    };
+
     _Actor110600Work* work;
     Enemy*            enemy;
-    u32               rng;
+    u32               randomValue;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
-        arg0->extra.tmd->flags        = 0;
+        enemy                         = task->spawnArg2.pointer;
+        task->extra.tmd->flags        = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->animRate                = 0x20;
+        work->animRate                = ACTOR_110600_DEATH_THRASH_RATE;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_BLEND;
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
-        work->animId                  = 0x16;
+        work->animId                  = ACTOR_110600_DEATH_THRASH_CLIP;
     }
-    _actor110600TickAnimation(arg0);
-    if (work->animId == 0x16) {
-        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng;
-        if (((rng >> 16) & 0xF) < 0xA) {
-            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, 0x32, 0);
+    _actor110600TickAnimation(task);
+    // Bias the root jerk forward, then finish on the transition clip.
+    if (work->animId == ACTOR_110600_DEATH_THRASH_CLIP) {
+        randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomValue;
+        if (((randomValue >> 16) & ACTOR_110600_DEATH_THRASH_RANDOM_MASK) < ACTOR_110600_DEATH_THRASH_FORWARD_CHOICES) {
+            gfxRotMatrixY(&task->extra.tmd->coords->coord, ACTOR_110600_DEATH_THRASH_FORWARD_YAW, 0);
         } else {
-            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x78, 0);
+            gfxRotMatrixY(&task->extra.tmd->coords->coord, ACTOR_110600_DEATH_THRASH_REVERSE_YAW, 0);
         }
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        if ((work->animId == 0x16) && (work->animFrames >= 0x1F)) {
-            work->animRate    = 0x10;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        if ((work->animId == ACTOR_110600_DEATH_THRASH_CLIP) && (work->animFrames >= ACTOR_110600_DEATH_THRASH_TICKS)) {
+            work->animRate    = ANIMATION_RATE_ONE;
             work->animRequest = ACTOR_110600_ANIM_REQUEST_BLEND;
-            work->animId      = 0x21;
+            work->animId      = ACTOR_110600_DEATH_TRANSITION_CLIP;
         }
     }
-    if ((work->animId == 0x21) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if ((work->animId == ACTOR_110600_DEATH_TRANSITION_CLIP) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->state = ACTOR_110600_STATE_DEATH_BURN;
     }
 }
 
-static void func_actor_110600_801377FC(Task* arg0)
+/// Holds the lurk pose until the player is within 3000 horizontal units.
+///
+/// Requires live actor work/model/enemy and the command-bound clip 34. Entry
+/// restores model/grid behavior, clears turning and starts normal playback.
+/// The range uses signed-halfword offsets in the roots' common parent frame;
+/// equality remains in LURK. Animation is ticked before range selection.
+/// Nearer players select LURK_ALERT; the damage handler can instead select ALERT.
+static void _actor110600LurkState(Task* task)
 {
-    _Actor110600Work* work;
-    TmdObject*        obj;
-    Enemy*            enemy;
-    GfxCoord*         coord;
-    SVECTOR           delta;
-    SVECTOR*          d;
+    enum {
+        ACTOR_110600_LURK_NOTICE_RADIUS = 3000,
+    };
 
-    work = arg0->work;
+    _Actor110600Work* work;
+    TmdObject*        model;
+    Enemy*            enemy;
+    GfxCoord*         rootCoord;
+    SVECTOR           playerOffset;
+    SVECTOR*          offset;
+
+    work = task->work;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
-        obj                           = arg0->extra.tmd;
-        work->animId                  = 0x22;
+        enemy                         = task->spawnArg2.pointer;
+        model                         = task->extra.tmd;
+        work->animId                  = ACTOR_110600_ANIM_SCRIPTED_SLOT0;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
-        obj->flags                    = 0;
+        model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYawTarget           = 0;
     }
-    _actor110600TickAnimation(arg0);
+    _actor110600TickAnimation(task);
     work->lastCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    coord              = arg0->extra.tmd->coords;
-    d                  = &delta;
-    delta.vx           = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy              = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz              = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    if (!actorOutsideRadius(d, 0xBB8)) {
+    rootCoord          = task->extra.tmd->coords;
+    offset             = &playerOffset;
+    playerOffset.vx    = (u16)gPlayerStatus.coordMtx->t[0] - (u16)rootCoord->coord.t[0];
+    offset->vy         = (u16)gPlayerStatus.coordMtx->t[1] - (u16)rootCoord->coord.t[1];
+    offset->vz         = (u16)gPlayerStatus.coordMtx->t[2] - (u16)rootCoord->coord.t[2];
+    if (!actorOutsideRadius(offset, ACTOR_110600_LURK_NOTICE_RADIUS)) {
         work->state = ACTOR_110600_STATE_LURK_ALERT;
     }
 }
 
-/// Aiming stage that re-arms the model behaviour on a live actor — `animId`
-/// = 0x15 with `animRequest` = 1, the model object's `field_C` cleared, bit 0x8000
-/// off `attackBody.flags` and 0x4000 on `gridBody.flags`, the enemy's link node
-/// tagged 1 with `walker.turnLimit` / `lookYaw` cleared and `animRate` = 0x10 — then
-/// wraps the yaw from the model's root coordinate to the player
-/// `gPlayerStatus.coordMtx` against the coordinate's own yaw (`ratan2` of `-m[2][0]`,
-/// `m[2][2]`) into `lookYawTarget`. Ticks the model and moves the actor to state 3
-/// once slot 1 of `rig` reports `ANIMATION_SLOT_REACHED_BOUNDARY`. Same wrap as
-/// `func_actor_110600_80135A18`.
-static void func_actor_110600_80137980(Task* arg0)
+/// Plays the lurk wake-up alert while un-lockable, then starts chasing.
+///
+/// Requires live actor work/model/enemy and loaded alert tracks. Entry clears
+/// walker turning and look yaw and plays at normal rate. The player look target
+/// uses signed yaw in 4096 units per turn from halfword-truncated offsets in
+/// the common parent frame. Main slot 1 reaching its boundary selects CHASE;
+/// this handler does not step the walker.
+static void _actor110600LurkAlertState(Task* task)
 {
     _Actor110600Work* work;
-    TmdObject*        obj;
+    TmdObject*        model;
     Enemy*            enemy;
-    GfxCoord*         coord;
-    SVECTOR           delta;
-    SVECTOR*          d;
-    s16               angle;
+    GfxCoord*         rootCoord;
+    SVECTOR           playerOffset;
+    SVECTOR*          offset;
+    s16               playerTurn;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
-        obj                           = arg0->extra.tmd;
-        work->animId                  = 0x15;
+        enemy                         = task->spawnArg2.pointer;
+        model                         = task->extra.tmd;
+        work->animId                  = ACTOR_110600_ANIM_ALERT;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_BLEND;
-        obj->flags                    = 0;
+        model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
     }
-    coord               = arg0->extra.tmd->coords;
-    d                   = &delta;
-    delta.vx            = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy               = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
-    work->lookYawTarget = angle;
-    _actor110600TickAnimation(arg0);
+    rootCoord           = task->extra.tmd->coords;
+    offset              = &playerOffset;
+    playerOffset.vx     = (u16)gPlayerStatus.coordMtx->t[0] - (u16)rootCoord->coord.t[0];
+    offset->vy          = (u16)gPlayerStatus.coordMtx->t[1] - (u16)rootCoord->coord.t[1];
+    offset->vz          = (u16)gPlayerStatus.coordMtx->t[2] - (u16)rootCoord->coord.t[2];
+    playerTurn          = _actorAngleTurnToOffset(task->extra.tmd->coords, playerOffset.vx, offset->vz);
+    work->lookYawTarget = playerTurn;
+    _actor110600TickAnimation(task);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
 }
 
-/// Stage-driven recoil push, one stage per tick. On a live actor it clears the
-/// model's flags, drops bit 0x8000 of `attackBody.flags` and sets 0x4000 of
-/// `gridBody.flags`, tags the enemy's link node and restarts the stage at 0.
-/// The push takes column 0 of the model root coordinate, normalises it out of
-/// place and scales it by the stage — 0x320, -0x3E8, 0x190, -0x190, 0xC8,
-/// through the GTE's interpolation register. Only the X and Z components are
-/// added to the coordinate's translation, and the coordinate is marked dirty so
-/// the tree is recomputed. Stage 5 pushes nothing: it moves the actor to state
-/// 3 and leaves the counter parked.
-static void func_actor_110600_80137AF4(Task* arg0)
+/// Jolts the root along its local X axis for five ticks, then starts chasing.
+///
+/// Requires live actor work/model/enemy and a nonzero root X axis suitable for
+/// normalization. Whole-unit displacements are 800, -1000, 400, -400 and 200;
+/// only parent-frame X/Z translation is applied. Clobbers GTE state and marks
+/// the root dirty after each push. The sixth call selects CHASE without a push.
+/// The step counter is shared by the overlay's actors; no local code selects
+/// this state.
+static void _actor110600ShudderState(Task* task)
 {
-    _Actor110600Work* work;
-    TmdObject*        obj;
-    Enemy*            enemy;
-    SVECTOR           vec;
-    GfxCoord*         coord;
+    enum {
+        ACTOR_110600_SHUDDER_PUSH0      = 800,
+        ACTOR_110600_SHUDDER_PUSH1      = -1000,
+        ACTOR_110600_SHUDDER_PUSH2      = 400,
+        ACTOR_110600_SHUDDER_PUSH3      = -400,
+        ACTOR_110600_SHUDDER_PUSH4      = 200,
+        ACTOR_110600_SHUDDER_PUSH_COUNT = 5,
+    };
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
+    _Actor110600Work* work;
+    TmdObject*        model;
+    Enemy*            enemy;
+    SVECTOR           sideStep;
+    GfxCoord*         rootCoord;
+
+    work  = task->work;
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj->flags                    = 0;
+        model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         D_actor_110600_80148688.step  = 0;
     }
-    gfxReadMatrixXAxis(&arg0->extra.tmd->coords->coord, &vec);
-    VectorNormalSS(&vec, &vec);
+    // Normalize the root's side axis so displacement is in parent-coordinate units.
+    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, &sideStep);
+    VectorNormalSS(&sideStep, &sideStep);
+/// Scales a writable Q12 direction by signed parent-coordinate distance.
+///
+/// Standalone statement sequence for this handler; arguments must have no side
+/// effects. `direction` is evaluated twice and `distance` once. Narrows XYZ to
+/// signed halfwords, clobbers the GTE and changes no coordinate by itself.
+#define ACTOR_110600_SCALE_SHUDDER_STEP(direction, distance) \
+    gte_lddp(distance);                                      \
+    gte_ldsv(direction);                                     \
+    gte_gpf12();                                             \
+    gte_stsv(direction)
     switch (D_actor_110600_80148688.step) {
         case 0:
-            gte_lddp(0x320);
-            gte_ldsv(&vec);
-            gte_gpf12();
-            gte_stsv(&vec);
+            ACTOR_110600_SCALE_SHUDDER_STEP(&sideStep, ACTOR_110600_SHUDDER_PUSH0);
             break;
         case 1:
-            gte_lddp(-0x3E8);
-            gte_ldsv(&vec);
-            gte_gpf12();
-            gte_stsv(&vec);
+            ACTOR_110600_SCALE_SHUDDER_STEP(&sideStep, ACTOR_110600_SHUDDER_PUSH1);
             break;
         case 2:
-            gte_lddp(0x190);
-            gte_ldsv(&vec);
-            gte_gpf12();
-            gte_stsv(&vec);
+            ACTOR_110600_SCALE_SHUDDER_STEP(&sideStep, ACTOR_110600_SHUDDER_PUSH2);
             break;
         case 3:
-            gte_lddp(-0x190);
-            gte_ldsv(&vec);
-            gte_gpf12();
-            gte_stsv(&vec);
+            ACTOR_110600_SCALE_SHUDDER_STEP(&sideStep, ACTOR_110600_SHUDDER_PUSH3);
             break;
         case 4:
-            gte_lddp(0xC8);
-            gte_ldsv(&vec);
-            gte_gpf12();
-            gte_stsv(&vec);
+            ACTOR_110600_SCALE_SHUDDER_STEP(&sideStep, ACTOR_110600_SHUDDER_PUSH4);
             break;
-        case 5:
+        case ACTOR_110600_SHUDDER_PUSH_COUNT:
             work->state = ACTOR_110600_STATE_CHASE;
             return;
     }
-    arg0->extra.tmd->coords->coord.t[0] += vec.vx;
-    arg0->extra.tmd->coords->coord.t[2] += vec.vz;
-    coord                                = arg0->extra.tmd->coords;
+#undef ACTOR_110600_SCALE_SHUDDER_STEP
+    task->extra.tmd->coords->coord.t[0] += sideStep.vx;
+    task->extra.tmd->coords->coord.t[2] += sideStep.vz;
+    rootCoord                            = task->extra.tmd->coords;
     D_actor_110600_80148688.step++;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Death stage machine, entering on a live actor: take the model out of draw,
-/// drop bit 0x8000 of `attackBody.flags` and set 0x4000 of `gridBody.flags`,
-/// tag the enemy's link node, arm `animId` / `animRequest` and the `animRate`
-/// timer, tick once and clear both `stateFrame` and the `enrageStage` stage. Stage
-/// 0 idles on that timer — once slot 1's cue index reaches 4 it parks
-/// `animRate` at -0x10 and steps to stage 1. Stage 1 is the shrink tail:
-/// halves `animRate` each tick, parking at -0xC when the halving lands on the
-/// stage value and bouncing -1 back to 8, and after 0x35 ticks parks
-/// `animRate` / `baseRate` at 0x38 and moves the actor to state 3. Every
-/// stage-1 tick also adds 0x27 to `enrageTint`.
-static void func_actor_110600_80137DB0(Task* arg0)
+/// Builds the enrage tint while oscillating the pose, then accelerates chase.
+///
+/// Requires live actor work/model/enemy and loaded clip 12. Entry starts slow
+/// playback and clears the two-stage sequence. Cue 4 reverses at normal rate;
+/// successive ticks halve the signed rate toward zero, replacing 1 with -12
+/// and -1 with 8. After 53 oscillation ticks both base and current rates become
+/// 56 sixteenths per tick and CHASE is selected. Each oscillation tick adds 39
+/// to the tint accumulator; the outer enemy tick applies that tint to lighting.
+static void _actor110600EnrageState(Task* task)
 {
+    enum {
+        ACTOR_110600_ENRAGE_STAGE_ENTER       = 0,
+        ACTOR_110600_ENRAGE_STAGE_OSCILLATE   = 1,
+        ACTOR_110600_ENRAGE_CLIP              = 12,
+        ACTOR_110600_ENRAGE_ENTRY_RATE        = 6,
+        ACTOR_110600_ENRAGE_REVERSE_RATE      = -12,
+        ACTOR_110600_ENRAGE_FORWARD_RATE      = 8,
+        ACTOR_110600_ENRAGE_CUE               = 4,
+        ACTOR_110600_ENRAGE_OSCILLATION_TICKS = 53,
+        ACTOR_110600_ENRAGED_RATE             = 56,
+        ACTOR_110600_ENRAGE_TINT_STEP         = 39,
+    };
+
     _Actor110600Work* work;
     Enemy*            enemy;
-    TmdObject*        obj;
-    s16               step;
-    s32               state;
+    TmdObject*        model;
+    s16               halvedRate;
+    s32               enrageStage;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
-        obj                           = arg0->extra.tmd;
-        obj->flags                    = 0;
+        enemy                         = task->spawnArg2.pointer;
+        model                         = task->extra.tmd;
+        model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        work->animId                  = 0xC;
+        work->animId                  = ACTOR_110600_ENRAGE_CLIP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
-        work->animRate                = 6;
-        _actor110600TickAnimation(arg0);
+        work->animRate                = ACTOR_110600_ENRAGE_ENTRY_RATE;
+        _actor110600TickAnimation(task);
         work->stateFrame  = 0;
-        work->enrageStage = 0;
+        work->enrageStage = ACTOR_110600_ENRAGE_STAGE_ENTER;
     }
-    state             = work->enrageStage;
+    enrageStage       = work->enrageStage;
     work->blendActive = 0;
-    switch (state) {
-        case 0:
-            _actor110600TickAnimation(arg0);
-            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 4) {
-                work->animRate    = -0x10;
+    switch (enrageStage) {
+        case ACTOR_110600_ENRAGE_STAGE_ENTER:
+            _actor110600TickAnimation(task);
+            if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_110600_ENRAGE_CUE) {
+                work->animRate    = -ANIMATION_RATE_ONE;
                 work->enrageStage = (s16)((u16)work->enrageStage + 1);
                 return;
             }
             return;
-        case 1:
-            step           = (s16)work->animRate / 2;
-            work->animRate = step;
+        case ACTOR_110600_ENRAGE_STAGE_OSCILLATE:
+            // Alternate decaying forward/reverse rates while accumulating the tint.
+            halvedRate     = (s16)work->animRate / 2;
+            work->animRate = halvedRate;
             work->stateFrame++;
-            if (work->animRate == state) {
-                work->animRate = -0xC;
+            if (work->animRate == enrageStage) {
+                work->animRate = ACTOR_110600_ENRAGE_REVERSE_RATE;
             }
             if (work->animRate == -1) {
-                work->animRate = 8;
+                work->animRate = ACTOR_110600_ENRAGE_FORWARD_RATE;
             }
-            _actor110600TickAnimation(arg0);
-            if (work->stateFrame >= 0x35) {
-                work->animRate = 0x38;
-                work->baseRate = 0x38;
+            _actor110600TickAnimation(task);
+            if (work->stateFrame >= ACTOR_110600_ENRAGE_OSCILLATION_TICKS) {
+                work->animRate = ACTOR_110600_ENRAGED_RATE;
+                work->baseRate = ACTOR_110600_ENRAGED_RATE;
                 work->state    = ACTOR_110600_STATE_CHASE;
             }
-            work->enrageTint += 0x27;
+            work->enrageTint += ACTOR_110600_ENRAGE_TINT_STEP;
             break;
     }
 }
@@ -3246,8 +3376,8 @@ static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     NULL,
     func_actor_110600_80135194,
     func_actor_110600_80135454,
-    func_actor_110600_80135A18,
-    func_actor_110600_80135B84,
+    _actor110600AlertState,
+    _actor110600AttackState,
     func_actor_110600_80136888,
     func_actor_110600_801369D8,
     func_actor_110600_80138980,
@@ -3261,16 +3391,16 @@ static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     NULL,
     func_actor_110600_801372CC,
     NULL,
-    func_actor_110600_80137684,
-    func_actor_110600_801377FC,
-    func_actor_110600_80137980,
-    func_actor_110600_80137AF4,
+    _actor110600DeathThrashState,
+    _actor110600LurkState,
+    _actor110600LurkAlertState,
+    _actor110600ShudderState,
     func_actor_110600_80138CA4,
-    func_actor_110600_80137DB0,
+    _actor110600EnrageState,
 } };
 
 /// The actor's enemy tick, the middle entry of the `D_actor_110600_80131FA0`
-/// triple `func_actor_110600_80134AB4` / this / `enemyDestroy`: copies
+/// triple `_actor110600Spawn` / this / `enemyDestroy`: copies
 /// `D_actor_110600_80131F3C` onto its frame, rebuilds the model root's
 /// coordinate and hands its translation to `worldCoordUpdateActorColor`, then switches
 /// on `gSceneCombatState.actorControl`.
@@ -3388,7 +3518,7 @@ static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstAr
 /// The enemy task's three state handlers - spawn, per-frame tick and teardown -
 /// that `func_actor_110600_80138EA8` dispatches through by `Task::state`.
 static const EnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
-    func_actor_110600_80134AB4,
+    _actor110600Spawn,
     func_actor_110600_80137F2C,
     enemyDestroy,
 };
