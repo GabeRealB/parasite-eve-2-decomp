@@ -1,24 +1,32 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
-/// Applies signed 16.16 walk velocity to the root's integer translation.
+/// Advances the reversing walker's root while preserving fractional displacement.
 ///
-/// Work and root must be live and writable. Velocity is in the root's parent
-/// frame, in coordinate units per update. Each signed integer half advances
-/// that axis; the unsigned fractional half is retained for the next update.
-/// Marks the root's composed transform stale without changing its rotation.
-static inline void _reverseWalkIntegrateVelocity(ReverseWalkWork* work, GfxCoord* rootCoord)
-{
-    work->walk.carry[0].word += work->walk.velocity.vx;
-    work->walk.carry[1].word += work->walk.velocity.vy;
-    work->walk.carry[2].word += work->walk.velocity.vz;
-    rootCoord->coord.t[0]    += work->walk.carry[0].halves.integer;
-    rootCoord->coord.t[1]    += work->walk.carry[1].halves.integer;
-    rootCoord->coord.t[2]    += work->walk.carry[2].halves.integer;
-    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
-    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
-    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
-    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
-}
+/// `walk` is a writable `ActorWalkState` lvalue; `rootCoord` points to a separate
+/// writable model-root `GfxCoord`. The walk lvalue is evaluated repeatedly and
+/// must be a stable expression without side effects; the root pointer is
+/// evaluated once. The storage is borrowed. Invoke as a standalone statement.
+/// Velocity is signed 16.16 parent-coordinate units per update; the three carry
+/// words enter with only fractional residues (zero on spawn).
+/// Each accumulated signed integer half advances its XYZ translation, then
+/// only the unsigned fractional half remains. Negative sums round down to
+/// whole units and leave a nonnegative residue.
+/// Invalidates the root's cached composition even when velocity is zero.
+/// No pointer is retained; velocity and root rotation remain unchanged.
+#define REVERSE_WALK_INTEGRATE_VELOCITY(walk, rootCoord)                \
+    {                                                                   \
+        GfxCoord* integratedRoot     = (rootCoord);                     \
+        (walk).carry[0].word        += (walk).velocity.vx;              \
+        (walk).carry[1].word        += (walk).velocity.vy;              \
+        (walk).carry[2].word        += (walk).velocity.vz;              \
+        integratedRoot->coord.t[0]  += (walk).carry[0].halves.integer;  \
+        integratedRoot->coord.t[1]  += (walk).carry[1].halves.integer;  \
+        integratedRoot->coord.t[2]  += (walk).carry[2].halves.integer;  \
+        integratedRoot->composeStamp = GRAPHICS_COORD_DIRTY;            \
+        (walk).carry[0].word         = (walk).carry[0].halves.fraction; \
+        (walk).carry[1].word         = (walk).carry[1].halves.fraction; \
+        (walk).carry[2].word         = (walk).carry[2].halves.fraction; \
+    }
 
 /// Advances the reversing walker's motion, animation and model presentation.
 ///
@@ -52,7 +60,7 @@ static void _reverseWalkUpdate(Task* task)
     // Run the walk phase before consuming its velocity for this update.
     motionHandlers[work->walk.motion](task);
     rootCoord = task->extra.tmd->coords;
-    _reverseWalkIntegrateVelocity(work, rootCoord);
+    REVERSE_WALK_INTEGRATE_VELOCITY(work->walk, rootCoord);
     if (work->model.ticking != 0) {
         for (slotIndex = REVERSE_WALK_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationTickSlot(&work->rig.anim, slotIndex);
@@ -75,3 +83,5 @@ static void _reverseWalkUpdate(Task* task)
         work->freeCountdown--;
     }
 }
+
+#undef REVERSE_WALK_INTEGRATE_VELOCITY

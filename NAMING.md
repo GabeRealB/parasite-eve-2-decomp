@@ -610,11 +610,13 @@ task's work block `ReverseWalkWork`. `KyleMadiganWalkerWork` in
 `include/actors/actor.h` is the work block of the twenty-part Kyle Madigan
 walker that `actor_135600` and `actor_350700` each carry as their own
 functions, with the tasks of his hands and of what he holds.
-The spawn, frame update, velocity integration, facing, movement-start,
+The spawn, frame update, facing, movement-start,
 final-turn, lighting, idle, walk-phase dispatch, exit and walk/draw message
 handlers keep static per-carrier instances marked
 `_reverseWalk`. Package-local direction-command handlers retain their package
 prefix.
+The frame-update fragment's root-velocity integration is the locally scoped
+`REVERSE_WALK_INTEGRATE_VELOCITY` macro; it operates on the embedded walk state.
 
 `desertChaser` owns the included Desert Chaser enemy, one source built three
 ways: the cutscene build (`actor_323000`, `actor_323400`), the regular build
