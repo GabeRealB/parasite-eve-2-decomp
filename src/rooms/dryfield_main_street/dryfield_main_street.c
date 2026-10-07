@@ -81,26 +81,6 @@
 
 extern RoomEventActiveBytes gRoomEventActive;
 
-/// The clips the Dryfield main street adds to the player's animation bank.
-///
-/// The room's first-visit cutscene script sends `data.copy` to the player.
-/// The copy takes four words from the start of this storage: the three set
-/// pointers and the request's own source pointer. Those words occupy extended
-/// ids 47-50. The script then plays id 48 and, twenty frames later, id 49;
-/// its remaining plays, and the one in its skip script, are base-bank clips.
-/// Id 47 stays NULL, id 50 holds the source pointer, and the stored word count
-/// sits past the copied span.
-typedef union {
-    struct {
-        AnimationSet*            sets[3]; // Player clips for extended ids 47-49; NULL at the id nothing plays
-        AnimationBankCopyRequest copy;    // Copies the first four words of this storage
-    } data;                               // The records by name
-    s32 words[5];                         // The same storage as the copy reads it; the last word lies beyond the copied span
-} _DryfieldMainStreetAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_DryfieldMainStreetAnimationBankExtensionStorage, 20);
-
-extern _DryfieldMainStreetAnimationBankExtensionStorage D_dryfield_main_street_80181584;
-
 /// Descriptor of the room's own event task, which the message handler spawns.
 extern TaskDesc gMainStreetEventTaskDesc;
 
@@ -248,7 +228,22 @@ TaskDesc D_dryfield_main_street_8018156C[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_main_street_8017E3A8, { .value = 0 } },
 };
 
-_DryfieldMainStreetAnimationBankExtensionStorage D_dryfield_main_street_80181584 = { .data = { { NULL, &_gDryfieldMainStreetAnimation03BF0, &_gDryfieldMainStreetAnimation03F84 }, { { .words = D_dryfield_main_street_80181584.words }, 4 } } };
+/// Player clips for extended ids 47-49; NULL at id 47, which nothing plays.
+///
+/// The room's first-visit cutscene script sends the player the copy request.
+/// `D_dryfield_main_street_80181590` copies four words starting here into the
+/// player's bank, which is one word past the end of this array: the read runs
+/// on through the first word of `D_dryfield_main_street_80181590`, that
+/// request's own source pointer. That overrun is the original's and is kept as
+/// it is: the request carries a literal count larger than the table, while the
+/// table was stored with only its own entries. The script then plays id 48 and,
+/// twenty frames later, id 49; its remaining plays, and the one in its skip
+/// script, are base-bank clips. Id 50, which receives the source pointer, is
+/// never played.
+AnimationSet* D_dryfield_main_street_80181584[3] = { NULL, &_gDryfieldMainStreetAnimation03BF0, &_gDryfieldMainStreetAnimation03F84 };
+
+// Installs the player's clips; the count is four, not the three entries of its source.
+AnimationBankCopyRequest D_dryfield_main_street_80181590 = { { .sets = D_dryfield_main_street_80181584 }, 4 };
 
 AnimationPlayRequest D_dryfield_main_street_80181598 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -272,7 +267,7 @@ ActorCommand D_dryfield_main_street_80181620 = { { .loc = { 2, 2 } }, 3 };
 EvsCommand D_dryfield_main_street_80181624[42] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5202000F }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_main_street_80181584.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_main_street_80181590 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815AC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815C0 }, { .value = 0 } },
