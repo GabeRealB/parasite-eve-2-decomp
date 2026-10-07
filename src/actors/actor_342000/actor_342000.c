@@ -638,7 +638,6 @@ static void func_actor_342000_80162158(Task* arg0)
 void func_actor_342000_801625D8(Task* arg0)
 {
     _Actor342000GluttonModelWork* work;
-    GfxMatrix*                    mtx;
     VECTOR*                       sc;
     GfxCoord*                     coord;
     TmdObject*                    extra;
@@ -659,13 +658,8 @@ void func_actor_342000_801625D8(Task* arg0)
             break;
         case 1:
             sc                        = &((_Actor342000GluttonModelWork*)work->parent->work)->scale;
-            mtx                       = (GfxMatrix*)&work->coord.coord;
-            mtx->rotationWords.m00M01 = ONE;
-            mtx->rotationWords.m02M10 = 0;
-            mtx->rotationWords.m11M12 = ONE;
-            mtx->rotationWords.m20M21 = 0;
-            mtx->rotationWords.m22    = ONE;
-            gfxScaleMatrixColumns(&mtx->mat, sc);
+            gfxSetRotIdentity(&work->coord.coord);
+            gfxScaleMatrixColumns(&work->coord.coord, sc);
             work->coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
