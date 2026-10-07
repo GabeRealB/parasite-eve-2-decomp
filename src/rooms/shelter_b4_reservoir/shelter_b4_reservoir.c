@@ -1092,7 +1092,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
             }
             break;
         case 4:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B4_RESERVOIR_EXIT_TRANSIT) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B4_RESERVOIR_EXIT_TRANSIT) == 0) {
                 arg0->state++;
             }
             break;

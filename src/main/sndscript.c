@@ -354,6 +354,12 @@ typedef struct {
 } _SndScriptAdsr;
 STATIC_ASSERT_SIZEOF(_SndScriptAdsr, 0x8);
 
+// Result of applying an optional image-relative ADSR override.
+enum {
+    SOUND_SCRIPT_ADSR_NOT_APPLIED = -1,
+    SOUND_SCRIPT_ADSR_APPLIED     = 1
+};
+
 STATIC_ASSERT(OFFSET_OF(SpuVoiceAttr, adsr1) == 0x3A, snd_voice_adsr1_offset);
 STATIC_ASSERT(OFFSET_OF(SpuVoiceAttr, adsr2) == 0x3C, snd_voice_adsr2_offset);
 
@@ -425,6 +431,14 @@ enum {
     SOUND_SCRIPT_PAN_FRACTION_SCALE = 4
 };
 
+// Level 3 admits only level-3 notes; level 2 also admits those notes.
+enum {
+    SOUND_SCRIPT_REVERB_DISABLED        = -1,
+    SOUND_SCRIPT_REVERB_DEFAULT_LEVEL   = 1,
+    SOUND_SCRIPT_REVERB_HIGH_LEVEL      = 2,
+    SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL = 3
+};
+
 // Descriptor lookup modes; all other values produce no match.
 enum {
     /// Selects exact matching of a sound-script slot's attached sample-bank id.
@@ -483,23 +497,19 @@ static void Snd_ClearBusy(void);
 
 static void Snd_SetBusyFlag(s32 arg0);
 
-static void SndVoice_SetPriority(s8 arg0);
+static void _sndScriptSetReverb(s8 reverbLevel);
 
-static void SndEvt_EnqueueTypeF(void);
+static void _sndEvtRequestScriptKeyOff(void);
 
 static void SndVoice_StepMasterLevel(void);
 
 static s32 SndVoice_DriveSlots(s32* unused);
 
-static void SndVoice_ScanCandidates(_SndScriptSlotPick* candidates, u16 arg1, s32 arg2, u16 arg3);
+static void _sndScriptScanSlotCandidates(_SndScriptSlotPick* candidates, u16 requestPriority, s32 soundId, u16 requestFlags);
 
 static inline void _sndScriptAdvanceClock(_SndScript* script);
 
-/// Decides whether a note plays with reverb, from its own level against a
-/// global one. A note at level 3 gets reverb whenever the global level is at
-/// least 2; a global level of 3 turns it off for every other note; otherwise a
-/// note with a non-negative level gets reverb once the global level reaches it.
-static inline u8 _sndScriptUseReverb(_SndScriptNote* note);
+static inline u8 _sndScriptUseReverb(const _SndScriptNote* note);
 
 static s32 SndScript_Exec(_SndScript* script);
 
@@ -507,7 +517,7 @@ static void SndVoice_TickEnvelope(_SndVoice* voice);
 
 static void SndVoice_Init(void);
 
-static void SndVoice_SetPriorityLevel(s8 arg0);
+static void _sndScriptSetReverbLevel(s8 reverbLevel);
 
 /// Selects an eligible voice candidate, respecting the retrigger-age limit.
 static s8 SndVoice_SelectStealCandidate(_SndScriptSlotPick* candidates, s32 retriggerTicks);
@@ -526,13 +536,13 @@ static s32 SndVoice_Tick(_SndVoice* voice);
 
 static s32 SndScript_TickVoices(_SndScript* script);
 
-static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, _SndVoice* voice, LinInterp* ramp, SpuVolume* panVolumes);
+static void _sndVoiceCalcMixVolumes(s8 panOffset, s8 attenuation, _SndVoice* voice, LinInterp* volumeRamp, SpuVolume* panVolumes);
 
-static void SndVoice_SetupEnvelope(_SndVoice* voice, s16 envelopeOffset, u32 pitch, SndBankLayer* bankLayer);
+static void _sndVoiceSetupPitchEnvelope(_SndVoice* voice, s16 pitchEnvelopeOffset, u32 keyedPitch, const SndBankLayer* layer);
 
-static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SpuVoiceAttr* arg2);
+static s32 _sndScriptApplyAdsrOverride(const SndBankHdr* image, s16 adsrOffset, SpuVoiceAttr* attr);
 
-static void SndVoice_ClearActive(void);
+static void _sndScriptResetStageSlots(void);
 
 static u8                D_80068A54[]        = { 0xFF, 0xFF, 0xFF, 0xFF, 0x20, 0x26, 0x20, 0x26, 0x2E, 0x05, 0x1E, 0xFF };
 static _SndBankInitEntry Snd_BankInitTable[] = {
@@ -542,19 +552,25 @@ static _SndBankInitEntry Snd_BankInitTable[] = {
 s32        D_80068A78              = 0;
 static s16 SndScript_VoiceRanges[] = { 1, 2 };
 
-static inline s32 _sndStagePriority(s32 stage, s32 area)
+/// Selects the sound-script reverb setting for a stage and area.
+///
+/// `stage` must be 0..5; its two area-table entries are compared with `area`.
+/// Mine Gorge selects level 3, table matches select level 2, and all other
+/// areas select level 1. The caller supplies the unpacked location bytes.
+static inline s32 _sndScriptSelectStageReverbLevel(s32 stage, s32 area)
 {
-    s32 i;
+    enum { SOUND_SCRIPT_REVERB_AREAS_PER_STAGE = 2 };
+    s32 areaIndex;
 
-    if (area == 5 && stage == 4) {
-        return 3;
+    if (area == GAME_AREA_MINE_GORGE && stage == GAME_STAGE_MINE_SHELTER) {
+        return SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL;
     }
-    for (i = 0; i < 2; i++) {
-        if (D_80068A54[i + stage * 2] == area) {
-            return 2;
+    for (areaIndex = 0; areaIndex < SOUND_SCRIPT_REVERB_AREAS_PER_STAGE; areaIndex++) {
+        if (D_80068A54[areaIndex + stage * SOUND_SCRIPT_REVERB_AREAS_PER_STAGE] == area) {
+            return SOUND_SCRIPT_REVERB_HIGH_LEVEL;
         }
     }
-    return 1;
+    return SOUND_SCRIPT_REVERB_DEFAULT_LEVEL;
 }
 
 void Snd_InitFromStage(s32 arg0, s32 arg1)
@@ -563,9 +579,9 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     s32      temp_v1;
 
     D_8008274C = 0;
-    SndVoice_ClearActive();
+    _sndScriptResetStageSlots();
     arg0 = arg0 & 0xFF;
-    SndEvt_EnqueueTypeF();
+    _sndEvtRequestScriptKeyOff();
     sndEvtRequestScriptStop(SOUND_AREA_BANK_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_SCRIPT_REQUEST_TYPE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -574,10 +590,10 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     arg1       = arg1 & 0xFF;
     D_80082120 = arg0;
     D_80082136 = arg1;
-    SndBankSlot_Free(1);
-    SndBankSlot_Free(7);
+    sndBankSlotReleaseImage(1);
+    sndBankSlotReleaseImage(7);
 
-    SndVoice_SetPriority(_sndStagePriority(arg0, arg1));
+    _sndScriptSetReverb(_sndScriptSelectStageReverbLevel(arg0, arg1));
     D_80082130 = 0x3D010;
     D_80082128 = 0;
     D_80082124 = D_80082128;
@@ -586,7 +602,7 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     switch (temp_v1) {
         case 0:
             sndBankFree(&Snd_Banks[4]);
-            SndBankSlot_Free(4);
+            sndBankSlotReleaseImage(4);
         case 1:
             D_80082122 = 0;
             break;
@@ -603,81 +619,97 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     sndBankFree(var_s0);
     sndBankFree(var_s0 + 6);
     sndBankFree(var_s0 + 4);
-    SndBankSlot_Free(5);
+    sndBankSlotReleaseImage(5);
     sndBankFree(var_s0 + 5);
-    SndBankSlot_Free(6);
+    sndBankSlotReleaseImage(6);
     sndBankFree(var_s0 + 2);
-    SndBankSlot_Free(3);
-    SndBank_SetEnableFlags(1, 0x40000000);
+    sndBankSlotReleaseImage(3);
+    sndScriptSetTypeRequestsEnabled(1, SOUND_BANK_TYPE_CHARACTER_ALL);
 }
 
-s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
+s32 sndLoadPlaceScriptSamples(s32 waveBytes, s32 bankId)
 {
-    s32 temp_a2;
+    enum {
+        SOUND_LOAD_SCRIPT_SAMPLE_BLOCK_BYTES = 64,
+        SOUND_LOAD_COMMON_SAMPLE_BASE        = 0x63810,
+        SOUND_LOAD_TYPE_3_SAMPLE_BASE        = 0x47010,
+        SOUND_LOAD_CHARACTER_SAMPLE_BASE     = 0x3D010,
+        SOUND_LOAD_HIGH_SAMPLE_END           = 0x7B010,
+        SOUND_LOAD_PE_SAMPLE_BASE            = 0x6F810,
+        SOUND_LOAD_CHARACTER_BANK_LIMIT      = 3,
+        SOUND_LOAD_CHARACTER_RESTART_PENDING = 1,
+        SOUND_LOAD_CHARACTER_RESTARTED       = 2,
+        SOUND_LOAD_SAMPLE_NO_ADDRESS         = 0
+    };
+    s32 alignedWaveBytes;
+    s32 spuAddr;
 
-    temp_a2 = (arg0 + 0x3F) & ~0x3F;
-    switch ((u32)(arg1 & SOUND_BANK_TYPE_MASK) >> 0xC) {
-        case 0:
-            arg0 = 0x63810;
+    alignedWaveBytes = (waveBytes + SOUND_LOAD_SCRIPT_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SCRIPT_SAMPLE_BLOCK_BYTES - 1);
+    switch ((u32)(bankId & SOUND_BANK_TYPE_MASK) >> 0xC) {
+        case SOUND_BANK_TYPE_COMMON:
+            spuAddr = SOUND_LOAD_COMMON_SAMPLE_BASE;
             break;
-        case 1:
-            D_80082128 = 0x63810 - temp_a2;
-            arg0       = D_80082128;
+        case SOUND_BANK_TYPE_1 >> 12:
+            D_80082128 = SOUND_LOAD_COMMON_SAMPLE_BASE - alignedWaveBytes;
+            spuAddr    = D_80082128;
             break;
         case 3:
-            arg0 = 0x47010;
+            spuAddr = SOUND_LOAD_TYPE_3_SAMPLE_BASE;
             break;
-        case 4:
-            if ((s8)D_80082135 == 1) {
-                D_80082135 = 2;
+        case SOUND_BANK_TYPE_CHARACTER:
+            // Character banks append after the preceding descriptor's sample pool.
+            // A pending mode change instead restarts placement at the first bank.
+            if ((s8)D_80082135 == SOUND_LOAD_CHARACTER_RESTART_PENDING) {
+                D_80082135 = SOUND_LOAD_CHARACTER_RESTARTED;
             } else {
-                if ((s8)D_80082122 > 0 && (s8)D_80082122 < 3) {
-                    arg0 = Snd_Banks[(s8)D_80082122 + 3].spuAddr +
-                           Snd_Banks[(s8)D_80082122 + 3].waveBytes;
+                if ((s8)D_80082122 > 0 && (s8)D_80082122 < SOUND_LOAD_CHARACTER_BANK_LIMIT) {
+                    spuAddr = Snd_Banks[(s8)D_80082122 + 3].spuAddr +
+                              Snd_Banks[(s8)D_80082122 + 3].waveBytes;
                     D_80082122 += 1;
-                    D_80082130  = temp_a2 + arg0;
+                    D_80082130  = alignedWaveBytes + spuAddr;
                     break;
                 }
-                arg0 = 0;
+                spuAddr = SOUND_LOAD_SAMPLE_NO_ADDRESS;
                 if (D_80082122 != 0) {
-                    goto clear_ret;
+                    goto clearPlacementEnd;
                 }
             }
-            arg0       = 0x3D010;
+            spuAddr    = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
             D_80082122 = 1;
-            D_80082130 = temp_a2 + arg0;
+            D_80082130 = alignedWaveBytes + spuAddr;
             break;
-        clear_ret:
-            D_80082130 = 0;
+        clearPlacementEnd:
+            D_80082130 = SOUND_LOAD_SAMPLE_NO_ADDRESS;
             break;
-        case 5: {
-            s32 top;
+        case SOUND_BANK_TYPE_AREA: {
+            s32 type1Base;
 
-            top = D_80082128;
-            if (top == 0) {
-                top = 0x63810;
+            // Area samples end below the type-1 pool, or below the common pool.
+            type1Base = D_80082128;
+            if (type1Base == 0) {
+                type1Base = SOUND_LOAD_COMMON_SAMPLE_BASE;
             } else {
-                top = D_80082128;
+                type1Base = D_80082128;
             }
-            D_80082124 = top - temp_a2;
-            arg0       = D_80082124;
+            D_80082124 = type1Base - alignedWaveBytes;
+            spuAddr    = D_80082124;
             break;
         }
-        case 6:
-            arg0 = 0x3D010 - temp_a2;
+        case (u32)SOUND_STAGE_AMBIENT >> 28:
+            spuAddr = SOUND_LOAD_CHARACTER_SAMPLE_BASE - alignedWaveBytes;
             break;
-        case 2:
-        case 7:
-            arg0 = 0x7B010 - temp_a2;
+        case SOUND_BANK_TYPE_WEAPON:
+        case (u32)SOUND_PLAYER_DEATH >> 28:
+            spuAddr = SOUND_LOAD_HIGH_SAMPLE_END - alignedWaveBytes;
             break;
-        case 14:
-            arg0 = 0x6F810;
+        case (u32)SOUND_BANK_TYPE_PE_ALL >> 28:
+            spuAddr = SOUND_LOAD_PE_SAMPLE_BASE;
             break;
         default:
-            arg0 = 0;
+            spuAddr = SOUND_LOAD_SAMPLE_NO_ADDRESS;
             break;
     }
-    return arg0;
+    return spuAddr;
 }
 
 s32 stageMusicSelectColumn(s32 stage, s32 sceneEvent, s32 sceneEventBase)
@@ -893,8 +925,8 @@ s32 Snd_InitBanks(u32 unused)
     *(volatile s32*)&D_80068A78 = 0xFF;
     Spu_SetVoiceRange(1, 0x12, 6);
     SndVoice_Init();
-    SndVoice_SetPriority(1);
-    SndBank_SetEnableFlags(1, 0x80000000);
+    _sndScriptSetReverb(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
+    sndScriptSetTypeRequestsEnabled(1, SOUND_BANK_TYPE_ALL_NON_AMBIENT);
 
     for (i = 0; i < 2; i++) {
         entry                           = &Snd_BankInitTable[i];
@@ -1097,39 +1129,48 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
     }
 }
 
-void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
+void sndScriptSetTypeRequestsEnabled(s32 enabled, s32 typeSelector)
 {
-    enum { SOUND_EVENT_STOP_KEEP_RELEASE = 1 };
+    enum {
+        SOUND_SCRIPT_REQUEST_TYPE_MASK  = 0xF0000000,
+        SOUND_SCRIPT_REQUEST_TYPE_SHIFT = 28
+    };
     SndEvt*           event;
     SndEvtScriptArgs* args;
+    s32               typeIndex;
 
-    if (arg1 == 0x80000000) {
-        for (arg1 = 0; arg1 < 0x10; arg1++) {
-            D_80082138[arg1] = arg0 & 1;
+    if (typeSelector == SOUND_BANK_TYPE_ALL_NON_AMBIENT) {
+        for (typeIndex = 0; typeIndex < ARRAY_SIZE(D_80082138); typeIndex++) {
+            D_80082138[typeIndex] = enabled & 1;
         }
     } else {
-        D_80082138[(u32)(arg1 & 0xF0000000) >> 28] = arg0 & 1;
-        if (arg0 == 0 && (arg1 & 0xF0000000) == 0x40000000) {
+        D_80082138[(u32)(typeSelector & SOUND_SCRIPT_REQUEST_TYPE_MASK) >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] = enabled & 1;
+        // The raw zero request also stops character scripts, keeping their release.
+        if (enabled == 0 && (typeSelector & SOUND_SCRIPT_REQUEST_TYPE_MASK) == SOUND_BANK_TYPE_CHARACTER_ALL) {
             event = sndEvtAlloc();
             if (event != NULL) {
                 event->command    = SOUND_EVENT_SCRIPT_STOP;
                 args              = &event->args.script;
-                args->soundId     = _sndScriptRemapType1Id(0x40000000);
-                args->stopControl = SOUND_EVENT_STOP_KEEP_RELEASE;
+                args->soundId     = _sndScriptRemapType1Id(SOUND_BANK_TYPE_CHARACTER_ALL);
+                args->stopControl = SOUND_SCRIPT_STOP_KEEP_RELEASE;
                 sndEvtEnqueue(event);
             }
         }
     }
 }
 
-static void SndVoice_SetPriority(s8 arg0)
+/// Applies a signed-byte sound-script reverb setting through its normalization policy.
+///
+/// Negative levels disable reverb, zero selects level 1, and positive levels
+/// are retained. This changes note admission at later key-ons, not active sends.
+static void _sndScriptSetReverb(s8 reverbLevel)
 {
-    SndVoice_SetPriorityLevel(arg0);
+    _sndScriptSetReverbLevel(reverbLevel);
 }
 
-s32 SndVoice_HasActiveId(s32 arg0)
+s32 sndScriptHasActiveId(s32 soundId)
 {
-    return ~SndVoice_FindById(_sndScriptRemapType1Id(arg0)) != 0;
+    return ~sndScriptFindInstanceById(_sndScriptRemapType1Id(soundId)) != 0;
 }
 
 void SndEvt_EnqueueTypeD(void)
@@ -1154,7 +1195,11 @@ void SndEvt_EnqueueTypeE(void)
     }
 }
 
-static void SndEvt_EnqueueTypeF(void)
+/// Queues type-1 and area-script key-off for the next sound-event dispatch.
+///
+/// A full event pool drops the request. Dispatch adjusts release and keys off
+/// their attached voices; script-state clearing before dispatch is separate.
+static void _sndEvtRequestScriptKeyOff(void)
 {
     SndEvt* event;
 
@@ -1349,7 +1394,7 @@ static s32 SndVoice_DriveSlots(s32* unused)
                         if (p->mixDirty == 1) {
                             Spu_GetVoiceRef(node->spuVoice, &ref);
                             attr = ref.attr;
-                            SndVoice_ScaleVolume(p->panOffset, p->attenuation, node, &p->volumeRamp, &panVolumes);
+                            _sndVoiceCalcMixVolumes(p->panOffset, p->attenuation, node, &p->volumeRamp, &panVolumes);
                             attr->volume.left   = panVolumes.left;
                             attr->volume.right  = panVolumes.right;
                             attr->volmode.left  = 0;
@@ -1417,55 +1462,82 @@ static s32 SndVoice_DriveSlots(s32* unused)
     return 0;
 }
 
-static void SndVoice_ScanCandidates(_SndScriptSlotPick* candidates, u16 arg1, s32 arg2, u16 arg3)
+/// Clears a script-slot survey for a request with the given entry priority.
+///
+/// No-member age is above every nonnegative signed-halfword retrigger limit.
+static inline void _sndScriptInitSlotPick(_SndScriptSlotPick* candidates, u16 requestPriority)
 {
-    s8          i;
-    _SndScript* p;
-    u16         temp;
-    s32         score;
+    enum {
+        SOUND_SCRIPT_SLOT_NONE               = -1,
+        SOUND_SCRIPT_RETRIGGER_AGE_NO_MEMBER = 0xFFFF
+    };
 
-    candidates->slot               = -1;
-    candidates->equalPriorityTicks = -1;
-    candidates->equalPrioritySlot  = -1;
-    candidates->oldestGroupTicks   = -1;
-    candidates->oldestGroupSlot    = -1;
-    candidates->lowerPrioritySlot  = -1;
-    candidates->idleSlot           = -1;
-    candidates->lastGroupSlot      = -1;
-    candidates->newestGroupSlot    = -1;
-    candidates->lowestPriority     = arg1;
-    candidates->newestGroupTicks   = 0xFFFF;
+    candidates->slot               = SOUND_SCRIPT_SLOT_NONE;
+    candidates->equalPriorityTicks = SOUND_SCRIPT_SLOT_NONE;
+    candidates->equalPrioritySlot  = SOUND_SCRIPT_SLOT_NONE;
+    candidates->oldestGroupTicks   = SOUND_SCRIPT_SLOT_NONE;
+    candidates->oldestGroupSlot    = SOUND_SCRIPT_SLOT_NONE;
+    candidates->lowerPrioritySlot  = SOUND_SCRIPT_SLOT_NONE;
+    candidates->idleSlot           = SOUND_SCRIPT_SLOT_NONE;
+    candidates->lastGroupSlot      = SOUND_SCRIPT_SLOT_NONE;
+    candidates->newestGroupSlot    = SOUND_SCRIPT_SLOT_NONE;
+    candidates->lowestPriority     = requestPriority;
+    candidates->newestGroupTicks   = SOUND_SCRIPT_RETRIGGER_AGE_NO_MEMBER;
     candidates->groupCount         = 0;
+}
 
-    for (i = 0; i < 8; i++) {
-        p = &SndScript_Slots[i];
-        if (p->state == SOUND_SCRIPT_IDLE) {
-            candidates->idleSlot = i;
-        } else if (p->state != SOUND_SCRIPT_STOPPING) {
-            temp = p->entryControls->priority;
-            if (temp < (u32)candidates->lowestPriority) {
-                candidates->lowestPriority    = temp;
-                candidates->lowerPrioritySlot = i;
-            } else if (candidates->lowestPriority == temp) {
-                if ((candidates->equalPrioritySlot == -1) || (candidates->equalPriorityTicks < p->runningTicks)) {
-                    score                          = p->runningTicks;
-                    candidates->equalPrioritySlot  = i;
-                    candidates->equalPriorityTicks = score;
+/// Surveys all script slots for one resolved start request's replacement policy.
+///
+/// Returns candidates through caller-owned storage, without changing instances.
+/// Idle slots qualify as free; stopping slots are excluded. Every other slot
+/// requires live entry controls. The group is the same id ignoring its instance
+/// byte, or equal full flags when the existing entry requests flag grouping.
+/// Ages are running audio updates; equal ages retain the earlier slot, while
+/// the last idle slot wins. No candidate is represented by -1.
+static void _sndScriptScanSlotCandidates(_SndScriptSlotPick* candidates, u16 requestPriority, s32 soundId, u16 requestFlags)
+{
+    enum {
+        SOUND_SCRIPT_SLOT_NONE     = -1,
+        SOUND_SCRIPT_GROUP_ID_MASK = 0xFFFF00FF
+    };
+    s8          slotIndex;
+    _SndScript* script;
+    u16         entryPriority;
+    u16         groupFlags;
+    s32         runningTicks;
+
+    _sndScriptInitSlotPick(candidates, requestPriority);
+
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
+        script = &SndScript_Slots[slotIndex];
+        if (script->state == SOUND_SCRIPT_IDLE) {
+            candidates->idleSlot = slotIndex;
+        } else if (script->state != SOUND_SCRIPT_STOPPING) {
+            entryPriority = script->entryControls->priority;
+            if (entryPriority < (u32)candidates->lowestPriority) {
+                candidates->lowestPriority    = entryPriority;
+                candidates->lowerPrioritySlot = slotIndex;
+            } else if (candidates->lowestPriority == entryPriority) {
+                if ((candidates->equalPrioritySlot == SOUND_SCRIPT_SLOT_NONE) || (candidates->equalPriorityTicks < script->runningTicks)) {
+                    runningTicks                   = script->runningTicks;
+                    candidates->equalPrioritySlot  = slotIndex;
+                    candidates->equalPriorityTicks = runningTicks;
                 }
             }
-            if (((p->soundId & 0xFFFF00FF) == (arg2 & 0xFFFF00FF)) ||
-                (((temp = p->entryControls->flags) & SOUND_SCRIPT_GROUP_BY_FLAGS) && (arg3 == temp))) {
-                candidates->lastGroupSlot = i;
-                if ((candidates->newestGroupSlot == -1) || (candidates->newestGroupTicks > p->runningTicks)) {
-                    score                        = p->runningTicks;
-                    candidates->newestGroupSlot  = i;
-                    candidates->newestGroupTicks = score;
+            // Grouping ignores only the instance byte, unless the existing flags opt in.
+            if (((script->soundId & SOUND_SCRIPT_GROUP_ID_MASK) == (soundId & SOUND_SCRIPT_GROUP_ID_MASK)) ||
+                (((groupFlags = script->entryControls->flags) & SOUND_SCRIPT_GROUP_BY_FLAGS) && (requestFlags == groupFlags))) {
+                candidates->lastGroupSlot = slotIndex;
+                if ((candidates->newestGroupSlot == SOUND_SCRIPT_SLOT_NONE) || (candidates->newestGroupTicks > script->runningTicks)) {
+                    runningTicks                 = script->runningTicks;
+                    candidates->newestGroupSlot  = slotIndex;
+                    candidates->newestGroupTicks = runningTicks;
                 }
                 candidates->groupCount += 1;
-                if ((candidates->oldestGroupSlot == -1) || (candidates->oldestGroupTicks < p->runningTicks)) {
-                    score                        = p->runningTicks;
-                    candidates->oldestGroupSlot  = i;
-                    candidates->oldestGroupTicks = score;
+                if ((candidates->oldestGroupSlot == SOUND_SCRIPT_SLOT_NONE) || (candidates->oldestGroupTicks < script->runningTicks)) {
+                    runningTicks                 = script->runningTicks;
+                    candidates->oldestGroupSlot  = slotIndex;
+                    candidates->oldestGroupTicks = runningTicks;
                 }
             }
         }
@@ -1526,25 +1598,26 @@ static inline void _sndScriptAdvanceClock(_SndScript* script)
     script->tickClock += (gDisplayState.region == MODE_PAL ? SOUND_SCRIPT_CLOCK_STEP_PAL : SOUND_SCRIPT_CLOCK_STEP_WHOLE);
 }
 
-/// Decides whether a note plays with reverb, from its own level against a
-/// global one. A note at level 3 gets reverb whenever the global level is at
-/// least 2; a global level of 3 turns it off for every other note; otherwise a
-/// note with a non-negative level gets reverb once the global level reaches it.
-static inline u8 _sndScriptUseReverb(_SndScriptNote* note)
+/// Returns whether a note's send is admitted by the sound-script reverb setting.
+///
+/// Level-3 notes are admitted at settings 2 and above. Setting 3 excludes every
+/// other note; other settings admit nonnegative note levels up to that setting.
+/// The note is borrowed for this call, and the result is exactly 0 or 1.
+static inline u8 _sndScriptUseReverb(const _SndScriptNote* note)
 {
-    s32 on;
+    s32 reverbEnabled;
 
-    if (note->reverbLevel == 3 && D_8008274B >= 2) {
-        on = 1;
-    } else if (note->reverbLevel != 3 && D_8008274B == 3) {
-        on = 0;
+    if (note->reverbLevel == SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL && D_8008274B >= SOUND_SCRIPT_REVERB_HIGH_LEVEL) {
+        reverbEnabled = 1;
+    } else if (note->reverbLevel != SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL && D_8008274B == SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL) {
+        reverbEnabled = 0;
     } else {
-        on = 0;
+        reverbEnabled = 0;
         if (note->reverbLevel >= 0) {
-            on = D_8008274B >= note->reverbLevel;
+            reverbEnabled = D_8008274B >= note->reverbLevel;
         }
     }
-    return on;
+    return reverbEnabled;
 }
 
 static s32 SndScript_Exec(_SndScript* script)
@@ -1687,7 +1760,7 @@ static s32 SndScript_Exec(_SndScript* script)
                 } else {
                     voice->basePan = SOUND_BANK_PAN_MAX;
                 }
-                if (SndScript_FindOneA((u8*)script->bankSlot->image, note->adsrOffset, attr) == -1) {
+                if (_sndScriptApplyAdsrOverride(script->bankSlot->image, note->adsrOffset, attr) == SOUND_SCRIPT_ADSR_NOT_APPLIED) {
                     attr->adsr1 = bankLayer->adsr1;
                     attr->adsr2 = bankLayer->adsr2;
                 }
@@ -1701,7 +1774,7 @@ static s32 SndScript_Exec(_SndScript* script)
                     Spu_EnableReverbVoice(voice->spuVoice);
                     voice->field_1 = 1;
                 }
-                SndVoice_ScaleVolume(script->panOffset, script->attenuation, voice, &script->volumeRamp, &panVolumes);
+                _sndVoiceCalcMixVolumes(script->panOffset, script->attenuation, voice, &script->volumeRamp, &panVolumes);
                 attr->volume.left   = panVolumes.left;
                 attr->volume.right  = panVolumes.right;
                 attr->volmode.left  = 0;
@@ -1714,7 +1787,7 @@ static s32 SndScript_Exec(_SndScript* script)
                 _sndVoiceAttach(script, voice);
                 envelopeOffset = note->pitchEnvelopeOffset;
                 if (envelopeOffset != SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
-                    SndVoice_SetupEnvelope(voice, envelopeOffset, pitch & 0xFFFF, bankLayer);
+                    _sndVoiceSetupPitchEnvelope(voice, envelopeOffset, pitch & 0xFFFF, bankLayer);
                     result = 1;
                 } else {
                     voice->envelope.active = 0;
@@ -1841,7 +1914,7 @@ s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndScriptE
 {
     _SndScriptSlotPick pick;
 
-    SndVoice_ScanCandidates(&pick, entryControls->priority, arg0, entryControls->flags);
+    _sndScriptScanSlotCandidates(&pick, entryControls->priority, arg0, entryControls->flags);
     if ((pick.groupCount < entryControls->maxInstances) && (pick.idleSlot != -1)) {
         pick.slot = pick.idleSlot;
     } else {
@@ -1853,23 +1926,27 @@ s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndScriptE
     return pick.slot;
 }
 
-void SndVoice_FadeMatching(s32 arg0, s32 arg1)
+void sndScriptSetMuteMatching(s32 soundSelector, s32 muted)
 {
-    s32         i;
-    _SndScript* p;
+    enum {
+        SOUND_SCRIPT_REQUEST_TYPE_MASK = 0xF0000000,
+        SOUND_SCRIPT_MUTE_RAMP_UPDATES = 8
+    };
+    s32         slotIndex;
+    _SndScript* script;
 
-    for (i = 0; i < 8; i++) {
-        p = &SndScript_Slots[i];
-        if ((arg0 == p->soundId) || ((p->soundId & 0xF0000000) == arg0)) {
-            if (arg1 == 0) {
-                if (p->state == SOUND_SCRIPT_MUTING) {
-                    p->state = SOUND_SCRIPT_UNMUTING;
-                    linInterpSetup(&p->volumeRamp, 0, (u8)D_80082748, 8);
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
+        script = &SndScript_Slots[slotIndex];
+        if ((soundSelector == script->soundId) || ((script->soundId & SOUND_SCRIPT_REQUEST_TYPE_MASK) == soundSelector)) {
+            if (muted == 0) {
+                if (script->state == SOUND_SCRIPT_MUTING) {
+                    script->state = SOUND_SCRIPT_UNMUTING;
+                    linInterpSetup(&script->volumeRamp, 0, (u8)D_80082748, SOUND_SCRIPT_MUTE_RAMP_UPDATES);
                 }
             } else {
-                if (p->state & SOUND_SCRIPT_MUTABLE) {
-                    p->state = SOUND_SCRIPT_MUTING;
-                    linInterpSetup(&p->volumeRamp, (u8)D_80082748, 0, 8);
+                if (script->state & SOUND_SCRIPT_MUTABLE) {
+                    script->state = SOUND_SCRIPT_MUTING;
+                    linInterpSetup(&script->volumeRamp, (u8)D_80082748, 0, SOUND_SCRIPT_MUTE_RAMP_UPDATES);
                 }
             }
         }
@@ -2016,36 +2093,42 @@ static void SndVoice_Init(void)
     D_8008274A = 0;
     D_80082749 = 0;
     sndScriptSetMasterVolume(0x7F);
-    SndVoice_SetPriorityLevel(1);
+    _sndScriptSetReverbLevel(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
 }
 
-static void SndVoice_SetPriorityLevel(s8 arg0)
+/// Stores the sound-script reverb setting used when later notes are keyed on.
+///
+/// Negative inputs normalize to -1 (disabled), zero to 1, and positive signed
+/// bytes remain unchanged. Setting 3 admits only level-3 notes. Other positive
+/// settings follow the note threshold, also admitting level 3 at settings >=2.
+static void _sndScriptSetReverbLevel(s8 reverbLevel)
 {
-    if (arg0 < 0) {
-        D_8008274B = -1;
+    if (reverbLevel < 0) {
+        D_8008274B = SOUND_SCRIPT_REVERB_DISABLED;
         return;
     }
-    D_8008274B = arg0;
-    if (arg0 == 0) {
-        D_8008274B = 1;
+    D_8008274B = reverbLevel;
+    if (reverbLevel == 0) {
+        D_8008274B = SOUND_SCRIPT_REVERB_DEFAULT_LEVEL;
     }
 }
 
-s32 SndVoice_FindById(s32 arg0)
+s32 sndScriptFindInstanceById(s32 soundId)
 {
-    s32         i;
-    _SndScript* p;
+    enum { SOUND_SCRIPT_SLOT_NONE = -1 };
+    s32         slotIndex;
+    _SndScript* script;
 
-    i = 0;
-    p = SndScript_Slots;
+    slotIndex = 0;
+    script    = SndScript_Slots;
     do {
-        if ((p->state & SOUND_SCRIPT_PLAYING) && (p->soundId == arg0)) {
-            return i;
+        if ((script->state & SOUND_SCRIPT_PLAYING) && (script->soundId == soundId)) {
+            return slotIndex;
         }
-        i++;
-        p++;
-    } while (i < 8);
-    return -1;
+        slotIndex++;
+        script++;
+    } while (slotIndex < ARRAY_SIZE(SndScript_Slots));
+    return SOUND_SCRIPT_SLOT_NONE;
 }
 
 /// Recomputes the stored gain index of every voice attached to one script instance.
@@ -2288,15 +2371,15 @@ SndBankSlot* sndBankSlotGet(s32 slotIndex)
     return NULL;
 }
 
-void SndBankSlot_Free(s32 arg0)
+void sndBankSlotReleaseImage(s32 slotIndex)
 {
     enum { SOUND_BANK_SLOT_ID_FREE = -1 };
     SndBankSlot* slot;
     SndBankSlot* base;
 
-    if ((u8)arg0 < ARRAY_SIZE(_gSndBankSlots)) {
+    if ((u8)slotIndex < ARRAY_SIZE(_gSndBankSlots)) {
         base = _gSndBankSlots;
-        slot = &base[(s8)arg0];
+        slot = &base[(s8)slotIndex];
         sndHeapFree(slot->image);
         slot->bankId = SOUND_BANK_SLOT_ID_FREE;
         slot->image  = NULL;
@@ -2423,29 +2506,46 @@ static s32 SndScript_TickVoices(_SndScript* script)
     return count;
 }
 
-static void SndVoice_ScaleVolume(s8 arg0, s8 arg1, _SndVoice* voice, LinInterp* ramp, SpuVolume* panVolumes)
+/// Calculates the current stereo SPU volumes for one scripted voice.
+///
+/// Pan adds three steps per signed offset unit to the voice's 0..127 base pan.
+/// Attenuation magnitudes 0..127 scale the gain index by (127 - magnitude)/127;
+/// -128 instead scales it by 1/127. The index is clamped to 0..127 before
+/// applying the velocity table and normalized volume ramp. A negative hardware
+/// voice index leaves the output untouched. The caller submits the volumes;
+/// applying the ramp can clear its completed step.
+static void _sndVoiceCalcMixVolumes(s8 panOffset, s8 attenuation, _SndVoice* voice, LinInterp* volumeRamp, SpuVolume* panVolumes)
 {
-    s32 vol;
+    enum { SOUND_SCRIPT_PAN_STEPS_PER_OFFSET = 3 };
+    s32 gainIndex;
 
     if (voice->spuVoice >= 0) {
-        vol = 0x7F - abs(arg1);
-        vol = voice->scaledVolume * abs(vol) / 127;
-        vol = (vol < 0x80) ? ((vol < 0) ? 0 : vol) : 0x7F;
-        spuCalcPanVolumes(panVolumes, (s8)voice->basePan + arg0 * 3,
-                          linInterpApply(ramp, Snd_VelocityGainTable[vol]));
+        gainIndex = SOUND_SCRIPT_VOLUME_UNITY - abs(attenuation);
+        gainIndex = voice->scaledVolume * abs(gainIndex) / SOUND_SCRIPT_VOLUME_UNITY;
+        gainIndex = (gainIndex < SOUND_SCRIPT_VOLUME_UNITY + 1) ? ((gainIndex < 0) ? 0 : gainIndex) : SOUND_SCRIPT_VOLUME_UNITY;
+        spuCalcPanVolumes(panVolumes, (s8)voice->basePan + panOffset * SOUND_SCRIPT_PAN_STEPS_PER_OFFSET,
+                          linInterpApply(volumeRamp, Snd_VelocityGainTable[gainIndex]));
     }
 }
 
-static void SndVoice_SetupEnvelope(_SndVoice* voice, s16 envelopeOffset, u32 pitch, SndBankLayer* bankLayer)
+/// Arms a scripted voice's pitch-envelope player from an image-relative oneE chunk.
+///
+/// `keyedPitch` supplies its low 16 bits in Q7 semitone units. Offset -1 or a
+/// missing parent script disables playback; otherwise the script's bank image
+/// must hold an aligned, complete chunk at the signed byte offset. A matching
+/// tag resets the player and caches the borrowed layer's tuning. A mismatched
+/// tag still replaces the chunk pointer, retaining all other player state.
+/// The image must remain loaded while the voice's envelope is being played.
+static void _sndVoiceSetupPitchEnvelope(_SndVoice* voice, s16 pitchEnvelopeOffset, u32 keyedPitch, const SndBankLayer* layer)
 {
     _SndVoiceEnvelope* player;
-    u8*                base;
+    u8*                imageBytes;
     _SndPitchEnvelope* envelope;
     s32                magic;
-    s16                temp;
+    s16                fineTune;
 
     player = &voice->envelope;
-    if (envelopeOffset == SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
+    if (pitchEnvelopeOffset == SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
         voice->envelope.active = 0;
         return;
     }
@@ -2455,65 +2555,77 @@ static void SndVoice_SetupEnvelope(_SndVoice* voice, s16 envelopeOffset, u32 pit
     }
     // pitchEnvelopeOffset is a byte offset from the start of the bank image.
     // A tag other than oneE keeps the pointer and leaves the player flags unchanged.
-    base             = (u8*)voice->script->bankSlot->image;
-    envelope         = (_SndPitchEnvelope*)&base[envelopeOffset];
+    imageBytes       = (u8*)voice->script->bankSlot->image;
+    envelope         = (_SndPitchEnvelope*)&imageBytes[pitchEnvelopeOffset];
     player->envelope = envelope;
     magic            = envelope->magic;
     if (magic == SOUND_SCRIPT_PITCH_ENVELOPE_TAG) {
         voice->envelope.active = 1;
         player->stage          = SOUND_VOICE_ENVELOPE_DELAY;
         player->releaseRequest = SOUND_VOICE_ENVELOPE_HELD;
-        player->keyedPitch     = pitch & 0xFFFF;
-        player->rootKey        = bankLayer->rootKey;
-        temp                   = bankLayer->fineTune;
+        player->keyedPitch     = keyedPitch & 0xFFFF;
+        player->rootKey        = layer->rootKey;
+        fineTune               = layer->fineTune;
         player->stageUpdates   = 0;
         player->attackOffset   = 0;
         player->decayOffset    = 0;
         player->releaseOffset  = 0;
-        player->fineTune       = temp;
+        player->fineTune       = fineTune;
     }
 }
 
-static s32 SndScript_FindOneA(u8* arg0, s16 arg1, SpuVoiceAttr* arg2)
+/// Applies an image-relative oneA ADSR override to a caller-owned voice attribute.
+///
+/// Offset -1 keeps the layer ADSR. Every other signed byte offset must address
+/// an aligned, readable chunk within the live bank image; no bounds are checked.
+/// Returns 1 after replacing both registers, or -1 for the sentinel or another
+/// tag, leaving the attribute unchanged. It does not set the SPU update mask.
+static s32 _sndScriptApplyAdsrOverride(const SndBankHdr* image, s16 adsrOffset, SpuVoiceAttr* attr)
 {
-    _SndScriptAdsr* chunk;
+    const u8*             imageBytes;
+    const _SndScriptAdsr* chunk;
 
-    if (arg1 != SOUND_SCRIPT_NOTE_LAYER_ADSR) {
-        chunk = (_SndScriptAdsr*)&arg0[arg1];
+    if (adsrOffset != SOUND_SCRIPT_NOTE_LAYER_ADSR) {
+        imageBytes = (const u8*)image;
+        chunk      = (const _SndScriptAdsr*)&imageBytes[adsrOffset];
         if (chunk->magic == SOUND_SCRIPT_ADSR_TAG) {
-            arg2->adsr1 = chunk->adsr1;
-            arg2->adsr2 = chunk->adsr2;
-            return 1;
+            attr->adsr1 = chunk->adsr1;
+            attr->adsr2 = chunk->adsr2;
+            return SOUND_SCRIPT_ADSR_APPLIED;
         }
-        return -1;
+        return SOUND_SCRIPT_ADSR_NOT_APPLIED;
     }
-    return -1;
+    return SOUND_SCRIPT_ADSR_NOT_APPLIED;
 }
 
-static void SndVoice_ClearActive(void)
+/// Marks type-1 and area-script slots idle before a stage's deferred key-off.
+///
+/// Only the state changes. Ids, voice lists, bank references and SPU state
+/// remain intact for the later queued key-off; this does not release resources.
+static void _sndScriptResetStageSlots(void)
 {
-    s32         i;
-    s32         mask;
-    s32         c600;
-    s32         c500;
-    s32         c100;
-    _SndScript* p;
-    s32         temp;
+    s32         slotIndex;
+    s32         typeMask;
+    s32         ambientType;
+    s32         areaType;
+    s32         type1;
+    _SndScript* script;
+    s32         bankType;
 
-    i    = 0;
-    mask = 0xF0000000;
-    c600 = 0x60000000;
-    c500 = 0x50000000;
-    c100 = SOUND_SCRIPT_REQUEST_TYPE_1;
-    p    = SndScript_Slots;
+    slotIndex   = 0;
+    typeMask    = 0xF0000000;
+    ambientType = SOUND_STAGE_AMBIENT & typeMask;
+    areaType    = SOUND_AREA_BANK_ALL;
+    type1       = SOUND_SCRIPT_REQUEST_TYPE_1;
+    script      = SndScript_Slots;
     do {
-        temp = p->soundId & mask;
-        if (temp != c600) {
-            if ((temp == c500) || (temp == c100)) {
-                p->state = SOUND_SCRIPT_IDLE;
+        bankType = script->soundId & typeMask;
+        if (bankType != ambientType) {
+            if ((bankType == areaType) || (bankType == type1)) {
+                script->state = SOUND_SCRIPT_IDLE;
             }
         }
-        i++;
-        p++;
-    } while (i < 8);
+        slotIndex++;
+        script++;
+    } while (slotIndex < ARRAY_SIZE(SndScript_Slots));
 }

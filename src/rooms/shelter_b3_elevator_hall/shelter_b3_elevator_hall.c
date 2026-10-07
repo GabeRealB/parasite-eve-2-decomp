@@ -209,7 +209,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             task->state++;
             break;
         case 5:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B3_ELEVATOR_RIDE) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B3_ELEVATOR_RIDE) == 0) {
                 task->state++;
             }
             break;

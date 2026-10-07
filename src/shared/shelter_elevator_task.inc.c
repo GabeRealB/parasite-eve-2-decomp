@@ -47,7 +47,7 @@ void shelterElevatorTask(Task* task)
             task->state++;
             break;
         case 3:
-            if (SndVoice_HasActiveId(task->spawnArg1.value) == 0) {
+            if (sndScriptHasActiveId(task->spawnArg1.value) == 0) {
                 task->state++;
             }
             break;

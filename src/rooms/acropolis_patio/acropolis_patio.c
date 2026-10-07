@@ -1861,7 +1861,7 @@ void func_acropolis_patio_8017DA5C(Task* task)
             taskKill(task);
             return;
         case 3:
-            if (SndVoice_HasActiveId(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4)) != 0) {
+            if (sndScriptHasActiveId(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4)) != 0) {
                 return;
             }
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);

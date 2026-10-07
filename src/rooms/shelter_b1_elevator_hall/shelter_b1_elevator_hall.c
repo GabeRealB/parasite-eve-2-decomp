@@ -128,7 +128,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             arg0->state++;
             break;
         case 5:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT) == 0) {
                 arg0->state++;
             }
             break;

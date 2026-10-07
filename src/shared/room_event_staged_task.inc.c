@@ -35,7 +35,7 @@ void roomEventStagedTask(Task* arg0)
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(Gp_PackStageSndId(ROOM_EVENT_LATCHED.stageSnd)) == 0) {
+            if (sndScriptHasActiveId(Gp_PackStageSndId(ROOM_EVENT_LATCHED.stageSnd)) == 0) {
                 arg0->state++;
             }
             break;

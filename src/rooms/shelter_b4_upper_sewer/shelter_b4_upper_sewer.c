@@ -892,7 +892,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
             }
             break;
         case 4:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B4_UPPER_SEWER_EXIT_TRANSIT) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B4_UPPER_SEWER_EXIT_TRANSIT) == 0) {
                 arg0->state++;
             }
             break;

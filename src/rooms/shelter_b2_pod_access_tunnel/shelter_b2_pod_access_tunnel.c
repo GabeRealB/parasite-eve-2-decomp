@@ -181,7 +181,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             task->state++;
             return;
         case 3:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B2_POD_TUNNEL_RIDE_TO_B1) == 0) {
                 task->state++;
             }
             return;

@@ -93,7 +93,7 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
             }
             break;
         case 3:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B3_INCINERATOR_EXIT_TRANSIT) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B3_INCINERATOR_EXIT_TRANSIT) == 0) {
                 arg0->state++;
             }
             break;

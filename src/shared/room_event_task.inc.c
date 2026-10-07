@@ -20,7 +20,7 @@ void roomEventTask(Task* task)
             }
             break;
         case 1:
-            if (SndVoice_HasActiveId(ROOM_EVENT_REQ.firstSnd) == 0) {
+            if (sndScriptHasActiveId(ROOM_EVENT_REQ.firstSnd) == 0) {
                 task->state++;
             }
             break;
@@ -36,7 +36,7 @@ void roomEventTask(Task* task)
             }
             break;
         case 4:
-            if (SndVoice_HasActiveId(ROOM_EVENT_REQ.secondSnd) == 0) {
+            if (sndScriptHasActiveId(ROOM_EVENT_REQ.secondSnd) == 0) {
                 task->state++;
             }
             break;

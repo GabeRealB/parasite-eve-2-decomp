@@ -3043,7 +3043,7 @@ void Gp_TickPlayClock(Task* task)
                 gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 session->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
                 sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, 8);
-                SndBank_SetEnableFlags(0, 0x20000000);
+                sndScriptSetTypeRequestsEnabled(0, SOUND_BANK_TYPE_WEAPON_ALL);
                 cdCmdEnqueueDisplayResource(9, ((u8)gGameSession->deathVariant + 0x1D) & 0xFF, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
             }
         }
@@ -3063,7 +3063,7 @@ void Gp_TickPlayClock(Task* task)
                 gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gGameSession->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
                 sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, 8);
-                SndBank_SetEnableFlags(0, 0x20000000);
+                sndScriptSetTypeRequestsEnabled(0, SOUND_BANK_TYPE_WEAPON_ALL);
                 cdCmdEnqueueDisplayResource(9, ((u8)gGameSession->deathVariant + 0x20) & 0xFF, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
                 companion = p->state.companionType;
             }

@@ -1092,7 +1092,7 @@ void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
             task->state++;
             break;
         case 3:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2) == 0) {
                 task->state++;
             }
             break;
@@ -1136,7 +1136,7 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
             task->state++;
             break;
         case 3:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT) == 0) {
                 task->state++;
             }
             break;

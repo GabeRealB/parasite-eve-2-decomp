@@ -38,7 +38,7 @@ void roomDepartureTask(Task* arg0)
             arg0->state = (s32)(arg0->state + 1);
             break;
         case 3:
-            if (SndVoice_HasActiveId(ROOM_DEPARTURE.sndEvent) == 0) {
+            if (sndScriptHasActiveId(ROOM_DEPARTURE.sndEvent) == 0) {
                 arg0->state = (s32)(arg0->state + 1);
             }
             break;

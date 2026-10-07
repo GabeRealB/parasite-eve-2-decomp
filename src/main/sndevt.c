@@ -754,35 +754,35 @@ static void SndEvt_HandleType7(SndEvt* event)
 
 static void SndEvt_HandleFadeMatchingOn(SndEvt* event)
 {
-    SndVoice_FadeMatching(event->args.script.soundId, 1);
+    sndScriptSetMuteMatching(event->args.script.soundId, 1);
 }
 
 static void SndEvt_HandleFadeMatchingOff(SndEvt* event)
 {
-    SndVoice_FadeMatching(event->args.script.soundId, 0);
+    sndScriptSetMuteMatching(event->args.script.soundId, 0);
 }
 
 static void SndEvt_HandlePanRamp(SndEvt* event)
 {
-    s32               temp_v0;
+    s32               scriptSlotIndex;
     SndEvtScriptArgs* args;
 
-    args    = &event->args.script;
-    temp_v0 = SndVoice_FindById(args->soundId);
-    if (temp_v0 >= 0) {
-        sndScriptRampMix(temp_v0, args->panOffset, args->level.attenuation);
+    args            = &event->args.script;
+    scriptSlotIndex = sndScriptFindInstanceById(args->soundId);
+    if (scriptSlotIndex >= 0) {
+        sndScriptRampMix(scriptSlotIndex, args->panOffset, args->level.attenuation);
     }
 }
 
 static void SndEvt_HandleVolumeRamp(SndEvt* event)
 {
-    s32               temp_v0;
+    s32               scriptSlotIndex;
     SndEvtScriptArgs* args;
 
-    args    = &event->args.script;
-    temp_v0 = SndVoice_FindById(args->soundId);
-    if (temp_v0 >= 0) {
-        sndScriptRampVolume(temp_v0, args->level.volumeScale);
+    args            = &event->args.script;
+    scriptSlotIndex = sndScriptFindInstanceById(args->soundId);
+    if (scriptSlotIndex >= 0) {
+        sndScriptRampVolume(scriptSlotIndex, args->level.volumeScale);
     }
 }
 
@@ -2459,7 +2459,7 @@ static s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)
             result = 0x1010;
             break;
         case SOUND_BANK_IMAGE_SCRIPT:
-            result = SndLoad_ResolveSpuAddr(arg2, arg1 & 0xFFFF);
+            result = sndLoadPlaceScriptSamples(arg2, arg1 & 0xFFFF);
             break;
     }
     return result;
@@ -2536,6 +2536,6 @@ static s32 SndBank_FreeById(u16 arg0, s32 arg1)
             }
             break;
     }
-    SndBankSlot_Free((s8)slot);
+    sndBankSlotReleaseImage((s8)slot);
     return 0;
 }

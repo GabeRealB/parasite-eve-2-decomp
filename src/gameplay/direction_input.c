@@ -437,7 +437,7 @@ void Gp_WarpPhase4(void)
             Gp_DirFadeLevel = 0xFF;
         }
     }
-    if (D_80114CF0 == 0 || SndVoice_HasActiveId(D_80114CF0) == 0) {
+    if (D_80114CF0 == 0 || sndScriptHasActiveId(D_80114CF0) == 0) {
         Gp_DirPhase++;
     }
 }

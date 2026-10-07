@@ -809,7 +809,7 @@ void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
             }
             break;
         case 4:
-            if (SndVoice_HasActiveId(SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT) == 0) {
+            if (sndScriptHasActiveId(SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT) == 0) {
                 arg0->state++;
             }
             break;

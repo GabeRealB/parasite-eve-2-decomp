@@ -271,7 +271,21 @@ void midiMuteMusic(void);
 /// id in 0..99 when processed. Sequence 0x5A ignores the gate and requested gain.
 void midiUnmuteMusic(void);
 
-s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1);
+/// Selects an SPU byte origin for a script bank's sample pool and updates placement state.
+///
+/// Bits 12..15 of `bankId` select the bank type; other bits are ignored.
+/// `waveBytes` is a nonnegative sample-pool byte count, rounded up to 64 bytes
+/// without signed overflow. Fixed-base types are 0, 3 and 14; types 1, 2, 5,
+/// 6 and 7 place below a region boundary. Type 5 uses the current type-1 origin
+/// when present. Type 4 starts at its region base or appends after the preceding
+/// loaded descriptor, advancing the upload ordinal; it admits three banks per
+/// batch unless the pending mode restarts it. Their descriptors must remain live.
+/// Appending uses the preceding descriptor's unrounded sample length; the end
+/// marker uses the current rounded length. The caller must ensure the sample
+/// pool fits its assigned SPU region; no free-space validation is performed.
+/// Unsupported types and an exhausted type-4 batch return zero; the latter also
+/// clears its placement-end marker. No sample data is transferred or freed.
+s32 sndLoadPlaceScriptSamples(s32 waveBytes, s32 bankId);
 
 s32 SndLoad_ProcessSector(u32* arg0);
 
@@ -310,7 +324,16 @@ s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndScriptE
 
 s32 SndScript_StopMatching(s32 arg0, s32 arg1);
 
-void SndVoice_FadeMatching(s32 arg0, s32 arg1);
+/// Starts a mute or unmute ramp on every matching sound-script instance.
+///
+/// `soundSelector` is an exact resolved sound id, or a type-only word in bits
+/// 28..31; bank or instance wildcards are not supported. No remapping occurs
+/// here. Nonzero `muted` mutes running or releasing slots; zero unmutes only
+/// slots in the muting state. Other states are unchanged. Each accepted change
+/// restarts a normalized ramp with an eight-audio-update duration request,
+/// which truncation can extend. Command execution pauses during mute/unmute;
+/// existing voices continue ticking. SPU volume changes occur on audio updates.
+void sndScriptSetMuteMatching(s32 soundSelector, s32 muted);
 
 /// Updates a sound-script instance's pan and attenuation, ramping larger changes.
 ///
@@ -340,7 +363,12 @@ void SndVoice_IncRefCount(void);
 
 void SndVoice_TickRefCount(void);
 
-s32 SndVoice_FindById(s32 arg0);
+/// Returns the first live script-slot index with the exact resolved sound id, or -1.
+///
+/// Slots are scanned in ascending order and the result is 0..7. Starting,
+/// running, releasing and fading-out slots qualify; idle, stopping, muting and
+/// unmuting slots do not. No bank remapping or resource-readiness check occurs.
+s32 sndScriptFindInstanceById(s32 soundId);
 
 /// Sets the sound-script master gain and schedules eligible instances for remixing.
 ///
@@ -367,7 +395,14 @@ s8 sndScriptGetMasterVolume(void);
 /// resources must keep their contents loaded through their last use.
 SndBankSlot* sndBankSlotGet(s32 slotIndex);
 
-void SndBankSlot_Free(s32 arg0);
+/// Releases a sound-script bank slot's owned image while retaining its descriptor.
+///
+/// Only the low byte of `slotIndex` is used; values 0..15 select a stable slot,
+/// and all others do nothing. Pending events, scripts and borrowed chunks must
+/// have finished using the image before release. NULL images are accepted.
+/// The image becomes NULL and its cached id becomes -1; descriptor tables and
+/// the SPU origin remain intact and require their separate cleanup.
+void sndBankSlotReleaseImage(s32 slotIndex);
 
 void Spu_Init(void);
 

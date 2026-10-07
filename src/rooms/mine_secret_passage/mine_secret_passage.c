@@ -98,7 +98,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             arg0->state++;
             break;
         case 5:
-            if (SndVoice_HasActiveId(SOUND_MINE_SECRET_PASSAGE_EXIT_TRANSIT) != 0) {
+            if (sndScriptHasActiveId(SOUND_MINE_SECRET_PASSAGE_EXIT_TRANSIT) != 0) {
                 break;
             }
             arg0->state++;

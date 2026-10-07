@@ -127,7 +127,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             arg0->state++;
             break;
         case 4:
-            if (SndVoice_HasActiveId(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND) == 0) {
+            if (sndScriptHasActiveId(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND) == 0) {
                 arg0->state++;
             }
             break;

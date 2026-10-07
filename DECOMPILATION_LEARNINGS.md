@@ -8608,15 +8608,15 @@ the array to a local pointer, then index through that:
 
 ```c
 /* Wrong schedule: sll/sra index, then lui/addiu base */
-p = &_gSndBankSlots[(s8)arg0];
+slot = &_gSndBankSlots[(s8)slotIndex];
 
 /* Right schedule: lui/addiu base, then sll/sra index */
 SndBankSlot* base;
 base = _gSndBankSlots;
-p = &base[(s8)arg0];
+slot = &base[(s8)slotIndex];
 ```
 
-`SndBankSlot_Free` needs this form so `sndHeapFree` can take `p->image` with the
+`sndBankSlotReleaseImage` needs this form so `sndHeapFree` can take `slot->image` with the
 base already in `$v0` before the stride multiply lands in `$s0`.
 
 **Matrix cluster on an embedded MATRIX — first element on the struct base, rest
@@ -8740,10 +8740,10 @@ sltu v0, zero, v0
 
 write `return ~x != 0;` (or the same expression in a larger return). That is
 semantically `x != -1`, but `x != -1` often compiles to a different compare
-sequence. `SndVoice_HasActiveId` is a one-liner that only matches with the `~` form:
+sequence. `sndScriptHasActiveId` is a one-liner that only matches with the `~` form:
 
 ```c
-return ~SndVoice_FindById(_sndScriptRemapType1Id(arg0)) != 0;
+return ~sndScriptFindInstanceById(_sndScriptRemapType1Id(soundId)) != 0;
 ```
 
 ## Store-then-reload for prologue scheduling
@@ -11082,7 +11082,7 @@ and `SndEvt_HandleVolumeRamp` shows both spellings:
 
 ```c
 SndEvtScriptArgs* args = &arg0->args.script; /* +4 base; the loads rebase to it */
-temp = SndVoice_FindById(args->soundId);   /* the field at arg0+0x8 */
+temp = sndScriptFindInstanceById(args->soundId);   /* the field at arg0+0x8 */
 if (temp >= 0) {
     sndScriptRampVolume(temp, args->level.volumeScale); /* the field at arg0+0x5 */
 }
@@ -11897,7 +11897,7 @@ instruction and shifting every later label. `SndVoice_Alloc` only matches with
 the `s32` + `(s8)` form.
 
 `_gSndBankSlots` is a `SndBankSlot[16]` array (stride `0x10`, via
-`sndBankSlotGet` / `SndBankSlot_Free`). `SndVoice_Alloc` indexes the separate
+`sndBankSlotGet` / `sndBankSlotReleaseImage`). `SndVoice_Alloc` indexes the separate
 `SndScript_Voices[8]` array (stride `0x40`) by `voiceIdx - 16`: SPU voices
 `0..15` belong to the MIDI sequencer, and scripts allocate voices `16..23`.
 The current declaration and access express those separate arrays directly;
@@ -11991,7 +11991,7 @@ s32 arg0;
 
 Keep the header declaration unprototyped too (`extern s32 f();`).
 `_sndScriptRemapType1Id` is prototyped: every caller passes the request, and
-`SndVoice_HasActiveId`'s delay slot is `nop` because `$a0` already holds it.
+`sndScriptHasActiveId`'s delay slot is `nop` because `$a0` already holds it.
 
 ## A staged `(void)` stub taking `index`: unprototype the header, not the definition
 
@@ -12778,7 +12778,7 @@ do {
 return -1;
 ```
 
-`SndVoice_FindById` is the pure example. Signed `i` + `do`/`while` also produces
+`sndScriptFindInstanceById` is the pure example. Signed `i` + `do`/`while` also produces
 the target's `slti`/`bnez` count-up form.
 
 ## Nonvolatile switch loads permit delay-slot constant CSE
@@ -13471,7 +13471,7 @@ if (cond != -1) {
 return -1;     /* L_early — reuses preloaded $v0 */
 ```
 
-`SndScript_FindOneA` is a pure example.
+`_sndScriptApplyAdsrOverride` is a pure example.
 
 ## Same byte mask across a call: `andi` vs CSE'd `and`
 
@@ -13658,8 +13658,8 @@ if (all_banks) {
 Use a `volatile` cast on the store when the target keeps `sb` *before* the
 following `bnez` (delay slot holds the next `lui`, not the store).
 
-`SndBank_SetEnableFlags` is the pure example: dual-purpose `flag` (loop fill value vs
-bank-table base) needs `asm("v1")` for the address load form.
+`sndScriptSetTypeRequestsEnabled` is the pure example: its volatile request-gate
+array expression preserves this address load form and store order without a pin.
 
 ## if/else field stores reuse `$v0` for large constants better than a temp addend
 
@@ -15585,7 +15585,7 @@ p->field_d = 0;
 p->field_y = temp;
 ```
 
-`SndVoice_SetupEnvelope` is the pure example (_SndVoiceEnvelope init from SndBankLayer bytes).
+`_sndVoiceSetupPitchEnvelope` is the pure example (_SndVoiceEnvelope init from SndBankLayer bytes).
 
 ## Overlay pointer at a fixed offset for multi-field base `$tN`
 
@@ -16550,7 +16550,7 @@ The compiler still emits `addiu $s0, $s0, 0x60` for the walk, but no longer
 CSEs `&p->volumeRamp` into a second live pointer. Operand order `index == p->soundId`
 also matters for `beq $s4, $v1` vs the swapped form.
 
-`SndVoice_FadeMatching` is the pure example. Closely related: `Midi_FadeVolume` avoids the
+`sndScriptSetMuteMatching` is the pure example. Closely related: `Midi_FadeVolume` avoids the
 trap because its status byte sits at offset 0 (free relative to the base) and
 the interpolator is only `+0x14`.
 
@@ -17085,7 +17085,7 @@ temp_v1 = temp_v0 / 127;
 Pinning the abs/product temporary to `$v0` (as above) is usually also required
 so the following signed-division magic and clamp keep `$v0`/`$v1` the way the
 target does; without the pin, scale and product drift into `$a0` and the
-`mfhi`/`slti` register choices diverge. `SndVoice_ScaleVolume` is the pure example.
+`mfhi`/`slti` register choices diverge. `_sndVoiceCalcMixVolumes` is the pure example.
 
 ## `u8` ring index: store then compare (not check-then-store)
 
@@ -21065,7 +21065,7 @@ Pulling `field_C` into a temporary *before* the `field_2 == -1` test is too
 aggressive — it fills the `lb` delay slot and shortens the function. Keep the
 compare inline and only flip the operator.
 
-`SndVoice_ScanCandidates` is the pure example (also: stash `score = p->runningTicks` before
+`_sndScriptScanSlotCandidates` is the pure example (also: stash `runningTicks = script->runningTicks` before
 paired `sb`/`sw` so the target gets `lw; sb; sw` rather than `sb; lw; nop; sw`).
 
 ## Separate stream pointers so timeout shares `$v1` while case-2 keeps `$s0`
@@ -23075,7 +23075,7 @@ lw    v0, %lo(g)(v1)  /* reload on non-zero path */
 a pure C ternary / if-else (`v = *p ? *p : K`) leaves a `nop` after `bnez`
 and builds `K` with a non-delay `lui`/`ori` pair. Force the delay-slot form with
 tab-`.set noreorder` asm (same maspsx rule as ProcessChunkData case-4).
-`SndLoad_ResolveSpuAddr` case 5 (`D_80082128 ?: 0x63810`) is the pure example.
+`sndLoadPlaceScriptSamples` case 5 (`D_80082128 ?: 0x63810`) is the pure example.
 
 ## Const data between two compiler jtbls in one TU
 
@@ -23101,7 +23101,7 @@ trailing `lb`/`sb`), it is that function's local array initializer: GCC emits
 the template while expanding the declaration, so it lands at the same place -
 after the first function's jtbl, before the second's own - with no file-scope
 symbol and no struct wrapper to make the copy an assignment.
-`SndLoad_ResolveSpuAddr` + `columnCounts` in `stageMusicSelectColumn` is the pure
+`sndLoadPlaceScriptSamples` + `columnCounts` in `stageMusicSelectColumn` is the pure
 example of that case.
 
 ## Volatile load-status flags keep `%hi` in `$a0` across reloads
@@ -26835,15 +26835,15 @@ child->resultValue = y;  /* sh v1 */
 
 `Gp_ItemDestCursorTask` is the example.
 
-## Pass the id into `SndVoice_HasActiveId` so the load targets `$a0`
+## Pass the id into `sndScriptHasActiveId` so the load targets `$a0`
 
-`SndVoice_HasActiveId` remaps its argument via `_sndScriptRemapType1Id` and checks
-for an active voice. A caller that only tests a global then calls
-`SndVoice_HasActiveId()` loads that global into `$v0`. Passing the same
+`sndScriptHasActiveId` remaps its argument via `_sndScriptRemapType1Id` and checks
+for a qualifying script instance. A caller that only tests a global then calls
+`sndScriptHasActiveId()` loads that global into `$v0`. Passing the same
 value as the argument forces `lw a0`:
 
 ```c
-if (D_80114CF0 == 0 || SndVoice_HasActiveId(D_80114CF0) == 0) {
+if (D_80114CF0 == 0 || sndScriptHasActiveId(D_80114CF0) == 0) {
     Gp_DirPhase++;
 }
 ```
@@ -66432,7 +66432,7 @@ step register. `.jump2` and `.dbr` distinguish those failures.
 At 99.062% the remaining whole-function s2/s3 swap came from close allocation
 priorities: script had 50 references / 632 insns, oneV 18 / 179. Patched
 `global.c:allocno_compare` ranks by `floor_log2(refs) * refs / live_length`.
-Replacing the existing scheduling barrier before `SndVoice_ScaleVolume` with
+Replacing the existing scheduling barrier before `_sndVoiceCalcMixVolumes` with
 `USE_REG(script)` raised script to 51 / 632 and placed it before oneV in `.greg`,
 without a pin or emitted instruction. The required permuter first found a
 countdown-local reuse that reduced oneV to 17 references; the final source
@@ -120943,7 +120943,7 @@ which is exactly where moving the two labels puts them:
         goto L_idle;             /* was block_8, written after case 1 */
     case 2: ...
     case 3:
-        var_v0 = SndVoice_HasActiveId(0x55080003);
+        var_v0 = sndScriptHasActiveId(0x55080003);
     L_idle:
         if (var_v0 != 0) return;
     L_advance:
@@ -122470,7 +122470,7 @@ increment block carries a store at all.
         goto advance;
     ...
     case 5:
-        if (SndVoice_HasActiveId(0x54080003) != 0) {
+        if (sndScriptHasActiveId(0x54080003) != 0) {
             break;
         }
     advance:
@@ -145526,7 +145526,7 @@ for (i = 0; i < 8; i++) {
 return ret;
 ```
 
-## An early `return` inside a switch can block a `$v0` delay-slot fill that `break` allows (SndLoad_ResolveSpuAddr, 2026-09-26)
+## An early `return` inside a switch can block a `$v0` delay-slot fill that `break` allows (sndLoadPlaceScriptSamples, 2026-09-26)
 
 A switch arm `v = G; if (v == 0) v = K; else v = G; out = v - n;` came out
 right except that the `bnez`'s delay slot held `nop` where the target has the
@@ -146737,7 +146737,7 @@ taking `RECT*`, called with `&local`. The parameter gives the field stores
 their register and the calls their per-use frame address, with no pin. Zeroing
 `x`/`y` inside the helper or at the call site both matched, so let the helper's
 purpose decide which.
-## An up-counting loop that recomputes `addu i, base` every iteration stores to a `volatile` object (SndBank_SetEnableFlags, 2026-09-27)
+## An up-counting loop that recomputes `addu i, base` every iteration stores to a `volatile` object (sndScriptSetTypeRequestsEnabled, 2026-09-27)
 
 **Target:** `move a1,zero; lui/addiu a2,&D; andi v1,a0,1; L: addu v0,a1,a2;
 sb v1,0(v0); addiu a1,1; slti v0,a1,0x10; bnez v0,L`. The invariants are

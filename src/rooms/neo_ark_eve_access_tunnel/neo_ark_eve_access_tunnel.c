@@ -513,7 +513,7 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             sndEvtRequestScriptStart(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR, 0, 0);
             return;
         case 3:
-            if (SndVoice_HasActiveId(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR) != 0) {
+            if (sndScriptHasActiveId(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR) != 0) {
                 return;
             }
             task->state++;

@@ -898,7 +898,7 @@ void Gp_StepCdAudioCmd(void)
                             entry = &Gp_SndMaskTable[(u16)i_s1];
                             if (bits & entry->mask) {
                                 sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
-                                SndBank_SetEnableFlags(0, entry->bankTypeId);
+                                sndScriptSetTypeRequestsEnabled(0, entry->bankTypeId);
                             }
                             i_s1++;
                         } while (Gp_SndMaskTable[(u16)i_s1].mask != 0);
@@ -970,7 +970,7 @@ void Gp_StepCdAudioCmd(void)
                         do {
                             entry = &Gp_SndMaskTable[(u16)i];
                             if (bits & entry->mask) {
-                                SndBank_SetEnableFlags(1, entry->bankTypeId);
+                                sndScriptSetTypeRequestsEnabled(1, entry->bankTypeId);
                             }
                             i++;
                         } while (Gp_SndMaskTable[(u16)i].mask != 0);
@@ -1011,7 +1011,7 @@ void Gp_StepCdAudioCmd(void)
                         do {
                             entry = &Gp_SndMaskTable[(u16)i];
                             if (bits & entry->mask) {
-                                SndBank_SetEnableFlags(1, entry->bankTypeId);
+                                sndScriptSetTypeRequestsEnabled(1, entry->bankTypeId);
                             }
                             i++;
                         } while (Gp_SndMaskTable[(u16)i].mask != 0);
@@ -1056,7 +1056,7 @@ static void Gp_ApplySndMasks(u16 arg0)
             entry = &Gp_SndMaskTable[(u16)i];
             if (bits & entry->mask) {
                 sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
-                SndBank_SetEnableFlags(0, entry->bankTypeId);
+                sndScriptSetTypeRequestsEnabled(0, entry->bankTypeId);
             }
             i++;
         } while (Gp_SndMaskTable[(u16)i].mask != 0);
@@ -1075,7 +1075,7 @@ void Gp_ApplySndBankMasks(u16 arg0)
         do {
             entry = &Gp_SndMaskTable[(u16)i];
             if (bits & entry->mask) {
-                SndBank_SetEnableFlags(1, entry->bankTypeId);
+                sndScriptSetTypeRequestsEnabled(1, entry->bankTypeId);
             }
             i++;
         } while (Gp_SndMaskTable[(u16)i].mask != 0);

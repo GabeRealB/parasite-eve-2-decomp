@@ -185,9 +185,26 @@ void sndEvtRequestScriptMix(s32 soundId, s32 panOffset, s32 attenuation);
 
 void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1);
 
-void SndBank_SetEnableFlags(s32 arg0, s32 arg1);
+/// Sets admission gates for sound-script starts, mute/unmute and mix requests.
+///
+/// The low bit of `enabled` is stored (0 closed, 1 open). `typeSelector`'s top
+/// nibble selects one of sixteen bank types; the remaining bits are ignored.
+/// `SOUND_BANK_TYPE_ALL_NON_AMBIENT` selects all sixteen gates here, including
+/// ambient. Script starts whose entry permits disabled types bypass this gate.
+/// Selecting only the character type with raw `enabled == 0` also queues a stop
+/// retaining ADSR release; a full event pool drops only that stop. Nonzero inputs
+/// with a clear low bit close gates without queuing it. Other changes do not stop
+/// existing instances or cancel requests already queued.
+void sndScriptSetTypeRequestsEnabled(s32 enabled, s32 typeSelector);
 
-s32 SndVoice_HasActiveId(s32 arg0);
+/// Returns 1 when a qualifying script instance owns the requested id, otherwise 0.
+///
+/// Type-1 ids resolve against the currently loaded type-1 bank; if a matching
+/// descriptor exists, its completed image must be live during this call.
+/// The resolved id is matched exactly against starting, running, releasing or
+/// fading-out slots. Muting, unmuting and stopping slots are excluded. A match
+/// does not require an attached SPU voice and does not prove audibility.
+s32 sndScriptHasActiveId(s32 soundId);
 
 void SndEvt_EnqueueTypeD(void);
 

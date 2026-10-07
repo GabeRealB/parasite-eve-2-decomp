@@ -333,7 +333,7 @@ void Gp_SessionState1(Task* task)
 
 void Gp_ResumeSessionTask(Task* task)
 {
-    SndBank_SetEnableFlags(0, 0x40000000);
+    sndScriptSetTypeRequestsEnabled(0, SOUND_BANK_TYPE_CHARACTER_ALL);
     if (gGameSession->deathVariant != 0) {
         taskKill(task);
         return;
