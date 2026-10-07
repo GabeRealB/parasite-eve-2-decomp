@@ -945,27 +945,36 @@ static s32  func_actor_800200_80165104(Task* arg0);
 
 /// Resets a normal stationary action burst while retaining its borrowed focus.
 ///
-/// Requires live actor work; targetVariant is 0 for player or 1 for lock target.
-/// Preserves route progress and the repetition byte selected by the caller.
+/// Requires live actor work; `targetVariant` is `ACTOR_800200_ACTION_PLAYER` (0)
+/// or `ACTOR_800200_ACTION_TARGET` (1), selecting animation 10/11 and the paired
+/// sound. Stops movement/turning and disables automatic animation control. The
+/// action handler starts playback on phase 0. Preserves focus, route progress
+/// and the caller's repetition byte; retains no pointer and allocates nothing.
 static inline void _actor800200ResetActionBurst(GameActor* actor, u16 targetVariant)
 {
+    enum { ACTOR_800200_ACTION_BURST_INITIAL_PHASE = 0 };
     actor->mode                        = GAME_ACTOR_MODE_NORMAL;
     actor->state                       = ACTOR_800200_STATE_ACTION_BURST;
     actor->movementMode                = ACTOR_800200_MOVEMENT_STOPPED;
     actor->turnRateIndex               = ACTOR_800200_TURN_DISABLED;
     actor->animationState              = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
-    actor->statePhase                  = 0;
+    actor->statePhase                  = ACTOR_800200_ACTION_BURST_INITIAL_PHASE;
     actor->attackControl.targetVariant = targetVariant;
 }
 
 /// Starts a normal target turn without replacing the focus or repetition byte.
+///
+/// Requires live actor work. Selects the target-turn rate and phase 0; the turn
+/// handler later starts movement and a turning clip. Movement settings, target,
+/// repetition count and route progress are retained. Borrows work only.
 static inline void _actor800200ResetTargetTurn(GameActor* actor)
 {
+    enum { ACTOR_800200_TARGET_TURN_INITIAL_PHASE = 0 };
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
     actor->state          = ACTOR_800200_STATE_TARGET_TURN;
     actor->turnRateIndex  = ACTOR_800200_TURN_TARGET;
     actor->animationState = ACTOR_800200_ANIMATION_CONTROLLER_NONE;
-    actor->statePhase     = 0;
+    actor->statePhase     = ACTOR_800200_TARGET_TURN_INITIAL_PHASE;
 }
 
 /// Initializes the companion task's native animation, movement bodies and forward probe.

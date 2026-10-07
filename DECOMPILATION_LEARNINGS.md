@@ -47955,7 +47955,7 @@ So check the neighbouring spans before budgeting a promotion: `end` of an
 existing span equal to your `start` means the cheap path.
 
 **The span is the object, so copies at a different work-block offset cannot
-join.** `_actor213100InitBodyLighting` and `func_actor_503500_801324EC` are the
+join.** `_actor213100InitBodyLighting` and `_actor503500SliderBindLighting` are the
 same three-statement body over blocks whose matrices sit at 0x440/0x460 and
 0x00/0x20, so their `addiu` immediates differ and they stay in their own `.c`.
 The dup index already tells you this — it only grouped the six that are

@@ -793,14 +793,15 @@ static void _actor310100UpdateOfficerAnimation(Task* task)
 ///
 /// The live controller must own an initialized model and the area must contain
 /// `placementId`. XYZ use the root's parent frame; yaw uses 4096 units per turn.
-/// Kills the temporary display task after placing the model on the default list.
-static inline void _actor310100FinishOfficerModelSwap(Task* task, _Actor310100PoliceOfficerWork* controllerWork, u8 placementId)
+/// The replacement is already on the default task list. Holds its pose, kills
+/// the temporary display task, then resumes the game loop; retains no pointer.
+static inline void _actor310100FinishOfficerModelSwap(Task* displayTask, const _Actor310100PoliceOfficerWork* controllerWork, u8 placementId)
 {
     _Actor310100PoliceOfficerWork* modelWork;
     Task*                          modelTask;
     TmdObject*                     model;
     GfxCoord*                      rootCoord;
-    AreaPlacement*                 placement;
+    const AreaPlacement*           placement;
 
     modelTask = controllerWork->modelTask;
     placement = areaGetVariant(&gGameSession->location.loc)->placements;
@@ -813,9 +814,9 @@ static inline void _actor310100FinishOfficerModelSwap(Task* task, _Actor310100Po
     rootCoord->coord.t[1] = placement->y;
     rootCoord->coord.t[2] = placement->z;
     gfxRotMatrixY(&rootCoord->coord, placement->yaw, 0);
-    modelWork            = (_Actor310100PoliceOfficerWork*)controllerWork->modelTask->work;
+    modelWork            = controllerWork->modelTask->work;
     modelWork->playState = ACTOR_310100_PLAY_STATE_POSED;
-    taskKill(task);
+    taskKill(displayTask);
     displayResumeGameLoop();
 }
 
@@ -907,17 +908,20 @@ static void _actor310100SwapOfficerCulledBodyModelTask(Task* task)
 
 /// Restarts every non-root officer slot at unit rate on the selected clip.
 ///
-/// Borrows the initialized live rig; `animationId` must fit its bound set table.
+/// Requires an initialized nineteen-part rig and a loaded `animationId` with
+/// tracks 1..18 in its bound table. Resets slot timing, track endpoints and
+/// playback flags without ticking a pose; slot 0 and coordinates are untouched.
+/// Clip data must remain live during playback. Borrows work without allocating.
 static inline void _actor310100ResetOfficerSlots(_Actor310100PoliceOfficerWork* slotWork, u16 animationId)
 {
-    s32 slotIndex;
+    u16 slotIndex;
 
     slotIndex = 1;
     do {
-        slotWork->rig.slots[slotIndex & 0xFFFF].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&slotWork->rig.anim, slotIndex & 0xFFFF, animationId);
+        slotWork->rig.slots[slotIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&slotWork->rig.anim, slotIndex, animationId);
         slotIndex += 1;
-    } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(slotWork->rig.slots));
+    } while (slotIndex < ARRAY_SIZE(slotWork->rig.slots));
 }
 
 /// Initializes an officer's body-model rig, primitive buffer and placement textures.

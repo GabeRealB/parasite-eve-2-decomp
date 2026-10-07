@@ -249,22 +249,26 @@ AnimationSet* D_actor_111800_8013A448[8] = {
 TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_111800_8013251C, { .model = &_gActor111800GrinningStrangerBody } }; /// Turns joint `coord` by `yaw` about the world Y axis: builds its world
 
 static inline void    _actor111800TickAnim(Task* task);
-static inline void    _actor111800Reseed(Task* task, u16 id, u16 frames);
+static inline void    _actor111800BlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames);
 static void           func_actor_111800_8013214C(Task* task);
 static void           func_actor_111800_80132390(Task* task);
 static __inline__ s32 Actor111800_Accumulate(GfxCoord* arg0, MATRIX* arg1, MATRIX* src);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
 
-/// Advances animation slots 1..0x12 by one frame and latches slot 1's current
-/// record into `slot1RecordIndex`.
+/// Ticks the eighteen non-root body tracks and records slot 1's keyframe index.
+///
+/// Requires initialized nineteen-part rig storage and live clip data. Each slot
+/// advances at its existing rate and writes its pose; slot 0 is untouched. The
+/// cached unsigned record index narrows into the signed halfword work field.
+/// Borrows task/model storage and uses animation playback's scratch/GTE state.
 static inline void _actor111800TickAnim(Task* task)
 {
     _Actor111800Work* work = task->work;
-    u16               i;
+    u16               slotIndex;
 
-    for (i = 1; i < 0x13; i++) {
-        animationTickSlot(&work->rig.anim, i);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
     work->slot1RecordIndex = work->rig.slots[1].currentPose.indices.recordIndex;
 }
@@ -279,13 +283,20 @@ static inline void _actor111800TickAnim(Task* task)
         }                                                                         \
     } while (0)
 
-/// Clears the latched record and cross-fades every body slot to `id`.
-static inline void _actor111800Reseed(Task* task, u16 id, u16 frames)
+/// Blends the eighteen non-root body tracks to the selected animation's start.
+///
+/// Requires an initialized rig and a loaded `animationId` with tracks 1..18.
+/// Clears the cached slot-1 record before capturing/ticking each current pose.
+/// Retains each slot's playback rate; slot 0 is untouched. `blendFrames` counts
+/// whole normal-rate frames (0 immediate, 0..2047 without signed-time wrapping).
+/// Pose buffers and clip data must remain live through the transition; uses
+/// animation playback's scratch stack and GTE state.
+static inline void _actor111800BlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames)
 {
     _Actor111800Work* work = task->work;
 
     work->slot1RecordIndex = 0;
-    _ACTOR111800_BLEND_SLOTS(work, id, frames);
+    _ACTOR111800_BLEND_SLOTS(work, animationId, blendFrames);
 }
 
 /// Per-frame handler: ticks animation slots 1..0x12, latches `slots[1].currentPose.indices.recordIndex`
@@ -304,7 +315,7 @@ static void func_actor_111800_8013214C(Task* task)
     _actor111800TickAnim(task);
     switch (work->sequenceStep) {
         case ACTOR_111800_STEP_START:
-            _actor111800Reseed(task, 0, 0xF);
+            _actor111800BlendBodyAnimation(task, 0, 0xF);
             work->stepFrames = 0;
             work->sequenceStep++;
             break;
@@ -343,7 +354,7 @@ static void func_actor_111800_8013214C(Task* task)
         case ACTOR_111800_STEP_SWING_HOLD:
             work->stepFrames++;
             if (work->stepFrames >= 0x10) {
-                _actor111800Reseed(task, 2, 0xA);
+                _actor111800BlendBodyAnimation(task, 2, 0xA);
                 work->stepFrames = 0;
                 work->sequenceStep++;
             }

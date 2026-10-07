@@ -3154,9 +3154,11 @@ static void _actor521100PlayFootsteps(Task* task)
 #include "../../shared/no9_golem_aim_head.inc.c"
 /// Composes a hit rotation into the chest's local rotation; changes GTE state.
 ///
-/// Both matrices must remain live, with Q12 coefficients; the chest is writable.
-/// Translation is untouched. The chest supplies the GTE matrix and the hit
-/// rotation supplies its three columns; each result overwrites the chest.
+/// Postmultiplies chest * hit using Q12 coefficients, shifting each product by
+/// twelve and saturating its components to signed halfwords. Both matrices must
+/// remain live; the chest is word-aligned and writable. Its loaded basis stays
+/// in the GTE while each result column is stored, avoiding compounded columns.
+/// Translation and composition stamps are untouched; retains no pointer.
 static __inline__ void _actor521100ComposeHitRotation(MATRIX* chestRotation, const MATRIX* hitRotation)
 {
     gte_SetRotMatrix(chestRotation);

@@ -1088,8 +1088,10 @@ static void _actor02100AcquireTarget(Task* task)
 
 /// Transforms a signed-halfword world point into the current view frame.
 ///
-/// Uses the composed view rotation, then adds its translation in game units.
-/// Input and output are borrowed, word-aligned storage; changes GTE state.
+/// Requires the current composed view matrix. Applies its Q12 rotation and then
+/// adds its translation in game units, without perspective projection. Borrows
+/// word-aligned input/output storage; writes only XYZ, leaving the output's
+/// fourth word intact. Overwrites GTE rotation and arithmetic state.
 static __inline__ void _actor02100TransformTargetToView(const SVECTOR* worldPoint, VECTOR* viewPosition)
 {
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -1692,9 +1694,11 @@ static void Actor02100_Fn01FF0(Task* arg0)
 
 /// Fades a beam quad from its selected centre colour to black on its edge.
 ///
-/// Requires a validated weapon and beam-style index. Colour values narrow to
-/// bytes; the packet's command byte is retained and no storage is owned.
-static __inline__ void _actor02100ShadeBeamQuad(POLY_G4* quad, _Actor02100Work* work, s32 beamStyle)
+/// Vertices 0/1 receive the selected weapon's RGB triplet; vertices 2/3 are
+/// black. Requires weapon index 0..4 and `ACTOR_02100_BEAM_STYLE_SIGHT` or
+/// `ACTOR_02100_BEAM_STYLE_FIRE`. Signed table components narrow to bytes.
+/// Borrows the packet and work; retains the tag, command and screen positions.
+static __inline__ void _actor02100ShadeBeamQuad(POLY_G4* quad, const _Actor02100Work* work, s32 beamStyle)
 {
     enum { ACTOR_02100_COLOR_COMPONENT_COUNT = 3 };
     u8 blue;
@@ -1950,8 +1954,10 @@ static void Actor02100_Fn032E4(Task* arg0)
 /// Writes the end-minus-start sight direction with twelve fractional bits.
 ///
 /// The delta must fit signed halfwords with squared length in 1..0x7FFFFFFF.
-/// Endpoints share a frame; their storage is borrowed and remains unchanged.
-/// The output's fourth word is untouched. Changes GTE arithmetic state.
+/// Endpoints share a coordinate frame and game units. Output storage must be
+/// word-aligned and disjoint from both endpoints, which remain unchanged.
+/// Normalizes XYZ in place to 4096 per unit; leaves the fourth word intact.
+/// Borrows all storage and changes GTE arithmetic state.
 static __inline__ void _actor02100NormalizeSightSegment(const SVECTOR* segmentStart, const SVECTOR* segmentEnd, VECTOR* direction)
 {
     direction->vx = segmentEnd->vx - segmentStart->vx;

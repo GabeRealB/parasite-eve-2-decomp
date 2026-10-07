@@ -204,8 +204,11 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 /// Restores a root transform and applies signed Q12 Y scale in borrowed scratch.
 ///
-/// All pointers must be live and separate; the scratch reservation belongs to
-/// the caller. Translation is retained and the composition cache becomes dirty.
+/// Replaces the complete local matrix from `unscaled` before multiplying its
+/// local Y basis column by `*scaleY` (4096 = unity); X/Z scale stay at unity.
+/// Translation is retained, so repeated calls do not compound the flattening.
+/// All pointers must be live and separate; the caller reserves/releases one
+/// `ActorScaleScratch`. Marks composition dirty and changes GTE state.
 static __inline__ void _actor207200CreepingStrangerApplyRootScale(GfxCoord* rootCoord, const MATRIX* unscaled, const s16* scaleY, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;

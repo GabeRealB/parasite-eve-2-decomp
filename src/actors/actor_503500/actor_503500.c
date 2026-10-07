@@ -39,8 +39,8 @@ typedef struct {
 } _Actor503500SliderWork;
 STATIC_ASSERT_SIZEOF(_Actor503500SliderWork, 0x48);
 
-static void func_actor_503500_801324C4(Task* task);
-static void func_actor_503500_801324EC(Task* arg0);
+static void _actor503500SliderExit(Task* task);
+static void _actor503500SliderBindLighting(Task* task);
 /// Script pair handed to `padScriptSpawn` on every odd pulse frame.
 extern PadScriptCmd              D_actor_503500_801468A8[2];
 extern PadScriptVibrationSegment D_actor_503500_801468B0[2];
@@ -220,29 +220,37 @@ static void func_actor_503500_80132430(Task* arg0)
     arg0->work          = work;
     ext->flags         |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     work->freeCountdown = 0;
-    func_actor_503500_801324EC(arg0);
+    _actor503500SliderBindLighting(arg0);
     arg0->msgTable     = D_actor_503500_80146888;
-    arg0->exitCallback = func_actor_503500_801324C4;
+    arg0->exitCallback = _actor503500SliderExit;
     arg0->state       += 1;
 }
 
-/// `Task::exitCallback` of the actor's main task, and the third entry of its
-/// state table: hands the `Enemy` the spawn left in `Task::spawnArg2` back to
-/// `enemyDestroy`.
-static void func_actor_503500_801324C4(Task* task)
+/// Releases the slider's enemy allocation and begins default task teardown.
+///
+/// Exit callback and final task state. Requires the live, primary-heap Enemy
+/// owned through `spawnArg2.pointer`; target tracking is detached before it is
+/// freed. Default teardown owns model/work release and bypasses this callback.
+/// The enemy is invalid on return; callers must not access the task afterward.
+static void _actor503500SliderExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-static void func_actor_503500_801324EC(Task* arg0)
+/// Lends the slider's light and colour matrices to its model.
+///
+/// Requires initialized slider work and a live TMD object. The model retains
+/// both pointers, so work must survive every model draw until teardown. Does
+/// not initialize the matrices or allocate storage.
+static void _actor503500SliderBindLighting(Task* task)
 {
-    TmdObject*              ext;
+    TmdObject*              model;
     _Actor503500SliderWork* work;
 
-    ext           = arg0->extra.tmd;
-    work          = arg0->work;
-    ext->lightMtx = &work->light;
-    ext->colorMtx = &work->color;
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
 }
 
 #include "../../shared/actor_messages_place_euler.inc.c"
@@ -347,7 +355,7 @@ static const TaskFuncTable3 D_actor_503500_80131E24 = {
     {
         func_actor_503500_80132430,
         func_actor_503500_8013223C,
-        func_actor_503500_801324C4,
+        _actor503500SliderExit,
     },
 };
 

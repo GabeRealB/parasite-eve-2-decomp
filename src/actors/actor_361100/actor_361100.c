@@ -197,7 +197,6 @@ extern ActorCommand         D_actor_361100_80165DD4;
 extern ActorCommand         D_actor_361100_80165E84;
 extern ActorCommand         D_actor_361100_80165F3C;
 extern ActorTransform       D_actor_361100_80165D98;
-void                        func_actor_361100_8016297C(void);
 static void                 _actor361100SetHeadAimMode(s32 mode);
 static void                 _actor361100AddFlowFlags(s32 bits);
 
@@ -236,7 +235,7 @@ extern ActorTransform            D_actor_361100_80165F1C;
 static void                      _actor361100StageSceneAudioStart(void);
 static void                      _actor361100StartScenePlayback(void);
 static void                      _actor361100FinishScene(void);
-void                             func_actor_361100_8016297C(void);
+static void                      _actor361100CancelScene(void);
 static void                      _actor361100SpawnHeadAimTask(void);
 static void                      _actor361100SpawnShakeTask(s32 durationTicks);
 
@@ -630,7 +629,7 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_361100_8016297C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100AddFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100AddFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_AREA_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -657,7 +656,7 @@ EvsCommand D_actor_361100_80166848[26] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_361100_80165CA0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_361100_8016297C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SetHeadAimMode }, { .value = ACTOR_361100_HEAD_AIM_KILL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1028,9 +1027,15 @@ void func_actor_361100_80161E3C(Task* arg0)
 
 /// Prepares screen rays and the depth dividend for the scene's horizontal plane.
 ///
-/// Requires one reserved scratch block and a live display projection. Coordinates
-/// use integer world units; rows use centred pixels. View translation narrows
-/// to signed halfwords before rotation. Overwrites the GTE rotation.
+/// Requires a caller-reserved `WaterRefractionScratch`, current composed view
+/// matrix and live display projection. Transposes the view's Q12 basis and
+/// rotates its translation after signed-halfword narrowing/saturation. Sets
+/// depth to (rotated Y + 1810 world units) * projection distance. Screen rays
+/// use X = 0 and Z = screen distance in pixels; the caller supplies each Y row.
+/// Projection distance must fit a signed halfword; the depth product must fit
+/// a signed word.
+/// Leaves rotated-row storage and screen-row Y intact. Retains no pointer and
+/// changes GTE rotation/arithmetic state; the caller owns scratch lifetime.
 static inline void _actor361100PrepareRefractionProjection(WaterRefractionScratch* scratch, const DisplayState* display)
 {
     enum { ACTOR_361100_REFRACTION_PLANE_Y = 1810 };
@@ -1497,9 +1502,13 @@ static void _actor361100FinishScene(void)
     streamFinishScene();
 }
 
-/// Record handler (opcode 0x0D) of the actor's script data: cancels the queued
-/// CD command and restarts the CD queue.
-void func_actor_361100_8016297C(void)
+/// Cancels this scene's deferred CD request and finishes its streaming session.
+///
+/// Used by both normal and skip scripts after successful scene selection. The
+/// deferred replacement is discarded and scene flags/random state are restored
+/// immediately; CD cancellation completes through later resident dispatches.
+/// Buffer and task teardown remain with their owners.
+static void _actor361100CancelScene(void)
 {
     cdCmdCancelScene();
 }

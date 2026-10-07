@@ -1579,11 +1579,13 @@ static inline void _actor120300ResetPlayerAnimation(Task* task, u16 animationId)
         TASK_MESSAGE_DISPATCH_POINTER((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                                \
     }
 
-/// Computes the scene's player aim bearing in 4096 angle units per turn.
+/// Computes the garage scene's relative player aiming yaw toward this actor.
 ///
-/// Reads both model roots in parent coordinates, choosing the X/Z signs from
-/// their full-width X ordering. Differences use each coordinate's low unsigned
-/// halfword and narrow to signed halfwords before the angle calculation.
+/// Returns 4096 angle units per turn for the player's part-4 yaw. Both live
+/// roots must use the scene's common parent frame; their rotations are ignored.
+/// Full-width X ordering selects the X/Z signs. Differences use low unsigned
+/// halfwords, then narrow to signed halfwords for `ratan2(deltaZ, deltaX)`.
+/// No coordinate is composed or changed; no pointer is retained.
 static inline s16 _actor120300GetPlayerAimYaw(const GfxCoord* actorCoord, const GfxCoord* playerCoord)
 {
     s32 deltaX;

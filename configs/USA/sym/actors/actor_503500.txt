@@ -554,3 +554,5 @@ _actor503500SavePlayerTransform = 0x80132dec; // type:func
 _actor503500RestorePlayerTransform = 0x80132e7c; // type:func
 _actor503500SetPlayerUpdateHold = 0x80132ee8; // type:func
 _actor503500HaltPadScript = 0x80132f28; // type:func
+_actor503500SliderExit = 0x801324c4; // type:func
+_actor503500SliderBindLighting = 0x801324ec; // type:func
