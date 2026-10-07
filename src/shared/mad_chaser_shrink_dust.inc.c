@@ -11,11 +11,9 @@ void madChaserShrinkWithDust(Task* arg0)
     GfxCoord*         coord;
     VECTOR            scale;
     GfxMatrix         m;
-    GfxRotationWords* ident;
     SVECTOR           ofs;
 
     work                   = (MadChaserWork*)arg0->work;
-    ident                  = &m.rotationWords;
     obj                    = arg0->extra.tmd;
     coord                  = obj->coords;
     work->shrinkScaleY    -= 0x40;
@@ -23,11 +21,7 @@ void madChaserShrinkWithDust(Task* arg0)
     scale.vy               = (s16)work->shrinkScaleY;
     scale.vz               = 0x1000;
     coord->coord           = work->savedRootMtx;
-    m.rotationWords.m00M01 = ONE;
-    m.rotationWords.m02M10 = 0;
-    ident->m11M12          = ONE;
-    m.rotationWords.m20M21 = 0;
-    ident->m22             = ONE;
+    gfxSetRotIdentity(&m.mat);
     ScaleMatrix(&m.mat, &scale);
     MulMatrix(&coord->coord, &m.mat);
     if ((s16)++work->stateFrames == 4) {
