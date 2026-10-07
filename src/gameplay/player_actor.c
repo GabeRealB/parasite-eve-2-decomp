@@ -2548,14 +2548,12 @@ void effectSpriteTask32(Task* task)
     EffectWork* work;
     GfxCoord*   coord;
     GfxCoord*   playerCoord;
-    MATRIX*     localMatrix;
     s16         orbitAngle;
     s16         elevationAngle;
     s32         entryState;
     s32         randomState;
     u32         nextRandomState;
     u16         nextAge;
-    s32         fixedOne;
 
     work       = task->spawnArg2.pointer;
     coord      = task->extra.coordBody->coord;
@@ -2579,15 +2577,9 @@ void effectSpriteTask32(Task* task)
             work->move.vy   = ((rsin(work->move.vz) * work->step) >> EFFECT_DRAW_FRACTION_BITS) - EFFECT_CHARGE_PARTICLE_HEIGHT_OFFSET;
             playerCoord =
                 (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            fixedOne                         = ONE;
-            MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
-            coord->parent                    = playerCoord;
-            localMatrix                      = &coord->coord;
-            MATRIX_PAIR(localMatrix, 0, 2)   = 0;
-            MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
-            MATRIX_PAIR(localMatrix, 2, 0)   = 0;
-            localMatrix->m[2][2]             = fixedOne;
-            orbitAngle                       = (work->age + work->scale) * EFFECT_CHARGE_PARTICLE_ANGLE_STEP;
+            coord->parent = playerCoord;
+            gfxSetRotIdentity(&coord->coord);
+            orbitAngle = (work->age + work->scale) * EFFECT_CHARGE_PARTICLE_ANGLE_STEP;
             _effectPositionChargeParticle(coord, work, orbitAngle);
             task->state = EFFECT_CHARGE_PARTICLE_STATE_ORBIT;
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
