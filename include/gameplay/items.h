@@ -355,12 +355,6 @@ extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty0;
 
 extern InventoryConsumableStack Gp_StackLimits[];
 
-/// Pack size and stack capacity of consumable `itemId` (0xA0..0xBF).
-static inline InventoryConsumableStack* gpItemStock(s32 itemId)
-{
-    return &Gp_StackLimits[itemId - 0xA0];
-}
-
 /// Returns 1 if an item has a free row or its first consumable stack has room.
 ///
 /// Existing consumables need room for at least one unit, independently of pack

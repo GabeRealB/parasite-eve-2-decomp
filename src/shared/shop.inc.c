@@ -58,6 +58,16 @@ static void Shop_QuantityTask(Task* task);
 static void Shop_MessageRow(UiList* prompt, UiObject* obj);
 static void Shop_BuyPromptTask(Task* task);
 
+/// Borrows a consumable's pack quantity and per-stack capacity from the catalogue.
+///
+/// `consumableItemId` must be 0xA0..0xBF; no bounds check is performed.
+/// Both quantities count item units. The read-only row remains valid while
+/// the gameplay image is loaded; no inventory contents are read or changed.
+static inline const InventoryConsumableStack* _inventoryGetConsumableStackInfo(s32 consumableItemId)
+{
+    return &Gp_StackLimits[consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST];
+}
+
 /// Returns the 0xFFFF-terminated item id list the shop list starts from. The
 /// low halfword of `mode` picks a group of lists (0x20, 0x21, 0x30-0x33, 0x40
 /// or any other value) and the high halfword one of the group's four;
@@ -372,11 +382,11 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
         }
     }
     itemMenuDrawItemRow(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, itemId, prompt->colorRgb, 0);
-    if ((u32)(itemId - 0xA0) < 0x20) {
+    if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
         /* Dead: emits the scaled index before the table base so the
            `addu` is index-first, matching the original. */
         scaled = itemId * 4;
-        itemMenuDrawQuantity(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, gpItemStock(itemId)->packQty, prompt->colorRgb);
+        itemMenuDrawQuantity(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, _inventoryGetConsumableStackInfo(itemId)->packQty, prompt->colorRgb);
     }
     textItoaUnsigned(buf, price);
     textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -1099,10 +1109,10 @@ static void Shop_QuantityTask(Task* task)
         task->state = task->state + 1;
     }
 
-    if ((u32)(itemId - 0xA0) < 0x20) {
-        InventoryConsumableStack* stock = gpItemStock(itemId);
+    if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        const InventoryConsumableStack* stackInfo = _inventoryGetConsumableStackInfo(itemId);
 
-        if (stock->packQty != 0) {
+        if (stackInfo->packQty != 0) {
             held = inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId);
             // The image keeps the held count in a register of its own
             // (`move v1,v0`) and loads the ceiling into `$v0`, which needs a
@@ -1115,14 +1125,14 @@ static void Shop_QuantityTask(Task* task)
             // unknown; `held > 0` is fitted. `held != 0` does not work: cse
             // then drops the subtraction from the zero arm.
             if (held > 0) {
-                maxQty = stock->maxHeld - held;
+                maxQty = stackInfo->maxHeld - held;
             } else {
-                maxQty = stock->maxHeld - held;
+                maxQty = stackInfo->maxHeld - held;
             }
             if (maxQty <= 0) {
                 maxQty = 1;
             } else {
-                maxQty = (maxQty - 1) / stock->packQty;
+                maxQty = (maxQty - 1) / stackInfo->packQty;
                 maxQty = maxQty + 1;
             }
         }
@@ -1140,10 +1150,10 @@ static void Shop_QuantityTask(Task* task)
     top  = obj->panel.contentTop.signedValue;
     y    = top + 0xF;
     itemMenuDrawItemRow(obj, x, y, itemId, 0x606060, 0);
-    if ((u32)(itemId - 0xA0) < 0x20) {
-        InventoryConsumableStack* stock = gpItemStock(itemId);
+    if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        const InventoryConsumableStack* stackInfo = _inventoryGetConsumableStackInfo(itemId);
 
-        itemMenuDrawQuantity(obj, x, y, stock->packQty, 0x606060);
+        itemMenuDrawQuantity(obj, x, y, stackInfo->packQty, 0x606060);
     }
 
     count = task->extraState.value;

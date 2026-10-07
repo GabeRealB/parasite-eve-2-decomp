@@ -151957,7 +151957,7 @@ boundary).
 
 **Symptom.** `jal inventoryGetConsumableStackQuantity; move v1,v0; lhu v0,2(s0); subu s6,v0,v1`,
 matched only with `register s32 maxHeld asm("v0")`. Plain
-`maxQty = stock->maxHeld - held` gives `lhu v1,2(s0); subu s6,v1,v0`.
+`maxQty = stackInfo->maxHeld - held` gives `lhu v1,2(s0); subu s6,v1,v0`.
 
 **Mechanism.** This is not a ranking question in local-alloc: in the pin-free
 form there is no quantity for the held count at all. combine substitutes the
@@ -151971,8 +151971,8 @@ and is the lowest register; the held count then conflicts with it and takes
 the copy and the subtraction is enough, and the image shows no branch there -
 so the boundary is one that jump2 deleted.
 
-**Fix (fitted).** `if (held > 0) { maxQty = stock->maxHeld - held; } else {
-maxQty = stock->maxHeld - held; }`. The held count becomes a multi-block
+**Fix (fitted).** `if (held > 0) { maxQty = stackInfo->maxHeld - held; } else {
+maxQty = stackInfo->maxHeld - held; }`. The held count becomes a multi-block
 pseudo (4 refs over 6 insns, global-alloc), each arm loads into `$v0`, and
 cross-jumping merges the arms and deletes the branch. All seven shop images
 match. What the original tested is unknown. `held != 0` does not work: cse
@@ -151981,7 +151981,7 @@ so the arms differ and the branch stays.
 
 **Not matching** (each leaves `lhu v1; subu s6,v1,v0`): `held = 0; held +=
 call`; `do { } while (0)` after the call, around the call, or between
-`maxQty = stock->maxHeld` and `maxQty -= held` (a loop note is not a block
+`maxQty = stackInfo->maxHeld` and `maxQty -= held` (a loop note is not a block
 boundary for combine; the last two also rotate `$s5/$s6` or `$s2/$fp`); a
 one-case `switch (held)`. A second use of the count that combine could cancel
 was looked for and not found.
