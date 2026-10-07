@@ -718,6 +718,10 @@ to its low signed halfword. A carrier rebinds both around each additional
 fragment instance and restores its first walker's bindings afterwards.
 `actor_420700` carries only the tick and reset fragments; its private
 fixed-duration blend function is declared directly in the carrier's prologue.
+`SCRIPTED_WALK_PLACE` selects the placement callback, with the same instance's
+published work pointer bound around its fragment. The carrier declares an
+additional instance in its prologue to establish linkage before its message
+table; actor_143900's second copy is the private `_scriptedWalkPlaceSecond`.
 
 `pacedWalk` owns the included twenty-part cutscene NPC walk whose work block
 is kept at `Task::work`, and the animation-slot tick, reset, blend and placement

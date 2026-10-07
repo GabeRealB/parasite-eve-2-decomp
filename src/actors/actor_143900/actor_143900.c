@@ -120,7 +120,7 @@ static TmdSource _gActor143900Model173A8;
 static TmdSource _gActor143900Model17688;
 s32              func_actor_143900_801331C4(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_143900_80133254(Task*, s32, s32, s32);
-s32              func_actor_143900_801332E4(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+static s32       _scriptedWalkPlaceSecond(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 s32              func_actor_143900_80133360(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 s32              func_actor_143900_801333C4(Task*, s32, VECTOR*, s32);
 void             func_actor_143900_80132DEC(Task*);
@@ -678,7 +678,7 @@ static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 TaskMessageEntry D_actor_143900_801413BC[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_143900_80132624 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_143900_801326B4 },
-    { ACTOR_MESSAGE_PLACE, scriptedWalkPlace },
+    { ACTOR_MESSAGE_PLACE, SCRIPTED_WALK_PLACE },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_143900_80132778 },
     { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1097,7 +1097,7 @@ static s16 _gScriptedWalkSecondBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 TaskMessageEntry D_actor_143900_80149634[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_143900_801331C4 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_143900_80133254 },
-    { ACTOR_MESSAGE_PLACE, func_actor_143900_801332E4 },
+    { ACTOR_MESSAGE_PLACE, _scriptedWalkPlaceSecond },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_143900_80133360 },
     { ACTOR_MESSAGE_WALK_TO, func_actor_143900_801333C4 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1623,12 +1623,17 @@ s32 func_actor_143900_80133254(Task* task, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// The second walker's copy.
-#define scriptedWalkPlace func_actor_143900_801332E4
+#undef SCRIPTED_WALK_PLACE
+/// Defines the private placement callback for the second walker.
+///
+/// Its static prologue prototype establishes linkage; the work binding below
+/// selects the same receiver's allocation for the cached signed yaw.
+#define SCRIPTED_WALK_PLACE _scriptedWalkPlaceSecond
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
 #include "../../shared/scripted_walk_place.inc.c"
-#undef scriptedWalkPlace
+#undef SCRIPTED_WALK_PLACE
+#define SCRIPTED_WALK_PLACE scriptedWalkPlace
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
 

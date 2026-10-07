@@ -208,3 +208,4 @@ _scriptedWalkUpdateSecond = 0x80132A9C; // type:func
 _scriptedWalkResetSecondAnim = 0x801330B4; // type:func
 _scriptedWalkBlendSecondAnim = 0x80133144; // type:func
 _actorRenderDrawSecondWalkerGroundShadow = 0x80132f14; // type:func
+_scriptedWalkPlaceSecond = 0x801332E4; // type:func

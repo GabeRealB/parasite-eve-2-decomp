@@ -1,19 +1,26 @@
 /* Part of the scripted walk library; see scripted_walk.h. */
 
-/// Message 0x7D4 (placement): turns the model to the placement's yaw, keeping
-/// that yaw in the work block, and moves it to the placement's position. Only
-/// the Y rotation is applied.
-s32 scriptedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
+/// Places the receiver's model root at a position and yaw in its parent's space.
+///
+/// Handles `ACTOR_MESSAGE_PLACE` for a live TMD task with its own live work
+/// block selected by `SCRIPTED_WALK_WORK`. The borrowed, word-aligned placement
+/// supplies XYZ in whole parent-coordinate units and signed yaw in 1/4096 turns;
+/// pitch, roll and the vectors' fourth components are ignored. Retains the yaw
+/// in `st.yaw`, replaces the root rotation at unit scale and invalidates
+/// composition. Returns zero; `messageId` and `unusedArgument` are ignored.
+/// The placement pointer is consumed during dispatch and is not retained.
+s32 SCRIPTED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)
 {
-    GfxCoord* coord;
-    u16       yaw;
+    GfxCoord* rootCoord;
+    s16       yaw;
 
-    coord                      = task->extra.tmd->coords;
+    rootCoord                  = task->extra.tmd->coords;
     SCRIPTED_WALK_WORK->st.yaw = yaw = placement->rot.vy;
-    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Replace pitch, roll and scale while preserving the root's parent.
+    gfxRotMatrixY(&rootCoord->coord, yaw, GRAPHICS_ROTATION_REPLACE);
+    rootCoord->coord.t[0]   = placement->pos.vx;
+    rootCoord->coord.t[1]   = placement->pos.vy;
+    rootCoord->coord.t[2]   = placement->pos.vz;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     return 0;
 }

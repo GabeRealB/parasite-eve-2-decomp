@@ -242,6 +242,22 @@ static void SCRIPTED_WALK_RESET_ANIM(void);
 static void SCRIPTED_WALK_BLEND_ANIM(void);
 s32         scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
 
-s32 scriptedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+#ifndef SCRIPTED_WALK_PLACE
+/// Selects the placement callback defined by this walker's placement fragment.
+///
+/// Bind to a function identifier with signature
+/// `s32 name(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)`.
+/// The default selects `scriptedWalkPlace` for the sole or first walker in
+/// actor_143900, actor_146300, actor_260400 and actor_461800.
+/// Declare any additional instance in the carrier prologue, establishing its
+/// linkage before its message table. Rebind around its placement fragment with
+/// `SCRIPTED_WALK_WORK` selecting the same receiver's live work, then restore
+/// both bindings. actor_143900 selects `_scriptedWalkPlaceSecond` this way.
+/// This identifier alias takes no arguments, captures no locals and evaluates
+/// no objects. It does not alter the task-message argument transport.
+#define SCRIPTED_WALK_PLACE scriptedWalkPlace
+#endif
+
+s32 SCRIPTED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 
 #endif /* SRC_SHARED_SCRIPTED_WALK_H */
