@@ -108,6 +108,29 @@ enum {
     GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_DEATH    = 14, // dies lying down
 };
 
+/// Animation requests used by the shared GOLEM behaviour handlers.
+enum {
+    GOLEM_PAWN_ROOK_ANIM_WALK              = 2,
+    GOLEM_PAWN_ROOK_ANIM_LISTEN            = 4,
+    GOLEM_PAWN_ROOK_ANIM_DOWNED_HIT_BEHIND = 0x17,
+    GOLEM_PAWN_ROOK_ANIM_DOWNED_HIT_FRONT  = 0x1B,
+};
+
+/// Saved downed poses, shared task lifecycle, and destinations in other handlers.
+///
+/// The placement index supplies the sound request's 8-bit instance tag.
+enum {
+    GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT     = 8,
+    GOLEM_PAWN_ROOK_DOWNED_BEHIND            = 1,
+    GOLEM_PAWN_ROOK_DOWNED_FRONT             = 2,
+    GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP      = 0,
+    GOLEM_PAWN_ROOK_TASK_RUNNING             = 1,
+    GOLEM_PAWN_ROOK_TASK_TEARDOWN            = 2,
+    GOLEM_PAWN_ROOK_ENGAGE_LISTEN_STEP       = 2,
+    GOLEM_PAWN_ROOK_DOWNED_HIT_BEHIND_FRAMES = 0x10,
+    GOLEM_PAWN_ROOK_DOWNED_HIT_FRONT_FRAMES  = 0x16,
+};
+
 /// Work block of a Pawn or Rook GOLEM, allocated at this size by the body
 /// task's spawn state and kept at `Task::work`.
 ///
@@ -222,32 +245,55 @@ typedef struct {
 } GolemPawnRookHitScratch;
 STATIC_ASSERT_SIZEOF(GolemPawnRookHitScratch, 0x40);
 
-void golemPawnRookIdleState(Task* arg0);
-void golemPawnRookApproachState(Task* arg0);
-void golemPawnRookCheckProximity(Task* arg0);
-void golemPawnRookRecoilState(Task* arg0);
-void golemPawnRookCollapseState(Task* arg0);
-void golemPawnRookDownedShiftState(Task* arg0);
-void golemPawnRookDownedFinishState(Task* arg0);
-void golemPawnRookTurnTowardTarget(Task* arg0);
-void golemPawnRookDecayHitTilt(Task* arg0);
-void golemPawnRookPlayAnimCues(Task* arg0);
-void golemPawnRookDeadState(Enemy* arg0, Task* arg1);
+/// Attaches a child model to a live GOLEM part and borrows the body's lighting.
+///
+/// The part is a coordinate index in the nineteen-part body. The child remains
+/// parented to the body task, starts its running state, and borrows the work
+/// returned here only while that parent is alive.
+static inline GolemPawnRookWork* _golemPawnRookAttachChildModel(Task* task, s32 part)
+{
+    Task*              golem;
+    TmdObject*         model;
+    GolemPawnRookWork* work;
+    GfxCoord*          root;
+    GfxCoord*          golemCoords;
+
+    golem              = task->parent;
+    model              = task->extra.tmd;
+    golemCoords        = golem->extra.tmd->coords;
+    root               = model->coords;
+    work               = golem->work;
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+    root->parent       = &golemCoords[part];
+    model->lightMtx    = &work->lightMtx;
+    model->flags       = 0;
+    model->colorMtx    = &work->colorMtx;
+    task->state        = GOLEM_PAWN_ROOK_TASK_RUNNING;
+    return work;
+}
+
+static void _golemPawnRookIdleState(Task* actor);
+static void _golemPawnRookPatrolState(Task* actor);
+static void _golemPawnRookCheckPlayerNoise(Task* actor);
+void        golemPawnRookRecoilState(Task* arg0);
+static void _golemPawnRookCollapseState(Task* actor);
+static void _golemPawnRookDownedHitState(Task* actor);
+static void _golemPawnRookDownedDeathState(Task* actor);
+void        golemPawnRookTurnTowardTarget(Task* arg0);
+void        golemPawnRookDecayHitTilt(Task* arg0);
+void        golemPawnRookPlayAnimCues(Task* arg0);
+void        golemPawnRookDeadState(Enemy* arg0, Task* arg1);
 
 /* Implemented by each package's hit and push handler. */
 void golemPawnRookTakeHits(Task* arg0);
 void golemPawnRookKnockdownState(Task* arg0);
-void golemPawnRookChargeState(Task* arg0);
 void golemPawnRookLungeCycle(Task* arg0);
 void golemPawnRookCompanionCycle(Task* arg0);
 void golemPawnRookSpawn(Enemy* ctx, Task* actor);
 void golemPawnRookLungeStrikeState(Task* arg0);
 void golemPawnRookAimLaserSight(Task* arg0);
 void golemPawnRookDrawLaserBeam(Task* arg0, SVECTOR* arg1, SVECTOR* arg2);
-void golemPawnRookBulletSpawn(Enemy* arg0, Task* arg1);
 void golemPawnRookBulletFly(Enemy* arg0, Task* arg1);
-void golemPawnRookGunTick(Enemy* enemy, Task* task);
-void golemPawnRookBulletDestroy(Enemy* arg0, Task* arg1);
 
 void golemPawnRookSilenceScreamState(Task* arg0);
 void golemPawnRookFrameState(Enemy* ctx, Task* actor);
@@ -259,14 +305,27 @@ static inline void golemPawnRookStepRoot(Task* actor);
 static inline void golemPawnRookTickAnim(Task* actor);
 static inline void golemPawnRookDraw(Task* actor, GfxCoord* coord);
 
-void golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor);
-void golemPawnRookBeamSwingState(Task* arg0);
-void golemPawnRookHitReactionState(Task* task);
-void golemPawnRookFlagWaitState(Task* task);
-void golemPawnRookNopState(Task* task);
-void golemPawnRookDelayedEffectSpawn(Enemy* arg0, Task* task);
-void golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task);
-void golemPawnRookGunSpawn(Enemy* arg0, Task* task);
-void golemPawnRookBurstPartSpawn(Enemy* arg0, Task* task);
+void        golemPawnRookFrameStateNoDust(Enemy* ctx, Task* actor);
+static void _golemPawnRookStaggerState(Task* task);
+static void _golemPawnRookBuildupState(Task* task);
+void        golemPawnRookNopState(Task* task);
+void        golemPawnRookDelayedEffectTick(Enemy* arg0, Task* task);
+
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_BEAM_SWORD
+static void _golemPawnRookSwordChargeState(Task* actor);
+static void _golemPawnRookSwordSwingState(Task* actor);
+static void _golemPawnRookSwordSpawn(Enemy* unusedEnemy, Task* task);
+#endif
+
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_GRENADE_LAUNCHER
+static void _golemPawnRookGrenadeSpawn(Enemy* enemy, Task* grenade);
+static void _golemPawnRookGrenadeDestroy(Enemy* enemy, Task* grenade);
+static void _golemPawnRookLauncherSpawn(Enemy* unusedEnemy, Task* task);
+static void _golemPawnRookLauncherTick(Enemy* enemy, Task* task);
+#endif
+
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
+static void _golemPawnRookShieldSpawn(Enemy* unusedEnemy, Task* task);
+#endif
 
 #endif /* SRC_SHARED_GOLEM_PAWN_ROOK_H */

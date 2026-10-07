@@ -1,6 +1,6 @@
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Per-frame state of the child task `golemPawnRookDelayedEffectSpawn` sets up. It mirrors
+/// Per-frame state of the child task `_golemPawnRookSwordSpawn` sets up. It mirrors
 /// the enemy's model flags onto its own model and drains the enemy's
 /// `swordTrailDelay` countdown; on the frame it reaches zero it spawns a
 /// `effectSpawn` effect at part 7 of the enemy's coordinate array and

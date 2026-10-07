@@ -1110,30 +1110,30 @@ AnimationSet* Actor02000_D15FE8[31] = {
 };
 
 TaskFunc gGolemPawnRookStates[15] = {
-    golemPawnRookIdleState,
-    golemPawnRookApproachState,
+    _golemPawnRookIdleState,
+    _golemPawnRookPatrolState,
     Actor02000_Fn02D5C,
-    golemPawnRookChargeState,
-    golemPawnRookBeamSwingState,
+    _golemPawnRookSwordChargeState,
+    _golemPawnRookSwordSwingState,
     golemPawnRookNopState,
     golemPawnRookNopState,
     golemPawnRookNopState,
-    golemPawnRookHitReactionState,
+    _golemPawnRookStaggerState,
     golemPawnRookRecoilState,
-    golemPawnRookFlagWaitState,
+    _golemPawnRookBuildupState,
     golemPawnRookKnockdownState,
-    golemPawnRookDownedShiftState,
-    golemPawnRookCollapseState,
-    golemPawnRookDownedFinishState,
+    _golemPawnRookDownedHitState,
+    _golemPawnRookCollapseState,
+    _golemPawnRookDownedDeathState,
 };
 
-#include "../../shared/golem_pawn_rook_approach.inc.c"
+#include "../../shared/golem_pawn_rook_patrol.inc.c"
 
-#include "../../shared/golem_pawn_rook_proximity.inc.c"
+#include "../../shared/golem_pawn_rook_player_noise.inc.c"
 
 #include "../../shared/golem_pawn_rook_knockdown.inc.c"
 
-#include "../../shared/golem_pawn_rook_downed_shift.inc.c"
+#include "../../shared/golem_pawn_rook_downed_hit.inc.c"
 
 #include "../../shared/golem_pawn_rook_collapse.inc.c"
 
@@ -1145,9 +1145,9 @@ TaskFunc gGolemPawnRookStates[15] = {
 
 #include "../../shared/golem_pawn_rook_dead.inc.c"
 
-#include "../../shared/golem_pawn_rook_charge_state.inc.c"
+#include "../../shared/golem_pawn_rook_sword_charge.inc.c"
 
-#include "../../shared/golem_pawn_rook_beam_swing.inc.c"
+#include "../../shared/golem_pawn_rook_sword_swing.inc.c"
 
 /// Enemy init. Allocates the `GolemPawnRookWork` block, points the model object at
 /// the light / color matrices inside it, runs the animation context over its
@@ -1463,13 +1463,13 @@ void Actor02000_Fn02D5C(Task* arg0)
 
 #include "../../shared/golem_pawn_rook_idle.inc.c"
 
-#include "../../shared/golem_pawn_rook_hit_reaction.inc.c"
+#include "../../shared/golem_pawn_rook_stagger.inc.c"
 
 #include "../../shared/golem_pawn_rook_recoil.inc.c"
 
-#include "../../shared/golem_pawn_rook_flag_wait.inc.c"
+#include "../../shared/golem_pawn_rook_buildup.inc.c"
 
-#include "../../shared/golem_pawn_rook_downed_finish.inc.c"
+#include "../../shared/golem_pawn_rook_downed_death.inc.c"
 
 #include "../../shared/golem_pawn_rook_nop.inc.c"
 
@@ -1481,7 +1481,7 @@ void Actor02000_Fn035E8(Task* arg0)
     sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
 }
 
-#include "../../shared/golem_pawn_rook_delayed_effect_spawn.inc.c"
+#include "../../shared/golem_pawn_rook_sword_spawn.inc.c"
 
 #include "../../shared/golem_pawn_rook_delayed_effect_tick.inc.c"
 
@@ -1494,7 +1494,7 @@ void Actor02000_Fn03728(Task* arg0)
 }
 
 static const EnemyTaskFuncTable3 Actor02000_D00060 = { {
-    golemPawnRookDelayedEffectSpawn,
+    _golemPawnRookSwordSpawn,
     golemPawnRookDelayedEffectTick,
     enemyDestroy,
 } };

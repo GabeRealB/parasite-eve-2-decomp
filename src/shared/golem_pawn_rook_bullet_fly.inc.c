@@ -1,6 +1,6 @@
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Per-frame state of the effect child set up by `golemPawnRookBulletSpawn`, entry
+/// Per-frame state of the effect child set up by `_golemPawnRookGrenadeSpawn`, entry
 /// 1 of `Actor05600_D0008C`. `gSceneCombatState.actorControl` overrides it: 0 shows the child and
 /// runs the tick, 1 only refreshes its colour, 2 hides it. The tick moves the
 /// child along its own Y axis, spawns a puff every fourth frame and ends the

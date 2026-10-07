@@ -380,6 +380,13 @@ interface is `include/title/title.h`, implemented by `src/title/title.c`.
 Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,
 whose entry points retain package identities.
 
+`golemPawnRook` owns the included Pawn/Rook GOLEM behaviour and its Beam Sword,
+grenade launcher, grenade and shield child tasks. Its implementation interface
+is `src/shared/golem_pawn_rook.h`; carriers select the GOLEM kind and weapon.
+Handlers reached only by each carrier's own dispatch tables keep static linkage
+and the `_` marker. The resident enemy, animation and collision APIs retain
+their own subsystem identities.
+
 `actorRender` also owns the inline yaw rebuild and joint-rotation composition
 helpers in `include/actors/actor.h`. Each actor translation unit keeps its own static
 instance, with the `_` marker. The yaw rebuild replaces pitch, roll and scale

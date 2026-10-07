@@ -1169,21 +1169,21 @@ AnimationSet* gGolemPawnRookAnimSets[31] = {
 };
 
 TaskFunc gGolemPawnRookStates[15] = {
-    golemPawnRookIdleState,
-    golemPawnRookApproachState,
+    _golemPawnRookIdleState,
+    _golemPawnRookPatrolState,
     golemPawnRookLungeCycle,
     golemPawnRookNopState,
     golemPawnRookNopState,
     golemPawnRookNopState,
     golemPawnRookCompanionCycle,
     golemPawnRookLungeStrikeState,
-    golemPawnRookHitReactionState,
+    _golemPawnRookStaggerState,
     golemPawnRookRecoilState,
-    golemPawnRookFlagWaitState,
+    _golemPawnRookBuildupState,
     golemPawnRookKnockdownState,
-    golemPawnRookDownedShiftState,
-    golemPawnRookCollapseState,
-    golemPawnRookDownedFinishState,
+    _golemPawnRookDownedHitState,
+    _golemPawnRookCollapseState,
+    _golemPawnRookDownedDeathState,
 };
 
 /// Corner indices of the two ribbon polygons in the beam scratch's
@@ -1192,13 +1192,13 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 #include "../../shared/golem_pawn_rook_hit_tick.inc.c"
 
-#include "../../shared/golem_pawn_rook_approach.inc.c"
+#include "../../shared/golem_pawn_rook_patrol.inc.c"
 
-#include "../../shared/golem_pawn_rook_proximity.inc.c"
+#include "../../shared/golem_pawn_rook_player_noise.inc.c"
 
 #include "../../shared/golem_pawn_rook_knockdown.inc.c"
 
-#include "../../shared/golem_pawn_rook_downed_shift.inc.c"
+#include "../../shared/golem_pawn_rook_downed_hit.inc.c"
 
 #include "../../shared/golem_pawn_rook_collapse.inc.c"
 
@@ -1218,7 +1218,7 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 #include "../../shared/golem_pawn_rook_laser_beam.inc.c"
 
-#include "../../shared/golem_pawn_rook_bullet_spawn.inc.c"
+#include "../../shared/golem_pawn_rook_grenade_spawn.inc.c"
 
 #include "../../shared/golem_pawn_rook_bullet_fly.inc.c"
 
@@ -1236,21 +1236,21 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
 #include "../../shared/golem_pawn_rook_idle.inc.c"
 
-#include "../../shared/golem_pawn_rook_hit_reaction.inc.c"
+#include "../../shared/golem_pawn_rook_stagger.inc.c"
 
 #include "../../shared/golem_pawn_rook_recoil.inc.c"
 
-#include "../../shared/golem_pawn_rook_flag_wait.inc.c"
+#include "../../shared/golem_pawn_rook_buildup.inc.c"
 
-#include "../../shared/golem_pawn_rook_downed_finish.inc.c"
+#include "../../shared/golem_pawn_rook_downed_death.inc.c"
 
 #include "../../shared/golem_pawn_rook_nop.inc.c"
 
 /// State handlers of the model child hung off the actor's part 7 - spawn,
 /// per-frame tick and teardown - dispatched through by `Actor05600_Fn04A70`.
 static const EnemyTaskFuncTable3 Actor05600_D00080 = {
-    golemPawnRookGunSpawn,
-    golemPawnRookGunTick,
+    _golemPawnRookLauncherSpawn,
+    _golemPawnRookLauncherTick,
     enemyDestroy,
 };
 
@@ -1262,16 +1262,16 @@ void Actor05600_Fn04A70(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/golem_pawn_rook_gun_spawn.inc.c"
+#include "../../shared/golem_pawn_rook_launcher_spawn.inc.c"
 
-#include "../../shared/golem_pawn_rook_gun_tick.inc.c"
+#include "../../shared/golem_pawn_rook_launcher_tick.inc.c"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.
 static const EnemyTaskFuncTable3 Actor05600_D0008C = {
-    golemPawnRookBulletSpawn,
+    _golemPawnRookGrenadeSpawn,
     golemPawnRookBulletFly,
-    golemPawnRookBulletDestroy,
+    _golemPawnRookGrenadeDestroy,
 };
 
 void Actor05600_Fn04BAC(Task* arg0)
@@ -1282,7 +1282,7 @@ void Actor05600_Fn04BAC(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/golem_pawn_rook_bullet_destroy.inc.c"
+#include "../../shared/golem_pawn_rook_grenade_destroy.inc.c"
 
 /// The enemy's three state handlers - spawn/setup, per-frame tick
 /// and teardown - dispatched through by state.

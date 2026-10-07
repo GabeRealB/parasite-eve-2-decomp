@@ -1230,31 +1230,25 @@ AnimationSet* gGolemPawnRookAnimSets[31] = {
 };
 
 TaskFunc gGolemPawnRookStates[15] = {
-    golemPawnRookIdleState,
-    golemPawnRookApproachState,
+    _golemPawnRookIdleState,
+    _golemPawnRookPatrolState,
     golemPawnRookLungeCycle,
     golemPawnRookNopState,
     golemPawnRookNopState,
     golemPawnRookSilenceScreamState,
     golemPawnRookCompanionCycle,
     golemPawnRookLungeStrikeState,
-    golemPawnRookHitReactionState,
+    _golemPawnRookStaggerState,
     golemPawnRookRecoilState,
-    golemPawnRookFlagWaitState,
+    _golemPawnRookBuildupState,
     golemPawnRookKnockdownState,
-    golemPawnRookDownedShiftState,
-    golemPawnRookCollapseState,
-    golemPawnRookDownedFinishState,
+    _golemPawnRookDownedHitState,
+    _golemPawnRookCollapseState,
+    _golemPawnRookDownedDeathState,
 };
 
 extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 
-/// Places a fresh body block for the actor: allocates the 0xF0-byte work
-/// block, builds the root coordinate by rotating the local spawn offset through
-/// the parent coordinate and re-aiming it, then links the three collision
-/// bodies and their `WorldCollisionContact` tables onto the model root and hands the light /
-/// colour matrices to its `TmdObject`. The sound cue that marks the placement
-/// packs the room/channel bits of the spawn context into `gGolemPawnRookShotSound`.
 extern s32 gGolemPawnRookShotSound;
 
 extern s32 gGolemPawnRookScreamCue;
@@ -1284,13 +1278,13 @@ extern s32 gGolemPawnRookBurstCue;
 
 #include "../../shared/golem_pawn_rook_hit_tick.inc.c"
 
-#include "../../shared/golem_pawn_rook_approach.inc.c"
+#include "../../shared/golem_pawn_rook_patrol.inc.c"
 
-#include "../../shared/golem_pawn_rook_proximity.inc.c"
+#include "../../shared/golem_pawn_rook_player_noise.inc.c"
 
 #include "../../shared/golem_pawn_rook_knockdown.inc.c"
 
-#include "../../shared/golem_pawn_rook_downed_shift.inc.c"
+#include "../../shared/golem_pawn_rook_downed_hit.inc.c"
 
 #include "../../shared/golem_pawn_rook_collapse.inc.c"
 
@@ -1307,8 +1301,8 @@ extern s32 gGolemPawnRookBurstCue;
 /// State handlers of the model child hung off the actor's part 7 - spawn,
 /// per-frame tick and teardown - dispatched through by `Actor05700_Fn05040`.
 static const EnemyTaskFuncTable3 Actor05700_D00080 = {
-    golemPawnRookGunSpawn,
-    golemPawnRookGunTick,
+    _golemPawnRookLauncherSpawn,
+    _golemPawnRookLauncherTick,
     enemyDestroy,
 };
 
@@ -1318,12 +1312,7 @@ static const EnemyTaskFuncTable3 Actor05700_D00080 = {
 
 #include "../../shared/golem_pawn_rook_laser_beam.inc.c"
 
-#include "../../shared/golem_pawn_rook_bullet_spawn.inc.c"
-
-/// Per-frame tick of the placed effect body from `golemPawnRookBulletSpawn`.
-/// Mode 0 of `gSceneCombatState.actorControl` drifts the root coordinate along its Y axis, puffs
-/// an effect every fourth frame and ends the cycle - burst, sound cue and
-/// state 2 - on a body hit, a surface that blocks probes, or after 0x5A frames.
+#include "../../shared/golem_pawn_rook_grenade_spawn.inc.c"
 
 #include "../../shared/golem_pawn_rook_bullet_fly.inc.c"
 
@@ -1342,13 +1331,13 @@ static const EnemyTaskFuncTable3 Actor05700_D00080 = {
 
 #include "../../shared/golem_pawn_rook_idle.inc.c"
 
-#include "../../shared/golem_pawn_rook_hit_reaction.inc.c"
+#include "../../shared/golem_pawn_rook_stagger.inc.c"
 
 #include "../../shared/golem_pawn_rook_recoil.inc.c"
 
-#include "../../shared/golem_pawn_rook_flag_wait.inc.c"
+#include "../../shared/golem_pawn_rook_buildup.inc.c"
 
-#include "../../shared/golem_pawn_rook_downed_finish.inc.c"
+#include "../../shared/golem_pawn_rook_downed_death.inc.c"
 
 #include "../../shared/golem_pawn_rook_nop.inc.c"
 
@@ -1360,16 +1349,16 @@ void Actor05700_Fn05040(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/golem_pawn_rook_gun_spawn.inc.c"
+#include "../../shared/golem_pawn_rook_launcher_spawn.inc.c"
 
-#include "../../shared/golem_pawn_rook_gun_tick.inc.c"
+#include "../../shared/golem_pawn_rook_launcher_tick.inc.c"
 
 /// State handlers of the effect child - spawn/setup, per-frame tick and
 /// teardown - dispatched through by `Actor05700_Fn0517C`.
 static const EnemyTaskFuncTable3 Actor05700_D0008C = {
-    golemPawnRookBulletSpawn,
+    _golemPawnRookGrenadeSpawn,
     golemPawnRookBulletFly,
-    golemPawnRookBulletDestroy,
+    _golemPawnRookGrenadeDestroy,
 };
 
 void Actor05700_Fn0517C(Task* arg0)
@@ -1380,12 +1369,12 @@ void Actor05700_Fn0517C(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/golem_pawn_rook_bullet_destroy.inc.c"
+#include "../../shared/golem_pawn_rook_grenade_destroy.inc.c"
 
 /// State handlers of the burst child parented to the actor's part 11 - spawn,
 /// per-frame tick and teardown - dispatched through by `Actor05700_Fn05270`.
 static const EnemyTaskFuncTable3 Actor05700_D00098 = {
-    golemPawnRookBurstPartSpawn,
+    _golemPawnRookShieldSpawn,
     golemPawnRookBurstPartTick,
     enemyDestroy,
 };
@@ -1398,7 +1387,7 @@ void Actor05700_Fn05270(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-#include "../../shared/golem_pawn_rook_burst_part_spawn.inc.c"
+#include "../../shared/golem_pawn_rook_shield_spawn.inc.c"
 
 /// The actor's own state handlers - spawn/setup, per-frame tick and
 /// teardown - dispatched through by `Actor05700_Fn05470`. The tick and
