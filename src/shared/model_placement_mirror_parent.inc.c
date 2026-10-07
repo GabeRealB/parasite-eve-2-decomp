@@ -15,29 +15,32 @@
 #ifndef SRC_SHARED_MODEL_PLACEMENT_COPY_PARENT_DRAW_FLAGS
 #define SRC_SHARED_MODEL_PLACEMENT_COPY_PARENT_DRAW_FLAGS
 
-/// Copies a live parent model's active-pass exclusion and buffer-recovery policy.
+/// Applies a parent model's active-draw and automatic-buffer policy to its child.
 ///
-/// Both objects must be live. Copies only `TMD_OBJECT_SKIP_ACTIVE_DRAW` and
-/// `TMD_OBJECT_SKIP_AUTO_BUFFER`, retaining all other child flags. When the
-/// parent permits automatic buffers, attempts to allocate a missing child
-/// buffer even while excluded from active drawing. A failed request leaves
-/// the buffer NULL for a later retry; existing buffers are retained in either
-/// mode. Allocation requires the source and heap contract of
-/// `tmdAllocPrimitiveBuffer`; the resulting block belongs to the child model.
-static inline void _modelPlacementCopyParentDrawFlags(TmdObject* childModel, const TmdObject* parentModel)
+/// Borrows both live objects for the call. Inherits `TMD_OBJECT_SKIP_ACTIVE_DRAW`
+/// and `TMD_OBJECT_SKIP_AUTO_BUFFER`, preserving every other child flag,
+/// including its independent flagged-pass selection.
+///
+/// When the parent permits automatic buffers, requests and initializes a missing
+/// child primitive buffer even while active drawing is excluded. Existing buffers
+/// are retained in either mode; failure leaves NULL so a later call can retry.
+/// The child must satisfy `tmdAllocPrimitiveBuffer`'s source, stream and auxiliary
+/// heap requirements, and owns any newly allocated buffer. Allocation failure
+/// leaves the inherited flags in effect.
+static inline void _modelPlacementApplyParentDrawPolicy(TmdObject* childModel, const TmdObject* parentModel)
 {
     if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        childModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        childModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         childModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
     // Recover missing buffers independently of active-pass exclusion.
     if (!(parentModel->flags & TMD_OBJECT_SKIP_AUTO_BUFFER)) {
-        childModel->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        childModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
         tmdAllocPrimitiveBuffer(childModel);
-        return;
+    } else {
+        childModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
-    childModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
 }
 #endif
 
@@ -47,7 +50,7 @@ static inline void _modelPlacementCopyParentDrawFlags(TmdObject* childModel, con
 /// `TASK_BODY_TMD` bodies throughout the call. Attachment setup joins the child
 /// to the parent's teardown tree so ticks end before the parent is released.
 /// Copies active-pass exclusion and automatic-buffer suppression, recovering a
-/// missing child buffer when permitted; see `_modelPlacementCopyParentDrawFlags`.
+/// missing child buffer when permitted; see `_modelPlacementApplyParentDrawPolicy`.
 /// Coordinates, lighting pointers, spawn arguments and task state are retained.
 static void MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK(Task* childTask)
 {
@@ -59,7 +62,7 @@ static void MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK(Task* childTask)
     parentModel = parentTask->extra.tmd;
     childModel  = childTask->extra.tmd;
 
-    _modelPlacementCopyParentDrawFlags(childModel, parentModel);
+    _modelPlacementApplyParentDrawPolicy(childModel, parentModel);
 }
 
 #undef MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK
