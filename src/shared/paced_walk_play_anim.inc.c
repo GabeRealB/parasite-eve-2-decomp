@@ -1,12 +1,18 @@
 /* Part of the paced walk library; see paced_walk.h. */
 
-/// Records the clip and transition choice for an immediate animation reseed.
+/// Records a paced walker's requested clip and selects its next animation reseed.
 ///
-/// Borrows writable work and a readable request through this call. The caller
-/// supplies a loaded clip and applies the recorded request. Clip and blend duration
-/// are narrowed to signed halfwords; reset leaves the old duration untouched.
-/// Clears the unproven request field `st.field_6`. Retains no request pointer
-/// and does not change the playing tracks or remaining travel.
+/// Borrows live, writable `work` and a readable `request` for this call.
+/// `animationId` is stored as a signed halfword without checking the clip bank.
+/// Any nonzero `blend` selects a blended reseed and stores `blendFrames`, in
+/// whole normal-rate frames, as a signed halfword. Reset selects an unblended
+/// reseed and leaves the previous duration untouched. The request's bank
+/// selector and world-collision choice are ignored.
+///
+/// Clears `st.field_6`, whose role is unproven. The caller must supply a clip
+/// valid for its rig and perform the reseed; this only records the request,
+/// leaving playing slots, the last applied clip, heading and travel unchanged.
+/// Neither pointer is retained.
 static inline void _pacedWalkApplyAnimationRequest(PacedWalkWork* work, const AnimationPlayRequest* request)
 {
     work->st.animId = request->animationId;

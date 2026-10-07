@@ -2,11 +2,17 @@
 
 #ifndef SRC_SHARED_PACED_WALK_FACE_TRAVEL_TARGET
 #define SRC_SHARED_PACED_WALK_FACE_TRAVEL_TARGET
-/// Faces a model root's local Z axis along a horizontal offset and records its yaw.
+/// Faces a paced walker's local Z axis along a displacement in its root parent's X/Z plane.
 ///
-/// Borrows the writable root and its walker's work for this call. Replaces
-/// rotation at unit scale, preserving translation and the composition stamp.
-/// Angles use 4096 units per turn; rotation requires initialized scratch state.
+/// `deltaX` and `deltaZ` are signed parent-coordinate units, not an absolute
+/// destination. The SDK bearing is narrowed to a signed halfword before both
+/// recording `st.yaw` and installing the rotation, with 4096 units per turn.
+/// A zero displacement still goes through the SDK bearing calculation.
+///
+/// Replaces pitch, roll and scale with a pure Y rotation at unit scale,
+/// preserving translation, parent and composition stamp. Borrows live,
+/// writable `rootCoord` and `work` without retaining either pointer. Requires
+/// an initialized scratch stack with room for the rotation helper's 0x24 bytes.
 static inline void _pacedWalkFaceTravelTarget(GfxCoord* rootCoord, PacedWalkWork* work, s32 deltaX, s32 deltaZ)
 {
     s16 yaw;
