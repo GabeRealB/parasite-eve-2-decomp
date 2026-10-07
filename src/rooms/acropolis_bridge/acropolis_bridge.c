@@ -2818,7 +2818,7 @@ s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
-            Gp_StartCapSlot(7, 1, 2);
+            capStartSequenceSlot(7, 1, 2);
             return 0;
         }
         func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 1);
@@ -2941,7 +2941,7 @@ static void _acropolisBridgeUpdateModelVisibility(Task* task)
 
 static void func_acropolis_bridge_8017DB60(Task* arg0)
 {
-    Gp_StartCapSlot(7, 1, 1);
+    capStartSequenceSlot(7, 1, 1);
     arg0->state = (s32)(arg0->state + 1);
 }
 
@@ -3586,7 +3586,7 @@ static void func_acropolis_bridge_8017F4CC(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         work->keypadExamined = 1;
-        Gp_StartCapSlot(9, 0, 0);
+        capStartSequenceSlot(9, 0, 0);
     }
     task->state = 2;
 }

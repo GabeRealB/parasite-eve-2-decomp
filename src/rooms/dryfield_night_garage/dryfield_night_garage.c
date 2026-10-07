@@ -438,7 +438,7 @@ s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* first
     }
     if (msg->actionId == 1) {
         if (gameFlagGetNibble(GAME_FLAG_097) != 0) {
-            Gp_StartCapSlot(0x14, 1, 0);
+            capStartSequenceSlot(0x14, 1, 0);
         } else {
             Gp_SpawnIfCapIdle(0x36, 0);
         }
@@ -585,7 +585,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
 {
     switch (arg0->state) {
         case 0:
-            Gp_StartCapSlot((s16)arg0->spawnArg1.value, 0, 0);
+            capStartSequenceSlot((s16)arg0->spawnArg1.value, 0, 0);
             TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
             arg0->state++;
             return;
@@ -596,7 +596,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
             }
             return;
         case 2:
-            Gp_StartCapSlot((s16)arg0->spawnArg1.value, 0, (s16)(gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT) + 1));
+            capStartSequenceSlot((s16)arg0->spawnArg1.value, 0, (s16)(gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT) + 1));
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT) == 0) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT, 1);
             }

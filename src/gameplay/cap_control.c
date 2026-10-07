@@ -103,7 +103,7 @@ void Gp_CapTaskState1(Task* task)
 
 s32 Gp_StartCapAndClear(Task* arg0, s32 arg1, s16 arg2, s32 arg3)
 {
-    Gp_StartCapSlot(arg2, 0, 0);
+    capStartSequenceSlot(arg2, 0, 0);
     D_801156B0 = 0;
     return 0;
 }

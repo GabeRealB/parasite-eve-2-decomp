@@ -171,7 +171,7 @@ and whether state advances.
 ### 0 — plain
 
 ```c
-Gp_StartCapSlot(index, mode, 0);
+capStartSequenceSlot(index, mode, 0);
 ```
 Always variant 0. One unconditional line.
 
@@ -182,7 +182,7 @@ The only opcode that mutates state.
 ```c
 val = (flags & CAP_COMMAND_PERSIST) ? gameFlagGetNibble(flagId) : command->counter;
 if ((flags & CAP_COMMAND_BRANCH) && command->counterLimit < val)  goto nextIndex;
-Gp_StartCapSlot(index, mode, val);
+capStartSequenceSlot(index, mode, val);
 if (val < command->counterLimit || (flags & CAP_COMMAND_BRANCH)) val++;
 else if (flags & CAP_COMMAND_WRAP)                               val = 0;
 (flags & CAP_COMMAND_PERSIST) ? gameFlagSetNibble(flagId, val) : (command->counter = val);
@@ -202,7 +202,7 @@ something else".
 ### 2 — flag-indexed
 
 ```c
-Gp_StartCapSlot(index, mode, gameFlagGetNibble(flagId));
+capStartSequenceSlot(index, mode, gameFlagGetNibble(flagId));
 ```
 Variant is read straight from a game flag. No mutation — the line follows story
 state that something else owns.
@@ -225,13 +225,22 @@ for (i = 0; i < command->bitFlagCount; i++)
         areaGetCurrentObjectState(command->bitFlagIndex + i) == 3)
         val++;
 if ((flags & CAP_COMMAND_BRANCH) && val == 0) goto nextIndex;
-Gp_StartCapSlot(index, mode, val);
+capStartSequenceSlot(index, mode, val);
 ```
 Variant is how many of a run of current-stage two-bit flags have value 0, 1 or
 3. With `CAP_COMMAND_BRANCH`, a zero tally continues at `nextIndex` instead of
 playing.
 
-Playback uses the caller's mode passed through `Gp_StartCapSlot` to
+`capStartSequenceSlot` plays an explicit variant key without evaluating the
+slot's command opcode. While a sequence is selected it returns 0 without
+reading the command table. Otherwise the signed-halfword index must be
+nonnegative and less than the active command table's `count`; the wrapper
+performs no bounds check. A null entry returns 1. Every other path returns 0,
+including no matching variant and a failed task spawn or display request, so
+this result is not a playback-success flag. The return type is `s16`, retaining
+the signed-halfword normalization of the playback starter's result.
+
+Playback uses the caller's mode passed through `capStartSequenceSlot` to
 `capStartSequence`: 0 spawns in the current display, and nonzero modes queue
 a display transition. Mode 2 additionally brackets playback with room-effect
 messages and delays frame capture for placed-object actions. Mode 3 also spawns

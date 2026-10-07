@@ -1019,7 +1019,7 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
         }
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(in->flagId, 2);
-            Gp_StartCapSlot(5, 1, 0);
+            capStartSequenceSlot(5, 1, 0);
         }
         return 0;
     }
@@ -1031,7 +1031,7 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
             }
             if (D_acropolis_cafeteria_80184164 == 2) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                    Gp_StartCapSlot(6, 1, 0);
+                    capStartSequenceSlot(6, 1, 0);
                 }
             }
             return 0;
@@ -1303,7 +1303,7 @@ s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (arg2 == 7) {
         if (gameFlagGetNibble(0) >= 2 || D_acropolis_cafeteria_80184164 >= 2) {
             if (areaGetCurrentObjectState(4) == 1 || areaGetCurrentObjectState(4) == 0) {
-                Gp_StartCapSlot(7, 1, 0);
+                capStartSequenceSlot(7, 1, 0);
             }
         }
     }

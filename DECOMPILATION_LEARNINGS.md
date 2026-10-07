@@ -20864,10 +20864,10 @@ object establishes the *same* call arguments in two places but reaches a single
         addu  a1, zero, zero           <- ...and arm B sets them again
         addu  a2, a1, zero
 .LFE8:
-        jal   Gp_StartCapSlot
+        jal   capStartSequenceSlot
 ```
 
-the source had **two** `Gp_StartCapSlot(...)` statements, one per arm. Do not
+the source had **two** `capStartSequenceSlot(...)` statements, one per arm. Do not
 write a single call after the join and reach for a pin when the duplicated pair
 survives: a shared call site puts the setup in the join block, so it appears
 once.
@@ -42281,7 +42281,7 @@ So do not read a lone-copy answer as "no sibling exists": it means no
 rarer callees or constants:
 
 ```sh
-grep -rl "Gp_StartCapSlot" src/
+grep -rl "capStartSequenceSlot" src/
 ```
 
 ### The twin may be the same routine on a *different* struct
@@ -43649,9 +43649,9 @@ instead of all four.
 *and* the store scored 89%:
 
 ```c
-if (step == 0)      { Gp_StartCapSlot(3, 1, 0); task->state = 2; }
+if (step == 0)      { capStartSequenceSlot(3, 1, 0); task->state = 2; }
 else if (step == 1) { ...; return; }
-else                { Gp_StartCapSlot(3, 1, 2); task->state = 2; }
+else                { capStartSequenceSlot(3, 1, 2); task->state = 2; }
 ```
 
 Duplicating only the **call** and leaving the store once after the chain is
@@ -43660,9 +43660,9 @@ Duplicating only the **call** and leaving the store once after the chain is
 ```c
 if (flag == 0 || flag == 2) {
     step = st->field_0;
-    if (step == 0)      { Gp_StartCapSlot(3, 1, 0); }
+    if (step == 0)      { capStartSequenceSlot(3, 1, 0); }
     else if (step == 1) { ...; return; }
-    else                { Gp_StartCapSlot(3, 1, 2); }
+    else                { capStartSequenceSlot(3, 1, 2); }
 } else if (flag == 1 || flag == 3) {
     ...
 } else {
@@ -43827,7 +43827,7 @@ Symptom: ~99.9% with `regs=1`, object dump `move a0, zero` vs target `move a1, z
 Dehack update (2026-09-27, `func_dryfield_junk_yard_8017D994`): the barrier is
 unnecessary when the two fallback calls share an `else`. Write
 `if (gameFlagGetNibble(0x73) == 0 && gameFlagGetNibble(0x7C) != 0)` to run
-command 8, with `Gp_StartCapSlot(arg2, 1, 0)` in the `else`. This preserves
+command 8, with `capStartSequenceSlot(arg2, 1, 0)` in the `else`. This preserves
 short-circuit evaluation and matches all 44 instructions without a helper or
 asm. The equivalent OR condition with the slot call in the `then` arm still
 folds the selector (83.500%); removing only the barrier gives 81.227%.
@@ -43864,7 +43864,7 @@ the value cse propagates and the value the calls consume are different pseudos:
 case 8:
     SOFT_TOUCH_REG(arg2);
     ...
-    Gp_StartCapSlot(arg2, 1, 0);   /* s16 param: sll/sra 16 from $s0 */
+    capStartSequenceSlot(arg2, 1, 0);   /* s16 param: sll/sra 16 from $s0 */
 ```
 
 Copying the argument to a local first (`s32 id = arg2;`) does **not** work —
@@ -43883,13 +43883,13 @@ fixes it there too: `func_dryfield_night_motel_room_6_80181A9C` calls
 
 `if (arg2 == 6) else if (arg2 == 8)` is `bne` and constant-folds `arg2` to 8 in
 the second arm (`li a0, 8`). The target is `move s0, a2` / `beq` / `j default`
-and `sll s0, 16` / `sra` into `Gp_StartCapSlot`. `switch (arg2)` copies to `$s0`
+and `sll s0, 16` / `sra` into `capStartSequenceSlot`. `switch (arg2)` copies to `$s0`
 and keeps that later `(s16)` conversion.
 
 `nibble > 0 ? 6 : 0xC` is `blez` + delay `li 0xC`. The target `bgtz` + delay
 `li 6` / `j` + delay `li 0xC` is `nibble <= 0 ? 0xC : 6`.
 
-Several `Gp_RunCapCmd1(cmd)` sites join *after* `Gp_StartCapSlot`. An `if
+Several `Gp_RunCapCmd1(cmd)` sites join *after* `capStartSequenceSlot`. An `if
 (flag != 1) { Gp_RunCapCmd1(9); } else { ... }` inverts to `beq` and emits the
 call before the then-block. `goto` a label after the StartCapSlot `break`:
 
@@ -43907,7 +43907,7 @@ case 8:
         cmd = 8;
         goto run_cap;
     }
-    Gp_StartCapSlot(arg2, 1, 0);
+    capStartSequenceSlot(arg2, 1, 0);
     break;
 run_cap:
     Gp_RunCapCmd1(cmd);
@@ -47645,7 +47645,7 @@ s32 cond;
 
 cond = gameFlagGetNibble(0x28) >= 2;
 cond += 1;                 /* slti; xori 1; addiu a2,v0,1 */
-Gp_StartCapSlot(3, 0, cond);
+capStartSequenceSlot(3, 0, cond);
 ```
 
 `cond = (... >= 2) + 1;` in one statement is still folded — the split has to
@@ -47743,14 +47743,14 @@ re-create. So this
 ```asm
 sll   a2, a0, 0x10      /* a2 first: the sra below clobbers a0 */
 sra   a0, a0, 0x10      /* no sll -> this is x >> 16, not (s16)x */
-jal   Gp_StartCapSlot
+jal   capStartSequenceSlot
  sra  a2, a2, 0x10      /* (s16)x */
 ```
 
 is one packed `s32` split into its halves, not the same value passed twice:
 
 ```c
-Gp_StartCapSlot(arg0 >> 16, 0, arg0);   /* arg0 is s32 */
+capStartSequenceSlot(arg0 >> 16, 0, arg0);   /* arg0 is s32 */
 ```
 
 Passing an `s16` (or `(s16)index`) twice instead CSEs into `sll`/`sra` once
@@ -78367,7 +78367,7 @@ arm's block. The join block then owns the whole argument setup:
 ```
 .L90:
     li    a0,6
-    jal   Gp_StartCapSlot
+    jal   capStartSequenceSlot
     move  a1,zero
 ```
 
@@ -78383,7 +78383,7 @@ delay slots of the branches that precede them:
     addu  a1,zero,zero     addiu a2,zero,1
     addiu a2,zero,4
 .L34F38:
-    jal   Gp_StartCapSlot
+    jal   capStartSequenceSlot
     nop
     addiu v0,zero,2
 ```
@@ -78405,12 +78405,12 @@ shared variable and the `goto`:
 ```c
 if (gameFlagGetNibble(work->step + 0xBE) == 0) {
     if (gameFlagGetNibble(0xC3) != 0) {
-        Gp_StartCapSlot(6, 0, 1);
+        capStartSequenceSlot(6, 0, 1);
     } else {
         ...
     }
 } else {
-    Gp_StartCapSlot(6, 0, 4);
+    capStartSequenceSlot(6, 0, 4);
 }
 ```
 
@@ -87914,7 +87914,7 @@ The same address is loaded with `lh` for the call and `lw` for the comparison
 two instructions later, and stored with `sw`:
 
 ```
-lh    a2,%lo(D_neo_ark_shrine_80181E74)(s0)   # Gp_StartCapSlot(7, 1, x)
+lh    a2,%lo(D_neo_ark_shrine_80181E74)(s0)   # capStartSequenceSlot(7, 1, x)
 ...
 lw    v1,%lo(D_neo_ark_shrine_80181E74)(s0)   # if (x == 2)
 sw    s1,%lo(D_neo_ark_shrine_80181E74)(s0)
@@ -87922,17 +87922,17 @@ sw    s1,%lo(D_neo_ark_shrine_80181E74)(s0)
 
 That reads like one symbol with two types. It is one type plus a conversion at
 the argument: declare the object `s32` and cast at the call site, because
-`Gp_StartCapSlot` takes `s16`s:
+`capStartSequenceSlot` takes `s16`s:
 
 ```c
 extern s32 D_neo_ark_shrine_80181E74;
-Gp_StartCapSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
+capStartSequenceSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
 ```
 
 This is the width leak of "An `int` expression stored into a `u16` field
 narrows its own source load", at an argument position rather than an
 assignment, and it is already the matched idiom elsewhere
-(`Gp_StartCapSlot((s16)D_actor_146300_80142824, 0, 0)`). Declaring the global
+(`capStartSequenceSlot((s16)D_actor_146300_80142824, 0, 0)`). Declaring the global
 `s16` instead - which the m2c seed did - makes all three accesses narrow and
 costs 80.227% with `regs=2 insert=4 delete=4`. A mixed-width access to one
 address is a conversion at the narrow use, not a second symbol.
@@ -91657,7 +91657,7 @@ Evidence: scratch `nonmatchings/func_dryfield_underpass_8017D908-vacuum/`,
 ## m2c emits only the parameters it sees used, so a single wrong `$aN` in a compare is an arity problem
 
 `func_dryfield_night_water_tank_8017D73C` is a 12-instruction room script
-callback: `if (arg2 == 0xE) Gp_StartCapSlot(0xE, 1, 1); return 0;`. m2c ran
+callback: `if (arg2 == 0xE) capStartSequenceSlot(0xE, 1, 1); return 0;`. m2c ran
 liveness across the arguments and declared the one it saw used, so its output
 takes a *single* parameter - which lands in `$a0`, and the compare is one
 register off:
@@ -91670,7 +91670,7 @@ bne    a2,v0,20                        bne    a0,v0,20
 sw     ra,0x10(sp)                     sw     ra,0x10(sp)
 move   a0,v0                           move   a0,v0
 li     a1,1                            li     a1,1
-jal    Gp_StartCapSlot                 jal    Gp_StartCapSlot
+jal    capStartSequenceSlot                 jal    capStartSequenceSlot
 move   a2,a1                           move   a2,a1
 ```
 
@@ -91682,7 +91682,7 @@ instruction-for-instruction the same modulo the callee - moves the compare to
 `$a2` and scores 100.000% with no other change. The `move a0,v0` / `move a2,a1`
 argument setup is not a hint that the source reuses a variable: cse is reusing
 the constants `0xE` and `1` already materialised for the compare and for `$a1`,
-so `Gp_StartCapSlot(0xE, 1, 1)` written with literals is correct.
+so `capStartSequenceSlot(0xE, 1, 1)` written with literals is correct.
 
 Read this before chasing the register: an otherwise-perfect diff whose only
 difference is which argument register a value sits in is a signature error, not
@@ -123561,7 +123561,7 @@ whose arms end `task->state = 2`, and whose first statement compares
 `gGameSession->location.loc.stage == 2` for the sound id, has two `(const_int 2)`s in the
 same extended basic block. `cse` unifies them: by `.lreg` the store's source is
 the compare's pseudo (`insn.py --reg 90` shows `used 3 times across 32 insns`),
-so it is live from the compare through `gameFlagGetNibble`/`Gp_StartCapSlot` to
+so it is live from the compare through `gameFlagGetNibble`/`capStartSequenceSlot` to
 the store. `global.c:find_reg` keys the allowed class on exactly that:
 
 ```c
@@ -123583,7 +123583,7 @@ store it once at the per-case join:
 
 ```c
             if (!(gameFlagGetNibble(0x49) & 2)) { ... state = 6; }
-            else                                 { Gp_StartCapSlot(8, 0, 0); state = 2; }
+            else                                 { capStartSequenceSlot(8, 0, 0); state = 2; }
             task->state = state;
 ```
 
@@ -140751,7 +140751,7 @@ to the host file.
 
 ### A store placed between an arm's argument setup and its `jal` needs a second memory insn in that block, not a load (func_neo_ark_shrine_8017EE44, 2026-09-23)
 
-**Symptom.** Two arms each call `Gp_StartCapSlot`, and jump2 merges only the `jal`. The else arm is `a1 = 0; a2 = a1; move v0,a0; sb v0,0xF(s1)` falling into the shared `jal`. That means sched1 put the store *after* the argument setup. Two sessions and the permuter reached 97.1% only by re-reading `task->work` for the store base. The extra `lw` (latency 2) raised the store's priority, but it stayed in the object as an extra instruction. With the cached pointer, the store keeps source order ahead of the argument moves. The two setups then cross-jump, and the score falls to 86%.
+**Symptom.** Two arms each call `capStartSequenceSlot`, and jump2 merges only the `jal`. The else arm is `a1 = 0; a2 = a1; move v0,a0; sb v0,0xF(s1)` falling into the shared `jal`. That means sched1 put the store *after* the argument setup. Two sessions and the permuter reached 97.1% only by re-reading `task->work` for the store base. The extra `lw` (latency 2) raised the store's priority, but it stayed in the object as an extra instruction. With the cached pointer, the store keeps source order ahead of the argument moves. The two setups then cross-jump, and the score falls to 86%.
 
 **Cause.** At equal priority, `schedule_select` (sched.c) takes the ready insn with the largest `potential_hazard`. For the memory unit that value is nonzero only when `unit_n_insns[memory]` > 1, meaning the *block* holds at least two loads/stores (the counter is never decremented). Argument moves use no unit and score 0. A block whose only memory insn is the store gets 0 as well, so the tie falls back to luid and the store stays ahead of the argument moves.
 
@@ -141483,7 +141483,7 @@ building.
 ### `move a1,zero` ahead of a load into `a0`: the call was not the last insn of its block (func_shelter_b1_armory_80180214, 2026-09-24)
 
 **Symptom.** 98.4%, `branch=1 reorder=2`. A switch case ended
-`Gp_StartCapSlot(task->spawnArg1 >> 16, 0, 0)` and then fell through into
+`capStartSequenceSlot(task->spawnArg1 >> 16, 0, 0)` and then fell through into
 `case 1: case 2: task->state++;`. Ours set up the call as `lh a0; move a1,zero`.
 The target has `move a1,zero` first, and reorg then copies it into the delay slot
 of the preceding `bne` and moves the branch label past it.
@@ -149845,7 +149845,7 @@ attempts; left as it was.
   local was standing for `task->state = K` written in the arms. Three forms
   with the local fail: the call and `state = 2` in each case keeps the *first*
   copy of the call (batch 09's case), and in both that form and an inline
-  returning the next state the two `Gp_StartCapSlot(...); state = 2;` arms are
+  returning the next state the two `capStartSequenceSlot(...); state = 2;` arms are
   merged, which the image does not do. What matches: the arms that end in
   state 2 `break` with only their call, `task->state = 2;` is written once
   after the switch, the two odd arms store their own state and `return`, and

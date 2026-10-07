@@ -1318,7 +1318,7 @@ static void func_dryfield_breezeway_8017FE08(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
-        Gp_StartCapSlot(7, 0, 0);
+        capStartSequenceSlot(7, 0, 0);
         state = 2;
     } else if (work->keyItemAccepted == 1) {
         state = 6;

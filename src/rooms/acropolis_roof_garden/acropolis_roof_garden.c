@@ -1216,7 +1216,7 @@ s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, s32 arg3
         if ((areaGetCurrentObjectState(0x13) == 0) || (areaGetCurrentObjectState(0x13) == 1)) {
             Gp_RunCapCmd1(5);
         } else {
-            Gp_StartCapSlot(2, 1, 0);
+            capStartSequenceSlot(2, 1, 0);
         }
     }
     if (arg2 == 4) {

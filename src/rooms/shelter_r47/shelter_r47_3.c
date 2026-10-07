@@ -1787,7 +1787,7 @@ static void func_shelter_r47_801844A0(Task* task)
             task->state = 5;
             return;
         }
-        Gp_StartCapSlot(0x25, 0, 0);
+        capStartSequenceSlot(0x25, 0, 0);
     }
 }
 
@@ -1826,30 +1826,30 @@ static void func_shelter_r47_80184658(Task* task)
             case SHELTER_R47_MAP_HOTSPOT_PANEL:
                 switch (st->page) {
                     case SHELTER_R47_MAP_PAGE_B1:
-                        Gp_StartCapSlot(0x1D, 0, 0);
+                        capStartSequenceSlot(0x1D, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_B2:
-                        Gp_StartCapSlot(0x1E, 0, 0);
+                        capStartSequenceSlot(0x1E, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_B3:
-                        Gp_StartCapSlot(0x1F, 0, 0);
+                        capStartSequenceSlot(0x1F, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_NEO_ARK:
-                        Gp_StartCapSlot(0x20, 0, 0);
+                        capStartSequenceSlot(0x20, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_1F:
-                        Gp_StartCapSlot(0x21, 0, 0);
+                        capStartSequenceSlot(0x21, 0, 0);
                         break;
                 }
                 break;
             case SHELTER_R47_MAP_HOTSPOT_PREV:
                 if (st->openMode != SHELTER_R47_MAP_MODE_USE) {
-                    Gp_StartCapSlot(0x24, 0, 0);
+                    capStartSequenceSlot(0x24, 0, 0);
                     task->state = 2;
                     return;
                 }
                 if (D_shelter_r47_8018A696 == 0) {
-                    Gp_StartCapSlot(0x35, 0, 0);
+                    capStartSequenceSlot(0x35, 0, 0);
                     D_shelter_r47_8018A696 = 1;
                     task->state            = 2;
                     return;
@@ -1858,7 +1858,7 @@ static void func_shelter_r47_80184658(Task* task)
                 return;
             case SHELTER_R47_MAP_HOTSPOT_NEXT:
                 if (st->openMode == SHELTER_R47_MAP_MODE_USE && D_shelter_r47_8018A697 == 0) {
-                    Gp_StartCapSlot(0x34, 0, 0);
+                    capStartSequenceSlot(0x34, 0, 0);
                     D_shelter_r47_8018A697 = 1;
                     task->state            = 2;
                     return;
@@ -1868,19 +1868,19 @@ static void func_shelter_r47_80184658(Task* task)
             case SHELTER_R47_MAP_HOTSPOT_TITLE:
                 switch (st->page) {
                     case SHELTER_R47_MAP_PAGE_B1:
-                        Gp_StartCapSlot(0x2F, 0, 0);
+                        capStartSequenceSlot(0x2F, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_B2:
-                        Gp_StartCapSlot(0x30, 0, 0);
+                        capStartSequenceSlot(0x30, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_B3:
-                        Gp_StartCapSlot(0x31, 0, 0);
+                        capStartSequenceSlot(0x31, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_NEO_ARK:
-                        Gp_StartCapSlot(0x32, 0, 0);
+                        capStartSequenceSlot(0x32, 0, 0);
                         break;
                     case SHELTER_R47_MAP_PAGE_1F:
-                        Gp_StartCapSlot(0x33, 0, 0);
+                        capStartSequenceSlot(0x33, 0, 0);
                         break;
                 }
                 break;
@@ -2003,7 +2003,7 @@ static void func_shelter_r47_80185354(Task* task)
             state->fade -= 8;
             if ((s16)state->fade < 0) {
                 state->fade = 0;
-                Gp_StartCapSlot(0x12, 0, 0);
+                capStartSequenceSlot(0x12, 0, 0);
                 task->state++;
             } else {
                 level = state->fade;

@@ -796,7 +796,7 @@ s32 func_acropolis_east_elevator_hall_8017F420(Task* arg0, s32 arg1, s32 arg2, s
 
 void func_acropolis_east_elevator_hall_8017F450(void)
 {
-    Gp_StartCapSlot(0x10, 1, 0);
+    capStartSequenceSlot(0x10, 1, 0);
 }
 
 static void func_acropolis_east_elevator_hall_8017F478(Task* task)

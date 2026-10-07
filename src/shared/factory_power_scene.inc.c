@@ -40,7 +40,7 @@ void factoryPowerScene(Task* task)
                     factoryNightShowView11Sprite(1);
                     factoryNightShowView9Sprite(1);
                 }
-                Gp_StartCapSlot(task->spawnArg1.value, 1, 2);
+                capStartSequenceSlot(task->spawnArg1.value, 1, 2);
             }
             task->state++;
             return;

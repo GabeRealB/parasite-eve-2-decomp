@@ -253,7 +253,7 @@ static void func_shelter_r47_801816CC(Task* task)
                     return;
                 }
                 if (D_shelter_r47_8018A695 == 0) {
-                    Gp_StartCapSlot(0x2E, 0, 0);
+                    capStartSequenceSlot(0x2E, 0, 0);
                     D_shelter_r47_8018A695 = 1;
                     task->state            = 3;
                     return;
@@ -269,14 +269,14 @@ static void func_shelter_r47_801816CC(Task* task)
                 return;
             }
             if (work->guideStep != 0) {
-                Gp_StartCapSlot(0xF, 0, 0);
+                capStartSequenceSlot(0xF, 0, 0);
             }
             task->state = 3;
             return;
         }
         if (kind == 1) {
             if (D_shelter_r47_8018A694 == 0) {
-                Gp_StartCapSlot(0x2C, 0, 0);
+                capStartSequenceSlot(0x2C, 0, 0);
                 D_shelter_r47_8018A694 = kind;
                 task->state            = 3;
                 return;
@@ -287,46 +287,46 @@ static void func_shelter_r47_801816CC(Task* task)
         if (kind == 2) {
             switch (work->status) {
                 case 0:
-                    Gp_StartCapSlot(0x15, 0, 0);
+                    capStartSequenceSlot(0x15, 0, 0);
                     break;
                 case 1:
-                    Gp_StartCapSlot(0x16, 0, 0);
+                    capStartSequenceSlot(0x16, 0, 0);
                     break;
                 case 2:
-                    Gp_StartCapSlot(0x17, 0, 0);
+                    capStartSequenceSlot(0x17, 0, 0);
                     break;
                 case 3:
-                    Gp_StartCapSlot(0x18, 0, 0);
+                    capStartSequenceSlot(0x18, 0, 0);
                     break;
                 case 4:
-                    Gp_StartCapSlot(0x1A, 0, 0);
+                    capStartSequenceSlot(0x1A, 0, 0);
                     break;
                 case 5:
-                    Gp_StartCapSlot(0x19, 0, 0);
+                    capStartSequenceSlot(0x19, 0, 0);
                     break;
                 case 6:
-                    Gp_StartCapSlot(0x1B, 0, 0);
+                    capStartSequenceSlot(0x1B, 0, 0);
                     break;
                 case 7:
-                    Gp_StartCapSlot(0x1C, 0, 0);
+                    capStartSequenceSlot(0x1C, 0, 0);
                     break;
                 case 8:
-                    Gp_StartCapSlot(0x22, 0, 0);
+                    capStartSequenceSlot(0x22, 0, 0);
                     break;
                 case 9:
-                    Gp_StartCapSlot(0x23, 0, 0);
+                    capStartSequenceSlot(0x23, 0, 0);
                     break;
             }
             task->state = 3;
             return;
         }
         if (kind == 3) {
-            Gp_StartCapSlot(0x2B, 0, 0);
+            capStartSequenceSlot(0x2B, 0, 0);
             task->state = 3;
             return;
         }
         if (kind == 4) {
-            Gp_StartCapSlot(0x2D, 0, 0);
+            capStartSequenceSlot(0x2D, 0, 0);
             task->state = 3;
             return;
         }
@@ -677,21 +677,21 @@ static s16 func_shelter_r47_801829B8(Task* task, s16 arg1)
     switch (step) {
         case 1:
             if (arg1 != step) {
-                Gp_StartCapSlot(0x10, 0, 1);
+                capStartSequenceSlot(0x10, 0, 1);
                 return 0;
             }
             state->guideStep = 2;
             return 1;
         case 2:
             if (arg1 != step) {
-                Gp_StartCapSlot(0x10, 0, 2);
+                capStartSequenceSlot(0x10, 0, 2);
                 return 0;
             }
             state->guideStep = 3;
             return 1;
         case 3:
             if (arg1 != step) {
-                Gp_StartCapSlot(0x10, 0, 3);
+                capStartSequenceSlot(0x10, 0, 3);
                 return 0;
             }
             state->guideStep = 4;
@@ -773,7 +773,7 @@ static void func_shelter_r47_80182CA4(Task* task)
     func_shelter_r47_80181914(task, 0);
     if ((s16)func_shelter_r47_8018097C(task) != 0) {
         if (state->guideStep == 1) {
-            Gp_StartCapSlot(0xA, 0, 0);
+            capStartSequenceSlot(0xA, 0, 0);
         }
         if (state->guideStep == 0) {
             func_shelter_r47_801832E4(state->status);
@@ -999,13 +999,13 @@ static void func_shelter_r47_801832EC(Task* task)
             func_shelter_r47_801832E4(state->status);
             break;
         case 2:
-            Gp_StartCapSlot(0xB, 0, 0);
+            capStartSequenceSlot(0xB, 0, 0);
             break;
         case 3:
-            Gp_StartCapSlot(0xC, 0, 0);
+            capStartSequenceSlot(0xC, 0, 0);
             break;
         case 4:
-            Gp_StartCapSlot(0xD, 0, 0);
+            capStartSequenceSlot(0xD, 0, 0);
             break;
     }
 }
@@ -1151,7 +1151,7 @@ static void func_shelter_r47_80183484(Task* task)
     } else {
         if (state->openMode == SHELTER_R47_MAP_MODE_TOUR) {
             state->openMode = SHELTER_R47_MAP_MODE_TOUR_DONE;
-            Gp_StartCapSlot(0x13, 0, 0);
+            capStartSequenceSlot(0x13, 0, 0);
         }
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
             while (mark->stage != SHELTER_R47_MAP_MARK_END) {

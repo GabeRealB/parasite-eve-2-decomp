@@ -835,7 +835,7 @@ void func_actor_450900_8013235C(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_StartCapSlot(0xB, 1, 1);
+            capStartSequenceSlot(0xB, 1, 1);
             task->state = task->state + 1;
             break;
         case 1:
@@ -1015,7 +1015,7 @@ void func_actor_450900_801327A8(void)
 /// `Task::extra`, as `func_actor_450900_80132684` does) and, when its world Z is
 /// below -0x76C, spawns entry 4 of `D_actor_450900_80135E78`
 /// (`func_actor_450900_8013235C`); otherwise it starts capture slot 0xB with
-/// `Gp_StartCapSlot`.
+/// `capStartSequenceSlot`.
 void func_actor_450900_80132834(void)
 {
     GfxCoord* coord;
@@ -1024,6 +1024,6 @@ void func_actor_450900_80132834(void)
     if (coord->coord.t[2] < -0x76C) {
         taskSpawnFromTable(D_actor_450900_80135E78, 4, 0, 0);
     } else {
-        Gp_StartCapSlot(0xB, 1, 0);
+        capStartSequenceSlot(0xB, 1, 0);
     }
 }

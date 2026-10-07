@@ -98,7 +98,29 @@ extern u8 D_801156A4;
 
 extern s32 D_801156A8;
 
-s32 Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
+/// Starts CAP playback from a command-table slot with an explicit variant key.
+///
+/// If a sequence is already selected, returns 0 without reading the table.
+/// Otherwise the active command table must be relocated, and `commandIndex`
+/// must be in 0..32767 and below its `CapCommandTable.count`; no bound is checked.
+/// This bypasses the slot's command opcode and uses `variantKey` directly.
+/// Keys in 0..255 match record keys; other signed-16 values scan to the terminator.
+///
+/// A non-null slot borrows its command header as sequence slot zero. A matching
+/// record or terminator must be reachable in slots 1..32767 within the live CAP
+/// file. Text must satisfy `capGetTextBlockHeight` and
+/// `capGetTextFirstBaselineY`'s bounds. Keep the table, sequence, text and active
+/// glyph storage loaded through playback, including any queued transition.
+///
+/// `playbackMode` 0 starts in the current display; 1 queues a display transition;
+/// 2 also brackets playback with room-effect messages and delays frame capture
+/// for placed-object actions; 3 queues playback with an unstarted-sequence guard,
+/// then becomes mode 1. Other nonzero modes queue the transition unchecked.
+///
+/// Returns 1 only for a null command-table entry, otherwise 0. Zero includes
+/// busy playback, no matching variant, and task allocation or queue failure;
+/// it does not report whether playback began. The result is a signed halfword.
+s16 capStartSequenceSlot(s16 commandIndex, s16 playbackMode, s16 variantKey);
 
 /// Returns 1 while a CAP sequence is selected, otherwise 0.
 ///

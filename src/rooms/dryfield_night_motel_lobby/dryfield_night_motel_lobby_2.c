@@ -937,7 +937,7 @@ static void func_dryfield_night_motel_lobby_8018103C(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (func_800D4EC0() != 0) {
         work->examined = 1;
-        Gp_StartCapSlot(9, 0, 0);
+        capStartSequenceSlot(9, 0, 0);
     }
     task->state = 2;
 }

@@ -2411,13 +2411,13 @@ static void func_acropolis_security_room_8017DC7C(Task* task)
         }
         if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0xB) &&
             ((s16)work->screenLevel != ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST) && !(gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & 1)) {
-            Gp_StartCapSlot(0xD, 0, 0);
+            capStartSequenceSlot(0xD, 0, 0);
             gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | 1);
         }
         if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY) &&
             ((s16)work->screenLevel != ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST) && (work->enemySceneArmed != 0) &&
             (work->enemyCaptionStarted == 0) && (gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE) == 0)) {
-            Gp_StartCapSlot(ACROPOLIS_SECURITY_ROOM_MONITOR_ENEMY_CAP_SLOT, 0, 0);
+            capStartSequenceSlot(ACROPOLIS_SECURITY_ROOM_MONITOR_ENEMY_CAP_SLOT, 0, 0);
             work->enemyCaptionStarted = 1;
         }
     }
@@ -2786,7 +2786,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
     if ((flag == 0) || (flag == 2)) {
         usedKey = work->usedKey;
         if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
-            Gp_StartCapSlot(3, 1, 0);
+            capStartSequenceSlot(3, 1, 0);
         } else if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_LEFT) {
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_BLUE_KEY);
             sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
@@ -2800,13 +2800,13 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
             taskKill(task->spawnArg2.pointer);
             return;
         } else {
-            Gp_StartCapSlot(3, 1, 2);
+            capStartSequenceSlot(3, 1, 2);
         }
     } else if ((flag == 1) || (flag == 3)) {
         if (work->usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
-            Gp_StartCapSlot(3, 1, 1);
+            capStartSequenceSlot(3, 1, 1);
         } else {
-            Gp_StartCapSlot(3, 1, 3);
+            capStartSequenceSlot(3, 1, 3);
         }
     } else {
         return;
@@ -2824,7 +2824,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
     if ((flag == 0) || (flag == 1)) {
         usedKey = work->usedKey;
         if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
-            Gp_StartCapSlot(4, 1, 0);
+            capStartSequenceSlot(4, 1, 0);
         } else if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_RIGHT) {
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_RED_KEY);
             sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
@@ -2843,15 +2843,15 @@ static void func_acropolis_security_room_8017F300(Task* task)
             taskKill(task->spawnArg2.pointer);
             return;
         } else {
-            Gp_StartCapSlot(4, 1, 2);
+            capStartSequenceSlot(4, 1, 2);
             task->state = 2;
             return;
         }
     } else if ((flag == 2) || (flag == 3)) {
         if (work->usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
-            Gp_StartCapSlot(4, 1, 1);
+            capStartSequenceSlot(4, 1, 1);
         } else {
-            Gp_StartCapSlot(4, 1, 3);
+            capStartSequenceSlot(4, 1, 3);
         }
     } else {
         return;

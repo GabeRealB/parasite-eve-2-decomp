@@ -233,7 +233,7 @@ void func_shelter_b1_armory_80180214(Task* task)
             if ((u16)task->spawnArg1.value == 2) {
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 9), 0, 0);
             }
-            Gp_StartCapSlot(task->spawnArg1.value >> 16, 0, 0);
+            capStartSequenceSlot(task->spawnArg1.value >> 16, 0, 0);
             task->state++;
             break;
         case 1:

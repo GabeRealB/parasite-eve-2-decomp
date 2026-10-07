@@ -90,7 +90,7 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
         flagId  = command->flagIndexLo | (command->flagIndexHi << 8);
         switch (command->opcode) {
             case CAP_COMMAND_PLAIN:
-                Gp_StartCapSlot(arg0, arg1, 0);
+                capStartSequenceSlot(arg0, arg1, 0);
                 return;
             case CAP_COMMAND_COUNTER:
                 // Persist keeps the counter in a game flag. Otherwise it is this command's byte.
@@ -104,7 +104,7 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                     arg0 = command->nextIndex;
                     continue;
                 }
-                Gp_StartCapSlot(arg0, arg1, val);
+                capStartSequenceSlot(arg0, arg1, val);
                 if ((val < command->counterLimit) || (command->flags & CAP_COMMAND_BRANCH)) {
                     val++;
                 } else if (command->flags & CAP_COMMAND_WRAP) {
@@ -118,7 +118,7 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                 return;
             case CAP_COMMAND_FLAG:
                 val = gameFlagGetNibble(flagId);
-                Gp_StartCapSlot(arg0, arg1, val);
+                capStartSequenceSlot(arg0, arg1, val);
                 return;
             case CAP_COMMAND_ROOM:
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, arg0, 0);
@@ -137,7 +137,7 @@ void Gp_RunCapCmd(s32 arg0, s16 arg1)
                     arg0 = command->nextIndex;
                     continue;
                 }
-                Gp_StartCapSlot(arg0, arg1, val);
+                capStartSequenceSlot(arg0, arg1, val);
                 return;
             default:
                 return;

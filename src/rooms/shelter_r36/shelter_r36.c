@@ -621,7 +621,7 @@ void func_shelter_r36_8017D5E8(Task* task)
                 capSetTexturePage(0x140, 0x100);
                 slot = 2;
             }
-            Gp_StartCapSlot(slot, 0, 0);
+            capStartSequenceSlot(slot, 0, 0);
             evsStartScriptWithSkip(D_shelter_r36_8017DF2C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_r36_8017E5A4);
             task->state++;
             break;

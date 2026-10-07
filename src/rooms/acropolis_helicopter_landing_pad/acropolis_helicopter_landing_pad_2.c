@@ -1501,7 +1501,7 @@ s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, RoomEv
         }
         if (D_acropolis_helicopter_landing_pad_80184D9C == 2) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                Gp_StartCapSlot(9, 1, 0);
+                capStartSequenceSlot(9, 1, 0);
             }
             return 0;
         }
@@ -1663,7 +1663,7 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
     switch (task->state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Gp_StartCapSlot(4, 1, 0);
+            capStartSequenceSlot(4, 1, 0);
         case 2:
         case 3:
             task->state++;

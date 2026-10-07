@@ -286,16 +286,16 @@ s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
     if (temp == 1 || temp == 4) {
         switch (arg2) {
             case 8:
-                Gp_StartCapSlot(8, 1, gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) & 1);
+                capStartSequenceSlot(8, 1, gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) & 1);
                 break;
             case 14:
-                Gp_StartCapSlot(0xE, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 1) & 1);
+                capStartSequenceSlot(0xE, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 1) & 1);
                 break;
             case 15:
-                Gp_StartCapSlot(0xF, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 2) & 1);
+                capStartSequenceSlot(0xF, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 2) & 1);
                 break;
             case 16:
-                Gp_StartCapSlot(0x10, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 3) & 1);
+                capStartSequenceSlot(0x10, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 3) & 1);
                 break;
         }
     }
@@ -422,7 +422,7 @@ void func_mine_cavern_8017DFAC(s32 arg0)
 
 void func_mine_cavern_8017E088(s16 arg0)
 {
-    Gp_StartCapSlot(arg0, 1, 1);
+    capStartSequenceSlot(arg0, 1, 1);
 }
 
 void func_mine_cavern_8017E0B4(void)

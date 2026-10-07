@@ -1017,7 +1017,7 @@ s32 func_dryfield_night_trailer_coach_80182808(Task* arg0, s32 arg1, s32 arg2, s
 
 void func_dryfield_night_trailer_coach_8018283C(void)
 {
-    Gp_StartCapSlot(9, 0, 1);
+    capStartSequenceSlot(9, 0, 1);
 }
 
 void func_dryfield_night_trailer_coach_80182864(void)

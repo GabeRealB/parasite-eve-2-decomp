@@ -842,7 +842,7 @@ void func_mist_parking_80182A44(Task* task)
             if (announcement->prizeTimer == MIST_PARKING_PRIZE_ANNOUNCEMENT_CAPTION_FRAME) {
                 prize = announcement->prizeIndex;
                 if (gameFlagGetNibble(prize + 0x125) == 2) {
-                    Gp_StartCapSlot(5, 0, prize);
+                    capStartSequenceSlot(5, 0, prize);
                 }
                 return;
             }
@@ -965,7 +965,7 @@ static void func_mist_parking_801830F8(Task* task)
 
 void func_mist_parking_80183100(s32 arg0)
 {
-    Gp_StartCapSlot(arg0 >> 16, 0, arg0);
+    capStartSequenceSlot(arg0 >> 16, 0, arg0);
 }
 
 void func_mist_parking_8018312C(s32 arg0)

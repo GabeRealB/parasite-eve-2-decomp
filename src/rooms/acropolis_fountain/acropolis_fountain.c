@@ -107,7 +107,7 @@ s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
         Gp_RunCapCmd1(((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) == 0) ? 3 : 6);
     }
     if (arg2 == 4) {
-        Gp_StartCapSlot(4, 1, 0);
+        capStartSequenceSlot(4, 1, 0);
         func_acropolis_fountain_8017DA1C();
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012, 1);
     }

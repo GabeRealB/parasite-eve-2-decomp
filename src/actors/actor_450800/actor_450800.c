@@ -2719,7 +2719,7 @@ void func_actor_450800_80131F70(u32 arg0)
     func_shelter_b6_nursery_80182D14(arg0 >> 16, arg0 & 0xFFFF);
 }
 
-/// Two call sites, not one: `Gp_StartCapSlot` is written out in both arms of
+/// Two call sites, not one: `capStartSequenceSlot` is written out in both arms of
 /// the outer test. The tail-call cross-jump in `jump.c` merges them only from
 /// the `jal` onward, because sched2 hoists the `a1`/`a2` setup away from the
 /// call in the first arm before that pass runs - which is why the object sets
@@ -2733,14 +2733,14 @@ void func_actor_450800_80131F98(s32 arg0)
 
     if (arg0 == 1) {
         var_a0 = (u16)D_actor_450800_8013930C + 2;
-        Gp_StartCapSlot(var_a0, 0, 0);
+        capStartSequenceSlot(var_a0, 0, 0);
     } else {
         if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) == 2) {
             var_a0 = 8;
         } else {
             var_a0 = 9;
         }
-        Gp_StartCapSlot(var_a0, 0, 0);
+        capStartSequenceSlot(var_a0, 0, 0);
     }
 }
 

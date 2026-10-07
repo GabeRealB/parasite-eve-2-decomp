@@ -16,7 +16,7 @@ s32 junkYardCapMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
                 if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) == 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN) != 0) {
                     Gp_RunCapCmd1(8);
                 } else {
-                    Gp_StartCapSlot(arg2, 1, 0);
+                    capStartSequenceSlot(arg2, 1, 0);
                 }
             } else {
                 Gp_RunCapCmd1(9);

@@ -39,7 +39,7 @@ s32 factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out
                 if (in->queryOnly != ROOM_EVENT_EXECUTE) {
                     return 0;
                 }
-                Gp_StartCapSlot(4, 1, 0);
+                capStartSequenceSlot(4, 1, 0);
                 Gp_SetNibbleIf(in->flagId, 2);
                 return 0;
             }

@@ -1821,7 +1821,7 @@ void func_dryfield_trailer_coach_80182850(void)
 
     cond  = gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= 2;
     cond += 1;
-    Gp_StartCapSlot(3, 0, cond);
+    capStartSequenceSlot(3, 0, cond);
 }
 
 /// State 0 of the trailer-coach cutscene task. It parks the room's message

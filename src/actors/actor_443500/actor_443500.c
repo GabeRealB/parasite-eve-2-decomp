@@ -2468,7 +2468,7 @@ void func_actor_443500_80131F88(Task* arg0)
 
 void func_actor_443500_8013201C(s16 arg0)
 {
-    Gp_StartCapSlot(5, 1, arg0);
+    capStartSequenceSlot(5, 1, arg0);
 }
 
 /// Applies the 0xFF-terminated area record list at `D_shelter_r47_8018A638` through

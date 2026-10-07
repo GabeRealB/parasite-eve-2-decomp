@@ -62,7 +62,7 @@ s32 func_dryfield_night_water_tower_8017DA9C(Task* task, s32 msgId, s32 arg2, s3
 s32 func_dryfield_night_water_tower_8017DAA4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 7) {
-        Gp_StartCapSlot(7, 1, 3);
+        capStartSequenceSlot(7, 1, 3);
     }
     return 0;
 }

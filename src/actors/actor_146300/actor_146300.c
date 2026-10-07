@@ -1418,7 +1418,7 @@ void func_actor_146300_80131ECC(Task* task)
             taskKill(task);
             break;
         case 10:
-            Gp_StartCapSlot((s16)D_actor_146300_80142824, 0, 0);
+            capStartSequenceSlot((s16)D_actor_146300_80142824, 0, 0);
             evsStartScript(D_actor_146300_801386C0, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
@@ -1428,7 +1428,7 @@ void func_actor_146300_80131ECC(Task* task)
             }
             break;
         case 20:
-            Gp_StartCapSlot((s16)D_actor_146300_80142824, 0, 1);
+            capStartSequenceSlot((s16)D_actor_146300_80142824, 0, 1);
             evsStartScript(D_actor_146300_80138810, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
@@ -1442,7 +1442,7 @@ void func_actor_146300_80131ECC(Task* task)
             }
             break;
         case 40:
-            Gp_StartCapSlot(0x15, 0, 1);
+            capStartSequenceSlot(0x15, 0, 1);
             evsStartScript(D_actor_146300_80138A38, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;

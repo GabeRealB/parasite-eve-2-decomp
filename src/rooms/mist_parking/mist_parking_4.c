@@ -487,7 +487,7 @@ void func_mist_parking_80183EAC(Task* task)
             if (talk->prizeTimer == 5) {
                 prize = talk->prizeIndex;
                 if (gameFlagGetNibble(prize + 0x125) == 2) {
-                    Gp_StartCapSlot(5, 0, prize);
+                    capStartSequenceSlot(5, 0, prize);
                 }
                 return;
             }

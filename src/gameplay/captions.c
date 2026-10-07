@@ -1135,19 +1135,20 @@ static s32 _capGetTextLineAdvance(const u16* text)
     return lineAdvance;
 }
 
-s32 Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2)
+s16 capStartSequenceSlot(s16 commandIndex, s16 playbackMode, s16 variantKey)
 {
-    CapSequenceRecord* entry;
+    enum { CAP_SEQUENCE_SLOT_MISSING = 1 };
+    CapSequenceRecord* sequence;
 
-    if (Gp_CapTable != 0) {
+    if (Gp_CapTable != NULL) {
         return 0;
     }
 
-    entry = Gp_CapCmds[arg0].sequence;
-    if (entry == 0) {
-        return 1;
+    sequence = Gp_CapCmds[commandIndex].sequence;
+    if (sequence == NULL) {
+        return CAP_SEQUENCE_SLOT_MISSING;
     }
-    return (s16)capStartSequence(entry, arg1, arg2);
+    return capStartSequence(sequence, playbackMode, variantKey);
 }
 
 s32 capIsBusy(void)

@@ -365,7 +365,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             }
             return;
         case 30:
-            Gp_StartCapSlot(0x21, 0, (s16)D_actor_143000_80135C1C);
+            capStartSequenceSlot(0x21, 0, (s16)D_actor_143000_80135C1C);
             arg0->state++;
             return;
         case 6:

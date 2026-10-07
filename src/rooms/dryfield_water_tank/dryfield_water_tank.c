@@ -949,14 +949,14 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
     switch (task->state) {
         case 0:
             if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 3) {
-                Gp_StartCapSlot(0xE, 1, 1);
+                capStartSequenceSlot(0xE, 1, 1);
                 break;
             }
             gGameSession->eventState       = 1;
             D_dryfield_water_tank_80188D48 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             Gp_MsgPlayer3F3(0);
             Gp_MsgPlayerWeapon(0);
-            Gp_StartCapSlot(0xE, 0, 0);
+            capStartSequenceSlot(0xE, 0, 0);
             arg0->state = task->state + 1;
             return;
         case 1:

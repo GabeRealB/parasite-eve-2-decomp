@@ -24,7 +24,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                     }
                     state = 6;
                 } else {
-                    Gp_StartCapSlot(8, 0, 0);
+                    capStartSequenceSlot(8, 0, 0);
                     state = 2;
                 }
                 task->state = state;
@@ -44,7 +44,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                     }
                     state = 6;
                 } else {
-                    Gp_StartCapSlot(9, 0, 0);
+                    capStartSequenceSlot(9, 0, 0);
                     state = 2;
                 }
                 task->state = state;
@@ -65,12 +65,12 @@ void factoryPanelRunStep(Task* task, s16 step)
                 task->state = state;
                 break;
             case 3:
-                Gp_StartCapSlot(6, 0, 1);
+                capStartSequenceSlot(6, 0, 1);
                 state       = 2;
                 task->state = state;
                 break;
             case 4:
-                Gp_StartCapSlot(7, 0, 0);
+                capStartSequenceSlot(7, 0, 0);
                 state       = 2;
                 task->state = state;
                 break;
@@ -83,7 +83,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                     id = 0x52170000;
                 }
                 sndEvtRequestScriptStart(id | 9, 0, 0);
-                Gp_StartCapSlot(8, 0, 0);
+                capStartSequenceSlot(8, 0, 0);
                 break;
             case 1:
                 id = 0x53170000;
@@ -91,7 +91,7 @@ void factoryPanelRunStep(Task* task, s16 step)
                     id = 0x52170000;
                 }
                 sndEvtRequestScriptStart(id | 9, 0, 0);
-                Gp_StartCapSlot(9, 0, 0);
+                capStartSequenceSlot(9, 0, 0);
                 break;
             case 2:
                 id = 0x53170000;
@@ -99,13 +99,13 @@ void factoryPanelRunStep(Task* task, s16 step)
                     id = 0x52170000;
                 }
                 sndEvtRequestScriptStart(id | 9, 0, 0);
-                Gp_StartCapSlot(0xA, 0, 0);
+                capStartSequenceSlot(0xA, 0, 0);
                 break;
             case 3:
-                Gp_StartCapSlot(6, 0, 0);
+                capStartSequenceSlot(6, 0, 0);
                 break;
             case 4:
-                Gp_StartCapSlot(7, 0, 0);
+                capStartSequenceSlot(7, 0, 0);
                 break;
         }
         task->state = 2;

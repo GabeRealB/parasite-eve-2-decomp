@@ -1000,9 +1000,9 @@ static void func_actor_548100_80132684(Task* task)
             case 3:
             case 4:
                 if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
-                    Gp_StartCapSlot(6, 0, 0);
+                    capStartSequenceSlot(6, 0, 0);
                 } else if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
-                    Gp_StartCapSlot(6, 1, 3);
+                    capStartSequenceSlot(6, 1, 3);
                 } else {
                     if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 1) {
                         work->pickupObject = 4;
@@ -1012,7 +1012,7 @@ static void func_actor_548100_80132684(Task* task)
                         kind               = 5;
                     }
                     areaSetCurrentObjectState(work->pickupObject, 1);
-                    Gp_StartCapSlot(6, 0, kind);
+                    capStartSequenceSlot(6, 0, kind);
                     task->state = 7;
                     return;
                 }
@@ -2283,7 +2283,7 @@ static void func_actor_548100_80134E94(Task* arg0)
 
     if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
-            Gp_StartCapSlot(6, 0, 1);
+            capStartSequenceSlot(6, 0, 1);
         } else {
             value = 2;
             if (work->usedItem == 0x120) {
@@ -2294,7 +2294,7 @@ static void func_actor_548100_80134E94(Task* arg0)
             inventoryClearCollectedBit(work->usedItem);
         }
     } else {
-        Gp_StartCapSlot(6, 0, 4);
+        capStartSequenceSlot(6, 0, 4);
     }
     work->usedItem = 0;
     arg0->state    = 2;

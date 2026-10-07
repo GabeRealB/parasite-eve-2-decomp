@@ -2614,7 +2614,7 @@ s32 func_dryfield_night_gas_station_8017F89C(Task* arg0, s32 arg1, s32 arg2, s32
         } else {
             var_a2 = 1;
         }
-        Gp_StartCapSlot(0x12, 1, var_a2);
+        capStartSequenceSlot(0x12, 1, var_a2);
     }
     if ((arg2 == 0x17) && (gGameSession->location.loc.room == 4)) {
         if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_SUV_KEY) != 0) {

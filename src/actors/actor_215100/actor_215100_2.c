@@ -2088,12 +2088,12 @@ void func_actor_215100_8014ABAC(Task* arg0)
             }
             break;
         case 4:
-            Gp_StartCapSlot(8, 0, 0);
+            capStartSequenceSlot(8, 0, 0);
             evsStartScript(D_actor_215100_8014EBE0, EVENT_SCRIPT_HUD_KEEP);
             taskKill(arg0);
             break;
         case 10:
-            Gp_StartCapSlot(7, 0, 0);
+            capStartSequenceSlot(7, 0, 0);
             evsStartScript(D_actor_215100_8014EB08, EVENT_SCRIPT_HUD_KEEP);
             arg0->state++;
             break;

@@ -1562,7 +1562,7 @@ void func_actor_136300_80132998(void)
     s32 temp_v0;
 
     temp_v0 = gameFlagGetNibble(GAME_FLAG_072);
-    Gp_StartCapSlot((s16)(temp_v0 + 0x10), 0, 0);
+    capStartSequenceSlot((s16)(temp_v0 + 0x10), 0, 0);
     if (temp_v0 < 2) {
         gameFlagSetNibble(GAME_FLAG_072, temp_v0 + 1);
     }

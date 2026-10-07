@@ -678,7 +678,7 @@ static s32 _dryfieldNightWaterTankResolveRoomEvent(Task* unusedTask, s32 unusedM
 s32 func_dryfield_night_water_tank_8017D73C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0xE) {
-        Gp_StartCapSlot(0xE, 1, 1);
+        capStartSequenceSlot(0xE, 1, 1);
     }
     return 0;
 }

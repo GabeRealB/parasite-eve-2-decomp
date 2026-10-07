@@ -1178,12 +1178,12 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
         return;
     }
     if (work->selection == NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD) {
-        Gp_StartCapSlot(2, 0, 0);
+        capStartSequenceSlot(2, 0, 0);
         task->state = 2;
         return;
     }
     work->boardExamined = 1;
-    Gp_StartCapSlot(1, 0, 0);
+    capStartSequenceSlot(1, 0, 0);
     task->state = 2;
 }
 

@@ -1739,13 +1739,13 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
                     if ((u32)(facing - 0xA01) < 0x3FFU) {
                         Gp_MsgPlayerWeapon(0);
-                        Gp_StartCapSlot(0xA, 0, 1);
+                        capStartSequenceSlot(0xA, 0, 1);
                         taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
                     }
                 }
                 if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
                     Gp_MsgPlayerWeapon(0);
-                    Gp_StartCapSlot(0xA, 0, 1);
+                    capStartSequenceSlot(0xA, 0, 1);
                     taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
                 }
             }
@@ -1774,7 +1774,7 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
     }
     if (msg->warp == 0xA) {
         if ((u8)msg->room == 1 && gGameSession->location.loc.room < 7) {
-            Gp_StartCapSlot(0xA, 1, 0);
+            capStartSequenceSlot(0xA, 1, 0);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 2);
         }
     }
@@ -1804,21 +1804,21 @@ s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEven
     if (msg->warp == 0xC) {
         switch (gGameSession->location.loc.room) {
             case 6:
-                Gp_StartCapSlot(0xB, 1, 0);
+                capStartSequenceSlot(0xB, 1, 0);
                 break;
             case 7:
                 if (D_shelter_b1_underground_parking_8018D758 != 0) {
                     Gp_RunCapCmd1(0x1E);
                 } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
                     Gp_MsgPlayerWeapon(0);
-                    Gp_StartCapSlot(0xB, 1, 1);
+                    capStartSequenceSlot(0xB, 1, 1);
                     taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 3, 0, 0);
                 } else {
-                    Gp_StartCapSlot(0xB, 1, 2);
+                    capStartSequenceSlot(0xB, 1, 2);
                 }
                 break;
             case 8:
-                Gp_StartCapSlot(0xB, 1, 2);
+                capStartSequenceSlot(0xB, 1, 2);
                 break;
         }
     }

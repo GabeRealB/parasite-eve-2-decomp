@@ -1983,7 +1983,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
     switch (state) {
         case 0:
             Gp_MsgPlayerWeapon(0);
-            Gp_StartCapSlot(2, 0, 0);
+            capStartSequenceSlot(2, 0, 0);
             arg0->state = arg0->state + 1;
             break;
         case 1:
@@ -1996,7 +1996,7 @@ void func_mine_forked_tunnel_8017E38C(Task* arg0)
             arg0->killCountdown = temp;
             if (temp >= 0xB) {
                 if (capGetVariantKey() == state) {
-                    Gp_StartCapSlot(2, 0, 1);
+                    capStartSequenceSlot(2, 0, 1);
                     _mineForkedTunnelSetSpriteBatchesHidden(true);
                 }
                 Gp_MsgPlayerWeapon(1);

@@ -295,12 +295,12 @@ s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     if (arg2 == 7) {
         bit2 = areaGetCurrentObjectState(7);
         if (bit2 == 1) {
-            Gp_StartCapSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
+            capStartSequenceSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
             if (D_neo_ark_shrine_80181E74 == 2) {
                 D_neo_ark_shrine_80181E74 = bit2;
             }
         } else {
-            Gp_StartCapSlot(7, 1, 0);
+            capStartSequenceSlot(7, 1, 0);
         }
     }
     if (arg2 == 5) {
@@ -505,7 +505,7 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PUZZLE_SOLVED, 0, 0);
                     gameFlagSetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED, 1);
                     gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHRINE, 0);
-                    Gp_StartCapSlot(3, 0, 0);
+                    capStartSequenceSlot(3, 0, 0);
                     return;
                 }
                 break;

@@ -92,14 +92,14 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
             if (gameFlagGetNibble(0) < 3) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
                     Gp_SetNibbleIf(in->flagId, 2);
-                    Gp_StartCapSlot(1, 1, 0);
+                    capStartSequenceSlot(1, 1, 0);
                 }
                 return 0;
             }
             if (gameFlagGetNibble(0) >= 3) {
                 if (gameFlagGetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
                     if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                        Gp_StartCapSlot(1, 1, 3);
+                        capStartSequenceSlot(1, 1, 3);
                         gameFlagSetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED, 1);
                     }
                 }

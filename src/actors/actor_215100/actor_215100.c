@@ -225,7 +225,7 @@ void func_actor_215100_80149F2C(Task* task)
                 if (D_actor_215100_8014D040 == 0) {
                     slot = 0x15;
                 }
-                Gp_StartCapSlot(slot, 0, 0);
+                capStartSequenceSlot(slot, 0, 0);
                 evsStartScript(D_actor_215100_8014EE68, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
@@ -247,7 +247,7 @@ void func_actor_215100_80149F2C(Task* task)
             if (D_actor_215100_8014D040 == 0) {
                 slot = 0x19;
             }
-            Gp_StartCapSlot(slot, 0, 0);
+            capStartSequenceSlot(slot, 0, 0);
             evsStartScript(D_actor_215100_8014EBE0, EVENT_SCRIPT_HUD_KEEP);
             taskKill(task);
             break;
@@ -256,7 +256,7 @@ void func_actor_215100_80149F2C(Task* task)
             if (D_actor_215100_8014D040 == 0) {
                 slot = 0x18;
             }
-            Gp_StartCapSlot(slot, 0, 0);
+            capStartSequenceSlot(slot, 0, 0);
             evsStartScript(D_actor_215100_8014EB98, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
@@ -266,7 +266,7 @@ void func_actor_215100_80149F2C(Task* task)
             }
             break;
         case 0xA:
-            Gp_StartCapSlot(9, 0, 0);
+            capStartSequenceSlot(9, 0, 0);
             task->state++;
             break;
         case 0xB:
@@ -279,7 +279,7 @@ void func_actor_215100_80149F2C(Task* task)
             task->state = 0x14;
             break;
         case 0x14:
-            Gp_StartCapSlot(0xA, 0, 0);
+            capStartSequenceSlot(0xA, 0, 0);
             task->state++;
             break;
         case 0x15:
@@ -296,7 +296,7 @@ void func_actor_215100_80149F2C(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_215100_8014CF84, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), 0x7D3, &D_actor_215100_8014D010, 0);
             task->killCountdown = 0x1B;
-            Gp_StartCapSlot(0xB, 0, 0);
+            capStartSequenceSlot(0xB, 0, 0);
             task->state++;
             break;
         case 0x1F:
@@ -319,7 +319,7 @@ void func_actor_215100_80149F2C(Task* task)
             task->state = 0x28;
             break;
         case 0x28:
-            Gp_StartCapSlot(capGetVariantKey() + 0xB, 0, 0);
+            capStartSequenceSlot(capGetVariantKey() + 0xB, 0, 0);
             evsStartScript(D_actor_215100_8014F138, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
