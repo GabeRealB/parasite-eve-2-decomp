@@ -150,7 +150,7 @@ static void _sndBankResetDescriptors(void);
 
 static void _sndHeapReset(void);
 
-static long Spu_TimerCallback(void);
+static long _spuTimerCallback(void);
 
 static s32 _spuRunTimerAudioUpdate(void);
 
@@ -448,7 +448,7 @@ static inline void Spu_InitSystemLocked(s32 arg0)
         ResetRCnt(RCntCNT0);
         StartRCnt(RCntCNT0);
         EnterCriticalSection();
-        D648E0_SpuTimerED = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, Spu_TimerCallback);
+        D648E0_SpuTimerED = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, _spuTimerCallback);
         ExitCriticalSection();
         EnableEvent(D648E0_SpuTimerED);
         D58028_SpuTimerEnabled = true;
@@ -940,7 +940,12 @@ void sndHeapFree(void* payload)
     header->isAllocated = false;
 }
 
-static long Spu_TimerCallback(void)
+/// Counts PAL root-counter events until the armed extra audio update is due.
+///
+/// Each PAL frame arms six events. Clears the arm before calling the guarded
+/// audio update; that update can be skipped during initialization/reentry.
+/// Does not process queued sound events. The SDK interrupt callback returns zero.
+static long _spuTimerCallback(void)
 {
     if (D_800680A4 != 0) {
         D_8007E0CC--;

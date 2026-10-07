@@ -16,7 +16,7 @@ enum {
     PRIMITIVE_FADE_OT_INDEX    = 5,
 };
 
-static void Prim_DrawSprt(PrimDrawParams* draw, u32 arg1, s32 arg2);
+static void _primDrawCaptionSprite(const PrimDrawParams* draw, u32 clutX, s32 clutY);
 
 static void _primDrawTexturePage(s32 blendMode, s32 tpageX, s32 tpageY, s32 otIndex);
 
@@ -87,8 +87,8 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
                             h    = stream->glyphs[glyphIdx].height;
                             sp.h = h;
                             if (h != 0) {
-                                Prim_DrawSprt(&sp, stream->clutX,
-                                              stream->clutY);
+                                _primDrawCaptionSprite(&sp, stream->clutX,
+                                                       stream->clutY);
                             }
                         }
                         sp.x +=
@@ -117,33 +117,41 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
     return ret;
 }
 
-static void Prim_DrawSprt(PrimDrawParams* draw, u32 arg1, s32 arg2)
+/// Queues a caption sprite using a borrowed rectangle, texture origin and CLUT.
+///
+/// Consumes one aligned SPRT slot and OT tag 4, retained through GPU completion.
+/// CLUT X is a 16-word-aligned VRAM coordinate (0..1008); Y is a row (0..511).
+/// X keeps its unsigned packing shift. UV narrows to bytes; packet dimensions
+/// are the supplied pixel width/height minus one, narrowed to halfwords.
+/// Opaque sprites use raw texture colour; semitransparent sprites are modulated.
+/// The caller must also queue the appropriate texture page at the caption tag.
+static void _primDrawCaptionSprite(const PrimDrawParams* draw, u32 clutX, s32 clutY)
 {
-    SPRT* p;
-    u8    v;
+    SPRT* sprite;
+    u8    textureV;
 
-    p                 = (SPRT*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(p + 1);
-    SetSprt(p);
+    sprite            = (SPRT*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(sprite + 1);
+    SetSprt(sprite);
     if (draw->semiTrans == 0) {
-        SetShadeTex(p, 1);
-        SetSemiTrans(p, 0);
+        SetShadeTex(sprite, 1);
+        SetSemiTrans(sprite, 0);
     } else {
-        SetShadeTex(p, 0);
-        SetSemiTrans(p, 1);
+        SetShadeTex(sprite, 0);
+        SetSemiTrans(sprite, 1);
     }
-    p->r0   = draw->r;
-    p->g0   = draw->g;
-    p->b0   = draw->b;
-    p->x0   = draw->x;
-    p->y0   = draw->y;
-    p->u0   = draw->u;
-    v       = draw->v;
-    p->clut = getClut(arg1, arg2);
-    p->v0   = v;
-    p->w    = draw->w - 1;
-    p->h    = draw->h - 1;
-    AddPrim(gGpuCurrentOt + 4, p);
+    sprite->r0   = draw->r;
+    sprite->g0   = draw->g;
+    sprite->b0   = draw->b;
+    sprite->x0   = draw->x;
+    sprite->y0   = draw->y;
+    sprite->u0   = draw->u;
+    textureV     = draw->v;
+    sprite->clut = getClut(clutX, clutY);
+    sprite->v0   = textureV;
+    sprite->w    = draw->w - 1;
+    sprite->h    = draw->h - 1;
+    AddPrim(gGpuCurrentOt + PRIMITIVE_CAPTION_OT_INDEX, sprite);
 }
 
 /// Queues a 4-bit texture-page and blend-mode command for subsequent primitives.

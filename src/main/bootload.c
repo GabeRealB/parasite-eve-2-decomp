@@ -182,11 +182,11 @@ static u8 BootCaptionText_ShelterHeliport[];
 
 static TextStream BootCaption_ShelterHeliport;
 
-static s32 Fade_StepIn(s16 arg0);
+static s32 _fadeBootImageToBlack(s16 levelStep);
 
-static void Fade_StartWhite(void);
+static void _fadeBeginBootImageReveal(void);
 
-static s32 Fade_StepOut(s32 arg0);
+static s32 _fadeBootImageFromBlack(s32 levelStep);
 
 static void Fs_SelectLoadHandlers0(u8* arg0);
 
@@ -1333,107 +1333,104 @@ static u8 BootCaptionText_ShelterHeliport[] = {
 };
 static TextStream BootCaption_ShelterHeliport = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterHeliport, Caption_Glyphs, 13, 300, 216, 29 };
 
-static s32 Fade_StepIn(s16 arg0)
+/// Boot-image mask colour range and its screen/ordering-table placement.
+enum {
+    FADE_BOOT_IMAGE_MAX_COLOR         = 255,
+    FADE_BOOT_IMAGE_CLEAR_LEVEL       = 256,
+    FADE_BOOT_IMAGE_OT_INDEX          = -16,
+    FADE_BOOT_IMAGE_SECOND_BUFFER_ROW = 272,
+};
+
+/// Draws the subtractive 320x240 mask in front of the boot image.
+///
+/// Requires aligned TILE/DR_TPAGE space and OT tag -16, retained through GPU
+/// completion. The low-byte mask colour subtracts equally from all RGB channels.
+static inline void _fadeDrawBootImageMask(u8 maskColor)
 {
-    TILE*     p;
-    DR_TPAGE* dr;
-    u8        color;
-    RECT      rect;
+    TILE*     tile;
+    DR_TPAGE* pagePacket;
 
-    color             = D_8006ACB4;
-    p                 = (TILE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(p + 1);
-    setlen(p, 3);
-    setcode(p, 0x62);
-    p->r0 = color;
-    p->g0 = color;
-    p->b0 = color;
-    p->x0 = -0xA0;
-    p->y0 = -0x78;
-    p->w  = 0x140;
-    p->h  = 0xF0;
-    addPrim(gGpuCurrentOt - 0x10, p);
+    tile              = (TILE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(tile + 1);
+    setTile(tile);
+    setSemiTrans(tile, true);
+    tile->r0 = maskColor;
+    tile->g0 = maskColor;
+    tile->b0 = maskColor;
+    tile->x0 = -FILE_SYSTEM_IMAGE_WIDTH / 2;
+    tile->y0 = -FILE_SYSTEM_IMAGE_HEIGHT / 2;
+    tile->w  = FILE_SYSTEM_IMAGE_WIDTH;
+    tile->h  = FILE_SYSTEM_IMAGE_HEIGHT;
+    addPrim(gGpuCurrentOt + FADE_BOOT_IMAGE_OT_INDEX, tile);
 
-    dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(dr + 1);
-    setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(gGpuCurrentOt - 0x10, dr);
+    pagePacket        = (DR_TPAGE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(pagePacket + 1);
+    setDrawTPage(pagePacket, false, true, GPU_BLEND_SUBTRACT << 5);
+    addPrim(gGpuCurrentOt + FADE_BOOT_IMAGE_OT_INDEX, pagePacket);
+}
 
-    if (D_8006ACB4 > 0x100) {
-        rect.y = 0;
-        rect.x = 0;
-        rect.w = 0x140;
-        rect.h = 0xF0;
-        ClearImage(&rect, 0, 0, 0);
-        rect.y = 0x110;
-        ClearImage(&rect, 0, 0, 0);
+/// Draws and strengthens the boot-image mask, then clears both buffers at completion.
+///
+/// Returns 1 once the signed mask level is above 256, otherwise adds `levelStep`
+/// and returns 0. The caller starts at zero and uses a positive step that stays
+/// in s16 range. Drawing uses the pre-step low byte, including its wrap at 256;
+/// completion clears both 320x240 buffers and disables image-strip presentation.
+static s32 _fadeBootImageToBlack(s16 levelStep)
+{
+    u8   maskColor;
+    RECT clearRect;
+
+    maskColor = D_8006ACB4;
+    _fadeDrawBootImageMask(maskColor);
+
+    if (D_8006ACB4 > FADE_BOOT_IMAGE_CLEAR_LEVEL) {
+        clearRect.y = 0;
+        clearRect.x = 0;
+        clearRect.w = FILE_SYSTEM_IMAGE_WIDTH;
+        clearRect.h = FILE_SYSTEM_IMAGE_HEIGHT;
+        ClearImage(&clearRect, 0, 0, 0);
+        clearRect.y = FADE_BOOT_IMAGE_SECOND_BUFFER_ROW;
+        ClearImage(&clearRect, 0, 0, 0);
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
         return 1;
     }
-    D_8006ACB4 += arg0;
+    D_8006ACB4 += levelStep;
     return 0;
 }
 
-static void Fade_StartWhite(void)
+/// Enables the boot-image display and initializes a full-strength subtractive mask.
+///
+/// Keeps the view and existing framebuffer contents; the white mask colour makes
+/// the displayed image black. Requires primitive-arena and ordering-table space.
+static void _fadeBeginBootImageReveal(void)
 {
-    TILE*     p;
-    DR_TPAGE* dr;
-    u8        color;
+    u8 maskColor;
 
     displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     SetDispMask(1);
 
-    D_8006ACB4        = 0xFF;
-    color             = *(volatile u8*)&D_8006ACB4;
-    p                 = (TILE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(p + 1);
-    setlen(p, 3);
-    setcode(p, 0x62);
-    p->r0 = color;
-    p->g0 = color;
-    p->b0 = color;
-    p->x0 = -0xA0;
-    p->y0 = -0x78;
-    p->w  = 0x140;
-    p->h  = 0xF0;
-    addPrim(gGpuCurrentOt - 0x10, p);
-
-    dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(dr + 1);
-    setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(gGpuCurrentOt - 0x10, dr);
+    D_8006ACB4 = FADE_BOOT_IMAGE_MAX_COLOR;
+    maskColor  = *(volatile u8*)&D_8006ACB4;
+    _fadeDrawBootImageMask(maskColor);
 }
 
-static s32 Fade_StepOut(s32 arg0)
+/// Draws the boot-image mask and reduces its signed level to reveal the image.
+///
+/// Enables image strips and returns 1 when the s16 result of subtracting
+/// `levelStep` is negative. Starts at 255; the caller uses a positive step without
+/// signed overflow. The current low byte is drawn before the level changes.
+static s32 _fadeBootImageFromBlack(s32 levelStep)
 {
-    TILE*     p;
-    DR_TPAGE* dr;
-    u8        color;
-    s16       val;
+    u8  maskColor;
+    s16 nextLevel;
 
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-    color                                   = *(volatile u8*)&D_8006ACB4;
-    p                                       = (TILE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor                       = (u8*)(p + 1);
-    setlen(p, 3);
-    setcode(p, 0x62);
-    p->r0 = color;
-    p->g0 = color;
-    p->b0 = color;
-    p->x0 = -0xA0;
-    p->y0 = -0x78;
-    p->w  = 0x140;
-    p->h  = 0xF0;
-    addPrim(gGpuCurrentOt - 0x10, p);
+    maskColor                               = *(volatile u8*)&D_8006ACB4;
+    _fadeDrawBootImageMask(maskColor);
 
-    dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(dr + 1);
-    setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(gGpuCurrentOt - 0x10, dr);
-
-    val        = D_8006ACB4 - arg0;
-    D_8006ACB4 = val;
-    return val < 0;
+    nextLevel  = D_8006ACB4 - levelStep;
+    D_8006ACB4 = nextLevel;
+    return nextLevel < 0;
 }
 
 static void Fs_SelectLoadHandlers0(u8* arg0)
@@ -1857,11 +1854,11 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             D_8006ACA2 = 0;
             D_8006ACA8 = 0;
             D_8006ACA6 = 0;
-            Fade_StartWhite();
+            _fadeBeginBootImageReveal();
             D5B498_8006AC9C++;
             /* fallthrough */
         case 1:
-            if ((Fade_StepOut(0x10) & 0xFFFF) != 0) {
+            if ((_fadeBootImageFromBlack(0x10) & 0xFFFF) != 0) {
                 D5B498_8006AC9C++;
             }
             return;
@@ -1904,7 +1901,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             }
             break;
         case 4:
-            if ((Fade_StepIn(0x10) & 0xFFFF) != 0) {
+            if ((_fadeBootImageToBlack(0x10) & 0xFFFF) != 0) {
                 Fs_BootLoadPhase           = 0;
                 gCdCmdQueue.bootLoadActive = 0;
             }

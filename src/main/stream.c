@@ -10,6 +10,7 @@
 
 #include "main/display.h"
 #include "main/display_types.h"
+#include "main/areas.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/mem.h"
@@ -86,7 +87,7 @@ u16 D_8006AC6C;
 
 extern s32 StCdIntrFlag;
 
-static void Mdec_SetupBuffers(const GameLocationKey* arg0);
+static void _streamAssignMovieBuffers(const GameLocationKey* location);
 
 static void _streamLoadMovieSlotState(u32 slotIndex);
 
@@ -113,6 +114,12 @@ enum {
     STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS    = 272,
     STREAM_MOVIE_SECTORS_PER_FRAME          = 10,
     STREAM_MOVIE_FIRST_FRAME                = 1,
+    STREAM_MOVIE_TEXTURE_RING_SECTORS       = 32,
+    STREAM_MOVIE_DISPLAY_RING_SECTORS       = 40,
+    STREAM_MOVIE_TEXTURE_RING_BYTES         = STREAM_MOVIE_TEXTURE_RING_SECTORS * 2048,
+    STREAM_MOVIE_DISPLAY_RING_BYTES         = STREAM_MOVIE_DISPLAY_RING_SECTORS * 2048,
+    STREAM_MOVIE_RGB24_STRIP_BYTES_PER_ROW  = FILE_SYSTEM_IMAGE_STRIP_WIDTH * 3,
+    STREAM_MOVIE_DISPLAY_LAYOUT_STAGE       = 0xFF,
     STREAM_MOVIE_RGB24_DISPLAY_WORDS        = FILE_SYSTEM_IMAGE_WIDTH * 3 / 2,
     STREAM_MOVIE_RGB24_STRIP_WORDS          = FILE_SYSTEM_IMAGE_STRIP_WIDTH * 3 / 2,
     STREAM_MOVIE_RGB16_OUTPUT_WORDS_PER_ROW = FILE_SYSTEM_IMAGE_STRIP_WIDTH / 2,
@@ -157,65 +164,83 @@ enum {
 u16 D_8005EAEC = 0;
 u16 D_8005EAEE = 0;
 
-static void Mdec_SetupBuffers(const GameLocationKey* arg0)
+/// Assigns borrowed STR, VLC-output and decoded-pixel buffers for a movie.
+///
+/// Movie dimensions must already be cached and the workspace reserved/aligned.
+/// Reads only stage, plus area in the loaded map hook. Stage 255 selects display
+/// storage: VLC table, 40-sector ring, one RGB24 strip and two width*height-byte
+/// VLC buffers. Stage zero uses actor buffer 0 for VLC/ring/output and two
+/// workspace pixel buffers separated by twice width*height bytes. Stages 1, 2
+/// and 5 delegate placement to their loaded map overlay. Other stages retain
+/// previous output pointers after the common reset; only supported layouts may
+/// be used for decoding. Does not allocate, clear pixels or start the decoder.
+/// Display storage must fit 0x11000 + 40*2048 + 48*height + 2*width*height bytes.
+/// Stage-zero actor storage must fit 0x11000 + 32*2048 + 2*width*height bytes,
+/// and its pixel workspace must fit 4*width*height bytes. Products must fit s32;
+/// map-selected layouts require their own larger reservations where applicable.
+/// Each VLC expansion must fit the reserved interval before the next buffer.
+static void _streamAssignMovieBuffers(const GameLocationKey* location)
 {
-    s32     temp_lo;
-    u16*    temp_v1;
-    u16*    temp_v1_2;
-    u_long* temp_v1_3;
-    u_long* temp_v1_4;
-    s32     temp_lo_2;
-    u16*    temp_v1_5;
+    s32     vlcBufferBytes;
+    u16*    ringBuffer;
+    u_long* decodedStrip;
+    u_long* firstVlcBuffer;
+    u_long* secondVlcBuffer;
+    s32     textureVlcBufferBytes;
+    u_long* textureVlcBuffer;
 
+    // Default input storage comes from actor buffer zero; map hooks can replace the pixel layout.
     D_8006AC5C                   = 0;
     D_8006AC3C                   = 1;
     gCdCmdQueue.field_24A        = 0;
     gCdCmdQueue.movieVramStaging = 0;
-    D_8006AC24                   = 0x20;
+    D_8006AC24                   = STREAM_MOVIE_TEXTURE_RING_SECTORS;
     D_8006AC38                   = Fs_ActorLoadBase0;
     D_8006AC60                   = (u16*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
     D_8006AC64                   = D_8006AC40;
 
-    switch ((s8)(arg0->stage + 1)) {
-        case 0:
-            D_8006AC24 = 0x28;
-            D_8006AC38 = (u_short*)D_8006AC40;
-            temp_v1    = (D_8006AC60 = (u16*)((u8*)D_8006AC40 + STREAM_VLC_TABLE_BYTES));
+    switch ((s8)(location->stage + 1)) {
+        case (s8)(STREAM_MOVIE_DISPLAY_LAYOUT_STAGE + 1):
+            // Pack table, ring, shared strip and both VLC outputs into the resident arena.
+            D_8006AC24 = STREAM_MOVIE_DISPLAY_RING_SECTORS;
+            D_8006AC38 = D_8006AC40;
+            ringBuffer = (D_8006AC60 = (u16*)((u8*)D_8006AC40 + STREAM_VLC_TABLE_BYTES));
             {
-                u16 h         = D_8006AC6C;
-                s32 stride    = h * 0x30;
-                temp_lo       = D_8006AC5A * h;
-                D_8006AC48[1] = (u_long*)(temp_v1_2 = (u16*)((u8*)temp_v1 + 0x14000));
-                D_8006AC48[0] = (u_long*)temp_v1_2;
-                D_8006AC50[0] = (temp_v1_3 = (u_long*)((u8*)temp_v1_2 + stride));
-                D_8006AC50[1] = (temp_v1_4 = (u_long*)((u8*)temp_v1_3 + temp_lo));
-                D_8006AC44    = (u8*)temp_v1_4 + temp_lo;
+                u16 heightPixels     = D_8006AC6C;
+                s32 stripBufferBytes = heightPixels * STREAM_MOVIE_RGB24_STRIP_BYTES_PER_ROW;
+                vlcBufferBytes       = D_8006AC5A * heightPixels;
+                D_8006AC48[1]        = (decodedStrip = (u_long*)((u8*)ringBuffer + STREAM_MOVIE_DISPLAY_RING_BYTES));
+                D_8006AC48[0]        = decodedStrip;
+                D_8006AC50[0]        = (firstVlcBuffer = (u_long*)((u8*)decodedStrip + stripBufferBytes));
+                D_8006AC50[1]        = (secondVlcBuffer = (u_long*)((u8*)firstVlcBuffer + vlcBufferBytes));
+                D_8006AC44           = (u8*)secondVlcBuffer + vlcBufferBytes;
             }
             return;
-        case 1: {
-            u_long** p50;
-            u_long** p48;
-            void*    base;
+        case GAME_STAGE_NONE + 1: {
+            u_long** vlcBuffers;
+            u_long** decodedBuffers;
+            void*    workspace;
 
-            temp_lo_2 = D_8006AC5A * D_8006AC6C;
-            p50       = D_8006AC50;
-            temp_v1_5 = (u16*)((u8*)D_8006AC60 + 0x10000);
-            base      = D_8006AC40;
-            p48       = D_8006AC48;
-            p50[0]    = (u_long*)temp_v1_5;
-            p48[0]    = (u_long*)base;
-            p50[1]    = (u_long*)((u8*)temp_v1_5 + temp_lo_2);
-            p48[1]    = (u_long*)((u8*)base + (temp_lo_2 * 2));
+            // Keep actor-based input separate from the two full-frame pixel buffers.
+            textureVlcBufferBytes = D_8006AC5A * D_8006AC6C;
+            vlcBuffers            = D_8006AC50;
+            textureVlcBuffer      = (u_long*)((u8*)D_8006AC60 + STREAM_MOVIE_TEXTURE_RING_BYTES);
+            workspace             = D_8006AC40;
+            decodedBuffers        = D_8006AC48;
+            vlcBuffers[0]         = textureVlcBuffer;
+            decodedBuffers[0]     = workspace;
+            vlcBuffers[1]         = (u_long*)((u8*)textureVlcBuffer + textureVlcBufferBytes);
+            decodedBuffers[1]     = (u_long*)((u8*)workspace + (textureVlcBufferBytes * 2));
             return;
         }
-        case 2:
-            mapAkropolisSetupMovieBuffers(arg0);
+        case GAME_STAGE_ACROPOLIS + 1:
+            mapAkropolisSetupMovieBuffers(location);
             return;
-        case 3:
-            mapDryfieldSetupMovieBuffers(arg0);
+        case GAME_STAGE_DRYFIELD + 1:
+            mapDryfieldSetupMovieBuffers(location);
             return;
-        case 6:
-            mapNeoArkSetupMovieBuffers(arg0);
+        case GAME_STAGE_SHELTER_NEO_ARK + 1:
+            mapNeoArkSetupMovieBuffers(location);
             return;
     }
 }
@@ -430,42 +455,43 @@ static __inline__ void _streamClearDisplayBuffers(RECT* clearRect)
     ClearImage(clearRect, 0, 0, 0);
 }
 
-u32 Stream_InitializePlayback(u32 slotIndex)
+u32 streamPrepareMoviePlayback(u32 slotIndex)
 {
-    GameLoc     params;
-    RECT        clearRect;
-    CdCmdQueue* queue;
-    u32         slot;
+    GameLocationKey displayLocation;
+    RECT            clearRect;
+    CdCmdQueue*     queue;
+    u32             movieSlotIndex;
 
-    slot                     = slotIndex & 0xFFFF;
+    movieSlotIndex           = slotIndex & 0xFFFF;
     queue                    = &gCdCmdQueue;
     queue->movieFrameSubstep = 0;
     queue->movieStep         = CD_COMMAND_MOVIE_WAIT_READY;
-    queue->movieAtEnd        = 0;
-    queue->movieFrameChanged = 0;
-    _streamLoadMovieSlotState(slot);
+    queue->movieAtEnd        = false;
+    queue->movieFrameChanged = false;
+    _streamLoadMovieSlotState(movieSlotIndex);
     if (D_8006AC58 != 0) {
         if (D_8006AC30.startSector == 0) {
-            return 1U;
+            return STREAM_MOVIE_SETUP_INTER_UNAVAILABLE;
         }
-        D_8006AC08 = Stream_Slots[slot].source.interSectorOffset + D_8006AC30.startSector;
+        D_8006AC08 = Stream_Slots[movieSlotIndex].source.interSectorOffset + D_8006AC30.startSector;
     }
     if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
-        params.loc.stage = 0xFF;
-        Mdec_SetupBuffers(&params.loc);
-        queue->movieFrame = 1;
+        // Display movies use a resident layout independently of the current map.
+        displayLocation.stage = STREAM_MOVIE_DISPLAY_LAYOUT_STAGE;
+        _streamAssignMovieBuffers(&displayLocation);
+        queue->movieFrame = STREAM_MOVIE_FIRST_FRAME;
         _streamClearDisplayBuffers(&clearRect);
         if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
             displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         } else {
             displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         }
-        gDisplayState.mdecActive = 1;
+        gDisplayState.mdecActive = true;
         DecDCTvlcBuild(D_8006AC38);
-        return 0U;
+        return STREAM_MOVIE_SETUP_COMPLETE;
     }
-    Mdec_SetupBuffers(&gGameSession->location.loc);
-    return 0U;
+    _streamAssignMovieBuffers(&gGameSession->location.loc);
+    return STREAM_MOVIE_SETUP_COMPLETE;
 }
 
 s16 streamPollMovieStop(s32 clearFramebuffers)
@@ -1137,7 +1163,7 @@ u16 streamGetFrameLimit(u16 slotIndex)
     return Stream_Slots[slotIndex].data.movie.frameLimit;
 }
 
-void Stream_KickDecode(u32 arg0)
+void streamInitMoviePlayback(u32 slotIndex)
 {
-    Stream_InitializePlayback(arg0 & 0xFFFF);
+    streamPrepareMoviePlayback(slotIndex & 0xFFFF);
 }

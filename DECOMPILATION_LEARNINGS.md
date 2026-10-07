@@ -8416,7 +8416,7 @@ jr    ra
 volatile `_gCdAudioState` matches.
 
 `D_800680C0` is another interrupt-shared flag: the SPU timer callback
-`Spu_TimerCallback` / `_spuRunTimerAudioUpdate` reads and writes it while main-line
+`_spuTimerCallback` / `_spuRunTimerAudioUpdate` reads and writes it while main-line
 `Spu_InitSystem` does the same. Marking it `volatile` keeps stores out of
 `jal` delay slots (target has `nop` after `D_800680C0 = 0`).
 
@@ -14858,7 +14858,7 @@ entry = (StageMusicEntry*)(temp + (s32)D_8006273C[idx]);
 entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);
 ```
 
-`Stage_RequestMidiFromMap` is the pure example. Pair with a `register ... asm("v1")` pin
+`stageMusicRequestAreaStop` is the pure example. Pair with a `register ... asm("v1")` pin
 on the stage pointer when the target loads `gGameSession` into `$v1` (with
 an argument live in `$s1`) rather than `$a0`.
 
@@ -16700,7 +16700,7 @@ p->v0   = v;
 ```
 
 Also type the CLUT X argument as `u32` (or cast) so `((x) >> 4)` emits `srl`
-rather than `sra`. `Prim_DrawSprt` is the pure example (SPRT twin of TILE
+rather than `sra`. `_primDrawCaptionSprite` is the pure example (SPRT twin of TILE
 helper `Prim_DrawTile`).
 
 ## Force `move v0, tN; sw v0` when CSE wants `sw tN`
@@ -18225,7 +18225,7 @@ p->b0 = color;
 
 Writing `p = Gpu_SysPrimCursor` first swaps the two `lui`s (~99.7% near-match). The
 `*(volatile u8*)&` cast is required for the post-`sh` `lbu`; a plain
-`(u8)D_8006ACB4` may keep the value in a register. `Fade_StartWhite` is the pure
+`(u8)D_8006ACB4` may keep the value in a register. `_fadeBeginBootImageReveal` is the pure
 example (fullscreen white TILE at OT slot `-0x10` plus `setDrawTPage(..., 0, 1, 0x40)`).
 
 ## Scoped `register asm` pin for delay-slot `move a0,v1` after `lb`
@@ -18377,7 +18377,7 @@ will cross-merge their `0x10/0x20/0x40` retry bodies when both go through a
 shared `handle_ret` / `flush_or_retry` label. The dispatch then jumps from
 case 5 into case 2's retry and the `slti` tree flips (`bnez` vs `beqz`).
 
-Fix: inline the `ret < 2` / `ret == 2` / `Fs_RetryReadN` tails at every
+Fix: inline the `ret < 2` / `ret == 2` / `fsResumeRequestedRead` tails at every
 site (duplicate the small blocks). GCC still cross-jumps the *identical*
 `ret < 2 → (ret==0 ? return : end)` sequences into one shared block, so you
 keep a single handle without the bad merge — and the sites that need a
@@ -19892,8 +19892,8 @@ p->w = w;
 rect.w = w;
 ```
 
-That frees `$t6` for the early `move t6,a0`. `Fade_StepIn` is the pure
-example (fade-up sibling of `Fade_StepOut`).
+That frees `$t6` for the early `move t6,a0`. `_fadeBootImageToBlack` is the pure
+example (fade-up sibling of `_fadeBootImageFromBlack`).
 
 ## `do { x = (s32)SomeFunc; } while (0)` delays the following store
 
@@ -20162,7 +20162,7 @@ temp = D_w * h;          /* mult a2, a1; lhu w before lhu h */
 ptr = base + stride;     /* reuses $a1 for the * 0x30 shift pattern */
 ```
 
-`Mdec_SetupBuffers` case 0 is the pure example (MDEC buffer layout).
+`_streamAssignMovieBuffers` case 0 is the pure example (MDEC buffer layout).
 
 ## Stack pad between packed s32 and RECT (0x10 / 0x18 locals)
 
@@ -20804,7 +20804,7 @@ else if (entry->cmd == 0x62) { entry->cmd = 0x61; }
 ```
 
 GCC CSEs the two `entry->cmd` loads into one `lbu` either way; only the
-register assignment differs. `CdCmd_HandleStreamDecode` is the pure example (cmds 0x61 /
+register assignment differs. `_cdCmdHandleMoviePlayback` is the pure example (cmds 0x61 /
 0x62 on `CdCmdEntry`).
 
 ## Dual `global = memMalloc(...)` arms share one `jal` and pin `%hi` in `$s0`
@@ -22642,7 +22642,7 @@ return sector & 0xFFFF;           /* ALSO sector==0 here */
 
 lets GCC CSE both exits into the early `return 0` block. The target instead
 branches the `req[1] != 1` path to the shared `andi v0,s0,0xffff` at the
-function epilogue (same block used after the common `Fs_ReadSector`).
+function epilogue (same block used after the common `_fsStartFileRead`).
 
 Fix: route every non-failure exit through one shared label, and keep only the
 real failure as `return 0`:
@@ -22655,7 +22655,7 @@ if (req[1] == 1) {
     }
     D5B498_8006ACC8 = 1;
     Fs_ChunkMode    = 0;
-    Fs_ReadSector(sector);   /* often joins the setup_and_load ReadSector */
+    _fsStartFileRead(sector);   /* often joins the setup_and_load ReadSector */
 }
 goto end_return;
 /* … */
@@ -132945,7 +132945,7 @@ reads a base and the size beside it as one unit is reading the pair as the game
 wrote it, not two unrelated globals.
 
 The primary heap, though, keeps its two halves in two different forms, and the
-target says so: `Mem_Init` loads the base from `gMemPrimaryHeapBase` and passes the extent
+target says so: `memInitHeaps` loads the base from `gMemPrimaryHeapBase` and passes the extent
 as an immediate (`ori $a1, $zero, 0xFF80`). So the extent is a macro beside the
 declaration rather than a variable beside the pointer, and folding the pair into
 one heap descriptor — which reads better — does not match: the extent becomes a
@@ -145390,7 +145390,7 @@ defined in order before the table, each word-aligned like the original pool.
 In a union member of an initializer, GCC 2.8 accepts a designator
 (`{ .value = 20100 }`), which initialises a `TaskDesc`'s integer metadata
 without casting it to the union's first, pointer, member.
-## `lh` then `lhu` of one `s16` global before a branch is one plain read, not `volatile` (Fade_StepIn, 2026-09-26)
+## `lh` then `lhu` of one `s16` global before a branch is one plain read, not `volatile` (_fadeBootImageToBlack, 2026-09-26)
 
 `if (g > 0x100) { ...; return 1; } g += step; return 0;` with a plain
 `s16 g` emits `lh v1,g; slti; lhu v0,g; beqz; addu v0,v0,step` - two loads of
@@ -150444,13 +150444,13 @@ attempts; left as it was.
   return; goto out; } if (ret != 2) goto out; CdFlush(); } body`** is
   `switch ((s16)poll()) { case 0: return; case 2: CdFlush(); /* fallthrough */
   case 1: body; break; }` with the default falling out of the inner switch
-  (`CdCmd_HandleFileLoad`, `CdCmd_HandleMount`, `CdCmd_HandleStreamDecode`; 33
+  (`CdCmd_HandleFileLoad`, `CdCmd_HandleMount`, `_cdCmdHandleMoviePlayback`; 33
   of 35 gotos in the three went, most of them this way). Where no path tests zero the list still needs
   `case 0:` next to `default:` for the `slti 2` node. A state whose default
   path runs the *next* state's code (`case 3` of the file load) is the inner
   switch followed by a fallthrough; a state-1 body reached from three places
   in state 0 is that body written after the switch, with `case 1: break;
-  default: return;` (`CdCmd_HandleStreamDecode`).
+  default: return;` (`_cdCmdHandleMoviePlayback`).
 - **`p = &gCdCmdQueue;` re-assigned at a label two gotos reach** is an inline
   with its own `p` (`_cdCmdFinishSceneAudio`, called at the three sites of
   `CdCmd_ProcessPhase1`).

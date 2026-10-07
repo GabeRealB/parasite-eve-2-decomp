@@ -329,7 +329,14 @@ void Boot_LoadInitialFile(struct Task* task);
 
 void Fs_StepBootImage(void);
 
-void Fs_RetryReadN(void);
+/// Reissues ReadN at the filesystem's retained absolute request sector.
+///
+/// Serialize with the current file/mount request and its retained destination.
+/// A pending drive error blocks until a closed, readable CD-ROM is available,
+/// restoring double-speed sector-header mode. For chunk-resume state 0x40,
+/// reinstalls the sync callback, timestamps the read and advances to 0x41;
+/// other operation states are retained. Completion remains asynchronous.
+void fsResumeRequestedRead(void);
 
 /// Aborts a pending seek/read after more than 180 VBlanks without progress.
 ///

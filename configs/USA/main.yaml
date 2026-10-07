@@ -108,7 +108,7 @@ segments:
       # then CEFC (+ pad for D0E8) + absolute still-asm D0E8 + DB84 tables.
       - [0x3764, .rodata, cdcmd]
       - [0x3818, o, libcd/type, .rdata]
-      - [0x3838, .rodata, stream] # Mdec_SetupBuffers (7 entries), align 8, streamPollMoviePlayback (10 entries)
+      - [0x3838, .rodata, stream] # _streamAssignMovieBuffers (7 entries), align 8, streamPollMoviePlayback (10 entries)
       - [0x3880, o, libcd/c_011, .rdata]
       - [0x38a0, .rodata, bootload] # jtbls: 21A20, 21B28, 21D8C + 2207C + abs(2226C)
       - [0x3a74, .rodata, fs] # LoadFile / ProcessChunkData jtbls + ScanIso strings + jtbl

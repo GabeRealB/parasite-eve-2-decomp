@@ -195,7 +195,7 @@ void GameFlow_StateByField34(Task* task)
             taskKill(task);
             taskResetDefaultList();
             Tmd_InitLists();
-            Mem_Init();
+            memInitHeaps();
             taskSpawn(0, 9, 0, 0);
         }
     } else {
@@ -225,7 +225,7 @@ void GameFlow_StateByField34(Task* task)
         taskKill(task);
         taskResetDefaultList();
         Tmd_InitLists();
-        Mem_Init();
+        memInitHeaps();
         taskSpawn(0, 9, 0, 0);
     }
 }
@@ -294,7 +294,7 @@ static void GameFlow_InitSystems(void)
 {
     taskResetDefaultList();
     Tmd_InitLists();
-    Mem_Init();
+    memInitHeaps();
     taskSpawn(0, 9, 0, 0);
 }
 
@@ -375,7 +375,7 @@ static void GameFlow_SpawnMainWhenReady(Task* task)
     taskKill(task);
     taskResetDefaultList();
     Tmd_InitLists();
-    Mem_Init();
+    memInitHeaps();
     taskSpawn(0, 9, 0, 0);
 }
 

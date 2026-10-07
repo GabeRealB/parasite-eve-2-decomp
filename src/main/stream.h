@@ -36,8 +36,23 @@ void mdecRequestImageDecode(u_long* bitstream);
 /// A scene decode using that workspace can also satisfy the request.
 void mdecRequestImageVlcRebuild(void);
 
-/// Initializes a stream slot and its display buffers before playback.
-u32 Stream_InitializePlayback(u32 slotIndex);
+/// Results from preparing a movie's retained playback buffers.
+enum {
+    STREAM_MOVIE_SETUP_COMPLETE          = 0,
+    STREAM_MOVIE_SETUP_INTER_UNAVAILABLE = 1,
+};
+
+/// Prepares a loaded movie's state and retained buffer layout before playback.
+///
+/// Uses the low halfword of `slotIndex` (0..14), without kind/bounds checks.
+/// Returns `STREAM_MOVIE_SETUP_COMPLETE`, or `STREAM_MOVIE_SETUP_INTER_UNAVAILABLE`
+/// when the descriptor selects INTER but that file has no loaded start sector.
+/// Failure still resets slot and playback bookkeeping.
+/// Requires reserved movie/actor workspaces with room for this descriptor's
+/// buffers, and no active decoder/STR-ring use of them. Display movies take
+/// framebuffer ownership, clear both buffers and build the VLC table. Texture
+/// movies use the current stage/area layout. Neither path seeks or starts DMA.
+u32 streamPrepareMoviePlayback(u32 slotIndex);
 
 /// Copies the available texture-movie frame into its VRAM presentation destination.
 ///

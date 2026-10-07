@@ -232,7 +232,7 @@ void func_mist_parking_801837B8(Task* task)
     queue = &gCdCmdQueue;
     switch (task->state) {
         case 0:
-            Stage_RequestMidiFromMap(0xA);
+            stageMusicRequestAreaStop(0xA);
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;

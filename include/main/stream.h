@@ -128,7 +128,15 @@ StreamSlot* streamGetSlot(u16 slotIndex);
 /// or loaded-sector check is performed; the limit can precede the STR's end.
 u16 streamGetFrameLimit(u16 slotIndex);
 
-void Stream_KickDecode(u32 arg0);
+/// Resets a movie's playback state and assigns its retained decode/display buffers.
+///
+/// The low halfword of `slotIndex` must select a loaded movie slot (0..14).
+/// Requires reserved movie/actor workspaces and serialized decoder/CD use;
+/// an earlier movie's DMA and STR ring must be stopped before reinitializing.
+/// Display movies also clear/configure both framebuffers and build the VLC table.
+/// This does not seek or start decoding. A missing INTER file is ignored here;
+/// the slot state has already been reset but buffer/display setup is incomplete.
+void streamInitMoviePlayback(u32 slotIndex);
 
 /// Polls movie startup, decoding, pause, looping and disc-recovery playback.
 ///

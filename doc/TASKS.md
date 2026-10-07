@@ -446,7 +446,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | `Title_TaskDescs[0]` | `Title_BootTask` |
 | `Title_TaskDescs[1]` | `Title_DemoStreamTask` (`displaySpawnTaskFromTable`) |
 | `D_8006269C[0]` | `Display_DispatchTaskTable` — 6-way stage load (`_stageSuspendCdAndSpawnModeTask` … `_stageResumeMovieAndFinishModeTask`) |
-| `D_80062774[0]` | `Stage_DispatchTaskTable` — bank-load spawn from gameplay |
+| `D_80062774[0]` | `_stageMusicTask` — bank-load spawn from gameplay |
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |
 | `Stage_Ctx->taskDesc` | Per-stage desc table; `_stageSpawnModeTask` spawns index 0 |
 | `D_80725C54` | External debug-address descriptor view, from `taskDebugLaunchCallback`; backing storage unproven |

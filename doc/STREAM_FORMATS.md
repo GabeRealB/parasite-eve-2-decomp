@@ -387,7 +387,7 @@ Runtime absolutization of `startSector` (table load):
 - STAGE0: `startSector += Fs_StageCdfSectors[0]` (STAGE0.CDF LBA)
 - Folder: `startSector += folder.sectorOffset + Fs_StageCdfSectors[stage]`
 
-Play init (`_streamLoadMovieSlotState` + `Stream_InitializePlayback`):
+Play init (`_streamLoadMovieSlotState` + `streamPrepareMoviePlayback`):
 
 1. `D_8006AC08 = startSector` (absolute LBA into stage CDF space)
 2. If **`data.movie.volumeTableIndex != 0`**: **overwrite**
@@ -532,14 +532,14 @@ STR → demux → MDEC → VRAM
 | Topic | Status |
 |-------|--------|
 | Disc STAGE / INTER inventory | High |
-| INTER seek = `source.interSectorOffset + INTER_LBA` (incl. 0) | High (`Stream_InitializePlayback`) |
+| INTER seek = `source.interSectorOffset + INTER_LBA` (incl. 0) | High (`streamPrepareMoviePlayback`) |
 | `data.movie.volumeTableIndex` volume selection and CDF vs INTER | High |
 | Stream id lookup (`streamFindMovieSlot`) | High |
 | Title disc flag → id 100/101 | High (`title.c` + ISO scan) |
 | Stage‑3 dual rows = per-disc packing (not dual-valid) | High (hashes + frame heads) |
 | In-game script choice of id 100 vs 101 | Medium (path clear; not all callers decompiled) |
 | `data.movie.frameLimit` ≈ frame count | High (empirical) |
-| `data.movie.displayMode` (texture / RGB24 / RGB16) | High (`Stream_InitializePlayback`) |
+| `data.movie.displayMode` (texture / RGB24 / RGB16) | High (`streamPrepareMoviePlayback`) |
 | `key.parts.group` movie room selector | High |
 | `data.movie.vramX`, `vramY`, `loopMode`, `uploadMode` | High (upload and playback consumers) |
 | `data.movie.unknown_20` | Role unproven |

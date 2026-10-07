@@ -423,7 +423,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC:
-                Stage_RequestMidiFromMap((s16)work->command->operand0.value);
+                stageMusicRequestAreaStop((s16)work->command->operand0.value);
                 break;
 
             case EVENT_SCRIPT_OPCODE_REQUEST_SCENE_MUSIC:

@@ -305,7 +305,7 @@ static inline void _fsStartPayloadRead(s32 startSector, s32 endSector, void* des
 
 static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult);
 
-static void Fs_ReadSector(s32 sector);
+static void _fsStartFileRead(s32 absoluteSector);
 
 static void _fsSeekToSector(s32 absoluteSector);
 
@@ -489,7 +489,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                     }
                     D5B498_8006ACC8 = 1;
                     Fs_ChunkMode    = 0;
-                    Fs_ReadSector(sector);
+                    _fsStartFileRead(sector);
                 }
                 return sector & 0xFFFF;
 
@@ -555,7 +555,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                 Fs_ChunkMode = 0;
                 break;
         }
-        Fs_ReadSector(sector);
+        _fsStartFileRead(sector);
     }
     return sector & 0xFFFF;
 }
@@ -1837,37 +1837,45 @@ void cdSyncWaitForCommandCompletion(void)
     } while (commandComplete == 0);
 }
 
-void Fs_RetryReadN(void)
+/// Waits for a readable CD-ROM and restores header-bearing double-speed reads.
+///
+/// Runs only after a detected read error; no tray opening or timeout is required.
+static inline void _fsRecoverRequestedRead(void)
 {
-    CdlLOC loc[2];
-    u8     ctrlParam[8];
-    u8     ctrlResult[8];
-    u8*    ctrlParamPtr;
+    enum { FILE_SYSTEM_READ_MODE_SETTLE_VBLANKS = 3 };
+    u8 modeParameters[8];
+    u8 commandResult[8];
+
+    // Wait for the command to finish and reset the operation mode.
+    CdSync(0, NULL);
+    modeParameters[0] = 0;
+    CdControlB(CdlSetmode, modeParameters, NULL);
+    VSync(FILE_SYSTEM_READ_MODE_SETTLE_VBLANKS);
+
+    // Wait until the CD shell is closed with a valid disk.
+    do {
+        do {
+            CdControlB(CdlNop, NULL, commandResult);
+        } while ((commandResult[0] & CdlStatShellOpen) != 0);
+    } while (CdDiskReady(0) != CdlComplete || CdGetDiskType() != CdlCdromFormat);
+
+    // Enable double speed and sector header.
+    modeParameters[0] = CdlModeSpeed | CdlModeSize1;
+    CdControlB(CdlSetmode, modeParameters, NULL);
+    VSync(FILE_SYSTEM_READ_MODE_SETTLE_VBLANKS);
+}
+
+void fsResumeRequestedRead(void)
+{
+    CdlLOC readLocation;
 
     if (CdSync(1, NULL) == CdlDiskError) {
-        // Wait for the command to finish and reset the operation mode.
-        CdSync(0, NULL);
-        ctrlParam[0] = 0;
-        ctrlParamPtr = ctrlParam;
-        CdControlB(CdlSetmode, ctrlParamPtr, NULL);
-        VSync(3);
-
-        // Wait until the CD shell is closed with a valid disk.
-        do {
-            do {
-                CdControlB(CdlNop, NULL, ctrlResult);
-            } while ((ctrlResult[0] & CdlStatShellOpen) != 0);
-        } while (CdDiskReady(0) != CdlComplete || CdGetDiskType() != CdlCdromFormat);
-
-        // Enable double speed and sector header.
-        ctrlParamPtr[0] = CdlModeSpeed | CdlModeSize1;
-        CdControlB(CdlSetmode, ctrlParam, NULL);
-        VSync(3);
+        _fsRecoverRequestedRead();
     }
 
-    CdIntToPos(Fs_ReqSector, loc);
-    CdControlF(CdlReadN, &loc[0].minute);
-    if (Fs_CdOpStatus == 0x40) {
+    CdIntToPos(Fs_ReqSector, &readLocation);
+    CdControlF(CdlReadN, &readLocation.minute);
+    if (Fs_CdOpStatus == FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK) {
         CdSyncCallback(_fsReadNSyncCallback);
         Fs_VBlank      = VSync(-1);
         Fs_CdOpStatus += 1;
@@ -1937,27 +1945,34 @@ void fsStartPayloadRead(s32 startSector, s32 endSector, void* destination, u8 pa
     _fsStartPayloadRead(startSector, endSector, destination, payloadPhase);
 }
 
-static void Fs_ReadSector(s32 sector)
+/// Starts asynchronous CDF/sound-bank consumption at an absolute CD sector.
+///
+/// The caller has selected the load policy, reader and retained destination.
+/// Resets request progress and timestamps the read. A pending disk error blocks
+/// for a readable disc. A matching cached seek omits the location and installs
+/// the ready callback directly; otherwise the sync callback arms consumption.
+/// All reader buffers must remain live until the operation finishes or restarts.
+static void _fsStartFileRead(s32 absoluteSector)
 {
-    CdlLOC loc[2];
+    CdlLOC readLocation;
 
     if (CdSync(1, NULL) == CdlDiskError) {
         cdSyncWaitForReadableDisc(true);
     }
 
-    Fs_CdOpStatus   = 0;
-    Fs_ChunkEndFlag = -1;
-    Fs_ReqSector    = sector;
+    Fs_CdOpStatus   = FILE_SYSTEM_CD_OPERATION_PENDING;
+    Fs_ChunkEndFlag = FILE_SYSTEM_CHUNK_LAST;
+    Fs_ReqSector    = absoluteSector;
     Fs_VBlank       = VSync(-1);
-    if (Fs_SeekSector == sector) {
+    if (Fs_SeekSector == absoluteSector) {
         Fs_SeekSector = 0;
         Fs_Streaming  = false;
         CdControlF(CdlReadN, NULL);
         CdReadyCallback(_fsChunkReadyCallback);
     } else {
         Fs_SeekSector = 0;
-        CdIntToPos(sector, loc);
-        CdControlF(CdlReadN, &loc[0].minute);
+        CdIntToPos(absoluteSector, &readLocation);
+        CdControlF(CdlReadN, &readLocation.minute);
         CdSyncCallback(_fsReadNSyncCallback);
     }
 }

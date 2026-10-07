@@ -39,7 +39,7 @@ static u16 CdCmd_EntryIter;
 
 static s32* CdCmd_MapHeapSizes[];
 
-static void CdCmd_HandleStreamDecode(void);
+static void _cdCmdHandleMoviePlayback(void);
 
 static void CdCmd_HandleFileLoad(void);
 
@@ -170,36 +170,66 @@ void* cdCmdReservePlaybackBuffers(void)
     return D_8006AC00;
 }
 
-static void CdCmd_HandleStreamDecode(void)
+/// Resets movie-request progress and retires the occupied head slot.
+///
+/// The caller releases busy ownership first; the queue remains borrowed.
+static inline void _cdCmdRetireMovieRequest(CdCmdQueue* completionQueue)
 {
-    CdCmdQueue* state;
-    CdCmdQueue* p;
+    enum { CD_COMMAND_MOVIE_HANDLER_BEGIN = 0 };
+    completionQueue->step               = CD_COMMAND_MOVIE_HANDLER_BEGIN;
+    completionQueue->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
+    completionQueue->pausePlayClock     = 0;
+    completionQueue->cdOperationPending = 0;
+    if (completionQueue->readIdx != completionQueue->writeIdx) {
+        completionQueue->entries[completionQueue->readIdx].cmd = CD_COMMAND_EMPTY;
+        completionQueue->readIdx                               = completionQueue->readIdx + 1;
+        completionQueue->readIdx                               = completionQueue->readIdx % ARRAY_SIZE(completionQueue->entries);
+    }
+}
+
+/// Advances the head play/continue movie request through setup and playback.
+///
+/// Requires a valid movie slot (0..14), reserved workspaces and serialized CD
+/// access. Fresh requests reset the two decoder buffer selectors; continue
+/// requests retain them and become play requests. Setup failure publishes the
+/// ready/frame-change latches and retires the head, then still polls playback.
+/// Completion releases CD-busy ownership and handler progress without freeing
+/// retained movie storage. Calls during cancellation keep playback progressing.
+static void _cdCmdHandleMoviePlayback(void)
+{
+    enum {
+        CD_COMMAND_MOVIE_HANDLER_BEGIN     = 0,
+        CD_COMMAND_MOVIE_HANDLER_PLAY      = 1,
+        CD_COMMAND_MOVIE_SECTORS_PER_FRAME = 10,
+    };
+    CdCmdQueue* queue;
+    CdCmdQueue* completionQueue;
     CdCmdEntry* entry;
     s32         slotIndex;
-    s32         cmd;
-    s32         busy;
+    s32         command;
+    s32         wasBusy;
 
     // Keep the unsigned slot-byte load separate from its signed interpretation.
-    state     = &gCdCmdQueue;
-    slotIndex = *(volatile u8*)&state->entries[state->readIdx].args.bytes[0];
-    cmd       = state->entries[state->readIdx].cmd;
+    queue     = &gCdCmdQueue;
+    slotIndex = *(volatile u8*)&queue->entries[queue->readIdx].args.stream.slotIndex;
+    command   = queue->entries[queue->readIdx].cmd;
     slotIndex = (s8)slotIndex;
-    if (cmd == CD_COMMAND_EMPTY) {
+    if (command == CD_COMMAND_EMPTY) {
         return;
     }
-    if (cmd < 0) {
+    if (command < 0) {
         return;
     }
-    if (cmd >= CD_COMMAND_CONTINUE_STREAM + 1) {
+    if (command >= CD_COMMAND_CONTINUE_STREAM + 1) {
         return;
     }
-    if (cmd < CD_COMMAND_PLAY_STREAM) {
+    if (command < CD_COMMAND_PLAY_STREAM) {
         return;
     }
-    switch (state->step) {
-        case 0:
-            if (state->busy == 0) {
-                state->busy          = 1;
+    switch (queue->step) {
+        case CD_COMMAND_MOVIE_HANDLER_BEGIN:
+            if (queue->busy == 0) {
+                queue->busy          = 1;
                 gDisplayState.cdBusy = DISPLAY_CD_BUSY;
             }
             switch (cdSyncPollCommand(0, 0)) {
@@ -209,59 +239,44 @@ static void CdCmd_HandleStreamDecode(void)
                     CdFlush();
                     /* fallthrough */
                 case CD_SYNC_COMPLETE:
-                    entry = &state->entries[state->readIdx];
+                    entry = &queue->entries[queue->readIdx];
                     if (entry->cmd == CD_COMMAND_PLAY_STREAM) {
                         D_8005EAEC = 0;
                         D_8005EAEE = 0;
                     } else if (entry->cmd == CD_COMMAND_CONTINUE_STREAM) {
                         entry->cmd = CD_COMMAND_PLAY_STREAM;
                     }
-                    if ((s16)Stream_InitializePlayback(slotIndex & 0xFFFF) != 0) {
-                        p                        = &gCdCmdQueue;
-                        busy                     = p->busy;
-                        state->movieReady        = 1;
-                        state->movieFrameChanged = 1;
-                        if (busy != 0) {
-                            p->busy              = 0;
-                            gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+                    if ((s16)streamPrepareMoviePlayback(slotIndex & 0xFFFF) != 0) {
+                        completionQueue          = &gCdCmdQueue;
+                        wasBusy                  = completionQueue->busy;
+                        queue->movieReady        = 1;
+                        queue->movieFrameChanged = 1;
+                        if (wasBusy != 0) {
+                            completionQueue->busy = 0;
+                            gDisplayState.cdBusy  = DISPLAY_CD_IDLE;
                         }
-                        p->step               = 0;
-                        p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-                        p->pausePlayClock     = 0;
-                        p->cdOperationPending = 0;
-                        if (p->readIdx != p->writeIdx) {
-                            p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
-                            p->readIdx                 = p->readIdx + 1;
-                            p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
-                        }
+                        _cdCmdRetireMovieRequest(completionQueue);
                         break;
                     }
-                    state->continueMovie = 1;
-                    streamPollMoviePlayback(0, ((u16)state->movieFrame - 1) * 0xA);
-                    state->step = state->step + 1;
+                    queue->continueMovie = 1;
+                    streamPollMoviePlayback(0, ((u16)queue->movieFrame - 1) * CD_COMMAND_MOVIE_SECTORS_PER_FRAME);
+                    queue->step = queue->step + 1;
                     break;
             }
             break;
-        case 1:
+        case CD_COMMAND_MOVIE_HANDLER_PLAY:
             break;
         default:
             return;
     }
-    if ((s16)streamPollMoviePlayback(0, ((u16)state->movieFrame - 1) * 0xA) != 0) {
-        p = &gCdCmdQueue;
-        if (p->busy != 0) {
-            p->busy              = 0;
-            gDisplayState.cdBusy = DISPLAY_CD_IDLE;
+    // Resume from the one-based published frame, at ten sectors per frame.
+    if ((s16)streamPollMoviePlayback(0, ((u16)queue->movieFrame - 1) * CD_COMMAND_MOVIE_SECTORS_PER_FRAME) != 0) {
+        completionQueue = &gCdCmdQueue;
+        if (completionQueue->busy != 0) {
+            completionQueue->busy = 0;
+            gDisplayState.cdBusy  = DISPLAY_CD_IDLE;
         }
-        p->step               = 0;
-        p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-        p->pausePlayClock     = 0;
-        p->cdOperationPending = 0;
-        if (p->readIdx != p->writeIdx) {
-            p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
-            p->readIdx                 = p->readIdx + 1;
-            p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
-        }
+        _cdCmdRetireMovieRequest(completionQueue);
     }
 }
 
@@ -356,7 +371,7 @@ static void CdCmd_HandleFileLoad(void)
                             CdFlush();
                             /* fallthrough */
                         case CD_SYNC_COMPLETE:
-                            Fs_RetryReadN();
+                            fsResumeRequestedRead();
                             break;
                     }
                     break;
@@ -438,11 +453,11 @@ static void CdCmd_HandleFileLoad(void)
                         case CD_SYNC_PENDING:
                             return;
                         case CD_SYNC_COMPLETE:
-                            Fs_RetryReadN();
+                            fsResumeRequestedRead();
                             break;
                         case CD_SYNC_RETRY:
                             CdFlush();
-                            Fs_RetryReadN();
+                            fsResumeRequestedRead();
                             break;
                     }
                     break;
@@ -526,7 +541,7 @@ static void CdCmd_HandleMount(void)
                                     CdFlush();
                                     /* fallthrough */
                                 case CD_SYNC_COMPLETE:
-                                    Fs_RetryReadN();
+                                    fsResumeRequestedRead();
                                     return;
                                 case CD_SYNC_PENDING:
                                 default:
@@ -687,7 +702,7 @@ static void CdCmd_ProcessPhase1(void)
                     func_acropolis_plaza_8017D6D4();
                     return;
                 }
-                CdCmd_HandleStreamDecode();
+                _cdCmdHandleMoviePlayback();
                 return;
             }
             statePtr = &p->cancelStep;
@@ -705,7 +720,7 @@ static void CdCmd_ProcessPhase1(void)
                     if (cdVolStepFadeOut() == 0) {
                         *statePtr = *statePtr + 1;
                     }
-                    CdCmd_HandleStreamDecode();
+                    _cdCmdHandleMoviePlayback();
                     ret = 0;
                     break;
                 case CD_COMMAND_CANCEL_FINISH:
@@ -713,7 +728,7 @@ static void CdCmd_ProcessPhase1(void)
                     if (streamPollMovieStop(1)) {
                         ret = 1;
                     } else {
-                        CdCmd_HandleStreamDecode();
+                        _cdCmdHandleMoviePlayback();
                         ret = 0;
                     }
                     break;
@@ -830,7 +845,7 @@ static void CdCmd_ProcessPhase2(void)
                 if ((p->activeRequest.entry.cmd >> 4) == 7) {
                     func_acropolis_plaza_8017D6D4();
                 } else {
-                    CdCmd_HandleStreamDecode();
+                    _cdCmdHandleMoviePlayback();
                 }
                 break;
             }
@@ -849,7 +864,7 @@ static void CdCmd_ProcessPhase2(void)
                     if (cdVolStepFadeOut() == 0) {
                         *statePtr = *statePtr + 1;
                     }
-                    CdCmd_HandleStreamDecode();
+                    _cdCmdHandleMoviePlayback();
                     ret = 0;
                     break;
                 case 2:
@@ -857,7 +872,7 @@ static void CdCmd_ProcessPhase2(void)
                     if (streamPollMovieStop(1)) {
                         ret = 1;
                     } else {
-                        CdCmd_HandleStreamDecode();
+                        _cdCmdHandleMoviePlayback();
                         ret = 0;
                     }
                     break;
@@ -1388,7 +1403,7 @@ void CdCmd_Dispatch(void)
                         CdCmd_HandleFileLoad();
                         break;
                     case 6:
-                        CdCmd_HandleStreamDecode();
+                        _cdCmdHandleMoviePlayback();
                         break;
                     case 7:
                         func_acropolis_plaza_8017D6D4();

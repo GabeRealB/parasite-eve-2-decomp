@@ -192,7 +192,7 @@ void* memCalloc(size_t sizeBytes, bool auxHeap)
 ///
 /// `auxHeap == true` selects `gMemActiveAuxHeap`; every other value selects
 /// `gMemPrimaryHeapBase`. The selected base must remain a member of its heap3
-/// free-block ring, initialized by `Mem_Init` or, for the auxiliary heap,
+/// free-block ring, initialized by `memInitHeaps` or, for the auxiliary heap,
 /// `memInitAuxHeap`.
 ///
 /// Selection resets `_freep`, the allocator's search cursor, to that base and
@@ -242,7 +242,7 @@ void memInitAuxHeap(void)
     InitHeap3(gMemActiveAuxHeap, GActiveAuxHeapSize);
 }
 
-void Mem_Init()
+void memInitHeaps(void)
 {
     InitHeap3(gMemActiveAuxHeap, GActiveAuxHeapSize);
     InitHeap3(gMemPrimaryHeapBase, G_HEAP_SIZE);

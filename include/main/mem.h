@@ -15,7 +15,7 @@ extern size_t Gpu_PrimHeapSize;
 /// Image-memory configuration normally selects storage after the GPU primitive
 /// reservation; `memSelectAuxHeapRegion` can select the whole image-memory region.
 /// This storage is separate from the fixed primary heap. Selecting a region
-/// only updates the base/size pair; `Mem_Init` or `memInitAuxHeap` initializes a
+/// only updates the base/size pair; `memInitHeaps` or `memInitAuxHeap` initializes a
 /// nonempty region before heap operations.
 ///
 /// Stage image decoding writes expanded DCT data directly at this base for
@@ -36,8 +36,15 @@ extern size_t GActiveAuxHeapSize;
 /// remain with the caller. All bits of `value` above bit seven are ignored.
 void memFillBytes(void* destination, u32 value, size_t sizeBytes);
 
-/// Initializes the primary and the auxiliary heap.
-void Mem_Init(void);
+/// Resets the selected auxiliary heap3 region and the fixed primary heap.
+///
+/// Uses each configured base and byte extent, including heap3 metadata; the
+/// primary extent is 0xFF80 bytes. Nonempty regions require word-aligned writable
+/// storage of at least eight bytes. Existing allocations become invalid, so
+/// their users and any image decoding in the auxiliary region must have ended.
+/// A null base or zero extent leaves that region untouched. The primary reset
+/// runs last and selects its free-block ring for subsequent heap3 operations.
+void memInitHeaps(void);
 
 /// Initializes or resets the currently selected auxiliary heap3 region.
 ///
@@ -155,7 +162,7 @@ void memSelectAuxHeapRegion(bool configuredAuxHeap);
 /// Clears the primitive reservation's last ten bytes and records their address.
 ///
 /// Previous allocations and GPU/image operations in repurposed storage must
-/// have ended. This only configures the regions: call `Mem_Init` or `memInitAuxHeap`
+/// have ended. This only configures the regions: call `memInitHeaps` or `memInitAuxHeap`
 /// before using a nonempty auxiliary heap, and reset the primitive cursor before
 /// drawing. The fixed primary heap is independent of this layout.
 void memConfigureImageMemory(s32 stageId, s32 areaId);

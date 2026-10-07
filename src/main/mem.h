@@ -28,7 +28,7 @@ enum {
 /// Base of the fixed primary heap used by the resident allocation wrappers.
 ///
 /// The writable RAM region [0x80083800, 0x80093780) contains 0xFF80 bytes,
-/// including PsyQ heap3 bookkeeping. `Mem_Init` initializes it before use.
+/// including PsyQ heap3 bookkeeping. `memInitHeaps` initializes it before use.
 /// Allocations with `auxHeap == false` and releases through `memFree` use this
 /// heap. Its base stays fixed for the program's lifetime while the allocator's
 /// free-list cursor moves within it; the storage belongs to the allocator.

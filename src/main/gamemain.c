@@ -144,7 +144,7 @@ static void GameMain_Init(void)
     GameResetScratchHead();
     D_8005EC64++;
     memConfigureImageMemory(GAME_STAGE_NONE, 0);
-    Mem_Init();
+    memInitHeaps();
     taskResetDefaultList();
     Tmd_InitLists();
     Gfx_InitGraph();

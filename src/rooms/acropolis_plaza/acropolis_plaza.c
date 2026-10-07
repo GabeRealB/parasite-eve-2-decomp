@@ -2254,7 +2254,7 @@ void func_acropolis_plaza_8017D6D4(void)
                                         D_8005EAEE                 = 0;
                                         q->entries[q->readIdx].cmd = CD_COMMAND_PLAY_STREAM_AT_OFFSET;
                                     }
-                                    Stream_KickDecode(slot & 0xFFFF);
+                                    streamInitMoviePlayback(slot & 0xFFFF);
                                     if (q->entries[q->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
                                         streamPollMoviePlayback(0, sectorOffset);
                                     } else if (q->entries[q->readIdx].cmd == CD_COMMAND_RESUME_STREAM_AT_POSITION) {
@@ -3236,11 +3236,11 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             return;
         case 13:
             if (padIsStartPressed() != 0) {
-                Stage_RequestMidiFromMap(0xA);
+                stageMusicRequestAreaStop(0xA);
                 cdCmdRequestCancel();
                 task->state = 0xF;
             } else if (gGameSession->eventState == 0) {
-                Stage_RequestMidiFromMap(0x1E0);
+                stageMusicRequestAreaStop(0x1E0);
                 q->sceneFrame       = 1;
                 q->movieFrame       = 1;
                 q->plazaStreamSubId = 3;

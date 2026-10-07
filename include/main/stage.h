@@ -101,7 +101,16 @@ s32 stageRequestFrameCapture(void);
 /// queue admission or actual playback.
 void stageMusicRequestAreaStart(s32 fadeInTicks);
 
-void Stage_RequestMidiFromMap(s32 arg0);
+/// Queues a stop for the current area's scene-selected song when it is busy.
+///
+/// Stage must be 1..5, with its map table loaded and the area/cached scene column
+/// selecting a valid entry. A no-sequence entry does nothing; sequence zero
+/// selects all loaded songs. The request adds one to `fadeOutTicks`, truncates
+/// to 16 bits, then the sound queue rounds down to a multiple of four audio
+/// updates (including PAL timer updates). Callers
+/// must avoid signed overflow in the increment. Does not wait for admission or
+/// actual stopping and leaves the recorded song unchanged.
+void stageMusicRequestAreaStop(s32 fadeOutTicks);
 
 /// Classification of the stage fade overlay's current level.
 enum {

@@ -376,7 +376,7 @@ DsDataCallback              = 0x8001BB58;
 //--- PA: 0x0C37C   VA: 0x8001BB7C   subsegment: c, cdcmd
 //--------------------------------------------------------------------
 cdCmdReservePlaybackBuffers               = 0x8001BB7C; // type:func
-CdCmd_HandleStreamDecode               = 0x8001BE60; // type:func
+_cdCmdHandleMoviePlayback               = 0x8001BE60; // type:func
 CdCmd_HandleFileLoad               = 0x8001C0D4; // type:func
 CdCmd_HandleMount               = 0x8001C620; // type:func
 cdCmdRequestCancel               = 0x8001C970; // type:func
@@ -451,12 +451,12 @@ strncmp                     = 0x8001EAC4;
 //--------------------------------------------------------------------
 //--- PA: 0x0F344   VA: 0x8001EB44   subsegment: c, F344
 //--------------------------------------------------------------------
-Mdec_SetupBuffers               = 0x8001EB44; // type:func
+_streamAssignMovieBuffers               = 0x8001EB44; // type:func
 _streamLoadMovieSlotState               = 0x8001ED20; // type:func
 streamFindMovieSlot               = 0x8001EDC8; // type:func
 streamFindViewMovieSlot               = 0x8001EED8; // type:func
 streamPollGameRestore               = 0x8001EF9C; // type:func
-Stream_InitializePlayback               = 0x8001F180; // type:func
+streamPrepareMoviePlayback               = 0x8001F180; // type:func
 streamPollMovieStop               = 0x8001F2FC; // type:func
 _streamCompleteDecodedFrame               = 0x8001F430; // type:func
 _mdecMovieOutputCallback               = 0x8001F6B8; // type:func
@@ -469,7 +469,7 @@ streamPrepareMovieWorkspace               = 0x80020298; // type:func
 streamResetGameRestore               = 0x80020388; // type:func
 streamHasLoadedViewMovie               = 0x80020394; // type:func
 streamGetFrameLimit               = 0x80020414; // type:func
-Stream_KickDecode               = 0x8002043C; // type:func
+streamInitMoviePlayback               = 0x8002043C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x10C5C   VA: 0x8002045C   subsegment: o, libcd/cdread2
@@ -521,9 +521,9 @@ DecDCTBufSize               = 0x8002168C;
 //--------------------------------------------------------------------
 //--- PA: 0x11E9C   VA: 0x8002169C   subsegment: c, 11E9C
 //--------------------------------------------------------------------
-Fade_StepIn               = 0x8002169C; // type:func
-Fade_StartWhite               = 0x80021808; // type:func
-Fade_StepOut               = 0x8002191C; // type:func
+_fadeBootImageToBlack               = 0x8002169C; // type:func
+_fadeBeginBootImageReveal               = 0x80021808; // type:func
+_fadeBootImageFromBlack               = 0x8002191C; // type:func
 Fs_SelectLoadHandlers0               = 0x80021A20; // type:func
 Fs_SelectLoadHandlers1               = 0x80021B28; // type:func
 Fs_SelectLoadHandlers2               = 0x80021C0C; // type:func
@@ -551,10 +551,10 @@ fsUploadImageChunk               = 0x800246B0; // type:func
 fsBeginImageColumns               = 0x800248B4; // type:func
 fsUploadImageStrips               = 0x80024A28; // type:func
 cdSyncWaitForCommandCompletion           = 0x80024DB8; // type:func
-Fs_RetryReadN             = 0x80024EC0; // type:func
+fsResumeRequestedRead             = 0x80024EC0; // type:func
 cdSyncWaitForDiscSwap             = 0x80024FEC; // type:func
 fsStartPayloadRead             = 0x80025170; // type:func
-Fs_ReadSector               = 0x8002526C; // type:func
+_fsStartFileRead               = 0x8002526C; // type:func
 cdSyncWaitForReadableDisc            = 0x80025338; // type:func
 _fsSeekToSector                = 0x80025408; // type:func
 fsInitFolderTable          = 0x8002548C; // type:func
@@ -819,7 +819,7 @@ memMalloc                  = 0x8002DABC; // type:func
 memFree                    = 0x8002DB20; // type:func
 memFreeFromHeap             = 0x8002DB4C; // type:func
 memInitAuxHeap                 = 0x8002DB90; // type:func
-Mem_Init                    = 0x8002DBC0; // type:func
+memInitHeaps                    = 0x8002DBC0; // type:func
 _memNoop                  = 0x8002DC00; // type:func
 memSelectAuxHeapRegion        = 0x8002DC08; // type:func
 
@@ -1495,12 +1495,12 @@ _stageMusicSelectEntry               = 0x80042B00; // type:func
 _stageMusicLoadSequence               = 0x80042DF8; // type:func
 _stageMusicStartWhenCdIdle               = 0x80042F54; // type:func
 stageMusicRequestAreaStart               = 0x80043028; // type:func
-Stage_RequestMidiFromMap               = 0x800430E4; // type:func
-Stage_DispatchTaskTable               = 0x80043198; // type:func
+stageMusicRequestAreaStop               = 0x800430E4; // type:func
+_stageMusicTask               = 0x80043198; // type:func
 _stageMusicFinishWhenCdIdle               = 0x800431FC; // type:func
 Stage_RequestSpecialFlag               = 0x8004323C; // type:func
 TextStream_Draw               = 0x80043310; // type:func
-Prim_DrawSprt               = 0x800435F8; // type:func
+_primDrawCaptionSprite               = 0x800435F8; // type:func
 _primDrawTexturePage               = 0x80043718; // type:func
 Prim_DrawFadeTile               = 0x8004379C; // type:func
 Prim_DrawTile               = 0x80043854; // type:func
@@ -1891,7 +1891,7 @@ audioTickInsert               = 0x8004D460; // type:func
 _sndHeapReset            = 0x8004D5A8; // type:func
 sndHeapAlloc               = 0x8004D5D8; // type:func
 sndHeapFree                 = 0x8004D6C8; // type:func
-Spu_TimerCallback               = 0x8004D7D4; // type:func
+_spuTimerCallback               = 0x8004D7D4; // type:func
 _spuRunTimerAudioUpdate               = 0x8004D820; // type:func
 _audioTickReset             = 0x8004D88C; // type:func
 _audioTickProcess               = 0x8004D8BC; // type:func

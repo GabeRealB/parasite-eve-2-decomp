@@ -220,7 +220,7 @@ void Gp_BeginSessionTask(Task* arg0)
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
     one = 1;
-    Mem_Init();
+    memInitHeaps();
     cdCmdRequestCancel();
     gGameSession->location           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     gGameSession->spriteVariant      = ds->spriteVariant;

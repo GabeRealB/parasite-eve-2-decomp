@@ -3003,7 +3003,7 @@ void Gp_RestartSessionTask(Task* arg0)
     taskResetDefaultList();
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
-    Mem_Init();
+    memInitHeaps();
     cdCmdRequestCancel();
     session                          = gGameSession;
     queue->suppressMoviePresentation = 1;
@@ -3024,7 +3024,7 @@ void Gp_RestartSessionTask(Task* arg0)
         Gpu_PrimHeapBase   = (u8*)Fs_ImgBuffers - 0x35800;
         gMemActiveAuxHeap  = (u8*)Fs_ImgBuffers - 0xA800;
     }
-    Mem_Init();
+    memInitHeaps();
     memInitAuxHeap();
     if (gGameSession->restartMode != flag) {
         cdCmdReservePlaybackBuffers();

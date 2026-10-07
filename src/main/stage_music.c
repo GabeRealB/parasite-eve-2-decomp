@@ -103,7 +103,7 @@ static void _stageMusicLoadSequence(Task* task);
 
 static void _stageMusicStartWhenCdIdle(Task* task);
 
-static void Stage_DispatchTaskTable(Task* task);
+static void _stageMusicTask(Task* task);
 
 static void _stageMusicFinishWhenCdIdle(Task* task);
 
@@ -133,7 +133,7 @@ static StageMusicEntry* Stage_CountdownMusicTables[] = {
 };
 static u8 Stage_MusicRowLengths[]  = { 8, 7, 0xB, 0xC, 0xA };
 static u8 Stage_SceneEventLimits[] = { 9, 8, 0xC, 9, 0x14 };
-TaskDesc  Stage_MusicTaskDesc      = { { { TASK_BODY_NONE, 0xC0 } }, Stage_DispatchTaskTable };
+TaskDesc  Stage_MusicTaskDesc      = { { { TASK_BODY_NONE, 0xC0 } }, _stageMusicTask };
 TaskDesc  D_80062780[]             = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -154,7 +154,9 @@ static const TaskFuncTable4 Stage_TaskStates = { {
 
 /// Selects the scene's countdown entry and starts its 300-task-frame load deadline.
 ///
-/// Borrows the current stage's loaded map table; the scene entry index must fit it.
+/// Borrows the current stage's loaded map table; stage must be 1..5 and the
+/// scene entry index must fit it. Writes both selection members, arms the
+/// countdown and replaces its remaining task-frame count without allocation.
 static inline void _stageMusicChooseCountdownEntry(_StageMusicSelection* selection)
 {
     s32              countdownStageId;
@@ -244,11 +246,14 @@ static void _stageMusicSelectEntry(Task* task)
     taskKill(task);
 }
 
-/// Queues the selected sequence file from the global CDF with its sprite-variant ID suffix.
+/// Queues the selected sequence file from the global CDF with its display-resource variant suffix.
 ///
-/// Requires a free request-ring slot. Both byte blocks are copied synchronously;
-/// each block has four bytes, with byte 1 of the file key ignored.
-static inline void _stageMusicEnqueueSequenceLoad(_StageMusicSelection* selection)
+/// Requires a free request-ring slot. The used key bytes and all four argument
+/// bytes are copied synchronously; byte 1 of the four-byte file key is ignored.
+/// The selection and its still-loaded map table are read-only and must identify a sequence.
+/// Uses stage zero/group four; the resource variant supplies the ID-hundreds byte.
+/// Does not check ring capacity; the caller advances immediately after enqueueing.
+static inline void _stageMusicEnqueueSequenceLoad(const _StageMusicSelection* selection)
 {
     u8 fileKey[4];
     u8 loadArgs[4];
@@ -369,32 +374,36 @@ void stageMusicRequestAreaStart(s32 fadeInTicks)
     }
 }
 
-void Stage_RequestMidiFromMap(s32 arg0)
+void stageMusicRequestAreaStop(s32 fadeOutTicks)
 {
-    GameSession*     g;
-    s32              idx;
-    s32              product;
-    StageMusicEntry* entry;
-    s32              temp;
+    GameSession*     session;
+    s32              stageIndex;
+    s32              areaRowOffset;
+    StageMusicEntry* areaTable;
+    s32              entryIndex;
 
-    g       = gGameSession;
-    idx     = g->location.loc.stage - 1;
-    product = g->location.loc.area * Stage_MusicRowLengths[idx];
-    temp    = (gStageMusicRow + product) & 0xFFFF;
-    entry   = Stage_MusicTables[idx];
-    if (entry[temp].sequenceId != STAGE_MUSIC_NO_SEQUENCE) {
-        if (midiIsSequenceBusy(entry[temp].sequenceId) != 0) {
-            sndEvtRequestMidiStop(entry[temp].sequenceId, (arg0 + 1) & 0xFFFF);
+    session       = gGameSession;
+    stageIndex    = session->location.loc.stage - 1;
+    areaRowOffset = session->location.loc.area * Stage_MusicRowLengths[stageIndex];
+    entryIndex    = (gStageMusicRow + areaRowOffset) & 0xFFFF;
+    areaTable     = Stage_MusicTables[stageIndex];
+    if (areaTable[entryIndex].sequenceId != STAGE_MUSIC_NO_SEQUENCE) {
+        if (midiIsSequenceBusy(areaTable[entryIndex].sequenceId) != 0) {
+            sndEvtRequestMidiStop(areaTable[entryIndex].sequenceId, (fadeOutTicks + 1) & 0xFFFF);
         }
     }
 }
 
-static void Stage_DispatchTaskTable(Task* task)
+/// Dispatches one of the music loader's four states for a live music task.
+///
+/// `task->state` must be 0..3. State zero allocates the owned selection block;
+/// subsequent states require it and its borrowed map table to remain valid.
+static void _stageMusicTask(Task* task)
 {
-    TaskFuncTable4 handlers;
+    TaskFuncTable4 musicStates;
 
-    handlers = Stage_TaskStates;
-    handlers.funcs[task->state](task);
+    musicStates = Stage_TaskStates;
+    musicStates.funcs[task->state](task);
 }
 
 /// Finishes a music task once the resident CD request queue is idle.
