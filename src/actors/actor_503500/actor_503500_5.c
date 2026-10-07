@@ -1315,18 +1315,9 @@ static void func_actor_503500_801450A0(Task* arg0)
             if (arg0->spawnArg1.value != 0) {
                 step = ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATION;
             }
-            {
-                GfxRotationWords* m;
-
-                m                           = (GfxRotationWords*)&work->sweepRotation;
-                m->m00M01                   = ONE;
-                work->sweepAngularVelocity += step;
-                work->sweepAngle.word      += work->sweepAngularVelocity;
-                m->m02M10                   = 0;
-                m->m11M12                   = ONE;
-                m->m20M21                   = 0;
-                m->m22                      = ONE;
-            }
+            work->sweepAngularVelocity += step;
+            work->sweepAngle.word      += work->sweepAngularVelocity;
+            gfxSetRotIdentity(&work->sweepRotation);
             RotMatrixY(work->sweepAngle.halves.integer, &work->sweepRotation);
             ang = work->sweepAngle.halves.integer;
             if (ang < 0) {
@@ -1351,17 +1342,8 @@ static void func_actor_503500_801450A0(Task* arg0)
                     work->phase++;
                 }
             }
-            {
-                GfxRotationWords* m;
-
-                m                      = (GfxRotationWords*)&work->sweepRotation;
-                m->m00M01              = ONE;
-                work->sweepAngle.word += work->sweepAngularVelocity;
-                m->m02M10              = 0;
-                m->m11M12              = ONE;
-                m->m20M21              = 0;
-                m->m22                 = ONE;
-            }
+            work->sweepAngle.word += work->sweepAngularVelocity;
+            gfxSetRotIdentity(&work->sweepRotation);
             RotMatrixY(work->sweepAngle.halves.integer, &work->sweepRotation);
             break;
         case ACTOR_503500_PINK_FLASH_ATTACK_FADE:
