@@ -1032,7 +1032,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
             obj->flags                   = 0;
             arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
             if (work->soundsMuted != 0) {
-                SndEvt_EnqueueType9(SOUND_BANK_TYPE_CHARACTER_ALL);
+                sndEvtRequestScriptUnmute(SOUND_BANK_TYPE_CHARACTER_ALL);
                 work->soundsMuted = 0;
             }
             break;

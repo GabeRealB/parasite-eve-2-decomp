@@ -233,9 +233,25 @@ void sndScriptSetTypeRequestsEnabled(s32 enabled, s32 typeSelector);
 /// does not require an attached SPU voice and does not prove audibility.
 s32 sndScriptHasActiveId(s32 soundId);
 
-void SndEvt_EnqueueTypeD(void);
+/// Queues acquisition of one nested sound-script master-volume duck request.
+///
+/// Dispatch increments the request count. The first request, with no active
+/// ramp or saved gain and a master gain at least 48, saves that gain and starts
+/// stepping toward 48 by eight levels per audio update. Further acquisitions
+/// only increment the count; entries exempt from ducking keep the saved gain.
+/// A full event pool silently drops the request. Balance successfully queued
+/// acquisitions with `sndEvtRequestScriptDuckRelease` and keep the nesting
+/// count within signed-word range. Neither function changes gains immediately.
+void sndEvtRequestScriptDuckAcquire(void);
 
-void SndEvt_EnqueueTypeE(void);
+/// Queues release of one nested sound-script master-volume duck request.
+///
+/// Dispatch decrements a positive count; extra releases do nothing. The last
+/// release starts restoring a nonzero saved gain by eight levels per audio
+/// update, replacing any downward ramp. A full event pool silently drops this
+/// release independently of its acquisition, so queuing a pair does not
+/// guarantee balanced nesting. No caller storage is retained.
+void sndEvtRequestScriptDuckRelease(void);
 
 /// Stop controls that do not request a fade for a running sound-script entry.
 enum {
@@ -291,8 +307,31 @@ void sndEvtRequestScriptStop(s32 soundSelector, u16 stopControl);
 /// guarantee a matching instance.
 void sndEvtRequestScriptMute(s32 soundSelector);
 
-void SndEvt_EnqueueType9(s32 arg0);
+/// Queues an unmute ramp for scripts matching an exact request id or type-only selector.
+///
+/// `soundSelector` uses the bank/instance/entry encoding of
+/// `sndEvtRequestScriptStart`. Its requested top-nibble type must be enabled;
+/// a disabled type or full event pool silently drops the request. Type-1
+/// selectors are stamped with the loaded bank id at queue time, requiring a
+/// completed image in any matching bank slot during this call. The stamp also
+/// applies to a type-only selector: dispatch matches exact ids and top-nibble
+/// keys, with no bank or instance wildcards.
+///
+/// Only instances still in the muting state at dispatch accept the request.
+/// Their gain ramps from zero toward the then-current script master level
+/// over eight audio updates; integer truncation can extend the ramp. Commands
+/// remain paused during the ramp while existing voices keep ticking. Only the
+/// resolved selector is retained; queuing does not guarantee a matching slot.
+void sndEvtRequestScriptUnmute(s32 soundSelector);
 
-void Snd_SetModeFlag(s32 arg0);
+/// Selects retention of the first character bank across area changes.
+///
+/// A nonzero `retainFirstBank` enables retention from the disabled state.
+/// The next character-sample placement restarts at the first bank and marks
+/// it placed; area resets then retain that descriptor/image and reserve the
+/// first upload ordinal. Zero disables pending or placed retention, allowing
+/// the next area reset to release the first bank. This call releases nothing.
+/// States outside the supported signed-byte values 0, 1 and 2 are unchanged.
+void sndLoadSetFirstCharacterBankRetention(s32 retainFirstBank);
 
 #endif // MAIN_SOUND_H

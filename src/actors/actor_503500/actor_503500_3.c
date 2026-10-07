@@ -497,7 +497,7 @@ static void func_actor_503500_80133270(Task* arg0)
             return;
         default:
             if (work->controlPaused == 1 || work->controlHidden == 1 || work->mutedForMenu != 0) {
-                SndEvt_EnqueueType9(SOUND_BANK_TYPE_CHARACTER_ALL);
+                sndEvtRequestScriptUnmute(SOUND_BANK_TYPE_CHARACTER_ALL);
                 work->controlPaused = 0;
                 work->controlHidden = 0;
                 work->mutedForMenu  = 0;

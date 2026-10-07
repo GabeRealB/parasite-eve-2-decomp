@@ -393,7 +393,7 @@ void Gp_MenuRootTask(Task* arg0)
 
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             D_80114D88 = 0;
-            SndEvt_EnqueueTypeD();
+            sndEvtRequestScriptDuckAcquire();
             itemMenuClearPreviewItems();
             D_80067634 = NULL;
             D_80114DE0 = -1;
@@ -607,7 +607,7 @@ void Gp_MenuRootTask(Task* arg0)
             Gp_MenuLockDelay = 8;
             hudDelayInputAfterMenu();
             taskCallExit(arg0);
-            SndEvt_EnqueueTypeE();
+            sndEvtRequestScriptDuckRelease();
             break;
         }
         default:

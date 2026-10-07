@@ -501,7 +501,7 @@ static s16 SndScript_VoiceRanges[];
 
 static void Snd_ClearBusy(void);
 
-static void Snd_SetBusyFlag(s32 arg0);
+static void _sndBankSetAmbientRetention(s32 retainBank);
 
 static void _sndScriptSetReverb(s8 reverbLevel);
 
@@ -827,36 +827,50 @@ s32 stageMusicSelectColumn(s32 stage, s32 sceneEvent, s32 sceneEventBase)
 
 static void Snd_ClearBusy(void)
 {
-    Snd_SetBusyFlag(0);
+    _sndBankSetAmbientRetention(0);
 }
 
-static void Snd_SetBusyFlag(s32 arg0)
+/// Keeps the ambient sample-bank tables on a nonzero request, or releases them on zero.
+///
+/// Zero releases the descriptor's tables before clearing a normalized volatile
+/// byte; nonzero only sets the byte. Its consumer role is unproven. The separate
+/// script image and uploaded SPU samples are retained. Call only after users
+/// of released tables have finished.
+static void _sndBankSetAmbientRetention(s32 retainBank)
 {
-    if (arg0 == 0) {
-        sndBankFree(&Snd_Banks[12]);
-        D_80082134 = 0;
+    enum { SOUND_BANK_SLOT_AMBIENT = 12 };
+
+    if (retainBank == 0) {
+        sndBankFree(&Snd_Banks[SOUND_BANK_SLOT_AMBIENT]);
+        D_80082134 = false;
         return;
     }
-    D_80082134 = 1;
+    D_80082134 = true;
 }
 
-void Snd_SetModeFlag(s32 arg0)
+void sndLoadSetFirstCharacterBankRetention(s32 retainFirstBank)
 {
-    s8 temp;
+    enum {
+        SOUND_LOAD_CHARACTER_RESTART_NONE    = 0,
+        SOUND_LOAD_CHARACTER_RESTART_PENDING = 1,
+        SOUND_LOAD_CHARACTER_RESTARTED       = 2
+    };
+    s8 retentionState;
 
-    temp = (s8)D_80082135;
-    if (temp == 0) {
-        if (arg0 != 0) {
-            D_80082135 = 1;
+    // Interpret the stored byte as signed, leaving unsupported states untouched.
+    retentionState = (s8)D_80082135;
+    if (retentionState == SOUND_LOAD_CHARACTER_RESTART_NONE) {
+        if (retainFirstBank != 0) {
+            D_80082135 = SOUND_LOAD_CHARACTER_RESTART_PENDING;
         }
-    } else if (temp >= 0) {
-        if ((temp < 3) && (arg0 == 0)) {
-            D_80082135 = 0;
+    } else if (retentionState >= 0) {
+        if ((retentionState < SOUND_LOAD_CHARACTER_RESTARTED + 1) && (retainFirstBank == 0)) {
+            D_80082135 = SOUND_LOAD_CHARACTER_RESTART_NONE;
         }
     }
 }
 
-void Snd_PollAsync(s32 unused)
+void asyncCbPollMainLoop(s32 unused)
 {
     asyncCbPoll();
 }
@@ -933,27 +947,40 @@ s32 spuTickReverbWarmup(s32* updatesSinceInit)
     return AUDIO_TICK_POLL_FINISHED;
 }
 
-void Snd_SetMutedVolumes(s32 arg0)
+void sndVolumeSetReducedMode(s32 reducedModeEnabled)
 {
-    s32 var_a0;
+    enum {
+        SOUND_SCRIPT_REDUCED_MASTER_VOLUME = 40,
+        MIDI_NORMAL_MASTER_VOLUME          = 64,
+        MIDI_REDUCED_MASTER_VOLUME         = 0
+    };
+    s32 midiMasterLevel;
 
-    if (arg0 == 0) {
+    // Publish the request policy before applying either master gain.
+    if (reducedModeEnabled == 0) {
         gSndVolumeReducedMode = SOUND_VOLUME_MODE_NORMAL;
-        sndScriptSetMasterVolume(0x7F);
-        var_a0 = 0x40;
+        sndScriptSetMasterVolume(SOUND_SCRIPT_VOLUME_UNITY);
+        midiMasterLevel = MIDI_NORMAL_MASTER_VOLUME;
     } else {
         gSndVolumeReducedMode = SOUND_VOLUME_MODE_REDUCED;
-        sndScriptSetMasterVolume(0x28);
-        var_a0 = 0;
+        sndScriptSetMasterVolume(SOUND_SCRIPT_REDUCED_MASTER_VOLUME);
+        midiMasterLevel = MIDI_REDUCED_MASTER_VOLUME;
     }
-    midiSetMasterVolume(var_a0);
+    midiSetMasterVolume(midiMasterLevel);
 }
 
 /// Reserves one boot script-bank image and its sample descriptor's table storage.
 ///
-/// `entry` must select a supported type-to-slot map entry, with a live descriptor
-/// and initialized sound heap. The blocks are uninitialized and allocation
-/// failure is unchecked; a later load fills and partitions the table block.
+/// Call once per slot at sound boot, with the sound heap initialized and audio
+/// updates quiescent. `entry->bankType` must be 0..15 and map to a slot 0..15
+/// whose descriptor and image hold no allocations. `tableBytes` and `imageBytes`
+/// are heap byte capacities; `spuAddr` is an SPU byte origin. The entry is borrowed
+/// only for this call.
+///
+/// The descriptor owns the table block and the slot owns the image block. Both
+/// are uninitialized; the three table pointers provisionally alias the raw
+/// block's start. Later loads release these reservations and allocate fresh
+/// image and partitioned table storage. Allocation failure is unchecked.
 static inline void _sndScriptReserveBootBank(const _SndBankInitEntry* entry)
 {
     s8           slotIndex;
@@ -1127,17 +1154,19 @@ void sndEvtRequestScriptMute(s32 soundSelector)
     }
 }
 
-void SndEvt_EnqueueType9(s32 arg0)
+void sndEvtRequestScriptUnmute(s32 soundSelector)
 {
+    enum { SOUND_SCRIPT_REQUEST_TYPE_SHIFT = 28 };
     SndEvt*           event;
     SndEvtScriptArgs* args;
 
-    if (D_80082138[(u32)arg0 >> 28] != 0) {
+    // Admission uses the requested type; type-1 resolution follows allocation.
+    if (D_80082138[(u32)soundSelector >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
         event = sndEvtAlloc();
         if (event != NULL) {
             event->command = SOUND_EVENT_SCRIPT_UNMUTE;
             args           = &event->args.script;
-            args->soundId  = _sndScriptRemapType1Id(arg0);
+            args->soundId  = _sndScriptRemapType1Id(soundSelector);
             sndEvtEnqueue(event);
         }
     }
@@ -1229,7 +1258,7 @@ s32 sndScriptHasActiveId(s32 soundId)
     return ~sndScriptFindInstanceById(_sndScriptRemapType1Id(soundId)) != 0;
 }
 
-void SndEvt_EnqueueTypeD(void)
+void sndEvtRequestScriptDuckAcquire(void)
 {
     SndEvt* event;
 
@@ -1240,7 +1269,7 @@ void SndEvt_EnqueueTypeD(void)
     }
 }
 
-void SndEvt_EnqueueTypeE(void)
+void sndEvtRequestScriptDuckRelease(void)
 {
     SndEvt* event;
 

@@ -30107,7 +30107,7 @@ if (bytes != NULL) {
 /* ...next table... */
 flag = 0;
 done:
-Snd_SetModeFlag(flag);
+sndLoadSetFirstCharacterBankRetention(flag);
 ```
 
 The table address then lands in the `jal` delay slot (`addiu s1, %lo`)

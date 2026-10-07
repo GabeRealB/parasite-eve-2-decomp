@@ -164,7 +164,7 @@ void Gp_AreaEnterTask(Task* arg0)
         if (gStageMusicLoadState == 0xFF) {
             if (cdCmdIsIdle() & 0xFFFF) {
                 displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-                SndEvt_EnqueueType9(SOUND_COMMON(0x0D));
+                sndEvtRequestScriptUnmute(SOUND_COMMON(0x0D));
                 taskKill(arg0);
                 stageReleaseTaskPrimitiveBuffer();
                 stageRequestModeTaskExit();

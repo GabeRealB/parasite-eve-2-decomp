@@ -647,7 +647,7 @@ static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1)
         case 0:
             if (work->pauseSoundSent != 0) {
                 work->pauseSoundSent = 0;
-                SndEvt_EnqueueType9(SOUND_AREA_BANK_ALL);
+                sndEvtRequestScriptUnmute(SOUND_AREA_BANK_ALL);
             }
             break;
         case 1:

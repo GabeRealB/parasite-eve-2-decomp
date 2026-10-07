@@ -167,7 +167,7 @@ static void GameMain_Init(void)
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
     Spu_WaitDma();
-    Snd_SetMutedVolumes(0);
+    sndVolumeSetReducedMode(0);
     Boot_InitCdAudio();
     VSyncCallback(Display_VSyncCallback);
 
@@ -292,7 +292,7 @@ static void GameMain_ShowLoading(s32 arg0)
             tile                = &D_8006EC18;
             dr                  = &D_8006EC28;
             if (arg0 == 1) {
-                SndEvt_EnqueueTypeD();
+                sndEvtRequestScriptDuckAcquire();
             }
             setlen(dr, 1);
             dr->code[0] = 0xE1000600;
@@ -400,11 +400,11 @@ static void GameMain_Loop(void)
             gDisplayState.suppressDisconnectPause == 0 && gDisplayState.gameMode == DISPLAY_GAME_ACTIVE) {
             GameMain_ShowLoading(1);
         } else if (GameMain_HaltFlags & 2) {
-            SndEvt_EnqueueTypeE();
+            sndEvtRequestScriptDuckRelease();
             GameMain_HaltFlags &= ~2;
         }
 
-        Snd_PollAsync(0);
+        asyncCbPollMainLoop(0);
 
         if (GameMain_HaltFlags != 0 && !_gameMainPauseBlocked()) {
             VSync(0);

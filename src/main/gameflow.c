@@ -189,7 +189,7 @@ void GameFlow_StateByField34(Task* task)
             gDisplayState.gameRunning                    = 0;
             gGameSession->applySaveVariant               = 1;
             gGameSession->field_80                       = 0;
-            Snd_SetMutedVolumes(1);
+            sndVolumeSetReducedMode(1);
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.stopTaskWalk                   = 1;
             taskKill(task);

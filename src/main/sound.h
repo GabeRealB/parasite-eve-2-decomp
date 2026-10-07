@@ -40,7 +40,7 @@ enum {
     ///
     /// The initial value of `gSndVolumeReducedMode`. MIDI selection and flagged
     /// script starts still undergo their other eligibility checks.
-    /// `Snd_SetMutedVolumes(0)` stores this value before applying MIDI master
+    /// `sndVolumeSetReducedMode(0)` stores this value before applying MIDI master
     /// volume 64 and script master volume 127/127. Independent gain changes
     /// leave the policy value unchanged.
     SOUND_VOLUME_MODE_NORMAL  = 0,
@@ -488,7 +488,14 @@ s32 sndLoadFeedSector(u32* payload);
 /// Failure retains the load's resource pointers for the caller to resolve.
 s32 sndLoadInstallSequence(SndLoadState* load);
 
-void Snd_SetMutedVolumes(s32 arg0);
+/// Selects the combined MIDI/script reduced-volume policy and applies its gains.
+///
+/// Zero restores normal mode: script master gain 127/127 and MIDI master 64.
+/// Any nonzero input enables reduced mode: script gain 40/127 and MIDI master
+/// zero. Reduced mode also restricts MIDI selection and flagged script starts;
+/// script master gain remains nonzero. Stores the policy before updating
+/// script gain and then MIDI gain; hardware remixing follows audio updates.
+void sndVolumeSetReducedMode(s32 reducedModeEnabled);
 
 /// Keys off every attached voice of type-1 and area scripts and idles those slots.
 ///
@@ -715,7 +722,14 @@ s32 midiInitSystem(u32 unused);
 /// The retained unmute phase continues stepping/playing at its ramp endpoint.
 s32 midiTick(s32* unused);
 
-void Snd_PollAsync(s32 unused);
+/// Services the head resident asynchronous callback job once from the main loop.
+///
+/// `unused` is ignored. Call once per main-loop iteration, including paused
+/// iterations, with queue producers serialized. Poll, completion and pending
+/// cancellation handlers execute synchronously and may retire the head; this
+/// call never starts polling a second entry. Disc-init/recovery jobs use this
+/// service independently of script audio updates.
+void asyncCbPollMainLoop(s32 unused);
 
 /// Registers MIDI and sound-script playback polls and resets their load/duck state.
 ///

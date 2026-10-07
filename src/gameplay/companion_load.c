@@ -244,7 +244,7 @@ static inline s32 _companionInRoom(void)
 
 void Gp_ApplyNpcRoomSnd(void)
 {
-    Snd_SetModeFlag(_companionInRoom());
+    sndLoadSetFirstCharacterBankRetention(_companionInRoom());
 }
 
 void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, ActorSpawnOptions* options)
