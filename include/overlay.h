@@ -474,24 +474,44 @@ typedef struct {
 } OverlayPointPairScratch;
 STATIC_ASSERT_SIZEOF(OverlayPointPairScratch, 0x1C);
 
-/// Bearing of `p` from `eye` on the XZ plane.
+/// Stages the full-width XYZ offset from `origin` to `point` for an angle query.
 ///
-/// The offset between the two is staged at full width in a `VECTOR` taken
-/// from the scratch stack, whose `pad` is never written. The block is
-/// released before `ratan2` reads it back; nothing else may reserve scratch
-/// between the two.
-static __inline__ s16 overlayBearingXZ(SVECTOR3* p, SVECTOR3* eye)
+/// Borrows one word-aligned scratch `VECTOR` below the initialized cursor,
+/// writes XYZ without touching `pad`, and restores the cursor. Consume the
+/// returned block before anything reserves scratch again. Inputs use the
+/// SDK and packed signed-halfword layouts respectively and are only read.
+static __inline__ VECTOR* _actorAngleStagePointOffset(const SVECTOR* point, const SVECTOR3* origin)
 {
-    VECTOR* head;
+    VECTOR* scratchHead;
     VECTOR* delta;
 
-    head                         = SCRATCH_STACK_CURSOR(VECTOR);
-    delta                        = head - 1;
-    delta->vx                    = p->vx - eye->vx;
+    scratchHead                  = SCRATCH_STACK_CURSOR(VECTOR);
+    delta                        = scratchHead - 1;
+    delta->vx                    = point->vx - origin->vx;
     SCRATCH_STACK_CURSOR(VECTOR) = delta;
-    delta->vy                    = p->vy - eye->vy;
-    delta->vz                    = p->vz - eye->vz;
-    SCRATCH_STACK_CURSOR(VECTOR) = head;
+    delta->vy                    = point->vy - origin->vy;
+    delta->vz                    = point->vz - origin->vz;
+    // Read the released block before anything can reserve scratch again.
+    SCRATCH_STACK_CURSOR(VECTOR) = scratchHead;
+    return delta;
+}
+
+/// Measures the XZ bearing from `origin` to `point` for actor steering.
+///
+/// Both inputs are signed 16-bit positions in the same coordinate frame and
+/// units. Returns a signed angle in 4096 units per turn: zero along +Z,
+/// positive toward +X, and zero when the XZ positions coincide. Subtraction
+/// retains the full 32-bit difference; the inputs are neither changed nor
+/// retained. `point` uses the SDK vector layout, while `origin` is packed.
+///
+/// Requires an initialized, word-aligned scratch cursor with room for one
+/// `VECTOR` (16 bytes). All three offsets are staged, although only X and Z
+/// determine the angle; the vector's `pad` is untouched.
+static __inline__ s16 _actorAngleBearingXZ(const SVECTOR* point, const SVECTOR3* origin)
+{
+    VECTOR* delta;
+
+    delta = _actorAngleStagePointOffset(point, origin);
     return ratan2(delta->vx, delta->vz);
 }
 
@@ -656,7 +676,7 @@ static __inline__ s32 overlayWalkerOutOfRange(SVECTOR* d, s16 r)
 
 /// Bearing of `pos` from the full-width translation of `coord` on the XZ
 /// plane. The offset is staged in a scratch-stack `VECTOR` as in
-/// `overlayBearingXZ` and released before `ratan2` runs.
+/// `_actorAngleBearingXZ` and released before `ratan2` runs.
 static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GfxCoord* coord)
 {
     VECTOR* head;

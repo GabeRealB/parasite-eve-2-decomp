@@ -1517,7 +1517,7 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
         }
 
         if (ABS(s->dir.vz) < 0x818) {
-            s->bearing[s->count] = overlayBearingXZ((SVECTOR3*)&recs[s->i].point, &s->origin);
+            s->bearing[s->count] = _actorAngleBearingXZ(&recs[s->i].point, &s->origin);
         } else {
             s->bearing[s->count] = _actorAngleBearingXY(&recs[s->i].point, &s->origin);
         }

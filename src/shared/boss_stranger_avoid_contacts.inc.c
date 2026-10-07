@@ -49,7 +49,7 @@ void bossStrangerAvoidContacts(BossStrangerWalker* work)
 
         if (ABS(s->dir.vz) < 0x818) {
             s->bearing[s->count] =
-                overlayBearingXZ((SVECTOR3*)&work->avoidRecs[s->i].point, &s->origin);
+                _actorAngleBearingXZ(&work->avoidRecs[s->i].point, &s->origin);
         } else {
             s->bearing[s->count] =
                 _actorAngleBearingXY(&work->avoidRecs[s->i].point, &s->origin);

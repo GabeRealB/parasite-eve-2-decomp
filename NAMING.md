@@ -464,10 +464,11 @@ half-turn endpoints and narrows the input to 16 bits before wrapping. The player
 turn also writes the translation offset in signed 16-bit game coordinates and
 requires both roots in the same parent coordinate frame; it does not compose or
 rotate them.
-The XY point-bearing helper in `include/overlay.h` also belongs to `actorAngle`,
-with a static instance marked `_` in each carrier. It measures from signed
-16-bit positions in their common coordinate frame, using +Y as zero and +X
-as the positive quarter-turn direction, without composing transforms.
+The XZ and XY point-bearing helpers in `include/overlay.h` also belong to
+`actorAngle`, with static instances marked `_` in each carrier. They measure
+from signed 16-bit positions in their common coordinate frame, using +Z or
++Y respectively as zero and +X as the positive quarter-turn direction,
+without composing transforms.
 The cached-frame bearing helper also belongs to `actorAngle`: it takes a target
 offset through the transpose of the reference's composed basis, then measures
 its X/Z yaw. Both caches must already describe the same composition frame;
