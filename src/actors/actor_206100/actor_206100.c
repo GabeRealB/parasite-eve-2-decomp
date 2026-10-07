@@ -2572,15 +2572,7 @@ static void func_actor_206100_8014D8E8(Task* task)
 /// `func_actor_206100_8014FCD4` documents.  The chain is the only reader of
 /// `next`; everything else stays on `work`, which is why the two loads exist.
 ///
-/// Both pose matrices write five words, and which of them land in a register is
-/// load-bearing.  `matrix.rotationWords.*` names the union's word view, so those three
-/// stores stay frame-relative, while `MATRIX_PAIR(mtx, 1, 1)` and `mtx->m[2][2]`
-/// reach the same words through the `mtx` pointer and so are `8($s0)` and
-/// `0x10($s0)` off the local matrix's own address.  Written without `mtx` all
-/// five are frame-relative and that address is never materialised -- the same
-/// `rotation` / `mtx` split `func_actor_403100_801339EC` makes.
-///
-/// The nine stores onto the coordinate are the same split one level down:
+/// The nine stores onto the coordinate go through a pointer:
 /// through `dest` their address is a register plus a displacement, so the copy
 /// is `4($s3)` followed by eight off `$v1`; naming `coord->coord.m[i][j]`
 /// instead gives nine distinct sums and no register at all, and every store
@@ -2599,8 +2591,6 @@ static void func_actor_206100_8014DA28(Task* task)
     _Actor206100Work* sub;
     GfxCoord*         coord;
     GfxCoord*         scaled;
-    MATRIX*           mtx;
-    MATRIX*           mtx2;
     MATRIX*           dest;
     GfxMatrix         matrix;
     VECTOR            scale;
@@ -2640,12 +2630,7 @@ static void func_actor_206100_8014DA28(Task* task)
             func_actor_206100_8014B0AC(task, work->neckRetracted);
             coord                       = task->extra.tmd->coords;
             sub                         = task->work;
-            mtx                         = &matrix.mat;
-            matrix.rotationWords.m00M01 = ONE;
-            matrix.rotationWords.m02M10 = 0;
-            MATRIX_PAIR(mtx, 1, 1)      = 0x1000;
-            matrix.rotationWords.m20M21 = 0;
-            mtx->m[2][2]                = 0x1000;
+            gfxSetRotIdentity(&matrix.mat);
             RotMatrixZ(sub->rotation.vz, &matrix.mat);
             RotMatrixY(sub->rotation.vy, &matrix.mat);
             dest                         = &coord->coord;
@@ -2663,12 +2648,7 @@ static void func_actor_206100_8014DA28(Task* task)
             scale.vx                     = work->modelScale;
             scale.vy                     = scale.vx;
             scale.vz                     = scale.vx;
-            mtx2                         = &scaling.mat;
-            scaling.rotationWords.m00M01 = ONE;
-            scaling.rotationWords.m02M10 = 0;
-            MATRIX_PAIR(mtx2, 1, 1)      = 0x1000;
-            scaling.rotationWords.m20M21 = 0;
-            mtx2->m[2][2]                = 0x1000;
+            gfxSetRotIdentity(&scaling.mat);
             ScaleMatrix(&scaling.mat, &scale);
             MulMatrix(&scaled->coord, &scaling.mat);
             /* fallthrough */
