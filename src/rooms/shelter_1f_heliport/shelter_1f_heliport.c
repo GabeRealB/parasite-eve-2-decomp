@@ -185,7 +185,7 @@ extern TaskMessageEntry D_shelter_1f_heliport_801811A0[];
 
 extern u8 D_shelter_1f_heliport_801811D4[][4];
 
-/// Offset `func_shelter_1f_heliport_801802AC` hands the mesh rebuild; only its
+/// Offset `shelter1fHeliportUpdateCompanionObstacle` hands the mesh rebuild; only its
 /// `vy` is ever set.
 extern SVECTOR D_shelter_1f_heliport_80181204;
 
@@ -207,8 +207,8 @@ extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_1f_heliport_80180658(Task* task);
-static void func_shelter_1f_heliport_80180748(Task* task);
-static void func_shelter_1f_heliport_801807C0(void);
+static void _shelter1fHeliportUpdateRoom(Task* unusedTask);
+static void _shelter1fHeliportUpdatePlacedActorVisibility(void);
 
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0" \
                                 "2"
@@ -610,12 +610,12 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatche
 #include "../../shared/room_event_staged_task.inc.c"
 
 /// State handlers of the room's controller task: installing its message
-/// table, a per-frame state that runs `func_shelter_1f_heliport_801807C0`,
+/// table, a per-frame state that runs `_shelter1fHeliportUpdatePlacedActorVisibility`,
 /// and the kill.
 static const TaskFuncTable3 D_shelter_1f_heliport_8017D710 = {
     {
         func_shelter_1f_heliport_80180658,
-        func_shelter_1f_heliport_80180748,
+        _shelter1fHeliportUpdateRoom,
         taskKill,
     },
 };
@@ -668,22 +668,25 @@ s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, 
     return 1;
 }
 
-void func_shelter_1f_heliport_801802AC(s32 arg0)
+void shelter1fHeliportUpdateCompanionObstacle(s32 unusedEventArg)
 {
-    Task* task;
-    Task* slotA;
+    enum { SHELTER_1F_HELIPORT_SOLDIER_REQUEST_PENDING = 1,
+           SHELTER_1F_HELIPORT_HIDDEN_OBSTACLE_Y       = 10000 };
+    Task* obstacleTask;
+    Task* companionTask;
 
-    task  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    slotA = task;
-    if (task == NULL) {
-        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    obstacleTask  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    companionTask = obstacleTask;
+    if (obstacleTask == NULL) {
+        obstacleTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
-    if (slotA != NULL && gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE) == 1) {
+    // Move an inactive obstacle out of the walkable room without changing cells.
+    if (companionTask != NULL && gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE) == SHELTER_1F_HELIPORT_SOLDIER_REQUEST_PENDING) {
         D_shelter_1f_heliport_80181204.vy = 0;
     } else {
-        D_shelter_1f_heliport_80181204.vy = 0x2710;
+        D_shelter_1f_heliport_80181204.vy = SHELTER_1F_HELIPORT_HIDDEN_OBSTACLE_Y;
     }
-    _followCollisionRebuildObstacle(task->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
+    _followCollisionRebuildObstacle(obstacleTask->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
 }
 
 s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -776,8 +779,8 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         func_actor_161500_8013230C();
     }
-    func_shelter_1f_heliport_801802AC(0);
-    func_shelter_1f_heliport_801807C0();
+    shelter1fHeliportUpdateCompanionObstacle(0);
+    _shelter1fHeliportUpdatePlacedActorVisibility();
     gpuResetAndInvalidateModelBuffers();
     tmdResetAuxHeapAndRestoreBuffers();
     sndEvtRequestScriptStart(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 0, 0);
@@ -785,30 +788,40 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-static void func_shelter_1f_heliport_80180748(Task* task)
+/// Maintains the room's view-selected actor visibility while its controller idles.
+///
+/// State 1 leaves the task and state intact for messages and external teardown.
+/// `unusedTask` is required by the state-handler interface and is ignored.
+static void _shelter1fHeliportUpdateRoom(Task* unusedTask)
 {
-    func_shelter_1f_heliport_801807C0();
+    _shelter1fHeliportUpdatePlacedActorVisibility();
 }
 
-/// Runs the task's current state through its three-entry state table, copied
-/// onto the stack before the call.
-void func_shelter_1f_heliport_80180768(Task* task)
+void shelter1fHeliportRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_1f_heliport_8017D710;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_1f_heliport_8017D710;
+    stateHandlers.funcs[task->state](task);
 }
 
-static void func_shelter_1f_heliport_801807C0(void)
+/// Applies this view's model-draw modes to the room's four placed actors.
+///
+/// Only variants below 3 and live-save views 0..11 participate. A zero first
+/// mode leaves every actor unchanged; otherwise all four bytes are forwarded
+/// to placement indices 0..3 (1 show, 2 hide and skip automatic buffering). Missing
+/// placements are ignored by the scene API. Retains no actor pointers.
+static void _shelter1fHeliportUpdatePlacedActorVisibility(void)
 {
-    s32 i;
-    s32 idx = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    enum { SHELTER_1F_HELIPORT_VISIBILITY_VARIANT_LIMIT = 3,
+           SHELTER_1F_HELIPORT_VISIBILITY_KEEP          = 0 };
+    s32 placeIndex;
+    s32 viewIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
 
-    if (gGameSession->location.loc.variant < 3 && idx < 12) {
-        if (D_shelter_1f_heliport_801811D4[idx][0] != 0) {
-            for (i = 0; i < 4; i++) {
-                sceneSetPlacedActorDrawMode(i, D_shelter_1f_heliport_801811D4[idx][i]);
+    if (gGameSession->location.loc.variant < SHELTER_1F_HELIPORT_VISIBILITY_VARIANT_LIMIT && viewIndex < (s32)ARRAY_SIZE(D_shelter_1f_heliport_801811D4)) {
+        if (D_shelter_1f_heliport_801811D4[viewIndex][0] != SHELTER_1F_HELIPORT_VISIBILITY_KEEP) {
+            for (placeIndex = 0; placeIndex < (s32)ARRAY_SIZE(D_shelter_1f_heliport_801811D4[viewIndex]); placeIndex++) {
+                sceneSetPlacedActorDrawMode(placeIndex, D_shelter_1f_heliport_801811D4[viewIndex][placeIndex]);
             }
         }
     }

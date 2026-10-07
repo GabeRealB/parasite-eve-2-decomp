@@ -75,7 +75,7 @@ SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[7] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-static void func_shelter_b1_control_room_access_tunnel_8017D640(Task* task);
+static void _shelterB1ControlRoomAccessTunnelInitializeRoom(Task* task);
 
 /// Refuses key-item use in this room, selecting the inventory's cannot-use notice.
 ///
@@ -116,13 +116,16 @@ static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomAction(Task* task, s32 mes
     return 0;
 }
 
-/// State 0 of the room's task: installs the room's message table, publishes
-/// the task in pointer slot 7 and advances to state 1.
-static void func_shelter_b1_control_room_access_tunnel_8017D640(Task* task)
+/// Installs and publishes the room controller for message dispatch.
+///
+/// Requires entry state 0 and the loaded room message table. Registers this
+/// live task in `GAME_TASK_SLOT_ROOM`, then advances to idle state 1. Allocates
+/// no work; the task and table must remain live while room messages are sent.
+static void _shelterB1ControlRoomAccessTunnelInitializeRoom(Task* task)
 {
     task->msgTable = D_shelter_b1_control_room_access_tunnel_80181E74;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state += 1;
 }
 
 /// Keeps the initialized room task available for messages without per-frame work.
@@ -134,7 +137,7 @@ static void _shelterB1ControlRoomAccessTunnelIdle(Task* task)
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_control_room_access_tunnel_8017D5C4 = {
-    { func_shelter_b1_control_room_access_tunnel_8017D640, _shelterB1ControlRoomAccessTunnelIdle, taskKill }
+    { _shelterB1ControlRoomAccessTunnelInitializeRoom, _shelterB1ControlRoomAccessTunnelIdle, taskKill }
 };
 
 /// Runs the room's task through its three-state handler table, copied onto

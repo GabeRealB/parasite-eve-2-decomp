@@ -69,3 +69,4 @@ _shelterB1TransferTunnelIgnoreRoomCommand = 0x8017d61c; // type:func
 _shelterB1TransferTunnelIgnoreRoomAction = 0x8017d624; // type:func
 _shelterB1TransferTunnelIdle = 0x8017d670; // type:func
 _shelterB1TransferTunnelResolveRoomEvent = 0x8017d5d8; // type:func
+_shelterB1TransferTunnelInitializeRoom = 0x8017d62c; // type:func

@@ -2616,23 +2616,26 @@ static void _shelterB1UndergroundParkingPanelHandleCommand(Task* task)
 
 /// Restores room interaction and presentation after leaving the selector panel.
 ///
-/// Balances the panel's display hold, resumes and shows the player, clears the
-/// session holds and restores live-save view 2. Ten idle action-input updates inhibit
-/// immediate interaction with the room trigger. Does not kill either task.
+/// Requires the panel's acquired menu hold and a live player model. Releases
+/// that hold, resumes/shows the player, clears the session's event/HUD/player
+/// holds and selects live-save view 2. Ten eligible direction-input updates
+/// delay manual interaction with the room trigger; automatic triggers remain
+/// eligible. Leaves the panel and action-cursor tasks for the caller to retire.
 static inline void _shelterB1UndergroundParkingPanelRestoreRoom(void)
 {
     enum {
         SHELTER_B1_UNDERGROUND_PARKING_PANEL_INTERACTION_DELAY_UPDATES = 10,
         SHELTER_B1_UNDERGROUND_PARKING_PANEL_RETURN_VIEW               = 2,
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_EVENT_IDLE                = 0,
     };
 
     D_80114D08 = SHELTER_B1_UNDERGROUND_PARKING_PANEL_INTERACTION_DELAY_UPDATES;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
+    gGameSession->eventState                                   = SHELTER_B1_UNDERGROUND_PARKING_PANEL_EVENT_IDLE;
+    gGameSession->hideHud                                      = false;
+    gGameSession->cutsceneHold                                 = false;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B1_UNDERGROUND_PARKING_PANEL_RETURN_VIEW;
 }
 

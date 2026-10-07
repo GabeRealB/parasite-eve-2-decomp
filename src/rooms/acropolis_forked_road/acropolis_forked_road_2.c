@@ -96,7 +96,7 @@ extern u16 D_acropolis_forked_road_801821E8[14];
 
 void        func_acropolis_forked_road_8017DA24(Task*);
 void        func_acropolis_forked_road_8017DD60(Task*);
-void        func_acropolis_forked_road_8017E1C0(Task*);
+static void _acropolisForkedRoadSkipFadeOutTask(Task* task);
 static void _acropolisForkedRoadSkipFadeInTask(Task* task);
 
 extern AnimationPlayRequest     D_acropolis_forked_road_8018207C;
@@ -127,7 +127,7 @@ TaskDesc D_acropolis_forked_road_80180F44[5] = {
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017DA24, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017DD60, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_forked_road_8017E1C0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadSkipFadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadSkipFadeInTask, { .value = 0 } },
 };
 
@@ -1109,20 +1109,25 @@ void func_acropolis_forked_road_8017DD60(Task* task)
     }
 }
 
-/// An eight-frame screen fade: draws the fade overlay (mode 2) at the level
-/// held in the task's `killCountdown`, which rises by 0x20 a frame, and asks
-/// for the task to be killed once it passes 0xFF.
-void func_acropolis_forked_road_8017E1C0(Task* arg0)
+/// Darkens the return ride before its skip caller replaces the player's pose.
+///
+/// Requires a bodyless task with `killCountdown` initially zero. Queues eight
+/// equal-channel subtractive overlays, intensities 0..224 in steps of 32,
+/// before suspending with result zero at progress 256. The caller must collect
+/// it with `taskPollKill`; suspension retains the task and its resources.
+static void _acropolisForkedRoadSkipFadeOutTask(Task* task)
 {
-    u8  fade;
-    s16 temp_v0;
+    enum { ACROPOLIS_FORKED_ROAD_SKIP_FADE_STEP = 32,
+           ACROPOLIS_FORKED_ROAD_SKIP_FADE_SPAN = 256 };
+    u8  fadeLevel;
+    s16 nextProgress;
 
-    fade = (u8)arg0->killCountdown;
-    fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-    temp_v0             = (u16)arg0->killCountdown + 0x20;
-    arg0->killCountdown = temp_v0;
-    if (temp_v0 >= 0x100) {
-        taskRequestKill(arg0, 0);
+    fadeLevel = (u8)task->killCountdown;
+    fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
+    nextProgress        = (u16)task->killCountdown + ACROPOLIS_FORKED_ROAD_SKIP_FADE_STEP;
+    task->killCountdown = nextProgress;
+    if (nextProgress >= ACROPOLIS_FORKED_ROAD_SKIP_FADE_SPAN) {
+        taskRequestKill(task, 0);
     }
 }
 

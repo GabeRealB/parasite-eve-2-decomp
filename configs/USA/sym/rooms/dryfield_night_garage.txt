@@ -264,3 +264,4 @@ Shop_Data_8017D6EC = 0x8017D6EC;
 _glowDrawGreyCapsule = 0x80180D9C; // type:func
 _garageSoundMsg = 0x80180300; // type:func
 _dryfieldNightGarageBlackoutTask = 0x80180cec; // type:func
+_dryfieldNightGaragePlayMovieTask = 0x80180b20; // type:func

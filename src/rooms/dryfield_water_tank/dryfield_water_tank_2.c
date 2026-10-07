@@ -750,17 +750,22 @@ SVECTOR D_dryfield_water_tank_801847C0[52] = {
 
 static void func_dryfield_water_tank_8017E78C(Task* task);
 
-/// Appends a full-screen subtractive tile using the ramp's low red/green bytes.
+/// Queues a 320x240 subtractive fade tile at the current draw origin.
 ///
-/// Uses red for blue too. Requires space for both packets in the current frame
-/// arena and foreground tag -16 in the current ordering table. Packets borrow
-/// the arena until GPU drawing completes; the draw mode enables dithering.
+/// Borrows readable ramp channels and uses their low red/green/red bytes without
+/// advancing them. The current draw origin, including screen shake, offsets the
+/// centred tile. Requires a word-aligned frame cursor with space for a `TILE`
+/// and `DR_TPAGE`, and foreground tag -16 in the active ordering table.
+/// Packet storage must remain live through GPU consumption. The mode runs first
+/// and remains active: subtractive blending, dithering on, displayed-area
+/// drawing off and a 4-bit texture page at (0,0), unused by the untextured tile.
 static inline void _dryfieldWaterTankDrawFadeOverlay(const ScreenFadeWork* fade)
 {
     enum {
         DRYFIELD_WATER_TANK_FADE_WIDTH_PIXELS   = 320,
         DRYFIELD_WATER_TANK_FADE_HEIGHT_PIXELS  = 240,
         DRYFIELD_WATER_TANK_FADE_FOREGROUND_TAG = -16,
+        DRYFIELD_WATER_TANK_FADE_TEXTURE_4BIT   = 0,
     };
 
     u8        red;
@@ -786,7 +791,7 @@ static inline void _dryfieldWaterTankDrawFadeOverlay(const ScreenFadeWork* fade)
     // Prepending the mode after the tile makes the GPU execute it first.
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
-    setDrawTPage(drawMode, false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
+    setDrawTPage(drawMode, false, true, getTPage(DRYFIELD_WATER_TANK_FADE_TEXTURE_4BIT, GPU_BLEND_SUBTRACT, 0, 0));
     addPrim(gGpuCurrentOt + DRYFIELD_WATER_TANK_FADE_FOREGROUND_TAG, drawMode);
 }
 

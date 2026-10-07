@@ -54,7 +54,7 @@
 #include "../../shared/glow_draw.h"
 
 /// The room's message table, installed in `Task::msgTable` by
-/// `func_shelter_b1_transfer_tunnel_8017D62C`.
+/// `_shelterB1TransferTunnelInitializeRoom`.
 extern TaskMessageEntry D_shelter_b1_transfer_tunnel_801828C0[];
 
 /// World-space points for the capsules and red disc drawn by
@@ -69,14 +69,14 @@ extern SVECTOR D_shelter_b1_transfer_tunnel_801828F8[];
 /// coordinate and `[1]` the second trail's origin. State 1 reads `[1]` again
 /// under its own name.
 
-static void func_shelter_b1_transfer_tunnel_8017D62C(Task* task);
+static void _shelterB1TransferTunnelInitializeRoom(Task* task);
 static void _shelterB1TransferTunnelIdle(Task* task);
 
 /// State handlers of the task `func_shelter_b1_transfer_tunnel_8017D678`
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_transfer_tunnel_8017D5C4 = {
-    { func_shelter_b1_transfer_tunnel_8017D62C, _shelterB1TransferTunnelIdle, taskKill }
+    { _shelterB1TransferTunnelInitializeRoom, _shelterB1TransferTunnelIdle, taskKill }
 };
 
 static s32 _shelterB1TransferTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
@@ -338,13 +338,16 @@ static s32 _shelterB1TransferTunnelIgnoreRoomAction(Task* task, s32 messageId, c
     return 0;
 }
 
-/// State 0 of the room's task: installs the room's message table, publishes
-/// the task in pointer slot 7 and advances to state 1.
-static void func_shelter_b1_transfer_tunnel_8017D62C(Task* task)
+/// Installs and publishes the room controller for message dispatch.
+///
+/// Requires entry state 0 and the loaded room message table. Registers this
+/// live task in `GAME_TASK_SLOT_ROOM`, then advances to idle state 1. Allocates
+/// no work; the task and table must remain live while room messages are sent.
+static void _shelterB1TransferTunnelInitializeRoom(Task* task)
 {
     task->msgTable = D_shelter_b1_transfer_tunnel_801828C0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state += 1;
 }
 
 /// Keeps the initialized room task available for messages without advancing its state.

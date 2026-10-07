@@ -82,7 +82,7 @@ extern WorldCollisionTrigger      D_dryfield_night_garage_8018723C[7];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_garage_8018751C[16];
 extern WorldCoordRoomLights       D_dryfield_night_garage_80186D64[1];
 
-void        func_dryfield_night_garage_80180B20(Task*);
+static void _dryfieldNightGaragePlayMovieTask(Task* task);
 static void _dryfieldNightGarageBlackoutTask(Task* task);
 void        func_dryfield_night_garage_80180D4C(Task*);
 
@@ -212,7 +212,7 @@ EvsCommand D_dryfield_night_garage_801831B8[19] = {
 
 TaskDesc D_dryfield_night_garage_80183380[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_80180D4C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_80180B20, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGaragePlayMovieTask, { .value = 0 } },
 };
 
 TaskDesc D_dryfield_night_garage_80183398 = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGarageBlackoutTask, { .value = 0 } };
@@ -1154,71 +1154,107 @@ void func_dryfield_night_garage_80180AB0(void)
     }
 }
 
-void func_dryfield_night_garage_80180B20(Task* arg0)
+/// Queues the garage movie selected by disc and the task's alternate-movie flag.
+///
+/// The selected stream descriptor must already be loaded. Copies a four-byte
+/// command envelope immediately; only byte zero is interpreted by this opcode.
+/// Leaves opcode-unused bytes unspecified; the zero file key reads low RAM.
+static inline void _dryfieldNightGarageQueueMovie(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    s16         slot;
-    CdCmdQueue* queue;
-    Task*       task;
+    enum {
+        DRYFIELD_NIGHT_GARAGE_MOVIE_COMMAND_BYTES    = 4,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_PRIMARY   = 100,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_PRIMARY   = 101,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_ALTERNATE = 102,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_ALTERNATE = 103,
+    };
+    u8      commandArgs[DRYFIELD_NIGHT_GARAGE_MOVIE_COMMAND_BYTES];
+    GameLoc movieKey;
+    s16     streamSlot;
 
-    task  = arg0;
+    movieKey = gGameSession->location;
+    if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
+        if (task->spawnArg1.value != 0) {
+            movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_ALTERNATE;
+        } else {
+            movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_PRIMARY;
+        }
+    } else {
+        if (task->spawnArg1.value != 0) {
+            movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_ALTERNATE;
+        } else {
+            movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_PRIMARY;
+        }
+    }
+    streamSlot     = streamFindMovieSlot(&movieKey.loc, 0, 0);
+    commandArgs[0] = streamSlot;
+    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
+}
+
+/// Plays a skippable garage movie, then restores the game's image resources.
+///
+/// Starts at state 0 as a bodyless display task; nonzero `spawnArg1.value`
+/// selects the alternate movie. The disc selects stream IDs 100/102 or 101/103.
+/// Requires the corresponding loaded stream slot and exclusive movie/CD/display
+/// workspaces. Hides the display while preparing and restoring it, preserves
+/// displaced VRAM images, and enables it only once playback is ready. Start
+/// cancels playback; both exits wait for CD idleness before reloading sprites.
+/// After restoration, tears down the task and resumes game-loop presentation.
+static void _dryfieldNightGaragePlayMovieTask(Task* task)
+{
+    enum {
+        DRYFIELD_NIGHT_GARAGE_MOVIE_PREPARE        = 0,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_QUEUE          = 1,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_WAIT_READY     = 2,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_PLAY           = 3,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_WAIT_STOP      = 4,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_RESTORE        = 5,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_CURRENT_HEAP   = 0,
+        DRYFIELD_NIGHT_GARAGE_MOVIE_RELOAD_SPRITES = 1,
+    };
+    CdCmdQueue* queue;
+
     queue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
-            SetDispMask(0);
-            streamPrepareMovieWorkspace(1);
+        case DRYFIELD_NIGHT_GARAGE_MOVIE_PREPARE:
+            SetDispMask(false);
+            streamPrepareMovieWorkspace(true);
             task->state++;
             return;
-        case 1:
-            key = gGameSession->location;
-            if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
-                if (task->spawnArg1.value != 0) {
-                    key.loc.view = 0x67;
-                } else {
-                    key.loc.view = 0x65;
-                }
-            } else {
-                if (task->spawnArg1.value != 0) {
-                    key.loc.view = 0x66;
-                } else {
-                    key.loc.view = 0x64;
-                }
-            }
-            slot         = streamFindMovieSlot(&key.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+        case DRYFIELD_NIGHT_GARAGE_MOVIE_QUEUE:
+            _dryfieldNightGarageQueueMovie(task);
             task->state++;
             return;
-        case 2:
+        case DRYFIELD_NIGHT_GARAGE_MOVIE_WAIT_READY:
             if (queue->movieReady == 0) {
                 return;
             }
-            SetDispMask(1);
+            SetDispMask(true);
             task->state++;
             return;
-        case 3:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                SetDispMask(0);
+        case DRYFIELD_NIGHT_GARAGE_MOVIE_PLAY:
+            if (cdCmdIsIdle()) {
+                SetDispMask(false);
                 task->state++;
                 return;
             }
             if (padIsStartPressed() == 0) {
                 return;
             }
-            SetDispMask(0);
+            SetDispMask(false);
             cdCmdRequestCancel();
             task->state++;
             return;
-        case 4:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        case DRYFIELD_NIGHT_GARAGE_MOVIE_WAIT_STOP:
+            // Cancellation and normal completion both drain the CD queue first.
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             streamResetGameRestore();
             task->state++;
             return;
-        case 5:
-            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
+        case DRYFIELD_NIGHT_GARAGE_MOVIE_RESTORE:
+            if (streamPollGameRestore(DRYFIELD_NIGHT_GARAGE_MOVIE_CURRENT_HEAP, DRYFIELD_NIGHT_GARAGE_MOVIE_RELOAD_SPRITES) == 0) {
                 return;
             }
             taskKill(task);

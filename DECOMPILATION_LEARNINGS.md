@@ -67414,7 +67414,7 @@ cut stays correct only while that unit keeps its number - exactly what a
 promotion changes.
 
 `dryfield_night_garage` is the worked example. Two tables - `0x148` (6 words, read
-by `func_dryfield_night_garage_80180B20`) and `0x160` (13 words, read by
+by `_dryfieldNightGaragePlayMovieTask`) and `0x160` (13 words, read by
 `dryfieldNightGarageDrawGlowsTask`) - were cut to units `_5` and `_6`, the two
 units that held those readers. Promoting the garage body at `0x2D40` split unit
 `_2` in two and pushed every later unit up one, so the readers moved to `_6` and

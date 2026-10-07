@@ -170,8 +170,8 @@ WorldCollisionSurfaceProperties* D_shelter_r37_8017DED8[8] = {
     D_shelter_r37_8017DEB0,
 };
 
-static void func_shelter_r37_8017D62C(Task* task);
-static void func_shelter_r37_8017D670(Task* task);
+static void _shelterR37InitializeRoom(Task* task);
+static void _shelterR37Idle(Task* unusedTask);
 
 /// Refuses key-item use and selects the inventory's cannot-use notice.
 ///
@@ -212,25 +212,31 @@ static s32 _shelterR37IgnoreRoomAction(Task* task, s32 messageId, const Directio
     return 0;
 }
 
-/// State 0 of the room's event task: installs the room's message table,
-/// publishes the task in pointer slot 7 and advances to state 1.
-static void func_shelter_r37_8017D62C(Task* task)
+/// Installs and publishes the room controller for message dispatch.
+///
+/// Requires entry state 0 and the loaded room message table. Registers this
+/// live task in `GAME_TASK_SLOT_ROOM`, then advances to idle state 1. Allocates
+/// no work; the task and table must remain live while room messages are sent.
+static void _shelterR37InitializeRoom(Task* task)
 {
     task->msgTable = D_shelter_r37_8017D6D0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state += 1;
 }
 
-/// State 1 of the room's event task: does nothing, so the task idles here.
-static void func_shelter_r37_8017D670(Task* task)
+/// Keeps the initialized room controller available for messages without per-frame work.
+///
+/// State 1 retains its state and resources until external teardown. The
+/// `unusedTask` parameter is required by the state-handler interface.
+static void _shelterR37Idle(Task* unusedTask)
 {
 }
 
 /// The event task's three states: install the message table, idle, and kill.
 static const TaskFuncTable3 D_shelter_r37_8017D5C4 = {
     {
-        func_shelter_r37_8017D62C,
-        func_shelter_r37_8017D670,
+        _shelterR37InitializeRoom,
+        _shelterR37Idle,
         taskKill,
     },
 };

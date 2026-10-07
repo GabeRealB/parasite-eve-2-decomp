@@ -188,3 +188,7 @@ Shop_Data_8017D6EC = 0x8017D6EC;
 roomEventStagedTask = 0x8017FF08; // type:func
 _followCollisionRebuildObstacle = 0x8018085C; // type:func
 capDialogueLoopTask = 0x80180594; // type:func
+shelter1fHeliportUpdateCompanionObstacle = 0x801802ac; // type:func
+_shelter1fHeliportUpdatePlacedActorVisibility = 0x801807c0; // type:func
+_shelter1fHeliportUpdateRoom = 0x80180748; // type:func
+shelter1fHeliportRoomTask = 0x80180768; // type:func

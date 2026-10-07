@@ -498,6 +498,12 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
 }
 
 /// Allocates the first-event work and binds its borrowed room actors.
+///
+/// Requires a bodyless task without existing work and live player/desert-chaser
+/// placements 0 and 1 in the current stage/area. Clears the entire work block
+/// and publishes the task only after allocation succeeds. Task teardown releases
+/// the work, while the borrowed actors must outlive its use. Allocation failure
+/// kills the task and leaves the published slot unchanged.
 static inline void _dryfieldBreezewayInitializeFirstEventWork(Task* task)
 {
     _DryfieldBreezewayFirstEventWork* work;
@@ -511,7 +517,7 @@ static inline void _dryfieldBreezewayInitializeFirstEventWork(Task* task)
         memFillBytes(work, 0, sizeof(*work));
         work->playerTask              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         D_dryfield_breezeway_801843C0 = task;
-        // The placed actors are found by place key: the session's stage and area with the placement index.
+        // Placement indices 0 and 1 identify the two actors in this room.
         placeKey                   = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
         work->desertChaserTasks[0] = sceneFindEnemyByPlaceKey(placeKey)->task;
         placeKey                   = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;

@@ -36,16 +36,16 @@ extern SVECTOR D_acropolis_observatory_8017E80C[];
 
 extern SVECTOR D_acropolis_observatory_8017F16C[];
 
-void func_acropolis_observatory_8017D9A8(Task*);
-void func_acropolis_observatory_8017DD3C(Task*);
-void func_acropolis_observatory_8017E0D4(Task*);
-void func_acropolis_observatory_8017E134(Task*);
+void        func_acropolis_observatory_8017D9A8(Task*);
+void        func_acropolis_observatory_8017DD3C(Task*);
+static void _acropolisObservatorySkipFadeOutTask(Task* task);
+static void _acropolisObservatorySkipFadeInTask(Task* task);
 
 TaskDesc D_acropolis_observatory_8017E7DC[4] = {
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017D9A8, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017DD3C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017E0D4, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017E134, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisObservatorySkipFadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisObservatorySkipFadeInTask, { .value = 0 } },
 };
 
 SVECTOR D_acropolis_observatory_8017E80C[300] = {
@@ -288,37 +288,46 @@ void func_acropolis_observatory_8017DD3C(Task* task)
     }
 }
 
-/// Fade-out task, entry 2 of the room's task table: subtracts a full-screen
-/// grey that grows by 0x20 a frame, counted in `Task::killCountdown`, and asks
-/// for its own release once the screen is black. The streamed-scene tasks
-/// wait on that release before warping the player.
-void func_acropolis_observatory_8017E0D4(Task* arg0)
+/// Darkens either observatory ride before its skip caller replaces the player's pose.
+///
+/// Requires a bodyless task with `killCountdown` initially zero. Draws eight
+/// equal-channel subtractive overlays, intensities 0..224 in steps of 32,
+/// then suspends with result zero at progress 256. The ride must collect the
+/// retained task with `taskPollKill` before starting the reverse fade.
+static void _acropolisObservatorySkipFadeOutTask(Task* task)
 {
-    u8  fade;
-    s16 temp_v0;
+    enum { ACROPOLIS_OBSERVATORY_SKIP_FADE_STEP = 32,
+           ACROPOLIS_OBSERVATORY_SKIP_FADE_SPAN = 256 };
+    u8  fadeLevel;
+    s16 nextProgress;
 
-    fade = (u8)arg0->killCountdown;
-    fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-    temp_v0             = (u16)arg0->killCountdown + 0x20;
-    arg0->killCountdown = temp_v0;
-    if (temp_v0 >= 0x100) {
-        taskRequestKill(arg0, 0);
+    fadeLevel = (u8)task->killCountdown;
+    fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
+    nextProgress        = (u16)task->killCountdown + ACROPOLIS_OBSERVATORY_SKIP_FADE_STEP;
+    task->killCountdown = nextProgress;
+    if (nextProgress >= ACROPOLIS_OBSERVATORY_SKIP_FADE_SPAN) {
+        taskRequestKill(task, 0);
     }
 }
 
-/// Fade-in task, entry 3 of the room's task table: the reverse of
-/// `func_acropolis_observatory_8017E0D4`, subtracting a grey that shrinks by
-/// 0x20 a frame from black, then killing itself.
-void func_acropolis_observatory_8017E134(Task* arg0)
+/// Reveals either observatory ride's final pose after the skip transition.
+///
+/// Requires a bodyless task with `killCountdown` initially zero. Draws eight
+/// equal-channel subtractive overlays, intensities 255..31 in steps of 32,
+/// then tears down the task at progress 256. The signed 16-bit counter is
+/// callback-owned progress; no work or spawn arguments are used.
+static void _acropolisObservatorySkipFadeInTask(Task* task)
 {
-    u8  fade;
-    s16 temp_v0;
+    enum { ACROPOLIS_OBSERVATORY_SKIP_FADE_STEP = 32,
+           ACROPOLIS_OBSERVATORY_SKIP_FADE_SPAN = 256 };
+    u8  fadeLevel;
+    s16 nextProgress;
 
-    fade = ~(u8)arg0->killCountdown;
-    fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
-    temp_v0             = (u16)arg0->killCountdown + 0x20;
-    arg0->killCountdown = temp_v0;
-    if (temp_v0 >= 0x100) {
-        taskKill(arg0);
+    fadeLevel = ~(u8)task->killCountdown;
+    fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
+    nextProgress        = (u16)task->killCountdown + ACROPOLIS_OBSERVATORY_SKIP_FADE_STEP;
+    task->killCountdown = nextProgress;
+    if (nextProgress >= ACROPOLIS_OBSERVATORY_SKIP_FADE_SPAN) {
+        taskKill(task);
     }
 }

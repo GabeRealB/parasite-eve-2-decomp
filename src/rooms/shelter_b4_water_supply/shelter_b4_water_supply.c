@@ -1218,12 +1218,16 @@ static void _shelterB4WaterSupplyInitializeWater(Task* task)
 
 /// Selects the current display half of the borrowed actor-load packet arena.
 ///
-/// `otBuffer` must be 0 or 1. Previous actor data must no longer be needed;
-/// the selected word-aligned half must remain reserved until GPU consumption.
+/// Selects actor-load base 2 without a companion, otherwise base 1, and resets
+/// the byte cursor to its `otBuffer` half (0 or 1), each 0xC000 bytes. Existing
+/// actor data in that half must no longer be needed. The word-aligned half must
+/// fit both append drawers and remain reserved through GPU consumption.
+/// Reserves no storage and clears no packets; call once before the two drawers.
 static inline void _shelterB4WaterSupplyResetWaterPackets(void)
 {
-    enum { SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES = 0xC000 };
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
+    enum { SHELTER_B4_WATER_SUPPLY_COMPANION_NONE          = 0,
+           SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES = 0xC000 };
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == SHELTER_B4_WATER_SUPPLY_COMPANION_NONE) {
         _gShelterB4WaterSupplyWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES;
     } else {
         _gShelterB4WaterSupplyWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES;

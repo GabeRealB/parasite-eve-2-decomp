@@ -509,7 +509,7 @@ TaskDesc D_map_neo_ark_8017A804[] = {
     { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_woodland_path_8017E9B0, { .value = GP_TASK_LOC_KEY(5, 29, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_power_plant_2_8017D854, { .value = GP_TASK_LOC_KEY(5, 16, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_power_plant_1_8017D9C0, { .value = GP_TASK_LOC_KEY(5, 17, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_1f_heliport_80180768, { .value = GP_TASK_LOC_KEY(5, 4, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelter1fHeliportRoomTask, { .value = GP_TASK_LOC_KEY(5, 4, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_pyramid_8017DB98, { .value = GP_TASK_LOC_KEY(5, 32, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_neo_ark_substation_8017D81C, { .value = GP_TASK_LOC_KEY(5, 33, 0) } },
     { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
