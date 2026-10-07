@@ -151120,6 +151120,11 @@ deletes the first set unless the second set reads its own destination, and cse
 folds that form. The permuter (10 min, 4800 iterations) found only the
 loop-counter form (score 20).
 
+*2026-10-07: the asm is gone. A constant set twice does land first, as the
+table says; the register half is solved by leaving the pointer to global-alloc
+as well. See "A constant set twice and a pointer set twice" at the end of this
+file.*
+
 **Use.** When a constant's `li` has to sit above a call's argument setup,
 count the sets of that argument register in the whole function before looking
 at the constant. A register set once is a birth and stays at the call; set
@@ -153033,3 +153038,99 @@ local), 2 after (equal arms, reused local).
 **Use.** An unfilled load-use `nop` directly above a call's constant argument
 moves is a deleted block boundary, not a scheduling choice; do not look for a
 statement order.
+
+## A constant set twice and a pointer set twice: both left to global-alloc, which fills `$v1` before `$v0` (func_actor_403100_80136610, 2026-10-07)
+
+Dated note on "Unresolved, with the mechanism corrected: the `9` barrier is
+about `$a1`" (2026-10-06). `TOUCH_REG(kind)` is gone; two reused locals stand
+where it stood. Both are fitted, and said so in the source.
+
+**Image.** After `jal worldTargetLinkNode`: `li v0,9` / `lui a1` / `addiu a1` /
+`lw v1,%lo(record)` / `move a2,s2` / `sb v0,0x14(v1)`. Plain C gives the `li`
+between the `lw` and the `move`.
+
+**Required state, restated.** sched2 has no births and keeps `.lreg` order
+among equal priorities, so either (a) the `li` has a lower LUID than the `a1`
+pair after sched1, or (b) the `a1` pair sits *below* the `sb` after sched1 and
+sched2 lifts it. Both were measured:
+
+- (b) needs the `lo_sum` into `$a1` (a hard register set three times in the
+  function, so priority 6, the lowest in the block) to be taken before the
+  `sb` in the backward pass. That only happens in a load stall with nothing
+  better ready. Below the `sb` the block has one such stall (between the two
+  loads of `arg0->extra.tmd->coords`), and the `$a0` argument set, priority 8
+  because it is formed from a load that follows the `sb`, always takes it. All
+  720 orders of the six statements between the call and `animationInitContext`
+  were built: with the flags store first, the `a1` pair is at the top of the
+  block in every one. No argument set derived from a load can rank below 6, and
+  `a1 = &symbol` cannot rank above it.
+- (a) needs the `li` not to be launched. `birthing_insn_p` is the only gate
+  (destination a `REG`, live, `REG_N_SETS == 1`), and the consumer makes the
+  destination live before its links are released, so the constant's variable
+  has to be set twice. Any such variable has two deaths and is global.
+  Local-alloc runs first and gives the store's pointer `$v0`, so the constant
+  lands in `$v1`/`$a0`/`$a2` (the 2026-10-06 table).
+
+**What closes it.** The pointer has to be global too. A local assigned from
+the record's global at each point where the image reads it again is one pseudo
+with three ranges; one of them overlaps a block-local temporary that already
+has `$v0` (`li v0,0x300`, the `&param` address), so global-alloc gives it
+`$v1`, and the constant, allocated after it (`.greg`: `86 85`), gets `$v0`:
+
+```c
+value           = gGameSession->location.loc.view;   /* first set: lbu v0 */
+work->savedView = value;
+...
+self = D_actor_403100_8015580C;
+self->bodyPos.vx = 0; ... self->coord = &arg0->extra.tmd->coords[3];
+worldTargetLinkNode(&self->node);
+value = WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE;   /* second set */
+self  = D_actor_403100_8015580C;
+self->node.state.parts.flags = value;
+self  = D_actor_403100_8015580C;
+self->param = &D_actor_403100_8014762C;
+self->recs  = D_actor_403100_80155808->hitContacts;
+```
+
+sched1 then orders the block `li`, `lw`, `lui a1`, `addiu a1`, `sb`
+(`.sched`: `218 (6) 142 (6), now 218 142`: the `a1` set has the higher LUID
+and is taken first, the `li` last).
+
+**Measured, one build each (differing lines against the image).**
+
+| pointer | constant | result |
+|---|---|---|
+| global named at each store | literal | 2 (`li` below the `lw`) |
+| local set at flags and at `param` | literal | 2, same |
+| global named | `value` shared with the view | 10: pointer `$v0`, constant `$a0` |
+| local set at flags and `param`; or at `bodyPos` and flags; or at all three | `value` shared with the view, `s32`/`u32`/`s16`/`u16` | **0** |
+| same | `u8`/`s8` local | 2 (the QImode store source is a fresh constant) |
+| same | second set `0x300`, `-1`, `0x10`, `1`, `2` instead of the view | 4 to 16: the *other* constant is then not launched either and floats out of its own stall |
+| same | `if (obj != NULL) value = 9; else value = 9;` | 2: jump1 folds equal-armed constant sets before flow |
+| `enemy` (the spawn argument) reassigned from the global | shared | 16: one pseudo, one register, and the first range needs `$a1` |
+
+The view is the only other value in the function that is loaded into `$v0`
+and can share the variable without moving its own site (a load is placed by
+its stall, not by launching).
+
+**What is fitted.** Both locals. The image fixes that the constant's pseudo
+had two sets and that the store's pointer was not block-local; it does not say
+which values shared the scalar or that the pointer was a refreshed local.
+Count: 2 before (asm, constant-valued local), 2 after (shared scalar,
+refreshed pointer local), no asm.
+
+**Not used, but true.** The `enemy` local for the spawn argument is not needed
+either: `D = arg0->spawnArg2.pointer; ... D->field_4 = &coord->coord;
+D->field_48 = 0;` gives the same `$a1` accesses, because cse carries the stored
+value until the first byte store. The two stores have the same base and
+different offsets, so sched1 is free to swap them and the image does not show
+which was written first.
+
+**Use.**
+- A constant that has to be scheduled *above* an argument set of a register
+  that is not a birth: the constant's variable was set twice. Look for a
+  loaded value in the same register elsewhere in the function before trying a
+  second constant; a second constant loses its own launch.
+- When that leaves the constant global and a block-local pointer takes its
+  register, make the pointer global the same way: one local set at each
+  re-read. Check `.greg`'s `regs to allocate` line for the order of the two.

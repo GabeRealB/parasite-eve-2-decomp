@@ -5127,7 +5127,8 @@ static void func_actor_403100_80136610(Task* arg0)
     TmdObject*       obj;
     Enemy*           enemy;
     s32              i;
-    s32              kind;
+    s32              value;
+    Enemy*           self;
     GfxCoord*        coord;
 
     obj   = arg0->extra.tmd;
@@ -5137,29 +5138,42 @@ static void func_actor_403100_80136610(Task* arg0)
         enemyDestroy(D_actor_403100_8015580C, arg0);
         return;
     }
-    enemy                               = arg0->spawnArg2.pointer;
-    D_actor_403100_8015580C             = enemy;
-    work                                = arg0->work;
-    obj->lightMtx                       = &work->light;
-    D_actor_403100_80155808             = work;
-    obj->colorMtx                       = &work->color;
-    arg0->msgTable                      = D_actor_403100_801556EC;
-    work->savedView                     = gGameSession->location.loc.view;
-    enemy->field_48                     = 0;
-    enemy->field_4                      = &coord->coord;
-    D_actor_403100_8015580C->bodyPos.vx = 0;
-    D_actor_403100_8015580C->bodyPos.vy = 0;
-    D_actor_403100_8015580C->bodyPos.vz = 0x300;
-    D_actor_403100_8015580C->coord      = &arg0->extra.tmd->coords[3];
-    worldTargetLinkNode(&D_actor_403100_8015580C->node);
-    kind = 9;
-    TOUCH_REG(kind);
-    D_actor_403100_8015580C->node.state.parts.flags = kind;
-    D_actor_403100_8015580C->param                  = &D_actor_403100_8014762C;
-    D_actor_403100_8015580C->recs                   = D_actor_403100_80155808->hitContacts;
-    D_actor_403100_80155630.coord                   = arg0->extra.tmd->coords;
-    obj->flags                                      = 0;
-    D_actor_403100_80155808->bufferReleaseDelay     = -1;
+    enemy                   = arg0->spawnArg2.pointer;
+    D_actor_403100_8015580C = enemy;
+    work                    = arg0->work;
+    obj->lightMtx           = &work->light;
+    D_actor_403100_80155808 = work;
+    obj->colorMtx           = &work->color;
+    arg0->msgTable          = D_actor_403100_801556EC;
+    /* Fitted: the view number and the target flags share one scalar local.
+       Only a constant whose variable is assigned twice is scheduled above
+       the next call's `a1` address pair (see below); what else the original
+       kept in it is not known. */
+    value           = gGameSession->location.loc.view;
+    work->savedView = value;
+    enemy->field_48 = 0;
+    enemy->field_4  = &coord->coord;
+    /* Fitted: the image reads the record's global again after each byte
+       store and after the call (three `lw v1`). Written as one local
+       refreshed at those points, the pointer is left to global-alloc, which
+       runs after the flags constant has `$v0`; naming the global at each
+       store gives the pointer `$v0` and the constant `$v1`. Whether the
+       original had such a local is not known. */
+    self             = D_actor_403100_8015580C;
+    self->bodyPos.vx = 0;
+    self->bodyPos.vy = 0;
+    self->bodyPos.vz = 0x300;
+    self->coord      = &arg0->extra.tmd->coords[3];
+    worldTargetLinkNode(&self->node);
+    value                                       = WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE;
+    self                                        = D_actor_403100_8015580C;
+    self->node.state.parts.flags                = value;
+    self                                        = D_actor_403100_8015580C;
+    self->param                                 = &D_actor_403100_8014762C;
+    self->recs                                  = D_actor_403100_80155808->hitContacts;
+    D_actor_403100_80155630.coord               = arg0->extra.tmd->coords;
+    obj->flags                                  = 0;
+    D_actor_403100_80155808->bufferReleaseDelay = -1;
     animationInitContext(&D_actor_403100_80155808->rig.anim, D_actor_403100_8015572C, obj, D_actor_403100_80155808->rig.poses, D_actor_403100_80155808->rig.slots);
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
     D_actor_403100_80155808->animationId      = 1;
