@@ -2612,7 +2612,7 @@ AnimationSet* gGluttonCaughtAnimSets[7] = {
     NULL,
 };
 
-void             func_actor_444000_80143888(Task*);
+static void      _gluttonEscort6Task(Task* task);
 extern TmdSource gActor444000GluttonLegLeft;
 extern TmdSource gActor444000Actor403200Model12884;
 extern TmdSource gActor444000Actor403200Model13774;
@@ -2627,7 +2627,7 @@ TaskDesc D_actor_444000_801616B0[7] = {
     { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &gActor444000Actor403200Model13774 } },
     { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor444000Actor403200Model1785C } },
     { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &gActor444000Actor403200Model18BE4 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_444000_80143888, { .model = &D_actor_444000_80161B50 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonEscort6Task, { .model = &D_actor_444000_80161B50 } },
 };
 
 SVECTOR gGluttonRainLaunchOffsets[8] = {
@@ -6961,12 +6961,18 @@ static void func_actor_444000_801435CC(Task* arg0)
 
 #include "../../shared/glutton_prop_tick.inc.c"
 
+/// Selects the escort-model task callback instantiated by the shared fragment.
+///
+/// Must name a previously declared `void (Task*)` callback; its declaration
+/// supplies the linkage. Bind around each inclusion, then undefine it. The
+/// first instance serves descriptor slots 0..5; the private copy serves slot 6.
+#define GLUTTON_PROP_TASK gluttonPropTask
 #include "../../shared/glutton_prop_task.inc.c"
+#undef GLUTTON_PROP_TASK
 
-/// A further copy, under this file's own name.
-#define gluttonPropTask func_actor_444000_80143888
+#define GLUTTON_PROP_TASK _gluttonEscort6Task
 #include "../../shared/glutton_prop_task.inc.c"
-#undef gluttonPropTask
+#undef GLUTTON_PROP_TASK
 
 #include "../../shared/glutton_throw_task.inc.c"
 

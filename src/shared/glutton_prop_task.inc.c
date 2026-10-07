@@ -1,13 +1,17 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Task body of the escort models: runs the task state's handler from a stack
-/// copy of `gGluttonPropStates`. Each package carries two identical copies, one
-/// for escorts 0-5 and one for escort 6 (`func_actor_403200_8014148C` /
-/// `func_actor_444000_8014382C`).
-void gluttonPropTask(Task* arg0)
+/// Dispatches a Glutton escort model's setup, coordinate refresh or teardown.
+///
+/// Requires a live TMD body and its owning `Enemy` in `spawnArg2.pointer`.
+/// `state` selects 0 (host-placement textures), 1 (coordinate refresh) or
+/// 2 (enemy release and task teardown), without a bounds check. Setup also
+/// requires a live parent enemy with a valid placement in the current area
+/// variant and advances to state 1. Teardown invalidates the enemy and may
+/// release the task; neither is accessed after dispatch.
+void GLUTTON_PROP_TASK(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = gGluttonPropStates;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers = gGluttonPropStates;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

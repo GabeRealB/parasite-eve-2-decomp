@@ -481,6 +481,7 @@ _gluttonSpinnerTask = 0x80143C64; // type:func
 _gluttonRainTask = 0x80143B74; // type:func
 _gluttonThrowTask = 0x801438E4; // type:func
 gluttonPropTask = 0x8014382C; // type:func
+_gluttonEscort6Task = 0x80143888; // type:func
 _gluttonSetQuadPairHeights = 0x80143374; // type:func
 actor444000GluttonSetShakeLevel = 0x80143490; // type:func
 _gluttonSetSpinnersReleased = 0x801434A8; // type:func

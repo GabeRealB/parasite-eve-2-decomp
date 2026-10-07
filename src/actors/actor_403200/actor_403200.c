@@ -366,7 +366,7 @@ s32                 func_actor_403200_80134A14(Task*, s16);
 s32                 func_actor_403200_80141124(Task*, s16);
 s32                 func_actor_403200_80141180(Task*, s16);
 s32                 func_actor_403200_801411A8(Task*, s16);
-void                func_actor_403200_8014148C(Task*);
+static void         _gluttonEscort6Task(Task* task);
 
 s32  func_actor_403200_80138468(Task*, s32, s32, s32);
 s32  func_actor_403200_80138748(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
@@ -2669,7 +2669,7 @@ TaskDesc D_actor_403200_8015E72C[7] = {
     { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200Model13774 } },
     { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200Model1785C } },
     { { { TASK_BODY_TMD, 96 } }, gluttonPropTask, { .model = &_gActor403200Model18BE4 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403200_8014148C, { .model = &_gActor403200Model186D8 } },
+    { { { TASK_BODY_TMD, 96 } }, _gluttonEscort6Task, { .model = &_gActor403200Model186D8 } },
 };
 
 SVECTOR gGluttonRainLaunchOffsets[8] = {
@@ -3405,7 +3405,7 @@ static const _Actor403200ViewAnchors D_actor_403200_80131E64 = {
 };
 
 /// State handlers of the escort model task `gluttonPropTask` and
-/// `func_actor_403200_8014148C` dispatch: texture setup, coordinate refresh,
+/// `_gluttonEscort6Task` dispatch: texture setup, coordinate refresh,
 /// teardown.
 static const EnemyTaskFuncTable3 gGluttonPropStates = {
     {
@@ -6748,12 +6748,18 @@ static void func_actor_403200_8014123C(Task* arg0)
 
 #include "../../shared/glutton_prop_tick.inc.c"
 
+/// Selects the escort-model task callback instantiated by the shared fragment.
+///
+/// Must name a previously declared `void (Task*)` callback; its declaration
+/// supplies the linkage. Bind around each inclusion, then undefine it. The
+/// first instance serves descriptor slots 0..5; the private copy serves slot 6.
+#define GLUTTON_PROP_TASK gluttonPropTask
 #include "../../shared/glutton_prop_task.inc.c"
+#undef GLUTTON_PROP_TASK
 
-/// A further copy, under this file's own name.
-#define gluttonPropTask func_actor_403200_8014148C
+#define GLUTTON_PROP_TASK _gluttonEscort6Task
 #include "../../shared/glutton_prop_task.inc.c"
-#undef gluttonPropTask
+#undef GLUTTON_PROP_TASK
 
 #include "../../shared/glutton_throw_task.inc.c"
 
