@@ -196,3 +196,12 @@ func_dryfield_night_motel_balcony_8017E4B8 = 0x8017E4B8; // type:func absolute:T
 
 func_dryfield_night_motel_balcony_8017F6C8 = 0x8017F6C8; // type:func absolute:True owner=dryfield_night_motel_balcony shared=rooms
 coordLocalToWorld = 0x8013D460; // type:func
+_actor403100ApplyAnimationBlend = 0x801326dc; // type:func
+_actor403100UpdateAnimation = 0x801327cc; // type:func
+_actor403100TurnUpperArm = 0x801328dc; // type:func
+_actor403100HandleHitReaction = 0x80133928; // type:func
+_actor403100PlayPlayerAnimation = 0x8013d1b8; // type:func
+_actor403100RequestHitPitchKick = 0x8013d24c; // type:func
+_actor403100GetWorldRotation = 0x8013d2f4; // type:func
+_actor403100TurnForearm = 0x8013d770; // type:func
+_actor403100RequestAnimationBlend = 0x8013e02c; // type:func

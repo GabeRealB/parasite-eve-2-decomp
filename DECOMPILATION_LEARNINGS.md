@@ -77462,7 +77462,7 @@ produce it" and pointed at live ranges instead.
 `$s2` and then does `addiu $s0, $s2, 0x194`. That is not a field of some
 larger object: `GfxCoord` leads with `composeStamp` and puts `coord` at +4 inside
 the 0x50 element, so `0x194` is `5 * 0x50 + 4` and the pointer is
-`&coords[5].coord`. `func_actor_403100_8013D770` is the same function on part
+`&coords[5].coord`. `_actor403100TurnForearm` is the same function on part
 6 (`addiu $s0, $s2, 0x1E4`) and is the ready-made source for the whole body:
 identity-splat the local matrix, `gfxExtractEulerAngles(dest, &rot)`, add the yaw
 offset, `RotMatrix`, then nine halfword copies back into `dest`.

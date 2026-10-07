@@ -120,6 +120,9 @@ STATIC_ASSERT_SIZEOF(_Actor403100Flame, 0xF0);
 extern s16               D_actor_403100_80155810;
 extern _Actor403100Flame D_actor_403100_80155814[28];
 
+/// Exact damage-latch value accepted by the hit-reaction and pitch-kick helpers.
+enum { ACTOR_403100_HIT_TAKEN = 1 };
+
 /// Values of `Actor403100Work::jawPitchPhase` and `headPitchPhase`.
 ///
 /// Each byte runs one kick of a model part's pitch: a quick eased swing away
@@ -285,19 +288,18 @@ static void func_actor_403100_8013E624(Task* arg0);
 
 static void func_actor_403100_80132C3C(Task* arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4);
 
-/* This routine ignores its incoming arguments; callers use both forms. */
-static void func_actor_403100_801327CC();
-static void func_actor_403100_801328DC(Task* arg0);
+static void _actor403100UpdateAnimation();
+static void _actor403100TurnUpperArm(Task* task);
 static void func_actor_403100_8013B128(Task* arg0);
 static void func_actor_403100_8013B3C4(Task* arg0);
 static void func_actor_403100_8013D11C(Task* arg0);
 static void func_actor_403100_8013D0B8(s16 arg0, s16 arg1, s16 arg2, s16 arg3);
-static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1);
-static void func_actor_403100_8013D24C(void);
-static s32  func_actor_403100_8013D2F4(GfxCoord* coord, MATRIX* matrix);
+static void _actor403100PlayPlayerAnimation(s16 animationId, s16 messageId);
+static void _actor403100RequestHitPitchKick(void);
+static s32  _actor403100GetWorldRotation(const GfxCoord* joint, MATRIX* rotation);
 static s32  func_actor_403100_8013E33C(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
-static void func_actor_403100_8013D770(Task* arg0);
-static void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2);
+static void _actor403100TurnForearm(Task* task);
+static void _actor403100RequestAnimationBlend(s16 animationId, s16 rate, s16 blendFrames);
 static void func_actor_403100_8013F610(void);
 static void func_actor_403100_8013F658(void);
 static void func_actor_403100_8013B5E0(Task* arg0, s16 arg1);
@@ -3211,7 +3213,7 @@ extern AnimationSet* D_actor_403100_8015572C[26];
 
 extern EvsCommand D_actor_335800_80165FC0[];
 
-static void func_actor_403100_801326DC(Actor403100Work* work);
+static void _actor403100ApplyAnimationBlend(void);
 
 static void func_actor_403100_8013712C(Task* arg0);
 
@@ -3219,7 +3221,7 @@ static void func_actor_403100_8013C008(s16 arg0, s16 arg1);
 
 static void func_actor_403100_8013D74C(Task* arg0);
 
-static s32 func_actor_403100_80133928(void);
+static s16 _actor403100HandleHitReaction(void);
 
 static void func_actor_403100_801345E0(Task* arg0, Task* arg1);
 
@@ -3378,10 +3380,9 @@ STATIC_ASSERT_SIZEOF(_Actor403100HeadAimScratch, 0x88);
 
 static __inline__ s32  Actor403100_FindRegion(s16 x, s16 z);
 static __inline__ s32  Actor403100_FindEffectRegion(s16 x, s16 z);
-static __inline__ s32  Actor403100_AccumulateRotation(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
-static __inline__ s32  Actor403100_LocalizeRotation(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
-static __inline__ s16  Actor403100_TestFlags(void);
-static __inline__ s16  Actor403100_TestFlags104(void);
+static __inline__ s32  _actor403100LocalizeRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
+static __inline__ s16  _actor403100PreviousAnimationAtBoundaryOrJump(void);
+static __inline__ s16  _actor403100AnimationAtBoundaryOrJump(void);
 static __inline__ s16  Actor403100_TestFlags12C(void);
 static void            func_actor_403100_80132320(Task* arg0);
 static void            func_actor_403100_80132528(Task* arg0);
@@ -3409,7 +3410,7 @@ static void            func_actor_403100_80136100(Task* arg0);
 static void            func_actor_403100_8013631C(Task* arg0);
 static void            func_actor_403100_80136610(Task* arg0);
 static inline void     _actor403100RunHook(void);
-static inline void     _actor403100TurnPart6(Task* task);
+static inline void     _actor403100TurnForearmInline(Task* task);
 static inline void     _actor403100PitchArms(Task* task);
 static void            func_actor_403100_801375B8(Task* task);
 static void            func_actor_403100_801376D8(Task* arg0);
@@ -3441,9 +3442,27 @@ static void            func_actor_403100_8013AA04(Task* arg0);
 static void            func_actor_403100_8013AC04(Task* task);
 static void            func_actor_403100_8013AE28(Task* task);
 static inline void     _actor403100StepRoot(TmdObject* obj, GfxCoord* coords);
-static inline s32      Actor403100CoordToViewInline(GfxCoord* coord, SVECTOR* pos);
-static inline void     Actor403100ResetStateInline(s16 anim, s16 angle, s16 frame);
+static inline s32      _actor403100PointToWorld(const GfxCoord* coord, SVECTOR* point);
+static inline void     _actor403100RequestAnimationBlendInline(s16 animationId, s16 rate, s16 blendFrames);
 static s32             func_actor_403100_8013E450(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
+
+static __inline__ void _actor403100CopyRotation(MATRIX* destination, const MATRIX* source);
+
+/// Pre-multiplies a rotation by a parent basis and normalizes the product.
+///
+/// All arguments are stable, side-effect-free pointers to word-aligned MATRIX
+/// storage: parentRotation is read, rotation is writable, normalizedRotation
+/// supplies a separate writable temporary. Coefficients have 12 fractional
+/// bits. Only the resulting 3x3 is valid; the whole-matrix copy also overwrites
+/// translation and alignment bytes. The arguments can be evaluated repeatedly.
+/// GTE working registers change.
+#define ACTOR_403100_PREMULTIPLY_NORMALIZED_ROTATION(parentRotation, rotation, normalizedRotation) \
+    do {                                                                                           \
+        gte_SetRotMatrix(parentRotation);                                                          \
+        MulRotMatrix(rotation);                                                                    \
+        MatrixNormal(rotation, normalizedRotation);                                                \
+        *(rotation) = *(normalizedRotation);                                                       \
+    } while (0)
 
 static __inline__ s32 Actor403100_FindRegion(s16 x, s16 z)
 {
@@ -3467,65 +3486,67 @@ static __inline__ s32 Actor403100_FindEffectRegion(s16 x, s16 z)
     return 0;
 }
 
-/* Inline forms of this actor's rotation traversal helpers. */
-static __inline__ s32 Actor403100_AccumulateRotation(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2)
+/// Copies the nine rotation coefficients, retaining translation and alignment bytes.
+///
+/// Source and destination are separate word-aligned matrices. The source's
+/// 3x3 is initialized and the destination is writable; no cache stamp changes.
+static __inline__ void _actor403100CopyRotation(MATRIX* destination, const MATRIX* source)
 {
-    MATRIX    matrix;
-    GfxCoord* coord;
-
-    coord = arg0->parent;
-    *arg1 = arg0->coord;
-    while (1) {
-        if (coord == NULL) {
-            return 0;
-        }
-        if (coord == arg2) {
-            return 1;
-        }
-        gte_SetRotMatrix(&coord->coord);
-        MulRotMatrix(arg1);
-        MatrixNormal(arg1, &matrix);
-        *arg1 = matrix;
-        coord = coord->parent;
-    }
+    destination->m[0][0] = source->m[0][0];
+    destination->m[0][1] = source->m[0][1];
+    destination->m[0][2] = source->m[0][2];
+    destination->m[1][0] = source->m[1][0];
+    destination->m[1][1] = source->m[1][1];
+    destination->m[1][2] = source->m[1][2];
+    destination->m[2][0] = source->m[2][0];
+    destination->m[2][1] = source->m[2][1];
+    destination->m[2][2] = source->m[2][2];
 }
 
-static __inline__ s32 Actor403100_LocalizeRotation(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2)
+/// Converts an ancestor-frame rotation into the joint's parent frame.
+///
+/// Includes the immediate parent and intervening ancestors, excluding
+/// `excludedAncestor`, then pre-multiplies `rotation` by their transpose.
+/// Parent products are normalized; the final inverse multiply is not.
+/// Coefficients have 12 fractional bits. Only rotation and matrix alignment
+/// bytes change; translation is retained. Returns 1 after conversion or 0
+/// unchanged if the parent is the view or the chain reaches NULL first.
+/// The joint needs a non-NULL parent and a live acyclic chain. For success
+/// the excluded ancestor must lie above that parent. The output is separate
+/// writable word-aligned storage; GTE working registers change.
+static __inline__ s32 _actor403100LocalizeRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor)
 {
-    MATRIX    matrix;
-    MATRIX    normal;
-    MATRIX    transposed;
-    GfxCoord* coord;
+    MATRIX          parentRotation;
+    MATRIX          normalizedRotation;
+    MATRIX          inverseParentRotation;
+    const GfxCoord* ancestor;
 
-    coord = arg0->parent;
-    if (coord == &gGfxViewCoord) {
+    ancestor = joint->parent;
+    if (ancestor == &gGfxViewCoord) {
         return 0;
     }
-    matrix = coord->coord;
+    parentRotation = ancestor->coord;
     while (1) {
-        coord = coord->parent;
-        if (coord == NULL) {
+        ancestor = ancestor->parent;
+        if (ancestor == NULL) {
             return 0;
         }
-        if (coord == arg2) {
+        if (ancestor == excludedAncestor) {
             break;
         }
-        gte_SetRotMatrix(&coord->coord);
-        MulRotMatrix(&matrix);
-        MatrixNormal(&matrix, &normal);
-        matrix = normal;
+        ACTOR_403100_PREMULTIPLY_NORMALIZED_ROTATION(&ancestor->coord, &parentRotation, &normalizedRotation);
     }
-    gte_TransposeMatrix(&matrix, &transposed);
-    gte_SetRotMatrix(&transposed);
-    MulRotMatrix(arg1);
+    gte_TransposeMatrix(&parentRotation, &inverseParentRotation);
+    gte_SetRotMatrix(&inverseParentRotation);
+    MulRotMatrix(rotation);
     return 1;
 }
 
-/* Resolved through `configs/USA/sym/actors.imports.txt`. */
-
-/* Defined later in this file. */
-
-static __inline__ s16 Actor403100_TestFlags(void)
+/// Tests slot 1's previous running update for a boundary, jump or held boundary pose.
+///
+/// Returns 0 or 1. A followed jump qualifies even when playback keeps running;
+/// this is the behaviour transition test, rather than a playback-stop test.
+static __inline__ s16 _actor403100PreviousAnimationAtBoundaryOrJump(void)
 {
     if (D_actor_403100_80155808->previousAnimationFlags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
@@ -3537,12 +3558,17 @@ static __inline__ s16 Actor403100_TestFlags(void)
     return 0;
 }
 
-static __inline__ s16 Actor403100_TestFlags104(void)
+/// Tests live slot 1 for a boundary, jump or held boundary pose.
+///
+/// Returns 0 or 1. Behaviour steps can advance on any of these results,
+/// including a jump whose destination continues playback.
+static __inline__ s16 _actor403100AnimationAtBoundaryOrJump(void)
 {
     if (D_actor_403100_80155808->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
     }
-    if (D_actor_403100_80155808->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
+    if ((D_actor_403100_80155808->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) ||
+        (D_actor_403100_80155808->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
         return 1;
     }
     return 0;
@@ -3706,10 +3732,10 @@ static void func_actor_403100_80132528(Task* arg0)
     rate                                   = D_actor_403100_80155808->animationRate;
     savedRate                              = (u16)D_actor_403100_80155808->animationRate;
     D_actor_403100_80155808->animationRate = rate * 2;
-    func_actor_403100_8013E02C(anim, D_actor_403100_80155808->animationRate, 0);
-    func_actor_403100_801327CC(arg0);
-    func_actor_403100_801328DC(arg0);
-    func_actor_403100_8013D770(arg0);
+    _actor403100RequestAnimationBlend(anim, D_actor_403100_80155808->animationRate, 0);
+    _actor403100UpdateAnimation(arg0);
+    _actor403100TurnUpperArm(arg0);
+    _actor403100TurnForearm(arg0);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
     joint                  = &coords[7];
@@ -3719,7 +3745,7 @@ static void func_actor_403100_80132528(Task* arg0)
     pos.vy = 0x1E8;
     pos.vz = 0x220;
     coordLocalToWorld(joint, &pos);
-    func_actor_403100_8013D2F4(joint, &matrix);
+    _actor403100GetWorldRotation(joint, &matrix);
     gfxExtractEulerAngles(&matrix, &rotation);
     player->rotation.vx = rotation.vx;
     player->rotation.vy = rotation.vy;
@@ -3731,39 +3757,51 @@ static void func_actor_403100_80132528(Task* arg0)
     playerCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(playerCoord);
     D_actor_403100_80155808->animationRate = (-rate) << 1;
-    func_actor_403100_8013E02C(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100RequestAnimationBlend(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
+    _actor403100UpdateAnimation(arg0);
     D_actor_403100_80155808->animationRate = (s16)savedRate;
-    func_actor_403100_8013E02C(D_actor_403100_80155808->animationId, rate, 0);
+    _actor403100RequestAnimationBlend(D_actor_403100_80155808->animationId, rate, 0);
 }
-static void func_actor_403100_801326DC(Actor403100Work* work)
+/// Applies the pending clip and rate to every non-root animation slot.
+///
+/// A repeated clip only changes rates. A different clip captures each slot
+/// into its pose buffer and blends to record offset zero, then consumes the
+/// blend duration. Rates narrow to signed bytes (16 is one frame per tick).
+/// The singleton's loaded sets, fifteen-part rig and pose buffers must stay live.
+static void _actor403100ApplyAnimationBlend(void)
 {
-    s32 i;
+    s32 slotIndex;
 
     if (D_actor_403100_80155808->appliedAnimation == D_actor_403100_80155808->animationId) {
-        for (i = 1; i < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); i++) {
-            D_actor_403100_80155808->rig.slots[i].rate = D_actor_403100_80155808->animationRate;
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); slotIndex++) {
+            D_actor_403100_80155808->rig.slots[slotIndex].rate = D_actor_403100_80155808->animationRate;
         }
     } else {
-        for (i = 1; i < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); i++) {
-            D_actor_403100_80155808->rig.slots[i].rate = D_actor_403100_80155808->animationRate;
-            animationSeekSlotWithBlend(&D_actor_403100_80155808->rig.anim, i, D_actor_403100_80155808->animationId, 0, D_actor_403100_80155808->animationBlendFrames);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); slotIndex++) {
+            D_actor_403100_80155808->rig.slots[slotIndex].rate = D_actor_403100_80155808->animationRate;
+            animationSeekSlotWithBlend(&D_actor_403100_80155808->rig.anim, slotIndex, D_actor_403100_80155808->animationId, 0, D_actor_403100_80155808->animationBlendFrames);
         }
         D_actor_403100_80155808->animationBlendFrames = 0;
     }
     D_actor_403100_80155808->appliedAnimation = D_actor_403100_80155808->animationId;
 }
-static void func_actor_403100_801327CC()
+/// Applies an animation request, then ticks slots 1 through 14.
+///
+/// Blend and reset requests start the elapsed-frame counter at zero; playing
+/// calls increment the unsigned counter with wrap. Every call ticks the slots,
+/// even before the first request. The singleton rig and its borrowed sets
+/// must remain live. Callers pass either no arguments or an ignored task pointer.
+static void _actor403100UpdateAnimation()
 {
-    s32 i;
+    s32 slotIndex;
     if (D_actor_403100_80155808->animationRequest == ACTOR_403100_ANIMATION_REQUEST_BLEND) {
-        func_actor_403100_801326DC(D_actor_403100_80155808);
+        _actor403100ApplyAnimationBlend();
         D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_PLAYING;
         D_actor_403100_80155808->animationFrames  = 0;
     } else if (D_actor_403100_80155808->animationRequest == ACTOR_403100_ANIMATION_REQUEST_RESET) {
-        for (i = 1; i < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); i++) {
-            animationResetSlot(&D_actor_403100_80155808->rig.anim, i, D_actor_403100_80155808->animationId);
-            D_actor_403100_80155808->rig.slots[i].rate = D_actor_403100_80155808->animationRate;
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); slotIndex++) {
+            animationResetSlot(&D_actor_403100_80155808->rig.anim, slotIndex, D_actor_403100_80155808->animationId);
+            D_actor_403100_80155808->rig.slots[slotIndex].rate = D_actor_403100_80155808->animationRate;
         }
         D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_PLAYING;
         D_actor_403100_80155808->animationFrames  = 0;
@@ -3771,38 +3809,37 @@ static void func_actor_403100_801327CC()
     } else if (D_actor_403100_80155808->animationRequest == ACTOR_403100_ANIMATION_REQUEST_PLAYING) {
         D_actor_403100_80155808->animationFrames += 1;
     }
-    for (i = 1; i < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); i++) {
-        animationTickSlot(&D_actor_403100_80155808->rig.anim, i);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(D_actor_403100_80155808->rig.slots); slotIndex++) {
+        animationTickSlot(&D_actor_403100_80155808->rig.anim, slotIndex);
     }
 }
-static void func_actor_403100_801328DC(Task* arg0)
+/// Adds the shoulder pitch and yaw in the model root's frame to the upper-arm pose.
+///
+/// The task must own the live fifteen-part Burner model. Angles use 4096 units
+/// per turn, applied X then Y. Only the joint's 3x3 rotation changes; its
+/// cached transform is refreshed. Reserves and releases one word-aligned
+/// `MATRIX` on the initialized scratch stack; callers provide its capacity.
+static void _actor403100TurnUpperArm(Task* task)
 {
     GfxCoord* root;
-    GfxCoord* joint;
-    MATRIX*   rotation;
-    MATRIX*   dest;
+    GfxCoord* upperArm;
+    MATRIX*   rootRotation;
+    MATRIX*   localRotation;
 
-    root                                                                       = arg0->extra.tmd->coords;
-    *(MATRIX**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) -= 1;
-    rotation                                                                   = *(MATRIX**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET);
-    joint                                                                      = &root[5];
-    Actor403100_AccumulateRotation(joint, rotation, root);
-    RotMatrixX(D_actor_403100_80155808->armPitch, rotation);
-    RotMatrixY(D_actor_403100_80155808->armYaw, rotation);
-    Actor403100_LocalizeRotation(joint, rotation, root);
-    dest                = &joint->coord;
-    dest->m[0][0]       = rotation->m[0][0];
-    dest->m[0][1]       = rotation->m[0][1];
-    dest->m[0][2]       = rotation->m[0][2];
-    dest->m[1][0]       = rotation->m[1][0];
-    dest->m[1][1]       = rotation->m[1][1];
-    dest->m[1][2]       = rotation->m[1][2];
-    dest->m[2][0]       = rotation->m[2][0];
-    dest->m[2][1]       = rotation->m[2][1];
-    dest->m[2][2]       = rotation->m[2][2];
-    joint->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(joint);
-    *(MATRIX**)PLAYSTATION_SCRATCHPAD_ADDRESS(SCRATCH_STACK_HEAD_BYTE_OFFSET) += 1;
+    root                          = task->extra.tmd->coords;
+    SCRATCH_STACK_CURSOR(MATRIX) -= 1;
+    rootRotation                  = SCRATCH_STACK_CURSOR(MATRIX);
+    upperArm                      = &root[5];
+    // Apply the shoulder offsets in the model root's frame.
+    _actorRenderAccumulateRotation(upperArm, rootRotation, root);
+    RotMatrixX(D_actor_403100_80155808->armPitch, rootRotation);
+    RotMatrixY(D_actor_403100_80155808->armYaw, rootRotation);
+    _actor403100LocalizeRotation(upperArm, rootRotation, root);
+    localRotation = &upperArm->coord;
+    _actor403100CopyRotation(localRotation, rootRotation);
+    upperArm->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(upperArm);
+    SCRATCH_STACK_CURSOR(MATRIX) += 1;
 }
 static void func_actor_403100_80132C3C(Task* task, s16 firstJoint, s16 secondJoint, s16 width, s32 height)
 {
@@ -4092,36 +4129,51 @@ static void func_actor_403100_8013335C(Task* arg0)
     D_actor_403100_80155808->hitCooldown = 0;
 }
 
-static s32 func_actor_403100_80133928(void)
+/// Consumes a damaged frame's hit reaction and reports whether it interrupts the behaviour.
+///
+/// A flinch requests the jaw/head pitch kick and returns 0. Stagger or buildup
+/// stun also fades the breath sound, enters that behaviour at step zero and
+/// returns 1. Other reactions are cleared with a 0 result. Without this frame
+/// being marked damaged, the reaction is retained. The damage latch stays set.
+static s16 _actor403100HandleHitReaction(void)
 {
-    s16 state;
-    s8  mode;
+    enum {
+        ACTOR_403100_HIT_REACTION_NONE         = 0,
+        ACTOR_403100_HIT_REACTION_STAGGER      = 2,
+        ACTOR_403100_HIT_REACTION_BUILDUP_STUN = 3,
+        ACTOR_403100_BEHAVIOUR_STAGGER         = 8,
+        ACTOR_403100_BEHAVIOUR_BUILDUP_STUN    = 10,
+        ACTOR_403100_BREATH_STOP_FADE_UPDATES  = 10,
+    };
+    s16 reaction;
+    s8  hitTaken;
 
-    mode = D_actor_403100_80155808->hitTaken;
-    if (mode == 1) {
-        state = D_actor_403100_80155808->hitReaction;
-        if (state == mode) {
-            D_actor_403100_80155808->hitReaction = 0;
-            func_actor_403100_8013D24C();
+    hitTaken = D_actor_403100_80155808->hitTaken;
+    if (hitTaken == ACTOR_403100_HIT_TAKEN) {
+        reaction = D_actor_403100_80155808->hitReaction;
+        // A flinch shares the damage latch's value and keeps the current behaviour.
+        if (reaction == hitTaken) {
+            D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_NONE;
+            _actor403100RequestHitPitchKick();
             return 0;
         }
-        if (state == 2) {
-            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
-            func_actor_403100_8013D24C();
-            D_actor_403100_80155808->hitReaction = 0;
-            D_actor_403100_80155808->state       = 8;
+        if (reaction == ACTOR_403100_HIT_REACTION_STAGGER) {
+            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), ACTOR_403100_BREATH_STOP_FADE_UPDATES);
+            _actor403100RequestHitPitchKick();
+            D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_NONE;
+            D_actor_403100_80155808->state       = ACTOR_403100_BEHAVIOUR_STAGGER;
             D_actor_403100_80155808->subState    = 0;
             return 1;
         }
-        if (state == 3) {
-            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
-            func_actor_403100_8013D24C();
-            D_actor_403100_80155808->hitReaction = 0;
-            D_actor_403100_80155808->state       = 0xA;
+        if (reaction == ACTOR_403100_HIT_REACTION_BUILDUP_STUN) {
+            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), ACTOR_403100_BREATH_STOP_FADE_UPDATES);
+            _actor403100RequestHitPitchKick();
+            D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_NONE;
+            D_actor_403100_80155808->state       = ACTOR_403100_BEHAVIOUR_BUILDUP_STUN;
             D_actor_403100_80155808->subState    = 0;
             return 1;
         }
-        D_actor_403100_80155808->hitReaction = 0;
+        D_actor_403100_80155808->hitReaction = ACTOR_403100_HIT_REACTION_NONE;
         return 0;
     }
     return 0;
@@ -4198,10 +4250,10 @@ static void func_actor_403100_801339EC(Task* arg0)
     s32       brightness;
 
     handlers[(s16)D_actor_403100_80155808->state](arg0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
     _actor403100SetRootYaw(arg0);
     _actor403100ScaleRoot(arg0, D_actor_403100_80155808->defeatScale);
-    func_actor_403100_801328DC(arg0);
+    _actor403100TurnUpperArm(arg0);
     coords                 = arg0->extra.tmd->coords;
     coords[8].composeStamp = GRAPHICS_COORD_DIRTY;
     coords[7].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4733,7 +4785,7 @@ static void func_actor_403100_8013539C(Task* arg0)
     D_actor_403100_80155808->rotation.vy      = 0;
     D_actor_403100_80155808->stateFrames      = 0;
     D_actor_403100_80155808->sceneScale       = 0x1910;
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
     D_actor_403100_80155808->subState += 1;
 }
 static void func_actor_403100_801354A0(Task* arg0)
@@ -4758,7 +4810,7 @@ static void func_actor_403100_801354A0(Task* arg0)
     if ((s16)D_actor_403100_80155808->stateFrames == 0x28) {
         D_actor_403100_80155808->subState += 1;
     }
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
 }
 static void func_actor_403100_801355D4(Task* arg0)
 {
@@ -4785,7 +4837,7 @@ static void func_actor_403100_801355D4(Task* arg0)
     D_actor_403100_80155808->rotation.vy      = 0;
     D_actor_403100_80155808->stateFrames      = 0;
     D_actor_403100_80155808->sceneScale       = 0x1400;
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
     D_actor_403100_80155808->subState += 1;
 }
 
@@ -4817,7 +4869,7 @@ static void func_actor_403100_801356F4(Task* arg0)
         second.vz = 0xF0;
         func_actor_403100_80132064(arg0, &first, &second, 1);
     }
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->subState += 1;
     }
 }
@@ -5178,7 +5230,7 @@ static void func_actor_403100_80136610(Task* arg0)
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
     D_actor_403100_80155808->animationId      = 1;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
     coord->parent = &gGfxViewCoord;
     func_actor_403100_80132320(arg0);
     for (i = ARRAY_SIZE(D_actor_403100_80155814) - 1; i >= 0; i--) {
@@ -5306,34 +5358,29 @@ static inline void _actor403100RunHook(void)
     hooks.handlers[D_actor_403100_80155808->playerReactionStage]();
 }
 
-/// Adds the angles of `forearmTurn` to the rotation of
-/// model part 6 and updates the part.
-static inline void _actor403100TurnPart6(Task* task)
+/// Adds the forearm offsets to its animated local Euler rotation and refreshes the transform.
+///
+/// The task owns the live Burner model; coordinate 6 is its forearm. Angles
+/// use 4096 units per turn and narrow to signed halfwords before `RotMatrix`.
+/// Translation and matrix alignment bytes are retained.
+static inline void _actor403100TurnForearmInline(Task* task)
 {
     SVECTOR   angles;
     MATRIX    rotation;
-    MATRIX*   dest;
-    GfxCoord* coords;
+    MATRIX*   localRotation;
+    GfxCoord* forearm;
 
-    coords               = task->extra.tmd->coords + 6;
-    dest                 = &coords->coord;
-    coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    forearm               = task->extra.tmd->coords + 6;
+    localRotation         = &forearm->coord;
+    forearm->composeStamp = GRAPHICS_COORD_DIRTY;
     gfxSetRotIdentity(&rotation);
-    gfxExtractEulerAngles(dest, &angles);
+    gfxExtractEulerAngles(localRotation, &angles);
     angles.vz += D_actor_403100_80155808->forearmTurn.vz;
     angles.vy += D_actor_403100_80155808->forearmTurn.vy;
     angles.vx += D_actor_403100_80155808->forearmTurn.vx;
     RotMatrix(&angles, &rotation);
-    dest->m[0][0] = rotation.m[0][0];
-    dest->m[0][1] = rotation.m[0][1];
-    dest->m[0][2] = rotation.m[0][2];
-    dest->m[1][0] = rotation.m[1][0];
-    dest->m[1][1] = rotation.m[1][1];
-    dest->m[1][2] = rotation.m[1][2];
-    dest->m[2][0] = rotation.m[2][0];
-    dest->m[2][1] = rotation.m[2][1];
-    dest->m[2][2] = rotation.m[2][2];
-    actorRenderComposeCoord(coords);
+    _actor403100CopyRotation(localRotation, &rotation);
+    actorRenderComposeCoord(forearm);
 }
 
 /// Adds `jawPitchOffset` to the X angle of model part 4 and `headPitchOffset` to that of
@@ -5436,7 +5483,7 @@ static void func_actor_403100_80136830(Task* arg0)
             func_actor_403100_8013CBE0(arg0);
             func_actor_403100_8013CDC0();
             func_actor_403100_8013BA64(arg0);
-            func_actor_403100_801327CC(arg0);
+            _actor403100UpdateAnimation(arg0);
             flashTimer                                      = D_actor_403100_80155808->shakeFrames;
             D_actor_403100_80155808->previousAnimationFlags = D_actor_403100_80155808->rig.slots[1].status.fields.flags;
             if (flashTimer != 0) {
@@ -5454,8 +5501,8 @@ static void func_actor_403100_80136830(Task* arg0)
             _actor403100SetRootYaw(arg0);
             scale = 0x1400;
             _actor403100ScaleRoot(arg0, scale);
-            func_actor_403100_801328DC(arg0);
-            _actor403100TurnPart6(arg0);
+            _actor403100TurnUpperArm(arg0);
+            _actor403100TurnForearmInline(arg0);
             _actor403100PitchArms(arg0);
             func_actor_403100_8013335C(arg0);
             if (D_actor_403100_80155808->hitColorFrames != 0) {
@@ -5707,7 +5754,7 @@ static void func_actor_403100_801376D8(Task* arg0)
         D_actor_403100_80155808->walkStage = 4;
         if (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE) {
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            func_actor_403100_8013D1B8(5, 0x3F4);
+            _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
             D_actor_403100_80155808->playerReactionFrames = 0x17;
             D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
             task                                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -5721,7 +5768,7 @@ static void func_actor_403100_801376D8(Task* arg0)
         func_actor_403100_8013D2A0(1);
     }
     D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << 4) >> 7;
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         if (D_actor_403100_80155808->swingConnected != 0) {
             D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
             D_actor_403100_80155808->animationId          = 5;
@@ -5771,7 +5818,7 @@ static void func_actor_403100_801379B4(Task* arg0)
         D_actor_403100_80155808->walkStage = 4;
         if (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE) {
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            func_actor_403100_8013D1B8(5, 0x3F4);
+            _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
             D_actor_403100_80155808->playerReactionFrames = 0x17;
             D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
             task                                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -5786,7 +5833,7 @@ static void func_actor_403100_801379B4(Task* arg0)
         D_actor_403100_80155808->stateCounter   = 1;
     }
     D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << 4) >> 7;
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         count                                 = D_actor_403100_80155808->stateCounter - 1;
         D_actor_403100_80155808->stateCounter = count;
         if (!(count & 0xFF)) {
@@ -5822,7 +5869,7 @@ static void func_actor_403100_80137CA8(Task* task)
     angleY                            = (u16)D_actor_403100_80155808->armYaw;
     D_actor_403100_80155808->armPitch = angleX + ((s32) - (angleX << 0x14) >> 0x17);
     D_actor_403100_80155808->armYaw   = angleY + ((s32) - (angleY << 0x14) >> 0x17);
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         if (D_actor_403100_80155808->swingConnected != 0) {
             D_actor_403100_80155808->stateFrames = 0;
             random                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -5866,7 +5913,7 @@ static void func_actor_403100_80137DC4(Task* arg0)
         padScriptSpawnVariableMotorRamp(0x12, 0xFFU, 8U);
         D_actor_403100_80155808->shakeFrames = 0x12;
     }
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->state    = 1;
         D_actor_403100_80155808->subState = 0;
     }
@@ -5989,7 +6036,7 @@ static void func_actor_403100_80138048(Task* arg0)
         offset.vz   = 0x400;
         effectSpawn(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->aimMode     = ACTOR_403100_AIM_YAW_ONLY;
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState   += 1;
@@ -6025,7 +6072,7 @@ static void func_actor_403100_8013842C(Task* arg0)
         offset.vz   = 0x400;
         effectSpawn(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->state    = 1;
         D_actor_403100_80155808->subState = 0;
     }
@@ -6038,7 +6085,7 @@ static void func_actor_403100_80138610(Task* arg0)
     GfxCoord* coord;
 
     coord = arg0->extra.tmd->coords;
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         coord->coord.t[1]                   += 0x30;
         timer                                = D_actor_403100_80155808->stateFrames;
         D_actor_403100_80155808->stateFrames = timer + 1;
@@ -6067,7 +6114,7 @@ static void func_actor_403100_801386DC(Task* arg0)
     GfxCoord* coord;
 
     coord = arg0->extra.tmd->coords;
-    func_actor_403100_8013D24C();
+    _actor403100RequestHitPitchKick();
     D_actor_403100_80155808->armYaw =
         (u16)D_actor_403100_80155808->armYaw +
         ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << 0x14) >> 0x17);
@@ -6089,7 +6136,7 @@ static void func_actor_403100_80138790(Task* arg0)
     GfxCoord* coord;
 
     coord = arg0->extra.tmd->coords;
-    func_actor_403100_8013D24C();
+    _actor403100RequestHitPitchKick();
     D_actor_403100_80155808->armYaw =
         (u16)D_actor_403100_80155808->armYaw +
         ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << 0x14) >> 0x17);
@@ -6116,10 +6163,10 @@ static void func_actor_403100_80138844(Task* arg0)
     GfxCoord* coord;
 
     coord = arg0->extra.tmd->coords;
-    func_actor_403100_8013D24C();
+    _actor403100RequestHitPitchKick();
     if ((D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-        func_actor_403100_8013D1B8(5, 0x3F4);
+        _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
         D_actor_403100_80155808->playerReactionFrames = 0x17;
         D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
         player                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -6160,12 +6207,12 @@ static void func_actor_403100_80138AB4(Task* task)
     Task* player;
     u16   frame;
 
-    func_actor_403100_8013D24C();
+    _actor403100RequestHitPitchKick();
     frame                                = D_actor_403100_80155808->stateFrames + 1;
     D_actor_403100_80155808->stateFrames = frame;
     if (((s16)frame < 0x20) && (D_actor_403100_80155808->handTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-        func_actor_403100_8013D1B8(5, 0x3F4);
+        _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
         D_actor_403100_80155808->playerReactionFrames = 0x17;
         D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
         player                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -6173,7 +6220,7 @@ static void func_actor_403100_80138AB4(Task* task)
             ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
         }
     }
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
         D_actor_403100_80155808->animationId      = 5;
         D_actor_403100_80155808->walkStage        = 0;
@@ -6187,12 +6234,12 @@ static void func_actor_403100_80138C18(Task* task)
     u16 velocityX;
     u32 random;
 
-    func_actor_403100_8013D24C();
+    _actor403100RequestHitPitchKick();
     velocityX                         = (u16)D_actor_403100_80155808->armPitch;
     velocityZ                         = (u16)D_actor_403100_80155808->armYaw;
     D_actor_403100_80155808->armPitch = velocityX + ((s32) - (velocityX << 0x14) >> 0x17);
     D_actor_403100_80155808->armYaw   = velocityZ + ((s32) - (velocityZ << 0x14) >> 0x17);
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState = random;
         if ((random >> 0x10) & 1) {
@@ -6212,7 +6259,7 @@ static void func_actor_403100_80138D08(Task* arg0)
     Actor403100Work* work;
 
     obj = arg0->extra.tmd;
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         obj->otOffset                                 = 0;
         work                                          = D_actor_403100_80155808;
         D_actor_403100_80155808->handTouchedPlayer    = 0;
@@ -6241,7 +6288,7 @@ static void func_actor_403100_80138DB0(Task* arg0)
 
     player                               = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     D_actor_403100_80155808->stateFrames = (u16)(D_actor_403100_80155808->stateFrames + 1);
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         if ((s16)D_actor_403100_80155808->stateFrames < 0x101) {
             func_actor_403100_8013C7B4(arg0);
             work = D_actor_403100_80155808;
@@ -6255,7 +6302,7 @@ static void func_actor_403100_80138DB0(Task* arg0)
                 sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
                 D_actor_403100_80155808->releaseRequested = 0;
                 D_actor_403100_80155808->promptPending    = 1;
-                func_actor_403100_8013D1B8(1, 0x3F4);
+                _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
                 D_actor_403100_80155808->stateFrames  = 0U;
                 D_actor_403100_80155808->stateCounter = 0;
                 D_actor_403100_80155808->subState    += 1;
@@ -6267,7 +6314,7 @@ static void func_actor_403100_80138DB0(Task* arg0)
         } else {
             D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_ANIMATED;
         }
-        if (Actor403100_TestFlags104()) {
+        if (_actor403100AnimationAtBoundaryOrJump()) {
             D_actor_403100_80155808->state    = 1;
             D_actor_403100_80155808->subState = 0U;
         }
@@ -6292,7 +6339,7 @@ static void func_actor_403100_80138F88(Task* arg0)
     D_actor_403100_80155808->rotation.vy = 0xA00;
     D_actor_403100_80155808->rotation.vz = 0;
     func_actor_403100_80132528(arg0);
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000C;
         pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
         depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
@@ -6328,7 +6375,7 @@ static void func_actor_403100_80138F88(Task* arg0)
         D_actor_403100_80155808->promptPending     = 0;
         D_actor_403100_80155808->jawPitchOffset    = 0;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-        func_actor_403100_8013D1B8(1, 0x3FF);
+        _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
         message[5] = 0x28;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, message, 0);
         D_actor_403100_80155808->holdStartHp = D_actor_403100_8015580C->hp;
@@ -6388,7 +6435,7 @@ static void func_actor_403100_8013922C(Task* arg0)
             }
         }
     } else {
-        if (Actor403100_TestFlags()) {
+        if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
             D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
             D_actor_403100_80155808->animationId      = 0xC;
             D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
@@ -6396,7 +6443,7 @@ static void func_actor_403100_8013922C(Task* arg0)
     }
     if (D_actor_403100_80155808->promptPending != 0) {
         D_actor_403100_80155808->promptPending = 0;
-        func_actor_403100_8013D1B8(1, 0x3FF);
+        _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
         message[5] = 0x28;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, message, 0);
         D_actor_403100_80155808->stateCounter = D_actor_403100_80155808->stateCounter + 1;
@@ -6413,7 +6460,7 @@ static void func_actor_403100_8013922C(Task* arg0)
             D_actor_403100_80155808->subState   += 1;
             return;
         }
-        func_actor_403100_8013D1B8(1, 0x3F4);
+        _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
         D_actor_403100_80155808->stateFrames                       = 0;
         D_actor_403100_80155808->animationRate                     = 8;
         D_actor_403100_80155808->animationId                       = 0xE;
@@ -6583,7 +6630,7 @@ static void func_actor_403100_80139818(Task* arg0)
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x64) {
         func_8010B2A0(0, 3);
-        func_actor_403100_8013D1B8(1, 0x3F4);
+        _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
         task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 4), 0);
         if (config->hp <= 0) {
@@ -6598,7 +6645,7 @@ static void func_actor_403100_80139818(Task* arg0)
             gGameSession->suppressDeathChecks = 1;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
-            func_actor_403100_8013D1B8(6, 0x3FF);
+            _actor403100PlayPlayerAnimation(6, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
         } else {
             sound3 = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
             pan3   = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
@@ -6634,8 +6681,8 @@ static void func_actor_403100_80139818(Task* arg0)
     D_actor_403100_80155808->rotation.vz    = 0;
     func_actor_403100_80132528(arg0);
     if (D_actor_403100_80155808->playerKilled == 0) {
-        if (Actor403100_TestFlags()) {
-            func_actor_403100_8013D1B8(1, 0x3F4);
+        if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
+            _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
             D_actor_403100_80155808->stateFrames = 0;
             D_actor_403100_80155808->aimMode     = ACTOR_403100_AIM_TRACK;
             D_actor_403100_80155808->overlayY    = 0x3C;
@@ -6756,7 +6803,7 @@ static void func_actor_403100_8013A064(Task* arg0)
             state   = 2;
             message = 0x3F4;
         }
-        func_actor_403100_8013D1B8(state, message);
+        _actor403100PlayPlayerAnimation(state, message);
         D_actor_403100_80155808->stateFrames = 0;
     }
 }
@@ -6893,7 +6940,7 @@ static void func_actor_403100_8013A5AC(Task* arg0)
         offset.vz   = 0x400;
         effectSpawn(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState   += 1;
     }
@@ -6928,7 +6975,7 @@ static void func_actor_403100_8013A81C(Task* arg0)
         offset.vz   = 0x400;
         effectSpawn(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
     }
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->state    = 1;
         D_actor_403100_80155808->subState = 0;
     }
@@ -6947,7 +6994,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
     D_actor_403100_80155808->stateFrames = frame + 1;
     if ((u32)((frame - 0x33) & 0xFFFF) < 0x16U) {
         func_actor_403100_8013C7B4(arg0);
-    } else if ((func_actor_403100_80133928() << 0x10) != 0) {
+    } else if (_actor403100HandleHitReaction() != 0) {
         return;
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x44) {
@@ -6960,7 +7007,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
         D_actor_403100_80155808->vulnerable    = 1;
         D_actor_403100_80155808->holdingPlayer = 1;
         Gp_StateC08.flags                     |= ATTACHMENT_FLAG_EVENT_LOCK;
-        func_actor_403100_8013D1B8(3, 0x3F4);
+        _actor403100PlayPlayerAnimation(3, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
         func_actor_403100_8013D0B8(D_actor_403100_80155808->playerPosition.vx, D_actor_403100_80155808->playerPosition.vy, (s16)((u16)D_actor_403100_80155808->playerPosition.vz + 0xBB8), 0x800);
         D_actor_403100_80155808->handTouchedPlayer = 0;
         D_actor_403100_80155808->stateFrames       = 0;
@@ -6968,7 +7015,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
         D_actor_403100_80155808->subState         += 1;
         return;
     }
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->handTouchedPlayer = 0;
         D_actor_403100_80155808->state             = 1;
         D_actor_403100_80155808->subState          = 0;
@@ -7023,7 +7070,7 @@ static void func_actor_403100_8013AC04(Task* task)
             state   = 2;
             message = 0x3F4;
         }
-        func_actor_403100_8013D1B8(state, message);
+        _actor403100PlayPlayerAnimation(state, message);
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState    = (u16)(D_actor_403100_80155808->subState + 1);
     }
@@ -7187,7 +7234,7 @@ static void func_actor_403100_8013B3C4(Task* arg0)
     D_actor_403100_80155808->rotation.vx = 0;
     D_actor_403100_80155808->rotation.vy = 0xA00;
     D_actor_403100_80155808->rotation.vz = 0;
-    if (Actor403100_TestFlags()) {
+    if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->vulnerable = 0;
         worldTargetLinkNode(&D_actor_403100_8015580C->node);
         D_actor_403100_8015580C->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
@@ -7632,7 +7679,7 @@ static void func_actor_403100_8013C214(Task* arg0)
                     work->playerDeathFrames           = 0;
                     gGameSession->suppressDeathChecks = 1;
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
-                    func_actor_403100_8013D1B8(6, 0x3FF);
+                    _actor403100PlayPlayerAnimation(6, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
                 }
                 if (D_actor_403100_80155808->playerKilled == 0) {
                     padScriptSpawnVariableMotorRamp(0xA, 0xC0U, 0x20U);
@@ -7713,43 +7760,57 @@ static void func_actor_403100_8013C214(Task* arg0)
         }
     }
 }
-static inline s32 Actor403100CoordToViewInline(GfxCoord* coord, SVECTOR* pos)
+/// Carries a local point through the parent chain into world coordinates.
+///
+/// Stops before applying the view node. Each GTE rotation/translation result
+/// narrows to signed halfwords before the next parent. Returns 1 and writes
+/// `point` only on reaching a view node with a non-NULL parent; returns 0
+/// unchanged at a parentless node. The input node and its acyclic chain must
+/// stay live; `point` is writable and separate from them. GTE registers change.
+static inline s32 _actor403100PointToWorld(const GfxCoord* coord, SVECTOR* point)
 {
-    SVECTOR local;
-    VECTOR  result;
-    s32     flag;
+    SVECTOR accumulatedPoint;
+    VECTOR  transformedPoint;
+    s32     gteFlags;
 
-    local.vx = pos->vx;
-    local.vy = pos->vy;
-    local.vz = pos->vz;
+    accumulatedPoint.vx = point->vx;
+    accumulatedPoint.vy = point->vy;
+    accumulatedPoint.vz = point->vz;
     while (1) {
         if (coord->parent == NULL) {
             return 0;
         }
         if (coord == &gGfxViewCoord) {
-            pos->vx = local.vx;
-            pos->vy = local.vy;
-            pos->vz = local.vz;
+            point->vx = accumulatedPoint.vx;
+            point->vy = accumulatedPoint.vy;
+            point->vz = accumulatedPoint.vz;
             return 1;
         }
         gte_SetTransMatrix(&coord->coord);
         gte_SetRotMatrix(&coord->coord);
-        gte_ldv0(&local);
+        gte_ldv0(&accumulatedPoint);
         gte_rtv0tr();
-        gte_stlvnl(&result);
-        gte_stflg(&flag);
-        local.vx = result.vx;
-        local.vy = result.vy;
-        local.vz = result.vz;
-        coord    = coord->parent;
+        gte_stlvnl(&transformedPoint);
+        gte_stflg(&gteFlags);
+        accumulatedPoint.vx = transformedPoint.vx;
+        accumulatedPoint.vy = transformedPoint.vy;
+        accumulatedPoint.vz = transformedPoint.vz;
+        coord               = coord->parent;
     }
 }
 
-static inline void Actor403100ResetStateInline(s16 anim, s16 angle, s16 frame)
+/// Latches a blended clip request for the next animation update.
+///
+/// `animationId` selects a loaded Burner clip. `rate` counts sixteenths of a
+/// normal frame per tick and narrows to a signed byte when applied; negative
+/// plays backwards. `blendFrames` is a duration in whole normal-rate frames
+/// (0 no transition time, 0..2047 fits playback's signed timer). A repeated
+/// clip changes only the rate and leaves the duration pending. No pose is ticked here.
+static inline void _actor403100RequestAnimationBlendInline(s16 animationId, s16 rate, s16 blendFrames)
 {
-    D_actor_403100_80155808->animationBlendFrames = frame;
-    D_actor_403100_80155808->animationRate        = angle;
-    D_actor_403100_80155808->animationId          = anim;
+    D_actor_403100_80155808->animationBlendFrames = blendFrames;
+    D_actor_403100_80155808->animationRate        = rate;
+    D_actor_403100_80155808->animationId          = animationId;
     D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
 }
 
@@ -7770,9 +7831,9 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     savedRate   = (u16)D_actor_403100_80155808->animationRate;
     coords      = arg0->extra.tmd->coords;
     second      = coords + 7;
-    Actor403100ResetStateInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
-    func_actor_403100_801327CC();
-    func_actor_403100_801328DC(arg0);
+    _actor403100RequestAnimationBlendInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
+    _actor403100UpdateAnimation();
+    _actor403100TurnUpperArm(arg0);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
     joint                  = coords + 8;
@@ -7781,7 +7842,7 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     pos0.vx = 0x160;
     pos0.vy = 0x148;
     pos0.vz = 0x2C0;
-    Actor403100CoordToViewInline(joint, &pos0);
+    _actor403100PointToWorld(joint, &pos0);
     dx0      = (u16)playerCoord->coord.t[0] - (u16)pos0.vx;
     delta.vx = dx0;
     delta.vy = (u16)playerCoord->coord.t[1] - ((u16)pos0.vy + 0x352);
@@ -7793,7 +7854,7 @@ static void func_actor_403100_8013C7B4(Task* arg0)
     pos1.vx = 0x160;
     pos1.vy = 0x148;
     pos1.vz = 0x180;
-    Actor403100CoordToViewInline(second, &pos1);
+    _actor403100PointToWorld(second, &pos1);
     dx1      = (u16)playerCoord->coord.t[0] - (u16)pos1.vx;
     delta.vx = dx1;
     delta.vy = (u16)playerCoord->coord.t[1] - ((u16)pos1.vy + 0x352);
@@ -7803,10 +7864,10 @@ static void func_actor_403100_8013C7B4(Task* arg0)
         D_actor_403100_80155808->forearmTouchedPlayer = 1;
     }
     D_actor_403100_80155808->animationRate = -(s16)savedRate;
-    Actor403100ResetStateInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100RequestAnimationBlendInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
+    _actor403100UpdateAnimation(arg0);
     D_actor_403100_80155808->animationRate = (s16)savedRate;
-    Actor403100ResetStateInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
+    _actor403100RequestAnimationBlendInline(D_actor_403100_80155808->animationId, D_actor_403100_80155808->animationRate, 0);
 }
 
 /// Starts a character-bank sound for this actor's place index at model
@@ -8022,31 +8083,42 @@ static void func_actor_403100_8013D11C(Task* arg0)
     gRandomLcgState                               = random;
     slot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
-static void func_actor_403100_8013D1B8(s16 arg0, s16 arg1)
+/// Plays a Burner-supplied animation on the player with grid participation disabled.
+///
+/// `animationId` must select a loaded entry in the package's eight-entry player
+/// table. `messageId` chooses `ANIMATION_MESSAGE_REPLACE_AND_PLAY` or
+/// `ANIMATION_MESSAGE_INSTALL_AND_PLAY`; other values only update the stored
+/// signed-byte id. Dispatch consumes the stack request synchronously, while
+/// the table and clip data remain borrowed for playback. The pose is reset.
+static void _actor403100PlayPlayerAnimation(s16 animationId, s16 messageId)
 {
-    AnimationPlayRequest msg;
+    AnimationPlayRequest request;
 
-    msg.source.sets                            = _gActor403100PlayerAnimationSets;
-    msg.animationId                            = (s32)arg0;
-    msg.blend                                  = ANIMATION_BLEND_RESET;
-    msg.blendFrames                            = 0;
-    msg.enableWorldCollision                   = ANIMATION_WORLD_COLLISION_DISABLE;
-    D_actor_403100_80155808->playerAnimationId = (s8)arg0;
-    if (arg1 == 0x3FF) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
-    } else if (arg1 == 0x3F4) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+    request.source.sets                        = _gActor403100PlayerAnimationSets;
+    request.animationId                        = animationId;
+    request.blend                              = ANIMATION_BLEND_RESET;
+    request.blendFrames                        = 0;
+    request.enableWorldCollision               = ANIMATION_WORLD_COLLISION_DISABLE;
+    D_actor_403100_80155808->playerAnimationId = (s8)animationId;
+    if (messageId == ANIMATION_MESSAGE_REPLACE_AND_PLAY) {
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &request, 0);
+    } else if (messageId == ANIMATION_MESSAGE_INSTALL_AND_PLAY) {
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
     }
 }
-static void func_actor_403100_8013D24C(void)
+/// Requests a jaw/head pitch kick for a damaged frame while both parts are at rest.
+///
+/// Sets both phases to start and selects the jaw's hit sound. The damage latch
+/// is not consumed, so another kick can be requested when both parts return to rest.
+static void _actor403100RequestHitPitchKick(void)
 {
-    s32 state;
+    s32 hitTaken;
 
-    state = D_actor_403100_80155808->hitTaken;
-    if ((state == 1) && (D_actor_403100_80155808->jawPitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->headPitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
-        D_actor_403100_80155808->jawPitchPhase  = state;
-        D_actor_403100_80155808->headPitchPhase = state;
-        D_actor_403100_80155808->jawKickSound   = state;
+    hitTaken = D_actor_403100_80155808->hitTaken;
+    if ((hitTaken == ACTOR_403100_HIT_TAKEN) && (D_actor_403100_80155808->jawPitchPhase == ACTOR_403100_PITCH_PHASE_REST) && (D_actor_403100_80155808->headPitchPhase == ACTOR_403100_PITCH_PHASE_REST)) {
+        D_actor_403100_80155808->jawPitchPhase  = hitTaken;
+        D_actor_403100_80155808->headPitchPhase = hitTaken;
+        D_actor_403100_80155808->jawKickSound   = hitTaken;
     }
 }
 static void func_actor_403100_8013D2A0(s16 arg0)
@@ -8060,30 +8132,37 @@ static void func_actor_403100_8013D2A0(s16 arg0)
     }
 }
 
-static s32 func_actor_403100_8013D2F4(GfxCoord* coord, MATRIX* matrix)
+/// Composes a joint's rotation into world space, excluding the view transform.
+///
+/// Normalizes each parent's basis before multiplication and each product
+/// afterwards. Returns 1 when the view is reached or 0 at NULL, retaining
+/// the accumulated basis on either exit. Only the output's 3x3 is valid after
+/// a product; coefficients have 12 fractional bits. The live acyclic chain
+/// is borrowed. The writable output is word-aligned and separate from its nodes.
+static s32 _actor403100GetWorldRotation(const GfxCoord* joint, MATRIX* rotation)
 {
-    MATRIX    result;
-    MATRIX    parent;
-    GfxCoord* current;
+    MATRIX          normalizedRotation;
+    MATRIX          parentRotation;
+    const GfxCoord* ancestor;
 
-    current = coord->parent;
-    *matrix = coord->coord;
+    ancestor  = joint->parent;
+    *rotation = joint->coord;
     while (1) {
-        if (current == NULL) {
+        if (ancestor == NULL) {
             return 0;
         }
-        if (current == &gGfxViewCoord) {
+        if (ancestor == &gGfxViewCoord) {
             return 1;
         }
-        parent = current->coord;
-        MatrixNormal(&parent, &parent);
-        gte_SetRotMatrix(&parent);
-        MulRotMatrix(matrix);
-        MatrixNormal(matrix, &result);
-        *matrix = result;
-        current = current->parent;
+        // Remove each ancestor's scale before accumulating the world orientation.
+        parentRotation = ancestor->coord;
+        MatrixNormal(&parentRotation, &parentRotation);
+        ACTOR_403100_PREMULTIPLY_NORMALIZED_ROTATION(&parentRotation, rotation, &normalizedRotation);
+        ancestor = ancestor->parent;
     }
 }
+#undef ACTOR_403100_PREMULTIPLY_NORMALIZED_ROTATION
+
 #include "../../shared/coord_math_local_to_world.inc.c"
 
 s32 func_actor_403100_8013D564(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
@@ -8175,9 +8254,10 @@ static void func_actor_403100_8013D74C(Task* arg0)
     D_actor_403100_80155808->repromptDelay     = 0;
     D_actor_403100_80155808->squeezeFrames     = 0;
 }
-static void func_actor_403100_8013D770(Task* arg0)
+/// Applies the forearm turn while sampling the player's held pose ahead of playback.
+static void _actor403100TurnForearm(Task* task)
 {
-    _actor403100TurnPart6(arg0);
+    _actor403100TurnForearmInline(task);
 }
 static void func_actor_403100_8013D88C(Task* arg0)
 {
@@ -8228,7 +8308,7 @@ static void func_actor_403100_8013DAC4(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_actor_403100_80131F60;
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     }
 }
@@ -8237,7 +8317,7 @@ static void func_actor_403100_8013DB48(Task* arg0)
     TaskFuncTable6 sp;
 
     sp = D_actor_403100_80131F84;
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
         func_actor_403100_80132C3C(arg0, 6, 7, 0x400, -0xC80);
         func_actor_403100_80132C3C(arg0, 7, 8, 0x400, -0xC80);
@@ -8248,7 +8328,7 @@ static void func_actor_403100_8013DC18(Task* arg0)
     TaskFuncTable5 sp;
 
     sp = D_actor_403100_80131F9C;
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     }
 }
@@ -8273,7 +8353,7 @@ static void func_actor_403100_8013DE0C(Task* arg0)
     TaskFuncTable5 sp;
 
     sp = D_actor_403100_80132000;
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
     }
 }
@@ -8301,15 +8381,15 @@ static void func_actor_403100_8013DFBC(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_actor_403100_80132024;
-    func_actor_403100_8013D24C();
+    _actor403100RequestHitPitchKick();
     sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
 }
-static void func_actor_403100_8013E02C(s16 arg0, s16 arg1, s16 arg2)
+/// Queues the blended clip request used when sampling the player's held pose.
+///
+/// Units and loaded-clip requirements are those of `_actor403100RequestAnimationBlendInline`.
+static void _actor403100RequestAnimationBlend(s16 animationId, s16 rate, s16 blendFrames)
 {
-    D_actor_403100_80155808->animationBlendFrames = arg2;
-    D_actor_403100_80155808->animationRate        = arg1;
-    D_actor_403100_80155808->animationId          = arg0;
-    D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+    _actor403100RequestAnimationBlendInline(animationId, rate, blendFrames);
 }
 
 void func_actor_403100_8013E04C(Task* task)
@@ -8349,11 +8429,11 @@ static void func_actor_403100_8013E174(void)
         timer                                         = (u16)D_actor_403100_80155808->playerReactionFrames - 1;
         D_actor_403100_80155808->playerReactionFrames = timer;
         if (timer < 0) {
-            func_actor_403100_8013D1B8(5, 0x3F4);
+            _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
             D_actor_403100_80155808->playerReactionStage = ACTOR_403100_PLAYER_REACTION_HIT_ENDING;
             return;
         }
-        func_actor_403100_8013D1B8(5, 0x3F4);
+        _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
     }
 }
 static void func_actor_403100_8013E1E4(void)
@@ -8565,7 +8645,7 @@ static void func_actor_403100_8013E96C(Task* arg0)
 
     sp = D_actor_403100_80131EB0;
     sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
 }
 static void func_actor_403100_8013E9D8(Task* arg0)
 {
@@ -8573,7 +8653,7 @@ static void func_actor_403100_8013E9D8(Task* arg0)
 
     sp = D_actor_403100_80131EBC;
     sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
     func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->aimMode);
 }
 static void func_actor_403100_8013EA60(Task* arg0)
@@ -8595,7 +8675,7 @@ static void func_actor_403100_8013EAD4(Task* arg0)
     sp         = D_actor_403100_80131ED8;
     obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
     func_actor_403100_8013B5E0(arg0, D_actor_403100_80155808->aimMode);
 }
 static void func_actor_403100_8013EB68(Task* arg0)
@@ -8614,7 +8694,7 @@ static void func_actor_403100_8013EBC8(Task* arg0)
     handlers   = D_actor_403100_80131EF0;
     obj->flags = 0;
     handlers.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
 }
 static void func_actor_403100_8013EC4C(Task* arg0)
 {
@@ -8625,7 +8705,7 @@ static void func_actor_403100_8013EC4C(Task* arg0)
     handlers   = D_actor_403100_80131F00;
     obj->flags = 0;
     handlers.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
 }
 static void func_actor_403100_8013ECD0(Task* arg0)
 {
@@ -8636,7 +8716,7 @@ static void func_actor_403100_8013ECD0(Task* arg0)
     sp         = D_actor_403100_80131F10;
     obj->flags = 0;
     sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
 }
 static void func_actor_403100_8013ED48(Task* task)
 {
@@ -8651,7 +8731,7 @@ static void func_actor_403100_8013ED50(Task* arg0)
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
     D_actor_403100_80155808->animationId      = 3;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    func_actor_403100_801327CC();
+    _actor403100UpdateAnimation();
     D_actor_403100_80155808->rotation.vy = 0;
     coord->coord.t[0]                    = -0x2710;
     coord->coord.t[1]                    = -0x258;
@@ -8681,7 +8761,7 @@ static void func_actor_403100_8013EE28(Task* arg0)
     D_actor_403100_80155808->aimMode          = ACTOR_403100_AIM_ANIMATED;
     D_actor_403100_80155808->animationId      = 3;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    func_actor_403100_801327CC(arg0);
+    _actor403100UpdateAnimation(arg0);
     D_actor_403100_80155808->rotation.vy = 0;
     coord->coord.t[0]                    = -0x1710;
     coord->coord.t[1]                    = 0;
@@ -8705,7 +8785,7 @@ static void func_actor_403100_8013EEB8(Task* arg0)
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState   += 1;
     }
-    func_actor_403100_801327CC();
+    _actor403100UpdateAnimation();
 }
 static void func_actor_403100_8013EF24(Task* task)
 {
@@ -8800,7 +8880,7 @@ static void func_actor_403100_8013F12C(Task* task)
 {
     u16 frame;
 
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         frame                                = D_actor_403100_80155808->stateFrames + 1;
         D_actor_403100_80155808->stateFrames = frame;
         if ((s16)frame >= 0x1F) {
@@ -8825,7 +8905,7 @@ static void func_actor_403100_8013F18C(Task* task)
 
 static void func_actor_403100_8013F1D8(Task* task)
 {
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->state    = 1;
         D_actor_403100_80155808->subState = 0;
     }
@@ -8855,7 +8935,7 @@ static void func_actor_403100_8013F270(Task* task)
 
 static void func_actor_403100_8013F2D8(Task* task)
 {
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         D_actor_403100_80155808->forearmTouchedPlayer = 0;
         D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_YAW_ONLY_FAST;
@@ -8868,7 +8948,7 @@ static void func_actor_403100_8013F2D8(Task* task)
 
 static void func_actor_403100_8013F344(Task* task)
 {
-    if (((func_actor_403100_80133928() << 0x10) == 0) &&
+    if ((_actor403100HandleHitReaction() == 0) &&
         (D_actor_403100_80155808->walkStage == 5)) {
         D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
         D_actor_403100_80155808->animationId      = 4;
@@ -8913,7 +8993,7 @@ static void func_actor_403100_8013F3EC(Task* arg0)
 }
 static void func_actor_403100_8013F488(Task* task)
 {
-    if (Actor403100_TestFlags()) {
+    if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->state    = 1;
         D_actor_403100_80155808->subState = 0;
     }
@@ -8941,7 +9021,7 @@ static void func_actor_403100_8013F520(Task* task)
 }
 static void func_actor_403100_8013F588(Task* task)
 {
-    if ((func_actor_403100_80133928() << 0x10) == 0) {
+    if (_actor403100HandleHitReaction() == 0) {
         D_actor_403100_80155808->walkStage            = 4;
         D_actor_403100_80155808->animationRate        = 0xC;
         D_actor_403100_80155808->aimMode              = ACTOR_403100_AIM_ANIMATED;
@@ -8967,7 +9047,7 @@ static void func_actor_403100_8013F610(void)
 
 static void func_actor_403100_8013F658(void)
 {
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->state    = 1;
         D_actor_403100_80155808->subState = 0;
     }
@@ -8984,7 +9064,7 @@ static void func_actor_403100_8013F6B0(Task* task)
 }
 static void func_actor_403100_8013F6F4(Task* task)
 {
-    if (Actor403100_TestFlags104()) {
+    if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->animationBlendFrames = 4;
         D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
         D_actor_403100_80155808->stateFrames          = 0;
