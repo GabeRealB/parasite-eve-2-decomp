@@ -22,6 +22,7 @@
 
 #include "types.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 /// A fixed point at which a pool places an enemy it revives.
@@ -44,6 +45,6 @@ void roamerArmPoolA(Task* task);
 void roamerTickPoolA(Task* task);
 s32  roamerAmbushMsg(Task* task, s32 arg1, struct ActorCommand* msg, s32 arg3);
 void roamerArmPoolB(Task* task);
-s32  roamerLatchRequest(Task* arg0, s32 arg1, const void* firstArg, s32 arg3);
+s32  roamerLatchRequest(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 #endif /* SRC_SHARED_ROAMING_ENEMIES_H */

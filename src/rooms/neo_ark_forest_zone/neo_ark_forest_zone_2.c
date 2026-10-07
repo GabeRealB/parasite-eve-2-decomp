@@ -93,9 +93,9 @@ static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     taskKill,
 } };
 
-s32 func_neo_ark_forest_zone_801813BC(Task*, s32, s32, s32);
-s32 func_neo_ark_forest_zone_80181494(Task*, s32, s32, s32);
-s32 func_neo_ark_forest_zone_801814B0(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+s32        func_neo_ark_forest_zone_801813BC(Task*, s32, s32, s32);
+s32        func_neo_ark_forest_zone_80181494(Task*, s32, s32, s32);
+static s32 _roamerLatchSpawnRequestPoolB(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 extern WorldCollisionGrid    D_neo_ark_forest_zone_80182274[1];
 extern WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6];
@@ -541,7 +541,7 @@ RoamerSpawnPoint gRoamerSpawnPointsA[7] = {
 s16 gRoamerPrevBattleRefs = 0;
 
 TaskMessageEntry gRoamerMsgTableB[4] = {
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_forest_zone_801814B0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolB },
     { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_forest_zone_80181494 },
     { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -716,10 +716,13 @@ s32 func_neo_ark_forest_zone_801813BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-/* Publishes the byte at 0x2 of `arg2` as `gRoamerSpawnRequest` only
- * while the counter is idle, and remembers the byte in `D_...80182D68` either
- * way; a change arriving while the counter runs is suppressed to zero. */
+/// Selects the pool-A room-action latch emitted by the shared fragment.
+///
+/// The callback type and inclusion requirements are documented in
+/// `roaming_enemies_latch_request.inc.c`.
+#define ROAMER_LATCH_SPAWN_REQUEST roamerLatchRequest
 #include "../../shared/roaming_enemies_latch_request.inc.c"
+#undef ROAMER_LATCH_SPAWN_REQUEST
 
 static void func_neo_ark_forest_zone_8018141C(Task* arg0)
 {
@@ -742,13 +745,10 @@ s32 func_neo_ark_forest_zone_80181494(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 1;
 }
 
-/* The same latch as roamerLatchRequest directly above, emitted a
- * second time at 0x801814B0 - two objects in the overlay, so shared code
- * cannot cover it. */
-/// A further copy, under this file's own name.
-#define roamerLatchRequest func_neo_ark_forest_zone_801814B0
+/// Selects the private pool-B room-action latch for this fragment inclusion.
+#define ROAMER_LATCH_SPAWN_REQUEST _roamerLatchSpawnRequestPoolB
 #include "../../shared/roaming_enemies_latch_request.inc.c"
-#undef roamerLatchRequest
+#undef ROAMER_LATCH_SPAWN_REQUEST
 
 static void func_neo_ark_forest_zone_80181508(Task* arg0)
 {

@@ -125,6 +125,7 @@ roamerTickPoolA = 0x80180620; // type:func
 roamerAmbushMsg = 0x80180A60; // type:func
 roamerArmPoolB = 0x80180BB4; // type:func
 roamerLatchRequest = 0x801813C4; // type:func
+_roamerLatchSpawnRequestPoolB = 0x801814B0; // type:func
 neoArkForestZoneRejectKeyItemMessage = 0x8017d7dc; // type:func
 neoArkForestZoneIgnoreCommandMessage = 0x8017d950; // type:func
 _neoArkForestZoneSetupIdleState = 0x8017dbac; // type:func

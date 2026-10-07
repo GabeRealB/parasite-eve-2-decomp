@@ -593,6 +593,13 @@ package prefixes.
 tasks. Its implementation interface is `src/shared/room_events.h`; record types
 used by several room overlays are declared in `include/rooms/room_common.h`.
 
+`roamer` owns the included reserve-enemy pool controllers shared by the Neo Ark
+forest zone and woodland path. Its implementation interface is
+`src/shared/roaming_enemies.h`; configuration bindings use `ROAMER_`.
+`ROAMER_LATCH_SPAWN_REQUEST` selects the room-action latch definition. Each
+carrier declares its pool-B copy static in its prologue and binds the identifier
+around that fragment inclusion; both pools share the room's request and cooldown.
+
 `followCollision` owns the included actor-following obstacle rebuild in
 `src/shared/follow_collision_rebuild.inc.c`. Its private implementation interface
 is `src/shared/follow_collision.h`; each room keeps a static instance marked `_`.

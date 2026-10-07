@@ -100,7 +100,7 @@ extern u8 gRoamerArmCountsB[];
 
 /// The message-handler table `roamerArmPoolB` parks in
 /// `Task::msgTable`: a placement request (0x13EF,
-/// `func_neo_ark_woodland_path_80181568`), a countdown bump (0x13F4) and the
+/// `_roamerLatchSpawnRequestPoolB`), a countdown bump (0x13F4) and the
 /// 0x7DB command handler `roamerAmbushMsg`.
 extern TaskMessageEntry gRoamerMsgTableB[];
 
@@ -145,7 +145,7 @@ extern s16 gRoamerPrevBattleRefs;
 
 static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
 s32        func_neo_ark_woodland_path_8018154C(Task*, s32, s32, s32);
-s32        func_neo_ark_woodland_path_80181568(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32 _roamerLatchSpawnRequestPoolB(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 void func_neo_ark_woodland_path_801814E8(Task*);
 void func_neo_ark_woodland_path_801815D4(Task*);
@@ -234,7 +234,7 @@ RoamerSpawnPoint gRoamerSpawnPointsA[7] = {
 s16 gRoamerPrevBattleRefs = 0;
 
 TaskMessageEntry gRoamerMsgTableB[4] = {
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_woodland_path_80181568 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolB },
     { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_woodland_path_8018154C },
     { ACTOR_COMMAND_MESSAGE_APPLY, roamerAmbushMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -530,7 +530,13 @@ static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, con
     return 0;
 }
 
+/// Selects the pool-A room-action latch emitted by the shared fragment.
+///
+/// The callback type and inclusion requirements are documented in
+/// `roaming_enemies_latch_request.inc.c`.
+#define ROAMER_LATCH_SPAWN_REQUEST roamerLatchRequest
 #include "../../shared/roaming_enemies_latch_request.inc.c"
+#undef ROAMER_LATCH_SPAWN_REQUEST
 
 /// Advances the live pool-A controller from its pre-kill state 2 to state 3.
 ///
@@ -558,10 +564,10 @@ s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, s32 arg2, s32 arg
     return 1;
 }
 
-/// A further copy, under this file's own name.
-#define roamerLatchRequest func_neo_ark_woodland_path_80181568
+/// Selects the private pool-B room-action latch for this fragment inclusion.
+#define ROAMER_LATCH_SPAWN_REQUEST _roamerLatchSpawnRequestPoolB
 #include "../../shared/roaming_enemies_latch_request.inc.c"
-#undef roamerLatchRequest
+#undef ROAMER_LATCH_SPAWN_REQUEST
 
 /// Advances the live pool-B controller from its pre-kill state 2 to state 3.
 ///

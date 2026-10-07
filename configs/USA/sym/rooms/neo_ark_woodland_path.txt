@@ -98,6 +98,7 @@ roamerTickPoolA = 0x801806D8; // type:func
 roamerAmbushMsg = 0x80180B18; // type:func
 roamerArmPoolB = 0x80180C6C; // type:func
 roamerLatchRequest = 0x8018147C; // type:func
+_roamerLatchSpawnRequestPoolB = 0x80181568; // type:func
 _neoArkWoodlandPathIgnoreRoamerCommand = 0x80181474; // type:func
 _neoArkWoodlandPathAdvanceRoamerPoolAState = 0x801814d4; // type:func
 _neoArkWoodlandPathAdvanceRoamerPoolBState = 0x801815c0; // type:func
