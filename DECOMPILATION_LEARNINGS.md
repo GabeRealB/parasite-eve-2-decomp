@@ -153661,3 +153661,48 @@ a candidate, not a finding. The same holds for `McSaveData.preview`: one site
 (`_mcVerifySaveHeaderChecksum`), but the verifier sums 56 bytes from
 `location`, which in a cached `McSavePreview` are opaque and in the resident
 `McSaveState` are named fields, so neither type can contain the other.
+
+## Interior aliases: which names for the inside of an object can go, and how the image tells an element from a neighbour (2026-10-07)
+
+Two spellings give a location inside an object a name of its own.
+
+**An object-like macro** (`#define D_8010D764 D_8010D6F4[4]`,
+`#define D_x (D_y + 4)`). The preprocessor already hands the compiler the
+element expression, so writing `&D_8010D6F4[4]` at the use cannot change the
+object: 100 such macros were expanded and all 184 recompiled objects came out
+byte-identical, relocations included. `&(D_y + 4)[2]` and `&D_y[6]` fold to the
+same tree too, including the negative indices the alias form needed
+(`&D_x[-1]` for the element before the one the alias named). The image cannot
+argue for the macro either: a constant offset folded into `%hi/%lo` is the same
+bytes as a symbol of its own at that address.
+
+**A declaration bound to another symbol** (`extern T x __asm__("D_y+100")`).
+This one does change code, because GCC sees a second object. The evidence is
+CSE between two addresses in one function. `_actor450900CompanionDistressTask`
+passes `&storage + 100` and `&storage + 64`: named as members of one object,
+the second is derived from the register holding the first
+(`addiu $a2,$s0,-36`); the target forms it afresh (`lui`/`addiu sym+64`), so
+the original addressed them as different objects. A fresh `lui`/`addiu` for an
+address that a live register is a small constant away from means *separate
+objects*; a derived `addiu reg,reg,k` means *one object*. Where the separately
+addressed pieces are also read across by a bulk copy (the bank-extension
+storage above) or written past their end (`actor_421600`'s five-entry catch
+tables take a store to index 5, which is the next table's first word), neither
+three plain arrays nor one struct satisfies the in-bounds rule, and the alias
+stays.
+
+The offset-0 form, `extern u8 D_x_value __asm__("D_x")` beside `u8 D_x[4]`, is
+the scalar-flag case of the 2026-09-30 driveway entry: the array exists only to
+carry the three nonzero bytes after a flag, and the alias only to get scalar
+address formation back. A plain scalar followed by `u8` scalars for the
+unreferenced bytes (or a `u16` after a halfword) reproduces image and code with
+no alias; 17 more sites went that way. Give each new scalar a symbol-map entry
+and shrink the flag's `size:`.
+
+Scratch-env gotcha: `build-and-verify.sh --only X` rewrites `build.ninja` for
+the scoped units alone. `ninja build/USA/src/<other>.c.o` afterwards prints
+"no work to do" and exits 0 - the path is now a source file with no rule - so
+a per-object comparison against a snapshot reports "0 objects changed" for an
+edit that was never compiled. Run the unscoped build before trusting object
+comparisons again (`ninja -t query <obj>` shows an empty node when the graph is
+scoped).
