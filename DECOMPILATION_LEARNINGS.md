@@ -8369,9 +8369,9 @@ else names the sibling member and needs no parent pointer:
 ```c
 ramp = (LinInterp*)&_gCdAudioState.ramp;
 if (ramp->gain == ramp->targetGain) {
-    CdStream_SetVolume(0);
+    cdStreamSetVolume(0);
 } else {
-    CdStream_SetVolume((s16)linInterpApply(ramp, _gCdAudioState.playback.volume));
+    cdStreamSetVolume((s16)linInterpApply(ramp, _gCdAudioState.playback.volume));
 }
 ```
 
@@ -11273,7 +11273,7 @@ every arithmetic read is spelled `(s8)x` is a signed byte, not an unsigned one
 with a habit. The uses that looked like evidence for `u8` are not: an equality
 test between two `volatile s8` values is still `lbu`, `lbu`, `beq` with no
 extension, and `x = x + 1` is still `lbu`, `addiu`, `sb`. `_CdReadyQueue`'s
-`readIdx` / `writeIdx` are the example - `_cdReadyEnqueue`, `CdReady_Poll` and
+`readIdx` / `writeIdx` are the example - `_cdReadyEnqueue`, `_cdReadyPoll` and
 `cdStreamIsBusy` are identical with the fields declared `volatile s8` and the
 seven casts removed.
 
@@ -12229,18 +12229,18 @@ a slightly larger branch distance.
 Fix: load the byte into a `u8` temporary first, then shift that:
 
 ```c
-u8 temp;
+u8 seekFlags;
 
-temp = p->unknown_0[1];
-if (temp >> 7) {
+seekFlags = state->flags1;
+if (seekFlags >> CD_STREAM_SEEK_ENABLED_BIT) {
     ...
 }
 ```
 
 That produces the clean `lbu` / `srl` / `beqz` sequence. Casting at the use site
-(`if ((u8)p->unknown_0[1] >> 7)`) is not enough — the temporary is required.
+(`if ((u8)state->flags1 >> CD_STREAM_SEEK_ENABLED_BIT)`) is not enough — the temporary is required.
 
-`CdStream_SetFlag14` is a pure example (bit 7 of `CdStream_State.unknown_0[1]`).
+`_cdStreamRequestPlayhead` is a pure example (bit 7 of `CdStream_Runtime.state.flags1`).
 
 
 ## Early-load order among independent `&= ~mask` globals
@@ -13535,7 +13535,7 @@ can put the `lbu` in `$a1`; the split `t = field; t = t & 0xFE; field = t`
 keeps `lbu`/`andi` on `$v0`.
 
 `_cdStreamQueueRestartRead` is the pure example (pairs with the `CdReady_Queue` entry flag
-update used by `CdStream_Stop`).
+update used by `cdStreamStop`).
 
 ## Non-volatile store reordered past volatile field stores
 
@@ -13829,16 +13829,15 @@ Use the global directly (no local pointer) so the address of the struct is
 shared between the `%lo(sym)` `locked` access and the array base:
 
 ```c
-temp = CdReady_Queue.locked; /* lui/addiu + %lo lbu */
-if (arg0 != 0) {
-    idx = arg0 - 1;
-    entry = &CdReady_Queue.entries[idx];
+savedLock = CdReady_Queue.locked; /* lui/addiu + %lo lbu */
+if (slot != 0) {
+    queuedJob = &CdReady_Queue.entries[(s16)(slot - 1)];
     ...
-    CdReady_Queue.locked = temp;
+    CdReady_Queue.locked = savedLock;
 }
 ```
 
-`CdReady_Cancel` is the minimal example. A local `_CdReadyQueue*` for the queue was the
+`_cdReadyCancel` is the minimal example. A local `_CdReadyQueue*` for the queue was the
 sole difference between a 99% and a 100% match.
 
 ## Early-return `move v0,zero` vs `move a1,zero` with a live sum
@@ -14531,7 +14530,7 @@ D_80068B5C = 0;
 ```
 
 Also match load width to the source type: `lhu` ⇒ `volatile u16` (not `s16`,
-which yields `lh`). `CdStream_Reset` is the pure example.
+which yields `lh`). `cdStreamReset` is the pure example.
 
 ## Local bitmask for correct s-reg assignment across a call
 
@@ -16939,15 +16938,15 @@ through path:
 
 ```c
 if (flag) {
-    ch1b = &channels->voiceAttr[1];
-    /* use ch1b → $a1 */
+    monoRightVoiceAttr = &channels->voiceAttr[1];
+    /* use monoRightVoiceAttr → $a1 */
     return;
 }
-ch1 = &channels->voiceAttr[1];   /* register CdStreamChannel* ch1 asm("v0"); */
-ch1->field_A = arg0;
+stereoRightVoiceAttr = &channels->voiceAttr[1];   /* register SpuVoiceAttr* stereoRightVoiceAttr asm("v0"); */
+stereoRightVoiceAttr->volume.right = volume;
 ```
 
-`CdStream_SetVolume` is the pure example (`CdStream_Runtime.channels.voiceAttr[0]` / `voiceAttr[1]`, stride `0x40`).
+`cdStreamSetVolume` is the pure example (`CdStream_Runtime.channels.voiceAttr[0]` / `voiceAttr[1]`, stride `0x40`).
 
 ## Dual `if (size != 0)` fill loops need a reloaded `cond`
 
@@ -20053,7 +20052,7 @@ changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 
 ## Ring-buffer queue drain: non-volatile entry + split index advances
 
-`CdReady_Poll` (and the sibling `asyncCbPoll`) process one slot of a 4-entry
+`_cdReadyPoll` (and the sibling `asyncCbPoll`) process one slot of a 4-entry
 callback ring. Two matching details that look like style nits but are required:
 
 1. **Non-volatile entry pointer.** The queue's header fields are `volatile`
@@ -20078,7 +20077,7 @@ entry->cancelled = 0;
    them onto `$s1` and shrinks the function. Duplicate the increment/wrap
    literally, once via `queue` and once via the global name.
 
-`asyncCbPoll` is the pure template for control flow; `CdReady_Poll` adds the
+`asyncCbPoll` is the pure template for control flow; `_cdReadyPoll` adds the
 `field_0` lock check and the no-arg `doneFn` callback.
 
 ## Sign-extend loop counter via `next` in `$v0` + empty asm barrier
@@ -22460,12 +22459,12 @@ even when a register also holds the same address (e.g. assigned earlier for
 another purpose, then reused after the block):
 
 ```c
-a3 = (volatile CdStreamState*)&CdReady_Queue; /* may be needed for reg color */
+setup.queue = &CdReady_Queue; /* may be needed for reg color */
 …
-e = &CdReady_Queue.entries[idx]; /* global → addiu v0, base, 8 */
+queuedJob = &CdReady_Queue.entries[(s16)(slot - 1)]; /* global → addiu v0, base, 8 */
 ```
 
-`CdStream_Start` is the pure example — 99.9% until this one form difference.
+`cdStreamOpen` is the pure example — 99.9% until this one form difference.
 
 ## Adjacent BSS: `p + 1` for the next object
 
@@ -147463,7 +147462,7 @@ but emits `addiu`.
 itself matches as well. No word view of the bitfield is needed.
 
 The same conversion needs `&&` over two bits of the word written as nested
-`if`s (the `fold_truthop` entries above): `CdReady_Poll`'s
+`if`s (the `fold_truthop` entries above): `_cdReadyPoll`'s
 `cancelled && !firstPoll` otherwise becomes `(word & 6) == 4`, and
 `asyncCbPoll`'s the same.
 
@@ -150556,7 +150555,7 @@ attempts; left as it was.
     tail): as `for (;;)` with `continue`, loop.c hoists `li 5` and two `lui`
     out of the retry loop into `$s8/$s4/$s6` (5 insns longer, larger frame).
     The image reloads them, so the retry was not a loop to loop.c.
-  - `CdStream_TickPlayback`, `CdStream_CompleteChunkRead` (`goto stopVoices`
+  - `CdStream_TickPlayback`, `_cdStreamAdvanceOddChunk` (`goto stopVoices`
     back into the first arm): the label has a fresh `lui s1,%hi(CdStream_Runtime)`
     that the backward jump repeats in its delay slot. An inline called in both
     arms reuses the function's `$s2` base in the fall-through copy, the copies

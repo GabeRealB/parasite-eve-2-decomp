@@ -2220,15 +2220,15 @@ CdAudio_DrivePhase1               = 0x80057BC8; // type:func
 CdAudio_ReadyCallback               = 0x80057C74; // type:func
 CdAudio_SetLocFlag               = 0x80057D24; // type:func
 _cdReadyEnqueue             = 0x80057D3C; // type:func
-CdReady_Poll                = 0x80057E1C; // type:func
-CdStream_Start              = 0x80057FAC; // type:func
+_cdReadyPoll                = 0x80057E1C; // type:func
+cdStreamOpen              = 0x80057FAC; // type:func
 _cdStreamCompleteOpeningRead           = 0x80058320; // type:func
-CdStream_Stop               = 0x8005842C; // type:func
+cdStreamStop               = 0x8005842C; // type:func
 _cdStreamQueueRestartRead               = 0x8005854C; // type:func
 _cdStreamCompleteRestartRead               = 0x80058748; // type:func
 _cdStreamResumePlayback               = 0x800588D8; // type:func
 CdStream_TickPlayback               = 0x8005896C; // type:func
-CdStream_CompleteChunkRead               = 0x80058ED4; // type:func
+_cdStreamAdvanceOddChunk               = 0x80058ED4; // type:func
 CdStream_Drive               = 0x80059348; // type:func
 
 //--------------------------------------------------------------------
@@ -2239,20 +2239,20 @@ _cdStreamSectorReadyCallback               = 0x8005A94C; // type:func
 _cdStreamPollDiscInit           = 0x8005B3B4; // type:func
 _cdReadyInstallCallback     = 0x8005B648; // type:func
 _cdReadyClearCallback       = 0x8005B6A8; // type:func
-CdStream_Reset              = 0x8005B6EC; // type:func
+cdStreamReset              = 0x8005B6EC; // type:func
 cdStreamBeginPlayback          = 0x8005B78C; // type:func
 _cdStreamSpuIrqCallback      = 0x8005B830; // type:func
-CdStream_SetVolume           = 0x8005B84C; // type:func
-CdStream_SetFlag14               = 0x8005B920; // type:func
+cdStreamSetVolume           = 0x8005B84C; // type:func
+_cdStreamRequestPlayhead               = 0x8005B920; // type:func
 _cdStreamCancelChunkRead         = 0x8005B968; // type:func
 _cdStreamCancelReadAndNotify   = 0x8005BA8C; // type:func
-CdReady_Cancel              = 0x8005BAEC; // type:func
+_cdReadyCancel              = 0x8005BAEC; // type:func
 cdStreamIsBusy             = 0x8005BB4C; // type:func
 _cdStreamClearReadySlot     = 0x8005BB9C; // type:func
 cdStreamSetMono     = 0x8005BBB0; // type:func
 _cdStreamCompleteDiscInit         = 0x8005BBF4; // type:func
 _cdStreamCancelDiscInit              = 0x8005BC28; // type:func
-CdStream_ConfigureSpuIrq    = 0x8005BC48; // type:func
+_cdStreamSetChunkIrq    = 0x8005BC48; // type:func
 _cdStreamUnusedStub               = 0x8005BCF8; // type:func
 
 //--------------------------------------------------------------------

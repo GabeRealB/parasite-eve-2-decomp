@@ -380,7 +380,7 @@ static s32 CdAudio_DriveStream(void)
             params->startCb               = NULL;
             params->voiceFreeCb           = NULL;
             state->playback.startReported = 0;
-            CdStream_Start(params);
+            cdStreamOpen(params);
             CdAudio_Phase.openStep = CD_AUDIO_OPEN_STEP_WAIT_READ;
             break;
         case CD_AUDIO_OPEN_STEP_WAIT_READ:
@@ -419,11 +419,11 @@ static s32 CdAudio_DrivePhase0(void)
             linInterpStep(ramp);
             if (ramp->gain == ramp->targetGain) {
                 ramp->enabled = LINEAR_INTERPOLATOR_BYPASS;
-                CdStream_SetVolume(0);
-                CdStream_Stop();
+                cdStreamSetVolume(0);
+                cdStreamStop();
                 progress->stopStep = CD_AUDIO_STOP_STEP_RELEASE_VOICES;
             } else {
-                CdStream_SetVolume((s16)linInterpApply(ramp, _gCdAudioState.playback.volume));
+                cdStreamSetVolume((s16)linInterpApply(ramp, _gCdAudioState.playback.volume));
             }
             break;
         case CD_AUDIO_STOP_STEP_RELEASE_VOICES:
@@ -968,7 +968,7 @@ void CdAudio_Init(void)
     CdAudio_SectorBuffer            = 0;
     _gCdAudioState.playback.spuBase = 0x51010;
     spuSetVoiceRange(SPU_VOICE_RANGE_CD_STREAM, 22, 2);
-    CdStream_Reset();
+    cdStreamReset();
     sndOutputSetStereo(SOUND_OUTPUT_STEREO);
 }
 
