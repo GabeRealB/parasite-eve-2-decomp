@@ -1546,13 +1546,14 @@ void func_actor_451100_801322D4(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame      func_actor_451100_80132330
-#define walkerUpdate     _footstepWalkQuietUpdate
-#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
+#define walkerFrame  func_actor_451100_80132330
+#define walkerUpdate _footstepWalkQuietUpdate
+/// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Exit callback the `func_actor_451100_801322D4` spawn handler installs on the
 /// actor's task: tears down the enemy the task was spawned for.
@@ -1704,13 +1705,13 @@ void func_actor_451100_80132BD4(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame      func_actor_451100_80132C28
-#define walkerUpdate     _pairWalkUpdate
-#define walkerDrawShadow _actorRenderDrawSecondWalkerGroundShadow
+#define walkerFrame                            func_actor_451100_80132C28
+#define walkerUpdate                           _pairWalkUpdate
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Exit callback the `func_actor_451100_80132BD4` spawn handler installs on the
 /// actor's task: tears down the enemy the task was spawned for.

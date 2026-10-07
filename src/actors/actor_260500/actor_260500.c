@@ -1630,13 +1630,14 @@ void func_actor_260500_8014A460(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame      func_actor_260500_8014A4BC
-#define walkerUpdate     _footstepWalkQuietUpdate
-#define walkerDrawShadow walkerDrawShadow
+#define walkerFrame  func_actor_260500_8014A4BC
+#define walkerUpdate _footstepWalkQuietUpdate
+/// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
 /// back to `enemyDestroy`.
@@ -1746,4 +1747,6 @@ s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
     return 0;
 }
 
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW

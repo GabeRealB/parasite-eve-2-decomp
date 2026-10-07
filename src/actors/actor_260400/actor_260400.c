@@ -1108,13 +1108,14 @@ void func_actor_260400_8014A550(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame      func_actor_260400_8014A5AC
-#define walkerUpdate     _scriptedWalkUpdate
-#define walkerDrawShadow walkerDrawShadow
+#define walkerFrame  func_actor_260400_8014A5AC
+#define walkerUpdate _scriptedWalkUpdate
+/// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
 /// back to `enemyDestroy` and kills the revolver task.
@@ -1126,7 +1127,9 @@ static void func_actor_260400_8014A630(Task* task)
     taskKill(work->mongoose);
 }
 
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Task handler of the revolver the spawn routine starts: the first tick hangs
 /// the task's coordinate frame off the actor's model part `spawnArg1`, shows

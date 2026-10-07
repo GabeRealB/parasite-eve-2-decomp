@@ -104,9 +104,7 @@ extern TaskMessageEntry gStrideWalkMessages[6];
 extern TaskMessageEntry D_actor_460200_801514FC[6];
 extern s32              D_actor_460200_80151538;
 
-/// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
-
-static void func_actor_460200_80133254(Task* task);
+static void _actorRenderDrawSecondFixedWalkerGroundShadow(Task* task);
 static void _pacedWalkTickSoldierBAnim(Task* task);
 static void _pacedWalkResetSoldierBAnim(Task* task);
 static void _pacedWalkBlendSoldierBAnim(Task* task);
@@ -114,7 +112,7 @@ static void _pacedWalkUpdateSoldierC(Task* task);
 static void func_actor_460200_801338C0(Enemy* enemy, Task* task);
 static void func_actor_460200_80133A04(Enemy* enemy, Task* task);
 static void func_actor_460200_80133A88(Task* task);
-static void func_actor_460200_80133AB0(Task* task);
+static void _actorRenderDrawThirdFixedWalkerGroundShadow(Task* task);
 static void _pacedWalkTickSoldierCAnim(Task* task);
 static void _pacedWalkResetSoldierCAnim(Task* task);
 static void _pacedWalkBlendSoldierCAnim(Task* task);
@@ -2261,7 +2259,10 @@ void func_actor_460200_80132390(void)
     }
 }
 
+/// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/paced_walk_frame.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/paced_walk_update.inc.c"
 
@@ -2279,7 +2280,9 @@ void pacedWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 
@@ -2332,19 +2335,18 @@ void func_actor_460200_801330C8(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerDrawShadow func_actor_460200_80133254
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondFixedWalkerGroundShadow
 #include "../../shared/stride_walk_frame.inc.c"
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 void strideWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-/// A further copy of the shadow, under this file's own name.
-#define walkerDrawShadow func_actor_460200_80133254
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 // The second walker is a stride walker, so its copies of the paced walk
 // helpers run on that walker's block.
@@ -2457,23 +2459,22 @@ static void func_actor_460200_801338C0(Enemy* enemy, Task* task)
     task->state += 1;
 }
 
-#define walkerFrame      func_actor_460200_80133A04
-#define walkerUpdate     _pacedWalkUpdateSoldierC
-#define walkerDrawShadow func_actor_460200_80133AB0
+#define walkerFrame                            func_actor_460200_80133A04
+#define walkerUpdate                           _pacedWalkUpdateSoldierC
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawThirdFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 static void func_actor_460200_80133A88(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-/// A further copy of the shadow, under this file's own name.
-#define walkerDrawShadow func_actor_460200_80133AB0
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawThirdFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 // Soldier C's tick uses the restored PacedWalkWork binding.
 #define PACED_WALK_TICK_ANIM _pacedWalkTickSoldierCAnim

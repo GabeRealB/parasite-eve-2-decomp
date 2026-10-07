@@ -1581,7 +1581,9 @@ void func_actor_161500_801326E8(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/stride_walk_frame.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// The actor's `Task::exitCallback`: hands the task's `Enemy`, parked in
 /// `Task::spawnArg2`, back to `enemyDestroy`.
@@ -1590,7 +1592,9 @@ void strideWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 

@@ -2256,13 +2256,14 @@ void func_actor_215100_8014CA2C(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame      func_actor_215100_8014CA80
-#define walkerUpdate     pacedWalkUpdate
-#define walkerDrawShadow walkerDrawShadow
+#define walkerFrame  func_actor_215100_8014CA80
+#define walkerUpdate pacedWalkUpdate
+/// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Exit callback: hands the task's `Enemy` back to `enemyDestroy`.
 static void func_actor_215100_8014CB04(Task* task)
@@ -2270,7 +2271,9 @@ static void func_actor_215100_8014CB04(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 

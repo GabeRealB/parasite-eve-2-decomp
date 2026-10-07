@@ -8,6 +8,7 @@
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
+#include "gameplay/actor_render_shadow_types.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
@@ -41,21 +42,6 @@
 
 #include "mapui/map_dryfield.h"
 #include "../../shared/junk_yard.h"
-
-/// Scratch-stack block the room model's shadow drawer stages its ground
-/// shadow in.
-///
-/// `centre` is the world position the shadow quad is centred on, copied from
-/// the translation of the model root's composed matrix. Reserve the whole
-/// block and release it once the shadow is drawn.
-///
-/// The block is twice the size of the position. Nothing in this room reads or
-/// writes the second half, so its role is unproven.
-typedef struct {
-    VECTOR3 centre;       // Shadow centre in world coordinate units
-    byte    field_C[0xC]; // Role unproven; reserved with the block and never accessed
-} _DryfieldJunkYardGroundShadowScratch;
-STATIC_ASSERT_SIZEOF(_DryfieldJunkYardGroundShadowScratch, 0x18);
 
 /// Resident routine at the fixed address `0x80724608`, outside every image
 /// the build links. The room hands it the slot-0xA game pointer, two
@@ -1682,21 +1668,21 @@ static void _dryfieldJunkYardDrawModelGroundShadow(Task* task)
         DRYFIELD_JUNK_YARD_GROUND_SHADOW_HALF_SIZE = 0x1A0,
         DRYFIELD_JUNK_YARD_GROUND_SHADOW_SHADE     = 0xC0,
     };
-    _DryfieldJunkYardGroundShadowScratch* shadowScratch;
+    ActorRenderGroundShadowCentreScratch* shadowScratch;
     GfxCoord*                             rootCoord;
     TmdObject*                            model;
 
     model     = task->extra.tmd;
     rootCoord = model->coords;
     if ((model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) == 0 && model->buffer != NULL) {
-        shadowScratch = SCRATCH_STACK_RESERVE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
+        shadowScratch = SCRATCH_STACK_RESERVE_BLOCK(ActorRenderGroundShadowCentreScratch);
         // Compose the root before taking its world-space shadow centre.
         actorRenderComposeCoord(rootCoord);
         shadowScratch->centre.vx = rootCoord->workm.t[0];
         shadowScratch->centre.vy = rootCoord->workm.t[1];
         shadowScratch->centre.vz = rootCoord->workm.t[2];
         effectDrawGroundShadow(&shadowScratch->centre, DRYFIELD_JUNK_YARD_GROUND_SHADOW_HALF_SIZE, DRYFIELD_JUNK_YARD_GROUND_SHADOW_SHADE);
-        SCRATCH_STACK_RELEASE_BLOCK(_DryfieldJunkYardGroundShadowScratch);
+        SCRATCH_STACK_RELEASE_BLOCK(ActorRenderGroundShadowCentreScratch);
     }
 }
 

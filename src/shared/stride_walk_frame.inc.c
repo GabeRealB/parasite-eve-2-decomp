@@ -1,5 +1,11 @@
 /* Part of the stride walk library; see stride_walk.h. */
 
+/* ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW is an object-like binding to a
+ * declared static void(Task*) drawer. The call evaluates task once. */
+#ifndef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
+#error "Bind ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW before including this fragment"
+#endif
+
 /// Per-frame state of the walker: relights the model from a point 0x320 above
 /// its root, runs the animation update, then turns the head toward the player
 /// by the work block's `turnWeight`, which rises 0x200 a frame to
@@ -33,5 +39,5 @@ void strideWalkFrame(Enemy* enemy, Task* task)
         }
     }
     animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
-    walkerDrawShadow(task);
+    ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW(task);
 }

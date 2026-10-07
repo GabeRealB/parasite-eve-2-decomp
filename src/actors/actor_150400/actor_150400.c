@@ -504,13 +504,14 @@ void func_actor_150400_801323E0(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-#define walkerFrame      func_actor_150400_80132434
-#define walkerUpdate     _pairWalkUpdate
-#define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
+#define walkerFrame  func_actor_150400_80132434
+#define walkerUpdate _pairWalkUpdate
+/// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
 #undef walkerUpdate
-#undef walkerDrawShadow
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Exit callback of the actor's task: hands its `Enemy` back to
 /// `enemyDestroy`.

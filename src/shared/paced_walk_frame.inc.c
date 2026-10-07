@@ -2,6 +2,12 @@
 
 /* Part of the paced walk library; see paced_walk.h. */
 
+/* ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW is an object-like binding to a
+ * declared static void(Task*) drawer. The call evaluates task once. */
+#ifndef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
+#error "Bind ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW before including this fragment"
+#endif
+
 /// The actor's per-frame body (task state 1): refreshes the root coordinate,
 /// re-lights the model at the root translation raised by 800, then runs the
 /// step body and draws the ground shadow. While `smoking` is set and the
@@ -28,7 +34,7 @@ void pacedWalkFrame(Enemy* enemy, Task* task)
     pos.vz = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &pos, 0, 3);
     PACED_WALK_UPDATE(task);
-    walkerDrawShadow(task);
+    ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW(task);
     if (work->smoking != 0 && !(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && obj->buffer != NULL) {
         if (task->killCountdown & 1) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;

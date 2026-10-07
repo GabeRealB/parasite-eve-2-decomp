@@ -1,25 +1,25 @@
-/* What the scripted NPC walkers share whatever their kind: a ground shadow
- * at a fixed shade and the per-frame state that relights the model from a
- * point 0x320 above its root, runs the walker's update and draws its shadow.
- * Room-shaded shadows use actor_render_walker_shadow.inc.c with a private
- * declaration in each carrier's prologue.
+/* Private interface for the fixed-shade walker shadow instances.
  *
- * Include this header in the prologue and each fragment at its function's
- * position. The shadows are library functions; a file with more than one copy
- * includes the fragment again under the further copy's name. The frame state
- * is written around the walker's own update and shadow: every file includes it
- * with walkerFrame, walkerUpdate and walkerDrawShadow defined to its own names.
+ * Include this header in each fixed-shadow carrier's prologue. Bind
+ * ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW to a declared static void(Task*)
+ * function before including walker_shadow.inc.c or a walker frame fragment,
+ * then undefine it. The frame fragments call that function once with their
+ * task; it may draw either a fixed-shade or a room-shaded shadow.
+ *
+ * walker_shadow.inc.c defines the fixed-shade instance at its text position.
+ * Further copies need their own static prototypes in the carrier's prologue.
+ * Room-shaded instances use actor_render_walker_shadow.inc.c and its separate
+ * ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW definition binding.
+ * walker_frame.inc.c also requires walkerFrame and walkerUpdate bindings.
  */
 
 #ifndef SRC_SHARED_WALKER_H
 #define SRC_SHARED_WALKER_H
 
-#include "types.h"
+#include "gameplay/actor_render_shadow_types.h"
 
 #include "main/task_types.h"
 
-#include "main/task_types.h"
-
-void walkerDrawShadow(Task* task);
+static void _actorRenderDrawFixedWalkerGroundShadow(Task* task);
 
 #endif /* SRC_SHARED_WALKER_H */

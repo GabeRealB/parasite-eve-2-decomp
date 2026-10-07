@@ -1207,7 +1207,9 @@ void func_actor_160600_80131E24(void)
     }
 }
 
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/paced_walk_frame.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/paced_walk_update.inc.c"
 
@@ -1233,7 +1235,9 @@ void pacedWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
+#define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
+#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/paced_walk_tick_anim.inc.c"
 
