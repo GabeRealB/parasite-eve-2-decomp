@@ -1490,11 +1490,18 @@ Task* D_actor_451100_8014E748;
 /// of the animation clip; request values narrow to 16 bits without checking.
 static s16 _gFootstepWalkMode;
 
-/// Binds the quiet walker's borrowed nineteen-part rig and queues startup clip 20.
+/// Binds the published quiet walker's rig and queues startup clip 20 for a reset.
 ///
-/// The published work, model, native clip table and loaded tracks 1 to 18 must
-/// remain live through playback. Clears travel and turning; the caller applies
-/// the reset before ticking any driven slot.
+/// `model` must be a live nineteen-part object returned by `tmdCreateModel`,
+/// and `_gFootstepWalkWork` must name its writable task-owned work block.
+/// The package's native clip table must have clip 20 loaded with tracks 1 to 18.
+/// The context borrows the model allocation's coordinate tail, clip table,
+/// slots and word-aligned encoded-pose buffer. Keep the work, model allocation
+/// and clip data live throughout playback; this call transfers no ownership.
+///
+/// Clears the remaining travel and turn-update counts. Slots and poses are left
+/// untouched: the caller must process the pending reset before ticking slots
+/// 1 to 18. Root slot 0 is not driven by the quiet walker's animation helpers.
 static inline void _actor451100QuietWalkPrepareAnimation(TmdObject* model)
 {
     enum { ACTOR_451100_QUIET_WALK_STARTUP_CLIP = 20 };
@@ -1699,11 +1706,18 @@ static s32 _actor451100QuietWalkApplyCommand(Task* unusedTask, s32 messageId, co
 #include "../../shared/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-/// Binds a pair walker's borrowed rig and queues its idle clip for a reset.
+/// Binds a pair walker's rig and queues idle clip 1 for a reset.
 ///
-/// Requires a live zeroed work block, nineteen-part model and loaded clip 1
-/// with tracks 1 to 18. Model coordinates, clip data, slots and poses remain
-/// borrowed through playback; the caller applies the reset before slot ticks.
+/// `work` must be the walker's writable, zeroed task-owned block, and `model`
+/// a live nineteen-part object returned by `tmdCreateModel`. The package's
+/// word-aligned native clip table must have clip 1 loaded with tracks 1 to 18.
+/// The context borrows the model allocation's coordinate tail, clip table,
+/// slots and word-aligned encoded-pose buffer. Keep the work, model allocation
+/// and clip data live throughout playback; this call transfers no ownership.
+///
+/// Slots and poses are left untouched: the caller must process the pending
+/// reset before ticking slots 1 to 18. Root slot 0 is not driven by the pair
+/// walker's animation helpers. Travel and blend duration retain their values.
 static inline void _actor451100PairWalkPrepareAnimation(PairWalkWork* work, TmdObject* model)
 {
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_451100_8014E6FC, model, work->rig.poses,
