@@ -63,26 +63,6 @@ Task* D_dryfield_water_tank_80188D4C;
 #include "overlay.h"
 #include "../../shared/screen_fade.h"
 
-/// The clips the Dryfield water tank room adds to the player's animation bank.
-///
-/// One of the room's two event scripts sends `data.copy` to the player before
-/// it plays any of them; the other plays a base-bank clip only. The copy takes
-/// 20 words from the start of this storage: the 19 set pointers and the
-/// request's own source pointer. Those words occupy extended ids 47-66. The
-/// room stores a play request for each of ids 48-65, and the script sends 13 of
-/// them. Id 47 stays NULL, id 66 holds the source pointer, and the stored word
-/// count sits past the copied span.
-typedef union {
-    struct {
-        AnimationSet*            sets[19]; // Player clips for extended ids 47-65; NULL at id 47, which no request selects
-        AnimationBankCopyRequest copy;     // Copies the first 20 words of this storage
-    } data;                                // The records by name
-    s32 words[21];                         // The same storage as the copy reads it; the last word lies beyond the copied span
-} _DryfieldWaterTankAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_DryfieldWaterTankAnimationBankExtensionStorage, 84);
-
-extern _DryfieldWaterTankAnimationBankExtensionStorage D_dryfield_water_tank_80184960;
-
 extern WorldCoordRoomAmbientEntry D_dryfield_water_tank_80188C58[11];
 
 /// Phases of the prop's slide, held in `_DryfieldWaterTankPropSceneWork::slidePhase`.
@@ -137,7 +117,23 @@ extern WorldCollisionTrigger D_dryfield_water_tank_80187FF8[4];
 extern WorldCollisionTrigger D_dryfield_water_tank_80188920[9];
 extern WorldCoordRoomLights  D_dryfield_water_tank_80188908[1];
 
-_DryfieldWaterTankAnimationBankExtensionStorage D_dryfield_water_tank_80184960 = { .data = { { NULL, &gDryfieldWaterTankAnimation034BC, &gDryfieldWaterTankAnimation0377C, &gDryfieldWaterTankAnimation03A60, &gDryfieldWaterTankAnimation03CB4, &gDryfieldWaterTankAnimation047BC, &gDryfieldWaterTankAnimation04C98, &gDryfieldWaterTankAnimation04FEC, &gDryfieldWaterTankAnimation051E4, &gDryfieldWaterTankAnimation05704, &gDryfieldWaterTankAnimation059E4, &gDryfieldWaterTankAnimation05DB8, &gDryfieldWaterTankAnimation061A8, &gDryfieldWaterTankAnimation06514, &gDryfieldWaterTankAnimation06840, &gDryfieldWaterTankAnimation04000, &gDryfieldWaterTankAnimation04AA0, &gDryfieldWaterTankAnimation06F48, &gDryfieldWaterTankAnimation06C68 }, { { .words = D_dryfield_water_tank_80184960.words }, 20 } } };
+/// Player clips for extended ids 47-65; NULL at id 47, which no request
+/// selects.
+///
+/// One of the room's two event scripts sends the player the copy request before
+/// it plays any of these clips; the other plays a base-bank clip only.
+/// `D_dryfield_water_tank_801849AC` copies 20 words starting here into the
+/// player's bank, which is one word past the end of this array: the read runs
+/// on through the first word of `D_dryfield_water_tank_801849AC`, that
+/// request's own source pointer. That overrun is the original's and is kept as
+/// it is: the request carries a literal count larger than the table, while the
+/// table was stored with only its own entries. The room stores a play request
+/// for each of ids 48-65, and the script sends 13 of them. Id 66, which
+/// receives the source pointer, is never played.
+AnimationSet* D_dryfield_water_tank_80184960[19] = { NULL, &gDryfieldWaterTankAnimation034BC, &gDryfieldWaterTankAnimation0377C, &gDryfieldWaterTankAnimation03A60, &gDryfieldWaterTankAnimation03CB4, &gDryfieldWaterTankAnimation047BC, &gDryfieldWaterTankAnimation04C98, &gDryfieldWaterTankAnimation04FEC, &gDryfieldWaterTankAnimation051E4, &gDryfieldWaterTankAnimation05704, &gDryfieldWaterTankAnimation059E4, &gDryfieldWaterTankAnimation05DB8, &gDryfieldWaterTankAnimation061A8, &gDryfieldWaterTankAnimation06514, &gDryfieldWaterTankAnimation06840, &gDryfieldWaterTankAnimation04000, &gDryfieldWaterTankAnimation04AA0, &gDryfieldWaterTankAnimation06F48, &gDryfieldWaterTankAnimation06C68 };
+
+// Installs the player's clips; the count is 20, not the 19 entries of its source.
+AnimationBankCopyRequest D_dryfield_water_tank_801849AC = { { .sets = D_dryfield_water_tank_80184960 }, 20 };
 
 AnimationPlayRequest D_dryfield_water_tank_801849B4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -257,7 +253,7 @@ EvsCommand D_dryfield_water_tank_80184E0C[126] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_water_tank_80184960.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_water_tank_801849AC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_water_tank_80184B30 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_water_tank_80184DAC } }, { .value = 0 } },
