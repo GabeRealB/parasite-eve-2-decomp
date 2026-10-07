@@ -3877,7 +3877,7 @@ static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2)
 
 void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
 {
-    CapCaption_LoadResource(arg0, arg1, arg2);
+    _capCaptionLoadResource(arg0, arg1, arg2);
 }
 
 /// Hides or shows sprite commands 1 and 2 of the area's view 13 through their

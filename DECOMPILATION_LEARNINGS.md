@@ -150654,7 +150654,7 @@ constant).
 
 - **A hand-stepped element pointer beside the index (`p = at(base, i); loop:
   if (...) goto done; p++; i++; goto loop;`) is the element taken inside a real
-  loop.** `CapCaption_FindKeyedLine` as `for (;;) { if (p->a != END && p->key
+  loop.** `_capCaptionFindRecordByKey` as `for (;;) { if (p->a != END && p->key
   != id) { p++; arg0++; } else break; }` is unrotated but one insn longer:
   with `p` a biv of its own, loop.c reduces the two field addresses to a
   third register (`addiu v1,v0,5`, `lw 3(v1)`, `lbu 0(v1)`). Written

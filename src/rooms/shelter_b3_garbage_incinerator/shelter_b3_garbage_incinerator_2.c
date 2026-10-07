@@ -1232,5 +1232,5 @@ void func_shelter_b3_garbage_incinerator_80180FE4(s16 arg0, s16 arg1, s16 arg2)
 
 void func_shelter_b3_garbage_incinerator_8018108C(s16 arg0, s16 arg1, s16 arg2)
 {
-    CapCaption_LoadResource(arg0, arg1, arg2);
+    _capCaptionLoadResource(arg0, arg1, arg2);
 }

@@ -21,13 +21,34 @@
 #include "main/task_types.h"
 #include "main/text.h"
 
+// CAP text words are read as signed halfwords for control-token dispatch.
+enum {
+    CAP_CAPTION_TEXT_END              = -1,
+    CAP_CAPTION_TEXT_LINE_BREAK       = -2,
+    CAP_CAPTION_TEXT_SPACER           = -3,
+    CAP_CAPTION_TEXT_FAMILY_MASK      = 0xFF00,
+    CAP_CAPTION_TEXT_ICON             = 0x8400,
+    CAP_CAPTION_TEXT_GLYPH_INDEX_MASK = 0x3FF,
+    CAP_CAPTION_TEXT_BYTE_MASK        = 0xFF,
+    CAP_CAPTION_TEXT_SPACER_WIDTH     = 3,
+    CAP_CAPTION_TEXT_ICON_WIDTH       = 16,
+    CAP_CAPTION_TEXT_LINE_GAP         = 2,
+    CAP_CAPTION_TEXT_END_LINE_ADVANCE = 13,
+    CAP_CAPTION_TEXT_SCREEN_WIDTH     = 320,
+    CAP_CAPTION_TEXT_LEFT_BIAS        = 5
+};
+
+// The caret draws its current level before stepping between these endpoints.
+enum { CAP_CAPTION_CARET_PULSE_MIN = 8,
+       CAP_CAPTION_CARET_PULSE_MAX = 15 };
+
 static void CapCaption_RunSchedule(Task* task);
 
 #ifndef CAP_CAPTION_DRAW_CURRENT_LINKAGE
 #define CAP_CAPTION_DRAW_CURRENT_LINKAGE static
 #endif
 CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void);
-static s32                            CapCaption_Relocate(CapFile* file);
+static bool                           _capCaptionRelocateFile(CapFile* file);
 /* The script selector and the caption drawer are file-local unless another
  * image calls this copy: a carrier whose copy is called from outside binds the
  * linkage to nothing and the name to its own exported one. */
@@ -35,14 +56,14 @@ static s32                            CapCaption_Relocate(CapFile* file);
 #define CAP_CAPTION_SELECT_SCRIPT_LINKAGE static
 #endif
 CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CapCaption_SelectScript(s16 arg0, s16 arg1, s32 arg2);
-static s32                            CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3);
-static s16                            CapCaption_TextTopY(const u16* arg0);
-static void                           CapCaption_DrawCaret(void);
-static s16                            CapCaption_CenterX(const u16* arg0);
-static s16                            CapCaption_CenterLineX(const u16* arg0, s32 arg1);
-static s16                            CapCaption_TextHeight(const u16* arg0);
-static s32                            CapCaption_LineHeight(const u16* arg0);
-static s32                            CapCaption_FindKeyedLine(s32 arg0);
+static s32                            _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unusedRevealAll, s32 titleIndex);
+static s16                            _capCaptionGetTextFirstBaselineY(const u16* textStream);
+static void                           _capCaptionDrawContinueCaret(void);
+static s16                            _capCaptionGetTextBlockLeftX(const u16* text);
+static s16                            _capCaptionGetTextLineLeftX(const u16* text, s32 selectedLineIndex);
+static s16                            _capCaptionGetTextBlockHeight(const u16* text);
+static s32                            _capCaptionGetTextLineAdvance(const u16* text);
+static s32                            _capCaptionFindRecordByKey(s32 recordIndex);
 static void                           CapCaption_TimedTask(Task* task);
 static void                           CapCaption_CancelableTask(Task* task);
 static void                           CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2);
@@ -91,70 +112,118 @@ CAP_CAPTION_DRAW_CURRENT_LINKAGE void CapCaption_DrawCurrent(void)
     if ((CapCaption_Data_8015E658 != NULL) &&
         (CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.offset != CAP_TEXT_REF_END) &&
         (capIsBusy() == 0)) {
-        CapCaption_DrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text, 0x80, 1,
+        _capCaptionDrawText(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text, 0x80, 1,
                             CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.title |
                                 ((CapCaption_Data_8015E658[CapCaption_Data_8015E662].control.text.flags & CAP_SEQUENCE_TITLE_BANK) * 0x10));
         if (!(CapCaption_Data_8015E658[CapCaption_Data_8015E662].trigger.soundAndTextFlags & CAP_SEQUENCE_INSTANT_TEXT)) {
-            CapCaption_DrawCaret();
+            _capCaptionDrawContinueCaret();
         }
     }
 }
 
-/// Relocates a caption file in place, the counterpart of gameplay's
-/// `capRelocateFile`, and publishes its glyph and script tables. Returns 0
-/// when the "CAP" magic is missing.
-static s32 CapCaption_Relocate(CapFile* file)
+/// Steps distinct writable caret level/direction words by one within 8..15.
+///
+/// falling is 0 while rising and 1 while falling; the endpoint reversals take
+/// place after the step. At 8 the direction must be rising, and at 15 falling.
+/// The caller draws the old level before calling this.
+static inline void _capCaptionStepCaretPulse(s32* greyLevel, s32* falling)
 {
-    s32                i;
-    s32                count;
-    s32                flag;
-    CapSequenceRecord* rec;
-    CapCommandRef*     ptr;
+    enum { CAP_CAPTION_CARET_PULSE_RISING  = 0,
+           CAP_CAPTION_CARET_PULSE_FALLING = 1 };
+
+    if (*falling == CAP_CAPTION_CARET_PULSE_RISING) {
+        (*greyLevel)++;
+        if (*greyLevel >= CAP_CAPTION_CARET_PULSE_MAX) {
+            *falling = CAP_CAPTION_CARET_PULSE_FALLING;
+        }
+    } else {
+        (*greyLevel)--;
+        if (*greyLevel <= CAP_CAPTION_CARET_PULSE_MIN) {
+            *falling = CAP_CAPTION_CARET_PULSE_RISING;
+        }
+    }
+}
+
+/// Relocates a loaded CAP file in place and selects its glyph and command tables.
+///
+/// Accepts any three-byte "CAP" prefix, returning false only on a magic mismatch.
+/// The caller supplies a complete writable file with valid offsets and counts;
+/// this does not validate its length. Tables borrow that storage for subsequent
+/// caption selection, measurement and drawing, so the file must remain loaded.
+/// A positive glyph offset triggers relocation; repeated calls with relocated
+/// KSEG0 addresses only republish the tables and return true.
+static bool _capCaptionRelocateFile(CapFile* file)
+{
+    /// Rebases a text reference, preserving terminal records and the next command.
+    ///
+    /// recordCursor is a writable CapSequenceRecord* local within fileBase,
+    /// a complete writable CapFile*. endTextRef is CAP_TEXT_REF_END. Arguments
+    /// have no side effects and are evaluated repeatedly. The caller counts
+    /// this record then advances one more slot; the terminal's extra skip is
+    /// uncounted and leaves the following command's contents unchanged.
+#define CAP_CAPTION_RELOCATE_TEXT_RECORD(recordCursor, fileBase, endTextRef) \
+    {                                                                        \
+        if ((recordCursor)->textRef.offset != (endTextRef)) {                \
+            (recordCursor)->textRef.offset += (u32)(fileBase);               \
+        } else {                                                             \
+            (recordCursor)++;                                                \
+        }                                                                    \
+    }
+
+    s32                entryIndex;
+    s32                sequenceRecordCount;
+    s32                sequenceEndRef;
+    s32                commandCount;
+    CapSequenceRecord* record;
+    CapCommandRef*     commandRef;
     CapSequenceTable*  sequenceTable;
     CapCommandTable*   commandTable;
 
-    if (strncmp(file->magic, "CAP", 3) != 0) {
-        return 0;
+    enum { CAP_CAPTION_MAGIC_PREFIX_BYTES = 3 };
+
+    if (strncmp(file->magic, "CAP", CAP_CAPTION_MAGIC_PREFIX_BYTES) != 0) {
+        return false;
     }
 
-    i = 0;
+    entryIndex = 0;
+    // Relocated KSEG0 addresses are negative in the signed offset word.
     if (file->glyphs.offset > 0) {
+        // Rebase serialized byte offsets using the 32-bit file address.
         file->glyphs.offset    += (u32)file;
         file->sequences.offset += (u32)file;
         file->commands.offset  += (u32)file;
         sequenceTable           = file->sequences.table;
-        rec                     = sequenceTable->records;
-        count                   = sequenceTable->count;
-        if (count > 0) {
-            flag = CAP_TEXT_REF_END;
+        record                  = sequenceTable->records;
+        sequenceRecordCount     = sequenceTable->count;
+        // Terminal records skip the next sequence command without relocating it.
+        if (sequenceRecordCount > 0) {
+            sequenceEndRef = CAP_TEXT_REF_END;
             do {
-                if (rec->textRef.offset != flag) {
-                    rec->textRef.offset += (u32)file;
-                } else {
-                    rec++;
-                }
-                i++;
-                rec++;
-            } while (i < count);
+                CAP_CAPTION_RELOCATE_TEXT_RECORD(record, file, sequenceEndRef);
+                entryIndex++;
+                record++;
+            } while (entryIndex < sequenceRecordCount);
+#undef CAP_CAPTION_RELOCATE_TEXT_RECORD
         }
         commandTable = file->commands.table;
-        i            = 0;
-        count        = commandTable->count;
-        ptr          = commandTable->entries;
-        if (count > 0) {
+        entryIndex   = 0;
+        commandCount = commandTable->count;
+        commandRef   = commandTable->entries;
+        if (commandCount > 0) {
             do {
-                if (ptr->offset != 0) {
-                    ptr->offset += (u32)file;
+                if (commandRef->offset != 0) {
+                    commandRef->offset += (u32)file;
                 }
-                i++;
-                ptr++;
-            } while (i < count);
+                entryIndex++;
+                commandRef++;
+            } while (entryIndex < commandCount);
         }
     }
 
+    // These tables stay owned by the loaded resource, including on repeat calls.
     CapCaption_Data_8015E654 = file->glyphs.cells;
-    CapCaption_Data_8015E650 = (file->commands.table)->entries;
-    return 1;
+    CapCaption_Data_8015E650 = file->commands.table->entries;
+    return true;
 }
 
 /// Starts playing the caption script `arg0` picks out of
@@ -172,453 +241,469 @@ CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CapCaption_SelectScript(s16 arg0, s16 arg1
         return 1;
     }
     CapCaption_Data_8015E666    = arg1;
-    entry                       = CapCaption_FindKeyedLine(1);
+    entry                       = _capCaptionFindRecordByKey(1);
     CapCaption_Data_8015E662    = entry;
     CapCaption_Data_8015E660    = arg2;
-    CapCaption_Data_8015E65C    = CapCaption_CenterX(CapCaption_Data_8015E658[entry].textRef.text);
-    CapCaption_Data_8015E65E    = CapCaption_TextTopY(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text);
-    CapCaption_Data_8015E664    = CapCaption_TextHeight(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text);
+    CapCaption_Data_8015E65C    = _capCaptionGetTextBlockLeftX(CapCaption_Data_8015E658[entry].textRef.text);
+    CapCaption_Data_8015E65E    = _capCaptionGetTextFirstBaselineY(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text);
+    CapCaption_Data_8015E664    = _capCaptionGetTextBlockHeight(CapCaption_Data_8015E658[CapCaption_Data_8015E662].textRef.text);
     CapCaption_Data_8015E66C[0] = 0x1E;
     return 0;
 }
 
-static s32 CapCaption_DrawText(const u16* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues the complete caption, its background and optional title, returning zero.
+///
+/// Requires previously selected block metrics, loaded glyph textures/palettes,
+/// writable OT entries 2 and 3, and enough primitive storage through GPU completion.
+/// Text is borrowed for this call and must be readable through the end token;
+/// glyph indices use the low ten bits and icon selectors must be in 0..3.
+/// Lines are centered in 320 screen pixels before conversion to draw coordinates.
+/// Only the low byte of titleIndex is read (0 none, otherwise glyph index + 1).
+/// The two unused arguments are retained interface slots; all text is drawn.
+/// The end token must lie at word index 0..32767. Pen X, line indices and packet
+/// coordinates retain halfword narrowing; used glyph/title indices must exist
+/// in the selected file's glyph table.
+static s32 _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unusedRevealAll, s32 titleIndex)
 {
+    enum {
+        CAP_CAPTION_DRAW_ORIGIN_X                    = 160,
+        CAP_CAPTION_DRAW_ORIGIN_Y                    = 120,
+        CAP_CAPTION_BOX_LEFT_ORIGIN_X                = 167,
+        CAP_CAPTION_BOX_RIGHT_ORIGIN_X               = 171,
+        CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y              = 119,
+        CAP_CAPTION_BACKGROUND_GREEN                 = 64,
+        CAP_CAPTION_BACKGROUND_BLUE                  = 32,
+        CAP_CAPTION_BACKGROUND_DRAW_MODE             = 0xE100020A,
+        CAP_CAPTION_TITLE_CLUT                       = 0x3D93,
+        CAP_CAPTION_ICON_CLUT                        = 0x3C00,
+        CAP_CAPTION_ICON_TPAGE                       = 0x1E,
+        CAP_CAPTION_GLYPH_CLUT_BASE                  = 0x3D50,
+        CAP_CAPTION_GLYPH_PALETTE_MASK               = 3,
+        CAP_CAPTION_GLYPH_PALETTE_SHIFT_IN_HIGH_WORD = 26,
+        CAP_CAPTION_GLYPH_PACKET_CODE                = 0x3C,
+        CAP_CAPTION_GLYPH_GREY                       = 0x70,
+        CAP_CAPTION_BACKGROUND_OT_INDEX              = 3,
+        CAP_CAPTION_TEXT_OT_INDEX                    = 2
+    };
     const u16*     text;
     const u16*     body;
     s32            title;
-    s16            sc;
-    u32            shifted;
-    s32            titleWidth;
-    s16            lineIdx;
-    s16            x;
-    s32            y;
-    s16            i;
+    s16            signedCode;
+    u32            codeHighWord;
+    s32            titleRightOffsetX;
+    s16            lineIndex;
+    s16            penX;
+    s32            baselineY;
+    s16            textIndex;
     u16            code;
     s16            centered;
-    s32            palette;
-    s16            t;
-    s16            t2;
-    s16            glyphY;
-    s32            top;
-    POLY_G4*       bg;
-    POLY_G4*       bg2;
-    DR_MODE*       dm;
-    POLY_FT4*      ft;
-    POLY_GT4*      gt;
-    POLY_GT4*      gt2;
-    TextGlyphCell* icon;
+    s32            paletteIndex;
+    s16            iconBaselineY;
+    s16            nextLineIndex;
+    s16            glyphBaselineY;
+    s32            boxTopY;
+    POLY_G4*       background;
+    POLY_G4*       backgroundCopy;
+    DR_MODE*       drawMode;
+    POLY_FT4*      flatQuad;
+    POLY_GT4*      glyphQuad;
+    POLY_GT4*      glyphOutline;
+    TextGlyphCell* iconCell;
 
-    lineIdx = 0;
-    title   = arg3;
-    text    = arg0;
-    x       = CapCaption_CenterLineX(arg0, 0) - 0xA0;
-    y       = (u16)CapCaption_Data_8015E65E - 0x78;
+    lineIndex = 0;
+    title     = titleIndex;
+    text      = textStream;
+    penX      = _capCaptionGetTextLineLeftX(textStream, 0) - CAP_CAPTION_DRAW_ORIGIN_X;
+    baselineY = (u16)CapCaption_Data_8015E65E - CAP_CAPTION_DRAW_ORIGIN_Y;
 
-    bg             = gGpuPrimCursor;
-    gGpuPrimCursor = bg + 1;
-    setlen(bg, 8);
-    setcode(bg, 0x3A);
-    setRGB0(bg, 0, 0, 0);
-    setRGB1(bg, 0, 0, 0);
-    setRGB2(bg, 0, 0x40, 0x20);
-    setRGB3(bg, 0, 0x40, 0x20);
-    bg->x0 = (u16)CapCaption_Data_8015E65C - 0xA7;
-    bg->y0 = ((u16)CapCaption_Data_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664;
-    bg->x1 = (u16)CapCaption_Data_8015E65C - CapCaption_Data_8015E65C * 2 + 0xAB;
-    bg->y1 = ((u16)CapCaption_Data_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664;
-    bg->x2 = (u16)CapCaption_Data_8015E65C - 0xA7;
-    bg->y2 = ((u16)CapCaption_Data_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664 + (u16)CapCaption_Data_8015E664;
-    bg->x3 = (u16)CapCaption_Data_8015E65C - CapCaption_Data_8015E65C * 2 + 0xAB;
-    bg->y3 = ((u16)CapCaption_Data_8015E660 - 0x77) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664 + (u16)CapCaption_Data_8015E664;
-    addPrim(&gGpuCurrentOt[3], bg);
-    bg2            = gGpuPrimCursor;
-    gGpuPrimCursor = bg2 + 1;
-    *bg2           = *bg;
-    addPrim(&gGpuCurrentOt[3], bg2);
-    dm             = gGpuPrimCursor;
-    gGpuPrimCursor = dm + 1;
-    setlen(dm, 1);
-    dm->code[0] = 0xE100020A;
-    addPrim(&gGpuCurrentOt[3], dm);
+    // Queue two blended background passes, then their draw-mode command.
+    background     = gGpuPrimCursor;
+    gGpuPrimCursor = background + 1;
+    setPolyG4(background);
+    setSemiTrans(background, 1);
+    setRGB0(background, 0, 0, 0);
+    setRGB1(background, 0, 0, 0);
+    setRGB2(background, 0, CAP_CAPTION_BACKGROUND_GREEN, CAP_CAPTION_BACKGROUND_BLUE);
+    setRGB3(background, 0, CAP_CAPTION_BACKGROUND_GREEN, CAP_CAPTION_BACKGROUND_BLUE);
+    background->x0 = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+    background->y0 = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664;
+    background->x1 = (u16)CapCaption_Data_8015E65C - CapCaption_Data_8015E65C * 2 + CAP_CAPTION_BOX_RIGHT_ORIGIN_X;
+    background->y1 = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664;
+    background->x2 = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+    background->y2 = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664 + (u16)CapCaption_Data_8015E664;
+    background->x3 = (u16)CapCaption_Data_8015E65C - CapCaption_Data_8015E65C * 2 + CAP_CAPTION_BOX_RIGHT_ORIGIN_X;
+    background->y3 = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - gDisplayState.vramYOffset - (u16)CapCaption_Data_8015E664 + (u16)CapCaption_Data_8015E664;
+    addPrim(&gGpuCurrentOt[CAP_CAPTION_BACKGROUND_OT_INDEX], background);
+    backgroundCopy  = gGpuPrimCursor;
+    gGpuPrimCursor  = backgroundCopy + 1;
+    *backgroundCopy = *background;
+    addPrim(&gGpuCurrentOt[CAP_CAPTION_BACKGROUND_OT_INDEX], backgroundCopy);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setlen(drawMode, 1);
+    drawMode->code[0] = CAP_CAPTION_BACKGROUND_DRAW_MODE;
+    addPrim(&gGpuCurrentOt[CAP_CAPTION_BACKGROUND_OT_INDEX], drawMode);
 
     body = text;
-    if (title & 0xFF) {
-        ft             = gGpuPrimCursor;
-        gGpuPrimCursor = ft + 1;
-        setlen(ft, 9);
-        setcode(ft, 0x2D);
-        title      = title - 1;
-        top        = ((u16)CapCaption_Data_8015E660 - 0x77) - (u16)CapCaption_Data_8015E664;
-        ft->x0     = (u16)CapCaption_Data_8015E65C - 0xA7;
-        ft->y0     = (top - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & 0xFF].height;
-        titleWidth = CapCaption_Data_8015E654[title & 0xFF].width - 0xA7;
-        ft->x1     = (u16)CapCaption_Data_8015E65C + titleWidth;
-        ft->y1     = (top - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & 0xFF].height;
-        ft->x2     = (u16)CapCaption_Data_8015E65C - 0xA7;
-        ft->y2     = top - gDisplayState.vramYOffset;
-        titleWidth = CapCaption_Data_8015E654[title & 0xFF].width - 0xA7;
-        ft->x3     = (u16)CapCaption_Data_8015E65C + titleWidth;
-        ft->y3     = top - gDisplayState.vramYOffset;
-        ft->u0     = CapCaption_Data_8015E654[title & 0xFF].u;
-        ft->v0     = CapCaption_Data_8015E654[title & 0xFF].v;
-        ft->u1     = CapCaption_Data_8015E654[title & 0xFF].u + CapCaption_Data_8015E654[title & 0xFF].width;
-        ft->v1     = CapCaption_Data_8015E654[title & 0xFF].v;
-        ft->u2     = CapCaption_Data_8015E654[title & 0xFF].u;
-        ft->v2     = CapCaption_Data_8015E654[title & 0xFF].v + CapCaption_Data_8015E654[title & 0xFF].height;
-        ft->u3     = CapCaption_Data_8015E654[title & 0xFF].u + CapCaption_Data_8015E654[title & 0xFF].width;
-        ft->v3     = CapCaption_Data_8015E654[title & 0xFF].v + CapCaption_Data_8015E654[title & 0xFF].height;
-        ft->clut   = 0x3D93;
-        ft->tpage  = getTPage(0, 1, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
-        addPrim(&gGpuCurrentOt[2], ft);
+    // The title is a one-based glyph selector; its upper bits are ignored.
+    if (title & CAP_CAPTION_TEXT_BYTE_MASK) {
+        flatQuad       = gGpuPrimCursor;
+        gGpuPrimCursor = flatQuad + 1;
+        setPolyFT4(flatQuad);
+        setShadeTex(flatQuad, 1);
+        title             = title - 1;
+        boxTopY           = ((u16)CapCaption_Data_8015E660 - CAP_CAPTION_BOX_BOTTOM_ORIGIN_Y) - (u16)CapCaption_Data_8015E664;
+        flatQuad->x0      = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+        flatQuad->y0      = (boxTopY - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].height;
+        titleRightOffsetX = CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].width - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+        flatQuad->x1      = (u16)CapCaption_Data_8015E65C + titleRightOffsetX;
+        flatQuad->y1      = (boxTopY - gDisplayState.vramYOffset) - CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].height;
+        flatQuad->x2      = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+        flatQuad->y2      = boxTopY - gDisplayState.vramYOffset;
+        titleRightOffsetX = CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].width - CAP_CAPTION_BOX_LEFT_ORIGIN_X;
+        flatQuad->x3      = (u16)CapCaption_Data_8015E65C + titleRightOffsetX;
+        flatQuad->y3      = boxTopY - gDisplayState.vramYOffset;
+        setUVWH(flatQuad, CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].u, CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].v, CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].width, CapCaption_Data_8015E654[title & CAP_CAPTION_TEXT_BYTE_MASK].height);
+        flatQuad->clut  = CAP_CAPTION_TITLE_CLUT;
+        flatQuad->tpage = getTPage(0, GPU_BLEND_ADD, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
+        addPrim(&gGpuCurrentOt[CAP_CAPTION_TEXT_OT_INDEX], flatQuad);
     }
 
-    centered = 1;
-    i        = 0;
+    centered  = 1;
+    textIndex = 0;
+    // Advance the baseline at breaks and emit icons or two-pass glyphs.
     while (1) {
-        code    = body[i];
-        shifted = (u32)code << 16;
-        sc      = (s32)shifted >> 16;
-        if (sc == -1) {
+        code         = body[textIndex];
+        codeHighWord = (u32)code << 16;
+        signedCode   = (s32)codeHighWord >> 16;
+        if (signedCode == CAP_CAPTION_TEXT_END) {
             break;
         }
-        if (sc == -2) {
-            t2                       = lineIdx + 1;
-            lineIdx                  = t2;
-            CapCaption_Data_8015E66A = y - 2;
-            CapCaption_Data_8015E668 = x + 4;
-            y                       += CapCaption_LineHeight(&body[i + 1]);
+        if (signedCode == CAP_CAPTION_TEXT_LINE_BREAK) {
+            nextLineIndex            = lineIndex + 1;
+            lineIndex                = nextLineIndex;
+            CapCaption_Data_8015E66A = baselineY - 2;
+            CapCaption_Data_8015E668 = penX + 4;
+            baselineY               += _capCaptionGetTextLineAdvance(&body[textIndex + 1]);
             if (centered != 0) {
-                x = CapCaption_CenterLineX(arg0, t2) - 0xA0;
+                penX = _capCaptionGetTextLineLeftX(textStream, nextLineIndex) - CAP_CAPTION_DRAW_ORIGIN_X;
             } else {
-                x = (u16)CapCaption_Data_8015E65C - 0xA0;
+                penX = (u16)CapCaption_Data_8015E65C - CAP_CAPTION_DRAW_ORIGIN_X;
             }
-            i++;
+            textIndex++;
             continue;
-        } else if (sc == -3) {
-            x += 3;
-            i++;
+        } else if (signedCode == CAP_CAPTION_TEXT_SPACER) {
+            penX += CAP_CAPTION_TEXT_SPACER_WIDTH;
+            textIndex++;
             continue;
-        } else if ((code & 0xFF00) == 0x8400) {
-            icon           = &D_8010FB70[code & 0xFF];
-            ft             = gGpuPrimCursor;
-            gGpuPrimCursor = ft + 1;
-            setlen(ft, 9);
-            setcode(ft, 0x2D);
-            ft->clut  = 0x3C00;
-            ft->tpage = 0x1E;
-            t         = (y - gDisplayState.vramYOffset) + 1;
-            ft->x0    = x;
-            ft->y0    = t - icon->height;
-            ft->x1    = x + icon->width;
-            ft->y1    = t - icon->height;
-            ft->x2    = x;
-            ft->y2    = t;
-            ft->x3    = x + icon->width;
-            ft->y3    = t;
-            ft->u0    = icon->u;
-            ft->v0    = icon->v;
-            ft->u1    = icon->u + icon->width;
-            ft->v1    = icon->v;
-            ft->u2    = icon->u;
-            ft->v2    = icon->v + icon->height;
-            ft->u3    = icon->u + icon->width;
-            ft->v3    = icon->v + icon->height;
-            addPrim(&gGpuCurrentOt[2], ft);
-            x += icon->width;
-            i++;
+        } else if ((code & CAP_CAPTION_TEXT_FAMILY_MASK) == CAP_CAPTION_TEXT_ICON) {
+            iconCell       = &D_8010FB70[code & CAP_CAPTION_TEXT_BYTE_MASK];
+            flatQuad       = gGpuPrimCursor;
+            gGpuPrimCursor = flatQuad + 1;
+            setPolyFT4(flatQuad);
+            setShadeTex(flatQuad, 1);
+            flatQuad->clut  = CAP_CAPTION_ICON_CLUT;
+            flatQuad->tpage = CAP_CAPTION_ICON_TPAGE;
+            iconBaselineY   = (baselineY - gDisplayState.vramYOffset) + 1;
+            flatQuad->x0    = penX;
+            flatQuad->y0    = iconBaselineY - iconCell->height;
+            flatQuad->x1    = penX + iconCell->width;
+            flatQuad->y1    = iconBaselineY - iconCell->height;
+            flatQuad->x2    = penX;
+            flatQuad->y2    = iconBaselineY;
+            flatQuad->x3    = penX + iconCell->width;
+            flatQuad->y3    = iconBaselineY;
+            setUVWH(flatQuad, iconCell->u, iconCell->v, iconCell->width, iconCell->height);
+            addPrim(&gGpuCurrentOt[CAP_CAPTION_TEXT_OT_INDEX], flatQuad);
+            penX += iconCell->width;
+            textIndex++;
             continue;
         } else {
-            palette        = (shifted >> 26) & 3;
-            code           = code & 0x3FF;
-            glyphY         = y - gDisplayState.vramYOffset;
-            gt             = gGpuPrimCursor;
-            gGpuPrimCursor = gt + 1;
-            setcode(gt, 0x3C);
-            setlen(gt, 12);
-            setShadeTex(gt, 1);
-            setRGB0(gt, 0x70, 0x70, 0x70);
-            setRGB1(gt, 0x70, 0x70, 0x70);
-            setRGB2(gt, 0x70, 0x70, 0x70);
-            setRGB3(gt, 0x70, 0x70, 0x70);
-            setSemiTrans(gt, 1);
-            gt->clut  = palette | 0x3D50;
-            gt->x0    = x;
-            gt->tpage = getTPage(0, 1, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
-            gt->y0    = glyphY - CapCaption_Data_8015E654[code & 0x3FF].height;
-            gt->x1    = x + CapCaption_Data_8015E654[code & 0x3FF].width;
-            gt->y1    = glyphY - CapCaption_Data_8015E654[code & 0x3FF].height;
-            gt->x2    = x;
-            gt->y2    = glyphY;
-            gt->x3    = x + CapCaption_Data_8015E654[code & 0x3FF].width;
-            gt->y3    = glyphY;
-            gt->u0    = CapCaption_Data_8015E654[code & 0x3FF].u;
-            gt->v0    = CapCaption_Data_8015E654[code & 0x3FF].v;
-            gt->u1    = CapCaption_Data_8015E654[code & 0x3FF].u + CapCaption_Data_8015E654[code & 0x3FF].width;
-            gt->v1    = CapCaption_Data_8015E654[code & 0x3FF].v;
-            gt->u2    = CapCaption_Data_8015E654[code & 0x3FF].u;
-            gt->v2    = CapCaption_Data_8015E654[code & 0x3FF].v + CapCaption_Data_8015E654[code & 0x3FF].height;
-            gt->u3    = CapCaption_Data_8015E654[code & 0x3FF].u + CapCaption_Data_8015E654[code & 0x3FF].width;
-            gt->v3    = CapCaption_Data_8015E654[code & 0x3FF].v + CapCaption_Data_8015E654[code & 0x3FF].height;
-            addPrim(&gGpuCurrentOt[2], gt);
-            gt2            = gGpuPrimCursor;
-            gGpuPrimCursor = gt2 + 1;
-            *gt2           = *gt;
-            gt2->tpage     = getTPage(0, GPU_BLEND_SUBTRACT, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
-            addPrim(&gGpuCurrentOt[2], gt2);
-            x = CapCaption_Data_8015E654[(s16)code].width + x - 1;
+            paletteIndex   = (codeHighWord >> CAP_CAPTION_GLYPH_PALETTE_SHIFT_IN_HIGH_WORD) & CAP_CAPTION_GLYPH_PALETTE_MASK;
+            code           = code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK;
+            glyphBaselineY = baselineY - gDisplayState.vramYOffset;
+            glyphQuad      = gGpuPrimCursor;
+            gGpuPrimCursor = glyphQuad + 1;
+            setcode(glyphQuad, CAP_CAPTION_GLYPH_PACKET_CODE);
+            setlen(glyphQuad, sizeof(*glyphQuad) / sizeof(u32) - 1);
+            setShadeTex(glyphQuad, 1);
+            setRGB0(glyphQuad, CAP_CAPTION_GLYPH_GREY, CAP_CAPTION_GLYPH_GREY, CAP_CAPTION_GLYPH_GREY);
+            setRGB1(glyphQuad, CAP_CAPTION_GLYPH_GREY, CAP_CAPTION_GLYPH_GREY, CAP_CAPTION_GLYPH_GREY);
+            setRGB2(glyphQuad, CAP_CAPTION_GLYPH_GREY, CAP_CAPTION_GLYPH_GREY, CAP_CAPTION_GLYPH_GREY);
+            setRGB3(glyphQuad, CAP_CAPTION_GLYPH_GREY, CAP_CAPTION_GLYPH_GREY, CAP_CAPTION_GLYPH_GREY);
+            setSemiTrans(glyphQuad, 1);
+            glyphQuad->clut  = paletteIndex | CAP_CAPTION_GLYPH_CLUT_BASE;
+            glyphQuad->x0    = penX;
+            glyphQuad->tpage = getTPage(0, GPU_BLEND_ADD, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
+            glyphQuad->y0    = glyphBaselineY - CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height;
+            glyphQuad->x1    = penX + CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width;
+            glyphQuad->y1    = glyphBaselineY - CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height;
+            glyphQuad->x2    = penX;
+            glyphQuad->y2    = glyphBaselineY;
+            glyphQuad->x3    = penX + CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width;
+            glyphQuad->y3    = glyphBaselineY;
+            setUVWH(glyphQuad, CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].u, CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].v, CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width, CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height);
+            addPrim(&gGpuCurrentOt[CAP_CAPTION_TEXT_OT_INDEX], glyphQuad);
+            glyphOutline        = gGpuPrimCursor;
+            gGpuPrimCursor      = glyphOutline + 1;
+            *glyphOutline       = *glyphQuad;
+            glyphOutline->tpage = getTPage(0, GPU_BLEND_SUBTRACT, CapCaption_Data_801544EC, CapCaption_Data_801544EE);
+            addPrim(&gGpuCurrentOt[CAP_CAPTION_TEXT_OT_INDEX], glyphOutline);
+            penX = CapCaption_Data_8015E654[(s16)code].width + penX - 1;
         }
-        i++;
+        textIndex++;
     }
     return 0;
 }
 
-/// Top Y of the caption block the text stream `arg0` holds: every line after
-/// the first `-2` adds its height (the tallest glyph's `height + 2`, or 2 when empty)
-/// and the total is subtracted from `CapCaption_Data_8015E660`. Gameplay's
-/// `capGetTextFirstBaselineY` is the same walk against a fixed 0xD0.
-static s16 CapCaption_TextTopY(const u16* arg0)
+/// Returns the first caption baseline in screen pixels from the selected bottom Y.
+///
+/// Subtracts the heights of closed lines after the first line break. Each is
+/// the tallest nonnegative glyph's height + 2, or two pixels if empty;
+/// negative tokens including inline icons do not affect height. An unfinished
+/// final line contributes nothing. Requires loaded glyph metrics and text
+/// readable through its end token at word index 0..32767. Heights and the result
+/// narrow to s16.
+static s16 _capCaptionGetTextFirstBaselineY(const u16* textStream)
 {
-    s16        lineH     = 0;
-    s16        total     = 0;
-    s16        i         = 0;
-    s16        seenBreak = 0;
-    const u16* text      = arg0;
-    s16        code      = text[0];
+    s16        lineHeight           = 0;
+    s16        followingLinesHeight = 0;
+    s16        textIndex            = 0;
+    s16        seenFirstBreak       = 0;
+    const u16* text                 = textStream;
+    s16        code                 = text[0];
 
-    while (code != -1) {
-        if (code == -2) {
-            if (seenBreak) {
-                if (lineH == 0) {
-                    lineH = 2;
+    while (code != CAP_CAPTION_TEXT_END) {
+        if (code == CAP_CAPTION_TEXT_LINE_BREAK) {
+            if (seenFirstBreak) {
+                if (lineHeight == 0) {
+                    lineHeight = CAP_CAPTION_TEXT_LINE_GAP;
                 }
-                total += lineH;
+                followingLinesHeight += lineHeight;
             } else {
-                seenBreak = 1;
+                seenFirstBreak = 1;
             }
-            lineH = 0;
-        } else if (code != -3) {
+            lineHeight = 0;
+        } else if (code != CAP_CAPTION_TEXT_SPACER) {
             if (code >= 0) {
-                if (lineH < CapCaption_Data_8015E654[code & 0x3FF].height + 2) {
-                    lineH = CapCaption_Data_8015E654[code & 0x3FF].height + 2;
+                if (lineHeight < CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
+                    lineHeight = CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
                 }
             }
         }
-        code = text[++i];
+        code = text[++textIndex];
     }
-    return CapCaption_Data_8015E660 - total;
+    return CapCaption_Data_8015E660 - followingLinesHeight;
 }
 
-/// Draws the pulsing "more text" caret: a Gouraud triangle at
-/// (`CapCaption_Data_8015E668`, `CapCaption_Data_8015E66A`) whose grey level
-/// ramps up to 15 and back down to 9. Same body as gameplay's `_capDrawContinueCaret`
-/// without the VRAM Y offset.
-static void CapCaption_DrawCaret(void)
+/// Queues the pulsing continuation triangle after its draw-call countdown expires.
+///
+/// The countdown loses one per call and suppresses drawing while nonzero.
+/// The triangle uses the last line-break pen position directly in draw coordinates;
+/// no VRAM Y adjustment is applied. Its inclusive 8..15 pulse is drawn before
+/// stepping the level and reversing direction. Requires OT entry 2 and primitive
+/// storage retained through GPU completion.
+static void _capCaptionDrawContinueCaret(void)
 {
-    POLY_G3* prim;
-    s32      c1;
-    s32      c2;
+    POLY_G3* caret;
+    s32      grey;
 
     if (CapCaption_Data_8015E66C[0] != 0) {
         CapCaption_Data_8015E66C[0] -= 1;
         return;
     }
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG3(prim);
-    c1 = (CapCaption_Data_801545E4 << 7) / 15;
-    setRGB0(prim, c1, c1, c1);
-    c1 = (CapCaption_Data_801545E4 * 192) / 15;
-    c2 = c1;
-    setRGB1(prim, c2, c2, c2);
-    setRGB2(prim, c2, c2, c2);
-    prim->x0 = CapCaption_Data_8015E668 + 3;
-    prim->y0 = CapCaption_Data_8015E66A;
-    prim->x1 = CapCaption_Data_8015E668;
-    prim->x2 = CapCaption_Data_8015E668 + 7;
-    prim->y1 = CapCaption_Data_8015E66A - 7;
-    prim->y2 = CapCaption_Data_8015E66A - 7;
-    addPrim(&gGpuCurrentOt[2], prim);
-    if (CapCaption_Data_801545E8 == 0) {
-        CapCaption_Data_801545E4 += 1;
-        if (CapCaption_Data_801545E4 >= 0xF) {
-            CapCaption_Data_801545E8 = 1;
-        }
-    } else {
-        CapCaption_Data_801545E4 -= 1;
-        if (CapCaption_Data_801545E4 < 9) {
-            CapCaption_Data_801545E8 = 0;
-        }
-    }
+    caret          = gGpuPrimCursor;
+    gGpuPrimCursor = caret + 1;
+    setPolyG3(caret);
+    grey = (CapCaption_Data_801545E4 << 7) / CAP_CAPTION_CARET_PULSE_MAX;
+    setRGB0(caret, grey, grey, grey);
+    grey = (CapCaption_Data_801545E4 * 192) / CAP_CAPTION_CARET_PULSE_MAX;
+    setRGB1(caret, grey, grey, grey);
+    setRGB2(caret, grey, grey, grey);
+    caret->x0 = CapCaption_Data_8015E668 + 3;
+    caret->y0 = CapCaption_Data_8015E66A;
+    caret->x1 = CapCaption_Data_8015E668;
+    caret->x2 = CapCaption_Data_8015E668 + 7;
+    caret->y1 = CapCaption_Data_8015E66A - 7;
+    caret->y2 = CapCaption_Data_8015E66A - 7;
+    addPrim(&gGpuCurrentOt[2], caret);
+    _capCaptionStepCaretPulse(&CapCaption_Data_801545E4, &CapCaption_Data_801545E8);
 }
 
-/// Horizontal centring offset of the caption line the text stream `arg0`
-/// starts with: the widest line's pixel width subtracted from the 0x140 screen
-/// width, halved, minus 5. The walk is the one `CapCaption_LineHeight`
-/// makes, and gameplay's `_capGetTextBlockLeftX` compiles to the same 0x110 bytes with
-/// only the glyph table symbol differing — `-2` closes a line and keeps the
-/// running maximum, `-3` and `0x8400`-masked codes indent it by 3 and 0x10, and
-/// each glyph code (non-negative, `& 0x3FF` indexing `CapCaption_Data_8015E654`)
-/// advances it by that glyph's `width - 1`.
-static s16 CapCaption_CenterX(const u16* arg0)
+/// Returns the biased screen-space left X of the widest closed caption line.
+///
+/// Uses (320 - width) / 2 - 5 pixels. Only line-break tokens commit a width;
+/// an unfinished last line is omitted. Spacers advance three pixels, inline
+/// icons sixteen, and nonnegative glyph codes their cell width minus one.
+/// Other negative codes are skipped. Requires loaded glyph metrics and text
+/// readable through its end token, at word index 0..32767. Widths narrow to s16.
+static s16 _capCaptionGetTextBlockLeftX(const u16* text)
 {
-    s16 lineW;
-    s16 maxW;
-    s16 i;
+    s16 lineWidth;
+    s16 maxWidth;
+    s16 textIndex;
     s16 code;
 
-    lineW = 0;
-    maxW  = 0;
-    i     = 0;
-    code  = arg0[0];
-    while (code != -1) {
-        if (code == -2) {
-            if (lineW > maxW) {
-                maxW = lineW;
+    lineWidth = 0;
+    maxWidth  = 0;
+    textIndex = 0;
+    code      = text[0];
+    while (code != CAP_CAPTION_TEXT_END) {
+        if (code == CAP_CAPTION_TEXT_LINE_BREAK) {
+            if (lineWidth > maxWidth) {
+                maxWidth = lineWidth;
             }
-            lineW = 0;
-            code  = arg0[++i];
-        } else if (code == -3) {
-            lineW += 3;
-            code   = arg0[++i];
-        } else if ((code & 0xFF00) == 0x8400) {
-            lineW += 0x10;
-            code   = arg0[++i];
+            lineWidth = 0;
+            code      = text[++textIndex];
+        } else if (code == CAP_CAPTION_TEXT_SPACER) {
+            lineWidth += CAP_CAPTION_TEXT_SPACER_WIDTH;
+            code       = text[++textIndex];
+        } else if ((code & CAP_CAPTION_TEXT_FAMILY_MASK) == CAP_CAPTION_TEXT_ICON) {
+            lineWidth += CAP_CAPTION_TEXT_ICON_WIDTH;
+            code       = text[++textIndex];
         } else if (code >= 0) {
-            lineW += CapCaption_Data_8015E654[code & 0x3FF].width - 1;
-            code   = arg0[++i];
+            lineWidth += CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width - 1;
+            code       = text[++textIndex];
         } else {
-            code = arg0[++i];
+            code = text[++textIndex];
         }
     }
-    return (0x140 - maxW) / 2 - 5;
+    return (CAP_CAPTION_TEXT_SCREEN_WIDTH - maxWidth) / 2 - CAP_CAPTION_TEXT_LEFT_BIAS;
 }
 
-/// Horizontal centring offset of line `arg1` of the caption text stream
-/// `arg0`: that line's pixel width subtracted from 0x140, halved, minus 5.
-/// Same walk as `CapCaption_CenterX`, but keeps the width of the
-/// selected line instead of the widest; gameplay's `_capGetTextLineLeftX`
-/// compiles to the same bytes.
-static s16 CapCaption_CenterLineX(const u16* arg0, s32 arg1)
+/// Returns the biased screen-space left X of one zero-based caption line.
+///
+/// Uses (320 - width) / 2 - 5 pixels, measuring glyphs, spacers and icons as
+/// `_capCaptionGetTextBlockLeftX` does. The requested line must end in a
+/// line-break token to contribute its width; an absent or unfinished line
+/// uses width zero. Requires loaded glyph metrics and text readable through
+/// its end token at word index 0..32767; line indices and widths narrow to s16.
+static s16 _capCaptionGetTextLineLeftX(const u16* text, s32 selectedLineIndex)
 {
-    s16 lineW;
-    s16 selectedW;
-    s16 i;
+    s16 lineWidth;
+    s16 selectedWidth;
+    s16 textIndex;
     s16 lineIndex;
     s16 code;
 
-    lineW     = 0;
-    selectedW = 0;
-    i         = 0;
-    lineIndex = 0;
-    code      = arg0[0];
-    while (code != -1) {
-        if (code == -2) {
-            if (lineIndex == arg1) {
-                selectedW = lineW;
+    lineWidth     = 0;
+    selectedWidth = 0;
+    textIndex     = 0;
+    lineIndex     = 0;
+    code          = text[0];
+    while (code != CAP_CAPTION_TEXT_END) {
+        if (code == CAP_CAPTION_TEXT_LINE_BREAK) {
+            if (lineIndex == selectedLineIndex) {
+                selectedWidth = lineWidth;
             }
-            lineW = 0;
-            i++;
+            lineWidth = 0;
+            textIndex++;
             lineIndex++;
-            code = arg0[i];
-        } else if (code == -3) {
-            lineW += 3;
-            code   = arg0[++i];
-        } else if ((code & 0xFF00) == 0x8400) {
-            lineW += 0x10;
-            code   = arg0[++i];
+            code = text[textIndex];
+        } else if (code == CAP_CAPTION_TEXT_SPACER) {
+            lineWidth += CAP_CAPTION_TEXT_SPACER_WIDTH;
+            code       = text[++textIndex];
+        } else if ((code & CAP_CAPTION_TEXT_FAMILY_MASK) == CAP_CAPTION_TEXT_ICON) {
+            lineWidth += CAP_CAPTION_TEXT_ICON_WIDTH;
+            code       = text[++textIndex];
         } else if (code >= 0) {
-            lineW += CapCaption_Data_8015E654[code & 0x3FF].width - 1;
-            code   = arg0[++i];
+            lineWidth += CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].width - 1;
+            code       = text[++textIndex];
         } else {
-            code = arg0[++i];
+            code = text[++textIndex];
         }
     }
-    return (0x140 - selectedW) / 2 - 5;
+    return (CAP_CAPTION_TEXT_SCREEN_WIDTH - selectedWidth) / 2 - CAP_CAPTION_TEXT_LEFT_BIAS;
 }
 
-/// Total height of the caption block the text stream `arg0` holds: every `-2`
-/// line break adds the line's height (the tallest glyph's `height + 2`, or 2 when
-/// the line is empty). Gameplay's `capGetTextBlockHeight` is the same walk plus a
-/// final `2 -> 0` clamp.
-static s16 CapCaption_TextHeight(const u16* arg0)
+/// Returns the pixel height accumulated at caption line-break tokens.
+///
+/// Each closed line contributes its tallest nonnegative glyph's height + 2,
+/// or two pixels without such glyphs. Negative tokens, including inline icons,
+/// do not affect height, and an unfinished final line contributes nothing.
+/// Requires loaded glyph metrics and text readable through its end token;
+/// the end token must lie at word index 0..32767. Heights and the sum narrow to s16.
+static s16 _capCaptionGetTextBlockHeight(const u16* text)
 {
-    s16 lineH = 0;
-    s16 total = 0;
-    s16 i     = 0;
-    s16 code  = arg0[0];
+    s16 lineHeight  = 0;
+    s16 blockHeight = 0;
+    s16 textIndex   = 0;
+    s16 code        = text[0];
 
-    while (code != -1) {
-        if (code == -2) {
-            if (lineH == 0) {
-                lineH = 2;
+    while (code != CAP_CAPTION_TEXT_END) {
+        if (code == CAP_CAPTION_TEXT_LINE_BREAK) {
+            if (lineHeight == 0) {
+                lineHeight = CAP_CAPTION_TEXT_LINE_GAP;
             }
-            total += lineH;
-            lineH  = 0;
-        } else if (code != -3) {
+            blockHeight += lineHeight;
+            lineHeight   = 0;
+        } else if (code != CAP_CAPTION_TEXT_SPACER) {
             if (code >= 0) {
-                if (lineH < CapCaption_Data_8015E654[code & 0x3FF].height + 2) {
-                    lineH = CapCaption_Data_8015E654[code & 0x3FF].height + 2;
+                if (lineHeight < CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
+                    lineHeight = CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
                 }
             }
         }
-        code = arg0[++i];
+        code = text[++textIndex];
     }
-    return total;
+    return blockHeight;
 }
 
-/// Height of the caption line the text stream `arg0` starts with, walking it
-/// the way gameplay's `_capGetTextLineAdvance` does — this overlay's caption system is
-/// a copy of that one, and the two functions compile to the same 0xB8 bytes
-/// with only the glyph table symbol differing.
+/// Returns the pixel baseline advance for the following caption line.
 ///
-/// The running maximum starts at 0 and each glyph code (non-negative, `& 0x3FF`
-/// indexing `CapCaption_Data_8015E654`) raises it to that glyph's `height + 2`. Either
-/// terminator ends the scan: `-2` leaves the maximum as it stands, `-1` forces
-/// 0xD, and any other negative code is stepped over like a glyph without
-/// touching the maximum. A maximum still at 0 — the stream opened with `-2` —
-/// comes back as 2.
-static s32 CapCaption_LineHeight(const u16* arg0)
+/// Stops at the first line break or end token. A break returns the tallest
+/// nonnegative glyph's height + 2, or two pixels if no such glyph was seen.
+/// End of text returns thirteen pixels regardless of preceding glyph heights.
+/// Other negative codes, including inline icons, are skipped. Requires loaded
+/// metrics and readable text through either terminator, at word index 0..32767;
+/// line heights retain signed-halfword narrowing.
+static s32 _capCaptionGetTextLineAdvance(const u16* text)
 {
-    s16 height = 0;
-    s16 i      = 0;
-    s16 cont   = 1;
-    s16 code   = arg0[0];
+    s16 lineHeight = 0;
+    s16 textIndex  = 0;
+    s16 scanning   = 1;
+    s16 code       = text[0];
 
     do {
-        if (code == -2) {
-            cont = 0;
-        } else if (code == -1) {
-            cont   = 0;
-            height = 0xD;
+        if (code == CAP_CAPTION_TEXT_LINE_BREAK) {
+            scanning = 0;
+        } else if (code == CAP_CAPTION_TEXT_END) {
+            scanning   = 0;
+            lineHeight = CAP_CAPTION_TEXT_END_LINE_ADVANCE;
         } else if (code >= 0) {
-            if (height < CapCaption_Data_8015E654[code & 0x3FF].height + 2) {
-                height = CapCaption_Data_8015E654[code & 0x3FF].height + 2;
+            if (lineHeight < CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP) {
+                lineHeight = CapCaption_Data_8015E654[code & CAP_CAPTION_TEXT_GLYPH_INDEX_MASK].height + CAP_CAPTION_TEXT_LINE_GAP;
             }
-            code = arg0[++i];
+            code = text[++textIndex];
         } else {
-            code = arg0[++i];
+            code = text[++textIndex];
         }
-    } while (cont);
-    if (height == 0) {
-        height = 2;
+    } while (scanning);
+    if (lineHeight == 0) {
+        lineHeight = CAP_CAPTION_TEXT_LINE_GAP;
     }
-    return height;
+    return lineHeight;
 }
 
-static s32 CapCaption_FindKeyedLine(s32 arg0)
+/// Finds the selected variant key from a sequence's starting record slot.
+///
+/// recordIndex counts twelve-byte slots from the selected sequence command,
+/// whose slot zero is not a text record. Returns the first matching slot or
+/// the terminal slot if no key matches. Requires a selected relocated sequence
+/// readable through its terminal record; retains no pointer and changes no record.
+static s32 _capCaptionFindRecordByKey(s32 recordIndex)
 {
     CapSequenceRecord* record;
 
     for (;;) {
-        record = _capSequenceRecordAt(CapCaption_Data_8015E658, arg0);
+        record = _capSequenceRecordAt(CapCaption_Data_8015E658, recordIndex);
         if (record->textRef.offset != CAP_TEXT_REF_END && record->key != CapCaption_Data_8015E666) {
-            arg0++;
+            recordIndex++;
         } else {
             break;
         }
     }
-    return arg0;
+    return recordIndex;
 }
 
 static void CapCaption_TimedTask(Task* task)

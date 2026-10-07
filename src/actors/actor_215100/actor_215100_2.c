@@ -2248,7 +2248,7 @@ static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
 
 void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
 {
-    CapCaption_LoadResource(arg0, arg1, arg2);
+    _capCaptionLoadResource(arg0, arg1, arg2);
 }
 
 /// State-0 handler of the actor's dispatcher: allocates the work block, spawns

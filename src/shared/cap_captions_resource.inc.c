@@ -6,21 +6,29 @@ static void CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2)
     displayQueueModeTask(&CapCaption_Data_80154508, arg2, 0, STAGE_ENTRY_RELOAD);
 }
 
-static inline void CapCaption_LoadResource(s16 arg0, s16 arg1, s16 arg2)
+/// Selects a loaded CAP data payload and its font texture-page origin.
+///
+/// texturePageX is a VRAM word X and texturePageY a VRAM row. dataResourceIndex
+/// is zero-based among FILE_SYSTEM_RESOURCE_DATA slots, not all directory slots.
+/// The bundle load must have finished and the selected CAP storage must remain
+/// alive during caption use. Page coordinates are stored even on failure; a
+/// missing data ordinal or invalid CAP magic leaves the previous tables selected.
+/// This selects/relocates existing storage and performs no I/O or allocation.
+static inline void _capCaptionLoadResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex)
 {
-    s32 count;
-    s32 i;
+    s32 dataOrdinal;
+    s32 slotIndex;
 
-    count                    = 0;
-    CapCaption_Data_801544EC = arg0;
-    CapCaption_Data_801544EE = arg1;
-    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
-        if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_DATA) {
-            if (count == arg2) {
-                CapCaption_Relocate(D_8006C338[i].data);
+    dataOrdinal              = 0;
+    CapCaption_Data_801544EC = texturePageX;
+    CapCaption_Data_801544EE = texturePageY;
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_8006C338); slotIndex++) {
+        if (D_8006C338[slotIndex].kind == FILE_SYSTEM_RESOURCE_DATA) {
+            if (dataOrdinal == dataResourceIndex) {
+                _capCaptionRelocateFile(D_8006C338[slotIndex].data);
                 break;
             }
-            count++;
+            dataOrdinal++;
         }
     }
 }
