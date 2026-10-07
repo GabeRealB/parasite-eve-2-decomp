@@ -2753,16 +2753,9 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     SCRATCH_STACK_RESERVE_BLOCK(_Actor356100TickScratch);
     blk = SCRATCH_STACK_CURSOR(_Actor356100TickScratch);
     if (work->state == ACTOR_356100_STATE_SCRIPTED_DEATH) {
-        MATRIX* m;
-
         blk->viewPos.vx = blk->viewPos.vy = blk->viewPos.vz = 0;
         actorTransformToView(&arg1->extra.tmd->coords[1], &blk->viewPos);
-        m                             = &blk->shadowCoord.coord;
-        MATRIX_PAIR(m, 0, 0)          = 0x1000;
-        MATRIX_PAIR(m, 0, 2)          = 0;
-        MATRIX_PAIR(m, 1, 1)          = 0x1000;
-        MATRIX_PAIR(m, 2, 0)          = 0;
-        m->m[2][2]                    = 0x1000;
+        gfxSetRotIdentity(&blk->shadowCoord.coord);
         blk->shadowCoord.parent       = &gGfxViewCoord;
         blk->shadowCoord.coord.t[0]   = blk->viewPos.vx;
         blk->shadowCoord.coord.t[1]   = 0;
