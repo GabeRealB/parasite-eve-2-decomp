@@ -9622,7 +9622,7 @@ whose `.c` carries its `INCLUDE_RODATA`.
 **A `units` cut that moves matched bodies into a new file loses the prototypes
 their earlier definitions supplied.** When `actor_400600` gained
 `units = ["0x5188"]` with `rodata = [{ start = "0x1B4", unit = "actor_400600_2" }]`
-(the jump table for `func_actor_400600_80136FA8` sat at 4 mod 8 from the
+(the jump table for `_actor400600TakeArmedHitReaction` sat at 4 mod 8 from the
 unit's `0x0` base), the tail of `actor_400600.c` became `actor_400600_2.c` and
 the later units renumbered `_2..._6` -> `_3..._7`. Every body compiled the same,
 except one call: `func_actor_400600_80132704(Task*, s16, u8)` had been
@@ -24547,7 +24547,7 @@ existing byte fields in an unnamed `union { s32 word; struct { ... }; };`
 fails with "structure has no member named" at every use site (and trips the
 `STATIC_ASSERT_SIZEOF`). Name both levels and rename the existing byte users.
 Check first that the wide load is a second view at all.
-`func_actor_400600_80136558` does `lw 0x75C` + `& 0xFFFF0000` over the
+`_actor400600TickCloakFade` does `lw 0x75C` + `& 0xFFFF0000` over the
 `u8 cloaked` / `u8 cloakFading` pair that other functions store with `sb`,
 which is `work->cloaked == 0 && work->cloakFading == 1` merged by
 `fold_truthop` and loaded in the widest mode the word-aligned work block
@@ -26492,7 +26492,7 @@ if (work->armTasks[0] != NULL) {
 }
 ```
 
-`func_actor_400600_801387DC` needed it for a second reason: with the child in
+`_actor400600SyncArmModelFlags` needed it for a second reason: with the child in
 `$a0`, `$a1` still held `value` at the first `worldCoordSetActorColorMode`, so
 `reload_cse_regs` deleted the `move a1, s0`. With `child = work->armTasks[0];
 if (child != NULL)`, the pointer landed in `$a1`, the move came back, and the
@@ -70789,11 +70789,11 @@ callee in the scratch has the prototype the host file has - m2c's `/* extern */`
 lines, and callees it does not declare at all, are not that.
 
 ### A loop's pointer increment in a load stall means the source stores are in the wrong order
-`func_actor_400600_80138224` walks a `-1`-terminated `s16` index list with
+`_actor400600DrawFloorShadows` walks a `-1`-terminated `s16` index list with
 `for (i = 0; D[i] != -1; i++)` (loop.c reduces `D[i]` to a pointer, which gives
 the target's `addiu s1,a0,%lo(D)` *after* the entry test; an explicit
-`p = D` puts it before), then fills `pts[i].vx/vy/vz` from `mtx.t[0]`, `value`,
-`mtx.t[2]`. The target's store order is vy, vx, vz; writing the C in that order
+`p = D` puts it before), then fills `worldPoints[pointIndex].vx/vy/vz` from `worldTransform.t[0]`, `value`,
+`worldTransform.t[2]`. The target's store order is vy, vx, vz; writing the C in that order
 gave 96.8% with the giv's `addiu s1,s1,2` sunk from the top of the body into
 the tail, between `lhu 0x24(sp)` and `sh ...,0(v0)`. The increment has priority
 1 and is ready from the start of backward scheduling, so sched1 uses it to fill
@@ -70804,10 +70804,10 @@ conflict, so it moves above the vx store. The increment then stays at the top
 that uses it, try a different source order for the neighbouring stores before
 you touch the loop.
 
-The last 0.6% was `value`/`arg2` swapped between `$s4` and `$s5`. Declaring
+The last 0.6% was `value`/`shade` swapped between `$s4` and `$s5`. Declaring
 `value` `s16` instead of `s32` (the callers pass a constant, so their code does not
 change) cuts its pseudo's live length from 80 insns to 35. 3 refs over 35 insns
-then outranks `arg2`'s 2 over 40, so global-alloc allocates it first and it
+then outranks `shade`'s 2 over 40, so global-alloc allocates it first and it
 takes `$s4`.
 
 ### `li $v0, 1` in both predecessors of a shared store tail: each arm had its own `return 1`
@@ -70991,8 +70991,8 @@ pass.
 
 ## Reusing one local for a copied value and then a constant forces the store order sched1 would otherwise swap
 
-`func_actor_400600_80137498` ends case 0 of a switch with
-`field_4 = out.vz; field_10 = 10; field_12 = 10; break;`, and case 2 ends with
+`_actor400600StartWallProbe` ends case 0 of a switch with
+`capsule.ends[0].vz = localTarget.vz; capsule.end0Radius = 10; capsule.end1Radius = 10; break;`, and case 2 ends with
 the same two constant stores. The target is `lhu v0,0x1C(sp) / nop /
 sh v0,0x628 / j <case 2's sh 0x634> / li v0,10`: jump2 cross-jumped the
 `sh 0x634 / sh 0x636` tail into case 2. With plain constants, sched1 ranked the
@@ -71005,11 +71005,11 @@ Carrying both values in one local adds an anti-dependence (the `li` writes the
 register the vz store reads), which keeps the store ahead of the `li`:
 
 ```c
-n                      = out.vz;
-work->rec_624.field_4  = n;
-n                      = 0xA;
-work->rec_624.field_10 = n;
-work->rec_624.field_12 = n;
+endZOrRadius           = localTarget.vz;
+work->capsule.ends[0].vz = endZOrRadius;
+endZOrRadius           = 0xA;
+work->capsule.end0Radius = endZOrRadius;
+work->capsule.end1Radius = endZOrRadius;
 ```
 
 Two things did not work. A variable fed by every case and stored after the
@@ -71033,7 +71033,7 @@ In the same function, two matrix-pointer fixes were needed:
 
 ## Early `return 0` inside the arm keeps `$v0` out of its temps
 
-`func_actor_400600_80137C34` (actors/actor_400600). One arm of an `if` chain
+`_actor400600TrySelectAttack` (actors/actor_400600). One arm of an `if` chain
 advances the LCG twice and stores the result, then falls through to a
 `return 0;` shared with the arms that fail their tests. Target: the arm's temps
 use `$v1`/`$a0`/`$a1`, and the preceding `bne` carries `move v0,zero` in its
@@ -71087,7 +71087,7 @@ re-split it.
 
 ## Two `s16` call results each copied after the *second* call: the callee returns `int` at this site
 
-`func_actor_400600_80136670` calls `func_actor_400600_8013886C` (defined `s16` in
+`_actor400600UpdateTarget` calls `_actor400600FindRouteZone` (defined `s16` in
 `actor_400600_2.c`) twice and compares both results. Target, after the second `jal`:
 
 ```
