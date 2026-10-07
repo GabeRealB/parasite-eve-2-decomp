@@ -4716,11 +4716,7 @@ static void Actor01600_Fn06974(Task* actor, s32 distance)
     gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &block->facing);
     rotation                       = &block->rotation;
     block->yaw                     = ratan2(block->facing.vx, block->facing.vz);
-    rotation->rotationWords.m00M01 = ONE;
-    rotation->rotationWords.m02M10 = 0;
-    rotation->rotationWords.m11M12 = ONE;
-    rotation->rotationWords.m20M21 = 0;
-    rotation->rotationWords.m22    = ONE;
+    gfxSetRotIdentity(&rotation->mat);
     RotMatrixY(block->yaw, &rotation->mat);
     ApplyMatrixLV(&rotation->mat, &block->step, &block->step);
     coord->coord.t[0] += block->step.vx;
