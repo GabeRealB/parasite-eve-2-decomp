@@ -102547,7 +102547,7 @@ Found on `func_actor_401300_8013267C` (99.91% -> 100%). The same function also
 needed `s16` parameters, not `s32` with casts: `(s16)arg` casts left the
 `move $s4,$a1` prologue copy after `$s3`, and `s16 value` alone only half-fixed it.
 
-## A local that outlives a CSE restart flips which register a jump-equality store uses; re-read the expression instead (func_actor_401300_8013346C, 2026-09-16)
+## A local that outlives a CSE restart flips which register a jump-equality store uses; re-read the expression instead (_actor401300GetAnimationSoundCue, 2026-09-16)
 
 Shape: per switch case, a chain of `if (frame == K) { if (work->lastCueFrame != frame) { work->lastCueFrame = frame; return SE; } work->lastCueFrame = frame; break; }`.
 On the equal path both registers hold the same value, and CSE picks one for the
@@ -102559,10 +102559,10 @@ shared `j end; sw` tail each block cross-jumps into, so a wrong pick shows up as
 `record_jump_cond` merges the classes with `make_regs_eqv(frame, loaded)`; the
 frame becomes canonical only if it lives *beyond* the current CSE path
 (`REGNO_FIRST_UID < cse_basic_block_start` or `LAST_UID > end`). With
-`s32 frame = work->field_5E & 0x3FF;` at the case head, CSE restarts at the
+`s32 frame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;` at the case head, CSE restarts at the
 label of the second test, the local was set before that start, so the frame
 won everywhere (98.1%). Dropping the local and writing
-`(work->field_5E & 0x3FF)` at every use (CSE still loads it once) gives each
+`(work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF)` at every use (CSE still loads it once) gives each
 restart its own short-lived pseudo, the loaded value stays canonical for the
 last test, and the function matched. A function-scope local was worse again
 (89%): one pseudo across all cases also gets a different hard register.
@@ -102640,11 +102640,11 @@ later `sb` after calls means the compare sits in the extended basic block of
 the store - two `if ((s16)Dispatch(...) == 1)` arms (later cross-jumped) had to
 become `ret = Dispatch(...)` in each arm and one `if (ret == 1)` after the join.
 
-### A 0/1 flag kept as `sltiu; bnez; li 1 / move zero; move v1,v0` needs the test to read the variable, plus an early set of the copy (func_actor_401300_80133A3C, 2026-09-16)
+### A 0/1 flag kept as `sltiu; bnez; li 1 / move zero; move v1,v0` needs the test to read the variable, plus an early set of the copy (_actor401300UpdateAnimationEffects, 2026-09-16)
 
 **Symptom.** Target: `sltiu v0,v0,0xA27; bnez v0,L; li v0,1; move v0,zero; L: move v1,v0`,
 then `li v0,1; bne v1,v0`. Every form of `if (c) return 1; return 0;`,
-`ret = 1; if (!c) ret = 0;` or `if/else` collapsed to a bare `sltiu v1`.
+`withinDepth = 1; if (!c) withinDepth = 0;` or `if/else` collapsed to a bare `sltiu v1`.
 
 **Cause.** `jump.c` rewrites `if (c) x = a; else x = b;` as `x = b; if (c) x = a;`
 and then turns that into a store-flag. The rewrite is skipped when `x` is
@@ -102656,16 +102656,16 @@ register and flow deletes the copy.
 
 **Fix.**
 ```c
-ret = (u16)(out.vz + 0x12B) < 0xA27;   /* inside the inline */
-if (ret != 0) { ret = 1; } else { ret = 0; }
-return ret;
+withinDepth = (u16)(viewPoint.vz + 0x12B) < 0xA27;   /* inside the inline */
+if (withinDepth != 0) { withinDepth = 1; } else { withinDepth = 0; }
+return withinDepth;
 ...
-inRange = 0;                            /* top of the caller: dead, but keeps the copy */
+withinEffectDepth = 0;                            /* top of the caller: dead, but keeps the copy */
 ...
-inRange = Actor401300_InRange(arg0);
+withinEffectDepth = _actor401300IsWithinEffectDepth(actor);
 ```
 
-### Pass a global to an inline by address to move its load after the other arguments (func_actor_401300_80133A3C, 2026-09-16)
+### Pass a global to an inline by address to move its load after the other arguments (_actor401300UpdateAnimationEffects, 2026-09-16)
 
 **Symptom.** An inline effect helper `Spawn(s32 id, coord, flags, x, y, z)` fed
 `gRoomEffectWaterRippleId`. The target's order was `li a2; lui v0,%hi(D); addiu a3,sp,0x18; lw 0x2C(s4); lw a0,%lo(D)(v0)`.
@@ -109033,7 +109033,7 @@ Inputs: `base_1.i` SHA256
 `func_actor_401000_801352DC` is the actor height-clamp scan: walk the actor's
 `*HeightClamp` table, match `(GameSession.location.loc.stage, .area)` against a
 row's `field_0` / `field_2`, clamp `coord->coord.t[1]` into [`lo`, `hi`] and
-return. Its twins are `func_actor_401300_80132BE4` (`USA/actors/actor_401300`)
+return. Its twins are `_actor401300ClampRoomHeight` (`USA/actors/actor_401300`)
 and `Actor01900_Fn03C04` (`src/actors/lib/actor_101900_text.c`), and BRIEF's
 `shape` / `fields` classes rate both 0.99 — but `overlay_dup_index.py find`
 reports this body as its own only copy, because the twins are *not* equivalent:
@@ -113452,7 +113452,7 @@ range covers the whole middle of the function.
 **Copy the record pointer again when the target does.** Retail's second scratch
 block computes the record (`addiu v0,s2,-0x14`) and then copies it
 (`move s1,v0`), i.e. the source keeps a `collisionScratch`/`resolvedStep` pair like the matched
-`func_actor_401300_80132C78`. Adding `resolvedStep = collisionScratch;` and putting the trailing
+`_actor401300ApplyGridPushback`. Adding `resolvedStep = collisionScratch;` and putting the trailing
 reads/writes through `resolvedStep` reproduces the pair and the exact 253-instruction
 count: 98.5% -> 99.0% (`base_25`).
 

@@ -1343,7 +1343,7 @@ static void func_actor_401000_801352DC(GameLocationKey* session, GfxCoord* coord
 /// `GameLocationKey::stage` / `area` pair. The helper behind both
 /// height-clamp probes of `func_actor_401000_80135374`; the second probe is
 /// followed by the `func_actor_401000_801352DC` call itself, which walks the
-/// same rows to clamp the root Y. Same helper as `Actor401300_HasHeightClamp`.
+/// same rows to clamp the root Y. Same helper as `_actor401300HasRoomHeightClamp`.
 static __inline__ s32 Actor401000_HasHeightClamp(GameLocationKey* session)
 {
     ActorHeightClamp* row;
@@ -1380,7 +1380,7 @@ static inline void Actor401000_CapStepY(ActorContactCappedPushScratch* s)
     s->step.vy = (vy <= 0) ? -0x12C : 0x12C;
 }
 
-/// Root-coordinate step, the 401000 twin of `func_actor_401300_80132C78`:
+/// Root-coordinate step, the 401000 twin of `_actor401300ApplyGridPushback`:
 /// carve the 0x20-byte `ActorContactCappedPushScratch` off the scratch stack,
 /// fill its delta from the `rec` obstacle record, clamp the Y step to ±0x12C while a
 /// height-clamp row matches, hand the XZ step to the GTE normalisation once it
