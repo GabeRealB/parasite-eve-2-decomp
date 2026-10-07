@@ -3569,7 +3569,7 @@ static void func_actor_401300_80138160(Task* arg0)
     }
     _actor401300UpdateAnimationEffects(arg0);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        angle = actorMatrixPositionYaw(arg0, &pos, gPlayerStatus.coordMtx);
+        angle = _actorAngleTurnToMatrixPosition(arg0, &pos, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !_actorRangeOutsideRadiusXZ(&pos, 0x44C)) {
             work->playerAnim.source.sets      = D_actor_401300_801588F0;
             work->playerButtonHold.pressCount = 8;

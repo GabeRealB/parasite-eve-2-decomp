@@ -1998,7 +1998,7 @@ static void _actor356100Sidestep(Task* actor)
 /// player and clearing the two halfwords next to `playerHeld`. Each frame then
 /// re-runs the animation and, while the clip sits on 0x10 and the player is not
 /// in mode 2, takes the player offset again through
-/// `actorMatrixPositionYaw` and — if the turn is within 0x10 and the
+/// `_actorAngleTurnToMatrixPosition` and — if the turn is within 0x10 and the
 /// player is closer than 0x44C — points `D_actor_356100_80173244.field_0` at
 /// one of the two blocks `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects, then queries message 0x3F8 and
 /// on acceptance moves to state 0xC, sets `playerHeld` and re-sends the handler
@@ -2040,7 +2040,7 @@ static void func_actor_356100_80166018(Task* arg0)
     }
     _actor356100UpdateAnimation(arg0);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        angle = actorMatrixPositionYaw(arg0, &pos, gPlayerStatus.coordMtx);
+        angle = _actorAngleTurnToMatrixPosition(arg0, &pos, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !_actorRangeOutsideRadiusXZ(&pos, 0x44C)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 D_actor_356100_80173244.source.sets = &D_actor_356100_80173228[2];

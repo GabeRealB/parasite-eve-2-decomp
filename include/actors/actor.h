@@ -1579,23 +1579,38 @@ static __inline__ void actorTintEffect(EffectWork* eff, Enemy* enemy)
 }
 
 /// The offset from `coord` to the translation of `m`.
-static __inline__ void actorMatrixPositionDelta(MATRIX* m, GfxCoord* coord, SVECTOR* pos)
+static __inline__ void actorMatrixPositionDelta(const MATRIX* m, const GfxCoord* coord, SVECTOR* pos)
 {
     pos->vx = m->t[0] - coord->coord.t[0];
     pos->vy = m->t[1] - coord->coord.t[1];
     pos->vz = m->t[2] - coord->coord.t[2];
 }
 
-/// `_actorAngleTurnToPlayer` toward the translation of `m`.
-static __inline__ s16 actorMatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* m)
+/// Returns the signed horizontal turn from an actor's heading toward a matrix's position.
+///
+/// `actor` must have a live model root. `targetMatrix` must supply a live
+/// translation in the root's parent coordinate frame, in game coordinate units.
+/// `toTarget` must be a writable `SVECTOR`, separate from the inputs; its XYZ
+/// components receive target minus actor translation, narrowed to signed 16
+/// bits without saturation. Its `pad` stays intact. All pointers are borrowed
+/// for this call; no storage is reserved or retained.
+///
+/// Bearing uses the narrowed X/Z offset, with +Z as zero and +X as the positive
+/// quarter-turn direction. Heading comes from the root's local rotation. Their
+/// difference narrows to signed 16 bits before wrapping into [-2048, 2048], in
+/// 4096 units per turn; both half-turn endpoints are retained. A zero X/Z offset
+/// uses bearing zero. No transform is composed or changed, and the target's
+/// rotation is ignored. Callers apply any turn limit and rotation themselves.
+static __inline__ s16 _actorAngleTurnToMatrixPosition(const Task* actor, SVECTOR* toTarget, const MATRIX* targetMatrix)
 {
-    GfxCoord* coord;
-    s32       angle;
+    const GfxCoord* rootCoord;
+    s32             targetBearing;
 
-    actorMatrixPositionDelta(m, actor->extra.tmd->coords, pos);
-    coord = actor->extra.tmd->coords;
-    angle = ratan2(pos->vx, pos->vz);
-    return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    // Preserve halfword narrowing before measuring the target's bearing.
+    actorMatrixPositionDelta(targetMatrix, actor->extra.tmd->coords, toTarget);
+    rootCoord     = actor->extra.tmd->coords;
+    targetBearing = ratan2(toTarget->vx, toTarget->vz);
+    return _actorAngleNormalizeYaw(targetBearing - ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]));
 }
 
 /// Returns the signed horizontal turn from a coordinate's heading to an X/Z offset.

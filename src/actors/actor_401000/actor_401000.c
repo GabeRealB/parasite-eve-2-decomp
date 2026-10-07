@@ -1703,7 +1703,7 @@ static void func_actor_401000_801378DC(Task* arg0)
     }
     _oddStrangerDriveAnimation(arg0);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && player->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        angle = actorMatrixPositionYaw(arg0, &delta, gPlayerStatus.coordMtx);
+        angle = _actorAngleTurnToMatrixPosition(arg0, &delta, gPlayerStatus.coordMtx);
         if (abs(angle) < 0x10 && !_oddStrangerOutOfRange(&delta, 0x44C)) {
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                 gOddStrangerPlayerAnim.source.sets = &D_actor_401000_80154F00[2];
