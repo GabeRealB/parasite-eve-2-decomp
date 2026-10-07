@@ -23879,7 +23879,7 @@ the `if` body so `lui v1,%hi(b)` fills the `beqz` delay slot; assigning `p`
 before the call puts the `lui` too early.
 
 `inventoryUpdateIceBag` is the example (`markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark`; `(s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= INVENTORY_ICE_BAG_MELT_MINUTES`).
-The same shape is how `Gp_PlayTimeDelta` materialises the minute marker's address first as a leaf.
+The same shape is how `_inventoryGetIceBagElapsedMinutes` materialises the minute marker's address first as a leaf.
 
 ## Hoist an independent field load so an increment fills the `jal` delay
 
@@ -23951,7 +23951,7 @@ A direct assignment or a `u8*` to the global still pins `$s0`.
 
 `memset` lives at `0x800420F8` in the main exe. Overlay C should call
 `memset` (include `<psyq/memory.h>`) and `sym.gameplay.imports.txt`
-should list that same name at that address. `Gp_SumItemQty` is the
+should list that same name at that address. `_inventoryGetSavedItemQuantity` is the
 example.
 
 ## Mutate `arg <<= N` before a call so the shift wins the schedule
@@ -24968,11 +24968,11 @@ the success path and uses `beqz`.
 
 ## Keep `$a0` live so `li v1,K` fills the load-delay of `lw v0,0(v1)`
 
-**Natural C replacement (Gp_GetBit2Flag, 2026-09-27):** the pin and keep-live
+**Natural C replacement (_areaGetObjectState, 2026-09-27):** the pin and keep-live
 below are unnecessary when a `static inline` reader takes the bank's `u32*`
 and the signed index, advances the pointer, computes the shift, then uses
 `word = *p; word &= 3 << shift; word >>= shift; return word;`.
-In scratch `Gp_GetBit2Flag-dehack`, base_2's expression return scored 75.882%;
+In scratch `_areaGetObjectState-dehack`, base_2's expression return scored 75.882%;
 base_10 changed only these word updates and scored 100.000%. The `.lreg` dumps
 show the loaded word's references increasing from two to six, the adjusted
 pointer's span shrinking from five to two, and its home moving from a0 to v1.
@@ -25012,7 +25012,7 @@ return (word & (3 << shift)) >> shift;
 ```
 
 `word` must be a separate statement: folding `*p` into the return lets
-`li a0,K` sneak back in front of the load. `Gp_GetBit2Flag` is the example.
+`li a0,K` sneak back in front of the load. `_areaGetObjectState` is the example.
 
 The one-arg sibling `areaGetCurrentObjectState` already keeps `$a0` live (the index is
 shifted in place), so the `:: "r"(index)` barrier is not needed. `$a1` is
@@ -25080,7 +25080,7 @@ mask = temp << shift;
 ```
 
 Reuse `mask` for `val << shift` and put `~mask` in `$a0` after `$a0` has
-been consumed as the word offset (`index >> 4`). `Gp_SetBit2Flag` is the
+been consumed as the word offset (`index >> 4`). `areaSetObjectState` is the
 example.
 
 The two-arg sibling that takes the bank index from a global byte
@@ -27137,7 +27137,7 @@ cfg = &gPlayerStatus;            /* later, separate lui/addiu of the base */
 save->field_14 = cfg->exp;
 ```
 
-`Gp_SavePlayerPos` is the example. The same stores as four bare `s16` fields
+`playerCaptureSaveState` is the example. The same stores as four bare `s16` fields
 stuck at 90% with only the `addiu`/`%lo` addressing different.
 
 ## Keep the `lb` in a temp so the later store is `sb $v1`, not `lbu`
@@ -27981,7 +27981,7 @@ Two sentinels are required: CSE of a single `0xFFFF` becomes
 `move t0,t3` in the prologue. Do **not** pin the table/rec pointers —
 pinning them made the first `lw` use `$a0` instead of `$a3`. Assign
 `tmp = -1` at the outer tail so the compare rematerializes instead of
-CSE into `$t4`. `Gp_ApplyBit2List` is the example (sibling
+CSE into `$t4`. `_areaSeedRoomObjectStates` is the example (sibling
 `areaSeedStageObjectStates` is the same walk with a bank lookup in front).
 
 ## Put `&Table` in `$v0` before overwriting it with the compare constant
@@ -50299,7 +50299,7 @@ beqz  v0, .Lelse
  lui  a0, %hi(D_80073BA9)
 sll   v1, s5, 2
 ...
-jal   Gp_ResetScanDefault
+jal   inventoryResetCarriedRange
  sb   v0, %lo(D_80073BA9)(a0)
 ```
 
@@ -144693,7 +144693,7 @@ the three field stores in the caller lets CSE forward the constant, and the
 switch collapses to its default arm (-19 instructions). The seed held the
 runtime switch with a pin and a second pointer local to the same object.
 
-**Fix.** The stores were an existing setter (`Gp_SetPlayerScan`) inlined:
+**Fix.** The stores were an existing setter (`_inventorySetCarriedSavedRange`) inlined:
 its own `p = &gMcSaveData` writes `0x5BE(p)`, while the caller reads through
 `scan = &gMcSaveData.carriedItems`, i.e. `2(scan)`. CSE's memory table compares
 address RTL, so the two spellings are never equated and the load stays. When a

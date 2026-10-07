@@ -262,7 +262,7 @@ static u16* Shop_SelectStock(s32 mode)
 
 /// Draws one row of the shop list and handles its input, recording the row's
 /// id as the cursor item while the row is selected. Row 0xFFFE is greyed out
-/// and unselectable unless `Gp_HasMappedItem` answers non-zero, and opens its
+/// and unselectable unless `equipmentHasCarriedWeaponSupply` answers non-zero, and opens its
 /// own panel; row 0xFFFC is greyed out while the scan holds item 0x8F. Any
 /// other row is an item with its price, greyed out when `inventoryIsItemLimitReached`
 /// reports its ownership limit reached; confirm opens the buy panel and button
@@ -299,7 +299,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
                 uiSetPromptText(Shop_Data_80181A20, 0, 0);
             }
         }
-        if (Gp_HasMappedItem() == 0) {
+        if (equipmentHasCarriedWeaponSupply() == 0) {
             prompt->colorRgb        = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
             prompt->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
         }

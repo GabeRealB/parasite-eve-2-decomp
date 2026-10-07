@@ -903,7 +903,7 @@ s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
         flag                                              = gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
         if (flag == 1) {
             if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
-                Gp_SetBit2Flag(0x22, 1, 4);
+                areaSetObjectState(0x22, 1, GAME_STAGE_MINE_SHELTER);
             }
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x31);
             gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 2);

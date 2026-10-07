@@ -2667,17 +2667,18 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
 
 /// Per-frame update for the gallery's second bonus course. States 0-3 run the
 /// "ready" banner and the hand-off wait on `gGameSession::location.loc.view`, gated on
-/// the countdown hold `gDisplayState.pendingMode`; states 4-5 wait on the player picking up
-/// item 0x40, states 6-8 count the banner up through `captionStep` while
+/// the countdown hold `gDisplayState.pendingMode`; states 4-5 wait for a carried
+/// GPS row in a positive armor attachment slot, states 6-8 count the banner up through `captionStep` while
 /// `gSceneCombatState.actorControl` holds, state 9 spawns the start jingle and state 10 is the
 /// wave loop over `D_mist_shooting_gallery_80186908`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout` picks the
 /// banner sprite the hand-off draws (`variant + 4`).
 static void func_mist_shooting_gallery_8018341C(Task* arg0)
 {
+    enum { INVENTORY_ITEM_GPS = 0x40 };
     MistShootingGalleryWork*   work;
     _MistShootingGallerySpawn* spawn;
     s32                        bonus;
-    s32                        stocked;
+    s32                        hasGpsAttachment;
     u16                        key;
     u16                        wave;
     u16                        ready;
@@ -2732,8 +2733,8 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
             break;
         case 4:
             if (work->actionTriggered != 0) {
-                stocked = Gp_HasStockedItem(0x40);
-                if (stocked != 1) {
+                hasGpsAttachment = inventoryHasAttachedItem(INVENTORY_ITEM_GPS);
+                if (hasGpsAttachment != 1) {
                     func_mist_shooting_gallery_80184BB8(0x13, work->captionStep, 0x8E0);
                     if (work->captionStep == 9) {
                         work->actionTriggered = 0;
@@ -2748,7 +2749,7 @@ static void func_mist_shooting_gallery_8018341C(Task* arg0)
             }
             break;
         case 5:
-            if (Gp_HasStockedItem(0x40) == 1) {
+            if (inventoryHasAttachedItem(INVENTORY_ITEM_GPS) == 1) {
                 work->timer = 0xF;
                 work->phase++;
             } else if (work->actionTriggered != 0) {

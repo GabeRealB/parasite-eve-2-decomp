@@ -211,7 +211,12 @@ enum {
     PLAYER_YAW_FULL_TURN = 0x1000
 };
 
-void Gp_SavePlayerPos(void);
+/// Captures the live player pose and progression before presenting a save prompt.
+///
+/// Requires the player task's model root. The resident pose receives XYZ in
+/// signed 16-bit game coordinates and yaw in 4096 units per turn, within
+/// -2048..2048 inclusive. Experience and BP are copied to the live save.
+void playerCaptureSaveState(void);
 
 void Gp_SyncHeldRelated(void);
 
@@ -234,7 +239,11 @@ s32 inventoryGetRangeCapacity(const InventoryItemRange* range);
 /// return zero. This counts attachment positions, independently of occupancy.
 s32 equipmentGetArmorAttachmentSlotCount(s32 armorItemId);
 
-void Gp_TickBoostPanel(Task* arg0);
+/// Initializes and draws the player-stat panel shown after an item boost.
+///
+/// `task->spawnArg2.pointer` must hold its task-owned live `UiObject`.
+/// State zero sizes and centers it; every call draws HP, MP, experience and BP.
+void itemMenuPlayerStatsPanelTask(Task* task);
 
 /// Returns the first matching stack's quantity from an absolute row cursor.
 ///

@@ -1826,7 +1826,7 @@ void Gp_SpawnPickupUiTask(Task* arg0)
                 desc = &D_8010EAB4[49];
                 break;
             case 8:
-                Gp_SavePlayerPos();
+                playerCaptureSaveState();
                 desc                                               = &D_8010D348;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint = Gp_PubItemLoc;
                 break;

@@ -253,7 +253,12 @@ s32 inventoryGetItemQuantity(const InventoryItemRange* range, s32 itemId);
 /// name, description and icon independently of possession or collection.
 void itemSetIdentified(s32 itemId, s32 identified);
 
-void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
+/// Stores one packed two-bit object state in the supplied saved stage's bank.
+///
+/// Requires `objectId` 0..63, `state` 0..3 and `stageId` 1..5; no bounds
+/// checks are performed. Higher state bits are not masked and can affect
+/// adjacent pairs. Night Dryfield shares daytime Dryfield's words.
+void areaSetObjectState(s32 objectId, u8 state, s32 stageId);
 
 /// No carried weapon with a built-in supply was found.
 enum { EQUIPMENT_WEAPON_SUPPLY_NOT_FOUND = -1 };
@@ -271,7 +276,12 @@ s32 equipmentFindNextCarriedWeaponSupply(s32 firstSupplyIndex);
 /// while gameplay is loaded and names the weapon, supply item and load to refill.
 const EquipmentWeaponSupply* equipmentGetWeaponSupply(s32 supplyIndex);
 
-s32 Gp_HasMappedItem(void);
+/// Returns 1 if the carried range holds a weapon with a built-in supply, else 0.
+///
+/// Tests weapon quantity across the eight catalogue entries, independently of
+/// equipped selection or remaining supply charge. The carried range must fit
+/// its readable backing table; neither its rows nor weapon loads are changed.
+s32 equipmentHasCarriedWeaponSupply(void);
 
 /// Recomputes maximum HP from the game mode, permanent bonus and equipped armor.
 ///
@@ -289,7 +299,12 @@ void equipmentRecalculateMaxHp(void);
 /// The shop's 0xFFFE recharge-service id uses the numerical fallback.
 s32 inventoryGetItemSortKey(s32 itemId);
 
-s32 Gp_HasStockedItem(s32 arg0);
+/// Returns 1 if a carried row of `itemId` occupies a positive armor slot, else 0.
+///
+/// Searches the carried range's selected table, which must fit readable backing
+/// storage. Quantity is ignored; unattached rows and the equipped armor marker
+/// do not qualify. Neither the range nor its rows are modified.
+s32 inventoryHasAttachedItem(s32 itemId);
 
 /// Restarts the Ice Bag's melting timer at the live save's whole play minutes.
 ///
@@ -311,7 +326,11 @@ void func_800BC4BC(void);
 
 void func_800BC4E4(void);
 
-void Gp_ResetScanDefault(void);
+/// Restores the default carried range by copying its whole four-byte descriptor.
+///
+/// The default selects ten saved rows starting at row 20. Their contents,
+/// weapon loads and equipment selections are left intact.
+void inventoryResetCarriedRange(void);
 
 /// Named as a task entry by the enemy descriptor tables in the map UI overlays.
 void Gp_WaitItemFlag2(Task* arg0);
