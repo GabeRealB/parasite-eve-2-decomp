@@ -658,17 +658,20 @@ void shelterB6TrainingRoomSummonRingTask(Task* task)
 #undef SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW
 }
 
-/// Initializes an additive beam's Gouraud cap packet with a coloured centre and black rim.
+/// Prepares one Gouraud wedge of a beam's rounded end cap, fading from colour to black.
 ///
-/// Borrows one writable quad. Vertex 2 receives RGB; vertices 0, 1 and 3 are
-/// black. The caller fills positions, queues the packet and selects blending.
-static inline void _shelterB6TrainingRoomInitBeamCap(POLY_G4* quad, u8 red, u8 green, u8 blue)
+/// Borrows one complete writable `POLY_G4` packet through `capWedge`. Sets its
+/// length and opaque Gouraud command, with the supplied RGB bytes at centre vertex 2
+/// and black at rim vertices 0, 1 and 3. The caller supplies screen positions,
+/// DMA linkage and additive blending, and keeps the packet live until the GPU
+/// has consumed it.
+static inline void _shelterB6TrainingRoomInitBeamCapWedge(POLY_G4* capWedge, u8 red, u8 green, u8 blue)
 {
-    setPolyG4(quad);
-    setRGB0(quad, 0, 0, 0);
-    setRGB1(quad, 0, 0, 0);
-    setRGB2(quad, red, green, blue);
-    setRGB3(quad, 0, 0, 0);
+    setPolyG4(capWedge);
+    setRGB0(capWedge, 0, 0, 0);
+    setRGB1(capWedge, 0, 0, 0);
+    setRGB2(capWedge, red, green, blue);
+    setRGB3(capWedge, 0, 0, 0);
 }
 
 void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusScale, u16 colorIndex)
@@ -735,7 +738,7 @@ void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusSca
                     do {
                         quad           = gGpuPrimCursor;
                         gGpuPrimCursor = quad + 1;
-                        _shelterB6TrainingRoomInitBeamCap(quad, red, green, blue);
+                        _shelterB6TrainingRoomInitBeamCapWedge(quad, red, green, blue);
                         quad->x0 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                         quad->y0 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                         quad->x1 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + (SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN + SHELTER_B6_TRAINING_ROOM_BEAM_EIGHTH_TURN))) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
@@ -750,7 +753,7 @@ void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusSca
 
                         quad           = gGpuPrimCursor;
                         gGpuPrimCursor = quad + 1;
-                        _shelterB6TrainingRoomInitBeamCap(quad, red, green, blue);
+                        _shelterB6TrainingRoomInitBeamCapWedge(quad, red, green, blue);
                         quad->x0       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                         quad->y0       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sweepAngle)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                         quad->x1       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle + SHELTER_B6_TRAINING_ROOM_BEAM_EIGHTH_TURN)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
@@ -865,7 +868,7 @@ static void _shelterB6TrainingRoomDrawGroundBeam(const GfxCoord* startCoord, con
                 do {
                     quad           = gGpuPrimCursor;
                     gGpuPrimCursor = quad + 1;
-                    _shelterB6TrainingRoomInitBeamCap(quad, red, green, blue);
+                    _shelterB6TrainingRoomInitBeamCapWedge(quad, red, green, blue);
                     quad->x0 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                     quad->y0 = scratch->pair.sy1 + ((scratch->pair.radius1 * rcos(sweepAngle + SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                     quad->x1 = scratch->pair.sx1 + ((scratch->pair.radius1 * rsin(sweepAngle + (SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN + SHELTER_B6_TRAINING_ROOM_BEAM_EIGHTH_TURN))) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
@@ -880,7 +883,7 @@ static void _shelterB6TrainingRoomDrawGroundBeam(const GfxCoord* startCoord, con
 
                     quad           = gGpuPrimCursor;
                     gGpuPrimCursor = quad + 1;
-                    _shelterB6TrainingRoomInitBeamCap(quad, red, green, blue);
+                    _shelterB6TrainingRoomInitBeamCapWedge(quad, red, green, blue);
                     quad->x0       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                     quad->y0       = scratch->pair.sy0 + ((scratch->pair.radius0 * rcos(sweepAngle)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
                     quad->x1       = scratch->pair.sx0 + ((scratch->pair.radius0 * rsin(sweepAngle + SHELTER_B6_TRAINING_ROOM_BEAM_EIGHTH_TURN)) >> SHELTER_B6_TRAINING_ROOM_BEAM_TRIG_SHIFT);
