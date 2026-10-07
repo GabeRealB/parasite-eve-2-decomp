@@ -132,20 +132,36 @@ AnimationSet gMistParkingAnimation1323C = {
     { NULL, _gMistParkingAnimation1323CBank1, NULL, NULL, _gMistParkingAnimation1323CBank4, NULL, NULL, NULL },
 };
 
-static void func_mist_parking_801839CC(Task* task);
-static void func_mist_parking_80183A28(Task* task);
+static void _mistParkingInitCutsceneModelPitch(Task* task);
+static void _mistParkingAdvanceCutsceneModelPitch(Task* task);
 
-void func_mist_parking_80183634(s32 arg0)
+/// Pitch progression in actor-angle units, advanced once per active callback.
+enum {
+    MIST_PARKING_CUTSCENE_MODEL_PITCH_START = -120,
+    MIST_PARKING_CUTSCENE_MODEL_PITCH_STEP  = 15,
+    MIST_PARKING_CUTSCENE_MODEL_PITCH_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 8
+};
+
+/// Applies the previous shared placement while recording this callback's pitch.
+static inline void _mistParkingApplyPreviousCutsceneModelPlacement(Task* task)
 {
-    Task* t = D_mist_parking_80195324;
+    ActorTransform previousPlacement = D_mist_parking_8018FC3C;
 
-    if (t == NULL) {
+    D_mist_parking_8018FC3C.rot.vx = task->killCountdown;
+    actorMsgPlaceEulerZyx(task, 0, &previousPlacement, 0);
+}
+
+void mistParkingControlPlayerHeadAim(s32 mode)
+{
+    Task* task = D_mist_parking_80195324;
+
+    if (task == NULL) {
         return;
     }
-    switch (arg0) {
-        case 0:
-        case 1:
-            t->spawnArg1.value = arg0;
+    switch (mode) {
+        case MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION:
+        case MIST_PARKING_HEAD_AIM_FORCE:
+            task->spawnArg1.value = mode;
             break;
         default:
             taskKill(D_mist_parking_80195324);
@@ -159,47 +175,51 @@ void func_mist_parking_80183688(s32 arg0)
     displayQueueModeTask(taskGetDescAt(D_mist_parking_8018D75C, 5U), arg0, 0, STAGE_ENTRY_RELOAD);
 }
 
-void func_mist_parking_801836CC(Task* arg0)
+void mistParkingDelayDisplayModeExitTask(Task* task)
 {
-    s32 temp_v0;
+    s32 ticksLeft;
 
-    temp_v0               = arg0->spawnArg1.value - 1;
-    arg0->spawnArg1.value = temp_v0;
-    if (temp_v0 < 0) {
-        taskKill(arg0);
+    ticksLeft             = task->spawnArg1.value - 1;
+    task->spawnArg1.value = ticksLeft;
+    if (ticksLeft < 0) {
+        taskKill(task);
         stageRequestModeTaskExit();
     }
 }
 
-void func_mist_parking_80183708(s32 arg0)
+void mistParkingSelectDialogueResource(s32 resourceOrdinal)
 {
+    enum {
+        MIST_PARKING_DEPARTURE_FONT_VRAM_X = 320,
+        MIST_PARKING_DEPARTURE_FONT_VRAM_Y = 256,
+        MIST_PARKING_PRIZE_FONT_VRAM_X     = 704,
+        MIST_PARKING_PRIZE_FONT_VRAM_Y     = 0
+    };
+
     capReset();
-    switch (arg0) {
-        case 1:
-            Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x140, 0x100);
+    switch (resourceOrdinal) {
+        case MIST_PARKING_DIALOGUE_DEPARTURE_MENU:
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(MIST_PARKING_DIALOGUE_DEPARTURE_MENU);
+            capSetTexturePage(MIST_PARKING_DEPARTURE_FONT_VRAM_X, MIST_PARKING_DEPARTURE_FONT_VRAM_Y);
             break;
-        case 2:
-            Gp_CapFile = 0;
-            capSelectLoadedFile(2);
-            capSetTexturePage(0x2C0, 0);
+        case MIST_PARKING_DIALOGUE_PRIZES:
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(MIST_PARKING_DIALOGUE_PRIZES);
+            capSetTexturePage(MIST_PARKING_PRIZE_FONT_VRAM_X, MIST_PARKING_PRIZE_FONT_VRAM_Y);
             break;
     }
 }
 
-void func_mist_parking_80183780(s32 arg0)
+void mistParkingSetConversationProgress(s32 progress)
 {
-    gameFlagSetNibble(GAME_FLAG_0F1, arg0);
+    gameFlagSetNibble(GAME_FLAG_0F1, progress);
 }
 
-/// Drops the handles in `D_mist_parking_80195320` and
-/// `D_mist_parking_80195324` without killing their tasks. Its caller passes
-/// an argument, which is unused.
-void func_mist_parking_801837A4(s32 arg0)
+void mistParkingResetCutsceneTaskHandles(s32 unused)
 {
-    D_mist_parking_80195320 = 0;
-    D_mist_parking_80195324 = 0;
+    D_mist_parking_80195320 = NULL;
+    D_mist_parking_80195324 = NULL;
 }
 
 void func_mist_parking_801837B8(Task* task)
@@ -278,42 +298,53 @@ void func_mist_parking_8018397C(Task* arg0)
     taskKill(arg0);
 }
 
-static void func_mist_parking_801839CC(Task* task)
+/// Shows and places the conversation's model, then seeds the delayed pitch progression.
+static void _mistParkingInitCutsceneModelPitch(Task* task)
 {
-    TmdObject* obj = task->extra.tmd;
+    TmdObject* model = task->extra.tmd;
 
-    obj->flags         &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    task->killCountdown = -0x78;
+    model->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    task->killCountdown = MIST_PARKING_CUTSCENE_MODEL_PITCH_START;
     actorMsgPlaceEulerZyx(task, 0, &D_mist_parking_8018FC3C, 0);
     task->state = task->state + 1;
 }
 
-static void func_mist_parking_80183A28(Task* task)
+/// Advances the model's delayed pitch and holds it at one eighth of a turn.
+///
+/// Requires initialization and a live model root. The shared placement lags the
+/// counter by one positive update; the signed halfword can overshoot the limit
+/// for one update before being clamped on the next.
+static void _mistParkingAdvanceCutsceneModelPitch(Task* task)
 {
-    ActorTransform placement;
-
     if (task->killCountdown > 0) {
-        placement                      = D_mist_parking_8018FC3C;
-        D_mist_parking_8018FC3C.rot.vx = task->killCountdown;
-        actorMsgPlaceEulerZyx(task, 0, &placement, 0);
+        // Apply the previous pitch before publishing the next one.
+        _mistParkingApplyPreviousCutsceneModelPlacement(task);
     }
 
-    if (task->killCountdown < 0x200) {
-        task->killCountdown = task->killCountdown + 0xF;
+    // The negative angular seed delays movement; it is not a frame countdown.
+    if (task->killCountdown < MIST_PARKING_CUTSCENE_MODEL_PITCH_LIMIT) {
+        task->killCountdown = task->killCountdown + MIST_PARKING_CUTSCENE_MODEL_PITCH_STEP;
     } else {
-        task->killCountdown = 0x200;
+        task->killCountdown = MIST_PARKING_CUTSCENE_MODEL_PITCH_LIMIT;
     }
 }
 
 #include "../../shared/actor_messages_place_euler_zyx.inc.c"
 
-/// Runs the parking-lot cap cutscene's sub-state handler for `task`, unless the
-/// global suspend flag is set.
-void func_mist_parking_80183B40(Task* task)
+void mistParkingCutsceneModelPitchTask(Task* task)
 {
-    TaskFunc states[3] = { func_mist_parking_801839CC, func_mist_parking_80183A28, taskKill };
+    enum {
+        MIST_PARKING_CUTSCENE_MODEL_INITIALIZE = 0,
+        MIST_PARKING_CUTSCENE_MODEL_PITCH      = 1,
+        MIST_PARKING_CUTSCENE_MODEL_RELEASE    = 2
+    };
+    TaskFunc stateHandlers[] = {
+        [MIST_PARKING_CUTSCENE_MODEL_INITIALIZE] = _mistParkingInitCutsceneModelPitch,
+        [MIST_PARKING_CUTSCENE_MODEL_PITCH]      = _mistParkingAdvanceCutsceneModelPitch,
+        [MIST_PARKING_CUTSCENE_MODEL_RELEASE]    = taskKill
+    };
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        states[task->state](task);
+        stateHandlers[task->state](task);
     }
 }

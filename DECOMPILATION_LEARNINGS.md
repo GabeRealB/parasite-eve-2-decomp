@@ -9711,8 +9711,8 @@ the *old* unit — read the object, not the labels, to find the line to delete.
 but a later function in it is already C.** The "every earlier function is still
 `INCLUDE_ASM`" rule has a mirror image: `INCLUDE_ASM` functions emit no rodata,
 but decompiled ones do, and the ones that come *after* still share the object.
-`func_mist_parking_80183B40` is the first function of `mist_parking_11` and its
-12-byte anonymous table (a `TaskFunc states[3] = {...}` local array initializer)
+`mistParkingCutsceneModelPitchTask` is the first function of `mist_parking_11` and its
+12-byte anonymous table (a `TaskFunc stateHandlers[] = {...}` local array initializer)
 correctly starts that object's `.rodata` at `0x29C` — but
 `func_mist_parking_80183EAC`, later in the same unit, was already decompiled and
 emits a switch jump table, which GCC precedes with `.align 3`. Twelve bytes is
@@ -51240,7 +51240,7 @@ holds the right value, GCC emits nothing for it, and m2c drops the argument
 entirely — renumbering the rest, so the m2c call looks well-formed and there is
 no gap in the `argN` names to notice.
 
-`func_mist_parking_801839CC` came out of m2c as a three-argument call:
+`_mistParkingInitCutsceneModelPitch` came out of m2c as a three-argument call:
 
 ```c
 Room_Util18(0, &D_mist_parking_8018FC3C, 0);
@@ -150751,7 +150751,7 @@ constant).
   front of the jump to the same label. The value of such a node is not
   recoverable; it is marked as a placeholder in the source.
 - **`slti x,2; beqz kill; bltz kill` is `case 0: case 1:` with a `default`**
-  (`func_mist_parking_80183634`): a range node is emitted as two signed bound
+  (`mistParkingControlPlayerHeadAim`): a range node is emitted as two signed bound
   tests. `if (x >= 2 || x < 0)` folds to one `sltiu`.
 - **`li v0,-1; sh` into a field declared `u16` is an `s16` field.** The `neg`
   local in `mdecRequestSceneImageDecode` was standing in for the field's type

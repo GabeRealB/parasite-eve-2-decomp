@@ -1088,7 +1088,7 @@ static void func_mist_parking_801827C0(Task* arg0)
     if ((gGameSession->location.loc.variant == 2) && (gameFlagGetNibble(GAME_FLAG_0F1) == 0)) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 3) {
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3C);
-            func_mist_parking_801837A4(0);
+            mistParkingResetCutsceneTaskHandles(0);
             evsStartScriptWithSkip(D_mist_parking_8018DF34, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_parking_8018EDBC);
         } else {
             func_mist_parking_8018471C(0);

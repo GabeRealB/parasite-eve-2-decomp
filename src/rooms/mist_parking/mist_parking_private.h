@@ -178,26 +178,79 @@ extern MistParkingHeadAimHandle D_mist_parking_8019532C;
 
 extern MistParkingShopTalkState D_mist_parking_80195334;
 
-/// Resets the caption state and, for 1 or 2, loads that caption file.
-void func_mist_parking_80183708(s32 arg0);
+/// Player head-aim controls; STOP releases the room's task handle.
+enum {
+    MIST_PARKING_HEAD_AIM_STOP             = -1,
+    MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION = 0,
+    MIST_PARKING_HEAD_AIM_FORCE            = 1
+};
 
-/// Drop the handles of room tasks without killing them; the argument their
-/// caller passes is unused.
-void func_mist_parking_801837A4(s32 arg0);
+/// Ordinals among the loaded bundle's CAP data resources.
+enum {
+    MIST_PARKING_DIALOGUE_DEFAULT        = 0,
+    MIST_PARKING_DIALOGUE_DEPARTURE_MENU = 1,
+    MIST_PARKING_DIALOGUE_PRIZES         = 2
+};
+
+/// Saved progress through the variant-2 parking-lot conversation.
+enum {
+    MIST_PARKING_CONVERSATION_INTRO_PENDING           = 0,
+    MIST_PARKING_CONVERSATION_INTRO_COMPLETE          = 1,
+    MIST_PARKING_CONVERSATION_FIRST_FOLLOWUP_STARTED  = 2,
+    MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED = 3
+};
+
+/// Resets CAP selection and selects the dialogue resource and font page for this talk.
+///
+/// Ordinals 1 and 2 select the departure menu and prize dialogue; every other
+/// value keeps the default resource selected by the reset. Playback must have
+/// stopped. The bundle's CAP data and font images must already be loaded and
+/// remain available while CAP uses them; no file is loaded by this call.
+void mistParkingSelectDialogueResource(s32 resourceOrdinal);
+
+/// Forgets the cutscene model and player head-aim tasks before the arrival conversation.
+///
+/// Does not stop or release either task. Use before spawning the conversation's
+/// tasks, when the room should hold neither handle. The caller supplies an
+/// ignored argument.
+void mistParkingResetCutsceneTaskHandles(s32 unused);
 
 void func_mist_parking_8018471C(s32 arg0);
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_mist_parking_801828F0(Task*);
 
-void func_mist_parking_80183634(s32);
+/// Controls the existing task that turns the player's head toward the room's talk partner.
+///
+/// FOLLOW_ANIMATION lets the current animation select aiming, FORCE keeps aiming
+/// enabled, and every other value kills the task and clears the handle. Does
+/// nothing when the room holds no task; it never spawns one. The handle must
+/// refer to a live task while it is set.
+void mistParkingControlPlayerHeadAim(s32 mode);
 
 void func_mist_parking_80183688(s32);
 
-void func_mist_parking_801836CC(Task*);
+/// Counts down callback ticks before releasing a temporary display mode.
+///
+/// `task->spawnArg1.value` is the signed 32-bit countdown, decremented before
+/// testing. An initial nonnegative N requests exit on dispatch N + 1. Kills the
+/// task before requesting mode exit; requires a live task in that display mode.
+void mistParkingDelayDisplayModeExitTask(Task* task);
 
-void func_mist_parking_80183780(s32);
+/// Stores the saved progress through the variant-2 parking-lot conversation.
+///
+/// The low four bits of `progress` replace the flag's nibble. Both completion
+/// and skip of the arrival talk store INTRO_COMPLETE; later interactions advance
+/// through the two follow-ups before offering the departure menu.
+void mistParkingSetConversationProgress(s32 progress);
 
-void func_mist_parking_80183B40(Task*);
+/// Runs the arrival conversation's delayed model-pitch animation while actors are running.
+///
+/// Requires a live TMD task and state 0 (initialize), 1 (advance pitch) or 2
+/// (release). The task owns the model body; its root stays in its existing parent
+/// frame. State 1 uses `killCountdown` as a signed angle counter, in 4096 units
+/// per turn, and retains the last placement between updates. Only one instance
+/// may run because its placement is shared. Actor suspension pauses every state.
+void mistParkingCutsceneModelPitchTask(Task* task);
 
 #endif // SRC_ROOMS_MIST_PARKING_MIST_PARKING_PRIVATE_H
