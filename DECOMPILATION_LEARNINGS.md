@@ -47168,8 +47168,8 @@ scores 100% because the two spellings emit the same `lh`.
 Resolve it by `grep`ping for the `jal`:
 
 ```
-grep -rn 'jal *func_shelter_r47_8018337C' asm/USA/rooms/nonmatchings/shelter_r47/
-# -> func_shelter_r47_80182E78, which D_shelter_r47_8017D6C8 lists  => family A
+grep -rn 'jal *_shelterR47ConsoleSaveSwitches' asm/USA/rooms/nonmatchings/shelter_r47/
+# -> _shelterR47ConsoleDismissTask, which D_shelter_r47_8017D6C8 lists  => family A
 ```
 
 A helper is reached only from its own family's dispatcher chain, so one caller
@@ -140445,7 +140445,7 @@ GTE address is materialised late. A pointer temporary assigned after the barrier
 help.
 ### A parameter spilled to its home slot while constants hold `$s` regs: try `s16`
 
-`func_shelter_r47_801820C0` draws three sprites, each `x0 = K - index`, with a
+`_shelterR47ConsoleDrawScrollingBackdrop` draws three sprites, each `x0 = K - index`, with a
 `MargePrim` call between them. Declared `s32 index`, the parameter was stored to
 `0x40($sp)` and reloaded before every use, while the tag-byte constant `0x64`
 took a callee-saved register (83.7%, `regs=34`). Declaring the parameter `s16`

@@ -18,6 +18,12 @@ extern ActionPromptHotspot D_shelter_r47_801873D8[];
 /// Room views of the map pages, indexed by `ShelterR47MapTerminalWork::page`.
 extern u8 D_shelter_r47_801873FC[];
 
+/// Console layout during ordinary use or while changing the selected view.
+enum {
+    SHELTER_R47_CONSOLE_LAYOUT_CURRENT       = 0,
+    SHELTER_R47_CONSOLE_LAYOUT_CHANGING_VIEW = 1,
+};
+
 /// Work block of the room's control console: the screen on which the player
 /// selects one of five rows and flips its switch, each switch a game flag.
 ///
@@ -207,23 +213,61 @@ void func_shelter_r47_8018138C(Task* task);
 
 void func_shelter_r47_80181568(Task* task);
 
-void func_shelter_r47_80181914(Task* task, s16 arg1);
+/// Advances the control-console presentation and queues its sprites for this frame.
+///
+/// Requires live `ShelterR47ConsoleWork`, loaded console textures and a current
+/// frame arena/OT. `changingView` is zero for the current row; any nonzero value
+/// moves the button and status below the screen, retains the previous row's
+/// status and fans out the other rows. Coordinates are display-centred pixels;
+/// easing uses signed quarter steps. In view 20 the backdrop scrolls by one
+/// pixel toward 0 or 320. Decrements `buttonFlash` and advances the status reveal
+/// before selecting this frame's status. GPU packets borrow the arena until
+/// frame completion; the row and previous-row indices must be 0..4.
+void shelterR47ConsoleUpdateAndDraw(Task* task, s16 changingView);
 
 void func_shelter_r47_80182AA0(Task* task);
 
-s32 func_shelter_r47_80182B9C(Task* task, ActionPromptHotspot* table, s16 x, s16 y);
+/// Marks every console hotspot containing a display-centred pixel position.
+///
+/// Requires live `ShelterR47ConsoleWork` and a writable table ending with
+/// `ACTION_PROMPT_HOTSPOT_END`. Rectangle edges are inclusive; all entries are
+/// updated, so overlapping entries can be hit together. The switch-button
+/// hotspot is suppressed for row 1. Returns 1 if any eligible entry is hit,
+/// otherwise 0; the sentinel is neither read as a rectangle nor modified.
+s32 shelterR47ConsoleHitTestHotspots(Task* task, ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 
 void func_shelter_r47_80183210(void);
 
 void func_shelter_r47_80183B84(Task* task);
 
-void func_shelter_r47_80183E24(void);
+/// Queues the map terminal's previous-page button at (-150, 63) screen pixels.
+///
+/// Requires the terminal textures and room overlay to remain loaded, a current
+/// OT and one `SpriteDrawModePacket` of arena space. Uses raw semitransparent
+/// texture in OT slot 11; the packet remains borrowed until GPU completion.
+void shelterR47MapTerminalDrawPreviousButton(void);
 
-void func_shelter_r47_80183F0C(void);
+/// Queues the map terminal's next-page button at (-144, 80) screen pixels.
+///
+/// Uses the arena, texture lifetime and OT contract of
+/// `shelterR47MapTerminalDrawPreviousButton` with the next-button palette.
+void shelterR47MapTerminalDrawNextButton(void);
 
-void func_shelter_r47_80183FF4(Task* task, s16 arg1);
+/// Eases the terminal labels' X position and queues the selected page's title.
+///
+/// Requires live `ShelterR47MapTerminalWork`; `page` is one of the five
+/// `SHELTER_R47_MAP_PAGE_*` indices. Label coordinates are display-centred
+/// pixels, stepped a signed quarter of the remaining distance. Uses the arena
+/// and texture lifetime of `shelterR47MapTerminalDrawPreviousButton`.
+void shelterR47MapTerminalDrawPageTitle(Task* task, s16 page);
 
-void func_shelter_r47_80184124(Task* task, s16 arg1);
+/// Queues the selected map page's two caption strips at the current label X.
+///
+/// Requires live `ShelterR47MapTerminalWork` and a valid
+/// `SHELTER_R47_MAP_PAGE_*` index. Call after
+/// `shelterR47MapTerminalDrawPageTitle` to use this frame's eased position.
+/// Uses its arena and texture lifetime contract, reserving two packets.
+void shelterR47MapTerminalDrawPageCaptions(Task* task, s16 page);
 
 // Callbacks referenced by the overlay's shared data tables.
 void func_shelter_r47_80183234(Task*);

@@ -1322,7 +1322,7 @@ void func_shelter_r47_80181568(Task* task)
     hs     = D_shelter_r47_80186FB4;
     prompt = D_80114D28;
     work   = task->work;
-    func_shelter_r47_80181914(task, 0);
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
     if (capIsBusy() != 0) {
@@ -1335,7 +1335,7 @@ void func_shelter_r47_80181568(Task* task)
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (func_shelter_r47_80182B9C(task, hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (shelterR47ConsoleHitTestHotspots(task, hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hs->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {

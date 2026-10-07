@@ -63,26 +63,65 @@ extern _ShelterR47MapMark* D_shelter_r47_801875D8[];
 extern s16 D_shelter_r47_801875EC[];
 extern s16 D_shelter_r47_801875F8[][2];
 
+/// Console rows follow the saved-switch order, not the sprite UV order.
+enum {
+    SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR = 0,
+    SHELTER_R47_CONSOLE_ROW_SWITCH_2      = 1,
+    SHELTER_R47_CONSOLE_ROW_OBSERVATORY   = 2,
+    SHELTER_R47_CONSOLE_ROW_SWITCH_4      = 3,
+    SHELTER_R47_CONSOLE_ROW_WATCHERS      = 4,
+};
+
+/// Sprite ids in the console's composite sprite catalogue.
+enum {
+    SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE = 3,
+    SHELTER_R47_CONSOLE_MARKER_SPRITE      = 20,
+};
+
+/// Status index: two messages per switch, off followed by on.
+enum {
+    SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF = 0,
+    SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON  = 1,
+    SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF      = 2,
+    SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON       = 3,
+    SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF   = 4,
+    SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON    = 5,
+    SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF      = 6,
+    SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON       = 7,
+    SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF      = 8,
+    SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON       = 9,
+};
+
+/// Input timing, byte-scale wipe levels and GPU packet codes shared by the room.
+enum {
+    SHELTER_R47_CONSOLE_LEVEL_MAX                 = 255,
+    SHELTER_R47_CONSOLE_INTERACTION_REARM_UPDATES = 10,
+    SHELTER_R47_MAP_TERMINAL_LABEL_OT             = 11,
+    SHELTER_R47_DRAW_MODE_COMMAND                 = 0xE1000000,
+    SHELTER_R47_SPRITE_GPU_WORDS                  = 4,
+    SHELTER_R47_SPRITE_COMMAND                    = 0x64,
+};
+
 static void _actionPromptResetDefault(Task* task);
 static void func_shelter_r47_801816CC(Task* task);
-static void func_shelter_r47_80181F14(Task* task, s16 y);
-static void func_shelter_r47_801820C0(s16 arg0);
-static void func_shelter_r47_80182348(Task* task);
+static void _shelterR47ConsoleDrawStatusReveal(Task* task, s16 messageY);
+static void _shelterR47ConsoleDrawScrollingBackdrop(s16 scrollPixels);
+static void _shelterR47ConsoleFadeOutTask(Task* task);
 static s16  func_shelter_r47_801829B8(Task* task, s16 arg1);
-static void func_shelter_r47_80182C78(Task* task);
+static void _shelterR47ConsoleResetPromptTask(Task* task);
 static void func_shelter_r47_80182CA4(Task* task);
 static void func_shelter_r47_80182DAC(Task* task);
-static void func_shelter_r47_80182E78(Task* task);
+static void _shelterR47ConsoleDismissTask(Task* task);
 static void func_shelter_r47_80182F18(Task* task);
-static void func_shelter_r47_80182FDC(Task* task);
-static void func_shelter_r47_80183068(Task* task);
-static void func_shelter_r47_801830B8(Task* task);
+static void _shelterR47ConsoleChangeViewTask(Task* task);
+static void _shelterR47ConsoleBeginButtonPressTask(Task* task);
+static void _shelterR47ConsoleApplyButtonPressTask(Task* task);
 static void func_shelter_r47_80183170(Task* task);
 static void func_shelter_r47_801831C8(Task* task);
 static void func_shelter_r47_801832E4(s16 step);
 static void func_shelter_r47_801832EC(Task* task);
-static void func_shelter_r47_8018337C(Task* task);
-static void func_shelter_r47_801833DC(Task* task, s16 arg1);
+static void _shelterR47ConsoleSaveSwitches(Task* task);
+static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row);
 static void func_shelter_r47_80183484(Task* task);
 
 /// State handlers of the room's first cap script, run by
@@ -90,19 +129,19 @@ static void func_shelter_r47_80183484(Task* task);
 static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
     {
         func_shelter_r47_8018138C,
-        func_shelter_r47_80182C78,
+        _shelterR47ConsoleResetPromptTask,
         func_shelter_r47_80182CA4,
         func_shelter_r47_80181568,
         func_shelter_r47_80182DAC,
         func_shelter_r47_801816CC,
-        func_shelter_r47_80182E78,
-        func_shelter_r47_80182FDC,
+        _shelterR47ConsoleDismissTask,
+        _shelterR47ConsoleChangeViewTask,
         func_shelter_r47_80182F18,
-        func_shelter_r47_80183068,
-        func_shelter_r47_801830B8,
+        _shelterR47ConsoleBeginButtonPressTask,
+        _shelterR47ConsoleApplyButtonPressTask,
         func_shelter_r47_80183170,
         func_shelter_r47_801831C8,
-        func_shelter_r47_80182348,
+        _shelterR47ConsoleFadeOutTask,
     },
 };
 
@@ -216,6 +255,48 @@ s16 D_shelter_r47_801875F8[5][2] = {
 static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key);
 static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area);
 
+/// Initializes and merges a contiguous draw-mode/SPRT packet, preserving RGB.
+///
+/// `sprite` must be `&packet->sprite.sprt` in a word-aligned writable packet.
+/// `drawModeCommand` is a complete E1 GPU command. Texture flags and geometry
+/// are supplied afterwards; the merge zeroes the sprite tag's no-op word.
+static inline void _shelterR47InitDrawModeSprite(SpriteDrawModePacket* packet, SPRT* sprite, u32 drawModeCommand)
+{
+    setlen(&packet->drawMode, ARRAY_SIZE(packet->drawMode.code));
+    setlen(&packet->sprite.sprt, SHELTER_R47_SPRITE_GPU_WORDS);
+    packet->drawMode.code[0] = drawModeCommand;
+    setcode(&packet->sprite.sprt, SHELTER_R47_SPRITE_COMMAND);
+    MargePrim(packet, sprite);
+}
+
+/// Sets all components of the live console's circular wipe to one byte level.
+///
+/// Requires live console work and a level in 0..255.
+static inline void _shelterR47ConsoleSetWipe(Task* task, s16 level)
+{
+    ShelterR47ConsoleWork* wipeWork = task->work;
+
+    wipeWork->wipeRed   = level;
+    wipeWork->wipeGreen = level;
+    wipeWork->wipeBlue  = level;
+    wipeWork->wipeGrey  = level;
+}
+
+/// Selects a status and queues its message at the current console position.
+///
+/// `work` supplies the pixel coordinates, read before publishing `status` in
+/// the task's live console work. Requires status 0..9 and its sprite id 3..12;
+/// the room textures and current frame arena/OT must be available.
+static inline void _shelterR47ConsoleDrawStatus(Task* task, ShelterR47ConsoleWork* work, s16 spriteId, s16 status)
+{
+    s16                    messageX    = work->messageX;
+    s16                    messageY    = work->messageY;
+    ShelterR47ConsoleWork* currentWork = task->work;
+
+    currentWork->status = status;
+    shelterR47ConsoleDrawSprite(messageX, messageY, spriteId);
+}
+
 /// Acts on `selection`, the hotspot id stored by `func_shelter_r47_80181568`,
 /// when `itemMenuIsHotspotActionConfirmed` returns nonzero: the id's high byte picks the kind.
 /// Kind 0 accepts a new low byte into `row` (checked by
@@ -233,7 +314,7 @@ static void func_shelter_r47_801816CC(Task* task)
 
     prompt = D_80114D28;
     work   = task->work;
-    func_shelter_r47_80181914(task, 0);
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
@@ -348,27 +429,30 @@ static void func_shelter_r47_801816CC(Task* task)
         shelterR47ConsoleDrawSprite(x_, y_, (id));                     \
     }
 
-/// Per-frame draw of the cap script's selection screen. While `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is
-/// 0x14 it scrolls the background by `backdropScroll`. Every positioned sprite is
-/// eased a quarter of the way toward its target each frame. `arg1` picks the
-/// layout: the entry drawn is `row` when it is 0 and `previousRow` otherwise,
-/// that entry's toggle selects `status`, and the five rows
-/// at `rowX`/`rowY` either all settle at one column or fan out, with the
-/// selected row marked.
-void func_shelter_r47_80181914(Task* task, s16 arg1)
+void shelterR47ConsoleUpdateAndDraw(Task* task, s16 changingView)
 {
+    enum {
+        SHELTER_R47_CONSOLE_HEADER_SPRITE            = 0,
+        SHELTER_R47_CONSOLE_BUTTON_SPRITE            = 1,
+        SHELTER_R47_CONSOLE_PRESSED_BUTTON_SPRITE    = 2,
+        SHELTER_R47_CONSOLE_LABEL_SPRITE_BASE        = 13,
+        SHELTER_R47_CONSOLE_ROW_SWITCH_SPRITE        = 18,
+        SHELTER_R47_CONSOLE_ACTIVE_ROW_SWITCH_SPRITE = 19,
+        SHELTER_R47_CONSOLE_SCROLLING_VIEW           = 20,
+        SHELTER_R47_CONSOLE_SCROLL_MAX               = 320,
+    };
     ShelterR47ConsoleWork* work;
-    s32                    i;
-    s16                    id;
-    s16                    nx;
-    s32                    x;
-    s32                    ny;
-    s16                    y;
-    s8                     c;
-    s16                    sel;
+    s32                    rowIndex;
+    s16                    rowX;
+    s32                    labelX;
+    s32                    rowY;
+    s16                    labelY;
+    s8                     labelRow;
+    s16                    labelRowIndex;
 
     work = task->work;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 0x14) {
+    // The row-3 view pans a backdrop wider than the display.
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == SHELTER_R47_CONSOLE_SCROLLING_VIEW) {
         if (work->backdropToggle & 1) {
             work->backdropScroll--;
             if (work->backdropScroll < 0) {
@@ -376,285 +460,303 @@ void func_shelter_r47_80181914(Task* task, s16 arg1)
             }
         } else {
             work->backdropScroll++;
-            if (work->backdropScroll > 0x140) {
-                work->backdropScroll = 0x140;
+            if (work->backdropScroll > SHELTER_R47_CONSOLE_SCROLL_MAX) {
+                work->backdropScroll = SHELTER_R47_CONSOLE_SCROLL_MAX;
             }
         }
-        func_shelter_r47_801820C0(work->backdropScroll);
+        _shelterR47ConsoleDrawScrollingBackdrop(work->backdropScroll);
     }
+    // Ease the controls and reveal the status retained from the last draw.
     if (work->buttonFlash > 0) {
         work->buttonFlash--;
     }
     work->headerX += (-0x98 - work->headerX) >> 2;
-    shelterR47ConsoleDrawSprite(work->headerX, work->headerY, 0);
-    id = 1;
-    if (arg1 == 0) {
+    shelterR47ConsoleDrawSprite(work->headerX, work->headerY, SHELTER_R47_CONSOLE_HEADER_SPRITE);
+    if (changingView == 0) {
         work->buttonY += (0x48 - work->buttonY) >> 2;
         if (work->buttonFlash == 0) {
-            shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, id);
+            shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, SHELTER_R47_CONSOLE_BUTTON_SPRITE);
         } else {
-            shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, 2);
+            shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, SHELTER_R47_CONSOLE_PRESSED_BUTTON_SPRITE);
         }
         work->messageY += (0x58 - work->messageY) >> 2;
-        func_shelter_r47_80181F14(task, work->messageY);
+        _shelterR47ConsoleDrawStatusReveal(task, work->messageY);
         switch (work->row) {
-            case 0:
+            case SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR:
                 if (work->toggles[0] == 0) {
-                    SHELTER_R47_DRAW_STEP(3, 0);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(4, 1);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON);
                 }
                 break;
-            case 1:
+            case SHELTER_R47_CONSOLE_ROW_SWITCH_2:
                 if (work->toggles[1] == 0) {
-                    SHELTER_R47_DRAW_STEP(5, 2);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(6, 3);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON);
                 }
                 break;
-            case 2:
+            case SHELTER_R47_CONSOLE_ROW_OBSERVATORY:
                 if (work->toggles[2] == 0) {
-                    SHELTER_R47_DRAW_STEP(7, 4);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(8, 5);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON);
                 }
                 break;
-            case 3:
+            case SHELTER_R47_CONSOLE_ROW_SWITCH_4:
                 if (work->toggles[3] == 0) {
-                    SHELTER_R47_DRAW_STEP(9, 6);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(10, 7);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON);
                 }
                 break;
-            case 4:
+            case SHELTER_R47_CONSOLE_ROW_WATCHERS:
                 if (work->toggles[4] == 0) {
-                    SHELTER_R47_DRAW_STEP(11, 8);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF, SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(12, 9);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON, SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON);
                 }
                 break;
         }
     } else {
         work->buttonY += (0x80 - work->buttonY) >> 2;
-        shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, id);
+        shelterR47ConsoleDrawSprite(work->buttonX, work->buttonY, SHELTER_R47_CONSOLE_BUTTON_SPRITE);
         work->messageY += (0x90 - work->messageY) >> 2;
-        func_shelter_r47_80181F14(task, work->messageY);
+        _shelterR47ConsoleDrawStatusReveal(task, work->messageY);
         switch (work->previousRow) {
-            case 0:
+            case SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR:
                 if (work->toggles[0] == 0) {
-                    SHELTER_R47_DRAW_STEP(3, 0);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(4, 1);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON);
                 }
                 break;
-            case 1:
+            case SHELTER_R47_CONSOLE_ROW_SWITCH_2:
                 if (work->toggles[1] == 0) {
-                    SHELTER_R47_DRAW_STEP(5, 2);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(6, 3);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON);
                 }
                 break;
-            case 2:
+            case SHELTER_R47_CONSOLE_ROW_OBSERVATORY:
                 if (work->toggles[2] == 0) {
-                    SHELTER_R47_DRAW_STEP(7, 4);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(8, 5);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON);
                 }
                 break;
-            case 3:
+            case SHELTER_R47_CONSOLE_ROW_SWITCH_4:
                 if (work->toggles[3] == 0) {
-                    SHELTER_R47_DRAW_STEP(9, 6);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(10, 7);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON);
                 }
                 break;
-            case 4:
+            case SHELTER_R47_CONSOLE_ROW_WATCHERS:
                 if (work->toggles[4] == 0) {
-                    SHELTER_R47_DRAW_STEP(11, 8);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF, SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF);
                 } else {
-                    SHELTER_R47_DRAW_STEP(12, 9);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON, SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON);
                 }
                 break;
         }
     }
-    if (arg1 == 0) {
-        for (i = 0; i < 5; i++) {
-            nx            = work->rowX[i] + ((0x78 - work->rowX[i]) >> 2);
-            work->rowX[i] = nx;
-            if (work->row == i) {
-                ny = work->rowY[i];
-                shelterR47ConsoleDrawSprite((s16)(nx + 0x18), ny, 0x14);
-                shelterR47ConsoleDrawSprite(nx, ny, 0x12);
+    // Fan out unselected rows only while the scene view is changing.
+    if (changingView == 0) {
+        for (rowIndex = 0; rowIndex < (s32)ARRAY_SIZE(work->rowX); rowIndex++) {
+            rowX                 = work->rowX[rowIndex] + ((0x78 - work->rowX[rowIndex]) >> 2);
+            work->rowX[rowIndex] = rowX;
+            if (work->row == rowIndex) {
+                rowY = work->rowY[rowIndex];
+                shelterR47ConsoleDrawSprite((s16)(rowX + 0x18), rowY, SHELTER_R47_CONSOLE_MARKER_SPRITE);
+                shelterR47ConsoleDrawSprite(rowX, rowY, SHELTER_R47_CONSOLE_ROW_SWITCH_SPRITE);
             } else {
-                shelterR47ConsoleDrawSprite(nx, work->rowY[i], 0x12);
+                shelterR47ConsoleDrawSprite(rowX, work->rowY[rowIndex], SHELTER_R47_CONSOLE_ROW_SWITCH_SPRITE);
             }
         }
     } else {
-        for (i = 0; i < 5; i++) {
-            if (work->row == i) {
-                nx            = work->rowX[i] + ((0x78 - work->rowX[i]) >> 2);
-                ny            = work->rowY[i];
-                work->rowX[i] = nx;
-                shelterR47ConsoleDrawSprite((s16)(nx + 0x18), ny, 0x14);
-                shelterR47ConsoleDrawSprite(nx, ny, 0x13);
+        for (rowIndex = 0; rowIndex < (s32)ARRAY_SIZE(work->rowX); rowIndex++) {
+            if (work->row == rowIndex) {
+                rowX                 = work->rowX[rowIndex] + ((0x78 - work->rowX[rowIndex]) >> 2);
+                rowY                 = work->rowY[rowIndex];
+                work->rowX[rowIndex] = rowX;
+                shelterR47ConsoleDrawSprite((s16)(rowX + 0x18), rowY, SHELTER_R47_CONSOLE_MARKER_SPRITE);
+                shelterR47ConsoleDrawSprite(rowX, rowY, SHELTER_R47_CONSOLE_ACTIVE_ROW_SWITCH_SPRITE);
             } else {
-                switch (i) {
-                    case 0:
-                        work->rowX[i] += (0xAA - work->rowX[i]) >> 2;
+                switch (rowIndex) {
+                    case SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR:
+                        work->rowX[rowIndex] += (0xAA - work->rowX[rowIndex]) >> 2;
                         break;
-                    case 1:
-                        work->rowX[i] += (0xBE - work->rowX[i]) >> 2;
+                    case SHELTER_R47_CONSOLE_ROW_SWITCH_2:
+                        work->rowX[rowIndex] += (0xBE - work->rowX[rowIndex]) >> 2;
                         break;
-                    case 2:
-                        work->rowX[i] += (0xD2 - work->rowX[i]) >> 2;
+                    case SHELTER_R47_CONSOLE_ROW_OBSERVATORY:
+                        work->rowX[rowIndex] += (0xD2 - work->rowX[rowIndex]) >> 2;
                         break;
-                    case 3:
-                        work->rowX[i] += (0xE6 - work->rowX[i]) >> 2;
+                    case SHELTER_R47_CONSOLE_ROW_SWITCH_4:
+                        work->rowX[rowIndex] += (0xE6 - work->rowX[rowIndex]) >> 2;
                         break;
-                    case 4:
-                        work->rowX[i] += (0xFA - work->rowX[i]) >> 2;
+                    case SHELTER_R47_CONSOLE_ROW_WATCHERS:
+                        work->rowX[rowIndex] += (0xFA - work->rowX[rowIndex]) >> 2;
                         break;
                 }
-                shelterR47ConsoleDrawSprite(work->rowX[i], work->rowY[i], 0x12);
+                shelterR47ConsoleDrawSprite(work->rowX[rowIndex], work->rowY[rowIndex], SHELTER_R47_CONSOLE_ROW_SWITCH_SPRITE);
             }
         }
     }
-    if (arg1 == 0) {
-        c = work->row;
-        x = work->labelX;
-        y = work->labelY;
+    if (changingView == 0) {
+        labelRow = work->row;
+        labelX   = work->labelX;
+        labelY   = work->labelY;
     } else {
-        c = work->previousRow;
-        x = work->labelX;
-        y = work->labelY;
+        labelRow = work->previousRow;
+        labelX   = work->labelX;
+        labelY   = work->labelY;
     }
-    work->labelX += (0x7E - x) >> 2;
-    sel           = c;
-    if ((u16)sel < 5) {
-        shelterR47ConsoleDrawSprite(work->labelX, y, (s16)(sel + 0xD));
+    work->labelX += (0x7E - labelX) >> 2;
+    labelRowIndex = labelRow;
+    if ((u16)labelRowIndex < (s32)ARRAY_SIZE(work->rowX)) {
+        shelterR47ConsoleDrawSprite(work->labelX, labelY, (s16)(labelRowIndex + SHELTER_R47_CONSOLE_LABEL_SPRITE_BASE));
     }
 }
 
-/// Draws the current reveal stop of status message `status` at row `y` through
-/// `shelterR47ConsoleDrawSprite`, with a textured quad whose left edge follows
-/// the stop's x, advancing `revealPos` on odd animation frames. At the
-/// terminator it redraws the previous stop for eight frames out of every
-/// sixteen instead.
-static void func_shelter_r47_80181F14(Task* task, s16 y)
+/// Draws the status reveal cursor and covers the message's unrevealed tail.
+///
+/// Requires live console work, a valid status 0..9 and its loaded reveal table.
+/// `messageY` is a display-centred pixel coordinate. Advances one stop on odd
+/// animation frames, then blinks the preceding stop for eight of sixteen frames.
+/// Status 3 starts with a terminator and reads the byte preceding its table;
+/// the containing storage contract for that empty-message case is unproven.
+/// Queues a marker and, before the terminator, one raw textured quad in slot 10.
+static void _shelterR47ConsoleDrawStatusReveal(Task* task, s16 messageY)
 {
+    enum {
+        SHELTER_R47_CONSOLE_REVEAL_END        = 255,
+        SHELTER_R47_CONSOLE_REVEAL_BLINK_MASK = 15,
+        SHELTER_R47_CONSOLE_REVEAL_BLINK_ON   = 8,
+        SHELTER_R47_CONSOLE_SPRITE_OT         = 10,
+    };
     ShelterR47ConsoleWork* work;
-    POLY_FT4*              poly;
-    u8*                    p;
-    s32                    c;
+    POLY_FT4*              maskQuad;
+    const u8*              revealStop;
+    s32                    stopX;
 
-    work = task->work;
-    p    = D_shelter_r47_80187374[work->status] + work->revealPos;
-    c    = *p;
-    if (c != 0xFF) {
-        shelterR47ConsoleDrawSprite(c - 0x9D, y, 0x14);
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        setPolyFT4(poly);
-        setUVWH(poly, 0x48, 0xB9, 0x2C, 0xE);
-        poly->tpage = 0xD;
-        poly->clut  = 0x3FC3;
-        setXY4(poly, c - 0x96, y + 1, 0x69, y + 1, c - 0x96, y + 0xF, 0x69, y + 0xF);
-        poly->code |= 1;
-        addPrim(&gGpuCurrentOt[10], poly);
+    work       = task->work;
+    revealStop = D_shelter_r47_80187374[work->status] + work->revealPos;
+    stopX      = *revealStop;
+    if (stopX != SHELTER_R47_CONSOLE_REVEAL_END) {
+        shelterR47ConsoleDrawSprite(stopX - 0x9D, messageY, SHELTER_R47_CONSOLE_MARKER_SPRITE);
+        // Stretch the inset texture over the unrevealed tail of the message.
+        maskQuad       = gGpuPrimCursor;
+        gGpuPrimCursor = maskQuad + 1;
+        setPolyFT4(maskQuad);
+        setUVWH(maskQuad, 0x48, 0xB9, 0x2C, 0xE);
+        maskQuad->tpage = getTPage(0, GPU_BLEND_AVERAGE, 832, 0);
+        maskQuad->clut  = getClut(48, 255);
+        setXY4(maskQuad, stopX - 0x96, messageY + 1, 0x69, messageY + 1, stopX - 0x96, messageY + 0xF, 0x69, messageY + 0xF);
+        setShadeTex(maskQuad, 1);
+        addPrim(&gGpuCurrentOt[SHELTER_R47_CONSOLE_SPRITE_OT], maskQuad);
         if (gDisplayState.animFrame & 1) {
             work->revealPos++;
         }
     } else {
-        c = p[-1];
-        if ((u32)(gDisplayState.animFrame & 0xF) < 8) {
-            shelterR47ConsoleDrawSprite(c - 0x9D, y, 0x14);
+        // The empty status-3 table also takes this preceding-byte path.
+        stopX = revealStop[-1];
+        if ((u32)(gDisplayState.animFrame & SHELTER_R47_CONSOLE_REVEAL_BLINK_MASK) < SHELTER_R47_CONSOLE_REVEAL_BLINK_ON) {
+            shelterR47ConsoleDrawSprite(stopX - 0x9D, messageY, SHELTER_R47_CONSOLE_MARKER_SPRITE);
         }
     }
 }
 
-static void func_shelter_r47_801820C0(s16 arg0)
+/// Queues the console's 640x240 scrolling backdrop as three texture strips.
+///
+/// `scrollPixels` is 0..320 pixels left from its initial display-centred origin.
+/// Requires loaded textures, the current OT and arena space for three merged
+/// draw-mode/sprite packets; the GPU borrows them in slot 12 until completion.
+static void _shelterR47ConsoleDrawScrollingBackdrop(s16 scrollPixels)
 {
-    SpriteDrawModePacket* p;
-    SPRT*                 sprt;
+    enum {
+        SHELTER_R47_CONSOLE_BACKDROP_OT = 12,
+    };
+    SpriteDrawModePacket* packet;
+    SPRT*                 sprite;
 
-    p              = gGpuPrimCursor;
-    sprt           = &p->sprite.sprt;
-    gGpuPrimCursor = p + 1;
-    setlen(&p->drawMode, 1);
-    setlen(&p->sprite.sprt, 4);
-    p->drawMode.code[0] = 0xE1000096;
-    setcode(&p->sprite.sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->clut  = 0x4000;
-    sprt->x0    = -0xA0 - arg0;
-    sprt->y0    = -0x78;
-    sprt->u0    = 0;
-    sprt->v0    = 0;
-    sprt->w     = 0x100;
-    sprt->h     = 0xF0;
-    sprt->code |= 1;
-    addPrim(&gGpuCurrentOt[12], p);
+    packet         = gGpuPrimCursor;
+    sprite         = &packet->sprite.sprt;
+    gGpuPrimCursor = packet + 1;
+    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 384, 256)));
+    sprite->clut  = getClut(0, 256);
+    sprite->x0    = -0xA0 - scrollPixels;
+    sprite->y0    = -0x78;
+    sprite->u0    = 0;
+    sprite->v0    = 0;
+    sprite->w     = 0x100;
+    sprite->h     = 0xF0;
+    sprite->code |= SPRITE_SOURCE_RAW_TEXTURE;
+    addPrim(&gGpuCurrentOt[SHELTER_R47_CONSOLE_BACKDROP_OT], packet);
 
-    p              = gGpuPrimCursor;
-    sprt           = &p->sprite.sprt;
-    gGpuPrimCursor = p + 1;
-    setlen(&p->drawMode, 1);
-    setlen(&p->sprite.sprt, 4);
-    p->drawMode.code[0] = 0xE1000098;
-    setcode(&p->sprite.sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->x0    = 0x60 - arg0;
-    sprt->clut  = 0x4000;
-    sprt->y0    = -0x78;
-    sprt->u0    = 0;
-    sprt->v0    = 0;
-    sprt->w     = 0x80;
-    sprt->h     = 0xF0;
-    sprt->code |= 1;
-    addPrim(&gGpuCurrentOt[12], p);
+    packet         = gGpuPrimCursor;
+    sprite         = &packet->sprite.sprt;
+    gGpuPrimCursor = packet + 1;
+    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 512, 256)));
+    sprite->x0    = 0x60 - scrollPixels;
+    sprite->clut  = getClut(0, 256);
+    sprite->y0    = -0x78;
+    sprite->u0    = 0;
+    sprite->v0    = 0;
+    sprite->w     = 0x80;
+    sprite->h     = 0xF0;
+    sprite->code |= SPRITE_SOURCE_RAW_TEXTURE;
+    addPrim(&gGpuCurrentOt[SHELTER_R47_CONSOLE_BACKDROP_OT], packet);
 
-    p              = gGpuPrimCursor;
-    sprt           = &p->sprite.sprt;
-    gGpuPrimCursor = p + 1;
-    setlen(&p->drawMode, 1);
-    setlen(&p->sprite.sprt, 4);
-    p->drawMode.code[0] = 0xE100008E;
-    setcode(&p->sprite.sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->clut  = 0x4040;
-    sprt->x0    = 0xE0 - arg0;
-    sprt->y0    = -0x78;
-    sprt->u0    = 0;
-    sprt->v0    = 0;
-    sprt->w     = 0x100;
-    sprt->h     = 0xF0;
-    sprt->code |= 1;
-    addPrim(&gGpuCurrentOt[12], p);
+    packet         = gGpuPrimCursor;
+    sprite         = &packet->sprite.sprt;
+    gGpuPrimCursor = packet + 1;
+    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 896, 0)));
+    sprite->clut  = getClut(0, 257);
+    sprite->x0    = 0xE0 - scrollPixels;
+    sprite->y0    = -0x78;
+    sprite->u0    = 0;
+    sprite->v0    = 0;
+    sprite->w     = 0x100;
+    sprite->h     = 0xF0;
+    sprite->code |= SPRITE_SOURCE_RAW_TEXTURE;
+    addPrim(&gGpuCurrentOt[SHELTER_R47_CONSOLE_BACKDROP_OT], packet);
 }
 
-static void func_shelter_r47_80182348(Task* task)
+/// Fades the console to black, saves its switches and releases the session.
+///
+/// Console state 13; requires live work and the prompt task in spawn argument 2.
+/// The fade increases by 16 from 0..255; crossing 255 restores player drawing
+/// and control, releases the menu hold and requests both tasks' teardown.
+static void _shelterR47ConsoleFadeOutTask(Task* task)
 {
-    ShelterR47ConsoleWork* state;
-    ShelterR47ConsoleWork* done;
-    u16                    fade;
-    u8                     level;
+    enum {
+        SHELTER_R47_CONSOLE_EXIT_FADE_STEP = 16,
+    };
+    enum { SHELTER_R47_CONSOLE_MENU_UNLOCK_UPDATES = 8 };
+    ShelterR47ConsoleWork* work;
+    ShelterR47ConsoleWork* switchWork;
+    u16                    nextFade;
+    u8                     fadeLevel;
 
-    state = task->work;
-    func_shelter_r47_80181914(task, 0);
-    fade        = state->fade + 0x10;
-    state->fade = fade;
-    if ((s16)fade >= 0x100) {
-        state->fade = 0xFF;
-        done        = task->work;
-        gameFlagSetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, done->toggles[0]);
-        gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, done->toggles[1]);
-        gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, done->toggles[2]);
-        gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, done->toggles[3]);
-        gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, done->toggles[4]);
+    work = task->work;
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
+    nextFade   = work->fade + SHELTER_R47_CONSOLE_EXIT_FADE_STEP;
+    work->fade = nextFade;
+    // Commit the switches and release control only once the screen is black.
+    if ((s16)nextFade >= SHELTER_R47_CONSOLE_LEVEL_MAX + 1) {
+        work->fade = SHELTER_R47_CONSOLE_LEVEL_MAX;
+        switchWork = task->work;
+        gameFlagSetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, switchWork->toggles[0]);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, switchWork->toggles[1]);
+        gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, switchWork->toggles[2]);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, switchWork->toggles[3]);
+        gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, switchWork->toggles[4]);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-        Gp_MenuLockDelay = 8;
-        D_80114D08       = 0xA;
+        Gp_MenuLockDelay = SHELTER_R47_CONSOLE_MENU_UNLOCK_UPDATES;
+        D_80114D08       = SHELTER_R47_CONSOLE_INTERACTION_REARM_UPDATES;
         displayReleaseMenuHold();
         gGameSession->eventState   = 0;
         gGameSession->hideHud      = 0;
@@ -662,8 +764,8 @@ static void func_shelter_r47_80182348(Task* task)
         taskKill(task->spawnArg2.pointer);
         taskRequestKill(task, 0);
     }
-    level = (u8)state->fade;
-    fadeDrawOverlay(level, level, level, GPU_BLEND_SUBTRACT);
+    fadeLevel = (u8)work->fade;
+    fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
 }
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
@@ -729,33 +831,34 @@ void func_shelter_r47_80182B18(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Hit-tests the point (`x`, `y`) against every entry of a hotspot table up to
-/// its -1 terminator, raising `hit` on each entry whose rectangle contains the
-/// point (edges inclusive) and clearing it on the rest. Entry 0x101 is never
-/// raised while the task's `row` is 1. Returns 1 if any entry was raised.
-s32 func_shelter_r47_80182B9C(Task* task, ActionPromptHotspot* table, s16 x, s16 y)
+s32 shelterR47ConsoleHitTestHotspots(Task* task, ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)
 {
+    enum {
+        SHELTER_R47_CONSOLE_BUTTON_HOTSPOT = 0x101,
+    };
     ShelterR47ConsoleWork* work;
-    s32                    hit;
+    s32                    anyHit;
 
-    work = task->work;
-    hit  = 0;
-    while (table->id != ACTION_PROMPT_HOTSPOT_END) {
-        if ((x >= table->x) && ((table->x + table->w) >= x) && (y >= table->y) && ((table->y + table->h) >= y) &&
-            ((work->row != 1) || (table->id != 0x101))) {
-            table->hit = 1;
-            hit        = 1;
+    work   = task->work;
+    anyHit = 0;
+    while (hotspots->id != ACTION_PROMPT_HOTSPOT_END) {
+        if ((cursorX >= hotspots->x) && ((hotspots->x + hotspots->w) >= cursorX) && (cursorY >= hotspots->y) && ((hotspots->y + hotspots->h) >= cursorY) &&
+            ((work->row != SHELTER_R47_CONSOLE_ROW_SWITCH_2) || (hotspots->id != SHELTER_R47_CONSOLE_BUTTON_HOTSPOT))) {
+            hotspots->hit = 1;
+            anyHit        = 1;
         } else {
-            table->hit = 0;
+            hotspots->hit = 0;
         }
-        table++;
+        hotspots++;
     }
-    return hit;
+    return anyHit;
 }
 
-/// Stops the action prompt, hides its cursor, clears its screen position, and
-/// steps the caller's script on one state.
-static void func_shelter_r47_80182C78(Task* task)
+/// Hides and centres the console action cursor before its opening wipe.
+///
+/// Console state 1; requires the live singleton action prompt and advances to
+/// state 2 without allocating or releasing either task.
+static void _shelterR47ConsoleResetPromptTask(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
 
@@ -773,7 +876,7 @@ static void func_shelter_r47_80182CA4(Task* task)
     s32                    value;
 
     state = task->work;
-    func_shelter_r47_80181914(task, 0);
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     if (shelterR47ConsoleClearWipe(task) != 0) {
         if (state->guideStep == 1) {
             capStartSequenceSlot(0xA, 0, 0);
@@ -815,7 +918,7 @@ static void func_shelter_r47_80182DAC(Task* task)
     ActionPrompt*          prompt = D_80114D28;
 
     state = task->work;
-    func_shelter_r47_80181914(task, 0);
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (state->guideStep == 0 && ((u16)state->selection >> 8) == 0 && D_shelter_r47_8018A695 == 0) {
@@ -828,22 +931,25 @@ static void func_shelter_r47_80182DAC(Task* task)
     task->state = 5;
 }
 
-static void func_shelter_r47_80182E78(Task* task)
+/// Saves console switches, restores the entry view and ends player use.
+///
+/// Console state 6; requires live console work and its prompt task in spawn
+/// argument 2. Resumes player control/drawing, clears session holds and requests
+/// teardown after restoring the saved view; the task system owns the work.
+static void _shelterR47ConsoleDismissTask(Task* task)
 {
-    ShelterR47ConsoleWork* state;
+    ShelterR47ConsoleWork* work;
 
-    state      = task->work;
-    D_80114D08 = 0xA;
-    func_shelter_r47_8018337C(task);
+    work       = task->work;
+    D_80114D08 = SHELTER_R47_CONSOLE_INTERACTION_REARM_UPDATES;
+    _shelterR47ConsoleSaveSwitches(task);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
     gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = state->savedView;
-    /* Keeps the `spawnArg2` load below the `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store, so that it
-       does not fill `taskKill`'s delay slot. */
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, 0);
 }
@@ -854,7 +960,7 @@ static void func_shelter_r47_80182F18(Task* task)
     s32 flag;
     s32 value;
 
-    func_shelter_r47_80181914(task, 0);
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     if (shelterR47ConsoleClearWipe(task) != 0) {
         func_shelter_r47_801832EC(task);
         step = ((ShelterR47ConsoleWork*)task->work)->status;
@@ -884,62 +990,78 @@ static void func_shelter_r47_80182F18(Task* task)
     }
 }
 
-static void func_shelter_r47_80182FDC(Task* task)
+/// Wipes over a row change, then selects its view and resets the reveal.
+///
+/// Console state 7; the previous row remains displayed until the wipe is black.
+/// The selection's low byte must be a row 0..4. On completion, fills all wipe
+/// components with 255 and advances to state 8, which clears the new view.
+static void _shelterR47ConsoleChangeViewTask(Task* task)
 {
-    ShelterR47ConsoleWork* state;
     ShelterR47ConsoleWork* work;
 
-    state = task->work;
-    func_shelter_r47_80181914(task, 1);
+    work = task->work;
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CHANGING_VIEW);
+    // Change the room image only after the circular wipe has hidden it.
     if (shelterR47ConsoleFillWipe(task) != 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_80186FAC[(u8)state->selection];
-        state->revealPos                                           = 0;
-        work                                                       = task->work;
-        work->wipeRed                                              = 0xFF;
-        work->wipeGreen                                            = 0xFF;
-        work->wipeBlue                                             = 0xFF;
-        work->wipeGrey                                             = 0xFF;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_80186FAC[(u8)work->selection];
+        work->revealPos                                            = 0;
+        _shelterR47ConsoleSetWipe(task, SHELTER_R47_CONSOLE_LEVEL_MAX);
         task->state++;
     }
 }
 
-static void func_shelter_r47_80183068(Task* task)
+/// Starts the console switch-button flash and restarts the status reveal.
+///
+/// Console state 9; draws the old state first, then sets a 16-frame flash and
+/// advances to state 10, where the selected switch is toggled.
+static void _shelterR47ConsoleBeginButtonPressTask(Task* task)
 {
-    ShelterR47ConsoleWork* state;
+    enum {
+        SHELTER_R47_CONSOLE_BUTTON_FLASH_FRAMES = 16,
+    };
+    ShelterR47ConsoleWork* work;
 
-    state = task->work;
-    func_shelter_r47_80181914(task, 0);
-    state->revealPos   = 0;
-    state->buttonFlash = 0x10;
+    work = task->work;
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
+    work->revealPos   = 0;
+    work->buttonFlash = SHELTER_R47_CONSOLE_BUTTON_FLASH_FRAMES;
     task->state++;
 }
 
-static void func_shelter_r47_801830B8(Task* task)
+/// Toggles the selected console switch and publishes its access-map state.
+///
+/// Console state 10; requires a selected row 0..4. Redraw selects the new status
+/// before the transfer-door and observatory map marks are updated. Advances to
+/// state 11, where input waits for the flash and CAP playback to finish.
+static void _shelterR47ConsoleApplyButtonPressTask(Task* task)
 {
-    ShelterR47ConsoleWork* state;
+    enum { SHELTER_R47_CONSOLE_MAP_MARK_HIDDEN  = 0,
+           SHELTER_R47_CONSOLE_MAP_MARK_VISIBLE = 2 };
+    ShelterR47ConsoleWork* work;
 
-    state = task->work;
-    func_shelter_r47_801833DC(task, state->row);
-    func_shelter_r47_80181914(task, 0);
-    switch (state->status) {
-        case 0:
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 2);
+    work = task->work;
+    _shelterR47ConsoleToggleSwitch(task, work->row);
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
+    // Recompute status before updating the two access-related map markers.
+    switch (work->status) {
+        case SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF:
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, SHELTER_R47_CONSOLE_MAP_MARK_VISIBLE);
             break;
-        case 1:
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, 0);
+        case SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON:
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHELTER_R47_1C6, SHELTER_R47_CONSOLE_MAP_MARK_HIDDEN);
             break;
-        case 4:
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 2);
+        case SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF:
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, SHELTER_R47_CONSOLE_MAP_MARK_VISIBLE);
             break;
-        case 5:
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, 0);
+        case SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON:
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR, SHELTER_R47_CONSOLE_MAP_MARK_HIDDEN);
             break;
-        case 2:
-        case 3:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
+        case SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF:
+        case SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON:
+        case SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF:
+        case SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON:
+        case SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF:
+        case SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON:
             break;
     }
     task->state++;
@@ -950,7 +1072,7 @@ static void func_shelter_r47_80183170(Task* task)
     ShelterR47ConsoleWork* state;
 
     state = task->work;
-    func_shelter_r47_80181914(task, 0);
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     if ((state->buttonFlash == 0) && (capIsBusy() == 0)) {
         task->state = 3;
     }
@@ -961,7 +1083,7 @@ static void func_shelter_r47_801831C8(Task* task)
     ShelterR47ConsoleWork* state;
 
     state = task->work;
-    func_shelter_r47_80181914(task, 0);
+    shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     state->fade = 0;
     task->state++;
 }
@@ -1013,45 +1135,56 @@ static void func_shelter_r47_801832EC(Task* task)
     }
 }
 
-static void func_shelter_r47_8018337C(Task* task)
+/// Writes the console's five working switches back to their saved game flags.
+///
+/// Requires live console work. Values are passed as stored to the nibble setter;
+/// this does not toggle them, restore the view or release the work block.
+static void _shelterR47ConsoleSaveSwitches(Task* task)
 {
-    ShelterR47ConsoleWork* state;
+    ShelterR47ConsoleWork* work;
 
-    state = task->work;
-    gameFlagSetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, state->toggles[0]);
-    gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, state->toggles[1]);
-    gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, state->toggles[2]);
-    gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, state->toggles[3]);
-    gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, state->toggles[4]);
+    work = task->work;
+    gameFlagSetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED, work->toggles[0]);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2, work->toggles[1]);
+    gameFlagSetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS, work->toggles[2]);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4, work->toggles[3]);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, work->toggles[4]);
 }
 
-/// Flips toggle `arg1`. Toggle 1 also publishes the area view
-/// (0x12 or 0x24), and toggle 3 is mirrored into `backdropToggle`.
-static void func_shelter_r47_801833DC(Task* task, s16 arg1)
+/// Flips one working console switch and applies its immediate display effect.
+///
+/// `row` must be 0..4 in live console work. Switch 2 selects room view 18 or 36
+/// and updates its view-table entry; switch 4 changes the backdrop scroll target.
+/// Saved game flags are committed separately when console use ends.
+static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row)
 {
-    ShelterR47ConsoleWork* state;
+    enum {
+        SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW = 18,
+        SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW  = 36,
+    };
+    ShelterR47ConsoleWork* work;
 
-    state                = task->work;
-    state->toggles[arg1] = (state->toggles[arg1] + 1) & 1;
-    switch (arg1) {
-        case 0:
-        case 2:
-        case 4:
+    work               = task->work;
+    work->toggles[row] = (work->toggles[row] + 1) & 1;
+    switch (row) {
+        case SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR:
+        case SHELTER_R47_CONSOLE_ROW_OBSERVATORY:
+        case SHELTER_R47_CONSOLE_ROW_WATCHERS:
             break;
-        case 1:
-            if (!(state->toggles[1] & 1)) {
-                D_shelter_r47_80186FAC[1]                                  = 0x12;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
+        case SHELTER_R47_CONSOLE_ROW_SWITCH_2:
+            if (!(work->toggles[1] & 1)) {
+                D_shelter_r47_80186FAC[1]                                  = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
             } else {
-                D_shelter_r47_80186FAC[1]                                  = 0x24;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x24;
+                D_shelter_r47_80186FAC[1]                                  = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
             }
             break;
-        case 3:
-            if (!(state->toggles[3] & 1)) {
-                state->backdropToggle = 0;
+        case SHELTER_R47_CONSOLE_ROW_SWITCH_4:
+            if (!(work->toggles[3] & 1)) {
+                work->backdropToggle = 0;
             } else {
-                state->backdropToggle = 1;
+                work->backdropToggle = 1;
             }
             break;
     }
@@ -1237,121 +1370,104 @@ void func_shelter_r47_80183B84(Task* task)
     addPrim(&gGpuCurrentOt[11], p);
 }
 
-void func_shelter_r47_80183E24(void)
+void shelterR47MapTerminalDrawPreviousButton(void)
 {
-    SpriteDrawModePacket* p;
-    SPRT*                 sprt;
+    SpriteDrawModePacket* packet;
+    SPRT*                 sprite;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(&p->drawMode, 1);
-    setlen(&p->sprite.sprt, 4);
-    p->drawMode.code[0] = 0xE100002F;
-    setcode(&p->sprite.sprt, 0x64);
-    sprt = &p->sprite.sprt;
-    MargePrim(p, sprt);
-    sprt->clut  = 0x3FC4;
-    sprt->x0    = -0x96;
-    sprt->y0    = 0x3F;
-    sprt->u0    = 0x50;
-    sprt->w     = 0x38;
-    sprt->v0    = 0;
-    sprt->h     = 0x10;
-    sprt->code |= 3;
-    addPrim(&gGpuCurrentOt[11], p);
+    packet         = gGpuPrimCursor;
+    gGpuPrimCursor = packet + 1;
+    sprite         = &packet->sprite.sprt;
+    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
+    sprite->clut  = getClut(64, 255);
+    sprite->x0    = -0x96;
+    sprite->y0    = 0x3F;
+    sprite->u0    = 0x50;
+    sprite->w     = 0x38;
+    sprite->v0    = 0;
+    sprite->h     = 0x10;
+    sprite->code |= SPRITE_SOURCE_RAW_TEXTURE | SPRITE_SOURCE_SEMI_TRANSPARENT;
+    addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_TERMINAL_LABEL_OT], packet);
 }
 
-void func_shelter_r47_80183F0C(void)
+void shelterR47MapTerminalDrawNextButton(void)
 {
-    SpriteDrawModePacket* p;
-    SPRT*                 sprt;
+    SpriteDrawModePacket* packet;
+    SPRT*                 sprite;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(&p->drawMode, 1);
-    setlen(&p->sprite.sprt, 4);
-    p->drawMode.code[0] = 0xE100002F;
-    setcode(&p->sprite.sprt, 0x64);
-    sprt = &p->sprite.sprt;
-    MargePrim(p, sprt);
-    sprt->clut  = 0x3FC5;
-    sprt->x0    = -0x90;
-    sprt->y0    = 0x50;
-    sprt->u0    = 0x50;
-    sprt->v0    = 0x10;
-    sprt->w     = 0x38;
-    sprt->h     = 0x10;
-    sprt->code |= 3;
-    addPrim(&gGpuCurrentOt[11], p);
+    packet         = gGpuPrimCursor;
+    gGpuPrimCursor = packet + 1;
+    sprite         = &packet->sprite.sprt;
+    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
+    sprite->clut  = getClut(80, 255);
+    sprite->x0    = -0x90;
+    sprite->y0    = 0x50;
+    sprite->u0    = 0x50;
+    sprite->v0    = 0x10;
+    sprite->w     = 0x38;
+    sprite->h     = 0x10;
+    sprite->code |= SPRITE_SOURCE_RAW_TEXTURE | SPRITE_SOURCE_SEMI_TRANSPARENT;
+    addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_TERMINAL_LABEL_OT], packet);
 }
 
-void func_shelter_r47_80183FF4(Task* task, s16 arg1)
+void shelterR47MapTerminalDrawPageTitle(Task* task, s16 page)
 {
-    SpriteDrawModePacket*      p;
-    SPRT*                      sprt;
-    ShelterR47MapTerminalWork* state;
+    SpriteDrawModePacket*      packet;
+    SPRT*                      sprite;
+    ShelterR47MapTerminalWork* work;
 
-    p              = gGpuPrimCursor;
-    state          = (ShelterR47MapTerminalWork*)task->work;
-    sprt           = &p->sprite.sprt;
-    gGpuPrimCursor = p + 1;
-    state->labelX += (state->labelTargetX - state->labelX) >> 2;
-    setlen(&p->drawMode, 1);
-    setlen(&p->sprite.sprt, 4);
-    p->drawMode.code[0] = 0xE100002F;
-    setcode(&p->sprite.sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->clut  = 0x3FC2;
-    sprt->code |= 3;
-    sprt->x0    = state->labelX;
-    sprt->y0    = -0x67;
-    sprt->u0    = 0;
-    sprt->v0    = D_shelter_r47_801875EC[arg1];
-    sprt->w     = 0x50;
-    sprt->h     = 0xA;
-    addPrim(&gGpuCurrentOt[11], p);
+    packet         = gGpuPrimCursor;
+    work           = task->work;
+    sprite         = &packet->sprite.sprt;
+    gGpuPrimCursor = packet + 1;
+    work->labelX  += (work->labelTargetX - work->labelX) >> 2;
+    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
+    sprite->clut  = getClut(32, 255);
+    sprite->code |= SPRITE_SOURCE_RAW_TEXTURE | SPRITE_SOURCE_SEMI_TRANSPARENT;
+    sprite->x0    = work->labelX;
+    sprite->y0    = -0x67;
+    sprite->u0    = 0;
+    sprite->v0    = D_shelter_r47_801875EC[page];
+    sprite->w     = 0x50;
+    sprite->h     = 0xA;
+    addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_TERMINAL_LABEL_OT], packet);
 }
 
-void func_shelter_r47_80184124(Task* task, s16 arg1)
+void shelterR47MapTerminalDrawPageCaptions(Task* task, s16 page)
 {
-    SpriteDrawModePacket*      p;
-    SPRT*                      sprt;
-    ShelterR47MapTerminalWork* state;
+    SpriteDrawModePacket*      packet;
+    SPRT*                      sprite;
+    ShelterR47MapTerminalWork* work;
 
-    p              = gGpuPrimCursor;
-    state          = (ShelterR47MapTerminalWork*)task->work;
-    sprt           = &p->sprite.sprt;
-    gGpuPrimCursor = p + 1;
-    setlen(&p->drawMode, 1);
-    setlen(&p->sprite.sprt, 4);
-    p->drawMode.code[0] = 0xE100002F;
-    setcode(&p->sprite.sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->clut  = 0x3FC3;
-    sprt->code |= 3;
-    sprt->x0    = state->labelX;
-    sprt->y0    = 0x35;
-    sprt->u0    = 0;
-    sprt->v0    = D_shelter_r47_801875F8[arg1][0] + 0x38;
-    sprt->w     = 0x50;
-    sprt->h     = 8;
-    addPrim(&gGpuCurrentOt[11], p);
+    packet         = gGpuPrimCursor;
+    work           = task->work;
+    sprite         = &packet->sprite.sprt;
+    gGpuPrimCursor = packet + 1;
+    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
+    sprite->clut  = getClut(48, 255);
+    sprite->code |= SPRITE_SOURCE_RAW_TEXTURE | SPRITE_SOURCE_SEMI_TRANSPARENT;
+    sprite->x0    = work->labelX;
+    sprite->y0    = 0x35;
+    sprite->u0    = 0;
+    sprite->v0    = D_shelter_r47_801875F8[page][0] + 0x38;
+    sprite->w     = 0x50;
+    sprite->h     = 8;
+    addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_TERMINAL_LABEL_OT], packet);
 
-    p                   = gGpuPrimCursor;
-    sprt                = &p->sprite.sprt;
-    gGpuPrimCursor      = p + 1;
-    p->drawMode.code[0] = 0xE100002F;
-    setlen(&p->drawMode, 1);
-    setlen(&p->sprite.sprt, 4);
-    setcode(&p->sprite.sprt, 0x64);
-    MargePrim(p, sprt);
-    sprt->clut  = 0x3FC3;
-    sprt->code |= 3;
-    sprt->x0    = state->labelX;
-    sprt->y0    = 0x60;
-    sprt->u0    = 0;
-    sprt->v0    = D_shelter_r47_801875F8[arg1][1] + 0x38;
-    sprt->w     = 0x50;
-    sprt->h     = 8;
-    addPrim(&gGpuCurrentOt[11], p);
+    packet                   = gGpuPrimCursor;
+    sprite                   = &packet->sprite.sprt;
+    gGpuPrimCursor           = packet + 1;
+    packet->drawMode.code[0] = (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0));
+    setlen(&packet->drawMode, ARRAY_SIZE(packet->drawMode.code));
+    setSprt(&packet->sprite.sprt);
+    MargePrim(packet, sprite);
+    sprite->clut  = getClut(48, 255);
+    sprite->code |= SPRITE_SOURCE_RAW_TEXTURE | SPRITE_SOURCE_SEMI_TRANSPARENT;
+    sprite->x0    = work->labelX;
+    sprite->y0    = 0x60;
+    sprite->u0    = 0;
+    sprite->v0    = D_shelter_r47_801875F8[page][1] + 0x38;
+    sprite->w     = 0x50;
+    sprite->h     = 8;
+    addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_TERMINAL_LABEL_OT], packet);
 }

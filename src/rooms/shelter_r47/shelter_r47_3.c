@@ -1918,10 +1918,10 @@ static void func_shelter_r47_80185028(Task* task)
 
     state = (ShelterR47MapTerminalWork*)task->work;
     func_shelter_r47_80183B84(task);
-    func_shelter_r47_80183E24();
-    func_shelter_r47_80183F0C();
-    func_shelter_r47_80183FF4(task, state->page);
-    func_shelter_r47_80184124(task, state->page);
+    shelterR47MapTerminalDrawPreviousButton();
+    shelterR47MapTerminalDrawNextButton();
+    shelterR47MapTerminalDrawPageTitle(task, state->page);
+    shelterR47MapTerminalDrawPageCaptions(task, state->page);
     state->fade = 0;
     task->state++;
 }
@@ -1934,10 +1934,10 @@ static void func_shelter_r47_80185098(Task* task)
 
     state = (ShelterR47MapTerminalWork*)task->work;
     func_shelter_r47_80183B84(task);
-    func_shelter_r47_80183E24();
-    func_shelter_r47_80183F0C();
-    func_shelter_r47_80183FF4(task, state->page);
-    func_shelter_r47_80184124(task, state->page);
+    shelterR47MapTerminalDrawPreviousButton();
+    shelterR47MapTerminalDrawNextButton();
+    shelterR47MapTerminalDrawPageTitle(task, state->page);
+    shelterR47MapTerminalDrawPageCaptions(task, state->page);
     fade        = state->fade + 0x10;
     state->fade = fade;
     if ((s16)fade >= 0x100) {
@@ -1965,10 +1965,10 @@ static void func_shelter_r47_801851B8(Task* task)
 
     state = (ShelterR47MapTerminalWork*)task->work;
     func_shelter_r47_80183B84(task);
-    func_shelter_r47_80183E24();
-    func_shelter_r47_80183F0C();
-    func_shelter_r47_80183FF4(task, state->page);
-    func_shelter_r47_80184124(task, state->page);
+    shelterR47MapTerminalDrawPreviousButton();
+    shelterR47MapTerminalDrawNextButton();
+    shelterR47MapTerminalDrawPageTitle(task, state->page);
+    shelterR47MapTerminalDrawPageCaptions(task, state->page);
 }
 
 /// Dispatcher of the map terminal: copies the state table
