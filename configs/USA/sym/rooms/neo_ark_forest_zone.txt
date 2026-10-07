@@ -70,7 +70,10 @@ D_map_neo_ark_8017B210 = 0x8017B210; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B2C0 = 0x8017B2C0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B300 = 0x8017B300; // absolute:True owner=map_neo_ark
 gRoomEventStagedMsg = 0x80182E38; // size:0x8 defined:True
-D_neo_ark_forest_zone_80182E40 = 0x80182E40; // size:0x4 defined:True
+D_neo_ark_forest_zone_80182E40 = 0x80182E40; // size:0x1 defined:True
+D_neo_ark_forest_zone_80182E41 = 0x80182E41; // size:0x1 defined:True
+D_neo_ark_forest_zone_80182E42 = 0x80182E42; // size:0x1 defined:True
+D_neo_ark_forest_zone_80182E43 = 0x80182E43; // size:0x1 defined:True
 gRoomEventFade = 0x80182E30; // size:0x8 defined:True
 gRoamerReserveHp = 0x80182E54; // size:0xA defined:True
 D_neo_ark_forest_zone_80182E10 = 0x80182E10; // size:0x8 defined:True

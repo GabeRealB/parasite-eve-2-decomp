@@ -54,11 +54,7 @@
 #include "../../shared/falling_leaves.h"
 #include "../../shared/roaming_enemies.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern s8 D_neo_ark_forest_zone_80182E40[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern s8 D_neo_ark_forest_zone_80182E40_value __asm__("D_neo_ark_forest_zone_80182E40");
+extern s8 D_neo_ark_forest_zone_80182E40;
 
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
@@ -77,12 +73,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-s8 D_neo_ark_forest_zone_80182E40[4] = {
-    0,
-    123,
-    4,
-    20,
-};
+s8 D_neo_ark_forest_zone_80182E40 = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_neo_ark_forest_zone_80182E41 = 123;
+
+u8 D_neo_ark_forest_zone_80182E42 = 4;
+
+u8 D_neo_ark_forest_zone_80182E43 = 20;
 
 ActorCommand gRoamerCommand = { 0 };
 
@@ -115,7 +113,7 @@ s32 neoArkForestZoneRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, 
 /// back.
 static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_neo_ark_forest_zone_80182E40_value = 0;
+    D_neo_ark_forest_zone_80182E40 = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -124,7 +122,7 @@ static __inline__ s32 NeoArkForestZone_StartEvent(RoomEventMsg* dst, RoomLatched
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_neo_ark_forest_zone_80181DBC, 0, 0, 0);
-            D_neo_ark_forest_zone_80182E40_value = 1;
+            D_neo_ark_forest_zone_80182E40 = 1;
         }
         return 2;
     }
