@@ -18,7 +18,6 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
     GolemKnightBishopWork* work;
     TmdObject*             obj;
     GfxCoord*              coord;
-    GfxRotationWords*      m;
     s32                    snd;
     s32                    pan;
     s32                    v;
@@ -164,12 +163,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                 if (obj->shading.colorBlend <= 0) {
                     obj->shading.colorBlend = 0;
                     work->fadeState         = GOLEM_KNIGHT_BISHOP_FADE_HIDDEN;
-                    m                       = (GfxRotationWords*)&arg0->extra.tmd->coords[0].coord;
-                    m->m00M01               = ONE;
-                    m->m02M10               = 0;
-                    m->m11M12               = ONE;
-                    m->m20M21               = 0;
-                    m->m22                  = ONE;
+                    gfxSetRotIdentity(&arg0->extra.tmd->coords[0].coord);
                     arg0->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 }
             }
