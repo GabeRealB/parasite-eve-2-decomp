@@ -194,24 +194,6 @@ static u8 CapCaption_Data_8015E66C[4];
 
 extern u16 D_shelter_b3_dumping_hole_8018F4B0;
 
-/// The clips the dumping hole's one-time arrival scene adds to the player's animation bank.
-///
-/// The scene's event script opens by sending `data.copy` to the player. The
-/// copy takes five words from the start of this storage: the four set pointers
-/// and the request's own source pointer. Those words occupy extended ids 47-51.
-/// The script then plays ids 48, 49 and 50 in turn. Id 47 stays NULL, id 51
-/// holds the source pointer, and the stored word count sits past the copied span.
-typedef union {
-    struct {
-        AnimationSet*            sets[4]; // Player clips for extended ids 47-50; NULL at the id nothing plays
-        AnimationBankCopyRequest copy;    // Copies the first five words of this storage
-    } data;                               // The records by name
-    s32 words[6];                         // The same storage as the copy reads it; the last word lies beyond the copied span
-} _ShelterB3DumpingHoleAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_ShelterB3DumpingHoleAnimationBankExtensionStorage, 24);
-
-extern _ShelterB3DumpingHoleAnimationBankExtensionStorage D_shelter_b3_dumping_hole_8018AFC8;
-
 /// Work block of the debris event's director task, which starts the event
 /// script once the player passes a set X position and stays reachable to the script's
 /// callbacks and the effect tasks through the director task global.
@@ -1045,7 +1027,21 @@ PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2] = {
 
 TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { { { TASK_BODY_NONE, 192 } }, _shelterB3DumpingHoleShakeTask, { .value = 0 } };
 
-_ShelterB3DumpingHoleAnimationBankExtensionStorage D_shelter_b3_dumping_hole_8018AFC8 = { .data = { { NULL, &_gShelterB3DumpingHoleAnimation0C810, &_gShelterB3DumpingHoleAnimation0CCB4, &_gShelterB3DumpingHoleAnimation0D9C4 }, { { .words = D_shelter_b3_dumping_hole_8018AFC8.words }, 5 } } };
+/// Player clips for extended ids 47-50, added by the dumping hole's one-time
+/// arrival scene; NULL at id 47, which nothing plays.
+///
+/// The scene's event script opens by sending the player the copy request.
+/// `D_shelter_b3_dumping_hole_8018AFD8` copies five words starting here into
+/// the player's bank, which is one word past the end of this array: the read
+/// runs on through the first word of `D_shelter_b3_dumping_hole_8018AFD8`, that
+/// request's own source pointer. That overrun is the original's and is kept as
+/// it is: the request carries a literal count larger than the table, while the
+/// table was stored with only its own entries. The script then plays ids 48, 49
+/// and 50 in turn. Id 51, which receives the source pointer, is never played.
+AnimationSet* D_shelter_b3_dumping_hole_8018AFC8[4] = { NULL, &_gShelterB3DumpingHoleAnimation0C810, &_gShelterB3DumpingHoleAnimation0CCB4, &_gShelterB3DumpingHoleAnimation0D9C4 };
+
+// Installs the player's clips; the count is five, not the four entries of its source.
+AnimationBankCopyRequest D_shelter_b3_dumping_hole_8018AFD8 = { { .sets = D_shelter_b3_dumping_hole_8018AFC8 }, 5 };
 
 AnimationPlayRequest D_shelter_b3_dumping_hole_8018AFE0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -1066,7 +1062,7 @@ ActorCommand D_shelter_b3_dumping_hole_8018B078 = { { .loc = { 4, 39 } }, 0 };
 ActorCommand D_shelter_b3_dumping_hole_8018B07C = { { .loc = { 4, 39 } }, 1 };
 
 EvsCommand D_shelter_b3_dumping_hole_8018B080[39] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &D_shelter_b3_dumping_hole_8018AFC8.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &D_shelter_b3_dumping_hole_8018AFD8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b3_dumping_hole_8018B078 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018AFF4 }, { .value = 0 } },
