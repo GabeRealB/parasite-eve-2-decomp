@@ -642,7 +642,7 @@ static void _actor135400GaryDouglasUpdateCarriedPlacement(Task* task)
         ACTOR_135400_CARRIED_SET_DOWN_Y   = -435,
         ACTOR_135400_CARRIED_SET_DOWN_Z   = 5500,
     };
-    GfxMatrix worldTransform;
+    MATRIX    worldTransform;
     SVECTOR   worldPosition;
     GfxCoord* rootCoord;
 
@@ -650,7 +650,7 @@ static void _actor135400GaryDouglasUpdateCarriedPlacement(Task* task)
         case ACTOR_135400_CARRIED_PLACEMENT_DETACH:
             rootCoord = task->extra.tmd->coords;
             // Freeze the inherited transform before detaching from the body.
-            _actor135400GaryDouglasDetachCarriedRoot(rootCoord, &worldTransform.mat, &worldPosition);
+            _actor135400GaryDouglasDetachCarriedRoot(rootCoord, &worldTransform, &worldPosition);
             task->spawnArg1.value += 1;
             break;
         case ACTOR_135400_CARRIED_PLACEMENT_WAIT_EVENT:
@@ -660,9 +660,9 @@ static void _actor135400GaryDouglasUpdateCarriedPlacement(Task* task)
             // Fall through once the event has finished.
         case ACTOR_135400_CARRIED_PLACEMENT_SET_DOWN:
             rootCoord = task->extra.tmd->coords;
-            gfxSetRotIdentity(&worldTransform.mat);
-            RotMatrixY(ACTOR_135400_CARRIED_SET_DOWN_YAW, &worldTransform.mat);
-            rootCoord->coord        = worldTransform.mat;
+            gfxSetRotIdentity(&worldTransform);
+            RotMatrixY(ACTOR_135400_CARRIED_SET_DOWN_YAW, &worldTransform);
+            rootCoord->coord        = worldTransform;
             rootCoord->coord.t[0]   = ACTOR_135400_CARRIED_SET_DOWN_X;
             rootCoord->coord.t[1]   = ACTOR_135400_CARRIED_SET_DOWN_Y;
             rootCoord->coord.t[2]   = ACTOR_135400_CARRIED_SET_DOWN_Z;
