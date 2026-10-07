@@ -152235,3 +152235,63 @@ still uses the asm: there the copy and the `andi` are not merged, which a join
 on the copy (`c` assigned `shade` on two paths, then `glow = (u8)c`) would
 explain; not tried. Before adding a set to the narrow variable to feed the
 union, compute its global-alloc priority with the extra references.
+
+*Note 2026-10-07:* tried and landed for `effectSpriteTask7C`, with the copy
+held in the age's local; see the next section.
+
+### A copy combine did not merge into its only user, in the register the tested value had: the join is on the reused local (effectSpriteTask7C, 2026-10-07)
+
+**Symptom.** `sll v0,v0,4; move v1,v0; andi s5,v1,0xff; sb v0 x3`, where `$v1`
+held `work->age` up to the `subu`. Unlike `actor510900FlameSpriteTask45` the
+mask is not the problem: every plain form (`glow = (u8)shade` before or after
+the stores, a `u8`/`s16`/`u16` copy local, `shade = TICKS - age; shade *= 16`,
+the age read into a local and reassigned, chained stores) gives
+`andi s5,v0,0xff` (or `0xf0`/`0xfff0` through a narrow local) with no `move`.
+cse replaces a same-block copy's uses with the older register and combine
+merges what is left, so the copy survives only with a `CODE_LABEL` between it
+and the `andi`.
+
+**Which register the copy gets is a second constraint.** With the label the
+copy is a global-alloc pseudo. A fresh local for it (`c = shade` on two paths,
+`glow = (u8)c`) comes out `move a2,v0; andi s5,a2,0xff`: `c` dies in the insn
+that sets `glow`, the two do not conflict, so `expand_preferences` hands `c`
+the `$a2` preference `glow` has from the call (`.greg`: `90 preferences: 6`).
+The target's `$v1` needs the copy to conflict with `glow`, i.e. to be live
+somewhere `glow`'s initial `0x80` is still live. The local that holds the age
+before the `if` is: reusing it gives `90 conflicts: ... 91 2`, no preference
+line, and the lowest free register, `$v1`.
+
+**The multiply.** `shade = n * 16` goes through an `expand_mult` temporary;
+once `shade` is live across the label the temporary and `shade` are two
+registers and a second `move` appears. `n << 4` sets `shade` directly. (With
+`* 16` the form matches only if the else arm recomputes the product.)
+
+**Fix (fitted).**
+
+```c
+fade = work->age;
+if (fade >= FADE_AGE) {
+    shade = (TICKS - fade) << FADE_SHIFT;
+    if (shade > 0) { fade = shade; } else { fade = shade; }
+    glowBrightness = (u8)fade;
+    quad->r0 = shade; ...
+```
+
+jump hoists one arm's copy above the branch; at `.combine` the copy
+(`set (reg 90) (reg 89)`) ends block 12 with the `blez`, the other arm's copy
+is block 13, and the `zero_extend` of 90 is after `code_label` in block 14
+with no LOG_LINK. After reload both copies are `move v1,v0`; the second and
+the branch are gone from the output (the pass was not checked). A branch combine proves always taken does the same
+job (`fade = shade; if (shade & 0xF) fade = 0xFF;` matches, with `* 16`); it
+was not committed because it is no better founded than equal arms.
+
+**What is not known.** What stood between the copy and the conversion, and
+whether the copy really was the age's variable (the register is the only
+evidence). Not a default: `shade = 0x80` before the `if` with the conversion
+after the join moves the `andi` out of the arm, and a `u8 glow` assigned
+after the join changes the frame.
+
+**For `actor510900FlameSpriteTask45`.** Nothing here gives it a kind-1/2
+form. Its copy goes straight to the call-saved register and its problem is
+the mask's width, which this function does not have; the common part is only
+that a label stood before the conversion.
