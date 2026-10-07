@@ -2371,7 +2371,7 @@ initial `.rtl` does carry the three arm-local defs, but `jump_optimize`
 (`.jump`) then moves the else arm's assignment above the compare and points
 the branch at the join store, so the phi is live across the compare block
 either way. Storing to `field_0` in each arm instead — the shape the
-family's already-matched `Actor00100_Fn0BB2C` uses — leaves the arms as
+family's already-matched `_actor00100DownedHitReaction` uses — leaves the arms as
 separate blocks, merges to one `sh`, and gave 100%.
 ## m2c types a local from its only store, so a byte store puts an `sll` before the compare
 
@@ -80196,7 +80196,7 @@ something it can build.
 
 ## A short destination can narrow a masked word load during initial RTL expansion
 
-Actor00100_Fn0B658: `if (work->flags32 & 0x100)` emits a word load, but
+_actor00100ResumePursuit: `if (work->flags32 & 0x100)` emits a word load, but
 `s16 flags = work->flags32 & 0x100; if (flags)` emits a halfword load.
 The isolated base_2 experiment retained the u32 member and changed only the
 final masked destination; it reproduced the permuter exact match (96.296% -> 100%).
@@ -80210,7 +80210,7 @@ if(1) wrapper were unnecessary. A direct u16 member (base_1 and final base_3)
 also matches and is the clearer layout for this target. This observation is
 limited to this nonvolatile masked load; it is not a universal narrowing rule.
 
-Evidence and plan-before-build prediction: tools/permuter_findings/Actor00100_Fn0B658/
+Evidence and plan-before-build prediction: tools/permuter_findings/_actor00100ResumePursuit/
 retains PERMUTER_ANALYSIS.md, compiler fingerprints, inputs and dumps.
 ## Preprocessed input SHA256
 - `base.i`: `1c1d8ab2a72730370f7c58efcc28fbc9113c772537ed5e1ebb92c3e060fabb9a`
@@ -80315,7 +80315,7 @@ Separately, a soft pointer helper inside the successor sank past calls and swapp
 
 Compiler SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Inputs base_3.i 4b50f3f299c2bd79084853a841bde75073483997086f6f4c04d99a9da06d0b76; base_4.i b4122c5f15b0e85e46c504c29a9dc71623c3908a58af8f15fa752188c936281c. Retained plans, dumps and notes: tools/permuter_findings/Actor00100_Fn06398/. Primary discovery supported; alternate seeds not investigated.
 
-## Adjacent branch labels must all precede an inserted load-delay nop (Actor00100_Fn06C10)
+## Adjacent branch labels must all precede an inserted load-delay nop (_actor00100LeapBack)
 
 The unpinned inline-helper reconstruction reached 99.987% with only four branch
 penalties. GCC's `.dbr` and `.s` placed `$L47` through `$L51` consecutively between
@@ -80325,7 +80325,7 @@ adjacent branch aliases before the nop gives 100% without a C change. The fix an
 regression are retained in `tools/maspsx-label-load-nop.patch`; 138 maspsx tests
 passed. This is assembler expansion, not a reason to change GCC control flow.
 
-Evidence: `nonmatchings/Actor00100_Fn06C10-vacuum/base_3.{s,i.dbr}` (UIDs 688/690,
+Evidence: `nonmatchings/_actor00100LeapBack-vacuum/base_3.{s,i.dbr}` (UIDs 688/690,
 labels 47–51), `base_3_diff`, and matching `base_4.c`. Preprocessed SHA256:
 `94ba33b3effcb329a20074a0f470bad44a94ce927b1dc64dbc953f8110b07476`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -97597,7 +97597,7 @@ version and the `M2C_FIELD` version compile to identical bytes: `base_1.i`
 
 A body copied between families fixes the *addresses* it touches and nothing
 else. `func_actor_403000_8013D48C` is 26 instructions that differ from the
-already-matched `Actor00100_Fn0B13C` in one displacement — `lw $v0, 0xDEC($v0)`
+already-matched `_actor00100WallProbeTouchesGrid` in one displacement — `lw $v0, 0xDEC($v0)`
 against `lw $v0, 0xB0C($v0)` — and `overlay_dup_index.py` does not flag that,
 because its equality test is the disassembly *text* and a different displacement
 is a different text. That twin is written as
@@ -103654,7 +103654,7 @@ held the table as an `INCLUDE_RODATA` blob) shrinks to the 4 bytes in front of
 it. The overlay still built and linked with the table at the wrong address: the
 checksum is what catches it, in both overlays that share the unit
 (`actor_400100`, `actor_407500`).
-## One local shared by every arm of a jump-table switch misallocates all of them (Actor00100_Fn00E58, 2026-09-16)
+## One local shared by every arm of a jump-table switch misallocates all of them (_actor00100ApplyCommand, 2026-09-16)
 
 Five arms of a `switch` each computed the next LCG word, tested it, and stored it
 back to the same global:
@@ -103663,7 +103663,7 @@ back to the same global:
     case 2:
         value = (gRandomLcgState * 5) + 0x71357911;
         gRandomLcgState = value;
-        rnd = ((value >> 0x10) % 3) + 1;
+        placementIndex = ((value >> 0x10) % 3) + 1;
         break;
 ```
 
@@ -103678,9 +103678,9 @@ Give each arm its own local and the score goes 93.4% -> 99.3% in one build:
 
 ```c
     case 2:
-        value2 = (gRandomLcgState * 5) + 0x71357911;
-        gRandomLcgState = value2;
-        rnd = ((value2 >> 0x10) % 3) + 1;
+        randomView2 = (gRandomLcgState * 5) + 0x71357911;
+        gRandomLcgState = randomView2;
+        placementIndex = ((randomView2 >> 0x10) % 3) + 1;
         break;
 ```
 
@@ -103700,9 +103700,9 @@ is not the join point.
 
 Inputs: `base_13.i` SHA256 `aa699f7302270d741334d9ab6a9ea58c6d80c7a34b6c31043e28e4b22b8acccb`
 (100.000%); target SHA256 `3d610819d7b796e7e0091cda3b9105ee09041451fdced6b6fcc255f370ac6e0d`;
-scratch `nonmatchings/Actor00100_Fn00E58-vacuum`.
+scratch `nonmatchings/_actor00100ApplyCommand-vacuum`.
 
-## `if (x == C) x = C;` keeps its store and reuses the register that holds x (Actor00100_Fn00E58, 2026-09-16)
+## `if (x == C) x = C;` keeps its store and reuses the register that holds x (_actor00100ApplyCommand, 2026-09-16)
 
 m2c rendered an arm's self-assignment as `work->state = work->state;`, which
 GCC deletes outright — the load survives as a dead `lhu` and the arm's body
@@ -103737,7 +103737,7 @@ this is not a register-allocation question to be solved later: any C that reads
 Inputs: `base_3.i` (92.449% before the rest of the function was worked out);
 target SHA256 `3d610819d7b796e7e0091cda3b9105ee09041451fdced6b6fcc255f370ac6e0d`.
 
-## `sll 24` / `sra 21` for an array index says the index is an `s8` (Actor00100_Fn00E58, 2026-09-16)
+## `sll 24` / `sra 21` for an array index says the index is an `s8` (_actor00100ApplyCommand, 2026-09-16)
 
 Scaling a table row by 8 came out as `sll v0,a2,0x18` + `sra v0,v0,0x15` in the
 target and `sll v1,a2,0x3` in the build. The long pair is `(s8)index * 8`: GCC
@@ -103754,10 +103754,10 @@ Inputs: `base_9.i` SHA256 `aa699f7302270d741334d9ab6a9ea58c6d80c7a34b6c31043e28e
 predecessor (`base_8.c` 95.997%); target SHA256
 `3d610819d7b796e7e0091cda3b9105ee09041451fdced6b6fcc255f370ac6e0d`.
 
-## A jump table for the overlay's *first* unit needs a `rodata` cut on the shared unit, not `rodata_head` (Actor00100_Fn00E58, 2026-09-16)
+## A jump table for the overlay's *first* unit needs a `rodata` cut on the shared unit, not `rodata_head` (_actor00100ApplyCommand, 2026-09-16)
 
 `actor_400100` is a fully-shared overlay (every `.text` span is in `shared`), and
-its first function `Actor00100_Fn00E58` at 0x1FC owns a 7-word jump table at
+its first function `_actor00100ApplyCommand` at 0x1FC owns a 7-word jump table at
 0x24, with the pose table it indexes at 0x4 and a second, already-matched
 function's 5-word table at 0x44. The unit's `.rodata` was configured at 0x44, so
 the compiler's table landed there and pushed everything after it: the overlay
@@ -111080,7 +111080,7 @@ which is the pre-cross-jump shape to look for.
 
 This is the shape the rest of the family uses, so prefer it over m2c's variable:
 `src/actors/lib/actor_400100_tail.c` carries the same tail matched as
-`Actor00100_Fn0B98C` / `Actor00100_Fn0BB2C`, whose object is instruction-for-
+`Actor00100_Fn0B98C` / `_actor00100DownedHitReaction`, whose object is instruction-for-
 instruction the target above. The reverse (a single assignment on a merge edge)
 is `Actor00400_Fn09124`'s lever; both come down to "which arm's pseudo gets to
 be block-local".
@@ -149790,7 +149790,7 @@ attempts; left as it was.
 - **A variable holding one of two constants in front of a shared call
   sequence** (`soundBase = 0x40010008; ...; goto playHitSound;` against
   `soundBase = 0x40010007; playHitSound: sound = (place << 8) | soundBase;
-  pan = ...; start(sound, pan, depth)`, `Actor00100_Fn0375C`) is a `static
+  pan = ...; start(sound, pan, depth)`, `_desertChaserDamage`) is a `static
   inline` taking the constant, called in every arm. Cross-jumping merges the
   copies from the first insn after the constant load, which is why the image
   has `lui/ori v1,K` in each predecessor and `or s0,s0,v1` in the shared
@@ -149806,7 +149806,7 @@ attempts; left as it was.
   (`L0: li v0,-1; sh` / `Ldefault: li v0,0x18`) are reorg having filled the
   default jump's delay slot with the store, not two blocks.
 - A `block_N: return 0;` label inside the last switch of a function that ends
-  `return 0` on every path (`Actor00100_Fn00E58`) is `break` in each case and
+  `return 0` on every path (`_actor00100ApplyCommand`) is `break` in each case and
   one `return 0;` after the `if`; the `default: return 0;` and the `else
   return 0;` were the same statement.
 ### Goto forms from the pod boss, the stranger and the fire-escape actor (batch 13, 2026-10-06)
