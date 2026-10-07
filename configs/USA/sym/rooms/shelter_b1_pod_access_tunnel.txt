@@ -149,7 +149,7 @@ shelterB1PodAccessTunnelRoomVisualEffectsFlashTask = 0x8017F138; // type:func
 
 shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask = 0x8017FB9C; // type:func
 
-func_shelter_b1_pod_access_tunnel_80180484 = 0x80180484; // type:func
+shelterB1PodAccessTunnelRoomVisualEffectsSparkBurstTask = 0x80180484; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017F3DC; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017F808; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8018008C; // type:func
@@ -161,3 +161,16 @@ _shelterB1PodAccessTunnelIgnoreActionMessage = 0x8017ddd8; // type:func
 _shelterB1PodAccessTunnelHandleSoundMessage = 0x8017dde0; // type:func
 _shelterB1PodAccessTunnelIdleTaskState = 0x8017ded8; // type:func
 _shelterB1PodAccessTunnelQueueImageScrollTexturePage = 0x8017e66c; // type:func
+_shelterB1PodAccessTunnelDrawImageScroll = 0x8017e048; // type:func
+_shelterB1PodAccessTunnelInitImageScroll = 0x8017e5b4; // type:func
+_shelterB1PodAccessTunnelImageScrollTask = 0x8017e55c; // type:func
+_shelterB1PodAccessTunnelGrayCaptureCountdownTask = 0x8017e778; // type:func
+_shelterB1PodAccessTunnelStartGrayCapture = 0x8017e734; // type:func
+shelterB1PodAccessTunnelRoomTask = 0x8017dee8; // type:func
+_shelterB1PodAccessTunnelPostGantryDialogueTask = 0x8017df40; // type:func
+_shelterB1PodAccessTunnelStageSceneAudioStart = 0x8017e39c; // type:func
+_shelterB1PodAccessTunnelStartScenePlayback = 0x8017e3bc; // type:func
+_shelterB1PodAccessTunnelFinishScene = 0x8017e3dc; // type:func
+_shelterB1PodAccessTunnelCancelScene = 0x8017e3fc; // type:func
+_shelterB1PodAccessTunnelPanSceneCameraTask = 0x8017e44c; // type:func
+_shelterB1PodAccessTunnelCancelRoomEffects = 0x8017e7b4; // type:func

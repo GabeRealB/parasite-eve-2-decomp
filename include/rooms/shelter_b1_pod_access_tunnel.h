@@ -37,7 +37,13 @@ extern WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_801848B8[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_pod_access_tunnel_80184CDC[];
 
-void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task);
+/// Initializes the pod access tunnel's room controller and keeps it available for messages.
+///
+/// Start in state 0 with a bodyless task. Installs the room message handlers,
+/// registers the room slot and starts the entry scene or post-gantry dialogue
+/// selected by saved progress. State 1 idles; state 2 tears down the task.
+/// States must be in 0..2 and this room overlay must remain loaded throughout.
+void shelterB1PodAccessTunnelRoomTask(Task* task);
 
 /// Selects this room's combat effects once and draws the lights visible in the mapped view.
 ///
@@ -73,6 +79,15 @@ void shelterB1PodAccessTunnelRoomVisualEffectsFlashTask(Task* task);
 /// to remain loaded.
 void shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b1_pod_access_tunnel_80180484(Task* task);
+/// Runs this room's counted impact flash followed by smoke or orange rings and sparks.
+///
+/// Requires a coordinate body and owned zero-aged `EffectWork` in
+/// `spawnArg2.pointer`, initialized by `effectSpawn`. Start in state 0;
+/// nonzero `spawnArg1.value` selects smoke, zero selects rings and two sparks.
+/// Active age seven enters release; the next active tick frees counted work
+/// and kills the task. Nonzero room control pauses it; values at least 4 cancel
+/// it. Child effects live independently. Requires current graphics workspace
+/// and the room overlay to remain loaded until teardown.
+void shelterB1PodAccessTunnelRoomVisualEffectsSparkBurstTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_POD_ACCESS_TUNNEL_H

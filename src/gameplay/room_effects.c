@@ -1055,7 +1055,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80182118, { NULL } },                                     // 0x202
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80182228, { NULL } },                     // 0x203
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_main_corridor_80182444, { NULL } },                                 // 0x204
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_pod_access_tunnel_80180484, { NULL } },                             // 0x205
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodAccessTunnelRoomVisualEffectsSparkBurstTask, { NULL } },                // 0x205
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_transfer_tunnel_80181C78, { NULL } },                               // 0x206
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_access_tunnel_8017F624, { NULL } },                    // 0x207
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_elevator_hall_80182B48, { NULL } },                                 // 0x208

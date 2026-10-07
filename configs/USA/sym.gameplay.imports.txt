@@ -1050,7 +1050,7 @@ shelterB1PodAccessTunnelRoomVisualEffectsFlashTask = 0x8017F138; // type:func ab
 
 shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask = 0x8017FB9C; // type:func absolute:True owner=shelter_b1_pod_access_tunnel shared=rooms
 
-func_shelter_b1_pod_access_tunnel_80180484 = 0x80180484; // type:func absolute:True owner=shelter_b1_pod_access_tunnel
+shelterB1PodAccessTunnelRoomVisualEffectsSparkBurstTask = 0x80180484; // type:func absolute:True owner=shelter_b1_pod_access_tunnel
 
 shelterB1PodServiceGantryWaterDriftTaskU16 = 0x8017E880; // type:func absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
 
@@ -1803,7 +1803,7 @@ func_dryfield_water_hole_8017E040 = 0x8017E040; // type:func absolute:True owner
 
 dryfieldNightGeneralStoreDrawLightShaftsTask = 0x8017E6C8; // type:func absolute:True owner=dryfield_night_general_store shared=rooms
 
-dryfieldNightWarehouseDrawGlowsTask = 0x8017E778; // type:func absolute:True owner=dryfield_night_warehouse shared=rooms
+dryfieldNightWarehouseDrawGlowsTask = 0x8017E778; // type:func absolute:True owner=dryfield_night_warehouse
 
 dryfieldNightMotelRoom1DrawGlowsTask = 0x8017D9B0; // type:func absolute:True owner=dryfield_night_motel_room_1
 

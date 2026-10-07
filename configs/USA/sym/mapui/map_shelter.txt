@@ -163,7 +163,7 @@ D_shelter_b1_sterilization_room_801893E0 = 0x801893E0; // absolute:True owner=sh
 D_shelter_b1_sterilization_room_80189E68 = 0x80189E68; // absolute:True owner=shelter_b1_sterilization_room
 D_shelter_b1_sterilization_room_8018B00C = 0x8018B00C; // absolute:True owner=shelter_b1_sterilization_room
 D_shelter_b1_sterilization_room_8018C314 = 0x8018C314; // absolute:True owner=shelter_b1_sterilization_room
-func_shelter_b1_pod_access_tunnel_8017DEE8 = 0x8017DEE8; // type:func absolute:True owner=shelter_b1_pod_access_tunnel
+shelterB1PodAccessTunnelRoomTask = 0x8017DEE8; // type:func absolute:True owner=shelter_b1_pod_access_tunnel
 D_shelter_b1_pod_access_tunnel_80183A14 = 0x80183A14; // absolute:True owner=shelter_b1_pod_access_tunnel
 D_shelter_b1_pod_access_tunnel_80183A18 = 0x80183A18; // absolute:True owner=shelter_b1_pod_access_tunnel
 D_shelter_b1_pod_access_tunnel_80183A1C = 0x80183A1C; // absolute:True owner=shelter_b1_pod_access_tunnel shared=rooms

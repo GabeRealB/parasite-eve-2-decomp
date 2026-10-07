@@ -74,6 +74,10 @@
 
 extern u8 D_shelter_b1_pod_access_tunnel_80184D0C;
 
+/// Logical view containing the two-image pod-chamber pan.
+enum { SHELTER_B1_POD_ACCESS_TUNNEL_POD_PAN_VIEW               = 11,
+       SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_FRACTION_BITS = 16 };
+
 enum {
     SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_DELAY_FRAMES = 46,  // Frames the lower image is held still before the scroll starts
     SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES        = 240, // Screen lines the seam travels, the height of either image
@@ -126,11 +130,11 @@ extern RoomLatchedEvent gRoomEventLatched;
 
 static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0);
 static void _shelterB1PodAccessTunnelIdleTaskState(Task* task);
-static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task);
-static void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task);
+static void _shelterB1PodAccessTunnelDrawImageScroll(Task* task);
+static void _shelterB1PodAccessTunnelInitImageScroll(Task* task);
 static void _shelterB1PodAccessTunnelQueueImageScrollTexturePage(s32 vramX, s16 vramY);
 
-void func_shelter_b1_pod_access_tunnel_8017DF40(Task*);
+static void _shelterB1PodAccessTunnelPostGantryDialogueTask(Task* task);
 
 void func_shelter_b1_pod_access_tunnel_8017DA74(Task*);
 void func_shelter_b1_pod_access_tunnel_8017DC18(Task*);
@@ -141,9 +145,9 @@ s32        func_shelter_b1_pod_access_tunnel_8017DD70(Task*, s32, s32, s32);
 static s32 _shelterB1PodAccessTunnelIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 secondArg);
 static s32 _shelterB1PodAccessTunnelHandleSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg);
 
-void func_shelter_b1_pod_access_tunnel_8017E44C(Task*);
-void func_shelter_b1_pod_access_tunnel_8017E55C(Task*);
-void func_shelter_b1_pod_access_tunnel_8017E778(Task*);
+static void _shelterB1PodAccessTunnelPanSceneCameraTask(Task* task);
+static void _shelterB1PodAccessTunnelImageScrollTask(Task* task);
+static void _shelterB1PodAccessTunnelGrayCaptureCountdownTask(Task* task);
 
 extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182D8C;
 extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DA0;
@@ -156,15 +160,15 @@ extern AnimationBankCopyRequest D_shelter_b1_pod_access_tunnel_80182D70;
 extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E18;
 extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E30;
 extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E48;
-void                            func_shelter_b1_pod_access_tunnel_8017E39C(void);
-void                            func_shelter_b1_pod_access_tunnel_8017E3BC(void);
-void                            func_shelter_b1_pod_access_tunnel_8017E3DC(void);
-void                            func_shelter_b1_pod_access_tunnel_8017E3FC(void);
+static void                     _shelterB1PodAccessTunnelStageSceneAudioStart(void);
+static void                     _shelterB1PodAccessTunnelStartScenePlayback(void);
+static void                     _shelterB1PodAccessTunnelFinishScene(void);
+static void                     _shelterB1PodAccessTunnelCancelScene(void);
 void                            func_shelter_b1_pod_access_tunnel_8017E41C(s32);
 void                            func_shelter_b1_pod_access_tunnel_8017E52C(s32);
 void                            func_shelter_b1_pod_access_tunnel_8017E704(void);
-void                            func_shelter_b1_pod_access_tunnel_8017E734(s32);
-void                            func_shelter_b1_pod_access_tunnel_8017E7B4(void);
+static void                     _shelterB1PodAccessTunnelStartGrayCapture(s32 frameCount);
+static void                     _shelterB1PodAccessTunnelCancelRoomEffects(void);
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
@@ -192,7 +196,7 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80181120[7] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_shelter_b1_pod_access_tunnel_801811C8 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017DF40, { .value = 0 } };
+TaskDesc D_shelter_b1_pod_access_tunnel_801811C8 = { { { TASK_BODY_NONE, 192 } }, _shelterB1PodAccessTunnelPostGantryDialogueTask, { .value = 0 } };
 
 static AnimationPackedPose _gShelterB1PodAccessTunnelAnimation03EF0Bank1[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_animation_03EF0_bank1.inc"
@@ -349,9 +353,9 @@ static AnimationSet _gShelterB1PodAccessTunnelAnimation05744 = {
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017E44C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017E55C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_pod_access_tunnel_8017E778, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB1PodAccessTunnelPanSceneCameraTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB1PodAccessTunnelImageScrollTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB1PodAccessTunnelGrayCaptureCountdownTask, { .value = 0 } },
 };
 
 AnimationSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
@@ -440,17 +444,17 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_shelter_b1_pod_access_tunnel_80182FF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_pod_access_tunnel_8017E39C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1PodAccessTunnelStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_pod_access_tunnel_80182E04 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182E18 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_pod_access_tunnel_8017E3BC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1PodAccessTunnelStartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_pod_access_tunnel_80182DA0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182E30 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_pod_access_tunnel_8017E734 }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1PodAccessTunnelStartGrayCapture }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -515,7 +519,7 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_pod_access_tunnel_8017E3DC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1PodAccessTunnelFinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -530,12 +534,12 @@ EvsCommand D_shelter_b1_pod_access_tunnel_8018380C[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_pod_access_tunnel_8017E3FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1PodAccessTunnelCancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_pod_access_tunnel_8017E7B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1PodAccessTunnelCancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1222,154 +1226,191 @@ static void _shelterB1PodAccessTunnelIdleTaskState(Task* task)
     char unusedStackFrame[0x10];
 }
 
-/// Runs the room task through its state table, copied onto the stack first and
-/// indexed by the task's state.
-void func_shelter_b1_pod_access_tunnel_8017DEE8(Task* task)
+void shelterB1PodAccessTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b1_pod_access_tunnel_8017D5D8;
-    sp.funcs[task->state](task);
+    states = D_shelter_b1_pod_access_tunnel_8017D5D8;
+    states.funcs[task->state](task);
 }
 
-/// Two-state task: state 0, unless blocked by `Gp_StateC08.mode` or `gDisplayState.pendingMode`,
-/// sends the slot-3 task a `AnimationPlayRequest` built from `gPlayerStatus.weapon` (msg 0x3E8) and runs
-/// `D_shelter_b1_pod_access_tunnel_80181120` through `evsStartScript`; state 1
-/// sets `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` to 0x1D and kills this task once the session is idle.
-void func_shelter_b1_pod_access_tunnel_8017DF40(Task* task)
+/// Runs the arrival dialogue after returning from the pod service gantry.
+///
+/// Start in state 0 with no body or work. Waits for the attachment wheel and
+/// any pending display mode to close, requests weapon-bank pose 1 and starts
+/// the dialogue script with HUD restoration. State 1 waits for the script to
+/// end, selects Shelter music column 1 through scene event 29 and requests
+/// task teardown. Requires the live player and its loaded weapon animation
+/// bank; the pose request is consumed synchronously. The room overlay must
+/// remain loaded until completion.
+static void _shelterB1PodAccessTunnelPostGantryDialogueTask(Task* task)
 {
-    AnimationPlayRequest rec;
+    enum { DIALOGUE_START,
+           DIALOGUE_WAIT_SCRIPT,
+           DIALOGUE_PRIMARY_CHARACTER         = 1,
+           DIALOGUE_PRIMARY_WEAPON_SET_BASE   = 1,
+           DIALOGUE_ALTERNATE_WEAPON_SET_BASE = 0x22,
+           DIALOGUE_WEAPON_POSE               = 1,
+           DIALOGUE_MUSIC_EVENT               = 29 };
+
+    AnimationPlayRequest poseRequest;
     s32                  state;
     s32                  weaponId;
-    s32                  id;
+    s32                  weaponSetIndex;
 
     state = task->state;
     switch (state) {
-        case 0:
+        case DIALOGUE_START:
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                weaponId                 = gPlayerStatus.weapon;
-                id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                rec.source.index         = id;
-                rec.animationId          = 1;
-                rec.blend                = ANIMATION_BLEND_RESET;
-                rec.blendFrames          = 0;
-                rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+                // The arrival script holds a weapon pose until normal control resumes.
+                weaponId                         = gPlayerStatus.weapon;
+                weaponSetIndex                   = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DIALOGUE_PRIMARY_CHARACTER)
+                                                       ? weaponId + DIALOGUE_PRIMARY_WEAPON_SET_BASE
+                                                       : weaponId + DIALOGUE_ALTERNATE_WEAPON_SET_BASE;
+                poseRequest.source.index         = weaponSetIndex;
+                poseRequest.animationId          = DIALOGUE_WEAPON_POSE;
+                poseRequest.blend                = ANIMATION_BLEND_RESET;
+                poseRequest.blendFrames          = 0;
+                poseRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &poseRequest, 0);
                 evsStartScript(D_shelter_b1_pod_access_tunnel_80181120, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 task->state = task->state + 1;
             }
             break;
-        case 1:
+        case DIALOGUE_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1D;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = DIALOGUE_MUSIC_EVENT;
                 taskRequestKill(task, 0);
             }
             break;
     }
 }
 
-/// Draw state of the vertical image scroll. After a delay the seam moves down
-/// the screen: the image above it slides in from the top, bottom rows first,
-/// while the one below is pushed off the bottom. Each image is drawn as two
-/// sprites spanning the screen width. Kills the task once `viewReady` is set
-/// or no event is running.
-static void func_shelter_b1_pod_access_tunnel_8017E048(Task* task)
+/// Draws the delayed upward pod-chamber panorama with a descending image seam.
+///
+/// Requires state 1 and initialized owned work. Draws the upper image at
+/// VRAM (832, 0), palette (0, 255), over the lower image at (576, 256), palette
+/// (0, 256). Each uses 256+64 pixels of two 8-bit texture pages for a 320x240
+/// screen. Consumes four SPRT and four DR_TPAGE packets per draw, all linked
+/// at slot 1023; requires a 1024-tag ordering table and enough packet storage.
+/// Stops on a ready view or an idle event. The signed halfword timer and
+/// 16.16 offset keep advancing after the seam reaches 240; callers must end
+/// the event before the timer wraps or the offset overflows. The script's
+/// 240-frame rate is valid.
+static void _shelterB1PodAccessTunnelDrawImageScroll(Task* task)
 {
+    enum { IMAGE_SCROLL_SCREEN_LEFT        = -160,
+           IMAGE_SCROLL_SCREEN_TOP         = -120,
+           IMAGE_SCROLL_RIGHT_STRIP_X      = 96,
+           IMAGE_SCROLL_PAGE_PIXELS        = 256,
+           IMAGE_SCROLL_RIGHT_STRIP_PIXELS = 64,
+           IMAGE_SCROLL_UPPER_V_ORIGIN     = 239 - 256,
+           IMAGE_SCROLL_UPPER_CLUT         = getClut(0, 255),
+           IMAGE_SCROLL_LOWER_CLUT         = getClut(0, 256),
+           IMAGE_SCROLL_UPPER_LEFT_VRAM_X  = 832,
+           IMAGE_SCROLL_UPPER_RIGHT_VRAM_X = 960,
+           IMAGE_SCROLL_UPPER_VRAM_Y       = 0,
+           IMAGE_SCROLL_LOWER_LEFT_VRAM_X  = 576,
+           IMAGE_SCROLL_LOWER_RIGHT_VRAM_X = 704,
+           IMAGE_SCROLL_LOWER_VRAM_Y       = 256,
+           IMAGE_SCROLL_UNMODULATED_LEVEL  = 0x80,
+           IMAGE_SCROLL_ORDERING_SLOT      = 1023 };
+
     _ShelterB1PodAccessTunnelImageScrollWork* work;
-    SPRT*                                     p;
-    s32                                       y;
+    SPRT*                                     sprite;
+    s32                                       seamY;
+
+    /// Links one opaque strip and prepends its page at foreground slot 1023.
+    ///
+    /// Captures `sprite` and the image-scroll constants in this function.
+    /// Arguments are evaluated once and must have no side effects; the final
+    /// call's page-argument order is unspecified. Coordinates/dimensions are
+    /// pixels; texture V wraps to a byte.
+    /// `palette` is an encoded CLUT ID, page X is VRAM words and page Y is rows.
+    /// Expands to a braced block; invoke inside a braced block only.
+#define SHELTER_B1_POD_ACCESS_TUNNEL_DRAW_IMAGE_SCROLL_STRIP(screenX, screenY, width, height, textureV, palette, pageX, pageY) \
+    {                                                                                                                          \
+        sprite         = gGpuPrimCursor;                                                                                       \
+        gGpuPrimCursor = sprite + 1;                                                                                           \
+        setSprt(sprite);                                                                                                       \
+        sprite->x0 = (screenX);                                                                                                \
+        sprite->y0 = (screenY);                                                                                                \
+        sprite->w  = (width);                                                                                                  \
+        setRGB0(sprite, IMAGE_SCROLL_UNMODULATED_LEVEL, IMAGE_SCROLL_UNMODULATED_LEVEL, IMAGE_SCROLL_UNMODULATED_LEVEL);       \
+        sprite->u0   = 0;                                                                                                      \
+        sprite->v0   = (textureV);                                                                                             \
+        sprite->clut = (palette);                                                                                              \
+        sprite->h    = (height);                                                                                               \
+        addPrim(gGpuCurrentOt + IMAGE_SCROLL_ORDERING_SLOT, sprite);                                                           \
+        _shelterB1PodAccessTunnelQueueImageScrollTexturePage((pageX), (pageY));                                                \
+    }
 
     work = task->work;
     if (gGameSession->viewReady != 0 || gGameSession->eventState == 0) {
         taskKill(task);
         return;
     }
-    y = 0;
+    seamY = 0;
     if (work->timer++ >= SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_DELAY_FRAMES) {
         work->offset += work->speed;
-        y             = work->offset >> 16;
-        if (y > SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES) {
-            y = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES;
+        seamY         = work->offset >> SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_FRACTION_BITS;
+        if (seamY > SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES) {
+            seamY = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES;
         }
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    p->x0 = -0xA0;
-    p->y0 = -0x78;
-    p->w  = 0x100;
-    setRGB0(p, 0x80, 0x80, 0x80);
-    p->u0   = 0;
-    p->v0   = -0x11 - y;
-    p->clut = 0x3FC0;
-    p->h    = y + 1;
-    addPrim(gGpuCurrentOt + 1023, p);
-    _shelterB1PodAccessTunnelQueueImageScrollTexturePage(0x340, 0);
+    // The upper image starts at its last visible row; V wraps modulo 256.
+    // Retain the terminal seam's 241-line upper sprite and wrapped V=255.
+    SHELTER_B1_POD_ACCESS_TUNNEL_DRAW_IMAGE_SCROLL_STRIP(IMAGE_SCROLL_SCREEN_LEFT, IMAGE_SCROLL_SCREEN_TOP,
+                                                         IMAGE_SCROLL_PAGE_PIXELS, seamY + 1, IMAGE_SCROLL_UPPER_V_ORIGIN - seamY, IMAGE_SCROLL_UPPER_CLUT,
+                                                         IMAGE_SCROLL_UPPER_LEFT_VRAM_X, IMAGE_SCROLL_UPPER_VRAM_Y);
+    SHELTER_B1_POD_ACCESS_TUNNEL_DRAW_IMAGE_SCROLL_STRIP(IMAGE_SCROLL_RIGHT_STRIP_X, IMAGE_SCROLL_SCREEN_TOP,
+                                                         IMAGE_SCROLL_RIGHT_STRIP_PIXELS, seamY + 1, IMAGE_SCROLL_UPPER_V_ORIGIN - seamY, IMAGE_SCROLL_UPPER_CLUT,
+                                                         IMAGE_SCROLL_UPPER_RIGHT_VRAM_X, IMAGE_SCROLL_UPPER_VRAM_Y);
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    p->x0 = 0x60;
-    p->y0 = -0x78;
-    p->w  = 0x40;
-    setRGB0(p, 0x80, 0x80, 0x80);
-    p->u0   = 0;
-    p->v0   = -0x11 - y;
-    p->clut = 0x3FC0;
-    p->h    = y + 1;
-    addPrim(gGpuCurrentOt + 1023, p);
-    _shelterB1PodAccessTunnelQueueImageScrollTexturePage(0x3C0, 0);
-
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    p->x0 = -0xA0;
-    p->w  = 0x100;
-    setRGB0(p, 0x80, 0x80, 0x80);
-    p->u0   = 0;
-    p->v0   = 0;
-    p->y0   = y - 0x78;
-    p->clut = 0x4000;
-    p->h    = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES - y;
-    addPrim(gGpuCurrentOt + 1023, p);
-    _shelterB1PodAccessTunnelQueueImageScrollTexturePage(0x240, 0x100);
-
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    p->x0 = 0x60;
-    p->w  = 0x40;
-    setRGB0(p, 0x80, 0x80, 0x80);
-    p->u0   = 0;
-    p->v0   = 0;
-    p->y0   = y - 0x78;
-    p->clut = 0x4000;
-    p->h    = SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES - y;
-    addPrim(gGpuCurrentOt + 1023, p);
-    _shelterB1PodAccessTunnelQueueImageScrollTexturePage(0x2C0, 0x100);
+    SHELTER_B1_POD_ACCESS_TUNNEL_DRAW_IMAGE_SCROLL_STRIP(IMAGE_SCROLL_SCREEN_LEFT, seamY + IMAGE_SCROLL_SCREEN_TOP,
+                                                         IMAGE_SCROLL_PAGE_PIXELS, SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES - seamY, 0, IMAGE_SCROLL_LOWER_CLUT,
+                                                         IMAGE_SCROLL_LOWER_LEFT_VRAM_X, IMAGE_SCROLL_LOWER_VRAM_Y);
+    SHELTER_B1_POD_ACCESS_TUNNEL_DRAW_IMAGE_SCROLL_STRIP(IMAGE_SCROLL_RIGHT_STRIP_X, seamY + IMAGE_SCROLL_SCREEN_TOP,
+                                                         IMAGE_SCROLL_RIGHT_STRIP_PIXELS, SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES - seamY, 0, IMAGE_SCROLL_LOWER_CLUT,
+                                                         IMAGE_SCROLL_LOWER_RIGHT_VRAM_X, IMAGE_SCROLL_LOWER_VRAM_Y);
+#undef SHELTER_B1_POD_ACCESS_TUNNEL_DRAW_IMAGE_SCROLL_STRIP
 }
 
-/// Queues the replacement of overlay 0x82.
-void func_shelter_b1_pod_access_tunnel_8017E39C(void)
+/// Stages audio start for the selected scene for the view loader to commit.
+///
+/// Called after scene selection; the scene and playback buffers must remain
+/// live through commit and consumption. No selected slot leaves the previous
+/// deferred request intact.
+static void _shelterB1PodAccessTunnelStageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-/// Queues the load of overlay 0x81.
-void func_shelter_b1_pod_access_tunnel_8017E3BC(void)
+/// Enqueues playback of the selected scene after the opening CAP cue.
+///
+/// The selected scene and prepared buffers must survive playback; requires
+/// space in the CD request ring. Without a scene slot, marks playback active.
+static void _shelterB1PodAccessTunnelStartScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-/// Restores the stream random-number state.
-void func_shelter_b1_pod_access_tunnel_8017E3DC(void)
+/// Finishes scene streaming and restores the random state saved at selection.
+///
+/// Called on the script's normal completion path. Requires prior successful
+/// scene selection; buffer and task owners still perform their own teardown.
+static void _shelterB1PodAccessTunnelFinishScene(void)
 {
     streamFinishScene();
 }
 
-/// Cancels the queued overlay replacement and restarts the CD queue.
-void func_shelter_b1_pod_access_tunnel_8017E3FC(void)
+/// Requests CD scene cancellation and finishes streaming when the script is skipped.
+///
+/// Discards the deferred request and immediately restores saved random state.
+/// Cancellation completes through later CD dispatches; scene buffers and tasks
+/// remain their owners' responsibility. Requires prior scene selection.
+static void _shelterB1PodAccessTunnelCancelScene(void)
 {
     cdCmdCancelScene();
 }
@@ -1379,21 +1420,31 @@ void func_shelter_b1_pod_access_tunnel_8017E41C(s32 arg0)
     taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, 0, arg0, 0);
 }
 
-void func_shelter_b1_pod_access_tunnel_8017E44C(Task* task)
+/// Moves the pod-pan camera origin along negative camera Y for a fixed duration.
+///
+/// `spawnArg1.value` is the frame count; `killCountdown` starts at zero and
+/// counts completed moves as a signed halfword. Each move is 16 world units.
+/// The script supplies 150 frames; durations must fit this signed counter.
+/// Kills the task on completion or on leaving logical view 11. The camera is
+/// edited in place and must remain loaded through each queued application.
+static void _shelterB1PodAccessTunnelPanSceneCameraTask(Task* task)
 {
-    ViewCamera* view;
-    VECTOR      vec;
+    enum { CAMERA_PAN_STEP_WORLD_UNITS = 16 };
 
-    if (task->killCountdown < task->spawnArg1.value && gGameSession->location.loc.view == 0xB) {
-        view   = viewGetMappedCamera(&gGameSession->location.loc);
-        vec.vx = 0;
-        vec.vy = 0x10;
-        vec.vz = 0;
-        ApplyTransposeMatrixLV(&view->transform, &vec, &vec);
-        view->transform.t[0] += vec.vx;
-        view->transform.t[1] += vec.vy;
-        view->transform.t[2] += vec.vz;
-        viewQueueCamera(view);
+    ViewCamera* camera;
+    VECTOR      cameraOffset;
+
+    if (task->killCountdown < task->spawnArg1.value && gGameSession->location.loc.view == SHELTER_B1_POD_ACCESS_TUNNEL_POD_PAN_VIEW) {
+        camera          = viewGetMappedCamera(&gGameSession->location.loc);
+        cameraOffset.vx = 0;
+        cameraOffset.vy = CAMERA_PAN_STEP_WORLD_UNITS;
+        cameraOffset.vz = 0;
+        // Convert camera-space translation to the stored negated world origin.
+        ApplyTransposeMatrixLV(&camera->transform, &cameraOffset, &cameraOffset);
+        camera->transform.t[0] += cameraOffset.vx;
+        camera->transform.t[1] += cameraOffset.vy;
+        camera->transform.t[2] += cameraOffset.vz;
+        viewQueueCamera(camera);
         task->killCountdown++;
         return;
     }
@@ -1407,35 +1458,47 @@ void func_shelter_b1_pod_access_tunnel_8017E52C(s32 arg0)
 
 /// The image-scroll task's three states: set-up, scroll and exit.
 static const TaskFuncTable3 D_shelter_b1_pod_access_tunnel_8017D610 = {
-    { func_shelter_b1_pod_access_tunnel_8017E5B4, func_shelter_b1_pod_access_tunnel_8017E048, taskKill },
+    { _shelterB1PodAccessTunnelInitImageScroll, _shelterB1PodAccessTunnelDrawImageScroll, taskKill },
 };
 
-/// Runs the image-scroll task through its state table, copied onto the stack
-/// first and indexed by the task's state.
-void func_shelter_b1_pod_access_tunnel_8017E55C(Task* task)
+/// Runs the delayed scroll from the lower pod-chamber image to the upper one.
+///
+/// Start in state 0 with a positive scroll duration in `spawnArg1.value`, in
+/// frames. State 1 draws; state 2 releases the task. Default teardown owns the
+/// work allocated during initialization. The room overlay, images and current
+/// graphics buffers must remain live throughout the task.
+static void _shelterB1PodAccessTunnelImageScrollTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b1_pod_access_tunnel_8017D610;
-    sp.funcs[task->state](task);
+    states = D_shelter_b1_pod_access_tunnel_8017D610;
+    states.funcs[task->state](task);
 }
 
-static void func_shelter_b1_pod_access_tunnel_8017E5B4(Task* task)
+/// Allocates the image scroll's owned work and derives its 16.16 line rate.
+///
+/// Requires state 0 and a positive frame count in `spawnArg1.value`; the
+/// script supplies 240. Outside logical view 11 or on allocation failure,
+/// kills the task. Otherwise attaches zeroed primary-heap work and enters
+/// state 1; default task teardown releases that allocation.
+static void _shelterB1PodAccessTunnelInitImageScroll(Task* task)
 {
+    enum { IMAGE_SCROLL_DRAW = 1 };
+
     _ShelterB1PodAccessTunnelImageScrollWork* work;
 
-    if (gGameSession->location.loc.view != 0xB) {
+    if (gGameSession->location.loc.view != SHELTER_B1_POD_ACCESS_TUNNEL_POD_PAN_VIEW) {
         taskKill(task);
         return;
     }
-    work = memCalloc(sizeof(_ShelterB1PodAccessTunnelImageScrollWork), 0);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     task->work   = work;
-    work->speed  = (SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES << 16) / task->spawnArg1.value;
-    task->state += 1;
+    work->speed  = (SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_LINES << SHELTER_B1_POD_ACCESS_TUNNEL_IMAGE_SCROLL_FRACTION_BITS) / task->spawnArg1.value;
+    task->state += IMAGE_SCROLL_DRAW;
 }
 
 /// Queues the image scroll's 8-bit texture-page command before its sprites.
@@ -1469,27 +1532,40 @@ void func_shelter_b1_pod_access_tunnel_8017E704(void)
     taskSpawnFromTable(D_actor_141000_801348D8, 0, 0, 0);
 }
 
-void func_shelter_b1_pod_access_tunnel_8017E734(s32 arg0)
+/// Queues a gray captured-frame display task lasting `frameCount + 1` ticks.
+///
+/// The script supplies 12. A pending display-mode request rejects the enqueue.
+/// Requires a nonnegative frame count and the room overlay to
+/// remain loaded until the countdown task completes and requests mode exit.
+static void _shelterB1PodAccessTunnelStartGrayCapture(s32 frameCount)
 {
-    displayQueueModeTask(taskGetDescAt(D_shelter_b1_pod_access_tunnel_80182D2C, 2U), arg0, 0, STAGE_ENTRY_GRAY_CAPTURE);
+    enum { GRAY_CAPTURE_TASK_INDEX = 2U };
+
+    displayQueueModeTask(taskGetDescAt(D_shelter_b1_pod_access_tunnel_80182D2C, GRAY_CAPTURE_TASK_INDEX), frameCount, 0, STAGE_ENTRY_GRAY_CAPTURE);
 }
 
-/// Counts the spawn argument down one per frame; once it goes negative, kills
-/// the task and sets the stage's ending flag.
-void func_shelter_b1_pod_access_tunnel_8017E778(Task* arg0)
+/// Ends the gray captured-frame display mode after its countdown becomes negative.
+///
+/// `spawnArg1.value` is a mutable signed frame count decremented each tick.
+/// A nonnegative initial value N keeps the mode for N+1 ticks. Requires a
+/// live display-mode context; releases the task before requesting mode exit.
+static void _shelterB1PodAccessTunnelGrayCaptureCountdownTask(Task* task)
 {
-    s32 temp_v0;
+    s32 remainingFrames;
 
-    temp_v0               = arg0->spawnArg1.value - 1;
-    arg0->spawnArg1.value = temp_v0;
-    if (temp_v0 < 0) {
-        taskKill(arg0);
+    remainingFrames       = task->spawnArg1.value - 1;
+    task->spawnArg1.value = remainingFrames;
+    if (remainingFrames < 0) {
+        taskKill(task);
         stageRequestModeTaskExit();
     }
 }
 
-/// Room callback forwarding to `roomEffectRequestCancelAll`.
-void func_shelter_b1_pod_access_tunnel_8017E7B4(void)
+/// Requests cancellation of room effects during scene-skip cleanup.
+///
+/// Requires the room-effect controller to remain live. It publishes the
+/// cancellation on its next update; each effect then performs its own teardown.
+static void _shelterB1PodAccessTunnelCancelRoomEffects(void)
 {
     roomEffectRequestCancelAll();
 }
@@ -1565,7 +1641,7 @@ void shelterB1PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b1_pod_access_tunnel_80180484(Task* task)
+void shelterB1PodAccessTunnelRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
