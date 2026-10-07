@@ -1204,7 +1204,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_503500_801463C0, { .model = &_gActor503500Actor361100Model06038 } };
 
 TaskMessageEntry D_actor_503500_80176530[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_503500_801466E0 },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_503500_801467C0 },

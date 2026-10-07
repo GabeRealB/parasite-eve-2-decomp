@@ -10010,8 +10010,8 @@ while it is still `INCLUDE_ASM` if the copies are not byte-identical or if they
 jal overlay-local functions; match first, or write the `shared` span by hand.
 Matching cures only the first of those two: an overlay-local `jal` is refused
 after the body is C as well, because the copies name different callees
-(`func_actor_141000_80133CD8` against `func_actor_335800_80163E20` in the
-`func_actor_141000_80133BD8` / `func_actor_335800_80163D20` pair - otherwise the
+(`_actorMotionPlayAnim19` against `_actor335800FlintPlayAnimation` in the
+`func_actor_141000_80133BD8` / `_actor335800FlintTurnToYaw` pair - otherwise the
 same 64 instructions, one `~` body), so the twin has to be matched in its own
 overlay with the local name.
 
@@ -84480,7 +84480,7 @@ jal   worldCoordSetModelLighting
 addiu $a1, $a1, 0x88
 ```
 
-The trap is that the sibling `func_actor_335800_80163B54`, later in the same
+The trap is that the sibling `_actor335800FlintBindLighting`, later in the same
 translation unit, does the *same two stores* with the pointer hoisted into a
 local and has no second load -- because nothing dereferences it after the
 stores. Hoisting here costs the match: 78.409%, 22 instructions to 20, because
@@ -84610,7 +84610,7 @@ written with `TmdObject*` / `GfxCoord*` locals it puts
 `$a3 = extra`, `$t0 = extra->coords`, `$a2 = parentExtra` and matches exactly.
 
 The tier does not need to be starred, and the twin does not need to be an
-equality. `func_actor_335800_80163CA0` (32 instructions, same overlay) has no
+equality. `_actor335800FlintBeginApproach` (32 instructions, same overlay) has no
 `find` copy at all: its twin `ActorsShared80132920` sits in `src/actors/lib/`
 with its fields at 0x4C8/0x4E8/0x4FA where this overlay's are at
 0x490/0x4B0/0x4C2, and a work block 4 bytes shorter — so only the
@@ -85034,7 +85034,7 @@ vec = D_thing_80161E40;                  /* 4 lw + 4 sw, 0x28 frame */
 A 16-byte struct assignment compiles to the rotating three-register copy
 (`lw a3/0, lw t0/4, lw t1/8, sw a3, sw t0, sw t1, lw a3/0xC, sw a3/0x1C`) with a
 `nop` before the last store. This is the same body as `ActorsShared80132920` /
-`func_actor_335800_80163CA0`, so the work-struct field types come from the
+`_actor335800FlintBeginApproach`, so the work-struct field types come from the
 matched sibling's header too - here `_Actor317000Work` gained the vector at
 0x490 (now `walk.velocity`), the halfword at 0x4C2 (now `walk.motionStep`) and
 the byte `airborne` at 0x4C4 (the target stores 0x4C4 with `sb`,
@@ -85245,7 +85245,7 @@ Inputs: `base_2.i` (two independent `if`s, each with the tail spelled out,
 **Problem:** `_actor310600StartWalkVelocity` is an actor state handler that rotates
 a constant local-space offset through the root part's matrix into `work->walkVelocity`,
 opens the three per-axis stop thresholds to 0x7FFF and advances the handler
-counter. `func_actor_335800_80163CA0`, `ActorsShared80132920` and
+counter. `_actor335800FlintBeginApproach`, `ActorsShared80132920` and
 `func_actor_317000_801628D8` are the same body, 32 instructions each.
 
 **Symptom:** `overlay_dup_index.py find` reports `same body: 1 copies` - itself.
@@ -101202,7 +101202,7 @@ assignments:
     work->freeCountdown = -1;
 ```
 
-The same two-`addiu` shape is in the already-matched `func_actor_335800_80163AA0`,
+The same two-`addiu` shape is in the already-matched `_actor335800FlintInit`,
 whose work block is `s8`/`s8`/`s16` at the same three offsets, so this is the
 family's idiom rather than a property of one actor. Evidence: scratch
 `nonmatchings/func_actor_317000_8016267C-vacuum/`, `base_1.c` (100.000%, all
@@ -126493,9 +126493,9 @@ other carrier's copy can still be `INCLUDE_ASM`, as `actor_113000`'s was.
 `func_actor_317000_80162BC4` loads the work pointer (`lw $v1, 0x1C($a0)`) at the
 top of the function, before the switch dispatch, and uses it once in case 2
 (`sh $a2, 0x4C8($v1)`). Its byte-shaped matched siblings
-`func_actor_335800_80163FB8` and `func_actor_503500_801466E0` load the same
+`_actor335800FlintSetDrawMode` and `func_actor_503500_801466E0` load the same
 pointer *inside* case 2 as `lw $v0, 0x1C($a0)` followed by a `nop`, because their
-sources spell the cast at the use site:
+sources obtain the work pointer in that branch (Flint uses a typed local there):
 
 ```c
 ((_Actor503500Actor361100Model06038Work*)task->work)->freeCountdown = mode;

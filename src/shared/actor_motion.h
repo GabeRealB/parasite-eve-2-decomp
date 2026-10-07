@@ -5,7 +5,7 @@
  * model state, whether or not it walks. It rebinds the rig when the requested
  * bank changes, then blends or resets the slots into the requested clip and
  * ticks them. actorMotionPlayAnim drives a twenty-part rig,
- * actorMotionPlayAnim19 a nineteen-part one.
+ * _actorMotionPlayAnim19 a nineteen-part one.
  *
  * The walk additionally needs the walk state directly after those two
  * members. 'Start walk' (0x7DD) latches a target position and rotation and
@@ -19,8 +19,9 @@
  * position. The package defines the animation bank tables the handlers index:
  * gActorMotionAnimBanks for the twenty-part handlers, gActorMotionAnimBanks19
  * for the nineteen-part ones. actorMotionArrive19 plays its next clip through
- * actorMotionPlayAnim19, which a package whose handler always restarts the
- * slots defines itself.
+ * the nineteen-part play handler. A package with different restart semantics
+ * binds ACTOR_MOTION_PLAY19_HANDLER to its own handler before including this
+ * header and the arrival fragment.
  */
 
 #ifndef SRC_SHARED_ACTOR_MOTION_H
@@ -72,7 +73,7 @@ typedef struct {
 } ActorMotionWalkWork;
 STATIC_ASSERT_SIZEOF(ActorMotionWalkWork, 0x4FC);
 
-/// What `actorMotionPlayAnim19` needs of the work block at `Task::work`: the
+/// What `_actorMotionPlayAnim19` needs of the work block at `Task::work`: the
 /// nineteen-part rig it binds and seeds, and the model state recording what
 /// the rig plays.
 ///
@@ -92,7 +93,7 @@ STATIC_ASSERT_SIZEOF(ActorMotion19PlayWork, 0x480);
 /// walk state directly after it.
 ///
 /// The arrival step plays the walk's closing clip through
-/// `actorMotionPlayAnim19`, which views the same block as
+/// `_actorMotionPlayAnim19`, which views the same block as
 /// `ActorMotion19PlayWork`, so the first two members are laid out as that
 /// type's. What follows `walk` is the package's own.
 typedef struct {
@@ -108,6 +109,28 @@ void actorMotionTurnToYaw(Task* arg0);
 s32  actorMotionPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
 s32  actorMotionStartWalk(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim);
 void actorMotionArrive19(Task* arg0);
-s32  actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
+/// Selects a package's alternative nineteen-part play handler for arrival.
+///
+/// When defined before this header, the carrier must declare the function with
+/// signature s32(Task*, s32, const AnimationPlayRequest*, s32). The arrival
+/// fragment calls it once with a borrowed request. The binding is a function
+/// identifier, never an evaluated expression; without it the shared handler is
+/// declared and called. Keep it defined through inclusion of the arrival fragment.
+#ifndef ACTOR_MOTION_PLAY19_HANDLER
+/// Applies a changed animation clip to the carrier's nineteen-part model.
+///
+/// Requires a live TMD task whose work opens as `ActorMotion19PlayWork` does,
+/// with `model.bank` initially `ACTOR_MODEL_STATE_NONE`. Request is borrowed
+/// through the call and must not overlap playback state. Bank and clip must
+/// index loaded entries of `gActorMotionAnimBanks19`; stored IDs narrow to
+/// signed bytes before indexing. A bank change binds the rig and clears its
+/// previous clip; an unchanged clip in the same bank leaves playback alone.
+/// Slots 1..18 blend for `blendFrames` whole frames (normally 0..2047) when
+/// blend is nonzero and already ticking, or reset otherwise, then tick once.
+/// The rig borrows work-owned slots/poses, model coordinates and clip tables
+/// until playback ends. Ignores message ID, collision choice and fourth argument.
+/// Returns 0. Each carrier keeps a private instance of this implementation.
+static s32 _actorMotionPlayAnim19(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
+#endif
 
 #endif /* SRC_SHARED_ACTOR_MOTION_H */

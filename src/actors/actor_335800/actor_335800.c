@@ -48,6 +48,9 @@
 #include "main/tmd_types.h"
 
 #include "rooms/dryfield_night_motel_balcony.h"
+
+/// Arrival uses Flint's handler, which restarts repeated clips.
+#define ACTOR_MOTION_PLAY19_HANDLER _actor335800FlintPlayAnimation
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
@@ -70,6 +73,12 @@ typedef struct {
     byte            pad_4C6[0x2];
 } _Actor335800FlintWork;
 STATIC_ASSERT_SIZEOF(_Actor335800FlintWork, 0x4C8);
+
+/// Bank and initial motion step selected by Flint's scripted-walk handlers.
+enum {
+    ACTOR_335800_FLINT_ANIMATION_BANK   = 0,
+    ACTOR_335800_FLINT_FACE_TARGET_STEP = 0
+};
 
 /// Values of `_Actor335800GaryDouglasWork::lightState`.
 enum {
@@ -132,33 +141,33 @@ extern TaskDesc D_actor_335800_8016EADC[];
 extern TaskMessageEntry D_actor_335800_8016EB00[];
 
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `func_actor_335800_80163AA0`; terminator id `TASK_MESSAGE_TABLE_END`.
+/// `_actor335800FlintInit`; terminator id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_actor_335800_80172EA8[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_335800_80162640(Task* arg0);
 static void func_actor_335800_80162844(Task* task);
-static void func_actor_335800_80162F08(Task* task);
+static void _actor335800GaryDouglasPartIdle(Task* task);
 static void func_actor_335800_80162F7C(Task* arg0);
 static void func_actor_335800_80162F9C(Task* arg0);
 static void func_actor_335800_80162FF4(Task* arg0);
 static void func_actor_335800_80162FFC(Task* task);
 static void func_actor_335800_80163124(Task* task);
 static void func_actor_335800_80163568(Task* task);
-static void func_actor_335800_80163AA0(Task* arg0);
-static void func_actor_335800_80163B34(Task* arg0);
-static void func_actor_335800_80163B54(Task* arg0);
-static void func_actor_335800_80163B70(Task* arg0);
+static void _actor335800FlintInit(Task* task);
+static void _actor335800FlintExit(Task* task);
+static void _actor335800FlintBindLighting(Task* task);
+static void _actor335800FlintIdle(Task* task);
 static void func_actor_335800_80163B78(Task* arg0);
-static void func_actor_335800_80163BE0(Task* task);
-static void func_actor_335800_80163CA0(Task* task);
-static void func_actor_335800_80163D20(Task* arg0);
+static void _actor335800FlintFaceTarget(Task* task);
+static void _actor335800FlintBeginApproach(Task* task);
+static void _actor335800FlintTurnToYaw(Task* task);
 
 /// Spawn, tick and teardown handlers of the two part tasks the parent block
-/// spawns, dispatched by `func_actor_335800_80162E34`.
+/// spawns, dispatched by `_actor335800GaryDouglasPartTask`.
 static const TaskFuncTable3 D_actor_335800_80161E24 = { {
     _modelPlacementAttachPartTask,
-    func_actor_335800_80162F08,
+    _actor335800GaryDouglasPartIdle,
     taskKill,
 } };
 
@@ -187,22 +196,22 @@ static const VECTOR D_actor_335800_80161E4C = { 0, 0, 0x200000, 0 };
 /// Spawn, tick and teardown handlers of the child block, dispatched by
 /// `func_actor_335800_80163A34`.
 static const TaskFuncTable3 D_actor_335800_80161E5C = { {
-    func_actor_335800_80163AA0,
+    _actor335800FlintInit,
     func_actor_335800_80163568,
-    func_actor_335800_80163B34,
+    _actor335800FlintExit,
 } };
 
 /// Step handlers of the child block's motion sequence, indexed by
 /// `ActorWalkState::motionStep`, in the same order as the parent's.
 static const TaskFuncTable4 D_actor_335800_80161E68 = { {
-    func_actor_335800_80163BE0,
-    func_actor_335800_80163CA0,
+    _actor335800FlintFaceTarget,
+    _actor335800FlintBeginApproach,
     actorMotionArrive19,
-    func_actor_335800_80163D20,
+    _actor335800FlintTurnToYaw,
 } };
 
 /// The child block's copy of the forward offset, rotated by
-/// `func_actor_335800_80163CA0`.
+/// `_actor335800FlintBeginApproach`.
 static const VECTOR D_actor_335800_80161E78 = { 0, 0, 0x200000, 0 };
 
 void func_actor_335800_80161E88(Task*);
@@ -223,11 +232,11 @@ extern ActorTransform           D_actor_335800_80164F98;
 extern ActorTransform           D_actor_335800_80164FB0;
 void                            func_actor_335800_80162040(void);
 void                            func_actor_335800_80162060(void);
-void                            func_actor_335800_80162080(void);
+static void                     _actor335800FinishStreamedScene(void);
 void                            func_actor_335800_801620C0(void);
 void                            func_actor_335800_801623D8(void);
 void                            func_actor_335800_80162408(void);
-void                            func_actor_335800_801624B8(s32);
+static void                     _actor335800SetStageAmbientMuted(s32 muted);
 void                            func_actor_335800_80162558(void);
 
 extern AnimationPlayRequest     D_actor_335800_80164E40;
@@ -244,13 +253,13 @@ extern EvsSceneKey              D_actor_335800_80165058;
 extern ActorTransform           D_actor_335800_80164EA4[5];
 s32                             func_actor_335800_8016343C(Task*, s32, s32, s32);
 s32                             func_actor_335800_8016354C(Task* task, s32 msgId, ActorCommand* request, s32);
-s32                             func_actor_335800_80163880(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
+static s32                      _actor335800FlintStartWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips);
+static s32                      _actor335800FlintPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32                      _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
-s32                             func_actor_335800_80163FB8(Task*, s32, s32, s32);
-s32                             func_actor_335800_80164098(Task*, s32, s32, s32);
+static s32                      _actor335800FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static s32                      _actor335800FlintIgnoreCommand(Task* task, s32 messageId, s32 unusedCommand, s32 unusedArg);
 void                            func_actor_335800_80162040(void);
 void                            func_actor_335800_80162060(void);
-void                            func_actor_335800_80162080(void);
 void                            func_actor_335800_801620A0(void);
 void                            func_actor_335800_801620F0(u8);
 void                            func_actor_335800_80162114(void);
@@ -262,9 +271,8 @@ void                            func_actor_335800_80162428(s8);
 void                            func_actor_335800_80162434(s32);
 void                            func_actor_335800_80162460(void);
 void                            func_actor_335800_80162484(void);
-void                            func_actor_335800_801624B8(s32);
 void                            func_actor_335800_80162558(void);
-void                            func_actor_335800_80162E34(Task*);
+static void                     _actor335800GaryDouglasPartTask(Task* task);
 void                            func_actor_335800_80162F10(Task*);
 void                            func_actor_335800_80163A34(Task*);
 
@@ -450,7 +458,7 @@ EvsSceneKey D_actor_335800_80165050 = { 3, 59, 11 };
 EvsSceneKey D_actor_335800_80165058 = { 3, 60, 11 };
 
 EvsCommand D_actor_335800_80165060[72] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801624B8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_801623D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162408 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -511,7 +519,7 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162080 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E90 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
@@ -536,7 +544,7 @@ EvsCommand D_actor_335800_80165798[19] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_801620A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801624B8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162484 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E90 }, { .value = 0 } },
@@ -594,9 +602,9 @@ EvsCommand D_actor_335800_80165B58[26] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162080 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801624B8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_8016224C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801621B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -620,10 +628,10 @@ EvsCommand D_actor_335800_80165DC8[21] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x401F000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 1 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162080 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_335800_801624B8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_8016224C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -854,8 +862,8 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 
 TaskDesc D_actor_335800_8016EADC[3] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &_gActor335800GaryDouglasBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &_gActor335800GaryDouglasHeadHat } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_335800_80162E34, { .model = &_gActor335800Actor120300Model082F8 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800GaryDouglasHeadHat } },
+    { { { TASK_BODY_TMD, 192 } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800Actor120300Model082F8 } },
 };
 
 TaskMessageEntry D_actor_335800_8016EB00[6] = {
@@ -933,11 +941,11 @@ AnimationSet** D_actor_335800_80172E98[1] = {
 TaskDesc D_actor_335800_80172E9C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80163A34, { .model = &_gActor335800FlintBody } };
 
 TaskMessageEntry D_actor_335800_80172EA8[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor335800FlintPlayAnimation },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_335800_80163FB8 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_335800_80163880 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_335800_80164098 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor335800FlintSetDrawMode },
+    { ACTOR_MESSAGE_WALK_TO, _actor335800FlintStartWalk },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor335800FlintIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1012,8 +1020,8 @@ void func_actor_335800_80162060(void)
     cdCmdEnqueueScenePlayback();
 }
 
-/// Script callback: restores the stream random state.
-void func_actor_335800_80162080(void)
+/// Finishes streamed scene playback and restores the pre-scene random generators.
+static void _actor335800FinishStreamedScene(void)
 {
     streamFinishScene();
 }
@@ -1080,8 +1088,10 @@ void func_actor_335800_801621B4(s32 arg0)
     }
 }
 
-/// Moves the saved and the live location to `view` and marks the view and
-/// the room objects for reloading.
+/// Selects the saved and live room view and requests its image and objects reload.
+///
+/// `view` is a valid 1-based view slot in the current room, stored as a byte.
+/// This only schedules the reload; it does not load or apply the view itself.
 static inline void _actor335800SetView(s32 view)
 {
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = view;
@@ -1178,9 +1188,13 @@ void func_actor_335800_80162484(void)
     roomEffectRequestCancelAll();
 }
 
-void func_actor_335800_801624B8(s32 arg0)
+/// Sets whether the stage ambient sound is suppressed (1 muted, 0 enabled).
+///
+/// The event scripts pass only 0 or 1. The flag nibble is polled by stage music;
+/// this callback does not issue a sound request itself.
+static void _actor335800SetStageAmbientMuted(s32 muted)
 {
-    gameFlagSetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED, arg0);
+    gameFlagSetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED, muted);
 }
 
 void func_actor_335800_801624DC(Task* arg0)
@@ -1370,19 +1384,23 @@ static void func_actor_335800_80162844(Task* task)
 
 #include "../../shared/actor_motion_start.inc.c"
 
-/// State dispatcher of the child part tasks: copies the three-handler table
-/// onto the stack and runs the entry `Task::state` selects.
-void func_actor_335800_80162E34(Task* task)
+/// Dispatches Gary Douglas's attached head-and-hat and gun model tasks.
+///
+/// State must be 0..2: attach to the spawning body's selected part, retain that
+/// attachment, or kill the task. Setup borrows the parent's coordinates and
+/// lighting and joins its teardown tree; the parent must outlive the model.
+static void _actor335800GaryDouglasPartTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_335800_80161E24;
-    sp.funcs[task->state](task);
+    handlers = D_actor_335800_80161E24;
+    handlers.funcs[task->state](task);
 }
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-static void func_actor_335800_80162F08(Task* task)
+/// Retains an attached part's parent-driven pose without a per-frame update.
+static void _actor335800GaryDouglasPartIdle(Task* task)
 {
 }
 
@@ -1522,7 +1540,7 @@ static void func_actor_335800_80163568(Task* task)
 {
     TmdObject*             ext      = task->extra.tmd;
     _Actor335800FlintWork* work     = (_Actor335800FlintWork*)task->work;
-    TaskFunc               funcs[2] = { func_actor_335800_80163B70, func_actor_335800_80163B78 };
+    TaskFunc               funcs[2] = { _actor335800FlintIdle, func_actor_335800_80163B78 };
     VECTOR3                pos;
     GfxCoord*              coord;
     s32                    i;
@@ -1560,63 +1578,83 @@ static void func_actor_335800_80163568(Task* task)
 }
 
 #include "../../shared/actor_motion_arrive19.inc.c"
+#undef ACTOR_MOTION_PLAY19_HANDLER
 
-/// Placement handler for the child block, the twin of
-/// `actorMotionStartWalk`: stores the spawn position and rotation, then
-/// applies a start preset exactly as `actorMotionPlayAnim19` does
-/// (inlined here).
-s32 func_actor_335800_80163880(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
+/// Applies a Flint animation request, including a repeat of the current clip.
+///
+/// Work and model must remain live, and the request must not overlap playback
+/// state. Bank 0 is the only bank; loaded clips, coordinates and work-owned
+/// slots/poses are borrowed through playback. Slot 0 is not driven. Nonzero
+/// blend interpolates an already ticking rig for `blendFrames` whole frames
+/// (0..2047 keeps remaining time nonnegative); otherwise the slots reset.
+static inline void _actor335800FlintApplyAnimationRequest(_Actor335800FlintWork* work, TmdObject* model, const AnimationPlayRequest* request)
 {
-    _Actor335800FlintWork* work;
-    _Actor335800FlintWork* w;
-    AnimationPlayRequest   preset;
-    AnimationPlayRequest*  msg;
-    s32                    i;
-    TmdObject*             ext;
+    enum { ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT = 1 };
+    s32 slotIndex;
 
-    w                    = (_Actor335800FlintWork*)task->work;
-    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
-    w->walk.motionStep   = 0;
-    w->walk.target.vx    = place->pos.vx;
-    w->walk.target.vy    = place->pos.vy;
-    w->walk.target.vz    = place->pos.vz;
-    w->walk.targetRot.vx = place->rot.vx;
-    w->walk.targetRot.vy = place->rot.vy;
-    w->walk.targetRot.vz = place->rot.vz;
-    preset.source.index  = 0;
-    if (anim != NULL) {
-        preset.animationId  = anim->animationId;
-        w->model.nextAnimId = anim->nextAnimId;
-    } else {
-        preset.animationId  = 0xD;
-        w->model.nextAnimId = 1;
-    }
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-
-    msg  = &preset;
-    work = (_Actor335800FlintWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank = msg->source.index;
-        animationInitContext(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], ext, work->rig.poses,
+    // Rebind the borrowed playback storage when the selected bank changes.
+    if (request->source.index != work->model.bank) {
+        work->model.bank = request->source.index;
+        animationInitContext(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
-    work->model.animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+    work->model.animId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
+        for (slotIndex = ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
         }
     } else {
-        for (i = 1; i < 0x13; i++) {
-            animationResetSlot(&work->rig.anim, i, work->model.animId);
+        for (slotIndex = ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
         }
     }
-    for (i = 1; i < 0x13; i++) {
-        animationTickSlot(&work->rig.anim, i);
+    // Apply the new pose before the ordinary frame tick takes over.
+    for (slotIndex = ACTOR_335800_FLINT_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
     work->model.ticking = 1;
+}
+
+/// Starts Flint's scripted walk toward a borrowed destination and closing yaw.
+///
+/// Requires initialized work and a live TMD model. Copies XYZ position in the
+/// root parent's coordinate frame and rotation in 4096 units per turn, then
+/// starts the approach clip in bank 0 with a five-frame blend. Optional clips
+/// supply approach and arrival IDs; NULL retains the binary's clip-13/clip-1
+/// defaults, whose approach ID is outside the embedded bank's proven extent.
+/// Neither payload is retained. Message ID is ignored; returns 0.
+static s32 _actor335800FlintStartWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips)
+{
+    enum {
+        ACTOR_335800_FLINT_DEFAULT_APPROACH_CLIP = 13,
+        ACTOR_335800_FLINT_DEFAULT_ARRIVAL_CLIP  = 1,
+        ACTOR_335800_FLINT_WALK_BLEND_FRAMES     = 5
+    };
+    _Actor335800FlintWork* work;
+    AnimationPlayRequest   preset;
+
+    work                    = task->work;
+    work->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    work->walk.motionStep   = ACTOR_335800_FLINT_FACE_TARGET_STEP;
+    work->walk.target.vx    = destination->pos.vx;
+    work->walk.target.vy    = destination->pos.vy;
+    work->walk.target.vz    = destination->pos.vz;
+    work->walk.targetRot.vx = destination->rot.vx;
+    work->walk.targetRot.vy = destination->rot.vy;
+    work->walk.targetRot.vz = destination->rot.vz;
+    preset.source.index     = ACTOR_335800_FLINT_ANIMATION_BANK;
+    if (clips != NULL) {
+        preset.animationId     = clips->animationId;
+        work->model.nextAnimId = clips->nextAnimId;
+    } else {
+        preset.animationId     = ACTOR_335800_FLINT_DEFAULT_APPROACH_CLIP;
+        work->model.nextAnimId = ACTOR_335800_FLINT_DEFAULT_ARRIVAL_CLIP;
+    }
+    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
+    preset.blendFrames          = ACTOR_335800_FLINT_WALK_BLEND_FRAMES;
+    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+
+    _actor335800FlintApplyAnimationRequest(task->work, task->extra.tmd, &preset);
     return 0;
 }
 
@@ -1633,54 +1671,64 @@ void func_actor_335800_80163A34(Task* task)
     }
 }
 
-/// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
-/// every later handler reads through `Task::work`, seeds the two -1 bytes,
-/// the -1 halfword and three cleared words the work's own init expects,
-/// republishes the light and colour matrices onto the display object, then
-/// installs the message table and the exit handler. An allocation failure
-/// ends the task instead of leaving a half-built actor behind.
-static void func_actor_335800_80163AA0(Task* arg0)
+/// Allocates and initializes Flint's work, lighting bindings and message handlers.
+///
+/// Called in spawn state 0 with a live TMD model. The zeroed work is owned by
+/// the task until teardown; an unbound bank forces the first play request to
+/// bind its storage. Allocation failure ends the task. Success binds the
+/// work-owned matrices, installs teardown and advances to ticking state 1.
+static void _actor335800FlintInit(Task* task)
 {
+    enum { ACTOR_335800_FLINT_NO_BUFFER_RELEASE = -1 };
     _Actor335800FlintWork* work;
 
-    work = memCalloc(sizeof(_Actor335800FlintWork), false);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
 
-    arg0->work               = work;
+    task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown      = -1;
+    work->freeCountdown      = ACTOR_335800_FLINT_NO_BUFFER_RELEASE;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    func_actor_335800_80163B54(arg0);
+    _actor335800FlintBindLighting(task);
 
-    arg0->msgTable     = D_actor_335800_80172EA8;
-    arg0->exitCallback = func_actor_335800_80163B34;
-    arg0->state       += 1;
+    task->msgTable     = D_actor_335800_80172EA8;
+    task->exitCallback = _actor335800FlintExit;
+    task->state       += 1;
 }
 
-static void func_actor_335800_80163B34(Task* arg0)
+/// Releases Flint's task-owned work and model resources, then ends the task.
+///
+/// Installed as both teardown state 2 and the exit callback. Owned resources
+/// must be live at entry and must not be used after this call.
+static void _actor335800FlintExit(Task* task)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }
 
-static void func_actor_335800_80163B54(Task* arg0)
+/// Lends Flint's work-owned light and colour matrices to the live TMD model.
+///
+/// Does not compute lighting. The work must remain allocated while the model
+/// uses these pointers; the frame tick fills the matrices from room lighting.
+static void _actor335800FlintBindLighting(Task* task)
 {
-    TmdObject*             ext;
+    TmdObject*             model;
     _Actor335800FlintWork* work;
 
-    ext           = arg0->extra.tmd;
-    work          = (_Actor335800FlintWork*)arg0->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
 }
 
-static void func_actor_335800_80163B70(Task* arg0)
+/// Leaves idle Flint motion unchanged while the frame tick maintains his model.
+static void _actor335800FlintIdle(Task* task)
 {
 }
 
@@ -1696,145 +1744,128 @@ static void func_actor_335800_80163B78(Task* arg0)
     handlers.funcs[work->walk.motionStep](arg0);
 }
 
-/// State handler 0 of the child block's table `D_actor_335800_80161E68`:
-/// turns the root part to face `work->walk.target`, taking the yaw of the
-/// normalised offset from the part's own translation with `ratan2` and
-/// rebuilding the local matrix from that yaw alone, then advances
-/// `walk.motionStep` to the next handler.
-static void func_actor_335800_80163BE0(Task* task)
+/// Faces Flint's root toward the latched walk destination and advances the step.
+///
+/// Requires initialized work and a live model root. Destination and root
+/// translation share the parent's coordinate frame. The normalized offset's
+/// yaw uses 4096 units per turn; pitch and roll become zero and prior scale is
+/// replaced by the yaw rotation. Translation is retained, composition invalidated.
+static void _actor335800FlintFaceTarget(Task* task)
 {
     _Actor335800FlintWork* work;
     GfxCoord*              coord;
     VECTOR                 delta;
-    SVECTOR                dir;
-    SVECTOR                rot;
+    SVECTOR                direction;
+    SVECTOR                rotation;
 
-    work  = (_Actor335800FlintWork*)task->work;
+    work  = task->work;
     coord = task->extra.tmd->coords;
 
     delta.vx = work->walk.target.vx - coord->coord.t[0];
     delta.vy = work->walk.target.vy - coord->coord.t[1];
     delta.vz = work->walk.target.vz - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
+    VectorNormalS(&delta, &direction);
 
-    rot.vx = 0;
-    rot.vy = ratan2(dir.vx, dir.vz);
-    rot.vz = 0;
+    rotation.vx = 0;
+    rotation.vy = ratan2(direction.vx, direction.vz);
+    rotation.vz = 0;
 
-    coord->param.rot.vx = rot.vx;
-    coord->param.rot.vy = rot.vy;
-    coord->param.rot.vz = rot.vz;
+    coord->param.rot.vx = rotation.vx;
+    coord->param.rot.vy = rotation.vy;
+    coord->param.rot.vz = rotation.vz;
     RotMatrix(&coord->param.rot, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->walk.motionStep++;
 }
 
-/// State handler 1 of the child block's table `D_actor_335800_80161E68`, the
-/// step after the turn-to-face handler `func_actor_335800_80163BE0`: rotates
-/// the constant forward offset `D_actor_335800_80161E78` through the root
-/// part's matrix into `work->walk.velocity`, seeds `walk.lastDistance` with
-/// `ACTOR_WALK_DISTANCE_NONE` and advances `walk.motionStep` so the dispatcher
-/// `func_actor_335800_80163B78` runs the next handler.
-static void func_actor_335800_80163CA0(Task* task)
+/// Starts Flint's forward approach and seeds the first arrival measurement.
+///
+/// Requires initialized work and a root already facing the target. Rotates
+/// local +Z speed 32 units per tick into the root parent's frame, retaining it
+/// in signed 16.16 velocity. Seeds all distance components with the no-distance
+/// sentinel and advances to the arrival step; existing fractional carry remains.
+static void _actor335800FlintBeginApproach(Task* task)
 {
     _Actor335800FlintWork* work;
     GfxCoord*              coord;
-    VECTOR                 vec;
+    VECTOR                 localVelocity;
 
     coord = task->extra.tmd->coords;
-    work  = (_Actor335800FlintWork*)task->work;
+    work  = task->work;
 
-    vec = D_actor_335800_80161E78;
-    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    localVelocity = D_actor_335800_80161E78;
+    ApplyMatrixLV(&coord->coord, &localVelocity, &work->walk.velocity);
     work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
     work->walk.motionStep++;
 }
 
-/// State handler 3 of `D_actor_335800_80161E68`, the child block's
-/// turn-to-yaw step: Euler-extracts the root coordinate into `vec`, and while
-/// the yaw gap to `work->walk.targetRot.vy` is at least 0x41 it steps `vec.vy` toward
-/// it by 0x40, taking the step on an `s32` widening of the extracted yaw;
-/// otherwise it snaps the yaw to the target and plays anim 0x7D3 with a
-/// preset carrying the `model.nextAnimId` byte, clearing the motion index and step.
-/// Either way the root coordinate is rebuilt as the identity matrix rotated by
-/// `vec`.
-static void func_actor_335800_80163D20(Task* arg0)
+/// Turns Flint to the walk's closing yaw, then restarts the arrival clip and idles.
+///
+/// Requires initialized work and a live root. Turns at most 64 angle units
+/// per tick (4096 per turn), using the signed low-halfword yaw difference.
+/// Within one step it snaps to the target and blends bank 0's queued arrival
+/// clip for five whole frames. Retains extracted pitch/roll and translation,
+/// replaces scale and invalidates composition; stored Euler parameters stay intact.
+static void _actor335800FlintTurnToYaw(Task* task)
 {
     _Actor335800FlintWork* work;
-    GfxRotationWords*      words;
     GfxCoord*              coord;
-    SVECTOR                vec;
+    SVECTOR                rotation;
     AnimationPlayRequest   preset;
-    s32                    vy;
-    s16                    diff;
+    s32                    currentYaw;
+    s16                    yawDifference;
+    enum {
+        ACTOR_335800_FLINT_TURN_STEP            = 64,
+        ACTOR_335800_FLINT_ARRIVAL_BLEND_FRAMES = 5
+    };
 
-    coord = arg0->extra.tmd->coords;
-    work  = (_Actor335800FlintWork*)arg0->work;
+    coord = task->extra.tmd->coords;
+    work  = task->work;
 
-    gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
-    if (ABS(diff) >= 0x41) {
-        vy = vec.vy;
-        if (diff < 0) {
-            vec.vy = vy - 0x40;
+    gfxExtractSmallestEuler(&rotation, &coord->coord);
+    yawDifference = (u16)work->walk.targetRot.vy - (u16)rotation.vy;
+    if (ABS(yawDifference) >= ACTOR_335800_FLINT_TURN_STEP + 1) {
+        currentYaw = rotation.vy;
+        if (yawDifference < 0) {
+            rotation.vy = currentYaw - ACTOR_335800_FLINT_TURN_STEP;
         } else {
-            vec.vy = vy + 0x40;
+            rotation.vy = currentYaw + ACTOR_335800_FLINT_TURN_STEP;
         }
     } else {
-        vec.vy                      = work->walk.targetRot.vy;
-        preset.source.index         = 0;
+        rotation.vy                 = work->walk.targetRot.vy;
+        preset.source.index         = ACTOR_335800_FLINT_ANIMATION_BANK;
         preset.animationId          = work->model.nextAnimId;
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
+        preset.blendFrames          = ACTOR_335800_FLINT_ARRIVAL_BLEND_FRAMES;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+        _actor335800FlintPlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
         work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
-        work->walk.motionStep = 0;
+        work->walk.motionStep = ACTOR_335800_FLINT_FACE_TARGET_STEP;
     }
 
-    words         = (GfxRotationWords*)&coord->coord;
-    words->m00M01 = ONE;
-    words->m02M10 = 0;
-    words->m11M12 = ONE;
-    words->m20M21 = 0;
-    words->m22    = ONE;
-    RotMatrix(&vec, &coord->coord);
+    gfxSetRotIdentity(&coord->coord);
+    RotMatrix(&rotation, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Message 0x7D3 handler of the child block, the 19-slot counterpart of
-/// `actorMotionPlayAnim`: re-seeds the slot array off bank table
-/// `D_actor_335800_80172E98` when the preset's bank index changes, then
-/// restarts or resets every slot and ticks them.
-s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
+/// Restarts Flint's requested clip, even when it is already playing.
+///
+/// Requires initialized work, a live nineteen-part TMD model and a readable
+/// request through the call. Bank 0/clip 1 select the embedded table's only
+/// loaded clip. Drives slots 1..18 and enables later ticking, blending for
+/// `blendFrames` whole frames when requested and already ticking, resetting
+/// otherwise. Clip and bank IDs are narrowed to signed bytes before use.
+/// Message ID, collision choice and fourth argument are ignored; returns 0.
+static s32 _actor335800FlintPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _Actor335800FlintWork* work;
-    TmdObject*             ext;
-    s32                    i;
+    TmdObject*             model;
 
-    work = (_Actor335800FlintWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank = msg->source.index;
-        animationInitContext(&work->rig.anim, D_actor_335800_80172E98[work->model.bank], ext, work->rig.poses,
-                             work->rig.slots);
-    }
-    work->model.animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
-        }
-    } else {
-        for (i = 1; i < 0x13; i++) {
-            animationResetSlot(&work->rig.anim, i, work->model.animId);
-        }
-    }
-    for (i = 1; i < 0x13; i++) {
-        animationTickSlot(&work->rig.anim, i);
-    }
-    work->model.ticking = 1;
+    work  = task->work;
+    model = task->extra.tmd;
+    _actor335800FlintApplyAnimationRequest(work, model, request);
     return 0;
 }
 
@@ -1843,40 +1874,60 @@ s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 a
 #include "../../shared/actor_messages_place_euler.inc.c"
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
-s32 func_actor_335800_80163FB8(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Sets Flint's visibility and automatic primitive-buffer recovery mode.
+///
+/// Modes 0/1 hide/show with automatic recovery enabled; 1 also allocates the
+/// buffer. Modes 2/3 hide/show with recovery disabled; 2 schedules release on
+/// the third frame tick after the request. Requires a live model and, for
+/// mode 2, initialized work. Other modes leave pending release unchanged.
+/// Ignores message ID and fourth argument; returns 0 for modes 0..3, else 1.
+static s32 _actor335800FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    TmdObject* obj;
-    s32        ret;
+    enum {
+        ACTOR_335800_FLINT_DRAW_HIDE                  = 0,
+        ACTOR_335800_FLINT_DRAW_SHOW_ALLOCATE         = 1,
+        ACTOR_335800_FLINT_DRAW_HIDE_RELEASE          = 2,
+        ACTOR_335800_FLINT_DRAW_SHOW_SKIP_AUTO_BUFFER = 3
+    };
+    TmdObject* model;
+    s32        result;
 
-    obj = task->extra.tmd;
-    ret = 0;
+    model  = task->extra.tmd;
+    result = 0;
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_335800_FLINT_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_335800_FLINT_DRAW_SHOW_ALLOCATE:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags                                         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((_Actor335800FlintWork*)task->work)->freeCountdown = mode;
-            obj->flags                                         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_335800_FLINT_DRAW_HIDE_RELEASE: {
+            _Actor335800FlintWork* work;
+
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work                = task->work;
+            work->freeCountdown = mode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        }
+        case ACTOR_335800_FLINT_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
-s32 func_actor_335800_80164098(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Acknowledges any actor command to Flint without changing the task.
+///
+/// All arguments, including the command payload word, are ignored; returns 0.
+static s32 _actor335800FlintIgnoreCommand(Task* task, s32 messageId, s32 unusedCommand, s32 unusedArg)
 {
     return 0;
 }

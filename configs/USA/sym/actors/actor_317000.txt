@@ -49,5 +49,5 @@ _gActor317000Animation0B0D4Indices = 0x8016CECC; // size:0x28 defined:True
 _gActor317000Animation0B0D4 = 0x8016CEF4; // size:0x28 defined:True
 D_actor_317000_8016CF1C = 0x8016CF1C; // size:0x24 defined:True
 gActorMotionAnimBanks19 = 0x8016CF40; // size:0x4 defined:True
-actorMotionPlayAnim19 = 0x80162A10; // type:func
+_actorMotionPlayAnim19 = 0x80162A10; // type:func
 actorMsgPlaceEuler = 0x80162B48; // type:func

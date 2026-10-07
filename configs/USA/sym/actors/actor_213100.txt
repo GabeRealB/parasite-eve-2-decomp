@@ -60,6 +60,6 @@ _gActor213100Animation08334Indices = 0x8015212C; // size:0x28 defined:True
 _gActor213100Animation08334 = 0x80152154; // size:0x28 defined:True
 D_actor_213100_8015217C = 0x8015217C; // size:0x28 defined:True
 gActorMotionAnimBanks19 = 0x801521A4; // size:0x4 defined:True
-actorMotionPlayAnim19 = 0x8014A258; // type:func
+_actorMotionPlayAnim19 = 0x8014A258; // type:func
 actorMsgPlaceEuler = 0x8014A390; // type:func
 _modelPlacementAttachPartTask = 0x8014A03C; // type:func

@@ -122,7 +122,7 @@ STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 extern TaskMessageEntry D_actor_323300_80172574[];
 
 /// Animation source table `func_actor_323300_80162360` and
-/// `actorMotionPlayAnim19` index by `_Actor323300WomanWork::model.bank`.
+/// `_actorMotionPlayAnim19` index by `_Actor323300WomanWork::model.bank`.
 extern AnimationSet*  D_actor_323300_80172548[4];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
@@ -134,7 +134,7 @@ extern TaskDesc D_actor_323300_8017255C[];
 extern ActorTransform D_actor_323300_8017259C;
 
 /// Animation presets the spawn handler, the 0x7DB handler and the two states
-/// hand `actorMotionPlayAnim19`.
+/// hand `_actorMotionPlayAnim19`.
 extern AnimationPlayRequest D_actor_323300_801725B4;
 extern AnimationPlayRequest D_actor_323300_801725C8;
 extern AnimationPlayRequest D_actor_323300_801725DC;
@@ -334,7 +334,7 @@ TaskDesc D_actor_323300_8017255C[2] = {
 };
 
 TaskMessageEntry D_actor_323300_80172574[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_323300_80162208 },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_323300_80162360 },
@@ -476,7 +476,7 @@ static void func_actor_323300_80161E78(Task* arg0)
     arg0->msgTable = D_actor_323300_80172574;
     func_actor_323300_80162208(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_8017259C, 0);
-    actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
+    _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725B4, 0);
     sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0x28);
     arg0->exitCallback = func_actor_323300_8016269C;
     arg0->state       += 1;
@@ -621,7 +621,7 @@ s32 func_actor_323300_80162208(Task* arg0, s32 arg1, s32 mode, s32 arg3)
 /// shows the model through the 0x7D5 visibility switch, 10/11 spawn and kill
 /// the Lesser Stranger at `strangerTask`, 12 latches a placement and starts preset
 /// `D_actor_323300_801725C8` (inlining the 0x7D3 preset body of
-/// `actorMotionPlayAnim19`), 13 posts effect 0x600A2 on part 6.
+/// `_actorMotionPlayAnim19`), 13 posts effect 0x600A2 on part 6.
 s32 func_actor_323300_80162360(Task* arg0, s32 arg1, ActorCommand* msg, ActorTransform* place)
 {
     _Actor323300WomanWork* w;
@@ -759,7 +759,7 @@ static void func_actor_323300_80162748(Task* arg0)
     s32                    i;
 
     work = arg0->work;
-    actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725C8, 0);
+    _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725C8, 0);
     for (i = 1; i < 0x13; i++) {
         work->rig.slots[i].rate = 8;
     }
@@ -773,7 +773,7 @@ static void func_actor_323300_80162748(Task* arg0)
 /// dispatches, the turn-to-face body. Euler-extracts the root coordinate into `vec`
 /// and, while the yaw gap to the target `work->walk.targetRot.vy` stays under 0x41,
 /// snaps `vec.vy` to that target, plays anim 0x7D3 through
-/// `actorMotionPlayAnim19` and parks all 18 animation slots at 0x16 --
+/// `_actorMotionPlayAnim19` and parks all 18 animation slots at 0x16 --
 /// `walk.motion` and `walk.motionStep` go back to zero, so the handler re-runs. A wider
 /// gap steps `vec.vy` toward the target by 0x40 instead. Either way the root
 /// coordinate is rebuilt as the identity matrix rotated by `vec`, with `composeStamp`
@@ -802,7 +802,7 @@ static void func_actor_323300_801627B4(Task* arg0)
         }
     } else {
         vec.vy = work->walk.targetRot.vy;
-        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725DC, 0);
+        _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_323300_801725DC, 0);
         for (i = 1; i < 0x13; i++) {
             work->rig.slots[i].rate = 0x16;
         }
@@ -1094,7 +1094,7 @@ static void func_actor_323300_8016359C(Task* arg0, s16 arg1)
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// Play-animation handler of the Lesser Stranger, the twin of
-/// `actorMotionPlayAnim19` for a block that keeps its playback values as the
+/// `_actorMotionPlayAnim19` for a block that keeps its playback values as the
 /// words of `_Actor323300StrangerWork`. A request for a bank the rig is not
 /// bound to rebinds it: the bank is stored, the clip id is reset to
 /// `ACTOR_MODEL_STATE_NONE` and the bank's sets go to `animationInitContext`

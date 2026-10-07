@@ -1,38 +1,46 @@
 /* Part of the actor motion library; see actor_motion.h. */
 
-/// Applies the requested animation bank and clip to this actor's rig.
+/// Binds the selected bank and starts a changed clip on a nineteen-part rig.
 ///
-/// A changed bank installs its set table. An unchanged clip skips playback setup.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 actorMotionPlayAnim19(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
+/// Has `_actorMotionPlayAnim19`'s work, model, request and borrowed-storage
+/// requirements. An unchanged clip skips setup; driven slots exclude the root.
+static inline void _actorMotionApplyAnimationRequest19(ActorMotion19PlayWork* work, TmdObject* model, const AnimationPlayRequest* request)
 {
-    ActorMotion19PlayWork* work;
-    TmdObject*             ext;
-    s32                    i;
+    enum { ACTOR_MOTION_FIRST_DRIVEN_SLOT = 1 };
+    s32 slotIndex;
 
-    work = (ActorMotion19PlayWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
+    // Changing banks invalidates the old clip even when the numeric ID agrees.
+    if (request->source.index != work->model.bank) {
+        work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses, work->rig.slots);
     }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+    if (request->animationId != work->model.animId) {
+        work->model.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
+            for (slotIndex = ACTOR_MOTION_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
             }
         } else {
-            for (i = 1; i < 0x13; i++) {
-                animationResetSlot(&work->rig.anim, i, work->model.animId);
+            for (slotIndex = ACTOR_MOTION_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
             }
         }
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        // Apply the new pose immediately before normal frame ticking resumes.
+        for (slotIndex = ACTOR_MOTION_FIRST_DRIVEN_SLOT; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
         work->model.ticking = 1;
     }
+}
+
+static s32 _actorMotionPlayAnim19(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg)
+{
+    ActorMotion19PlayWork* work;
+    TmdObject*             model;
+
+    work  = task->work;
+    model = task->extra.tmd;
+    _actorMotionApplyAnimationRequest19(work, model, request);
     return 0;
 }

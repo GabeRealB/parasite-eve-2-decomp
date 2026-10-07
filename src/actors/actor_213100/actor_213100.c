@@ -54,7 +54,7 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 extern TaskDesc D_actor_213100_801521A8[];
 
 /// Message table the spawn state installs at `Task::msgTable`: 0x7D3 is the
-/// animation handler `actorMotionPlayAnim19`, 0x7D4 the placement
+/// animation handler `_actorMotionPlayAnim19`, 0x7D4 the placement
 /// handler `actorMsgPlaceEuler` and 0x7D5 the display handler
 /// `func_actor_213100_8014A40C`.
 // Message-table callbacks use the argument views required by this TU.
@@ -358,7 +358,7 @@ TaskDesc D_actor_213100_801521A8[2] = {
 };
 
 TaskMessageEntry D_actor_213100_801521C0[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_213100_8014A40C },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -527,7 +527,7 @@ static void func_actor_213100_8014A118(Task* arg0)
     preset.blend                = ANIMATION_BLEND_RESET;
     preset.blendFrames          = 0;
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    actorMotionPlayAnim19(arg0, 0, &preset, 0);
+    _actorMotionPlayAnim19(arg0, 0, &preset, 0);
     arg0->msgTable     = D_actor_213100_801521C0;
     arg0->exitCallback = func_actor_213100_8014A21C;
     arg0->state++;

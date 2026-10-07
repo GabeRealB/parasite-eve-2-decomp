@@ -3,7 +3,7 @@
 /// Spawn-placement message handler: seeds the work block's position and
 /// rotation from `place`, picks the start animation from `anim` (or anim 3,
 /// 2 once `walksForward` is set) and installs it with the body of
-/// `actorMotionPlayAnim19` written out inline. Returns 0.
+/// `_actorMotionPlayAnim19` written out inline. Returns 0.
 s32 reverseWalkStartMsg(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
 {
     ReverseWalkWork*      work;

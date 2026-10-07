@@ -798,7 +798,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_361100_8016BAE4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor361100TentacleTask, { .model = &_gActor361100Model06038 } };
 
 TaskMessageEntry D_actor_361100_8016BAF0[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, _actor361100PlaceTentacle },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor361100SetTentacleDrawMode },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor361100ApplyTentacleCommand },

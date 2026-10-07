@@ -29,7 +29,7 @@
 /// Work block of the overlay's actor, allocated zeroed by its spawn state and
 /// kept at `Task::work` for the task's life.
 ///
-/// It opens with the head `actorMotionPlayAnim19` runs on
+/// It opens with the head `_actorMotionPlayAnim19` runs on
 /// (`ActorMotion19PlayWork`) and keeps a scripted walker's walk state
 /// directly after it, so the room script plays the actor's clips and sends it
 /// to a placement with the same messages as any scripted walker. The model
@@ -57,7 +57,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor317000Work, 0x4CC);
 
 /// Indexed by `_Actor317000Work::model.bank` for `animationInitContext`'s second
-/// argument by `func_actor_317000_80162458` and `actorMotionPlayAnim19`.
+/// argument by `func_actor_317000_80162458` and `_actorMotionPlayAnim19`.
 /// Every preset the actor builds has `field_0` 0, so only the first word is
 /// ever read; the words after it (among them the address of
 /// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
@@ -338,7 +338,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_317000_80162624, { .model = &_gActor317000GrinningStrangerBody } };
 
 TaskMessageEntry D_actor_317000_8016CF50[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_317000_80162BC4 },
     { ACTOR_MESSAGE_WALK_TO, func_actor_317000_80162458 },
@@ -550,7 +550,7 @@ static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s
 /// `model.nextAnimId` (or 1 when absent), then blend, 5 frames and world
 /// collision on.
 ///
-/// The preset is then installed the way `actorMotionPlayAnim19` installs
+/// The preset is then installed the way `_actorMotionPlayAnim19` installs
 /// one, written out in-line: a changed `field_0` resets the bank in
 /// `gActorMotionAnimBanks19` through `animationInitContext` (`model.bank` latches it,
 /// `model.animId` goes back to -1), and a changed `field_4` -- or a preset asking
@@ -738,7 +738,7 @@ static void func_actor_317000_801627D0(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+        _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
         work->airborne = 0;
         work->walk.motionStep++;
     }
@@ -797,7 +797,7 @@ static void func_actor_317000_80162950(Task* arg0)
     preset.blend                = ANIMATION_BLEND_INTERPOLATE;
     preset.blendFrames          = 5;
     preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+    _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x0B), pan, (s8)worldCoordGetOriginAudioDepth(coord));
 

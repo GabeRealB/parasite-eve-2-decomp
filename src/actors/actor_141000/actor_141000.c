@@ -1866,7 +1866,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_141000_801338C0, { .model = &_gActor141000AyaBreaBody } };
 
 TaskMessageEntry D_actor_141000_8013D788[7] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_141000_80133E8C },
     { ACTOR_MESSAGE_WALK_TO, func_actor_141000_801336DC },
@@ -2349,7 +2349,7 @@ static void func_actor_141000_801335D4(Task* arg0)
 }
 
 /// Placement handler: stores the spawn position and rotation, resets the body
-/// state, then applies a start preset exactly as `actorMotionPlayAnim19`
+/// state, then applies a start preset exactly as `_actorMotionPlayAnim19`
 /// does (inlined here). The default anim id is chosen by `fastPace`; writing
 /// it as an if/else into the preset (not a ternary) is what keeps CSE from
 /// reusing the earlier constant 1 for the `model.nextAnimId` store.
@@ -2591,7 +2591,7 @@ static void func_actor_141000_80133BD8(Task* arg0)
         preset.blend                = ANIMATION_BLEND_INTERPOLATE;
         preset.blendFrames          = 5;
         preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+        _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
         work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
         work->walk.motionStep = 0;
     }

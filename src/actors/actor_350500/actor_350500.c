@@ -199,7 +199,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_350500_80162360, { .model = &_gActor350500EveBreaMaskedBody } };
 
 TaskMessageEntry gReverseWalkMessages[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, reverseWalkVisibilityMsg },
     { ACTOR_MESSAGE_WALK_TO, reverseWalkStartMsg },

@@ -83,6 +83,6 @@ gActorMotionAnimBanks19 = 0x8013D778; // size:0x4 defined:True
 D_actor_141000_8013D77C = 0x8013D77C; // size:0xC defined:True
 D_actor_141000_8013D788 = 0x8013D788; // size:0x38 defined:True
 actorMotionArrive19 = 0x80133490; // type:func
-actorMotionPlayAnim19 = 0x80133CD8; // type:func
+_actorMotionPlayAnim19 = 0x80133CD8; // type:func
 actorMsgPlaceEuler = 0x80133E10; // type:func
 glowDrawRingBeam = 0x80131E94; // type:func
