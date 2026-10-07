@@ -1,8 +1,9 @@
 /* Part of the Ivory/Zebra Stalker library; see stalker_zebra_ivory.h. */
 
-/// Releases the player-state lock, restarts the clip `gStalkerZebraIvoryResumeClips`
-/// gives for the current one at step 0x10, ticks it and moves to the next
-/// state.
+/// Releases a battle hold with rewards and resumes the mapped clip at normal speed.
+///
+/// `gStalkerZebraIvoryResumeClips` selects the clip from the current one; this
+/// call restarts and ticks it before advancing the state.
 void stalkerZebraIvoryResumeClip(Task* arg0)
 {
     StalkerZebraIvoryWork* work = (StalkerZebraIvoryWork*)arg0->work;
