@@ -38,10 +38,6 @@
 #include "rooms/neo_ark_r31.h"
 #define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk.h"
-/// Selects the scripted walker's writable signed-halfword approach mode.
-///
-/// Only element zero is a mode; the remaining halfword has an unproven role.
-#define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #include "../../shared/scripted_walk.h"
 
 static void _footstepWalkUpdate(Task* task);
@@ -54,13 +50,7 @@ static s32  _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const An
 static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 static s32  _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
-static s16 _gScriptedWalkModeStorage[2];
-
-/// Signed-halfword approach mode at the start of the scripted walker's storage.
-///
-/// Values are `SCRIPTED_WALK_MODE_*`. The scalar view retains the access
-/// shape required by the walk-to handler; the trailing halfword is not read.
-extern s16 gScriptedWalkModeValue __asm__("_gScriptedWalkModeStorage");
+static s16 _gScriptedWalkMode;
 
 static ScriptedWalkAttachmentsWork* _gScriptedWalkWork;
 
@@ -931,15 +921,11 @@ static ScriptedWalkAttachmentsWork* _gScriptedWalkWork = NULL;
 
 Task* D_actor_461800_80143898 = NULL;
 
-/// Halfword storage containing the scripted walker's approach mode.
-///
-/// Element zero is the writable signed mode selected by the walk-to message
-/// (`SCRIPTED_WALK_MODE_*`). Element one is never accessed; its role is
-/// unproven. Keep both halfwords, including the second's original contents.
-static s16 _gScriptedWalkModeStorage[2] = {
-    0,
-    -0x3658,
-};
+/// Signed approach mode of the scripted walker's last walk-to message (`SCRIPTED_WALK_MODE_*`).
+static s16 _gScriptedWalkMode = 0;
+
+/// A halfword stored after the mode; nothing references it.
+u16 D_actor_461800_8014389E = 0xC9A8;
 
 /// Borrowed pointer to the sound walker's task-owned work block.
 ///
