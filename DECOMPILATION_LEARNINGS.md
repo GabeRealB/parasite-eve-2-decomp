@@ -151719,7 +151719,7 @@ with `s32 start0 = 0; first = start0;` cse puts both registers in one class and
 rewrites the later `slt` to read `start0`, which then has three references and
 stays a register set at the top of the function (`move fp,zero`).
 
-**What is fitted.** The `u8` zero is the bound `stalkerZebraIvoryStepClip4`
+**What is fitted.** The `u8` zero is the bound `_stalkerZebraIvoryTickOnBackCrawl`
 declares the same way (there both tests read it directly, combine folds them
 through `nonzero_bits` and the `move` is left dead). The `s32` copy is
 positional: it has to be one statement, in the join block, and both tests have

@@ -9,7 +9,7 @@ void stalkerZebraIvoryRunSubStates(Task* arg0)
     TaskFuncTable3         fns  = gStalkerZebraIvorySubStates;
 
     _stalkerZebraIvoryFoldArms(arg0);
-    if ((stalkerZebraIvoryTakeArmedPending(arg0) << 0x10) == 0) {
+    if ((_stalkerZebraIvoryApplyArmedReaction(arg0) << 0x10) == 0) {
         fns.funcs[work->subState](arg0);
     }
 }

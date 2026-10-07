@@ -80,3 +80,23 @@ static __inline__ void _stalkerZebraIvoryApplyRotationInline(Task* task)
 {
     STALKER_ZEBRA_IVORY_REBUILD_ROOT_ROTATION(task)
 }
+
+/// Running behavior indices selected by the shared completion handlers.
+enum {
+    STALKER_ZEBRA_IVORY_STATE_WALK          = 2,
+    STALKER_ZEBRA_IVORY_STATE_GRAB          = 8,
+    STALKER_ZEBRA_IVORY_STATE_CRAWL_ON_BACK = 10,
+    STALKER_ZEBRA_IVORY_STATE_CEILING_DROP  = 13
+};
+
+/// Selects a running behavior and resets its sub-state cursor.
+///
+/// `state` must index the carrier's running-behavior table. Reacquires the
+/// live work block after any preceding animation, collision or message calls.
+static __inline__ void _stalkerZebraIvorySelectState(Task* task, s16 state)
+{
+    StalkerZebraIvoryWork* stateWork = task->work;
+
+    stateWork->state    = state;
+    stateWork->subState = 0;
+}

@@ -6,8 +6,8 @@
  * covers the animation request (play, blend or restart a clip, tick the
  * slots, scale the frame counter, report the clip done), the pending-action
  * dispatch, the state handlers that wait on a clip, right the Stalker from
- * its back or pick its range, the hold release, the wall-contact distance and
- * the footstep windows of clip 4.
+ * its back or choose its ceiling exit, the hold release, the wall-contact
+ * distance and the hand-anchored crawl on its back.
  *
  * `StalkerZebraIvoryWork` is the work block the fragments see at `Task::work`.
  * The library does not define it. The two enemies' work blocks differ in size
@@ -74,6 +74,8 @@
 
 #include "main/task_types.h"
 
+#include "gameplay/message.h"
+
 /// Values of the work block's `animRequest`.
 enum {
     STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND   = 1, // blend into `animClip` over `animBlend` frames
@@ -91,31 +93,31 @@ enum {
     STALKER_ZEBRA_IVORY_PENDING_KNOCKDOWN = 5  // knockdown (state 0xF); on the ceiling, knocked off it (state 0xE)
 };
 
-void        stalkerZebraIvoryTurnToward(Task* arg0, SVECTOR* target, s32 step);
+static void _stalkerZebraIvoryTurnToward(Task* task, const SVECTOR* target, s32 turnStep);
 static void _stalkerZebraIvoryReadPartWorldXZ(Task* task, s16 partIndex, SVECTOR3* worldPosition);
-void        stalkerZebraIvoryUpdateColor(Task* task);
+static void _stalkerZebraIvoryUpdateColor(Task* task);
 static void _stalkerZebraIvoryApplyRotation(Task* task);
-void        stalkerZebraIvoryStepClip4(Task* arg0);
-void        stalkerZebraIvoryRightItself(Task* arg0);
+static void _stalkerZebraIvoryTickOnBackCrawl(Task* task);
+static void _stalkerZebraIvoryRightItself(Task* task);
 static s32  _stalkerZebraIvoryApplyPendingReaction(Task* task);
 static s32  _stalkerZebraIvoryWallDistance(Task* task);
 static void _stalkerZebraIvoryPinPartXZ(Task* task, s16 partIndex, const SVECTOR3* anchorPosition);
-void        stalkerZebraIvoryWaitClipThenRest(Task* arg0);
-void        stalkerZebraIvoryReleaseHold(Task* arg0);
+static void _stalkerZebraIvoryFinishCeilingFall(Task* task);
+static void _stalkerZebraIvoryReleaseHold(Task* task);
 void        stalkerZebraIvoryRunSubStates(Task* arg0);
-void        stalkerZebraIvorySetMoveMode(Task* arg0, s32 arg1, u16* arg2, s32 arg3);
+static void _stalkerZebraIvoryApplyRoomCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static void _stalkerZebraIvoryRestartClip(Task* task);
-void        stalkerZebraIvoryResumeClip(Task* arg0);
-void        stalkerZebraIvoryPickRange(Task* arg0);
-void        stalkerZebraIvoryAnimateUntilDone(Task* arg0);
-void        stalkerZebraIvoryWaitClip(Task* arg0);
+static void _stalkerZebraIvoryStartDeathClip(Task* task);
+static void _stalkerZebraIvorySelectCeilingExit(Task* task);
+static void _stalkerZebraIvoryTickDeathClip(Task* task);
+static void _stalkerZebraIvoryWaitClip(Task* task);
 static void _stalkerZebraIvoryFoldArms(Task* task);
 static void _stalkerZebraIvorySeedTimer(Task* task, STALKER_ZEBRA_IVORY_TIMER_BASE baseFrames);
 static void _stalkerZebraIvoryDisableCapsuleGrid(Task* task);
 static void _stalkerZebraIvoryTickAnim(Task* task);
 static void _stalkerZebraIvoryRequestClipRestart(Task* task, s16 clipIndex, s16 rate);
 static s32  _stalkerZebraIvoryClipDone(Task* task);
-s32         stalkerZebraIvoryTakeArmedPending(Task* arg0);
+static s32  _stalkerZebraIvoryApplyArmedReaction(Task* task);
 static void _stalkerZebraIvoryBlendClip(Task* task);
 static s16  _stalkerZebraIvoryFrameToTicks(Task* task, s16 normalFrames);
 

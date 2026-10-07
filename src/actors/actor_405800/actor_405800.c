@@ -1427,7 +1427,7 @@ AnimationSet* D_actor_405800_80151410[35] = {
 };
 
 TaskMessageEntry D_actor_405800_8015149C[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, stalkerZebraIvorySetMoveMode },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _stalkerZebraIvoryApplyRoomCommand },
     { 2014, func_actor_405800_801388C4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1814,8 +1814,8 @@ static void func_actor_405800_801334B8(Task* arg0)
 static const TaskFuncTable12 D_actor_405800_80131E24 = {
     {
         func_actor_405800_801388E4,
-        stalkerZebraIvoryResumeClip,
-        stalkerZebraIvoryAnimateUntilDone,
+        _stalkerZebraIvoryStartDeathClip,
+        _stalkerZebraIvoryTickDeathClip,
         func_actor_405800_80138A70,
         func_actor_405800_80138B50,
         func_actor_405800_80132FE0,
@@ -1878,7 +1878,7 @@ static const TaskFuncTable5 D_actor_405800_80131EB8 = {
         func_actor_405800_801340E0,
         func_actor_405800_80134314,
         func_actor_405800_8013471C,
-        stalkerZebraIvoryReleaseHold,
+        _stalkerZebraIvoryReleaseHold,
     },
 };
 
@@ -1888,7 +1888,7 @@ static const TaskFuncTable4 D_actor_405800_80131ECC = {
         func_actor_405800_801397B8,
         func_actor_405800_801348E4,
         func_actor_405800_80134A64,
-        stalkerZebraIvoryWaitClip,
+        _stalkerZebraIvoryWaitClip,
     },
 };
 
@@ -1916,7 +1916,7 @@ static const TaskFuncTable4 D_actor_405800_80131EF4 = {
         func_actor_405800_80139AC4,
         func_actor_405800_80139B3C,
         func_actor_405800_80135558,
-        stalkerZebraIvoryWaitClipThenRest,
+        _stalkerZebraIvoryFinishCeilingFall,
     },
 };
 
@@ -2755,7 +2755,7 @@ static void func_actor_405800_80135A3C(Task* arg0, s16 arg1)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/stalker_zebra_ivory_step_clip4.inc.c"
+#include "../../shared/stalker_zebra_ivory_tick_on_back_crawl.inc.c"
 
 static void func_actor_405800_801361F8(Task* arg0)
 {
@@ -3557,15 +3557,15 @@ static void func_actor_405800_80137E64(Task* task)
             work2->subState = 0;
             return;
         }
-        stalkerZebraIvoryTurnToward(task, &work->targetPos, 0x18);
-        stalkerZebraIvoryStepClip4(task);
+        _stalkerZebraIvoryTurnToward(task, &work->targetPos, 0x18);
+        _stalkerZebraIvoryTickOnBackCrawl(task);
     }
 }
 
 static void func_actor_405800_80137EF0(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { func_actor_405800_80139844, stalkerZebraIvoryRightItself };
+    TaskFunc                      states[2] = { func_actor_405800_80139844, _stalkerZebraIvoryRightItself };
 
     _stalkerZebraIvoryFoldArms(task);
     states[work->subState](task);
@@ -3603,7 +3603,7 @@ static void func_actor_405800_80138040(Task* task)
 static void func_actor_405800_80138154(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { func_actor_405800_80139E2C, stalkerZebraIvoryPickRange };
+    TaskFunc                      states[2] = { func_actor_405800_80139E2C, _stalkerZebraIvorySelectCeilingExit };
 
     _stalkerZebraIvoryFoldArms(task);
     states[work->subState](task);
@@ -3656,7 +3656,7 @@ static void func_actor_405800_80138698(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             fns.funcs[work->state](arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            stalkerZebraIvoryUpdateColor(arg0);
+            _stalkerZebraIvoryUpdateColor(arg0);
             func_actor_405800_80132E3C(arg0, work->shadowHeight, work->shadowShade);
             break;
     }
@@ -3675,7 +3675,7 @@ static void func_actor_405800_80138788(Task* arg0)
 
 #include "../../shared/stalker_zebra_ivory_update_color.inc.c"
 
-#include "../../shared/stalker_zebra_ivory_set_move_mode.inc.c"
+#include "../../shared/stalker_zebra_ivory_apply_room_command.inc.c"
 
 void func_actor_405800_801388C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -3715,9 +3715,9 @@ static void func_actor_405800_801388E4(Task* task)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_resume_clip.inc.c"
+#include "../../shared/stalker_zebra_ivory_start_death_clip.inc.c"
 
-#include "../../shared/stalker_zebra_ivory_animate_until_done.inc.c"
+#include "../../shared/stalker_zebra_ivory_tick_death_clip.inc.c"
 
 static void func_actor_405800_80138A70(Task* task)
 {
@@ -3942,7 +3942,7 @@ static void func_actor_405800_8013902C(Task* task)
     if (work->walkStep < min) {
         work->walkStep = min;
     }
-    stalkerZebraIvoryTurnToward(task, &work->targetPos, work->turnStep);
+    _stalkerZebraIvoryTurnToward(task, &work->targetPos, work->turnStep);
     func_actor_405800_80135A3C(task, work->walkStep);
 }
 
@@ -4357,7 +4357,7 @@ static void func_actor_405800_80139B3C(Task* arg0)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_wait_clip_then_rest.inc.c"
+#include "../../shared/stalker_zebra_ivory_finish_ceiling_fall.inc.c"
 
 static void func_actor_405800_80139C98(Task* arg0)
 {
@@ -4437,7 +4437,7 @@ static void func_actor_405800_80139E2C(Task* task)
     work->subState = work->subState + 1;
 }
 
-#include "../../shared/stalker_zebra_ivory_pick_range.inc.c"
+#include "../../shared/stalker_zebra_ivory_select_ceiling_exit.inc.c"
 
 static void func_actor_405800_80139EAC(Task* arg0)
 {
@@ -4466,7 +4466,7 @@ static void func_actor_405800_80139F0C(Task* task, u8 arg1)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_take_armed_pending.inc.c"
+#include "../../shared/stalker_zebra_ivory_apply_armed_reaction.inc.c"
 
 static void func_actor_405800_80139FB0(Task* task, s16 arg1)
 {

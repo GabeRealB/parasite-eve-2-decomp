@@ -1,24 +1,27 @@
-/* Part of the Zebra and Ivory Stalker library; see stalker_zebra_ivory.h. */
+/* Part of the Zebra/Ivory Stalker library; see stalker_zebra_ivory.h. */
 
-/// Colours the actor from its model's second coordinate: takes a 0x10-byte
-/// `VECTOR` off the scratch stack, fills it with that coordinate's world
-/// position and hands it to `worldCoordUpdateActorColor` for the task's `spawnArg2`,
-/// with zero for the unused arguments.
-void stalkerZebraIvoryUpdateColor(Task* task)
+/// Updates body lighting and colour from part 1's cached translation.
+///
+/// Requires a live model with at least two coordinates and its Enemy spawn
+/// argument. Copies cached XYZ without refreshing the part; the lighting
+/// query interprets the sample as world coordinates. Reserves one VECTOR on
+/// the initialized scratch stack, plus the lighting query's nested workspace,
+/// and releases it before returning. No sample pointer survives the call.
+static void _stalkerZebraIvoryUpdateColor(Task* task)
 {
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
+    GfxCoord* sampleCoord;
+    void**    scratchCursor;
+    u8*       scratchTop;
+    VECTOR*   samplePosition;
 
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    sampleCoord                          = &task->extra.tmd->coords[1];
+    scratchCursor                        = SCRATCH_HEAD_ADDR;
+    scratchTop                           = SCRATCH_HEAD_AT(scratchCursor, void);
+    samplePosition                       = (VECTOR*)(scratchTop - sizeof(VECTOR));
+    samplePosition->vx                   = sampleCoord->workm.t[0];
+    samplePosition->vy                   = sampleCoord->workm.t[1];
+    samplePosition->vz                   = sampleCoord->workm.t[2];
+    SCRATCH_HEAD_AT(scratchCursor, void) = samplePosition;
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, samplePosition, 0, 0);
+    SCRATCH_POP_BYTES_AT(scratchCursor, sizeof(VECTOR));
 }

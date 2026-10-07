@@ -1625,7 +1625,7 @@ AnimationSet* D_actor_400600_80151A54[35] = {
 };
 
 TaskMessageEntry D_actor_400600_80151AE0[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, stalkerZebraIvorySetMoveMode },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _stalkerZebraIvoryApplyRoomCommand },
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor400600HandleHoldReleaseMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -2166,8 +2166,8 @@ static void func_actor_400600_801332F4(Task* arg0)
 
 static const TaskFuncTable12 D_actor_400600_80131E24 = { {
     func_actor_400600_8013A3C8,
-    stalkerZebraIvoryResumeClip,
-    stalkerZebraIvoryAnimateUntilDone,
+    _stalkerZebraIvoryStartDeathClip,
+    _stalkerZebraIvoryTickDeathClip,
     func_actor_400600_8013A570,
     func_actor_400600_8013A638,
     func_actor_400600_8013A6C4,
@@ -3245,7 +3245,7 @@ static void _actor400600TickHorizontalWalk(Task* task, s16 nextLoopRate)
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/stalker_zebra_ivory_step_clip4.inc.c"
+#include "../../shared/stalker_zebra_ivory_tick_on_back_crawl.inc.c"
 
 /// Advances the hand-anchored wall walk used by the water entrance.
 ///
@@ -3467,14 +3467,14 @@ static const TaskFuncTable8 D_actor_400600_80131F40 = { {
     func_actor_400600_80133FC0,
     func_actor_400600_80134218,
     func_actor_400600_80134570,
-    stalkerZebraIvoryReleaseHold,
+    _stalkerZebraIvoryReleaseHold,
 } };
 
 static const TaskFuncTable4 D_actor_400600_80131F60 = { {
     func_actor_400600_8013BF48,
     func_actor_400600_8013479C,
     func_actor_400600_80134970,
-    stalkerZebraIvoryWaitClip,
+    _stalkerZebraIvoryWaitClip,
 } };
 
 static const TaskFuncTable3 D_actor_400600_80131F70 = { {
@@ -3494,7 +3494,7 @@ static const TaskFuncTable4 D_actor_400600_80131F8C = { {
     func_actor_400600_8013C1C0,
     func_actor_400600_8013C238,
     _actor400600FinishCeilingFallLanding,
-    stalkerZebraIvoryWaitClipThenRest,
+    _stalkerZebraIvoryFinishCeilingFall,
 } };
 
 static const TaskFuncTable3 gStalkerZebraIvorySubStates = { {
@@ -4411,7 +4411,7 @@ static void func_actor_400600_80138C34(Task* arg0)
         case SCENE_COMBAT_ACTORS_PAUSED:
             worldCollisionClearContacts(work->bodyContacts);
             worldCollisionClearContacts(work->capsuleContacts);
-            stalkerZebraIvoryUpdateColor(arg0);
+            _stalkerZebraIvoryUpdateColor(arg0);
             func_actor_400600_80132704(arg0, work->shadowWallZ, work->shadowShade);
             break;
     }
@@ -4437,7 +4437,7 @@ static void func_actor_400600_80138D78(Task* arg0)
         case SCENE_COMBAT_ACTORS_PAUSED:
             worldCollisionClearContacts(work->bodyContacts);
             worldCollisionClearContacts(work->capsuleContacts);
-            stalkerZebraIvoryUpdateColor(arg0);
+            _stalkerZebraIvoryUpdateColor(arg0);
             _actor400600DrawFloorShadows(arg0, 0, work->shadowShade);
             break;
     }
@@ -4463,7 +4463,7 @@ static void func_actor_400600_80138EA0(Task* arg0)
         case SCENE_COMBAT_ACTORS_PAUSED:
             worldCollisionClearContacts(work->bodyContacts);
             worldCollisionClearContacts(work->capsuleContacts);
-            stalkerZebraIvoryUpdateColor(arg0);
+            _stalkerZebraIvoryUpdateColor(arg0);
             _actor400600DrawFloorShadows(arg0, 0, work->shadowShade);
             break;
     }
@@ -4489,7 +4489,7 @@ static void func_actor_400600_80138FD4(Task* arg0)
         case SCENE_COMBAT_ACTORS_PAUSED:
             worldCollisionClearContacts(work->bodyContacts);
             worldCollisionClearContacts(work->capsuleContacts);
-            stalkerZebraIvoryUpdateColor(arg0);
+            _stalkerZebraIvoryUpdateColor(arg0);
             _actor400600DrawFloorShadows(arg0, 0, work->shadowShade);
             break;
     }
@@ -4606,15 +4606,15 @@ static void func_actor_400600_80139560(Task* arg0)
         pos.vx = work->targetPos.vx;
         pos.vy = work->targetPos.vy;
         pos.vz = work->targetPos.vz;
-        stalkerZebraIvoryTurnToward(arg0, &pos, 0x18);
-        stalkerZebraIvoryStepClip4(arg0);
+        _stalkerZebraIvoryTurnToward(arg0, &pos, 0x18);
+        _stalkerZebraIvoryTickOnBackCrawl(arg0);
     }
 }
 
 static void func_actor_400600_80139608(Task* arg0)
 {
     _Actor400600ZebraStalkerWork* work             = (_Actor400600ZebraStalkerWork*)arg0->work;
-    void                          (*fns[2])(Task*) = { func_actor_400600_8013BFD4, stalkerZebraIvoryRightItself };
+    void                          (*fns[2])(Task*) = { func_actor_400600_8013BFD4, _stalkerZebraIvoryRightItself };
 
     _stalkerZebraIvoryFoldArms(arg0);
     fns[work->subState](arg0);
@@ -4652,7 +4652,7 @@ static void func_actor_400600_80139764(Task* arg0)
 static void func_actor_400600_80139878(Task* arg0)
 {
     _Actor400600ZebraStalkerWork* work             = (_Actor400600ZebraStalkerWork*)arg0->work;
-    void                          (*fns[2])(Task*) = { func_actor_400600_8013C518, stalkerZebraIvoryPickRange };
+    void                          (*fns[2])(Task*) = { func_actor_400600_8013C518, _stalkerZebraIvorySelectCeilingExit };
 
     _stalkerZebraIvoryFoldArms(arg0);
     fns[work->subState](arg0);
@@ -4770,7 +4770,7 @@ static void func_actor_400600_8013A170(Task* arg0)
         case SCENE_COMBAT_ACTORS_RUNNING:
             fns.funcs[work->state](arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
-            stalkerZebraIvoryUpdateColor(arg0);
+            _stalkerZebraIvoryUpdateColor(arg0);
             _actor400600DrawFloorShadows(arg0, work->shadowHeight, work->shadowShade);
             break;
     }
@@ -4789,7 +4789,7 @@ static void func_actor_400600_8013A26C(Task* arg0)
 
 #include "../../shared/stalker_zebra_ivory_update_color.inc.c"
 
-#include "../../shared/stalker_zebra_ivory_set_move_mode.inc.c"
+#include "../../shared/stalker_zebra_ivory_apply_room_command.inc.c"
 
 /// Latches a request to release the player from the actor's hold.
 ///
@@ -4845,9 +4845,9 @@ static void func_actor_400600_8013A3C8(Task* arg0)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_resume_clip.inc.c"
+#include "../../shared/stalker_zebra_ivory_start_death_clip.inc.c"
 
-#include "../../shared/stalker_zebra_ivory_animate_until_done.inc.c"
+#include "../../shared/stalker_zebra_ivory_tick_death_clip.inc.c"
 
 static void func_actor_400600_8013A570(Task* arg0)
 {
@@ -5460,7 +5460,7 @@ static void func_actor_400600_8013B740(Task* arg0)
     pos.vx = work->targetPos.vx;
     pos.vy = work->targetPos.vy;
     pos.vz = work->targetPos.vz;
-    stalkerZebraIvoryTurnToward(arg0, &pos, work->turnStep);
+    _stalkerZebraIvoryTurnToward(arg0, &pos, work->turnStep);
     _actor400600TickHorizontalWalk(arg0, work->walkStep);
 }
 
@@ -5840,7 +5840,7 @@ static void func_actor_400600_8013C238(Task* arg0)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_wait_clip_then_rest.inc.c"
+#include "../../shared/stalker_zebra_ivory_finish_ceiling_fall.inc.c"
 
 /// Begins the knockdown recoil for the current upright or on-back pose.
 ///
@@ -5903,7 +5903,7 @@ static void func_actor_400600_8013C518(Task* arg0)
     work->subState++;
 }
 
-#include "../../shared/stalker_zebra_ivory_pick_range.inc.c"
+#include "../../shared/stalker_zebra_ivory_select_ceiling_exit.inc.c"
 
 static void func_actor_400600_8013C598(Task* arg0)
 {
@@ -6073,7 +6073,7 @@ static void func_actor_400600_8013C9DC(Task* arg0)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_take_armed_pending.inc.c"
+#include "../../shared/stalker_zebra_ivory_apply_armed_reaction.inc.c"
 
 /// Marks the selected strike arm as extended for its swing update.
 ///

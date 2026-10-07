@@ -836,6 +836,8 @@ Stalker (`actor_405800`). Its implementation interface is
 names its own work type `StalkerZebraIvoryWork` before including the fragments
 and spells the members they reach alike. Animation request and pending action
 values use `STALKER_ZEBRA_IVORY_ANIM_REQUEST_` and `STALKER_ZEBRA_IVORY_PENDING_`.
+Helpers reached only by a carrier's own calls and dispatch tables keep static
+linkage and the `_stalkerZebraIvory` prefix.
 
 `diver` owns the included strike child, impact sparks, joint turn and
 animation-request and state-selection code shared by the Bog Diver
