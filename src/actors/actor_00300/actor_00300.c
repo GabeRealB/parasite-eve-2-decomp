@@ -129,6 +129,23 @@ enum {
     ACTOR_00300_ANIM_EVENT_BASE       = 19
 };
 
+/// Combat thresholds and sound selectors of this actor's action handlers.
+///
+/// Sound selectors leave the instance byte clear; callers insert the placement index.
+/// The halo release state requests teardown by the room's halo task.
+enum {
+    ACTOR_00300_ACTION_BEGIN       = 0,
+    ACTOR_00300_PURSUIT_WAIT       = 0,
+    ACTOR_00300_PURSUIT_MOVE       = 1,
+    ACTOR_00300_CLOSE_RANGE        = 3000,
+    ACTOR_00300_HEAL_AMOUNT        = 100,
+    ACTOR_00300_SOUND_CHARGE       = 0x40030009,
+    ACTOR_00300_SOUND_RESTORE      = 0x4003000B,
+    ACTOR_00300_HALO_RELEASE_STATE = 3,
+    ACTOR_00300_MOTE_ANGLE_MASK    = 0xF80, // 32 bearings, 128 angle units apart
+    ACTOR_00300_MOTE_SPAWN_MASK    = 3      // Emit on one of four upper-halfword draws
+};
+
 /// Work block of the package's enemy task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
@@ -244,14 +261,14 @@ static void Actor00300_Fn04958(Enemy* arg0, Task* arg1);
 static void Actor00300_Fn00970(Enemy* enemy, Task* task);
 static void Actor00300_Fn04528(Task* arg0);
 static void Actor00300_Fn00E54(Task* arg0);
-static void Actor00300_Fn01678(Task* arg0);
-static void Actor00300_Fn019C0(Task* arg0);
-static void Actor00300_Fn01D60(Task* arg0);
-static void Actor00300_Fn01F9C(Task* arg0);
-static void Actor00300_Fn02620(Task* arg0);
-static void Actor00300_Fn028D0(Task* arg0);
-static void Actor00300_Fn02CE8(Task* arg0);
-static void Actor00300_Fn030B8(Task* arg0);
+static void _actor00300TickPatrol(Task* task);
+static void _actor00300TickPursuit(Task* task);
+static void _actor00300SelectAttack(Task* task);
+static void _actor00300TickFireballAttack(Task* task);
+static void _actor00300TickDrainAttack(Task* task);
+static void _actor00300TickHeal(Task* task);
+static void _actor00300TickHurt(Task* task);
+static void _actor00300TickRecharge(Task* task);
 static void Actor00300_Fn032BC(Task* arg0);
 static void Actor00300_Fn0340C(Task* arg0);
 static void Actor00300_Fn03A1C(Task* arg0);
@@ -259,13 +276,13 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1);
 static void Actor00300_Fn047CC(Enemy* arg0, Task* arg1);
 static void Actor00300_Fn04A2C(Task* arg0);
 static void Actor00300_Fn04C20(Task* arg0);
-static void Actor00300_Fn04D28(Task* arg0);
+static void _actor00300TickBuildup(Task* task);
 static void Actor00300_Fn04E30(Task* arg0);
-static void Actor00300_Fn04ED4(Task* arg0);
-static void Actor00300_Fn04FB0(Task* arg0);
-static void Actor00300_Fn05008(Task* arg0);
+static void _actor00300UpdateAnimation(Task* task);
+static void _actor00300UpdateLighting(Task* task);
+static void _actor00300DrawShadow(Task* task);
 static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2);
-static void Actor00300_Fn05194(Enemy* arg0, Task* arg1);
+static void _actor00300InitDrainModel(Enemy* enemy, Task* task);
 static void Actor00300_Fn05278(Enemy* arg0, Task* arg1);
 
 extern EnemyParams           Actor00300_D15FE8;
@@ -314,7 +331,7 @@ s32                 Actor00300_Fn05304(Task*, s32, AnimationPlayRequest*, s32);
 s32                 Actor00300_Fn053EC(Task*, s32, s32, s32);
 s32                 Actor00300_Fn05434(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
 void                Actor00300_Fn04770(Task*);
-void                Actor00300_Fn05138(Task*);
+static void         _actor00300DrainModelTask(Task* task);
 void                Actor00300_Fn0521C(Task*);
 
 static TmdBone _gActor00300StingerBodySkeleton[19] = {
@@ -1208,7 +1225,7 @@ SVECTOR* Actor00300_D16278[15][2] = {
 
 TaskDesc Actor00300_D162F0[3] = {
     { { { TASK_BODY_TMD, 96 } }, Actor00300_Fn04770, { .model = &_gActor00300StingerBody } },
-    { { { TASK_BODY_TMD, 96 } }, Actor00300_Fn05138, { .model = &_gActor00300Actor100300Model09FA0 } },
+    { { { TASK_BODY_TMD, 96 } }, _actor00300DrainModelTask, { .model = &_gActor00300Actor100300Model09FA0 } },
     { { { TASK_BODY_COORD, 96 } }, Actor00300_Fn0521C, { .value = 0 } },
 };
 
@@ -1290,8 +1307,8 @@ extern void* D_80067704[1];
 
 static inline s16      _actor00300TiltMagnitude(s8 value);
 static void            Actor00300_Fn03618(Task* arg0);
-static __inline__ void Actor00300_UpdateTransform(Enemy* arg0, Task* arg1);
-static void            Actor00300_Fn03F40(Enemy* arg0, Task* arg1);
+static __inline__ void _actor00300UpdateDrainModel(Task* task);
+static void            _actor00300DrainModelActive(Enemy* enemy, Task* task);
 static void            Actor00300_Fn040A4(Enemy* arg0, Task* arg1);
 static void            Actor00300_Fn04370(Enemy* arg0, Task* arg1);
 
@@ -1703,72 +1720,83 @@ static void Actor00300_Fn00E54(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00300HitScratch);
 }
 
-static void Actor00300_Fn01678(Task* arg0)
+/// Advances the room patrol and switches to pursuit when the actor is alerted.
+///
+/// Requires a live enemy model and a nonempty route with `patrolPoint` in range.
+/// The wait, turn and move stages use parent-coordinate X/Z; headings use 4096
+/// units per turn. Borrows one `VECTOR` scratch block for the point delta.
+static void _actor00300TickPatrol(Task* task)
 {
+    enum { ACTOR_00300_PATROL_WAIT      = 0,
+           ACTOR_00300_PATROL_TURN      = 1,
+           ACTOR_00300_PATROL_MOVE      = 2,
+           ACTOR_00300_PATROL_TURN_RATE = 40,
+           ACTOR_00300_PATROL_SPEED     = 25 };
+
     _Actor00300Work* work;
     GfxCoord*        coord;
     s16              timer;
     s16              nextPoint;
-    s32              state;
-    s16              nextState;
-    s32              dx;
-    s32              dz;
-    u16              angle0;
-    u16              angle1;
-    VECTOR*          vec;
-    VECTOR*          scratchEnd;
+    s32              step;
+    s16              nextStep;
+    s32              deltaX;
+    s32              deltaZ;
+    u16              nextYaw;
+    u16              turnYaw;
+    VECTOR*          routeDelta;
+    VECTOR*          stackTop;
 
-    scratchEnd                 = SCRATCH_STACK_CURSOR(void);
-    vec                        = scratchEnd - 1;
-    SCRATCH_STACK_CURSOR(void) = vec;
-    work                       = arg0->work;
-    state                      = work->actionStep;
-    coord                      = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
+    stackTop                     = SCRATCH_STACK_CURSOR(VECTOR);
+    routeDelta                   = stackTop - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = routeDelta;
+    work                         = task->work;
+    step                         = work->actionStep;
+    coord                        = task->extra.tmd->coords;
+    switch (step) {
+        case ACTOR_00300_PATROL_WAIT:
             work->turnRate = 0;
             work->speed    = 0;
             work->anim     = ACTOR_00300_ANIM_STAND;
             timer          = (u16)work->timer - 1;
             work->timer    = timer;
-            if ((timer << 0x10) <= 0) {
-                scratchEnd[-1].vx = (s32)(work->patrolPoints[work->patrolPoint].vx - coord->coord.t[0]);
-                vec->vy           = 0;
-                vec->vz           = (s32)(work->patrolPoints[work->patrolPoint].vz - coord->coord.t[2]);
-                angle0            = ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)vec->vz) & 0xFFF;
-                nextState         = 1;
-                work->targetYaw   = angle0;
-                if (work->yaw == angle0) {
-                    nextState = 2;
+            if (timer <= 0) {
+                routeDelta->vx  = (s32)(work->patrolPoints[work->patrolPoint].vx - coord->coord.t[0]);
+                routeDelta->vy  = 0;
+                routeDelta->vz  = (s32)(work->patrolPoints[work->patrolPoint].vz - coord->coord.t[2]);
+                nextYaw         = ratan2((s16)routeDelta->vx, (s16)routeDelta->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+                nextStep        = ACTOR_00300_PATROL_TURN;
+                work->targetYaw = nextYaw;
+                if (work->yaw == nextYaw) {
+                    nextStep = ACTOR_00300_PATROL_MOVE;
                 }
-                work->actionStep = nextState;
+                work->actionStep = nextStep;
                 work->timer      = 0;
             }
             break;
-        case 1:
-            work->turnRate    = 0x28;
-            work->anim        = ACTOR_00300_ANIM_TURN;
-            work->speed       = 0;
-            scratchEnd[-1].vx = (s32)(work->patrolPoints[work->patrolPoint].vx - coord->coord.t[0]);
-            vec->vy           = 0;
-            vec->vz           = (s32)(work->patrolPoints[work->patrolPoint].vz - coord->coord.t[2]);
-            angle1            = ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)vec->vz) & 0xFFF;
-            work->targetYaw   = angle1;
-            if (work->yaw == angle1) {
-                work->actionStep = 2;
+        case ACTOR_00300_PATROL_TURN:
+            work->turnRate  = ACTOR_00300_PATROL_TURN_RATE;
+            work->anim      = ACTOR_00300_ANIM_TURN;
+            work->speed     = 0;
+            routeDelta->vx  = (s32)(work->patrolPoints[work->patrolPoint].vx - coord->coord.t[0]);
+            routeDelta->vy  = 0;
+            routeDelta->vz  = (s32)(work->patrolPoints[work->patrolPoint].vz - coord->coord.t[2]);
+            turnYaw         = ratan2((s16)routeDelta->vx, (s16)routeDelta->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->targetYaw = turnYaw;
+            if (work->yaw == turnYaw) {
+                work->actionStep = ACTOR_00300_PATROL_MOVE;
             }
             break;
-        case 2:
-            work->turnRate    = 0x28;
-            work->speed       = 0x19;
-            work->anim        = state;
-            scratchEnd[-1].vx = (s32)(work->patrolPoints[work->patrolPoint].vx - coord->coord.t[0]);
-            vec->vy           = 0;
-            vec->vz           = (s32)(work->patrolPoints[work->patrolPoint].vz - coord->coord.t[2]);
-            work->targetYaw   = ratan2((s32)(s16)scratchEnd[-1].vx, (s32)(s16)vec->vz) & 0xFFF;
-            dx                = scratchEnd[-1].vx;
-            dz                = vec->vz;
-            if (SquareRoot0((dx * dx) + (dz * dz)) <= work->speed) {
+        case ACTOR_00300_PATROL_MOVE:
+            work->turnRate  = ACTOR_00300_PATROL_TURN_RATE;
+            work->speed     = ACTOR_00300_PATROL_SPEED;
+            work->anim      = ACTOR_00300_ANIM_MOVE;
+            routeDelta->vx  = (s32)(work->patrolPoints[work->patrolPoint].vx - coord->coord.t[0]);
+            routeDelta->vy  = 0;
+            routeDelta->vz  = (s32)(work->patrolPoints[work->patrolPoint].vz - coord->coord.t[2]);
+            work->targetYaw = ratan2((s16)routeDelta->vx, (s16)routeDelta->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            deltaX          = routeDelta->vx;
+            deltaZ          = routeDelta->vz;
+            if (SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ)) <= work->speed) {
                 coord->coord.t[0] = (s32)work->patrolPoints[work->patrolPoint].vx;
                 coord->coord.t[2] = (s32)work->patrolPoints[work->patrolPoint].vz;
                 work->speed       = 0;
@@ -1777,383 +1805,452 @@ static void Actor00300_Fn01678(Task* arg0)
                 if (nextPoint >= work->patrolPointCount) {
                     work->patrolPoint = 0;
                 }
-                work->actionStep = 1;
+                work->actionStep = ACTOR_00300_PATROL_TURN;
             }
             break;
     }
+    // A sighting, group alert or hit interrupts the current patrol stage.
     if ((work->alertTimer != 0) || (gSceneCombatState.actor00300AttackAlert != 0) || (work->hitDamage != 0)) {
         work->action     = ACTOR_00300_ACTION_PURSUE;
-        work->actionStep = 0;
+        work->actionStep = ACTOR_00300_ACTION_BEGIN;
         work->alertTimer = ACTOR_00300_ALERT_TICKS;
         sceneEngageBattle(1);
         gSceneCombatState.actor00300AttackAlert = 0;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void Actor00300_Fn019C0(Task* arg0)
+/// Alternates waiting and closing on the player, then selects an action when its attack timer expires.
+///
+/// Requires initialized enemy work and model coordinates. Losing the alert returns
+/// to patrol; attack selection requires `playerSeen`. Distances are in root-parent
+/// coordinate units and headings in 4096 units per turn. Borrows one `VECTOR`.
+static void _actor00300TickPursuit(Task* task)
 {
+    enum { ACTOR_00300_PURSUIT_YAW_TOLERANCE    = 0x100,
+           ACTOR_00300_PURSUIT_TURN_RATE        = 60,
+           ACTOR_00300_PURSUIT_SPEED            = 25,
+           ACTOR_00300_PURSUIT_MOVE_MIN_TICKS   = 30,
+           ACTOR_00300_ATTACK_MIN_TICKS         = 60,
+           ACTOR_00300_RETURN_PATROL_WAIT_TICKS = 10 };
+
     _Actor00300Work* work;
     GfxCoord*        coord;
-    VECTOR*          scratchEnd;
-    VECTOR*          vec;
-    s16              delta;
-    s16              angle;
+    VECTOR*          stackTop;
+    VECTOR*          playerDelta;
+    s16              yawDelta;
+    s16              targetYaw;
+    s16              yawError;
     s16              timer;
-    s16              wrapped;
-    s32              magnitude;
-    s32              moveMagnitude;
-    s32              distance;
-    s32              random;
+    s16              wrappedError;
+    s32              idleYawMagnitude;
+    s32              movingYawMagnitude;
+    s32              playerDistance;
+    s32              randomValue;
 
-    scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
-    vec                          = scratchEnd - 1;
-    SCRATCH_STACK_CURSOR(VECTOR) = vec;
-    work                         = arg0->work;
-    coord                        = arg0->extra.tmd->coords;
+    stackTop                     = SCRATCH_STACK_CURSOR(VECTOR);
+    playerDelta                  = stackTop - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = playerDelta;
+    work                         = task->work;
+    coord                        = task->extra.tmd->coords;
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_00300_PURSUIT_WAIT:
             work->turnRate = 0;
             work->speed    = 0;
             work->anim     = ACTOR_00300_ANIM_STAND;
             timer          = (u16)work->timer - 1;
             work->timer    = timer;
             if (timer <= 0) {
-                scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                vec->vy           = 0;
-                vec->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                distance          = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
-                angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
-                work->targetYaw   = angle;
-                delta             = (u16)angle - (u16)work->yaw;
-                magnitude         = abs(delta);
-                if (magnitude < 0x800) {
-                    angle = magnitude;
+                playerDelta->vx  = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+                playerDelta->vy  = 0;
+                playerDelta->vz  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+                playerDistance   = SquareRoot0(playerDelta->vx * playerDelta->vx + playerDelta->vz * playerDelta->vz);
+                targetYaw        = ratan2((s16)playerDelta->vx, (s16)playerDelta->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+                work->targetYaw  = targetYaw;
+                yawDelta         = (u16)targetYaw - (u16)work->yaw;
+                idleYawMagnitude = abs(yawDelta);
+                if (idleYawMagnitude < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+                    yawError = idleYawMagnitude;
                 } else {
-                    if (delta > 0) {
-                        wrapped = 0x1000 - delta;
+                    if (yawDelta > 0) {
+                        wrappedError = ACTOR_TRANSFORM_ANGLE_TURN - yawDelta;
                     } else {
-                        wrapped = delta + 0x1000;
+                        wrappedError = yawDelta + ACTOR_TRANSFORM_ANGLE_TURN;
                     }
-                    angle = wrapped;
+                    yawError = wrappedError;
                 }
-                if (distance >= 0xBB8 || angle >= 0x100) {
-                    work->actionStep = 1;
+                if (playerDistance >= ACTOR_00300_CLOSE_RANGE || yawError >= ACTOR_00300_PURSUIT_YAW_TOLERANCE) {
+                    work->actionStep = ACTOR_00300_PURSUIT_MOVE;
                 }
-                random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = random;
-                work->timer     = (((u32)random >> 16) & 31) + 30;
+                randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState = randomValue;
+                work->timer     = (((u32)randomValue >> 16) & 31) + ACTOR_00300_PURSUIT_MOVE_MIN_TICKS;
             }
             break;
-        case 1:
-            work->turnRate    = 0x3C;
-            work->speed       = 0x19;
-            work->anim        = ACTOR_00300_ANIM_MOVE;
-            scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            vec->vy           = 0;
-            vec->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            distance          = SquareRoot0(scratchEnd[-1].vx * scratchEnd[-1].vx + vec->vz * vec->vz);
-            angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
-            work->targetYaw   = angle;
-            delta             = (u16)angle - (u16)work->yaw;
-            moveMagnitude     = abs(delta);
-            if (moveMagnitude < 0x800) {
-                angle = moveMagnitude;
+        case ACTOR_00300_PURSUIT_MOVE:
+            work->turnRate     = ACTOR_00300_PURSUIT_TURN_RATE;
+            work->speed        = ACTOR_00300_PURSUIT_SPEED;
+            work->anim         = ACTOR_00300_ANIM_MOVE;
+            playerDelta->vx    = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            playerDelta->vy    = 0;
+            playerDelta->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+            playerDistance     = SquareRoot0(playerDelta->vx * playerDelta->vx + playerDelta->vz * playerDelta->vz);
+            targetYaw          = ratan2((s16)playerDelta->vx, (s16)playerDelta->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->targetYaw    = targetYaw;
+            yawDelta           = (u16)targetYaw - (u16)work->yaw;
+            movingYawMagnitude = abs(yawDelta);
+            if (movingYawMagnitude < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+                yawError = movingYawMagnitude;
             } else {
-                if (delta > 0) {
-                    wrapped = 0x1000 - delta;
+                if (yawDelta > 0) {
+                    wrappedError = ACTOR_TRANSFORM_ANGLE_TURN - yawDelta;
                 } else {
-                    wrapped = delta + 0x1000;
+                    wrappedError = yawDelta + ACTOR_TRANSFORM_ANGLE_TURN;
                 }
-                angle = wrapped;
+                yawError = wrappedError;
             }
             timer       = (u16)work->timer - 1;
             work->timer = timer;
-            if (timer <= 0 || (distance < 0xBB8 && angle < 0x100)) {
-                work->actionStep = 0;
-                random           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState  = random;
-                work->timer      = ((u32)random >> 16) & 31;
+            if (timer <= 0 || (playerDistance < ACTOR_00300_CLOSE_RANGE && yawError < ACTOR_00300_PURSUIT_YAW_TOLERANCE)) {
+                work->actionStep = ACTOR_00300_PURSUIT_WAIT;
+                randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState  = randomValue;
+                work->timer      = ((u32)randomValue >> 16) & 31;
             }
             break;
     }
     if (work->alertTimer == 0) {
         work->action                            = ACTOR_00300_ACTION_PATROL;
-        work->actionStep                        = 0;
+        work->actionStep                        = ACTOR_00300_ACTION_BEGIN;
         work->hitDamage                         = 0;
         gSceneCombatState.actor00300AttackAlert = 0;
-        work->timer                             = 10;
+        work->timer                             = ACTOR_00300_RETURN_PATROL_WAIT_TICKS;
     } else {
         timer             = (u16)work->attackTimer - 1;
         work->attackTimer = timer;
         if (timer <= 0) {
-            random            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState   = random;
-            work->attackTimer = (((u32)random >> 16) & 63) + 60;
+            randomValue       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState   = randomValue;
+            work->attackTimer = (((u32)randomValue >> 16) & 63) + ACTOR_00300_ATTACK_MIN_TICKS;
             if (work->playerSeen == 1) {
-                Actor00300_Fn01D60(arg0);
+                _actor00300SelectAttack(task);
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void Actor00300_Fn01D60(Task* arg0)
+/// Selects healing, a fireball, MP drain or recharge from current health, MP and player distance.
+///
+/// Requires initialized enemy work, a positive package maximum HP and live player
+/// and root matrices in the same parent space. Spends the heal or fireball cost
+/// immediately; a zero fireball draw still consumes its cost and resumes pursuit.
+/// The sixteen-entry draw contains 0..3, bounding the four-entry charge table.
+static void _actor00300SelectAttack(Task* task)
 {
+    enum { ACTOR_00300_HEAL_HP_THRESHOLD_PERCENT = 50,
+           ACTOR_00300_FIREBALL_NO_ATTACK        = 0,
+           ACTOR_00300_ATTACK_TURN_MIN_TICKS     = 60 };
+
     _Actor00300Work*  work;
     GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               random;
+    ActorFaceScratch* scratch;
+    s32               randomValue;
 
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (((Enemy*)arg0->spawnArg2.pointer)->hp * 100 / (s32)Actor00300_D15FE8.hpMax < 50 &&
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    work    = task->work;
+    coord   = task->extra.tmd->coords;
+    if (((Enemy*)task->spawnArg2.pointer)->hp * 100 / (s32)Actor00300_D15FE8.hpMax < ACTOR_00300_HEAL_HP_THRESHOLD_PERCENT &&
         work->mp >= ACTOR_00300_MP_HEAL_COST) {
         work->mp        -= ACTOR_00300_MP_HEAL_COST;
         work->anim       = ACTOR_00300_ANIM_CHARGE;
         work->action     = ACTOR_00300_ACTION_HEAL;
-        work->actionStep = 0;
+        work->actionStep = ACTOR_00300_ACTION_BEGIN;
     } else if (work->mp >= ACTOR_00300_MP_FIREBALL_COST) {
         work->mp            -= ACTOR_00300_MP_FIREBALL_COST;
         work->fireballAttack = Actor00300_D16000[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 15];
-        if (work->fireballAttack == 0) {
+        if (work->fireballAttack == ACTOR_00300_FIREBALL_NO_ATTACK) {
             work->action     = ACTOR_00300_ACTION_PURSUE;
-            work->actionStep = 0;
+            work->actionStep = ACTOR_00300_ACTION_BEGIN;
             work->timer      = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 31);
         } else {
             work->action     = ACTOR_00300_ACTION_FIREBALL;
-            work->actionStep = 0;
-            work->timer      = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 31) + 60;
+            work->actionStep = ACTOR_00300_ACTION_BEGIN;
+            work->timer      = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 31) + ACTOR_00300_ATTACK_TURN_MIN_TICKS;
         }
     } else {
-        sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-        sc->delta.vy = 0;
-        sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-        if (SquareRoot0(sc->delta.vx * sc->delta.vx + sc->delta.vz * sc->delta.vz) < 3000) {
+        scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+        scratch->delta.vy = 0;
+        scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+        if (SquareRoot0(scratch->delta.vx * scratch->delta.vx + scratch->delta.vz * scratch->delta.vz) < ACTOR_00300_CLOSE_RANGE) {
             work->action     = ACTOR_00300_ACTION_DRAIN;
-            work->actionStep = 0;
-            random           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState  = random;
-            work->timer      = (((u32)random >> 16) & 31) + 60;
+            work->actionStep = ACTOR_00300_ACTION_BEGIN;
+            randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState  = randomValue;
+            work->timer      = (((u32)randomValue >> 16) & 31) + ACTOR_00300_ATTACK_TURN_MIN_TICKS;
         } else {
             work->action     = ACTOR_00300_ACTION_RECHARGE;
-            work->actionStep = 0;
+            work->actionStep = ACTOR_00300_ACTION_BEGIN;
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-static void Actor00300_Fn01F9C(Task* arg0)
+/// Turns toward the player, charges and releases a fireball, then recovers to pursuit.
+///
+/// Requires attack index 1..3 and initialized parent work/model coordinates.
+/// Animation ticks schedule the effects and projectile; the charge halo belongs
+/// to the enemy task tree. Spawn offsets are read during `effectSpawn`; temporary
+/// offset storage cannot be followed after this call returns.
+static void _actor00300TickFireballAttack(Task* task)
 {
-    SVECTOR           sp10;
-    SVECTOR           sp18;
+    enum { ACTOR_00300_FIREBALL_AIM               = 0,
+           ACTOR_00300_FIREBALL_CHARGE            = 1,
+           ACTOR_00300_FIREBALL_RELEASE           = 2,
+           ACTOR_00300_FIREBALL_RECOVER           = 3,
+           ACTOR_00300_FIREBALL_YAW_TOLERANCE     = 0x100,
+           ACTOR_00300_FIREBALL_AIM_RATE          = 60,
+           ACTOR_00300_FIREBALL_CHARGE_TURN_RATE  = 15,
+           ACTOR_00300_FIREBALL_HALO_FRAME        = 51,
+           ACTOR_00300_FIREBALL_HALO_LEAD_TICKS   = 50,
+           ACTOR_00300_FIREBALL_SPAWN_FRAME       = 14,
+           ACTOR_00300_FIREBALL_RELEASE_END_FRAME = 19,
+           ACTOR_00300_FIREBALL_RECOVER_END_FRAME = 20,
+           ACTOR_00300_FIREBALL_DESCRIPTOR_INDEX  = 2,
+           ACTOR_00300_SOUND_CHARGE_START         = 0x40030006,
+           ACTOR_00300_SOUND_FIREBALL_RELEASE     = 0x40030005,
+           ACTOR_00300_FIREBALL_MOTE_ARG          = 0x20101200, // 512-unit half-extent, palette 1, 16-unit base rise, 32 ticks
+    };
+
+    SVECTOR           moteOffset;
+    SVECTOR           radialOffset;
     _Actor00300Work*  work;
     EffectWork*       effect;
     GfxCoord*         coord;
     s16               turnTimer;
     s16               effectTimer2;
     s16               effectTimer1;
-    s16               state;
-    s16               delta;
-    s32               magnitude;
-    s16               angle;
-    s16               delay;
-    s32               random2;
-    s32               effectAngle2;
-    s32               random1;
-    s32               effectAngle1;
-    s32               sound;
-    s32               delayRandom0;
-    s32               delayRandom3;
-    s32               pan2;
-    s32               pan1;
-    s32               effectPan;
-    u16               yaw;
-    u32               effectRandom2;
-    u32               effectRandom1;
-    ActorFaceScratch* scratchEnd;
+    s16               step;
+    s16               yawDelta;
+    s32               yawMagnitude;
+    s16               yawError;
+    s16               pursuitDelay;
+    s32               releaseMoteRandom;
+    s32               releaseMoteAngle;
+    s32               chargeMoteRandom;
+    s32               chargeMoteAngle;
+    s32               soundId;
+    s32               abortDelayRandom;
+    s32               recoveryDelayRandom;
+    s32               releasePan;
+    s32               chargeStartPan;
+    s32               chargeLoopPan;
+    u16               targetYaw;
+    u32               releaseSpawnRandom;
+    u32               chargeSpawnRandom;
+    ActorFaceScratch* stackTop;
     ActorFaceScratch* scratch;
 
-    scratchEnd = SCRATCH_STACK_CURSOR(ActorFaceScratch);
-    scratch    = (SCRATCH_STACK_CURSOR(ActorFaceScratch) = scratchEnd - 1);
-    work       = arg0->work;
-    state      = work->actionStep;
-    coord      = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            work->turnRate = 0x3C;
+    stackTop = SCRATCH_STACK_CURSOR(ActorFaceScratch);
+    scratch  = (SCRATCH_STACK_CURSOR(ActorFaceScratch) = stackTop - 1);
+    work     = task->work;
+    step     = work->actionStep;
+    coord    = task->extra.tmd->coords;
+    switch (step) {
+        case ACTOR_00300_FIREBALL_AIM:
+            work->turnRate = ACTOR_00300_FIREBALL_AIM_RATE;
             work->speed    = 0;
             work->anim     = ACTOR_00300_ANIM_TURN;
-            scratchEnd[-1].delta.vx =
+            stackTop[-1].delta.vx =
                 (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
             scratch->delta.vy = 0;
             scratch->delta.vz = (s32)(gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]);
-            yaw               = ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
-                  0xFFF;
-            work->targetYaw = yaw;
-            delta           = yaw - (u16)work->yaw;
-            magnitude       = abs(delta);
-            angle           = magnitude >= 0x800 ? (delta > 0 ? 0x1000 - delta : delta + 0x1000)
-                                                 : magnitude;
-            if (angle < 0x100) {
-                work->actionStep                        = 1;
+            targetYaw         = ratan2((s16)stackTop[-1].delta.vx, (s16)scratch->delta.vz) &
+                        ACTOR_TRANSFORM_ANGLE_MASK;
+            work->targetYaw = targetYaw;
+            yawDelta        = targetYaw - (u16)work->yaw;
+            yawMagnitude    = abs(yawDelta);
+            yawError        = yawMagnitude >= ACTOR_TRANSFORM_ANGLE_HALF_TURN ? (yawDelta > 0 ? ACTOR_TRANSFORM_ANGLE_TURN - yawDelta : yawDelta + ACTOR_TRANSFORM_ANGLE_TURN)
+                                                                              : yawMagnitude;
+            if (yawError < ACTOR_00300_FIREBALL_YAW_TOLERANCE) {
+                work->actionStep                        = ACTOR_00300_FIREBALL_CHARGE;
                 work->anim                              = ACTOR_00300_ANIM_CHARGE;
                 gSceneCombatState.actor00300AttackAlert = 1;
             } else {
                 turnTimer   = (u16)work->timer - 1;
                 work->timer = turnTimer;
-                if ((turnTimer << 0x10) <= 0) {
+                if (turnTimer <= 0) {
                     work->action     = ACTOR_00300_ACTION_PURSUE;
-                    work->actionStep = 0;
-                    delayRandom0     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState  = delayRandom0;
-                    delay            = ((u32)delayRandom0 >> 0x10) & 0xF;
-                    work->timer      = delay;
+                    work->actionStep = ACTOR_00300_ACTION_BEGIN;
+                    abortDelayRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState  = abortDelayRandom;
+                    pursuitDelay     = ((u32)abortDelayRandom >> 0x10) & 0xF;
+                    work->timer      = pursuitDelay;
                 }
             }
             break;
-        case 1:
+        case ACTOR_00300_FIREBALL_CHARGE:
             gSceneCombatState.actor00300AttackAlert = 0;
-            work->turnRate                          = 0xF;
-            scratchEnd[-1].delta.vx =
+            work->turnRate                          = ACTOR_00300_FIREBALL_CHARGE_TURN_RATE;
+            stackTop[-1].delta.vx =
                 (s32)(gPlayerStatus.coordMtx->t[0] - coord->coord.t[0]);
             scratch->delta.vy = 0;
             scratch->delta.vz = (s32)(gPlayerStatus.coordMtx->t[2] - coord->coord.t[2]);
             work->targetYaw =
-                ratan2((s32)(s16)scratchEnd[-1].delta.vx, (s32)(s16)scratch->delta.vz) &
-                0xFFF;
+                ratan2((s16)stackTop[-1].delta.vx, (s16)scratch->delta.vz) &
+                ACTOR_TRANSFORM_ANGLE_MASK;
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                effectRandom1   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = effectRandom1;
-                if (!((effectRandom1 >> 0x10) & 3)) {
-                    random1         = (effectRandom1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = random1;
-                    effectAngle1    = ((u32)random1 >> 0x10) & 0xF80;
-                    memset(&sp18, 0, 8);
-                    sp18.vx = (s16)((u32)(rcos(effectAngle1) * 5) >> 5);
-                    sp18.vz = (s16)((u32)(rsin(effectAngle1) * 5) >> 5);
-                    sp10    = sp18;
-                    effectSpawn(gRoomEffectMoteId, coord, 0x20101200, &sp10);
+                chargeSpawnRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState   = chargeSpawnRandom;
+                if (!((chargeSpawnRandom >> 0x10) & ACTOR_00300_MOTE_SPAWN_MASK)) {
+                    chargeMoteRandom = (chargeSpawnRandom * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState  = chargeMoteRandom;
+                    chargeMoteAngle  = ((u32)chargeMoteRandom >> 0x10) & ACTOR_00300_MOTE_ANGLE_MASK;
+                    memset(&radialOffset, 0, sizeof(radialOffset));
+                    radialOffset.vx = (s16)((u32)(rcos(chargeMoteAngle) * 5) >> 5);
+                    radialOffset.vz = (s16)((u32)(rsin(chargeMoteAngle) * 5) >> 5);
+                    moteOffset      = radialOffset;
+                    effectSpawn(gRoomEffectMoteId, coord, ACTOR_00300_FIREBALL_MOTE_ARG, &moteOffset);
                 }
             }
-            if (work->animFrame == 0x33) {
-                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030006;
-                pan1  = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, (s32)pan1,
+            // Keep the halo alive until the chosen attack charge completes.
+            if (work->animFrame == ACTOR_00300_FIREBALL_HALO_FRAME) {
+                soundId        = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_CHARGE_START;
+                chargeStartPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(soundId, (s32)chargeStartPan,
                                          (s32)(s8)worldCoordGetOriginAudioDepth(coord));
                 scratch->rot.vy = -0x5DC;
                 scratch->rot.vx = 0;
                 scratch->rot.vz = 0x320;
                 effect =
                     effectSpawn(gRoomEffectHaloId, coord,
-                                Actor00300_D15FF8[work->fireballAttack] - 0x32, &scratch->rot);
+                                Actor00300_D15FF8[work->fireballAttack] - ACTOR_00300_FIREBALL_HALO_LEAD_TICKS, &scratch->rot);
                 work->chargeEffect = effect;
                 if (effect != NULL) {
-                    taskReparent(arg0, effect->task);
-                    work->chargeEffectTimer = Actor00300_D15FF8[work->fireballAttack] - 0x32;
+                    taskReparent(task, effect->task);
+                    work->chargeEffectTimer = Actor00300_D15FF8[work->fireballAttack] - ACTOR_00300_FIREBALL_HALO_LEAD_TICKS;
                 }
                 work->chargeSound =
-                    ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030009;
-                effectPan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(work->chargeSound, (s32)effectPan,
+                    ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_CHARGE;
+                chargeLoopPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(work->chargeSound, (s32)chargeLoopPan,
                                          (s32)(s8)worldCoordGetOriginAudioDepth(coord));
             }
             if (work->animFrame >= Actor00300_D15FF8[work->fireballAttack]) {
-                work->actionStep = 2;
+                work->actionStep = ACTOR_00300_FIREBALL_RELEASE;
                 work->anim       = ACTOR_00300_ANIM_RELEASE;
                 work->turnRate   = 0;
             }
             if (work->chargeEffectTimer > 0) {
                 effectTimer1            = (u16)work->chargeEffectTimer - 1;
                 work->chargeEffectTimer = effectTimer1;
-                if ((effectTimer1 << 0x10) <= 0) {
+                if (effectTimer1 <= 0) {
                     work->chargeEffect = NULL;
                 }
             }
             break;
-        case 2:
+        case ACTOR_00300_FIREBALL_RELEASE:
             if (work->chargeEffectTimer > 0) {
                 effectTimer2            = (u16)work->chargeEffectTimer - 1;
                 work->chargeEffectTimer = effectTimer2;
-                if ((effectTimer2 << 0x10) <= 0) {
+                if (effectTimer2 <= 0) {
                     work->chargeEffect = NULL;
                 }
             }
-            if ((work->animFrame < 0xE) && (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING)) {
-                effectRandom2   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = effectRandom2;
-                if (!((effectRandom2 >> 0x10) & 3)) {
-                    random2         = (effectRandom2 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = random2;
-                    effectAngle2    = ((u32)random2 >> 0x10) & 0xF80;
-                    memset(&sp18, 0, 8);
-                    sp18.vx = (s16)((u32)(rcos(effectAngle2) * 5) >> 5);
-                    sp18.vz = (s16)((u32)(rsin(effectAngle2) * 5) >> 5);
-                    sp10    = sp18;
-                    effectSpawn(gRoomEffectMoteId, coord, 0x20101200, &sp10);
+            if ((work->animFrame < ACTOR_00300_FIREBALL_SPAWN_FRAME) && (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING)) {
+                releaseSpawnRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState    = releaseSpawnRandom;
+                if (!((releaseSpawnRandom >> 0x10) & ACTOR_00300_MOTE_SPAWN_MASK)) {
+                    releaseMoteRandom = (releaseSpawnRandom * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState   = releaseMoteRandom;
+                    releaseMoteAngle  = ((u32)releaseMoteRandom >> 0x10) & ACTOR_00300_MOTE_ANGLE_MASK;
+                    memset(&radialOffset, 0, sizeof(radialOffset));
+                    radialOffset.vx = (s16)((u32)(rcos(releaseMoteAngle) * 5) >> 5);
+                    radialOffset.vz = (s16)((u32)(rsin(releaseMoteAngle) * 5) >> 5);
+                    moteOffset      = radialOffset;
+                    effectSpawn(gRoomEffectMoteId, coord, ACTOR_00300_FIREBALL_MOTE_ARG, &moteOffset);
                 }
             }
-            if (work->animFrame == 0xE) {
-                enemySpawnFromTable(Actor00300_D162F0, 2, 0, arg0->spawnArg2.pointer);
-                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030005;
-                pan2  = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, (s32)pan2,
+            // Release exactly one projectile on the animation cue.
+            if (work->animFrame == ACTOR_00300_FIREBALL_SPAWN_FRAME) {
+                enemySpawnFromTable(Actor00300_D162F0, ACTOR_00300_FIREBALL_DESCRIPTOR_INDEX, 0, task->spawnArg2.pointer);
+                soundId    = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_FIREBALL_RELEASE;
+                releasePan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(soundId, (s32)releasePan,
                                          (s32)(s8)worldCoordGetOriginAudioDepth(coord));
             }
-            if (work->animFrame >= 0x13) {
-                work->actionStep = 3;
+            if (work->animFrame >= ACTOR_00300_FIREBALL_RELEASE_END_FRAME) {
+                work->actionStep = ACTOR_00300_FIREBALL_RECOVER;
                 work->anim       = ACTOR_00300_ANIM_RECOVER;
             }
             break;
-        case 3:
-            if (work->animFrame >= 0x14) {
-                work->action     = ACTOR_00300_ACTION_PURSUE;
-                work->actionStep = 0;
-                delayRandom3     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState  = delayRandom3;
-                delay            = ((u32)delayRandom3 >> 0x10) & 0x1F;
-                work->timer      = delay;
+        case ACTOR_00300_FIREBALL_RECOVER:
+            if (work->animFrame >= ACTOR_00300_FIREBALL_RECOVER_END_FRAME) {
+                work->action        = ACTOR_00300_ACTION_PURSUE;
+                work->actionStep    = ACTOR_00300_ACTION_BEGIN;
+                recoveryDelayRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState     = recoveryDelayRandom;
+                pursuitDelay        = ((u32)recoveryDelayRandom >> 0x10) & 0x1F;
+                work->timer         = pursuitDelay;
             }
             break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-static void Actor00300_Fn02620(Task* arg0)
+/// Turns toward the player and extends the drain model and its MP-draining collision sphere.
+///
+/// Requires a live drain child and parent work. The model grows by 1/16 in Q12
+/// scale per animation tick during frames 16..35, retracts from frame 51 and
+/// finishes at frame 55. Pair contacts begin at frame 32 and end on contact or
+/// completion. Borrows one `VECTOR`; angles use 4096 units per turn.
+static void _actor00300TickDrainAttack(Task* task)
 {
+    enum { ACTOR_00300_DRAIN_AIM                = 0,
+           ACTOR_00300_DRAIN_EXTEND             = 1,
+           ACTOR_00300_DRAIN_YAW_TOLERANCE      = 0x80,
+           ACTOR_00300_DRAIN_AIM_RATE           = 60,
+           ACTOR_00300_DRAIN_EXTEND_START_FRAME = 16,
+           ACTOR_00300_DRAIN_EXTEND_TICKS       = 20U,
+           ACTOR_00300_DRAIN_RETRACT_FRAME      = 51,
+           ACTOR_00300_DRAIN_CONTACT_FRAME      = 32,
+           ACTOR_00300_DRAIN_END_FRAME          = 55,
+           ACTOR_00300_DRAIN_SCALE_STEP         = ONE / 16,
+           ACTOR_00300_SOUND_DRAIN              = 0x4003000A };
+
     _Actor00300Work* work;
     GfxCoord*        coord;
-    VECTOR*          scratchEnd;
-    VECTOR*          vec;
-    s16              delta;
-    s16              angle;
+    VECTOR*          stackTop;
+    VECTOR*          playerDelta;
+    s16              yawDelta;
+    s16              targetYaw;
+    s16              yawError;
     s16              timer;
-    s32              magnitude;
-    s32              sound;
+    s32              yawMagnitude;
+    s32              soundId;
     s32              pan;
-    s32              random;
+    s32              randomValue;
 
-    scratchEnd                   = SCRATCH_STACK_CURSOR(VECTOR);
-    vec                          = scratchEnd - 1;
-    SCRATCH_STACK_CURSOR(VECTOR) = vec;
-    work                         = arg0->work;
-    coord                        = arg0->extra.tmd->coords;
+    stackTop                     = SCRATCH_STACK_CURSOR(VECTOR);
+    playerDelta                  = stackTop - 1;
+    SCRATCH_STACK_CURSOR(VECTOR) = playerDelta;
+    work                         = task->work;
+    coord                        = task->extra.tmd->coords;
     switch (work->actionStep) {
-        case 0:
-            work->turnRate    = 0x3C;
-            work->speed       = 0;
-            work->anim        = ACTOR_00300_ANIM_TURN;
-            scratchEnd[-1].vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            vec->vy           = 0;
-            vec->vz           = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            angle             = ratan2((s16)scratchEnd[-1].vx, (s16)vec->vz) & 0xFFF;
-            work->targetYaw   = angle;
-            delta             = (u16)angle - (u16)work->yaw;
-            magnitude         = abs(delta);
-            angle             = magnitude >= 0x800 ? (delta > 0 ? 0x1000 - delta : delta + 0x1000) : magnitude;
-            if (angle < 0x80) {
-                work->actionStep = 1;
+        case ACTOR_00300_DRAIN_AIM:
+            work->turnRate  = ACTOR_00300_DRAIN_AIM_RATE;
+            work->speed     = 0;
+            work->anim      = ACTOR_00300_ANIM_TURN;
+            playerDelta->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
+            playerDelta->vy = 0;
+            playerDelta->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
+            targetYaw       = ratan2((s16)playerDelta->vx, (s16)playerDelta->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->targetYaw = targetYaw;
+            yawDelta        = (u16)targetYaw - (u16)work->yaw;
+            yawMagnitude    = abs(yawDelta);
+            yawError        = yawMagnitude >= ACTOR_TRANSFORM_ANGLE_HALF_TURN ? (yawDelta > 0 ? ACTOR_TRANSFORM_ANGLE_TURN - yawDelta : yawDelta + ACTOR_TRANSFORM_ANGLE_TURN) : yawMagnitude;
+            if (yawError < ACTOR_00300_DRAIN_YAW_TOLERANCE) {
+                work->actionStep = ACTOR_00300_DRAIN_EXTEND;
                 work->turnRate   = 0;
                 work->anim       = ACTOR_00300_ANIM_DRAIN;
             } else {
@@ -2161,106 +2258,139 @@ static void Actor00300_Fn02620(Task* arg0)
                 work->timer = timer;
                 if (timer <= 0) {
                     work->action     = ACTOR_00300_ACTION_PURSUE;
-                    work->actionStep = 0;
-                    random           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState  = random;
-                    work->timer      = ((u32)random >> 16) & 15;
+                    work->actionStep = ACTOR_00300_ACTION_BEGIN;
+                    randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState  = randomValue;
+                    work->timer      = ((u32)randomValue >> 16) & 15;
                 }
             }
             break;
-        case 1:
-            if ((u32)((u16)work->animFrame - 0x10) < 0x14U) {
-                work->drainScaleY += 0x100;
-            } else if (work->animFrame >= 0x33) {
-                work->drainScaleY -= 0x100;
+        case ACTOR_00300_DRAIN_EXTEND:
+            // The unsigned range test selects only the outward-extension frames.
+            if ((u32)((u16)work->animFrame - ACTOR_00300_DRAIN_EXTEND_START_FRAME) < (u32)ACTOR_00300_DRAIN_EXTEND_TICKS) {
+                work->drainScaleY += ACTOR_00300_DRAIN_SCALE_STEP;
+            } else if (work->animFrame >= ACTOR_00300_DRAIN_RETRACT_FRAME) {
+                work->drainScaleY -= ACTOR_00300_DRAIN_SCALE_STEP;
             }
-            if (work->animFrame == 0x20) {
+            if (work->animFrame == ACTOR_00300_DRAIN_CONTACT_FRAME) {
                 work->drainBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                sound                  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4003000A;
+                soundId                = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_DRAIN;
                 pan                    = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            if (work->animFrame >= 0x37) {
+            if (work->animFrame >= ACTOR_00300_DRAIN_END_FRAME) {
                 work->drainScaleY      = 0;
                 work->action           = ACTOR_00300_ACTION_PURSUE;
-                work->actionStep       = 0;
-                random                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState        = random;
-                work->timer            = ((u32)random >> 16) & 31;
+                work->actionStep       = ACTOR_00300_ACTION_BEGIN;
+                randomValue            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState        = randomValue;
+                work->timer            = ((u32)randomValue >> 16) & 31;
                 work->drainBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-static void Actor00300_Fn028D0(Task* arg0)
+/// Randomly emits a rising charge mote using caller-owned temporary offsets.
+///
+/// coord and packedArg are evaluated once if emitted; all other arguments are
+/// side-effect-free writable scalar/vector lvalues evaluated repeatedly.
+/// spawnRandom is u32, angleRandom and moteAngle are s32, and both offsets
+/// are distinct SVECTOR objects. Temporaries must not alias one another or the
+/// shared LCG state. Captures the room mote id and shared
+/// LCG state, advancing it once for the decision and again for the angle on a
+/// one-in-four success. The caller must gate room effect control. The packed
+/// word supplies half-extent/palette, upward speed and lifetime. Offset storage
+/// lasts through spawn only and must not be followed after the caller returns.
+#define ACTOR_00300_SPAWN_CHARGE_MOTE(coord, packedArg, spawnRandom, angleRandom, moteAngle, radialOffset, moteOffset) \
+    do {                                                                                                               \
+        (spawnRandom)   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                              \
+        gRandomLcgState = (spawnRandom);                                                                               \
+        if (!(((spawnRandom) >> 16) & ACTOR_00300_MOTE_SPAWN_MASK)) {                                                  \
+            (angleRandom)   = (spawnRandom) * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                            \
+            gRandomLcgState = (angleRandom);                                                                           \
+            (moteAngle)     = ((u32)(angleRandom) >> 16) & ACTOR_00300_MOTE_ANGLE_MASK;                                \
+            memset(&(radialOffset), 0, sizeof(radialOffset));                                                          \
+            (radialOffset).vx = (s16)((u32)(rcos((moteAngle)) * 5) >> 5);                                              \
+            (radialOffset).vz = (s16)((u32)(rsin((moteAngle)) * 5) >> 5);                                              \
+            (moteOffset)      = (radialOffset);                                                                        \
+            effectSpawn(gRoomEffectMoteId, (coord), (packedArg), &(moteOffset));                                       \
+        }                                                                                                              \
+    } while (0)
+
+/// Charges and restores 100 HP, emits the healing effects, then resumes pursuit.
+///
+/// Requires the charge animation already selected and the heal MP cost already
+/// paid. HP addition retains 16-bit wrap and is not clamped to maximum HP.
+/// Halo and spark-emitter tasks join the enemy teardown tree; mote offsets are
+/// temporary spawn-time values. Animation ticks gate the three stages.
+static void _actor00300TickHeal(Task* task)
 {
-    SVECTOR          sp10;
-    SVECTOR          sp18;
-    SVECTOR          sp20;
+    enum { ACTOR_00300_HEAL_CHARGE            = 0,
+           ACTOR_00300_HEAL_RELEASE           = 1,
+           ACTOR_00300_HEAL_RECOVER           = 2,
+           ACTOR_00300_HEAL_HALO_FRAME        = 51,
+           ACTOR_00300_HEAL_RELEASE_END_FRAME = 19,
+           ACTOR_00300_HEAL_RECOVER_END_FRAME = 15,
+           ACTOR_00300_HEAL_HALO_ARG          = 0x10014,    // tint row 1, 20 expansion ticks
+           ACTOR_00300_HEAL_MOTE_ARG          = 0x20100200, // 512-unit half-extent, palette 0, 16-unit base rise, 32 ticks
+    };
+
+    SVECTOR          haloOffset;
+    SVECTOR          moteOffset;
+    SVECTOR          radialOffset;
     _Actor00300Work* work;
-    EffectWork*      effect;
-    EffectWork*      burst;
+    EffectWork*      halo;
+    EffectWork*      sparkEmitter;
     Enemy*           enemy;
-    TmdObject*       obj;
-    Enemy*           currentEnemy;
+    TmdObject*       model;
+    Enemy*           healedEnemy;
     GfxCoord*        coord;
     s16              timer;
-    s16              state;
-    s32              random0;
-    s32              angle0;
-    s32              random1;
-    s32              angle1;
-    s32              sound;
-    s32              random2;
-    s32              pan0;
-    s32              pan1;
-    u32              effectRandom0;
-    u32              effectRandom1;
+    s16              step;
+    s32              chargeMoteRandom;
+    s32              chargeMoteAngle;
+    s32              releaseMoteRandom;
+    s32              releaseMoteAngle;
+    s32              soundId;
+    s32              recoveryDelayRandom;
+    s32              chargePan;
+    s32              restorePan;
+    u32              chargeSpawnRandom;
+    u32              releaseSpawnRandom;
 
-    obj   = arg0->extra.tmd;
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    state = work->actionStep;
-    coord = obj->coords;
-    switch (state) {
-        case 0:
+    model = task->extra.tmd;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    step  = work->actionStep;
+    coord = model->coords;
+    switch (step) {
+        case ACTOR_00300_HEAL_CHARGE:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                effectRandom0   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = effectRandom0;
-                if (!((effectRandom0 >> 0x10) & 3)) {
-                    random0         = (effectRandom0 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = random0;
-                    angle0          = ((u32)random0 >> 0x10) & 0xF80;
-                    memset(&sp20, 0, sizeof(sp20));
-                    sp20.vx = (s16)((u32)(rcos(angle0) * 5) >> 5);
-                    sp20.vz = (s16)((u32)(rsin(angle0) * 5) >> 5);
-                    sp18    = sp20;
-                    effectSpawn(gRoomEffectMoteId, coord, 0x20100200, &sp18);
-                }
+                ACTOR_00300_SPAWN_CHARGE_MOTE(coord, ACTOR_00300_HEAL_MOTE_ARG, chargeSpawnRandom, chargeMoteRandom, chargeMoteAngle, radialOffset, moteOffset);
             }
             work->turnRate = 0;
             work->speed    = 0;
-            if (work->animFrame >= 0x33) {
-                work->actionStep   = 1;
+            if (work->animFrame >= ACTOR_00300_HEAL_HALO_FRAME) {
+                work->actionStep   = ACTOR_00300_HEAL_RELEASE;
                 work->anim         = ACTOR_00300_ANIM_RELEASE;
-                sp10.vy            = -0x5DC;
-                sp10.vx            = 0;
-                sp10.vz            = 0x320;
-                effect             = effectSpawn(gRoomEffectHaloId, coord, 0x10014, &sp10);
-                work->chargeEffect = effect;
-                if (effect != NULL) {
-                    taskReparent(arg0, effect->task);
-                    work->chargeEffectTimer = 0x13;
+                haloOffset.vy      = -0x5DC;
+                haloOffset.vx      = 0;
+                haloOffset.vz      = 0x320;
+                halo               = effectSpawn(gRoomEffectHaloId, coord, ACTOR_00300_HEAL_HALO_ARG, &haloOffset);
+                work->chargeEffect = halo;
+                if (halo != NULL) {
+                    taskReparent(task, halo->task);
+                    work->chargeEffectTimer = ACTOR_00300_HEAL_RELEASE_END_FRAME;
                 }
-                work->chargeSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030009;
-                pan0              = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(work->chargeSound, pan0, (s8)worldCoordGetOriginAudioDepth(coord));
+                work->chargeSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_CHARGE;
+                chargePan         = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(work->chargeSound, chargePan, (s8)worldCoordGetOriginAudioDepth(coord));
                 return;
             }
             return;
-        case 1:
+        case ACTOR_00300_HEAL_RELEASE:
             if (work->chargeEffectTimer > 0) {
                 timer                   = (u16)work->chargeEffectTimer - 1;
                 work->chargeEffectTimer = timer;
@@ -2269,163 +2399,187 @@ static void Actor00300_Fn028D0(Task* arg0)
                 }
             }
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                effectRandom1   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = effectRandom1;
-                if (!((effectRandom1 >> 0x10) & 3)) {
-                    random1         = (effectRandom1 * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = random1;
-                    angle1          = ((u32)random1 >> 0x10) & 0xF80;
-                    memset(&sp20, 0, sizeof(sp20));
-                    sp20.vx = (s16)((u32)(rcos(angle1) * 5) >> 5);
-                    sp20.vz = (s16)((u32)(rsin(angle1) * 5) >> 5);
-                    sp18    = sp20;
-                    effectSpawn(gRoomEffectMoteId, coord, 0x20100200, &sp18);
-                }
+                ACTOR_00300_SPAWN_CHARGE_MOTE(coord, ACTOR_00300_HEAL_MOTE_ARG, releaseSpawnRandom, releaseMoteRandom, releaseMoteAngle, radialOffset, moteOffset);
             }
-            if (work->animFrame >= 0x13) {
-                work->actionStep   = 2;
+            if (work->animFrame >= ACTOR_00300_HEAL_RELEASE_END_FRAME) {
+                work->actionStep   = ACTOR_00300_HEAL_RECOVER;
                 work->chargeEffect = NULL;
                 work->anim         = ACTOR_00300_ANIM_RECOVER;
-                currentEnemy       = arg0->spawnArg2.pointer;
-                currentEnemy->hp   = (u16)currentEnemy->hp + 0x64;
-                worldTargetAddReadoutAmount(&enemy->node, -0x64, 0);
-                burst = effectSpawn(gRoomEffectSparkEmitterId, coord, 0, NULL);
-                if (burst != NULL) {
-                    taskReparent(arg0, burst->task);
+                // Preserve the original halfword addition, including overflow.
+                healedEnemy     = task->spawnArg2.pointer;
+                healedEnemy->hp = (u16)healedEnemy->hp + ACTOR_00300_HEAL_AMOUNT;
+                worldTargetAddReadoutAmount(&enemy->node, -ACTOR_00300_HEAL_AMOUNT, 0);
+                sparkEmitter = effectSpawn(gRoomEffectSparkEmitterId, coord, 0, NULL);
+                if (sparkEmitter != NULL) {
+                    taskReparent(task, sparkEmitter->task);
                 }
-                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4003000B;
-                pan1  = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, pan1, (s8)worldCoordGetOriginAudioDepth(coord));
+                soundId    = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_RESTORE;
+                restorePan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(soundId, restorePan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             break;
-        case 2:
-            if (work->animFrame >= 0xF) {
-                work->action     = ACTOR_00300_ACTION_PURSUE;
-                work->actionStep = 0;
-                random2          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState  = random2;
-                work->timer      = ((u32)random2 >> 0x10) & 0x1F;
+        case ACTOR_00300_HEAL_RECOVER:
+            if (work->animFrame >= ACTOR_00300_HEAL_RECOVER_END_FRAME) {
+                work->action        = ACTOR_00300_ACTION_PURSUE;
+                work->actionStep    = ACTOR_00300_ACTION_BEGIN;
+                recoveryDelayRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState     = recoveryDelayRandom;
+                work->timer         = ((u32)recoveryDelayRandom >> 0x10) & 0x1F;
             }
             break;
     }
 }
 
-static void Actor00300_Fn02CE8(Task* arg0)
+/// Ends an owned charge halo and stops its matching sound instance.
+///
+/// The caller passes the halo pointer read before changing action state; NULL
+/// leaves all charge state intact. Requires initialized work and a live halo.
+static inline void _actor00300StopCharge(_Actor00300Work* work, EffectWork* chargeEffect)
 {
+    if (chargeEffect != NULL) {
+        chargeEffect->task->state = ACTOR_00300_HALO_RELEASE_STATE;
+        work->chargeEffect        = NULL;
+        work->chargeEffectTimer   = 0;
+        sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    }
+}
+
+/// Runs a flinch or knock-down/get-up reaction and hands a fatal knock-down to the death state.
+///
+/// Requires the last hit damage, direction and knock-down flag in initialized
+/// enemy work. Entry cancels charge and drain contacts. Animation ticks select
+/// reaction sounds and end frames; fatal entry moves floor/grid testing from the
+/// root sphere to the hit sphere. A surviving reaction re-arms pursuit.
+static void _actor00300TickHurt(Task* task)
+{
+    enum { ACTOR_00300_HURT_BEGIN               = 0,
+           ACTOR_00300_HURT_FLINCH              = 1,
+           ACTOR_00300_HURT_KNOCK_DOWN          = 2,
+           ACTOR_00300_HURT_GET_UP              = 3,
+           ACTOR_00300_KNOCK_DOWN_DAMAGE        = 120,
+           ACTOR_00300_BACK_FALL_END_FRAME      = 32,
+           ACTOR_00300_FRONT_FALL_END_FRAME     = 34,
+           ACTOR_00300_BACK_FLINCH_END_FRAME    = 53,
+           ACTOR_00300_FRONT_FLINCH_END_FRAME   = 51,
+           ACTOR_00300_BACK_FLINCH_SOUND_FRAME  = 10,
+           ACTOR_00300_FRONT_FLINCH_SOUND_FRAME = 12,
+           ACTOR_00300_BACK_FALL_SOUND_FRAME    = 13,
+           ACTOR_00300_FRONT_FALL_SOUND_FRAME   = 18,
+           ACTOR_00300_GET_UP_END_FRAME         = 43,
+           ACTOR_00300_SOUND_HIT                = 0x40030007,
+           ACTOR_00300_SOUND_FLINCH             = 0x40030003,
+           ACTOR_00300_SOUND_FALL               = 0x40030004 };
+
     _Actor00300Work* work;
-    EffectWork*      effect;
+    EffectWork*      chargeEffect;
     Enemy*           enemy;
     GfxCoord*        coord;
-    s32              state;
-    s16              animation;
-    s16              deathEnd;
-    s16              heavyEnd;
-    s16              lightEnd;
-    s32              sound;
-    s32              random0;
-    s32              random1;
-    s32              soundBase;
-    s32              pan0, pan1, pan2, pan3, pan4;
+    s32              step;
+    s16              reactionAnim;
+    s16              deathEndFrame;
+    s16              knockDownEndFrame;
+    s16              flinchEndFrame;
+    s32              soundId;
+    s32              flinchDelayRandom;
+    s32              getUpDelayRandom;
+    s32              soundEntry;
+    s32              hitPan, backFlinchPan, frontFlinchPan, backFallPan, frontFallPan;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    state = work->actionStep;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            effect                 = work->chargeEffect;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    step  = work->actionStep;
+    coord = task->extra.tmd->coords;
+    switch (step) {
+        case ACTOR_00300_HURT_BEGIN:
+            chargeEffect           = work->chargeEffect;
             work->speed            = 0;
             work->turnRate         = 0;
             work->drainBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            if (effect != NULL) {
-                effect->task->state     = 3;
-                work->chargeEffect      = NULL;
-                work->chargeEffectTimer = 0;
-                sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            }
+            _actor00300StopCharge(work, chargeEffect);
+            // Fatal falls move floor collision from the root to the falling body.
             if (enemy->hp <= 0) {
                 if (work->hitFromFront == 0) {
-                    work->anim = ACTOR_00300_ANIM_KNOCK_DOWN_BACK;
-                    deathEnd   = 0x20;
+                    work->anim    = ACTOR_00300_ANIM_KNOCK_DOWN_BACK;
+                    deathEndFrame = ACTOR_00300_BACK_FALL_END_FRAME;
                 } else {
-                    work->anim = ACTOR_00300_ANIM_KNOCK_DOWN_FRONT;
-                    deathEnd   = 0x22;
+                    work->anim    = ACTOR_00300_ANIM_KNOCK_DOWN_FRONT;
+                    deathEndFrame = ACTOR_00300_FRONT_FALL_END_FRAME;
                 }
-                work->timer           = deathEnd;
+                work->timer           = deathEndFrame;
                 work->deathStage      = 1;
                 enemy->reactionFlags  = 0;
                 work->hitBody.pos.vz  = 0x190;
-                work->actionStep      = 2;
+                work->actionStep      = ACTOR_00300_HURT_KNOCK_DOWN;
                 work->hitBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
                 work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                 return;
             }
-            if ((work->hitDamage >= 0x78) || (work->knockDown != 0)) {
+            if ((work->hitDamage >= ACTOR_00300_KNOCK_DOWN_DAMAGE) || (work->knockDown != 0)) {
                 if (work->hitFromFront == 0) {
-                    work->anim = ACTOR_00300_ANIM_KNOCK_DOWN_BACK;
-                    heavyEnd   = 0x20;
+                    work->anim        = ACTOR_00300_ANIM_KNOCK_DOWN_BACK;
+                    knockDownEndFrame = ACTOR_00300_BACK_FALL_END_FRAME;
                 } else {
-                    work->anim = ACTOR_00300_ANIM_KNOCK_DOWN_FRONT;
-                    heavyEnd   = 0x22;
+                    work->anim        = ACTOR_00300_ANIM_KNOCK_DOWN_FRONT;
+                    knockDownEndFrame = ACTOR_00300_FRONT_FALL_END_FRAME;
                 }
-                work->timer      = heavyEnd;
-                work->actionStep = 2;
+                work->timer      = knockDownEndFrame;
+                work->actionStep = ACTOR_00300_HURT_KNOCK_DOWN;
             } else {
                 if (work->hitFromFront == 0) {
-                    work->anim = ACTOR_00300_ANIM_FLINCH_BACK;
-                    lightEnd   = 0x35;
+                    work->anim     = ACTOR_00300_ANIM_FLINCH_BACK;
+                    flinchEndFrame = ACTOR_00300_BACK_FLINCH_END_FRAME;
                 } else {
-                    work->anim = ACTOR_00300_ANIM_FLINCH_FRONT;
-                    lightEnd   = 0x33;
+                    work->anim     = ACTOR_00300_ANIM_FLINCH_FRONT;
+                    flinchEndFrame = ACTOR_00300_FRONT_FLINCH_END_FRAME;
                 }
-                work->timer         = lightEnd;
-                work->actionStep    = 1;
+                work->timer         = flinchEndFrame;
+                work->actionStep    = ACTOR_00300_HURT_FLINCH;
                 work->reactionBlend = 1;
             }
-            soundBase = 0x40030007;
-            sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
-            pan0      = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(sound, (s32)pan0, (s8)worldCoordGetOriginAudioDepth(coord));
+            soundEntry = ACTOR_00300_SOUND_HIT;
+            soundId    = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundEntry;
+            hitPan     = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(soundId, (s32)hitPan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
-        case 1:
+        case ACTOR_00300_HURT_FLINCH:
             if (work->animFrame >= work->timer) {
                 work->knockDown     = 0;
                 work->action        = ACTOR_00300_ACTION_PURSUE;
-                work->actionStep    = 1;
+                work->actionStep    = ACTOR_00300_PURSUIT_MOVE;
                 work->alertTimer    = ACTOR_00300_ALERT_TICKS;
                 work->reactionBlend = 0;
-                random0             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState     = random0;
-                work->timer         = ((u32)random0 >> 0x10) & 0x1F;
+                flinchDelayRandom   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState     = flinchDelayRandom;
+                work->timer         = ((u32)flinchDelayRandom >> 0x10) & 0x1F;
             }
-            animation = work->anim;
-            if (animation == ACTOR_00300_ANIM_FLINCH_BACK) {
-                if (work->animFrame == 0xA) {
-                    soundBase = 0x40030003;
-                    sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
-                    pan1      = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
+            reactionAnim = work->anim;
+            if (reactionAnim == ACTOR_00300_ANIM_FLINCH_BACK) {
+                if (work->animFrame == ACTOR_00300_BACK_FLINCH_SOUND_FRAME) {
+                    soundEntry    = ACTOR_00300_SOUND_FLINCH;
+                    soundId       = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundEntry;
+                    backFlinchPan = (s8)worldCoordGetOriginAudioPan(coord);
+                    sndEvtRequestScriptStart(soundId, (s32)backFlinchPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
-            } else if (animation == ACTOR_00300_ANIM_FLINCH_FRONT) {
-                if (work->animFrame == 0xC) {
-                    soundBase = 0x40030003;
-                    sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
-                    pan2      = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(sound, (s32)pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+            } else if (reactionAnim == ACTOR_00300_ANIM_FLINCH_FRONT) {
+                if (work->animFrame == ACTOR_00300_FRONT_FLINCH_SOUND_FRAME) {
+                    soundEntry     = ACTOR_00300_SOUND_FLINCH;
+                    soundId        = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundEntry;
+                    frontFlinchPan = (s8)worldCoordGetOriginAudioPan(coord);
+                    sndEvtRequestScriptStart(soundId, (s32)frontFlinchPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
             break;
-        case 2:
+        case ACTOR_00300_HURT_KNOCK_DOWN:
             if (work->deathStage == 1) {
-                work->deathStage = state;
+                work->deathStage = step;
             }
             if (work->animFrame >= work->timer) {
                 if (enemy->hp <= 0) {
                     work->action     = ACTOR_00300_ACTION_DEAD;
-                    work->actionStep = 0;
-                    arg0->state      = (s32)state;
+                    work->actionStep = ACTOR_00300_ACTION_BEGIN;
+                    task->state      = (s32)step;
                 } else {
-                    work->actionStep = 3;
+                    work->actionStep = ACTOR_00300_HURT_GET_UP;
                     if (work->anim == ACTOR_00300_ANIM_KNOCK_DOWN_BACK) {
                         work->anim = ACTOR_00300_ANIM_GET_UP_BACK;
                     } else {
@@ -2435,94 +2589,95 @@ static void Actor00300_Fn02CE8(Task* arg0)
                 }
             }
             if (work->anim == ACTOR_00300_ANIM_KNOCK_DOWN_BACK) {
-                if (work->animFrame == 0xD) {
-                    soundBase = 0x40030004;
-                    sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
-                    pan3      = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(sound, (s32)pan3, (s8)worldCoordGetOriginAudioDepth(coord));
+                if (work->animFrame == ACTOR_00300_BACK_FALL_SOUND_FRAME) {
+                    soundEntry  = ACTOR_00300_SOUND_FALL;
+                    soundId     = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundEntry;
+                    backFallPan = (s8)worldCoordGetOriginAudioPan(coord);
+                    sndEvtRequestScriptStart(soundId, (s32)backFallPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             } else if (work->anim == ACTOR_00300_ANIM_KNOCK_DOWN_FRONT) {
-                if (work->animFrame == 0x12) {
-                    soundBase = 0x40030004;
-                    sound     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundBase;
-                    pan4      = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(sound, (s32)pan4, (s8)worldCoordGetOriginAudioDepth(coord));
+                if (work->animFrame == ACTOR_00300_FRONT_FALL_SOUND_FRAME) {
+                    soundEntry   = ACTOR_00300_SOUND_FALL;
+                    soundId      = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | soundEntry;
+                    frontFallPan = (s8)worldCoordGetOriginAudioPan(coord);
+                    sndEvtRequestScriptStart(soundId, (s32)frontFallPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 }
             }
             break;
-        case 3:
-            if (work->animFrame >= 0x2B) {
+        case ACTOR_00300_HURT_GET_UP:
+            if (work->animFrame >= ACTOR_00300_GET_UP_END_FRAME) {
                 work->knockDown     = 0;
                 work->action        = ACTOR_00300_ACTION_PURSUE;
-                work->actionStep    = 1;
+                work->actionStep    = ACTOR_00300_PURSUIT_MOVE;
                 work->alertTimer    = ACTOR_00300_ALERT_TICKS;
                 work->reactionBlend = 0;
-                random1             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState     = random1;
-                work->timer         = ((u32)random1 >> 0x10) & 0x1F;
+                getUpDelayRandom    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState     = getUpDelayRandom;
+                work->timer         = ((u32)getUpDelayRandom >> 0x10) & 0x1F;
             }
             break;
     }
 }
 
-static void Actor00300_Fn030B8(Task* arg0)
+/// Stands for 91 active ticks to regain five MP, then resumes pursuit.
+///
+/// Requires initialized enemy work/model coordinates. Its timer counts upward
+/// from zero, while the mote effects run under room effect control. The final
+/// MP addition and random pursuit wait preserve their original halfword narrowing.
+static void _actor00300TickRecharge(Task* task)
 {
-    SVECTOR          sp10;
-    SVECTOR          sp18;
+    enum { ACTOR_00300_RECHARGE_BEGIN    = 0,
+           ACTOR_00300_RECHARGE_WAIT     = 1,
+           ACTOR_00300_RECHARGE_TICKS    = 91,
+           ACTOR_00300_RECHARGE_MOTE_ARG = 0x20103200, // 512-unit half-extent, palette 3, 16-unit base rise, 32 ticks
+    };
+
+    SVECTOR          moteOffset;
+    SVECTOR          radialOffset;
     _Actor00300Work* work;
     GfxCoord*        coord;
     s16              timer;
-    s16              state;
-    s32              random;
-    s32              angle;
-    s32              sound;
+    s16              step;
+    s32              moteRandom;
+    s32              moteAngle;
+    s32              soundId;
     s32              pan;
-    u32              effectRandom;
-    u32              nextRandom;
+    u32              spawnRandom;
+    u32              pursuitDelayRandom;
 
-    work  = arg0->work;
-    state = work->actionStep;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            work->actionStep = 1;
+    work  = task->work;
+    step  = work->actionStep;
+    coord = task->extra.tmd->coords;
+    switch (step) {
+        case ACTOR_00300_RECHARGE_BEGIN:
+            work->actionStep = ACTOR_00300_RECHARGE_WAIT;
             work->turnRate   = 0;
             work->speed      = 0;
             work->timer      = 0;
             work->anim       = ACTOR_00300_ANIM_TURN;
             return;
-        case 1:
+        case ACTOR_00300_RECHARGE_WAIT:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                effectRandom    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = effectRandom;
-                if (!((effectRandom >> 0x10) & 3)) {
-                    random          = (effectRandom * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = random;
-                    angle           = ((u32)random >> 0x10) & 0xF80;
-                    memset(&sp18, 0, sizeof(sp18));
-                    sp18.vx = (u32)(rcos(angle) * 5) >> 5;
-                    sp18.vz = (u32)(rsin(angle) * 5) >> 5;
-                    sp10    = sp18;
-                    effectSpawn(gRoomEffectMoteId, coord, 0x20103200, &sp10);
-                }
+                ACTOR_00300_SPAWN_CHARGE_MOTE(coord, ACTOR_00300_RECHARGE_MOTE_ARG, spawnRandom, moteRandom, moteAngle, radialOffset, moteOffset);
             }
             timer       = (u16)work->timer + 1;
             work->timer = timer;
-            if (timer >= 0x5B) {
-                work->action     = ACTOR_00300_ACTION_PURSUE;
-                work->timer      = 0;
-                work->actionStep = 0;
-                nextRandom       = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->mp         = work->mp + ACTOR_00300_MP_RECHARGED;
-                work->timer      = (nextRandom >> 0x10) & 0x1F;
-                gRandomLcgState  = nextRandom;
-                sound            = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4003000B;
-                pan              = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            if (timer >= ACTOR_00300_RECHARGE_TICKS) {
+                work->action       = ACTOR_00300_ACTION_PURSUE;
+                work->timer        = 0;
+                work->actionStep   = ACTOR_00300_ACTION_BEGIN;
+                pursuitDelayRandom = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                work->mp           = work->mp + ACTOR_00300_MP_RECHARGED;
+                work->timer        = (pursuitDelayRandom >> 0x10) & 0x1F;
+                gRandomLcgState    = pursuitDelayRandom;
+                soundId            = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_00300_SOUND_RESTORE;
+                pan                = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             return;
     }
 }
+#undef ACTOR_00300_SPAWN_CHARGE_MOTE
 
 static void Actor00300_Fn032BC(Task* arg0)
 {
@@ -2908,59 +3063,76 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
     }
 }
 
-static __inline__ void Actor00300_UpdateTransform(Enemy* arg0, Task* arg1)
+/// Rebuilds one drain-model matrix from its rest transform and prepared Q12 scale.
+///
+/// All pointers borrow live, disjoint coordinate, matrix and scratch storage.
+/// Translation is copied from rest and is not scaled; composition is invalidated.
+static inline void _actor00300ApplyDrainScale(GfxCoord* coord, const MATRIX* restMatrix, ActorScaleScratch* scratch)
 {
-    TmdObject*         obj;
-    GfxCoord*          saved;
-    _Actor00300Work*   work;
-    s32                disabled;
-    s16                flags;
-    s16                scale;
-    ActorScaleScratch* head;
-    ActorScaleScratch* scratch;
-    GfxCoord*          coord;
+    coord->coord = *restMatrix;
+    gfxSetRotIdentity(&scratch->matrix.mat);
+    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix.mat);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
 
-    saved    = arg1->extra.tmd->coords;
-    obj      = arg1->extra.tmd;
-    disabled = gSceneCombatState.actorControl;
-    work     = arg1->parent->work;
-    if (disabled == 0) {
+/// Rebuilds the drain attachment from its rest matrix and the parent's Q12 Y scale.
+///
+/// Requires a live TMD child whose parent owns `_Actor00300Work`. A nonpositive
+/// scale hides the model; positive scale multiplies local Y without scaling the
+/// saved translation. Only running actor control updates it. Event draw flags
+/// apply before the scale test. Borrows one `ActorScaleScratch` and dirties the
+/// composition cache; the matrix multiply changes GTE state.
+static __inline__ void _actor00300UpdateDrainModel(Task* task)
+{
+    TmdObject*         model;
+    GfxCoord*          rootCoord;
+    _Actor00300Work*   parentWork;
+    s32                actorControl;
+    s16                drawFlags;
+    s16                scaleY;
+    ActorScaleScratch* stackTop;
+    ActorScaleScratch* scratch;
+    GfxCoord*          scaledCoord;
+
+    rootCoord    = task->extra.tmd->coords;
+    model        = task->extra.tmd;
+    actorControl = gSceneCombatState.actorControl;
+    parentWork   = task->parent->work;
+    if (actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (gGameSession->eventState != 0) {
-            flags      = ((work->eventDrawFlags & 1) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags = flags;
-            if (work->eventDrawFlags & 2) {
-                obj->flags = flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
+            drawFlags    = ((parentWork->eventDrawFlags & 1) == 0) * TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags = drawFlags;
+            if (parentWork->eventDrawFlags & 2) {
+                model->flags = drawFlags | TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
         }
-        scale = work->drainScaleY;
-        if (scale <= 0) {
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        scaleY = parentWork->drainScaleY;
+        if (scaleY <= 0) {
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         }
-        head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-        scratch                                 = head - 1;
-        coord                                   = arg1->extra.tmd->coords;
+        stackTop                                = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+        scratch                                 = stackTop - 1;
+        scaledCoord                             = task->extra.tmd->coords;
         SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
         scratch->scale.vx                       = ONE;
-        scratch->scale.vy                       = scale;
+        scratch->scale.vy                       = scaleY;
         scratch->scale.vz                       = ONE;
-        coord->coord                            = work->drainModelMtx;
-        scratch->matrix.rotationWords.m00M01    = ONE;
-        scratch->matrix.rotationWords.m02M10    = 0;
-        scratch->matrix.rotationWords.m11M12    = ONE;
-        scratch->matrix.rotationWords.m20M21    = 0;
-        scratch->matrix.rotationWords.m22       = ONE;
-        ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-        MulMatrix(&coord->coord, &scratch->matrix.mat);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        saved->composeStamp = GRAPHICS_COORD_DIRTY;
+        // Rebuild from rest every tick so the Y scale never compounds.
+        _actor00300ApplyDrainScale(scaledCoord, &parentWork->drainModelMtx, scratch);
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
         SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
     }
 }
 
-static void Actor00300_Fn03F40(Enemy* arg0, Task* arg1)
+/// Updates the active drain attachment with its parent's current scale.
+///
+/// The enemy argument is unused but retained for the `EnemyTaskFunc` contract.
+/// Requires the attachment initialized and its parent work still live.
+static void _actor00300DrainModelActive(Enemy* enemy, Task* task)
 {
-    Actor00300_UpdateTransform(arg0, arg1);
+    _actor00300UpdateDrainModel(task);
 }
 
 static void Actor00300_Fn040A4(Enemy* arg0, Task* arg1)
@@ -3153,8 +3325,8 @@ static void Actor00300_Fn047CC(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags           = work->notLockable != 0;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor00300_Fn04FB0(arg1);
-            Actor00300_Fn05008(arg1);
+            _actor00300UpdateLighting(arg1);
+            _actor00300DrawShadow(arg1);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             arg1->extra.tmd->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3184,9 +3356,9 @@ static void Actor00300_Fn048D4(Enemy* arg0, Task* arg1)
             obj->flags = flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
         }
     }
-    Actor00300_Fn04ED4(arg1);
-    Actor00300_Fn04FB0(arg1);
-    Actor00300_Fn05008(arg1);
+    _actor00300UpdateAnimation(arg1);
+    _actor00300UpdateLighting(arg1);
+    _actor00300DrawShadow(arg1);
 }
 
 static void Actor00300_Fn04958(Enemy* arg0, Task* arg1)
@@ -3206,15 +3378,15 @@ static void Actor00300_Fn04958(Enemy* arg0, Task* arg1)
             Actor00300_Fn032BC(arg1);
         }
         Actor00300_Fn04E30(arg1);
-        Actor00300_Fn04ED4(arg1);
+        _actor00300UpdateAnimation(arg1);
         if (work->hitTwistActive != 0) {
             Actor00300_Fn0340C(arg1);
         }
         Actor00300_Fn03A1C(arg1);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
-        Actor00300_Fn04FB0(arg1);
-        Actor00300_Fn05008(arg1);
+        _actor00300UpdateLighting(arg1);
+        _actor00300DrawShadow(arg1);
     }
 }
 
@@ -3252,13 +3424,13 @@ static void Actor00300_Fn04A2C(Task* arg0)
 
 #include "../../shared/player_detection_segment.inc.c"
 
-/// State handlers of the task `Actor00300_Fn05138` dispatches, indexed by
+/// State handlers of the task `_actor00300DrainModelTask` dispatches, indexed by
 /// `Task::state`: a setup that attaches the coordinate to the parent's and
-/// moves to state 1, an empty state, and `enemyDestroy`.
+/// moves to state 1, a scaled drain-model update, and `enemyDestroy`.
 static const EnemyTaskFuncTable3 Actor00300_D0003C = {
     {
-        Actor00300_Fn05194,
-        Actor00300_Fn03F40,
+        _actor00300InitDrainModel,
+        _actor00300DrainModelActive,
         enemyDestroy,
     },
 };
@@ -3282,28 +3454,28 @@ static void Actor00300_Fn04C20(Task* arg0)
     work = arg0->work;
     switch (work->action) {
         case ACTOR_00300_ACTION_PATROL:
-            Actor00300_Fn01678(arg0);
+            _actor00300TickPatrol(arg0);
             break;
         case ACTOR_00300_ACTION_PURSUE:
-            Actor00300_Fn019C0(arg0);
+            _actor00300TickPursuit(arg0);
             break;
         case ACTOR_00300_ACTION_FIREBALL:
-            Actor00300_Fn01F9C(arg0);
+            _actor00300TickFireballAttack(arg0);
             break;
         case ACTOR_00300_ACTION_DRAIN:
-            Actor00300_Fn02620(arg0);
+            _actor00300TickDrainAttack(arg0);
             break;
         case ACTOR_00300_ACTION_HEAL:
-            Actor00300_Fn028D0(arg0);
+            _actor00300TickHeal(arg0);
             break;
         case ACTOR_00300_ACTION_HURT:
-            Actor00300_Fn02CE8(arg0);
+            _actor00300TickHurt(arg0);
             break;
         case ACTOR_00300_ACTION_BUILDUP:
-            Actor00300_Fn04D28(arg0);
+            _actor00300TickBuildup(arg0);
             break;
         case ACTOR_00300_ACTION_RECHARGE:
-            Actor00300_Fn030B8(arg0);
+            _actor00300TickRecharge(arg0);
             break;
         case ACTOR_00300_ACTION_DEAD:
             break;
@@ -3320,41 +3492,45 @@ static void Actor00300_Fn04C20(Task* arg0)
     }
 }
 
-static void Actor00300_Fn04D28(Task* arg0)
+/// Holds the actor through a buildup reaction, then resumes moving pursuit after its release animation.
+///
+/// Requires initialized work and enemy reaction state. Cancels any charge halo
+/// and sound, ticks the buildup status, and clears its flag when that status ends.
+/// The end animation is selected by the package animation table.
+static void _actor00300TickBuildup(Task* task)
 {
+    enum { ACTOR_00300_BUILDUP_HOLD      = 0,
+           ACTOR_00300_BUILDUP_RELEASE   = 1,
+           ACTOR_00300_BUILDUP_END_FRAME = 11 };
+
     _Actor00300Work* work;
     Enemy*           enemy;
-    s32              state;
-    s32              value;
-    EffectWork*      effect;
+    s32              step;
+    s32              randomValue;
+    EffectWork*      chargeEffect;
 
-    work  = arg0->work;
-    state = work->actionStep;
-    switch (state) {
-        case 0:
-            effect      = work->chargeEffect;
-            work->speed = 0;
-            work->anim  = ACTOR_00300_ANIM_BUILDUP;
-            if (effect != NULL) {
-                effect->task->state     = 3;
-                work->chargeEffect      = NULL;
-                work->chargeEffectTimer = 0;
-                sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            }
-            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
-                enemy                 = arg0->spawnArg2.pointer;
+    work = task->work;
+    step = work->actionStep;
+    switch (step) {
+        case ACTOR_00300_BUILDUP_HOLD:
+            chargeEffect = work->chargeEffect;
+            work->speed  = 0;
+            work->anim   = ACTOR_00300_ANIM_BUILDUP;
+            _actor00300StopCharge(work, chargeEffect);
+            if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
+                enemy                 = task->spawnArg2.pointer;
                 enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
                 work->anim            = ACTOR_00300_ANIM_BUILDUP_END;
-                work->actionStep      = 1;
+                work->actionStep      = ACTOR_00300_BUILDUP_RELEASE;
             }
             break;
-        case 1:
-            if (work->animFrame >= 0xB) {
-                work->action     = state;
-                work->actionStep = state;
-                value            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState  = value;
-                work->timer      = ((u32)value >> 16) & 0x1F;
+        case ACTOR_00300_BUILDUP_RELEASE:
+            if (work->animFrame >= ACTOR_00300_BUILDUP_END_FRAME) {
+                work->action     = ACTOR_00300_ACTION_PURSUE;
+                work->actionStep = ACTOR_00300_PURSUIT_MOVE;
+                randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                gRandomLcgState  = randomValue;
+                work->timer      = ((u32)randomValue >> 16) & 0x1F;
             }
             break;
     }
@@ -3377,56 +3553,76 @@ static void Actor00300_Fn04E30(Task* arg0)
     coord->coord.t[2] += (coord->coord.m[2][2] * work->speed) >> 12;
 }
 
-static void Actor00300_Fn04ED4(Task* arg0)
+/// Starts a requested body animation or advances the eighteen non-root slots.
+///
+/// Requires a bound nineteen-part rig and a loaded animation id. A new request
+/// resets `animFrame` and blends from each current pose; reaction blending takes
+/// eight normal-rate frames. An unchanged request increments the tick counter.
+/// The caller must supply a readable package blend-table entry when not reacting.
+static void _actor00300UpdateAnimation(Task* task)
 {
-    _Actor00300Work* work;
-    s32              i;
-    s32              val;
+    enum { ACTOR_00300_REACTION_BLEND_FRAMES = 8 };
 
-    work = arg0->work;
+    _Actor00300Work* work;
+    s32              slotIndex;
+    s32              blendFrames;
+
+    work = task->work;
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
         if (work->reactionBlend == 0) {
-            val = Actor00300_D16394[work->anim];
+            blendFrames = Actor00300_D16394[work->anim];
         } else {
-            val = 8;
+            blendFrames = ACTOR_00300_REACTION_BLEND_FRAMES;
         }
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, val);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }
     } else {
         work->animFrame++;
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }
 
-static void Actor00300_Fn04FB0(Task* arg0)
+/// Updates the enemy lighting and colour from the composed root world position.
+///
+/// Requires a live enemy/model with composed coordinates and writable light and
+/// colour matrices. The shared lighting routine borrows the three-component
+/// position only for this call; it also updates matrices used by the drain child.
+static void _actor00300UpdateLighting(Task* task)
 {
     GfxCoord* coord;
-    VECTOR    vec;
+    VECTOR3   worldPosition;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    coord            = task->extra.tmd->coords;
+    worldPosition.vx = coord->workm.t[0];
+    worldPosition.vy = coord->workm.t[1];
+    worldPosition.vz = coord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
 }
 
-static void Actor00300_Fn05008(Task* arg0)
+/// Draws the actor ground shadow below body part 3 at the root height.
+///
+/// Requires composed model coordinates including part 3. X/Z follow that part,
+/// while Y follows the root; the centre uses world-coordinate units.
+static void _actor00300DrawShadow(Task* task)
 {
-    VECTOR3   vec;
-    GfxCoord* coord;
-    GfxCoord* part;
+    enum { ACTOR_00300_SHADOW_HALF_SIZE = 768,
+           ACTOR_00300_SHADOW_SHADE     = 128 };
 
-    coord  = arg0->extra.tmd->coords;
-    part   = coord + 3;
-    vec.vx = part->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = part->workm.t[2];
-    effectDrawGroundShadow(&vec, 0x300, 0x80);
+    VECTOR3   shadowCentre;
+    GfxCoord* coord;
+    GfxCoord* bodyCoord;
+
+    coord           = task->extra.tmd->coords;
+    bodyCoord       = coord + 3;
+    shadowCentre.vx = bodyCoord->workm.t[0];
+    shadowCentre.vy = coord->workm.t[1];
+    shadowCentre.vz = bodyCoord->workm.t[2];
+    effectDrawGroundShadow(&shadowCentre, ACTOR_00300_SHADOW_HALF_SIZE, ACTOR_00300_SHADOW_SHADE);
 }
 
 static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
@@ -3454,35 +3650,49 @@ static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 
-void Actor00300_Fn05138(Task* arg0)
+/// Dispatches initialization, active scaling and destruction of the drain model.
+///
+/// The descriptor supplies a one-part TMD child and `spawnArg2.pointer` supplies
+/// a live enemy. `Task::state` is 0 setup, 1 active or 2 destroy; it must remain
+/// within this three-entry handler table. The parent work outlives the child.
+static void _actor00300DrainModelTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = Actor00300_D0003C;
-    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
+    handlers = Actor00300_D0003C;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void Actor00300_Fn05194(Enemy* arg0, Task* arg1)
+/// Attaches the drain model to body part 7 and captures its unscaled rest matrix.
+///
+/// Requires a one-part TMD child of the initialized nineteen-part enemy model.
+/// Borrows the parent's light/colour matrices and work for the child's lifetime;
+/// starts at zero Y scale and advances the task to active state 1. The enemy
+/// argument is unused but retained for the `EnemyTaskFunc` contract.
+static void _actor00300InitDrainModel(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_00300_DRAIN_PARENT_PART  = 7,
+           ACTOR_00300_DRAIN_MODEL_ACTIVE = 1 };
+
     Task*            parent;
-    TmdObject*       obj;
+    TmdObject*       model;
     GfxCoord*        coord;
     GfxCoord*        parentCoord;
-    _Actor00300Work* work;
+    _Actor00300Work* parentWork;
 
-    parent              = arg1->parent;
-    obj                 = arg1->extra.tmd;
-    parentCoord         = parent->extra.tmd->coords;
-    coord               = obj->coords;
-    work                = parent->work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->parent       = parentCoord + 7;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    work->drainModelMtx = coord->coord;
-    work->drainScaleY   = 0;
-    arg1->state         = 1;
+    parent                    = task->parent;
+    model                     = task->extra.tmd;
+    parentCoord               = parent->extra.tmd->coords;
+    coord                     = model->coords;
+    parentWork                = parent->work;
+    model->flags              = 0;
+    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    coord->parent             = parentCoord + ACTOR_00300_DRAIN_PARENT_PART;
+    model->lightMtx           = &parentWork->lightMtx;
+    model->colorMtx           = &parentWork->colorMtx;
+    parentWork->drainModelMtx = coord->coord;
+    parentWork->drainScaleY   = 0;
+    task->state               = ACTOR_00300_DRAIN_MODEL_ACTIVE;
 }
 
 void Actor00300_Fn0521C(Task* arg0)

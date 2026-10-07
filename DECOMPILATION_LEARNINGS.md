@@ -64150,11 +64150,11 @@ defines that copy, instead of minting `<family>_shared_<addr>`. That is right
 when the existing unit *is* the body — `actors_shared_80133468` — and wrong
 when the copy merely lives inside a unit that covers an entire overlay's text.
 `func_actor_102400_80134FF0` is 0x58 bytes; its `lib` copy is
-`Actor00300_Fn04FB0`, one function inside `actor_100300_text`, which spans
+`_actor00300UpdateLighting`, one function inside `actor_100300_text`, which spans
 `0x78..0x54B4`. `promote` happily wrote `{ start = "0x31D0", end = "0x3228",
 unit = "actor_100300_text" }` into eleven carriers, which would link a 0x543C
 object into a 0x58 hole. It also derives the symbol from the unit name, so the
-carriers got `Actor100300Text` while the object defines `Actor00300_Fn04FB0`.
+carriers got `Actor100300Text` while the object defines `_actor00300UpdateLighting`.
 
 Check `grep '^<unit-owner> =' configs/USA/overlays.toml` against the body size
 before accepting the unit it picked. When the unit is bigger than the body,
@@ -77476,7 +77476,7 @@ base_3.i SHA256: `ba10e47470d9c97a8cf7a7cb179aeef409108283201cd3c724bf96628888d3
 
 base_4.i SHA256: `a2150256d46d3730dfc885a40c144961d0ffc4d5b4aa6d318262a58a61a73e64`.
 
-## Actor00300_Fn019C0: byte-member view preserves reset-store dependencies
+## _actor00300TickPursuit: byte-member view preserves reset-store dependencies
 
 An unpinned candidate with matching topology/counts stopped at 99.483%
 (`regs=0 reorder=2`). Its three `work` halfword resets were `MEM/s:HI`, but
@@ -77502,7 +77502,7 @@ three references over four insns; raw delta r130/r190 ranked before magnitude
 r89/r90 in `.greg`, restoring a0 magnitude/v1 angle and the target branches.
 The final typed VECTOR implementation and byte view both retained 100%.
 
-Reproduction: `nonmatchings/Actor00300_Fn019C0-vacuum/LEARNINGS.md` and paired
+Reproduction: `nonmatchings/_actor00300TickPursuit-vacuum/LEARNINGS.md` and paired
 `.sched2`/`.greg`/`.jump2` dumps. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Final preprocessed input SHA256
@@ -98206,7 +98206,7 @@ spelling that fixes it.
 test, which costs an `sll`/`sra` pair the target does not have: an HImode value
 has to be re-extended before `slti` reads it. The source is the actor family's
 angle-wrap idiom, already matched in `src/actors/lib/actor_100300_text.c`
-(`Actor00300_Fn019C0`) and reused verbatim:
+(`_actor00300TickPursuit`) and reused verbatim:
 
 ```
 s16 delta;    /* from two u16 fields */
@@ -101290,7 +101290,7 @@ Reading the negation's operand is the discriminator: `negu dst,dst` after a
 `bgez`/`move` pair is `abs()` with dst != src; `negu dst,src` is a hand-written
 form. Evidence: scratch `nonmatchings/func_actor_317000_801620BC-vacuum/`,
 `base_3.c` (99.936%, `negu v0,v1`) against `base_4.c` (100.000%, all penalties
-zero); matched carrier `Actor00300_Fn019C0` (`s16 delta; s32 magnitude;
+zero); matched carrier `_actor00300TickPursuit` (`s16 delta; s32 magnitude;
 magnitude = abs(delta);`) shows the same three instructions.
 
 ## A halfword field read twice is sign-extended only if the value flows into a wider local
@@ -107047,7 +107047,7 @@ delay slot and frees `$a1`. The table the length is read from is `s16[]`; an
 untyped extern scales the index by 8 and drops an `lhu`.
 
 **The twin is the shortcut.** `overlay_dup_index.py similar` starred
-`Actor00300_Fn04ED4` (`src/actors/lib/actor_100300_tail.c`) in both `shape` and
+`_actor00300UpdateAnimation` (`src/actors/lib/actor_100300_tail.c`) in both `shape` and
 `calls`; its *matched* body is the same function one struct over, and its asm
 reproduced this prologue exactly (`lh`/`lh`/`lhu` off three reads of one
 halfword, with both fields declared `s16`). Reading the matched twin settled the
@@ -145011,7 +145011,7 @@ The scratch push in the same function needed no pin at all: plain
 `block = SCRATCH_STACK_RESERVE_BLOCK(T)` gives the `addiu v0` / `move s3,v0` pair, and every
 `((T*)(head - K))->field` cast access became `block->field`.
 
-## The anim reseed/tick body's `TOUCH_REG(i)` is two plain `for (i = 1; ...)` loops (Actor00300_Fn04ED4, 2026-09-26)
+## The anim reseed/tick body's `TOUCH_REG(i)` is two plain `for (i = 1; ...)` loops (_actor00300UpdateAnimation, 2026-09-26)
 
 Actors that reseed animation slots 1..N when their animation id changes, and
 otherwise tick them, share a body whose target shows three odd things: `li s0,1`
