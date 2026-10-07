@@ -70,7 +70,12 @@ void shelterB1SterilizationRoomSwitchRoomTask(Task* task);
 
 void func_shelter_b1_sterilization_room_80181588(Task*);
 
-void func_shelter_b1_sterilization_room_80181634(Task*);
+/// Rearms the room's once-per-entry event tasks and releases this reset task.
+///
+/// Clears the complete task-spawn latch mask; it does not stop tasks already
+/// running. Room variant 1 spawns this one-shot callback on entry. All task
+/// state and spawn arguments are unused; the borrowed live task is killed.
+void shelterB1SterilizationRoomResetSpawnMaskTask(Task* task);
 
 void func_shelter_b1_sterilization_room_801816E0(Task*);
 

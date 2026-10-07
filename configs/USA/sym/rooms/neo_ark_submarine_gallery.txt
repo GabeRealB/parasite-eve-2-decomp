@@ -74,3 +74,4 @@ _waterDrawTileU16 = 0x8017FFB8; // type:func
 _glowDrawCapsule = 0x80180254; // type:func
 glowDrawDisc = 0x80180AC8; // type:func
 _neoArkSubmarineGalleryDrawLightPrism = 0x80180e80; // type:func
+_neoArkSubmarineGalleryDrawRedDisc = 0x8017ec24; // type:func

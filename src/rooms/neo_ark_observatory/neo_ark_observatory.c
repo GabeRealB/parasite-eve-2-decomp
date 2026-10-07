@@ -91,8 +91,7 @@ extern TaskDesc D_neo_ark_observatory_801811AC;
 /// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_neo_ark_observatory_801811B8[];
 
-/// Offset `func_neo_ark_observatory_8017FA98` hands the mesh rebuild; only its
-/// `vy` is ever set.
+/// Room-axis offset passed by `neoArkObservatoryUpdateCompanionObstacle`.
 extern SVECTOR D_neo_ark_observatory_80181368;
 
 extern WorldCollisionGrid gFollowCollisionSource;
@@ -1721,26 +1720,25 @@ s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg
     return 0;
 }
 
-/// Rebuilds the room's mesh under the model of the slot-0xA task, or of the
-/// slot-3 task when there is none. The mesh is offset by `vy` = 0 while a
-/// slot-0xA task exists and flag nibble 0xD7 is set, and by 10000 otherwise.
-/// `arg0` is unused.
-void func_neo_ark_observatory_8017FA98(s32 arg0)
+void neoArkObservatoryUpdateCompanionObstacle(s32 unusedEventArg)
 {
-    Task* task;
-    Task* slotA;
+    enum { NEO_ARK_OBSERVATORY_DISABLED_OBSTACLE_Y_OFFSET = 10000 };
 
-    task  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    slotA = task;
-    if (task == NULL) {
-        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    Task* obstacleActorTask;
+    Task* companionTask;
+
+    obstacleActorTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    companionTask     = obstacleActorTask;
+    if (obstacleActorTask == NULL) {
+        obstacleActorTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
-    if (slotA != NULL && gameFlagGetNibble(GAME_FLAG_0D7) != 0) {
+    // Move disabled companion collision out of the playable room.
+    if (companionTask != NULL && gameFlagGetNibble(GAME_FLAG_0D7) != 0) {
         D_neo_ark_observatory_80181368.vy = 0;
     } else {
-        D_neo_ark_observatory_80181368.vy = 0x2710;
+        D_neo_ark_observatory_80181368.vy = NEO_ARK_OBSERVATORY_DISABLED_OBSTACLE_Y_OFFSET;
     }
-    _followCollisionRebuildObstacle(task->extra.tmd->coords, &D_neo_ark_observatory_80181368);
+    _followCollisionRebuildObstacle(obstacleActorTask->extra.tmd->coords, &D_neo_ark_observatory_80181368);
 }
 
 void func_neo_ark_observatory_8017FB1C(Task* task)
@@ -1811,7 +1809,7 @@ static void func_neo_ark_observatory_8017FCE0(Task* arg0)
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.variant == 1)) {
         func_actor_450200_801322F8();
     } else {
-        func_neo_ark_observatory_8017FA98(0);
+        neoArkObservatoryUpdateCompanionObstacle(0);
     }
     if (gameFlagGetNibble(GAME_FLAG_0E1) != 0) {
         neoArkObservatorySetLightBeamIntensity(0xA0);

@@ -71,3 +71,4 @@ _shelterB1ControlRoomAccessTunnelRejectKeyItemUse = 0x8017d5e4; // type:func
 _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand = 0x8017d630; // type:func
 _shelterB1ControlRoomAccessTunnelIgnoreRoomAction = 0x8017d638; // type:func
 _shelterB1ControlRoomAccessTunnelIdle = 0x8017d684; // type:func
+_shelterB1ControlRoomAccessTunnelResolveRoomEvent = 0x8017d5ec; // type:func

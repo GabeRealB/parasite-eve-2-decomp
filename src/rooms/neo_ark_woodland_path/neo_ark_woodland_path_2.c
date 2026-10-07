@@ -123,7 +123,7 @@ extern RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5];
 extern s16 gRoamerPrevBattleRefs;
 
 static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
-s32        func_neo_ark_woodland_path_8018154C(Task*, s32, s32, s32);
+static s32 _roamerExtendCooldown(Task* unusedTask, s32 unusedMessageId, s32 unusedEventValue, s32 unusedSecondArg);
 static s32 _roamerLatchSpawnRequestPoolA(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _roamerLatchSpawnRequestPoolB(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
@@ -231,7 +231,7 @@ s16 gRoamerPrevBattleRefs = 0;
 
 TaskMessageEntry gRoamerMsgTableB[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolB },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_woodland_path_8018154C },
+    { ROOM_MESSAGE_ACTOR_EVENT, _roamerExtendCooldown },
     { ACTOR_COMMAND_MESSAGE_APPLY, _roamerAmbushMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -554,11 +554,7 @@ void func_neo_ark_woodland_path_801814E8(Task* task)
     handlers.funcs[task->state](task);
 }
 
-s32 func_neo_ark_woodland_path_8018154C(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
-    return 1;
-}
+#include "../../shared/roaming_enemies_extend_cooldown.inc.c"
 
 /// Selects the private pool-B room-action latch for this fragment inclusion.
 #define ROAMER_LATCH_SPAWN_REQUEST _roamerLatchSpawnRequestPoolB

@@ -44,14 +44,14 @@ extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181E9C[];
 extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[];
 
 static s32 _shelterB1ControlRoomAccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_shelter_b1_control_room_access_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1ControlRoomAccessTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 enum { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_access_tunnel_8017D5EC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1ControlRoomAccessTunnelResolveRoomEvent },
     { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1ControlRoomAccessTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1ControlRoomAccessTunnelIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand },
@@ -85,13 +85,19 @@ static s32 _shelterB1ControlRoomAccessTunnelRejectKeyItemUse(Task* task, s32 mes
     return 0;
 }
 
-/// Message handler that copies the incoming record onto the outgoing one,
-/// passes both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_shelter_b1_control_room_access_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts a Mine/Shelter transition and resolves its destination room variant.
+///
+/// Copies the complete eight-byte request into the reply before resolving it.
+/// Queries preserve the requested room; execution uses current game progress.
+/// Both records must be live and may alias. Neither pointer is retained, and
+/// task and messageId are unused. Returns 1 to permit the ordinary transition.
+static s32 _shelterB1ControlRoomAccessTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_ROOM_EVENT_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_ROOM_EVENT_ACCEPTED;
 }
 
 /// Ignores room commands from scripts and triggers and always returns zero.

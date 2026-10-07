@@ -72,7 +72,7 @@ static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
 
 static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0);
 
-static s32  func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1);
+static void _neoArkSubmarineGalleryDrawRedDisc(u16 radius);
 static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0);
 static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0);
 static void func_neo_ark_submarine_gallery_8017EF8C(Task* arg0);
@@ -220,64 +220,92 @@ void func_neo_ark_submarine_gallery_8017EBCC(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Sweeps a 32-wedge red disc of radius `arg0` through the view matrix: each
-/// step projects the fan's centre and the two rim points 0x80 apart and, when
-/// the projection passes, queues one semi-transparent `POLY_G3` plus its
-/// drawing-mode packet (tpage 0x2A) into `gGpuCurrentOt[(otz >> 4) + 0x18]`.
-/// The disc sits at view-space height 0x14B4.
-static s32 func_neo_ark_submarine_gallery_8017EC24(u16 arg0, s32 arg1)
+/// Draws an additive red disc fading to black at its rim, at room Y = 5300.
+///
+/// Radius is in whole room-coordinate units; the caller grows it from 0 to
+/// 1920. Refreshes the view transform and projects 32 fan segments, rejecting
+/// a segment when the GTE error flag is set. Requires initialized projection
+/// state, a word-aligned frame arena with up to `32 * (sizeof(POLY_G3) +
+/// sizeof(DR_MODE))` free bytes, and the current OT's tags 24..1047. Changes
+/// GTE state and retains only packet links in the current frame resources.
+static void _neoArkSubmarineGalleryDrawRedDisc(u16 radius)
 {
-    SVECTOR  p0;
-    SVECTOR  p1;
-    SVECTOR  p2;
-    long     sxy0;
-    long     sxy1;
-    long     sxy2;
-    long     p;
-    long     flag;
-    POLY_G3* prim;
-    DR_MODE* dr;
-    s32      otz;
-    s32      ang;
-    s16      i;
-    s16      y;
+    enum {
+        NEO_ARK_SUBMARINE_GALLERY_DISC_SEGMENT_COUNT      = 32,
+        NEO_ARK_SUBMARINE_GALLERY_DISC_ANGLE_STEP         = ACTOR_TRANSFORM_ANGLE_TURN / NEO_ARK_SUBMARINE_GALLERY_DISC_SEGMENT_COUNT,
+        NEO_ARK_SUBMARINE_GALLERY_DISC_ROOM_Y             = 5300,
+        NEO_ARK_SUBMARINE_GALLERY_DISC_TRIG_FRACTION_BITS = 12,
+        NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_SHIFT        = 4,
+        NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_BIAS         = 24,
+        NEO_ARK_SUBMARINE_GALLERY_DISC_ADDITIVE_TPAGE     = getTPage(0, GPU_BLEND_ADD, 640, 0),
+    };
+
+    SVECTOR  center;
+    SVECTOR  rimStart;
+    SVECTOR  rimEnd;
+    long     screenCenter;
+    long     screenStart;
+    long     screenEnd;
+    long     perspective;
+    long     projectionFlags;
+    POLY_G3* triangle;
+    DR_MODE* drawMode;
+    s32      depth;
+    s32      angle;
+    s16      segmentIndex;
+    s16      planeY;
+
+    /// Queues the projected wedge and makes additive blending execute before it.
+    ///
+    /// Captures the packed `screenCenter`/`screenStart`/`screenEnd`, `depth`, `triangle`,
+    /// `drawMode`, the disc constants, `gGpuPrimCursor` and `gGpuCurrentOt`.
+    /// Requires one POLY_G3 and one DR_MODE of free arena storage and a valid biased OT
+    /// depth. Writes both pointer locals and advances the arena twice; no arguments
+    /// are evaluated. The compound statement is undefined after this loop.
+#define NEO_ARK_SUBMARINE_GALLERY_QUEUE_DISC_WEDGE()                                                                                          \
+    {                                                                                                                                         \
+        triangle       = gGpuPrimCursor;                                                                                                      \
+        gGpuPrimCursor = triangle + 1;                                                                                                        \
+        setPolyG3(triangle);                                                                                                                  \
+        setRGB0(triangle, 0xFF, 0, 0);                                                                                                        \
+        setRGB1(triangle, 0, 0, 0);                                                                                                           \
+        setRGB2(triangle, 0, 0, 0);                                                                                                           \
+        setSemiTrans(triangle, 1);                                                                                                            \
+        GPU_PRIMITIVE_XY_WORD(triangle, 0) = screenCenter;                                                                                    \
+        GPU_PRIMITIVE_XY_WORD(triangle, 1) = screenStart;                                                                                     \
+        GPU_PRIMITIVE_XY_WORD(triangle, 2) = screenEnd;                                                                                       \
+        addPrim(&gGpuCurrentOt[(depth >> NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_SHIFT) + NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_BIAS], triangle); \
+        drawMode       = gGpuPrimCursor;                                                                                                      \
+        gGpuPrimCursor = drawMode + 1;                                                                                                        \
+        setDrawTPage(drawMode, 0, 0, NEO_ARK_SUBMARINE_GALLERY_DISC_ADDITIVE_TPAGE);                                                          \
+        addPrim(&gGpuCurrentOt[(depth >> NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_SHIFT) + NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_BIAS], drawMode); \
+    }
 
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
-    y = 0x14B4;
+    planeY = NEO_ARK_SUBMARINE_GALLERY_DISC_ROOM_Y;
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    for (i = 0; i < 0x20; i++) {
-        p0.vx = 0;
-        p0.vy = y;
-        p0.vz = 0;
-        ang   = (i << 16) >> 9;
-        p1.vx = (rsin(ang) * arg0) >> 12;
-        p1.vy = y;
-        p1.vz = (rcos(ang) * arg0) >> 12;
-        ang   = ang + 0x80;
-        p2.vx = (rsin(ang) * arg0) >> 12;
-        p2.vy = y;
-        p2.vz = (rcos(ang) * arg0) >> 12;
-        otz   = RotTransPers3(&p0, &p1, &p2, &sxy0, &sxy1, &sxy2, &p, &flag);
-        if (flag >= 0) {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG3(prim);
-            setRGB0(prim, 0xFF, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, 0, 0, 0);
-            setSemiTrans(prim, 1);
-            GPU_PRIMITIVE_XY_WORD(prim, 0) = sxy0;
-            GPU_PRIMITIVE_XY_WORD(prim, 1) = sxy1;
-            GPU_PRIMITIVE_XY_WORD(prim, 2) = sxy2;
-            addPrim(&gGpuCurrentOt[(otz >> 4) + 0x18], prim);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setDrawTPage(dr, 0, 0, 0x2A);
-            addPrim(&gGpuCurrentOt[(otz >> 4) + 0x18], dr);
+
+    // Project adjacent rim points in 4096-unit turn angles around the centre.
+    for (segmentIndex = 0; segmentIndex < NEO_ARK_SUBMARINE_GALLERY_DISC_SEGMENT_COUNT; segmentIndex++) {
+        center.vx   = 0;
+        center.vy   = planeY;
+        center.vz   = 0;
+        angle       = segmentIndex * NEO_ARK_SUBMARINE_GALLERY_DISC_ANGLE_STEP;
+        rimStart.vx = (rsin(angle) * radius) >> NEO_ARK_SUBMARINE_GALLERY_DISC_TRIG_FRACTION_BITS;
+        rimStart.vy = planeY;
+        rimStart.vz = (rcos(angle) * radius) >> NEO_ARK_SUBMARINE_GALLERY_DISC_TRIG_FRACTION_BITS;
+        angle       = angle + NEO_ARK_SUBMARINE_GALLERY_DISC_ANGLE_STEP;
+        rimEnd.vx   = (rsin(angle) * radius) >> NEO_ARK_SUBMARINE_GALLERY_DISC_TRIG_FRACTION_BITS;
+        rimEnd.vy   = planeY;
+        rimEnd.vz   = (rcos(angle) * radius) >> NEO_ARK_SUBMARINE_GALLERY_DISC_TRIG_FRACTION_BITS;
+        depth       = RotTransPers3(&center, &rimStart, &rimEnd, &screenCenter, &screenStart, &screenEnd, &perspective, &projectionFlags);
+        if (projectionFlags >= 0) {
+            NEO_ARK_SUBMARINE_GALLERY_QUEUE_DISC_WEDGE();
         }
     }
+#undef NEO_ARK_SUBMARINE_GALLERY_QUEUE_DISC_WEDGE
 }
 
 static void func_neo_ark_submarine_gallery_8017EED8(Task* arg0)
@@ -301,7 +329,7 @@ static void func_neo_ark_submarine_gallery_8017EF14(Task* arg0)
         if (arg0->killCountdown < 0x780) {
             arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);
         }
-        func_neo_ark_submarine_gallery_8017EC24((u16)arg0->killCountdown, mode);
+        _neoArkSubmarineGalleryDrawRedDisc((u16)arg0->killCountdown);
     }
 }
 

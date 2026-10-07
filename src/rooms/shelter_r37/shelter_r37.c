@@ -23,16 +23,16 @@
 /// The room's message table, handed to its event task in state 0.
 extern TaskMessageEntry D_shelter_r37_8017D6D0[];
 
-s32 func_shelter_r37_8017D5D0(Task*, s32, s32, s32);
-s32 func_shelter_r37_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_r37_8017D61C(Task*, s32, s32, s32);
-s32 func_shelter_r37_8017D624(Task*, s32, s32, s32);
+static s32 _shelterR37RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _shelterR37ResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _shelterR37IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelterR37IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 TaskMessageEntry D_shelter_r37_8017D6D0[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_r37_8017D5D8 },
-    { 5105, func_shelter_r37_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r37_8017D624 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_r37_8017D61C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR37ResolveRoomEvent },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR37RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR37IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterR37IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -173,29 +173,41 @@ WorldCollisionSurfaceProperties* D_shelter_r37_8017DED8[8] = {
 static void func_shelter_r37_8017D62C(Task* task);
 static void func_shelter_r37_8017D670(Task* task);
 
-/// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_shelter_r37_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use and selects the inventory's cannot-use notice.
+///
+/// All callback arguments are unused; the collected item remains in inventory.
+static s32 _shelterR37RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Accepts a Mine/Shelter transition and resolves its destination room variant.
+///
+/// Copies the complete eight-byte request into the reply before resolving it.
+/// Queries preserve the requested room; execution uses current game progress.
+/// Both records must be live and may alias. Neither pointer is retained, and
+/// task and messageId are unused. Returns 1 to permit the ordinary transition.
+static s32 _shelterR37ResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { SHELTER_R37_ROOM_EVENT_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_R37_ROOM_EVENT_ACCEPTED;
+}
+
+/// Ignores room commands from scripts and triggers, returning zero.
+///
+/// Neither command word nor any other callback argument is read or retained.
+static s32 _shelterR37IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming record onto the
-/// outgoing one, passes both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_shelter_r37_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
-}
-
-/// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_shelter_r37_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_shelter_r37_8017D624(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests from direction triggers, returning zero.
+///
+/// The borrowed request and all other arguments are neither read nor retained.
+static s32 _shelterR37IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }

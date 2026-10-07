@@ -40,7 +40,15 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_observatory_80187A08[];
 /// The room overlay must be loaded. The glow task resets the value on its first tick.
 void neoArkObservatorySetLightBeamIntensity(s32 intensity);
 
-void func_neo_ark_observatory_8017FA98(s32 arg0);
+/// Updates the companion obstacle reserved at the start of the room collision grid.
+///
+/// Uses the companion's model root, falling back to the player's. At least one
+/// must be a live model task with a root mapping local geometry into room space.
+/// Applies the room-axis offset (0, 0, -200) while a companion exists and
+/// `GAME_FLAG_0D7` is nonzero; otherwise raises it by 10000 room units. The grid's
+/// cell lists and remaining geometry stay intact. Requires the observatory
+/// overlay; changes GTE state. The event-script argument is unused.
+void neoArkObservatoryUpdateCompanionObstacle(s32 unusedEventArg);
 
 /// Draws the observatory's glow discs and light beams for the mapped camera view.
 ///

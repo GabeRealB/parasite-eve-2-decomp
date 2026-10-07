@@ -30,6 +30,11 @@ extern WorldCollisionTrigger D_shelter_1f_heliport_s4_8017DE84[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_heliport_s4_8017E060[];
 
-void func_shelter_1f_heliport_s4_8017D678(Task* task);
+/// Maintains the heliport room's message receiver for the loaded room overlay.
+///
+/// State 0 installs and publishes the receiver, state 1 idles, and state 2
+/// releases the task. Call with a live task whose state is in 0..2. Spawn
+/// arguments are unused; map_shelter selects this callback for stage 4, area 38.
+void shelter1fHeliportS4RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_1F_HELIPORT_S4_H

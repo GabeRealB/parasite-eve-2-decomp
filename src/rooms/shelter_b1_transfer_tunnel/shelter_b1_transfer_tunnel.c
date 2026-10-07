@@ -80,14 +80,14 @@ static const TaskFuncTable3 D_shelter_b1_transfer_tunnel_8017D5C4 = {
 };
 
 static s32 _shelterB1TransferTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_shelter_b1_transfer_tunnel_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1TransferTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1TransferTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelterB1TransferTunnelIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 enum { SHELTER_B1_TRANSFER_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_shelter_b1_transfer_tunnel_801828C0[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_transfer_tunnel_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1TransferTunnelResolveRoomEvent },
     { SHELTER_B1_TRANSFER_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1TransferTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1TransferTunnelIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1TransferTunnelIgnoreRoomCommand },
@@ -307,13 +307,19 @@ static s32 _shelterB1TransferTunnelRejectKeyItemUse(Task* task, s32 messageId, s
     return 0;
 }
 
-/// Message handler that copies the incoming record onto the outgoing one,
-/// passes both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_shelter_b1_transfer_tunnel_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts a Mine/Shelter transition and resolves its destination room variant.
+///
+/// Copies the complete eight-byte request into the reply before resolving it.
+/// Queries preserve the requested room; execution uses current game progress.
+/// Both records must be live and may alias. Neither pointer is retained, and
+/// task and messageId are unused. Returns 1 to permit the ordinary transition.
+static s32 _shelterB1TransferTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { SHELTER_B1_TRANSFER_TUNNEL_ROOM_EVENT_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_B1_TRANSFER_TUNNEL_ROOM_EVENT_ACCEPTED;
 }
 
 /// Ignores room commands from CAP and direction triggers, returning zero.

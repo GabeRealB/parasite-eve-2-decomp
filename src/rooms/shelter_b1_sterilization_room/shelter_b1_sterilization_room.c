@@ -434,7 +434,7 @@ TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
     { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomSwitchRoomTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80181588, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomTrapDamageTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80181634, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomResetSpawnMaskTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801816E0, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801817EC, { .value = 0 } },
 };

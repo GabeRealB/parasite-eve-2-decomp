@@ -102,3 +102,4 @@ _roamerLatchSpawnRequestPoolB = 0x80181568; // type:func
 _neoArkWoodlandPathIgnoreRoamerCommand = 0x80181474; // type:func
 _neoArkWoodlandPathAdvanceRoamerPoolAState = 0x801814d4; // type:func
 _neoArkWoodlandPathAdvanceRoamerPoolBState = 0x801815c0; // type:func
+_roamerExtendCooldown = 0x8018154c; // type:func

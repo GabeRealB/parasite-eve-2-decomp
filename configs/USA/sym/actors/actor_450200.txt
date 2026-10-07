@@ -212,7 +212,7 @@ D_actor_450200_80137B10 = 0x80137B10; // size:0x28 defined:True
 
 neoArkObservatorySetLightBeamIntensity = 0x80180DAC; // type:func absolute:True owner=neo_ark_observatory
 
-func_neo_ark_observatory_8017FA98 = 0x8017FA98; // type:func absolute:True owner=neo_ark_observatory
+neoArkObservatoryUpdateCompanionObstacle = 0x8017FA98; // type:func absolute:True owner=neo_ark_observatory
 _actor450200CompanionPuffTask = 0x80131e24; // type:func
 _actor450200HeadAimTask = 0x80131fa8; // type:func
 _actor450200ControlCompanionPuffs = 0x801320d4; // type:func

@@ -129,3 +129,4 @@ _roamerLatchSpawnRequestPoolB = 0x801814B0; // type:func
 neoArkForestZoneRejectKeyItemMessage = 0x8017d7dc; // type:func
 neoArkForestZoneIgnoreCommandMessage = 0x8017d950; // type:func
 _neoArkForestZoneSetupIdleState = 0x8017dbac; // type:func
+_roamerExtendCooldown = 0x80181494; // type:func

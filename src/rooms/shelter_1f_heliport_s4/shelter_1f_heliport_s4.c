@@ -23,16 +23,16 @@
 /// The room's message table, handed to its event task in state 0.
 extern TaskMessageEntry D_shelter_1f_heliport_s4_8017D6D0[];
 
-s32 func_shelter_1f_heliport_s4_8017D5D0(Task*, s32, s32, s32);
-s32 func_shelter_1f_heliport_s4_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_heliport_s4_8017D61C(Task*, s32, s32, s32);
-s32 func_shelter_1f_heliport_s4_8017D624(Task*, s32, s32, s32);
+s32        func_shelter_1f_heliport_s4_8017D5D0(Task*, s32, s32, s32);
+s32        func_shelter_1f_heliport_s4_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelter1fHeliportS4IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelter1fHeliportS4IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 TaskMessageEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_s4_8017D5D8 },
     { 5105, func_shelter_1f_heliport_s4_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_heliport_s4_8017D624 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_1f_heliport_s4_8017D61C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fHeliportS4IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelter1fHeliportS4IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -158,8 +158,8 @@ WorldCollisionSurfaceProperties* D_shelter_1f_heliport_s4_8017E060[8] = {
     D_shelter_1f_heliport_s4_8017E058,
 };
 
-static void func_shelter_1f_heliport_s4_8017D62C(Task* task);
-static void func_shelter_1f_heliport_s4_8017D670(Task* task);
+static void _shelter1fHeliportS4InitRoomTask(Task* task);
+static void _shelter1fHeliportS4IdleRoomTask(Task* task);
 
 s32 func_shelter_1f_heliport_s4_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
@@ -175,45 +175,52 @@ s32 func_shelter_1f_heliport_s4_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in,
     return 1;
 }
 
-s32 func_shelter_1f_heliport_s4_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from scripts and triggers, returning zero.
+///
+/// Neither command word nor any other callback argument is read or retained.
+static s32 _shelter1fHeliportS4IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_shelter_1f_heliport_s4_8017D624(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room-action requests from direction triggers, returning zero.
+///
+/// The borrowed request and all other arguments are neither read nor retained.
+static s32 _shelter1fHeliportS4IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
 
-/// State 0 of the room's event task: installs the room's message table,
-/// publishes the task in pointer slot 7 and advances to state 1.
-static void func_shelter_1f_heliport_s4_8017D62C(Task* task)
+/// Registers the heliport's room-message receiver and advances to idle state 1.
+///
+/// Runs in state 0 of the live room task. Its message table remains borrowed
+/// from this overlay while `GAME_TASK_SLOT_ROOM` exposes the task to senders.
+static void _shelter1fHeliportS4InitRoomTask(Task* task)
 {
     task->msgTable = D_shelter_1f_heliport_s4_8017D6D0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
-/// State 1 of the room's event task: does nothing, so the task idles here.
-static void func_shelter_1f_heliport_s4_8017D670(Task* task)
+/// Keeps the initialized room-message receiver idle in state 1.
+static void _shelter1fHeliportS4IdleRoomTask(Task* task)
 {
 }
 
 /// The event task's three states: install the message table, idle, and kill.
 static const TaskFuncTable3 D_shelter_1f_heliport_s4_8017D5C4 = {
     {
-        func_shelter_1f_heliport_s4_8017D62C,
-        func_shelter_1f_heliport_s4_8017D670,
+        _shelter1fHeliportS4InitRoomTask,
+        _shelter1fHeliportS4IdleRoomTask,
         taskKill,
     },
 };
 
-/// The room's event task: runs the handler for its current state, through a
-/// stack copy of the state table.
-void func_shelter_1f_heliport_s4_8017D678(Task* task)
+void shelter1fHeliportS4RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_shelter_1f_heliport_s4_8017D5C4;
-    sp.funcs[task->state](task);
+    // Snapshot all three state handlers before dispatching the current state.
+    handlers = D_shelter_1f_heliport_s4_8017D5C4;
+    handlers.funcs[task->state](task);
 }

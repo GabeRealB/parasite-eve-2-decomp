@@ -4028,7 +4028,7 @@ The section above fixes an `lh`/`lhu` mismatch by correcting the declaration.
 That is not on the table when two bodies already matched in the *same* unit
 read one object both ways. `_roamerLatchSpawnRequestPoolA` tests
 `_gRoamerCooldownFrames` with `lh` while its neighbour
-`func_neo_ark_forest_zone_80181494` reads the same halfword with `lhu` (a plain
+`_roamerExtendCooldown` reads the same halfword with `lhu` (a plain
 `u16 D += 0x5A`), and `func_...80180620` does both four instructions apart -
 `lh` for the `if (D > 0)` test, `lhu` for the decrement in the body. The unit's
 declaration is `u16` with signed *reads*; the body that wants `lh` has to ask
@@ -89146,7 +89146,7 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 ## A splat-auto-labelled address inside another object must keep its own symbol
 
 An instruction can reference an address *inside* a data object by a name splat
-invented for it. `func_neo_ark_observatory_8017FA98` writes the `vy` of an
+invented for it. `neoArkObservatoryUpdateCompanionObstacle` writes the `vy` of an
 `SVECTOR` at `0x80181368`, and the target disassembles that store as
 
 ```
@@ -94935,6 +94935,12 @@ seed is mechanical: move the declaration into the branch, not the assignment.
 
 ## A call argument that repeats a value CSE already has in a register is a variable, not a literal (func_neo_ark_submarine_gallery_8017EF14, 2026-09-16)
 
+The original experiment passed the room variant as the drawer's unused second
+argument. The final `_neoArkSubmarineGalleryDrawRedDisc(u16 radius)` interface
+removes that operand, and the caller still matches with the `mode` local below.
+The literal-versus-variable measurements here describe that earlier experiment;
+`drawDiscWithVariant` below denotes its two-argument test interface.
+
 A handler that forces a session state and passes the same state on:
 
 ```c
@@ -94944,7 +94950,7 @@ A handler that forces a session state and passes the same state on:
     if (arg0->killCountdown < 0x780) {
         arg0->killCountdown = (s16)((u16)arg0->killCountdown + 0x10);
     }
-    func_neo_ark_submarine_gallery_8017EC24((u16)arg0->killCountdown, 4);
+    drawDiscWithVariant((u16)arg0->killCountdown, 4);
 ```
 
 is 93.333% (`insert=1 delete=1`), and the whole difference is the `jal`'s delay
@@ -94969,7 +94975,7 @@ copy instead of a raw constant:
             gGameSession->location.loc.variant = mode;
         }
         ...
-        func_neo_ark_submarine_gallery_8017EC24((u16)arg0->killCountdown, mode);
+        drawDiscWithVariant((u16)arg0->killCountdown, mode);
     }
 ```
 
@@ -121099,9 +121105,9 @@ target.o SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/neoArkEveAccessTunnelSetPartDestroyedSprites-vacuum`.
 
-## A guard of `slti` on a `sll 16`/`sra 16` of the *incremented* temp means the loop counter is `s16` (func_neo_ark_submarine_gallery_8017EC24, 2026-09-17)
+## A guard of `slti` on a `sll 16`/`sra 16` of the *incremented* temp means the loop counter is `s16` (_neoArkSubmarineGalleryDrawRedDisc, 2026-09-17)
 
-`func_neo_ark_submarine_gallery_8017EC24` swept 32 wedges of a disc and the
+`_neoArkSubmarineGalleryDrawRedDisc` swept 32 wedges of a disc and the
 back edge read
 
 ```

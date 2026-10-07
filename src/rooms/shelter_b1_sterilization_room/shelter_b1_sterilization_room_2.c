@@ -1006,10 +1006,10 @@ void func_shelter_b1_sterilization_room_801815EC(void)
     }
 }
 
-void func_shelter_b1_sterilization_room_80181634(Task* arg0)
+void shelterB1SterilizationRoomResetSpawnMaskTask(Task* task)
 {
     D_shelter_b1_sterilization_room_8018C340 = 0;
-    taskKill(arg0);
+    taskKill(task);
 }
 
 void func_shelter_b1_sterilization_room_80181658(void)
