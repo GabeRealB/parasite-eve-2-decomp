@@ -5480,7 +5480,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
 
     if ((s16)(u16)work->stateTicks >= 0x3D) {
         if ((s16)((s16)(u16)work->stateTicks % 3) == 0) {
-            actorAccumulateToView(
+            _actorRenderAccumulateWorldRotation(
                 &work->escorts[0]->task->extra.tmd->coords[1],
                 &D_actor_403200_8015F920.coord);
 

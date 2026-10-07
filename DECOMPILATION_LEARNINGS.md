@@ -112139,7 +112139,7 @@ scored 100.000% with every penalty zero on the first real attempt.
 name" is not a difference in shape. When the fuzzy tier is unanimous at 1.00
 and the exact tier disagrees, spend one diff before reaching for m2c - and read
 the matched sibling's C even when the diff is not empty, because the siblings'
-inline helpers (`actorAccumulateToView` in `actor_444000_view.h`) name
+inline helpers (`_actorRenderAccumulateWorldRotation` in `include/actors/actor.h`) name
 the loop shapes the asm shows only as GTE sequences.
 
 Since such a helper is `static __inline__` and inlined at every use, its

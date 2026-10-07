@@ -5,7 +5,7 @@
 /// escort is, in world space.
 ///
 /// The model is reparented to `gGfxViewCoord`, so both halves of that escort's
-/// part 1 have to be resolved by hand: `actorAccumulateToView` walks
+/// part 1 have to be resolved by hand: `_actorRenderAccumulateWorldRotation` walks
 /// the part's coordinate chain up to the view coordinate for the rotation and
 /// `_actorRenderTransformLocalPointToWorld` carries its origin along the same
 /// chain for the translation. The model is then turned a quarter turn, its
@@ -36,8 +36,8 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->coords->parent = &gGfxViewCoord;
     task->extra.tmd->flags          = 0;
 
-    actorAccumulateToView(&host->escorts[0]->task->extra.tmd->coords[1],
-                          &task->extra.tmd->coords->coord);
+    _actorRenderAccumulateWorldRotation(&host->escorts[0]->task->extra.tmd->coords[1],
+                                        &task->extra.tmd->coords->coord);
 
     vec.vx = vec.vy = vec.vz = 0;
     _actorRenderTransformLocalPointToWorld(&host->escorts[0]->task->extra.tmd->coords[1], &vec);

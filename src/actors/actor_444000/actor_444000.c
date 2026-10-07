@@ -3341,7 +3341,7 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 /// body over: 0x14 switches the host and escort 3 to light mode 1, while the
 /// other three reparent escort 2, 4 and 3's model to `gGfxViewCoord`. That
 /// reparenting is why both halves of the part's placement have to be resolved
-/// by hand -- `actorAccumulateToView` for the rotation it had up the
+/// by hand -- `_actorRenderAccumulateWorldRotation` for the rotation it had up the
 /// chain and `_actorRenderTransformLocalPointToWorld` for its origin -- the
 /// same pair `gluttonThrowSpawn` uses. Past each of those sub-states the body
 /// sinks toward the host's own height 0x1E a step, clamped there, and squashes
@@ -3359,7 +3359,7 @@ static void func_actor_444000_80135448(Task* task)
     GluttonWork* work;
     Enemy*       enemy;
     TmdObject*   tmd;
-    MATRIX       mat;
+    MATRIX       worldRotation;
     SVECTOR      pos;
     SVECTOR*     verts;
     s32          frame;
@@ -3452,7 +3452,7 @@ static void func_actor_444000_80135448(Task* task)
                 break;
 
             case 0x82:
-                actorAccumulateToView(&task->extra.tmd->coords[4], &mat);
+                _actorRenderAccumulateWorldRotation(&task->extra.tmd->coords[4], &worldRotation);
 
                 pos.vz = 0;
                 pos.vy = 0;
@@ -3460,7 +3460,7 @@ static void func_actor_444000_80135448(Task* task)
                 _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[4], &pos);
 
                 work->escorts[2]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
-                work->escorts[2]->task->extra.tmd->coords->coord        = mat;
+                work->escorts[2]->task->extra.tmd->coords->coord        = worldRotation;
                 work->escorts[2]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
                 work->escorts[2]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
                 work->escorts[2]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
@@ -3468,7 +3468,7 @@ static void func_actor_444000_80135448(Task* task)
                 break;
 
             case 0x1DC:
-                actorAccumulateToView(&task->extra.tmd->coords[3], &mat);
+                _actorRenderAccumulateWorldRotation(&task->extra.tmd->coords[3], &worldRotation);
 
                 pos.vz = 0;
                 pos.vy = 0;
@@ -3476,7 +3476,7 @@ static void func_actor_444000_80135448(Task* task)
                 _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[3], &pos);
 
                 work->escorts[3]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
-                work->escorts[3]->task->extra.tmd->coords->coord        = mat;
+                work->escorts[3]->task->extra.tmd->coords->coord        = worldRotation;
                 work->escorts[3]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
                 work->escorts[3]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
                 work->escorts[3]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
@@ -3484,7 +3484,7 @@ static void func_actor_444000_80135448(Task* task)
                 break;
 
             case 0x14A:
-                actorAccumulateToView(&task->extra.tmd->coords[4], &mat);
+                _actorRenderAccumulateWorldRotation(&task->extra.tmd->coords[4], &worldRotation);
 
                 pos.vz = 0;
                 pos.vy = 0;
@@ -3492,7 +3492,7 @@ static void func_actor_444000_80135448(Task* task)
                 _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[4], &pos);
 
                 work->escorts[4]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
-                work->escorts[4]->task->extra.tmd->coords->coord        = mat;
+                work->escorts[4]->task->extra.tmd->coords->coord        = worldRotation;
                 work->escorts[4]->task->extra.tmd->coords->coord.t[0]   = pos.vx;
                 work->escorts[4]->task->extra.tmd->coords->coord.t[1]   = pos.vy;
                 work->escorts[4]->task->extra.tmd->coords->coord.t[2]   = pos.vz;
@@ -5727,8 +5727,8 @@ static void func_actor_444000_801404C0(Task* arg0)
                 D_actor_444000_80161850 = (u16)D_actor_444000_80161850 + 1;
             }
 
-            actorAccumulateToView(&work->escorts[0]->task->extra.tmd->coords[1],
-                                  &D_actor_444000_80161948.coords[D_actor_444000_80161850].coord);
+            _actorRenderAccumulateWorldRotation(&work->escorts[0]->task->extra.tmd->coords[1],
+                                                &D_actor_444000_80161948.coords[D_actor_444000_80161850].coord);
             D_actor_444000_80161948.coords[D_actor_444000_80161850].parent = &gGfxViewCoord;
 
             pos.vz = 0;

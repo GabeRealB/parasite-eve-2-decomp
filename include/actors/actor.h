@@ -1727,29 +1727,61 @@ static __inline__ void _actorRenderTransformLocalPointToWorld(const GfxCoord* lo
 }
 #undef ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT
 
-/// `_actorRenderAccumulateRotation` with the view as its excluded ancestor,
-/// without returning whether that ancestor was reached.
-static __inline__ void actorAccumulateToView(GfxCoord* coord, MATRIX* mat)
+/// Composes a model joint's world-space rotation, excluding the view transform.
+///
+/// Copies `joint->coord`, then pre-multiplies and normalizes each parent basis
+/// before `gGfxViewCoord`. Coefficients have 12 fractional bits (`ONE` is 1.0).
+/// With no parent product, the joint's basis is copied without normalization.
+/// A NULL parent ends the walk with the partial result; unlike
+/// `_actorRenderAccumulateRotation`, no success status is returned. The view
+/// must be a strict ancestor for the result to describe world space.
+///
+/// `joint` and its acyclic parent chain must remain live and word-aligned.
+/// `worldRotation` must be a separate, writable, word-aligned `MATRIX`.
+/// Only its 3x3 coefficients are a result: the whole-matrix copies also replace
+/// translation and alignment bytes, which are unspecified after a parent
+/// product. Supply translation separately before installing a complete transform
+/// and mark its coordinate cache dirty. The input coordinates and their caches
+/// stay unchanged; inputs are borrowed for this call, no scratch stack is used,
+/// and parent products overwrite GTE working registers.
+static __inline__ void _actorRenderAccumulateWorldRotation(const GfxCoord* joint, MATRIX* worldRotation)
 {
-    MATRIX    m;
-    GfxCoord* cur;
+    MATRIX          normalizedRotation;
+    const GfxCoord* ancestor;
 
-    cur  = coord->parent;
-    *mat = coord->coord;
+/// Pre-multiplies a rotation by a parent's basis and normalizes the product.
+///
+/// Arguments must be stable, side-effect-free expressions for separate objects.
+/// `parentBasis` is a readable word-aligned `MATRIX` pointer, evaluated once;
+/// `rotation` is a writable word-aligned `MATRIX` pointer, evaluated three times.
+/// `normalized` is a writable word-aligned `MATRIX` lvalue, evaluated twice.
+/// Only the product's 3x3 is valid; the whole-matrix copy overwrites translation
+/// and alignment bytes with unspecified data.
+/// Coefficients have 12 fractional bits; GTE working registers change. Captures
+/// no identifiers and expands to one compound statement; use within braces.
+#define ACTOR_RENDER_ACCUMULATE_WORLD_ROTATION_PRODUCT(parentBasis, rotation, normalized) \
+    {                                                                                     \
+        gte_SetRotMatrix((parentBasis));                                                  \
+        MulRotMatrix((rotation));                                                         \
+        MatrixNormal((rotation), &(normalized));                                          \
+        *(rotation) = (normalized);                                                       \
+    }
+
+    ancestor       = joint->parent;
+    *worldRotation = joint->coord;
     while (1) {
-        if (cur == NULL) {
+        if (ancestor == NULL) {
             return;
         }
-        if (cur == &gGfxViewCoord) {
+        if (ancestor == &gGfxViewCoord) {
             return;
         }
-        gte_SetRotMatrix(&cur->coord);
-        MulRotMatrix(mat);
-        MatrixNormal(mat, &m);
-        *mat = m;
-        cur  = cur->parent;
+        // Normalize each ancestor product before carrying it into the next frame.
+        ACTOR_RENDER_ACCUMULATE_WORLD_ROTATION_PRODUCT(&ancestor->coord, worldRotation, normalizedRotation);
+        ancestor = ancestor->parent;
     }
 }
+#undef ACTOR_RENDER_ACCUMULATE_WORLD_ROTATION_PRODUCT
 
 /// Whether the XZ offset `gap` reaches at least 1000.
 static __inline__ s32 actorOutOfReach(SVECTOR* gap)
