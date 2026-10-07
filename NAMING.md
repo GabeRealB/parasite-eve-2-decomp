@@ -733,6 +733,10 @@ published work pointer bound around its fragment. Its default is the private
 `_scriptedWalkPlace`; the header and fragment declare each instance `static`.
 The carrier declares an additional static instance in its prologue before its
 message table; actor_143900's second copy is `_scriptedWalkPlaceSecond`.
+`SCRIPTED_WALK_TO` selects the approach-message callback, with the receiver's
+allocated work type and signed-halfword mode bound around its fragment.
+The carrier declares an additional private instance in its prologue before
+its message table; actor_143900's second copy is `_scriptedWalkToSecond`.
 
 `pacedWalk` owns the included twenty-part cutscene NPC walk whose work block
 is kept at `Task::work`, and the animation-slot tick, reset, blend and placement

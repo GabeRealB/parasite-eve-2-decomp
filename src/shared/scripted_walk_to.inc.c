@@ -1,43 +1,75 @@
 /* Part of the scripted walk library; see scripted_walk.h. */
 
-/// Message 0x7DD (approach): turns the model to face `target` -- away from it
-/// in mode 1, where the update then walks it backwards -- keeps the mode in
-/// `SCRIPTED_WALK_MODE`, and stores the number of steps the walk takes:
-/// the planar distance over the mode's step length, 60 in mode 0, 15 in mode 1
-/// and 25 otherwise.
-s32 scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode)
+/// Faces a planar destination and schedules its whole movement updates.
+///
+/// Handles `ACTOR_MESSAGE_WALK_TO`; `messageId` is unused and the result is zero.
+/// `task` must own a live TMD root and the allocation selected by
+/// `SCRIPTED_WALK_WORK_T`. The non-NULL, word-aligned `target` is borrowed only
+/// through dispatch: X/Z are whole units in the root parent's frame; Y is ignored.
+/// Coordinate differences and their squared sum must fit signed 32 bits.
+///
+/// Stores the low signed halfword of `mode` in `SCRIPTED_WALK_MODE`. Modes
+/// `SCRIPTED_WALK_MODE_*` select forward 60, backward 15 or forward 25 parent
+/// units per moving update; backward faces away from the target. Other narrowed
+/// modes use the 25-unit divisor but the update applies no translation.
+/// Heading uses 4096 units per turn and narrows to the signed halfword `st.yaw`.
+/// The root rotation is replaced at unit scale, preserving its translation.
+/// Stores floor(planar distance / step distance), narrowed without clamping to
+/// `st.travel`. Animation selection and composition invalidation belong to the
+/// caller/update. An initialized scratch stack needs 0x24 aligned bytes for
+/// the rotation helper; GTE state is overwritten and no target pointer is retained.
+s32 SCRIPTED_WALK_TO(Task* task, s32 messageId, const VECTOR* target, s32 mode)
 {
-    GfxCoord*             coord;
+    GfxCoord*             rootCoord;
     SCRIPTED_WALK_WORK_T* work;
-    s32                   dx;
-    s32                   dz;
-    s32                   steps;
-    s32                   dist;
-    s32                   angle;
+    s32                   deltaX;
+    s32                   deltaZ;
+    s32                   stepDistance;
+    s32                   planarDistance;
+    s32                   targetYaw;
 
-    coord              = task->extra.tmd->coords;
+    /// Replaces the root rotation with the heading for this approach.
+    ///
+    /// Arguments must be side-effect-free pointers to this receiver's writable
+    /// root and work block, and its signed target yaw in 4096 units per turn.
+    /// Work and yaw are evaluated repeatedly. Captures `SCRIPTED_WALK_MODE`,
+    /// read after storing yaw; backward mode adds half a turn before narrowing.
+    /// The rotation helper preserves translation and borrows 0x24 aligned
+    /// scratch bytes. Call as a standalone statement in a compound block;
+    /// the macro is undefined after its sole call.
+#define SCRIPTED_WALK_FACE_TARGET(modelRoot, walkerWork, heading)                            \
+    {                                                                                        \
+        (walkerWork)->st.yaw = (heading);                                                    \
+        if (SCRIPTED_WALK_MODE == SCRIPTED_WALK_MODE_BACKWARD) {                             \
+            (walkerWork)->st.yaw = (heading) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;              \
+        }                                                                                    \
+        gfxRotMatrixY(&(modelRoot)->coord, (walkerWork)->st.yaw, GRAPHICS_ROTATION_REPLACE); \
+    }
+
+    rootCoord          = task->extra.tmd->coords;
     work               = task->work;
     SCRIPTED_WALK_MODE = mode;
-    dx                 = target->vx - coord->coord.t[0];
-    dz                 = target->vz - coord->coord.t[2];
-    angle              = ratan2(dx, dz);
-    work->st.yaw       = angle;
-    if (SCRIPTED_WALK_MODE == SCRIPTED_WALK_MODE_BACKWARD) {
-        work->st.yaw = angle + 0x800;
-    }
-    gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
-    dist  = SquareRoot0(dx * dx + dz * dz);
-    steps = 0x19;
+    deltaX             = target->vx - rootCoord->coord.t[0];
+    deltaZ             = target->vz - rootCoord->coord.t[2];
+
+    // Backward travel keeps the model's front facing away from the destination.
+    targetYaw = ratan2(deltaX, deltaZ);
+    SCRIPTED_WALK_FACE_TARGET(rootCoord, work, targetYaw);
+#undef SCRIPTED_WALK_FACE_TARGET
+
+    // Travel counts updates; a fractional final step is discarded.
+    planarDistance = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ);
+    stepDistance   = SCRIPTED_WALK_SHORT_FORWARD_DISTANCE;
     switch (SCRIPTED_WALK_MODE) {
         case SCRIPTED_WALK_MODE_FORWARD:
-            steps = 0x3C;
+            stepDistance = SCRIPTED_WALK_FORWARD_DISTANCE;
             break;
         case SCRIPTED_WALK_MODE_BACKWARD:
-            steps = 0xF;
+            stepDistance = SCRIPTED_WALK_BACKWARD_DISTANCE;
             break;
         case SCRIPTED_WALK_MODE_FORWARD_SHORT:
             break;
     }
-    work->st.travel = dist / steps;
+    work->st.travel = planarDistance / stepDistance;
     return 0;
 }

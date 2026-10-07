@@ -1,7 +1,7 @@
 /* The walk of the 20-slot NPCs that cutscene scripts move around, over a
  * singleton work block the package publishes. The 'walk to' message (0x7DD)
  * turns the model toward its target (away from it in mode 1) and divides the
- * planar distance into the mode's step count: 60 for mode 0, 15 for mode 1 and
+ * planar distance by the mode's step distance: 60 for mode 0, 15 for mode 1 and
  * 25 otherwise. The per-frame update reseeds the rig in states 1 and 2, then
  * in state 3 walks forward at the mode's speed while the walk clip has travel
  * left, queues the idle clip with a 10-frame blend when it runs out, turns
@@ -146,7 +146,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 
 #ifndef SCRIPTED_WALK_WORK_T
-/// Type `_scriptedWalkUpdate` and `scriptedWalkTo` take the block at
+/// Type `_scriptedWalkUpdate` and `SCRIPTED_WALK_TO` take the block at
 /// `Task::work` as.
 ///
 /// The walkers' blocks are their packages' own types, so each includer binds
@@ -240,7 +240,26 @@ static void SCRIPTED_WALK_TICK_ANIM(void);
 
 static void SCRIPTED_WALK_RESET_ANIM(void);
 static void SCRIPTED_WALK_BLEND_ANIM(void);
-s32         scriptedWalkTo(Task* task, s32 arg1, VECTOR* target, s32 mode);
+
+#ifndef SCRIPTED_WALK_TO
+/// Selects the approach-message callback for one scripted walker instance.
+///
+/// Bind to a function identifier with signature
+/// `s32 name(Task* task, s32 messageId, const VECTOR* target, s32 mode)` before
+/// this header, or rebind around an additional walk-to fragment inclusion.
+/// `SCRIPTED_WALK_WORK_T` must select the receiver's live allocation and
+/// `SCRIPTED_WALK_MODE` its writable signed-halfword mode. Restore the first
+/// instance's bindings afterwards. Declare an additional private instance
+/// static in the carrier prologue before its message table.
+///
+/// The default serves the first or sole walker in actor_143900, actor_260400
+/// and actor_461800. actor_143900 selects `_scriptedWalkToSecond` for its
+/// second walker. This single-identifier binding takes no arguments, captures
+/// no locals and evaluates no objects; it uses no token pasting or stringification.
+#define SCRIPTED_WALK_TO scriptedWalkTo
+#endif
+
+s32 SCRIPTED_WALK_TO(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
 #ifndef SCRIPTED_WALK_PLACE
 /// Selects the private placement callback for one scripted walker instance.

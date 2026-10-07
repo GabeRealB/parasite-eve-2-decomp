@@ -122,7 +122,7 @@ s32              func_actor_143900_801331C4(Task*, s32, AnimationPlayRequest*, s
 s32              func_actor_143900_80133254(Task*, s32, s32, s32);
 static s32       _scriptedWalkPlaceSecond(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 s32              func_actor_143900_80133360(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-s32              func_actor_143900_801333C4(Task*, s32, VECTOR*, s32);
+static s32       _scriptedWalkToSecond(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 void             func_actor_143900_80132DEC(Task*);
 void             func_actor_143900_80132FB0(Task*);
 
@@ -680,7 +680,7 @@ TaskMessageEntry D_actor_143900_801413BC[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_143900_801326B4 },
     { ACTOR_MESSAGE_PLACE, SCRIPTED_WALK_PLACE },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_143900_80132778 },
-    { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, SCRIPTED_WALK_TO },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1099,7 +1099,7 @@ TaskMessageEntry D_actor_143900_80149634[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_143900_80133254 },
     { ACTOR_MESSAGE_PLACE, _scriptedWalkPlaceSecond },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_143900_80133360 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_143900_801333C4 },
+    { ACTOR_MESSAGE_WALK_TO, _scriptedWalkToSecond },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1661,14 +1661,19 @@ s32 func_actor_143900_80133360(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
     return 0;
 }
 
-/// The second walker's copy.
-#define scriptedWalkTo func_actor_143900_801333C4
+#undef SCRIPTED_WALK_TO
+/// Selects the private walk-to callback for the second walker.
+///
+/// The prologue declares its signature and static linkage. The work type and
+/// mode bindings below select the same receiver for this fragment inclusion.
+#define SCRIPTED_WALK_TO _scriptedWalkToSecond
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE (_gScriptedWalkSecondMode)
 #undef SCRIPTED_WALK_WORK_T
 #define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
 #include "../../shared/scripted_walk_to.inc.c"
-#undef scriptedWalkTo
+#undef SCRIPTED_WALK_TO
+#define SCRIPTED_WALK_TO scriptedWalkTo
 #undef SCRIPTED_WALK_MODE
 #define SCRIPTED_WALK_MODE gScriptedWalkModeValue
 #undef SCRIPTED_WALK_WORK_T
