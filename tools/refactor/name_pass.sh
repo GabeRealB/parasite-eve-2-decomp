@@ -959,6 +959,14 @@ if (( DRY == 0 )) && [[ -n "$(tree_changes "$ROOT")" ]]; then
   exit 1
 fi
 
+# The worklist on disk was built by whatever ran last: an earlier run with
+# other kinds, a hand rebuild with no run alive (which reads as "all kinds" and
+# makes small steps), or a tree that has moved since. Steps are sized and
+# ordered for the kinds this run works, so build it once before the first
+# round; every later round rebuilds it anyway. --no-refresh and --dry-run keep
+# what is there.
+(( DRY )) || refresh_worklist
+
 if (( WORKERS > 1 )) && ! head -1 "$WORKLIST" | grep -q $'\tafter$'; then
   echo "this worklist has no 'after' column, so a round cannot be checked for" >&2
   echo "independence; rebuild it first:" >&2
