@@ -3229,7 +3229,6 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     s16                                 t;
     s16                                 r;
     s32                                 scale;
-    GfxRotationWords*                   words;
     s32                                 i;
     u16                                 f;
     s16                                 x0;
@@ -3286,12 +3285,7 @@ static void func_dryfield_dilapidated_house_8017FAD4(Task* task, SVECTOR* verts,
     y1                       = sxy1 >> 16;
     i                        = ratan2(dx, dy);
     scale                    = gDisplayState.screenDistance;
-    rot.rotationWords.m00M01 = ONE;
-    rot.rotationWords.m02M10 = 0;
-    words                    = &rot.rotationWords;
-    words->m11M12            = ONE;
-    rot.rotationWords.m20M21 = 0;
-    words->m22               = ONE;
+    gfxSetRotIdentity(&rot.mat);
     RotMatrixZ(i, &rot.mat);
     gte_SetRotMatrix(&rot.mat);
     for (i = 0; i < 6; i++) {
