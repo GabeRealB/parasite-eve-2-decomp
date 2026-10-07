@@ -5479,6 +5479,8 @@ EMBEDDED_ASSETS = {
     'kyle_madigan_hand_left': {"source": 'actor_135600.pe2pkg', "vram": 0x801384E4, "size": 0x2F4, "ext": '.tmd', "type": 'model'},
     'stalker_burst_arm_left': {"source": 'actor_400500.pe2pkg', "vram": 0x80142F94, "size": 0x154, "ext": '.tmd', "type": 'model'},
     'actor_461800_hand_right': {"source": 'actor_461800.pe2pkg', "vram": 0x801391BC, "size": 0x25C, "ext": '.tmd', "type": 'model'},
+    'actor_511000_clut_16064': {"source": 'actor_511000.pe2pkg', "vram": 0x80147E84, "size": 0x20, "ext": '.clut', "type": 'clut', "include": 'u8'},
+    'actor_511000_clut_160A4': {"source": 'actor_511000.pe2pkg', "vram": 0x80147EC4, "size": 0x20, "ext": '.clut', "type": 'clut', "include": 'u8'},
     'caterpillar_maggot_body': {"source": 'actor_102600.pe2pkg', "vram": 0x801365C0, "size": 0xFCC, "ext": '.tmd', "type": 'model'},
     'eric_baldwin_hand_right': {"source": 'actor_213000.pe2pkg', "vram": 0x80150D80, "size": 0x208, "ext": '.tmd', "type": 'model'},
     'gray_stalker_burst_head': {"source": 'actor_400500.pe2pkg', "vram": 0x801433E4, "size": 0x558, "ext": '.tmd', "type": 'model'},
