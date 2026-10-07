@@ -1115,16 +1115,20 @@ enum {
         }                                                                                                                      \
     } while (0)
 
-/// Advances all animated body parts once, retaining the model root's placement.
+/// Ticks the body's non-root animation tracks and applies their poses.
 ///
-/// Requires the work rig to be bound and slots 1..19 initialized. Playback
-/// retains its borrowed model, bank and clip data; slot zero is untouched.
-static inline void _actor210700TickAnimationSlots(_Actor210700Work* work)
+/// `rig->anim` must bind `rig->slots` and `rig->poses` to a live twenty-part
+/// model, with slots 1..19 initialized for the same-numbered tracks and
+/// coordinates. The rig storage, model and loaded clip data remain borrowed
+/// throughout playback. Rates count sixteenths of a frame, subject to death
+/// playback and boundary holds. Bounds, scratch-stack capacity and GTE
+/// requirements follow `animationTickSlot`. Slot 0 retains the root placement.
+static inline void _actor210700TickAnimationSlots(ActorAnimRig20* rig)
 {
     s32 slotIndex;
 
-    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
-        animationTickSlot(&work->rig.anim, slotIndex);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(rig->slots); slotIndex++) {
+        animationTickSlot(&rig->anim, slotIndex);
     }
 }
 
@@ -1247,7 +1251,7 @@ static void _actor210700Update(Task* task)
     work  = task->work;
     model = task->extra.tmd;
     if (work->ticking != 0) {
-        _actor210700TickAnimationSlots(work);
+        _actor210700TickAnimationSlots(&work->rig);
     }
     ACTOR_210700_DRAW_GROUND_SHADOW(task, groundPoint);
     if (gGameSession->viewReady != 0) {
@@ -1329,7 +1333,7 @@ static s32 _actor210700PlayAnimation(Task* task, s32 messageId, const AnimationP
             }
         }
         // Apply the first pose immediately before enabling subsequent frame updates.
-        _actor210700TickAnimationSlots(work);
+        _actor210700TickAnimationSlots(&work->rig);
         work->ticking = 1;
     }
     return 0;
