@@ -51590,7 +51590,7 @@ if (mem == NULL) { ... }
 
 Gives the target `addu s2,v0,zero` / `bnez v0` / `sw v0,0x1C(s4)` exactly;
 naming only `work` throughout gives `bnez s2` / `sw s2` at the same score
-otherwise (`func_actor_312200_80163178`, `func_actor_210600_8014B8C8`). The
+otherwise (`_actor312200Spawn`, `func_actor_210600_8014B8C8`). The
 `mist_parking` case has no such intervening read, which is why it needed the
 soft use.
 
@@ -77359,12 +77359,12 @@ only knob**, and no barrier, pin or store reordering moves the chain. That is
 the whole reason the fix is "write it first", and it is why the distance is
 exactly the load's position — the stores already there are a wall.
 
-Verified on `func_actor_312200_80163178` (2026-09-17), which is the same shape
+Verified on `_actor312200Spawn` (2026-09-17), which is the same shape
 at 126/126 instructions and zero insert/delete: with
-`node->coords = &((TmdObject*)task->extra)->coords[3]` written last the score
+`body->coord = &task->extra.tmd->coords[3]` written last the score
 was 96.71% with `regs=7 reorder=3`, the two `lw`s sitting at the bottom of the
 block; moving that one statement to the top of the block — before
-`node->field_C`, with the store still landing in the `jal` delay slot — is an
+`body->context.contacts`, with the store still landing in the `jal` delay slot — is an
 exact 100.00%. The other five insns of drift were downstream of it: the chain
 took `$v0`/`$v1` instead of sharing `$v0`, which freed `$v1` and left the
 `0x3000A` constant to `$a2` (the register it is passed in) rather than `$v1`.
@@ -101662,11 +101662,11 @@ Inputs: `base_1.i`
 (100.000%), `base_3.i`
 `6717e4dc5dc85d74c9db2e0dcde214d265bee02bd70603ebd94324d9010dc611` (100.000%,
 callee return type varied).
-## A lone masked halfword in an actor work block is a `WorldCollisionBody::flags`; the node base comes from the overlay's own `worldCollisionLinkBody` site (func_actor_312200_80163778, 2026-09-16)
+## A lone masked halfword in an actor work block is a `WorldCollisionBody::flags`; the node base comes from the overlay's own `worldCollisionLinkBody` site (_actor312200Hide, 2026-09-16)
 
 An actor show/hide opcode is a four-store body whose m2c seed retypes cleanly
 except for one line: a halfword read, masked and written back at an offset that
-belongs to no named field. In `func_actor_312200_80163778` that is
+belongs to no named field. In `_actor312200Hide` that is
 `lhu $v0, 0x8DA($a1)` / `andi 0x7FFF` / `sh`, where `$a1` is `Task::work`.
 
 0x8DA is not 4-byte aligned to anything in the work block, and the tempting
@@ -101676,13 +101676,13 @@ that concludes that is not the evidence. The evidence is the overlay's spawn
 handler, which builds the node in place and links it:
 
 ```
-addiu $s0, $s2, 0x8BC      ; node = work + 0x8BC
+addiu $s0, $s2, 0x8BC      ; body = &work->body
 addiu $v0, $s2, 0x8DC
-sw    $v0, 0xC($s0)        ; node->field_C = work + 0x8DC   (WorldCollisionContact table)
-sh    $zero, 0x10($s0)     ; node->field_10 / 0x12 / 0x14
+sw    $v0, 0xC($s0)        ; body->context.contacts = work->contacts
+sh    $zero, 0x10($s0)     ; body->pos.vx / vy / vz
 sw    $a2, 0x18($s0)
 sh    $v0, 0x1C($s0)
-sh    $s1, 0x1E($s0)       ; node->flags
+sh    $s1, 0x1E($s0)       ; body->flags
 jal   worldCollisionLinkBody
 lhu   $v0, 0x1E($s0) / ori 0x8000 / sh
 ```
@@ -101702,15 +101702,15 @@ and its C (`enemy->node.flags = 1;` then `work->field_B6C.flags &= 0xBFFF;`)
 is what the typed port follows. Only the mask constant, its offset and one extra
 store differ, so a sibling from the family is a better template than the seed.
 
-Evidence: scratch `nonmatchings/func_actor_312200_80163778-vacuum/`; `base.c`
+Evidence: scratch `nonmatchings/_actor312200Hide-vacuum/`; `base.c`
 (100.000%) and `base_1.c` (typed port, 100.000%, `Repeated assembly: base_1.c
 reproduces base.c`); `include/actors/actor_312200.h` gained `WorldCollisionBody body`
 inside a new `pad_898[0x24]`, `include/gameplay/1BC.h` renamed `Enemy.pad_4D`
 to `field_4D`.
 
-## A switch whose cases share a body must repeat that body, one `case` per copy (func_actor_312200_801636CC, 2026-09-16)
+## A switch whose cases share a body must repeat that body, one `case` per copy (_actor312200ApplyCommand, 2026-09-16)
 
-`func_actor_312200_801636CC` dispatches on a 0x7DB action with cases 1, 2, 3 and
+`_actor312200ApplyCommand` dispatches on a 0x7DB action with cases 1, 2, 3 and
 4, where 2, 3 and 4 do the same two stores. Written the obvious way, with the
 three labels sharing one body:
 
@@ -101771,7 +101771,7 @@ two-parameter m2c signature puts the payload in `$a1` where the target reads
 `D_actor_312200_80169F5C` lists this handler as a `TaskMessageEntry` id 0x7DB handler,
 i.e. `s32 f(Task*, s32, Msg*, s32)`.
 
-Evidence: scratch `nonmatchings/func_actor_312200_801636CC-vacuum/`; `base_1.c`
+Evidence: scratch `nonmatchings/_actor312200ApplyCommand-vacuum/`; `base_1.c`
 (52.302%) and `base_2.c` (100.000%); `include/actors/actor_312200.h` gained
 `state`, `commandStage`/`commandArea`/`command` (cut out of `pad_898`) and the
 payload union (now `ActorCommand`, whose `context.loc` bytes and `context.key` /
@@ -127630,15 +127630,15 @@ shapes the `actor_402200` header names - per-overlay work structs with matching
 layouts are the family's existing pattern (`actor_105700` carries its own
 `shieldRaised` at the offset of that family's `field_6CE`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A `lui` can be emitted *above* a preceding load: sched's hazard swap prefers loads/stores, and the block is emitted in the reverse of its scheduling order (func_actor_312200_80163370, 2026-09-17)
+## A `lui` can be emitted *above* a preceding load: sched's hazard swap prefers loads/stores, and the block is emitted in the reverse of its scheduling order (_actor312200Tick, 2026-09-17)
 
 The matched body built a two-entry `TaskFunc` table on the stack and read the
 task's work pointer first. The target emits the work load *before* the table:
 
 ```
 lw    s1,0x1c(s2)                  # work = task->work
-lui   v0,%hi(func_actor_312200_80163778)
-addiu v0,v0,%lo(func_actor_312200_80163778)
+lui   v0,%hi(_actor312200Hide)
+addiu v0,v0,%lo(_actor312200Hide)
 sw    v0,0x20(sp)
 ```
 
@@ -127677,11 +127677,11 @@ A barrier between them pins it, and the body matches byte for byte:
 ```c
     work = task->work;
     SOFT_BARRIER();                 /* the table's lui may not be scheduled first */
-    states[0] = func_actor_312200_80163778;
-    states[1] = func_actor_312200_801637CC;
+    stateHandlers[0] = _actor312200Hide;
+    stateHandlers[1] = _actor312200PlayAnimation;
 ```
 
-The same reversal, read the other way, is why the dead `VECTOR vec` this body
+The same reversal, read the other way, is why the dead `VECTOR unusedVector` this body
 leaves zeroed at the end is written `vz`, `vy`, `vx`: the object emits the three
 stores descending, and the descending statement order is what the reversal
 reproduces — the idiom `actor_160900`'s and `actor_207000_801500C8`'s matched
@@ -130322,7 +130322,7 @@ none of which was addressable by touching the registers themselves.
 
 ## Two arms that end in the same store get cross-jumped: give each arm its own reload local
 
-`func_actor_312200_80162FB4` dispatches on a work-block request word, and both
+`_actor312200DriveAnimation` dispatches on a work-block request word, and both
 arms finish by copying the same halfword before falling into a shared tail:
 
 ```
@@ -130347,15 +130347,15 @@ uses: each arm reloads the pointer into its own local.
 
 ```c
     if (work->animRequest == ACTOR_312200_ANIM_REQUEST_BLEND) {
-        start = task->work;
+        seekWork = task->work;
         ...
-        start->appliedAnim = start->animId;
+        seekWork->appliedAnim = seekWork->animId;
         goto advance;
     }
     if (work->animRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
-        reset = task->work;
+        resetWork = task->work;
         ...
-        reset->appliedAnim = reset->animId;
+        resetWork->appliedAnim = resetWork->animId;
     advance:
 ```
 

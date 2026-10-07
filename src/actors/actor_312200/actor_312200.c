@@ -20,6 +20,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -35,9 +36,9 @@
 
 #include "overlay.h"
 #include "../../shared/actor_contacts.h"
+#include "../../shared/actor_messages.h"
 
 extern u8 D_actor_312200_80169F44[];
-// Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_312200_80169F5C[4];
 
@@ -65,6 +66,20 @@ enum {
     ACTOR_312200_ANIM_REQUEST_RESET   = 2, // restart the slots on the animation
     ACTOR_312200_ANIM_REQUEST_PLAYING = 3  // the request has been applied
 };
+
+/// Animation-bank indices also used as commands in the Acropolis patio namespace.
+///
+/// Clip 1 is the initial animation and restarts on command; clips 2 to 4
+/// blend from the current pose. Their pose identities are unproven.
+enum {
+    ACTOR_312200_ANIM_1 = 1,
+    ACTOR_312200_ANIM_2 = 2,
+    ACTOR_312200_ANIM_3 = 3,
+    ACTOR_312200_ANIM_4 = 4,
+};
+
+/// All three directional contributions of a model's room-light query.
+enum { ACTOR_312200_LIGHT_CONTRIBUTIONS = 3 };
 
 /// Work block of the actor 312200 task.
 ///
@@ -119,20 +134,20 @@ typedef struct {
 } _Actor312200Work;
 STATIC_ASSERT_SIZEOF(_Actor312200Work, 0x984);
 
-/// Step table the seeding body `func_actor_312200_80162FB4` walks: one 5-byte
+/// Step table the seeding body `_actor312200DriveAnimation` walks: one 5-byte
 /// row per animation in `_Actor312200Work::appliedAnim`, addressed by the
 /// requested animation in `_Actor312200Work::animId`. The byte it reads is
 /// handed to `animationSeekSlotWithBlend` as the request's fifth argument.
 extern s8 D_actor_312200_80169F28[][5];
 
-static void func_actor_312200_80163778(Task* task);
-static void func_actor_312200_801637CC(Task* task);
+static void _actor312200Hide(Task* task);
+static void _actor312200PlayAnimation(Task* task);
 
 static TmdSource _gActor312200SwatMember1Body;
-s32              func_actor_312200_80163510(Task*, s32, s32, s32);
-s32              func_actor_312200_801635CC(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
-s32              func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-void             func_actor_312200_80163854(Task*);
+static s32       _actor312200SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static s32       _actor312200Place(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg);
+static s32       _actor312200ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
+static void      _actor312200Task(Task* task);
 
 static TmdBone _gActor312200SwatMember1BodySkeleton[19] = {
 #include "assets/swat_member_1_body_skeleton.inc"
@@ -284,19 +299,15 @@ u8 D_actor_312200_80169F44[24] = {
 };
 
 TaskMessageEntry D_actor_312200_80169F5C[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_312200_80163510 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_312200_801636CC },
-    { ACTOR_MESSAGE_PLACE, func_actor_312200_801635CC },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor312200SetModelDraw },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor312200ApplyCommand },
+    { ACTOR_MESSAGE_PLACE, _actor312200Place },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_312200_80169F7C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_312200_80163854, { .model = &_gActor312200SwatMember1Body } };
+TaskDesc D_actor_312200_80169F7C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor312200Task, { .model = &_gActor312200SwatMember1Body } };
 
 SVECTOR ActorContact_ScratchPosition;
-
-static void func_actor_312200_80162FB4(Task* task);
-static void func_actor_312200_80163178(Enemy* enemy, Task* task);
-static void func_actor_312200_80163370(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts_find_push.inc.c"
 
@@ -306,165 +317,182 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Animation driver, run once per tick: an `animRequest` of
-/// `ACTOR_312200_ANIM_REQUEST_BLEND` seeks slots 1 to 18 of `rig` to `animId`
-/// through the step table, `ACTOR_312200_ANIM_REQUEST_RESET` restarts them on
-/// it, and both settle on `ACTOR_312200_ANIM_REQUEST_PLAYING` and clear
-/// `animFrames`. A reset requested of `blend` restarts its slots at three
-/// times normal speed, then the tail counts a frame and advances every driven
-/// slot of `rig` at `animRate`.
-static void func_actor_312200_80162FB4(Task* task)
+/// Restarts slots 1..18 on the requested clip and records it as applied.
+///
+/// Requires a bound primary rig and a loaded animation id in 1..4.
+static __inline__ void _actor312200ResetRig(_Actor312200Work* work)
 {
-    _Actor312200Work* work;
-    _Actor312200Work* start;
-    _Actor312200Work* reset;
-    _Actor312200Work* second;
-    _Actor312200Work* tick;
-    s32               i;
-    s32               j;
-    s32               k;
-    s32               m;
+    s32 slot;
 
+    for (slot = 1; slot < ARRAY_SIZE(work->rig.slots); slot++) {
+        work->rig.slots[slot].rate = work->animRate;
+        animationResetSlot(&work->rig.anim, slot, work->animId);
+    }
+    work->appliedAnim = work->animId;
+}
+
+/// Applies animation requests and advances the actor's eighteen animated parts.
+///
+/// Requires initialized work, a bound model and the loaded animation bank.
+/// Animation ids are 1..4; a blend also requires `appliedAnim` in 0..4 for
+/// the transition table. Slot 0 is the root and is left alone. Rates are in
+/// sixteenths of a frame per call; `animFrames` counts calls modulo 65536.
+/// Applying a request clears that counter before this call increments it.
+static void _actor312200DriveAnimation(Task* task)
+{
+    /// Retained second-rig pose weight, in Q12 units; this actor never mixes it.
+    enum { ACTOR_312200_UNUSED_BLEND_WEIGHT = 0x500 };
+
+    _Actor312200Work* work;
+    _Actor312200Work* seekWork;
+    _Actor312200Work* resetWork;
+    _Actor312200Work* blendWork;
+    _Actor312200Work* tickWork;
+    s32               seekSlot;
+    s32               blendSlot;
+    s32               tickSlot;
+
+    // Apply the pending clip before advancing its first frame.
     work = task->work;
     if (work->animRequest == ACTOR_312200_ANIM_REQUEST_BLEND) {
-        start = task->work;
-        for (i = 1; i < ARRAY_SIZE(start->rig.slots); i++) {
-            start->rig.slots[i].rate = start->animRate;
-            animationSeekSlotWithBlend(&start->rig.anim, i, start->animId, 0,
-                                       D_actor_312200_80169F28[start->appliedAnim][start->animId]);
+        seekWork = task->work;
+        for (seekSlot = 1; seekSlot < ARRAY_SIZE(seekWork->rig.slots); seekSlot++) {
+            seekWork->rig.slots[seekSlot].rate = seekWork->animRate;
+            animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlot, seekWork->animId, 0,
+                                       D_actor_312200_80169F28[seekWork->appliedAnim][seekWork->animId]);
         }
-        start->appliedAnim = start->animId;
-        work->animRequest  = ACTOR_312200_ANIM_REQUEST_PLAYING;
-        work->animFrames   = 0;
-        work->lastCueFrame = 0;
+        seekWork->appliedAnim = seekWork->animId;
+        work->animRequest     = ACTOR_312200_ANIM_REQUEST_PLAYING;
+        work->animFrames      = 0;
+        work->lastCueFrame    = 0;
     } else if (work->animRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
-        reset = task->work;
-        for (j = 1; j < ARRAY_SIZE(reset->rig.slots); j++) {
-            reset->rig.slots[j].rate = reset->animRate;
-            animationResetSlot(&reset->rig.anim, j, reset->animId);
-        }
-        reset->appliedAnim = reset->animId;
+        resetWork = task->work;
+        _actor312200ResetRig(resetWork);
         work->animRequest  = ACTOR_312200_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
     }
+    // No caller here requests the unbound blend rig. Preserve its main-rig rate stores.
     if (work->blendRequest == ACTOR_312200_ANIM_REQUEST_RESET) {
-        second              = task->work;
-        second->blendRate   = 3 * ANIMATION_RATE_ONE;
-        second->blendWeight = 0x500;
-        for (k = 1; k < ARRAY_SIZE(second->blend.slots); k++) {
-            second->rig.slots[k].rate = second->blendRate;
-            animationResetSlot(&second->blend.anim, k, second->blendAnimId);
+        blendWork              = task->work;
+        blendWork->blendRate   = 3 * ANIMATION_RATE_ONE;
+        blendWork->blendWeight = ACTOR_312200_UNUSED_BLEND_WEIGHT;
+        for (blendSlot = 1; blendSlot < ARRAY_SIZE(blendWork->blend.slots); blendSlot++) {
+            blendWork->rig.slots[blendSlot].rate = blendWork->blendRate;
+            animationResetSlot(&blendWork->blend.anim, blendSlot, blendWork->blendAnimId);
         }
         work->blendRequest = ACTOR_312200_ANIM_REQUEST_PLAYING;
     }
     work->animFrames++;
-    tick = task->work;
-    for (m = 1; m < ARRAY_SIZE(tick->rig.slots); m++) {
-        tick->rig.slots[m].rate = tick->animRate;
-        animationTickSlot(&tick->rig.anim, m);
+    tickWork = task->work;
+    for (tickSlot = 1; tickSlot < ARRAY_SIZE(tickWork->rig.slots); tickSlot++) {
+        tickWork->rig.slots[tickSlot].rate = tickWork->animRate;
+        animationTickSlot(&tickWork->rig.anim, tickSlot);
     }
 }
 
-/// Spawn handler, the first entry of the actor's state table: allocates the
-/// zeroed `_Actor312200Work` into `Task::work` (tearing the enemy down if
-/// that fails) and seeds the enemy object, the model's root coordinate and the
-/// animation context from the `TmdObject` in `Task::extra`. The model's light
-/// and colour matrices are pointed into the work block, the enemy takes the
-/// root coordinate's matrix as `field_4` and the model's third part coordinate
-/// as `coord`, and the collision sphere built in place at `body` gets the
-/// block's `contacts` table and the model's fourth part coordinate.
-/// The model coordinate is parented to `gGfxViewCoord` and rebuilt once before
-/// `worldCoordSetModelLighting` rebuilds the model's three light contributions
-/// at that coordinate's world position.
-static void func_actor_312200_80163178(Enemy* enemy, Task* task)
+/// Initializes the actor's animation, target tracking, collision sphere and lighting.
+///
+/// Requires a live enemy and a nineteen-part TMD task with its package loaded.
+/// The task owns the zeroed work; its model borrows the work's two lighting
+/// matrices and pose storage. Allocation failure destroys the enemy and task.
+/// Success starts clip 1, parents the root to the view coordinate and enters
+/// the per-frame task handler in the hidden state. The first hidden tick
+/// disables drawing, lock-on and the sphere's pair tests.
+static void _actor312200Spawn(Enemy* enemy, Task* task)
 {
-    VECTOR              vec;
-    GfxCoord*           coord;
-    TmdObject*          obj;
-    TmdObject*          tmd;
-    _Actor312200Work*   mem;
-    _Actor312200Work*   work;
-    WorldCollisionBody* node;
+    /// Enemy-body identity, radius in whole coordinate units, and the first-entry sentinel.
+    enum {
+        ACTOR_312200_BODY_ID         = 10,
+        ACTOR_312200_BODY_RADIUS     = 0x180,
+        ACTOR_312200_PREV_STATE_NONE = -1,
+    };
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    mem        = memCalloc(sizeof(_Actor312200Work), 0);
-    work       = mem;
-    task->work = mem;
-    if (mem == NULL) {
+    VECTOR              worldPosition;
+    GfxCoord*           rootCoord;
+    TmdObject*          model;
+    TmdObject*          lightingModel;
+    _Actor312200Work*   allocation;
+    _Actor312200Work*   work;
+    WorldCollisionBody* body;
+
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
+    allocation = memCalloc(sizeof(_Actor312200Work), 0);
+    work       = allocation;
+    task->work = allocation;
+    if (allocation == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    tmd               = task->extra.tmd;
-    tmd->lightMtx     = &work->light;
-    tmd->colorMtx     = &work->color;
-    enemy->field_4    = &coord->coord;
-    enemy->field_48   = 0;
-    enemy->bodyPos.vx = 0;
-    enemy->bodyPos.vy = 0;
-    enemy->bodyPos.vz = 0;
-    enemy->coord      = &task->extra.tmd->coords[2];
+    lightingModel           = task->extra.tmd;
+    lightingModel->lightMtx = &work->light;
+    lightingModel->colorMtx = &work->color;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    enemy->bodyPos.vx       = 0;
+    enemy->bodyPos.vy       = 0;
+    enemy->bodyPos.vz       = 0;
+    enemy->coord            = &task->extra.tmd->coords[2];
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->field_4D               = 0;
     enemy->reactionFlags          = 0;
-    enemy->field_4D               = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_312200_80169F44, obj, work->rig.poses, work->rig.slots);
+    // The original spawn clears this byte twice.
+    enemy->field_4D = 0;
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_312200_80169F44, model, work->rig.poses, work->rig.slots);
     work->animRequest = ACTOR_312200_ANIM_REQUEST_RESET;
-    work->animId      = 1;
+    work->animId      = ACTOR_312200_ANIM_1;
     work->animRate    = ANIMATION_RATE_ONE;
-    func_actor_312200_80162FB4(task);
-    node                   = &work->body;
-    node->coord            = &task->extra.tmd->coords[3];
-    node->context.contacts = work->contacts;
-    node->pos.vx           = 0;
-    node->pos.vy           = 0;
-    node->pos.vz           = 0;
-    node->key              = 0x3000A;
-    node->radius           = 0x180;
-    node->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, node);
-    node->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(node->context.contacts, ARRAY_SIZE(work->contacts), 0);
+    _actor312200DriveAnimation(task);
+    // The sphere and its three contact records live inside the task's work.
+    body                   = &work->body;
+    body->coord            = &task->extra.tmd->coords[3];
+    body->context.contacts = work->contacts;
+    body->pos.vx           = 0;
+    body->pos.vy           = 0;
+    body->pos.vz           = 0;
+    body->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_312200_BODY_ID;
+    body->radius           = ACTOR_312200_BODY_RADIUS;
+    body->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
+    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->contacts), 0);
     task->msgTable       = D_actor_312200_80169F5C;
     work->field_8AC      = 0;
     work->relightPending = 1;
-    coord->parent        = &gGfxViewCoord;
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(task->extra.tmd, &vec, 0, 3);
+    // Compose the world position before ranking the three lighting contributions.
+    rootCoord->parent       = &gGfxViewCoord;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    worldPosition.vx = rootCoord->workm.t[0];
+    worldPosition.vy = rootCoord->workm.t[1];
+    worldPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(task->extra.tmd, &worldPosition, 0, ACTOR_312200_LIGHT_CONTRIBUTIONS);
     work->state     = ACTOR_312200_STATE_HIDDEN;
-    work->prevState = -1;
+    work->prevState = ACTOR_312200_PREV_STATE_NONE;
     task->state++;
 }
 
-/// Per-tick handler and state dispatcher, called with the task second. The
-/// handler table is built in place - `func_actor_312200_80163778` at index 0,
-/// the tick handler at index 1 - and `state` selects from it, unless the global
-/// `gSceneCombatState.actorControl` holds the actor. `stateEntered` records whether the state moved
-/// before it is re-latched into `prevState`. The tail clears the `contacts` of
-/// `body` while the first is occupied, rebuilds the model's lighting at the
-/// root coordinate's position while `relightPending` is
-/// set, and then refreshes `relightPending` from that coordinate's `composeStamp` - so the
-/// lighting is rebuilt on the frame after the coordinate is dirtied. That same
-/// coordinate is dirtied and the dormant sound queued while
-/// the view is ready, the sound only in view 0x10 with the last `command` at 1.
+/// Runs the hidden or animation state and refreshes contacts, lighting and sound.
 ///
-/// The trailing `vec` is the original's own - three dead stores, but the frame
-/// and the rest of the schedule are built around them.
-static void func_actor_312200_80163370(Enemy* enemy, Task* task)
+/// Requires initialized work whose state is 0 or 1. Actor-control holds skip
+/// the entire update. A state change marks only its first tick as entered.
+/// Lighting uses the preceding tick's dirty-coordinate latch; view readiness
+/// dirties the root again and queues the dormant sound in mapped view 16
+/// while the last command word is 1. `unusedEnemy` is retained for the
+/// lifecycle callback signature.
+static void _actor312200Tick(Enemy* unusedEnemy, Task* task)
 {
-    TmdObject*        obj;
-    VECTOR            vec;
+    enum { ACTOR_312200_DORMANT_SOUND_VIEW = 0x10 };
+
+    TmdObject*        model;
+    VECTOR            unusedVector;
     s32               pan;
-    _Actor312200Work* work                = task->work;
-    void              (*states[2])(Task*) = {
-        func_actor_312200_80163778,
-        func_actor_312200_801637CC,
+    _Actor312200Work* work             = task->work;
+    TaskFunc          stateHandlers[2] = {
+        _actor312200Hide,
+        _actor312200PlayAnimation,
     };
 
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
@@ -474,17 +502,18 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
             work->stateEntered = 0;
         }
         work->prevState = work->state;
-        states[work->state](task);
+        stateHandlers[work->state](task);
         if (work->contacts[0].key.value != 0) {
             worldCollisionClearContacts(work->contacts);
         }
+        // Relight from the composed position before marking the next update dirty.
         if (work->relightPending != 0) {
-            obj = task->extra.tmd;
-            worldCoordSetModelLighting(obj, obj->coords->workm.t, 0, 3);
+            model = task->extra.tmd;
+            worldCoordSetModelLighting(model, model->coords->workm.t, 0, ACTOR_312200_LIGHT_CONTRIBUTIONS);
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            if ((viewGetMappedIndex() == 0x10) && (work->command == 1)) {
+            if ((viewGetMappedIndex() == ACTOR_312200_DORMANT_SOUND_VIEW) && (work->command == ACTOR_312200_ANIM_1)) {
                 pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
                 sndEvtRequestScriptStart(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, pan,
                                          (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
@@ -495,56 +524,63 @@ static void func_actor_312200_80163370(Enemy* enemy, Task* task)
         } else {
             work->relightPending = 0;
         }
-        vec.vz = 0;
-        vec.vy = 0;
-        vec.vx = 0;
+        // These unused stores are present in the original tick.
+        unusedVector.vz = 0;
+        unusedVector.vy = 0;
+        unusedVector.vx = 0;
     }
 }
 
-/// Id 0x7D5 command handler, listed first in `D_actor_312200_80169F5C`. `arg2`
-/// is the mode: 0 sets the model's `TmdObject::flags` to exactly 0x80, 1 clears
-/// them, 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 3 clears them and then raises `TMD_OBJECT_SKIP_AUTO_BUFFER`. Modes 0
-/// and 1 re-run `tmdAllocPrimitiveBuffer` on the model, and every mode except 1 resets
-/// the work block's `state` to `ACTOR_312200_STATE_HIDDEN`. `arg1` is unused.
-s32 func_actor_312200_80163510(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Sets the model's draw flags and buffer policy for an actor visibility message.
+///
+/// Requires a live TMD task and initialized work. Modes 0 and 1 replace all
+/// flags with hidden or visible drawing and allocate a buffer if missing.
+/// Modes 2 and 3 set automatic-buffer exclusion, retaining or clearing the
+/// other flags respectively. All except mode 1 select the hidden state;
+/// showing retains the current state. Other values change nothing.
+/// `messageId` and `unusedArg` are ignored. Returns 0.
+static s32 _actor312200SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    TmdObject*        obj;
+    TmdObject*        model;
     _Actor312200Work* work;
 
-    obj  = task->extra.tmd;
-    work = task->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
+    model = task->extra.tmd;
+    work  = task->work;
+    switch (mode) {
+        case ACTOR_MESSAGE_VISIBILITY_HIDE:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
             work->state = ACTOR_312200_STATE_HIDDEN;
             break;
-        case 1:
-            obj->flags = 0;
-            tmdAllocPrimitiveBuffer(obj);
+        case ACTOR_MESSAGE_VISIBILITY_SHOW:
+            model->flags = 0;
+            tmdAllocPrimitiveBuffer(model);
             break;
-        case 2:
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->state = ACTOR_312200_STATE_HIDDEN;
+        case ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state   = ACTOR_312200_STATE_HIDDEN;
             break;
-        case 3:
-            obj->flags  = 0;
-            work->state = ACTOR_312200_STATE_HIDDEN;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_VISIBILITY_CLEAR_FLAGS_SKIP_AUTO_BUFFER:
+            model->flags  = 0;
+            work->state   = ACTOR_312200_STATE_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
 }
 
-/// Id 0x7D4 placement opcode: the three longs of `placement->pos` are copied
-/// onto the actor's root coordinate, the Euler angles are applied X / Y / Z,
-/// and the resulting heading is read back out of the matrix Z-axis with
-/// `ratan2` and kept in `_Actor312200Work::placedYaw`.
-s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
+/// Places the model root with Rx * Ry * Rz and records the resulting heading.
+///
+/// Requires a live TMD task, initialized work and a readable, word-aligned
+/// placement through dispatch. XYZ positions use the existing root parent's
+/// frame; angles are 4096ths of a turn. Reads only XYZ components and retains
+/// no payload pointer. Invalidates composition without changing stored Euler
+/// angles. `messageId` and `unusedArg` are ignored. Returns 1.
+static s32 _actor312200Place(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg)
 {
-    GfxCoord*         coord;
-    s32               mx;
-    s32               mz;
+    GfxCoord*         rootCoord;
+    s32               rotationZX;
+    s32               rotationZZ;
     _Actor312200Work* work;
 
     work                                = task->work;
@@ -552,53 +588,59 @@ s32 func_actor_312200_801635CC(Task* task, s32 arg1, ActorTransform* placement, 
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     gfxRotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord                                 = task->extra.tmd->coords;
-    mx                                    = coord->coord.m[2][0];
-    mz                                    = coord->coord.m[2][2];
-    work->placedYaw                       = ratan2(-mx, mz);
+    rootCoord                             = task->extra.tmd->coords;
+    rotationZX                            = rootCoord->coord.m[2][0];
+    rotationZZ                            = rootCoord->coord.m[2][2];
+    work->placedYaw                       = ratan2(-rotationZX, rotationZZ);
     return 1;
 }
 
-/// Id 0x7DB command handler. The command is always recorded in the work block
-/// (`commandStage`, `commandArea`, `command`), and one whose context key is
-/// 0x301 additionally requests an animation of the driver: the command's
-/// number becomes `animId`, command 1 restarting the rig on it
-/// (`ACTOR_312200_ANIM_REQUEST_RESET`) and commands 2, 3 and 4 blending to it
-/// (`ACTOR_312200_ANIM_REQUEST_BLEND`). Either way the actor's `state` becomes
-/// `ACTOR_312200_STATE_PLAYING`.
-s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Records a room command and selects animation playback in the patio namespace.
+///
+/// Requires initialized work and a readable four-byte command through dispatch.
+/// Copies both context bytes and the full command word without retaining the
+/// payload pointer. Patio commands 1..4 select the matching animation-bank id;
+/// 1 restarts and 2..4 blend. Other contexts or commands retain that request.
+/// Every command enters the playing state, including ignored selectors.
+/// `messageId` and `unusedArg` are ignored. Returns 1.
+static s32 _actor312200ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
+    /// Stage is the low byte and area the high byte of the command context.
+    enum {
+        ACTOR_312200_PATIO_COMMAND_CONTEXT = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_PATIO << 8),
+    };
+
     _Actor312200Work* work;
-    s32               action;
+    s32               animationId;
 
     work               = task->work;
-    work->commandStage = msg->context.loc.stage;
-    work->commandArea  = msg->context.loc.area;
-    work->command      = msg->command;
+    work->commandStage = command->context.loc.stage;
+    work->commandArea  = command->context.loc.area;
+    work->command      = command->command;
 
-    if (msg->context.key == 0x301) {
-        action = msg->command;
-        switch (action) {
-            case 1:
-                work->animId      = action;
+    if (command->context.key == ACTOR_312200_PATIO_COMMAND_CONTEXT) {
+        animationId = command->command;
+        switch (animationId) {
+            case ACTOR_312200_ANIM_1:
+                work->animId      = animationId;
                 work->animRequest = ACTOR_312200_ANIM_REQUEST_RESET;
                 break;
 
-            case 2:
-                work->animId      = action;
+            case ACTOR_312200_ANIM_2:
+                work->animId      = animationId;
                 work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
                 break;
 
-            case 3:
-                work->animId      = action;
+            case ACTOR_312200_ANIM_3:
+                work->animId      = animationId;
                 work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
                 break;
 
-            case 4:
-                work->animId      = action;
+            case ACTOR_312200_ANIM_4:
+                work->animId      = animationId;
                 work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
                 break;
         }
@@ -608,35 +650,33 @@ s32 func_actor_312200_801636CC(Task* task, s32 msgId, ActorCommand* msg, s32 arg
     return 1;
 }
 
-/// Handler of `ACTOR_312200_STATE_HIDDEN`. On the state's first tick
-/// (`stateEntered`) it marks the enemy's target node not lockable, raises the
-/// model's `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit, excluding it from
-/// `tmdDrawActiveModels`, clears
-/// `Enemy::field_4D` and takes `body` out of the pair tests.
-static void func_actor_312200_80163778(Task* task)
+/// Disables drawing, lock-on and sphere pair tests on entry to the hidden state.
+///
+/// Requires initialized work, a live model and the live enemy borrowed by
+/// `spawnArg2.pointer`. Later hidden ticks leave those objects unchanged.
+static void _actor312200Hide(Task* task)
 {
     _Actor312200Work* work;
     Enemy*            enemy;
-    TmdObject*        obj;
+    TmdObject*        model;
 
     work = task->work;
     if (work->stateEntered != 0) {
-        obj                           = task->extra.tmd;
-        enemy                         = (Enemy*)task->spawnArg2.pointer;
+        model                         = task->extra.tmd;
+        enemy                         = task->spawnArg2.pointer;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         enemy->field_4D               = 0;
         work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 }
 
-/// Handler of `ACTOR_312200_STATE_PLAYING`. The state's first tick
-/// (`stateEntered`) restarts the rig on `animId` at normal speed
-/// (`ACTOR_312200_ANIM_REQUEST_RESET`, `animRate` at `ANIMATION_RATE_ONE`)
-/// and runs the driver once for it. When animation 0x10 - which nothing in
-/// this package requests - reaches a boundary on slot 1, a blend to animation
-/// 4 is requested. Every tick then ends in the animation driver.
-static void func_actor_312200_801637CC(Task* task)
+/// Restarts playback on state entry and advances the requested animation.
+///
+/// Requires initialized animation work. Entry forces a reset at normal speed
+/// and advances once before the regular driver call, so that first tick
+/// advances twice. Later ticks advance once, preserving the current rate.
+static void _actor312200PlayAnimation(Task* task)
 {
     _Actor312200Work* work;
 
@@ -644,30 +684,33 @@ static void func_actor_312200_801637CC(Task* task)
     if (work->stateEntered != 0) {
         work->animRequest = ACTOR_312200_ANIM_REQUEST_RESET;
         work->animRate    = ANIMATION_RATE_ONE;
-        func_actor_312200_80162FB4(task);
+        _actor312200DriveAnimation(task);
     }
+    // Retained branch: no request here selects animation 0x10, outside this bank.
     if (work->animId == 0x10 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->animId      = 4;
+        work->animId      = ACTOR_312200_ANIM_4;
         work->animRequest = ACTOR_312200_ANIM_REQUEST_BLEND;
     }
-    func_actor_312200_80162FB4(task);
+    _actor312200DriveAnimation(task);
 }
 
 /// The actor's three state handlers, dispatched by
-/// `func_actor_312200_80163854`: spawn, per-frame tick and teardown.
+/// `_actor312200Task`: spawn, per-frame tick and teardown.
 static const EnemyTaskFuncTable3 D_actor_312200_80161E24 = {
-    func_actor_312200_80163178,
-    func_actor_312200_80163370,
+    _actor312200Spawn,
+    _actor312200Tick,
     enemyDestroy,
 };
 
-/// Runs the handler `Task::state` selects from `D_actor_312200_80161E24`,
-/// passing the spawn argument and the task. The table is copied onto the stack
-/// before the call.
-void func_actor_312200_80163854(Task* task)
+/// Dispatches the actor task's spawn, per-frame update or enemy teardown callback.
+///
+/// Requires a live task borrowing its live enemy in `spawnArg2.pointer`.
+/// `Task::state` must be 0 (spawn), 1 (update) or 2 (destroy); the table has no
+/// bounds check. Teardown may release both objects before this call returns.
+static void _actor312200Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = D_actor_312200_80161E24;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    handlers = D_actor_312200_80161E24;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
