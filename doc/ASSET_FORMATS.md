@@ -608,6 +608,23 @@ points at), `Mc_SaveHeaderBody` the rest.
 
 The three frames animate a portrait dissolving into the teal PE energy effect.
 
+Overlay packages carry assets the same way, as records whose `source` is the
+package and whose `include` width makes the build write the initializer the C
+declaration includes (`build/include/assets/<id>.inc`). The id is
+`<package>_<kind>_<offset>`; content several packages carry has one record, in
+the first package by name, and the others include that id.
+
+| `ext` | `type` | What it is |
+|---|---|---|
+| `.img` | `image` | packed texture words uploaded by a `GpuImageUpload` list |
+| `.clut` | `clut` | a palette row: uploaded, or blended into the row that is |
+| `.morph` | `morph_deltas`, `morph_normals` | a `ModelMorph`'s per-vertex deltas and target normals |
+| `.path` | `movie_path`, `camera_path` | one position (or camera transform) per movie or scene frame |
+| `.motion` | `motion_curve` | baked per-frame motion of a prop or figure: positions, angles |
+
+A new record needs a re-extraction (`python3 ninja_config.py -iso_min`) before
+the build can read its `raw/` file.
+
 Adding another embedded asset means one `EMBEDDED_ASSETS` entry plus, if it is
 a new format, an extension in `TYPE_DIR_BY_EXT` and a branch in the materialize
 dispatch. `exe_assets.scan_for_save_headers` is the signature scan that found
