@@ -87,7 +87,14 @@ void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0);
 /// The room overlay must remain loaded while the task runs.
 void acropolisHelicopterLandingPadLiftTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_8017EB00(Task* task);
+/// Runs the landing pad room's initialization, encounter-phase update and teardown states.
+///
+/// The Acropolis map registers this for area 16. `Task::state` must be 0..2:
+/// 0 installs the room message table, resets encounter gates, starts ambient
+/// sound and retains the player pitch task; 1 updates encounter progress;
+/// 2 kills the room task. The room overlay and its callback tables must stay
+/// loaded while this task or its spawned room tasks run.
+void acropolisHelicopterLandingPadRoomTask(Task* task);
 
 void func_acropolis_helicopter_landing_pad_801822B0(Task* task);
 

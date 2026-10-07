@@ -52584,7 +52584,7 @@ showed the `move`.
 
 ## Immediate stores to stack slots nothing reads are dead struct-field writes; their position fixes the statement, the frame fixes the padding
 
-`func_acropolis_helicopter_landing_pad_8017E270` stores `-0x249`, `0xB8` and
+`acropolisHelicopterLandingPadPlayerPitchPulseTask` stores `-0x249`, `0xB8` and
 `0` to `sp+0x28 / 0x30 / 0x2C` right after `gameGetTaskSlot` returns, never
 reads them back, and reserves a 0x78 frame (0x50 bytes of locals) for a body
 that otherwise lives in registers. GCC 2.8.1 does not delete dead stores to
@@ -52595,7 +52595,7 @@ Two readings of the trace:
 
 - **Scheduler barrier gives the source position.** Stack stores never move
   across a `jal`, so stores *after* the call were written after the call —
-  explicit member assignments (`dir.vx = -0x249; dir.vy = 0; dir.vz = 0xB8;`)
+  explicit member assignments (`unusedVector.vx = -0x249; unusedVector.vy = 0; unusedVector.vz = 0xB8;`)
   following the pointer lookup, not an initializer on the declaration. A
   declaration initializer lands before the call, and an *array* initializer
   becomes a `.rodata` copy (`lw`/`sw` triples) instead of immediates.
@@ -52605,11 +52605,11 @@ Two readings of the trace:
   the live one until the frame matches:
 
 ```c
-SVECTOR unusedA;   /* sp+0x10 */
-VECTOR  unusedB;   /* sp+0x18 */
-VECTOR  dir;       /* sp+0x28: the three stores */
-MATRIX  unusedM;   /* sp+0x38 */
-SVECTOR unusedC;   /* sp+0x58; locals 0x50 -> frame 0x78 */
+SVECTOR unusedShortVectorBefore;  /* sp+0x10 */
+VECTOR  unusedVectorBefore;       /* sp+0x18 */
+VECTOR  unusedVector;             /* sp+0x28: the three stores */
+MATRIX  unusedMatrix;             /* sp+0x38 */
+SVECTOR unusedShortVectorAfter;   /* sp+0x58; locals 0x50 -> frame 0x78 */
 ```
 
 m2c drops the stores entirely, so its seed scored 87% on frame size alone;
@@ -52646,13 +52646,13 @@ whether the target has it.
 
 ### A ported matched body scoring far below m2c: check that `ABS` is a macro, not a `jal`
 
-`func_acropolis_helicopter_landing_pad_8017E81C` is a byte-for-byte copy of
+`acropolisHelicopterLandingPadScreenShakeTask` is a byte-for-byte copy of
 gameplay's matched `evsScreenShakeTask`. Pasting that body into the m2c scratch seed
 scored **68%**, below the 90% m2c baseline, with `regs=40 insert=15`. The
 object dump had `jal ABS` three times: the seed's include list (`common.h`,
 `gameplay/*.h`, `main/task.h`) does not pull in `psyq/abs.h`, so GCC 2.8.1
 treated `ABS(x)` as an implicit `int ABS()` call, and the extra calls forced
-`packed`/`lo` into `$s1`/`$s2` and grew the frame. Adding
+`packedShake`/`halfDurationFrames` into `$s1`/`$s2` and grew the frame. Adding
 `#include <psyq/abs.h>` took the same text to 100%.
 
 When a sibling or `overlay_dup_index.py find` body scores *worse* than m2c,
@@ -52683,7 +52683,7 @@ of chasing that last tenth in the scratch.
 
 ### A block-local `slt` temp cannot be re-ranked; assign the compare to the local whose register it must take
 
-`func_acropolis_helicopter_landing_pad_8017E0F8` compares two abs distances
+`acropolisHelicopterLandingPadTurnPlayerYawTask` compares two abs distances
 and the target wants `slt $v1, $v1, $v0` / `beqz $v1` — the result lands in
 the register of the first operand (`d1`). Plain `if (d1 < d2)` gives
 `slt $v0, $v1, $v0` at 99.9% with `regs=2` and nothing else, and no
