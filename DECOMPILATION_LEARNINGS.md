@@ -64419,10 +64419,10 @@ handlers as casts of the *extern data* symbols it bootstrapped — it has no
 prototype for them — and stores them element-wise:
 
 ```c
-extern M2C_UNK Actor00400_Fn0A7F0;
-extern M2C_UNK Actor00400_Fn0A82C;
-temp_states[0] = (void (*)(Actor100400 *))&Actor00400_Fn0A7F0;
-temp_states[1] = (void (*)(Actor100400 *))&Actor00400_Fn0A82C;
+extern M2C_UNK _actor00400StrandedDischargeEnter;
+extern M2C_UNK _actor00400StrandedDischargeWait;
+temp_states[0] = (void (*)(Actor100400 *))&_actor00400StrandedDischargeEnter;
+temp_states[1] = (void (*)(Actor100400 *))&_actor00400StrandedDischargeWait;
 ```
 
 97.931%, `reorder=1`, the same single hoist: sched1 fired the first `lui` at
@@ -91273,7 +91273,7 @@ assembly but not in the ranking.
 
 Worked example: `Actor00400_Fn05728` (`src/actors/lib/actor_100400_text.c`),
 96.9% -> 99.6% with the hoisted constant, -> 100% with the reload idiom; the
-calibration came from the already-matched `Actor00400_Fn0A5B8`.
+calibration came from the already-matched `_actor00400StrandedDecide`.
 
 ## A second pointer to the same object forces a reload CSE would otherwise fold
 
@@ -94041,11 +94041,11 @@ and is therefore handed to `global_alloc`, which runs *second* and takes
 whatever local-alloc left. Reassigning a C variable is not a cosmetic choice:
 it decides which allocator places it.
 
-Three consequences showed up in one function (`Actor00400_Fn02648`):
+Three consequences showed up in one function (`_actor00400UpdateNeckRetraction`):
 
 **A reused pointer variable loses its register to the block's temporaries.**
 Writing one `GfxRotationWords* ip` and reassigning it for each matrix
-(`&ma.matrix.rotationWords`, then `&mb.matrix.rotationWords`, then `&rot.matrix.rotationWords`) makes it global, so the
+(`(GfxRotationWords*)&lowerNeckBasis`, then `(GfxRotationWords*)&upperNeckBasis`, then `(GfxRotationWords*)&rotationMatrix`) makes it global, so the
 block's own single-assignment temporaries take `$s1`-`$s3` first and `ip`
 lands in `$s4`. Declaring `ia`, `ib`, `ir` as separate single-assignment
 pointers in the same block makes all three local; local-alloc orders
@@ -104190,8 +104190,8 @@ The m2c seed built the local dispatch table with two statements:
 
 ```c
     void (*states[2])(Actor100400*);   /* m2c: 97.931%, reorder=1 */
-    states[0] = Actor00400_Fn0A680;
-    states[1] = Actor00400_Fn0A6B0;
+    states[0] = _actor00400StrandedState3Enter;
+    states[1] = _actor00400StrandedState3Wait;
 ```
 
 Writing the same table as an aggregate initializer - the form the matched
@@ -104199,8 +104199,8 @@ sibling uses - is 100%:
 
 ```c
     void (*states[2])(Actor100400*) = {   /* 100.000% */
-        Actor00400_Fn0A680,
-        Actor00400_Fn0A6B0,
+        _actor00400StrandedState3Enter,
+        _actor00400StrandedState3Wait,
     };
 ```
 
@@ -104211,7 +104211,7 @@ computation:
 
 ```
 (insn 12 11 13 (clobber (mem/s:BLK (reg:SI 77))) -1 (nil) (nil))   ; only with the initializer
-(insn 13 12 15 (set (reg:SI 82) (high:SI (symbol_ref:SI ("Actor00400_Fn0A680")))) ...)
+(insn 13 12 15 (set (reg:SI 82) (high:SI (symbol_ref:SI ("_actor00400StrandedState3Enter")))) ...)
 (insn 15 13 17 (set (reg:SI 83) (lo_sum:SI (reg:SI 82) (symbol_ref:SI (...)))))
 (insn 17 15 18 (set (mem/s:SI (reg:SI 77)) (reg:SI 83)))
 ```

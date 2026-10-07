@@ -405,6 +405,17 @@ enum {
     ACTOR_00400_ANIM_SWIM_STATUS_HOLD_HIT  = 18
 };
 
+/// Clip indices used by stranded state 3, discharge and status hold.
+enum {
+    ACTOR_00400_ANIM_STRANDED_STATE3            = 6,
+    ACTOR_00400_ANIM_STRANDED_DISCHARGE         = 9,
+    ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER = 15,
+    ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_LOOP  = 17
+};
+
+/// Horizontal target distance below which a crawl returns to the decision state.
+enum { ACTOR_00400_STRANDED_CRAWL_STOP_DISTANCE = 948 };
+
 /// Placement-tagged sound scripts used by these movement and hit handlers.
 enum {
     ACTOR_00400_SOUND_SWIM        = 0x40040001,
@@ -426,7 +437,7 @@ enum {
 
 static void _actor00400TurnTowardPointMaskedRange(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
 static void _actor00400RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s16 blendFrames);
-static void Actor00400_Fn02648(Task* arg0, s32 arg1);
+static void _actor00400UpdateNeckRetraction(Task* task, s32 unusedNeckRetracted);
 static void Actor00400_Fn0237C(Task* arg0);
 static void _actor00400ClaimNearestSurfaceSpot(Task* task);
 static void Actor00400_Fn0A190(Task* arg0);
@@ -452,29 +463,29 @@ static void Actor00400_Fn08A88(Task* arg0);
 static void Actor00400_Fn08B40(Task* arg0);
 static void Actor00400_Fn08B94(Task* arg0);
 static void Actor00400_Fn06F64(Task* arg0);
-static void Actor00400_Fn0A880(Task* arg0);
+static void _actor00400StrandedLightRecoilEnter(Task* task);
 static void _actor00400StrandedLightRecoilWait(Task* task);
-static void Actor00400_Fn0A940(Task* arg0);
+static void _actor00400StrandedHeavyRecoilEnter(Task* task);
 static void _actor00400StrandedHeavyRecoilWait(Task* task);
-static void Actor00400_Fn0A9F4(Task* arg0);
-static void Actor00400_Fn0AA40(Task* arg0);
+static void _actor00400StrandedStatusHoldEnter(Task* task);
+static void _actor00400StrandedStatusHoldTick(Task* task);
 static void _actor00400ReleaseSurfaceSpot(Task* task);
-static void Actor00400_Fn0A414(Task* arg0);
+static void _actor00400DespawnWait(Task* task);
 static void _actor00400SwimStatusHoldEnter(Task* task);
 static void _actor00400SwimStatusHoldTick(Task* task);
 static s16  _actor00400ApplyHitReaction(Task* task);
-static void Actor00400_Fn0A5B8(Task* arg0);
-static void Actor00400_Fn019B4(Task* arg0);
+static void _actor00400StrandedDecide(Task* task);
+static void _actor00400InitCollisionBodies(Task* task);
 static void Actor00400_Fn0814C(Task* arg0, s16 arg1, SVECTOR* arg2, s16 arg3);
 static void _actor00400CopyRotation(const MATRIX* source, MATRIX* destination);
 
 static s32  _actor00400SwimToNextWaypoint(Task* task);
-static void Actor00400_Fn0A680(Task* arg0);
-static void Actor00400_Fn0A6B0(Task* arg0);
-static void Actor00400_Fn0A704(Task* arg0);
-static void Actor00400_Fn0A760(Task* arg0);
-static void Actor00400_Fn0A7F0(Task* arg0);
-static void Actor00400_Fn0A82C(Task* arg0);
+static void _actor00400StrandedState3Enter(Task* task);
+static void _actor00400StrandedState3Wait(Task* task);
+static void _actor00400StrandedCrawlEnter(Task* task);
+static void _actor00400StrandedCrawlTick(Task* task);
+static void _actor00400StrandedDischargeEnter(Task* task);
+static void _actor00400StrandedDischargeWait(Task* task);
 static void _actor00400AwaitFightCue(Task* task);
 static void Actor00400_Fn0A510(Task* arg0);
 static void Actor00400_Fn0A57C(Task* arg0);
@@ -1414,7 +1425,7 @@ static void Actor00400_Fn00B48(Task* arg0)
     obj->hp                     = hp;
     coord->parent               = &gGfxViewCoord;
     animationInitContext(&work->rig.anim, Actor00400_D1604C, ctx, work->rig.poses, work->rig.slots);
-    Actor00400_Fn019B4(arg0);
+    _actor00400InitCollisionBodies(arg0);
     work->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }
 
@@ -1686,62 +1697,67 @@ static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
     _actor00400CopyRotation(&t1, &c4->coord);
 }
 
-/* Links the actor's four collision objects and clears their record tables;
-   `gridBody` participates in grid tests when `gridCollision` is nonzero. */
-static void Actor00400_Fn019B4(Task* arg0)
+/// Initializes and links the diver's four collision spheres and contact tables.
+///
+/// Requires live work, enemy and model coordinates, with the spheres not yet
+/// linked. The trunk and head share six hit contacts and accept pair tests;
+/// the discharge sphere starts disabled. The root sphere accepts grid tests
+/// only when `gridCollision` is set. Storage remains owned by the diver until
+/// teardown unlinks the bodies.
+static void _actor00400InitCollisionBodies(Task* task)
 {
-    _Actor00400Work* work = arg0->work;
+    enum {
+        ACTOR_00400_COLLISION_PART_TRUNK    = 1,
+        ACTOR_00400_COLLISION_PART_HEAD     = 4,
+        ACTOR_00400_COLLISION_BODY_KEY      = WORLD_COLLISION_CONTACT_ENEMY_BODY | 4,
+        ACTOR_00400_COLLISION_TRUNK_RADIUS  = 768,
+        ACTOR_00400_COLLISION_HEAD_RADIUS   = 192,
+        ACTOR_00400_COLLISION_ATTACK_RADIUS = 1152,
+        ACTOR_00400_COLLISION_GRID_RADIUS   = 896
+    };
+    _Actor00400Work* work = task->work;
 
-    work->trunkBody.coord            = &arg0->extra.tmd->coords[1];
-    work->trunkBody.context.contacts = work->hitContacts;
-    work->trunkBody.pos.vx           = 0;
-    work->trunkBody.pos.vy           = 0;
-    work->trunkBody.pos.vz           = 0;
-    work->trunkBody.key              = 0x30004;
-    work->trunkBody.radius           = 0x300;
-    work->trunkBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->trunkBody);
+    /// Initializes and links an origin-centred sphere with borrowed coordinate and contacts.
+    ///
+    /// `sphere` must be an unlinked, side-effect-free WorldCollisionBody lvalue;
+    /// it is evaluated repeatedly. Other arguments are evaluated once in field
+    /// assignment order, with radius in game-coordinate units. Contact-table
+    /// initialization and pair/grid enablement remain the caller's responsibility.
+    /// Expands as statements in this braced function body and captures no locals.
+#define ACTOR_00400_LINK_SPHERE(sphere, partCoord, contactTable, contactKey, sphereRadius, listIndex) \
+    (sphere).coord            = (partCoord);                                                          \
+    (sphere).context.contacts = (contactTable);                                                       \
+    (sphere).pos.vx           = 0;                                                                    \
+    (sphere).pos.vy           = 0;                                                                    \
+    (sphere).pos.vz           = 0;                                                                    \
+    (sphere).key              = (contactKey);                                                         \
+    (sphere).radius           = (sphereRadius);                                                       \
+    (sphere).flags            = WORLD_COLLISION_BODY_SPHERE;                                          \
+    worldCollisionLinkBody((listIndex), &(sphere));
+
+    ACTOR_00400_LINK_SPHERE(work->trunkBody, &task->extra.tmd->coords[ACTOR_00400_COLLISION_PART_TRUNK], work->hitContacts,
+                            ACTOR_00400_COLLISION_BODY_KEY, ACTOR_00400_COLLISION_TRUNK_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES);
     worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
     work->trunkBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    work->headBody.coord            = &arg0->extra.tmd->coords[4];
-    work->headBody.context.contacts = work->hitContacts;
-    work->headBody.pos.vx           = 0;
-    work->headBody.pos.vy           = 0;
-    work->headBody.pos.vz           = 0;
-    work->headBody.key              = 0x30004;
-    work->headBody.radius           = 0xC0;
-    work->headBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->headBody);
+    ACTOR_00400_LINK_SPHERE(work->headBody, &task->extra.tmd->coords[ACTOR_00400_COLLISION_PART_HEAD], work->hitContacts,
+                            ACTOR_00400_COLLISION_BODY_KEY, ACTOR_00400_COLLISION_HEAD_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES);
     work->headBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    work->attackBody.coord            = &arg0->extra.tmd->coords[1];
-    work->attackBody.context.contacts = work->attackContacts;
-    work->attackBody.pos.vx           = 0;
-    work->attackBody.pos.vy           = 0;
-    work->attackBody.pos.vz           = 0;
-    work->attackBody.key              = damagePackEnemyAttackKey(arg0->spawnArg2.pointer, 0);
-    work->attackBody.radius           = 0x480;
-    work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
+    ACTOR_00400_LINK_SPHERE(work->attackBody, &task->extra.tmd->coords[ACTOR_00400_COLLISION_PART_TRUNK], work->attackContacts,
+                            damagePackEnemyAttackKey(task->spawnArg2.pointer, 0), ACTOR_00400_COLLISION_ATTACK_RADIUS, WORLD_COLLISION_LIST_ENEMY_ATTACKS);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    work->gridBody.coord            = arg0->extra.tmd->coords;
-    work->gridBody.context.contacts = work->gridContacts;
-    work->gridBody.pos.vx           = 0;
-    work->gridBody.pos.vy           = 0;
-    work->gridBody.pos.vz           = 0;
-    work->gridBody.key              = 0x30004;
-    work->gridBody.radius           = 0x380;
-    work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
+    ACTOR_00400_LINK_SPHERE(work->gridBody, task->extra.tmd->coords, work->gridContacts,
+                            ACTOR_00400_COLLISION_BODY_KEY, ACTOR_00400_COLLISION_GRID_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES);
     worldCollisionInitContacts(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     if (work->gridCollision != 0) {
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     } else {
         work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     }
+#undef ACTOR_00400_LINK_SPHERE
 }
 
 /* Damage / knock-back tick: walks the six contact records, applies the hit
@@ -2102,55 +2118,82 @@ static void Actor00400_Fn0237C(Task* arg0)
     effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
 }
 
-/// Drives the two head/neck coordinates (`base[2]`, `base[3]`) and the aim
-/// coordinate (`base[4]`) from `neckRetracted`.
+/// Straightens and retracts the neck, or eases it back into the animated pose.
 ///
-/// While it is set, `neckPhase` walks a small state machine: state 0 snaps the
-/// five part coordinates to their bind pose and records the current Euler
-/// angles, state 1 eases those angles back towards zero (and promotes to
-/// state 2 once all six components are inside 0x30), and state 2 scales the
-/// parts by `neckScale` while the aim coordinate keeps its own rotation.
-/// When the flag drops, `neckScale` is eased back to 0x1000 with the same
-/// scaling pass until it passes 0xF80, after which the stored angles are
-/// blended halfway towards the live ones and the state resets to 0.
-///
-/// `invScale` is one function-scope variable rather than a local per arm on
-/// purpose: with two assignments the pseudo has two deaths, so local-alloc
-/// skips it and never ties the `divmodsi4` result to its dividend. That is
-/// what leaves the quotient in the divisor's register (`mflo $v1`).
-static void Actor00400_Fn02648(Task* arg0, s32 arg1)
+/// Requires the live model's root, trunk, two neck parts and head (0..4).
+/// `neckRetracted` in the work block selects the behavior; the second argument
+/// is ignored. Retraction captures the neck's Euler angles, eases them to
+/// within 48 angle units of zero, then shortens the lower neck's Z basis.
+/// The head keeps its rotation and receives inverse Z scale. Release restores
+/// Q12 unit scale, then blends captured angles halfway toward the live pose.
+/// Translations are retained and the head hierarchy is recomposed. Angles
+/// use 4096 units per turn; the scale must stay positive for its reciprocal.
+static void _actor00400UpdateNeckRetraction(Task* task, s32 unusedNeckRetracted)
 {
-    VECTOR           scale;
-    MATRIX           rot;
-    SVECTOR          euler0;
-    MATRIX           ma;
-    SVECTOR          euler1;
-    MATRIX           mb;
-    SVECTOR          euler2;
-    MATRIX           mc;
+    enum { ACTOR_00400_NECK_STRAIGHT_ANGLE_THRESHOLD = 48,
+           ACTOR_00400_NECK_RETRACTED_SCALE          = 0x2AA,
+           ACTOR_00400_NECK_RELEASE_SCALE_THRESHOLD  = 0xF80 };
+    VECTOR           axisScale;
+    MATRIX           rotationMatrix;
+    SVECTOR          lowerAnimatedAngles;
+    MATRIX           lowerNeckBasis;
+    SVECTOR          upperAnimatedAngles;
+    MATRIX           upperNeckBasis;
+    SVECTOR          headAngles;
+    MATRIX           headBasis;
     _Actor00400Work* work;
-    GfxCoord*        base;
-    GfxCoord*        c2;
-    GfxCoord*        c3;
-    GfxCoord*        c4;
-    s32              invScale;
+    GfxCoord*        coords;
+    GfxCoord*        lowerNeckCoord;
+    GfxCoord*        upperNeckCoord;
+    GfxCoord*        headCoord;
+    s32              inverseNeckScale;
 
-    base = arg0->extra.tmd->coords;
-    work = arg0->work;
-    c2   = &base[2];
-    c3   = &base[3];
-    c4   = &base[4];
+    /// Rebuilds both neck bases and inverse-scales the head, retaining translations.
+    ///
+    /// Captures work, coords, headCoord, headAngles, axisScale, the three basis
+    /// matrices, rotationMatrix and inverseNeckScale. Requires positive Q12
+    /// neckScale and initialized headAngles; expands as statements in this block.
+#define ACTOR_00400_APPLY_NECK_SCALE()                          \
+    gfxSetRotIdentity(&lowerNeckBasis);                         \
+    axisScale.vx = ONE;                                         \
+    axisScale.vy = ONE;                                         \
+    axisScale.vz = work->neckScale;                             \
+    ScaleMatrix(&lowerNeckBasis, &axisScale);                   \
+    _actor00400CopyRotation(&lowerNeckBasis, &coords[2].coord); \
+    gfxSetRotIdentity(&upperNeckBasis);                         \
+    axisScale.vx = ONE;                                         \
+    axisScale.vy = ONE;                                         \
+    axisScale.vz = ONE;                                         \
+    ScaleMatrix(&upperNeckBasis, &axisScale);                   \
+    _actor00400CopyRotation(&upperNeckBasis, &coords[3].coord); \
+    gfxSetRotIdentity(&headBasis);                              \
+    axisScale.vx     = ONE;                                     \
+    axisScale.vy     = ONE;                                     \
+    inverseNeckScale = (ONE * ONE) / work->neckScale;           \
+    axisScale.vz     = inverseNeckScale;                        \
+    ScaleMatrix(&headBasis, &axisScale);                        \
+    gfxSetRotIdentity(&rotationMatrix);                         \
+    RotMatrix(&headAngles, &rotationMatrix);                    \
+    MulMatrix(&headBasis, &rotationMatrix);                     \
+    _actor00400CopyRotation(&headBasis, &headCoord->coord);
+
+    coords         = task->extra.tmd->coords;
+    work           = task->work;
+    lowerNeckCoord = &coords[2];
+    upperNeckCoord = &coords[3];
+    headCoord      = &coords[4];
     if (work->neckRetracted != 0) {
         switch (work->neckPhase) {
             case ACTOR_00400_NECK_FREE:
-                base[0].composeStamp = GRAPHICS_COORD_DIRTY;
-                base[1].composeStamp = GRAPHICS_COORD_DIRTY;
-                base[2].composeStamp = GRAPHICS_COORD_DIRTY;
-                base[3].composeStamp = GRAPHICS_COORD_DIRTY;
-                base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(c4);
-                gfxExtractEulerAngles(&base[2].coord, &work->lowerNeckAngles);
-                gfxExtractEulerAngles(&base[3].coord, &work->upperNeckAngles);
+                // Capture the animated neck pose before straightening it.
+                coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
+                coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+                coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+                coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+                coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(headCoord);
+                gfxExtractEulerAngles(&coords[2].coord, &work->lowerNeckAngles);
+                gfxExtractEulerAngles(&coords[3].coord, &work->upperNeckAngles);
                 work->neckPhase = ACTOR_00400_NECK_STRAIGHTEN;
                 work->neckScale = ONE;
                 /* fallthrough */
@@ -2162,115 +2205,76 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
                 work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((s32) - (work->upperNeckAngles.vx * 0x10) >> 6);
                 work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((s32) - (work->upperNeckAngles.vy * 0x10) >> 6);
                 work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((s32) - (work->upperNeckAngles.vz * 0x10) >> 6);
-                gfxSetRotIdentity(&rot);
-                RotMatrix(&work->lowerNeckAngles, &rot);
-                _actor00400CopyRotation(&rot, &c2->coord);
-                gfxSetRotIdentity(&rot);
-                RotMatrix(&work->upperNeckAngles, &rot);
-                _actor00400CopyRotation(&rot, &c3->coord);
-                if ((abs(work->lowerNeckAngles.vx) < 0x30) && (abs(work->lowerNeckAngles.vy) < 0x30) && (abs(work->lowerNeckAngles.vz) < 0x30) &&
-                    (abs(work->upperNeckAngles.vx) < 0x30) && (abs(work->upperNeckAngles.vy) < 0x30) && (abs(work->upperNeckAngles.vz) < 0x30)) {
+                gfxSetRotIdentity(&rotationMatrix);
+                RotMatrix(&work->lowerNeckAngles, &rotationMatrix);
+                _actor00400CopyRotation(&rotationMatrix, &lowerNeckCoord->coord);
+                gfxSetRotIdentity(&rotationMatrix);
+                RotMatrix(&work->upperNeckAngles, &rotationMatrix);
+                _actor00400CopyRotation(&rotationMatrix, &upperNeckCoord->coord);
+                if ((abs(work->lowerNeckAngles.vx) < ACTOR_00400_NECK_STRAIGHT_ANGLE_THRESHOLD) && (abs(work->lowerNeckAngles.vy) < ACTOR_00400_NECK_STRAIGHT_ANGLE_THRESHOLD) && (abs(work->lowerNeckAngles.vz) < ACTOR_00400_NECK_STRAIGHT_ANGLE_THRESHOLD) &&
+                    (abs(work->upperNeckAngles.vx) < ACTOR_00400_NECK_STRAIGHT_ANGLE_THRESHOLD) && (abs(work->upperNeckAngles.vy) < ACTOR_00400_NECK_STRAIGHT_ANGLE_THRESHOLD) && (abs(work->upperNeckAngles.vz) < ACTOR_00400_NECK_STRAIGHT_ANGLE_THRESHOLD)) {
                     work->neckPhase = ACTOR_00400_NECK_RETRACTED;
                 }
-                c2->composeStamp = GRAPHICS_COORD_DIRTY;
-                c3->composeStamp = GRAPHICS_COORD_DIRTY;
-                c4->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(c4);
+                lowerNeckCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                upperNeckCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                headCoord->composeStamp      = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(headCoord);
                 break;
             }
             case ACTOR_00400_NECK_RETRACTED: {
+                // Shorten the neck while compensating the head's Z scale.
 
-                gfxExtractEulerAngles(&c4->coord, &euler2);
-                work->neckScale = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
-                gfxSetRotIdentity(&ma);
-                scale.vx = 0x1000;
-                scale.vy = 0x1000;
-                scale.vz = work->neckScale;
-                ScaleMatrix(&ma, &scale);
-                _actor00400CopyRotation(&ma, &base[2].coord);
-                gfxSetRotIdentity(&mb);
-                scale.vx = 0x1000;
-                scale.vy = 0x1000;
-                scale.vz = 0x1000;
-                ScaleMatrix(&mb, &scale);
-                _actor00400CopyRotation(&mb, &base[3].coord);
-                gfxSetRotIdentity(&mc);
-                scale.vx = 0x1000;
-                scale.vy = 0x1000;
-                invScale = 0x1000000 / work->neckScale;
-                scale.vz = invScale;
-                ScaleMatrix(&mc, &scale);
-                gfxSetRotIdentity(&rot);
-                RotMatrix(&euler2, &rot);
-                MulMatrix(&mc, &rot);
-                _actor00400CopyRotation(&mc, &c4->coord);
-                base[2].composeStamp = GRAPHICS_COORD_DIRTY;
-                base[3].composeStamp = GRAPHICS_COORD_DIRTY;
-                base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(c4);
+                gfxExtractEulerAngles(&headCoord->coord, &headAngles);
+                work->neckScale = (u16)work->neckScale + ((ACTOR_00400_NECK_RETRACTED_SCALE - work->neckScale) >> 3);
+                ACTOR_00400_APPLY_NECK_SCALE();
+                coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+                coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+                coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(headCoord);
                 break;
             }
         }
     } else {
-        base[0].composeStamp = GRAPHICS_COORD_DIRTY;
-        base[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        base[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        base[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(c4);
-        if (work->neckScale < 0xF80) {
+        coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
+        coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+        coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+        coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+        coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(headCoord);
+        // Restore neck length before easing back toward the animated angles.
+        if (work->neckScale < ACTOR_00400_NECK_RELEASE_SCALE_THRESHOLD) {
 
-            gfxExtractEulerAngles(&c4->coord, &euler2);
-            work->neckScale = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 3);
-            gfxSetRotIdentity(&ma);
-            scale.vx = 0x1000;
-            scale.vy = 0x1000;
-            scale.vz = work->neckScale;
-            ScaleMatrix(&ma, &scale);
-            _actor00400CopyRotation(&ma, &base[2].coord);
-            gfxSetRotIdentity(&mb);
-            scale.vx = 0x1000;
-            scale.vy = 0x1000;
-            scale.vz = 0x1000;
-            ScaleMatrix(&mb, &scale);
-            _actor00400CopyRotation(&mb, &base[3].coord);
-            gfxSetRotIdentity(&mc);
-            scale.vx = 0x1000;
-            scale.vy = 0x1000;
-            invScale = 0x1000000 / work->neckScale;
-            scale.vz = invScale;
-            ScaleMatrix(&mc, &scale);
-            gfxSetRotIdentity(&rot);
-            RotMatrix(&euler2, &rot);
-            MulMatrix(&mc, &rot);
-            _actor00400CopyRotation(&mc, &c4->coord);
+            gfxExtractEulerAngles(&headCoord->coord, &headAngles);
+            work->neckScale = (u16)work->neckScale + ((ONE - work->neckScale) >> 3);
+            ACTOR_00400_APPLY_NECK_SCALE();
         } else {
-            MATRIX* m2;
-            MATRIX* m3;
+            MATRIX* lowerNeckMatrix;
+            MATRIX* upperNeckMatrix;
 
-            m2 = &base[2].coord;
-            gfxExtractEulerAngles(m2, &euler0);
-            m3 = &base[3].coord;
-            gfxExtractEulerAngles(m3, &euler1);
-            work->lowerNeckAngles.vx = (u16)work->lowerNeckAngles.vx + ((euler0.vx - work->lowerNeckAngles.vx) >> 1);
-            work->lowerNeckAngles.vy = (u16)work->lowerNeckAngles.vy + ((euler0.vy - work->lowerNeckAngles.vy) >> 1);
-            work->lowerNeckAngles.vz = (u16)work->lowerNeckAngles.vz + ((euler0.vz - work->lowerNeckAngles.vz) >> 1);
-            work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((euler1.vx - work->upperNeckAngles.vx) >> 1);
-            work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((euler1.vy - work->upperNeckAngles.vy) >> 1);
-            work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((euler1.vz - work->upperNeckAngles.vz) >> 1);
-            gfxSetRotIdentity(&rot);
-            RotMatrix(&work->lowerNeckAngles, &rot);
-            _actor00400CopyRotation(&rot, m2);
-            gfxSetRotIdentity(&rot);
-            RotMatrix(&work->upperNeckAngles, &rot);
-            _actor00400CopyRotation(&rot, m3);
+            lowerNeckMatrix = &coords[2].coord;
+            gfxExtractEulerAngles(lowerNeckMatrix, &lowerAnimatedAngles);
+            upperNeckMatrix = &coords[3].coord;
+            gfxExtractEulerAngles(upperNeckMatrix, &upperAnimatedAngles);
+            work->lowerNeckAngles.vx = (u16)work->lowerNeckAngles.vx + ((lowerAnimatedAngles.vx - work->lowerNeckAngles.vx) >> 1);
+            work->lowerNeckAngles.vy = (u16)work->lowerNeckAngles.vy + ((lowerAnimatedAngles.vy - work->lowerNeckAngles.vy) >> 1);
+            work->lowerNeckAngles.vz = (u16)work->lowerNeckAngles.vz + ((lowerAnimatedAngles.vz - work->lowerNeckAngles.vz) >> 1);
+            work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((upperAnimatedAngles.vx - work->upperNeckAngles.vx) >> 1);
+            work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((upperAnimatedAngles.vy - work->upperNeckAngles.vy) >> 1);
+            work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((upperAnimatedAngles.vz - work->upperNeckAngles.vz) >> 1);
+            gfxSetRotIdentity(&rotationMatrix);
+            RotMatrix(&work->lowerNeckAngles, &rotationMatrix);
+            _actor00400CopyRotation(&rotationMatrix, lowerNeckMatrix);
+            gfxSetRotIdentity(&rotationMatrix);
+            RotMatrix(&work->upperNeckAngles, &rotationMatrix);
+            _actor00400CopyRotation(&rotationMatrix, upperNeckMatrix);
         }
-        base[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        base[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(c4);
+        coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+        coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+        coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(headCoord);
         work->neckPhase = ACTOR_00400_NECK_FREE;
     }
+#undef ACTOR_00400_APPLY_NECK_SCALE
 }
 
 /// Flight state of the shot `Actor00400_SpawnMarker` starts: each frame it
@@ -2948,7 +2952,7 @@ static void Actor00400_Fn040DC(Task* arg0)
             work->animStatus = work->rig.slots[1].status.fields.flags;
             if (work->hitReaction != 4) {
                 work->neckRetracted = 1;
-                Actor00400_Fn02648(arg0, 1);
+                _actor00400UpdateNeckRetraction(arg0, 1);
             }
             y                 = coord->coord.t[1];
             coord->coord.t[1] = y + ((work->goalY + (s16)work->floatOffset - y) >> 4);
@@ -3425,7 +3429,7 @@ static void Actor00400_Fn04E18(Task* arg0)
                 i++;
             } while (i < ARRAY_SIZE(w->rig.slots));
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            Actor00400_Fn02648(arg0, work->neckRetracted);
+            _actor00400UpdateNeckRetraction(arg0, work->neckRetracted);
             _actor00400ApplyRootRotation(arg0);
             Actor00400_Fn01B90(arg0);
             if ((s16)obj->hp <= 0) {
@@ -5069,7 +5073,7 @@ static void Actor00400_Fn089C8(Task* arg0)
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
         _actor00400ReleaseSurfaceSpot,
-        Actor00400_Fn0A414,
+        _actor00400DespawnWait,
     };
 
     states[work->state](arg0);
@@ -5330,28 +5334,37 @@ static void Actor00400_Fn090B4(Task* arg0)
     w2->subState     = 0;
 }
 
-/// Raises the combat alert, arms state F0 and moves the actor to
-/// `ACTOR_00400_STRANDED_STATE_DECIDE` when its target is nearer than 0xDAC
-/// and its bearing lies outside [0x600, 0xA00). Returns 1 when it did.
-static inline s16 _actor00400StrandedNoticeTarget(Task* arg0)
+/// Engages combat and leaves stranded idle when a nearby target is outside the rear sector.
+///
+/// Requires the current signed-halfword horizontal distance and 0..4095
+/// relative bearing. A distance below 3500 and bearing outside [1536, 2560)
+/// raises enemy alert class 1 and selects the decision entry. Returns 0 or 1;
+/// the scene battle reference count is unchanged.
+static inline s16 _actor00400StrandedNoticeTarget(Task* task)
 {
+    enum {
+        ACTOR_00400_STRANDED_NOTICE_DISTANCE   = 3500,
+        ACTOR_00400_STRANDED_REAR_SECTOR_START = 1536,
+        ACTOR_00400_STRANDED_REAR_SECTOR_WIDTH = 1024U,
+        ACTOR_00400_STRANDED_NOTICE_ALERT      = 1
+    };
     _Actor00400Work* work;
-    _Actor00400Work* w;
-    s32              active;
+    _Actor00400Work* nextStateWork;
+    s32              noticedTarget;
 
-    work   = arg0->work;
-    active = 0;
-    if (work->targetDistance < 0xDAC) {
-        if ((u32)(work->targetBearing - 0x600) >= 0x400U) {
-            gSceneCombatState.signals.bytes.enemyAlert = 1;
+    work          = task->work;
+    noticedTarget = 0;
+    if (work->targetDistance < ACTOR_00400_STRANDED_NOTICE_DISTANCE) {
+        if ((u32)(work->targetBearing - ACTOR_00400_STRANDED_REAR_SECTOR_START) >= ACTOR_00400_STRANDED_REAR_SECTOR_WIDTH) {
+            gSceneCombatState.signals.bytes.enemyAlert = ACTOR_00400_STRANDED_NOTICE_ALERT;
             sceneEngageBattle(1);
-            active      = 1;
-            w           = arg0->work;
-            w->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
-            w->subState = 0;
+            noticedTarget           = 1;
+            nextStateWork           = task->work;
+            nextStateWork->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
+            nextStateWork->subState = 0;
         }
     }
-    return active;
+    return noticedTarget;
 }
 
 static void Actor00400_Fn09124(Task* arg0)
@@ -5377,7 +5390,7 @@ static void Actor00400_Fn091F8(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[1])(Task*) = {
-        Actor00400_Fn0A5B8,
+        _actor00400StrandedDecide,
     };
 
     if (_actor00400ApplyHitReaction(arg0) == 0) {
@@ -5389,8 +5402,8 @@ static void Actor00400_Fn09260(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A680,
-        Actor00400_Fn0A6B0,
+        _actor00400StrandedState3Enter,
+        _actor00400StrandedState3Wait,
     };
 
     if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
@@ -5402,8 +5415,8 @@ static void Actor00400_Fn092D4(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A704,
-        Actor00400_Fn0A760,
+        _actor00400StrandedCrawlEnter,
+        _actor00400StrandedCrawlTick,
     };
 
     if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
@@ -5415,8 +5428,8 @@ static void Actor00400_Fn09348(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A7F0,
-        Actor00400_Fn0A82C,
+        _actor00400StrandedDischargeEnter,
+        _actor00400StrandedDischargeWait,
     };
 
     if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
@@ -5432,7 +5445,7 @@ static void Actor00400_Fn093C4(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A880,
+        _actor00400StrandedLightRecoilEnter,
         _actor00400StrandedLightRecoilWait,
     };
 
@@ -5443,7 +5456,7 @@ static void Actor00400_Fn09418(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A940,
+        _actor00400StrandedHeavyRecoilEnter,
         _actor00400StrandedHeavyRecoilWait,
     };
 
@@ -5454,8 +5467,8 @@ static void Actor00400_Fn0946C(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A9F4,
-        Actor00400_Fn0AA40,
+        _actor00400StrandedStatusHoldEnter,
+        _actor00400StrandedStatusHoldTick,
     };
 
     states[work->subState](arg0);
@@ -6087,16 +6100,22 @@ static void _actor00400ReleaseSurfaceSpot(Task* task)
     work->state       = (u16)work->state + 1;
 }
 
-static void Actor00400_Fn0A414(Task* arg0)
+/// Destroys the diver after 301 ticks of the despawn wait.
+///
+/// Enters with the signed-halfword counter cleared and the surface claim
+/// released. The increment wraps through 16 bits before the signed comparison.
+/// Destruction retires the enemy and its task; nothing accesses them afterward.
+static void _actor00400DespawnWait(Task* task)
 {
+    enum { ACTOR_00400_DESPAWN_WAIT_FRAMES = 301 };
     _Actor00400Work* work;
-    u16              frame;
+    u16              elapsedFrames;
 
-    work              = arg0->work;
-    frame             = (u16)work->stateFrames + 1;
-    work->stateFrames = frame;
-    if ((s16)frame >= 0x12D) {
-        enemyDestroy(arg0->spawnArg2.pointer, arg0);
+    work              = task->work;
+    elapsedFrames     = (u16)work->stateFrames + 1;
+    work->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames >= ACTOR_00400_DESPAWN_WAIT_FRAMES) {
+        enemyDestroy(task->spawnArg2.pointer, task);
     }
 }
 
@@ -6154,22 +6173,30 @@ static void Actor00400_Fn0A57C(Task* arg0)
     work->subState++;
 }
 
-static void Actor00400_Fn0A5B8(Task* arg0)
+/// Chooses a stranded discharge in reach, or a crawl, and records the choice.
+///
+/// Requires the current horizontal target distance and history index 0..2.
+/// Below 1250 coordinate units chooses discharge unless that would make three
+/// consecutive discharges; then crawl replaces the newest history entry.
+/// Every choice clears the substate and advances the three-entry ring index.
+static void _actor00400StrandedDecide(Task* task)
 {
+    enum { ACTOR_00400_STRANDED_DISCHARGE_DISTANCE = 1250 };
     _Actor00400Work* work;
-    _Actor00400Work* w;
+    _Actor00400Work* nextStateWork;
 
-    work = arg0->work;
-    if (work->targetDistance < 0x4E2) {
+    work = task->work;
+    if (work->targetDistance < ACTOR_00400_STRANDED_DISCHARGE_DISTANCE) {
         work->state                                 = ACTOR_00400_STRANDED_STATE_DISCHARGE;
         work->subState                              = 0;
         work->stateHistory[work->stateHistoryIndex] = work->state;
         if (work->stateHistory[0] == work->stateHistory[1] &&
             work->stateHistory[0] == work->stateHistory[2] &&
             work->stateHistory[0] == ACTOR_00400_STRANDED_STATE_DISCHARGE) {
-            w                                           = arg0->work;
-            w->state                                    = ACTOR_00400_STRANDED_STATE_CRAWL;
-            w->subState                                 = 0;
+            // Break repeated discharges even while the target remains in reach.
+            nextStateWork                               = task->work;
+            nextStateWork->state                        = ACTOR_00400_STRANDED_STATE_CRAWL;
+            nextStateWork->subState                     = 0;
             work->stateHistory[work->stateHistoryIndex] = work->state;
         }
     } else {
@@ -6183,157 +6210,196 @@ static void Actor00400_Fn0A5B8(Task* arg0)
     }
 }
 
-static void Actor00400_Fn0A680(Task* arg0)
+/// Queues stranded state 3's clip and advances to its wait step.
+///
+/// Requires the live rig. Clip 6 plays at normal rate with a six-frame blend;
+/// its visual role is unproven and the living state machine never selects this state.
+static void _actor00400StrandedState3Enter(Task* task)
 {
     _Actor00400Work* work;
 
-    work              = arg0->work;
-    work->animBlend   = 6;
-    work->animStep    = ANIMATION_RATE_ONE;
-    work->animClip    = 6;
-    work->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    work = task->work;
+    _actor00400RequestNormalClipBlend(work, ACTOR_00400_ANIM_STRANDED_STATE3, 6);
     work->subState++;
 }
 
-static void Actor00400_Fn0A6B0(Task* arg0)
+/// Returns stranded state 3 to decision on an animation boundary, jump or settled pose.
+///
+/// Tests the published slot-1 status without ticking the rig; otherwise leaves
+/// the state unchanged. Selecting decision clears its substate.
+static void _actor00400StrandedState3Wait(Task* task)
 {
     _Actor00400Work* work;
 
-    if (_diverClipHasBoundaryOrJump(arg0)) {
-        work           = arg0->work;
+    if (_diverClipHasBoundaryOrJump(task)) {
+        work           = task->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
     }
 }
 
-static void Actor00400_Fn0A704(Task* arg0)
+/// Starts a stranded crawl stride unless the target is already within 948 units.
+///
+/// Requires the live rig and current horizontal target distance. A nearby
+/// target selects decision entry; otherwise advances the stride and enters
+/// the crawl tick step. The stride helper turns toward the live player.
+static void _actor00400StrandedCrawlEnter(Task* task)
 {
     _Actor00400Work* work;
 
-    work = arg0->work;
-    if (work->targetDistance < 0x3B4) {
-        work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
-        work->subState = 0;
-        return;
-    }
-    _actor00400CrawlStride(arg0);
-    work->subState++;
-}
-
-static void Actor00400_Fn0A760(Task* arg0)
-{
-    _Actor00400Work* work;
-
-    work = arg0->work;
-    if (work->targetDistance < 0x3B4) {
+    work = task->work;
+    if (work->targetDistance < ACTOR_00400_STRANDED_CRAWL_STOP_DISTANCE) {
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
         return;
     }
-    _actor00400CrawlStride(arg0);
-    if (_diverClipHasBoundaryOrJump(arg0)) {
-        work           = arg0->work;
+    _actor00400CrawlStride(task);
+    work->subState++;
+}
+
+/// Advances a stranded crawl until the target is near or the animation reports a boundary.
+///
+/// Requires the live rig and current horizontal target distance. Below 948
+/// units returns to decision before moving. Otherwise advances the stride,
+/// then tests the published status for a boundary, jump or settled pose.
+static void _actor00400StrandedCrawlTick(Task* task)
+{
+    _Actor00400Work* work;
+
+    work = task->work;
+    if (work->targetDistance < ACTOR_00400_STRANDED_CRAWL_STOP_DISTANCE) {
+        work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
+        work->subState = 0;
+        return;
+    }
+    _actor00400CrawlStride(task);
+    if (_diverClipHasBoundaryOrJump(task)) {
+        work           = task->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
     }
 }
 
-static void Actor00400_Fn0A7F0(Task* arg0)
+/// Starts the stranded discharge animation and its 24-frame spark attack window.
+///
+/// Requires the live rig and linked discharge sphere. Requests normal-rate
+/// clip 9 with a six-frame blend and enters the animation wait. The frame
+/// driver consumes `attackFrames` to emit sparks and enable the sphere.
+static void _actor00400StrandedDischargeEnter(Task* task)
 {
+    enum { ACTOR_00400_STRANDED_DISCHARGE_FRAMES = 24 };
     _Actor00400Work* work;
 
-    work               = arg0->work;
-    work->animBlend    = 6;
-    work->animStep     = ANIMATION_RATE_ONE;
-    work->animClip     = 9;
-    work->animRequest  = DIVER_ANIM_REQUEST_BLEND;
-    work->attackFrames = 0x18;
+    work = task->work;
+    _actor00400RequestNormalClipBlend(work, ACTOR_00400_ANIM_STRANDED_DISCHARGE, 6);
+    work->attackFrames = ACTOR_00400_STRANDED_DISCHARGE_FRAMES;
     work->subState++;
 }
 
-static void Actor00400_Fn0A82C(Task* arg0)
+/// Returns the stranded discharge to decision on an animation boundary, jump or settled pose.
+///
+/// Tests the published slot-1 status without ticking the rig. The discharge
+/// countdown continues in the frame driver independently of this transition.
+static void _actor00400StrandedDischargeWait(Task* task)
 {
     _Actor00400Work* work;
 
-    if (_diverClipHasBoundaryOrJump(arg0)) {
-        work           = arg0->work;
+    if (_diverClipHasBoundaryOrJump(task)) {
+        work           = task->work;
         work->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
         work->subState = 0;
     }
 }
 
-static void Actor00400_Fn0A880(Task* arg0)
+/// Queues the diver's hit sound with its placement tag and signed-byte spatial controls.
+///
+/// Requires the live enemy and root coordinate. Pan and depth are deliberately
+/// narrowed to signed bytes before promotion to the sound request's word arguments.
+static inline void _actor00400PlayHitSound(Task* task)
 {
-    s32              sound;
-    s32              pan;
-    _Actor00400Work* work;
-    _Actor00400Work* w;
+    Enemy* enemy;
+    s32    soundId;
+    s32    pan;
 
-    work  = arg0->work;
-    sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    w              = arg0->work;
-    w->animBlend   = 6;
-    w->animStep    = ANIMATION_RATE_ONE;
-    w->animClip    = 0xC;
-    w->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    enemy   = task->spawnArg2.pointer;
+    soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_HIT;
+    pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+}
+
+/// Plays the placement-tagged hit sound and enters the stranded light-recoil wait.
+///
+/// Requires live work, enemy and model. The sound precedes the normal-rate
+/// light-recoil request, whose blend lasts six frames.
+static void _actor00400StrandedLightRecoilEnter(Task* task)
+{
+    _Actor00400Work* work;
+    _Actor00400Work* requestWork;
+
+    work = task->work;
+    _actor00400PlayHitSound(task);
+    requestWork = task->work;
+    _actor00400RequestNormalClipBlend(requestWork, ACTOR_00400_ANIM_STRANDED_RECOIL_LIGHT, 6);
     work->subState++;
 }
 
-static void Actor00400_Fn0A940(Task* arg0)
+/// Queues the stranded heavy-recoil clip, plays its hit sound and enters the wait.
+///
+/// Requires live work, enemy and model. The normal-rate request with a
+/// four-frame blend precedes the placement-tagged sound.
+static void _actor00400StrandedHeavyRecoilEnter(Task* task)
 {
-    s32              sound;
-    s32              pan;
     _Actor00400Work* work;
 
-    work              = arg0->work;
-    work->animBlend   = 4;
-    work->animStep    = ANIMATION_RATE_ONE;
-    work->animClip    = 0xD;
-    work->animRequest = DIVER_ANIM_REQUEST_BLEND;
-    sound             = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan               = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    work = task->work;
+    _actor00400RequestNormalClipBlend(work, ACTOR_00400_ANIM_STRANDED_RECOIL_HEAVY, 4);
+    _actor00400PlayHitSound(task);
     work->subState++;
 }
 
-static void Actor00400_Fn0A9F4(Task* arg0)
+/// Enters the stranded status hold with looking suppressed and critical chance multiplied by 100.
+///
+/// Requires the live rig and enemy buildup reaction. Requests the normal-rate
+/// entry clip with an eight-frame blend, clears elapsed ticks and enters the
+/// hold tick step. The multiplier is a factor, rather than a percentage.
+static void _actor00400StrandedStatusHoldEnter(Task* task)
 {
+    enum { ACTOR_00400_STRANDED_STATUS_CRITICAL_MULTIPLIER = 100 };
     _Actor00400Work* work;
-    _Actor00400Work* w;
+    _Actor00400Work* requestWork;
 
-    work                  = arg0->work;
-    work->lookDisabled    = 1;
-    w                     = arg0->work;
-    w->animBlend          = 8;
-    w->animStep           = ANIMATION_RATE_ONE;
-    w->animClip           = 0xF;
-    w->animRequest        = DIVER_ANIM_REQUEST_BLEND;
-    work->critChanceScale = 100;
+    work               = task->work;
+    work->lookDisabled = 1;
+    requestWork        = task->work;
+    _actor00400RequestNormalClipBlend(requestWork, ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_ENTER, 8);
+    work->critChanceScale = ACTOR_00400_STRANDED_STATUS_CRITICAL_MULTIPLIER;
     work->stateFrames     = 0;
     work->subState++;
 }
 
-static void Actor00400_Fn0AA40(Task* arg0)
+/// Keeps the stranded diver in its status hold until the enemy buildup reaction expires.
+///
+/// Requires the live rig and a started buildup reaction. Counts one tick and
+/// requests the normal-rate hold loop on a boundary, jump or settled pose.
+/// Buildup completion clears the critical multiplier, resumes looking and
+/// selects the decision entry. The enemy reaction flag is not changed here.
+static void _actor00400StrandedStatusHoldTick(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* w;
+    _Actor00400Work* requestWork;
+    _Actor00400Work* nextStateWork;
 
-    work = arg0->work;
+    work = task->work;
     work->stateFrames++;
-    if (_diverClipHasBoundaryOrJump(arg0)) {
-        w              = arg0->work;
-        w->animBlend   = 8;
-        w->animStep    = ANIMATION_RATE_ONE;
-        w->animClip    = 0x11;
-        w->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    if (_diverClipHasBoundaryOrJump(task)) {
+        requestWork = task->work;
+        _actor00400RequestNormalClipBlend(requestWork, ACTOR_00400_ANIM_STRANDED_STATUS_HOLD_LOOP, 8);
     }
-    if (damageTickEnemyBuildup(arg0->spawnArg2.pointer)) {
-        work->critChanceScale = 0;
-        work->lookDisabled    = 0;
-        w                     = arg0->work;
-        w->state              = ACTOR_00400_STRANDED_STATE_DECIDE;
-        w->subState           = 0;
+    if (damageTickEnemyBuildup(task->spawnArg2.pointer)) {
+        work->critChanceScale   = 0;
+        work->lookDisabled      = 0;
+        nextStateWork           = task->work;
+        nextStateWork->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
+        nextStateWork->subState = 0;
     }
 }
