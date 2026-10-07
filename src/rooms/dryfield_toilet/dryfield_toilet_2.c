@@ -48,25 +48,6 @@
 #include "overlay.h"
 #include "../../shared/room_visual_effects.h"
 
-/// The clips the Dryfield toilet adds to the player's animation bank.
-///
-/// Both of the room's event scripts send `data.copy` to the player. The copy
-/// takes four words from the start of this storage: the three set pointers and
-/// the request's own source pointer. Those words occupy extended ids 47-50.
-/// One script then plays ids 48 and 49. The other plays a base-bank clip. Id 47
-/// stays NULL, id 50 holds the source pointer, and the stored word count sits
-/// past the copied span.
-typedef union {
-    struct {
-        AnimationSet*            sets[3]; // Player clips for extended ids 47-49; NULL at the id nothing plays
-        AnimationBankCopyRequest copy;    // Copies the first four words of this storage
-    } data;                               // The records by name
-    s32 words[5];                         // The same storage as the copy reads it; the last word lies beyond the copied span
-} _DryfieldToiletAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_DryfieldToiletAnimationBankExtensionStorage, 20);
-
-extern _DryfieldToiletAnimationBankExtensionStorage D_dryfield_toilet_80180B8C;
-
 extern WorldCollisionOccluder D_dryfield_toilet_801826F0[1];
 extern WorldCollisionTrigger  D_dryfield_toilet_8018227C[6];
 extern WorldCollisionTrigger  D_dryfield_toilet_80182444[9];
@@ -84,7 +65,21 @@ extern AreaResource D_dryfield_toilet_80182900[2];
 extern SVECTOR D_dryfield_toilet_8018662C[326];
 extern SVECTOR D_dryfield_toilet_8018705C[1604];
 
-_DryfieldToiletAnimationBankExtensionStorage D_dryfield_toilet_80180B8C = { .data = { { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 }, { { .words = D_dryfield_toilet_80180B8C.words }, 4 } } };
+/// Player clips for extended ids 47-49; NULL at id 47, which nothing plays.
+///
+/// Both of the room's event scripts send the player the copy request.
+/// `D_dryfield_toilet_80180B98` copies four words starting here into the
+/// player's bank, which is one word past the end of this array: the read runs
+/// on through the first word of `D_dryfield_toilet_80180B98`, that request's
+/// own source pointer. That overrun is the original's and is kept as it is: the
+/// request carries a literal count larger than the table, while the table was
+/// stored with only its own entries. One script then plays ids 48 and 49; the
+/// other plays a base-bank clip. Id 50, which receives the source pointer, is
+/// never played.
+AnimationSet* D_dryfield_toilet_80180B8C[3] = { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 };
+
+// Installs the player's clips; the count is four, not the three entries of its source.
+AnimationBankCopyRequest D_dryfield_toilet_80180B98 = { { .sets = D_dryfield_toilet_80180B8C }, 4 };
 
 AnimationPlayRequest D_dryfield_toilet_80180BA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -120,7 +115,7 @@ EvsCommand D_dryfield_toilet_80180C58[31] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_toilet_80180C50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_toilet_8017DC50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_toilet_80180B8C.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_toilet_80180B98 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_toilet_80180BB4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -159,7 +154,7 @@ EvsCommand D_dryfield_toilet_80180F40[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C14 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_toilet_80180BF0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_toilet_80180B8C.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_toilet_80180B98 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_toilet_80180BDC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C0C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_toilet_8017DA3C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
