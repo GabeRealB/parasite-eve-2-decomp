@@ -32,6 +32,17 @@ STATIC_ASSERT_SIZEOF(CdStreamParams, 0x20);
 /// the state does not cancel hardware operations, remove callbacks or free voices.
 void cdStreamReset(void);
 
+/// Acquires the stream's left and right SPU voices and disables their reverb.
+///
+/// Both outputs must point to distinct writable signed voice-index bytes. Allocation
+/// prefers the CD-stream range, then the sound-script range, at priority 65535.
+/// The retained request scans three indices from a two-entry list if neither
+/// range supplies a free voice; that exhaustion path reads beyond the list.
+/// Allocation failure is stored as -1 and is still passed to reverb control.
+/// Allocation can notify a previous owner and leaves its callback registered;
+/// queue each channel's attributes before the next audio tick to clear it.
+void cdStreamAllocVoices(s8* leftVoiceIdx, s8* rightVoiceIdx);
+
 /// Begins playback of an opened stream from playhead zero on the next driver ticks.
 ///
 /// The opening read must have finished. Resets the initial chunk delay and

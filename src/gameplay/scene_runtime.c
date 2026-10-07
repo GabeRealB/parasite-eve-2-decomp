@@ -878,7 +878,7 @@ void Gp_StepCdAudioCmd(void)
                         sector += 1;
                         sector += (sceneStream->data.scene.timingBytes - 1) / STREAM_CD_SECTOR_BYTES;
                     }
-                    CdAudio_StartTrack(sector, p->sceneStream->control.scene.volumeIndex);
+                    cdAudioOpenTrack(sector, p->sceneStream->control.scene.volumeIndex);
                     i_s1     = 0;
                     maskbits = p->sceneStream->data.scene.soundBankMask;
                     if (Gp_SndMaskTable[0].mask != 0) {
@@ -924,7 +924,7 @@ void Gp_StepCdAudioCmd(void)
                         p->paceToSceneTiming = one;
                     }
                     p->timingElapsedLines = 0;
-                    CdAudio_RequestStopB();
+                    cdAudioPlay();
                     p->blockGamePause     = one;
                     p->cdOperationPending = 0;
                     p->step               = p->step + 1;
@@ -947,7 +947,7 @@ void Gp_StepCdAudioCmd(void)
                     sceneStream             = p->sceneStream;
                     p->replacementEntry.cmd = CD_COMMAND_EMPTY;
                     if (sceneStream->data.scene.resumeSectorOffset != 0) {
-                        CdAudio_JumpToSector(sceneStream->startSector + sceneStream->data.scene.resumeSectorOffset);
+                        cdAudioLoadWaves(sceneStream->startSector + sceneStream->data.scene.resumeSectorOffset);
                         p->cdOperationPending = 1;
                         p->step               = p->step + 1;
                         break;

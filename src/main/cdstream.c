@@ -9,7 +9,6 @@
 
 #include "common.h"
 
-#include "cdaudio.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "sound.h"
@@ -1479,7 +1478,7 @@ static void CdStream_TickPlayback(void)
 
     position = CdStream_Runtime.state.playhead;
     if (!(((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1) && (((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_KEY_ON_BIT) & 1)) {
-        CdAudio_AllocVoices((s8*)&CdStream_Runtime.state.voiceL, (s8*)&CdStream_Runtime.state.voiceR);
+        cdStreamAllocVoices((s8*)&CdStream_Runtime.state.voiceL, (s8*)&CdStream_Runtime.state.voiceR);
         channels          = PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr;
         channels->voice   = (s32)(1 << (s8)CdStream_Runtime.state.voiceL);
         channels[1].voice = (s32)(1 << CdStream_Runtime.state.voiceR);
@@ -1491,10 +1490,10 @@ static void CdStream_TickPlayback(void)
         channels->adsr2   = 0x1FC3;
         channels[1].adsr1 = 0xFF;
         channels[1].adsr2 = 0x1FC3;
-        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceL, channels);
+        spuQueueVoiceAttributes((s8)CdStream_Runtime.state.voiceL, channels);
         /* The channels follow CdStream_Runtime.state; addressing them from its symbol
          * shares its high half, where &CdStream_Runtime.channels would load another. */
-        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceR, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr + 1);
+        spuQueueVoiceAttributes((s8)CdStream_Runtime.state.voiceR, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr + 1);
         CdStream_Runtime.state.flags1 &= CD_STREAM_CLEAR_VOICE_COPY;
         if (CdStream_Runtime.state.startCb != NULL) {
             CdStream_Runtime.state.startCb((1 << CdStream_Runtime.state.voiceL) | (1 << CdStream_Runtime.state.voiceR));
@@ -1772,7 +1771,7 @@ void CdStream_Drive(void)
                     position = CdStream_Runtime.state.playhead;
                     if (position == 0) {
                         channels = PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr;
-                        CdAudio_AllocVoices((s8*)&CdStream_Runtime.state.voiceL, (s8*)&CdStream_Runtime.state.voiceR);
+                        cdStreamAllocVoices((s8*)&CdStream_Runtime.state.voiceL, (s8*)&CdStream_Runtime.state.voiceR);
                         channels->voice   = (s32)(1 << (s8)CdStream_Runtime.state.voiceL);
                         channels[1].voice = (s32)(1 << CdStream_Runtime.state.voiceR);
                         if (!(((u8)CdStream_Runtime.state.flags0 >> CD_STREAM_VOICES_ON_BIT) & 1)) {
@@ -1786,10 +1785,10 @@ void CdStream_Drive(void)
                         CdStream_Runtime.state.flags1 |= CD_STREAM_SEEK_ENABLED;
                     }
                     if (CdStream_Runtime.state.flags1 & CD_STREAM_VOICE_COPY) {
-                        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceL, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr);
+                        spuQueueVoiceAttributes((s8)CdStream_Runtime.state.voiceL, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr);
                         /* The channels follow CdStream_Runtime.state; addressing them from its symbol
                          * shares its high half, where &CdStream_Runtime.channels would load another. */
-                        CdAudio_CopyVoiceData((s8)CdStream_Runtime.state.voiceR, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr + 1);
+                        spuQueueVoiceAttributes((s8)CdStream_Runtime.state.voiceR, PARENT_OF(&CdStream_Runtime.state, CdStreamRuntime, state)->channels.voiceAttr + 1);
                         CdStream_Runtime.state.flags1 &= CD_STREAM_CLEAR_VOICE_COPY;
                     }
                     // On the final chunk, stop on entry, halfway through, or after it plays out.

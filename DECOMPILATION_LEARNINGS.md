@@ -12901,7 +12901,7 @@ parent->field_0 = 3;   /* sb …, -0x14(s0) */
 `volatile` on the parent pointer forces `addiu v0, s0, -0x14` + `lhu a1, 2(v0)`
 instead of a folded `lhu a1, -0x12(s0)`.
 
-Check first whether the two blocks are one object. `CdAudio_StartVolumeRamp`
+Check first whether the two blocks are one object. `_cdAudioStartFadeOut`
 has exactly this shape, and its two blocks turned out to be members of one
 volatile struct, `_gCdAudioState`: holding the later member's address and
 naming the earlier one compiles to the same step-back with no pointer
@@ -12909,7 +12909,7 @@ arithmetic in the source.
 
 ```c
 ramp = (LinInterp*)&_gCdAudioState.ramp;
-linInterpSetup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
+linInterpSetup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & CD_AUDIO_RAMP_LEVEL_MASK, 0, updateCount);
 _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_FADE_OUT;   /* sb …, -0x14(s0) */
 ```
 
@@ -13601,7 +13601,7 @@ if (p->field_0 != 3) {
 return ret;
 ```
 
-`CdAudio_RequestStop` is the example. Pair with `if (x != K)` so the branch is
+`_cdAudioRequestPlay` is the example. Pair with `if (x != K)` so the branch is
 `beq` to the else arm and the `!=` arm is fall-through (failure-first layout).
 
 The same rule covers a default that is not a return value. In
@@ -13803,7 +13803,7 @@ if (state->field_4 != pos) {  /* beq v1,v0 — field in v1, pos in v0 */
 }
 ```
 
-`CdAudio_ReadyCallback` is the example. Also mark interrupt-shared flags like
+`_cdAudioHeaderSectorReadyCallback` is the example. Also mark interrupt-shared flags like
 `D_80082770` (written by a `CdReadyCallback`, polled on the main path)
 `volatile` so the post-call store stays out of a `j` delay slot.
 
@@ -14685,7 +14685,7 @@ return 0;
 ```
 
 Pair with early `return 1` / `return 0` (not a `ret` phi) so the `bnez` delay
-holds `li v0,1` and the call path ends in `move v0,zero`. `CdAudio_Begin` is
+holds `li v0,1` and the call path ends in `move v0,zero`. `cdAudioCancel` is
 the pure example.
 
 ## Prefer Psy-Q GPU macros for OT prim insertion
@@ -17334,8 +17334,8 @@ Assigning the pointer only after the guards leaves `%hi` later, parks the raw
 `index` in `$s2`, and puts other bases in `$s0` — a register shuffle that looks
 like a large diff even when the body is otherwise identical.
 
-`CdAudio_FeedSector` needs `sector = &Fs_CdSector` first, then the
-`CdAudio_Ctl.waveLoadError` / `CdAudio_Tbl.waveLoadResult` guards, then `arg = index & 0xFF`.
+`_cdAudioWaveSectorReadyCallback` needs `sector = &Fs_CdSector` first, then the
+`CdAudio_Ctl.waveLoadError` / `CdAudio_Tbl.waveLoadResult` guards, then `readyStatus = interruptStatus`.
 
 ## `volatile` struct pointer preserves independent field load order
 

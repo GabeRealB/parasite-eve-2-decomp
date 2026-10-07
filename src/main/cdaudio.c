@@ -46,6 +46,26 @@ enum {
 /// Bits a 0..127 track level is shifted up by to give `_CdAudioPlayback::volume`.
 #define CD_AUDIO_VOLUME_LEVEL_SHIFT 7
 
+/// Number of 32-bit words delivered before a CD sector's payload.
+enum { CD_AUDIO_SECTOR_HEADER_WORDS = 3 };
+
+/// CD-audio fade duration in main-loop audio-driver updates.
+enum { CD_AUDIO_FADE_OUT_UPDATES = 32 };
+
+/// Serialized lead skipped before the first sector's wave samples.
+///
+/// Only the sector count, sample length and destination selector are interpreted.
+/// The remaining bytes' widths and roles are unproven. Samples begin after
+/// `SOUND_LOAD_WAVE_LEAD_BYTES`, and later sectors contain only sample bytes.
+typedef struct {
+    u8  transferSectors;                                         // Copied to the sound loader's failed-load drain threshold, in sectors
+    u8  unknown_1[3];                                            // Unread bytes; widths and roles unproven
+    u32 sampleBytes;                                             // Total sample bytes to upload, stored in the loader's signed remaining-byte count
+    u32 spuAddressIndex;                                         // 0 keeps the requested SPU address; nonzero indexes the two-entry destination table unchecked
+    u8  unknown_C[SOUND_LOAD_WAVE_LEAD_BYTES - 3 * sizeof(u32)]; // Unread remainder of the lead; widths and roles unproven
+} _CdAudioWaveLead;
+STATIC_ASSERT_SIZEOF(_CdAudioWaveLead, SOUND_LOAD_WAVE_LEAD_BYTES);
+
 /// What the CD audio player is working on and which of its drivers is running.
 ///
 /// `baseSector` is where the player's own reads start: the header sector whose
@@ -259,7 +279,7 @@ static s32 CdAudio_DriveSeek(void);
 
 static s32 CdAudio_DriveRead(void);
 
-static void CdAudio_FeedSector(u8 arg0, u8* unusedResult);
+static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult);
 
 static u8 CdAudio_GetState(void);
 
@@ -273,31 +293,85 @@ static s32 CdAudio_RequestStopA(void);
 
 static s32 CdAudio_PrepareNextEntry(void);
 
-static s32 CdAudio_ResetKeepBuffer(s32 arg0);
+static s32 _cdAudioResetTrack(s32 baseSector);
 
-static s32 CdAudio_StoreIfNonNull(s32 arg0);
+static s32 _cdAudioOpenTrackIfPresent(s32 startSector);
 
 static void CdAudio_SetLocBase(s32 arg0);
 
 static s32 CdAudio_LoadSectorEntry(s32 arg0);
 
-static s32 CdAudio_SeekAbs(s32 arg0);
+static s32 _cdAudioOpenTrackAtSector(s32 startSector);
 
-static s32 CdAudio_RequestStop(void);
+static s32 _cdAudioRequestPlay(void);
 
-static void CdAudio_StartVolumeRamp(s32 arg0);
+static void _cdAudioStartFadeOut(s32 updateCount);
 
-static void CdAudio_JumpWithPitch(s32 arg0, s32 arg1);
+static void _cdAudioStartWaveLoad(s32 firstSector, s32 spuAddress);
 
-static s32 CdAudio_DriveNull(void);
+static s32 _cdAudioIdleDriver(void);
 
 static s32 CdAudio_DrivePhase1(void);
 
-static void CdAudio_ReadyCallback(u8 arg0, u8* unusedResult);
+static void _cdAudioHeaderSectorReadyCallback(u8 interruptStatus, u8* unusedResult);
 
-static void CdAudio_SetLocFlag(s32 unused);
+static void _cdAudioStreamOpeningDoneCallback(s32 unusedOpened);
 
-s32 CdAudio_Begin(void)
+/// Reads the drive's twelve-byte sector header into caller-owned scratch storage.
+///
+/// sector receives the header and must be writable. Returns its absolute disc
+/// sector; payload reading remains with the caller.
+static inline s32 _cdAudioReadSectorPosition(FsSector* sector)
+{
+    CdGetSector(sector, CD_AUDIO_SECTOR_HEADER_WORDS);
+    return CdPosToInt(&sector->location);
+}
+
+/// Reads a header-sector position and binds the playback state used to validate it.
+///
+/// sector is a writable FsSector pointer evaluated twice. playbackState and
+/// sectorPosition are plain local output lvalues evaluated once; none of the
+/// arguments may have side effects. The captured player state is the owner of
+/// the expected sector. The payload read and mismatch handling stay in the caller.
+#define CD_AUDIO_READ_HEADER_SECTOR_POSITION(sector, playbackState, sectorPosition) \
+    do {                                                                            \
+        CdGetSector((sector), CD_AUDIO_SECTOR_HEADER_WORDS);                        \
+        (playbackState)  = &_gCdAudioState.playback;                                \
+        (sectorPosition) = CdPosToInt(&(sector)->location);                         \
+    } while (0)
+
+/// Copies the complete word-aligned SDK voice record into its pending update.
+static inline void _spuCopyVoiceAttributes(SpuVoiceAttr* destination, const SpuVoiceAttr* source)
+{
+    s32*       destinationWords = (s32*)destination;
+    const s32* sourceWords      = (const s32*)source;
+    u32        wordsCopied      = 0;
+
+    do {
+        *destinationWords = *sourceWords;
+        sourceWords++;
+        wordsCopied++;
+        destinationWords++;
+    } while (wordsCopied < sizeof(*destination) / sizeof(*destinationWords));
+}
+
+/// Prepares the shared sound loader to upload a CD-audio wave's first sample sector.
+///
+/// Both arguments are borrowed for the call; state is writable and waveLead
+/// is an accepted sector's serialized lead. The remaining bank fields stay intact.
+static inline void _cdAudioPrepareWaveUpload(SndLoadState* state, const _CdAudioWaveLead* waveLead)
+{
+    state->feedMode                       = SOUND_LOAD_FEED_CD_AUDIO;
+    state->payload.header.waveBlockOffset = 0;
+    state->sectorsArrived                 = 0;
+    state->syncUpload                     = 0;
+    state->sectorBytes                    = SOUND_LOAD_WAVE_FIRST_BYTES;
+    state->phase                          = SOUND_LOAD_PHASE_UPLOAD_WAVE;
+    state->bytesRemaining                 = waveLead->sampleBytes;
+    state->payload.header.transferSectors = waveLead->transferSectors;
+}
+
+s32 cdAudioCancel(void)
 {
     volatile CdAudioProgress* progress;
 
@@ -305,27 +379,27 @@ s32 CdAudio_Begin(void)
     progress->cancelRequested = 1;
     if (CdAudio_Ctl.openPending == 1) {
         CdAudio_Ctl.openPending = 0;
-        return -3;
+        return CD_AUDIO_CANCEL_OPEN_PENDING;
     }
     if ((progress->playStep == CD_AUDIO_PLAY_STEP_NONE) || (progress->playStep == CD_AUDIO_PLAY_STEP_DONE)) {
         progress->stopStep = CD_AUDIO_STOP_STEP_DONE;
-        return -2;
+        return CD_AUDIO_CANCEL_NO_FADE;
     }
     if (progress->openStep != CD_AUDIO_OPEN_STEP_DONE) {
         progress->cancelRequested = 1;
-        return -1;
+        return CD_AUDIO_CANCEL_OPENING;
     }
     if (_gCdAudioState.playback.driver == CD_AUDIO_DRIVER_LOAD_WAVES) {
         if (progress->waveLoadStep != CD_AUDIO_WAVE_LOAD_STEP_NONE) {
             progress->waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_PAUSE;
-            return -2;
+            return CD_AUDIO_CANCEL_NO_FADE;
         }
     }
     if (CdAudio_Phase.stopStep != CD_AUDIO_STOP_STEP_NONE) {
-        return 1;
+        return CD_AUDIO_CANCEL_STOP_PENDING;
     }
-    CdAudio_StartVolumeRamp(0x20);
-    return 0;
+    _cdAudioStartFadeOut(CD_AUDIO_FADE_OUT_UPDATES);
+    return CD_AUDIO_CANCEL_FADE_STARTED;
 }
 
 static s32 CdAudio_DriveStream(void)
@@ -376,7 +450,7 @@ static s32 CdAudio_DriveStream(void)
             params->sectorBuf             = &Fs_CdSector;
             params->spuBase               = state->playback.spuBase;
             params->startSector           = CdPosToInt(loc);
-            params->doneCb                = CdAudio_SetLocFlag;
+            params->doneCb                = _cdAudioStreamOpeningDoneCallback;
             params->startCb               = NULL;
             params->voiceFreeCb           = NULL;
             state->playback.startReported = 0;
@@ -606,14 +680,14 @@ static s32 D_80068B20[2]               = { 0x51010, 0x51010 };
 static s16 D_80068B28[]                = { 3, 1 };
 static s32 D_80068B2C[]                = { 0x63810, 0x63810 };
 s32        (*CdAudio_DriveFns[])(void) = {
-    CdAudio_DriveNull,
+    _cdAudioIdleDriver,
     CdAudio_DriveStream,
     CdAudio_DrivePhase1,
     CdAudio_DrivePhase0,
-    CdAudio_DriveNull,
+    _cdAudioIdleDriver,
     CdAudio_DriveSeek,
     CdAudio_DriveRead,
-    CdAudio_DriveNull,
+    _cdAudioIdleDriver,
 };
 
 static s32 CdAudio_DriveSeek(void)
@@ -644,7 +718,7 @@ static s32 CdAudio_DriveSeek(void)
                     /* fallthrough */
                 case CD_AUDIO_HEADER_READ_STEP_START_READ:
                     CdAudio_Phase.headerReadStep = CD_AUDIO_HEADER_READ_STEP_WAIT_READ;
-                    CdReadyCallback(CdAudio_ReadyCallback);
+                    CdReadyCallback(_cdAudioHeaderSectorReadyCallback);
                     CdAudio_Ctl.waitTicks       = 0;
                     D_80082770                  = 0;
                     CdAudio_Ctl.headerReadError = CD_AUDIO_HEADER_READ_ERROR_NONE;
@@ -805,7 +879,7 @@ static s32 CdAudio_DriveRead(void)
             CdAudio_Ctl.waveLoadError  = CD_AUDIO_WAVE_LOAD_ERROR_NONE;
             CdAudio_Ctl.waitTicks      = 0;
             SpuSetTransferStartAddr(CdAudio_Tbl.waveLoadSpuAddress);
-            CdReadyCallback(CdAudio_FeedSector);
+            CdReadyCallback(_cdAudioWaveSectorReadyCallback);
             CdControlF(CdlReadN, NULL);
             break;
         case CD_AUDIO_WAVE_LOAD_STEP_WAIT_READ:
@@ -879,16 +953,22 @@ static s32 CdAudio_DriveRead(void)
     return CD_AUDIO_DRIVER_LOAD_WAVES;
 }
 
-static void CdAudio_FeedSector(u8 arg0, u8* unusedResult)
+/// Validates and uploads the next sector of the active wave load.
+///
+/// The libcd result buffer is unused. Errors and a completed upload suppress
+/// further sectors. The first sector carries a 64-byte lead; later sectors
+/// contribute 2048 sample bytes, capped by the loader's remaining-byte count.
+static void _cdAudioWaveSectorReadyCallback(u8 interruptStatus, u8* unusedResult)
 {
-    s32                            arg;
-    s32                            pos;
-    s32                            ret;
-    SndLoadState*                  state;
-    s32                            spuIdx;
+    s32                            readyStatus;
+    s32                            sectorPosition;
+    s32                            uploadPhase;
+    SndLoadState*                  loadState;
+    s32                            spuAddressIndex;
     volatile _CdAudioDriverStatus* driverStatus;
     volatile _CdAudioReadState*    readState;
     FsSector*                      sector;
+    const _CdAudioWaveLead*        waveLead;
 
     sector       = &Fs_CdSector;
     driverStatus = &CdAudio_Ctl;
@@ -899,46 +979,40 @@ static void CdAudio_FeedSector(u8 arg0, u8* unusedResult)
     if (readState->waveLoadResult != CD_AUDIO_WAVE_LOAD_RESULT_RUNNING) {
         return;
     }
-    arg = arg0 & 0xFF;
-    if (arg != 1) {
+    readyStatus = interruptStatus;
+    if (readyStatus != CdlDataReady) {
         driverStatus->waveLoadError = CD_AUDIO_WAVE_LOAD_ERROR_NOT_READY;
         return;
     }
-    CdGetSector(sector, 3);
-    pos = CdPosToInt(&sector->location);
-    if (readState->waveLoadNextSector != pos) {
+    // The drive's location header is consumed before its payload overwrites it.
+    sectorPosition = _cdAudioReadSectorPosition(sector);
+    if (readState->waveLoadNextSector != sectorPosition) {
         readState->waveLoadResult   = CD_AUDIO_WAVE_LOAD_RESULT_WRONG_SECTOR;
         driverStatus->waveLoadError = CD_AUDIO_WAVE_LOAD_ERROR_WRONG_SECTOR;
         return;
     }
-    CdGetSector(sector, 0x200);
+    CdGetSector(sector, ARRAY_SIZE(sector->words));
     if (_gCdAudioState.playback.baseSector == readState->waveLoadNextSector) {
         // First waveform sector: skip its lead and upload samples.
         // A busy SPU transfer keeps the bank.
-        state                                 = &SndLoad_State;
-        state->feedMode                       = SOUND_LOAD_FEED_CD_AUDIO;
-        state->payload.header.waveBlockOffset = 0;
-        state->sectorsArrived                 = 0;
-        state->syncUpload                     = 0;
-        state->sectorBytes                    = SOUND_LOAD_WAVE_FIRST_BYTES;
-        state->phase                          = SOUND_LOAD_PHASE_UPLOAD_WAVE;
-        state->bytesRemaining                 = sector->words[1];
-        state->payload.header.transferSectors = sector->bytes[0];
-        spuIdx                                = sector->words[2];
-        if (spuIdx != 0) {
-            SpuSetTransferStartAddr(D_80068B2C[spuIdx]);
+        waveLead  = (const _CdAudioWaveLead*)sector->bytes;
+        loadState = &SndLoad_State;
+        _cdAudioPrepareWaveUpload(loadState, waveLead);
+        spuAddressIndex = waveLead->spuAddressIndex;
+        if (spuAddressIndex != 0) {
+            SpuSetTransferStartAddr(D_80068B2C[spuAddressIndex]);
         }
         if (sndLoadProcessSector(&sector->words[SOUND_LOAD_WAVE_LEAD_BYTES / sizeof(u32)]) == SOUND_LOAD_PHASE_ERROR) {
             driverStatus->waveLoadError = CD_AUDIO_WAVE_LOAD_ERROR_FIRST_SECTOR;
             return;
         }
-        state->sectorBytes = SOUND_LOAD_SECTOR_BYTES;
+        loadState->sectorBytes = SOUND_LOAD_SECTOR_BYTES;
     } else {
-        ret = sndLoadProcessSector(sector->words);
-        if (ret == SOUND_LOAD_PHASE_DONE) {
+        uploadPhase = sndLoadProcessSector(sector->words);
+        if (uploadPhase == SOUND_LOAD_PHASE_DONE) {
             readState->waveLoadResult = CD_AUDIO_WAVE_LOAD_RESULT_DONE;
-            CdReadyCallback(0);
-        } else if (ret == SOUND_LOAD_PHASE_ERROR) {
+            CdReadyCallback(NULL);
+        } else if (uploadPhase == SOUND_LOAD_PHASE_ERROR) {
             driverStatus->waveLoadError = CD_AUDIO_WAVE_LOAD_ERROR_UPLOAD;
         }
     }
@@ -1027,14 +1101,14 @@ static s32 CdAudio_SeekRelative(s32 arg0)
 
     temp_s0 = arg0 & 0xFF;
     if (temp_s0 != 0) {
-        CdAudio_SeekAbs(_gCdAudioState.playback.baseSector + CdAudio_LoadSectorEntry((arg0 - 1) & 0xFF));
+        _cdAudioOpenTrackAtSector(_gCdAudioState.playback.baseSector + CdAudio_LoadSectorEntry((arg0 - 1) & 0xFF));
     }
     return temp_s0;
 }
 
 static s32 CdAudio_RequestStopA(void)
 {
-    return CdAudio_RequestStop();
+    return _cdAudioRequestPlay();
 }
 
 static s32 CdAudio_PrepareNextEntry(void)
@@ -1050,34 +1124,40 @@ static s32 CdAudio_PrepareNextEntry(void)
     } else {
         entry = CdAudio_TblEntries + CdAudio_Tbl.field_2;
         CdAudio_LoadSectorEntry((entry[1].field_3 - entry->field_3 - 1) & 0xFF);
-        CdAudio_StartVolumeRamp(0x20);
+        _cdAudioStartFadeOut(CD_AUDIO_FADE_OUT_UPDATES);
         ret = 0;
     }
     return ret;
 }
 
-s32 CdAudio_StartTrack(s32 sector, s32 volumeIndex)
+s32 cdAudioOpenTrack(s32 startSector, s32 volumeIndex)
 {
+    enum { CD_AUDIO_VOLUME_INDEX_MASK = 0xFF };
     if (cdStreamIsBusy() != 0) {
-        return -1;
+        return CD_AUDIO_OPEN_STREAM_BUSY;
     }
-    CdAudio_ResetKeepBuffer(sector);
-    _gCdAudioState.playback.volume = CdAudio_VolumeTable[volumeIndex & 0xFF] << CD_AUDIO_VOLUME_LEVEL_SHIFT;
+    _cdAudioResetTrack(startSector);
+    _gCdAudioState.playback.volume = CdAudio_VolumeTable[volumeIndex & CD_AUDIO_VOLUME_INDEX_MASK] << CD_AUDIO_VOLUME_LEVEL_SHIFT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    return CdAudio_StoreIfNonNull(sector);
+    return _cdAudioOpenTrackIfPresent(startSector);
 }
 
-static s32 CdAudio_ResetKeepBuffer(s32 arg0)
+/// Resets per-track progress and read failures while retaining the header buffer.
+///
+/// Keeps a nonzero previous base sector and the header-read step, selects the
+/// default stream SPU ring, and records that the opening driver has not run yet.
+/// Always returns 0.
+static s32 _cdAudioResetTrack(s32 baseSector)
 {
     volatile _CdAudioDriverStatus* driverStatus;
     volatile CdAudioProgress*      progress;
-    s32                            baseSector;
+    s32                            previousBaseSector;
 
-    D_800827E4 = 0;
-    baseSector = _gCdAudioState.playback.baseSector;
-    D_80082754 = 0;
-    if (baseSector == 0) {
-        _gCdAudioState.playback.baseSector = arg0;
+    D_800827E4         = 0;
+    previousBaseSector = _gCdAudioState.playback.baseSector;
+    D_80082754         = 0;
+    if (previousBaseSector == CD_AUDIO_SECTOR_NONE) {
+        _gCdAudioState.playback.baseSector = baseSector;
     }
     driverStatus                    = &CdAudio_Ctl;
     driverStatus->settleTicks       = 0;
@@ -1094,26 +1174,30 @@ static s32 CdAudio_ResetKeepBuffer(s32 arg0)
     return 0;
 }
 
-static s32 CdAudio_StoreIfNonNull(s32 arg0)
+/// Requests opening only for a nonzero absolute sector and returns that sector.
+///
+/// The opening request can be ignored when playback is active; the returned
+/// sector does not report whether an opening was started.
+static s32 _cdAudioOpenTrackIfPresent(s32 startSector)
 {
-    if (arg0 != 0) {
-        CdAudio_SeekAbs(arg0);
+    if (startSector != CD_AUDIO_SECTOR_NONE) {
+        _cdAudioOpenTrackAtSector(startSector);
     }
-    return arg0;
+    return startSector;
 }
 
-s32 CdAudio_RequestStopB(void)
+s32 cdAudioPlay(void)
 {
-    return CdAudio_RequestStop();
+    return _cdAudioRequestPlay();
 }
 
-s32 CdAudio_JumpToSector(s32 arg0)
+s32 cdAudioLoadWaves(s32 firstSector)
 {
-    if (arg0 == 0) {
-        return -1;
+    if (firstSector == CD_AUDIO_SECTOR_NONE) {
+        return CD_AUDIO_WAVE_LOAD_NO_SECTOR;
     }
-    CdAudio_JumpWithPitch(arg0, D_80082124);
-    return 0;
+    _cdAudioStartWaveLoad(firstSector, D_80082124);
+    return CD_AUDIO_WAVE_LOAD_REQUESTED;
 }
 
 static void CdAudio_SetLocBase(s32 arg0)
@@ -1121,32 +1205,27 @@ static void CdAudio_SetLocBase(s32 arg0)
     _gCdAudioState.playback.baseSector = arg0;
 }
 
-void CdAudio_CopyVoiceData(s8 arg0, const SpuVoiceAttr* attr)
+void spuQueueVoiceAttributes(s8 voiceIdx, const SpuVoiceAttr* attributes)
 {
     SpuVoiceRef voiceRef;
-    s32*        dest;
-    const s32*  arg1;
-    u32         i;
 
-    spuSetVoiceCallback(arg0, NULL, NULL);
-    spuGetVoiceRef(arg0, &voiceRef);
-    dest = (s32*)voiceRef.attr;
-    arg1 = (const s32*)attr;
-    i    = 0;
-    do {
-        *dest = *arg1;
-        arg1++;
-        i++;
-        dest++;
-    } while (i < sizeof(SpuVoiceAttr) / sizeof(*dest));
+    spuSetVoiceCallback(voiceIdx, NULL, NULL);
+    spuGetVoiceRef(voiceIdx, &voiceRef);
+    _spuCopyVoiceAttributes(voiceRef.attr, attributes);
 }
 
-void CdAudio_AllocVoices(s8* arg0, s8* arg1)
+void cdStreamAllocVoices(s8* leftVoiceIdx, s8* rightVoiceIdx)
 {
-    *arg0 = spuAllocVoice(D_80068B28, 3, 0xFFFF);
-    *arg1 = spuAllocVoice(D_80068B28, 3, 0xFFFF);
-    spuDisableVoiceReverb(*arg0);
-    spuDisableVoiceReverb(*arg1);
+    enum {
+        CD_STREAM_VOICE_RANGE_REQUEST_COUNT = 3,
+        CD_STREAM_VOICE_PRIORITY            = 0xFFFF,
+    };
+
+    // Preserve the three-index request; the list has only two declared entries.
+    *leftVoiceIdx  = spuAllocVoice(D_80068B28, CD_STREAM_VOICE_RANGE_REQUEST_COUNT, CD_STREAM_VOICE_PRIORITY);
+    *rightVoiceIdx = spuAllocVoice(D_80068B28, CD_STREAM_VOICE_RANGE_REQUEST_COUNT, CD_STREAM_VOICE_PRIORITY);
+    spuDisableVoiceReverb(*leftVoiceIdx);
+    spuDisableVoiceReverb(*rightVoiceIdx);
 }
 
 static s32 CdAudio_LoadSectorEntry(s32 arg0)
@@ -1162,58 +1241,77 @@ static s32 CdAudio_LoadSectorEntry(s32 arg0)
     return temp_v0 & 0xFFFF;
 }
 
-static s32 CdAudio_SeekAbs(s32 arg0)
+/// Selects the opening driver for an absolute sector when playback is inactive.
+///
+/// Always returns 0, including when an active play step leaves the request ignored.
+static s32 _cdAudioOpenTrackAtSector(s32 startSector)
 {
     s32 playStep;
 
     playStep = CdAudio_Phase.playStep;
     if ((playStep == CD_AUDIO_PLAY_STEP_DONE) || (playStep == CD_AUDIO_PLAY_STEP_NONE)) {
-        _gCdAudioState.playback.startSector = arg0;
+        _gCdAudioState.playback.startSector = startSector;
         _gCdAudioState.playback.driver      = CD_AUDIO_DRIVER_PLAY;
         CdAudio_Phase.openStep              = CD_AUDIO_OPEN_STEP_SILENCE_VOICES;
     }
     return 0;
 }
 
-static s32 CdAudio_RequestStop(void)
+/// Requests playback of an opened stream, or records a refused play request.
+///
+/// Returns `CD_AUDIO_PLAY_REQUESTED` on acceptance or `CD_AUDIO_PLAY_NOT_OPEN`
+/// after marking playback done and selecting the fade stop step. Refusal does
+/// not switch drivers.
+static s32 _cdAudioRequestPlay(void)
 {
     volatile CdAudioProgress* progress;
-    s32                       ret;
+    s32                       result;
 
     progress = &CdAudio_Phase;
     if (progress->openStep != CD_AUDIO_OPEN_STEP_DONE) {
-        ret                = -1;
+        result             = CD_AUDIO_PLAY_NOT_OPEN;
         progress->playStep = CD_AUDIO_PLAY_STEP_DONE;
         progress->stopStep = CD_AUDIO_STOP_STEP_FADE;
     } else {
-        ret                            = 0;
+        result                         = CD_AUDIO_PLAY_REQUESTED;
         progress->stopStep             = CD_AUDIO_STOP_STEP_NONE;
         progress->playStep             = CD_AUDIO_PLAY_STEP_START;
         _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_STOP;
     }
-    return ret;
+    return result;
 }
 
-static void CdAudio_StartVolumeRamp(s32 arg0)
+/// Selects stream fade-out and shutdown over the requested driver-update count.
+///
+/// With a nonzero starting level, positive updateCount values 1..65535 give a
+/// progressing ramp; rounding can extend the fade. Playback is marked done immediately.
+static void _cdAudioStartFadeOut(s32 updateCount)
 {
+    enum { CD_AUDIO_RAMP_LEVEL_MASK = 0xFF };
     LinInterp* ramp;
 
     ramp = (LinInterp*)&_gCdAudioState.ramp;
-    linInterpSetup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & 0xFF, 0, arg0);
+    linInterpSetup(ramp, (_gCdAudioState.playback.volume >> CD_AUDIO_VOLUME_LEVEL_SHIFT) & CD_AUDIO_RAMP_LEVEL_MASK, 0, updateCount);
     CdAudio_Phase.playStep         = CD_AUDIO_PLAY_STEP_DONE;
     CdAudio_Phase.stopStep         = CD_AUDIO_STOP_STEP_FADE;
     _gCdAudioState.playback.driver = CD_AUDIO_DRIVER_FADE_OUT;
 }
 
-static void CdAudio_JumpWithPitch(s32 arg0, s32 arg1)
+/// Selects the wave loader from an absolute disc sector to an SPU byte address.
+///
+/// The first wave sector can override spuAddress with its destination selector.
+/// The load first waits for the stream to become idle; it does not request
+/// stream shutdown itself.
+static void _cdAudioStartWaveLoad(s32 firstSector, s32 spuAddress)
 {
-    _gCdAudioState.playback.baseSector = arg0;
-    CdAudio_Tbl.waveLoadSpuAddress     = arg1;
+    _gCdAudioState.playback.baseSector = firstSector;
+    CdAudio_Tbl.waveLoadSpuAddress     = spuAddress;
     CdAudio_Phase.waveLoadStep         = CD_AUDIO_WAVE_LOAD_STEP_RELEASE_STREAM;
     _gCdAudioState.playback.driver     = CD_AUDIO_DRIVER_LOAD_WAVES;
 }
 
-static s32 CdAudio_DriveNull(void)
+/// Leaves the CD-audio player idle for idle and reserved dispatch slots.
+static s32 _cdAudioIdleDriver(void)
 {
     return CD_AUDIO_DRIVER_IDLE;
 }
@@ -1244,10 +1342,15 @@ static s32 CdAudio_DrivePhase1(void)
     return ret;
 }
 
-static void CdAudio_ReadyCallback(u8 arg0, u8* unusedResult)
+/// Takes the first ready header sector, recording its location error if needed.
+///
+/// The result buffer is unused. A wrong-sector payload is still copied and
+/// reported as arrived; non-data-ready interrupts record an error without
+/// consuming data. Later interrupts are ignored once a payload has arrived.
+static void _cdAudioHeaderSectorReadyCallback(u8 interruptStatus, u8* unusedResult)
 {
-    s32                        temp;
-    s32                        pos;
+    s32                        readyStatus;
+    s32                        sectorPosition;
     FsSector*                  sector;
     volatile _CdAudioPlayback* playback;
 
@@ -1255,23 +1358,25 @@ static void CdAudio_ReadyCallback(u8 arg0, u8* unusedResult)
         return;
     }
 
-    temp = arg0 & 0xFF;
-    if (temp == 1) {
+    readyStatus = interruptStatus;
+    if (readyStatus == CdlDataReady) {
         sector = &Fs_CdSector;
-        CdGetSector(sector, 3);
-        playback = &_gCdAudioState.playback;
-        pos      = CdPosToInt(&sector->location);
-        if (playback->baseSector != pos) {
+        CD_AUDIO_READ_HEADER_SECTOR_POSITION(sector, playback, sectorPosition);
+        if (playback->baseSector != sectorPosition) {
             CdAudio_Ctl.headerReadError = CD_AUDIO_HEADER_READ_ERROR_WRONG_SECTOR;
         }
         CdGetSector(CdAudio_SectorBuffer, sizeof(_CdAudioHeader) / sizeof(u32));
-        D_80082770 = temp;
+        D_80082770 = readyStatus;
     } else {
         CdAudio_Ctl.headerReadError = CD_AUDIO_HEADER_READ_ERROR_NOT_READY;
     }
 }
 
-static void CdAudio_SetLocFlag(s32 unused)
+/// Reports that the stream's opening read finished or was abandoned.
+///
+/// The callback argument is 1 for an opened stream and 0 for an abandoned read;
+/// both raise the same report so the track-opening driver can leave its wait.
+static void _cdAudioStreamOpeningDoneCallback(s32 unusedOpened)
 {
     _gCdAudioState.playback.startReported = 1;
 }

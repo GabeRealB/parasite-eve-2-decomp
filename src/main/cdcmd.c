@@ -766,7 +766,7 @@ static void CdCmd_ProcessPhase1(void)
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) {
                             sndEvtRequestScriptStart(SOUND_SCRIPT_REQUEST_NO_OP, 0, 0);
                         }
-                        CdAudio_Begin();
+                        cdAudioCancel();
                         p->cancelStep = p->cancelStep + 1;
                         return;
                     case CD_COMMAND_CANCEL_WAIT:
@@ -774,7 +774,7 @@ static void CdCmd_ProcessPhase1(void)
                             sceneStream = p->sceneStream;
                             temp        = sceneStream->data.scene.resumeSectorOffset;
                             if (temp) {
-                                CdAudio_JumpToSector(sceneStream->startSector + temp);
+                                cdAudioLoadWaves(sceneStream->startSector + temp);
                                 p->cancelStep = p->cancelStep + 1;
                                 return;
                             }

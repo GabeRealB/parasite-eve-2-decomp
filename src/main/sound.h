@@ -231,6 +231,14 @@ s32 spuSetVoiceRange(s32 rangeIndex, s32 firstVoice, s32 voiceCount);
 /// with SPU_VOICE_* mask bits; ref->attr is valid only until the next flush.
 s32 spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref);
 
+/// Replaces one voice's pending attributes and clears its previous owner notification.
+///
+/// voiceIdx must be 0..23. attributes must be a complete, word-aligned
+/// `SpuVoiceAttr`, with its voice bit and update mask already selected. The
+/// record is copied during the call and applied at the next SPU flush; the
+/// caller keeps ownership of the source. Existing pending edits are overwritten.
+void spuQueueVoiceAttributes(s8 voiceIdx, const SpuVoiceAttr* attributes);
+
 /// Returns a voice's key status sampled at the last audio tick.
 ///
 /// voiceIdx must be 0..23. Values are SPU_OFF, SPU_ON, SPU_OFF_ENV_ON and
