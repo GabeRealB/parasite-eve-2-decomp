@@ -1617,12 +1617,17 @@ static void _desertChaserBlendTick(Task* task)
     }
 }
 
-/// Stages a dust cue's local offset; height narrows to a signed halfword.
-static inline void _actor00100StageDustOffset(DesertChaserWork* work, s32 height)
+/// Stores a dust origin offset along a model part's local Y axis.
+///
+/// Requires a live regular-chaser work block. `yOffset` uses model-part
+/// coordinate units and narrows to signed 16 bits. X and Z are cleared;
+/// the vector's unused `pad` halfword is retained. Callers stage the offset
+/// even when room effects are disabled; effect placement copies it at spawn.
+static inline void _actor00100StageDustOffset(DesertChaserWork* work, s32 yOffset)
 {
     work->effectOffset.vz = 0;
     work->effectOffset.vx = 0;
-    work->effectOffset.vy = height;
+    work->effectOffset.vy = yOffset;
 }
 
 /// Stages a local vertical offset and emits one animation dust cue at a model part.
@@ -2061,8 +2066,12 @@ static inline void _actor00100PlayPlacedSound(Task* task, Enemy* enemy, s32 scri
     sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
-/// Starts the secondary hit clip without replacing the primary animation.
-static inline void _actor00100BlendHit(DesertChaserWork* work)
+/// Requests a hit reaction blended over the chaser's current primary clip.
+///
+/// Requires a live regular-chaser work block. The next animation update
+/// restarts secondary clip 15, including when a hit blend is already active.
+/// Only slots 1..10 mix its rotation; secondary slot 1 settling ends the blend.
+static inline void _actor00100RequestHitBlend(DesertChaserWork* work)
 {
     enum { ACTOR00100_CLIP_BLEND_HIT = 15 };
     work->blendActive  = 1;
@@ -2177,7 +2186,7 @@ static void _desertChaserDamage(Task* task)
                         work->state     = ACTOR00100_STATE_DOWNED_HIT;
                         work->prevState = DESERT_CHASER_PREV_STATE_NONE;
                     } else if (lightHitState != ACTOR00100_STATE_RESUME_PURSUIT && lightHitState != DESERT_CHASER_STATE_DEATH && lightHitState != ACTOR00100_STATE_KNOCK_DOWN && lightHitState != ACTOR00100_STATE_STAGGER && lightHitState != DESERT_CHASER_STATE_RISE) {
-                        _actor00100BlendHit(work);
+                        _actor00100RequestHitBlend(work);
                     }
                     break;
                 case ACTOR00100_REACTION_FRONT_STAGGER:
@@ -2307,7 +2316,7 @@ static void _desertChaserDamage(Task* task)
                         work->state = DESERT_CHASER_STATE_ROAM;
                     }
                     if (work->state != DESERT_CHASER_STATE_STUNNED && work->state != ACTOR00100_STATE_STAGGER && work->state != ACTOR00100_STATE_DOWNED_HIT && work->state != DESERT_CHASER_STATE_DOWNED) {
-                        _actor00100BlendHit(work);
+                        _actor00100RequestHitBlend(work);
                     } else if (work->state != DESERT_CHASER_STATE_STUNNED) {
                         work->state = ACTOR00100_STATE_DOWNED_HIT;
                     } else {
@@ -2700,20 +2709,24 @@ static void Actor00100_Fn08E7C(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00100ScreenWatchScratch);
 }
 
-/// Copies actor texture offsets as byte patterns and rebuilds both burst-model buffer halves.
+/// Applies the actor's texture placement to a spawned body-part model.
 ///
-/// A null effect does nothing; otherwise its model task must remain live.
-/// The second build rereads the task's model after the first call returns.
-static inline void _actor00100CopyBurstTexture(Task* actor, EffectWork* effect)
+/// A null `burstEffect` leaves `sourceActor` unread. Otherwise both tasks must
+/// have live TMD models. Encoded texture-page and CLUT-row displacements are
+/// signed bytes. An existing primitive buffer must meet `tmdBuildBufferHalf`'s
+/// contract and has both halves rebuilt; a bufferless model retains the offsets
+/// for its later build. The task and effect records are borrowed.
+static inline void _actor00100ApplyBurstTexturePlacement(const Task* sourceActor, const EffectWork* burstEffect)
 {
     Task*      burstTask;
     TmdObject* burstModel;
-    if (effect != NULL) {
-        burstTask                               = effect->task;
-        burstTask->extra.tmd->texturePageOffset = (u8)actor->extra.tmd->texturePageOffset;
-        burstTask->extra.tmd->clutRowOffset     = (u8)actor->extra.tmd->clutRowOffset;
+    if (burstEffect != NULL) {
+        burstTask                               = burstEffect->task;
+        burstTask->extra.tmd->texturePageOffset = sourceActor->extra.tmd->texturePageOffset;
+        burstTask->extra.tmd->clutRowOffset     = sourceActor->extra.tmd->clutRowOffset;
         burstModel                              = burstTask->extra.tmd;
         if (burstModel->buffer != NULL) {
+            // Each build toggles the selected half; reload the model for the second.
             tmdBuildBufferHalf(burstModel);
             tmdBuildBufferHalf(burstTask->extra.tmd);
         }
@@ -2780,24 +2793,24 @@ static void _actor00100BurstDeath(Task* actor)
         burstOffset.vy                                    = 0;
         burstOffset.vx                                    = 0;
         rightLegEffect                                    = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_RIGHT_LEG], ACTOR00100_BURST_PUFF_SIZE, &burstOffset);
-        _actor00100CopyBurstTexture(actor, rightLegEffect);
+        _actor00100ApplyBurstTexturePlacement(actor, rightLegEffect);
         if (work->stateTimer == ACTOR00100_BURST_LEGS_TICK) {
             D_80114B34[ACTOR00100_BURST_TASK_TYPE].data.model = &_gActor00100DesertChaserBurstLegLeft;
             burstOffset.vy                                    = 0;
             burstOffset.vx                                    = 0;
             leftLegEffect                                     = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_LEFT_LEG], ACTOR00100_BURST_PUFF_SIZE, &burstOffset);
-            _actor00100CopyBurstTexture(actor, leftLegEffect);
+            _actor00100ApplyBurstTexturePlacement(actor, leftLegEffect);
         }
     }
     if (work->stateTimer == ACTOR00100_BURST_TORSO_TICK) {
         D_80114B34[ACTOR00100_BURST_TASK_TYPE].data.model = &_gActor00100DesertChaserBurstTorso;
         torsoEffect                                       = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_TORSO], ACTOR00100_BURST_PUFF_SIZE, NULL);
-        _actor00100CopyBurstTexture(actor, torsoEffect);
+        _actor00100ApplyBurstTexturePlacement(actor, torsoEffect);
     }
     if (work->stateTimer == ACTOR00100_BURST_HEAD_TICK) {
         D_80114B34[ACTOR00100_BURST_TASK_TYPE].data.model = &_gActor00100DesertChaserBurstHead;
         headEffect                                        = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_HEAD], ACTOR00100_BURST_PUFF_SIZE, NULL);
-        _actor00100CopyBurstTexture(actor, headEffect);
+        _actor00100ApplyBurstTexturePlacement(actor, headEffect);
     }
     // Collision ends before release is allowed to advance the task.
     if (work->stateTimer == ACTOR00100_BURST_UNLINK_TICK) {
