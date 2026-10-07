@@ -11,7 +11,6 @@ void gluttonRainFall(Enemy* enemy, Task* task)
 {
     GluttonProjectileWork* work;
     GluttonCoord           coord;
-    GfxMatrix*             mtx;
     Enemy*                 owner;
     s32                    snd;
     s32                    pan;
@@ -25,13 +24,8 @@ void gluttonRainFall(Enemy* enemy, Task* task)
 
     work->stateTicks++;
     coord.node.parent                       = &gGfxViewCoord;
-    mtx                                     = &coord.packed.coord;
-    coord.packed.coord.rotationWords.m00M01 = ONE;
-    coord.packed.coord.rotationWords.m02M10 = 0;
-    mtx->rotationWords.m11M12               = ONE;
-    coord.packed.coord.rotationWords.m20M21 = 0;
-    mtx->rotationWords.m22                  = ONE;
-    gfxRotMatrixY(&mtx->mat, 0, 1);
+    gfxSetRotIdentity(&coord.node.coord);
+    gfxRotMatrixY(&coord.node.coord, 0, 1);
 
     coord.node.coord.t[0]   = task->extra.tmd->coords->coord.t[0];
     coord.node.coord.t[1]   = 0;
