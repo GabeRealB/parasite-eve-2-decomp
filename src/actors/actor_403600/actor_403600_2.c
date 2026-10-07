@@ -1138,7 +1138,7 @@ static void func_actor_403600_801396F8(Task* arg0)
             temp_v1_6 = work->step;
             switch (temp_v1_6) {
                 case 0:
-                    func_800E9BDC(1, 0xF9FF);
+                    padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
                     work->chainSweep          = 0;
                     gPlayerStatus.statusFlags = 0;
                     work->step                = (s16)((u16)work->step + 1);
@@ -1165,7 +1165,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                             taskCallExit(D_actor_403600_801606B4);
                         }
                         taskSpawnFromTable(D_actor_303600_80162E98, 0, 0, 0);
-                        func_800E9BDC(0, 0xF9FF);
+                        padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_INPUT_SUPPRESS_GAMEPLAY);
                         work->step = (s16)((u16)work->step + 1);
                     }
                     break;

@@ -127,7 +127,7 @@ void func_800AA548(s32 arg0)
     }
     worldCollisionLoadSurfacePushbackFlags();
     gGameSession->cutsceneHold = 0;
-    Gp_ResetMenuLock();
+    padInputResetSuppression();
     displaySetShakeY(0);
     taskSpawn(0, 0x1D, 0, 0);
     taskSpawn(0, 0x1A, 0, 0);

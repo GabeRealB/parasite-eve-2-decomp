@@ -2823,7 +2823,7 @@ void Gp_InitPlayClock(Task* task)
     _PlayClockWork* work;
     DisplayState*   ds;
 
-    Gp_UpdatePadInput();
+    padInputUpdate();
     gGameSession->field_5E = 1;
     work                   = memCalloc(sizeof(_PlayClockWork), 0);
     if (work == NULL) {
@@ -2874,7 +2874,7 @@ void Gp_TickPlayClock(Task* task)
 
     work = task->work;
     cfg  = &gPlayerStatus;
-    Gp_UpdatePadInput();
+    padInputUpdate();
 
     temp               = gDisplayState.gameTick;
     D_8005ED68        += temp - work->lastGameTick;

@@ -1,6 +1,6 @@
 #include "pad_input.h"
 
-#include "types.h"
+#include "common.h"
 
 #include "gameplay/area_entry.h"
 #include "gameplay/direction_input.h"
@@ -43,7 +43,21 @@ extern u8 Gp_BtnMap2[16];
 
 extern u8 Gp_BtnMap2Alt[16];
 
-static u16 Gp_RemapButtons(GameActor* actor, u16 mask);
+enum {
+    PAD_INPUT_LAYOUT_A                    = 0,
+    PAD_INPUT_LAYOUT_B                    = 1,
+    PAD_INPUT_LAYOUT_C                    = 2,
+    PAD_INPUT_MOVEMENT_WALK               = 0,
+    PAD_INPUT_MOVEMENT_RUN                = 1,
+    PAD_INPUT_PLAYER_STATE_AIM            = 2,
+    PAD_INPUT_PLAYER_STATE_ATTACHMENT_USE = 6,
+    PAD_INPUT_MENU_UNLOCK_UPDATES         = 8,
+    PAD_INPUT_WHEEL_BLOCK_UPDATES         = 4,
+    PAD_INPUT_INTERACTION_REARM_DELAY     = 10,
+    PAD_INPUT_STICK_RUN_THRESHOLD         = PAD_STICK_FULL_SCALE * 29 / 32,
+};
+
+static u16 _padInputRemapButtons(const GameActor* player, u16 buttons);
 
 u8 Gp_BtnMap0[16] = {
     0,
@@ -121,208 +135,213 @@ u8 Gp_BtnMap2Alt[16] = {
     15,
 };
 
-void Gp_UpdatePadInput(void)
+/// Publishes remapped input, applying suppression and an additional logical mask.
+static inline void _padInputPublishButtons(const GameActor* player, u16 heldButtons, u16 pressedButtons, u16 releasedButtons, s32 keepMask)
 {
-    PadState*     pad;
-    PlayerStatus* cfg;
-    Task*         work;
-    GameActor*    actor;
-    u16           mask;
-    u16           pressedButtons;
-    u16           releasedButtons;
+    gGameSession->padHeld     = _padInputRemapButtons(player, heldButtons) & ~Gp_PadSuppressMask & keepMask;
+    gGameSession->padPressed  = _padInputRemapButtons(player, pressedButtons) & ~Gp_PadSuppressMask & keepMask;
+    gGameSession->padReleased = _padInputRemapButtons(player, releasedButtons) & ~Gp_PadSuppressMask & keepMask;
+}
 
-    pad  = &gPadStates[0];
-    cfg  = &gPlayerStatus;
-    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    if (work == NULL) {
+void padInputUpdate(void)
+{
+    const PadState*     pad;
+    const PlayerStatus* playerStatus;
+    const Task*         playerTask;
+    const GameActor*    player;
+    u16                 heldButtons;
+    u16                 pressedButtons;
+    u16                 releasedButtons;
+
+    pad          = &gPadStates[0];
+    playerStatus = &gPlayerStatus;
+    playerTask   = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    if (playerTask == NULL) {
         return;
     }
-    actor = work->work;
+    player = playerTask->work;
     padScriptClearHalt();
-    if (Gp_MenuLockHold == 0) {
-        if (actor->mode == GAME_ACTOR_MODE_NORMAL && gGameSession->eventState == 0 && gGameSession->cutsceneHold == 0 &&
-            actor->state != 6 && cfg->hp > 0 && gGameSession->deathVariant == 0) {
+    // Explicit held suppression freezes the automatic menu-lock decision.
+    if (Gp_MenuLockHold == false) {
+        if (player->mode == GAME_ACTOR_MODE_NORMAL && gGameSession->eventState == 0 && gGameSession->cutsceneHold == 0 &&
+            player->state != PAD_INPUT_PLAYER_STATE_ATTACHMENT_USE && playerStatus->hp > 0 && gGameSession->deathVariant == 0) {
             if (Gp_MenuLockDelay > 0) {
                 Gp_MenuLockDelay--;
-                Gp_MenuLockNow = 1;
+                Gp_MenuLockNow = true;
             } else {
-                Gp_MenuLockNow = 0;
+                Gp_MenuLockNow = false;
             }
         } else {
-            Gp_MenuLockNow      = 1;
-            Gp_PadSuppressTimer = 4;
-            Gp_MenuLockDelay    = 8;
-            D_80114D08          = 0xA;
+            Gp_MenuLockNow      = true;
+            Gp_PadSuppressTimer = PAD_INPUT_WHEEL_BLOCK_UPDATES;
+            Gp_MenuLockDelay    = PAD_INPUT_MENU_UNLOCK_UPDATES;
+            D_80114D08          = PAD_INPUT_INTERACTION_REARM_DELAY;
         }
-        if (Gp_MenuLockNow == 1 && Gp_MenuLockPrev == 0) {
-            Gp_MenuLockHold     = 0;
-            Gp_PadSuppressMask |= 0x900;
-        } else if (Gp_MenuLockNow == 0 && Gp_MenuLockPrev == 1) {
-            Gp_MenuLockHold     = 0;
-            Gp_PadSuppressMask &= 0xF6FF;
+        if (Gp_MenuLockNow == true && Gp_MenuLockPrev == false) {
+            Gp_MenuLockHold     = false;
+            Gp_PadSuppressMask |= PAD_INPUT_SUPPRESS_MENU;
+        } else if (Gp_MenuLockNow == false && Gp_MenuLockPrev == true) {
+            Gp_MenuLockHold     = false;
+            Gp_PadSuppressMask &= (0xFFFF ^ PAD_INPUT_SUPPRESS_MENU);
         }
         Gp_MenuLockPrev = Gp_MenuLockNow;
     }
+    // Only suppression edges acquire or release this module's display holds.
     Gp_PadSuppressRise = ~Gp_PadSuppressPrev & Gp_PadSuppressMask;
     Gp_PadSuppressFall = Gp_PadSuppressPrev & ~Gp_PadSuppressMask;
     Gp_PadSuppressPrev = Gp_PadSuppressMask;
     if (gDisplayState.demoScene == DISPLAY_DEMO_NONE) {
-        if (Gp_PadSuppressRise & 0x900) {
+        if (Gp_PadSuppressRise & PAD_INPUT_SUPPRESS_MENU) {
             displayAcquireMenuHold();
             Gp_PadSuppressRefs++;
         }
-        if (Gp_PadSuppressFall & 0x900) {
+        if (Gp_PadSuppressFall & PAD_INPUT_SUPPRESS_MENU) {
             while (Gp_PadSuppressRefs != 0) {
                 displayReleaseMenuHold();
                 Gp_PadSuppressRefs--;
             }
         }
     }
+    // Analog forward strength selects the saved walk/run modifier before mapping.
     if (pad->inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-        mask            = pad->buttons;
+        heldButtons     = pad->buttons;
         pressedButtons  = pad->pressedButtons;
         releasedButtons = pad->releasedButtons;
         if (pad->stickAxes[PAD_STICK_LEFT_Y] < -PAD_STICK_DIRECTION_THRESHOLD) {
-            mask |= 0x1000;
-            if (actor->mode != GAME_ACTOR_MODE_NORMAL || actor->state < 2) {
-                if (pad->stickAxes[PAD_STICK_LEFT_Y] < -0xE80) {
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 0) {
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
-                            mask |= 0x20;
+            heldButtons |= PAD_BUTTON_UP;
+            if (player->mode != GAME_ACTOR_MODE_NORMAL || player->state < PAD_INPUT_PLAYER_STATE_AIM) {
+                if (pad->stickAxes[PAD_STICK_LEFT_Y] < -PAD_INPUT_STICK_RUN_THRESHOLD) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == PAD_INPUT_MOVEMENT_WALK) {
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != PAD_INPUT_LAYOUT_B) {
+                            heldButtons |= PAD_BUTTON_CIRCLE;
                         } else {
-                            mask |= 0x80;
+                            heldButtons |= PAD_BUTTON_SQUARE;
                         }
                     } else {
-                        /* Layouts 0 and 2 both remap pad bit 5 to output bit 6
-                           (Gp_BtnMap0, Gp_BtnMap2); layout 1 remaps bit 7 there.
-                           The image tests the layout against 1 only. The third
-                           arm leaves no code (jump2 merges it into the second),
-                           but its three insns lengthen `actor`'s life enough for
-                           global-alloc to rank it below %hi(gGameSession). That
-                           the original's extra insns were here, or tested 0, is
-                           not known. */
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == 1) {
-                            mask &= 0xFF7F;
-                        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == 0) {
-                            mask &= 0xFFDF;
+                        // Layouts A and C share Circle; separate arms preserve allocation.
+                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == PAD_INPUT_LAYOUT_B) {
+                            heldButtons &= (0xFFFF ^ PAD_BUTTON_SQUARE);
+                        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout == PAD_INPUT_LAYOUT_A) {
+                            heldButtons &= (0xFFFF ^ PAD_BUTTON_CIRCLE);
                         } else {
-                            mask &= 0xFFDF;
+                            heldButtons &= (0xFFFF ^ PAD_BUTTON_CIRCLE);
                         }
                     }
-                } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == 1) {
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 1) {
-                        mask |= 0x20;
+                } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode == PAD_INPUT_MOVEMENT_RUN) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != PAD_INPUT_LAYOUT_B) {
+                        heldButtons |= PAD_BUTTON_CIRCLE;
                     } else {
-                        mask |= 0x80;
+                        heldButtons |= PAD_BUTTON_SQUARE;
                     }
                 }
             }
             if (pad->stickAxes[PAD_STICK_LEFT_X] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
-                mask |= 0x2000;
+                heldButtons |= PAD_BUTTON_RIGHT;
             } else if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
-                mask |= 0x8000;
+                heldButtons |= PAD_BUTTON_LEFT;
             }
         } else if (pad->stickAxes[PAD_STICK_LEFT_Y] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
-            mask |= 0x4000;
+            heldButtons |= PAD_BUTTON_DOWN;
             if (pad->stickAxes[PAD_STICK_LEFT_X] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
-                mask |= 0x2000;
+                heldButtons |= PAD_BUTTON_RIGHT;
             } else if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
-                mask |= 0x8000;
+                heldButtons |= PAD_BUTTON_LEFT;
             }
         } else {
             if (pad->stickAxes[PAD_STICK_LEFT_X] >= PAD_STICK_DIRECTION_THRESHOLD + 1) {
-                mask |= 0x2000;
+                heldButtons |= PAD_BUTTON_RIGHT;
             } else if (pad->stickAxes[PAD_STICK_LEFT_X] < -PAD_STICK_DIRECTION_THRESHOLD) {
-                mask |= 0x8000;
+                heldButtons |= PAD_BUTTON_LEFT;
             }
         }
     } else {
-        mask            = pad->buttons;
+        heldButtons     = pad->buttons;
         pressedButtons  = pad->pressedButtons;
         releasedButtons = pad->releasedButtons;
     }
-    gGameSession->padHeld     = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask;
-    gGameSession->padPressed  = Gp_RemapButtons(actor, pressedButtons) & ~Gp_PadSuppressMask;
-    gGameSession->padReleased = Gp_RemapButtons(actor, releasedButtons) & ~Gp_PadSuppressMask;
+    // Suppression masks address logical buttons, so apply them after remapping.
+    _padInputPublishButtons(player, heldButtons, pressedButtons, releasedButtons, ~0);
     if (Gp_PadSuppressTimer != 0) {
         Gp_PadSuppressTimer--;
-        gGameSession->padHeld     = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask & ~0x10;
-        gGameSession->padPressed  = Gp_RemapButtons(actor, pressedButtons) & ~Gp_PadSuppressMask & ~0x10;
-        gGameSession->padReleased = Gp_RemapButtons(actor, releasedButtons) & ~Gp_PadSuppressMask & ~0x10;
+        _padInputPublishButtons(player, heldButtons, pressedButtons, releasedButtons, ~PAD_BUTTON_TRIANGLE);
     }
 }
 
-static u16 Gp_RemapButtons(GameActor* actor, u16 mask)
+/// Converts an active-high pad mask to logical buttons for the saved layout.
+///
+/// Borrows the live player to select layout C's alternate mapping in normal
+/// states at or above aiming (2). Each table maps all sixteen input bits to
+/// output bit indices; multiple inputs may set the same output. Invalid layouts
+/// return zero.
+static u16 _padInputRemapButtons(const GameActor* player, u16 buttons)
 {
-    u16 result;
-    s32 i;
+    /// Adds remapped bits from a complete sixteen-entry table of bit indices 0..15.
+    ///
+    /// Scalar arguments must be side-effect-free; destination and cursor are
+    /// distinct lvalues. Arguments are reused per bit; the destination is not cleared.
+#define PAD_INPUT_REMAP_BUTTON_BITS(sourceButtons, buttonMap, destinationButtons, bitCursor) \
+    do {                                                                                     \
+        for ((bitCursor) = 0; (bitCursor) < ARRAY_SIZE(buttonMap); (bitCursor)++) {          \
+            if (((sourceButtons) >> (bitCursor)) & 1) {                                      \
+                (destinationButtons) |= 1 << (buttonMap)[bitCursor];                         \
+            }                                                                                \
+        }                                                                                    \
+    } while (0)
 
-    result = 0;
+    u16 mappedButtons;
+    s32 buttonBit;
+
+    mappedButtons = 0;
     switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout) {
-        case 0:
-            for (i = 0; i < 0x10; i++) {
-                if ((mask >> i) & 1) {
-                    result |= 1 << Gp_BtnMap0[i];
-                }
-            }
+        case PAD_INPUT_LAYOUT_A:
+            PAD_INPUT_REMAP_BUTTON_BITS(buttons, Gp_BtnMap0, mappedButtons, buttonBit);
             break;
-        case 1:
-            for (i = 0; i < 0x10; i++) {
-                if ((mask >> i) & 1) {
-                    result |= 1 << Gp_BtnMap1[i];
-                }
-            }
+        case PAD_INPUT_LAYOUT_B:
+            PAD_INPUT_REMAP_BUTTON_BITS(buttons, Gp_BtnMap1, mappedButtons, buttonBit);
             break;
-        case 2:
-            if (actor->mode == GAME_ACTOR_MODE_NORMAL && actor->state >= 2) {
-                for (i = 0; i < 0x10; i++) {
-                    if ((mask >> i) & 1) {
-                        result |= 1 << Gp_BtnMap2Alt[i];
-                    }
-                }
+        case PAD_INPUT_LAYOUT_C:
+            if (player->mode == GAME_ACTOR_MODE_NORMAL && player->state >= PAD_INPUT_PLAYER_STATE_AIM) {
+                PAD_INPUT_REMAP_BUTTON_BITS(buttons, Gp_BtnMap2Alt, mappedButtons, buttonBit);
             } else {
-                for (i = 0; i < 0x10; i++) {
-                    if ((mask >> i) & 1) {
-                        result |= 1 << Gp_BtnMap2[i];
-                    }
-                }
+                PAD_INPUT_REMAP_BUTTON_BITS(buttons, Gp_BtnMap2, mappedButtons, buttonBit);
             }
             break;
     }
-    return result;
+#undef PAD_INPUT_REMAP_BUTTON_BITS
+    return mappedButtons;
 }
 
-void func_800E9BDC(u8 arg0, s32 arg1)
+void padInputChangeSuppression(u8 command, s32 buttonMask)
 {
-    switch (arg0) {
-        case 1:
-        case 5:
-            Gp_MenuLockHold     = 0;
-            Gp_PadSuppressMask |= arg1;
+    switch (command) {
+        case PAD_INPUT_SUPPRESSION_SET:
+        case PAD_INPUT_SUPPRESSION_SET_ALIAS:
+            Gp_MenuLockHold     = false;
+            Gp_PadSuppressMask |= buttonMask;
             break;
-        case 3:
-            Gp_PadSuppressMask |= arg1;
-            Gp_MenuLockHold     = 1;
+        case PAD_INPUT_SUPPRESSION_SET_AND_HOLD:
+            Gp_PadSuppressMask |= buttonMask;
+            Gp_MenuLockHold     = true;
             break;
-        case 0:
-        case 2:
-            Gp_MenuLockHold     = 0;
-            Gp_PadSuppressMask &= ~arg1;
-        case 4:
+        case PAD_INPUT_SUPPRESSION_CLEAR:
+        case PAD_INPUT_SUPPRESSION_CLEAR_ALIAS:
+            Gp_MenuLockHold     = false;
+            Gp_PadSuppressMask &= ~buttonMask;
+        case PAD_INPUT_SUPPRESSION_KEEP:
             break;
     }
 }
 
-void Gp_ResetMenuLock(void)
+void padInputResetSuppression(void)
 {
     Gp_PadSuppressRefs  = 0;
     Gp_PadSuppressMask  = 0;
     Gp_PadSuppressPrev  = 0;
     Gp_PadSuppressRise  = 0;
     Gp_PadSuppressFall  = 0;
-    Gp_MenuLockNow      = 0;
-    Gp_MenuLockPrev     = 0;
-    Gp_MenuLockHold     = 0;
-    Gp_MenuLockDelay    = 8;
-    Gp_PadSuppressTimer = 4;
+    Gp_MenuLockNow      = false;
+    Gp_MenuLockPrev     = false;
+    Gp_MenuLockHold     = false;
+    Gp_MenuLockDelay    = PAD_INPUT_MENU_UNLOCK_UPDATES;
+    Gp_PadSuppressTimer = PAD_INPUT_WHEEL_BLOCK_UPDATES;
 }

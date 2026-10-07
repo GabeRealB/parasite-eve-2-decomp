@@ -4757,8 +4757,8 @@ static void _acropolisPlazaLetterboxTask(Task* task)
 #undef ACROPOLIS_PLAZA_DRAW_LETTERBOX_BAR
 }
 
-/// Six-state opening sequence for the plaza. State 0 fades in the room
-/// (`func_800E9BDC`), applies the plaza view, allocates the sequence work block
+/// Six-state opening sequence for the plaza. State 0 suppresses action/menu input
+/// except interaction (`padInputChangeSuppression`), applies the plaza view, allocates the sequence work block
 /// and spawns entries 5 and 0xB of the room's table around
 /// `playerActorRemoveEquipment`; states 1 and 2 idle. State 3 pins the camera override
 /// to (0x370, 0x370, 0x370), tells slot 6 to start (msg 0xFA4), spawns the
@@ -4776,7 +4776,7 @@ void func_acropolis_plaza_80180054(Task* task)
 
     switch (task->state) {
         case 0:
-            func_800E9BDC(3, 0x9DF);
+            padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_AND_HOLD, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU & ~PAD_BUTTON_CIRCLE);
             viewApplyCamera(D_acropolis_plaza_801838B8[0]);
             newWork    = memMalloc(sizeof(*newWork), false);
             task->work = newWork;

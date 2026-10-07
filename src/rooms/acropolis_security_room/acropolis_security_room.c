@@ -2806,7 +2806,7 @@ static void func_acropolis_security_room_8017F1BC(Task* task)
             _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
             work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
             task->state   = 6;
-            func_800E9BDC(1, 0xF9FF);
+            padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
             Gp_ApplyAreaRecs(D_acropolis_security_room_80184F80);
             taskKill(task->spawnArg2.pointer);
             return;
@@ -2844,7 +2844,7 @@ static void func_acropolis_security_room_8017F300(Task* task)
             work->usedKey            = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
             task->state              = 0xA;
             gGameSession->eventState = 1;
-            func_800E9BDC(1, 0xF9FF);
+            padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
             Gp_ApplyAreaRecs(D_acropolis_security_room_80184F50);
             if (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) < 3) {
                 Gp_ApplyAreaRecs(D_acropolis_security_room_80184F78);
@@ -3145,7 +3145,7 @@ static void func_acropolis_security_room_80180030(Task* task)
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
     gGameSession->eventState   = 0;
-    func_800E9BDC(0, 0xF9FF);
+    padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_INPUT_SUPPRESS_GAMEPLAY);
     taskRequestKill(task, 0);
 }
 
@@ -3198,7 +3198,7 @@ static void func_acropolis_security_room_80180218(Task* task)
     D_80114D08                                                 = 0xA;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
     displayReleaseMenuHold();
-    func_800E9BDC(0, 0xF9FF);
+    padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_INPUT_SUPPRESS_GAMEPLAY);
     taskRequestKill(task, 0);
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;

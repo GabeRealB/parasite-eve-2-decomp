@@ -7984,11 +7984,11 @@ Write the `|=` first. Its address is allocated later and lands in `$a1`,
 and the simple store takes `$a0`:
 
 ```c
-Gp_PadSuppressMask |= mask; /* lui a1 */
+Gp_PadSuppressMask |= buttonMask; /* lui a1 */
 Gp_MenuLockHold = 1;     /* lui a0 */
 ```
 
-`func_800E9BDC` case 3 is the example. `Gp_MenuLockHold = 1; Gp_PadSuppressMask |= mask`
+`padInputChangeSuppression` case 3 is the example. `Gp_MenuLockHold = 1; Gp_PadSuppressMask |= buttonMask`
 stuck at 99.3% with only those two addresses swapped.
 
 ## Assign `u16 - K` to an `s32` before the `s16` store
@@ -33104,7 +33104,7 @@ example.
 Gameplay `.rodata` is a sequence of C jtbl slices interleaved with splat
 `rodata` blobs. A new `switch` in an existing TU appends its jtbl to that
 TU's `.rodata` slice. If a named table sits between the old jtbl and the
-new one (here `D_80097678` between `func_800E9BDC` and `_roomEffectInitController`),
+new one (here `D_80097678` between `padInputChangeSuppression` and `_roomEffectInitController`),
 keep the function in a sibling C file (`3CD8_9CC8.c`) and add matching
 `.rodata` / `c` yaml cuts so the jtbl lands after the blob. Same pattern
 as `3CD8_34D8.c` / `3FB8_75BC.c`.
@@ -37470,7 +37470,7 @@ one reference to the address, materializes `lui`+`sh` back to back at the store,
 and fills the earlier delay slot with some other constant. Reading it back gives
 the address two uses, so CSE promotes it to its own pseudo that lives across the
 whole preceding block; GCC still forwards the stored value, so no `lhu` appears.
-`Gp_UpdatePadInput` went 96.4% → 97.7% on that one change. The neighbouring
+`padInputUpdate` went 96.4% → 97.7% on that one change. The neighbouring
 `Gp_PadSuppressFall` (also stored then re-read) is the control: it already matched.
 
 ## Order `p = &Global` inits to pick the `%hi` scratch register
@@ -37481,15 +37481,15 @@ register (`$v0` vs `$v1`) each `lui` lands in is decided *before* scheduling, so
 it follows source order even though the final listing is reordered:
 
 ```c
-pad  = &gPadStates[0];            /* lui v0 ; addiu s1,v0 */
-cfg  = &gPlayerStatus;              /* lui v1 ; addiu s0,v1  <- needs v0 live */
-work = gPlayerActorTasks[0];            /* lui v0 ; lw a0,%lo(...)(v0) */
+pad          = &gPadStates[0];            /* lui v0 ; addiu s1,v0 */
+playerStatus = &gPlayerStatus;              /* lui v1 ; addiu s0,v1  <- needs v0 live */
+playerTask   = gPlayerActorTasks[0];            /* lui v0 ; lw a0,%lo(...)(v0) */
 ```
 
 Putting the volatile `gPlayerActorTasks[0]` load *between* the other two lets its
-`lui` reuse `$v0` and forces the third `%hi` onto `$v1`; listing `work` second
+`lui` reuse `$v0` and forces the third `%hi` onto `$v1`; listing `playerTask` second
 gives all three `$v0` and leaves a one-instruction diff that nothing else fixes.
-This was the last diff in `Gp_UpdatePadInput` (99.97% → 100%). When a lone
+This was the last diff in `padInputUpdate` (99.97% → 100%). When a lone
 `lui $v1` vs `lui $v0` survives everything else, permute the order of these
 address-taking assignments before reaching for a pin.
 
@@ -145362,9 +145362,9 @@ through it. Declaring the member as `WorldCollisionMotionContext collisionMotion
 `(plus actor 0x9C)`. When a store the target addresses from the struct base
 comes out relative to a sibling pointer, the layout usually wants a real member
 array rather than a pointer cast.
-## Two identical `if (x == 1) A; else B;` arms cross-jump; write both as `if (x != 1) B; else A;` (Gp_UpdatePadInput, 2026-09-26)
+## Two identical `if (x == 1) A; else B;` arms cross-jump; write both as `if (x != 1) B; else A;` (padInputUpdate, 2026-09-26)
 
-Two separate arms each set `mask |= 0x80` or `0x20` from `buttonLayout == 1`.
+Two separate arms each set `heldButtons |= 0x80` or `0x20` from `buttonLayout == 1`.
 With the `== 1` sense in both, jump2 found the first arm's then-block
 (`a1 = a0|0x80; goto join`) identical to the second arm's last insn before
 the join label and cross-jumped it (`beq` into the other arm). The seed held
@@ -145373,9 +145373,9 @@ them apart with `SCHED_BARRIER()`. Target: `bne v1,v0,join; ori 0x20` then
 join in the second. Writing *both* tests as `!= 1` with the `0x20` arm first
 matched outright; mixing the senses, or using a ternary, did not. Before
 keeping a barrier against cross-jumping, try the other condition sense on
-every copy of the repeated test. In the same function, `tmp = mask | 0x1000;
-mask = tmp; ... mask = tmp | 0x80` compiled the same as `mask |= 0x1000;
-... mask |= 0x80`, so GCC already makes the second pseudo the target's copy
+every copy of the repeated test. In the same function, `tmp = heldButtons | 0x1000;
+heldButtons = tmp; ... heldButtons = tmp | 0x80` compiled the same as `heldButtons |= 0x1000;
+... heldButtons |= 0x80`, so GCC already makes the second pseudo the target's copy
 suggests.
 ## String literals in a pointer table's initializer are emitted last-first (nmc_names, 2026-09-26)
 
@@ -148493,9 +148493,9 @@ source.
   *2026-10-06: resolved without a pin or a loop note. The local was reused for
   the weapon's coordinate; see "A local reused for a second pointer keeps the
   references combine deleted" at the end of this file.*
-- **Gp_UpdatePadInput**, `pressedButtons` pinned to `$s2`. Three allocnos:
-  `%hi(Gp_PadSuppressMask)` 7 / 102 = 1372, `actor` 11 / 243 = 1358,
-  `%hi(gGameSession)` 7 / 104 = 1346. The target needs `actor` last of the
+- **padInputUpdate**, `pressedButtons` pinned to `$s2`. Three allocnos:
+  `%hi(Gp_PadSuppressMask)` 7 / 102 = 1372, `player` 11 / 243 = 1358,
+  `%hi(gGameSession)` 7 / 104 = 1346. The target needs `player` last of the
   three: 10 references, or a live length of 246 or more. Both `%hi` lengths
   are doubled (`REG_EQUIV`), so they move in steps of two. The two
   `(use (reg))` insns combine leaves at a label when it merges an `lh` out of
@@ -151992,24 +151992,24 @@ see copy and use in one block. Look for a vanished block boundary before
 ranking quantities. Correction to "Measured and left (2026-10-05)": the pin
 on `Shop_QuantityTask` is gone.
 
-### A register that has to rank lower with nothing to remove: instructions that exist until jump2 and leave no code (Gp_UpdatePadInput, 2026-10-07)
+### A register that has to rank lower with nothing to remove: instructions that exist until jump2 and leave no code (padInputUpdate, 2026-10-07)
 
-**Symptom.** Pin-free, the whole diff is `$s2`/`$s3` swapped: `actor` in
+**Symptom.** Pin-free, the whole diff is `$s2`/`$s3` swapped: `player` in
 `$s2`, the pressed mask and `%hi(gGameSession)` in `$s3`. Global order was
-`%hi(Gp_PadSuppressMask)` 7 refs / 102 = 1372, `actor` 11 / 243 = 1358,
-`%hi(gGameSession)` 7 / 104 = 1346; the image needs `actor` third. The pin on
+`%hi(Gp_PadSuppressMask)` 7 refs / 102 = 1372, `player` 11 / 243 = 1358,
+`%hi(gGameSession)` 7 / 104 = 1346; the image needs `player` third. The pin on
 `pressedButtons` did not change the order - it made `$s2` a conflict for
-`actor`.
+`player`.
 
-**What cannot move.** Every one of `actor`'s 11 references is an instruction
+**What cannot move.** Every one of `player`'s 11 references is an instruction
 of the image, and `REG_N_REFS` is flow's count (combine never lowers it for a
 register set once), so 10 is out of reach. Both `%hi` lengths are exact too
 (51 and 52 insns, doubled by `REG_EQUIV` because cse puts a `REG_EQUAL` note
 on every `high`), and nothing inside them can leave except by crossing a
 call. An extra insn inside the publish block costs the `%hi`s two each and
-makes it worse. So the only free quantity is `actor`'s live length, and it
-needs 246: **three more insns somewhere between `actor = work->work` and the
-first `Gp_RemapButtons` call that are present at local-alloc and absent from
+makes it worse. So the only free quantity is `player`'s live length, and it
+needs 246: **three more insns somewhere between `player = playerTask->work` and the
+first `_padInputRemapButtons` call that are present at local-alloc and absent from
 the output.**
 
 **What such insns can be.** sched1 recomputes `REG_LIVE_LENGTH` by counting
@@ -152019,22 +152019,22 @@ when it merges `lh` out of an `lhu` that stays live - always beside a visible
 `lh`/`lhu` pair), pseudo copies that get one hard register, and code jump2
 removes after reload. Tried and counted:
 
-| form | `actor` length | code |
+| form | `player` length | code |
 |---|---|---|
 | `s16 stickX` / `stickY` locals | 243 | same |
 | raw-value locals copied to the masks (before or after the join) | 243 | same (cse folds the copies) |
 | the three publishes as an inline with a `keep` mask (`~0`, `~0x10`) | 243 | same |
-| the lock arms as an inlined copy of `func_800E9BDC(1 / 0, 0x900)` | 243 | same |
+| the lock arms as an inlined copy of `padInputChangeSuppression(1 / 0, 0x900)` | 243 | same |
 | X test as an inline returning the mask | 248, right order | different |
 | stick block as an inline, or a work variable copied at the arm's end | 244 | different |
-| `do { } while (0)` around the timer block | - | different (the three extensions outrank `actor` too) |
+| `do { } while (0)` around the timer block | - | different (the three extensions outrank `player` too) |
 
 **Fix (fitted).** A third arm at the run-release test:
-`if (layout == 1) mask &= 0xFF7F; else if (layout == 0) mask &= 0xFFDF; else
-mask &= 0xFFDF;`. At local-alloc the extra arm is a branch, an `and` and a
+`if (layout == 1) heldButtons &= 0xFF7F; else if (layout == 0) heldButtons &= 0xFFDF; else
+heldButtons &= 0xFFDF;`. At local-alloc the extra arm is a branch, an `and` and a
 jump; jump2 cross-jumps the two equal arms and deletes the branch, leaving the
 image's single test. Length 246, priority 1341, order mask / session /
-`actor`, no pin. There are three layouts and 0 and 2 do share the bit
+`player`, no pin. There are three layouts and 0 and 2 do share the bit
 (`Gp_BtnMap0`/`Gp_BtnMap2` both send pad bit 5 to output bit 6), which is why
 this spot was chosen, but the image does not say where the original's extra
 insns were or what the vanished test compared (`== 2` matches as well).

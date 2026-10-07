@@ -2047,7 +2047,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
             rec.blendFrames                              = 0;
             rec.enableWorldCollision                     = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
-            func_800E9BDC(3, 0x9FF);
+            padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_AND_HOLD, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state                    = task->state + 1;
             break;
@@ -2097,7 +2097,7 @@ void func_acropolis_promenade_8017DB9C(Task* task)
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
-                func_800E9BDC(2, 0x9FF);
+                padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
                 taskKill(task);

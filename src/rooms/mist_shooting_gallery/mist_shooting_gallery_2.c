@@ -2928,7 +2928,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
                 if (work->captionStep == 0xA) {
                     work->timer = 0x1E;
                     work->phase++;
-                    func_800E9BDC(5, 0xA);
+                    padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_ALIAS, PAD_BUTTON_R1 | PAD_BUTTON_R2);
                     xform.rot.vy = 0xC00;
                     playerActorTurnToYaw(
                         gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, &xform, 0);
@@ -2938,7 +2938,7 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
             break;
         case 6:
             actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-            func_800E9BDC(5, 0xA);
+            padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_ALIAS, PAD_BUTTON_R1 | PAD_BUTTON_R2);
             if (actor->scriptedMotionPending == 0) {
                 Gp_EnterActorMode2(
                     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, 2, 0);
@@ -2954,13 +2954,13 @@ static void func_mist_shooting_gallery_801838FC(Task* arg0)
             }
             break;
         case 7:
-            func_800E9BDC(5, 0xA);
+            padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_ALIAS, PAD_BUTTON_R1 | PAD_BUTTON_R2);
             if (work->timer <= 0) {
                 if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) >= 2) {
                     func_mist_shooting_gallery_80184BB8(0x14, work->captionStep, 0x8E0);
                     if (work->captionStep == 0x12) {
                         work->phase++;
-                        func_800E9BDC(0, 0xA);
+                        padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_BUTTON_R1 | PAD_BUTTON_R2);
                         Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
                     }
                     work->captionStep++;
