@@ -34,30 +34,6 @@
 #include "../../shared/scripted_walk.h"
 #include "../../shared/actor_messages.h"
 
-/// Source storage for the copy that extends the player's animation bank.
-///
-/// The package's event scripts send the player a copy request for these words
-/// before they play one of the clips. The copy takes
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` words, which is more than the clip
-/// table holds: the eighteen set pointers become extended ids 47-64, and the
-/// fourteen words after them, the first two play requests and four words of
-/// the third, are written into the bank behind the clips. No request selects
-/// an id past 64, so none of those request words is played as a clip.
-///
-/// The play requests are the first three of the run the package keeps for the
-/// player and are part of this object only because the copied span reaches
-/// over them; the requests for ids 49 to 64 are separate objects.
-typedef union {
-    struct {
-        AnimationSet*        sets[18];        // Player clips for extended ids 47-64
-        AnimationPlayRequest playRequests[3]; // Requests for extended ids 47, 47 with a 5-frame blend, and 48; nothing references the first
-    } data;                                   // The records by name
-    s32 words[33];                            // The same storage as the copy reads it; the last word lies beyond the copied span
-} _Actor146300AnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_Actor146300AnimationBankExtensionStorage, 132);
-
-extern _Actor146300AnimationBankExtensionStorage D_actor_146300_80137898;
-
 /// Work block of the package's actor, a twenty-part figure that event scripts
 /// place and give clips to but that never walks.
 ///
@@ -591,7 +567,26 @@ static AnimationSet _gActor146300Animation05A44 = {
 
 TaskDesc D_actor_146300_8013788C = { { { TASK_BODY_NONE, 192 } }, _actor146300IceBagHandoverTask, { .value = 0 } };
 
-_Actor146300AnimationBankExtensionStorage D_actor_146300_80137898 = { .data = { { &_gActor146300Animation01330, &_gActor146300Animation016C8, &_gActor146300Animation01E30, &_gActor146300Animation021A8, &_gActor146300Animation028E4, &_gActor146300Animation02B6C, &_gActor146300Animation0300C, &_gActor146300Animation0352C, &_gActor146300Animation03804, &_gActor146300Animation03ACC, &_gActor146300Animation03FEC, &_gActor146300Animation04394, &_gActor146300Animation04758, &_gActor146300Animation049F0, &_gActor146300Animation04C7C, &_gActor146300Animation05354, &_gActor146300Animation0568C, &_gActor146300Animation05A44 }, { { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE }, { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE } } } };
+/// Player clips for extended ids 47-64.
+///
+/// The package's event scripts send the player its copy request before they
+/// play one of these clips. `D_actor_146300_80137BD8` copies
+/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
+/// player's bank, which is 14 words past the end of this array: the read runs
+/// on through `D_actor_146300_801378E0`, `D_actor_146300_801378F4` and the
+/// first four words of `D_actor_146300_80137908`. That overrun is the
+/// original's and is kept as it is: the request carries the bank's fixed
+/// capacity, while the table was stored with only its own entries. No request
+/// selects an id past 64, so none of the words installed after the eighteen
+/// clips is played as one.
+AnimationSet* D_actor_146300_80137898[18] = { &_gActor146300Animation01330, &_gActor146300Animation016C8, &_gActor146300Animation01E30, &_gActor146300Animation021A8, &_gActor146300Animation028E4, &_gActor146300Animation02B6C, &_gActor146300Animation0300C, &_gActor146300Animation0352C, &_gActor146300Animation03804, &_gActor146300Animation03ACC, &_gActor146300Animation03FEC, &_gActor146300Animation04394, &_gActor146300Animation04758, &_gActor146300Animation049F0, &_gActor146300Animation04C7C, &_gActor146300Animation05354, &_gActor146300Animation0568C, &_gActor146300Animation05A44 };
+
+// Requests for the player's extended ids start here. This one is not referenced.
+AnimationPlayRequest D_actor_146300_801378E0 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_actor_146300_801378F4 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+
+AnimationPlayRequest D_actor_146300_80137908 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_actor_146300_8013791C = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -663,7 +658,7 @@ AnimationPlayRequest D_actor_146300_80137BB0 = { { .index = 1 }, 1, ANIMATION_BL
 
 AnimationPlayRequest D_actor_146300_80137BC4 = { { .index = 1 }, 64, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationBankCopyRequest D_actor_146300_80137BD8 = { { .words = D_actor_146300_80137898.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
+AnimationBankCopyRequest D_actor_146300_80137BD8 = { { .sets = D_actor_146300_80137898 }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 ActorTransform D_actor_146300_80137BE0 = { { 1110, -0x2EE0, -2500, 0 }, { 0, 1820, 0, 0 } };
 
@@ -684,14 +679,14 @@ EvsCommand D_actor_146300_80137C28[99] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_146300_80137B24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_146300_80137BE0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.playRequests[1] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_801378F4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5315000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.playRequests[1] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_801378F4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_146300_80137A5C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137898.data.playRequests[2] }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_80137908 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_146300_8013791C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_146300_80137A70 } }, { .value = 0 } },
