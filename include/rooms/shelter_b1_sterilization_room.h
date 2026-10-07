@@ -33,7 +33,14 @@ extern SpriteView D_shelter_b1_sterilization_room_8018B00C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_sterilization_room_8018C314[];
 
-void func_shelter_b1_sterilization_room_80180518(Task* task);
+/// Initializes the sterilization room and updates its event actor each tick.
+///
+/// The map's room-task descriptor supplies a live task starting at state 0.
+/// Dispatch states are 0 initialize, 1 update and 2 teardown; other indices are
+/// invalid. Initialization registers `GAME_TASK_SLOT_ROOM`, installs the room's
+/// message handlers, selects entry events and rebuilds the actor obstacle.
+/// Spawn arguments are unused; the task and room resources live with the overlay.
+void shelterB1SterilizationRoomTask(Task* task);
 
 void func_shelter_b1_sterilization_room_8018188C(Task* task);
 
@@ -50,6 +57,14 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task);
 /// Releases the work and task after the last frame.
 void shelterB1SterilizationRoomPuffTask(Task* task);
 
-void func_shelter_b1_sterilization_room_8017EB2C(Task* task);
+/// Runs this room's telephone save menu and optional play-data statistics panels.
+///
+/// Gameplay selects this export for Mine/Shelter area 16. The live menu task
+/// starts at state 0 and borrows a writable `UiObject` in `spawnArg2.pointer`
+/// until the menu closes. Requires loaded telephone text/UI resources; save
+/// and statistics dialogs are child tasks. Normal play before a clear enters
+/// the save dialog directly; clear data or the statistics demo enables the list.
+/// Completion reports the menu result through the object for its owner to close.
+void shelterB1SterilizationRoomTelephoneMenuTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B1_STERILIZATION_ROOM_H

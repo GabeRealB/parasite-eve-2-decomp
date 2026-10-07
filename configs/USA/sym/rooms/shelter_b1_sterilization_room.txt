@@ -180,7 +180,7 @@ func_shelter_b1_sterilization_room_8018188C = 0x8018188C; // type:func
 
 shelterB1SterilizationRoomPuffTask = 0x801823D8; // type:func
 
-func_shelter_b1_sterilization_room_8017EB2C = 0x8017EB2C; // type:func
+shelterB1SterilizationRoomTelephoneMenuTask = 0x8017EB2C; // type:func
 _telephoneDrawPlayDataRow = 0x8017D794; // type:func
 Telephone_DrawUsageRow = 0x8017DF60; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E35C; // type:func
@@ -212,3 +212,16 @@ _crossfadeDrawBackdrop = 0x80180BF0; // type:func
 spriteQuadDraw = 0x801826F0; // type:func
 shelterB1SterilizationRoomSwitchRoomTask = 0x801814fc; // type:func
 _shelterB1SterilizationRoomDrawPulsingGlow = 0x80183b8c; // type:func
+_shelterB1SterilizationRoomRebuildActorObstacle = 0x80180570; // type:func
+_shelterB1SterilizationRoomInitializeActorObstacle = 0x80180340; // type:func
+_shelterB1SterilizationRoomRejectKeyItemMessage = 0x801803e4; // type:func
+_shelterB1SterilizationRoomResolveTransitionMessage = 0x801803ec; // type:func
+_shelterB1SterilizationRoomSoundMessage = 0x80180430; // type:func
+_shelterB1SterilizationRoomUpdateEventActorVisibility = 0x8018049c; // type:func
+_shelterB1SterilizationRoomUpdateState = 0x80180464; // type:func
+shelterB1SterilizationRoomTask = 0x80180518; // type:func
+_shelterB1SterilizationRoomCaptureCrossfadeState = 0x80180828; // type:func
+_shelterB1SterilizationRoomWaitCrossfadeViewState = 0x80181244; // type:func
+_shelterB1SterilizationRoomCrossfadeTask = 0x801811e0; // type:func
+_shelterB1SterilizationRoomDoorPassageTask = 0x80180d74; // type:func
+_shelterB1SterilizationRoomTrapDamageTask = 0x80180f74; // type:func

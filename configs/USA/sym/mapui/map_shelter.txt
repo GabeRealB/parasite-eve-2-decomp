@@ -153,7 +153,7 @@ D_shelter_b1_main_corridor_801853E0 = 0x801853E0; // absolute:True owner=shelter
 D_shelter_b1_main_corridor_801853F8 = 0x801853F8; // absolute:True owner=shelter_b1_main_corridor shared=rooms
 D_shelter_b1_main_corridor_801858B8 = 0x801858B8; // absolute:True owner=shelter_b1_main_corridor shared=rooms
 D_shelter_b1_main_corridor_80185D04 = 0x80185D04; // absolute:True owner=shelter_b1_main_corridor
-func_shelter_b1_sterilization_room_80180518 = 0x80180518; // type:func absolute:True owner=shelter_b1_sterilization_room
+shelterB1SterilizationRoomTask = 0x80180518; // type:func absolute:True owner=shelter_b1_sterilization_room
 gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 = 0x80184DF8; // absolute:True owner=shelter_b1_sterilization_room
 D_shelter_b1_sterilization_room_80189354 = 0x80189354; // absolute:True owner=shelter_b1_sterilization_room
 D_shelter_b1_sterilization_room_8018936C = 0x8018936C; // absolute:True owner=shelter_b1_sterilization_room
