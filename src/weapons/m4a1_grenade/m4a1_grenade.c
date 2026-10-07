@@ -130,7 +130,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                 Gp_ConsumeSlotQty(0x9A, 0x101);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords,
                               ((sfx - 0xA) << 24) | 0x201B0006, 1);
-                Gp_SpawnEff(EFFECT_GRENADE_MUZZLE_FLASH,
+                effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 0x1B,
                             NULL);
                 func_80104490(arg0, 0, 0, sfx | 0x1B00);
@@ -152,7 +152,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords,
                                   ((sfx - 0xA) << 24) | 0x201B0004, 1);
-                    Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
+                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1B, NULL);
                     playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
@@ -323,7 +323,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
             scratch->ammunitionIndex = GRENADE_ROUND_FRAGMENTATION;
         }
         arg0->state = 2;
-        Gp_SpawnEff(EFFECT_GRENADE_EXPLOSION, coord, scratch->ammunitionIndex, NULL);
+        effectSpawn(EFFECT_GRENADE_EXPLOSION, coord, scratch->ammunitionIndex, NULL);
         sfxbase = gPlayerStatus.weapon << 16;
         sfxarg  = ((scratch->ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | 0x20000007;
         Gp_PlayObjSfx(coord, sfxbase | sfxarg, 1);
@@ -379,7 +379,7 @@ move:
         work->smokeInterval = work->smokeInterval + 1;
     }
     if (work->flightFrame % work->smokeInterval == 0) {
-        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0, NULL);
+        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0, NULL);
     }
     worldCollisionClearContacts(work->sphereContacts);
     worldCollisionClearContacts(work->capsuleContacts);

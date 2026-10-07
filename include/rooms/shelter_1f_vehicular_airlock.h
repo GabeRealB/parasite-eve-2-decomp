@@ -41,7 +41,7 @@ void func_shelter_1f_vehicular_airlock_8017DA48(Task* task);
 /// Runs the vehicular airlock's charging pink flash, peak screen tint and fading star.
 ///
 /// Requires a coordinate body and counted, owned `EffectWork` in
-/// `spawnArg2.pointer`, as installed by `Gp_SpawnEff`. `spawnArg1.value` must
+/// `spawnArg2.pointer`, as installed by `effectSpawn`. `spawnArg1.value` must
 /// start as a positive charge duration in active ticks; charging consumes it.
 /// Nonzero room effect control pauses the flash; control 4 or above, state 3,
 /// or completion releases the effect work and task.

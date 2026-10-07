@@ -2540,7 +2540,7 @@ void func_dryfield_toilet_8017DCF0(Task* arg0)
             VectorNormalSS(&mem->pos, &mem->move);
         }
         actorRenderComposeCoord(coord);
-        spawned = Gp_SpawnEff(EFFECT_DRYFIELD_TOILET_JET_PUFF, coord, 0x11180, 0);
+        spawned = effectSpawn(EFFECT_DRYFIELD_TOILET_JET_PUFF, coord, 0x11180, 0);
         if (spawned != NULL) {
             gte_lddp(mem->scale - mem->age);
             gte_ldsv(&mem->move);

@@ -1930,7 +1930,7 @@ static s32 func_dryfield_water_tower_8017DFAC(Task* arg0)
                 pos.vx   = -0xC8;
                 i        = 0;
                 do {
-                    Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002700, &pos);
+                    effectSpawn(EFFECT_DUST_PUFF, effCoord, 0x80002700, &pos);
                     i++;
                     pos.vx += 0x190;
                 } while ((u32)(i & 0xFFFF) < 2U);
@@ -2123,7 +2123,7 @@ void func_dryfield_water_tower_8017E1DC(Task* arg0)
 ///
 /// Two shapes here are the original's rather than stylistic. `effCoord` is
 /// filled from `arg0->extra` *before* the counter update, which is what puts the
-/// coordinate load `Gp_SpawnEff` takes into that block instead of the join
+/// coordinate load `effectSpawn` takes into that block instead of the join
 /// block; and the Z test is written `coord->coord.t[2] > record.pos.vz` rather
 /// than the mirrored `<`, which is what makes `sgt_si` load the coordinate first
 /// and emit `slt` with its operands swapped.
@@ -2153,7 +2153,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
             pos.vy = 0;
             pos.vz = 0;
             pos.vx = D_dryfield_water_tower_80181C60[arg0->killCountdown];
-            Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
+            effectSpawn(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
             break;
 
         case DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLING:
@@ -2192,7 +2192,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 /// `actorRenderComposeCoord` pass.
 ///
 /// Two shapes here are the original's rather than stylistic, and folding either
-/// away moves the two loads `Gp_SpawnEff` takes as its coordinate argument:
+/// away moves the two loads `effectSpawn` takes as its coordinate argument:
 /// `effCoord` is filled from `arg0->extra` *before* the counter update, which is
 /// what puts them in that block instead of the join block, and the two flag
 /// branches re-read the coordinate (`+= 5`) rather than reloading the record, so
@@ -2225,7 +2225,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
             pos.vy = 0;
             pos.vz = 0;
             pos.vx = D_dryfield_water_tower_80181C60[arg0->killCountdown];
-            Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
+            effectSpawn(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
             break;
 
         case DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLING:
@@ -2889,10 +2889,10 @@ void func_dryfield_water_tower_8017F82C(void)
 }
 
 /// Record handler (opcode 0x0D) of two of the room's script tables: calls
-/// `Gp_PulseState1C` and raises bit 0 of `Gp_StateC08.flags`.
+/// `roomEffectRequestCancelAll` and raises bit 0 of `Gp_StateC08.flags`.
 void func_dryfield_water_tower_8017F8B0(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 

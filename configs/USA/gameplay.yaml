@@ -105,7 +105,7 @@ segments:
       - [0x3D38, .rodata, evs_scripts] # Gp_ScriptTaskStates and the demo labels, the jtbl from Gp_ScriptTaskState1, then the script state tables
       - [0x3E2C, .rodata, pad_scripts] # script dispatch tables
       - [0x3E60, .rodata, pad_input] # jtbl from func_800E9BDC
-      - [0x3E78, .rodata, room_effects] # D_80097678, then the jtbl from Gp_InitState1C
+      - [0x3E78, .rodata, room_effects] # D_80097678, then the jtbl from _roomEffectInitController
       - [0x3E9C, .rodata, effect_tasks] # jtbls: Gp_EffCtlTask2B + effectThrownModelTask
       - [0x3FB8, .rodata, player_actor] # effect and player-state dispatch tables through func_8010A42C
       - [0x4268, .rodata, player_state] # player state jump tables and callbacks

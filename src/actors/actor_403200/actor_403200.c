@@ -4282,7 +4282,7 @@ static void func_actor_403200_8013A4A0(Task* arg0)
             sc->offset.vy = 0;
             sc->offset.vx = 0;
             sc->offset.vz = 0x320;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
+            effectSpawn(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
             sc->damage *= 4;
             work->state = 0xE;
         }
@@ -4312,7 +4312,7 @@ static void func_actor_403200_8013A4A0(Task* arg0)
             sc->offset.vy = 0;
             sc->offset.vx = 0;
             sc->offset.vz = 0x320;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
+            effectSpawn(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &sc->offset);
             work->state          = 0xE;
             work->groups3To5Pool = 0x32;
         }
@@ -4919,7 +4919,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         work->wallDistanceTarget = 0x9C4;
         gGluttonSpinnersReleased = 0;
         Gp_StateC08.flags       |= ATTACHMENT_FLAG_EVENT_LOCK;
-        Gp_PulseState1C();
+        roomEffectRequestCancelAll();
         worldTargetDisableNodeLockOn(&enemy->node);
         worldTargetDisableNodeLockOn(&work->escorts[3]->node);
         worldTargetDisableNodeLockOn(&work->escorts[0]->node);
@@ -5511,7 +5511,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             D_actor_403200_8015F920.coord.t[2]  += pos.vz;
             D_actor_403200_8015F920.composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&D_actor_403200_8015F920);
-            Gp_SpawnEff(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, &D_actor_403200_8015F920, 0x97A0D680, NULL);
+            effectSpawn(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, &D_actor_403200_8015F920, 0x97A0D680, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
             spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);

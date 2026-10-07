@@ -82,7 +82,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
                 random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 scratch->vy     = -((random >> 0x10) & 0x1FF);
                 gRandomLcgState = random;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, &arg1->extra.tmd->coords[3], 0x400, scratch);
+                effectSpawn(EFFECT_FLASH_BURST, &arg1->extra.tmd->coords[3], 0x400, scratch);
             }
             break;
     }

@@ -34,7 +34,7 @@ void madChaserShrinkWithDust(Task* arg0)
         ofs.vx = 0;
         ofs.vy = 0;
         ofs.vz = 0;
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, &ofs);
+        effectSpawn(EFFECT_CORPSE_BURN, coord, 3, &ofs);
     }
     if ((s16)work->stateFrames == 0x10) {
         worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);

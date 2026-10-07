@@ -48,7 +48,7 @@ void func_shelter_b2_pod_bottom_80181940(Task* arg0);
 /// Advances the pod bottom's drifting animated sprite and releases it at completion.
 ///
 /// `task` owns initialized `EffectWork` in `spawnArg2.pointer` and a coordinate
-/// body, normally supplied by `Gp_SpawnEff` with state 0 and cell index 0.
+/// body, normally supplied by `effectSpawn` with state 0 and cell index 0.
 /// The first running update initializes without drawing; later updates draw
 /// before moving, accelerating and advancing through 12 banked or 10 alternate
 /// cells. Nonzero `RoomEffectState::effectControl` freezes updates and redraws

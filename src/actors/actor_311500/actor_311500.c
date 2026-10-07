@@ -446,7 +446,7 @@ static s16 func_actor_311500_80162DDC(Task* arg0)
         damage           = Gp_ComputeDamage(work->hitKey, 0, 0, 0x1000);
         if (damageRollCriticalHit(enemy, work->hitKey, 0) != 0) {
             damage *= 5;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
+            effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
         }
         enemy->hp -= damage;
         worldCollisionClearContacts(work->hitContacts);
@@ -548,7 +548,7 @@ static s32 func_actor_311500_801630A4(Task* arg0)
                     break;
 
                 case 0xA:
-                    Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[2], 3, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[2], 3, NULL);
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
 

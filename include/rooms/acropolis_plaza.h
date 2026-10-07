@@ -117,7 +117,7 @@ void acropolisPlazaLightGlowTask(Task* task);
 
 /// Sweeps a siren beam, its point light and its near and far additive glows.
 ///
-/// Bank-6 effect 0x098 requires a coordinate body and `Gp_SpawnEff`'s live
+/// Bank-6 effect 0x098 requires a coordinate body and `effectSpawn`'s live
 /// `EffectWork` in `spawnArg2.pointer`. `spawnArg1.value` is the placement slot
 /// (the plaza passes 1..6): below 5 is blue, otherwise red; its low three bits
 /// select the transient point-light slot. Parity seeds opposite yaw phases.
@@ -129,7 +129,7 @@ void acropolisPlazaSirenLightTask(Task* task);
 
 /// Sweeps a pulsing four-ray flare and a flickering glow ahead of a placed light.
 ///
-/// Bank-6 effect 0x099 requires a coordinate body and `Gp_SpawnEff`'s live
+/// Bank-6 effect 0x099 requires a coordinate body and `effectSpawn`'s live
 /// `EffectWork` in `spawnArg2.pointer`. `spawnArg1.value` is the placement slot
 /// (the plaza passes 7..10): below 9 is blue, otherwise red. Parity seeds
 /// opposite yaw phases; `scale` advances by -128 in 4096 units per turn.

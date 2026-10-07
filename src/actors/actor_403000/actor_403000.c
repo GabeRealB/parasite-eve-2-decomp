@@ -2805,13 +2805,13 @@ static void func_actor_403000_80134F44(Task* arg0)
             work->blastPuffFrames--;
             switch (work->blastPuffFrames % 30) {
                 case 0:
-                    Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, &arg0->extra.tmd->coords[15], 0x800001FF, NULL);
+                    effectSpawn(EFFECT_ADDITIVE_PUFF, &arg0->extra.tmd->coords[15], 0x800001FF, NULL);
                     break;
                 case 8:
-                    Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, &arg0->extra.tmd->coords[23], 0x800001FF, NULL);
+                    effectSpawn(EFFECT_ADDITIVE_PUFF, &arg0->extra.tmd->coords[23], 0x800001FF, NULL);
                     break;
                 case 19:
-                    Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, &arg0->extra.tmd->coords[11], 0x800001FF, NULL);
+                    effectSpawn(EFFECT_ADDITIVE_PUFF, &arg0->extra.tmd->coords[11], 0x800001FF, NULL);
                     break;
             }
         }
@@ -2933,7 +2933,7 @@ static void func_actor_403000_80134F44(Task* arg0)
             scratch->damage         = Gp_ComputeDamage(scratch->hitKey, scratch->playerDistance, 0, 0);
             if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
                 scratch->damage *= 4;
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], 0, NULL);
+                effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], 0, NULL);
             }
             scratch->hitOffset.vx = scratch->hitPos.vx - arg0->extra.tmd->coords->workm.t[0];
             scratch->hitOffset.vy = scratch->hitPos.vy - arg0->extra.tmd->coords->workm.t[1];
@@ -3103,16 +3103,16 @@ static void func_actor_403000_8013603C(Task* arg0)
         if (work->stateFrame % 5 == 0 && work->stateFrame < 130) {
             switch ((s16)((s16)(work->stateFrame / 5) % 4)) {
                 case 0:
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x12600, NULL);
+                    effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x12600, NULL);
                     break;
                 case 1:
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[4], 0x22400, NULL);
+                    effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[4], 0x22400, NULL);
                     break;
                 case 2:
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x32600, NULL);
+                    effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x32600, NULL);
                     break;
                 case 3:
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[18], 0x12500, NULL);
+                    effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[18], 0x12500, NULL);
                     break;
             }
         }
@@ -3122,9 +3122,9 @@ static void func_actor_403000_8013603C(Task* arg0)
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 break;
             case 0x76:
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[4], 1, NULL);
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[18], 1, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[4], 1, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[18], 1, NULL);
                 break;
             case 0x78:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -3173,16 +3173,16 @@ static void func_actor_403000_801365D0(Task* arg0)
         if (work->stateFrame % 5 == 0 && work->stateFrame < 100) {
             switch ((s16)((s16)(work->stateFrame / 5) % 4)) {
                 case 0:
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x12600, NULL);
+                    effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x12600, NULL);
                     break;
                 case 1:
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[4], 0x22400, NULL);
+                    effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[4], 0x22400, NULL);
                     break;
                 case 2:
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x32600, NULL);
+                    effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x32600, NULL);
                     break;
                 case 3:
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[18], 0x12500, NULL);
+                    effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[18], 0x12500, NULL);
                     break;
             }
         }
@@ -3192,9 +3192,9 @@ static void func_actor_403000_801365D0(Task* arg0)
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 break;
             case 0x58:
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[4], 1, NULL);
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[18], 1, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[4], 1, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[18], 1, NULL);
                 break;
             case 0x5A:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -3251,22 +3251,22 @@ static void func_actor_403000_80136B14(Task* arg0)
         case 2:
             arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
+            effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
             break;
         case 5:
             arg0->extra.tmd->coords[12].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&arg0->extra.tmd->coords[12]);
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[12], 1, NULL);
+            effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[12], 1, NULL);
             break;
         case 15:
             arg0->extra.tmd->coords[16].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&arg0->extra.tmd->coords[16]);
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[16], 1, NULL);
+            effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[16], 1, NULL);
             break;
         case 30:
             arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
+            effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
             arg0->extra.tmd->otOffset = 0;
             break;
     }
@@ -3304,10 +3304,10 @@ static void func_actor_403000_80136D68(Task* arg0)
             case 13:
             case 18:
             case 21:
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x01032600, NULL);
+                effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[1], 0x01032600, NULL);
                 break;
             default:
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[(s16)(work->stateFrame % 24)], 0x01032600, NULL);
+                effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[(s16)(work->stateFrame % 24)], 0x01032600, NULL);
                 break;
         }
     }
@@ -3323,12 +3323,12 @@ static void func_actor_403000_80136D68(Task* arg0)
         case 15:
             arg0->extra.tmd->coords[16].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&arg0->extra.tmd->coords[16]);
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[16], 1, NULL);
+            effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[16], 1, NULL);
             break;
         case 30:
             arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
+            effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[1], 2, NULL);
             arg0->extra.tmd->otOffset = 0;
             break;
     }

@@ -739,7 +739,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
                         if (((rnd >> 16) & 3) == 0) {
                             rndSpawn        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             gRandomLcgState = rndSpawn;
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200,
+                            effectSpawn(EFFECT_SMOKE_PUFF, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200,
                                         &D_neo_ark_bridge_80181F60);
                         }
                         rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -747,7 +747,7 @@ void func_neo_ark_bridge_8017E954(Task* arg0)
                         if (((rnd >> 16) & 3) == 0) {
                             rndSpawn2       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             gRandomLcgState = rndSpawn2;
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((rndSpawn2 >> 16) & 0x11FF) | 0x22200,
+                            effectSpawn(EFFECT_SMOKE_PUFF, 0, ((rndSpawn2 >> 16) & 0x11FF) | 0x22200,
                                         &D_neo_ark_bridge_80181F68);
                         }
                     }

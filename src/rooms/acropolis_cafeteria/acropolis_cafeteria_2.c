@@ -1004,24 +1004,24 @@ void func_acropolis_cafeteria_8017E708(Task* task)
     work->move.vx                  = 0x220;
     work->move.vy                  = -0x12C;
     work->move.vz                  = -0x6A0;
-    Gp_SpawnEff(EFFECT_064, coord, 0, vec);
+    effectSpawn(EFFECT_064, coord, 0, vec);
     work->move.vx = 0x400;
     work->move.vy = -0x12C;
     work->move.vz = -0x260;
-    Gp_SpawnEff(EFFECT_064, coord, 0, vec);
+    effectSpawn(EFFECT_064, coord, 0, vec);
     work->move.vx = 0x370;
     work->move.vy = -0x12C;
     work->move.vz = -0x860;
-    Gp_SpawnEff(EFFECT_064, coord, 0, vec);
+    effectSpawn(EFFECT_064, coord, 0, vec);
     task->state   = task->state + 1;
     work->move.vx = 0xBB8;
     work->move.vy = -0x834;
     work->move.vz = -0x7D0;
-    Gp_SpawnEff(EFFECT_064, coord, 1, vec);
+    effectSpawn(EFFECT_064, coord, 1, vec);
     work->move.vx = 0xB22;
     work->move.vy = -0x834;
     work->move.vz = -0x900;
-    Gp_SpawnEff(EFFECT_064, coord, 1, vec);
+    effectSpawn(EFFECT_064, coord, 1, vec);
     gRoomEffectFlashId      = EFFECT_ACROPOLIS_CAFETERIA_FLASH;
     gRoomEffectTwinTrailId  = EFFECT_ACROPOLIS_CAFETERIA_TWIN_TRAIL;
     gRoomEffectSparkBurstId = EFFECT_ACROPOLIS_CAFETERIA_SPARK_BURST;
@@ -1067,7 +1067,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rnd             = gRandomLcgState >> 16;
             spawnArg        = flags + 0x180;
-            Gp_SpawnEff(EFFECT_ACROPOLIS_CAFETERIA_PUFF, coord, (rnd & 0xFF) + spawnArg, &work->move);
+            effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF, coord, (rnd & 0xFF) + spawnArg, &work->move);
         }
     }
     work->scale = gGameSession->location.loc.view;
@@ -1364,7 +1364,7 @@ s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
     coord                          = task->extra.tmd->coords;
     D_acropolis_cafeteria_80184CFC = arg2;
     if (arg2 != 0) {
-        Gp_SpawnEff(EFFECT_ACROPOLIS_CAFETERIA_PUFF_EMITTER, coord, 0, NULL);
+        effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF_EMITTER, coord, 0, NULL);
     }
     return 0;
 }

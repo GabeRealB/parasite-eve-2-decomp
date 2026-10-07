@@ -830,7 +830,7 @@ static s32 _neoArkPowerPlant2IgnoreRoomAction(Task* task, s32 messageId, const D
 
 void func_neo_ark_power_plant_2_8017D69C(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
@@ -906,7 +906,7 @@ void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)
                     rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     gRandomLcgState = rnd;
                     if (((rnd >> 16) & 7) == 0) {
-                        Gp_SpawnEff(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_2_80180678);
+                        effectSpawn(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_2_80180678);
                     }
                 }
             } else {

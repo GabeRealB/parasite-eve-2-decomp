@@ -40,7 +40,7 @@ void func_shelter_b1_transfer_tunnel_8017D678(Task* task);
 /// Runs a pink charge flash, a screen tint at its peak, and a fading star.
 ///
 /// Requires a coordinate body and a counted, owned `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`. Start in state 0 with a
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`. Start in state 0 with a
 /// positive charge duration in `spawnArg1.value`, in active ticks; that word
 /// becomes a countdown. Nonzero room effect control pauses updates; values
 /// at least 4 cancel. Completion or state 3 releases the work and task.
@@ -67,7 +67,7 @@ void func_shelter_b1_transfer_tunnel_80181C78(Task* task);
 /// Runs an animated vertical mote that brightens or starts steady, then fades.
 ///
 /// Requires a coordinate body and a counted, zero-initialized `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`, with task state 0.
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`, with task state 0.
 /// `spawnArg1` packs a world-unit half-extent in bits 0..11, a palette selector
 /// in 12..15, unsigned speed in 16..23, and signed lifetime in 24..31, in active
 /// ticks. Motion bits 0..1 overlap the half-extent: either selects steady

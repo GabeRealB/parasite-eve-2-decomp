@@ -920,7 +920,7 @@ EvsCommand D_actor_160900_8013F538[58] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347D0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = Gp_PulseState1C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = roomEffectRequestCancelAll }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_160900_801346E0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_160900_801347B0 }, { .value = ACTOR_160900_KYLE_CUE_GROUND_DECAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1539,7 +1539,7 @@ static void func_actor_160900_8013358C(Task* arg0)
             ofs.vx = -100;
             ofs.vy = 100;
             ofs.vz = -1200;
-            Gp_SpawnEff(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs);
+            effectSpawn(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs);
             break;
         case ACTOR_160900_KYLE_CUE_CLIP_1:
             child           = work->kyle->work;
@@ -1555,7 +1555,7 @@ static void func_actor_160900_8013358C(Task* arg0)
             ofs2.vx = -200;
             ofs2.vy = 100;
             ofs2.vz = -400;
-            Gp_SpawnEff(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs2);
+            effectSpawn(EFFECT_GROUND_DECAL, work->kyle->extra.tmd->coords, 0x20000100, &ofs2);
             break;
     }
     work->kyleCue.id = 0;
@@ -1581,7 +1581,7 @@ static void func_actor_160900_80133758(SVECTOR* pts)
             pos.vx = x;
             pos.vy = pts->vy;
             pos.vz = pts->vz;
-            Gp_SpawnEff(EFFECT_1B4, NULL, flags, &pos);
+            effectSpawn(EFFECT_1B4, NULL, flags, &pos);
             pts++;
         } while (pts->pad != -1);
     }

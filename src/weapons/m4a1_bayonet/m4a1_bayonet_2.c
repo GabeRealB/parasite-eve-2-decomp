@@ -115,7 +115,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                         actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0004, 1);
-                    Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
+                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1A, NULL);
                     playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
@@ -148,7 +148,7 @@ void func_m4a1_bayonet_8011DA34(Task* arg0)
                     actor->actionValue                                    = 0xA;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201A0006, 0);
-                    eff = Gp_SpawnEff(EFFECT_M4A1_BAYONET_TRAIL,
+                    eff = effectSpawn(EFFECT_M4A1_BAYONET_TRAIL,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0x1A, NULL);
                     if (eff != NULL) {

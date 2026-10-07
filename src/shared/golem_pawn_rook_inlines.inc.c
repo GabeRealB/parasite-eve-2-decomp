@@ -19,7 +19,7 @@ static __inline__ void golemPawnRookSpawnDust(Task* actor)
         head[-1].vx     = 0;
         rot->vz         = 0;
         rot->vy         = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1FF);
-        Gp_SpawnEff(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], 0x100, rot);
+        effectSpawn(EFFECT_FLASH_BURST, &actor->extra.tmd->coords[3], 0x100, rot);
     }
     SCRATCH_STACK_RELEASE_BYTES(8);
 }

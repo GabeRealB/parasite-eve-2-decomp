@@ -1126,7 +1126,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 do {
                     case 6:
                         if (task->spawnArg1.value != 0) {
-                            Gp_PulseState1C();
+                            roomEffectRequestCancelAll();
                             task->spawnArg1.value = 0;
                         }
                         break;
@@ -1171,8 +1171,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
                             vec1->vy        = 0;
                             vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                     case 21:
@@ -1196,7 +1196,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
                             vec1->vy        = 0;
                             vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                     case 22:
@@ -1221,7 +1221,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
                             vec1->vy        = 0;
                             vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                     case 23:
@@ -1251,8 +1251,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
                             vec1->vy        = 0;
                             vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                     case 24:
@@ -1282,8 +1282,8 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                             vec1->vx        = ((radius * rcos(angle)) >> 12) + 0x157C;
                             vec1->vy        = 0;
                             vec1->vz        = ((radius * rsin((s16)angle)) >> 12) + 0x7D0;
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
+                            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec0);
+                            effectSpawn(EFFECT_SMOKE_PUFF, coord, ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) << 30) | 0x80023400, vec1);
                         }
                         break;
                 } while (0);
@@ -1294,7 +1294,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 8; i < 0x10; i += 4) {
                         idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                        Gp_SpawnEff(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
                     }
                 }
                 break;
@@ -1303,7 +1303,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                     for (i = 4; i < 0x10; i += 4) {
                         if (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) {
                             idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                            Gp_SpawnEff(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx - 0x800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                            effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx - 0x800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                         }
                     }
                 }
@@ -1313,7 +1313,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                     for (i = 0; i < 0x40; i += 4) {
                         if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
                             idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                            Gp_SpawnEff(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                            effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx, &D_shelter_b1_sterilization_room_8018909C[idx]);
                         }
                     }
                 }
@@ -1325,7 +1325,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         for (i = 4; i < 0x10; i += 4) {
                             if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
                                 idx = j + i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                                Gp_SpawnEff(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx + 0x600000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                                effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx + 0x600000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                             }
                         }
                     }
@@ -1339,7 +1339,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                         for (i = 0; i < 0xC; i += 4) {
                             if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
                                 idx = j + i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                                Gp_SpawnEff(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx + 0x600000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                                effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx + 0x600000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                             }
                         }
                     }
@@ -1349,7 +1349,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 0xC; i < 0x40; i += 0x10) {
                         idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                        Gp_SpawnEff(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx + 0x1800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx + 0x1800000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                     }
                 }
                 break;
@@ -1357,7 +1357,7 @@ void func_shelter_b1_sterilization_room_8018188C(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (i = 0xC; i < 0x40; i += 0x10) {
                         idx = i + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                        Gp_SpawnEff(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx + 0x1000000, &D_shelter_b1_sterilization_room_8018909C[idx]);
+                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, idx + 0x1000000, &D_shelter_b1_sterilization_room_8018909C[idx]);
                     }
                 }
                 break;

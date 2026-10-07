@@ -823,7 +823,7 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 7) == 0) {
-                        Gp_SpawnEff(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
+                        effectSpawn(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
                     }
                 }
             } else {
@@ -853,7 +853,7 @@ void func_neo_ark_power_plant_1_8017DA18(Task* unused)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 7) == 0) {
-                        Gp_SpawnEff(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
+                        effectSpawn(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
                     }
                 }
             } else {

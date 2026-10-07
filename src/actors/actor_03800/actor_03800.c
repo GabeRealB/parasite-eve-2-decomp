@@ -1099,11 +1099,11 @@ static void Actor03800_Fn00A98(Task* arg0)
                     if (work->overturned == 0) {
                         if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
                             damage *= 4;
-                            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
+                            effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);
                         }
                     } else if (!(work->hitContacts[i].key.value & 0x8000) && (damage != 0)) {
                         damage *= 3;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 4, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, coord, 4, NULL);
                     }
                     worldTargetAddReadoutAmount(&ctx->node, damage, 0);
                     damageAccumulateLifeDrainHp(ctx, work->hitContacts[i].key.value, damage, 0);
@@ -2099,7 +2099,7 @@ static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
                 obj->flags = TMD_OBJECT_SEMI_TRANS;
             }
             if (work->timer == 15) {
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
             }
             if (work->timer >= 0x3C) {
                 work->actionStep = 2;
@@ -2197,7 +2197,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
             D_80067704[0] = &_gActor03800BlackBeetleEffect5;
             break;
     }
-    eff = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 3, 0x100, NULL);
+    eff = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 3, 0x100, NULL);
     if (eff == NULL) {
         return;
     }

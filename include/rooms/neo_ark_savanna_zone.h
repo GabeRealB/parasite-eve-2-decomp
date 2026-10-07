@@ -40,7 +40,7 @@ void neoArkSavannaZoneConfigureEffectsTask(Task* task);
 /// Runs the savanna zone's charging pink flash, peak screen tint and fading star.
 ///
 /// Requires a coordinate body and counted, owned `EffectWork` in
-/// `spawnArg2.pointer`, as `Gp_SpawnEff` supplies. `spawnArg1.value` is a positive
+/// `spawnArg2.pointer`, as `effectSpawn` supplies. `spawnArg1.value` is a positive
 /// charge duration in active ticks, consumed as a countdown after initialization.
 /// Nonzero room effect control pauses without drawing; control 4 or above
 /// cancels it. While running, state 3 or fade completion releases it. Release

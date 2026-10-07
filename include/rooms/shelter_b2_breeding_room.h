@@ -50,7 +50,7 @@ void func_shelter_b2_breeding_room_8017E774(Task* arg0);
 
 /// Runs the Breeding Room's animated spark along its initial target displacement.
 ///
-/// Requires a counted `Gp_SpawnEff` task with a `TASK_BODY_COORD` body and owned
+/// Requires a counted `effectSpawn` task with a `TASK_BODY_COORD` body and owned
 /// `EffectWork` in `spawnArg2.pointer`. `spawnArg1.pointer` borrows a target
 /// `GfxCoord`; both world matrices must be composed on the first active tick.
 /// That tick fixes a flight step in parent axes using a Q12 factor of 204;
@@ -61,7 +61,7 @@ void shelterB2BreedingRoomRoomVisualEffectsFlyingSparkTask(Task* task);
 
 /// Runs the Breeding Room's expanding orange burst, ground glow and fading ring.
 ///
-/// Requires a counted `Gp_SpawnEff` task with a `TASK_BODY_COORD` body and owned
+/// Requires a counted `effectSpawn` task with a `TASK_BODY_COORD` body and owned
 /// `EffectWork` in `spawnArg2.pointer`; `spawnArg1` is unused. The glow grows
 /// by 16 world units per active tick. The expanding ring fades first, then
 /// the central burst fades and releases the work. Each draw refreshes the

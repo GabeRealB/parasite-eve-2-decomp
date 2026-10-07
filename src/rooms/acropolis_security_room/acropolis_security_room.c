@@ -3358,12 +3358,12 @@ void func_acropolis_security_room_801805A4(Task* task)
                 gpuUploadImages(D_acropolis_security_room_80183918);
 
                 for (i = 0; i < 4; i++) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_SECURITY_MONITOR_FEED, coord, i, NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_SECURITY_MONITOR_FEED, coord, i, NULL);
                 }
             } else if (((viewGetMappedIndex() & 0xFF) != 8) && ((viewGetMappedIndex() & 0xFF) != 0x10)) {
                 for (i = 0; i < 4; i++) {
                     if ((work->index >> i) & 1) {
-                        Gp_SpawnEff(EFFECT_ACROPOLIS_SECURITY_MONITOR_GLOW, coord, (s32)(D_acropolis_security_room_801839B8[i]),
+                        effectSpawn(EFFECT_ACROPOLIS_SECURITY_MONITOR_GLOW, coord, (s32)(D_acropolis_security_room_801839B8[i]),
                                     &D_acropolis_security_room_80183998[i]);
                     }
                 }

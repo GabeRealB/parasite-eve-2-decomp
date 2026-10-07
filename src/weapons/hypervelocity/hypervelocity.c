@@ -228,7 +228,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             actorRenderComposeCoord(coord);
             work->move.vy = -((work->age & 0xF) << 5);
             if (work->age & 1) {
-                Gp_SpawnEff(EFFECT_SPARK_FADE, coord, 0x180, &work->move);
+                effectSpawn(EFFECT_SPARK_FADE, coord, 0x180, &work->move);
             }
             lightSlot->framesLeft = 4;
             slot->inner           = 0x100;
@@ -258,7 +258,7 @@ void func_hypervelocity_8011D1E8(Task* task)
         case 3:
             actorRenderComposeCoord(coord);
             work->move.vy = -((work->age & 0xF) << 6);
-            Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x180, &work->move);
+            effectSpawn(EFFECT_FLASH_BURST, coord, 0x180, &work->move);
             lightSlot->framesLeft = 4;
             slot->inner           = 0x400;
             slot->outer           = 0x4000;
@@ -304,7 +304,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             task->spawnArg1.value = task->spawnArg1.value - 1;
             if (task->spawnArg1.value == 0) {
                 task->state = 4;
-                eff         = Gp_SpawnEff(EFFECT_HYPERVELOCITY_ROUND, coord, 0, NULL);
+                eff         = effectSpawn(EFFECT_HYPERVELOCITY_ROUND, coord, 0, NULL);
                 if (eff != NULL) {
                     taskReparent(task, eff->task);
                 }
@@ -314,7 +314,7 @@ void func_hypervelocity_8011D1E8(Task* task)
         case 4:
             actorRenderComposeCoord(coord);
             work->move.vy = -((work->age & 0xF) << 6);
-            Gp_SpawnEff(EFFECT_SPARK_FADE, coord, 0x180, &work->move);
+            effectSpawn(EFFECT_SPARK_FADE, coord, 0x180, &work->move);
             if (work->angle > 0) {
                 rgb[0] = work->scale >> 1;
                 rgb[1] = work->scale >> 1;
@@ -327,7 +327,7 @@ void func_hypervelocity_8011D1E8(Task* task)
             }
             player          = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &player[(((gRandomLcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
+            effectSpawn(EFFECT_DUST_PUFF, &player[(((gRandomLcgState >> 16) & 1) * 3) + 15], 0x2300, NULL);
             if (work->age >= 0x6F || task->spawnArg1.value < 0) {
                 task->state = 1;
             }
@@ -439,7 +439,7 @@ void func_hypervelocity_8011D830(Task* task)
             // The allocation already zeroed the entry; LAST terminates the table.
             roundBody->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
             roundBody->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            eff                          = Gp_SpawnEff(EFFECT_HYPERVELOCITY_SHOCK_RING, coord, 0, NULL);
+            eff                          = effectSpawn(EFFECT_HYPERVELOCITY_SHOCK_RING, coord, 0, NULL);
             if (eff != NULL) {
                 taskReparent(task, eff->task);
             }
@@ -487,8 +487,8 @@ void func_hypervelocity_8011D830(Task* task)
                 groundGlowDraw(&ground, work->angle);
             }
             if (work->age < 0x15) {
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x400, NULL);
-                eff = Gp_SpawnEff(EFFECT_HYPERVELOCITY_DISCHARGE_CONE, coord, 0, NULL);
+                effectSpawn(EFFECT_FLASH_BURST, coord, 0x400, NULL);
+                eff = effectSpawn(EFFECT_HYPERVELOCITY_DISCHARGE_CONE, coord, 0, NULL);
                 if (eff != NULL) {
                     taskReparent(task, eff->task);
                 }
@@ -526,7 +526,7 @@ void func_hypervelocity_8011D830(Task* task)
                 effectKillTask(work, task);
                 return;
             }
-            Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x400, NULL);
+            effectSpawn(EFFECT_FLASH_BURST, coord, 0x400, NULL);
             return;
     }
 }

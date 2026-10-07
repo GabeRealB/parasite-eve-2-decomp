@@ -15,7 +15,7 @@ void maggotCaterpillarSpawnHusk(Task* actor)
     u32              raw;
 
     D_80067704[0] = &gMaggotCaterpillarHuskModel;
-    eff           = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 4, 0x100, NULL);
+    eff           = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 4, 0x100, NULL);
     if (eff == NULL) {
         return;
     }

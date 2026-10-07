@@ -54,7 +54,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                         task->killCountdown = 0;
                         sceneReleaseBattleRefWithRewards(task, 0x2E);
                         if (work->hasBurst != 0) {
-                            Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
+                            effectSpawn(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
                         }
                         work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_FLATTEN;
                         work->deathFrames   = 0;

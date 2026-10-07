@@ -134,13 +134,13 @@ void golemPawnRookTakeHits(Task* arg0)
                     work->shieldRaised = 0;
                     if ((kind & 0xFFFF) == 5) {
                         damage *= 2;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                     }
                 }
                 if (damageRollCriticalHit(enemy, work->hurtContacts[i].key.value, 0) != 0) {
                     damage *= 4;
                     if ((kind & 0xFFFF) != 5) {
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                     if (work->buildupActive == 0) {
                         result = 1;

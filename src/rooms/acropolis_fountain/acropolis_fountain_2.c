@@ -1590,7 +1590,7 @@ void func_acropolis_fountain_8017E014(Task* task)
     view  = viewGetMappedIndex();
     switch (task->state) {
         case 0:
-            Gp_SpawnEff(EFFECT_ACROPOLIS_FOUNTAIN_SPRAY, coord, 0, &D_acropolis_fountain_8017E7F0);
+            effectSpawn(EFFECT_ACROPOLIS_FOUNTAIN_SPRAY, coord, 0, &D_acropolis_fountain_8017E7F0);
             work->scale = view & 0xFF;
             task->state = 1;
             /* fallthrough */

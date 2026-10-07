@@ -135,7 +135,7 @@ void oddStrangerTakeHit(Task* arg0)
             work->recentDamage += s->damage;
             effect              = s->criticalEffect;
             if (effect != -1) {
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
+                effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
             if (work->state == ODD_STRANGER_STATE_DORMANT_SCRIPTED) {
                 sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);

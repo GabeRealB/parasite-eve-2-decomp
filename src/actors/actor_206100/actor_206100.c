@@ -403,7 +403,7 @@ static void func_actor_206100_8014D14C(Task* task);
 /// (`D_actor_206100_80149EB4`, whose first entry `func_actor_206100_8014F7B4`
 /// and third `func_actor_206100_8014F878` bracket it).  On the seventh frame of
 /// the sub-state it splats 0x20 effect particles around the actor's root
-/// coordinate -- the same `Gp_SpawnEff` id 0x01202148 ring
+/// coordinate -- the same `effectSpawn` id 0x01202148 ring
 /// `func_actor_206100_8014D574` fires, at a radius of 0x1000 and a constant
 /// y of -0x3E8 -- and from frame 0x1F it draws from `gRandomLcgState`: a one-in-four
 /// `(state >> 16) & 3 == 0` hands state 2 (the teleport
@@ -1563,10 +1563,10 @@ static void func_actor_206100_8014BAA8(Task* task)
                 tmp = kind;
                 switch (tmp) {
                     case 1:
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], 0, 0);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], 0, 0);
                         break;
                     case 2:
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], 2, 0);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], 2, 0);
                         break;
                 }
                 damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, amount, 0);
@@ -2200,7 +2200,7 @@ static void func_actor_206100_8014CE60(Task* task)
             vec.vx = (u32)rsin(i << 7) >> 3;
             vec.vy = y;
             vec.vz = (u32)rcos(i << 7) >> 3;
-            Gp_SpawnEff(gRoomEffectWaterSprayId, ring, 0x01202148, &vec);
+            effectSpawn(gRoomEffectWaterSprayId, ring, 0x01202148, &vec);
             i++;
         } while (i < 0x20);
     }
@@ -2515,7 +2515,7 @@ static void func_actor_206100_8014D574(Task* task)
             vec.vx = (u32)rsin(i << 7) >> 3;
             vec.vy = y;
             vec.vz = (u32)rcos(i << 7) >> 3;
-            Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
+            effectSpawn(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
             i++;
         } while (i < 0x20);
         sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x551E0006;
@@ -2576,7 +2576,7 @@ static void func_actor_206100_8014D6F4(Task* task)
 /// teleports out of them.
 ///
 /// On the seventh frame of the sub-state it splats 0x20 effect particles
-/// (`Gp_SpawnEff` id 0x01202148, the same pair `func_actor_206100_8014D574`
+/// (`effectSpawn` id 0x01202148, the same pair `func_actor_206100_8014D574`
 /// fires at frame 0x1E) around the actor's root coordinate -- `rsin` / `rcos`
 /// of `i << 7` shifted down by 3, so a ring of radius 0x1000 in 0x20 steps,
 /// held at a constant y of -0x3E8.  `y` is a local rather than a literal in
@@ -2609,7 +2609,7 @@ static void func_actor_206100_8014D8E8(Task* task)
             vec.vx = (u32)rsin(i << 7) >> 3;
             vec.vy = y;
             vec.vz = (u32)rcos(i << 7) >> 3;
-            Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
+            effectSpawn(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
             i++;
         } while (i < 0x20);
     }

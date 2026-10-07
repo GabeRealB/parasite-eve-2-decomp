@@ -1240,7 +1240,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                 case 4:
                 case 5:
                 case DAMAGE_PLAYER_REACTION_EXPLOSION:
-                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 2, NULL);
+                    effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 2, NULL);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     worldTargetAddReadoutAmount(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
                     func_actor_207200_8014D128(arg0);
@@ -1450,7 +1450,7 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
                             obj->flags = TMD_OBJECT_SEMI_TRANS;
                         }
                         if (work->phaseFrames == 0xF) {
-                            Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
+                            effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
                         }
                     }
                     break;
@@ -1502,10 +1502,10 @@ static void func_actor_207200_8014CFEC(Task* arg0)
     work = arg0->work;
     ctx  = arg0->spawnArg2.pointer;
 
-    Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, NULL);
+    effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, NULL);
     worldTargetAddReadoutAmount(&ctx->node, ctx->hp - 1, 0);
     D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstHead;
-    effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
+    effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
     if (effect != NULL) {
         func_actor_207200_8014DAF8(effect->task, arg0);
     }
@@ -1533,28 +1533,28 @@ static void func_actor_207200_8014D128(Task* arg0)
         case 0:
         case 1:
             D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstHead;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }
             break;
         case 2:
             D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstArm;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 5, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 5, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }
             break;
         case 3:
             D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstLeg;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 2, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 2, 0, NULL);
             if (effect != NULL) {
                 func_actor_207200_8014DAF8(effect->task, arg0);
             }
             break;
     }
-    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 3, 0x300, NULL);
-    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 2, 0x300, NULL);
+    effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 3, 0x300, NULL);
+    effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 2, 0x300, NULL);
 }
 
 void func_actor_207200_8014D280(Task* arg0)

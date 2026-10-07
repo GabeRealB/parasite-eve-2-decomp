@@ -6,7 +6,7 @@
 /// Advances and draws one spark from the Flare Parasite Energy effect.
 ///
 /// Requires a live coordinate-body task and the zero-initialized, counted
-/// `EffectWork` allocated by `Gp_SpawnEff` in `spawnArg2.pointer`.
+/// `EffectWork` allocated by `effectSpawn` in `spawnArg2.pointer`.
 /// `spawnArg1.value` supplies a perspective-size numerator in its low 12 bits;
 /// the Flare emitter supplies 1664..2175. Initialization preserves the spawn
 /// translation and borrows the live player's root rotation to orient a constant

@@ -171,7 +171,7 @@ void func_gunblade_8011E040(Task* arg0)
             Gp_ConsumeSlotQty(0x96, 1);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170005, 1);
-            Gp_SpawnEff(EFFECT_SHOTGUN_MUZZLE_FLASH, actor->equipmentTasks[1]->extra.tmd->coords,
+            effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH, actor->equipmentTasks[1]->extra.tmd->coords,
                         (gPlayerStatus.weaponSlotItem << 16) | 0x17, NULL);
             playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
             break;
@@ -185,7 +185,7 @@ void func_gunblade_8011E040(Task* arg0)
                     actor->stateTimer                                     = 8;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, sfx | 0x20170006, 0);
-                    eff = Gp_SpawnEff(EFFECT_GUNBLADE_TRAIL,
+                    eff = effectSpawn(EFFECT_GUNBLADE_TRAIL,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       0x17, NULL);
                     if (eff != NULL) {

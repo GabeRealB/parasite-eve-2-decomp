@@ -83,7 +83,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 extern s16 gMaggotCaterpillarAnimBlend[];
 
 /* `D_80067704` is the third word of a `D_800676A8` record: it selects the model
- * stream the next `Gp_SpawnEff` uses for the effect's own `TmdObject`. Declared
+ * stream the next `effectSpawn` uses for the effect's own `TmdObject`. Declared
  * as a one-element array so GCC 2.8.1 cannot treat the store as non-aliasing
  * with the struct traffic that follows and sink it past the loads. */
 extern void* D_80067704[1];

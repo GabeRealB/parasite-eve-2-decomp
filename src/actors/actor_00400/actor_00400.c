@@ -1774,10 +1774,10 @@ static void Actor00400_Fn01B90(Task* arg0)
                 tmp = kind;
                 switch (tmp) {
                     case 1:
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[work->targetPart], 0, 0);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[work->targetPart], 0, 0);
                         break;
                     case 2:
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[work->targetPart], 2, 0);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[work->targetPart], 2, 0);
                         break;
                 }
                 damageAccumulateLifeDrainHp(obj, work->hitContacts[i].key.value, amount, 0);
@@ -1978,7 +1978,7 @@ static void Actor00400_Fn0237C(Task* arg0)
     TmdObject*  dst5;
 
     D_800678F0[0] = &_gActor00400DiverBurstHead;
-    eff1          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[4], 0x200, NULL);
+    eff1          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[4], 0x200, NULL);
     if (eff1 != NULL) {
         src1                    = arg0->extra.tmd;
         dst1                    = eff1->task->extra.tmd;
@@ -1990,7 +1990,7 @@ static void Actor00400_Fn0237C(Task* arg0)
         }
     }
     D_800678F0[0] = &_gActor00400DiverBurstArmRight;
-    eff2          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[11], 0x200, NULL);
+    eff2          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[11], 0x200, NULL);
     if (eff2 != NULL) {
         src2                    = arg0->extra.tmd;
         dst2                    = eff2->task->extra.tmd;
@@ -2002,7 +2002,7 @@ static void Actor00400_Fn0237C(Task* arg0)
         }
     }
     D_800678F0[0] = &_gActor00400DiverBurstArmLeft1;
-    eff3          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[14], 0x200, NULL);
+    eff3          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[14], 0x200, NULL);
     if (eff3 != NULL) {
         src3                    = arg0->extra.tmd;
         dst3                    = eff3->task->extra.tmd;
@@ -2016,10 +2016,10 @@ static void Actor00400_Fn0237C(Task* arg0)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
         D_800678F0[0] = &_gActor00400DiverBurstLegRight;
-        eff4          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
+        eff4          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
     } else {
         D_800678F0[0] = &_gActor00400DiverBurstArmLeft2;
-        eff4          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
+        eff4          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
     }
     if (eff4 != NULL) {
         src4                    = arg0->extra.tmd;
@@ -2032,7 +2032,7 @@ static void Actor00400_Fn0237C(Task* arg0)
         }
     }
     D_800678F0[0] = &_gActor00400DiverEnergyBall;
-    eff5          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    eff5          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (eff5 != NULL) {
         src5                    = arg0->extra.tmd;
         dst5                    = eff5->task->extra.tmd;
@@ -2043,7 +2043,7 @@ static void Actor00400_Fn0237C(Task* arg0)
             tmdBuildBufferHalf(dst5);
         }
     }
-    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
 }
 
 /// Drives the two head/neck coordinates (`base[2]`, `base[3]`) and the aim
@@ -3525,7 +3525,7 @@ static inline void Actor00400_SpawnRing(Task* arg0, _Actor00400Work* work, GfxCo
         vec.vx = (u32)rsin(i << 8) >> 3;
         vec.vy = y;
         vec.vz = (u32)rcos(i << 8) >> 3;
-        Gp_SpawnEff(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
+        effectSpawn(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
         i++;
     } while (i < 16);
 }
@@ -3757,7 +3757,7 @@ static void Actor00400_Fn05D00(Task* arg0)
             vec.vx = (u32)rsin(i << 8) >> 3;
             vec.vy = y;
             vec.vz = (u32)rcos(i << 8) >> 3;
-            Gp_SpawnEff(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
+            effectSpawn(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
             i++;
         } while (i < 16);
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
@@ -3869,7 +3869,7 @@ static void Actor00400_Fn061E8(Task* arg0)
         vec.vx = (u32)rsin(i << 8) >> 3;
         vec.vy = y;
         vec.vz = (u32)rcos(i << 8) >> 3;
-        Gp_SpawnEff(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
+        effectSpawn(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
         i++;
     } while (i < 16);
     sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
@@ -5305,7 +5305,7 @@ static void Actor00400_Fn08E50(Task* arg0)
         pos.vx = 0;
         pos.vy = 0;
         pos.vz = 0;
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 4, &pos);
+        effectSpawn(EFFECT_CORPSE_BURN, coord, 4, &pos);
     }
     if (work->stateFrames == 0x10) {
         worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);

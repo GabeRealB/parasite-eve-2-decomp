@@ -42,7 +42,7 @@ void func_shelter_b1_north_maintenance_walkway_8017DAFC(Task* task);
 /// Runs a vertically drifting animated mote until it fades.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`. `spawnArg1` packs half-extent in bits 0..11, palette in
+/// `effectSpawn`. `spawnArg1` packs half-extent in bits 0..11, palette in
 /// bits 12..15, unsigned speed in bits 16..23 and signed lifetime in bits
 /// 24..31. Extent and speed use parent-coordinate units; lifetime uses active
 /// ticks. Motion bits 0..1 overlap the extent: either selects steady motion,
@@ -56,7 +56,7 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsMoteTask(Task* task);
 /// Charges a pink flash, tints the screen at its peak, then fades as a star.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`. `spawnArg1.value` is a positive charge duration in active
+/// `effectSpawn`. `spawnArg1.value` is a positive charge duration in active
 /// ticks, consumed as a countdown after initialization. State 3 requests early
 /// release. Nonzero room effect control pauses every phase, including release;
 /// four or above cancels it. Completion or cancellation releases work and task.
@@ -67,7 +67,7 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task);
 /// Records two moving endpoints and draws their fading blue twin trail.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`, a live parent coordinate and `Task::work` initially NULL.
+/// `effectSpawn`, a live parent coordinate and `Task::work` initially NULL.
 /// Owns two eight-coordinate histories in `Task::work`; allocation failure
 /// retries initialization. Endpoints use this room's two fixed local offsets;
 /// snapshots retain their world positions as the parent moves. `spawnArg1.value`
@@ -84,7 +84,7 @@ void func_shelter_b1_north_maintenance_walkway_80182E70(Task* arg0);
 /// Flies an animated spark along a fixed step toward its initial target position.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`. `spawnArg1.pointer` borrows a target `GfxCoord` whose cached
+/// `effectSpawn`. `spawnArg1.pointer` borrows a target `GfxCoord` whose cached
 /// transform, like the spark's, must be composed into the same view space
 /// on the first active tick.
 /// That tick fixes the step at 204/4096 of the initial displacement in parent
@@ -99,7 +99,7 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task
 ///
 /// Uses the flying-effect drawers and refreshes transient light slot 2.
 /// Requires the coordinate body and counted, owned `EffectWork` from
-/// `Gp_SpawnEff`; `spawnArg1` is unused. The ring fades before the centre.
+/// `effectSpawn`; `spawnArg1` is unused. The ring fades before the centre.
 /// Nonzero room effect control pauses it; four or above cancels it. Completion
 /// or cancellation releases work and task. Coordinate ancestors, the effect
 /// controller and this room overlay must remain live.
@@ -108,7 +108,7 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask(Task
 /// Runs an expanding tinted halo, shrinking ring and fading star.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`. The unsigned low half of `spawnArg1` is a nonzero expansion
+/// `effectSpawn`. The unsigned low half of `spawnArg1` is a nonzero expansion
 /// duration in active ticks; the signed high half selects tint row 0..2.
 /// Initialization attaches at the saved parent-local offset and replaces the
 /// argument with its countdown. State 3 requests early release. Nonzero room
@@ -121,7 +121,7 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloTask(Task* task);
 ///
 /// Uses the halo-effect drawers and refreshes transient light slot 2.
 /// Requires the coordinate body and counted, owned `EffectWork` from
-/// `Gp_SpawnEff`; `spawnArg1` is unused. The ring fades before the centre.
+/// `effectSpawn`; `spawnArg1` is unused. The ring fades before the centre.
 /// Nonzero room effect control pauses it; four or above cancels it. Completion
 /// or cancellation releases work and task. Coordinate ancestors, the effect
 /// controller and this room overlay must remain live.

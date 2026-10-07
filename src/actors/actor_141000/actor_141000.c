@@ -2048,7 +2048,7 @@ static void func_actor_141000_80132D3C(Task* task)
     handlers = D_actor_141000_80131E3C;
     handlers.funcs[(s16)work->state](task);
     if (gDisplayState.animFrame & 1) {
-        Gp_SpawnEff(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x24200, NULL);
+        effectSpawn(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, 0x24200, NULL);
     }
     if (gGameSession->viewReady != 0) {
         taskKill(task);
@@ -2215,7 +2215,7 @@ void func_actor_141000_801330C0(Task* arg0)
         arg0->killCountdown = count;
         if ((s16)count >= 5) {
             arg0->killCountdown = 0;
-            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x14200, NULL);
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x14200, NULL);
         }
     }
     if ((gGameSession->viewReady != 0) || (gGameSession->evtSkipped != 0)) {

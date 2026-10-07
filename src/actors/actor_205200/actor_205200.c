@@ -595,7 +595,7 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
             damage  = Gp_ComputeDamage(part->contacts[i].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (damageRollCriticalHit(enemy, part->contacts[i].key.value, 0) != 0) {
                 damage *= 4;
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
+                effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);
             }
             worldTargetAddReadoutAmount(&enemy->node, damage, 0);
             enemy->hp -= damage;
@@ -604,11 +604,11 @@ static void func_actor_205200_8014B048(Task* arg0, s32 arg1)
                 part->downState                                                     = ACTOR_205200_PART_DOWN_DESTROYED;
                 ((_Actor205200CtrlWork*)arg0->parent->work)->partLive[part->slot]   = 0;
                 ((_Actor205200CtrlWork*)arg0->parent->work)->partCoords[part->slot] = NULL;
-                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
-                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
-                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
-                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
-                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
+                effectSpawn(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
+                effectSpawn(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
+                effectSpawn(EFFECT_EXPLOSION, coord, 0x01002600, NULL);
+                effectSpawn(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
+                effectSpawn(EFFECT_EXPLOSION, coord, 0x02002600, NULL);
                 snd = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340004;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 Gp_SpawnPadLerp(10, 0xFF, 0x80);
@@ -659,10 +659,10 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
     }
     switch (part->downState) {
         case ACTOR_205200_PART_DOWN_DESTROYED:
-            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
-            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
-            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
-            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x32001400, NULL);
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             worldTargetUnlinkNode(&arg0->node);
             worldCollisionUnlinkBody(&part->body);
             sceneReleaseBattleRefWithRewards(arg1, 0x34);
@@ -695,7 +695,7 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
                 gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 part->sparkTimer = ((gRandomLcgState >> 16) & 0x3F) + 0x1E;
                 func_800FDB18(7, coord, NULL, &part->effectArg);
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
                 view = Gp_GetStageView(&gGameSession->location.loc);
                 d.vx = view->transform.t[0] + coord->coord.t[0];
                 d.vy = view->transform.t[1] + coord->coord.t[1];
@@ -715,8 +715,8 @@ static void func_actor_205200_8014B484(Enemy* arg0, Task* arg1)
             if (--part->effectCooldown <= 0) {
                 gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 part->effectCooldown = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF2001400, NULL);
             }
             break;
         case ACTOR_205200_PART_DOWN_RETIRING:

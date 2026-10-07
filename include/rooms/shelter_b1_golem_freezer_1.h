@@ -43,7 +43,7 @@ void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task);
 ///
 /// Requires a coordinate body, task state zero, and an owned, counted
 /// `EffectWork` with frame index zero in `spawnArg2.pointer`, as supplied by
-/// `Gp_SpawnEff`. `spawnArg1.value` packs
+/// `effectSpawn`. `spawnArg1.value` packs
 /// size in bits 0..11, ticks per animation cell in bits 12..14 (1 if bits
 /// 12..15 are all zero), and drift speed in bits 16..23 (64 if zero), in local
 /// coordinate units per task tick. Bit 15 alone would decode a zero period;

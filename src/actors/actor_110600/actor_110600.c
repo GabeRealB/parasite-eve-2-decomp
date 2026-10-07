@@ -2282,7 +2282,7 @@ static void func_actor_110600_80136210(Task* arg0)
         scratch->damage         = Gp_ComputeDamage(scratch->hitKey, distance, 0, 0);
         if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
             scratch->damage *= 5;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, 0, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, 0, NULL);
         }
         magnitude = scratch->hitYaw;
         if (magnitude < 0) {
@@ -2569,7 +2569,7 @@ static void func_actor_110600_80136B20(Task* arg0)
             pos.vx = 0x12C;
             pos.vy = 0;
             pos.vz = 0;
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[3], 3, &pos);
+            effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[3], 3, &pos);
             break;
         case 0xFA:
         case 0x1A4:
@@ -2607,7 +2607,7 @@ static void func_actor_110600_80136B20(Task* arg0)
 /// of `attackBody.flags` and bit 0x4000 of `gridBody.flags`, tag the enemy's
 /// link node, clear the `walker.turnLimit` / `lookYaw` / `lookYawTarget` timers and hand
 /// the model the 0x80 texture page, then spawn five effects off its part
-/// coordinates 6, 8, 10, 11 and 15 (`Gp_SpawnEff` bank 0xA0005, buffer sizes
+/// coordinates 6, 8, 10, 11 and 15 (`effectSpawn` bank 0xA0005, buffer sizes
 /// 0x200 / 0x200 / 0x200 / 0x300 / 0x300). Each spawned model object takes its
 /// texture page and CLUT from the nested area record the actor's own area key
 /// resolves to, and is streamed twice once its aux buffer exists.
@@ -2657,7 +2657,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
         work->lookYawTarget           = 0;
         obj->flags                    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
-        effect1 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[6], 0x200, NULL);
+        effect1 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[6], 0x200, NULL);
         if (effect1 != NULL) {
             sessionKey1 = &gGameSession->location.loc;
             raw1        = enemy->placeKey;
@@ -2678,7 +2678,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             }
         }
 
-        effect2 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[8], 0x200, NULL);
+        effect2 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[8], 0x200, NULL);
         if (effect2 != NULL) {
             sessionKey2 = &gGameSession->location.loc;
             raw2        = enemy->placeKey;
@@ -2699,7 +2699,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             }
         }
 
-        effect3 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[10], 0x200, NULL);
+        effect3 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[10], 0x200, NULL);
         if (effect3 != NULL) {
             sessionKey3 = &gGameSession->location.loc;
             raw3        = enemy->placeKey;
@@ -2720,7 +2720,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             }
         }
 
-        effect4 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[11], 0x300, NULL);
+        effect4 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[11], 0x300, NULL);
         if (effect4 != NULL) {
             sessionKey4 = &gGameSession->location.loc;
             raw4        = enemy->placeKey;
@@ -2741,7 +2741,7 @@ static void func_actor_110600_80136ECC(Task* arg0)
             }
         }
 
-        effect5 = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[15], 0x300, NULL);
+        effect5 = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[15], 0x300, NULL);
         if (effect5 != NULL) {
             sessionKey5 = &gGameSession->location.loc;
             raw5        = enemy->placeKey;

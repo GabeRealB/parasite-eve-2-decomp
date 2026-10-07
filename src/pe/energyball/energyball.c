@@ -148,7 +148,7 @@ void func_energyball_8012EF48(Task* arg0)
                 mem->scale   = i * 0x555 - mem->index * 0x2AA;
                 mem->move.vx = (mem->angle * rsin(mem->scale)) >> 12;
                 mem->move.vz = (mem->angle * rcos(mem->scale)) >> 12;
-                Gp_SpawnEff((EFFECT_ENERGY_BALL | EFFECT_SPAWN_UNLIMITED), coord, i, &mem->move);
+                effectSpawn((EFFECT_ENERGY_BALL | EFFECT_SPAWN_UNLIMITED), coord, i, &mem->move);
             }
             arg0->state = 1;
             return;
@@ -382,15 +382,15 @@ void func_energyball_8012F180(Task* arg0)
                 }
             }
             if (worldCollisionCountContactsByKind(work->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                spawned = Gp_SpawnEff(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0, NULL);
+                spawned = effectSpawn(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
-                spawned = Gp_SpawnEff(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0x2AA, NULL);
+                spawned = effectSpawn(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0x2AA, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
-                spawned = Gp_SpawnEff(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0x555, NULL);
+                spawned = effectSpawn(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0x555, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }

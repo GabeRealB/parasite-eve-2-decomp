@@ -33,7 +33,7 @@ extern WorldCollisionSurfaceProperties* D_dryfield_back_street_80181034[];
 /// Runs Back Street's charging pink flash, peak screen tint and fading star.
 ///
 /// Starts in state 0 with a coordinate body and counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`. `spawnArg1.value` is a positive
+/// `spawnArg2.pointer` from `effectSpawn`. `spawnArg1.value` is a positive
 /// charge duration in active ticks, consumed as a countdown. Nonzero room
 /// effect control pauses it; values at least four cancel it. State 3 also
 /// requests release. Completion frees the effect work and tears down the task.
@@ -43,7 +43,7 @@ void dryfieldBackStreetRoomVisualEffectsFlashTask(Task* task);
 /// Runs Back Street's fading sword beam between two moving endpoint histories.
 ///
 /// Starts in state 0 with a coordinate body and counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`. Borrows its parent coordinate while
+/// `spawnArg2.pointer` from `effectSpawn`. Borrows its parent coordinate while
 /// live and owns two eight-coordinate histories in `Task::work`, freed during
 /// teardown. Allocation failure retries with age reset to zero. Initialization
 /// counts as the first active tick; later ticks record world-space endpoints

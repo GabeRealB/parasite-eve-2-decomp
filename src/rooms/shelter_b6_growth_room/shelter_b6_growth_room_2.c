@@ -492,7 +492,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             pos.vy          = -((s32)(gRandomLcgState >> 16) % ((task->spawnArg1.value + 1) * 8));
             pos.vz          = D_shelter_b6_growth_room_8017F258[i + 30].vz + ((rsin(angle) * 1000) >> 12);
-            Gp_SpawnEff(EFFECT_GROWTH_ROOM_MIST, NULL, 0x106500, &pos);
+            effectSpawn(EFFECT_GROWTH_ROOM_MIST, NULL, 0x106500, &pos);
         }
     }
     if (!(gDisplayState.animFrame & 1)) {
@@ -504,7 +504,7 @@ void func_shelter_b6_growth_room_8017D9D8(Task* task)
         z               = (gRandomLcgState >> 16) % 400 + 0xDAC;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         pos.vz          = z + ((gRandomLcgState >> 16) & 1) * 1000;
-        Gp_SpawnEff(EFFECT_SHELTER_B6_GROWTH_ROOM_DRIFT_PUFF, NULL, 0x183280, &pos);
+        effectSpawn(EFFECT_SHELTER_B6_GROWTH_ROOM_DRIFT_PUFF, NULL, 0x183280, &pos);
     }
     _shelterB6GrowthRoomDrawBottomGlow(task->spawnArg1.value, (task->spawnArg1.value >> 1) + 0x50);
     switch (viewGetMappedIndex() & 0xFF) {

@@ -40,7 +40,7 @@ void sucklercephReactionDispatch(Task* arg0)
             frames           = work->animFrames + 1;
             work->animFrames = frames;
             if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->animFrames = 0;
             }
             work->animFrozen = 1;
@@ -53,7 +53,7 @@ void sucklercephReactionDispatch(Task* arg0)
             frames           = work->animFrames + 1;
             work->animFrames = frames;
             if ((s16)frames >= 0x10) {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
                 work->animFrames = 0;
                 work->swellFrames++;
                 if (work->swellFrames >= 3) {

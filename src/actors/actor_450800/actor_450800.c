@@ -149,7 +149,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor450800KyleMadiganWork, 0x504);
 
 /// Spawn offset `func_actor_450800_80132108` copies into a local and hands to
-/// `Gp_SpawnEff` as the effect's position.
+/// `effectSpawn` as the effect's position.
 static const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
 
 /// Message table `func_actor_450800_80132160` hangs off `Task::msgTable`, and
@@ -2777,7 +2777,7 @@ void func_actor_450800_80132108(void)
     SVECTOR pos;
 
     pos = D_actor_450800_80131E24;
-    Gp_SpawnEff(EFFECT_IMPACT_SPARK, NULL, 0x200, &pos);
+    effectSpawn(EFFECT_IMPACT_SPARK, NULL, 0x200, &pos);
 }
 
 /// Gives a freshly spawned helper model the texture page and palette of the
@@ -3097,7 +3097,7 @@ s32 func_actor_450800_80132CE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 
     switch (mode) {
         case 0:
-            Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, 0);
+            effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, 0);
             break;
         case 1:
             work->gunShown = mode;

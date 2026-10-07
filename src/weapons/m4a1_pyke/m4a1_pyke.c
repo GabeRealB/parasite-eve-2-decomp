@@ -139,7 +139,7 @@ void func_m4a1_pyke_8011D1F8(Task* task)
                     if (work->scale < 0x180) {
                         work->scale = work->scale + 0x40;
                     }
-                    eff = Gp_SpawnEff(EFFECT_M4A1_PYKE_FLAME, coord, (s32)(work->scale), NULL);
+                    eff = effectSpawn(EFFECT_M4A1_PYKE_FLAME, coord, (s32)(work->scale), NULL);
                     if (eff != NULL) {
                         taskReparent(task, eff->task);
                     }
@@ -272,7 +272,7 @@ void func_m4a1_pyke_8011E4F8(Task* arg0)
                         actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x201C0004, 1);
-                    Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
+                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 0x1C, NULL);
                     playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);

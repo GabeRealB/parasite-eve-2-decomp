@@ -71,7 +71,7 @@ void ratContacts(Task* actor)
                     damage                 = Gp_ComputeDamage(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
                     if (damageRollCriticalHit(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
                         damage *= 4;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
                     worldTargetAddReadoutAmount(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
                     damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->hitContacts[i].key.value, damage, 0);

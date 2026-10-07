@@ -2887,7 +2887,7 @@ void func_acropolis_bridge_8017D8D0(Task* task)
 
 void func_acropolis_bridge_8017D954(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
@@ -3745,33 +3745,33 @@ void func_acropolis_bridge_8017F868(Task* task)
                 pos.vx = D_acropolis_bridge_8018991C[i].vx;
                 pos.vy = D_acropolis_bridge_8018991C[i].vy - 0x240;
                 pos.vz = D_acropolis_bridge_8018991C[i].vz;
-                Gp_SpawnEff((EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW | EFFECT_SPAWN_UNLIMITED), coord, work->age + i, &pos);
+                effectSpawn((EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW | EFFECT_SPAWN_UNLIMITED), coord, work->age + i, &pos);
             }
         }
     } else {
         for (i = 0; i < 7; i++) {
             if (D_acropolis_bridge_801899EC[i] & bit) {
-                Gp_SpawnEff((EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW | EFFECT_SPAWN_UNLIMITED), coord, work->age + i, &D_acropolis_bridge_8018991C[i]);
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_GROUND_GLOW, coord, work->age + i, &D_acropolis_bridge_80189954[i]);
+                effectSpawn((EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW | EFFECT_SPAWN_UNLIMITED), coord, work->age + i, &D_acropolis_bridge_8018991C[i]);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_GROUND_GLOW, coord, work->age + i, &D_acropolis_bridge_80189954[i]);
             }
         }
     }
 
     for (i = 0; i < 3; i++) {
         if (D_acropolis_bridge_80189A1C[i] & bit) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 0, &D_acropolis_bridge_8018998C[i]);
+            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 0, &D_acropolis_bridge_8018998C[i]);
         }
     }
     for (i = 3; i < 5; i++) {
         if (D_acropolis_bridge_80189A1C[i] & bit) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 1, &D_acropolis_bridge_8018998C[i]);
+            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 1, &D_acropolis_bridge_8018998C[i]);
         }
         if (D_acropolis_bridge_80189A1C[i + 2] & bit) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 2, &D_acropolis_bridge_8018998C[i + 2]);
+            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 2, &D_acropolis_bridge_8018998C[i + 2]);
         }
     }
     if (D_acropolis_bridge_80189A1C[11] & bit) {
-        Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 1, &D_acropolis_bridge_8018998C[11]);
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 1, &D_acropolis_bridge_8018998C[11]);
     }
 
     if ((bit & 0x62) && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && part->coord.t[1] >= 0x201) {
@@ -3797,13 +3797,13 @@ void func_acropolis_bridge_8017F868(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rnd             = gRandomLcgState >> 16;
             if ((rnd & 0x1FF) < work->angle) {
-                Gp_SpawnEff(gRoomEffectWaterRippleId, part, 0x40, NULL);
+                effectSpawn(gRoomEffectWaterRippleId, part, 0x40, NULL);
             }
             work->angle     = work->angle - 0x20;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             rnd             = gRandomLcgState >> 16;
             if ((rnd & 0x1FF) < work->angle) {
-                Gp_SpawnEff(gRoomEffectWaterSprayId, part, 0x1202180, NULL);
+                effectSpawn(gRoomEffectWaterSprayId, part, 0x1202180, NULL);
             }
 
             D_acropolis_bridge_80189A34[i].vx = part->workm.t[0];
@@ -3822,22 +3822,22 @@ void func_acropolis_bridge_8017F868(Task* task)
             lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(view), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(view), NULL);
                 }
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 if (work->age & 0x200) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 1) == 0) {
-                        Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
+                        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
                     }
                 }
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
                 }
             }
             break;
@@ -3845,15 +3845,15 @@ void func_acropolis_bridge_8017F868(Task* task)
             lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(view), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(view), NULL);
                 }
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
                 }
             }
             break;
@@ -3861,15 +3861,15 @@ void func_acropolis_bridge_8017F868(Task* task)
             lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(view), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(view), NULL);
                 }
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
                 }
             }
             break;
@@ -3877,15 +3877,15 @@ void func_acropolis_bridge_8017F868(Task* task)
             lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(view), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(view), NULL);
                 }
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
                 }
             }
             break;
@@ -3893,15 +3893,15 @@ void func_acropolis_bridge_8017F868(Task* task)
             lastView = work->scale;
             if (lastView != view) {
                 for (i = 0; i < 0x1E; i++) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(view), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(view), NULL);
                 }
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
-                Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
                 }
             }
             break;
@@ -4324,21 +4324,21 @@ s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         pos.vy          = (gRandomLcgState >> 16) % 1536 + 0xF830;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         pos.vz          = ((gRandomLcgState >> 16) & 0xF) + 0xF63C;
-        Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
 
         pos.vx          = -0x3E58;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         pos.vy          = (gRandomLcgState >> 16) % 1536 + 0xF830;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         pos.vz          = 0xFA06 - ((gRandomLcgState >> 16) & 0xF);
-        Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
 
         pos.vx          = -0x3E58;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         pos.vy          = ((gRandomLcgState >> 16) & 0xF) + 0xF830;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         pos.vz          = (u16)(gRandomLcgState >> 16) % 970 + 0xF63C;
-        Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
         i++;
     } while (i < 0x20);
 
@@ -4349,7 +4349,7 @@ s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, s32 arg2, s32 arg3)
         pos.vy          = (gRandomLcgState >> 16) % 1536 - 0x7D0;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         pos.vz          = (u16)(gRandomLcgState >> 16) % 970 - 0x9C4;
-        Gp_SpawnEff(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
         i++;
     } while (i < 8);
 
@@ -5848,7 +5848,7 @@ void func_acropolis_bridge_80187310(Task* task)
         switch (step) {
             case 10:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[2], 1, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[2], 1, NULL);
                 break;
             case 28:
                 task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -5894,7 +5894,7 @@ void func_acropolis_bridge_801874DC(Task* task)
         func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &task->extra.tmd->coords[1], NULL,
                       &work->effectArg);
         worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[1], 1, NULL);
+        effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[1], 1, NULL);
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
         work->deathFrame       = 0;
         Gp_SpawnPadLerp(3, 0xFF, 8);
@@ -5942,7 +5942,7 @@ static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
                       NULL, &work->effectArg);
         if (damageRollCriticalHit(enemy, attackId, 0) != 0) {
             damage *= 4;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[1], 0, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[1], 0, NULL);
         }
         damageAccumulateLifeDrainHp(enemy, attackId, damage, 0);
         enemy->hp -= damage;

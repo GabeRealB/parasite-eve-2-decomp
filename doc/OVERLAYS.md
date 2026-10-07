@@ -448,7 +448,7 @@ So the three ids per package are the three levels, one sound bank each. `50100`
 is an extra id onto the same package and sound bank as `50101`.
 
 The call profiles agree with the spell descriptions: the offensive spells drive
-`Gp_SpawnEff` and `taskReparent`, while the support ones — `metabolism`,
+`effectSpawn` and `taskReparent`, while the support ones — `metabolism`,
 `healing`, `antibody` — draw rings and arcs around Aya and little else, and are
 the smallest packages in the family.
 

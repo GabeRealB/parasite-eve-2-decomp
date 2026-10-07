@@ -47,7 +47,7 @@ void func_dryfield_night_main_street_8017E484(Task* task);
 /// Animates and drifts one nighttime main street puff (effect 0x601B2).
 ///
 /// Requires the counted effect task and zeroed `EffectWork` created by
-/// `Gp_SpawnEff`, with a live coordinate body and work in `spawnArg2.pointer`.
+/// `effectSpawn`, with a live coordinate body and work in `spawnArg2.pointer`.
 /// `spawnArg1.value` packs size factor in bits 0-11 (0..4095), cell period in bits
 /// 12-14 (1..7 ticks), and speed in bits 16-23 (coordinate units per tick).
 /// A zero period nibble (bits 12-15) selects one tick; a zero speed byte selects
@@ -63,7 +63,7 @@ void dryfieldNightMainStreetPuffTask(Task* task);
 
 /// Runs this room's animated mote with rising or steady vertical motion and a fade.
 ///
-/// Requires the counted task and zeroed `EffectWork` created by `Gp_SpawnEff`,
+/// Requires the counted task and zeroed `EffectWork` created by `effectSpawn`,
 /// with a live coordinate body and owned work in `spawnArg2.pointer`.
 /// `spawnArg1` packs half-extent in bits 0..11 (0..4095 world units), palette
 /// in bits 12..15 (0 default), unsigned speed in bits 16..23 (coordinate units
@@ -80,7 +80,7 @@ void dryfieldNightMainStreetRoomVisualEffectsMoteTask(Task* task);
 
 /// Runs this room's expanding tinted halo, shrinking ring and fading star.
 ///
-/// Requires the counted task and zeroed `EffectWork` created by `Gp_SpawnEff`,
+/// Requires the counted task and zeroed `EffectWork` created by `effectSpawn`,
 /// with a live coordinate body and owned work in `spawnArg2.pointer`.
 /// Initialization attaches to the work's borrowed parent at its saved local
 /// offset in game coordinate units. `spawnArg1.halves.low` supplies 1..65535
@@ -96,7 +96,7 @@ void dryfieldNightMainStreetRoomVisualEffectsHaloTask(Task* task);
 
 /// Runs this room's growing orange disc and layered glow inside a fading ring.
 ///
-/// Requires the counted task and zeroed `EffectWork` created by `Gp_SpawnEff`,
+/// Requires the counted task and zeroed `EffectWork` created by `effectSpawn`,
 /// with a live coordinate body and owned work in `spawnArg2.pointer`.
 /// `spawnArg1` is unused. The first active tick initializes and draws; later
 /// ticks expand the burst and fade its ring before fading the centre.

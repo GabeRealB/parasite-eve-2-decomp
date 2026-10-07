@@ -498,7 +498,7 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     pos[6].vz       = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & 0x3F) + 0x10, &pos[6]);
+                    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & 0x3F) + 0x10, &pos[6]);
                     i++;
                 } while (i < 0x20);
                 arg0->state = 2;
@@ -530,7 +530,7 @@ void func_dryfield_night_motel_loft_8017DB64(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     pos[6].vz       = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & 0x3F) + 0x10, &pos[6]);
+                    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & 0x3F) + 0x10, &pos[6]);
                     i++;
                 } while (i < 0x30);
                 arg0->state = 1;

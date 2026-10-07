@@ -114,7 +114,7 @@ static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task);
 
 /// Binds the shared enemy-effect selectors to this room's implementations.
 ///
-/// Stores packed bank-6 task IDs for later `Gp_SpawnEff` calls. Call after
+/// Stores packed bank-6 task IDs for later `effectSpawn` calls. Call after
 /// room-effect initialization clears the selectors and before enemies use them.
 /// This overlay must remain loaded while the selected IDs are used and while
 /// their spawned tasks are live.

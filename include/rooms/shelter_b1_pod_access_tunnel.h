@@ -51,7 +51,7 @@ void shelterB1PodAccessTunnelDrawGlowsTask(Task* task);
 /// Runs this room's counted pink charge flash, peak screen tint and fading star.
 ///
 /// Requires a coordinate body and owned `EffectWork` in `spawnArg2.pointer`,
-/// initialized by `Gp_SpawnEff`. Start in state 0 with a positive charge
+/// initialized by `effectSpawn`. Start in state 0 with a positive charge
 /// duration in ticks in `spawnArg1.value`; the task consumes that countdown.
 /// Nonzero room effect control pauses it, and values at least 4 cancel it.
 /// Completion or state 3 releases counted work and kills the task. Requires
@@ -61,7 +61,7 @@ void shelterB1PodAccessTunnelRoomVisualEffectsFlashTask(Task* task);
 /// Records and draws this room's counted pair of fading endpoint trails.
 ///
 /// Requires a coordinate body and owned `EffectWork` in `spawnArg2.pointer`,
-/// initialized by `Gp_SpawnEff`; its parent coordinate must remain live.
+/// initialized by `effectSpawn`; its parent coordinate must remain live.
 /// State 0 allocates two eight-frame histories in `Task::work` and seeds
 /// parent-relative offsets (0, 190, -15) and (0, 1085, 180), in world units.
 /// Allocation failure resets the age and retries on the next eligible tick.

@@ -195,7 +195,7 @@ void func_metabolism_8012EF34(Task* arg0)
                     temp_lo      = rsin(mem->step) * mem->angle;
                     mem->move.vz = 0;
                     mem->move.vy = temp_lo >> 12;
-                    spawned      = Gp_SpawnEff(EFFECT_METABOLISM_SPARKLE, coord,
+                    spawned      = effectSpawn(EFFECT_METABOLISM_SPARKLE, coord,
                                                (s32)D_metabolism_8012FB54[mem->index].radiusLimit,
                                                &mem->move);
                     if (spawned != NULL) {

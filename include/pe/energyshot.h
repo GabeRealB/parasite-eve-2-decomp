@@ -6,7 +6,7 @@
 /// Advances the rising additive billboard in effect-bank slot 0xDD.
 ///
 /// Requires a counted coordinate-body effect task with an owned, cleared
-/// `EffectWork` in `spawnArg2.pointer`, as `Gp_SpawnEff` supplies. Its coordinate
+/// `EffectWork` in `spawnArg2.pointer`, as `effectSpawn` supplies. Its coordinate
 /// parent chain must stay live until teardown. Each tick, including initialization,
 /// moves local Y by a fixed random -79..-16 parent-coordinate units. The screen
 /// rotation is fixed at a random 0..4095 (4096 units per turn), with palette 0

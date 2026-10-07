@@ -83,7 +83,7 @@ void func_m249_8011D1DC(Task* arg0)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_ConsumeSlotQty(0x90, 1);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20110004, 1);
-                Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
+                effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 0x11,
                             NULL);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);

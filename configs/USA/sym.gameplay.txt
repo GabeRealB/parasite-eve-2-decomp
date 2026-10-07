@@ -911,7 +911,7 @@ Gp_UpdatePadInput = 0x800E956C; // type:func
 Gp_RemapButtons = 0x800E9A50; // type:func
 func_800E9BDC = 0x800E9BDC; // type:func
 Gp_ResetMenuLock = 0x800E9C6C; // type:func
-Gp_InitState1C = 0x800E9CC8; // type:func
+_roomEffectInitController = 0x800E9CC8; // type:func
 Gp_TickState1C = 0x800E9EFC; // type:func
 worldCollisionProjectGroundCoord = 0x800EA02C; // type:func
 worldCollisionProjectGroundPoint = 0x800EA1A8; // type:func
@@ -919,8 +919,8 @@ effectGetGroundShadowShade = 0x800EA318; // type:func
 roomEffectRecordAnimationSoundCue = 0x800EA3A0; // type:func
 _worldCoordTickTransientPointLights = 0x800EA3B4; // type:func
 _worldCoordInitTransientPointLights = 0x800EA3EC; // type:func
-func_800EA420 = 0x800EA420; // type:func
-Gp_SpawnEff = 0x800EA478; // type:func
+_roomEffectControllerTask = 0x800EA420; // type:func
+effectSpawn = 0x800EA478; // type:func
 effectDrawScreenTint = 0x800EA858; // type:func
 effectDrawOuterGlowBand = 0x800EAA0C; // type:func
 effectDrawGouraudDisc = 0x800EAEB8; // type:func
@@ -932,12 +932,12 @@ _effectDarknessScreenDimTaskE8 = 0x800EC47C; // type:func
 _effectStatusScreenTintTaskF = 0x800EC674; // type:func
 effectKillTask = 0x800EC7E4; // type:func
 _effectExitTask = 0x800EC824; // type:func
-Gp_PulseState1C = 0x800EC868; // type:func
+roomEffectRequestCancelAll = 0x800EC868; // type:func
 _gpuSetPrimitiveBlendModeFixedDepth = 0x800EC888; // type:func
 gpuSetPrimitiveBlendMode = 0x800EC914; // type:func
-func_800EC9C8 = 0x800EC9C8; // type:func
-Gp_SetState1CPe = 0x800ECA10; // type:func
-func_800ECA54 = 0x800ECA54; // type:func
+roomEffectStartDarknessDim = 0x800EC9C8; // type:func
+roomEffectStartStatusTint = 0x800ECA10; // type:func
+roomEffectStartBerserkerGlow = 0x800ECA54; // type:func
 
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/effect_tasks.c) — file-split 0x592A8

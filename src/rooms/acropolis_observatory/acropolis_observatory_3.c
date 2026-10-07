@@ -1190,7 +1190,7 @@ void func_acropolis_observatory_8017E6F8(Task* task)
         flags = D_acropolis_observatory_8017FEB8;
         do {
             if (*flags & mask) {
-                Gp_SpawnEff(EFFECT_ACROPOLIS_OBSERVATORY_LENS_FLARE, coord, 0, vec);
+                effectSpawn(EFFECT_ACROPOLIS_OBSERVATORY_LENS_FLARE, coord, 0, vec);
             }
             vec++;
             i++;

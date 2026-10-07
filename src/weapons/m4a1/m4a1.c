@@ -84,7 +84,7 @@ void func_m4a1_8011D1C4(Task* arg0)
                         actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
-                    Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH,
+                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_ID, NULL);
                     playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);

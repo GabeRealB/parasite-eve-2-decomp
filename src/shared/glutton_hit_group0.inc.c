@@ -81,7 +81,7 @@ void gluttonHitGroup0(Task* arg0)
             sc->offset.vy = GLUTTON_GROUP0_HIT_FX_Y;
             sc->offset.vx = 0;
             sc->offset.vz = GLUTTON_GROUP0_HIT_FX_Z;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &enemy->task->extra.tmd->coords[3], 3, &sc->offset);
+            effectSpawn(EFFECT_CRITICAL_HIT, &enemy->task->extra.tmd->coords[3], 3, &sc->offset);
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(arg0->extra.tmd->coords);

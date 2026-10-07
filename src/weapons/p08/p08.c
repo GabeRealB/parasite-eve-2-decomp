@@ -69,7 +69,7 @@ void func_p08_8011D1D8(Task* arg0)
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
-            Gp_SpawnEff(P08_FLASH_EFFECT,
+            effectSpawn(P08_FLASH_EFFECT,
                         actor->equipmentTasks[1]->extra.tmd->coords,
                         P08_FLASH_WEAPON, NULL);
             playerActorResetChildSlots(arg0, 0xA);

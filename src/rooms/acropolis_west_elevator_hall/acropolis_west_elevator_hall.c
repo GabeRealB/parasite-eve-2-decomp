@@ -1400,19 +1400,19 @@ void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
         case 1:
             if (gGameSession->location.loc.view == 2) {
                 pos = D_acropolis_west_elevator_hall_8017D5EC;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x18), &pos);
+                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x18), &pos);
                 pos.vx = -0x1800;
                 pos.vy = -0x4F0;
                 pos.vz = -0x600;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0x8), &pos);
+                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0x8), &pos);
                 pos.vx = -0x1800;
                 pos.vy = -0x4F0;
                 pos.vz = -0x2C0;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0x8), &pos);
+                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0x8), &pos);
             }
             if (gGameSession->location.loc.view == 5) {
                 altPos = D_acropolis_west_elevator_hall_8017D5F4;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT, coord, 0, &altPos);
+                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT, coord, 0, &altPos);
             }
             return;
     }
@@ -1630,6 +1630,6 @@ void acropolisWestElevatorHallLightGlowTask(Task* task)
 
 s32 func_acropolis_west_elevator_hall_80180274(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
-    Gp_SpawnEff(EFFECT_ACROPOLIS_WEST_ELEVATOR_BAY_LIGHTS, NULL, 0, NULL);
+    effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_BAY_LIGHTS, NULL, 0, NULL);
     return 0;
 }

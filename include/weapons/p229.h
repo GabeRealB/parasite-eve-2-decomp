@@ -6,7 +6,7 @@
 /// Advances the P229 alternate-fire muzzle flash and its transient white point light.
 ///
 /// Spawned as `EFFECT_P229_MUZZLE_FLASH`. `task` must have a coordinate body
-/// and own the `EffectWork` in `spawnArg2.pointer`, initialized by `Gp_SpawnEff`.
+/// and own the `EffectWork` in `spawnArg2.pointer`, initialized by `effectSpawn`.
 /// The work's borrowed parent coordinate and its ancestors must remain live
 /// until teardown; the P229 overlay must remain loaded while the task runs.
 /// The first visible update attaches the flash to the weapon's muzzle. Later

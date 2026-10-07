@@ -215,7 +215,7 @@ STATIC_ASSERT_SIZEOF(_Actor405800IvoryStalkerWork, 0x89C);
 /// this package's own. `stalker_zebra_ivory.h` lists the members they reach.
 typedef _Actor405800IvoryStalkerWork StalkerZebraIvoryWork;
 
-/* `D_800678F0` selects the model stream the next `Gp_SpawnEff` uses as the
+/* `D_800678F0` selects the model stream the next `effectSpawn` uses as the
  * source for the effect's own `TmdObject`.
  *
  * Storing to a bare `extern` pointer next to pointer-based struct traffic lets
@@ -1584,7 +1584,7 @@ static void func_actor_405800_80132FE0(Task* arg0)
         rot.vx = 0;
         rot.vy = 0;
         rot.vz = 0;
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, &rot);
+        effectSpawn(EFFECT_CORPSE_BURN, coord, 3, &rot);
     }
     if (work->stateFrames >= 0x41) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2249,7 +2249,7 @@ static void func_actor_405800_80134314(Task* arg0)
         vec.vz      = 0;
         work->leapX = ((rsin(work->yaw + 0x800) * 3000) >> 12) / 20;
         work->leapZ = ((rcos(work->yaw + 0x800) * 3000) >> 12) / 20;
-        Gp_SpawnEff(EFFECT_HIT_SPLATTER_SPRAY, root, 0x10100, &vec);
+        effectSpawn(EFFECT_HIT_SPLATTER_SPRAY, root, 0x10100, &vec);
         if (cfg->hp <= 0) {
             work->holdKilledPlayer = 1;
         }
@@ -2839,7 +2839,7 @@ static void func_actor_405800_80136388(Task* arg0)
                 work->hitCooldown  = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
-                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                    effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
                 damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, amount, 0);
                 worldTargetAddReadoutAmount(&enemy->node, amount, 0);
@@ -3137,7 +3137,7 @@ static void func_actor_405800_80136E14(Task* task)
     TmdObject*  src4;
 
     D_800678F0[0] = &_gActor405800IvoryStalkerBurstHead;
-    eff           = Gp_SpawnEff(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[5], 0x200, NULL);
+    eff           = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[5], 0x200, NULL);
     if (eff != NULL) {
         src                    = task->extra.tmd;
         dst                    = eff->task->extra.tmd;
@@ -3149,7 +3149,7 @@ static void func_actor_405800_80136E14(Task* task)
         }
     }
     D_800678F0[0] = &_gActor405800StalkerBurstTorso;
-    eff2          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[13], 0x200, NULL);
+    eff2          = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[13], 0x200, NULL);
     if (eff2 != NULL) {
         src2                    = task->extra.tmd;
         dst2                    = eff2->task->extra.tmd;
@@ -3161,7 +3161,7 @@ static void func_actor_405800_80136E14(Task* task)
         }
     }
     D_800678F0[0] = &_gActor405800StalkerEffect;
-    eff3          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[16], 0x200, NULL);
+    eff3          = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[16], 0x200, NULL);
     if (eff3 != NULL) {
         src3                    = task->extra.tmd;
         dst3                    = eff3->task->extra.tmd;
@@ -3173,7 +3173,7 @@ static void func_actor_405800_80136E14(Task* task)
         }
     }
     D_800678F0[0] = &_gActor405800StalkerBurstHandLeft;
-    eff4          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[10], 0x200, NULL);
+    eff4          = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[10], 0x200, NULL);
     if (eff4 != NULL) {
         src4                    = task->extra.tmd;
         dst4                    = eff4->task->extra.tmd;
@@ -3184,9 +3184,9 @@ static void func_actor_405800_80136E14(Task* task)
             tmdBuildBufferHalf(dst4);
         }
     }
-    Gp_SpawnEff(EFFECT_030, &task->extra.tmd->coords[1], 0x200, NULL);
-    Gp_SpawnEff(EFFECT_030, &task->extra.tmd->coords[2], 0x200, NULL);
-    Gp_SpawnEff(EFFECT_030, &task->extra.tmd->coords[3], 0x200, NULL);
+    effectSpawn(EFFECT_030, &task->extra.tmd->coords[1], 0x200, NULL);
+    effectSpawn(EFFECT_030, &task->extra.tmd->coords[2], 0x200, NULL);
+    effectSpawn(EFFECT_030, &task->extra.tmd->coords[3], 0x200, NULL);
 }
 
 static void func_actor_405800_8013706C(Task* arg0, s16 arg1)

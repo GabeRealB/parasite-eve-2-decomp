@@ -1590,11 +1590,11 @@ void func_acropolis_helicopter_landing_pad_8017E6F0(void)
     gSceneCombatState.signals.bytes.endDelayFrames = 3;
 }
 
-/// Pulses the gameplay state with `Gp_PulseState1C` and sets bit 0 of
+/// Requests effect cancellation with `roomEffectRequestCancelAll` and sets bit 0 of
 /// `Gp_StateC08.flags`.
 void func_acropolis_helicopter_landing_pad_8017E724(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 

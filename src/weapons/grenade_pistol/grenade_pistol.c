@@ -84,7 +84,7 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
             actor->attackControl.cooldownTicks = 0x28;
             Gp_PlayObjSfx(arg0->extra.tmd->coords,
                           ((gPlayerStatus.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
-            Gp_SpawnEff(EFFECT_GRENADE_MUZZLE_FLASH,
+            effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords, GRENADE_WEAPON,
                         NULL);
             Gp_ConsumeSlotQty(WEAPON_ITEM(GRENADE_WEAPON), 1);

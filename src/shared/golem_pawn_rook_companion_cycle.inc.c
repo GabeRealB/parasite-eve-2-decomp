@@ -144,7 +144,7 @@ void golemPawnRookCompanionCycle(Task* arg0)
             break;
         case 4:
             if (work->animFrame == 0x1A) {
-                Gp_SpawnEff(EFFECT_RELOAD_EMITTER, &arg0->extra.tmd->coords[7], 0x6000C, NULL);
+                effectSpawn(EFFECT_RELOAD_EMITTER, &arg0->extra.tmd->coords[7], 0x6000C, NULL);
             }
             work->shieldRaised = 0;
             if (work->animFrame >= 0x87) {

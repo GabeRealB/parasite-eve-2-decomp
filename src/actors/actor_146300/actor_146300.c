@@ -1491,7 +1491,7 @@ void func_actor_146300_8013224C(void)
 
 void func_actor_146300_801323E0(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 

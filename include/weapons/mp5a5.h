@@ -7,7 +7,7 @@
 ///
 /// Used by the base weapon and both upgrades. `task` must have a coordinate
 /// body and own the `EffectWork` in `spawnArg2.pointer`, initialized by
-/// `Gp_SpawnEff`. The work's borrowed parent coordinate and its ancestors must
+/// `effectSpawn`. The work's borrowed parent coordinate and its ancestors must
 /// remain live until teardown. The first visible update attaches the flash to
 /// the weapon's muzzle; later updates halve its size and brightness.
 /// Draws the textured core, additive screen tint and four streaks before

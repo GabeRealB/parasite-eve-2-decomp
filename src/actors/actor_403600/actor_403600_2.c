@@ -890,35 +890,35 @@ static void func_actor_403600_801396F8(Task* arg0)
             if (work->phaseFrame == 1) {
                 memset(&sp10, 0, 8);
                 sp10.vy = 0x64;
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, &sp10);
+                effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, &sp10);
                 func_actor_403600_80141954(1);
                 D_800626EC[5].data.model = &gShelterB2PodBottomModel0A2A0;
-                temp_v0_5                = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
+                temp_v0_5                = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_5 != NULL) {
                     func_actor_403600_801419E8(temp_v0_5->task);
                 }
                 D_800626EC[5].data.model = &gShelterB2PodBottomModel0A68C;
-                temp_v0_6                = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
+                temp_v0_6                = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_6 != NULL) {
                     func_actor_403600_801419E8(temp_v0_6->task);
                 }
                 D_800626EC[5].data.model = &gShelterB2PodBottomModel0AA08;
-                temp_v0_7                = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
+                temp_v0_7                = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_7 != NULL) {
                     func_actor_403600_801419E8(temp_v0_7->task);
                 }
                 D_800626EC[5].data.model = &gShelterB2PodBottomModel0AE48;
-                temp_v0_8                = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
+                temp_v0_8                = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_8 != NULL) {
                     func_actor_403600_801419E8(temp_v0_8->task);
                 }
-                Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[1], 0x800, NULL);
+                effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[1], 0x800, NULL);
             }
             temp_v1_2 = work->phaseFrame;
             if ((temp_v1_2 == 4) || (temp_v1_2 == 6)) {
                 memset(&sp18, 0, 8);
                 sp18.vy = 0x64;
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, &sp18);
+                effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, &sp18);
             }
             if (work->phaseFrame < 0xF) {
                 work->forwardSpeed = -0xA;
@@ -940,7 +940,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                     }
                 }
                 if (((u16)work->phaseFrame & 3) == 3) {
-                    Gp_SpawnEff(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[1], 0x12800, NULL);
+                    effectSpawn(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[1], 0x12800, NULL);
                 }
                 temp_v1_3 = work->phaseFrame;
                 if (temp_v1_3 < 0x2F) {
@@ -962,7 +962,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                         temp_s0_4  = (s8)worldCoordGetOriginAudioPan(temp_s0_3);
                         temp_v0_11 = worldCoordGetOriginAudioDepth(temp_s0_3);
                         sndEvtRequestScriptStart(temp_s2, temp_s0_4, (s32)(((temp_v0_11 >> 0x1F) + temp_v0_11) << 0x17) >> 0x18);
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_CHARGE_BURST, &arg0->extra.tmd->coords[1], 0x1E, NULL);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_CHARGE_BURST, &arg0->extra.tmd->coords[1], 0x1E, NULL);
                     }
                 }
                 if (work->phaseFrame == 0x3C) {
@@ -1037,8 +1037,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                             work->forwardSpeed = -0x1E;
                         }
                     }
-                    Gp_SpawnEff(0x601BF, &arg0->extra.tmd->coords[15], 0xC00, NULL);
-                    Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[19], 0xC00, NULL);
+                    effectSpawn(0x601BF, &arg0->extra.tmd->coords[15], 0xC00, NULL);
+                    effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[19], 0xC00, NULL);
                     return;
                 case 1:
                     if ((u16)work->phaseFrame & 1) {
@@ -1078,8 +1078,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                         u8 smokeCoords[9] = { 1, 12, 13, 14, 15, 16, 17, 18, 19 };
 
                         for (smokeIndex = 0; smokeIndex < ARRAY_SIZE(smokeCoords); smokeIndex++) {
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0x34C00, NULL);
-                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0xC00, NULL);
+                            effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0x34C00, NULL);
+                            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0xC00, NULL);
                         }
                         work->actionTimer = 0;
                     }
@@ -1096,8 +1096,8 @@ static void func_actor_403600_801396F8(Task* arg0)
                         u8 smokeCoords[9] = { 1, 12, 13, 14, 15, 16, 17, 18, 19 };
 
                         for (smokeIndex = 0; smokeIndex < ARRAY_SIZE(smokeCoords); smokeIndex++) {
-                            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0x34C00, NULL);
-                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0xC00, NULL);
+                            effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0x34C00, NULL);
+                            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &arg0->extra.tmd->coords[smokeCoords[smokeIndex]], 0xC00, NULL);
                         }
                         work->actionTimer = 0;
                     }
@@ -1427,9 +1427,9 @@ static void func_actor_403600_8013A444(Task* arg0)
                         return;
                     }
                     if (!((u16)work->phaseFrame & 1)) {
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[15], 0x800, NULL);
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[19], 0x800, NULL);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[15], 0x800, NULL);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[19], 0x800, NULL);
                     }
                     work->animId        = 0x12U;
                     work->forwardSpeed  = 0x320U;
@@ -1500,7 +1500,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         temp_s0_9 = (s8)worldCoordGetOriginAudioPan(temp_s0_8);
                         temp_v0_8 = worldCoordGetOriginAudioDepth(temp_s0_8);
                         sndEvtRequestScriptStart(temp_s4, temp_s0_9, (s32)(((temp_v0_8 >> 0x1F) + temp_v0_8) << 0x17) >> 0x18);
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_ARC_FLASH, &arg0->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_ARC_FLASH, &arg0->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
                         work->shakeFrames     = 0x32;
                         work->shakeFadeFrames = 0x10;
                         work->phaseFrame      = 0;
@@ -1743,9 +1743,9 @@ static void func_actor_403600_8013A444(Task* arg0)
                     work->verticalSpeed = 0;
                     work->turnRate      = 0xA0;
                     if (!((u16)work->phaseFrame & 1)) {
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[15], 0x800, NULL);
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[19], 0x800, NULL);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[15], 0x800, NULL);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[19], 0x800, NULL);
                     }
                     work->aimMode = ACTOR_403600_AIM_TARGET;
                     temp_s1       = func_actor_403600_8013DFE0(arg0);
@@ -1893,9 +1893,9 @@ static void func_actor_403600_8013A444(Task* arg0)
                 case 4:
                     if (!((u16)work->phaseFrame & 1)) {
                         if (work->actionParam != 0xFF) {
-                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
-                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[15], 0x800, NULL);
-                            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[19], 0x800, NULL);
+                            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[1], 0, &D_actor_403600_80160664);
+                            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[15], 0x800, NULL);
+                            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_SHOCK_RING, &arg0->extra.tmd->coords[19], 0x800, NULL);
                         }
                     }
                     temp_s7->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
@@ -2047,7 +2047,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         work->verticalSpeed = 0;
                         work->phaseFrame    = 0;
                         work->animId        = 6U;
-                        Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_CHARGE_BURST, &arg0->extra.tmd->coords[1], (s32)(work->actionParam), NULL);
+                        effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_CHARGE_BURST, &arg0->extra.tmd->coords[1], (s32)(work->actionParam), NULL);
                         return;
                     }
                     break;
@@ -2571,9 +2571,9 @@ static void func_actor_403600_8013D15C(Task* arg0)
             }
         }
         if (hitKind == 1) {
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 0, 0);
+            effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 0, 0);
         } else if (hitKind == 2) {
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, 0);
+            effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, 0);
         }
         switch ((u16)damageGetPlayerAttackReaction(work->hitContacts[i].key.value)) {
             case DAMAGE_PLAYER_REACTION_NONE:
@@ -2650,7 +2650,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
             damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, damage, 0);
             if (work->hitContacts[i].key.value & 8) {
                 if ((_actor403600Rand() & 3) == 0) {
-                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, 0);
+                    effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, 0);
                     worldTargetAddReadoutAmount(&enemy->node, 999, 0);
                     work->defeated = 1;
                     return;
@@ -3554,7 +3554,7 @@ static void func_actor_403600_8013F608(Task* arg0)
             var_s1                = 1;
             work->drainPuffFrames = 0;
             do {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, (*gPlayerActorTasks)->extra.tmd->coords + var_s1, 0x400, NULL);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, (*gPlayerActorTasks)->extra.tmd->coords + var_s1, 0x400, NULL);
                 var_s1 += 1;
             } while (var_s1 < 0x13);
         }
@@ -3578,7 +3578,7 @@ static void func_actor_403600_8013F608(Task* arg0)
             temp_t0         = temp_v0_5 >> 0x10;
             temp_arg2       = work->drainPuffArg;
             gRandomLcgState = temp_v0_5;
-            Gp_SpawnEff(EFFECT_ADDITIVE_PUFF,
+            effectSpawn(EFFECT_ADDITIVE_PUFF,
                         &(*gPlayerActorTasks)->extra.tmd->coords[(temp_t0 % 19) & 0xFFFF],
                         temp_arg2, NULL);
             work->drainPuffFrames = 0;
@@ -4249,7 +4249,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
             offset.vy = -0x1800;
             offset.vx = x >> 12;
             offset.vz = (radius * rsin(angle)) >> 12;
-            Gp_SpawnEff(EFFECT_EVE_LIGHT_BEAM, &view, 0x300, &offset);
+            effectSpawn(EFFECT_EVE_LIGHT_BEAM, &view, 0x300, &offset);
         }
         if (work->phaseFrame == 0x15E) {
             stopMsg.context.loc.stage = 4;
@@ -4271,14 +4271,14 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
                     offset.vx = -(_actor403600Rand() & 0x7FF);
                     offset.vy = -(_actor403600Rand() & 0x7FF);
                 }
-                Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, 0x10800, &offset);
+                effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, 0x10800, &offset);
             }
         }
         if (work->phaseFrame == 0x2A8) {
             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
         }
         if (work->phaseFrame >= 0x2A8 && work->phaseFrame < 0x385 && (work->phaseFrame & 3) == 3) {
-            Gp_SpawnEff(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, 0x10800, NULL);
+            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, 0x10800, NULL);
         }
         D_actor_403600_801606E0.placement.rot.vx  = 0;
         D_actor_403600_801606E0.placement.rot.vz  = 0;
@@ -4298,7 +4298,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
             offset.vy = 0x1800;
             offset.vx = x >> 12;
             offset.vz = (radius * rsin(angle)) >> 12;
-            Gp_SpawnEff(EFFECT_EVE_LIGHT_BEAM, &view, -0x300, &offset);
+            effectSpawn(EFFECT_EVE_LIGHT_BEAM, &view, -0x300, &offset);
         }
     }
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4446,7 +4446,7 @@ static void func_actor_403600_8014161C(Task* arg0)
     if (work->weakPhase == 1) {
         if (((work->weakFrames & 3) == 3) &&
             ((work->action != ACTOR_403600_ACTION_RUSH) || (work->step != 5))) {
-            Gp_SpawnEff(EFFECT_HIT_PUFF, arg0->extra.tmd->coords + 1, 0x12800, NULL);
+            effectSpawn(EFFECT_HIT_PUFF, arg0->extra.tmd->coords + 1, 0x12800, NULL);
         }
         /* Stored through a plain halfword pointer: as a structure store it
          * makes the compiler read `gDisplayState.animFrame` again after it. */

@@ -16,7 +16,7 @@ static inline void _risingSparkMoveCoord(GfxCoord* coord, s32 parentDeltaY)
 /// Advances the short-lived spark billboard shared by Healing and Life Drain.
 ///
 /// Requires a counted effect task with a coordinate body and an owned,
-/// cleared `EffectWork` in `spawnArg2.pointer`, as `Gp_SpawnEff` supplies.
+/// cleared `EffectWork` in `spawnArg2.pointer`, as `effectSpawn` supplies.
 /// The coordinate's parent chain must remain live until teardown.
 /// `spawnArg1.value` bits 0..11 select the sizing numerator (0..4095) passed
 /// to `effectDrawSpinningBillboard`; higher bits are ignored. `angle` holds

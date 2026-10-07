@@ -1443,7 +1443,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         dotDamage = damageTickEnemyDamageOverTime(enemy);
         if (dotDamage > 0) {
-            Gp_SpawnEff(EFFECT_HIT_PUFF, &task->extra.tmd->coords[4], 0x11112400, 0);
+            effectSpawn(EFFECT_HIT_PUFF, &task->extra.tmd->coords[4], 0x11112400, 0);
             damage += dotDamage;
         }
     }
@@ -1503,7 +1503,7 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 }
                 break;
             case DAMAGE_PLAYER_REACTION_POISON:
-                Gp_SpawnEff(EFFECT_HIT_PUFF, &task->extra.tmd->coords[4], 0x11112400, 0);
+                effectSpawn(EFFECT_HIT_PUFF, &task->extra.tmd->coords[4], 0x11112400, 0);
                 damageTryStartEnemyDamageOverTime(enemy, sourceKey, 0);
                 break;
             case 5:
@@ -1530,16 +1530,16 @@ static s32 Actor01100_Fn00F58(Enemy* enemy, Task* task, _Actor01100Work* work, _
                 } else {
                     damage += (s32)damage / 2;
                 }
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[4], 0x80023300, 0);
+                effectSpawn(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[4], 0x80023300, 0);
                 kind7 = 1;
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[4], 0x80023300, 0);
+                effectSpawn(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[4], 0x80023300, 0);
                 break;
             case 8:
             case 9:
                 break;
         }
         if (sparkLevel >= 0) {
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[4], sparkLevel, 0);
+            effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[4], sparkLevel, 0);
         }
         if ((reaction == ACTOR_01100_REACTION_TWITCH) && (work->mode == ACTOR_01100_MODE_UNAWARE)) {
             reaction = ACTOR_01100_REACTION_FLINCH;
@@ -2139,7 +2139,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                 scratch->shortVector.vx = 0;
                 scratch->shortVector.vy = -0x1E0;
                 scratch->shortVector.vz = 0;
-                Gp_SpawnEff(gRoomEffectWaterRippleId, c, 0xC0, &scratch->shortVector);
+                effectSpawn(gRoomEffectWaterRippleId, c, 0xC0, &scratch->shortVector);
             }
             if (scratch->splashPart != 0) {
                 if (work->splashPart == 0 || (scratch->splashPart == ACTOR_01100_PART_CHEST && work->splashPart != scratch->splashPart)) {
@@ -2182,7 +2182,7 @@ static void Actor01100_Fn02960(Enemy* enemy, Task* task, _Actor01100Work* work, 
                     if (work->sprayFrames == 0) {
                         work->splashPart = 0;
                     }
-                    Gp_SpawnEff(gRoomEffectWaterSprayId, &gGfxViewCoord, eff, &scratch->shortVector);
+                    effectSpawn(gRoomEffectWaterSprayId, &gGfxViewCoord, eff, &scratch->shortVector);
                     sndEvtRequestScriptStart(((u8)work->placeIndex << 8) | 0x404B000D, (s8)scratch->pan, (s8)scratch->depth);
                 }
             }
@@ -3161,7 +3161,7 @@ static __inline__ void _actor01100SpawnModelEff(Task* task, TmdSource* model)
 
     // The effect's descriptor, entry 0x32 of bank 1, takes its model from the caller.
     D_800670D0[0x32].data.model = model;
-    eff                         = Gp_SpawnEff(EFFECT_FLYING_BODY_PART, &task->extra.tmd->coords[6], 0x200, 0);
+    eff                         = effectSpawn(EFFECT_FLYING_BODY_PART, &task->extra.tmd->coords[6], 0x200, 0);
     if (eff != NULL) {
         owner                  = task->extra.tmd;
         tmd                    = eff->task->extra.tmd;
@@ -3235,7 +3235,7 @@ static void Actor01100_Fn05678(
         time               = work->stateCounter - 1;
         work->stateCounter = time;
         if (time == 0xC) {
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 5, 0);
+            effectSpawn(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 5, 0);
         } else if (time <= 0) {
             extra->flags |= TMD_OBJECT_SEMI_TRANS;
             worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
@@ -3343,7 +3343,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// Spawns the effect this actor's next state rides on and re-homes the actor.
 ///
 /// The 0x58-byte work block goes in `Task::work` and the effect task comes back
-/// from `Gp_SpawnEff` as `0x60081` parented to the model's trailing coordinate;
+/// from `effectSpawn` as `0x60081` parented to the model's trailing coordinate;
 /// that task becomes `Task::spawnArg2` and the actor's parent, and the actor arms
 /// its own 0x5A kill countdown.
 ///
@@ -3383,7 +3383,7 @@ static void Actor01100_Fn05E68(Task* task)
         return;
     }
     task->work = work;
-    eff        = Gp_SpawnEff(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, 0);
+    eff        = effectSpawn(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, 0);
     if (eff == NULL) {
         taskCallExit(task);
         return;
@@ -3541,7 +3541,7 @@ static void Actor01100_Fn0638C(Task* task)
     sound      = soundBase | (Actor01100_D15670 << 8);
     pan        = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-    effect = Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0031FFF, NULL);
+    effect = effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC0031FFF, NULL);
     if (effect != NULL) {
         taskReparent(task, effect->task);
     }
@@ -4172,7 +4172,7 @@ static void Actor01100_Fn073DC(Task* task)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (task->killCountdown >= 0x15) {
             if (((u16)task->killCountdown & 1) == 0) {
-                eff = Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0031FFF, NULL);
+                eff = effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC0031FFF, NULL);
                 if (eff != NULL) {
                     taskReparent(task, eff->task);
                 }

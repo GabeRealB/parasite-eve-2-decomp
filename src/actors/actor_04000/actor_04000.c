@@ -1756,7 +1756,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
             work->burstWaveBody.radius   = 0xFA;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->burstWaveBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             break;
         case 0x5D:
             work->burstWaveBody.radius = 0x1F4;
@@ -1771,7 +1771,7 @@ static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
             break;
         case 0x62:
             if (work->airborne == 0) {
-                Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
+                effectSpawn(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
             }
             obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             id         = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
@@ -2005,7 +2005,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->burstWaveBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             break;
         case 0x2B:
             work->burstWaveBody.radius = 0x1F4;
@@ -2019,7 +2019,7 @@ static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
             break;
         case 0x30:
             if (work->airborne == 0) {
-                Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
+                effectSpawn(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
             }
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
@@ -2125,7 +2125,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
         case 0xE:
             work->burstAttackBody.radius = 0x3E8;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             Gp_SpawnScript18(Actor04000_D07094, Actor04000_D070A0);
             break;
         case 0xF:
@@ -2143,7 +2143,7 @@ static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
         case 0x13:
             work->burstWaveBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             if (work->airborne == 0) {
-                Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
+                effectSpawn(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
             }
             break;
         case 0x15:

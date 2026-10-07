@@ -256,7 +256,7 @@ extern TaskDesc D_actor_511000_801472E8[];
 
 extern TaskMessageEntry D_actor_511000_8014730C[6];
 
-/// Offset `Gp_SpawnEff` places the tick state's effect at.
+/// Offset `effectSpawn` places the tick state's effect at.
 extern SVECTOR D_actor_511000_8014733C;
 
 extern SVECTOR D_actor_511000_80147344[];
@@ -2142,7 +2142,7 @@ static void func_actor_511000_80131E78(Task* arg0)
                 obj = work->gunTask->extra.tmd->coords;
                 pan = (s8)worldCoordGetOriginAudioPan(obj);
                 sndEvtRequestScriptStart(0x313A0003, pan, (s8)worldCoordGetOriginAudioDepth(obj));
-                Gp_SpawnEff(EFFECT_ACTOR_MUZZLE_FLASH, obj, 0, &D_actor_511000_8014733C);
+                effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, obj, 0, &D_actor_511000_8014733C);
             }
         }
     }

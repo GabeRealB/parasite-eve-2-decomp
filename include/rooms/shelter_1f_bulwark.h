@@ -35,7 +35,7 @@ void func_shelter_1f_bulwark_8017DC20(Task* task);
 /// Runs the Bulwark's charging pink flash, peak screen tint and fading star.
 ///
 /// Requires a counted effect with a coordinate body, owned zeroed `EffectWork`
-/// in `spawnArg2.pointer` and initial state 0, as supplied by `Gp_SpawnEff`.
+/// in `spawnArg2.pointer` and initial state 0, as supplied by `effectSpawn`.
 /// `spawnArg1.value` is a positive charge duration in running updates, consumed
 /// as a countdown after initialization. Controls 1..3 pause without drawing;
 /// control 4 and above cancels. A running update in state 3 or fade completion
@@ -48,7 +48,7 @@ void shelter1fBulwarkRoomVisualEffectsFlashTask(Task* task);
 ///
 /// Requires a counted effect with a coordinate body, owned `EffectWork` in
 /// `spawnArg2.pointer`, age 0, initial state 0 and null `Task::work`, as supplied
-/// by `Gp_SpawnEff`.
+/// by `effectSpawn`.
 /// The work's borrowed parent coordinate must remain live. Initialization
 /// allocates two eight-coordinate histories in `Task::work`; allocation failure
 /// resets age for a later retry. Each later update records both endpoints and

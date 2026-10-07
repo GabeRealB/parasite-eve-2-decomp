@@ -59,7 +59,7 @@ void grenadeShellFly(Task* arg0)
         scratch->weaponIndexBits = arg0->spawnArg1.value & 0xFF00;
         scratch->ammunitionIndex = (u8)arg0->spawnArg1.value;
         arg0->state              = 2;
-        Gp_SpawnEff(EFFECT_GRENADE_EXPLOSION, coord, scratch->ammunitionIndex, NULL);
+        effectSpawn(EFFECT_GRENADE_EXPLOSION, coord, scratch->ammunitionIndex, NULL);
         /* Two calls, not one call on a selected argument: the identical tails
            are what cross-jumping merges into a single `jal` with an unfilled
            delay slot. */
@@ -132,7 +132,7 @@ move:
         work->smokeInterval = work->smokeInterval + 1;
     }
     if (work->flightFrame % work->smokeInterval == 0) {
-        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0, NULL);
+        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0, NULL);
     }
     worldCollisionClearContacts(work->sphereContacts);
     worldCollisionClearContacts(work->capsuleContacts);

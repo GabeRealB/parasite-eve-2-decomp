@@ -19,7 +19,8 @@
 ///
 /// A room's init task stores the `EFFECT_*` id of its own copy of each shared
 /// room-visual-effects or water task, so an enemy's effect works whichever room
-/// overlay is loaded; `Gp_InitState1C` clears them. Zero means the room has none.
+/// overlay is loaded. The controller clears these bindings at startup; zero
+/// means the room has none.
 extern s32 gRoomEffectSparkEmitterId;
 
 /// Energy Ball balls currently in flight; `Gp_CheckAttachThreshold` refuses a new
@@ -112,17 +113,35 @@ s32 effectGetGroundShadowShade(s16 halfSize, s16 baseShade, s16 viewYDisplacemen
 /// Requires a live `gRoomEffectState`; records the cue without playing sound.
 void roomEffectRecordAnimationSoundCue(s32 cueIndex);
 
-/// Spawns a counted effect task and its `EffectWork`.
-/// `arg0` packs the `taskSpawn` bank in bits 16..30 and the type in the low
-/// 16 bits; a negative `arg0` bypasses the ordinary spawn limit (129) in
-/// `RoomEffectState::effectCount`. `arg1` is stored in `EffectWork::parent`;
-/// NULL stores the view coordinate there. The effect's own coordinate is
-/// parented to `gGfxViewCoord` either way, after the offset is rotated into
-/// it. `arg2` becomes `Task::spawnArg1`. `arg3` is an optional offset: NULL is
-/// read as a zero vector, the components are copied into `EffectWork::pos`,
-/// and the original pointer, NULL included, is stored in `EffectWork::field_C`.
-/// Returns the work object, or `NULL`.
-EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3);
+/// Spawns and places a counted effect task with an owned, zeroed `EffectWork`.
+///
+/// Requires a live `gRoomEffectState`. `effectId` packs a task bank (0..14) in
+/// bits 16..30 and its unchecked descriptor index in bits 0..15; index zero
+/// returns NULL. Bit 31 bypasses the ordinary limit of 129 live effects, but
+/// the new effect is still counted. The descriptor must allocate either one
+/// coordinate body or a TMD model with at least one part coordinate. Callback
+/// code and borrowed model data must stay loaded for the effect's lifetime.
+/// `spawnArg` is copied unchanged into `Task::spawnArg1` for that callback.
+///
+/// `offset` supplies word-aligned signed 16-bit game-coordinate XYZ, or NULL for zero, and
+/// is copied into `EffectWork::pos`. A non-NULL `parentCoord` supplies the
+/// placement's orientation and origin; its matrices and borrowed parent chain
+/// must be initialized and writable for composition. A supplied nonzero-stamped
+/// cache must include an initialized rotation. The offset is transformed from
+/// that coordinate's local space. Without a placement coordinate, the offset
+/// is transformed by `GsWSMATRIX`. The effect's root coordinate is parented to
+/// `gGfxViewCoord` and composed before return, rather than attached to the
+/// supplied coordinate's hierarchy.
+///
+/// The work retains `parentCoord` (or the view coordinate) and the original
+/// `offset` pointer, including NULL. These pointers are borrowed; any callback
+/// that follows them requires their storage to remain live. Some callers pass
+/// temporary scratch storage, so retained addresses alone do not prove lifetime.
+/// Returns borrowed work valid until effect teardown, or NULL on rejection or
+/// allocation failure. A failed work allocation tears down the new task. The
+/// installed exit callback frees the work and decrements the count before task
+/// teardown; callbacks with additional resources must release those themselves.
+EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnArg, SVECTOR* offset);
 
 /// Draws a semitransparent full-screen colour tint over the current frame.
 ///
@@ -241,7 +260,13 @@ void effectDrawInnerGlowBand(const GfxCoord* coord, s16 innerRadius, s32 width, 
 /// The spawn-argument pointer is left unchanged after release.
 void effectKillTask(void* effectWork, Task* task);
 
-void Gp_PulseState1C(void);
+/// Requests cancellation of ordinary and parasite-energy effects on the next update.
+///
+/// Requires a live `gRoomEffectState`. Requests coalesce in its pending flags;
+/// the controller publishes cancellation through both control fields for one
+/// update and clears the pending flags. Each effect applies its own teardown
+/// policy when it observes the published control value.
+void roomEffectRequestCancelAll(void);
 
 /// Enables semitransparency and queues the blend mode for an untextured primitive.
 ///

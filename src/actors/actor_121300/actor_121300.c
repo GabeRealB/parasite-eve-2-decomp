@@ -2181,7 +2181,7 @@ static void func_actor_121300_8013343C(Task* arg0, s16 arg1)
                 pos.vx = vx;
                 pos.vy = pts->vy;
                 pos.vz = pts->vz;
-                Gp_SpawnEff(EFFECT_DRYFIELD_R08_ARENA_RING_SPRITE, NULL, flags, &pos);
+                effectSpawn(EFFECT_DRYFIELD_R08_ARENA_RING_SPRITE, NULL, flags, &pos);
                 pts++;
                 x = pts->vx;
             } while (pts->vx != 0);
@@ -2222,7 +2222,7 @@ static void func_actor_121300_80133580(Task* arg0, s16 arg1)
             pos.vx = vx;
             pos.vy = tbl[i].vy;
             pos.vz = tbl[i].vz;
-            Gp_SpawnEff(EFFECT_DRYFIELD_R08_ARENA_RING_SPRITE, NULL, flags, &pos);
+            effectSpawn(EFFECT_DRYFIELD_R08_ARENA_RING_SPRITE, NULL, flags, &pos);
         }
     }
 }

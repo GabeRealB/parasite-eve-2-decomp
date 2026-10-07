@@ -84,7 +84,7 @@ void shelterB3ElevatorHallRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 /// Runs the hall's animated, vertically drifting mote until its brightness fades.
 ///
 /// Requires a coordinate body and counted, zero-initialized `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`; its coordinate parent must
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`; its coordinate parent must
 /// stay live. `spawnArg1.value` packs half-extent in world units (bits 0..11),
 /// palette (12..15; 0 default), unsigned local Y speed per active tick (16..23),
 /// and signed lifetime in active ticks (24..31). Overlapping bits 0..1 select
@@ -107,7 +107,7 @@ void shelterB3ElevatorHallRoomVisualEffectsHaloTask(Task* task);
 /// Runs the hall's orange burst with an expanding glow and fading ring.
 ///
 /// Requires a coordinate body and counted, zero-initialized `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`; its coordinate parent must
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`; its coordinate parent must
 /// stay live. `spawnArg1` is unused. Nonzero room effect control pauses it;
 /// four or above cancels it. Completion or cancellation releases its work and task.
 void shelterB3ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task);

@@ -213,7 +213,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                 sc->vx = 0;
                 sc->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
                 sc->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, sc);
+                effectSpawn(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, sc);
             }
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_FLICKER_BRIGHT:
@@ -244,7 +244,7 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                 sc->vx = 0;
                 sc->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
                 sc->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, sc);
+                effectSpawn(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, sc);
             }
             break;
     }

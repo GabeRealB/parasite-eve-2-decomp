@@ -117,7 +117,7 @@ void func_p229_8011DDA0(Task* arg0)
                 func_80106238(arg0, 0, 0);
                 Gp_ConsumeSlotQty(0x84, 1);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20050004, 0);
-                Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH,
+                effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 5,
                             NULL);
                 playerActorResetChildSlots(arg0, 0xA);
@@ -130,7 +130,7 @@ void func_p229_8011DDA0(Task* arg0)
                 func_80106238(arg0, 0, 1);
                 Gp_ConsumeSlotQty(0x84, 0x101);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20050005, 0);
-                eff = Gp_SpawnEff(EFFECT_P229_MUZZLE_FLASH,
+                eff = effectSpawn(EFFECT_P229_MUZZLE_FLASH,
                                   actor->equipmentTasks[1]->extra.tmd->coords, 5,
                                   NULL);
                 if (eff != NULL) {

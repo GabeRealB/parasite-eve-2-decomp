@@ -578,7 +578,7 @@ WorldCollisionOccluder D_shelter_b2_pod_access_tunnel_80185664[1] = {
 
 /// Binds seven actor effect families to this room's effect-task implementations.
 ///
-/// The selectors pack task bank 6 and a descriptor index for `Gp_SpawnEff`.
+/// The selectors pack task bank 6 and a descriptor index for `effectSpawn`.
 /// Call during room setup before actor effects are spawned; this overlay must
 /// remain loaded while its effect tasks run. The bindings persist until another
 /// room replaces them or the gameplay effect controller clears them.

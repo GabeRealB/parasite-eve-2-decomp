@@ -54,7 +54,7 @@ void shelterB2SouthMaintenanceWalkwayDrawGlowsTask(Task* task);
 /// Runs the room's charging pink flash, peak screen tint and fading star.
 ///
 /// Requires a coordinate body and an owned, zero-initialized, counted
-/// `EffectWork` in `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`.
+/// `EffectWork` in `spawnArg2.pointer`, as supplied by `effectSpawn`.
 /// `spawnArg1.value` starts as a positive charge duration in active ticks and
 /// is consumed as a countdown. Nonzero room-effect control pauses the task;
 /// control 4 or above cancels it. Completion or cancellation releases the work.
@@ -87,7 +87,7 @@ void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task
 /// Runs the room's expanding orange disc, layered glow and fading ring.
 ///
 /// Requires a coordinate body and an owned, zero-initialized, counted
-/// `EffectWork` in `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`.
+/// `EffectWork` in `spawnArg2.pointer`, as supplied by `effectSpawn`.
 /// Active ticks expand the glow and fade the ring, then fade the central disc
 /// until the work is released. Nonzero room-effect control pauses the task;
 /// control 4 or above cancels it and releases the work.

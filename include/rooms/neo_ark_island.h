@@ -54,7 +54,7 @@ void neoArkIslandInstallRoomEffectIdsTask(Task* task);
 ///
 /// Requires a live counted effect with owned `EffectWork` in `spawnArg2.pointer`,
 /// one coordinate body with a composed `workm`, initial state 0 and age 0,
-/// as `Gp_SpawnEff` supplies. Spawn bits 0..11 give the initial local half-side
+/// as `effectSpawn` supplies. Spawn bits 0..11 give the initial local half-side
 /// (0..4095 coordinate units); higher bits are ignored. Half-side is stored in
 /// `EffectWork::angle` and RGB brightness in `EffectWork::scale`.
 ///
@@ -74,7 +74,7 @@ void neoArkIslandWaterRippleTask(Task* task);
 /// Animates one eight-cell island water-spray particle using its cached draw coordinate.
 ///
 /// Requires a live counted effect with owned `EffectWork` in `spawnArg2.pointer`,
-/// a coordinate body, initial state 0 and cell index 0, as `Gp_SpawnEff` supplies.
+/// a coordinate body, initial state 0 and cell index 0, as `effectSpawn` supplies.
 /// Drawers read the coordinate's composed `workm`; this task never composes it.
 /// Movement changes local translation in parent-coordinate units and marks it
 /// dirty, so drawing uses the cached position until another user composes it.
@@ -103,7 +103,7 @@ void neoArkIslandWaterSprayTask(Task* task);
 /// Runs the island's charging pink flash, peak screen tint and fading star.
 ///
 /// Requires initial state 0, a coordinate body and a counted `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`. `spawnArg1.value` starts
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`. `spawnArg1.value` starts
 /// as a positive charge duration in running updates. The first update sets
 /// the ramp; subsequent charge updates consume the argument as a countdown.
 /// Nonzero room effect control pauses it; values 4 and above cancel it.
@@ -116,7 +116,7 @@ void neoArkIslandRoomVisualEffectsFlashTask(Task* task);
 ///
 /// Requires initial state 0, null `Task::work`, a coordinate body and counted
 /// `EffectWork` with zero age in `spawnArg2.pointer`, as supplied by
-/// `Gp_SpawnEff`. The borrowed `EffectWork::parent` and overlay must stay live.
+/// `effectSpawn`. The borrowed `EffectWork::parent` and overlay must stay live.
 /// Owns two eight-coordinate world-space histories in `Task::work`;
 /// allocation failure resets age and retries on the next active update.
 /// `spawnArg1.value` is the release age in active updates (2..32767 before

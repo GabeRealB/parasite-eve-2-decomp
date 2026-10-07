@@ -53,7 +53,7 @@ void func_acropolis_cafeteria_8017E708(Task* task);
 
 /// Moves the cafeteria's model effect through random turns, short runs and departure.
 ///
-/// Requires the TMD body and counted `EffectWork` installed by `Gp_SpawnEff`.
+/// Requires the TMD body and counted `EffectWork` installed by `effectSpawn`.
 /// A zero `spawnArg1.value` selects timed wandering, departing from age 121;
 /// nonzero selects ambient wandering. The model exits beyond local X 2816 or
 /// 3472 respectively. Nonzero room effect control pauses it; control at four
@@ -70,7 +70,7 @@ void func_acropolis_cafeteria_8017E89C(Task* task);
 
 /// Runs the cafeteria's charging pink flash, peak screen tint and fading star.
 ///
-/// Requires a coordinate body and counted `EffectWork` from `Gp_SpawnEff`.
+/// Requires a coordinate body and counted `EffectWork` from `effectSpawn`.
 /// `spawnArg1.value` is a positive charge duration in callback ticks and is
 /// consumed as a countdown. Nonzero room effect control pauses the flash;
 /// control at four or above cancels it. Completion releases the work and task.
@@ -78,7 +78,7 @@ void acropolisCafeteriaRoomVisualEffectsFlashTask(Task* task);
 
 /// Runs the cafeteria's twin trails from two offsets on the effect's parent.
 ///
-/// Requires a coordinate body and counted `EffectWork` from `Gp_SpawnEff`.
+/// Requires a coordinate body and counted `EffectWork` from `effectSpawn`.
 /// `spawnArg1.value` is the lifetime in active ticks (2..32767); initialization
 /// counts as the first tick. Owns two eight-coordinate histories in `Task::work`,
 /// released with the effect on completion. Allocation failure retries with age
@@ -89,7 +89,7 @@ void func_acropolis_cafeteria_80180C94(Task* task);
 
 /// Animates the cafeteria's ten-cell drifting puff billboard.
 ///
-/// Requires a coordinate body and counted `EffectWork` from `Gp_SpawnEff`.
+/// Requires a coordinate body and counted `EffectWork` from `effectSpawn`.
 /// Active in session view 9 while the room's puff gate is set. `spawnArg1`
 /// bits 0..11 supply the perspective size factor; bit 12 starts age at ten
 /// ticks, past the fade-in.

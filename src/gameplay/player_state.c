@@ -420,9 +420,9 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_DARKNESS) == 0) {
                 gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
                 inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
-                func_800EC9C8();
+                roomEffectStartDarknessDim();
                 Gp_DetachLinkNode(work);
-                Gp_SetState1CPe(1);
+                roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
             }
         }
         if (mask & PLAYER_STATUS_PARALYSIS) {
@@ -432,7 +432,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
                 inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->paralysisProgress   = 0;
                 func_8010B210(work);
-                Gp_SetState1CPe(2);
+                roomEffectStartStatusTint(PLAYER_STATUS_PARALYSIS);
             }
         }
         if (mask & PLAYER_STATUS_POISON) {
@@ -441,7 +441,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
                 inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->poisonDamageTicks   = 0;
-                Gp_SetState1CPe(4);
+                roomEffectStartStatusTint(PLAYER_STATUS_POISON);
             }
         }
         if (mask & PLAYER_STATUS_SILENCE) {
@@ -449,7 +449,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_SILENCE) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
                 inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
-                Gp_SetState1CPe(0x10);
+                roomEffectStartStatusTint(PLAYER_STATUS_SILENCE);
             }
         }
         if (mask & 0x20) {
@@ -457,7 +457,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20) == 0) {
                 gPlayerStatus.statusFlags |= 0x20;
                 inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
-                Gp_SetState1CPe(0x20);
+                roomEffectStartStatusTint(ROOM_EFFECT_STATUS_TINT_STATUS_20);
             }
         }
         if (mask & PLAYER_STATUS_CONFUSION) {
@@ -467,7 +467,7 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
                 inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
                 inner->confusionDirections     = 0;
-                Gp_SetState1CPe(0x40);
+                roomEffectStartStatusTint(PLAYER_STATUS_CONFUSION);
             }
         }
         if (mask & PLAYER_STATUS_BERSERKER) {
@@ -475,8 +475,8 @@ void Gp_TriggerPeState(s32 arg0, s32 arg1)
             if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) == 0) {
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
                 inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
-                Gp_SetState1CPe(0x80);
-                func_800ECA54();
+                roomEffectStartStatusTint(PLAYER_STATUS_BERSERKER);
+                roomEffectStartBerserkerGlow();
             }
         }
     } else {
@@ -502,9 +502,9 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 }
                 gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
                 inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
-                func_800EC9C8();
+                roomEffectStartDarknessDim();
                 Gp_DetachLinkNode(arg0);
-                Gp_SetState1CPe(1);
+                roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
                 break;
             }
             case 2: {
@@ -518,7 +518,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->paralysisProgress   = 0;
                 func_8010B210(arg0);
-                Gp_SetState1CPe(2);
+                roomEffectStartStatusTint(PLAYER_STATUS_PARALYSIS);
                 break;
             }
             case 3: {
@@ -531,11 +531,11 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
                 inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->poisonDamageTicks   = 0;
-                Gp_SetState1CPe(4);
+                roomEffectStartStatusTint(PLAYER_STATUS_POISON);
                 break;
             }
             case 4:
-                Gp_SetState1CPe(8);
+                roomEffectStartStatusTint(ROOM_EFFECT_STATUS_TINT_REACTION_4);
                 break;
             case 8: {
                 GameActor* inner;
@@ -546,7 +546,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
                 inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
-                Gp_SetState1CPe(0x10);
+                roomEffectStartStatusTint(PLAYER_STATUS_SILENCE);
                 break;
             }
             case 9: {
@@ -558,7 +558,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 }
                 gPlayerStatus.statusFlags |= 0x20;
                 inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
-                Gp_SetState1CPe(0x20);
+                roomEffectStartStatusTint(ROOM_EFFECT_STATUS_TINT_STATUS_20);
                 break;
             }
             case 10: {
@@ -572,7 +572,7 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
                 inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
                 inner->confusionDirections     = 0;
-                Gp_SetState1CPe(0x40);
+                roomEffectStartStatusTint(PLAYER_STATUS_CONFUSION);
                 break;
             }
             case 11: {
@@ -584,8 +584,8 @@ void func_8010A42C(Task* arg0, s32 arg1)
                 }
                 gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
                 inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
-                Gp_SetState1CPe(0x80);
-                func_800ECA54();
+                roomEffectStartStatusTint(PLAYER_STATUS_BERSERKER);
+                roomEffectStartBerserkerGlow();
                 break;
             }
         }
@@ -682,7 +682,7 @@ s32 Gp_ApplyHpDamage(s16 arg0)
             slot   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             coords = slot->extra.tmd->coords;
             p->hp  = 1;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, coords + 1, 5, 0);
+            effectSpawn(EFFECT_CRITICAL_HIT, coords + 1, 5, 0);
             return 0;
         }
     }
@@ -807,7 +807,7 @@ void func_8010AC54(Task* arg0)
         } else {
             inner->stateTimer = 5;
         }
-        Gp_SpawnEff(
+        effectSpawn(
             EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[4 - inner->actionValue], 0x320, 0);
     } else {
         inner->stateTimer--;
@@ -867,9 +867,9 @@ static void func_8010AE98(Task* arg0)
     }
     gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
     inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
-    func_800EC9C8();
+    roomEffectStartDarknessDim();
     Gp_DetachLinkNode(arg0);
-    Gp_SetState1CPe(1);
+    roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
 }
 
 static void func_8010AF04(Task* arg0)
@@ -884,7 +884,7 @@ static void func_8010AF04(Task* arg0)
     inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
     inner->paralysisProgress   = 0;
     func_8010B210(arg0);
-    Gp_SetState1CPe(2);
+    roomEffectStartStatusTint(PLAYER_STATUS_PARALYSIS);
 }
 
 static void func_8010AF6C(Task* arg0)
@@ -898,7 +898,7 @@ static void func_8010AF6C(Task* arg0)
     gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
     inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
     inner->poisonDamageTicks   = 0;
-    Gp_SetState1CPe(4);
+    roomEffectStartStatusTint(PLAYER_STATUS_POISON);
 }
 
 static void func_8010AFC0(Task* arg0)
@@ -911,7 +911,7 @@ static void func_8010AFC0(Task* arg0)
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
     inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
-    Gp_SetState1CPe(0x10);
+    roomEffectStartStatusTint(PLAYER_STATUS_SILENCE);
 }
 
 static void func_8010B010(Task* arg0)
@@ -924,7 +924,7 @@ static void func_8010B010(Task* arg0)
     }
     gPlayerStatus.statusFlags |= 0x20;
     inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
-    Gp_SetState1CPe(0x20);
+    roomEffectStartStatusTint(ROOM_EFFECT_STATUS_TINT_STATUS_20);
 }
 
 static void func_8010B060(Task* arg0)
@@ -939,7 +939,7 @@ static void func_8010B060(Task* arg0)
     inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
     inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
     inner->confusionDirections     = 0;
-    Gp_SetState1CPe(0x40);
+    roomEffectStartStatusTint(PLAYER_STATUS_CONFUSION);
 }
 
 static void func_8010B0C8(Task* arg0)
@@ -952,8 +952,8 @@ static void func_8010B0C8(Task* arg0)
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
     inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
-    Gp_SetState1CPe(0x80);
-    func_800ECA54();
+    roomEffectStartStatusTint(PLAYER_STATUS_BERSERKER);
+    roomEffectStartBerserkerGlow();
 }
 
 void Gp_PlayerStepSfx(Task* arg0)
@@ -1276,7 +1276,7 @@ Task* Gp_SetupAllyWeapon(void)
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= 0x80;
             companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[save->state.companionVariant];
             if ((u8)save->state.companionVariant == 4 && actor->weaponEffectTask == NULL) {
-                eff = Gp_SpawnEff(
+                eff = effectSpawn(
                     (EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, (s32)(val1), 0);
                 if (eff != NULL) {
                     actor->weaponEffectTask = eff->task;

@@ -1013,10 +1013,10 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             ofs.vx                  = 0x1E;
             ofs.vz                  = 0x1E;
             ofs.vy                  = -0xA;
-            Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10100, &ofs);
+            effectSpawn(EFFECT_030, arg1->extra.tmd->coords, 0x10100, &ofs);
             ofs.vy = -0x14;
             ofs.vz = -0x50;
-            Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10100, &ofs);
+            effectSpawn(EFFECT_030, arg1->extra.tmd->coords, 0x10100, &ofs);
             break;
         case 0x2A:
             work->effectArg.coord      = &arg1->extra.tmd->coords[4];
@@ -1028,7 +1028,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->burstWaveBody.radius   = 0xC8;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->burstWaveBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             break;
         case 0x2B:
             work->burstWaveBody.radius   = 0x190;
@@ -1049,7 +1049,7 @@ static void Actor01200_Fn017DC(Enemy* arg0, Task* arg1)
             work->effectArg.spawnArgLo = 0x200;
             work->effectArg.spawnArgHi = 2;
             func_800FDB18(damageGetPlayerAttackEffectId(0x1001), &arg1->extra.tmd->coords[1], NULL, &work->effectArg);
-            Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, &ofs);
+            effectSpawn(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
             sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
@@ -1143,10 +1143,10 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             ofs.vx = 0x1E;
             ofs.vz = 0x1E;
             ofs.vy = -0x3C;
-            Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10080, &ofs);
+            effectSpawn(EFFECT_030, arg1->extra.tmd->coords, 0x10080, &ofs);
             ofs.vy = -0xA;
             ofs.vz = -0x50;
-            Gp_SpawnEff(EFFECT_030, arg1->extra.tmd->coords, 0x10030, &ofs);
+            effectSpawn(EFFECT_030, arg1->extra.tmd->coords, 0x10030, &ofs);
             id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x400C0004;
             pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
             sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
@@ -1155,7 +1155,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
         case 0xE:
             work->burstAttackBody.radius = 0x320;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
             Gp_SpawnScript18(Actor01200_D04044, Actor01200_D04050);
             work->effectArg.coord      = &arg1->extra.tmd->coords[4];
             work->effectArg.spawnArgLo = 0x120;
@@ -1182,7 +1182,7 @@ static void Actor01200_Fn01FDC(Enemy* arg0, Task* arg1)
             ofs.vx                     = arg1->extra.tmd->coords->coord.t[0];
             ofs.vy                     = arg1->extra.tmd->coords->coord.t[1];
             ofs.vz                     = arg1->extra.tmd->coords->coord.t[2];
-            Gp_SpawnEff(EFFECT_RED_GROUND_GLOW, &gGfxViewCoord, 0, &ofs);
+            effectSpawn(EFFECT_RED_GROUND_GLOW, &gGfxViewCoord, 0, &ofs);
             work->effectArg.coord      = &arg1->extra.tmd->coords[1];
             work->effectArg.spawnArgLo = 0x200;
             work->effectArg.spawnArgHi = 2;

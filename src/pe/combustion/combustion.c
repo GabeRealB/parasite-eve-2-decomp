@@ -141,7 +141,7 @@ void func_combustion_8012EF34(Task* arg0)
             }
             mem->move.vy = mem->move.vy + D_combustion_80130980[mem->index].flameDropStep;
             mem->move.vz = mem->move.vz + D_combustion_80130980[mem->index].flameReachStep;
-            spawned      = Gp_SpawnEff((EFFECT_COMBUSTION_FLAME | EFFECT_SPAWN_UNLIMITED), coord, (s32)(mem->age), &mem->move);
+            spawned      = effectSpawn((EFFECT_COMBUSTION_FLAME | EFFECT_SPAWN_UNLIMITED), coord, (s32)(mem->age), &mem->move);
             if (spawned != NULL) {
                 taskReparent(arg0, spawned->task);
             }
@@ -237,7 +237,7 @@ void func_combustion_8012F2BC(Task* arg0)
             if ((((u32)spawnRng1 >> 16) & 3) == 0) {
                 spawnRng1b      = spawnRng1 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = spawnRng1b;
-                spawned         = Gp_SpawnEff(EFFECT_COMBUSTION_EMBER, coord, ((u32)spawnRng1b >> 16) & 1, 0);
+                spawned         = effectSpawn(EFFECT_COMBUSTION_EMBER, coord, ((u32)spawnRng1b >> 16) & 1, 0);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -259,7 +259,7 @@ void func_combustion_8012F2BC(Task* arg0)
             if ((((u32)spawnRng2 >> 16) & 3) == 0) {
                 spawnRng2b      = spawnRng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = spawnRng2b;
-                spawned         = Gp_SpawnEff(EFFECT_COMBUSTION_EMBER, coord, ((u32)spawnRng2b >> 16) & 1, 0);
+                spawned         = effectSpawn(EFFECT_COMBUSTION_EMBER, coord, ((u32)spawnRng2b >> 16) & 1, 0);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -644,7 +644,7 @@ void func_combustion_801308E0(Task* arg0)
     }
     coord = arg0->extra.coordBody->coord;
     actorRenderComposeCoord(coord);
-    Gp_SpawnEff((EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
-    Gp_SpawnEff((EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED), coord, -1, 0);
+    effectSpawn((EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
+    effectSpawn((EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED), coord, -1, 0);
     arg0->state = arg0->state + 1;
 }

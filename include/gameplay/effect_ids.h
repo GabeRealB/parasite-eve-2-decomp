@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_EFFECT_IDS_H
 #define GAMEPLAY_EFFECT_IDS_H
 
-/// Effect ids for `Gp_SpawnEff` and the room effect slots.
+/// Effect ids for `effectSpawn` and the room effect slots.
 ///
 /// An id packs the `taskSpawn` bank in bits 16..30 and the task type in the
 /// low 16 bits. Bank 6 is the gameplay effect table `D_8010FC2C`, whose slot is
@@ -68,7 +68,7 @@ enum {
     /// under the beam task.
     EFFECT_HYPERVELOCITY_SHOCK_RING = EFFECT_ID(EFFECT_TASK_BANK, 0x00D),
     /// Attaches to player joint 8 while Berserker is active and, on each burstRequest
-    /// (a shot), draws a pink triangle fan and two rings; spawned by func_800ECA54 when
+    /// (a shot), draws a pink triangle fan and two rings; spawned by `roomEffectStartBerserkerGlow` when
     /// the Berserker status is applied.
     EFFECT_BERSERKER_SHOT_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x00E),
     /// Five-tick colored screen pulse (`_effectStatusScreenTintTaskF`) for one

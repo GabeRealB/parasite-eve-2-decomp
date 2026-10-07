@@ -106,7 +106,7 @@ void gluttonHitGroups6To8(Task* arg0)
             sc->offset.vx = 0;
             sc->offset.vz = 0x258;
 #endif
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[1]->task->extra.tmd->coords[1], 0, &sc->offset);
+            effectSpawn(EFFECT_CRITICAL_HIT, &work->escorts[1]->task->extra.tmd->coords[1], 0, &sc->offset);
             sc->damage *= 4;
             work->state = 0xE;
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
@@ -146,7 +146,7 @@ void gluttonHitGroups6To8(Task* arg0)
             sc->offset.vx = 0;
             sc->offset.vz = 0x258;
 #endif
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &work->escorts[1]->task->extra.tmd->coords[1], 0, &sc->offset);
+            effectSpawn(EFFECT_CRITICAL_HIT, &work->escorts[1]->task->extra.tmd->coords[1], 0, &sc->offset);
             work->state = 0xE;
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
             work->groups6To8Pool = 0x3C;

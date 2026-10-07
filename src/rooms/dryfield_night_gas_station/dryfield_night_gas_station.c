@@ -2977,7 +2977,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
                 offset.vx = 0;
                 offset.vy = -0x64;
                 offset.vz = -0x12C;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x300, &offset);
+                effectSpawn(EFFECT_FLASH_BURST, coord, 0x300, &offset);
                 _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
@@ -2985,7 +2985,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
                 offset.vx = 0xC8;
                 offset.vy = -0x64;
                 offset.vz = -0xC8;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x200, &offset);
+                effectSpawn(EFFECT_FLASH_BURST, coord, 0x200, &offset);
                 _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
@@ -2993,7 +2993,7 @@ void func_dryfield_night_gas_station_80180604(s32 arg0)
                 offset.vx = -0x64;
                 offset.vy = -0x64;
                 offset.vz = -0xC8;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x200, &offset);
+                effectSpawn(EFFECT_FLASH_BURST, coord, 0x200, &offset);
                 _dryfieldNightGasStationSetFlickerSpritesVisible(DRYFIELD_NIGHT_GAS_STATION_FLICKER_SPRITES_ON);
                 break;
 
@@ -3219,7 +3219,7 @@ void func_dryfield_night_gas_station_80180B5C(Task* arg0)
 void func_dryfield_night_gas_station_80180BEC(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 static void func_dryfield_night_gas_station_80180C20(void)
@@ -3388,13 +3388,13 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->move.vz   = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
                 if (work->angle == 0) {
-                    Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x10300, &work->move);
+                    effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x10300, &work->move);
                 } else if (work->angle == 1) {
-                    Gp_SpawnEff(EFFECT_FIRE_BURST, coord, 0x300, &work->move);
+                    effectSpawn(EFFECT_FIRE_BURST, coord, 0x300, &work->move);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->move);
+                        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->move);
                     }
                 }
             }
@@ -3408,7 +3408,7 @@ void func_dryfield_night_gas_station_80180E9C(Task* task)
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->move.vy   = D_dryfield_night_gas_station_80189C8C[i].vy;
                 work->move.vz   = D_dryfield_night_gas_station_80189C8C[i].vz - ((gRandomLcgState >> 16) & 0x1FF) + 0x100;
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->move);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC0013500, &work->move);
             }
         }
     }

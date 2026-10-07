@@ -1175,7 +1175,7 @@ void func_actor_335800_80162460(void)
 void func_actor_335800_80162484(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 void func_actor_335800_801624B8(s32 arg0)
@@ -1331,7 +1331,7 @@ static void func_actor_335800_80162844(Task* task)
             rec = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
             if (rec != NULL) {
                 if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->prevCueFlags & ANIMATION_RECORD_CUE_2)) {
-                    Gp_SpawnEff(EFFECT_SHOTGUN_MUZZLE_FLASH, &task->extra.tmd->coords[8], 0xD, NULL);
+                    effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH, &task->extra.tmd->coords[8], 0xD, NULL);
                 }
                 work->prevCueFlags = rec->flags & ANIMATION_RECORD_CUE_MASK;
             }

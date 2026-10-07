@@ -85,7 +85,7 @@ void ratDeath(Enemy* arg0, Task* arg1)
                 obj->flags = TMD_OBJECT_SEMI_TRANS;
             }
             if (work->timer == 15) {
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, coord, 1, NULL);
             }
             if (work->timer >= 0x3C) {
                 work->step = 2;

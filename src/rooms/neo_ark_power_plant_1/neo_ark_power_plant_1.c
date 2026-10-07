@@ -212,7 +212,7 @@ s32 func_neo_ark_power_plant_1_8017D8C8(Task* task, s32 msgId, s32 arg2, s32 arg
 /// `gRoomEffectState` and sets bit 0 of `Gp_StateC08.flags`.
 void func_neo_ark_power_plant_1_8017D8D0(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 

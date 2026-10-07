@@ -35,7 +35,7 @@ void func_shelter_b1_elevator_hall_8017DC28(Task* task);
 /// Runs a charging pink flash, peak screen tint and fading star.
 ///
 /// Requires the coordinate body and counted, owned `EffectWork` from
-/// `Gp_SpawnEff`. `spawnArg1.value` is a positive charge duration in active
+/// `effectSpawn`. `spawnArg1.value` is a positive charge duration in active
 /// ticks, consumed as a countdown. Nonzero room effect control pauses it;
 /// four or above cancels it. State 3 also requests release. Completion or
 /// cancellation releases work and task. Coordinate ancestors, the effect
@@ -45,7 +45,7 @@ void shelterB1ElevatorHallRoomVisualEffectsFlashTask(Task* task);
 /// Records two moving endpoints and draws their fading blue twin trails.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`, a live parent coordinate and `Task::work` initially NULL.
+/// `effectSpawn`, a live parent coordinate and `Task::work` initially NULL.
 /// Owns two eight-coordinate histories in `Task::work`; allocation failure
 /// retries initialization. Snapshots retain world positions as the parent moves.
 /// `spawnArg1.value` zero leaves the lifetime unlimited; values 2..32767
@@ -57,7 +57,7 @@ void shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task);
 /// Runs a vertically drifting animated mote until it fades.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`. `spawnArg1` packs the half-extent in bits 0..11, palette in
+/// `effectSpawn`. `spawnArg1` packs the half-extent in bits 0..11, palette in
 /// bits 12..15, unsigned speed in bits 16..23 and signed lifetime in bits
 /// 24..31. Extent and speed use parent-coordinate units; lifetime uses active
 /// ticks. Motion bits 0..1 overlap the extent: either selects steady motion,
@@ -71,7 +71,7 @@ void shelterB1ElevatorHallRoomVisualEffectsMoteTask(Task* task);
 /// Runs an expanding tinted halo, shrinking ring and fading star.
 ///
 /// Requires a coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`. The unsigned low half of `spawnArg1` is a nonzero expansion
+/// `effectSpawn`. The unsigned low half of `spawnArg1` is a nonzero expansion
 /// duration in active ticks; the signed high half selects tint row 0..2.
 /// Initialization attaches at the saved local offset and replaces the argument
 /// with its countdown. Nonzero control pauses it; four or above cancels it.
@@ -95,7 +95,7 @@ void func_shelter_b1_elevator_hall_80182064(Task* task);
 /// Runs an expanding orange disc and layered glow inside a fading ring.
 ///
 /// Requires the coordinate body and counted, owned `EffectWork` from
-/// `Gp_SpawnEff`; `spawnArg1` is unused. The ring fades before the centre.
+/// `effectSpawn`; `spawnArg1` is unused. The ring fades before the centre.
 /// Nonzero control pauses it; four or above cancels it. Completion or
 /// cancellation releases work and task. Coordinate ancestors, the effect
 /// controller and this room overlay must remain live.

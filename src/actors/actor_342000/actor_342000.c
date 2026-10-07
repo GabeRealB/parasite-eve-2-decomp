@@ -758,7 +758,7 @@ static void func_actor_342000_80162BBC(Task* arg0)
         case ACTOR_342000_PLAYER_ACTION_NONE:
             break;
         case ACTOR_342000_PLAYER_ACTION_PLACE_AT_START:
-            Gp_PulseState1C();
+            roomEffectRequestCancelAll();
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_342000_80164930, 0);
             break;

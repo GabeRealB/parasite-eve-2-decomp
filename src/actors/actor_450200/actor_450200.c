@@ -1255,7 +1255,7 @@ void func_actor_450200_80131E24(Task* task)
             countdown           = (u16)task->killCountdown - 1;
             task->killCountdown = countdown;
             if ((countdown & 1) == 0) {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x80000300, NULL);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x80000300, NULL);
             }
             return;
         case 2:
@@ -1267,11 +1267,11 @@ void func_actor_450200_80131E24(Task* task)
             task->killCountdown = countdown;
             if (countdown & 1) {
                 if (countdown > 0) {
-                    Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, countdown * 2 + 0x80000080,
+                    effectSpawn(EFFECT_ADDITIVE_PUFF, coord, countdown * 2 + 0x80000080,
                                 &D_actor_450200_80138868);
                 }
             } else if (countdown >= -0x1F && (countdown & 7) == 0) {
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xF0010100, &D_actor_450200_80138868);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xF0010100, &D_actor_450200_80138868);
             }
             return;
     }
@@ -1348,7 +1348,7 @@ void func_actor_450200_801320D4(s32 arg0)
 
 void func_actor_450200_8013215C(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 void func_actor_450200_8013217C(s32 arg0)

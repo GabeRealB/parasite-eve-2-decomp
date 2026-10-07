@@ -1028,7 +1028,7 @@ static void func_actor_503500_80134408(Task* arg0)
             worldTargetUnlinkNode(&enemy->node);
             enemy->recs       = 0;
             work->hitCooldown = 0;
-            Gp_PulseState1C();
+            roomEffectRequestCancelAll();
             sum = 0;
             for (i = 1; i < ARRAY_SIZE(work->enemies); i++) {
                 if (work->enemies[i] != NULL) {
@@ -1078,10 +1078,10 @@ static void func_actor_503500_801345F4(Task* arg0)
             break;
         case 1:
             if (work->stateFrames < 0x78) {
-                Gp_SpawnEff(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
+                effectSpawn(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
                             &D_actor_503500_8016EF58[(s16)(work->stateFrames % 7)]);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
+                effectSpawn(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
                             &D_actor_503500_8016EF58[(u16)((gRandomLcgState >> 16) % 7)]);
             }
             if (work->stateFrames == 0x78) {
@@ -1217,7 +1217,7 @@ static void func_actor_503500_80134A24(Task* arg0)
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case 0x46:
-                    Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, coord, 1, NULL);
                     break;
                 case 0x64:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
@@ -1330,7 +1330,7 @@ static inline void _actor503500HandleHit(Task* arg0, Actor503500Work* work, Enem
     dmg  = Gp_ComputeDamage(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
     if (damageRollCriticalHit(enemy, id, 0) != 0) {
         dmg *= 4;
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);
     }
     damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
     enemy->hp -= dmg;
@@ -2911,7 +2911,7 @@ static void func_actor_503500_80137678(Task* arg0)
             case 0:
             case 2:
             case 4:
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xB0008600,
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xB0008600,
                             &D_actor_503500_8016F078[work->smokePuffCount++ % 3]);
                 break;
         }
@@ -3006,7 +3006,7 @@ static inline void _actor503500PinkFlashEmitterHandleHit(Task* arg0, _Actor50350
     pos.vz += D_actor_503500_8016F068.vz;
     func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
     stun = damageGetPlayerAttackHitCooldown(id);
     if (work->hitCooldown < stun) {
@@ -3595,7 +3595,7 @@ static void func_actor_503500_80139014(Task* arg0)
                                              (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
                     break;
                 case 15:
-                    Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 1, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, coord, 1, NULL);
                     break;
                 case 30:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
@@ -3611,7 +3611,7 @@ static void func_actor_503500_80139014(Task* arg0)
     if (func_actor_503500_801360BC(arg0->spawnArg1.value, 4) != 0 && work->stateStep < 3 &&
         gDisplayState.animFrame % 12 == 0) {
         for (i = ACTOR_503500_LARGE_CHAIN_TIP_PART, j = 0; i > 0; i--) {
-            Gp_SpawnEff(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
+            effectSpawn(EFFECT_SMOKE_PUFF, &arg0->extra.tmd->coords[i], 0xB0008600, &D_actor_503500_8016F0D0[j]);
             j++;
             j = (j < 3) ? j : 0;
         }
@@ -3663,9 +3663,9 @@ static void func_actor_503500_801395BC(Task* arg0)
                 vec.vx = 0;
                 vec.vy = -700;
                 vec.vx = (s16)(work->stateFrames % 3) * 33;
-                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x11101800, &vec);
+                effectSpawn(EFFECT_HIT_PUFF, coord, 0x11101800, &vec);
                 vec.vy = 700;
-                Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x11101800, &vec);
+                effectSpawn(EFFECT_HIT_PUFF, coord, 0x11101800, &vec);
             }
             work->stateFrames++;
             if (work->stateFrames >= 0x1A) {
@@ -3831,7 +3831,7 @@ static inline void _actor503500LargeChainHandleHit(Task* arg0, _Actor503500Large
     pos.vz += D_actor_503500_8016F0B0.vz;
     func_800FDB18(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
     if (crit != 0) {
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
     }
     stun = damageGetPlayerAttackHitCooldown(id);
     if (work->hitCooldown < stun) {

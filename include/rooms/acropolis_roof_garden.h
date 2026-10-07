@@ -37,7 +37,7 @@ void func_acropolis_roof_garden_8017DCDC(Task* task);
 
 /// Draws a flickering light sprite in the roof garden views that see it.
 ///
-/// Requires a coordinate body and zeroed, counted `EffectWork` from `Gp_SpawnEff`.
+/// Requires a coordinate body and zeroed, counted `EffectWork` from `effectSpawn`.
 /// Initially `spawnArg1.value` packs a light index 0..9 in bits 0..3, a texture
 /// cell 0..2 in bits 8..9, and a perspective scale in bits 16..27 (zero selects
 /// 640). The first visible tick keeps only the light index; `EffectWork::angle`
@@ -49,7 +49,7 @@ void acropolisRoofGardenLightGlowTask(Task* task);
 
 /// Draws one frame of a pulsing red or green flare, then retires the effect task.
 ///
-/// Requires a coordinate body and counted, owned `EffectWork` from `Gp_SpawnEff`.
+/// Requires a coordinate body and counted, owned `EffectWork` from `effectSpawn`.
 /// `spawnArg1.value` packs pulse steps per animation tick in bits 0..7, radius
 /// scale in bits 8..15, and green selection in bit 16 (clear selects red).
 /// A negative word selects two concentric discs and four rays; otherwise two
@@ -62,7 +62,7 @@ void acropolisRoofGardenFlareTask(Task* task);
 
 /// Advances a tumbling leaf through its fall, stationary hold and fade.
 ///
-/// Requires a coordinate body and zeroed, counted `EffectWork` from `Gp_SpawnEff`.
+/// Requires a coordinate body and zeroed, counted `EffectWork` from `effectSpawn`.
 /// Motion stops after parent-space Y becomes positive. The Acropolis texture
 /// uses a square of half-size 32 coordinate units; completed fading releases
 /// the work and task. Drawing requires frame-arena and scratch-stack capacity.

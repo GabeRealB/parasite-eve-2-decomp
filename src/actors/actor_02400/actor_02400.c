@@ -604,7 +604,7 @@ static void Actor02400_Fn00C08(Task* task)
                         work->speed              = 0;
                         work->turnRate           = 0;
                         work->armOut             = 0;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 2, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, coord, 2, NULL);
                         break;
                     case 3:
                         work->mode              = ACTOR_02400_MODE_HURT;
@@ -617,7 +617,7 @@ static void Actor02400_Fn00C08(Task* task)
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         damage         += (s16)(((gRandomLcgState >> 16) & 0x7F) + 200);
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 2, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, coord, 2, NULL);
                         break;
                 }
                 dmg = damage;
@@ -859,7 +859,7 @@ static void Actor02400_Fn01590(Task* task)
         sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40180002;
         pan   = (s8)worldCoordGetOriginAudioPan(coord);
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-        effect             = Gp_SpawnEff(gRoomEffectGlowDiscId, coord, (s32)(work->variant), NULL);
+        effect             = effectSpawn(gRoomEffectGlowDiscId, coord, (s32)(work->variant), NULL);
         work->chargeEffect = effect;
         if (effect != NULL) {
             taskReparent(task, effect->task);
@@ -1267,7 +1267,7 @@ static void Actor02400_Fn024F8(Enemy* arg0, Task* arg1)
                         obj->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     if (work->counter == 15) {
-                        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 3, NULL);
+                        effectSpawn(EFFECT_CORPSE_BURN, coord, 3, NULL);
                     }
                     if (work->counter >= 60) {
                         work->phase = ACTOR_02400_DEATH_PHASE_DESTROY;
@@ -1433,7 +1433,7 @@ static void Actor02400_Fn02AF0(Enemy* arg0, Task* arg1)
             worldCollisionClearContacts(work->wallContacts);
             work->timer--;
             if ((work->timer <= 0) || (work->strikeContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) || (spawn != 0)) {
-                Gp_SpawnEff(gRoomEffectOrangeBurst2Id, coord, 0, NULL);
+                effectSpawn(gRoomEffectOrangeBurst2Id, coord, 0, NULL);
                 arg1->state        = 2;
                 work->teardownStep = ACTOR_02400_FIREBALL_TEARDOWN_UNLINK;
             }

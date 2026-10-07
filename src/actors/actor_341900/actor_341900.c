@@ -834,19 +834,19 @@ static void func_actor_341900_80162AD4(Task* arg0)
                         ofs.vx = 0;
                         ofs.vy = -0x64;
                         ofs.vz = 0x1194;
-                        Gp_SpawnEff(EFFECT_196, &work->glutton->extra.tmd->coords[2], 0x04402800, &ofs);
+                        effectSpawn(EFFECT_196, &work->glutton->extra.tmd->coords[2], 0x04402800, &ofs);
                         ofs.vx = 0xC8;
                         ofs.vy = 0xC8;
                         ofs.vz = 0x1194;
-                        Gp_SpawnEff(EFFECT_196, &work->glutton->extra.tmd->coords[2], 0x04402800, &ofs);
+                        effectSpawn(EFFECT_196, &work->glutton->extra.tmd->coords[2], 0x04402800, &ofs);
                         ofs.vx = -0xC8;
                         ofs.vy = 0xC8;
                         ofs.vz = 0x1194;
-                        Gp_SpawnEff(EFFECT_196, &work->glutton->extra.tmd->coords[2], 0x04402800, &ofs);
+                        effectSpawn(EFFECT_196, &work->glutton->extra.tmd->coords[2], 0x04402800, &ofs);
                         ofs.vx = 0;
                         ofs.vy = 0xC8;
                         ofs.vz = 0x1194;
-                        Gp_SpawnEff(EFFECT_196, &work->glutton->extra.tmd->coords[2], 0x04402800, &ofs);
+                        effectSpawn(EFFECT_196, &work->glutton->extra.tmd->coords[2], 0x04402800, &ofs);
                         work->stagingMode = ACTOR_341900_STAGING_NONE;
                     }
                     break;

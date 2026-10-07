@@ -1360,7 +1360,7 @@ void func_acropolis_cafeteria_8017E2D0(void)
 
 void func_acropolis_cafeteria_8017E310(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 

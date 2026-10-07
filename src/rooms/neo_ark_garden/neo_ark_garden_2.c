@@ -437,14 +437,14 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                 gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
+                    effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[0]);
                 }
                 rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
+                    effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[1]);
                 }
             }
@@ -477,14 +477,14 @@ void func_neo_ark_garden_8017EA9C(Task* task)
                 gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
+                    effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[0]);
                 }
                 rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = rnd;
                 if (((rnd >> 16) & 3) == 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
+                    effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
                                 &D_neo_ark_garden_801813E0[1]);
                 }
             }

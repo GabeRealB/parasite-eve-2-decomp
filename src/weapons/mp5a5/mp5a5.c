@@ -128,7 +128,7 @@ void func_mp5a5_8011DDA4(Task* arg0)
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
                     func_80106238(arg0, 0, 1);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000004 | (WEAPON_ID << 16), 1);
-                    Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH,
+                    effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_ID, NULL);
                     Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 1);
@@ -143,7 +143,7 @@ void func_mp5a5_8011DDA4(Task* arg0)
                     func_80106238(arg0, 0, 0);
                     Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x20000005 | (WEAPON_ID << 16), 0);
                     Gp_ConsumeSlotQty(WEAPON_ITEM(WEAPON_ID), 0x101);
-                    eff = Gp_SpawnEff(EFFECT_MP5A5_ALT_FIRE_MUZZLE_FLASH,
+                    eff = effectSpawn(EFFECT_MP5A5_ALT_FIRE_MUZZLE_FLASH,
                                       actor->equipmentTasks[1]->extra.tmd->coords,
                                       WEAPON_ID, NULL);
                     if (eff != NULL) {

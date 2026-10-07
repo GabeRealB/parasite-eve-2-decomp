@@ -825,7 +825,7 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
             work->move.vx = 0xB58;
             work->move.vy = -0x822;
             work->move.vz = -0xE5;
-            Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT, coord, 0x42000, &work->move);
+            effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLICKER_LIGHT, coord, 0x42000, &work->move);
             task->state = task->state + 1;
             break;
         case 1:
@@ -834,25 +834,25 @@ void func_acropolis_fire_escape_8017FF7C(Task* task)
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
                     work->move.vz = 0x686;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, (6 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 14, &work->move);
+                    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, (6 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 14, &work->move);
                 }
                 if (gGameSession->location.loc.view == 8) {
                     work->move.vx = 0x48F;
                     work->move.vy = -0x391;
                     work->move.vz = 0x686;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | (3 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 14, &work->move);
+                    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | (3 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 14, &work->move);
                 }
                 if (gGameSession->location.loc.view == 6) {
                     work->move.vx = -0xC1F;
                     work->move.vy = -0xD10;
                     work->move.vz = 0x8E0;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (4 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 8, &work->move);
+                    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (4 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 8, &work->move);
                 }
                 if (gGameSession->location.loc.view == 9) {
                     work->move.vx = -0xC1F;
                     work->move.vy = -0xD10;
                     work->move.vz = 0x8E0;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (2 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 8, &work->move);
+                    effectSpawn(EFFECT_ACROPOLIS_FIRE_ESCAPE_FLARE, coord, ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (2 << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | 8, &work->move);
                 }
             }
             break;

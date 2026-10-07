@@ -358,7 +358,7 @@ void func_shelter_b1_transfer_tunnel_8017D678(Task* task)
 
 /// Binds shared actor effect requests to this room's counted bank-6 tasks.
 ///
-/// Installs seven packed bank/type IDs for `Gp_SpawnEff` after the room-effect
+/// Installs seven packed bank/type IDs for `effectSpawn` after the room-effect
 /// controller clears its selectors. Each ID persists until overwritten or the
 /// controller is reinitialized. Keep this overlay loaded while the selected
 /// effects are requested or running.

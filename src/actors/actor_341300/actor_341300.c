@@ -589,10 +589,10 @@ void func_actor_341300_801625AC(void)
     SVECTOR   vec   = D_actor_341300_80161E64;
     GfxCoord* coord = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[2];
 
-    Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x10013300, &vec);
-    Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
-    Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
-    Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
+    effectSpawn(EFFECT_HIT_PUFF, coord, 0x10013300, &vec);
+    effectSpawn(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
+    effectSpawn(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
+    effectSpawn(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
 }
 
 void func_actor_341300_80162680(s8 arg0)

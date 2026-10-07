@@ -35,7 +35,7 @@ void func_shelter_b2_pod_access_tunnel_8017DC14(Task* task);
 /// Advances the pod access tunnel's drifting animated sprite and releases it at completion.
 ///
 /// `task` owns initialized `EffectWork` in `spawnArg2.pointer` and a coordinate
-/// body, normally supplied by `Gp_SpawnEff` with state 0 and cell index 0.
+/// body, normally supplied by `effectSpawn` with state 0 and cell index 0.
 /// The first running update initializes without drawing; later updates draw
 /// before moving, accelerating and advancing through 12 banked or 10 alternate
 /// cells. Nonzero `RoomEffectState::effectControl` freezes updates and redraws
@@ -61,7 +61,7 @@ void shelterB2PodAccessTunnelEffectSpriteDriftTask(Task* task);
 /// Runs a pink charge flash, a peak screen tint and a fading star.
 ///
 /// Start in state 0 with a coordinate body and counted, zero-initialized
-/// `EffectWork` owned by `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`.
+/// `EffectWork` owned by `spawnArg2.pointer`, as supplied by `effectSpawn`.
 /// `spawnArg1.value` is a positive charge duration in active ticks, consumed
 /// as a countdown. Nonzero room effect control pauses updates; values >= 4
 /// cancel. Completion or state 3 releases work and task. The room overlay,
@@ -88,7 +88,7 @@ void func_shelter_b2_pod_access_tunnel_80182F78(Task* task);
 /// Runs an animated vertical mote that brightens or starts steady, then fades.
 ///
 /// Start in state 0 with a coordinate body and counted, zero-initialized
-/// `EffectWork` owned by `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`.
+/// `EffectWork` owned by `spawnArg2.pointer`, as supplied by `effectSpawn`.
 /// `spawnArg1` packs half-extent in game units in bits 0..11, palette in 12..15
 /// (0 default), unsigned speed in 16..23 and signed lifetime in 24..31, in
 /// active ticks. Motion bits 0..1 overlap the extent: either selects steady

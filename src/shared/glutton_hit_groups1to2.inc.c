@@ -138,7 +138,7 @@ void gluttonHitGroups1To2(Task* arg0)
             sc->offset.vy = 0;
             sc->offset.vx = 0;
             sc->offset.vz = 0x3E8;
-            Gp_SpawnEff(EFFECT_CRITICAL_HIT, work->escorts[3]->task->extra.tmd->coords, 0, &sc->offset);
+            effectSpawn(EFFECT_CRITICAL_HIT, work->escorts[3]->task->extra.tmd->coords, 0, &sc->offset);
 #if GLUTTON_ROOM == GLUTTON_DUMPING_HOLE
             if (work->state != 9 && work->summonsAlive == 0) {
 #else

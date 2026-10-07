@@ -37,7 +37,7 @@ static inline void _leafSeedMotion(EffectWork* work)
 /// Advances one tumbling leaf through its fall, stationary hold and fade.
 ///
 /// Requires a counted effect task with a coordinate body and a cleared,
-/// primary-heap `EffectWork` in `spawnArg2.pointer`, as `Gp_SpawnEff` supplies.
+/// primary-heap `EffectWork` in `spawnArg2.pointer`, as `effectSpawn` supplies.
 /// `move` holds coordinate units per tick; `period` and `step` are X/Z tumble
 /// increments in 4096 units per turn. The square has half-size 32.
 /// Stops motion after parent-space Y becomes positive, retaining the final

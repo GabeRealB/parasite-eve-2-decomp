@@ -43,7 +43,7 @@ void oddStrangerWalkingDeath(Task* arg0)
         work->animId                  = 2;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->animRate                = 0x10;
-        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &ODD_STRANGER_FX_OFFSET);
+        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &ODD_STRANGER_FX_OFFSET);
         work->stateTimer = 0;
     }
     next             = work->stateTimer + 1;
@@ -65,15 +65,15 @@ void oddStrangerWalkingDeath(Task* arg0)
                 ODD_STRANGER_FX_OFFSET.vz = 0x64;
                 ODD_STRANGER_FX_OFFSET.vy = 0;
                 ODD_STRANGER_FX_OFFSET.vx = 0;
-                actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &ODD_STRANGER_FX_OFFSET), enemy);
+                actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &ODD_STRANGER_FX_OFFSET), enemy);
             }
             if ((s16)work->stateTimer == 5) {
                 D_80114B34[5].data.model = ODD_STRANGER_BURST_MODEL_5;
-                actorTintEffect(Gp_SpawnEff(0xA0000 | 5, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+                actorTintEffect(effectSpawn(0xA0000 | 5, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
             }
             if ((s16)work->stateTimer == 6) {
                 D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-                actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+                actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
             }
             break;
         case 0x1A:
@@ -86,7 +86,7 @@ void oddStrangerWalkingDeath(Task* arg0)
                     break;
                 case 5:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 2, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 2, NULL);
                     break;
                 case 23:
                     arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;

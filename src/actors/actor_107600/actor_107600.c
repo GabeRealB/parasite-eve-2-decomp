@@ -1571,7 +1571,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                 actor             = player->work;
                 work->attackTimer = 0;
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
-                Gp_SpawnEff(EFFECT_MIST_GALLERY_TRACER, c, 0, NULL);
+                effectSpawn(EFFECT_MIST_GALLERY_TRACER, c, 0, NULL);
                 p = (s8)worldCoordGetOriginAudioPan(c);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK, p, (s8)worldCoordGetOriginAudioDepth(c));
                 if (actor->mode != GAME_ACTOR_MODE_DAMAGE) {

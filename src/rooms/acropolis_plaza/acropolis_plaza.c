@@ -444,7 +444,7 @@ extern VECTOR3 D_acropolis_plaza_801907C4[];
 
 /// Ambient-effect anchor points, one `SVECTOR` per effect slot. The plaza's
 /// three effect bursts index this table with the same slot number they pass to
-/// `Gp_SpawnEff`, so entries 1-6, 7-0xA and 0xC-0x12 belong to the 0x60098,
+/// `effectSpawn`, so entries 1-6, 7-0xA and 0xC-0x12 belong to the 0x60098,
 /// 0x60099 and 0x60096 flavours respectively. The block runs well past entry
 /// 0x12, so this declaration is left unsized.
 extern SVECTOR D_acropolis_plaza_80198820[];
@@ -5260,7 +5260,7 @@ void acropolisPlazaLightGlowTask(Task* task)
 #undef ACROPOLIS_PLAZA_DRAW_LIGHT_GLOW_FAN
 
 /// Plaza ambient-effect spawner. On its first frame only, it fires three bursts
-/// of `Gp_SpawnEff` against the task's own coordinate frame - seven 0x60096
+/// of `effectSpawn` against the task's own coordinate frame - seven 0x60096
 /// effects on slots 0xC-0x12, four 0x60099 on slots 7-0xA and six 0x60098 on
 /// slots 1-6 - each anchored at the matching entry of
 /// `D_acropolis_plaza_80198820`. Every later frame is a no-op.
@@ -5272,13 +5272,13 @@ void func_acropolis_plaza_8018251C(Task* task)
     coord = task->extra.coordBody->coord;
     if (task->state == 0) {
         for (i = 0xC; i < 0x13; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PLAZA_LIGHT_GLOW, coord, i, &D_acropolis_plaza_80198820[i]);
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_GLOW, coord, i, &D_acropolis_plaza_80198820[i]);
         }
         for (i = 7; i < 0xB; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE, coord, i, &D_acropolis_plaza_80198820[i]);
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE, coord, i, &D_acropolis_plaza_80198820[i]);
         }
         for (i = 1; i < 7; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PLAZA_SIREN_LIGHT, coord, i, &D_acropolis_plaza_80198820[i]);
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_SIREN_LIGHT, coord, i, &D_acropolis_plaza_80198820[i]);
         }
         task->state = task->state + 1;
     }

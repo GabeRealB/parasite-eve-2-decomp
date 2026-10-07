@@ -316,12 +316,12 @@ void func_neo_ark_woodland_path_8017EA08(Task* task)
             actorRenderComposeCoord(&coord);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((s32)((gRandomLcgState >> 16) & 0x1FF) < work->angle) {
-                Gp_SpawnEff(gRoomEffectWaterRippleId, &coord, 0x40, 0);
+                effectSpawn(gRoomEffectWaterRippleId, &coord, 0x40, 0);
             }
             work->angle    -= 0x20;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((s32)((gRandomLcgState >> 16) & 0x1FF) < work->angle) {
-                Gp_SpawnEff(gRoomEffectWaterSprayId, &coord, 0x1202180, 0);
+                effectSpawn(gRoomEffectWaterSprayId, &coord, 0x1202180, 0);
             }
             D_neo_ark_woodland_path_80181684[i].vx = part->workm.t[0];
             D_neo_ark_woodland_path_80181684[i].vy = part->workm.t[1];

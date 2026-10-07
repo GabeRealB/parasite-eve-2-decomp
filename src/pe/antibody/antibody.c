@@ -205,7 +205,7 @@ void func_antibody_8012EF34(Task* arg0)
                             mem->move.vz = (D_antibody_80130BD4[mem->index].moteSpawnRadius *
                                             rcos(mem->angle)) >>
                                            12;
-                            eff = Gp_SpawnEff(EFFECT_ANTIBODY_MOTE, coord, 0, &mem->move);
+                            eff = effectSpawn(EFFECT_ANTIBODY_MOTE, coord, 0, &mem->move);
                             if (eff != NULL) {
                                 taskReparent(arg0, eff->task);
                             }
@@ -214,7 +214,7 @@ void func_antibody_8012EF34(Task* arg0)
                     }
                 }
                 if (mem->scale > D_antibody_80130BD4[mem->index].scaleLimit) {
-                    Gp_SpawnEff((EFFECT_ANTIBODY_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
+                    effectSpawn((EFFECT_ANTIBODY_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
                     mem->period = mem->scale;
                     arg0->state = 2;
                 }

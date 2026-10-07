@@ -27,13 +27,13 @@ void diverImpactBurst(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3)
 
     switch (arg2) {
         case 0:
-            Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x14001000 + param + variant, NULL);
+            effectSpawn(gRoomEffectWaterSprayId, coord, 0x14001000 + param + variant, NULL);
             break;
 
         case 1:
             diverDrawSpark(coord, ((u32)arg1 >> 1) % 6, param, 0);
             if (!(arg1 & 1)) {
-                Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x01000000 + param + variant, NULL);
+                effectSpawn(gRoomEffectWaterSprayId, coord, 0x01000000 + param + variant, NULL);
             }
             if (!(arg1 & 7)) {
                 SVECTOR* dir;
@@ -51,17 +51,17 @@ void diverImpactBurst(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3)
                 gte_ldsv(dir);
                 gte_gpf12();
                 gte_stsv(dir);
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, (s32)(param), dir);
+                effectSpawn(EFFECT_FLASH_BURST, coord, (s32)(param), dir);
             }
             break;
 
         case 2:
             diverDrawSpark(coord, ((u32)arg1 >> 1) % 6, param, 0);
-            Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x10001000 + param + variant, NULL);
+            effectSpawn(gRoomEffectWaterSprayId, coord, 0x10001000 + param + variant, NULL);
             for (i = 0; i < 4; i++) {
                 SVECTOR* dir;
 
-                Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x02001000 + param + variant, NULL);
+                effectSpawn(gRoomEffectWaterSprayId, coord, 0x02001000 + param + variant, NULL);
 
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 vec.vx          = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
@@ -76,7 +76,7 @@ void diverImpactBurst(GfxCoord* coord, u16 arg1, u16 arg2, u32 arg3)
                 gte_ldsv(dir);
                 gte_gpf12();
                 gte_stsv(dir);
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, (s32)(param), dir);
+                effectSpawn(EFFECT_FLASH_BURST, coord, (s32)(param), dir);
             }
             break;
     }

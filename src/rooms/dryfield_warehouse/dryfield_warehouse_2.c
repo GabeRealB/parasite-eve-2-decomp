@@ -625,23 +625,23 @@ static void func_dryfield_warehouse_8017DBB0(Task* arg0)
                     msg.pos.vy = 0;
                     if (!(sharedWork->commandFrames & 7)) {
                         msg.pos.vz = -500;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
+                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (!((sharedWork->commandFrames + 1) & 7)) {
                         msg.pos.vz = -700;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
+                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (!((sharedWork->commandFrames + 2) & 7)) {
                         msg.pos.vz = -900;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
+                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (!((sharedWork->commandFrames + 3) & 7)) {
                         msg.pos.vz = -1100;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
+                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (!((sharedWork->commandFrames + 4) & 7)) {
                         msg.pos.vz = -1300;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
+                        effectSpawn(EFFECT_DUST_PUFF, NULL, 0x80002300, &msg.pos);
                     }
                     if (work->commandFrames >= DRYFIELD_WAREHOUSE_CUTSCENE_DUST_FRAMES) {
                         work->command = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_NONE;

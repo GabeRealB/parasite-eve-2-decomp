@@ -1205,7 +1205,7 @@ void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
 
     if (arg0 == 0) {
         sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_BLAZE, 0, 0);
-        Gp_PulseState1C();
+        roomEffectRequestCancelAll();
         gGameSession->enemyCullZone = 0x10;
         work->bodyFireTask          = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 3, 0, 0);
         return;

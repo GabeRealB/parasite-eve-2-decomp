@@ -1353,12 +1353,12 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
     coord = task->extra.coordBody->coord;
     if (task->state == 0) {
         for (i = 0; i < 2; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, i + 0x2000000, &D_acropolis_roof_garden_80184BF8[i]);
+            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, i + 0x2000000, &D_acropolis_roof_garden_80184BF8[i]);
         }
         vec = D_acropolis_roof_garden_80184BF8;
-        Gp_SpawnEff(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, 0x4000102, &vec[2]);
+        effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, 0x4000102, &vec[2]);
         for (i = 3; i < 10; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, i + 0x200, &vec[i]);
+            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, i + 0x200, &vec[i]);
         }
         task->state = task->state + 1;
     }
@@ -1367,13 +1367,13 @@ void func_acropolis_roof_garden_8017DCDC(Task* task)
             work->move.vx = -0x12A2;
             work->move.vy = -0xDC;
             work->move.vz = -0xF19;
-            Gp_SpawnEff(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, coord, 0x60E, &work->move);
+            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, coord, 0x60E, &work->move);
         }
         if (gGameSession->location.loc.view == 7) {
             work->move.vx = -0x12A2;
             work->move.vy = -0xDC;
             work->move.vz = -0xF19;
-            Gp_SpawnEff(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, coord, 0x8000030E, &work->move);
+            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, coord, 0x8000030E, &work->move);
         }
     }
 }

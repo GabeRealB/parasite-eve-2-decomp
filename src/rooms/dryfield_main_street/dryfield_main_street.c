@@ -1198,14 +1198,14 @@ void func_dryfield_main_street_8017E4B0(Task* task)
                 D_dryfield_main_street_80181BA4.vx = DRYFIELD_MAIN_STREET_RAND() % 300 - 0x4A1;
                 D_dryfield_main_street_80181BA4.vy = DRYFIELD_MAIN_STREET_RAND() % 600 - 0x4E7;
                 D_dryfield_main_street_80181BA4.vz = 0x2927 - DRYFIELD_MAIN_STREET_RAND() % 700;
-                Gp_SpawnEff(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & 0x10FF) + 0x103100,
+                effectSpawn(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & 0x10FF) + 0x103100,
                             &D_dryfield_main_street_80181BA4);
             }
         } else if (gDisplayState.animFrame & 1) {
             D_dryfield_main_street_80181BA4.vx = DRYFIELD_MAIN_STREET_RAND() % 300 - 0x4A1;
             D_dryfield_main_street_80181BA4.vy = DRYFIELD_MAIN_STREET_RAND() % 600 - 0x4E7;
             D_dryfield_main_street_80181BA4.vz = 0x2927 - DRYFIELD_MAIN_STREET_RAND() % 700;
-            Gp_SpawnEff(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & 0x10FF) | 0x82100,
+            effectSpawn(EFFECT_DRYFIELD_MAIN_STREET_SMOKE_PUFF, NULL, (DRYFIELD_MAIN_STREET_RAND() & 0x10FF) | 0x82100,
                         &D_dryfield_main_street_80181BA4);
         }
     }

@@ -1047,7 +1047,7 @@ void func_acropolis_helicopter_landing_pad_8017FA30(Task* arg0)
                 if (mem->age < mem->step * 6 - 2) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x100, NULL);
+                        effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, NULL);
                     }
                 }
             } else {
@@ -1171,12 +1171,12 @@ void func_acropolis_helicopter_landing_pad_801802E0(Task* arg0)
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(SOUND_HELICOPTER_LANDING_PAD_LIGHT_SPARK, pan, (s8)worldCoordGetOriginAudioDepth(coord));
                 mem->scale = 0;
-                eff        = Gp_SpawnEff(EFFECT_IMPACT_SPARK, coord, 0x200, NULL);
+                eff        = effectSpawn(EFFECT_IMPACT_SPARK, coord, 0x200, NULL);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
                 for (i = 0; i < 6; i++) {
-                    eff = Gp_SpawnEff(EFFECT_PIXEL_SPARK, coord, 1, NULL);
+                    eff = effectSpawn(EFFECT_PIXEL_SPARK, coord, 1, NULL);
                     if (eff != NULL) {
                         taskReparent(arg0, eff->task);
                     }
@@ -1342,8 +1342,8 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
     actorRenderComposeCoord(coord);
     switch (arg0->state) {
         case 0:
-            Gp_SpawnEff(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 1, NULL);
-            Gp_SpawnEff(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 1, NULL);
+            effectSpawn(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 1, NULL);
+            effectSpawn(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 1, NULL);
             lightSlot->framesLeft                              = 4;
             slot->inner                                        = 0x1900;
             slot->outer                                        = 0x1C20;
@@ -1357,14 +1357,14 @@ void func_acropolis_helicopter_landing_pad_80180E40(Task* arg0)
             lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
             break;
         case 1:
-            Gp_SpawnEff(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 0, NULL);
-            Gp_SpawnEff(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 0, NULL);
+            effectSpawn(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 0, NULL);
+            effectSpawn(EFFECT_ACROPOLIS_HELIPAD_LENS_FLARE, coord, 0, NULL);
             break;
         case 2:
             if (gDisplayState.animFrame & 0x40) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 0xF) == 0) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, 2, NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, 2, NULL);
                 }
             }
             break;
@@ -1462,14 +1462,14 @@ void func_acropolis_helicopter_landing_pad_80181064(Task* arg0)
                     }
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x100, NULL);
+                        effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, NULL);
                     }
                 } else {
                     prim->code = 0x2D;
                 }
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 0xF) == 0 && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, 2 - arg0->spawnArg1.value, NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, coord, 2 - arg0->spawnArg1.value, NULL);
                 }
             }
             prim->tpage          = 0x2B;

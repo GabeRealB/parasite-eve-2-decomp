@@ -88,7 +88,7 @@ static void Actor04400_Fn08AA4(Task* arg0);
 static void Actor04400_Fn08C08(Task* arg0);
 static void Actor04400_Fn08DA4(Task* arg0);
 
-/* `D_800678F0` selects the model stream the next `Gp_SpawnEff` copies into
+/* `D_800678F0` selects the model stream the next `effectSpawn` copies into
  * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1
  * cannot treat the store as a non-aliasing scalar and sink it past the
  * `TmdObject` loads. */
@@ -920,7 +920,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     work->hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                     if (damageRollCriticalHit(enemy, work->contacts[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                     damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, amount, 0);
                     worldTargetAddReadoutAmount(&enemy->node, amount, 0);

@@ -50,7 +50,7 @@ void dryfieldWaterHoleWaterRippleTask(Task* task);
 ///
 /// `task` must be a live counted effect with owned `EffectWork` in
 /// `spawnArg2.pointer`, a coordinate body, initial state 0 and cell index 0.
-/// `Gp_SpawnEff` supplies this setup for `EFFECT_DRYFIELD_WATER_HOLE_WATER_SPRAY`.
+/// `effectSpawn` supplies this setup for `EFFECT_DRYFIELD_WATER_HOLE_WATER_SPRAY`.
 /// The room overlay and water textures must remain loaded while the task lives.
 /// Translation and velocity use the coordinate's parent space, normally view
 /// space; drawing requires initialized scratch storage and frame primitive space.

@@ -3288,7 +3288,7 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
         D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
         D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
         D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
-        Gp_SpawnEff(EFFECT_NIGHT_MOTEL_BALCONY_LAMP_BURST, coord, 0, &D_dryfield_night_motel_balcony_80182C70);
+        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_LAMP_BURST, coord, 0, &D_dryfield_night_motel_balcony_80182C70);
         gameFlagSetNibble(GAME_FLAG_07F, 2);
     } else if (gameFlagGetNibble(GAME_FLAG_07F) == 2) {
         D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
@@ -3299,21 +3299,21 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
     switch (gGameSession->location.loc.view) {
         case 17:
             if (++work->angle == 0x5C) {
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x40000300, &D_dryfield_night_motel_balcony_80182D28);
                 for (i = 0; i < 3; i++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x80010100,
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x80010100,
                                 &D_dryfield_night_motel_balcony_80182D28);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080,
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080,
                                 &D_dryfield_night_motel_balcony_80182D28);
                 }
             }
             break;
         case 18:
             if (++work->scale == 0x3F) {
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 3, &D_dryfield_night_motel_balcony_80182D08);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 3, &D_dryfield_night_motel_balcony_80182D08);
                 work->angle = 0;
             }
             break;
@@ -3333,31 +3333,31 @@ void func_dryfield_night_motel_balcony_8017E554(Task* task)
                     pos.vx         += D_dryfield_night_motel_balcony_80182D30.vx;
                     pos.vy         += D_dryfield_night_motel_balcony_80182D30.vy;
                     pos.vz         += D_dryfield_night_motel_balcony_80182D30.vz;
-                    Gp_SpawnEff(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, coord, n * 0x28 + 0x40000600, &pos);
+                    effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, coord, n * 0x28 + 0x40000600, &pos);
                 }
                 work->scale = 0;
             }
             break;
         case 19:
             if (++work->scale == 0x2B) {
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 4, &D_dryfield_night_motel_balcony_80182D10);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 4, &D_dryfield_night_motel_balcony_80182D10);
             }
             break;
         case 20:
             if (++work->scale == 0xC) {
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 2, &D_dryfield_night_motel_balcony_80182D00);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 2, &D_dryfield_night_motel_balcony_80182D00);
             }
             break;
         case 23:
             if (++work->scale == 0xC) {
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 2, &D_dryfield_night_motel_balcony_80182D38);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_BREAK, coord, 2, &D_dryfield_night_motel_balcony_80182D38);
             }
             break;
         case 29:
             if (++work->scale == 0x41) {
                 for (i = 0; i < 3; i++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080,
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080,
                                 &D_dryfield_night_motel_balcony_80182D18);
                 }
             }
@@ -3673,66 +3673,66 @@ void func_dryfield_night_motel_balcony_80180580(Task* task)
         case 1:
             for (i = 0; i < 8; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x100, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x100, NULL);
             }
             task->state = 2;
             break;
         case 2:
             for (i = 0; i < 4; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x10100, NULL);
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x400, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x10100, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x400, NULL);
             }
             task->state = 10;
             break;
         case 3:
             for (i = 0; i < 6; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80, NULL);
             }
             task->state = 4;
             break;
         case 4:
             for (i = 0; i < 3; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x10080, NULL);
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x400, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x10080, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x400, NULL);
             }
             task->state = 10;
             break;
         case 5:
             for (i = 0; i < 4; i++) {
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x40000300, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x40000300, NULL);
             }
             task->state = 6;
             break;
         case 6:
             for (i = 0; i < 4; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80000080, NULL);
             }
             for (i = 0; i < 2; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80010080, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0x7F) | 0x80010080, NULL);
             }
             task->state = 10;
             break;
         case 7:
             for (i = 0; i < 8; i++) {
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x10400, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x10400, NULL);
             }
             task->state = 8;
             break;
         case 8:
             for (i = 0; i < 8; i++) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x100, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, ((gRandomLcgState >> 16) & 0xFF) | 0x100, NULL);
             }
             task->state = 10;
             break;
         case 9:
             for (i = 0; i < 8; i++) {
-                Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x10400, NULL);
+                effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x10400, NULL);
             }
             task->state = 10;
             break;
@@ -3787,7 +3787,7 @@ void func_dryfield_night_motel_balcony_801809CC(Task* task)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 if (coord->coord.t[1] > 0) {
                     if (work->age < 0x1E) {
-                        Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, work->pos.vx + 0x20010400, NULL);
+                        effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, work->pos.vx + 0x20010400, NULL);
                     }
                     task->state = 2;
                 } else if (work->scale > 0) {
@@ -3933,7 +3933,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
             lo              = (gRandomLcgState >> 16) & 0x1FF;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             arg             = (((gRandomLcgState >> 16) % 3) << 16) + 0x80000100;
-            Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, lo + arg, &work->move);
+            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_DEBRIS, coord, lo + arg, &work->move);
         }
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
@@ -3944,7 +3944,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_FALLING, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x100, &work->move);
+            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_BALC_FALLING, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x100, &work->move);
         }
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if ((u16)((gRandomLcgState >> 16) % 7U) == 0) {
@@ -3954,7 +3954,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0xA0000400, &work->move);
+            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0xA0000400, &work->move);
         }
     } else {
         work->age++;
@@ -3970,7 +3970,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->move.vz   = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x80000400,
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x80000400,
                                 &work->move);
                 }
             }
@@ -3984,7 +3984,7 @@ void func_dryfield_night_motel_balcony_80181024(Task* task)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x20010400,
+                    effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x20010400,
                                 &work->move);
                 }
             }
@@ -4376,7 +4376,7 @@ void func_dryfield_night_motel_balcony_8018257C(void)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         sv.vz           = 0x680 - ((gRandomLcgState >> 16) & 0xFF);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_SpawnEff(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x300, &sv);
+        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x300, &sv);
     }
 
     for (i = 0; i < 6; i++) {
@@ -4386,7 +4386,7 @@ void func_dryfield_night_motel_balcony_8018257C(void)
         sv.vy           = 0xFE80 - ((gRandomLcgState >> 16) & 0xFF);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         sv.vz           = 0x680 - ((gRandomLcgState >> 16) & 0xFF);
-        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC0033800, &sv);
+        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC0033800, &sv);
     }
 }
 
@@ -4402,7 +4402,7 @@ void func_dryfield_night_motel_balcony_80182730(void)
     if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
         task            = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_SpawnEff(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, task->firstChild->extra.tmd->coords + 3,
+        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_FLAME, task->firstChild->extra.tmd->coords + 3,
                     ((gRandomLcgState >> 16) & 0x1FF) + 0x80000100,
                     &D_dryfield_night_motel_balcony_80182D20);
     }

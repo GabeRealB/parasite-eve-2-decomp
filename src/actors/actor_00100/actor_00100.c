@@ -1629,14 +1629,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80002280, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80002280, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80002120, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80002120, &work->effectOffset);
                     }
                     return 0x40010002;
                 }
@@ -1652,14 +1652,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80002220, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80002220, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80002120, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80002120, &work->effectOffset);
                     }
                     return 0x40010001;
                 }
@@ -1677,7 +1677,7 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[0], 0x80004A00, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[0], 0x80004A00, &work->effectOffset);
                     }
                     return 0x40010005;
                 }
@@ -1715,14 +1715,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
                     }
                     return 0x40010004;
                 }
@@ -1738,14 +1738,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80004480, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80004480, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80004480, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80004480, &work->effectOffset);
                     }
                     return 0x40010011;
                 }
@@ -1763,14 +1763,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
                     }
                     return 0x40010001;
                 }
@@ -1786,14 +1786,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
                     }
                     return 0x40010001;
                 }
@@ -1809,14 +1809,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
                     }
                     return 0x40010002;
                 }
@@ -1834,14 +1834,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[9], 0x80003200, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
                     }
                     return 0x40010001;
                 }
@@ -1857,14 +1857,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x2BC;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[7], 0x80003200, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
                     }
                     return 0x40010001;
                 }
@@ -1880,14 +1880,14 @@ s32 desertChaserAnimCues(Task* arg0, DesertChaserWork* arg1)
                     work->effectOffset.vx  = 0;
                     work->effectOffset.vy  = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[14], 0x80003200, &work->effectOffset);
                     }
                     work                  = arg0->work;
                     work->effectOffset.vz = 0;
                     work->effectOffset.vx = 0;
                     work->effectOffset.vy = 0x258;
                     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[17], 0x80003200, &work->effectOffset);
                     }
                     return 0x40010002;
                 }
@@ -2316,7 +2316,7 @@ static void Actor00100_Fn0375C(Task* arg0)
             damageAccumulateLifeDrainHp(ctx, scratch->hitKey, scratch->damage, 0);
             effect = scratch->criticalEffect;
             if (effect != -1) {
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, (s32)(effect), NULL);
+                effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, (s32)(effect), NULL);
             }
             ctx->hp = ctx->hp - scratch->damage;
             worldTargetAddReadoutAmount(&ctx->node, scratch->damage, 0);
@@ -2438,11 +2438,11 @@ static void Actor00100_Fn04270(Task* arg0)
             work->burnPosForeleg.vy = 0;
             work->burnPosForeleg.vz = 0;
             actorLocalToView(&arg0->extra.tmd->coords[2], &work->burnPosFront);
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &gGfxViewCoord, 2, &work->burnPosFront);
+            effectSpawn(EFFECT_CORPSE_BURN, &gGfxViewCoord, 2, &work->burnPosFront);
             work->burnPosFront.vy = arg0->extra.tmd->coords[0].coord.t[1];
             actorLocalToView(&arg0->extra.tmd->coords[9], &work->burnPosForeleg);
             work->burnPosForeleg.vy = arg0->extra.tmd->coords[0].coord.t[1];
-            Gp_SpawnEff(EFFECT_CORPSE_BURN, &gGfxViewCoord, 2, &work->burnPosForeleg);
+            effectSpawn(EFFECT_CORPSE_BURN, &gGfxViewCoord, 2, &work->burnPosForeleg);
             break;
         case 0x3C:
             arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -2793,7 +2793,7 @@ static void Actor00100_Fn09310(Task* arg0)
         vector.vz                = 0x64;
         vector.vy                = 0;
         vector.vx                = 0;
-        effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[9], 0x200, &vector);
+        effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[9], 0x200, &vector);
         if (effect != NULL) {
             task                               = effect->task;
             task->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
@@ -2808,7 +2808,7 @@ static void Actor00100_Fn09310(Task* arg0)
             D_80114B34[5].data.model = &_gActor00100DesertChaserBurstLegLeft;
             vector.vy                = 0;
             vector.vx                = 0;
-            effect2                  = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[12], 0x200, &vector);
+            effect2                  = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[12], 0x200, &vector);
             if (effect2 != NULL) {
                 task2                               = effect2->task;
                 task2->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
@@ -2823,7 +2823,7 @@ static void Actor00100_Fn09310(Task* arg0)
     }
     if (work->stateTimer == 4) {
         D_80114B34[5].data.model = &_gActor00100DesertChaserBurstTorso;
-        effect3                  = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[1], 0x200, NULL);
+        effect3                  = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &arg0->extra.tmd->coords[1], 0x200, NULL);
         if (effect3 != NULL) {
             task3                               = effect3->task;
             task3->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
@@ -2837,7 +2837,7 @@ static void Actor00100_Fn09310(Task* arg0)
     }
     if (work->stateTimer == 5) {
         D_80114B34[5].data.model = &_gActor00100DesertChaserBurstHead;
-        effect4                  = Gp_SpawnEff(0xA0000 | 5, &arg0->extra.tmd->coords[3], 0x200, NULL);
+        effect4                  = effectSpawn(0xA0000 | 5, &arg0->extra.tmd->coords[3], 0x200, NULL);
         if (effect4 != NULL) {
             task4                               = effect4->task;
             task4->extra.tmd->texturePageOffset = (u8)arg0->extra.tmd->texturePageOffset;
@@ -3221,7 +3221,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
                     } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->playerAnimFrames < 6) && Actor00100_InRegion(player) && Actor00100_InDirection(player, &work->playerMove.displacement)) {
                         work->playerMove.collisionRequests = (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
                         Gp_StateC08.flags                  = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
-                        Gp_PulseState1C();
+                        roomEffectRequestCancelAll();
                         scratch->vx = (u16)work->playerMove.displacement.vx;
                         scratch->vy = 0;
                         scratch->vz = (u16)work->playerMove.displacement.vz;
@@ -3428,7 +3428,7 @@ static void Actor00100_Fn0B3DC(Task* arg0, s16 arg1, s16 arg2)
     }
 
     if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED && spawn == 1) {
-        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[arg1], arg2 | 0x80000000, &work->effectOffset);
+        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[arg1], arg2 | 0x80000000, &work->effectOffset);
     }
 }
 

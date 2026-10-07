@@ -1718,7 +1718,7 @@ void func_actor_503500_80132778(Task* task)
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         if (work->spawnInterval.halves.integer < ++task->killCountdown) {
             task->killCountdown = 0;
-            Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord,
+            effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord,
                         (work->cellPeriod & ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_PERIOD_MASK) | ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_NARROW_UPWARD | (work->spriteSize & ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_SIZE_MASK), NULL);
         }
     }
@@ -1850,10 +1850,10 @@ void func_actor_503500_80132C70(s32 arg0)
 }
 
 /// Record handler (opcode 0x0D) of the actor's script data: calls
-/// `Gp_PulseState1C`.
+/// `roomEffectRequestCancelAll`.
 void func_actor_503500_80132CA4(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 void func_actor_503500_80132CC4(s8 arg0)

@@ -1705,7 +1705,7 @@ void func_actor_403600_80134398(Task* arg0)
                 actorRenderCopyCoordBodyTransform(arg0, &owner->extra.tmd->coords[18], &sp10);
             }
             if (arg0->spawnArg1.value < 0x1000) {
-                Gp_SpawnEff(EFFECT_EVE_ENERGY_RING, coord, 0x20, 0);
+                effectSpawn(EFFECT_EVE_ENERGY_RING, coord, 0x20, 0);
             }
             arg0->status        = 3;
             arg0->killCountdown = 0x20;

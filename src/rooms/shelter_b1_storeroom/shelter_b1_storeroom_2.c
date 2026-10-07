@@ -627,7 +627,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[8] = {
 
 /// Binds actor-spawned visual effects to the storeroom's task implementations.
 ///
-/// Installs packed bank-6 task IDs for `Gp_SpawnEff`. Call after room-effect
+/// Installs packed bank-6 task IDs for `effectSpawn`. Call after room-effect
 /// initialization clears the bindings and before actors or effect tasks use them.
 /// The storeroom overlay must remain loaded while these IDs are used and while
 /// their spawned tasks are live.

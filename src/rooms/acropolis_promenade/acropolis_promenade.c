@@ -2175,42 +2175,42 @@ void func_acropolis_promenade_8017E03C(Task* task)
     }
     mask = 1 << (view - 1);
     if (D_acropolis_promenade_80181B74 & mask) {
-        Gp_SpawnEff((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AFC[0]);
-        Gp_SpawnEff((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AFC[1]);
-        Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_GROUND_GLOW, coord, (s32)(work->age), &D_acropolis_promenade_80181B0C[0]);
+        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AFC[0]);
+        effectSpawn((EFFECT_ACROPOLIS_PROMENADE_GLOW_STAR | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &D_acropolis_promenade_80181AFC[1]);
+        effectSpawn(EFFECT_ACROPOLIS_PROMENADE_GROUND_GLOW, coord, (s32)(work->age), &D_acropolis_promenade_80181B0C[0]);
         glowDrawTintedDiscNoBias(&D_acropolis_promenade_80181AFC[-1], 0x100, 0x5C40);
     }
     for (i = 0; i < 3; i++) {
         if (D_acropolis_promenade_80181B78[i] & mask) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 0, &D_acropolis_promenade_80181B14[i]);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 0, &D_acropolis_promenade_80181B14[i]);
         }
     }
     for (i = 3; i < 5; i++) {
         if (D_acropolis_promenade_80181B78[i] & mask) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[i]);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[i]);
         }
         if (D_acropolis_promenade_80181B78[i + 2] & mask) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 2, &D_acropolis_promenade_80181B14[i + 2]);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 2, &D_acropolis_promenade_80181B14[i + 2]);
         }
         if (D_acropolis_promenade_80181B78[i + 4] & mask) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[i + 4]);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[i + 4]);
         }
         if (D_acropolis_promenade_80181B78[i + 6] & mask) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 2, &D_acropolis_promenade_80181B14[i + 6]);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 2, &D_acropolis_promenade_80181B14[i + 6]);
         }
     }
     if (D_acropolis_promenade_80181B78[11] & mask) {
-        Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[11]);
+        effectSpawn(EFFECT_ACROPOLIS_PROMENADE_LAMP_GLOW, coord, 1, &D_acropolis_promenade_80181B14[11]);
     }
     if (D_acropolis_promenade_80181B76 & mask) {
         prev = work->scale;
         if (prev != view) {
             for (i = 0; i < 0x28; i++) {
-                Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(view), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(view), NULL);
             }
         } else {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(prev), NULL);
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(prev), NULL);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(prev), NULL);
+            effectSpawn(EFFECT_ACROPOLIS_PROMENADE_SCREEN_DRIP, coord, (s32)(prev), NULL);
         }
     }
     work->scale = view;

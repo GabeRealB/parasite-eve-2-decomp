@@ -1466,16 +1466,16 @@ void func_acropolis_forked_road_8017E298(Task* task)
     coord = task->extra.coordBody->coord;
     if (task->state == 0) {
         for (i = 0; i < 2; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x2000000, &D_acropolis_forked_road_80182178[i]);
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x2000000, &D_acropolis_forked_road_80182178[i]);
         }
         for (i = 2; i < 4; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x3000000, &D_acropolis_forked_road_80182178[i]);
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x3000000, &D_acropolis_forked_road_80182178[i]);
         }
         for (i = 4; i < 0xC; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x2000100, &D_acropolis_forked_road_80182178[i]);
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x2000100, &D_acropolis_forked_road_80182178[i]);
         }
         for (i = 0xC; i < 0xE; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x200, &D_acropolis_forked_road_80182178[i]);
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, coord, i + 0x200, &D_acropolis_forked_road_80182178[i]);
         }
         gRoomEffectFlashId      = EFFECT_ACROPOLIS_FORKED_ROAD_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_ACROPOLIS_FORKED_ROAD_TWIN_TRAIL;

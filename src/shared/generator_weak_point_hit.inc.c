@@ -44,7 +44,7 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
             damage  = Gp_ComputeDamage(part->contacts[0].key.value, SquareRoot0(vec->vx * vec->vx + vec->vy * vec->vy + vec->vz * vec->vz), 0, 0);
             if (damageRollCriticalHit(arg0, part->contacts[0].key.value, 0) != 0) {
                 damage *= 4;
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, NULL);
+                effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);
             }
             worldTargetAddReadoutAmount(&arg0->node, damage, 0);
             arg0->hp -= damage;
@@ -52,8 +52,8 @@ void generatorLifeSupportHit(Enemy* arg0, Task* arg1)
                 arg1->state                                                = 2;
                 part->teardownFrames                                       = 0;
                 ((GeneratorWork*)arg1->parent->work)->lifeSupportDestroyed = 1;
-                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x10002400, NULL);
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x32FF1400, NULL);
+                effectSpawn(EFFECT_EXPLOSION, coord, 0x10002400, NULL);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x32FF1400, NULL);
                 snd  = gGeneratorSoundIds[1];
                 snd |= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));

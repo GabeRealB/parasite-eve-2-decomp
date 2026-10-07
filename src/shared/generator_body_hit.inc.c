@@ -57,7 +57,7 @@ void generatorBodyHit(Task* arg0)
                 scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
                 scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
                 scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, coord, 0, &scr->effectOffset);
+                effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &scr->effectOffset);
             }
             worldTargetAddReadoutAmount(&enemy->node, damage, 0);
             damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, damage, 0);
@@ -84,7 +84,7 @@ void generatorBodyHit(Task* arg0)
                 scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
                 scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
                 if (val == 3) {
-                    Gp_SpawnEff(EFFECT_HIT_BLAST, coord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scr->effectOffset);
+                    effectSpawn(EFFECT_HIT_BLAST, coord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scr->effectOffset);
                 } else {
                     func_800FDB18((u16)val, coord, &scr->effectOffset, &work->effectArg);
                 }

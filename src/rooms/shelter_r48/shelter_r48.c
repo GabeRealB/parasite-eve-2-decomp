@@ -2422,21 +2422,21 @@ void func_shelter_r48_8017E4C4(Task* arg0)
     mem->age += 1;
     switch (arg0->spawnArg1.value) {
         case 0:
-            Gp_SpawnEff(EFFECT_SHELTER_R48_SPRAY, coord, 0x14002400, NULL);
+            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x14002400, NULL);
             arg0->spawnArg1.value = 1;
             return;
         case 1:
             _waterDrawTileU16(coord, (mem->age / 2) & 0xFFFF, 0x380);
             if (!(mem->age & 1)) {
-                Gp_SpawnEff(EFFECT_SHELTER_R48_SPRAY, coord, 0x1001400, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x1001400, NULL);
             }
             mem->age += 1;
             return;
         case 2:
-            Gp_SpawnEff(EFFECT_SHELTER_R48_SPRAY, coord, 0x10002380, NULL);
+            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x10002380, NULL);
             for (i = 0; i < 4; i++) {
-                Gp_SpawnEff(EFFECT_SHELTER_R48_SPRAY, coord, 0x2002400, NULL);
-                Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x2202300, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x2002400, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x2202300, NULL);
             }
             arg0->spawnArg1.value = 3;
             return;
@@ -2479,22 +2479,22 @@ void func_shelter_r48_8017E704(Task* arg0)
     mem->age += 1;
     switch (arg0->spawnArg1.value) {
         case 0:
-            Gp_SpawnEff(EFFECT_SHELTER_R48_SPRAY, coord, 0x14002800, NULL);
+            effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x14002800, NULL);
             arg0->spawnArg1.value = 1;
             return;
         case 1:
             _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12) & 0xFFFF, 0x800, 0);
             if (!(mem->age & 1)) {
-                Gp_SpawnEff(EFFECT_SHELTER_R48_SPRAY, coord, 0x12801800, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x12801800, NULL);
             }
             mem->age += 1;
             return;
         case 2:
             if ((s16)(mem->age % 6) == 0) {
-                Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x2802800, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x2802800, NULL);
             }
             if (!(mem->age & 1)) {
-                Gp_SpawnEff(EFFECT_SHELTER_R48_SPRAY, coord, 0x12803800, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_SPRAY, coord, 0x12803800, NULL);
             }
             return;
     }
@@ -2533,19 +2533,19 @@ void func_shelter_r48_8017E9B8(Task* arg0)
     mem->age += 1;
     switch (arg0->spawnArg1.value) {
         case 0:
-            Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x94002A00, NULL);
+            effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x94002A00, NULL);
             arg0->spawnArg1.value = 1;
             return;
         case 1:
             _shelterR48DrawBankedDriftSprite(coord, ((s16)(mem->age / 2) % 12 | 0x1000) & 0xFFFF, 0x800, 0);
             if (!(mem->age & 1)) {
-                Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x92801800, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x92801800, NULL);
             }
             mem->age += 1;
             return;
         case 2:
             if (!(mem->age & 1)) {
-                Gp_SpawnEff(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x92603C00, NULL);
+                effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x92603C00, NULL);
             }
             return;
     }
@@ -2614,7 +2614,7 @@ void func_shelter_r48_8017EC18(Task* task)
                 if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
-                    Gp_SpawnEff(EFFECT_SHELTER_R48_RING_WALL, coord, 0, NULL);
+                    effectSpawn(EFFECT_SHELTER_R48_RING_WALL, coord, 0, NULL);
                 }
                 return;
             case 2:
@@ -3309,7 +3309,7 @@ void func_shelter_r48_801810B0(Task* task)
                 if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
-                    eff         = Gp_SpawnEff(EFFECT_SHELTER_R48_SHOCKWAVE_RINGS, coord, 0, NULL);
+                    eff         = effectSpawn(EFFECT_SHELTER_R48_SHOCKWAVE_RINGS, coord, 0, NULL);
                     if (eff != NULL) {
                         taskReparent(task, eff->task);
                     }

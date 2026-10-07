@@ -2114,7 +2114,7 @@ static void _acropolisPatioPlayerTurnLeftTask(Task* task)
 /// Lights the patio fountain: a one-shot burst that seeds every jet and its
 /// mist, then leaves the task idle for the rest of the room.
 ///
-/// The 14 anchors of `D_acropolis_patio_80182DDC` are handed to `Gp_SpawnEff`
+/// The 14 anchors of `D_acropolis_patio_80182DDC` are handed to `effectSpawn`
 /// as three runs of effect 0x60087, each run differing only in the high bits of
 /// the spawn argument - `0x03000200` for the three main jets, `0x02000000` for
 /// the next four and a plain `0x100` for the remaining seven - so the anchor
@@ -2139,13 +2139,13 @@ void func_acropolis_patio_8017E100(Task* task)
 
     if (task->state == 0) {
         for (i = 0; i < 3; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x03000200, &D_acropolis_patio_80182DDC[i]);
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x03000200, &D_acropolis_patio_80182DDC[i]);
         }
         for (i = 3; i < 7; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x02000000, &D_acropolis_patio_80182DDC[i]);
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x02000000, &D_acropolis_patio_80182DDC[i]);
         }
         for (i = 7; i < 0xE; i++) {
-            Gp_SpawnEff(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x100, &D_acropolis_patio_80182DDC[i]);
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x100, &D_acropolis_patio_80182DDC[i]);
         }
         task->state++;
         for (i = 0; i < 3; i++) {
@@ -2159,7 +2159,7 @@ void func_acropolis_patio_8017E100(Task* task)
                 work->move.vx  += D_acropolis_patio_80182DDC[i].vx;
                 work->move.vy  += D_acropolis_patio_80182DDC[i].vy;
                 work->move.vz  += D_acropolis_patio_80182DDC[i].vz;
-                Gp_SpawnEff(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST, objCoord, i, &work->move);
+                effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST, objCoord, i, &work->move);
             }
         }
     }

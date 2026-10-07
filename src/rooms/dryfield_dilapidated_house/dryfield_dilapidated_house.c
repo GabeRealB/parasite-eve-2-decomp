@@ -2906,10 +2906,10 @@ void func_dryfield_dilapidated_house_8017E8A8(s32 arg0)
     }
 }
 
-/// Script command that calls `Gp_PulseState1C`.
+/// Script command that calls `roomEffectRequestCancelAll`.
 void func_dryfield_dilapidated_house_8017E8C8(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 /// Message handler for the start-countdown cue; actor 136300 carries the same
@@ -2981,11 +2981,11 @@ void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
     }
 }
 
-/// Script command that calls `Gp_PulseState1C` and sets bit 0 of
+/// Script command that calls `roomEffectRequestCancelAll` and sets bit 0 of
 /// `Gp_StateC08.flags`.
 void func_dryfield_dilapidated_house_8017EA7C(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
@@ -4162,7 +4162,7 @@ static void _dryfieldDilapidatedHouseDrawTwinTrail(s16 newestSlot, s16 colorMult
 
 /// Per-frame state machine of the room's fire blast effect: state 0 seeds its
 /// `EffectWork` (0xC0 / 0x500 in `scale` and `angle`, a 12-bit `gRandomLcgState`
-/// draw in `period` as the flicker sprite's roll, a `Gp_SpawnEff` and a
+/// draw in `period` as the flicker sprite's roll, a `effectSpawn` and a
 /// fade quad), maps the task's own coordinate onto
 /// `gWorldCoordTransientPointLights[0]` and spawns the ring of `0x60275` flame effects, then
 /// re-parents each onto this task. State 1 steps the angle by 0x40 per frame
@@ -4205,7 +4205,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             work->index     = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->period    = (gRandomLcgState >> 16) & 0xFFF;
-            Gp_SpawnEff(EFFECT_DRYFIELD_DILAPIDATED_HOUSE_FLAME_CONE, coord, 0, NULL);
+            effectSpawn(EFFECT_DRYFIELD_DILAPIDATED_HOUSE_FLAME_CONE, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
@@ -4227,7 +4227,7 @@ void func_dryfield_dilapidated_house_80182744(Task* task)
             glowDrawFlameDisc(coord, work->angle, work->scale >> 1);
             work->angle = 0x380;
             do {
-                eff = Gp_SpawnEff(EFFECT_DILAPIDATED_HOUSE_FLAME_RING, coord, i, NULL);
+                eff = effectSpawn(EFFECT_DILAPIDATED_HOUSE_FLAME_RING, coord, i, NULL);
                 if (eff != NULL) {
                     taskReparent(task, eff->task);
                 }

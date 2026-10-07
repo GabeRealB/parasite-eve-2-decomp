@@ -20,7 +20,7 @@ void fireballSpawnEmber(GfxCoord* arg0, s32 arg1)
             sp18.vx = (u32)(rcos(ang) * 5) >> 5;
             sp18.vz = (u32)(rsin(ang) * 5) >> 5;
             sp10    = sp18;
-            Gp_SpawnEff(gRoomEffectMoteId, arg0, arg1 | 0x20100200, &sp10);
+            effectSpawn(gRoomEffectMoteId, arg0, arg1 | 0x20100200, &sp10);
         }
     }
 }

@@ -1273,7 +1273,7 @@ static void func_actor_503500_80144E8C(Task* arg0)
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     if (arg0->spawnArg1.value == 0) {
-        eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH_PINK, coord, 0, NULL);
+        eff = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH_PINK, coord, 0, NULL);
         if (eff == NULL) {
             func_actor_503500_80145480(arg0);
             return;
@@ -1502,7 +1502,7 @@ static void func_actor_503500_801455A4(Task* arg0)
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH_YELLOW, coord, 0, NULL);
+    eff = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH_YELLOW, coord, 0, NULL);
     if (eff == NULL) {
         func_actor_503500_80145950(arg0);
         return;
@@ -1669,7 +1669,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    eff = Gp_SpawnEff(EFFECT_SHELTER_R48_RING_FLASH, coord, arg0->spawnArg1.value, NULL);
+    eff = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH, coord, arg0->spawnArg1.value, NULL);
     if (eff == NULL) {
         func_actor_503500_80145E98(arg0);
         return;
@@ -1917,7 +1917,7 @@ static void func_actor_503500_8014618C(Task* arg0)
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BURN_FRAME:
-                    Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 2, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
                     break;
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BLACK_FRAME:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);

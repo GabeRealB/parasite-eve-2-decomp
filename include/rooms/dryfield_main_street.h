@@ -33,7 +33,7 @@ extern WorldCollisionSurfaceProperties* D_dryfield_main_street_801855EC[];
 /// Animates and drifts one daytime main street puff (effect 0x601B1).
 ///
 /// Requires the counted effect task and zeroed `EffectWork` created by
-/// `Gp_SpawnEff`, with a live coordinate body and work in `spawnArg2.pointer`.
+/// `effectSpawn`, with a live coordinate body and work in `spawnArg2.pointer`.
 /// `spawnArg1.value` packs size factor in bits 0-11 (0..4095), cell period in bits
 /// 12-14 (1..7 ticks), and speed in bits 16-23 (coordinate units per tick).
 /// A zero period nibble (bits 12-15) selects one tick; a zero speed byte selects
@@ -50,7 +50,7 @@ void dryfieldMainStreetPuffTask(Task* task);
 /// Runs Main Street's charging pink flash, peak screen tint and fading star.
 ///
 /// Starts in state zero with a coordinate body and counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`. `spawnArg1.value` is a positive
+/// `spawnArg2.pointer` from `effectSpawn`. `spawnArg1.value` is a positive
 /// charge duration in active ticks, consumed as a countdown. Nonzero room
 /// effect control pauses it; values at least four cancel it. State three also
 /// requests release. Completion frees the effect work and tears down the task.
@@ -60,7 +60,7 @@ void dryfieldMainStreetRoomVisualEffectsFlashTask(Task* task);
 /// Runs Main Street's fading beam between two moving endpoint histories.
 ///
 /// Starts in state zero with a coordinate body and counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`. Borrows its parent coordinate while
+/// `spawnArg2.pointer` from `effectSpawn`. Borrows its parent coordinate while
 /// live and owns two eight-coordinate histories in `Task::work`, freed during
 /// teardown. Allocation failure retries with age reset to zero. Initialization
 /// counts as the first active tick; later ticks record world-space endpoints

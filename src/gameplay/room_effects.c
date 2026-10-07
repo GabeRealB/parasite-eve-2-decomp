@@ -510,7 +510,7 @@ enum {
 
 static void _effectDarknessScreenDimTaskE8(Task* task);
 
-static void Gp_InitState1C(Task* arg0);
+static void _roomEffectInitController(Task* task);
 
 static void Gp_TickState1C(Task* unused);
 
@@ -518,7 +518,7 @@ static void _worldCoordTickTransientPointLights(void);
 
 static void _worldCoordInitTransientPointLights(void);
 
-void func_800EA420(Task* arg0);
+static void _roomEffectControllerTask(Task* task);
 
 static void _effectStatusScreenTintTaskF(Task* task);
 
@@ -542,7 +542,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x001
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x002
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x003
-    { { { TASK_BODY_NONE, 0x4F } }, func_800EA420, { NULL } },                                                           // 0x004
+    { { { TASK_BODY_NONE, 0x4F } }, _roomEffectControllerTask, { NULL } },                                               // 0x004
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelBalconyRoomVisualEffectsFlashTask, { NULL } },                         // 0x005
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightGasStationRoomVisualEffectsFlashTask, { NULL } },                      // 0x006
     { { { TASK_BODY_NONE, 0x70 } }, Gp_EffCtlTask07, { NULL } },                                                         // 0x007
@@ -1396,34 +1396,47 @@ s32 D_80111DB4[33] = {
 };
 
 static const TaskFuncTable3 D_80097678 = { {
-    Gp_InitState1C,
+    _roomEffectInitController,
     Gp_TickState1C,
     taskKill,
 } };
 
-static void Gp_InitState1C(Task* arg0)
+/// Allocates and publishes the room controller's state and starts its initial effects.
+///
+/// Enter with state zero and a valid one-based area in the selected stage's
+/// ambient-effect table. The controller owns the primary-heap state through
+/// `Task::work`; users borrow `gRoomEffectState` until teardown. Allocation
+/// failure kills the task without publishing a new state. Effect-spawn failures
+/// are ignored. Success clears the room's effect bindings and transient lights,
+/// starts the player shadow, the area's ambient task and the PE dispatcher,
+/// then leaves the controller in its per-update state.
+static void _roomEffectInitController(Task* task)
 {
+    // This direct task selector retains bit 31; descriptor-stride wrapping
+    // selects slot 7. It is not an effect-limit option at the task API.
+    enum { ROOM_EFFECT_PE_DISPATCH_SELECTOR = (s32)0x80000007 };
     RoomEffectState* effectState;
-    s32              val;
+    s32              roomEffectType;
 
-    val         = 0;
-    effectState = memCalloc(sizeof(*effectState), val);
+    roomEffectType = 0;
+    effectState    = memCalloc(sizeof(*effectState), false);
     if (effectState == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
 
     // Publish the allocation for the controller's lifetime.
-    Gp_State1CTask                  = arg0;
+    Gp_State1CTask                  = task;
     gRoomEffectState                = effectState;
-    arg0->work                      = effectState;
+    task->work                      = effectState;
     effectState->effectCount        = 0;
     effectState->rumbleCount        = 0;
     effectState->effectControl      = ROOM_EFFECT_CONTROL_RUNNING;
     effectState->groundTraceEnabled = true;
     effectState->groundShadowShade  = ROOM_EFFECT_GROUND_SHADOW_UNMODULATED;
-    Gp_SpawnEff(EFFECT_PLAYER_GROUND_SHADOW, 0, 0, 0);
+    effectSpawn(EFFECT_PLAYER_GROUND_SHADOW, NULL, 0, NULL);
 
+    // Each newly loaded room supplies its own effect bindings after this reset.
     gRoomEffectFlashId                 = 0;
     gRoomEffectTwinTrailId             = 0;
     gRoomEffectSparkBurstId            = 0;
@@ -1446,31 +1459,32 @@ static void Gp_InitState1C(Task* arg0)
     effectState->pendingCancelFlags    = 0;
     gRoomEffectWaterSprayId            = 0;
     gEnergyBallInFlightCount           = 0;
-    arg0->state++;
+    task->state++;
     _worldCoordInitTransientPointLights();
 
+    // The stage tables contain bank-6 types, with zero disabling ambient effects.
     switch (gGameSession->location.loc.stage) {
         case GAME_STAGE_ACROPOLIS:
-            val = D_80111B70[gGameSession->location.loc.area - 1];
+            roomEffectType = D_80111B70[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_DRYFIELD:
-            val = D_80111BC0[gGameSession->location.loc.area - 1];
+            roomEffectType = D_80111BC0[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_DRYFIELD_NIGHT:
-            val = D_80111C58[gGameSession->location.loc.area - 1];
+            roomEffectType = D_80111C58[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_MINE_SHELTER:
-            val = D_80111CF0[gGameSession->location.loc.area - 1];
+            roomEffectType = D_80111CF0[gGameSession->location.loc.area - 1];
             break;
         case GAME_STAGE_SHELTER_NEO_ARK:
-            val = D_80111DB4[gGameSession->location.loc.area - 1];
+            roomEffectType = D_80111DB4[gGameSession->location.loc.area - 1];
             break;
     }
 
-    if (val != 0) {
-        Gp_SpawnEff(val | 0x60000, 0, 0, 0);
+    if (roomEffectType != 0) {
+        effectSpawn(EFFECT_ID(EFFECT_TASK_BANK, roomEffectType), NULL, 0, NULL);
     }
-    taskSpawn(6, 0x80000007, 0, 0);
+    taskSpawn(EFFECT_TASK_BANK, ROOM_EFFECT_PE_DISPATCH_SELECTOR, 0, 0);
 }
 
 static void Gp_TickState1C(Task* unused)
@@ -1630,111 +1644,130 @@ static void _worldCoordInitTransientPointLights(void)
     }
 }
 
-void func_800EA420(Task* arg0)
+/// Dispatches the room controller's initialization, update or teardown state.
+///
+/// Bank-6 slot 4 has no body or spawn payload. `task->state` must be 0..2:
+/// zero allocates the shared state, one publishes each update, and two releases
+/// the task and its owned state. The dispatch table is copied before selection.
+static void _roomEffectControllerTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_80097678;
-    sp.funcs[arg0->state](arg0);
+    states = D_80097678;
+    states.funcs[task->state](task);
 }
 
-EffectWork* Gp_SpawnEff(s32 arg0, GfxCoord* arg1, TaskSpawnArg arg2, SVECTOR* arg3)
+EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnArg, SVECTOR* offset)
 {
+    enum {
+        EFFECT_SPAWN_BANK_SHIFT = 16,
+        EFFECT_SPAWN_BANK_MASK  = 0x7FFF,
+        EFFECT_SPAWN_TYPE_MASK  = 0xFFFF,
+    };
     Task*       task;
-    EffectWork* mem;
-    s32         bank;
+    EffectWork* work;
+    s32         taskBank;
 
-    bank = (arg0 >> 16) & 0x7FFF;
-    if ((arg0 >= 0) && (gRoomEffectState->effectCount >= ROOM_EFFECT_NORMAL_SPAWN_LIMIT)) {
+/// Records a spawn offset before substituting caller-owned zero-vector storage.
+///
+/// Arguments must be side-effect-free pointers; spawnOffset must also be a
+/// writable pointer local. Each occurs repeatedly. The zero vector stays live
+/// through placement, while the retained pointer keeps its original value.
+/// Expands to statements; invoke only inside a braced block.
+#define EFFECT_INIT_SPAWN_OFFSET(effectWork, spawnOffset, zeroVector) \
+    memset((zeroVector), 0, sizeof(*(zeroVector)));                   \
+    (effectWork)->field_C = (spawnOffset);                            \
+    if ((spawnOffset) == NULL) {                                      \
+        (spawnOffset) = (zeroVector);                                 \
+    }                                                                 \
+    (effectWork)->pos.vx = (spawnOffset)->vx;                         \
+    (effectWork)->pos.vy = (spawnOffset)->vy;                         \
+    (effectWork)->pos.vz = (spawnOffset)->vz;
+
+    taskBank = (effectId >> EFFECT_SPAWN_BANK_SHIFT) & EFFECT_SPAWN_BANK_MASK;
+    if ((effectId >= 0) && (gRoomEffectState->effectCount >= ROOM_EFFECT_NORMAL_SPAWN_LIMIT)) {
         return NULL;
     }
-    arg0 &= 0xFFFF;
-    if (arg0 == 0) {
+    effectId &= EFFECT_SPAWN_TYPE_MASK;
+    if (effectId == 0) {
         return NULL;
     }
-    task = taskSpawn(bank, arg0, arg2, 0);
+    task = taskSpawn(taskBank, effectId, spawnArg, 0);
     if (task == NULL) {
         return NULL;
     }
-    mem = memCalloc(sizeof(EffectWork), false);
-    if (mem == NULL) {
+    work = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
         taskKill(task);
         return NULL;
     }
     gRoomEffectState->effectCount++;
 
-    if (arg1 != NULL) {
-        GfxCoord* coord;
-        SVECTOR   vec;
+    // Snapshot placement while retaining the original, borrowed spawn pointers.
+    if (parentCoord != NULL) {
+        GfxCoord* effectCoord;
+        SVECTOR   zeroOffset;
 
-        coord = task->extra.tmd->coords;
-        memset(&vec, 0, sizeof(vec));
-        mem->field_C = arg3;
-        if (arg3 == NULL) {
-            arg3 = &vec;
-        }
-        mem->pos.vx = arg3->vx;
-        mem->pos.vy = arg3->vy;
-        mem->pos.vz = arg3->vz;
-        if (arg1->parent == &gGfxViewCoord) {
-            coord->coord = arg1->coord;
-            gte_SetRotMatrix(&arg1->coord);
-            gte_SetTransMatrix(&arg1->coord);
-            gte_ldv0(arg3);
+        // Both supported body kinds share this coordinate-pointer offset.
+        effectCoord = task->extra.tmd->coords;
+        EFFECT_INIT_SPAWN_OFFSET(work, offset, &zeroOffset);
+        if (parentCoord->parent == &gGfxViewCoord) {
+            effectCoord->coord = parentCoord->coord;
+            gte_SetRotMatrix(&parentCoord->coord);
+            gte_SetTransMatrix(&parentCoord->coord);
+            gte_ldv0(offset);
             gte_rtv0tr();
-            gte_stlvnl(coord->coord.t);
+            gte_stlvnl(effectCoord->coord.t);
         } else {
-            actorRenderComposeCoord(arg1);
-            coord->workm = arg1->workm;
-            gte_SetRotMatrix(&arg1->workm);
-            gte_SetTransMatrix(&arg1->workm);
-            gte_ldv0(arg3);
+            // Convert a composed placement back into the view parent's local space.
+            actorRenderComposeCoord(parentCoord);
+            effectCoord->workm = parentCoord->workm;
+            gte_SetRotMatrix(&parentCoord->workm);
+            gte_SetTransMatrix(&parentCoord->workm);
+            gte_ldv0(offset);
             gte_rtv0tr();
-            gte_stlvnl(coord->workm.t);
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &coord->workm, &coord->coord);
+            gte_stlvnl(effectCoord->workm.t);
+            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &effectCoord->workm, &effectCoord->coord);
         }
-        coord->parent       = &gGfxViewCoord;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        mem->parent = arg1;
+        effectCoord->parent       = &gGfxViewCoord;
+        effectCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(effectCoord);
+        work->parent = parentCoord;
     } else {
-        GfxCoord* coord;
-        SVECTOR   vec;
+        GfxCoord* effectCoord;
+        SVECTOR   zeroOffset;
 
-        coord = task->extra.tmd->coords;
-        memset(&vec, 0, sizeof(vec));
-        mem->field_C = arg3;
-        if (arg3 == NULL) {
-            arg3 = &vec;
-        }
-        mem->pos.vx = arg3->vx;
-        mem->pos.vy = arg3->vy;
-        mem->pos.vz = arg3->vz;
+        effectCoord = task->extra.tmd->coords;
+        EFFECT_INIT_SPAWN_OFFSET(work, offset, &zeroOffset);
+        // With no placement coordinate, the offset uses the SDK matrix's input space.
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(arg3);
+        gte_ldv0(offset);
         gte_rtv0tr();
-        gte_stlvnl(coord->coord.t);
-        coord->parent       = &gGfxViewCoord;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        mem->parent = &gGfxViewCoord;
+        gte_stlvnl(effectCoord->coord.t);
+        effectCoord->parent       = &gGfxViewCoord;
+        effectCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(effectCoord);
+        work->parent = &gGfxViewCoord;
     }
 
-    task->spawnArg2.pointer = mem;
+    // The exit callback owns the counted allocation; the returned pointer borrows it.
+    task->spawnArg2.pointer = work;
     task->exitCallback      = _effectExitTask;
-    mem->task               = task;
-    mem->index              = 0;
-    mem->age                = 0;
-    mem->scale              = 0;
-    mem->angle              = 0;
-    mem->period             = 0;
-    mem->step               = 0;
-    mem->field_4            = 0;
-    mem->move.vx            = 0;
-    mem->move.vy            = 0;
-    mem->move.vz            = 0;
-    return mem;
+    work->task              = task;
+    work->index             = 0;
+    work->age               = 0;
+    work->scale             = 0;
+    work->angle             = 0;
+    work->period            = 0;
+    work->step              = 0;
+    work->field_4           = 0;
+    work->move.vx           = 0;
+    work->move.vy           = 0;
+    work->move.vz           = 0;
+    return work;
+
+#undef EFFECT_INIT_SPAWN_OFFSET
 }
 
 /// Enables semitransparency and prepends the blend draw mode for an untextured effect primitive.
@@ -2415,7 +2448,7 @@ static void _effectExitTask(Task* task)
     taskKill(task);
 }
 
-void Gp_PulseState1C(void)
+void roomEffectRequestCancelAll(void)
 {
     gRoomEffectState->pendingCancelFlags |= ROOM_EFFECT_CANCEL_ALL;
 }
@@ -2505,26 +2538,27 @@ void gpuSetPrimitiveBlendMode(void* primitive, s32 blendMode, s32 depth)
     _gpuQueueBlendMode(blendMode, depth);
 }
 
-void func_800EC9C8(void)
+void roomEffectStartDarknessDim(void)
 {
     if (!(gRoomEffectState->screenFxFlags & ROOM_EFFECT_SCREEN_FADE_QUAD)) {
-        Gp_SpawnEff((EFFECT_DARKNESS_SCREEN_DIM | EFFECT_SPAWN_UNLIMITED), 0, 0, 0);
+        effectSpawn((EFFECT_DARKNESS_SCREEN_DIM | EFFECT_SPAWN_UNLIMITED), NULL, 0, NULL);
     }
 }
 
-void Gp_SetState1CPe(s32 arg0)
+void roomEffectStartStatusTint(s32 statusMask)
 {
-    gRoomEffectState->peFadeMask = (u8)arg0;
-    Gp_SpawnEff((EFFECT_STATUS_AILMENT_SCREEN_TINT | EFFECT_SPAWN_UNLIMITED), 0, (s32)((u8)arg0), 0);
+    gRoomEffectState->peFadeMask = (u8)statusMask;
+    effectSpawn((EFFECT_STATUS_AILMENT_SCREEN_TINT | EFFECT_SPAWN_UNLIMITED), NULL, (s32)((u8)statusMask), NULL);
 }
 
-void func_800ECA54(void)
+void roomEffectStartBerserkerGlow(void)
 {
     RoomEffectState* effectState;
 
     effectState = gRoomEffectState;
     if (!(effectState->screenFxFlags & ROOM_EFFECT_SCREEN_BURST_GUARD)) {
+        // Withdraw the shared claim before requesting a fresh glow task.
         effectState->peFxFlags &= (u16)~ROOM_EFFECT_PE_STATUS_BURST;
-        Gp_SpawnEff((EFFECT_BERSERKER_SHOT_GLOW | EFFECT_SPAWN_UNLIMITED), 0, 0, 0);
+        effectSpawn((EFFECT_BERSERKER_SHOT_GLOW | EFFECT_SPAWN_UNLIMITED), NULL, 0, NULL);
     }
 }

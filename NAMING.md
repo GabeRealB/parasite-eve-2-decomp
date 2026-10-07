@@ -251,7 +251,7 @@ than an invented visual description:
 
 | Family | Pattern | Dispatched by |
 |---|---|---|
-| Gameplay effect tasks | `effect<Kind>Task<ID>` (`effectSpriteTask34`) | `taskSpawn(6, ID, …)` via the bank-6 `TaskDesc` table `D_8010FC2C`; `Gp_SpawnEff(0x6xxxx, …)` passes the same ID. `Kind` describes the primitive or role: `Sprite`, `Line`, `Tile`, `Poly`, `Model`, `Attach`, or `Control`. |
+| Gameplay effect tasks | `effect<Kind>Task<ID>` (`effectSpriteTask34`) | `taskSpawn(6, ID, …)` via the bank-6 `TaskDesc` table `D_8010FC2C`; `effectSpawn(0x6xxxx, …)` passes the same ID. `Kind` describes the primitive or role: `Sprite`, `Line`, `Tile`, `Poly`, `Model`, `Attach`, or `Control`. |
 | Player actor states | `playerActor<Mode>State<N>` (`playerActorNormalState5`) | `GameActor.state` indexes `D_8009794C` in mode 0 (`Gp_TickPlayerNormal`) and `Gp_PlayerMode2States` in mode 2; `mode` picks the mode through `Gp_PlayerModeFns`, which also has a mode 1 (`Gp_TickPlayerMode1`). `Gp_PlayerWorkStates` is a separate four-entry `Task::state` dispatcher, not a mode. |
 
 A handler shared by several slots takes a behavioural name instead

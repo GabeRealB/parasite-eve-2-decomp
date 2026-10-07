@@ -2280,13 +2280,13 @@ case 3:
     vec.vz = 0x64;
     vec.vy = 0;
     vec.vx = 0;
-    eff = Gp_SpawnEff(0xA0005, obj->field_8 + 9, 0x200, &vec);
+    eff = effectSpawn(0xA0005, obj->field_8 + 9, 0x200, &vec);
     goto body;
 case 4:
     D_80114B78[0] = &_gActor01900StrangerBurstHand;
     vec.vy = 0;
     vec.vx = 0;
-    eff = Gp_SpawnEff(0xA0005, obj->field_8 + 12, 0x200, &vec);
+    eff = effectSpawn(0xA0005, obj->field_8 + 12, 0x200, &vec);
 body:
     if (eff != NULL) {
         /* SOFT_BARRIER; keyPtr = &key; TOUCH_REG(keyPtr); ... */
@@ -2294,7 +2294,7 @@ body:
     break;
 ```
 
-A `coord` local assigned in each arm and one shared `Gp_SpawnEff(0xA0005,
+A `coord` local assigned in each arm and one shared `effectSpawn(0xA0005,
 coord, ...)` moves the `lui`/`ori`/`li a2`/`addiu a3` to the merge point,
 so the case-4 delay holds `%hi(D_80114B78)` instead of `lui a0, 0xA`.
 
@@ -4770,9 +4770,9 @@ above, extended to identical multi-instruction call blocks.
 ### The arm that differs caps how far jump2 walks back
 
 `func_dryfield_night_gas_station_80180604` is a three-case switch whose arms all
-end `Gp_SpawnEff(0x600E0, coord, arg2, &offset); <notify>(1);` with only `arg2`
+end `effectSpawn(0x600E0, coord, arg2, &offset); <notify>(1);` with only `arg2`
 and the offset vector differing, and the target keeps **three** `jal
-Gp_SpawnEff` sites. Writing the notify value through a local -
+effectSpawn` sites. Writing the notify value through a local -
 
 ```c
 s16 state;
@@ -4783,7 +4783,7 @@ switch (arg0) { case 0: ...; state = 1; break; ... default: state = 0; }
 - leaves each arm ending in the same `[set a0 1][j tail]` pair while the block
   *before* the tail is the `state = 0` arm. The post-reload cross-jump then
   walks back from the tail past `[set a0 1]`, past the shared store and past the
-  `jal Gp_SpawnEff`, and merges the effect calls too: 86.761%, `delete=8
+  `jal effectSpawn`, and merges the effect calls too: 86.761%, `delete=8
   branch=5`, 63 of 71 insns.
 
 Calling the notify **inline in each arm** (`<notify>(1);` in each case,
@@ -4792,7 +4792,7 @@ Calling the notify **inline in each arm** (`<notify>(1);` in each case,
 label is the default's `[set a0 0][jal <notify>]`, so the backward walk matches
 the `jal` and stops on the very next insn - `set a0 0` against `set a0 1`. The
 merge point is therefore the shared *notify* call and nothing earlier: each arm
-keeps its own `jal Gp_SpawnEff` and its own stores, and the arm's `set a0 1` is
+keeps its own `jal effectSpawn` and its own stores, and the arm's `set a0 1` is
 left in place to be copied into the `j`'s delay slot by `dbr_schedule`. 100%.
 
 The generalisation: the merge stops at the first insn that differs walking
@@ -5294,7 +5294,7 @@ case (m2c's three scalars: 88.1%, `delete=4`; one struct local: 100% first try,
 the same body as `ActorsShared80132724` plus its one-shot latch).
 
 The same scalars-vs-aggregate shape recurs one level up, when the stack object
-is an `SVECTOR` handed to `Gp_SpawnEff`: m2c writes three `s16` locals and casts
+is an `SVECTOR` handed to `effectSpawn`: m2c writes three `s16` locals and casts
 the first one's address, `(SVECTOR*)&sp<off>`.  The middle (`vy`) store is
 dead the same way, so it disappears from the object entirely - and with it the
 callee-saved register the shared height sits in across the call, which is one
@@ -7590,7 +7590,7 @@ comes out first and the argument setup after, which cost 5 `reorder` and a
 
 ```c
 SVECTOR vec = D_acropolis_sanctuary_8017D5D0;
-Gp_SpawnEff(0x60078, ((TmdObject*)task->extra)->coords, 0, &vec);
+effectSpawn(0x60078, ((TmdObject*)task->extra)->coords, 0, &vec);
 ```
 
 The target loads `0x2C(a0)` and `0x8(v0)` *before* the `lwl`/`lwr` quad. GCC
@@ -7602,7 +7602,7 @@ already be a separate statement ahead of the copy:
 GfxCoord* coord = ((TmdObject*)task->extra)->coords;
 SVECTOR        vec   = D_acropolis_sanctuary_8017D5D0;
 
-Gp_SpawnEff(0x60078, coord, 0, &vec);
+effectSpawn(0x60078, coord, 0, &vec);
 ```
 
 That is 100%. Generally: when a `reorder` penalty straddles a block copy, the
@@ -10021,7 +10021,7 @@ its table as `jtbl_<overlay>_<addr>`, so the `jtbl_{f['unit']}_` clause fires on
 every such body - matched or not (`f['unit']` is the *overlay*, not the unit).
 The compiled object has no such undefined symbol; GCC regenerates the table as
 local `.rodata`. `func_actor_421600_8013E700` (0x48 bytes of table, 18 words)
-built with only `gRoomEffectState` and `Gp_SpawnEff` undefined, both gameplay imports,
+built with only `gRoomEffectState` and `effectSpawn` undefined, both gameplay imports,
 and still got "cannot be shared - the body references its own overlay's code or
 data (USA/actors/actor_323400, USA/actors/actor_421600)". So a
 `promote`-refusal naming an overlay says nothing about whether a switch body can
@@ -32507,7 +32507,7 @@ needs `$a2`. `Gp_SpawnWeaponEff` is the example.
 
 ## Put the `if (call != NULL)` body in the gap between if/else arms
 
-A shared `Gp_SpawnEff` tail with three id constants wants the then-block
+A shared `effectSpawn` tail with three id constants wants the then-block
 *between* the `0x16` arm and the `0x19` arm, reached by a backward
 `bnez`, plus `j join` / `lui` after the success work:
 
@@ -33092,7 +33092,7 @@ p   = memCalloc(size, val);
 val = table[idx];
 ```
 
-The zero-init pins `$s1` for the whole function. `Gp_InitState1C` is the
+The zero-init pins `$s1` for the whole function. `_roomEffectInitController` is the
 example.
 
 ## Overlay jtbl not contiguous with the TU's other `.rodata` needs its own C file
@@ -33100,7 +33100,7 @@ example.
 Gameplay `.rodata` is a sequence of C jtbl slices interleaved with splat
 `rodata` blobs. A new `switch` in an existing TU appends its jtbl to that
 TU's `.rodata` slice. If a named table sits between the old jtbl and the
-new one (here `D_80097678` between `func_800E9BDC` and `Gp_InitState1C`),
+new one (here `D_80097678` between `func_800E9BDC` and `_roomEffectInitController`),
 keep the function in a sibling C file (`3CD8_9CC8.c`) and add matching
 `.rodata` / `c` yaml cuts so the jtbl lands after the blob. Same pattern
 as `3CD8_34D8.c` / `3FB8_75BC.c`.
@@ -35713,7 +35713,7 @@ mem->field_24 = ((u32)gRandomLcgState >> 16) & 0x1FF;
     __asm__("" : "+r"(sh));
     mem->field_14 = -((s16)sh >> 1);
 }
-Gp_SpawnEff(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
+effectSpawn(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
 ```
 
 Reuse of a function-level `temp` for the pin shuffles the LCG into `v1`
@@ -37412,7 +37412,7 @@ best output differed from the base by that one swap and nothing else.
 
 ## Mask a parameter in place to free its incoming argument register
 
-`Gp_SpawnEff` unpacks its `s32 index` into a `taskSpawn` bank
+`effectSpawn` unpacks its `s32 index` into a `taskSpawn` bank
 (`(index >> 16) & 0x7FFF`) and type (`index & 0xFFFF`), with a sign test and a
 cap check in between. Writing the bank into a local computed before the sign
 test gets the instruction order right, but the allocator keeps `index` in its
@@ -38177,7 +38177,7 @@ Hoisting a call out of an `if`/`else` chain by assigning its arguments to locals
 
 ```c
 if (...) { id = 0x60080; arg = ...; } else { id = 0x6008D; arg = 0x300; }
-Gp_SpawnEff(id, coord, arg, vec);
+effectSpawn(id, coord, arg, vec);
 ```
 
 makes GCC emit the shared `move a1, …` / `addiu a3, …` once at the join and
@@ -41500,7 +41500,7 @@ mem->field_20 = tmp & 0xF;                                    /* andi */
 
 ## Put `i += 1` after the `jal` so it fills the next `lhu` delay
 
-A `do { Gp_SpawnEff(..., lhu_arg, 0); i += 1; } while (i < n);` loop needs
+A `do { effectSpawn(..., lhu_arg, 0); i += 1; } while (i < n);` loop needs
 the increment in the load-delay slot of `lhu a2, field_24` (argument setup),
 with `lui a0, 0x6` in the `bnez` delay. Writing `i += 1` *before* the call
 rotates the loop: the first increment peels above the header and the latch
@@ -42420,7 +42420,7 @@ names is a false diff, not something to permute or pin away. Confirm with the
 build, not with the score.
 
 A symbol that keeps its own `lui`/`addiu` inside an arm that already has a base
-register (here `D_..._8017F1C0`, which is also passed to `Gp_SpawnEff`) really is
+register (here `D_..._8017F1C0`, which is also passed to `effectSpawn`) really is
 a separate object — leave it out of the array.
 
 ## A trailing `la` argument outranks a preceding global byte store
@@ -46296,8 +46296,8 @@ other common m2c shape into an index. `TmdObject::coords` is an *array* of
 coordinate nodes, so a raw byte offset onto it divides by 0x50:
 
 ```c
-/* m2c */ Gp_SpawnEff(0x20010, M2C_FIELD(M2C_FIELD(arg0, void**, 0x2C), s32*, 8) + 0xF0, ...)
-/* C   */ Gp_SpawnEff(0x20010, &arg0->extra.tmd->coords[3], ...)
+/* m2c */ effectSpawn(0x20010, M2C_FIELD(M2C_FIELD(arg0, void**, 0x2C), s32*, 8) + 0xF0, ...)
+/* C   */ effectSpawn(0x20010, &arg0->extra.tmd->coords[3], ...)
 ```
 
 and a scaled one is already an index - `+ (value * 0x50)` is `[arg1]`. Inside a
@@ -54094,9 +54094,9 @@ the object dump.
 both references against the symbol,
 
 ```c
-Gp_SpawnEff(0x6008A, coord, 0x4000102, &D_acropolis_roof_garden_80184BF8[2]);
+effectSpawn(0x6008A, coord, 0x4000102, &D_acropolis_roof_garden_80184BF8[2]);
 for (i = 3; i < 10; i++) {
-    Gp_SpawnEff(0x6008A, coord, i + 0x200, &D_acropolis_roof_garden_80184BF8[i]);
+    effectSpawn(0x6008A, coord, i + 0x200, &D_acropolis_roof_garden_80184BF8[i]);
 }
 ```
 
@@ -54106,7 +54106,7 @@ records, and the loop's induction variable starts from it:
 ```
 lui   $s0, %hi(sym)
 addiu $s0, $s0, %lo(sym + 0x10)
-jal   Gp_SpawnEff
+jal   effectSpawn
  move $a3, $s0                    # the element itself
 addiu $s0, $s0, 8                 # IV init = base + 8
 ```
@@ -54117,7 +54117,7 @@ offset:
 ```
 lui   $s0, %hi(sym)
 addiu $s0, $s0, %lo(sym)
-jal   Gp_SpawnEff
+jal   effectSpawn
  addiu $a3, $s0, 0x10
 addiu $s0, $s0, 0x18              # IV init = base + 0x18
 ```
@@ -54127,9 +54127,9 @@ before the first use, so `&sym` is what CSE sees first:
 
 ```c
 vec = D_acropolis_roof_garden_80184BF8;
-Gp_SpawnEff(0x6008A, coord, 0x4000102, &vec[2]);
+effectSpawn(0x6008A, coord, 0x4000102, &vec[2]);
 for (i = 3; i < 10; i++) {
-    Gp_SpawnEff(0x6008A, coord, i + 0x200, &vec[i]);
+    effectSpawn(0x6008A, coord, i + 0x200, &vec[i]);
 }
 ```
 
@@ -54951,7 +54951,7 @@ the target order without touching anything else.
 
 Worth knowing because the top-of-function order also decides register
 *allocation* further down. In this function each `case 1` arm builds a
-`Gp_SpawnEff` argument as `global * K + C`: with m2c's order the `lw` of the
+`effectSpawn` argument as `global * K + C`: with m2c's order the `lw` of the
 global was scheduled after the last `sh` to `work->field_10`, so it was free to
 take `$v0` and the `lui/ori` constant took `$v1`; the target schedules that load
 between the `vy` and `vz` stores, where `$v0` is busy holding the `li` for the
@@ -55192,7 +55192,7 @@ mask table). Declaring the two arrays once and indexing them,
 
 ```c
 if (D_acropolis_promenade_80181B78[i + 4] & mask) {
-    Gp_SpawnEff(0x60062, coord, 1, &D_acropolis_promenade_80181B14[i + 4]);
+    effectSpawn(0x60062, coord, 1, &D_acropolis_promenade_80181B14[i + 4]);
 }
 ```
 
@@ -56151,7 +56151,7 @@ if (work->field_22 >= 0xD) {              release();
 
 Both emit `slti` into the entry branch's delay slot and one `bnez` at the shared
 label, so the tail itself is byte-identical. What differs is the schedule of an
-*earlier* block: with the duplicated form the ready list in the `Gp_SpawnEff`
+*earlier* block: with the duplicated form the ready list in the `effectSpawn`
 setup block puts `li $a0, <hi>` first, and the delayed-branch pass takes it for
 the preceding `bne`'s slot, splitting the `lui`/`ori` pair around the branch:
 
@@ -61581,7 +61581,7 @@ used, in both the call arguments and the field reads:
 ```c
 /* BAD — one induction variable, no $fp, whole register file shifted */
 offs = D_sym;
-for (i = 0; i < 3; i++) { Gp_SpawnEff(id, coord, i + K, offs); offs++; }
+for (i = 0; i < 3; i++) { effectSpawn(id, coord, i + K, offs); offs++; }
 ...
 for (i = 0; i < 3; i++) {
     offs = &D_sym[i];
@@ -61590,7 +61590,7 @@ for (i = 0; i < 3; i++) {
 
 /* GOOD — GCC strength-reduces the flat loops itself and hoists &D_sym[i]
    out of the inner loop only, keeping i and the pointer both live */
-for (i = 0; i < 3; i++) { Gp_SpawnEff(id, coord, i + K, &D_sym[i]); }
+for (i = 0; i < 3; i++) { effectSpawn(id, coord, i + K, &D_sym[i]); }
 ...
 for (i = 0; i < 3; i++) {
     for (j = 0; j < 3; j++) { ... work->field_10 += D_sym[i].vx; ... }
@@ -66294,7 +66294,7 @@ seed before the final manual change.
 
 ## func_800FDB18: a narrowed local moves the incoming argument copy after pointer saves
 
-A natural switch with direct `Gp_SpawnEff` calls and `for` loops reached
+A natural switch with direct `effectSpawn` calls and `for` loops reached
 99.755% (`regs=16`, all other penalties zero). The only difference was the
 entry sequence: the target saved/copied `a1`, `a2`, `a3`, then `a0`; the C
 saved/copied `a0` first. `.lreg` / `.greg` showed the correct hard registers
@@ -66539,12 +66539,12 @@ the target's separate `lh` and `lhu`. Plain field stores with
 `lhu; sll; sra; negu` sequence without barriers or volatile accesses.
 
 The last four scheduling penalties came from initializing the loop counter
-before `Gp_SpawnEff`. `.sched` and `.sched2` placed that zero before argument
+before `effectSpawn`. `.sched` and `.sched2` placed that zero before argument
 setup, leaving the vector address to fill the halfword load delay. Putting
 `i = 0` after the call, naturally as the following `for` initializer, let GCC
 schedule the zero into that delay and move the vector address earlier. This
 reached 100% without pins. The analogous rotated-vector arm initializes `i`
-between `Gp_SpawnEff` and `gfxRotMatrixX`, which also consumes that zero.
+between `effectSpawn` and `gfxRotMatrixX`, which also consumes that zero.
 
 This caller supplies three arguments to `_effectDrawMuzzleFlash`, whose prototype
 now names the composed coordinate, size and angle. Removing the sibling caller's
@@ -70069,7 +70069,7 @@ source order fixes the `sw 0x54` position).
 
 ### A three-term `|` with a constant: the written order decides which term the constant joins
 
-`func_actor_503500_80132778` packs `Gp_SpawnEff`'s third argument from two
+`func_actor_503500_80132778` packs `effectSpawn`'s third argument from two
 masked fields and a constant. The target computes `(f0 & 0xFFF) | 0x3800000`
 into `$a2`, `f4 & 0xF000` into `$v0`, then `or $a2, $v0, $a2`. The three
 spellings of the same value allocate differently:
@@ -78905,7 +78905,7 @@ addu    a2,t0,a2
 ```
 
 with `A` in `$t0` - a register neither LCG step uses. Folding `A` into the
-`Gp_SpawnEff` argument expression moved its `srl`/`andi` down next to the call
+`effectSpawn` argument expression moved its `srl`/`andi` down next to the call
 and homed it in `$v0`, aliasing the first LCG step. Naming it in its own
 statement before the second step fixes both at once:
 
@@ -78914,7 +78914,7 @@ rng  = gRandomLcgState * 5 + 0x71357911;
 hi   = (rng >> 16) & 0x10FF;          /* want srl/andi right here, in $t0 */
 rng2 = rng * 5 + 0x71357911;
 gRandomLcgState = rng2;
-Gp_SpawnEff(0x60070, sub, hi + 0x800231C0 + (((rng2 >> 16) & 1) << 30), NULL);
+effectSpawn(0x60070, sub, hi + 0x800231C0 + (((rng2 >> 16) & 1) << 30), NULL);
 ```
 
 This is the general shape from DECOMPILATION_LEARNINGS.md, "Accumulate a sum
@@ -87712,7 +87712,7 @@ scalars; `func_actor_323000_8016409C` is the same trap with two differences
 worth knowing, since the frame check would have missed it.
 
 Here the three fields are `s16`s of an `SVECTOR` handed to
-`Gp_SpawnEff(..., s16*)`, and the surviving local is 2 bytes - so the aggregate
+`effectSpawn(..., s16*)`, and the surviving local is 2 bytes - so the aggregate
 slot is *already* reserved and the frame stays 0x28 either way. The tell is the
 count instead: the target stores six halfwords (three per spawn block) and the
 candidate two, and `.diagnosis.json` reports it as an opcode delta of the
@@ -91008,7 +91008,7 @@ Writing `0x100 < diff` does not work, because fold canonicalizes it back to
 
 **Problem.** `Actor00400_Fn0237C` picks one of two model streams at random and
 then spawns an effect. Written the obvious way - the `if/else` stores the
-pointer, the `Gp_SpawnEff` call follows the join - the object was 97%: the
+pointer, the `effectSpawn` call follows the join - the object was 97%: the
 target loads the call's first argument (`li $a0, 0x20010`) *inside each arm*,
 before the `sw` to `D_800678F0`, while the natural form emits it once after the
 join.
@@ -91031,10 +91031,10 @@ converges later is evidence the *source* had it twice.
 ```c
 if ((gRandomLcgState >> 16) & 1) {
     D_800678F0[0] = _gActor00400DiverBurstLegRight;
-    eff = Gp_SpawnEff(0x20010, &coord[8], 0x200, NULL);
+    eff = effectSpawn(0x20010, &coord[8], 0x200, NULL);
 } else {
     D_800678F0[0] = _gActor00400DiverBurstArmLeft2;
-    eff = Gp_SpawnEff(0x20010, &coord[8], 0x200, NULL);
+    eff = effectSpawn(0x20010, &coord[8], 0x200, NULL);
 }
 ```
 
@@ -94090,7 +94090,7 @@ lifts the whole chain to a higher register.** `func_neo_ark_bridge_8017E954`
 ```c
     rndSpawn    = gRandomLcgState * 5 + 0x71357911;
     gRandomLcgState = rndSpawn;
-    Gp_SpawnEff(0x60070, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200, &D_...F60);
+    effectSpawn(0x60070, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200, &D_...F60);
 ```
 
 `block_alloc` tries to tie operand 0 of each insn to a later operand that dies
@@ -96190,7 +96190,7 @@ instead.
 ## A local shared with a call argument drags that argument register into every other branch
 
 `func_actor_510900_8013A9BC` reads `work->field_32C` (a `Task*`) in four
-different places: once to store the task `Gp_SpawnEff` just created and hand it
+different places: once to store the task `effectSpawn` just created and hand it
 to `taskReparent`, and once in each arm of the later state machine, where it is
 only tested and written through. Using one `Task* child` local for all of them
 put the pointer in `$a1` in arms that contain no call at all, for `regs=10`.
@@ -96741,7 +96741,7 @@ to `_3..10`.
 ## `A + (B + CONST)` that must stay grouped: a statement expression, when a local reorders it
 
 `func_actor_510900_80131F24` passes `((rng >> 16) & 0xF0) + (field_24 + 0x10000)`
-to `Gp_SpawnEff`, and the ROM keeps that grouping: the draw is computed first, then
+to `effectSpawn`, and the ROM keeps that grouping: the draw is computed first, then
 `lh field_24; lui 1; addu; addu a2,a2,v0`. Neither plain form survives `fold`:
 `A + (B + C)` becomes `(A + C) + B` (the value split at `fold-const.c:4349`) and
 `(B + C) + A` becomes `B + (A + C)`.
@@ -96756,7 +96756,7 @@ A statement expression is opaque to `fold` and expands into ordinary temporaries
 which gave the exact schedule (100%):
 
 ```c
-eff = Gp_SpawnEff(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }), ...);
+eff = effectSpawn(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->field_24 + 0x10000; }), ...);
 ```
 
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -97265,7 +97265,7 @@ once it was hoisted with the other pointer reads above the `switch`:
     GfxCoord* coord = obj->field_8;   /* reference loads this in block 0 */
     ...
     case 0:
-        Gp_SpawnEff(0x6002B, coord, 0x21, 0);
+        effectSpawn(0x6002B, coord, 0x21, 0);
 ```
 
 That load is a *call argument*, not a store address, and it is no more movable:
@@ -97400,7 +97400,7 @@ The first is the rule above in its call-argument form. The body's case 0 ends
             pos.vy = 0;
             pos.vz = 0;
             pos.vx = D_..._80181C60[arg0->killCountdown];
-            Gp_SpawnEff(0x60054, ((TmdObject*)arg0->extra)->coords, 0x80002300, &pos);
+            effectSpawn(0x60054, ((TmdObject*)arg0->extra)->coords, 0x80002300, &pos);
 ```
 
 and the target has that argument's two loads *inside the counter-test block*,
@@ -97423,7 +97423,7 @@ of it, so the original read the coordinate into a local *before* the counter
 GfxCoord* effCoord;
 ...
 effCoord = ((TmdObject*)arg0->extra)->coords;   /* before the counter if */
-Gp_SpawnEff(0x60054, effCoord, 0x80002300, &pos);
+effectSpawn(0x60054, effCoord, 0x80002300, &pos);
 ```
 
 Passing the expression at the call site costs 8 instructions (117 against the
@@ -102642,7 +102642,7 @@ inRange = Actor401300_InRange(arg0);
 `gRoomEffectWaterRippleId`. The target's order was `li a2; lui v0,%hi(D); addiu a3,sp,0x18; lw 0x2C(s4); lw a0,%lo(D)(v0)`.
 We got `addiu a3` before the `lui`. With a constant id (`0x60054`), the same helper already matched.
 
-**Fix.** `SpawnVar(s32* id, ...)` with `Gp_SpawnEff(*id, ...)` in the body, called as
+**Fix.** `SpawnVar(s32* id, ...)` with `effectSpawn(*id, ...)` in the body, called as
 `SpawnVar(&gRoomEffectWaterRippleId, ...)`. The address's `lui` moves up with the argument
 setup and the `lw` stays with the call. 99.32% -> 99.97%. The same trick fixed the
 last swap in a hand-written `actorTransformToView`: create
@@ -103613,7 +103613,7 @@ Scratch `nonmatchings/Actor00100_Fn01EEC-vacuum`.
 ## The duplicated tail can be a whole conditional block, and the source must really contain it (Actor00100_Fn01EEC, 2026-09-16)
 
 `Actor00100_Fn01EEC` ends its `case 18` chain and its `case 17` chain with the
-same `(field_5A & 0x3FF) == 0xE` check - same two `Gp_SpawnEff` calls, same
+same `(field_5A & 0x3FF) == 0xE` check - same two `effectSpawn` calls, same
 `return 0x40010002`. GCC's cross-jumping keeps one copy (at the *later* case,
 as "m2c `goto block_N` for a cross-jumped tail merges in the wrong direction"
 describes) and both cases branch into it, so the preserved copy sits at
@@ -107367,7 +107367,7 @@ source `base.c`
 `reload_cse` turned into a move after register allocation; no barrier is
 needed. See the section at the end of this file with this function's name.
 
-The burn-out body takes an 8th-element coordinate as `Gp_SpawnEff`'s second
+The burn-out body takes an 8th-element coordinate as `effectSpawn`'s second
 argument, and the ROM does it in two instructions:
 
 ```
@@ -107388,7 +107388,7 @@ and the increment:
 ```c
 var_s4 = (GfxCoord*)temp_s1;
 SOFT_TOUCH_REG(var_s4);
-Gp_SpawnEff(0x60188, &var_s4[8], 0xC, NULL);
+effectSpawn(0x60188, &var_s4[8], 0xC, NULL);
 ```
 
 This is not a hack invented for this function - it is the same shape the corpus
@@ -109095,7 +109095,7 @@ Inputs: `base_1.i` SHA256
 ## Four copies of one block are four inlined expansions, not one variable used four times (func_actor_401000_8013B1E4, 2026-09-16)
 
 A function that repeats the same 20-instruction body in four `if` arms — here
-the area-key tint that follows each `Gp_SpawnEff` — compiles to different
+the area-key tint that follows each `effectSpawn` — compiles to different
 registers depending on whether the four copies share a variable or are four
 expansions of a `static __inline__` helper. Written out four times with one
 `model` / `idx` / `raw` at function scope (m2c's shape, and the shape of the
@@ -110226,7 +110226,7 @@ dump (`func_actor_800100_80164E60`):
   indexed symbol is a byte array: declare `extern u8 D_...[ ];` rather than the
   scalar m2c invents for `*(idx + &sym)`, and the scale disappears.
 - `coord = (GfxCoord*)((TmdObject*)actor->equipmentTasks[1]->extra)->coords;`
-  sits in the entry block although only `case 12` calls `Gp_SpawnEff` with it.
+  sits in the entry block although only `case 12` calls `effectSpawn` with it.
   sched1 cannot have moved it there: `schedule_insns` schedules per basic block
   ("Schedule each basic block, block by block", `sched.c`, one
   `schedule_block (b, …)` per `b`; there is no extended-basic-block formation),
@@ -113186,7 +113186,7 @@ table.
 
 The rest of the match is two levers this corpus already documents, both of which
 had to land before the score cleared 99%: the six-effect arm writes its
-`Gp_SpawnEff` tail out in *both* parity branches (cross-jumping shares the `jal`,
+`effectSpawn` tail out in *both* parity branches (cross-jumping shares the `jal`,
 `func_actor_160900_80133880`), and each block declares its own `s32 pan` rather
 than one shared local, so each becomes a local quantity the `extendhisi` temp can
 join (`m4a1PykeFlameTask`). From the 54.396% m2c seed. Compiler SHA256
@@ -118444,7 +118444,7 @@ swapped (98-99.8%). Assigning the group to its own local first matched:
 
 ```c
 high = (((gRandomLcgState >> 16) & 1) << 30) + 0x800231C0;
-Gp_SpawnEff(0x60070, part, low + high, NULL);
+effectSpawn(0x60070, part, low + high, NULL);
 ```
 
 Also: two LCG draws written as `x = x*5+K; lo = ...; x = x*5+K;` on the global
@@ -136413,7 +136413,7 @@ contains the paired dumps, extent pass walk, baseline trace and verification log
 *Note 2026-10-06:* superseded; both touches are gone. See the section at the
 end of this file named for `func_actor_521100_80133104`.
 
-`func_actor_521100_80133104` needed `li a2,12; move a1,s1; move a3,zero; jal Gp_SpawnEff; addiu a1,a1,640`. A single soft coordinate touch preserved the copy and in-place addition, but ordinary argument setup left the a3 clear in the delay slot (98.767%).
+`func_actor_521100_80133104` needed `li a2,12; move a1,s1; move a3,zero; jal effectSpawn; addiu a1,a1,640`. A single soft coordinate touch preserved the copy and in-place addition, but ordinary argument setup left the a3 clear in the delay slot (98.767%).
 
 Materializing the four arguments through `SOFT_TOUCH_REG4(effect, kind, effectCoord, offset)` makes the increment depend on every input materialization. In base_3, the outputs coalesced into a0/a2/a1/a3, so the hard-register argument copies disappeared and dbr selected the increment. This reached 99.863%, but reload inserted `move a1,s1` immediately before the grouped asm, after the a3 clear. Adding `SOFT_TOUCH_REG(effectCoord)` before `offset = NULL` moved that reload copy to the earlier touch and matched:
 
@@ -136424,7 +136424,7 @@ effectCoord = coord;
 SOFT_TOUCH_REG(effectCoord);
 offset = NULL;
 SOFT_TOUCH_REG4(effect, kind, effectCoord, offset);
-Gp_SpawnEff(effect, &effectCoord[8], kind, offset);
+effectSpawn(effect, &effectCoord[8], kind, offset);
 ```
 
 The controlled base_4 prediction required both earlier copy placement and unchanged argument homes/delay-slot fill. `.greg` shows copy UID403 before touch UID71 and null UID74; `.sched2` preserves that order and grouped asm UID76 before addiu UID83; `.dbr` puts UID83 in call UID89's delay slot. All penalties became zero. This is a dependency and reload-placement experiment, not evidence that the original source used empty asm. Output coalescing must be checked for each call; no physical register is pinned here.
@@ -139127,7 +139127,7 @@ penalties) to 100%:
 
 ```c
 arg = ((((u32)gRandomLcgState >> 16) % 3) << 16) + 0x80000100;
-Gp_SpawnEff(0x6003D, coord, lo + arg, &work->field_10);
+effectSpawn(0x6003D, coord, lo + arg, &work->field_10);
 ```
 
 Which fix applies depends on where the target's intermediate lives. If it is in
@@ -146949,8 +146949,8 @@ Write the array indexing directly in each call instead:
 
 ```c
 for (patternIndex = 0; patternIndex < 9; patternIndex++) {
-    Gp_SpawnEff(0x60070, &task->extra.tmd->coords[pattern.values[patternIndex]], 0x34C00, NULL);
-    Gp_SpawnEff(0x601BF, &task->extra.tmd->coords[pattern.values[patternIndex]], 0xC00, NULL);
+    effectSpawn(0x60070, &task->extra.tmd->coords[pattern.values[patternIndex]], 0x34C00, NULL);
+    effectSpawn(0x601BF, &task->extra.tmd->coords[pattern.values[patternIndex]], 0xC00, NULL);
 }
 ```
 
@@ -151223,7 +151223,7 @@ vec                           = head - 1;
 SCRATCH_STACK_CURSOR(SVECTOR) = vec;          /* after the first read */
 clip                          = D_actor_521100_8015F894[work->animationId];
 ...
-Gp_SpawnEff(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 0xC, NULL);
+effectSpawn(EFFECT_NO9_GOLEM_SWING_TRAIL, arg0->extra.tmd->coords + 8, 0xC, NULL);
 ```
 
 The old body had the reservation first, written through

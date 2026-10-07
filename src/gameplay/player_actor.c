@@ -1559,7 +1559,7 @@ static inline void _effSprTask81SpawnBurstParticle(EffectWork* mem, GfxCoord* co
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
-        Gp_SpawnEff(EFFECT_PROJECTILE_BURST_PARTICLE, coord, (s32)(mem->scale), 0);
+        effectSpawn(EFFECT_PROJECTILE_BURST_PARTICLE, coord, (s32)(mem->scale), 0);
     }
 }
 
@@ -1602,7 +1602,7 @@ void Gp_EffSprTask81(Task* arg0)
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                 break;
             }
-            Gp_SpawnEff(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200 + mem->scale, 0);
+            effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200 + mem->scale, 0);
             break;
         case 1:
             Gp_DrawEffSprite81(arg0);
@@ -1611,14 +1611,14 @@ void Gp_EffSprTask81(Task* arg0)
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & 3) == 0) {
-                Gp_SpawnEff(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x21000, 0);
+                effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x21000, 0);
             }
             mem->age++;
             break;
         case 2:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 if (mem->index == 0) {
-                    Gp_SpawnEff(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200, 0);
+                    effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200, 0);
                     mem->index           = 1;
                     mem->age             = 0;
                     mem->scale         >>= 2;
@@ -1642,7 +1642,7 @@ void Gp_EffSprTask81(Task* arg0)
             break;
         case 3:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && mem->index == 0) {
-                Gp_SpawnEff(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200, 0);
+                effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200, 0);
                 mem->index   = 1;
                 mem->age     = 0;
                 mem->scale >>= 2;
@@ -2011,7 +2011,7 @@ void func_800F91AC(Task* arg0)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         mem->move.vz    = (s32)(gRandomLcgState >> 16) % width - half;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        Gp_SpawnEff(EFFECT_HIT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1000) + 0x11200, &mem->move);
+        effectSpawn(EFFECT_HIT_PUFF, coord, ((gRandomLcgState >> 16) & 0x1000) + 0x11200, &mem->move);
     }
     mem->age++;
 }
@@ -2060,7 +2060,7 @@ void Gp_EffCtlTask9B(Task* arg0)
         effectKillTask(mem, arg0);
         return;
     }
-    spawned = Gp_SpawnEff(EFFECT_HIT_PUFF, coord, 0x12200, 0);
+    spawned = effectSpawn(EFFECT_HIT_PUFF, coord, 0x12200, 0);
     if (spawned != NULL) {
         gte_lddp(mem->scale - mem->age * (mem->angle + 5));
         gte_ldsv(&mem->move);
@@ -2189,7 +2189,7 @@ void Gp_EffSprTask30(Task* arg0)
                         base = 0x12100;
                         id   = 0x60055;
                     }
-                    Gp_SpawnEff(id, coord, mem->pos.vx + base, NULL);
+                    effectSpawn(id, coord, mem->pos.vx + base, NULL);
                 }
                 if (mem->age - mem->step < 8 && mem->scale < 0x20) {
                     arg0->state = arg0->spawnArg1.value + 2;
@@ -2229,7 +2229,7 @@ void Gp_EffSprTask30(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     rnd             = (gRandomLcgState >> 16) % 3;
                     if (rnd == 0) {
-                        Gp_SpawnEff(EFFECT_RISING_WISP, coord, (s32)(mem->pos.vx), NULL);
+                        effectSpawn(EFFECT_RISING_WISP, coord, (s32)(mem->pos.vx), NULL);
                     }
                     Gp_DrawEffQuadT29(coord, mem->period, 0, 0);
                     mem->angle -= 0x10;
@@ -2271,7 +2271,7 @@ void Gp_EffSprTask30(Task* arg0)
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     rnd             = (gRandomLcgState >> 16) % 3;
                     if (rnd == 0) {
-                        Gp_SpawnEff(EFFECT_RISING_WISP, coord, (s32)(mem->pos.vx), NULL);
+                        effectSpawn(EFFECT_RISING_WISP, coord, (s32)(mem->pos.vx), NULL);
                     }
                     Gp_DrawEffQuadT29(coord, mem->period, 0, 0);
                     mem->angle -= 0x10;
@@ -2455,7 +2455,7 @@ static void Gp_EffTask07State1(Task* arg0)
         if (spawnId == 0) {
             return;
         }
-        Gp_SpawnEff(spawnId, slot->extra.tmd->coords,
+        effectSpawn(spawnId, slot->extra.tmd->coords,
                     (s32)(Gp_StateC08.duration), 0);
     } else if (kind == 1) {
         idx = ((u16)(Gp_StateC08.attachId / 100U) - 1) * 9 +
@@ -2465,7 +2465,7 @@ static void Gp_EffTask07State1(Task* arg0)
         if (spawnId == 0) {
             return;
         }
-        Gp_SpawnEff(spawnId,
+        effectSpawn(spawnId,
                     &slot->extra.tmd->coords[D_80112B28[idx]], 0,
                     0);
     }
@@ -2500,7 +2500,7 @@ void func_800FAA14(Task* arg0)
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(arg0->spawnArg1.value, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
-            Gp_SpawnEff(EFFECT_PE_CHARGE_PARTICLE, coord, 0, 0);
+            effectSpawn(EFFECT_PE_CHARGE_PARTICLE, coord, 0, 0);
             mem->scale++;
         }
     }
@@ -2907,7 +2907,7 @@ void Gp_EffCtlTaskF3(Task* arg0)
     }
     slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    Gp_SpawnEff(EFFECT_RISING_ENERGY_SPARK,
+    effectSpawn(EFFECT_RISING_ENERGY_SPARK,
                 &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 1) * 3 + 15],
                 mem->step | 0x8000, 0);
 }
@@ -3127,7 +3127,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
             _effectDrawRadialTriangles(coord, 0x200, 6, rgb);
             mem->angle = 0xC0;
             for (i = 0; i < 0x555; i += 0x2AA) {
-                spawned = Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, i, 0);
+                spawned = effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, i, 0);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -3142,7 +3142,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
         if (((gRandomLcgState >> 16) & 3) == 0) {
             slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_FLASH_BURST,
+            effectSpawn(EFFECT_FLASH_BURST,
                         &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3],
                         0x10080, 0);
         }
@@ -3159,7 +3159,7 @@ void Gp_EffCtlTaskAC(Task* arg0)
     }
     slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    Gp_SpawnEff(EFFECT_FLASH_BURST,
+    effectSpawn(EFFECT_FLASH_BURST,
                 &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3],
                 0x10200, 0);
 }
@@ -3289,11 +3289,11 @@ void Gp_EffCtlTaskA5(Task* arg0)
             /* fallthrough */
         case 1:
             if (arg0->spawnArg1.value == 0) {
-                Gp_SpawnEff(EFFECT_DEATH_FLAME, coord, 1, 0);
+                effectSpawn(EFFECT_DEATH_FLAME, coord, 1, 0);
                 arg0->state = 2;
             } else if (mem->scale == 0) {
                 for (i = 0; i < 3; i++) {
-                    Gp_SpawnEff(EFFECT_DEATH_FLAME, coord, arg0->spawnArg1.value, 0);
+                    effectSpawn(EFFECT_DEATH_FLAME, coord, arg0->spawnArg1.value, 0);
                 }
                 mem->scale++;
             } else {
@@ -3355,7 +3355,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
             mem->move.vz =
                 (mem->scale & 0x1F) % (arg0->spawnArg1.value * 3) + 7;
             func_800FCD00(arg0);
-            Gp_SpawnEff(EFFECT_RISING_WISP, coord, mem->step * 3 + 0x3000, 0);
+            effectSpawn(EFFECT_RISING_WISP, coord, mem->step * 3 + 0x3000, 0);
             return;
         case 1:
             if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
@@ -3697,79 +3697,79 @@ void func_800FDB18(s32 arg0, GfxCoord* arg1, SVECTOR* arg2, EffectSpawnArg* arg3
     switch ((u16)id) {
         case 1:
             if (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & 0x4000) {
-                Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x12300, arg2);
+                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x12300, arg2);
                 if (arg3->spawnArgHi >= 2) {
                     for (i = 0; i < arg3->spawnArgHi; i++) {
-                        Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x111280, arg2);
+                        effectSpawn(EFFECT_HIT_PUFF, arg1, 0x111280, arg2);
                     }
                 }
             } else {
-                Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x12380, arg2);
-                Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x111300, arg2);
-                Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x111300, arg2);
+                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x12380, arg2);
+                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x111300, arg2);
+                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x111300, arg2);
                 for (i = 0; i < arg3->spawnArgHi; i++) {
-                    Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x111280, arg2);
+                    effectSpawn(EFFECT_HIT_PUFF, arg1, 0x111280, arg2);
                 }
             }
             break;
         case 2:
-            Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x10013380, arg2);
-            Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x10111300, arg2);
-            Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x10111300, arg2);
+            effectSpawn(EFFECT_HIT_PUFF, arg1, 0x10013380, arg2);
+            effectSpawn(EFFECT_HIT_PUFF, arg1, 0x10111300, arg2);
+            effectSpawn(EFFECT_HIT_PUFF, arg1, 0x10111300, arg2);
             for (i = 0; i < arg3->spawnArgHi; i++) {
-                Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x10112280, arg2);
+                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x10112280, arg2);
             }
             break;
         case 4:
-            Gp_SpawnEff(EFFECT_HIT_PARTICLE_EMITTER, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+            effectSpawn(EFFECT_HIT_PARTICLE_EMITTER, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             break;
         case 5:
-            Gp_SpawnEff(EFFECT_HIT_SPLATTER_SPRAY, arg1, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+            effectSpawn(EFFECT_HIT_SPLATTER_SPRAY, arg1, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             break;
         case 6:
-            Gp_SpawnEff(EFFECT_IMPACT_SPARK, arg1, 0x400, arg2);
+            effectSpawn(EFFECT_IMPACT_SPARK, arg1, 0x400, arg2);
             for (i = 0; i < arg3->spawnArgHi; i++) {
-                Gp_SpawnEff(EFFECT_HIT_PUFF, arg1, 0x112300, arg2);
+                effectSpawn(EFFECT_HIT_PUFF, arg1, 0x112300, arg2);
             }
             break;
         case 7:
-            Gp_SpawnEff(EFFECT_HIT_SPARK_BURST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+            effectSpawn(EFFECT_HIT_SPARK_BURST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             break;
         case 8:
             for (i = 0; i < arg3->spawnArgHi * 3; i++) {
-                Gp_SpawnEff(EFFECT_HIT_PUFF, arg3->coord, 0x1112300, arg2);
+                effectSpawn(EFFECT_HIT_PUFF, arg3->coord, 0x1112300, arg2);
             }
             break;
         case 9:
-            Gp_SpawnEff(EFFECT_HIT_SPLATTER_SPRAY, arg1, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+            effectSpawn(EFFECT_HIT_SPLATTER_SPRAY, arg1, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             break;
         case 10:
-            Gp_SpawnEff(EFFECT_0E3, arg1, arg3->spawnArgLo | 0x10000, arg2);
+            effectSpawn(EFFECT_0E3, arg1, arg3->spawnArgLo | 0x10000, arg2);
             break;
         case 11:
-            Gp_SpawnEff(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), NULL);
+            effectSpawn(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), NULL);
             pan = (s8)worldCoordGetOriginAudioPan(arg1);
             sndEvtRequestScriptStart(D_80112C7C[(u16)(Gp_StateC08.attachId % 10U) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(arg1));
             break;
         case 12:
-            Gp_SpawnEff(EFFECT_APOBIOSIS_SHARD, arg1, 1, NULL);
+            effectSpawn(EFFECT_APOBIOSIS_SHARD, arg1, 1, NULL);
             break;
         case 13:
             for (i = 0; i < arg3->spawnArgHi; i++) {
-                Gp_SpawnEff((EFFECT_LIFE_DRAIN_MOTE | EFFECT_SPAWN_UNLIMITED), arg1, 1, NULL);
+                effectSpawn((EFFECT_LIFE_DRAIN_MOTE | EFFECT_SPAWN_UNLIMITED), arg1, 1, NULL);
             }
             break;
         case 15:
-            Gp_SpawnEff(EFFECT_HIT_SPARK_BURST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
-            Gp_SpawnEff(EFFECT_M4A1_HAMMER_IMPACT_FLASH, arg1, 1, NULL);
+            effectSpawn(EFFECT_HIT_SPARK_BURST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+            effectSpawn(EFFECT_M4A1_HAMMER_IMPACT_FLASH, arg1, 1, NULL);
             break;
         case 16:
             if (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key & 0x4000) {
-                Gp_SpawnEff(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | 0x10000, arg2);
+                effectSpawn(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | 0x10000, arg2);
             } else {
                 case 3:
-                    Gp_SpawnEff(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
+                    effectSpawn(EFFECT_HIT_BLAST, arg3->coord, arg3->spawnArgLo | (arg3->spawnArgHi << 16), arg2);
             }
             break;
     }
@@ -3865,15 +3865,15 @@ void Gp_EffCtlTask7F(Task* arg0)
         if (mem->age < mem->angle) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (mem->age < (s32)(gRandomLcgState >> 16) % mem->period) {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, (mem->move.vx & 0x10000) | 0x300,
+                effectSpawn(EFFECT_ADDITIVE_PUFF, coord, (mem->move.vx & 0x10000) | 0x300,
                             &mem->move);
             } else {
-                Gp_SpawnEff(EFFECT_FIRE_BURST, coord, 0x300, &mem->move);
+                effectSpawn(EFFECT_FIRE_BURST, coord, 0x300, &mem->move);
             }
         } else {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (mem->scale >> 2) + 0xC0013200,
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, (mem->scale >> 2) + 0xC0013200,
                             &mem->move);
             }
         }
@@ -3917,7 +3917,7 @@ void Gp_EffCtlTaskE3(Task* arg0)
         if (mem->age >= mem->period) {
             effectKillTask(mem, arg0);
         } else {
-            Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, (mem->scale >> 2) + 0x80021400, &mem->move);
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, (mem->scale >> 2) + 0x80021400, &mem->move);
         }
     }
 }
@@ -4369,7 +4369,7 @@ void func_800FF710(Task* arg0)
                     id = 0x600E0;
                 }
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(id, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x80,
+                effectSpawn(id, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x80,
                             &mem->move);
             }
         }
@@ -5850,7 +5850,7 @@ Task* Gp_SpawnWeaponEff(void)
                 }
                 arg2 = cfg->weapon;
             do_call:
-                eff = Gp_SpawnEff(id, coord, arg2, 0);
+                eff = effectSpawn(id, coord, arg2, 0);
                 if (eff != NULL) {
                     goto do_success;
                 }
@@ -7316,11 +7316,11 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
         }
         if (gPlayerStatus.weapon != 0x1D) {
             if (gPlayerStatus.weaponSlotItem == 0xE) {
-                Gp_SpawnEff(EFFECT_FIRE_BURST, &block->impactCoord, 0x300, &block->jitter);
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, &block->impactCoord, 0x300, &block->jitter);
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, &block->impactCoord, 0xC0013300, &block->jitter);
+                effectSpawn(EFFECT_FIRE_BURST, &block->impactCoord, 0x300, &block->jitter);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, &block->impactCoord, 0x300, &block->jitter);
+                effectSpawn(EFFECT_SMOKE_PUFF, &block->impactCoord, 0xC0013300, &block->jitter);
             } else {
-                Gp_SpawnEff(EFFECT_IMPACT_SPARK, &block->impactCoord, 0, &block->jitter);
+                effectSpawn(EFFECT_IMPACT_SPARK, &block->impactCoord, 0, &block->jitter);
             }
         }
     } else {
@@ -7387,7 +7387,7 @@ s32 func_80105ED4(Task* arg0)
                         if (cueBits == ANIMATION_RECORD_CUE_1) {
                             index -= 3;
                         }
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[index], 0x80002300, NULL);
+                        effectSpawn(EFFECT_DUST_PUFF, &arg0->extra.tmd->coords[index], 0x80002300, NULL);
                     }
                 }
                 break;
@@ -7951,7 +7951,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                         actor->statePhase += 1;
                         Gp_PlayObjSfx(arg0->extra.tmd->coords, base | 0x20000002, 0);
                         if (actor->reloadEffectSuppressed == 0) {
-                            Gp_SpawnEff(EFFECT_RELOAD_CASINGS_DROP, coord, 0, NULL);
+                            effectSpawn(EFFECT_RELOAD_CASINGS_DROP, coord, 0, NULL);
                         }
                     }
                     break;
@@ -7995,7 +7995,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
                 temp              = actor->reloadEffectSuppressed;
                 actor->statePhase = 1;
                 if (temp == 0) {
-                    Gp_SpawnEff(EFFECT_RELOAD_EMITTER, coord, (s32)gPlayerStatus.weapon, NULL);
+                    effectSpawn(EFFECT_RELOAD_EMITTER, coord, (s32)gPlayerStatus.weapon, NULL);
                 }
             }
             rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);

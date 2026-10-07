@@ -46,7 +46,7 @@ void shelterB2ElevatorHallRoomTask(Task* task);
 /// Runs the elevator hall's pink charging flash, peak screen tint and fading star.
 ///
 /// Requires a coordinate body and counted, zero-initialized `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`. `spawnArg1.value` is a
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`. `spawnArg1.value` is a
 /// positive charge duration in active ticks, consumed as a countdown. Nonzero
 /// room effect control pauses the task; four or above cancels it. Completion
 /// or cancellation releases its work and task; its parent coordinate must stay live.
@@ -69,7 +69,7 @@ void func_shelter_b2_elevator_hall_80182B48(Task* task);
 /// Runs the elevator hall's animated, vertically drifting mote until its brightness fades.
 ///
 /// Requires a coordinate body and counted, zero-initialized `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`; its coordinate parent must
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`; its coordinate parent must
 /// stay live. `spawnArg1.value` packs half-extent in world units (bits 0..11),
 /// palette (12..15; 0 default), unsigned speed in local Y units per active tick
 /// (16..23), and signed lifetime in active ticks (24..31). The overlapping bits
@@ -92,7 +92,7 @@ void shelterB2ElevatorHallRoomVisualEffectsHaloTask(Task* task);
 /// Runs the elevator hall's orange burst with an expanding glow and fading ring.
 ///
 /// Requires a coordinate body and counted, zero-initialized `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`; its coordinate parent must
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`; its coordinate parent must
 /// stay live. `spawnArg1` is unused. Nonzero room effect control pauses it;
 /// four or above cancels it. Completion or cancellation releases work and task.
 void shelterB2ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task);

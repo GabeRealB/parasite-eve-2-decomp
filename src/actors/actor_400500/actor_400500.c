@@ -240,7 +240,7 @@ static void func_actor_400500_80132628(Task* task, s16 firstJoint, s16 secondJoi
 static void func_actor_400500_80138088(Task* task);
 static s32  func_actor_400500_8013B720(GfxCoord* coord, MATRIX* matrix);
 
-/* `D_800678F0` selects the model stream a following `Gp_SpawnEff` uses as the
+/* `D_800678F0` selects the model stream a following `effectSpawn` uses as the
  * source for the effect's own `TmdObject`.
  *
  * Storing to a bare `extern` pointer next to pointer-based struct traffic lets
@@ -2616,7 +2616,7 @@ static void func_actor_400500_8013456C(Task* arg0)
                 work->hitCooldown = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
                 if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {
                     amount = ((u32)dmg << 16) >> 14;
-                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                    effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                 }
                 amount16 = amount;
                 damageAccumulateLifeDrainHp(enemy, work->bodyContacts[i].key.value, amount16, 0);
@@ -2820,7 +2820,7 @@ static void func_actor_400500_80134B88(Task* arg0)
     TmdObject*  src3;
 
     D_800678F0[0] = &_gActor400500GrayStalkerBurstHead;
-    eff           = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[3], 0x200, NULL);
+    eff           = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[3], 0x200, NULL);
     if (eff != NULL) {
         src                    = arg0->extra.tmd;
         dst                    = eff->task->extra.tmd;
@@ -2832,7 +2832,7 @@ static void func_actor_400500_80134B88(Task* arg0)
         }
     }
     D_800678F0[0] = &_gActor400500GrayStalkerBurstLegRight;
-    eff2          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    eff2          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (eff2 != NULL) {
         src2                    = arg0->extra.tmd;
         dst2                    = eff2->task->extra.tmd;
@@ -2844,7 +2844,7 @@ static void func_actor_400500_80134B88(Task* arg0)
         }
     }
     D_800678F0[0] = &_gActor400500GrayStalkerBurstLegLeft;
-    eff3          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    eff3          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[1], 0x200, NULL);
     if (eff3 != NULL) {
         src3                    = arg0->extra.tmd;
         dst3                    = eff3->task->extra.tmd;
@@ -2855,9 +2855,9 @@ static void func_actor_400500_80134B88(Task* arg0)
             tmdBuildBufferHalf(dst3);
         }
     }
-    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[2], 0x200, NULL);
-    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[3], 0x200, NULL);
+    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[2], 0x200, NULL);
+    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[3], 0x200, NULL);
 }
 
 #include "../../shared/frame_capture.inc.c"
@@ -5699,7 +5699,7 @@ static void func_actor_400500_8013ABE4(Task* arg0)
         pos.vx = 0;
         pos.vy = 0;
         pos.vz = 0;
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 5, &pos);
+        effectSpawn(EFFECT_CORPSE_BURN, coord, 5, &pos);
     }
     if ((s16)work->stateFrames >= 0x41) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

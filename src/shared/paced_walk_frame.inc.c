@@ -35,7 +35,7 @@ void pacedWalkFrame(Enemy* enemy, Task* task)
             low             = (gRandomLcgState >> 16) & 0x10FF;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             high            = (((gRandomLcgState >> 16) & 1) << 30) + 0x800231C0;
-            Gp_SpawnEff(EFFECT_SMOKE_PUFF, part, low + high, NULL);
+            effectSpawn(EFFECT_SMOKE_PUFF, part, low + high, NULL);
         }
         task->killCountdown++;
     }

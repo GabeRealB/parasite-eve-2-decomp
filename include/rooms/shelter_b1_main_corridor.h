@@ -48,7 +48,7 @@ void shelterB1MainCorridorDrawViewLightsTask(Task* task);
 /// Runs the room's charging pink flash, peak screen tint and fading star.
 ///
 /// Requires a coordinate body and zeroed, counted `EffectWork` supplied through
-/// `spawnArg2.pointer` by `Gp_SpawnEff`. `spawnArg1.value` is a positive charge
+/// `spawnArg2.pointer` by `effectSpawn`. `spawnArg1.value` is a positive charge
 /// duration in active ticks, consumed as a countdown. Nonzero room effect
 /// control pauses the task; values 4 and above cancel it. Completion or
 /// cancellation releases the counted work and task; state 3 requests release.
@@ -56,7 +56,7 @@ void shelterB1MainCorridorRoomVisualEffectsFlashTask(Task* task);
 
 /// Records two moving endpoints and draws their fading twin-trail beam.
 ///
-/// Requires a coordinate body, zeroed, counted `EffectWork` from `Gp_SpawnEff`
+/// Requires a coordinate body, zeroed, counted `EffectWork` from `effectSpawn`
 /// and `Task::work` initially NULL. Borrows the spawn parent for its lifetime
 /// and owns two eight-coordinate histories in `Task::work`; allocation failure
 /// retries initialization. `spawnArg1.value` is zero for an unlimited lifetime,
@@ -70,7 +70,7 @@ void func_shelter_b1_main_corridor_80182444(Task* task);
 /// Runs the room's vertically drifting animated mote until its brightness fades.
 ///
 /// Requires a coordinate body and zeroed, counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`. `spawnArg1.value` packs world-unit
+/// `spawnArg2.pointer` from `effectSpawn`. `spawnArg1.value` packs world-unit
 /// half-extent in bits 0..11, palette in bits 12..15, unsigned vertical speed
 /// in bits 16..23 and signed lifetime in active ticks in bits 24..31.
 /// Bits 0..1 overlap the extent: either selects steady motion, with bit 1
@@ -82,7 +82,7 @@ void shelterB1MainCorridorRoomVisualEffectsMoteTask(Task* task);
 /// Runs the room's expanding tinted halo and shrinking ring, then a fading star.
 ///
 /// Requires a coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`; its parent stays live and `pos` is the parent-space offset.
+/// `effectSpawn`; its parent stays live and `pos` is the parent-space offset.
 /// The unsigned low half of `spawnArg1` holds an expansion duration of 1..65535
 /// active ticks; the signed high half selects tint index 0..2. Initialization
 /// replaces the word with the remaining duration. Nonzero room effect control
@@ -93,7 +93,7 @@ void shelterB1MainCorridorRoomVisualEffectsHaloTask(Task* task);
 /// Runs the room's growing orange disc and glow within an expanding, fading ring.
 ///
 /// Requires a coordinate body and zeroed, counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`; `spawnArg1` is unused. The ring
+/// `spawnArg2.pointer` from `effectSpawn`; `spawnArg1` is unused. The ring
 /// fades before the central burst. Nonzero room effect control pauses it;
 /// values 4 and above cancel it. Completion or cancellation frees the counted
 /// work and task.

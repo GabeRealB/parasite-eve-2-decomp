@@ -127,7 +127,7 @@ void func_gunblade_8011D1E4(Task* task)
                 }
                 if (work->index == 1) {
                     work->index++;
-                    eff = Gp_SpawnEff(EFFECT_GUNBLADE_CHARGE_FLASH, coord, task->spawnArg1.value, NULL);
+                    eff = effectSpawn(EFFECT_GUNBLADE_CHARGE_FLASH, coord, task->spawnArg1.value, NULL);
                     if (eff != NULL) {
                         taskReparent(task, eff->task);
                     }
@@ -180,12 +180,12 @@ void func_gunblade_8011DAA4(Task* task)
     switch (task->spawnArg1.value) {
         case 13:
             if (task->state == 0) {
-                Gp_SpawnEff(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x10000, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x102AA, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x10555, NULL);
+                effectSpawn(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x10000, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x102AA, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x10555, NULL);
                 for (i = 0; i < 8; i++) {
-                    Gp_SpawnEff(EFFECT_SPARK_STREAK, coord, 0, NULL);
+                    effectSpawn(EFFECT_SPARK_STREAK, coord, 0, NULL);
                 }
                 task->state = 1;
                 work->scale = work->period = 0xE0;
@@ -214,13 +214,13 @@ void func_gunblade_8011DAA4(Task* task)
             return;
         case 14:
             if (task->state == 0) {
-                Gp_SpawnEff(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x20000, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x202AA, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x20555, NULL);
+                effectSpawn(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x20000, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x202AA, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x20555, NULL);
                 for (i = 0; i < 4; i++) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    Gp_SpawnEff(EFFECT_BOUNCING_SPARK, coord, ((gRandomLcgState >> 16) & 0x3F) | 0x100, NULL);
+                    effectSpawn(EFFECT_BOUNCING_SPARK, coord, ((gRandomLcgState >> 16) & 0x3F) | 0x100, NULL);
                 }
                 task->state = 1;
                 work->scale = work->period = 0xE0;
@@ -251,12 +251,12 @@ void func_gunblade_8011DAA4(Task* task)
             return;
         case 15:
             if (task->state == 0) {
-                Gp_SpawnEff(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x30000, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x302AA, NULL);
-                Gp_SpawnEff(EFFECT_EXPANDING_COLOR_BAND, coord, 0x30555, NULL);
+                effectSpawn(EFFECT_IMPACT_FLASH, coord, 0x600, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x30000, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x302AA, NULL);
+                effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, 0x30555, NULL);
                 for (i = 0; i < 8; i++) {
-                    Gp_SpawnEff(EFFECT_SPARK_STREAK, coord, 1, NULL);
+                    effectSpawn(EFFECT_SPARK_STREAK, coord, 1, NULL);
                 }
                 task->state = 1;
                 work->scale = work->period = 0xE0;

@@ -1370,7 +1370,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((u16)((gRandomLcgState >> 16) % 100) < limit) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                Gp_SpawnEff(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (s32)(gRandomLcgState >> 16) % limit + 0x40, &eff->move);
+                effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, (s32)(gRandomLcgState >> 16) % limit + 0x40, &eff->move);
             }
             if (eff->step == 0) {
                 sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_LOOP, 0, 0);
@@ -1382,7 +1382,7 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
             eff->move.vy    = -3000;
             eff->move.vz    = 3000;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0x7F) + 0x40, &eff->move);
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0x7F) + 0x40, &eff->move);
             if (eff->step < 2) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (!((gRandomLcgState >> 16) & 3)) {
@@ -1403,12 +1403,12 @@ void func_dryfield_breezeway_8017FF7C(Task* task)
             eff->move.vy    = -3000;
             eff->move.vz    = 2750;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x40, &eff->move);
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x40, &eff->move);
             eff->move.vx    = 17000;
             eff->move.vy    = -3000;
             eff->move.vz    = 4000;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x40, &eff->move);
+            effectSpawn(EFFECT_DRYFIELD_BREEZEWAY_BOUNCING_PARTICLE, coord, ((gRandomLcgState >> 16) & 0xFF) + 0x40, &eff->move);
         }
     }
 }
@@ -1614,7 +1614,7 @@ void func_dryfield_breezeway_80181264(Task* task)
                     coord->coord.t[1] += delta.vy;
                     coord->coord.t[2] += delta.vz;
                     if (work->age < 60) {
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, coord, work->pos.vx + 0x2100, NULL);
+                        effectSpawn(EFFECT_DUST_PUFF, coord, work->pos.vx + 0x2100, NULL);
                     }
                     if (work->age - work->step < 8 && work->scale < 0x20) {
                         task->state = 2;

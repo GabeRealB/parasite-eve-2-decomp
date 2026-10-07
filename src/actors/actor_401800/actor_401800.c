@@ -109,7 +109,7 @@ extern u16 gOddStrangerChaseDistance;
 /// `gActor401300Animation20D98`.
 extern AnimationSet gOddStrangerDormantAnimSet;
 
-/// Gameplay slot `Gp_SpawnEff` effects read their model data from; set before
+/// Gameplay slot `effectSpawn` effects read their model data from; set before
 /// each spawn in `func_actor_401800_8013BB10`.
 
 /// The records closing three of the overlay's model streams, which
@@ -2033,7 +2033,7 @@ static void func_actor_401800_8013BB10(Task* arg0)
         vec.vx                        = 0x64;
         vec.vz                        = 0;
         vec.vy                        = 0;
-        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         sceneReleaseBattleRefWithRewards(arg0, 0xA);
     }
     next             = work->stateTimer + 1;
@@ -2043,21 +2043,21 @@ static void func_actor_401800_8013BB10(Task* arg0)
         vec.vz                   = 0x64;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
     if (work->stateTimer == 5) {
         D_80114B34[5].data.model = &_gActor401800Model12280;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
+        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->stateTimer == 7) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelA;
-        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->stateTimer == 9) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-        actorTintEffect(Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->stateTimer >= 0x3D) {
         work->state = ODD_STRANGER_STATE_HIDDEN;

@@ -696,7 +696,7 @@ void func_shelter_b6_corridor_8017E19C(s32 arg0)
 void func_shelter_b6_corridor_8017E204(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 /// Draws two wall-light capsule glows from consecutive pairs of world endpoints.
@@ -768,7 +768,7 @@ void func_shelter_b6_corridor_8017EBA4(Task* task)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 3) == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_FLASH_BURST, task->extra.tmd->coords + (((gRandomLcgState >> 16) & 0xF) + 3), 0x10080, NULL);
+            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords + (((gRandomLcgState >> 16) & 0xF) + 3), 0x10080, NULL);
         }
     }
 }

@@ -40,7 +40,7 @@ void neoArkPowerPlant2SetView6SpritesHidden(u8 hidden);
 /// Runs this room's charging pink flash, peak screen tint and fading star.
 ///
 /// Starts in state 0 with a coordinate body and counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`. `spawnArg1.value` is a positive
+/// `spawnArg2.pointer` from `effectSpawn`. `spawnArg1.value` is a positive
 /// charge duration in active ticks, consumed as a countdown. Nonzero room
 /// effect control pauses it; control 4 or above, state 3, or completion
 /// releases the work and task. The effect controller and room overlay must
@@ -50,7 +50,7 @@ void neoArkPowerPlant2RoomVisualEffectsFlashTask(Task* task);
 /// Records two moving endpoints and draws their fading trail as a blue beam.
 ///
 /// Starts in state 0 with a coordinate body and counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`; its parent coordinate must stay live.
+/// `spawnArg2.pointer` from `effectSpawn`; its parent coordinate must stay live.
 /// Owns two eight-coordinate histories in `Task::work`, freed by task teardown.
 /// Allocation failure resets age to zero for retry. Initialization is the first
 /// active tick; later ticks draw seven quads tinted 1:2:3 in R:G:B.

@@ -7,7 +7,7 @@ void func_m4a1_pyke_8011D1F8(Task* task);
 
 /// Updates one flying flame from the M4A1 Pyke flamethrower attachment.
 ///
-/// Callback for `EFFECT_M4A1_PYKE_FLAME`, spawned through `Gp_SpawnEff` with
+/// Callback for `EFFECT_M4A1_PYKE_FLAME`, spawned through `effectSpawn` with
 /// a launch coordinate. Requires a live counted task with an owned coordinate
 /// body and an owned `EffectWork` in `spawnArg2.pointer`; state and age start
 /// at zero, and `work` starts NULL. The unsigned low halfword of

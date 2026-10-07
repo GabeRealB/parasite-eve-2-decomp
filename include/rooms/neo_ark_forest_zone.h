@@ -61,7 +61,7 @@ void func_neo_ark_forest_zone_8017F76C(Task* task);
 /// Runs one tumbling forest leaf through falling, a stationary hold and fading.
 ///
 /// Requires a coordinate body and counted, cleared `EffectWork` owned through
-/// `spawnArg2.pointer`, as `Gp_SpawnEff` supplies. Motion uses parent-coordinate
+/// `spawnArg2.pointer`, as `effectSpawn` supplies. Motion uses parent-coordinate
 /// game units and 4096 angle units per turn. Falling stops when parent-space Y
 /// becomes positive. Completion releases the work and task; room effect pause
 /// and cancellation controls do not gate this task.

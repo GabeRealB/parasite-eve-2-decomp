@@ -639,9 +639,9 @@ static void func_actor_205200_8014C0C0(Task* arg0)
                 scratch->pushDirection.vy = -1000;
                 scratch->pushDirection.vz = 0;
                 if (work->room == ACTOR_205200_ROOM_CORRIDOR) {
-                    Gp_SpawnEff(EFFECT_SHELTER_B6_CORRIDOR_PLAYER_HIT_RING, player->extra.tmd->coords, 0, &scratch->pushDirection);
+                    effectSpawn(EFFECT_SHELTER_B6_CORRIDOR_PLAYER_HIT_RING, player->extra.tmd->coords, 0, &scratch->pushDirection);
                 } else {
-                    Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->pushDirection);
+                    effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->pushDirection);
                 }
             } else {
                 work->knockbackActive = 0;

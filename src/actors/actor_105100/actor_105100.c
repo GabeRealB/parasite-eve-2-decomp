@@ -1099,7 +1099,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
                                                     0, 0);
             if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
                 damage *= 4;
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
             }
             if (work->shield.fields.active == 1) {
                 if (work->hitContacts[i].key.value & 0x8000) {
@@ -1110,7 +1110,7 @@ static void func_actor_105100_80132C2C(Task* arg0)
                 scratch->flashOffset.vx = 0;
                 scratch->flashOffset.vy = 0;
                 scratch->flashOffset.vz = 0xC8;
-                Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, &arg0->extra.tmd->coords[3], 0, &scratch->flashOffset);
+                effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, &arg0->extra.tmd->coords[3], 0, &scratch->flashOffset);
                 snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000D;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
@@ -1479,7 +1479,7 @@ static void func_actor_105100_801336B8(Task* arg0, Enemy* arg1)
                 pos.vx           = 0;
                 pos.vy           = -0x6D6;
                 pos.vz           = 0x320;
-                work->ringEffect = Gp_SpawnEff((EFFECT_SHELTER_B6_TRAINING_SUMMON_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, 0x3C, &pos);
+                work->ringEffect = effectSpawn((EFFECT_SHELTER_B6_TRAINING_SUMMON_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, 0x3C, &pos);
                 snd              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330007;
                 pan              = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
@@ -1583,7 +1583,7 @@ static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
             pos.vx                       = 0;
             pos.vy                       = -0x6D6;
             pos.vz                       = 0x1F4;
-            work->ringEffect             = Gp_SpawnEff((EFFECT_SHELTER_B6_TRAINING_CHARGE_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, work->timer + 0xA, &pos);
+            work->ringEffect             = effectSpawn((EFFECT_SHELTER_B6_TRAINING_CHARGE_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, work->timer + 0xA, &pos);
             work->chargeSound            = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330009;
             sndEvtRequestScriptStart(work->chargeSound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
             break;
@@ -1674,7 +1674,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
                 scratch->pushDirection.vx = 0;
                 scratch->pushDirection.vy = -1000;
                 scratch->pushDirection.vz = 0;
-                Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->pushDirection);
+                effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->pushDirection);
             } else {
                 work->knockbackActive = 0;
             }
@@ -1878,7 +1878,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
                 dir.vx = 0;
                 dir.vy = 0;
                 dir.vz = 0x96;
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, &actor->extra.tmd->coords[3], 5, &dir);
+                effectSpawn(EFFECT_CORPSE_BURN, &actor->extra.tmd->coords[3], 5, &dir);
                 work->timer = 0;
             }
             if ((work->animFrame >= 0x36) && (work->deathEventPending == 0)) {
@@ -2204,7 +2204,7 @@ static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1)
                 work->body.radius = 0x1F4;
                 work->timer       = 0x1E;
                 work->step        = ACTOR_105100_FIREBALL_BURST;
-                Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_ORANGE_BURST, coord, 0, NULL);
+                effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_ORANGE_BURST, coord, 0, NULL);
                 snd = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330006;
                 sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
@@ -2585,7 +2585,7 @@ static void func_actor_105100_80135FCC(Task* arg0)
         enemy->hp = D_actor_105100_80141398.hpMax;
     }
     worldTargetAddReadoutAmount(&enemy->node, -0x50, 0);
-    Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL, NULL, 0, NULL);
+    effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL, NULL, 0, NULL);
     snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000C;
     pan = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));

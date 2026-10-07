@@ -934,8 +934,8 @@ void sucklercephKill(Task* arg0, u8 arg1)
         }
         work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->blastBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 1, NULL);
-        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords, 0x300, &Actor07000_D08068);
+        effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 1, NULL);
+        effectSpawn(EFFECT_030, arg0->extra.tmd->coords, 0x300, &Actor07000_D08068);
         Gp_SpawnScript18(Actor07000_D06938, Actor07000_D06944);
         work->hasBurst = 1;
     } else {
@@ -1173,7 +1173,7 @@ static void Actor07000_Fn03164(Enemy* arg0, Task* arg1)
             }
             work->idleFrames += 1;
             if (work->idleFrames >= 0x10) {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
                 work->idleFrames = 0;
             }
             break;
@@ -1196,7 +1196,7 @@ static void Actor07000_Fn03164(Enemy* arg0, Task* arg1)
             }
             work->idleFrames += 1;
             if (work->idleFrames >= 0x10) {
-                Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
+                effectSpawn(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
                 work->idleFrames = 0;
             }
             break;
@@ -1507,7 +1507,7 @@ static void Actor07000_Fn03E08(Task* arg0)
                     scratch->delta.vector.vz = dz;
                     damage                   = Gp_ComputeDamage(work->contacts[i].key.value, SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
                     if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
+                        effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
                         damage *= 4;
                     }
                     damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, (s32)damage, 0);
@@ -1819,28 +1819,28 @@ static void Actor07000_Fn049C0(Task* arg0)
         case 0:
         case 1:
             D_800626EC[5].data.model = &_gActor07000SlouchPoison;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 1, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 1, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 2:
             D_800626EC[5].data.model = &_gActor07000SlouchBurstArm;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 5, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 5, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
         case 3:
             D_800626EC[5].data.model = &_gActor07000SlouchBurstLeg;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 4, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 4, 0, NULL);
             if (effect != NULL) {
                 Actor07000_Fn066FC(effect->task, arg0);
             }
             break;
     }
-    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x300, NULL);
-    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 4, 0x300, NULL);
+    effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x300, NULL);
+    effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 4, 0x300, NULL);
 }
 
 /// Spawn handler of a specimen projectile, entry 0 of `Actor07000_D000E0`.
@@ -1873,7 +1873,7 @@ static void Actor07000_Fn04B18(Task* arg0)
     capsule                 = &work->capsule;
     vec                     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     arg0->work              = work;
-    eff                     = Gp_SpawnEff(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, NULL);
+    eff                     = effectSpawn(EFFECT_PROJECTILE_GLOW_SPRITE, coord, 0, NULL);
     arg0->spawnArg2.pointer = eff->task;
     taskReparent(arg0, eff->task);
     angle           = arg0->spawnArg1.value;
@@ -2327,13 +2327,13 @@ s32 Actor07000_Fn05AB8(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
     mode  = word & 0xFFFF;
     coord = obj->coords;
     if (mode == 4) {
-        Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x400, &Actor07000_D0D7B8);
+        effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x400, &Actor07000_D0D7B8);
         work->idleFrames = 0;
         work->state      = ACTOR_07000_SLOUCH_STATE_PUFFING;
         return 0;
     }
     if (mode == 5) {
-        Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, coord, 0x400, &Actor07000_D0D7B8);
+        effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x400, &Actor07000_D0D7B8);
         work->idleFrames  = 0;
         work->watchFrames = 0;
         work->state       = ACTOR_07000_SLOUCH_STATE_PUFFING;
@@ -2482,7 +2482,7 @@ static void Actor07000_Fn05FF8(Task* arg0)
     work->deathScale.vz       = 0x1000;
     work->stateFrames         = 0;
     if (work->state != ACTOR_07000_SLOUCH_STATE_PUFFING_DEATH) {
-        Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords, 2, NULL);
+        effectSpawn(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords, 2, NULL);
     }
 }
 

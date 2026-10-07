@@ -27,6 +27,6 @@ worldCollisionInitContacts = 0x800E18E0; // type:func absolute:True
 worldCollisionCountContactsByKind = 0x800E1A1C; // type:func absolute:True
 worldCollisionClearContacts = 0x800E1A6C; // type:func absolute:True
 worldCollisionSurfaceClassFromMask = 0x800E1ACC; // type:func absolute:True
-Gp_SpawnEff = 0x800EA478; // type:func absolute:True
+effectSpawn = 0x800EA478; // type:func absolute:True
 Gp_PlayObjSfx = 0x801064A4; // type:func absolute:True
 Gp_RoomParamTables = 0x8010CBB8; // absolute:True

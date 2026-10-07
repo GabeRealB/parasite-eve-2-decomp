@@ -73,7 +73,7 @@ void desertChaserSpawnAim(Task* arg0)
         eventPan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound, (s32)eventPan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         if (gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED) {
-            Gp_SpawnEff(EFFECT_DUST_PUFF, player->extra.tmd->coords + 1, 0x80003A00, NULL);
+            effectSpawn(EFFECT_DUST_PUFF, player->extra.tmd->coords + 1, 0x80003A00, NULL);
         }
     }
     desertChaserAnimTick(arg0);

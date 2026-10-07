@@ -1797,11 +1797,11 @@ static void Actor01600_Fn00BAC(Task* actor)
                     damage                   = Gp_ComputeDamage(work->bodySphere.contacts[contactIndex].key.value, SquareRoot0(x * x + y * y + z * z), 0, 0);
                     if (damageRollCriticalHit(actor->spawnArg2.pointer, work->bodySphere.contacts[contactIndex].key.value, 0)) {
                         damage *= 4;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 0, 0);
+                        effectSpawn(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 0, 0);
                     }
                     if (work->behavior == ACTOR_01600_BEHAVIOR_ATTACK && work->airborne != 0 && work->verticalSpeed < 0) {
                         damage *= 2;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 3, 0);
+                        effectSpawn(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 3, 0);
                     }
                     damageAccumulateLifeDrainHp(ctx, work->bodySphere.contacts[contactIndex].key.value, damage, 0);
                     Actor01600_Fn0131C(actor, damage);
@@ -3484,7 +3484,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
                     obj->flags = TMD_OBJECT_SEMI_TRANS;
                 }
                 if (work->stateTimer == 0xF) {
-                    Gp_SpawnEff(EFFECT_CORPSE_BURN, coords, 1, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, coords, 1, NULL);
                 }
                 if (work->stateTimer < 0x10) {
                     body = arg1->extra.tmd->coords;
@@ -3520,7 +3520,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
                         break;
                     }
                     attachment->flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-                    Gp_PulseState1C();
+                    roomEffectRequestCancelAll();
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F4, arg1, 0);
                     work->deathPhase        = ACTOR_01600_DEATH_REPORTED;
                     arg1->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -4460,7 +4460,7 @@ static void Actor01600_Fn05F80(Task* arg0)
                     work->hitEffect.spawnArgLo = 0x100;
                     work->hitEffect.spawnArgHi = anim;
                     func_800FDB18(1, part1, 0, &work->hitEffect);
-                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 0, NULL);
+                    effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 0, NULL);
                 }
                 if ((u32)((u16)work->animFrame - 0xF) < 8U) {
                     coord->coord.t[1] += 0x80;
@@ -4566,21 +4566,21 @@ static void Actor01600_Fn0646C(Task* arg0)
 
     if (((_Actor01600Work*)arg0->work)->burstState != 0) {
         D_800626EC[5].data.model = &_gActor01600ScavengerBurstHead;
-        effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 1, 0, NULL);
+        effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 1, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(effect->task, arg0);
         }
         D_800626EC[5].data.model = &_gActor01600ScavengerBurstEar;
-        effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 2, 0, NULL);
+        effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 2, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(effect->task, arg0);
         }
         D_800626EC[5].data.model = &_gActor01600ScavengerBurstEar;
-        effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
+        effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
         if (effect != NULL) {
             Actor01600_Fn070AC(effect->task, arg0);
         }
-        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x300, &Actor01600_D12868);
+        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x300, &Actor01600_D12868);
         return;
     }
     randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -4590,27 +4590,27 @@ static void Actor01600_Fn0646C(Task* arg0)
         case 0:
         case 1:
             D_800626EC[5].data.model = &_gActor01600ScavengerBurstHead;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 1, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 1, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(effect->task, arg0);
             }
             break;
         case 2:
             D_800626EC[5].data.model = &_gActor01600ScavengerBurstEar;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 2, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 2, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(effect->task, arg0);
             }
             break;
         case 3:
             D_800626EC[5].data.model = &_gActor01600ScavengerBurstLeg;
-            effect                   = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 6, 0, NULL);
+            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 6, 0, NULL);
             if (effect != NULL) {
                 Actor01600_Fn070AC(effect->task, arg0);
             }
             break;
     }
-    Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x50, &Actor01600_D12868);
+    effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x50, &Actor01600_D12868);
     obj          = arg0->extra.tmd;
     obj->flags  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     obj2         = arg0->extra.tmd;

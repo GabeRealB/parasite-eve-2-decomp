@@ -42,7 +42,7 @@ void dryfieldNightR08DrawGlowsTask(Task* task);
 /// Runs night room 8's charging pink flash, peak screen tint and fading star.
 ///
 /// Starts in state 0 with a coordinate body and counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`. `spawnArg1.value` is a positive
+/// `spawnArg2.pointer` from `effectSpawn`. `spawnArg1.value` is a positive
 /// charge duration in active ticks, consumed as a countdown. Nonzero room
 /// effect control pauses it; values at least four cancel it. State 3 also
 /// releases the work and task. Requires a live effect controller and room overlay.
@@ -51,7 +51,7 @@ void dryfieldNightR08RoomVisualEffectsFlashTask(Task* task);
 /// Runs night room 8's fading sword trail between two moving endpoint histories.
 ///
 /// Starts in state 0 with a coordinate body and counted `EffectWork` in
-/// `spawnArg2.pointer` from `Gp_SpawnEff`; its parent coordinate must stay live.
+/// `spawnArg2.pointer` from `effectSpawn`; its parent coordinate must stay live.
 /// Owns two eight-coordinate histories in `Task::work`, freed by task teardown.
 /// Allocation failure retries with age zero. Initialization counts as the first
 /// active tick; later ticks record endpoints and draw seven quads tinted 1:2:3

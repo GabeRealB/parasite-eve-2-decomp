@@ -201,7 +201,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &work->gridBody);
             work->gridBody.flags = (work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-            Gp_SpawnEff(EFFECT_PYROKINESIS_LAUNCH_CONE, coord, 0, NULL);
+            effectSpawn(EFFECT_PYROKINESIS_LAUNCH_CONE, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
@@ -214,7 +214,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 radius     = (mem->index << 9) + 0x380;
                 mem->angle = radius;
                 for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
+                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
@@ -259,7 +259,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
                 jetConeDraw(coord, mem->age, mem->angle, 1);
             }
             if (mem->age < 0x1E) {
-                spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
+                spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -284,7 +284,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&work->damageBody);
                 for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
+                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
@@ -333,7 +333,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
             glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
             if (mem->angle >= 0x81) {
-                spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
+                spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }
@@ -341,7 +341,7 @@ void func_pyrokinesis_8012EF48(Task* arg0)
             if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 worldCollisionUnlinkBody(&work->damageBody);
                 for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = Gp_SpawnEff(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
+                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
                     if (spawned != NULL) {
                         taskReparent(arg0, spawned->task);
                     }
@@ -431,18 +431,18 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
                 actorRenderComposeCoord(coord);
                 switch (arg0->state) {
                     case 0:
-                        Gp_SpawnEff((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
+                        effectSpawn((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
                         arg0->state = scene;
                         return;
                     case 1:
                         if (mem->age == 8) {
-                            Gp_SpawnEff((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
+                            effectSpawn((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
                             arg0->state = 2;
                         }
                         return;
                     case 2:
                         if (mem->age == 0x10) {
-                            Gp_SpawnEff(0x80060000 | 0x10, coord, 2, 0);
+                            effectSpawn(0x80060000 | 0x10, coord, 2, 0);
                             arg0->state = 3;
                         }
                         return;

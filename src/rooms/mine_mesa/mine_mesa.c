@@ -2702,7 +2702,7 @@ s32 func_mine_mesa_8017DBC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
         if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_0CD) == 0) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-                Gp_PulseState1C();
+                roomEffectRequestCancelAll();
                 D_mine_mesa_80189B50 = field9;
                 gameFlagSetNibble(GAME_FLAG_MINE_MESA_0CD, 1);
             }
@@ -3193,7 +3193,7 @@ void func_mine_mesa_8017EA24(void)
 void func_mine_mesa_8017EA78(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 /// Requests a deferred respawn of view tasks using the saved camera view.
@@ -3208,7 +3208,7 @@ void func_mine_mesa_8017EAC0(void)
 
     slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     if (slot != NULL) {
-        Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &slot->extra.tmd->coords[8], 0x21, NULL);
+        effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, &slot->extra.tmd->coords[8], 0x21, NULL);
         sndEvtRequestScriptStart(SOUND_ACTOR_800100_ATTACK, 0, 0);
     }
 }

@@ -82,7 +82,7 @@ static inline void _roomVisualEffectsMoveAndDrawMote(EffectWork* work, GfxCoord*
 /// Updates a vertically drifting, animated mote until its brightness has faded.
 ///
 /// `task` must own a coordinate body and an `EffectWork` with zero age and
-/// animation index in `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`.
+/// animation index in `spawnArg2.pointer`, as supplied by `effectSpawn`.
 /// State 0 initializes it; state 1 rises and brightens using texture strip 1,
 /// and state 2 starts at full brightness and moves using strip 0.
 /// The first tick neither moves nor draws.

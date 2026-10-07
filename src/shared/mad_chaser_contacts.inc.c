@@ -58,7 +58,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                     work->hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
                     if (damageRollCriticalHit(enemy, work->contacts[i].key.value, 0) != 0) {
                         amount = ((u32)dmg << 16) >> 14;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                     damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, amount, 0);
                     worldTargetAddReadoutAmount(&enemy->node, amount, 0);

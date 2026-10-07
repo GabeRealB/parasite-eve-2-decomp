@@ -1464,12 +1464,12 @@ void func_dryfield_water_hole_8017E040(Task* arg0)
                     actorRenderComposeCoord(&surface);
                     rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
-                        Gp_SpawnEff(gRoomEffectWaterRippleId, &surface, 0x40, 0);
+                        effectSpawn(gRoomEffectWaterRippleId, &surface, 0x40, 0);
                     }
                     work->angle -= 0x20;
                     rnd          = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
                     if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
-                        Gp_SpawnEff(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
+                        effectSpawn(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
                     }
                     D_dryfield_water_hole_8017FD1C[i].vx = part->workm.t[0];
                     D_dryfield_water_hole_8017FD1C[i].vy = part->workm.t[1];

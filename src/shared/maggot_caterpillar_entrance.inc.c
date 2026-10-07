@@ -81,7 +81,7 @@ void maggotCaterpillarEntranceState(Task* arg0)
                     randomRise      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     gRandomLcgState = randomRise;
                     velocity->vy    = ((randomRise >> 0x10) & 0x1FF) + 0x2EE;
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_ROOF_GARDEN_LEAF, coord, 0, velocity);
+                    effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LEAF, coord, 0, velocity);
                     indexOrSound++;
                 } while (indexOrSound < 5);
                 indexOrSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x510D0012;
@@ -107,7 +107,7 @@ void maggotCaterpillarEntranceState(Task* arg0)
                     randomZ         = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     gRandomLcgState = randomZ;
                     velocity->vz    = -((coord->coord.m[2][2] * (s32)(((randomZ >> 16) & 0x3F) + 0xAF)) >> 12);
-                    Gp_SpawnEff(EFFECT_ACROPOLIS_FORKED_ROAD_FALLING_LEAF, coord, 0, velocity);
+                    effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_FALLING_LEAF, coord, 0, velocity);
                     indexOrSound++;
                 } while (indexOrSound < 3);
                 indexOrSound = 0;

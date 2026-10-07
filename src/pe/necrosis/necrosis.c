@@ -277,7 +277,7 @@ void func_necrosis_8012EF34(Task* arg0)
                 coord->coord.t[2]  += mem->move.vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
-                spawned = Gp_SpawnEff((EFFECT_NECROSIS_TRAIL_PUFF | EFFECT_SPAWN_UNLIMITED), coord,
+                spawned = effectSpawn((EFFECT_NECROSIS_TRAIL_PUFF | EFFECT_SPAWN_UNLIMITED), coord,
                                       D_necrosis_801306BC[mem->index].startRadius + (mem->age * 0x60),
                                       NULL);
                 if (spawned != NULL) {
@@ -353,7 +353,7 @@ void func_necrosis_8012F52C(Task* arg0)
         return;
     }
     if (mem->age % 3 == 0) {
-        spawned = Gp_SpawnEff(EFFECT_NECROSIS_MIST_PUFF, coord, (s32)(mem->period), 0);
+        spawned = effectSpawn(EFFECT_NECROSIS_MIST_PUFF, coord, (s32)(mem->period), 0);
         if (spawned != NULL) {
             taskReparent(arg0, spawned->task);
         }

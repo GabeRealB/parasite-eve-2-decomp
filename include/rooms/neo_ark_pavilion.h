@@ -53,7 +53,7 @@ void neoArkPavilionInstallRoomEffectsTask(Task* task);
 ///
 /// Requires a live counted effect with owned `EffectWork` in `spawnArg2.pointer`,
 /// one coordinate body with a composed `workm`, initial state 0 and age 0,
-/// as `Gp_SpawnEff` supplies. Spawn bits 0..11 give the initial local half-side
+/// as `effectSpawn` supplies. Spawn bits 0..11 give the initial local half-side
 /// (0..4095 coordinate units); higher bits are ignored. Half-side is stored in
 /// `EffectWork::angle` and RGB brightness in `EffectWork::scale`.
 ///
@@ -73,7 +73,7 @@ void neoArkPavilionWaterRippleTask(Task* task);
 /// Animates one eight-cell pavilion water-spray particle using its cached draw coordinate.
 ///
 /// Requires a live counted effect with owned `EffectWork` in `spawnArg2.pointer`,
-/// a coordinate body, initial state 0 and cell index 0, as `Gp_SpawnEff` supplies.
+/// a coordinate body, initial state 0 and cell index 0, as `effectSpawn` supplies.
 /// Drawers read the coordinate's composed `workm`; this task never composes it.
 /// Movement changes local translation in parent-coordinate units and marks it
 /// dirty, so drawing uses the cached position until another user composes it.

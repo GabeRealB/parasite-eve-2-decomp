@@ -1585,7 +1585,7 @@ static void Actor01900_Fn02A50(Task* arg0)
             work->recentDamage += s->damage;
             effect              = s->criticalEffect;
             if (effect != -1) {
-                Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
+                effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[2], (s32)(effect), NULL);
             }
             if (work->state == ACTOR_01900_STATE_DORMANT_SCRIPTED) {
                 sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -2610,7 +2610,7 @@ static void Actor01900_Fn06904(Task* arg0)
                 break;
             case 5:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 3, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 3, NULL);
                 break;
             case 23:
                 arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
@@ -3047,7 +3047,7 @@ static void Actor01900_Fn08724(Task* arg0)
         vec.vx                        = 0x64;
         vec.vz                        = 0;
         vec.vy                        = 0;
-        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         sceneReleaseBattleRefWithRewards(arg0, 0x13);
     }
     work->stateTimer++;
@@ -3057,7 +3057,7 @@ static void Actor01900_Fn08724(Task* arg0)
             vec.vz                   = 0x64;
             vec.vy                   = 0;
             vec.vx                   = 0;
-            eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
+            eff                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
             if (eff != NULL) {
                 actorTintTask(eff->task, enemy);
             }
@@ -3066,7 +3066,7 @@ static void Actor01900_Fn08724(Task* arg0)
             D_80114B34[5].data.model = &_gActor01900StrangerBurstHand;
             vec.vy                   = 0;
             vec.vx                   = 0;
-            eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec);
+            eff                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec);
             if (eff != NULL) {
                 actorTintTask(eff->task, enemy);
             }
@@ -3099,7 +3099,7 @@ static void Actor01900_Fn0892C(Task* arg0)
         work->animId                  = 2;
         work->animRequest             = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate                = 0x10;
-        Gp_SpawnEff(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
         work->stateTimer = 0;
     }
     work->stateTimer++;
@@ -3118,12 +3118,12 @@ static void Actor01900_Fn0892C(Task* arg0)
                 vec.vz                   = 0x64;
                 vec.vy                   = 0;
                 vec.vx                   = 0;
-                eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
+                eff                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
                 actorTintEffect(eff, enemy);
             }
             if (work->stateTimer == 5) {
                 D_80114B34[5].data.model = &_gActor01900StrangerBurstHand;
-                eff                      = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL);
+                eff                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL);
                 actorTintEffect(eff, enemy);
             }
             break;
@@ -3137,7 +3137,7 @@ static void Actor01900_Fn0892C(Task* arg0)
                     break;
                 case 5:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    Gp_SpawnEff(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 2, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 2, NULL);
                     break;
                 case 23:
                     arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;

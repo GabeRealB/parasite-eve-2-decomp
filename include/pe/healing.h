@@ -6,7 +6,7 @@
 /// Advances the additive rising spark emitted by a Healing sparkle.
 ///
 /// Requires a counted effect task with a coordinate body and an owned, cleared
-/// `EffectWork` in `spawnArg2.pointer`, as `Gp_SpawnEff` supplies. The parent
+/// `EffectWork` in `spawnArg2.pointer`, as `effectSpawn` supplies. The parent
 /// coordinate chain must remain live until teardown. `spawnArg1.value` bits
 /// 0..11 give the signed-size drawer a nonnegative sizing numerator (0..4095).
 /// The initialization tick chooses a fixed random screen rotation without

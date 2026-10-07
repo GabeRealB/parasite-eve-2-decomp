@@ -16,7 +16,7 @@ void madChaserSpawnGibs(Task* arg0)
     TmdObject*  src2;
 
     D_800678F0[0] = &gMadChaserChunkModel0;
-    eff           = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[6], 0x200, NULL);
+    eff           = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[6], 0x200, NULL);
     if (eff != NULL) {
         src                    = arg0->extra.tmd;
         dst                    = eff->task->extra.tmd;
@@ -30,10 +30,10 @@ void madChaserSpawnGibs(Task* arg0)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
         D_800678F0[0] = &gMadChaserChunkModel1;
-        eff2          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
+        eff2          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
     } else {
         D_800678F0[0] = &gMadChaserChunkModel2;
-        eff2          = Gp_SpawnEff(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[2], 0x200, NULL);
+        eff2          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[2], 0x200, NULL);
     }
     if (eff2 != NULL) {
         src2                    = arg0->extra.tmd;
@@ -45,7 +45,7 @@ void madChaserSpawnGibs(Task* arg0)
             tmdBuildBufferHalf(dst2);
         }
     }
-    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[3], 0x200, NULL);
-    Gp_SpawnEff(EFFECT_030, &arg0->extra.tmd->coords[4], 0x200, NULL);
+    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[3], 0x200, NULL);
+    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[4], 0x200, NULL);
 }

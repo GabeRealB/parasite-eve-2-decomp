@@ -162,6 +162,6 @@ static inline void RoomFx_SparkEmitterTask(Task* arg0)
         mem->move.vx    = (u32)(rcos(ang) * 3) >> 4;
         mem->move.vy    = -mem->age * 128;
         mem->move.vz    = (u32)(rsin(mem->scale) * 3) >> 4;
-        Gp_SpawnEff(gRoomEffectMoteId, coord, 0x30080201, &mem->move);
+        effectSpawn(gRoomEffectMoteId, coord, 0x30080201, &mem->move);
     }
 }

@@ -48,7 +48,7 @@ void shelter1fParkingGarageDrawViewGlowsTask(Task* task);
 /// Runs the room's charging pink flash, peak screen tint and fading star.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`. `spawnArg1.value` is a positive charge duration in callback
+/// `effectSpawn`. `spawnArg1.value` is a positive charge duration in callback
 /// ticks, consumed as a countdown after initialization. Nonzero room effect
 /// control pauses the task; values 4 and above cancel it. State 3 requests
 /// release. Completion or cancellation releases the counted work and task.
@@ -57,7 +57,7 @@ void shelter1fParkingGarageRoomVisualEffectsFlashTask(Task* task);
 /// Records two moving endpoints and draws their fading blue twin-trail beam.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`, a live parent coordinate, and `Task::work` initially NULL.
+/// `effectSpawn`, a live parent coordinate, and `Task::work` initially NULL.
 /// Borrows the parent for its lifetime and owns two eight-coordinate histories
 /// in `Task::work`; allocation failure retries initialization. `spawnArg1.value`
 /// is zero for an unlimited lifetime, or 2..32767 for a release age in active

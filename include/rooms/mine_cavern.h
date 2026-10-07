@@ -33,7 +33,7 @@ extern WorldCollisionSurfaceProperties* D_mine_cavern_8018E30C[];
 /// Runs the cavern's expanding orange disc, layered glow and fading ring effect.
 ///
 /// Requires a coordinate-body task with owned `EffectWork` in
-/// `spawnArg2.pointer`, as supplied by `Gp_SpawnEff`. Room effect control 0
+/// `spawnArg2.pointer`, as supplied by `effectSpawn`. Room effect control 0
 /// runs it, 1..3 pause it, and 4 or above cancels it. Completion or cancellation
 /// releases the effect work and task; its coordinate ancestors must stay live.
 void mineCavernRoomVisualEffectsHaloOrangeBurstTask(Task* task);

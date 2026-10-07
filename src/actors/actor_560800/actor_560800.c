@@ -4883,7 +4883,7 @@ void func_actor_560800_80133750(s32 arg0)
 
     work = D_actor_560800_8017578C->work;
     if (work->keepEffects == 0) {
-        Gp_PulseState1C();
+        roomEffectRequestCancelAll();
     }
     if (work->player != NULL) {
         msg = D_actor_560800_8016F35C[arg0];
@@ -5022,19 +5022,19 @@ static inline void Actor560800_SpawnSparksA(Task* task)
     vec.vx = 0x12C;
     vec.vy = 0;
     vec.vz = -0x1F4;
-    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000040, &vec);
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000040, &vec);
     vec.vx = 0x190;
     vec.vy = 0;
     vec.vz = -0x258;
-    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000030, &vec);
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000030, &vec);
     vec.vx = 0x12C;
     vec.vy = 0;
     vec.vz = -0x2BC;
-    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
     vec.vx = 0x1C2;
     vec.vy = 0;
     vec.vz = -0x320;
-    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
 }
 
 static inline void Actor560800_SpawnSparksB(Task* task)
@@ -5046,15 +5046,15 @@ static inline void Actor560800_SpawnSparksB(Task* task)
     vec.vx = 0x12C;
     vec.vy = 0;
     vec.vz = -0xC8;
-    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000040, &vec);
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000040, &vec);
     vec.vx = 0x1F4;
     vec.vy = 0;
     vec.vz = -0x64;
-    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
     vec.vx = 0x1C2;
     vec.vy = 0;
     vec.vz = 0;
-    Gp_SpawnEff(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
+    effectSpawn(EFFECT_GROUND_DECAL, work->player->extra.tmd->coords, 0x20000020, &vec);
 }
 
 /// Requests driven by `playerCue.id`, cleared once handled: the inline helpers play
@@ -5355,7 +5355,7 @@ void func_actor_560800_80134B14(s32 arg0)
             i++;
         } while (i < anim->slotCount);
     }
-    Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
+    effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
     padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
 }
 
@@ -5507,7 +5507,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (++work->kyleCue.counter < 3) {
                         return;
                     }
-                    Gp_SpawnEff(EFFECT_HIT_PUFF, &work->player->extra.tmd->coords[6], 0, NULL);
+                    effectSpawn(EFFECT_HIT_PUFF, &work->player->extra.tmd->coords[6], 0, NULL);
                     padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
                     break;
                 default:
@@ -5610,7 +5610,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                         return;
                     }
                     padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, PAD_VIBRATION_INTENSITY_MAX, 2);
-                    Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
+                    effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, &work->kyle->extra.tmd->coords[8], 0x21, NULL);
                     blend           = work->no9->work;
                     blend->animId   = 0x20;
                     blend->animRate = ANIMATION_RATE_ONE / 2;
@@ -5633,7 +5633,7 @@ static void func_actor_560800_80134BFC(Task* arg0)
                     if (++work->kyleCue.counter < 3) {
                         return;
                     }
-                    Gp_SpawnEff(EFFECT_HIT_PUFF, &work->no9->extra.tmd->coords[4], 0, NULL);
+                    effectSpawn(EFFECT_HIT_PUFF, &work->no9->extra.tmd->coords[4], 0, NULL);
                     break;
                 default:
                     return;
@@ -5759,7 +5759,7 @@ void func_actor_560800_80135D54(Task* arg0)
         case 2:
             if (gGameSession->eventState == 0) {
                 gRandomLcgState = D_actor_560800_801757A8;
-                Gp_PulseState1C();
+                roomEffectRequestCancelAll();
                 val    = gPlayerStatus.weapon;
                 msg[0] = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? val + 1 : val + 0x22;
                 msg[1] = 1;
@@ -6175,7 +6175,7 @@ void func_actor_560800_80136878(void)
             work2->shotDamageApplied = 1;
         } while (0);
     }
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
     CdCmd_CancelReplaceAndActivate();
     SetDispMask(0);
 }
@@ -6479,7 +6479,7 @@ static void _actor560800InitChainModel(Task* task)
 /// state 3 ticks them, state 4 spawns the falling copy from
 /// `D_actor_560800_8017575C` and gives it this chain's part coordinates, and
 /// state 5 kills the task a frame later. Every frame that survives rebuilds the root translation and, while
-/// visible, drives `func_shelter_b1_pod_service_gantry_8017F450` and the periodic `Gp_SpawnEff`.
+/// visible, drives `func_shelter_b1_pod_service_gantry_8017F450` and the periodic `effectSpawn`.
 void func_actor_560800_80137820(Task* arg0)
 {
     _Actor560800PropWork* work;
@@ -6590,7 +6590,7 @@ done:
         if (Gp_FindViewIndex(gGameSession->location.loc.view) != 0x16) {
             tick = D_actor_560800_801752E8 + 1;
             if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->chainNumber) {
-                Gp_SpawnEff(EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE, &arg0->extra.tmd->coords[2], 0x800, NULL);
+                effectSpawn(EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE, &arg0->extra.tmd->coords[2], 0x800, NULL);
             }
         }
     }
@@ -6986,13 +6986,13 @@ void func_actor_560800_801386D4(Task* task)
             for (k = 0; k < ARRAY_SIZE(work->chains); k++) {
                 if (work->chains[k] != NULL) {
                     effCoord = &work->chains[k]->extra.tmd->coords[3];
-                    Gp_SpawnEff(gRoomEffectWaterSprayId, effCoord, 0x10002380, 0);
-                    Gp_SpawnEff(gRoomEffectWaterSprayId, effCoord, 0x04003480, 0);
+                    effectSpawn(gRoomEffectWaterSprayId, effCoord, 0x10002380, 0);
+                    effectSpawn(gRoomEffectWaterSprayId, effCoord, 0x04003480, 0);
                     i = 0;
                     do {
-                        Gp_SpawnEff(gRoomEffectWaterSprayId, effCoord, 0x02002400, 0);
+                        effectSpawn(gRoomEffectWaterSprayId, effCoord, 0x02002400, 0);
                         i++;
-                        Gp_SpawnEff(EFFECT_1B4, effCoord, 0x02202300, 0);
+                        effectSpawn(EFFECT_1B4, effCoord, 0x02202300, 0);
                     } while ((u32)(i & 0xFFFF) < 4U);
                     work->chains[k]->state = 4;
                     work->chains[k]        = NULL;

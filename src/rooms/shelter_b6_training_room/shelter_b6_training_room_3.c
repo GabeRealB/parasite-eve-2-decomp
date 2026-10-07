@@ -966,9 +966,9 @@ void func_shelter_b6_training_room_80180DB4(Task* task)
                 if (task->spawnArg1.value == 0) {
                     work->scale = 0xFF;
                     task->state = 2;
-                    Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_RING_WALL, coord, 0, NULL);
-                    Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_RING_WALL, coord, 1, NULL);
-                    Gp_SpawnEff(EFFECT_SHELTER_B6_TRAINING_ROOM_RING_WALL, coord, 2, NULL);
+                    effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_RING_WALL, coord, 0, NULL);
+                    effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_RING_WALL, coord, 1, NULL);
+                    effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_RING_WALL, coord, 2, NULL);
                     work->period = 0x600;
                     work->step   = 0;
                 }
@@ -1204,7 +1204,7 @@ void func_shelter_b6_training_room_80181930(Task* task)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 3) == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_FLASH_BURST, task->extra.tmd->coords + (((gRandomLcgState >> 16) & 0xF) + 3), 0x10080, NULL);
+            effectSpawn(EFFECT_FLASH_BURST, task->extra.tmd->coords + (((gRandomLcgState >> 16) & 0xF) + 3), 0x10080, NULL);
         }
     }
 }
@@ -1472,7 +1472,7 @@ void func_shelter_b6_training_room_801826E0(Task* task)
                 effectDrawModulatedBillboard(coord, mem->index, 0x300, 0x80);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 3) == 0) {
-                    Gp_SpawnEff(EFFECT_1AD, coord, 0, NULL);
+                    effectSpawn(EFFECT_1AD, coord, 0, NULL);
                 }
             }
         } else {
@@ -1497,7 +1497,7 @@ void func_shelter_b6_training_room_80182804(Task* task)
         mem->move.vx    = D_shelter_b6_training_room_80184334[24].vx + ((rcos(mem->scale) * 1000) >> 12);
         mem->move.vy    = D_shelter_b6_training_room_80184334[24].vy - mem->age * 200;
         mem->move.vz    = D_shelter_b6_training_room_80184334[24].vz + ((rsin(mem->scale) * 1000) >> 12);
-        Gp_SpawnEff(EFFECT_1AE, NULL, 0, &mem->move);
+        effectSpawn(EFFECT_1AE, NULL, 0, &mem->move);
     }
 }
 
@@ -1507,7 +1507,7 @@ void func_shelter_b6_training_room_8018294C(Task* task)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 7) == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Gp_SpawnEff(EFFECT_TRAINING_ROOM_ENERGY_ARC, task->extra.tmd->coords + ((u16)((gRandomLcgState >> 16) % 18) + 1), 0, NULL);
+            effectSpawn(EFFECT_TRAINING_ROOM_ENERGY_ARC, task->extra.tmd->coords + ((u16)((gRandomLcgState >> 16) % 18) + 1), 0, NULL);
         }
     }
 }

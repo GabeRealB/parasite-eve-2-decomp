@@ -35,7 +35,7 @@ void func_acropolis_forked_road_8017E298(Task* task);
 /// Draws a flickering, camera-facing wall lamp in the logical views that see it.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`. Initially `spawnArg1.value` packs a lamp index 0..13 in bits
+/// `effectSpawn`. Initially `spawnArg1.value` packs a lamp index 0..13 in bits
 /// 0..3, a sprite cell 0..2 in bits 8..9, and a world-size scale in bits 16..27
 /// (zero selects 640). After the first visible tick only the lamp index remains;
 /// `angle` holds the cell and `period` its resting grey level. The active logical
@@ -47,7 +47,7 @@ void acropolisForkedRoadWallLampTask(Task* task);
 /// Runs the room's charging pink flash, peak screen tint and fading star.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`; `spawnArg1.value` is a positive charge duration in callback
+/// `effectSpawn`; `spawnArg1.value` is a positive charge duration in callback
 /// ticks, consumed as a countdown after initialization. Nonzero room effect
 /// control pauses the task, and values 4 and above cancel it. State 3 requests
 /// release; completion or cancellation releases the counted work and task.
@@ -56,7 +56,7 @@ void acropolisForkedRoadRoomVisualEffectsFlashTask(Task* task);
 /// Records two moving endpoints and draws their fading twin-trail beam.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`, a live parent coordinate, and `Task::work` initially NULL.
+/// `effectSpawn`, a live parent coordinate, and `Task::work` initially NULL.
 /// Borrows the parent for its lifetime and owns two eight-coordinate histories
 /// in `work`; allocation failure retries initialization. `spawnArg1.value` is
 /// zero for an unlimited lifetime, or 2..32767 for an age in active ticks at
@@ -69,7 +69,7 @@ void func_acropolis_forked_road_801802CC(Task* task);
 /// Runs a tumbling leaf through its fall, stationary hold and brightness fade.
 ///
 /// Requires the coordinate body and zeroed, counted `EffectWork` from
-/// `Gp_SpawnEff`; `spawnArg1` is unused. Random drift and X/Z tumble advance
+/// `effectSpawn`; `spawnArg1` is unused. Random drift and X/Z tumble advance
 /// each tick until local Y becomes positive. The held square has half-size 32
 /// coordinate units; its final fade releases the counted work and task.
 void acropolisForkedRoadLeafFallTask(Task* task);

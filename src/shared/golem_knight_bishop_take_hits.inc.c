@@ -119,12 +119,12 @@ void golemKnightBishopTakeHits(Task* arg0)
                 kind   = damageGetPlayerAttackReaction(work->hurtContacts[i].key.value);
                 if ((u16)kind == 5) {
                     damage *= 2;
-                    Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
+                    effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                 }
                 if (damageRollCriticalHit(enemy, work->hurtContacts[i].key.value, 0) != 0) {
                     damage *= 4;
                     if ((u16)kind != 5) {
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                     }
                 }
                 worldTargetAddReadoutAmount(&enemy->node, damage, 0);

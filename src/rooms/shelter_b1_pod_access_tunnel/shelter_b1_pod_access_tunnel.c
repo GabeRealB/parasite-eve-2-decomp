@@ -1486,15 +1486,15 @@ void func_shelter_b1_pod_access_tunnel_8017E778(Task* arg0)
     }
 }
 
-/// Room callback forwarding to `Gp_PulseState1C`.
+/// Room callback forwarding to `roomEffectRequestCancelAll`.
 void func_shelter_b1_pod_access_tunnel_8017E7B4(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 /// Selects this room's flash, twin-trail and spark-burst tasks for GOLEM attacks.
 ///
-/// Installs packed effect bank/type IDs used by subsequent `Gp_SpawnEff` calls.
+/// Installs packed effect bank/type IDs used by subsequent `effectSpawn` calls.
 /// Call after room-effect controller initialization and before spawning these
 /// effects. The selections persist until reset or rebound; this room overlay
 /// must remain loaded while any selected task runs.

@@ -76,7 +76,7 @@ void func_shelter_b1_control_room_access_tunnel_8018026C(Task* arg0);
 /// Runs the tunnel's animated spark along a fixed step toward its initial target position.
 ///
 /// Requires a coordinate body and a counted, owned `EffectWork` in
-/// `spawnArg2.pointer`, initialized by `Gp_SpawnEff`, with task state zero.
+/// `spawnArg2.pointer`, initialized by `effectSpawn`, with task state zero.
 /// `spawnArg1.pointer` borrows a target `GfxCoord`; both world matrices must be
 /// composed on the first active tick. The target is sampled only on that tick.
 /// Initialization transforms the displacement into parent axes, with signed
@@ -90,7 +90,7 @@ void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask(Task* task
 /// Runs the tunnel's expanding orange disc, layered glow and fading ring.
 ///
 /// Requires a coordinate body and a counted, owned `EffectWork` in
-/// `spawnArg2.pointer`, initialized by `Gp_SpawnEff`, with task state zero.
+/// `spawnArg2.pointer`, initialized by `effectSpawn`, with task state zero.
 /// `spawnArg1` is unused. Sizes are world units; the ring fades before the disc,
 /// while the glow refreshes a flickering orange point light and a ground glow.
 /// Nonzero room effect control pauses updates; control 4 or above cancels.

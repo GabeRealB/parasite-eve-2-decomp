@@ -868,12 +868,12 @@ static void func_actor_510900_80135744(Task* arg0)
                     dmg   = full;
                     if ((u16)param == 5) {
                         dmg = full * 2;
-                        Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
+                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
                     }
                     if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {
                         dmg *= 4;
                         if ((u16)param != 5) {
-                            Gp_SpawnEff(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                            effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
                         }
                         if (work->buildupStunned == 0) {
                             reaction = 1;
@@ -1223,7 +1223,7 @@ static void func_actor_510900_80136184(Task* arg0)
             work->lapSpeed      = 0x1D;
             work->stateCounter -= 0x1D;
             if (--work->shotCountdown == 0) {
-                eff = Gp_SpawnEff((EFFECT_NO9_MUZZLE_FLASH | EFFECT_SPAWN_UNLIMITED), &arg0->extra.tmd->coords[8], 0, NULL);
+                eff = effectSpawn((EFFECT_NO9_MUZZLE_FLASH | EFFECT_SPAWN_UNLIMITED), &arg0->extra.tmd->coords[8], 0, NULL);
                 if (eff != NULL) {
                     taskReparent(arg0, eff->task);
                 }
@@ -2055,7 +2055,7 @@ static void func_actor_510900_80137FBC(Task* arg0)
                 rot->vz         = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 rot->vy         = ((gRandomLcgState >> 0x10) & 0x2FF) - 0x680;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x100, rot);
+                effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, rot);
             }
             work->stateCounter++;
             if (work->stateCounter >= 3) {
@@ -2128,7 +2128,7 @@ static void func_actor_510900_80138250(Task* arg0)
                 rot->vz         = 0;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 rot->vy         = ((gRandomLcgState >> 0x10) & 0x2FF) - 0x680;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x100, rot);
+                effectSpawn(EFFECT_FLASH_BURST, coord, 0x100, rot);
             }
             work->stateCounter++;
             if (work->stateCounter >= 3) {
@@ -2922,7 +2922,7 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
         scratch->angles.vx = 0;
         scratch->angles.vy = 0x64;
         scratch->angles.vz = 0;
-        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x01001600, &scratch->angles);
+        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x01001600, &scratch->angles);
         work->frames = 0;
     }
     pos.vx = coord->workm.t[0];
@@ -2936,9 +2936,9 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
         done = 1;
     }
     if (done != 0 || (work->attackContacts[0].key.value & 0xFFFF0000) == 0x10000 || work->gridProbeContacts[0].key.value != 0) {
-        Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x10002200, NULL);
-        Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0xC1001200, NULL);
-        eff = Gp_SpawnEff((EFFECT_ACTOR_510900_IMPACT_BURST | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
+        effectSpawn(EFFECT_EXPLOSION, coord, 0x10002200, NULL);
+        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC1001200, NULL);
+        eff = effectSpawn((EFFECT_ACTOR_510900_IMPACT_BURST | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
         if (eff != NULL) {
             taskReparent(task, eff->task);
         }
@@ -3313,13 +3313,13 @@ static void func_actor_510900_8013A9BC(Task* task)
                 scratch->rot.vx = 0;
                 scratch->rot.vy = 0x80;
                 scratch->rot.vz = 0;
-                eff             = Gp_SpawnEff((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), coord, 0, &scratch->rot);
+                eff             = effectSpawn((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), coord, 0, &scratch->rot);
                 if (eff != NULL) {
                     spawned          = eff->task;
                     work->sparksTask = spawned;
                     taskReparent(task, spawned);
                 }
-                Gp_SpawnEff(EFFECT_EXPLOSION, coord, 0x200, &scratch->rot);
+                effectSpawn(EFFECT_EXPLOSION, coord, 0x200, &scratch->rot);
                 work->sparkFrames  = 0x78;
                 work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -3479,7 +3479,7 @@ static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1)
     random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState = random;
     if ((u16)((random >> 16) % 3) == 0) {
-        Gp_SpawnEff(EFFECT_ACROPOLIS_HELIPAD_EMBER, arg1->extra.tmd->coords, 0, NULL);
+        effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, arg1->extra.tmd->coords, 0, NULL);
     }
 }
 
@@ -3533,8 +3533,8 @@ static void func_actor_510900_8013B0D8(Task* arg0)
                 if (tag == 1 && Gp_ComputeDamage(hit, 0x3E8, 0, 0) != 0) {
                     work->state       = ACTOR_510900_BLAST_SOURCE_SHOT;
                     work->flareFrames = 0x3C;
-                    Gp_SpawnEff(EFFECT_IMPACT_SPARK, coord, 0, NULL);
-                    eff = Gp_SpawnEff((EFFECT_05F | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
+                    effectSpawn(EFFECT_IMPACT_SPARK, coord, 0, NULL);
+                    eff = effectSpawn((EFFECT_05F | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
                     if (eff != NULL) {
                         spawned         = eff->task;
                         work->flareTask = spawned;

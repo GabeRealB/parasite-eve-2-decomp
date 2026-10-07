@@ -322,7 +322,7 @@ s32 func_mine_cavern_8017DC9C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {
     if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 0) {
         Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-        Gp_PulseState1C();
+        roomEffectRequestCancelAll();
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS, 1);
         D_mine_cavern_8018EB50 = 1;
     } else if (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS) == 1) {
@@ -496,5 +496,5 @@ void func_mine_cavern_8017E2D8(void)
 void func_mine_cavern_8017E2FC(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }

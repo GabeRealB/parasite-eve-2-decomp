@@ -1060,7 +1060,7 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                     vec.vx                 = -500;
                     vec.vz                 = 200;
                     vec.vy                 = 650;
-                    Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80002220, &vec);
+                    effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80002220, &vec);
                     return 0x40010002;
                 }
                 work->lastCueFrames[9] = old;
@@ -1078,7 +1078,7 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         vec.vx                 = -1000;
                         vec.vz                 = 200;
                         vec.vy                 = 650;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002220, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002220, &vec);
                         return 0x40010001;
                     }
                     work->lastCueFrames[7] = old;
@@ -1096,7 +1096,7 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         vec.vz                  = 0;
                         vec.vx                  = 0;
                         vec.vy                  = 600;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80002220, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80002220, &vec);
                         return 0x40010002;
                     }
                     work->lastCueFrames[14] = old;
@@ -1114,7 +1114,7 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         vec.vz                  = 0;
                         vec.vx                  = 0;
                         vec.vy                  = 600;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80002220, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80002220, &vec);
                         return 0x40010001;
                     }
                     work->lastCueFrames[17] = old;
@@ -1133,7 +1133,7 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                     vec.vz                 = 0;
                     vec.vx                 = 0;
                     vec.vy                 = 0;
-                    Gp_SpawnEff(EFFECT_DUST_PUFF, task->extra.tmd->coords, 0x80004A00, &vec);
+                    effectSpawn(EFFECT_DUST_PUFF, task->extra.tmd->coords, 0x80004A00, &vec);
                     return 0x40010005;
                 }
                 work->lastCueFrames[1] = old;
@@ -1180,11 +1180,11 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                     vec.vx                 = -500;
                     vec.vz                 = 200;
                     vec.vy                 = 650;
-                    Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80003200, &vec);
+                    effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80003200, &vec);
                     vec.vx = -1000;
                     vec.vz = 200;
                     vec.vy = 650;
-                    Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80003200, &vec);
+                    effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80003200, &vec);
                     return 0;
                 }
                 work->lastCueFrames[1] = old;
@@ -1202,11 +1202,11 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         vec.vz                 = 0;
                         vec.vx                 = 0;
                         vec.vy                 = 600;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80004480, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80004480, &vec);
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 600;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80004480, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80004480, &vec);
                         return 0;
                     }
                     work->lastCueFrames[1] = old;
@@ -1224,19 +1224,19 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         vec.vx                 = -500;
                         vec.vz                 = 200;
                         vec.vy                 = 650;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80002200, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80002200, &vec);
                         vec.vx = -1000;
                         vec.vz = 200;
                         vec.vy = 650;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002240, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002240, &vec);
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 600;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80003300, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80003300, &vec);
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 600;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80003340, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80003340, &vec);
                         return 0;
                     }
                     work->lastCueFrames[1] = old;
@@ -1254,11 +1254,11 @@ s32 desertChaserAnimCues(Task* task, DesertChaserWork* work)
                         vec.vz                 = 0;
                         vec.vx                 = 0;
                         vec.vy                 = 600;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80002200, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80002200, &vec);
                         vec.vz = 0;
                         vec.vx = 0;
                         vec.vy = 600;
-                        Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80002300, &vec);
+                        effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80002300, &vec);
                         return 0;
                     }
                     work->lastCueFrames[1] = old;
@@ -1314,13 +1314,13 @@ static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
             sp10.vx = -0x3E8;
             sp10.vz = 0xC8;
             sp10.vy = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002300, &sp10);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002300, &sp10);
         }
         if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 8) {
             sp10.vx = -0x3E8;
             sp10.vz = 0xC8;
             sp10.vy = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80003400, &sp10);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80003400, &sp10);
         }
     }
 }
@@ -1361,56 +1361,56 @@ static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
             p->vx      = -0x1F4;
             p->vz      = 0xC8;
             p->vy      = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80005600, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80005600, p);
             p->vx = -0x3E8;
             p->vz = 0xC8;
             p->vy = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80005A00, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80005A00, p);
         } break;
         case 32: {
             SVECTOR* p = &ofs;
             p->vx      = -0x3E8;
             p->vz      = 0xC8;
             p->vy      = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80005A80, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80005A80, p);
             p->vx = -0x1F4;
             p->vz = 0xC8;
             p->vy = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80006800, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80006800, p);
             id  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000D;
             pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
             sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             ofs2.vy = -0x258;
             ofs2.vx = 0;
             ofs2.vz = -0x384;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[1], 0x80005A00, &ofs2);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[1], 0x80005A00, &ofs2);
         } break;
         case 33: {
             SVECTOR* p = &ofs;
             p->vx      = -0x1F4;
             p->vz      = 0xC8;
             p->vy      = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80006800, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80006800, p);
             p->vx = -0x3E8;
             p->vz = 0xC8;
             p->vy = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80006B00, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80006B00, p);
             p->vx = -0x3E8;
             p->vz = 0xC8;
             p->vy = 0x28A;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80004400, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80004400, p);
             ofs.vz = 0;
             p->vx  = 0;
             p->vy  = 0x258;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80003800, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80003800, p);
             ofs.vz = 0;
             p->vx  = 0;
             p->vy  = 0x258;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80004900, p);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80004900, p);
             ofs2.vy = -0x2BC;
             ofs2.vx = 0;
             ofs2.vz = -0x258;
-            Gp_SpawnEff(EFFECT_DUST_PUFF, &task->extra.tmd->coords[1], 0x80005A00, &ofs2);
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[1], 0x80005A00, &ofs2);
         } break;
     }
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1499,7 +1499,7 @@ static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2)
     }
 
     obj = task->extra.tmd;
-    Gp_SpawnEff(EFFECT_DUST_PUFF, &obj->coords[arg1], arg2 | 0x80000000, &sp10);
+    effectSpawn(EFFECT_DUST_PUFF, &obj->coords[arg1], arg2 | 0x80000000, &sp10);
 }
 
 #include "../../shared/desert_chaser_hide.inc.c"

@@ -32,7 +32,7 @@ extern WorldCollisionSurfaceProperties* D_mine_secret_passage_80183420[];
 
 /// Runs the passage's expanding orange disc and glow inside a fading ring.
 ///
-/// Requires the coordinate body and owned `EffectWork` supplied by `Gp_SpawnEff`;
+/// Requires the coordinate body and owned `EffectWork` supplied by `effectSpawn`;
 /// `spawnArg1` is unused. Nonzero room effect control pauses it; four or above
 /// cancels it. Completion or cancellation releases work and task. The passage
 /// overlay must stay loaded.
@@ -51,7 +51,7 @@ void mineSecretPassageRoomVisualEffectsHaloTask(Task* task);
 /// Runs the passage's vertically drifting animated mote until it fades.
 ///
 /// Requires the coordinate body and owned, zero-initialized `EffectWork` supplied
-/// by `Gp_SpawnEff`. `spawnArg1` packs the world-unit half-extent in bits 0..11,
+/// by `effectSpawn`. `spawnArg1` packs the world-unit half-extent in bits 0..11,
 /// palette in bits 12..15, unsigned world-unit speed per active tick in bits
 /// 16..23 and signed lifetime in active ticks in bits 24..31.
 /// Motion bits 0..1 overlap the half-extent:

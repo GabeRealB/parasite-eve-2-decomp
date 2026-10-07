@@ -120,7 +120,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     z = -z;
                 }
                 ofs.vz = z;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x400, &ofs);
+                effectSpawn(EFFECT_FLASH_BURST, coord, 0x400, &ofs);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 x2              = (gRandomLcgState >> 16) & 0x3FF;
                 if (!((gRandomLcgState >> 16) & 0x400)) {
@@ -134,14 +134,14 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     z2 = -z2;
                 }
                 ofs.vz = z2;
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x30011600, &ofs);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x30011600, &ofs);
             }
             work->stateFrames++;
             if (work->stateFrames == 0x14) {
                 obj->flags |= TMD_OBJECT_SEMI_TRANS;
             }
             if (work->stateFrames == 0x1E) {
-                Gp_SpawnEff(EFFECT_CORPSE_BURN, coord, 5, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, coord, 5, NULL);
             }
             if (work->stateFrames == 0x6E) {
                 worldCoordSetActorColorMode(arg0, ENEMY_COLOR_BLACK);
@@ -174,7 +174,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     z = -z;
                 }
                 ofs.vz = z;
-                Gp_SpawnEff(EFFECT_FLASH_BURST, coord, 0x400, &ofs);
+                effectSpawn(EFFECT_FLASH_BURST, coord, 0x400, &ofs);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 x2              = (gRandomLcgState >> 16) & 0x3FF;
                 if (!((gRandomLcgState >> 16) & 0x400)) {
@@ -188,7 +188,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
                     z2 = -z2;
                 }
                 ofs.vz = z2;
-                Gp_SpawnEff(EFFECT_SMOKE_PUFF, coord, 0x30011600, &ofs);
+                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x30011600, &ofs);
             }
             break;
     }

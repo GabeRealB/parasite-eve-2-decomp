@@ -1303,7 +1303,7 @@ void func_shelter_b4_reservoir_8017E780(s32 arg0)
 /// (`ROOM_EFFECT_CANCEL_ALL`) on `gRoomEffectState`.
 void func_shelter_b4_reservoir_8017E7A8(void)
 {
-    Gp_PulseState1C();
+    roomEffectRequestCancelAll();
 }
 
 static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
@@ -1748,11 +1748,11 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                     coord.composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(&coord);
                     if ((s32)(RAND() & 0x1FF) < work->angle) {
-                        Gp_SpawnEff(gRoomEffectWaterRippleId, &coord, 0x40, NULL);
+                        effectSpawn(gRoomEffectWaterRippleId, &coord, 0x40, NULL);
                     }
                     work->angle -= 0x20;
                     if ((s32)(RAND() & 0x1FF) < work->angle) {
-                        Gp_SpawnEff(gRoomEffectWaterSprayId, &coord, 0x1202180, NULL);
+                        effectSpawn(gRoomEffectWaterSprayId, &coord, 0x1202180, NULL);
                     }
                     D_shelter_b4_reservoir_801850AC[i].vx = c->workm.t[0];
                     D_shelter_b4_reservoir_801850AC[i].vy = c->workm.t[1];
@@ -1776,7 +1776,7 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
                 if ((u16)(RAND() % SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE) < D_shelter_b4_reservoir_80187684.spawnChancePercent) {
                     baseHalfExtent      = D_shelter_b4_reservoir_80187684.baseHalfExtent;
                     randomizedSpawnArgs = (RAND() & SHELTER_B4_RESERVOIR_BURST_VARIATION_MASK) + SHELTER_B4_RESERVOIR_BURST_MOTION_ARGS;
-                    Gp_SpawnEff(EFFECT_SHELTER_B4_RESERVOIR_BURST_SPRITE, NULL, baseHalfExtent + randomizedSpawnArgs,
+                    effectSpawn(EFFECT_SHELTER_B4_RESERVOIR_BURST_SPRITE, NULL, baseHalfExtent + randomizedSpawnArgs,
                                 &D_shelter_b4_reservoir_80187634[i]);
                 }
             }
@@ -1785,13 +1785,13 @@ void func_shelter_b4_reservoir_8017FB84(Task* task)
     if ((u8)viewGetMappedIndex() == 10) {
         D_shelter_b4_reservoir_8018509C[1].vy = D_shelter_b4_reservoir_80184F82;
         if ((RAND() & 1) == 0) {
-            Gp_SpawnEff(gRoomEffectWaterSprayId, NULL, (RAND() & 0x1000) + 0x4A03600, &D_shelter_b4_reservoir_8018509C[0]);
+            effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & 0x1000) + 0x4A03600, &D_shelter_b4_reservoir_8018509C[0]);
         }
         if ((RAND() & 1) == 0) {
-            Gp_SpawnEff(gRoomEffectWaterSprayId, NULL, (RAND() & 0x10FF) | 0x11602300, &D_shelter_b4_reservoir_8018509C[1]);
+            effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & 0x10FF) | 0x11602300, &D_shelter_b4_reservoir_8018509C[1]);
         }
         if ((RAND() & 3) == 0) {
-            Gp_SpawnEff(gRoomEffectWaterRippleId, NULL, (RAND() & 0x7F) | 0x80, &D_shelter_b4_reservoir_8018509C[1]);
+            effectSpawn(gRoomEffectWaterRippleId, NULL, (RAND() & 0x7F) | 0x80, &D_shelter_b4_reservoir_8018509C[1]);
         }
     }
     switch ((u8)viewGetMappedIndex()) {

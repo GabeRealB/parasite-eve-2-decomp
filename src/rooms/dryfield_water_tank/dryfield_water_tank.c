@@ -1171,7 +1171,7 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
             pos.vy = 0;
             pos.vz = 0;
             pos.vx = D_dryfield_water_tank_8017FDA8[arg0->killCountdown];
-            Gp_SpawnEff(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
+            effectSpawn(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
             break;
 
         case DRYFIELD_WATER_TANK_PROP_SLIDE_SETTLING:

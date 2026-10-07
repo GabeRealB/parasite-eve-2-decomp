@@ -782,7 +782,7 @@ void func_actor_342100_80163454(s32 arg0)
 
     if (arg0 == 0) {
         sndEvtRequestScriptStart(SOUND_SHELTER_B3_DUMPING_HOLE_BLAZE, 0, 0);
-        Gp_PulseState1C();
+        roomEffectRequestCancelAll();
         msg.context.loc.area  = 0x2C;
         msg.context.loc.stage = 0;
         msg.command           = 4;

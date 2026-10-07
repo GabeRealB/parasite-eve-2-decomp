@@ -49,7 +49,7 @@ static inline void RoomFx_GlowDiscTask(Task* arg0)
             if (!(mem->age & 3)) {
                 Task* player    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                spawned         = Gp_SpawnEff(gRoomEffectFlyingSparkId, &player->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3], coord, NULL);
+                spawned         = effectSpawn(gRoomEffectFlyingSparkId, &player->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3], coord, NULL);
                 if (spawned != NULL) {
                     taskReparent(arg0, spawned->task);
                 }

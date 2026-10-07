@@ -1087,7 +1087,7 @@ void func_actor_800100_80161F20(Task* task)
                     if (work->scale < 0x180) {
                         work->scale = work->scale + 0x40;
                     }
-                    eff = Gp_SpawnEff(EFFECT_ACTOR_800100_PYKE_FLAME, coord, (s32)(work->scale), NULL);
+                    eff = effectSpawn(EFFECT_ACTOR_800100_PYKE_FLAME, coord, (s32)(work->scale), NULL);
                     if (eff != NULL) {
                         taskReparent(task, eff->task);
                     }
@@ -1248,7 +1248,7 @@ static void func_actor_800100_80163214(Task* arg0)
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= 0x80;
             companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[save->state.companionVariant];
             if ((u8)save->state.companionVariant == 4) {
-                eff = Gp_SpawnEff((EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, idx, 0);
+                eff = effectSpawn((EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, idx, 0);
                 if (eff != NULL) {
                     actor->weaponEffectTask = eff->task;
                     taskReparent(arg0, eff->task);
@@ -1610,8 +1610,8 @@ static void func_actor_800100_80163F04(Task* arg0)
         sp40.vx                           = 0;
         sp40.vy                           = (u16)gGameSession->waterY - (u16)coord->coord.t[1];
         sp40.vz                           = 0;
-        Gp_SpawnEff(gRoomEffectWaterSprayId, coord, 0x1202180, &sp40);
-        Gp_SpawnEff(gRoomEffectWaterRippleId, coord, (rand() & 0x1F) | 0x40, &sp40);
+        effectSpawn(gRoomEffectWaterSprayId, coord, 0x1202180, &sp40);
+        effectSpawn(gRoomEffectWaterRippleId, coord, (rand() & 0x1F) | 0x40, &sp40);
     }
     temp = (u16)actor->effectTimer.waterDripTicks;
     if (temp != 0) {
@@ -1621,7 +1621,7 @@ static void func_actor_800100_80163F04(Task* arg0)
             sp48.vx = 0;
             sp48.vy = (u16)gGameSession->waterY - (u16)coord->coord.t[1];
             sp48.vz = 0;
-            Gp_SpawnEff(gRoomEffectWaterRippleId, coord, (rand() & 0x1F) | 0x40, &sp48);
+            effectSpawn(gRoomEffectWaterRippleId, coord, (rand() & 0x1F) | 0x40, &sp48);
         }
     }
     if ((s8)actor->recoveryTicks == 0) {
@@ -2173,7 +2173,7 @@ static void func_actor_800100_80164E60(Task* arg0)
         case 12:
             if (actor->statePhase == 0) {
                 actor->statePhase = 1;
-                Gp_SpawnEff(EFFECT_RELOAD_EMITTER, coord, 0xC, NULL);
+                effectSpawn(EFFECT_RELOAD_EMITTER, coord, 0xC, NULL);
             }
             if (rec != NULL) {
                 if (rec != actor->lastCueRecord) {
@@ -2764,7 +2764,7 @@ static void func_actor_800100_80165C38(Task* arg0)
             func_80106238(arg0, 0, 0);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40650001, 1);
-            Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, NULL);
+            effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, NULL);
             break;
 
         case 1:
@@ -2812,7 +2812,7 @@ static void func_actor_800100_80165DE8(Task* arg0)
             Gp_PlayObjSfx(coord, 0x40660001, 1);
             if (coord != NULL) {
                 actor->attackControl.cooldownTicks = 0x28;
-                Gp_SpawnEff(EFFECT_GRENADE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
+                effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                 func_80104490(arg0, 1, 2, 0x110C0A);
                 return;
             }
@@ -2881,7 +2881,7 @@ static void func_actor_800100_80165F50(Task* arg0)
                 companion->activity.combat.attacksRemaining          -= 1;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 Gp_PlayObjSfx(arg0->extra.tmd->coords, 0x40670001, 1);
-                Gp_SpawnEff(EFFECT_HANDGUN_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
+                effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                 playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);
             }
             break;
@@ -2979,7 +2979,7 @@ static void func_actor_800100_80166190(Task* arg0)
                         actor->actionValue = 0;
                     }
                     Gp_PlayObjSfx(coord, 0x40680001, 1);
-                    Gp_SpawnEff(EFFECT_RIFLE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
+                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
                     playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
                     break;
                 } else {
@@ -3263,7 +3263,7 @@ static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg
             arg2->workm.t[1] = block->impactCoord.workm.t[1] + block->jitter.vy;
             arg2->workm.t[2] = block->impactCoord.workm.t[2] + block->jitter.vz;
         }
-        Gp_SpawnEff(EFFECT_IMPACT_SPARK, &block->impactCoord, 0, &block->jitter);
+        effectSpawn(EFFECT_IMPACT_SPARK, &block->impactCoord, 0, &block->jitter);
     } else {
         i = 0;
     }

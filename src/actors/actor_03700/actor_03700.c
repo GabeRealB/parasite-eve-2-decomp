@@ -185,7 +185,7 @@ typedef struct {
 } _Actor03700EntryScratch;
 STATIC_ASSERT_SIZEOF(_Actor03700EntryScratch, 0x18);
 
-/* `D_80067704` selects the model stream the next `Gp_SpawnEff` builds its
+/* `D_80067704` selects the model stream the next `effectSpawn` builds its
  * `TmdObject` from. */
 extern void* D_80067704[1];
 
@@ -1730,7 +1730,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     } else {
         D_80067704[0] = &_gActor03700BatBurstWingLeft;
     }
-    eff = Gp_SpawnEff(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[4], 0x80, NULL);
+    eff = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[4], 0x80, NULL);
     if (eff == NULL) {
         return;
     }
@@ -1820,11 +1820,11 @@ static void Actor03700_Fn020D4(Enemy* enemy, Task* task)
                             _actor03700SpawnRemains(task);
                             break;
                         case 1:
-                            Gp_SpawnEff(EFFECT_ADDITIVE_PUFF, obj, 0x10280, NULL);
+                            effectSpawn(EFFECT_ADDITIVE_PUFF, obj, 0x10280, NULL);
                             break;
                         case 2:
-                            Gp_SpawnEff(EFFECT_HIT_PUFF, obj, 0x10013380, NULL);
-                            Gp_SpawnEff(EFFECT_HIT_PUFF, obj, 0x10111300, NULL);
+                            effectSpawn(EFFECT_HIT_PUFF, obj, 0x10013380, NULL);
+                            effectSpawn(EFFECT_HIT_PUFF, obj, 0x10111300, NULL);
                             break;
                     }
                     work->actionStep = 2;
