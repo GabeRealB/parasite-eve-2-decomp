@@ -33,6 +33,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -494,11 +495,48 @@ static TaskDesc CapCaption_Data_80154508;
 /// and returns zero.
 extern TaskMessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
 
+/// Player commands posted by the debris event's scripts, including its skip script.
+enum {
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_NONE                          = 0,
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PREPARE_ANIMATION_47          = 1, // Place/move, wait six ticks, then play clip 47
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_50             = 2,
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_HIDE_MODEL                    = 3,
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_RESTORE_PLAYER                = 4, // Show, place at the final pose and play clip 9
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_48             = 5, // Broadcast actor command 1 and wait sixteen ticks first
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_51_DOUBLE_RATE = 6, // Play clip 51 at twice the normal playback rate
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_49             = 7,
+};
+
+/// Scene commands posted by the debris event's scripts; value 3 has no handled action.
+enum {
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_NONE           = 0,
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_LAUNCH_DEBRIS  = 1, // Launch effects, then show actor 0 and broadcast command 2
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESTORE_ACTOR0 = 2, // Restore the initial pose and broadcast command 3
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESUME_BATTLE  = 4,
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_PLACE_ACTOR1   = 5,
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_CREATE_DEBRIS  = 6, // Stop actor sprites and spawn rubble and sprite rings
+    SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_REMOVE_DEBRIS  = 7,
+};
+
+/// Receiver-specific model modes used by the debris event's script callbacks.
+enum {
+    SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET_ALLOCATE = 0,
+    SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET          = 2,
+    SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SHOW_ALLOCATE       = 1,
+    SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SKIP_AUTO_BUFFER    = 2,
+};
+
+/// Actor command resuming the dumping-hole battle in the active stage/area namespace.
+enum { SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_RESUME_BATTLE = 5 };
+
+/// Selector enabling the arrival event's player-sprite spawn and stop callbacks.
+enum { SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT = 0 };
+
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 
 static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0);
-static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1);
+static void _shelterB3DumpingHoleSpawnPlayerSpriteBurst(GfxCoord* sourceCoord, s16 selector);
 
 static void func_shelter_b3_dumping_hole_801833EC(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
@@ -526,25 +564,25 @@ static void _shelterB3DumpingHolePlayerSpriteTask(Task* task);
 static void _shelterB3DumpingHoleDebrisModelTask(Task* task);
 void        func_shelter_b3_dumping_hole_8017F820(Task*);
 static void _shelterB3DumpingHoleFadeFromBlackTask(Task* task);
-void        func_shelter_b3_dumping_hole_8017FCA0(s16);
+static void _shelterB3DumpingHoleBroadcastActorCommand(s16 command);
 void        func_shelter_b3_dumping_hole_8017FE34(void);
-void        func_shelter_b3_dumping_hole_8017FE64(s32);
-void        func_shelter_b3_dumping_hole_8017FE9C(s32);
-void        func_shelter_b3_dumping_hole_8017FED4(s16);
-void        func_shelter_b3_dumping_hole_8017FEF4(s16);
+static void _shelterB3DumpingHoleDebrisEventSetActor0DrawMode(s32 drawMode);
+static void _shelterB3DumpingHoleDebrisEventSetActor1DrawMode(s32 drawMode);
+static void _shelterB3DumpingHoleDebrisEventPostPlayerCommand(s16 command);
+static void _shelterB3DumpingHoleDebrisEventPostSceneCommand(s16 command);
 void        func_shelter_b3_dumping_hole_8017FF14(void);
-void        func_shelter_b3_dumping_hole_8017FFF4(void);
-void        func_shelter_b3_dumping_hole_80180014(void);
+static void _shelterB3DumpingHoleDebrisEventStageAudioStart(void);
+static void _shelterB3DumpingHoleDebrisEventEnqueuePlayback(void);
 void        func_shelter_b3_dumping_hole_80180034(void);
 
 static void _shelterB3DumpingHoleShardTask(Task* task);
 void        func_shelter_b3_dumping_hole_80181430(void);
 void        func_shelter_b3_dumping_hole_80181560(Task*);
 void        func_shelter_b3_dumping_hole_801818E0(void);
-void        func_shelter_b3_dumping_hole_80181958(s32);
-void        func_shelter_b3_dumping_hole_80181990(s16);
-void        func_shelter_b3_dumping_hole_801819B0(void);
-void        func_shelter_b3_dumping_hole_801819D0(void);
+static void _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode(s32 drawMode);
+static void _shelterB3DumpingHoleCollapseEventPostCommand(s16 command);
+static void _shelterB3DumpingHoleCollapseEventStageAudioStart(void);
+static void _shelterB3DumpingHoleCollapseEventEnqueuePlayback(void);
 void        func_shelter_b3_dumping_hole_801819F0(void);
 
 static void _shelterB3DumpingHoleShakeTask(Task* task);
@@ -562,9 +600,9 @@ extern PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2];
 extern ActorTransform            D_shelter_b3_dumping_hole_8018B030;
 extern ActorTransform            D_shelter_b3_dumping_hole_8018B048;
 extern ActorTransform            D_shelter_b3_dumping_hole_8018B060;
-void                             func_shelter_b3_dumping_hole_80181A18(void);
-void                             func_shelter_b3_dumping_hole_80181B04(s16);
-void                             func_shelter_b3_dumping_hole_80181B44(s32);
+static void                      _shelterB3DumpingHoleSpawnShake(void);
+static void                      _shelterB3DumpingHoleSpawnPlayerSprites(s16 selector);
+static void                      _shelterB3DumpingHoleRequestPlayerSpriteStop(s32 selector);
 
 extern WorldCollisionGrid    D_shelter_b3_dumping_hole_8018C3EC[1];
 extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018E88C[8];
@@ -764,46 +802,46 @@ EvsSceneKey D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
 EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_8017FE34 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_8017FE64 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_8017FE9C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PREPARE_ANIMATION_47 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_PLACE_ACTOR1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor0DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_shelter_b3_dumping_hole_80188638 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_8017FFF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleDebrisEventStageAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_80180014 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleDebrisEventEnqueuePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_8017FE9C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SHOW_ALLOCATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_48 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_51_DOUBLE_RATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_49 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_50 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_8017FE64 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_8017FE9C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_HIDE_MODEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor0DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET_ALLOCATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR1_DRAW_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_CREATE_DEBRIS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_LAUNCH_DEBRIS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_RESTORE_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_REMOVE_DEBRIS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESTORE_ACTOR0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_80180034 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESUME_BATTLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -812,13 +850,13 @@ EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
 EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FED4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FEF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_8017FF14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_8017FCA0 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleBroadcastActorCommand }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_RESUME_BATTLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
@@ -884,33 +922,33 @@ EvsSceneKey D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
 
 EvsCommand D_shelter_b3_dumping_hole_8018968C[33] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_PREPARE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_PREPARE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_shelter_b3_dumping_hole_80189684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801819B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleCollapseEventStageAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801819D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleCollapseEventEnqueuePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_COLLAPSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_END_COLLAPSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_COLLAPSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_HIDE_ACTOR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_80181958 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_END_COLLAPSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_HIDE_ACTOR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801819F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FINISH }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_80181958 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FINISH }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801818E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -921,7 +959,7 @@ EvsCommand D_shelter_b3_dumping_hole_8018968C[33] = {
 EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181990 }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_80181430 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1053,14 +1091,14 @@ EvsCommand D_shelter_b3_dumping_hole_8018B080[39] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54270002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_80181A18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleSpawnShake }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_shelter_b3_dumping_hole_8018AFAC }, { .vibrationSegments = D_shelter_b3_dumping_hole_8018AFB4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_shelter_b3_dumping_hole_80181B04 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleSpawnPlayerSprites }, { .value = SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_80181B44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleRequestPlayerSpriteStop }, { .value = SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018B01C }, { .value = 0 } },
@@ -1087,7 +1125,7 @@ EvsCommand D_shelter_b3_dumping_hole_8018B428[14] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b3_dumping_hole_8018B060 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_dumping_hole_80181B44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleRequestPlayerSpriteStop }, { .value = SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3053,17 +3091,18 @@ static void _shelterB3DumpingHoleFadeFromBlackTask(Task* task)
     }
 }
 
-/// Sends message 0x7DA to the slot-4 task, tagged with the current session's
-/// stage and area and the caller's selector. The actors' shared library carries
-/// the same body.
-void func_shelter_b3_dumping_hole_8017FCA0(s16 arg0)
+/// Broadcasts an actor command in the active session's stage/area namespace.
+///
+/// The command uses its low 16 bits. The scene manager forwards the complete
+/// stack record synchronously to its placed actors, so no pointer is retained.
+static void _shelterB3DumpingHoleBroadcastActorCommand(s16 command)
 {
-    ActorCommand msg;
+    ActorCommand request;
 
-    msg.context.loc.stage = gGameSession->location.loc.stage;
-    msg.context.loc.area  = gGameSession->location.loc.area;
-    msg.command           = arg0;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    request.context.loc.stage = gGameSession->location.loc.stage;
+    request.context.loc.area  = gGameSession->location.loc.area;
+    request.command           = command;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
 void shelterB3DumpingHoleSpawnActorSprite(GfxCoord* sourceCoord, const SVECTOR* worldOffset)
@@ -3084,12 +3123,21 @@ void shelterB3DumpingHoleSpawnActorSprite(GfxCoord* sourceCoord, const SVECTOR* 
     work->offset.vz = worldOffset->vz;
 }
 
-static void func_shelter_b3_dumping_hole_8017FD9C(GfxCoord* arg0, s32 arg1)
+/// Spawns three rising player sprites from a borrowed coordinate when `selector` is zero.
+///
+/// Other selectors do nothing. Base Z velocities are 0, -10 and +10 world
+/// units per tick, before each sprite's jitter. Keep `sourceCoord` live through
+/// each sprite's first tick and the debris director live until the sprites end.
+static void _shelterB3DumpingHoleSpawnPlayerSpriteBurst(GfxCoord* sourceCoord, s16 selector)
 {
-    if ((arg1 << 0x10) == 0) {
-        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0, arg0);
-        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, -0xA, arg0);
-        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, 3, 0xA, arg0);
+    enum {
+        SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_TASK_INDEX   = 3,
+        SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_BASE_Z_SPEED = 10,
+    };
+    if (selector == SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT) {
+        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_TASK_INDEX, 0, sourceCoord);
+        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_TASK_INDEX, -SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_BASE_Z_SPEED, sourceCoord);
+        taskSpawnFromTable(D_shelter_b3_dumping_hole_80188C04, SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITE_BASE_Z_SPEED, sourceCoord);
     }
 }
 
@@ -3107,30 +3155,50 @@ void func_shelter_b3_dumping_hole_8017FE34(void)
     taskSpawnFromTable(D_shelter_b3_dumping_hole_80188BC8, 1, 9, 0);
 }
 
-void func_shelter_b3_dumping_hole_8017FE64(s32 arg0)
+/// Sets the debris event's placement-0 actor model draw/reset mode.
+///
+/// Requires a live debris director and actor. Mode 0 hides/resets and allocates
+/// model/escort buffers; 1 shows and allocates; 2 hides/resets without allocation;
+/// 3 hides without resetting the actor state.
+static void _shelterB3DumpingHoleDebrisEventSetActor0DrawMode(s32 drawMode)
 {
-    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    taskMessageDispatch(p->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    _ShelterB3DumpingHoleDebrisEventWork* eventWork = D_shelter_b3_dumping_hole_8018F4A8->work;
+    taskMessageDispatch(eventWork->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
-void func_shelter_b3_dumping_hole_8017FE9C(s32 arg0)
+/// Sets the debris event's placement-1 prop model draw/buffer mode.
+///
+/// Requires a live debris director and prop. Mode 0 hides and allocates;
+/// 1 shows and allocates; 2 disables automatic buffer allocation while retaining
+/// visibility; 3 shows with automatic allocation disabled.
+static void _shelterB3DumpingHoleDebrisEventSetActor1DrawMode(s32 drawMode)
 {
-    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    taskMessageDispatch(p->placement1Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    _ShelterB3DumpingHoleDebrisEventWork* eventWork = D_shelter_b3_dumping_hole_8018F4A8->work;
+    taskMessageDispatch(eventWork->placement1Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
-void func_shelter_b3_dumping_hole_8017FED4(s16 arg0)
+/// Replaces the debris director's pending player command and restarts its progress.
+///
+/// Requires the live debris director. Use a
+/// `SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_*` value; NONE cancels the
+/// pending command. Restarts at step zero without clearing the command timer.
+static void _shelterB3DumpingHoleDebrisEventPostPlayerCommand(s16 command)
 {
-    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    p->playerCommand                        = arg0;
-    p->playerStep                           = 0;
+    _ShelterB3DumpingHoleDebrisEventWork* eventWork = D_shelter_b3_dumping_hole_8018F4A8->work;
+    eventWork->playerCommand                        = command;
+    eventWork->playerStep                           = 0;
 }
 
-void func_shelter_b3_dumping_hole_8017FEF4(s16 arg0)
+/// Replaces the debris director's pending scene command and restarts its progress.
+///
+/// Requires the live debris director. Use a
+/// `SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_*` value; NONE cancels the
+/// pending command. Restarts at step zero without clearing the command timer.
+static void _shelterB3DumpingHoleDebrisEventPostSceneCommand(s16 command)
 {
-    _ShelterB3DumpingHoleDebrisEventWork* p = D_shelter_b3_dumping_hole_8018F4A8->work;
-    p->sceneCommand                         = arg0;
-    p->sceneStep                            = 0;
+    _ShelterB3DumpingHoleDebrisEventWork* eventWork = D_shelter_b3_dumping_hole_8018F4A8->work;
+    eventWork->sceneCommand                         = command;
+    eventWork->sceneStep                            = 0;
 }
 
 void func_shelter_b3_dumping_hole_8017FF14(void)
@@ -3158,12 +3226,20 @@ void func_shelter_b3_dumping_hole_8017FF14(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-void func_shelter_b3_dumping_hole_8017FFF4(void)
+/// Stages deferred audio start for the debris event's selected scene.
+///
+/// Keep the selected scene and playback buffers live through request consumption.
+/// With no selected slot, the previous deferred request remains intact.
+static void _shelterB3DumpingHoleDebrisEventStageAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-void func_shelter_b3_dumping_hole_80180014(void)
+/// Requests playback of the debris event's selected scene/audio session.
+///
+/// Keep the selected scene and prepared playback buffers live through the request.
+/// Without a selected slot, the scene enters playing mode immediately.
+static void _shelterB3DumpingHoleDebrisEventEnqueuePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
@@ -3700,25 +3776,42 @@ void func_shelter_b3_dumping_hole_801818E0(void)
     }
 }
 
-void func_shelter_b3_dumping_hole_80181958(s32 arg0)
+/// Sets the collapse event's player model draw/buffer mode.
+///
+/// Requires a live collapse director and player; `drawMode` is a
+/// `PLAYER_ACTOR_MODEL_DRAW_*` value forwarded without narrowing.
+static void _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode(s32 drawMode)
 {
     _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
-    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
-void func_shelter_b3_dumping_hole_80181990(s16 arg0)
+/// Replaces the collapse director's pending command and restarts its progress.
+///
+/// Requires the live collapse director. Use a
+/// `SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_*` value; NONE cancels the pending
+/// command. Restarts at step zero without clearing the command timer.
+static void _shelterB3DumpingHoleCollapseEventPostCommand(s16 command)
 {
     _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
-    work->command                                = arg0;
+    work->command                                = command;
     work->step                                   = 0;
 }
 
-void func_shelter_b3_dumping_hole_801819B0(void)
+/// Stages deferred audio start for the collapse event's selected scene.
+///
+/// Keep the selected scene and playback buffers live through request consumption.
+/// With no selected slot, the previous deferred request remains intact.
+static void _shelterB3DumpingHoleCollapseEventStageAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-void func_shelter_b3_dumping_hole_801819D0(void)
+/// Requests playback of the collapse event's selected scene/audio session.
+///
+/// Keep the selected scene and prepared playback buffers live through the request.
+/// Without a selected slot, the scene enters playing mode immediately.
+static void _shelterB3DumpingHoleCollapseEventEnqueuePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
@@ -3729,10 +3822,10 @@ void func_shelter_b3_dumping_hole_801819F0(void)
     CdCmd_CancelReplaceAndActivate();
 }
 
-/// Spawns the task described by `D_shelter_b3_dumping_hole_8018AFBC`.
-void func_shelter_b3_dumping_hole_80181A18(void)
+/// Spawns a vertical three-pixel shake alternating for nine updates, then clearing.
+static void _shelterB3DumpingHoleSpawnShake(void)
 {
-    taskSpawnFromTable(&D_shelter_b3_dumping_hole_8018AFBC, 0, 0, 0);
+    taskSpawnFromTable(&D_shelter_b3_dumping_hole_8018AFBC, 0, 0, NULL);
 }
 
 /// Alternates the display's vertical shake by three pixels for nine updates, then clears it.
@@ -3768,15 +3861,24 @@ static void _shelterB3DumpingHoleShakeTask(Task* task)
     }
 }
 
-void func_shelter_b3_dumping_hole_80181B04(s16 arg0)
+/// Spawns the arrival event's player-sprite burst from player model coordinate 1.
+///
+/// Zero selects the burst; other selectors do nothing. Requires that player
+/// coordinate through each sprite's first tick and the live debris director
+/// until the sprites end.
+static void _shelterB3DumpingHoleSpawnPlayerSprites(s16 selector)
 {
-    func_shelter_b3_dumping_hole_8017FD9C(
-        &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[1], arg0);
+    _shelterB3DumpingHoleSpawnPlayerSpriteBurst(
+        &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[1], selector);
 }
 
-void func_shelter_b3_dumping_hole_80181B44(s32 arg0)
+/// Requests removal of the player sprites when the complete selector word is zero.
+///
+/// Requires the live debris director. Other selectors do nothing; each sprite
+/// observes the stop flag and releases itself on its next tick.
+static void _shelterB3DumpingHoleRequestPlayerSpriteStop(s32 selector)
 {
-    _shelterB3DumpingHoleStopPlayerSprites(arg0);
+    _shelterB3DumpingHoleStopPlayerSprites(selector);
 }
 
 #include "../../shared/cap_captions.inc.c"
