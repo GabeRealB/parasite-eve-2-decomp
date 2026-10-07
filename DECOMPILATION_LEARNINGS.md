@@ -69445,7 +69445,7 @@ Preprocessed base_2 SHA256: `b563c73fafc2c5b47c4f90e2c68477a4be3d077d02274e09e70
 
 ## Capture a field address before a memory barrier to preserve its base
 
-For func_actor_403100_801356F4, a counter increment followed by a signed read
+For _actor403100StepSceneFlameBreath, a counter increment followed by a signed read
 was forwarded into two sign-extension shifts. A COMPILER_BARRIER retained the
 signed load but also forced a reload of the global work pointer (97.971%).
 Capturing `s16* frame = (s16*)&work->stateFrames` before the barrier and reading
@@ -69458,7 +69458,7 @@ is sign_extend MEM(r84+1516), and greg maps r84 to a0. This demonstrates
 address retention across the clobber, not a universal allocation rule.
 base_4 input SHA256: 3eac28b2477dfe0c58700df763da2fe0af5b5dcab08509ef41399250e59344d2.
 base_5 input SHA256: ac87aeb555681febaf78dd449b8ac628618d2614fb97dace4f33e520461c4a5e.
-Evidence: tools/permuter_findings/func_actor_403100_801356F4/ session
+Evidence: tools/permuter_findings/_actor403100StepSceneFlameBreath/ session
 9bf1b5d37baa4f6eb571d41a59264a2e, supported conclusion and retained combine/greg dumps.
 
 ## Actor403100 counter reset: store order controls pointer CSE (2026-09-10)
