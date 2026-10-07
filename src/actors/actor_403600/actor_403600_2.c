@@ -509,8 +509,6 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     WorldCollisionContact* temp_s0_4;
     TmdObject*             temp_s2;
     Actor403600Work*       work;
-    GfxRotationWords*      workRotation;
-    GfxRotationWords*      modelRotation;
     GameSession*           gpSess;
 
     temp_s2 = task->extra.tmd;
@@ -523,23 +521,13 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     }
     task->work                                           = work;
     work->worldCoord.parent                              = &gGfxViewCoord;
-    workRotation                                         = (GfxRotationWords*)&work->worldCoord.coord;
-    ((GfxRotationWords*)&work->worldCoord.coord)->m00M01 = ONE;
-    workRotation->m02M10                                 = 0;
-    workRotation->m11M12                                 = ONE;
-    workRotation->m20M21                                 = 0;
-    workRotation->m22                                    = ONE;
+    gfxSetRotIdentity(&work->worldCoord.coord);
     work->worldCoord.coord.t[0]                          = temp_s0->coord.t[0];
     work->worldCoord.coord.t[1]                          = temp_s0->coord.t[1];
     temp_a0                                              = &work->worldCoord;
     work->worldCoord.coord.t[2]                          = temp_s0->coord.t[2];
-    modelRotation                                        = (GfxRotationWords*)&temp_s0->coord;
     temp_s0->parent                                      = temp_a0;
-    ((GfxRotationWords*)&temp_s0->coord)->m00M01         = ONE;
-    modelRotation->m02M10                                = 0;
-    modelRotation->m11M12                                = ONE;
-    modelRotation->m20M21                                = 0;
-    modelRotation->m22                                   = ONE;
+    gfxSetRotIdentity(&temp_s0->coord);
     temp_s0->coord.t[0]                                  = 0;
     temp_s0->coord.t[1]                                  = 0x744;
     temp_s0->coord.t[2]                                  = 0;
