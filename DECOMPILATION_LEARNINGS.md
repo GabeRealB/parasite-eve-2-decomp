@@ -87443,9 +87443,9 @@ gets two loads of different widths, and the second is unsigned although the
 field is signed:
 
 ```c
-if (arg0->killCountdown < 0x64) {                    /* lh  + slti */
-    func_dryfield_night_gas_station_8017FD80(arg0->killCountdown);
-    arg0->killCountdown = arg0->killCountdown + 1;   /* lhu + sh */
+if (task->killCountdown < 0x64) {                    /* lh  + slti */
+    _dryfieldNightGasStationDrawTrackRedStreak(task->killCountdown);
+    task->killCountdown = task->killCountdown + 1;   /* lhu + sh */
 }
 ```
 
@@ -87454,14 +87454,14 @@ value (`lh`), while the increment's result only reaches a 16-bit store, so its
 upper bits are don't-care and the zero-extending `lhu` is free. The two loads
 cannot be CSEd across the call between them, so both survive.
 
-On `func_dryfield_night_gas_station_80180998` (2026-09-15) four spellings - named
+On `_dryfieldNightGasStationTrackRedStreakTask` (2026-09-15) four spellings - named
 `s16` temp or inline compare, with or without a `(u16)` cast on the increment -
 all built to the identical object at 100%. Neither the temp nor the cast m2c
 emits is load-bearing here. What the build does pin is the pair of widths:
 `lh` together with `lhu` of one `s16` field is not a type error to "fix".
 
 The value *is* pinned, though. Carrying the compared value across the call and
-storing it back (`temp_a0 = temp_a0 + 1; index->killCountdown = temp_a0;`) keeps
+storing it back (`frameIndex = frameIndex + 1; index->killCountdown = frameIndex;`) keeps
 it live over the call, and that same function drops to 73.96%
 (`regs=15 insert=3 delete=3 branch=2`). The target re-reads the field after the
 call (`lhu` + `addiu` + `sh`) precisely because `$a0` does not survive it, so
@@ -87486,7 +87486,7 @@ and scored 95%, differing from the target on exactly two instructions:
 Both halves come from one wrong declaration. `D_…` was an `M2C_UNK` (i.e.
 `s32`) scalar, so the `* 8` m2c printed is a *byte* offset being divided into an
 element size it guessed as 4 - the real stride is 8 bytes, and the real element
-is the `SVECTOR` the same overlay's `func_dryfield_night_gas_station_8017FD80`
+is the `SVECTOR` the same overlay's `_dryfieldNightGasStationDrawTrackRedStreak`
 walks with `ApplyMatrixSV`. Indexing it as a real type
 
 ```c
@@ -119364,9 +119364,9 @@ Inputs: `base_3.i` (correct arity, goto loop, 85.170%)
 `base_1.i` (while loop, 100.000%)
 `6d2d1789ed9ccd0773aab336042958cb6406d15905001d6aa45fefcb0ac043a6`.
 
-## A 4-byte `struct` local takes an 8-byte frame slot; a scalar or a union does not (func_dryfield_night_gas_station_801802EC, 2026-09-17)
+## A 4-byte `struct` local takes an 8-byte frame slot; a scalar or a union does not (_dryfieldNightGasStationDrawCompanionRedStreak, 2026-09-17)
 
-**Symptom.** A `RotTransPers` `sxy` word wants `lhu 0x50($sp)` for its low half and
+**Symptom.** A `RotTransPers` `screenXY` word wants `lhu 0x50($sp)` for its low half and
 `lh 0x52($sp)` for its high half (the `s32 >> 16` rule below). The `DVECTOR` field reads that
 give both loads are right, but every later stack local then moves 4 bytes and the frame grows
 by 8: the `p` output at `0x58` instead of `0x54`, the saved registers at `0x68`,
@@ -119382,22 +119382,22 @@ function does `size = CEIL_ROUND (size, BIGGEST_ALIGNMENT / 8)` — 8 bytes here
 alignment, and a *union* takes the mode of its widest member (`layout_union`), so a 4-byte
 union also stays 4 bytes.
 
-**Fix.** Keep the slot a scalar and reach the halves as a word plus a shift: `s32 sxy` with
-`x0 = sxy;` (a truncating HImode copy stays `lhu`) and `y0 = sxy >> 16;` (combine folds the
+**Fix.** Keep the slot a scalar and reach the halves as a word plus a shift: `s32 screenXY` with
+`x0 = screenXY;` (a truncating HImode copy stays `lhu`) and `y0 = screenXY >> 16;` (combine folds the
 shift of the loaded word into `lh`). The field-split spellings do not work: both
-`*(s16*)((u8*)&sxy + 2)` and `((DVECTOR*)&sxy)->vy` put the address in a register, and
+`*(s16*)((u8*)&screenXY + 2)` and `((DVECTOR*)&screenXY)->vy` put the address in a register, and
 `extendhisi2`'s expand `force_not_mem`s it, so the sign-extend becomes `lhu` + `ashl`/`ashr`
-(93.1% and 90.8%); the `DVECTOR sxy` declaration that *does* give `lh` costs the 4 frame bytes
-above (95.6%). Only `sxy >> 16` gives both, at 100.000%.
+(93.1% and 90.8%); the `DVECTOR screenXY` declaration that *does* give `lh` costs the 4 frame bytes
+above (95.6%). Only `screenXY >> 16` gives both, at 100.000%.
 
-Inputs: `base_5.i` (scalar `sxy` + shift, 100.000%)
-`ecb6a7bb2e2cb0f4`, `base_3.i` (`DVECTOR sxy`, right loads, frame 0x80, 95.596%)
-`e0f2acd62a3e1c64`, `base_4.i` (`(DVECTOR*)&sxy)->vy`, 90.782%) `6b1ba7d7911407d9`.
+Inputs: `base_5.i` (scalar `screenXY` + shift, 100.000%)
+`ecb6a7bb2e2cb0f4`, `base_3.i` (`DVECTOR screenXY`, right loads, frame 0x80, 95.596%)
+`e0f2acd62a3e1c64`, `base_4.i` (`(DVECTOR*)&screenXY)->vy`, 90.782%) `6b1ba7d7911407d9`.
 
-## The identity-matrix block keeps a `MATRIX *` local, with its first store spelled on the variable (func_dryfield_night_gas_station_801802EC, 2026-09-17)
+## The identity-matrix block keeps a `MATRIX *` local, with its first store spelled on the variable (_dryfieldNightGasStationDrawCompanionRedStreak, 2026-09-17)
 
 **Symptom.** `gfxComposeNodeWorldTransform`'s first arm (`*(s32*)m = ONE; *(s32*)&m->m[0][2] = 0; …`,
-`src/gameplay/1BC.c`) hand-expanded onto a local `MATRIX mtx` compiles to five
+`src/gameplay/1BC.c`) hand-expanded onto a local `MATRIX partRotation` compiles to five
 frame-relative stores (`sw v0,0x10(sp)`, `sw zero,0x14(sp)`, …) and a fresh
 `addiu a1,sp,0x10` at the call. The target materialises the address once
 (`addiu s0,sp,0x10`), stores through it from the second store on (`sw zero,4(s0)`,
@@ -119405,12 +119405,12 @@ frame-relative stores (`sw v0,0x10(sp)`, `sw zero,0x14(sp)`, …) and a fresh
 register live for the two `ApplyMatrixSV` calls that follow. Five instructions and
 `regs=17` — 96.0% against 100.000%.
 
-**Fix.** Declare `MATRIX* m;`, write `m = &mtx;`, and address the block through `m` — but
+**Fix.** Declare `MATRIX* m;`, write `m = &partRotation;`, and address the block through `m` — but
 leave the *first* store spelled on the variable, which is what the retail body does:
 
 ```c
-    m                  = &mtx;
-    *(s32*)&mtx        = one;
+    m                  = &partRotation;
+    *(s32*)&partRotation        = one;
     *(s32*)&m->m[0][2] = 0;
     *(s32*)&m->m[1][1] = one;
     *(s32*)&m->m[2][0] = 0;
@@ -119418,9 +119418,9 @@ leave the *first* store spelled on the variable, which is what the retail body d
 ```
 
 `m` is the matrix argument to the `gfxComposeNodeWorldTransform` call; the `ApplyMatrixSV` calls
-after it keep `&mtx`, as the target does.
+after it keep `&partRotation`, as the target does.
 
-Inputs: `base_6.i` (100.000%) `db58f1bd357d142b`, `base_5.i` (`&mtx` everywhere, 96.025%)
+Inputs: `base_6.i` (100.000%) `db58f1bd357d142b`, `base_5.i` (`&partRotation` everywhere, 96.025%)
 `ecb6a7bb2e2cb0f4`.
 
 ## One pointer variable reused across both `switch` cases, not a temp per store: block-local quantities pin to `$v0` (_dryfieldNightGasStationSetFlickerSpritesVisible, 2026-09-17)
@@ -140664,15 +140664,15 @@ strength reduction over `a[i]`. Write the index form before tuning walkers.
 
 **Fix.** Pass exactly what the target loads (`f(task, color, 0)`: `$a2 = 0` is set, `$a3` is not an argument). When the call site passes more arguments than the definition takes, declare the helper without a prototype (`void f();`) ahead of the caller. Before blaming the scheduler for an argument-register swap, compare every call's argument count against the callee's real definition and count the sets of each argument register (entries on birthing call setup above).
 
-### A constant re-loaded once per call-separated group into a non-spill register is two pseudos: reuse its variable in between (func_dryfield_night_gas_station_8017FD80, 2026-09-23)
+### A constant re-loaded once per call-separated group into a non-spill register is two pseudos: reuse its variable in between (_dryfieldNightGasStationDrawTrackRedStreak, 2026-09-23)
 
-**Symptom.** Five `addPrim` sites all shift the OT slot `0xA`; three before a run of calls, two after. Target: `li $t1,0xA` once per group (the first in the `bltz` delay slot), `&sxy` in `$s7`, and `line->y0 = y1 + 0xA` as `addiu`. Every literal or single-variable form gave the constant one callee-saved home (`$fp`/`$s1`), pushed `&sxy` to the stack, and let `reload_cse` turn the `+ 0xA` into `addu`. A give-up had modelled it as a spilled `REG_EQUIV` constant rematerialised by reload and stalled at 93%.
+**Symptom.** Five `addPrim` sites all shift the OT slot `0xA`; three before a run of calls, two after. Target: `li $t1,0xA` once per group (the first in the `bltz` delay slot), `&screenXY` in `$s7`, and `streak->y0 = y1 + 0xA` as `addiu`. Every literal or single-variable form gave the constant one callee-saved home (`$fp`/`$s1`), pushed `&screenXY` to the stack, and let `reload_cse` turn the `+ 0xA` into `addu`. A give-up had modelled it as a spilled `REG_EQUIV` constant rematerialised by reload and stalled at 93%.
 
 **Tell.** `$t1` was not a reload register: the `.greg` dump spilled `$t2`-`$t5` (the unused call-clobbered regs, in `order_regs_for_reload` order), so a value reloaded into `$t1` was impossible. The two `li` had to be two real pseudos, neither crossing a call, which cse only keeps apart if the first one is invalidated between the groups (a redundant `v = 0xA` is deleted as a no-op).
 
-**Fix.** Reuse the variable for a different value between the groups: `val = 0xA; ...group 1...; val = -0x262; f(val, m); ...; val = 0xA; ...group 2...` (93% -> 97%). Routing an *observed* value through it instead (`val = rand() % 60 + 0x50`) also splits it, but moves that value into the variable's register.
+**Fix.** Reuse the variable for a different value between the groups: `drawValue = 0xA; ...group 1...; drawValue = -0x262; f(drawValue, m); ...; drawValue = 0xA; ...group 2...` (93% -> 97%). Routing an *observed* value through it instead (`drawValue = rand() % 60 + 0x50`) also splits it, but moves that value into the variable's register.
 
-**Follow-on, local-alloc tie.** The last registers were a `$s5`/`$s6` swap between a short local (`x1`, 2 refs over 13 insns: `QTY_CMP_PRI` 1538) and `%hi(gGpuPrimCursor)` (11 refs over 215: 1534). Reading the third projection's `x` into its own local right after `RotTransPers` (the target loads it before the prim-cursor bump) lengthened `x1`'s range enough to flip the order without moving any store. Compute `QTY_CMP_PRI` by hand from `lregwalk.py` numbering when two callee-saved locals trade places. The last reorder was the known union-vs-cast identity-matrix case ("`*(s32*)&local.m[0][0]` loses a scheduler dependency that a union field keeps").
+**Follow-on, local-alloc tie.** The last registers were a `$s5`/`$s6` swap between a short local (`streakTipX`, 2 refs over 13 insns: `QTY_CMP_PRI` 1538) and `%hi(gGpuPrimCursor)` (11 refs over 215: 1534). Reading the third projection's `x` into its own local right after `RotTransPers` (the target loads it before the prim-cursor bump) lengthened `streakTipX`'s range enough to flip the order without moving any store. Compute `QTY_CMP_PRI` by hand from `lregwalk.py` numbering when two callee-saved locals trade places. The last reorder was the known union-vs-cast identity-matrix case ("`*(s32*)&local.m[0][0]` loses a scheduler dependency that a union field keeps").
 
 ### One quotient stored to two bytes: repeat the expression rather than naming it, when the bias copy survives in the delay slot (_dryfieldDilapidatedHouseDrawMorphCone, 2026-09-23)
 
