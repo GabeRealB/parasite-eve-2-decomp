@@ -966,24 +966,33 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task)
     }
 }
 
-/// Fits a two-row invocation result twenty pixels above screen center.
+/// Fits and centers the two-line notice for invoking a Parasite Energy item.
 ///
-/// itemName is borrowed encoded text under `textMeasureLineWidth`'s contract.
-/// Signed bounds are halved before their 16-bit stores; ownership stays with
-/// the caller.
-static inline void _itemMenuSizeInvocationPanel(UiObject* object, const u8* itemName)
+/// Requires initialized panel bounds, style and content coordinates, retaining
+/// its frame insets. Borrows read-only itemName under `textMeasureLineWidth`'s
+/// contract. Width covers "Invoked" or the item
+/// name with room for its trailing period, plus five content-margin pixels.
+/// Height covers two fifteen-pixel rows plus one margin pixel. The outer bounds
+/// are centered twenty pixels above screen center; halving negative signed
+/// extents rounds toward negative infinity before the halfword stores.
+static inline void _itemMenuSizeInvocationPanel(UiPanel* panel, const u8* itemName)
 {
+    enum {
+        ITEM_MENU_INVOCATION_SUFFIX_ALLOWANCE_PIXELS = 11,
+        ITEM_MENU_INVOCATION_TEXT_ROWS               = 2,
+        ITEM_MENU_INVOCATION_CENTER_Y_PIXELS         = -20
+    };
     s32 contentWidth;
     s32 invokedTextWidth;
 
-    contentWidth     = textMeasureLineWidth(itemName) + 0xB;
+    contentWidth     = textMeasureLineWidth(itemName) + ITEM_MENU_INVOCATION_SUFFIX_ALLOWANCE_PIXELS;
     invokedTextWidth = textMeasureLineWidth((const u8*)Gp_StrInvoked);
     if (contentWidth < invokedTextWidth) {
         contentWidth = invokedTextWidth;
     }
-    uiSetPanelContentSize(&(object)->panel, contentWidth + 5, uiGetTextRowsHeight(2) + 1);
-    (&(object)->panel)->bounds.rect.x = (-(&(object)->panel)->bounds.rect.w) >> 1;
-    (&(object)->panel)->bounds.rect.y = ((-(&(object)->panel)->bounds.rect.h) >> 1) - 0x14;
+    uiSetPanelContentSize(panel, contentWidth + 5, uiGetTextRowsHeight(ITEM_MENU_INVOCATION_TEXT_ROWS) + 1);
+    panel->bounds.rect.x = (-panel->bounds.rect.w) >> 1;
+    panel->bounds.rect.y = ((-panel->bounds.rect.h) >> 1) + ITEM_MENU_INVOCATION_CENTER_Y_PIXELS;
 }
 
 void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
@@ -1002,7 +1011,7 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
 
     itemName = itemGetText(itemId, ITEM_TEXT_NAME, 0);
     if (task->state == ITEM_MENU_INVOKE_STATE_INIT) {
-        _itemMenuSizeInvocationPanel(object, itemName);
+        _itemMenuSizeInvocationPanel(&object->panel, itemName);
         inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, Gp_SelItemRec, 1);
 
         // Decode the ordinary item into its element, ability slot and one-based level.
@@ -1133,79 +1142,75 @@ void itemMenuDialogTask(Task* task)
     }
 }
 
-/// Draws EXP and current/maximum MP above the four elemental P.E. lists.
+/// Draws the available EXP and current/maximum MP above the elemental P.E. lists.
 ///
-/// Borrows the live player stats and object for this draw. Positions are
-/// panel-content pixels; text uses the standard menu color and glyph textures.
-static inline void _itemMenuDrawParasiteEnergyHeader(const UiObject* object)
+/// Borrows panel coordinates and live player stats for this draw. Small labels
+/// anchor the medium decimal values in content pixels, translated with the
+/// unsigned origin views before signed-halfword narrowing. EXP is formatted as
+/// unsigned; MP and maximum MP retain their signed values. Each formatter needs
+/// at most ten bytes, fitting the reusable 32-byte buffer. Drawing requires
+/// loaded font textures/palettes and primitive capacity under `textDrawString`;
+/// the header uses panel OT base + 1 and base + 2, without testing visibility.
+static inline void _itemMenuDrawParasiteEnergyHeader(const UiPanel* panel)
 {
-    u8            numberText[0x20];
-    TextDrawReq   expLabelRequest;
-    TextDrawReq   expValueRequest;
-    TextDrawReq   mpLabelRequest;
-    TextDrawReq   mpValueRequest;
-    TextDrawReq   slashRequest;
-    TextDrawReq   maxMpRequest;
-    s32           contentLeft;
-    PlayerStatus* player;
-    s32           textColorRgb;
-    s32           x;
-    s32           y;
+    u8                  numberText[32];
+    TextDrawReq         expLabelRequest;
+    TextDrawReq         expValueRequest;
+    TextDrawReq         mpLabelRequest;
+    TextDrawReq         mpValueRequest;
+    TextDrawReq         slashRequest;
+    TextDrawReq         maxMpRequest;
+    s32                 contentLeft;
+    const PlayerStatus* player;
+    s32                 textColorRgb;
+    s32                 labelX;
+    s32                 valueY;
 
-    textColorRgb               = ITEM_MENU_PANEL_TEXT_COLOR;
-    player                     = &gPlayerStatus;
-    contentLeft                = object->panel.contentLeft.signedValue;
-    x                          = contentLeft + 0x22;
-    y                          = object->panel.contentTop.signedValue + 8;
-    expLabelRequest.x          = object->panel.contentOriginX.unsignedValue + x;
-    expLabelRequest.y          = object->panel.contentOriginY.unsignedValue + (y - 2);
-    expLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-    expLabelRequest.colorRgb   = textColorRgb;
-    expLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    expLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
-    expLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    /// Sets depth, color and glyph style without changing the request's position.
+    ///
+    /// request is a simple writable TextDrawReq lvalue, evaluated five times;
+    /// other arguments are each evaluated once and must be free of side effects.
+    /// panel supplies the signed OT base; selectors narrow to request bytes.
+#define ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(request, panel, textColor, glyphFace, textAlignment, textDrawMode) \
+    {                                                                                                                      \
+        (request).otIndex    = (panel)->otIndex.signedValue + 1;                                                           \
+        (request).colorRgb   = (textColor);                                                                                \
+        (request).glyphTable = (glyphFace);                                                                                \
+        (request).alignment  = (textAlignment);                                                                            \
+        (request).drawMode   = (textDrawMode);                                                                             \
+    }
+
+    textColorRgb      = ITEM_MENU_PANEL_TEXT_COLOR;
+    player            = &gPlayerStatus;
+    contentLeft       = panel->contentLeft.signedValue;
+    labelX            = contentLeft + 34;
+    valueY            = panel->contentTop.signedValue + 8;
+    expLabelRequest.x = panel->contentOriginX.unsignedValue + labelX;
+    expLabelRequest.y = panel->contentOriginY.unsignedValue + (valueY - 2);
+    ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(expLabelRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
     textDrawString(&expLabelRequest, (const u8*)Gp_StrExp);
-    expValueRequest.x          = object->panel.contentOriginX.unsignedValue + 0xA + x;
-    expValueRequest.y          = object->panel.contentOriginY.unsignedValue + y;
-    expValueRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-    expValueRequest.colorRgb   = textColorRgb;
-    expValueRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    expValueRequest.alignment  = TEXT_ALIGNMENT_LEFT;
-    expValueRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+    expValueRequest.x = panel->contentOriginX.unsignedValue + 10 + labelX;
+    expValueRequest.y = panel->contentOriginY.unsignedValue + valueY;
+    ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(expValueRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&expValueRequest, textItoaUnsigned(numberText, player->exp));
-    x                         = contentLeft + 0x7A;
-    mpLabelRequest.x          = object->panel.contentOriginX.unsignedValue + x;
-    mpLabelRequest.y          = object->panel.contentOriginY.unsignedValue + (y - 2);
-    mpLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-    mpLabelRequest.colorRgb   = textColorRgb;
-    mpLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    mpLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
-    mpLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    labelX           = contentLeft + 122;
+    mpLabelRequest.x = panel->contentOriginX.unsignedValue + labelX;
+    mpLabelRequest.y = panel->contentOriginY.unsignedValue + (valueY - 2);
+    ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(mpLabelRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
     textDrawString(&mpLabelRequest, (const u8*)Gp_StrMp);
-    mpValueRequest.x          = object->panel.contentOriginX.unsignedValue + 0xA + x;
-    mpValueRequest.y          = object->panel.contentOriginY.unsignedValue + y;
-    mpValueRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-    mpValueRequest.colorRgb   = textColorRgb;
-    mpValueRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    mpValueRequest.alignment  = TEXT_ALIGNMENT_LEFT;
-    mpValueRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+    mpValueRequest.x = panel->contentOriginX.unsignedValue + 10 + labelX;
+    mpValueRequest.y = panel->contentOriginY.unsignedValue + valueY;
+    ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(mpValueRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&mpValueRequest, textItoaSigned(numberText, player->mp));
-    slashRequest.x          = object->panel.contentOriginX.unsignedValue + 0x25 + x;
-    slashRequest.y          = object->panel.contentOriginY.unsignedValue + y;
-    slashRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-    slashRequest.colorRgb   = textColorRgb;
-    slashRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    slashRequest.alignment  = TEXT_ALIGNMENT_CENTER;
-    slashRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+    slashRequest.x = panel->contentOriginX.unsignedValue + 37 + labelX;
+    slashRequest.y = panel->contentOriginY.unsignedValue + valueY;
+    ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(slashRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&slashRequest, (const u8*)Gp_StrSlash);
-    maxMpRequest.x          = object->panel.contentOriginX.unsignedValue + 0x2A + x;
-    maxMpRequest.y          = object->panel.contentOriginY.unsignedValue + y;
-    maxMpRequest.otIndex    = object->panel.otIndex.signedValue + 1;
-    maxMpRequest.colorRgb   = textColorRgb;
-    maxMpRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    maxMpRequest.alignment  = TEXT_ALIGNMENT_LEFT;
-    maxMpRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
+    maxMpRequest.x = panel->contentOriginX.unsignedValue + 42 + labelX;
+    maxMpRequest.y = panel->contentOriginY.unsignedValue + valueY;
+    ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(maxMpRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&maxMpRequest, textItoaSigned(numberText, player->mpMax));
+#undef ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE
 }
 
 void itemMenuParasiteEnergyListTask(Task* task)
@@ -1237,7 +1242,7 @@ void itemMenuParasiteEnergyListTask(Task* task)
         uiSpawnObject(elementPanelDescs + 3, ITEM_MENU_PE_LIST_ELEMENT_EARTH, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_PE_LIST_OPEN_DELAY, object);
         task->state = task->state + 1;
     }
-    _itemMenuDrawParasiteEnergyHeader(object);
+    _itemMenuDrawParasiteEnergyHeader(&object->panel);
     firstChild = task->firstChild;
     if (firstChild != NULL) {
         childTask = firstChild;
@@ -1374,15 +1379,19 @@ void itemPickupPanelTask(Task* task)
     }
 }
 
-/// Clears all preview ids, publishes the pickup in menu profile 0 and queues its load.
+/// Replaces the menu previews with a pickup and requests its display resources.
 ///
-/// The five shared slots are reset, then the three load-profile slots are
-/// republished before queuing. The -1 sentinel suppresses publication and loading.
+/// Clears all five shared slots, including the two beyond the three load
+/// profiles, before publishing itemId in `CD_COMMAND_DISPLAY_LOAD_MENU` (0).
+/// -1 clears the ids without requesting resources; other values are published
+/// even if `itemMenuEnqueuePreviewLoad` rejects the id or suppresses the load.
+/// No resource is released or waited for here; the menu resource system retains
+/// ownership and the caller waits for readiness before drawing the preview.
 static inline void _itemPickupRequestPreview(s32 itemId)
 {
     enum {
         ITEM_PICKUP_PREVIEW_EMPTY         = -1,
-        ITEM_PICKUP_PREVIEW_PROFILE_COUNT = 3
+        ITEM_PICKUP_PREVIEW_PROFILE_COUNT = CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW + 1
     };
     s32* previewItemIds;
     s32  profileIndex;
@@ -1394,9 +1403,10 @@ static inline void _itemPickupRequestPreview(s32 itemId)
     previewItemIds[3] = ITEM_PICKUP_PREVIEW_EMPTY;
     previewItemIds[4] = ITEM_PICKUP_PREVIEW_EMPTY;
     if (itemId != ITEM_PICKUP_PREVIEW_EMPTY) {
+        // Republish all load-profile slots after the full reset.
         for (profileIndex = 0; profileIndex < ITEM_PICKUP_PREVIEW_PROFILE_COUNT; profileIndex++, previewItemIds++) {
-            if (profileIndex == 0) {
-                Gp_PreviewItems[0] = itemId;
+            if (profileIndex == CD_COMMAND_DISPLAY_LOAD_MENU) {
+                Gp_PreviewItems[CD_COMMAND_DISPLAY_LOAD_MENU] = itemId;
             } else {
                 *previewItemIds = ITEM_PICKUP_PREVIEW_EMPTY;
             }

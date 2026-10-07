@@ -6390,27 +6390,29 @@ Parenthesizing `c | (a | b)` without pins reshuffles the loads.
 
 ## Subtract a constant from a saved coord via `base + (saved - K)`
 
-`req.y = obj->baseY - 2 + y` with `y` live in `$s0` materializes -2 as
+`expLabelRequest.y = panel->contentOriginY.unsignedValue - 2 + valueY` with
+`valueY` live in `$s0` materializes -2 as
 `li t0, 0xfffe` / `addu v0, v0, t0`. That steals `$t0` from a later
-`lh t0, field_1C` / spill, so the local stays in a saved register and
+`lh t0, 0x1C(panel)` / spill of `panel->contentLeft.signedValue`, so the local stays in a saved register and
 the frame shrinks 8 bytes.
 
-`req.y = obj->baseY + (y - 2)` keeps `y` intact and applies -2 to the
-fresh `lhu` of `baseY`:
+`expLabelRequest.y = panel->contentOriginY.unsignedValue + (valueY - 2)`
+keeps `valueY` intact and applies -2 to the fresh `lhu` of `contentOriginY`:
 
 ```c
-y     = (s16)obj->field_18 + 8;
-req.y = obj->baseY + (y - 2);
+valueY            = panel->contentTop.signedValue + 8;
+expLabelRequest.y = panel->contentOriginY.unsignedValue + (valueY - 2);
 ```
 
 ```
-lhu    v0, 0x22(obj)
+lhu    v0, 0x22(panel)
 addiu  v0, v0, -2
 addu   v0, v0, s0
 ```
 
-Declare the spilled `field_1C` copy immediately after the `TextDrawReq`
-locals so it sits at the next stack slot. `itemMenuParasiteEnergyListTask` is the example.
+Declare the spilled `contentLeft` copy immediately after the `TextDrawReq`
+locals so it sits at the next stack slot. `_itemMenuDrawParasiteEnergyHeader`,
+inlined by `itemMenuParasiteEnergyListTask`, is the example.
 
 ## Nest `if (x != 0)` so a redundant `beqz` survives range checks
 
@@ -24024,7 +24026,7 @@ previewItemIds[4] = emptyItemId;
 ```
 
 A counted `for` loop is not unrolled. `itemMenuClearPreviewItems` is the example;
-`_itemPickupPreviewTask` inlines the same five stores.
+`_itemPickupRequestPreview`, inlined by `_itemPickupPreviewTask`, has the same five stores.
 
 ## Nested `!= 0` then `== 1` keeps the extra `beqz`
 
@@ -65644,7 +65646,8 @@ sizeof(TmdObject)` and still matches. Always check the permuter's base score.
 
 After clearing `Gp_PreviewItems` through a local pointer, keep that same
 pointer as the loop's walking pointer. Write the fixed first-slot arm as
-`Gp_PreviewItems[0] = itemId`, and the other arm as `*previewItemIds = ITEM_PICKUP_PREVIEW_EMPTY`.
+`Gp_PreviewItems[CD_COMMAND_DISPLAY_LOAD_MENU] = itemId`, and the other arm as
+`*previewItemIds = ITEM_PICKUP_PREVIEW_EMPTY`.
 Using `previewItemIds[0] = itemId` while walking a separate `p` kept the full table
 address live across the loop (99.068%). Naming the global first slot fixed
 the `%lo` store but retained an extra `move a1,v1` for `p = previewItemIds`
