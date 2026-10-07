@@ -12370,8 +12370,9 @@ typedef struct {
 } GsOT;
 ```
 
-Init pattern (see `displayInitTaskBuffers`): hold `GsOT* ot = Gpu_OrderingTables`, write
-`length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
+Init pattern (see `_displayConfigureSmallTaskBuffers`): write `length`/`org`
+through `Gpu_OrderingTables[0]` and `[1]`, with the second `org` as
+`tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
 `GsClearOt` takes the descriptor directly:

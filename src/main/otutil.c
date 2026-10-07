@@ -56,21 +56,22 @@ static void Display_FlipOtAlt(void);
 
 static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, Gp_MenuRootTask };
 
-/// Binds two 64-tag task ordering tables and the static primitive arena.
+/// Selects the resident small ordering tables and primitive arena for task presentation.
 ///
-/// Previous GPU users must have finished. Only the storage bindings change;
-/// tags are cleared and the primitive cursor is selected by the frame path.
+/// Each frame slot has 64 tags and 0x3000 bytes of primitive storage. The
+/// frame path initializes the selected descriptor's offset, point and tail
+/// tag, clears its tags and selects its primitive half before drawing.
+/// Storage remains borrowed until GPU drawing completes; packets must fit
+/// within the selected half.
 static __inline__ void _displayConfigureSmallTaskBuffers(void)
 {
-    GsOT* orderingTables;
-
-    orderingTables              = Gpu_OrderingTables;
-    orderingTables->length      = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-    orderingTables->org         = (GsOT_TAG*)Gpu_SmallOtTags;
-    orderingTables[1].length    = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-    orderingTables[1].org       = (GsOT_TAG*)(Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES);
-    _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
-    _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
+    // SDK descriptors view the packed DMA words as tags.
+    Gpu_OrderingTables[0].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+    Gpu_OrderingTables[0].org    = (GsOT_TAG*)Gpu_SmallOtTags;
+    Gpu_OrderingTables[1].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
+    Gpu_OrderingTables[1].org    = (GsOT_TAG*)(Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES);
+    _gGpuDisplayPrimBufferBase   = Gpu_PrimBufStatic;
+    _gGpuDisplayPrimBufferBytes  = sizeof(Gpu_PrimBufStatic);
 }
 
 s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
