@@ -61,7 +61,7 @@ static void                 func_shelter_r47_8018580C(Task*);
 static void func_shelter_r47_8018431C(Task* task);
 static void func_shelter_r47_801844A0(Task* task);
 static void func_shelter_r47_80184658(Task* task);
-static void func_shelter_r47_80184AE0(Task* task);
+static void _actionPromptMoveCursors(Task* task);
 static void _actionPromptDrawCursor(s32 cursorX, s32 cursorY, s32 cursorMode);
 static void func_shelter_r47_80185028(Task* task);
 static void func_shelter_r47_80185098(Task* task);
@@ -1898,13 +1898,15 @@ static void func_shelter_r47_80184658(Task* task)
 #include "../../shared/action_prompt_outline_rect.inc.c"
 #undef actionPromptOutlineRect
 
-/// The second prompt's copy.
-#define actionPromptMoveCursors func_shelter_r47_80184AE0
+/// Selects the additional private cursor task, with signature `void(Task*)`.
+#undef ACTION_PROMPT_MOVE_CURSORS_TASK
+#define ACTION_PROMPT_MOVE_CURSORS_TASK _actionPromptMoveCursors
 #undef ACTION_PROMPT_DRAW_CURSOR
 /// Selects the second prompt's private drawer for both fragments.
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursor
 #include "../../shared/action_prompt_move_cursors.inc.c"
-#undef actionPromptMoveCursors
+#undef ACTION_PROMPT_MOVE_CURSORS_TASK
+#define ACTION_PROMPT_MOVE_CURSORS_TASK actionPromptMoveCursors
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 #undef ACTION_PROMPT_DRAW_CURSOR
@@ -2136,12 +2138,12 @@ static void func_shelter_r47_8018571C(Task* task)
 
 /// Two-state dispatcher of the action prompt, with its handler table built on
 /// the stack: state 0 runs `func_shelter_r47_8018585C` and state 1 runs
-/// `func_shelter_r47_80184AE0`.
+/// `_actionPromptMoveCursors`.
 static void func_shelter_r47_8018580C(Task* task)
 {
     TaskFunc funcs[2] = {
         func_shelter_r47_8018585C,
-        func_shelter_r47_80184AE0,
+        _actionPromptMoveCursors,
     };
 
     funcs[task->state](task);

@@ -1,148 +1,183 @@
 /* Part of the action prompt library; see action_prompt.h. */
 
-/// State 1 of the room's prompt script task: moves the action-prompt cursors
-/// from the pads and draws them.
-///
-/// `Task::spawnArg1` picks the ports: 1 drives port 0 only, 2 port 1 only,
-/// anything else both. Each port's analog stick (input format 0x12 linear, 0x73
-/// squared) and then its d-pad, whose four bits pick one of eight headings,
-/// move the prompt's 1/512-pixel position, which is clamped to the screen. The
-/// confirm (0x40) and cancel (0xA0) buttons are classified into the prompt's
-/// two button slots. A second press within `doublePressWindow` frames at an
-/// unmoved cursor reports `ACTION_PROMPT_BUTTON_DOUBLE_PRESS` instead of
-/// `ACTION_PROMPT_BUTTON_PRESSED`. `cursorSpeed` scales every step.
-void actionPromptMoveCursors(Task* task)
+#ifndef ACTION_PROMPT_CURSOR_MOTION_HELPERS_DEFINED
+#define ACTION_PROMPT_CURSOR_MOTION_HELPERS_DEFINED
+
+/// Clamps a writable cursor's subpixel position to its drawable screen bounds.
+static inline void _actionPromptClampCursor(ActionPrompt* prompt)
 {
+    if (prompt->fixedX < ACTION_PROMPT_FIXED_X_MIN) {
+        prompt->fixedX = ACTION_PROMPT_FIXED_X_MIN;
+    } else if (prompt->fixedX > ACTION_PROMPT_FIXED_X_MAX) {
+        prompt->fixedX = ACTION_PROMPT_FIXED_X_MAX;
+    }
+    if (prompt->fixedY < ACTION_PROMPT_FIXED_Y_MIN) {
+        prompt->fixedY = ACTION_PROMPT_FIXED_Y_MIN;
+    } else if (prompt->fixedY > ACTION_PROMPT_FIXED_Y_MAX) {
+        prompt->fixedY = ACTION_PROMPT_FIXED_Y_MAX;
+    }
+}
+#endif
+
+/// Moves, classifies button presses and draws the selected action-prompt cursors.
+///
+/// `task->spawnArg1.value` selects port 0 with 1, port 1 with 2, and both with
+/// any other value. Borrows the initialized per-port prompts and pad samples;
+/// it neither owns task work nor changes the task state. Movement uses signed
+/// Q12 left-stick axes: mouse-format input is linear, analog input is squared
+/// with its sign restored. D-pad motion is added before clamping the signed
+/// 1/512-pixel position to X [-160, 159] and Y [-110, 110] pixels.
+///
+/// Confirm is Cross; cancel is Circle or Square. A second press within
+/// `doublePressWindow` nominal 60-Hz ticks at the last latched pixel position
+/// reports `ACTION_PROMPT_BUTTON_DOUBLE_PRESS`. Classification uses the
+/// previously published `screen`, before this call publishes the new position.
+/// The u16 arm counters advance by `frameTicks` and wrap without saturation.
+/// Requires the packet arena, ordering table and cursor textures needed by
+/// `ACTION_PROMPT_DRAW_CURSOR`; hidden mode still updates motion and buttons.
+void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task)
+{
+    enum {
+        ACTION_PROMPT_PORT_0_ONLY            = 1,
+        ACTION_PROMPT_PORT_1_ONLY            = 2,
+        ACTION_PROMPT_AXIS_SIGN_EXTEND_SHIFT = 16,
+        ACTION_PROMPT_LINEAR_AXIS_SHIFT      = 5,
+        ACTION_PROMPT_SQUARED_AXIS_SHIFT     = 21,
+        ACTION_PROMPT_DPAD_BITS_SHIFT        = 12,
+        ACTION_PROMPT_DPAD_EIGHTH_TURN       = 0x200, // Angles use 4096 units per turn
+        ACTION_PROMPT_DPAD_NO_HEADING        = -1,
+        ACTION_PROMPT_DPAD_PRODUCT_SHIFT     = 9,
+        ACTION_PROMPT_BUTTON_HALFWORDS       = sizeof(ActionPromptButton) / sizeof(u16)
+    };
     ActionPrompt* prompt;
     PadState*     pad;
     s32           port;
-    s32           first;
-    s32           count;
+    s32           firstPort;
+    s32           endPort;
     s32           inputFormat;
-    s32           stick;
-    s32           step;
-    s32           mask;
-    s32           speed;
-    s32           i;
-    s32           idx;
-    u16*          statep;
-    u16*          heldp;
+    s32           stickValue;
+    s32           motionValue; // Stick step, then D-pad heading; one reused signed temporary
+    s32           buttonMask;
+    s32           cursorSpeed;
+    s32           buttonSlot;
+    s32           buttonHalfwordOffset;
+    u16*          buttonState;
+    u16*          framesSinceArm;
 
     switch (task->spawnArg1.value) {
-        case 1:
-            first = 0;
-            count = 1;
+        case ACTION_PROMPT_PORT_0_ONLY:
+            firstPort = 0;
+            endPort   = 1;
             break;
-        case 2:
-            first = 1;
-            count = 2;
+        case ACTION_PROMPT_PORT_1_ONLY:
+            firstPort = 1;
+            endPort   = PAD_PORT_COUNT;
             break;
         default:
-            first = 0;
-            count = 2;
+            firstPort = 0;
+            endPort   = PAD_PORT_COUNT;
             break;
     }
 
-    for (port = first; port < count; port++) {
+    for (port = firstPort; port < endPort; port++) {
         prompt      = &D_80114D28[port];
         pad         = &gPadStates[port];
         inputFormat = pad->inputFormat;
+        // Integrate the stick response in subpixels, preserving signed rounding.
         if (inputFormat == PAD_INPUT_FORMAT_MOUSE) {
-            speed           = prompt->cursorSpeed;
-            step            = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;
-            prompt->fixedX += step * speed * gDisplayState.frameTicks;
-            step            = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << 0x10) >> 0x15;
-            prompt->fixedY += step * speed * gDisplayState.frameTicks;
+            cursorSpeed = prompt->cursorSpeed;
+            motionValue = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << ACTION_PROMPT_AXIS_SIGN_EXTEND_SHIFT) >>
+                          (ACTION_PROMPT_AXIS_SIGN_EXTEND_SHIFT + ACTION_PROMPT_LINEAR_AXIS_SHIFT);
+            prompt->fixedX += motionValue * cursorSpeed * gDisplayState.frameTicks;
+            motionValue     = ((u16)pad->stickAxes[PAD_STICK_LEFT_Y] << ACTION_PROMPT_AXIS_SIGN_EXTEND_SHIFT) >>
+                          (ACTION_PROMPT_AXIS_SIGN_EXTEND_SHIFT + ACTION_PROMPT_LINEAR_AXIS_SHIFT);
+            prompt->fixedY += motionValue * cursorSpeed * gDisplayState.frameTicks;
         } else if (inputFormat == PAD_INPUT_FORMAT_ANALOG) {
-            stick = pad->stickAxes[PAD_STICK_LEFT_X];
-            step  = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
+            stickValue  = pad->stickAxes[PAD_STICK_LEFT_X];
+            motionValue = (stickValue * stickValue) >> ACTION_PROMPT_SQUARED_AXIS_SHIFT;
+            if (stickValue < 0) {
+                motionValue = -motionValue;
             }
-            prompt->fixedX += step * prompt->cursorSpeed * gDisplayState.frameTicks;
-            stick           = pad->stickAxes[PAD_STICK_LEFT_Y];
-            step            = (stick * stick) >> 0x15;
-            if (stick < 0) {
-                step = -step;
+            prompt->fixedX += motionValue * prompt->cursorSpeed * gDisplayState.frameTicks;
+            stickValue      = pad->stickAxes[PAD_STICK_LEFT_Y];
+            motionValue     = (stickValue * stickValue) >> ACTION_PROMPT_SQUARED_AXIS_SHIFT;
+            if (stickValue < 0) {
+                motionValue = -motionValue;
             }
-            prompt->fixedY += step * prompt->cursorSpeed * gDisplayState.frameTicks;
+            prompt->fixedY += motionValue * prompt->cursorSpeed * gDisplayState.frameTicks;
         }
 
-        switch (pad->buttons >> 0xC) {
-            case 1:
-                step = 0x0;
+        // Only the eight cardinal/diagonal D-pad combinations have a heading.
+        switch (pad->buttons >> ACTION_PROMPT_DPAD_BITS_SHIFT) {
+            case PAD_BUTTON_UP >> ACTION_PROMPT_DPAD_BITS_SHIFT:
+                motionValue = 0;
                 break;
-            case 3:
-                step = 0x200;
+            case (PAD_BUTTON_UP | PAD_BUTTON_RIGHT) >> ACTION_PROMPT_DPAD_BITS_SHIFT:
+                motionValue = ACTION_PROMPT_DPAD_EIGHTH_TURN;
                 break;
-            case 2:
-                step = 0x400;
+            case PAD_BUTTON_RIGHT >> ACTION_PROMPT_DPAD_BITS_SHIFT:
+                motionValue = 2 * ACTION_PROMPT_DPAD_EIGHTH_TURN;
                 break;
-            case 6:
-                step = 0x600;
+            case (PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN) >> ACTION_PROMPT_DPAD_BITS_SHIFT:
+                motionValue = 3 * ACTION_PROMPT_DPAD_EIGHTH_TURN;
                 break;
-            case 4:
-                step = 0x800;
+            case PAD_BUTTON_DOWN >> ACTION_PROMPT_DPAD_BITS_SHIFT:
+                motionValue = 4 * ACTION_PROMPT_DPAD_EIGHTH_TURN;
                 break;
-            case 12:
-                step = 0xA00;
+            case (PAD_BUTTON_DOWN | PAD_BUTTON_LEFT) >> ACTION_PROMPT_DPAD_BITS_SHIFT:
+                motionValue = 5 * ACTION_PROMPT_DPAD_EIGHTH_TURN;
                 break;
-            case 8:
-                step = 0xC00;
+            case PAD_BUTTON_LEFT >> ACTION_PROMPT_DPAD_BITS_SHIFT:
+                motionValue = 6 * ACTION_PROMPT_DPAD_EIGHTH_TURN;
                 break;
-            case 9:
-                step = 0xE00;
+            case (PAD_BUTTON_LEFT | PAD_BUTTON_UP) >> ACTION_PROMPT_DPAD_BITS_SHIFT:
+                motionValue = 7 * ACTION_PROMPT_DPAD_EIGHTH_TURN;
                 break;
             default:
-                step = -1;
+                motionValue = ACTION_PROMPT_DPAD_NO_HEADING;
                 break;
         }
 
-        if (step != -1) {
-            prompt->fixedY += (-rcos(step) * prompt->cursorSpeed * gDisplayState.frameTicks) >> 9;
-            prompt->fixedX += (rsin(step) * prompt->cursorSpeed * gDisplayState.frameTicks) >> 9;
+        if (motionValue != ACTION_PROMPT_DPAD_NO_HEADING) {
+            prompt->fixedY += (-rcos(motionValue) * prompt->cursorSpeed * gDisplayState.frameTicks) >> ACTION_PROMPT_DPAD_PRODUCT_SHIFT;
+            prompt->fixedX += (rsin(motionValue) * prompt->cursorSpeed * gDisplayState.frameTicks) >> ACTION_PROMPT_DPAD_PRODUCT_SHIFT;
         }
 
-        if (prompt->fixedX < ACTION_PROMPT_FIXED_X_MIN) {
-            prompt->fixedX = ACTION_PROMPT_FIXED_X_MIN;
-        } else if (prompt->fixedX > ACTION_PROMPT_FIXED_X_MAX) {
-            prompt->fixedX = ACTION_PROMPT_FIXED_X_MAX;
-        }
-        if (prompt->fixedY < ACTION_PROMPT_FIXED_Y_MIN) {
-            prompt->fixedY = ACTION_PROMPT_FIXED_Y_MIN;
-        } else if (prompt->fixedY > ACTION_PROMPT_FIXED_Y_MAX) {
-            prompt->fixedY = ACTION_PROMPT_FIXED_Y_MAX;
-        }
+        _actionPromptClampCursor(prompt);
 
-        statep = &prompt->buttons.halfwords[0];
-        heldp  = &prompt->buttons.halfwords[1];
-        idx    = 0;
-        // Four halfwords per slot. Indexing the frame counter makes the latched
-        // position a displacement off that register.
-        for (i = 0; i < 2; i++, statep += 4, idx += 4) {
-            mask = (i == 0) ? PAD_BUTTON_CROSS : PAD_BUTTON_CIRCLE | PAD_BUTTON_SQUARE;
-            if (padCheckButtons(port, PAD_BUTTON_QUERY_PRESSED, mask) != 0) {
-                if (heldp[idx] < prompt->doublePressWindow &&
-                    PARENT_OF(heldp + idx, ActionPromptButton, framesSinceArm)->lastPos.packed ==
+        buttonState          = &prompt->buttons.halfwords[0];
+        framesSinceArm       = &prompt->buttons.halfwords[1];
+        buttonHalfwordOffset = 0;
+        // Compare presses against the previously published pixel position.
+        // Keep the independent state walk and indexed arm counter: a slot's
+        // latched position is recovered from its framesSinceArm member.
+        for (buttonSlot = 0; buttonSlot < ARRAY_SIZE(prompt->buttons.slots);
+             buttonSlot++, buttonState += ACTION_PROMPT_BUTTON_HALFWORDS,
+            buttonHalfwordOffset += ACTION_PROMPT_BUTTON_HALFWORDS) {
+            buttonMask = (buttonSlot == 0) ? PAD_BUTTON_CROSS : PAD_BUTTON_CIRCLE | PAD_BUTTON_SQUARE;
+            if (padCheckButtons(port, PAD_BUTTON_QUERY_PRESSED, buttonMask) != 0) {
+                if (framesSinceArm[buttonHalfwordOffset] < prompt->doublePressWindow &&
+                    PARENT_OF(framesSinceArm + buttonHalfwordOffset, ActionPromptButton, framesSinceArm)->lastPos.packed ==
                         prompt->screen.packed) {
-                    *statep    = ACTION_PROMPT_BUTTON_DOUBLE_PRESS;
-                    heldp[idx] = prompt->doublePressWindow;
+                    *buttonState                         = ACTION_PROMPT_BUTTON_DOUBLE_PRESS;
+                    framesSinceArm[buttonHalfwordOffset] = prompt->doublePressWindow;
                 } else {
-                    heldp[idx] = 0;
-                    PARENT_OF(heldp + idx, ActionPromptButton, framesSinceArm)->lastPos.packed =
+                    framesSinceArm[buttonHalfwordOffset] = 0;
+                    PARENT_OF(framesSinceArm + buttonHalfwordOffset, ActionPromptButton, framesSinceArm)->lastPos.packed =
                         prompt->screen.packed;
-                    *statep = ACTION_PROMPT_BUTTON_PRESSED;
+                    *buttonState = ACTION_PROMPT_BUTTON_PRESSED;
                 }
-            } else if (padCheckButtons(port, PAD_BUTTON_QUERY_RELEASED, mask) != 0) {
-                *statep = ACTION_PROMPT_BUTTON_RELEASED;
-            } else if (padCheckButtons(port, PAD_BUTTON_QUERY_HELD_ANY, mask) != 0) {
-                *statep = ACTION_PROMPT_BUTTON_HELD;
+            } else if (padCheckButtons(port, PAD_BUTTON_QUERY_RELEASED, buttonMask) != 0) {
+                *buttonState = ACTION_PROMPT_BUTTON_RELEASED;
+            } else if (padCheckButtons(port, PAD_BUTTON_QUERY_HELD_ANY, buttonMask) != 0) {
+                *buttonState = ACTION_PROMPT_BUTTON_HELD;
             } else {
-                *statep = ACTION_PROMPT_BUTTON_NONE;
+                *buttonState = ACTION_PROMPT_BUTTON_NONE;
             }
-            heldp[idx] += gDisplayState.frameTicks;
+            framesSinceArm[buttonHalfwordOffset] += gDisplayState.frameTicks;
         }
 
+        // Publish and draw only after classifying presses at the old position.
         prompt->screen.xy.x = prompt->fixedX >> ACTION_PROMPT_SUBPIXEL_SHIFT;
         prompt->screen.xy.y = prompt->fixedY >> ACTION_PROMPT_SUBPIXEL_SHIFT;
         ACTION_PROMPT_DRAW_CURSOR(prompt->screen.xy.x, prompt->screen.xy.y, prompt->mode);

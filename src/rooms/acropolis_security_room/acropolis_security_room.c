@@ -459,7 +459,7 @@ static void func_acropolis_security_room_8017EA5C(Task* task);
 static void func_acropolis_security_room_8017EADC(Task* task);
 static void func_acropolis_security_room_8017EB9C(Task* task);
 static void func_acropolis_security_room_8017EE44(Task* task);
-static void func_acropolis_security_room_8017F480(Task* task);
+static void _actionPromptMoveCursors(Task* task);
 static void _actionPromptDrawCursor(s32 cursorX, s32 cursorY, s32 cursorMode);
 static void func_acropolis_security_room_8017FA18(Task* task);
 static void func_acropolis_security_room_8017FB20(Task* task);
@@ -2867,13 +2867,15 @@ static void func_acropolis_security_room_8017F300(Task* task)
     task->state = 2;
 }
 
-/// The second prompt's copy.
-#define actionPromptMoveCursors func_acropolis_security_room_8017F480
+/// Selects the additional private cursor task, with signature `void(Task*)`.
+#undef ACTION_PROMPT_MOVE_CURSORS_TASK
+#define ACTION_PROMPT_MOVE_CURSORS_TASK _actionPromptMoveCursors
 #undef ACTION_PROMPT_DRAW_CURSOR
 /// Selects the second prompt's private drawer for both fragments.
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursor
 #include "../../shared/action_prompt_move_cursors.inc.c"
-#undef actionPromptMoveCursors
+#undef ACTION_PROMPT_MOVE_CURSORS_TASK
+#define ACTION_PROMPT_MOVE_CURSORS_TASK actionPromptMoveCursors
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 #undef ACTION_PROMPT_DRAW_CURSOR
@@ -2883,12 +2885,12 @@ static void func_acropolis_security_room_8017F300(Task* task)
 /// a two-state dispatcher whose handler table is built on the stack rather
 /// than read from `.data`, so state 0 runs
 /// `func_acropolis_security_room_80180308` and state 1 runs
-/// `func_acropolis_security_room_8017F480`.
+/// `_actionPromptMoveCursors`.
 void func_acropolis_security_room_8017F9C8(Task* task)
 {
     TaskFunc funcs[2] = {
         func_acropolis_security_room_80180308,
-        func_acropolis_security_room_8017F480,
+        _actionPromptMoveCursors,
     };
 
     funcs[task->state](task);

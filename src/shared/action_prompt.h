@@ -36,7 +36,22 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ActionPromptRect, 0x8);
 
 void actionPromptReset(Task* task);
-void actionPromptMoveCursors(Task* task);
+
+/// Selects the task callback defined by the cursor-motion fragment.
+///
+/// Bind to a function identifier with signature `void(Task* task)`. The default
+/// is `actionPromptMoveCursors`, shared between files in some packages.
+/// Acropolis security and Shelter R47 bind an additional static instance,
+/// `_actionPromptMoveCursors`, declared in each carrier's prologue before its
+/// callers. Rebind around its move fragment and restore the default afterwards;
+/// `ACTION_PROMPT_DRAW_CURSOR` selects the drawer called by that instance.
+/// A binding supplied before this header also selects this prototype.
+/// This object-like alias captures no arguments, repeats no evaluation and
+/// uses neither stringification nor token pasting.
+#ifndef ACTION_PROMPT_MOVE_CURSORS_TASK
+#define ACTION_PROMPT_MOVE_CURSORS_TASK actionPromptMoveCursors
+#endif
+void ACTION_PROMPT_MOVE_CURSORS_TASK(Task* task);
 
 /// Selects the cursor drawer declared and called by the included prompt fragments.
 ///

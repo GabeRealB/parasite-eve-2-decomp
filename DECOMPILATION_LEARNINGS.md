@@ -52255,7 +52255,7 @@ following them, or the scheduler fills the wrong load-delay slot with it.
 
 ## Two loop address registers, one at `+0` and one at `+2`: a source pointer *plus* an indexed pointer
 
-**Problem.** `func_acropolis_security_room_8017F480` walks the two button slots
+**Problem.** `_actionPromptMoveCursors` walks the two button slots
 of a `ActionPrompt` (element size 8, first field at `+0x14`). The target
 keeps *three* induction variables in the inner loop — the counter, a pointer at
 `prompt+0x14` and a pointer at `prompt+0x16` — and reaches the third field at
@@ -52263,7 +52263,7 @@ keeps *three* induction variables in the inner loop — the counter, a pointer a
 
 ```
 addiu s3, s1, 0x14        # before the loop guard
-move  s4, zero            # i = 0
+move  s4, zero            # buttonSlot = 0
 addiu s2, s1, 0x16        # after it
 ...
 sh    v0, 0(s3)           # slot->state
@@ -52273,9 +52273,9 @@ lw    v1, 2(s2)           # slot->lastPos   <- +2, not its own register
 addiu s4, s4, 1 ; addiu s3, s3, 8 ; addiu s2, s2, 8
 ```
 
-**Symptom.** The obvious `prompt->buttons.slots[i].field` spelling gives *one* address
-register holding `prompt + 8*i` with `0x14`/`0x16`/`0x18` displacements, and
-GCC then eliminates `i` against it (`bne s0, s2` instead of `slti v0, s4, 2`),
+**Symptom.** The obvious `prompt->buttons.slots[buttonSlot].field` spelling gives *one* address
+register holding `prompt + 8*buttonSlot` with `0x14`/`0x16`/`0x18` displacements, and
+GCC then eliminates `buttonSlot` against it (`bne s0, s2` instead of `slti v0, s4, 2`),
 which costs a register and spills an outer-loop value. Three explicit walking
 pointers give three registers and the same biv elimination.
 
@@ -52290,15 +52290,17 @@ says which optimiser produced it:
 So the shape above is one source pointer and one *indexed* pointer:
 
 ```c
-statep = &prompt->buttons.halfwords[0]; /* biv: the C increments it */
-heldp  = &prompt->buttons.halfwords[1]; /* invariant; indexed below */
-idx    = 0;
-for (i = 0; i < 2; i++, statep += 4, idx += 4) {
+buttonState          = &prompt->buttons.halfwords[0]; /* biv: the C increments it */
+framesSinceArm       = &prompt->buttons.halfwords[1]; /* invariant; indexed below */
+buttonHalfwordOffset = 0;
+for (buttonSlot = 0; buttonSlot < ARRAY_SIZE(prompt->buttons.slots);
+     buttonSlot++, buttonState += ACTION_PROMPT_BUTTON_HALFWORDS,
+     buttonHalfwordOffset += ACTION_PROMPT_BUTTON_HALFWORDS) {
     ...
-    heldp[idx]                                        /* giv, add = prompt+0x16 */
-    PARENT_OF(heldp + idx, ActionPromptButton, framesSinceArm)->lastPos.packed  /* giv, add = prompt+0x18 */
+    framesSinceArm[buttonHalfwordOffset]                                        /* giv, add = prompt+0x16 */
+    PARENT_OF(framesSinceArm + buttonHalfwordOffset, ActionPromptButton, framesSinceArm)->lastPos.packed  /* giv, add = prompt+0x18 */
     ...
-    *statep = ...;
+    *buttonState = ...;
 }
 ```
 
@@ -52307,11 +52309,11 @@ Two givs of the same biv whose `add_val`s differ by a constant are merged by
 comes from. A source pointer is a separate biv class and never merges with
 them, which is what keeps `0(s3)` in its own register.
 
-`idx` is the trick from "A separate index biv puts the giv init in the loop
-preheader" applied for a different reason: indexing off `prompt->buttons.slots[i]`
-creates a bare `i*8` giv, and `maybe_eliminate_biv` then rewrites both `i < 2`
-and `i == 0` against it and deletes `i`. Indexing a pointer with its own
-counter leaves `i` with no giv to be eliminated through, so it survives as the
+`buttonHalfwordOffset` is the trick from "A separate index biv puts the giv init in the loop
+preheader" applied for a different reason: indexing off `prompt->buttons.slots[buttonSlot]`
+creates a bare `buttonSlot*8` giv, and `maybe_eliminate_biv` then rewrites both `buttonSlot < 2`
+and `buttonSlot == 0` against it and deletes `buttonSlot`. Indexing a pointer with its own
+counter leaves `buttonSlot` with no giv to be eliminated through, so it survives as the
 loop counter — which is what the target does.
 
 **Why the copies do not each get a register.** `strength_reduce` only reduces a
@@ -52325,7 +52327,7 @@ anything local to that access.
 ## `(u16)x << 0x10 >> 0x15` keeps `lhu`; `x >> 5` on the same `s16` field gives `lh`
 
 Two reads of the same `PadState::stickAxes[PAD_STICK_LEFT_X]` in one function assemble differently
-in `func_acropolis_security_room_8017F480`: the linear analog path loads it
+in `_actionPromptMoveCursors`: the mouse-format path loads it
 `lhu` and sign-extends with a shift pair, the squared path loads it `lh`.
 
 ```
@@ -52338,8 +52340,8 @@ loses the pair. Casting to `u16` first forces the zero-extending load, and the
 explicit `<< 0x10 >> 0x15` then reproduces the sign-extend-and-shift:
 
 ```c
-step = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;   /* lhu, sll 16, sra 21 */
-stick = pad->stickAxes[PAD_STICK_LEFT_X];                          /* lh */
+motionValue = ((u16)pad->stickAxes[PAD_STICK_LEFT_X] << 0x10) >> 0x15;   /* lhu, sll 16, sra 21 */
+stickValue = pad->stickAxes[PAD_STICK_LEFT_X];                          /* lh */
 ```
 
 **Related:** A volatile `PadState` object's `s16` read into an `s32` compiles
