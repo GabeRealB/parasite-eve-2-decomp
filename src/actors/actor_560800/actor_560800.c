@@ -6111,7 +6111,7 @@ static void _actor560800StartSoundCue(s32 cueId)
 /// other strip, then re-loads the chunk at `D_8006C338[36].data` with
 /// `D5B498_8006C234` at 8 for the duration, kills this task, restores session
 /// image memory and game-loop presentation, and spawns `D_actor_560800_801718F0` index 0xB into the work
-/// block's `eve`. Like `func_actor_310100_801620FC`, state 3 hands the
+/// block's `eve`. Like `_actor310100SwapOfficerBodyModelTask`, state 3 hands the
 /// finished work over rather than leaving the task alive.
 void func_actor_560800_801366B0(Task* arg0)
 {
