@@ -163,10 +163,17 @@ static _AudioTickNode* _audioTickRemove(_AudioTickNode* node);
 // A poll's completion result; every other result keeps its registration.
 enum { AUDIO_TICK_POLL_FINISHED = -1 };
 
-/// Links a free remainder after its block and reserves the leading block.
-static inline void _sndHeapSplitBlock(_SndHeapBlockHeader* block, _SndHeapBlockHeader* remainder, size_t blockBytes, size_t remainderBytes)
+/// Splits a free sound-heap block into a reserved block and a free remainder.
+///
+/// `block` must be a live free block, and `remainder` must start `blockBytes`
+/// bytes after it. `blockBytes` includes its header, is 4-byte aligned and is
+/// at least one header; the bytes left in the original block must exceed one
+/// header. Heap operations must be serialized.
+/// The address-ordered chain is preserved, including the original block's
+/// predecessor and magic. Neither resulting payload is initialized.
+static inline void _sndHeapSplitBlock(_SndHeapBlockHeader* block, _SndHeapBlockHeader* remainder, size_t blockBytes)
 {
-    remainder->size        = remainderBytes;
+    remainder->size        = block->size - blockBytes;
     remainder->magic       = SNDHEAP_MAGIC;
     remainder->isAllocated = false;
     if (block->next == NULL) {
@@ -181,8 +188,13 @@ static inline void _sndHeapSplitBlock(_SndHeapBlockHeader* block, _SndHeapBlockH
     block->isAllocated = true;
 }
 
-/// Unlinks a registration while retaining its node and argument allocations.
-static inline void _audioTickUnlinkNode(_AudioTickNode* previous, _AudioTickNode* node)
+/// Unlinks a poll registration without invoking handlers or releasing storage.
+///
+/// `previous` must immediately precede the live `node`; for the first
+/// registration it is the list sentinel. The caller must serialize list edits
+/// and disable polling. Only the neighboring links change: `node` retains its
+/// links, handlers and borrowed argument pointer after it leaves the list.
+static inline void _audioTickUnlinkNode(_AudioTickNode* previous, const _AudioTickNode* node)
 {
     previous->next = node->next;
     if (node->next != NULL) {
@@ -856,7 +868,7 @@ void* sndHeapAlloc(size_t payloadBytes)
 
             // Insert the remainder immediately after this block.
             if (sizeof(_SndHeapBlockHeader) < newBlockSize) {
-                _sndHeapSplitBlock(block, newBlock, blockBytes, newBlockSize);
+                _sndHeapSplitBlock(block, newBlock, blockBytes);
             } else {
                 block->isAllocated = true;
             }
