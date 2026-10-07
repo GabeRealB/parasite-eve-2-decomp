@@ -88807,7 +88807,7 @@ Inputs: `base.i`
 `base_1.i`
 `119bb54673181831955ccd93b27d3adfc7eb26a99b299c09b92aa23a20ed1b1f` (100%).
 
-## Two zero stores to one global: index a declared array, `[1]` before `[0]` (func_mine_mesa_80181848, 2026-09-15)
+## Two zero stores to one global: index a declared array, `[1]` before `[0]` (_mineMesaInitializeEnemyWaveState, 2026-09-15)
 
 m2c renders a target that clears two words of one global as two `M2C_FIELD`
 stores, and neither reproduces it: the offset folds into the symbol reloc, so the
@@ -88947,7 +88947,7 @@ Read the object before writing a bound check: two compares against the same
 register is a source-level fact, not an allocation artifact, and the folded
 version is a different function.
 
-## A constant selected by a two-way condition reaches one call site through the else's branch delay slot (func_mine_mesa_801817BC, 2026-09-15)
+## A constant selected by a two-way condition reaches one call site through the else's branch delay slot (_mineMesaRebuildVariantWalls, 2026-09-15)
 
 When a room picks one of two constants by a condition and passes it to a single
 callee, the target has **one** `jal` and four blocks, not two calls. This room's
@@ -88975,18 +88975,18 @@ rewrites.
 The source is an ordinary selection, and either spelling of it works:
 
 ```c
-s32 offset;
+s32 height;
 
 if (gGameSession->location.loc.variant == 1 || gGameSession->location.loc.variant == 7) {
-    offset = 0x7D0;
+    height = 0x7D0;
 } else {
-    offset = 0x190;
+    height = 0x190;
 }
-mineMesaBuildWalls(offset);
+mineMesaBuildWalls(height);
 ```
 
 The m2c seed reached 100% on the first build with the comma-operator form
-(`if (x == 1 || (offset = 0x190, x == 7))`); the plain `if`/`else` above is the
+(`if (x == 1 || (height = 0x190, x == 7))`); the plain `if`/`else` above is the
 same object, so the comma operator is not doing any work and can be replaced with
 the readable form. What produces a *different* function is hoisting the call into
 the arms - `if (cond) f(0x7D0); else f(0x190);` gives two call blocks and two
@@ -89041,7 +89041,7 @@ Two subscripts and one store, no address temporary: 100%, every penalty zero
 `nop`, because the store's address is then a plain `MEM` on a live pointer rather
 than the value of a pointer local). Worth trying as the *first* move on any
 seed whose only complaint is a base/index ordering pair - it costs one build and
-needs no scheduler reasoning. `func_mine_mesa_80181848`, the sibling that seeds
+needs no scheduler reasoning. `_mineMesaInitializeEnemyWaveState`, the sibling that seeds
 the same array, matched the same day with `arr[1] = 0; arr[0] = 0;` written out.
 
 Note the arity was wrong too - the handler's third argument is in `$a2` - so this

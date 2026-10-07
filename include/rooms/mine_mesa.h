@@ -70,9 +70,13 @@ void func_mine_mesa_8018057C(Task* task);
 /// projected as scale * 39 / (camera Z / 4) pixels, with nonzero depth required.
 void mineMesaDrawViewFlaresTask(Task* task);
 
-/// Task entries the Shelter map UI overlay's stage tables name, each room's
-/// entry task started for its location and the enemy descriptors' tasks, and
-/// the models those descriptors attach.
-void func_mine_mesa_8017DD98(Task* task);
+/// Initializes and updates the loaded Mine Mesa room's scripted events.
+///
+/// Exported to the Shelter map's stage-4 area-1 task descriptor. Requires the
+/// mesa room resources and active collision grid to remain loaded. `state`
+/// must be 0..2: room setup, per-frame event checks, release. Start a bodyless
+/// task at state 0; initialization installs its messages and room slot, sets
+/// up first-arrival presentation and rebuilds collision walls. Owns no work.
+void mineMesaRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MINE_MESA_H

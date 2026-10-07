@@ -4,7 +4,7 @@
 // packages, an enemy task and its models in the actor package loaded for the
 // stage, and marker models in the map pictures. Each lives in a package loaded
 // at a slot of its own, so each is absolute.
-func_mine_mesa_8017DD98 = 0x8017DD98; // type:func absolute:True owner=mine_mesa shared=rooms
+mineMesaRoomTask = 0x8017DD98; // type:func absolute:True owner=mine_mesa shared=rooms
 D_mine_mesa_80186538 = 0x80186538; // absolute:True owner=mine_mesa shared=rooms
 D_mine_mesa_80186548 = 0x80186548; // absolute:True owner=mine_mesa
 D_mine_mesa_8018654C = 0x8018654C; // absolute:True owner=mine_mesa

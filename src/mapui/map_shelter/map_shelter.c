@@ -530,7 +530,7 @@ AreaObjectRoom D_map_shelter_8017A998[51] = {
 };
 
 TaskDesc D_map_shelter_8017AB30[] = {
-    { { { TASK_BODY_NONE, 0x20 } }, func_mine_mesa_8017DD98, { .value = GP_TASK_LOC_KEY(4, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, mineMesaRoomTask, { .value = GP_TASK_LOC_KEY(4, 1, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, mineCavernRoomTask, { .value = GP_TASK_LOC_KEY(4, 2, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_mine_tunnel_entrance_8017D6BC, { .value = GP_TASK_LOC_KEY(4, 3, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_mine_tunnel_8017D77C, { .value = GP_TASK_LOC_KEY(4, 4, 0) } },
