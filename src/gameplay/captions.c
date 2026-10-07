@@ -190,7 +190,7 @@ void func_800E44A0(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 0, 0);
         stageRequestFrameCapture();
-        Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
+        taskSpawn(1, 0x2C, 0, &D_801155A0);
     }
     eventIndex = capFindVariantRecord((s32)(s16)D_801155AE);
     D_801155AE = (u16)eventIndex;
@@ -337,7 +337,7 @@ void func_800E44A0(Task* task)
                     if (D_80115666 == 1) {
                         D_8011566D                                                 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
-                        Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
+                        taskSpawn(1, 0x2C, 0, &D_801155A0);
                     } else if (D_80115666 == 2) {
                         D_801155BA = 4;
                     } else {

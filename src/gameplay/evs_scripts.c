@@ -474,7 +474,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 } else {
                     D_801156D4.rampFrames = (u16)work->command->operand1.value;
                 }
-                work->primaryEffectTask = Task_SpawnPtr(1, 0x31, 0, &D_801156D4);
+                work->primaryEffectTask = taskSpawn(1, 0x31, 0, &D_801156D4);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE:
@@ -487,7 +487,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 }
                 D_801156DC.targetVolume   = work->command->operand0.value;
                 D_801156DC.durationFrames = work->command->operand1.value;
-                D_8010FBE4                = Task_SpawnPtr(9, 0xD, 0, &D_801156DC);
+                D_8010FBE4                = taskSpawn(9, 0xD, 0, &D_801156DC);
                 break;
 
             case EVENT_SCRIPT_OPCODE_FADE_SOUND_ATTENUATION:
@@ -497,7 +497,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 D_801156E0.soundId           = work->command->operand0.value;
                 D_801156E0.targetAttenuation = work->command->operand1.value;
                 D_801156E0.durationFrames    = work->command->operand2.value;
-                D_8010FBE8                   = Task_SpawnPtr(9, 0xE, 0, &D_801156E0);
+                D_8010FBE8                   = taskSpawn(9, 0xE, 0, &D_801156E0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_REBUILD_TMD_BUFFERS:
@@ -550,7 +550,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 } else {
                     D_801156D8.rampFrames = (u16)work->command->operand1.value;
                 }
-                work->secondaryFadeTask = Task_SpawnPtr(1, 0x31, work->command->operand2.value, &D_801156D8);
+                work->secondaryFadeTask = taskSpawn(1, 0x31, work->command->operand2.value, &D_801156D8);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE:

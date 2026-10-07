@@ -994,7 +994,7 @@ void Gp_PlayClockState2(Task* arg0)
             fade->blend      = SCREEN_FADE_SUBTRACT;
             fade->phase      = SCREEN_FADE_RUNNING;
             fade->rampFrames = session->deathFadeFrames;
-            Task_SpawnPtr(1, 0x31, 0, fade);
+            taskSpawn(1, 0x31, 0, fade);
         }
         arg0->spawnArg1.value = 0;
         arg0->state++;
@@ -1640,7 +1640,7 @@ void Gp_SpawnViewTasks(void)
     cameras     = cameraTable->cameras[sess->area - 1];
     idx         = viewGetMappedIndex();
     camera      = gpViewAt(cameras, idx);
-    Task_SpawnPtr(0, 0xF, 0, (camera - 1));
+    taskSpawn(0, 0xF, 0, (camera - 1));
     taskSpawn(0, 0x17, 0, 0);
 }
 
@@ -1697,7 +1697,7 @@ void Gp_SpawnCurView(s32 arg0)
     cameras     = cameraTable->cameras[sess->area - 1];
     idx         = viewGetMappedIndex();
     camera      = gpViewAt(cameras, idx);
-    Task_SpawnPtr(0, 0xF, 0, (camera - 1));
+    taskSpawn(0, 0xF, 0, (camera - 1));
     if (arg0 == 0) {
         taskSpawn(0, 0x17, 0, 0);
     }

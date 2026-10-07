@@ -77,11 +77,6 @@ Task* taskSpawnFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnArg1, Tas
 /// does not fail spawning.
 Task* taskSpawn(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2);
 
-static __inline__ Task* Task_SpawnPtr(s32 bank, s32 type, s32 arg2, const void* data)
-{
-    return taskSpawn(bank, type, arg2, data);
-}
-
 /// Spawns an indexed descriptor onto the default execution list, restoring the selected list.
 ///
 /// `gTaskDefaultList` must be initialized. `table[index]` and both payload words
