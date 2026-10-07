@@ -621,6 +621,7 @@ the first package by name, and the others include that id.
 | `.morph` | `morph_deltas`, `morph_normals` | a `ModelMorph`'s per-vertex deltas and target normals |
 | `.path` | `movie_path`, `camera_path` | one position (or camera transform) per movie or scene frame |
 | `.motion` | `motion_curve` | baked per-frame motion of a prop or figure: positions, angles |
+| `.motion` | `sprite_schedule` | which sprites a prop shows on each frame of a state: `actor_341700`'s four slots per frame, indexing its hand-placed offset table, which stays in C |
 
 A track can carry a per-step flag in a coordinate's spare bit:
 `dryfield_night_gas_station_motion_0AFC0` is 100 `SVECTOR` steps whose `vx`

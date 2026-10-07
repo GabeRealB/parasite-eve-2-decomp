@@ -5657,6 +5657,7 @@ EMBEDDED_ASSETS = {
     'actor_141000_motion_02408': {"source": 'actor_141000.pe2pkg', "vram": 0x80134228, "size": 0x2D0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
     'actor_141000_motion_026D8': {"source": 'actor_141000.pe2pkg', "vram": 0x801344F8, "size": 0x2D0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
     'actor_303600_motion_085E8': {"source": 'actor_303600.pe2pkg', "vram": 0x8016A408, "size": 0xAF0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
+    'actor_341700_motion_142DC': {"source": 'actor_341700.pe2pkg', "vram": 0x801760FC, "size": 0x258, "ext": '.motion', "type": 'sprite_schedule', "include": 'u8'},
     'actor_503500_motion_15F70': {"source": 'actor_503500.pe2pkg', "vram": 0x80147D90, "size": 0x5A0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
     'actor_503500_motion_16510': {"source": 'actor_503500.pe2pkg', "vram": 0x80148330, "size": 0x5A0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
     'actor_511000_motion_15524': {"source": 'actor_511000.pe2pkg', "vram": 0x80147344, "size": 0x3C0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
