@@ -320,19 +320,24 @@ static void _actor110700No9GolemUpdate(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Restarts the golem's driven tracks in the animation set stored in its work.
+/// Restarts all driven body tracks on the golem's requested animation set.
 ///
-/// Requires initialized work and an animation-set index in 1..5. Slot 0 is
-/// the undriven root; slots 1..18 each restart their corresponding track.
+/// `work` must be live and its context bound to its rig and nineteen-part
+/// model. `work->animId` selects a loaded package set in 1..5; zero is invalid
+/// here, and no bounds are checked. The borrowed set table and clip data must
+/// remain live during subsequent playback.
+///
+/// Slots 1..18 restart at their same-numbered track starts with
+/// `ANIMATION_RATE_ONE` and cleared boundary state and result flags. Slot 0
+/// is the placement root and stays untouched. No model coordinates or pose
+/// buffer entries are written; the next tick establishes the new segment.
 static inline void _actor110700No9GolemRestartTracks(_Actor110700No9GolemWork* work)
 {
     s32 slotIndex;
 
-    slotIndex = ACTOR_110700_FIRST_ANIMATED_PART;
-    do {
+    for (slotIndex = ACTOR_110700_FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, work->animId);
-        slotIndex++;
-    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
+    }
 }
 
 /// Restarts the golem's body animation for `ACTOR_MESSAGE_PLAY_ANIMATION`.

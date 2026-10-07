@@ -2021,14 +2021,13 @@ store; dbr puts the increment at loop top. Same as the already-matched
 sibling minus its extra post-loop store.
 
 ```c
-slotIndex = ACTOR_110700_FIRST_ANIMATED_PART;
-do {
+for (slotIndex = ACTOR_110700_FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
     animationResetSlot(&work->rig.anim, slotIndex, work->animId);
-    slotIndex++;
-} while (slotIndex < ARRAY_SIZE(work->rig.slots));
+}
 ```
 
-`_actor110700No9GolemPlayAnimation`. Distinct from "m2c's split counter + offset
+`_actor110700No9GolemPlayAnimation`, through `_actor110700No9GolemRestartTracks`.
+Distinct from "m2c's split counter + offset
 accumulator suppresses loop strength reduction" (that was a scaled index
 inside the body). Inputs: `base_1.i`
 `7b7f311b3d52a51a17b462e8cb4a47d1256ee44499aedabc6ef54610c5b961e0`
