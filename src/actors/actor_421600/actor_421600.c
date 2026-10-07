@@ -4059,8 +4059,9 @@ static void func_actor_421600_8013BA70(Task* arg0)
 /// 0x840 / 0x844 triple and `stateTimer` cleared) and spawns the 0x60030 effect on
 /// the second coordinate. Frames 2, 3, 5, 7 and 8 then free the model buffers
 /// and spawn one effect each -- 0xA0005 on coordinate 9, 12, 1 and 3 -- whose
-/// model is tinted from the enemy's area record (`field_24` / `field_25`) and
-/// re-streamed. Frame 0xA writes the 0x16 state. The counter stops at 0x400.
+/// model receives current area-placement texture-page and CLUT-row offsets,
+/// rebuilding both primitive-buffer halves. Frame 0xA writes the 0x16 state.
+/// The counter stops at 0x400.
 static void func_actor_421600_8013C8E0(Task* arg0)
 {
     DesertChaserWork* work;
@@ -4094,21 +4095,21 @@ static void func_actor_421600_8013C8E0(Task* arg0)
         vec.vz                   = 0x64;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), ctx);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), ctx);
     }
     if (work->stateTimer == 5) {
         D_80114B34[5].data.model = &_gActor421600DesertChaserBurstLegLeft;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), ctx);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), ctx);
     }
     if (work->stateTimer == 7) {
         D_80114B34[5].data.model = &_gActor421600DesertChaserBurstTorso;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), ctx);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), ctx);
     }
     if (work->stateTimer == 8) {
         D_80114B34[5].data.model = &_gActor421600DesertChaserBurstHead;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), ctx);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), ctx);
     }
     if (work->stateTimer == 0xA) {
         work->state = 0x16;

@@ -3401,12 +3401,12 @@ static void Actor01900_Fn0892C(Task* arg0)
                 vec.vy                   = 0;
                 vec.vx                   = 0;
                 eff                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec);
-                actorTintEffect(eff, enemy);
+                _actorRenderApplyEffectPlacementTextureOffsets(eff, enemy);
             }
             if (work->stateTimer == 5) {
                 D_80114B34[5].data.model = &_gActor01900StrangerBurstHand;
                 eff                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL);
-                actorTintEffect(eff, enemy);
+                _actorRenderApplyEffectPlacementTextureOffsets(eff, enemy);
             }
             break;
         case 0x18:

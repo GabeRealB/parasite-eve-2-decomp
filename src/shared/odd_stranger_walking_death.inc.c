@@ -14,8 +14,8 @@
 /// slots, and spawns clip 0x60030. `stateTimer` then counts up under `animId`:
 /// the state-2 arm waits 0x10 frames on `rig.slots[1].status` bit 2 before switching to
 /// 0x1A, runs the `0x12C`/0xA range probe and the `gridContacts` obstacle slide,
-/// and spawns the three tinted key-frame effects at counts 3, 5 and 6; the
-/// state-0x1A arm gates on `rig.slots[1].status` bit 0x100, dispatches the one-shot actions
+/// and spawns three key-frame effects with area-placement texture offsets at
+/// counts 3, 5 and 6; the state-0x1A arm gates on `rig.slots[1].status` bit 0x100, dispatches the one-shot actions
 /// off `stateTimer - 0x19`, and from 0x1A on rebuilds the root coordinate through
 /// its current yaw, keeping X/Z at `ODD_STRANGER_ROOT_SCALE` and reducing Y
 /// by `(stateTimer - 0x14) * 0xB`. Both arms end in
@@ -66,15 +66,15 @@ void oddStrangerWalkingDeath(Task* arg0)
                 ODD_STRANGER_FX_OFFSET.vz = 0x64;
                 ODD_STRANGER_FX_OFFSET.vy = 0;
                 ODD_STRANGER_FX_OFFSET.vx = 0;
-                actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &ODD_STRANGER_FX_OFFSET), enemy);
+                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &ODD_STRANGER_FX_OFFSET), enemy);
             }
             if ((s16)work->stateTimer == 5) {
                 D_80114B34[5].data.model = ODD_STRANGER_BURST_MODEL_5;
-                actorTintEffect(effectSpawn(0xA0000 | 5, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(0xA0000 | 5, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
             }
             if ((s16)work->stateTimer == 6) {
                 D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-                actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
             }
             break;
         case 0x1A:

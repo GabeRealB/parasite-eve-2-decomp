@@ -108253,7 +108253,8 @@ overlay's function is a template. This compares the twin's target against yours,
 dropped mask, one extra call, the `D_` symbol names, and the tail condition. Branch labels have
 to be normalized (`\.L\w+` → `.L`) or every block boundary shows as a diff.
 
-The twin's repeated block was a `static __inline__` helper, `actorTintEffect`, inlined at
+The twin's repeated block was an earlier form of the `static __inline__` helper
+`_actorRenderApplyEffectPlacementTextureOffsets`, inlined at
 four spawn sites - and its *expansion* is byte-identical in the 401800 TU even though every
 surrounding struct offset differs. So transcribe the helper verbatim, barrier macros included:
 
@@ -109168,13 +109169,13 @@ Inputs: `base_1.i` SHA256
 ## Four copies of one block are four inlined expansions, not one variable used four times (func_actor_401000_8013B1E4, 2026-09-16)
 
 A function that repeats the same 20-instruction body in four `if` arms — here
-the area-key tint that follows each `effectSpawn` — compiles to different
+the area-placement texture binding that follows each `effectSpawn` — compiles to different
 registers depending on whether the four copies share a variable or are four
 expansions of a `static __inline__` helper. Written out four times with one
 `model` / `idx` / `raw` at function scope (m2c's shape, and the shape of the
 `func_actor_302600_80165A6C` twin, which has the body only once), the body
-scored 84.126%; moved into a helper (now the shared `actorTintEffect` itself) and called four times
-exactly as `actorTintEffect` is, it scored 100.000% on the first build.
+scored 84.126%; moved into a helper (now the shared `_actorRenderApplyEffectPlacementTextureOffsets` itself) and called four times
+exactly as `_actorRenderApplyEffectPlacementTextureOffsets` is, it scored 100.000% on the first build.
 
 The mechanism is `global.c`'s allocno ordering. A variable assigned in four
 blocks is one pseudo with a whole-function live range, so it is a *global*
@@ -111639,7 +111640,7 @@ slots out in declaration order from the local base (`sp + outgoing_args_size`),
 so a declaration reorder can move the whole mismatch onto a *different*
 variable's stack slots - it does not remove it.
 
-The fix is the idiom `actorTintEffect` already uses: assign a pointer
+The fix used the earlier implementation of `_actorRenderApplyEffectPlacementTextureOffsets`: assign a pointer
 local, touch it, and take the second address directly.
 
 ```c
@@ -128622,7 +128623,7 @@ sp+0x28, and the declaration order is what puts them there. So the offsets need
 one declaration order and the address wants no pseudo, and only the second is
 negotiable. `actors_shared_8013231c.h`'s key block and the offset arithmetic are
 in `KyleMadiganWalkerWork`'s header; the fix is the corpus's usual barrier idiom, used
-in `actorTintEffect` and `func_actor_450800_80132160` for this same call
+in the earlier implementation of `_actorRenderApplyEffectPlacementTextureOffsets` and `func_actor_450800_80132160` for this same call
 pair:
 
 ```c
@@ -143815,7 +143816,7 @@ rather than adding a barrier.
 ## `&key` passed to two calls from a non-zero frame offset: the key belongs to an inline helper, not to a pointer local and `TOUCH_REG` (func_actor_461800_80132390, 2026-09-26)
 The area-key sequence (`areaSyncLocationVariant(&key)` then
 `areaGetVariant(&key)`, target `addiu a0,sp,N` at both calls) was
-matched here and in `actorTintEffect` with the `SOFT_BARRIER(); keyp = &key;
+matched here and in `_actorRenderApplyEffectPlacementTextureOffsets` with the `SOFT_BARRIER(); keyp = &key;
 TOUCH_REG(keyp);` recipe of the entries above, because a caller-scope key at a
 non-zero offset gives one merged, call-crossing pseudo. Declaring the key
 inside a `static inline` helper that does the whole lookup
@@ -143827,7 +143828,7 @@ slot (`.cse` shows `(set a0 (plus fp 40))` twice, nothing for cse to merge).
 One slot serves every expansion, so the frame size is unchanged - but drop the
 caller's now-unused `key` declaration, or it keeps its own 8 bytes. The
 operand order `(idx << 4) + (s32)rec->field_0` still matters (`&field_0[idx]`
-is 95.6%). `actorTintEffect` became a wrapper over the same helper and all its
+is 95.6%). `_actorRenderApplyEffectPlacementTextureOffsets` became a wrapper over the same helper and all its
 users still match.
 
 ## A `(plus K+off-reg)` `addu` operand swap after inlining: combine's complex-first rule, fixed by the helper temp's width (_itemPickupTitleTask, 2026-09-26)

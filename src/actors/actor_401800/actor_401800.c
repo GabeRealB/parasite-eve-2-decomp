@@ -1964,7 +1964,8 @@ static void func_actor_401800_8013B784(Task* arg0)
 /// is set the actor crouches (0x8C8 node pitched to 0x12C, 0xA08 flags bit
 /// 0x4000 cleared), plays the 0x60030 debris burst and hands the task to the
 /// state-F0 list; the step counter then fires the 0xA0005 effects at 3, 5, 7
-/// and 9, each tinted from the enemy's area record, and parks the actor at 0x3D.
+/// and 9, applying the enemy's current area-placement texture offsets to each
+/// effect model, and parks the actor at 0x3D.
 static void func_actor_401800_8013BB10(Task* arg0)
 {
     SVECTOR          vec;
@@ -1994,21 +1995,21 @@ static void func_actor_401800_8013BB10(Task* arg0)
         vec.vz                   = 0x64;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
     if (work->stateTimer == 5) {
         D_80114B34[5].data.model = &_gActor401800Model12280;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->stateTimer == 7) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelA;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->stateTimer == 9) {
         D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->stateTimer >= 0x3D) {
         work->state = ODD_STRANGER_STATE_HIDDEN;

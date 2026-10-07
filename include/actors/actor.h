@@ -1577,11 +1577,26 @@ static __inline__ void _actorRenderApplyTaskPlacementTextureOffsets(const Task* 
     }
 }
 
-/// `_actorRenderApplyPlacementTextureOffsets` for a freshly spawned effect, when the spawn succeeded.
-static __inline__ void actorTintEffect(EffectWork* eff, Enemy* enemy)
+/// Applies an actor's current area-placement texture offsets to an effect's TMD model.
+///
+/// A NULL `effect` does nothing and does not inspect `placementOwner`.
+/// Otherwise the effect must have a live task with a writable `extra.tmd`
+/// model, and `placementOwner` must be non-NULL and live for this call.
+/// The effect work is borrowed and expires when its task exits. Neither work
+/// block nor placement owner is changed, and no pointer is retained.
+///
+/// The owner's placement index (0..15) selects a record in the current
+/// session's loaded area and saved variant, independently of its `place`
+/// pointer and stage/area bits. Signed offsets are in 64-word VRAM columns
+/// for texture pages and rows for CLUTs. A present primitive buffer has both
+/// halves rebuilt, preserving `nextBufferHalf`; otherwise only offsets change.
+/// The placement table, model source, buffer capacities, scratch stack and GPU
+/// lifetime must satisfy `_actorRenderApplyPlacementTextureOffsets`. Resolving
+/// an unset saved variant initializes it and requests a saved-pose reset.
+static __inline__ void _actorRenderApplyEffectPlacementTextureOffsets(const EffectWork* effect, const Enemy* placementOwner)
 {
-    if (eff != NULL) {
-        _actorRenderApplyPlacementTextureOffsets(eff->task->extra.tmd, enemy);
+    if (effect != NULL) {
+        _actorRenderApplyPlacementTextureOffsets(effect->task->extra.tmd, placementOwner);
     }
 }
 

@@ -4381,21 +4381,21 @@ static void func_actor_401300_8013B6E8(Task* arg0)
         vec.vz                   = 0x64;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
     }
     if (work->stateTimer == 5) {
         D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect1;
         vec.vy                   = 0;
         vec.vx                   = 0;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
     }
     if (work->stateTimer == 7) {
         D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect2;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
     }
     if (work->stateTimer == 8) {
         D_80114B34[5].data.model = &_gActor401300HornedStrangerBurstHead;
-        actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
     }
     if (work->stateTimer >= 0x3D && work->playerHeld == 0) {
         work->state = ACTOR_401300_STATE_DEAD;
@@ -4447,11 +4447,11 @@ static void func_actor_401300_8013BB30(Task* arg0)
                 vec.vz                   = 0x64;
                 vec.vy                   = 0;
                 vec.vx                   = 0;
-                actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
             }
             if (work->stateTimer == 5) {
                 D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect2;
-                actorTintEffect(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
             }
             break;
         case 0x23:
