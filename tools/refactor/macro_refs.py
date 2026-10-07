@@ -26,7 +26,7 @@ LITERALS = re.compile(r'/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\
 DIRECTIVE = re.compile(r"^[ \t]*#[ \t]*(\w+)([^\n]*)", re.M)
 DEFINE = re.compile(r"[ \t]+(" + IDENT + r")(\([^\n]*?\))?(.*)\Z", re.S)
 # Common semantic helpers remain in scope; compiler/assembly machinery does not.
-COMMON_HELPERS = {"ARRAY_SIZE", "OFFSET_OF", "PARENT_OF", "ALIGN", "PLAYSTATION_SCRATCHPAD_BASE", "PLAYSTATION_SCRATCHPAD_ADDRESS"}
+COMMON_HELPERS = {"ARRAY_SIZE", "OFFSET_OF", "PARENT_OF", "PLAYSTATION_SCRATCHPAD_BASE", "PLAYSTATION_SCRATCHPAD_ADDRESS"}
 
 
 def conventional(name):

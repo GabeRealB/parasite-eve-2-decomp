@@ -386,7 +386,8 @@ $(venv/bin/python3 tools/refactor/name_review.py context "${names[@]}")
 ## Finishing
 
 Do not add a pinned register, an \`asm\` statement or a steering macro
-(\`TOUCH_REG\`, \`USE_REG\`, \`SOFT_BARRIER\`, ...) to keep a cleanup matching: the
+(\`SOFT_TOUCH_REG\`, \`SOFT_USE_REG\`, or a deleted one such as \`TOUCH_REG\`,
+\`USE_REG\` or \`SOFT_BARRIER\` defined again) to keep a cleanup matching: the
 worker's verification fails a step that adds one. If a change stops a function
 matching, put that part back as it matched and record it as a \`rematching\`
 follow-up (NAMING.md, "Naming-pass acceptance and follow-ups").

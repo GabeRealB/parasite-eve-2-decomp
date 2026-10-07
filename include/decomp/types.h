@@ -44,8 +44,6 @@ typedef enum { false,
                true } bool;
 #endif
 
-#define NO_VALUE -1
-
 /// Smaller `VECTOR` with padding removed. Used for fixed-point positions.
 typedef struct {
     long vx;

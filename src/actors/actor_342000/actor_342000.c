@@ -1087,8 +1087,7 @@ static inline void Actor342000_EnterArea(void)
 /// State 0 allocates the `_Actor342000EventWork` block and spawns the two door
 /// halves (a spawn with `GameSession::skipEventIntro` set skips to state 4);
 /// states 1..10 spawn the script tasks, seed the placements and run the timed
-/// hand-off to area 0x21, and state 11 kills the task. `SOFT_BARRIER()` keeps
-/// state 7's `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store ahead of the state load, as in retail.
+/// hand-off to area 0x21, and state 11 kills the task.
 void func_actor_342000_8016382C(Task* arg0)
 {
     ActorCommand           msg;

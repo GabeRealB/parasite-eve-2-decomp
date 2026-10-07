@@ -110,7 +110,7 @@ aliases/accessors and shared-source configuration bindings. Use
 package in full: `INVENTORY_`, `WORLD_COLLISION_`, `ROOM_VISUAL_EFFECTS_`,
 `FILE_SYSTEM_`; do not reuse shortened C prefixes such as `GP_`, `INV_`, `FX_`
 or `FS_`. Do not add a blanket gameplay prefix. Generic helpers, including
-`ARRAY_SIZE`, `OFFSET_OF`, `PARENT_OF` and `ALIGN` in `common.h`, need no prefix.
+`ARRAY_SIZE`, `OFFSET_OF` and `PARENT_OF` in `common.h`, need no prefix.
 **GTE macros are the exception:** preserve established PsyQ-style spelling
 such as `gte_RotTransLV`, including project wrappers following that interface.
 Macro parameters may use ordinary local camelCase.
@@ -1338,8 +1338,9 @@ it restores the normal matching configuration. Preserve established prototype
 exceptions without introducing new ones or implicit declarations.
 
 **Never add a matching hack to keep a cleanup.** A pinned register
-(`register T x asm("reg")`), an `asm` statement, or a steering macro from
-`include/decomp/common.h` (`TOUCH_REG`, `USE_REG`, `SOFT_BARRIER`, ...) must not
+(`register T x asm("reg")`), an `asm` statement, or a steering macro
+(`SOFT_TOUCH_REG` and `SOFT_USE_REG` from `include/decomp/common.h`, or any of
+the deleted `TOUCH_REG`, `USE_REG`, `SOFT_BARRIER`, ... family defined again) must not
 be introduced by a naming step, and the verification fails a step that adds one
 (`tools/check_hack_sites.py`). If a change you would like - an explicit `return`,
 a separate local, a literal in place of a variable, a deleted macro - stops the

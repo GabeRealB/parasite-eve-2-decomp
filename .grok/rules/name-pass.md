@@ -255,8 +255,8 @@ does not require changing headers, TU splits or linkage merely to fit a name.
 **Macros are first-class review items.** Use UPPER_SNAKE_CASE; any subsystem or
 package prefix is spelled in full (`INVENTORY_`, `WORLD_COLLISION_`,
 `ROOM_VISUAL_EFFECTS_`, `FILE_SYSTEM_`), never shortened like `GP_`, `INV_`,
-`FX_` or `FS_`. Generic common helpers such as `ARRAY_SIZE`, `PARENT_OF` and
-`ALIGN` need no prefix. **GTE macros are the exception:** retain established
+`FX_` or `FS_`. Generic common helpers such as `ARRAY_SIZE`, `OFFSET_OF` and
+`PARENT_OF` need no prefix. **GTE macros are the exception:** retain established
 PsyQ-style names such as `gte_RotTransLV`, including project wrappers. Macro
 parameters can use local camelCase. Do not add private `_` or global `g` markers.
 Macros have preprocessor scope, not C linkage; place them with their consumers

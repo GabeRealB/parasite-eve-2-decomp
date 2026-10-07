@@ -221,8 +221,8 @@ typedef _Actor405800IvoryStalkerWork StalkerZebraIvoryWork;
  * Storing to a bare `extern` pointer next to pointer-based struct traffic lets
  * GCC 2.8.1's `fixed_scalar_and_varying_struct_p` conclude the two cannot
  * alias, so the scheduler sinks the store past the loads that follow. The
- * one-element array is the remedy measured on `actor_400600`, where a
- * `SOFT_BARRIER()` was enough for a byte store but not for this pointer one. */
+ * one-element array is the remedy measured on `actor_400600`, where an
+ * empty-asm barrier was enough for a byte store but not for this pointer one. */
 extern void* D_800678F0[1];
 
 extern TaskDesc      D_actor_405800_801514B4[];

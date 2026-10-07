@@ -153432,3 +153432,23 @@ that step was inferred from the result, not read out of a dump.
   follows also reads through the pointer, so they are not the helper above.
 - A TU without `main/gfx.h` compiles the call as an implicit declaration:
   `actor_342100`, `pe/apobiosis` and `pe/energyshot` needed the include.
+
+## The steering macros named in older entries no longer exist (include/decomp/common.h, 2026-10-07)
+
+Entries above mention `TOUCH_REG`, `TOUCH_REG2`..`5`, `TOUCH_REG_MEM`,
+`TOUCH_REG2_MEM`, `TOUCH_REG_USE`, `TOUCH_REG_USE2`, `TOUCH_REG2_USE`,
+`SOFT_TOUCH_REG2`..`5`, `SOFT_TOUCH_REG_USE`, `SOFT_TOUCH_REG_USE2`,
+`SOFT_TOUCH_REG2_USE`, `DEF_REG`, `SOFT_DEF_REG`, `USE_REG`, `USE_REG2`..`5`,
+`SOFT_USE_REG2`, `CLOBBER_REG`, `TOUCH_MEM`, `MOVE_ZERO`, `SOFT_MOVE_ZERO`,
+`COPY_REG`, `COPY_REG_EC`, `SCHED_BARRIER`, `SOFT_BARRIER`, `COMPILER_BARRIER`
+and `SOFT_COMPILER_BARRIER` as available helpers, and `MATRIX_PAIR` as the
+spelling of a matrix word store. All of them were deleted: every site that used
+one had been rewritten into source that matches without it, so each had zero
+uses. `PAD_RODATA`, `ALIGN` and `NO_VALUE` went with them, unused as well. Read
+those entries as history of how a function was once carried, not as a list of
+tools.
+
+What is left in `common.h` is `SOFT_TOUCH_REG`, `SOFT_USE_REG` and `CSE_STEER`,
+for the sites that still need them. Do not define a deleted name again or add a
+new steering macro: `tools/check_hack_sites.py` keeps matching the deleted
+names, so one reappearing counts as an added hack site.

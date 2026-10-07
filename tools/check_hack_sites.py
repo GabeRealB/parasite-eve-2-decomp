@@ -7,8 +7,11 @@
 A matched function sometimes needs one of these to keep matching:
 
     pin      `register T x asm("reg")` (or `__asm__`)
-    barrier  an asm statement with an empty template, or a steering macro of
-             include/decomp/common.h (TOUCH_REG, USE_REG, SOFT_BARRIER, ...)
+    barrier  an asm statement with an empty template, or a steering macro: the
+             two include/decomp/common.h still defines (SOFT_TOUCH_REG,
+             SOFT_USE_REG) and every name of the family deleted from it
+             (TOUCH_REG, USE_REG, SOFT_BARRIER, ...), which stays counted so
+             that defining one again registers as a new site
     emit     an asm statement that emits instructions
     alias    a declaration given another symbol's assembler name, usually with an
              offset (`extern T x __asm__("D_80012345+8");`): one object declared

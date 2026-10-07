@@ -419,9 +419,9 @@ Delete the scratch dir when you are done with a function.
 - `byte` is `signed char` and `-funsigned-char` does not override it, so a
   `byte` read may need `(u8)` to emit `lbu` rather than `lb`.
 - A store to a bare `extern` beside pointer struct traffic may stop matching.
-  `SOFT_BARRIER()` fixes a byte store; a pointer store needs `extern T x[1];`.
-  A barrier that improves the score but does not reach 100% is the wrong
-  remedy, not a near miss to permute.
+  Declare it as the member of the aggregate it belongs to; a pointer store
+  needs `extern T x[1];`. An empty-asm barrier is not a remedy: the steering
+  macros (`SOFT_BARRIER`, `TOUCH_REG`, ...) were deleted and must not return.
 - **A 100% checksum does not validate a type name.** Two agents scored 100%
   with the wrong struct because the spellings compiled identically. Argue types
   from behaviour, allocation sites and callers.

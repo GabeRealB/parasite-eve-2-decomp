@@ -5,12 +5,12 @@
 # structural reasons, both worth knowing before spending time tuning it:
 #
 #   1. The scaffolding lives in macro expansions. clang-tidy reports against
-#      the expansion, so `TOUCH_REG(x)` surfaces - if at all - as a complaint
+#      the expansion, so `SOFT_TOUCH_REG(x)` surfaces - if at all - as a complaint
 #      about the macro's *name*, not about what it does. The only findings that
 #      mentioned a steering macro at all were `readability-identifier-naming`
 #      objecting that `gte_rtv0sf0` is not UPPER_CASE, which targets the
 #      legitimate population.
-#   2. Scaffolding exists precisely to manufacture uses. `TOUCH_REG` takes its
+#   2. Scaffolding exists precisely to manufacture uses. `SOFT_TOUCH_REG` takes its
 #      operand with a "+r" constraint, so the variable is read and written as
 #      far as any analysis can tell. Dead-store and unused-value checks - the
 #      obvious candidates - therefore find nothing by construction.

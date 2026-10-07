@@ -229,7 +229,7 @@ extern ActorZone D_actor_400600_80151B40[];
  * GCC 2.8.1's `fixed_scalar_and_varying_struct_p` conclude the two cannot
  * alias, so the scheduler sinks the store past the `_Actor400600ZebraStalkerWork` loads
  * that follow. Two remedies work and which one is needed was measured, not
- * chosen: the byte store to `gSceneCombatState.zebraStalkerDeathAlert` matches with `SOFT_BARRIER()` after
+ * chosen: the byte store to `gSceneCombatState.zebraStalkerDeathAlert` matched with an empty-asm barrier after
  * it, so that one is declared as the scalar it is; the pointer store to
  * `D_800678F0` checksums wrong with the barrier and matches only as an
  * aggregate, so its one-element array stays and is doing real work.

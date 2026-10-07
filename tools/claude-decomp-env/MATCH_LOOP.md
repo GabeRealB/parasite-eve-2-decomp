@@ -199,14 +199,19 @@ Save the relevant events and input hash in `LEARNINGS.md` before scratch cleanup
 
 ## Empty asm
 
-Prefer the named helpers in `include/decomp/common.h` over raw empty asm.
-`TOUCH_REG(x)` is `"+r"`; `TOUCH_REG_USE(x, y)` adds a keep-live `"r"(y)`.
-Input-only asm, including `SOFT_USE_REG`, becomes implicitly volatile in GCC
-2.8.1 because it has no outputs. Basic empty asm is a scheduling boundary too.
-Read/write `SOFT_TOUCH_REG` avoids the no-output rule, but still changes RTL
-dependencies and may move. Check the dump rather than inferring behavior from
-the helper's name. Do not add `do/while` wrappers or extra braces. Instruction-
-emitting `lui`/`lo`/`sll` stays written out; register asm remains a separate pin.
+Empty asm is a diagnostic, not a way to finish a match. The steering macros
+that used to live in `include/decomp/common.h` (`TOUCH_REG*`, `USE_REG*`,
+`DEF_REG`, `SCHED_BARRIER`, `SOFT_BARRIER`, `COMPILER_BARRIER`, `MOVE_ZERO`,
+`COPY_REG`, ...) were deleted once their last users were rewritten; do not use
+those names, redefine them, or add a new helper. Only `SOFT_TOUCH_REG(x)`
+(`"+r"`) and `SOFT_USE_REG(x)` (`"r"`) remain, for the three sites left.
+In a scratch attempt, write the asm out (`__asm__("" : "+r"(x));`) to learn
+which lifetime or dependency the target needs, then find the source shape that
+produces it. Input-only asm becomes implicitly volatile in GCC 2.8.1 because
+it has no outputs. Basic empty asm is a scheduling boundary too. A read/write
+operand avoids the no-output rule, but still changes RTL dependencies and may
+move. Check the dump rather than inferring behavior from the spelling. Do not
+add `do/while` wrappers or extra braces. Register asm remains a separate pin.
 
 ## Permuter
 

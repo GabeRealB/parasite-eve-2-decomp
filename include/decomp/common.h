@@ -5,8 +5,6 @@
 #include "types.h"
 #include "version.h"
 
-#define PAD_RODATA()
-
 /// Byte-addressable base of the PlayStation's 1 KiB CPU scratchpad RAM.
 ///
 /// Storage is shared; callers manage the lifetime and alignment of their data.
@@ -59,8 +57,6 @@
 /// for intrusive-list termination; NULL at a nonzero offset is invalid.
 #define PARENT_OF(ptr, type, member) ((type*)((u8*)(ptr) - OFFSET_OF(type, member)))
 
-#define ALIGN(x, a) (((u32)(x) + ((a) - 1)) & ~((a) - 1))
-
 #define SECTION(x) __attribute__((section(x)))
 
 #define STATIC_ASSERT(cond, msg) \
@@ -70,24 +66,27 @@
     typedef char static_assertion_sizeof_##type[(sizeof(type) == (size)) ? 1 : -1]
 
 /*
- * Matching helpers: empty GNU C statement-asm that emit no MIPS.
+ * Matching helpers: empty GNU C statement-asm that emit no MIPS. Each use is a
+ * matching carrier, not reconstructed source.
  *
- * VOLATILE variants are scheduling fences (delay slots, insn motion).
- * SOFT_ variants omit explicit volatile. GCC 2.8.1 makes no-output asm
- * implicitly volatile, including SOFT_USE_REG; basic empty asm is also a
- * boundary. Read/write SOFT_TOUCH_REG avoids that rule but still changes
- * dependencies and may move. Inspect the RTL (CODEGEN_MODEL.md section 11).
+ * Only the two forms that still have a user are defined. The rest of the
+ * family (TOUCH_REG*, USE_REG*, DEF_REG, the barriers, MOVE_ZERO, COPY_REG,
+ * ...) was deleted as its last users were rewritten. Do not add a steering
+ * macro, here or in a source file, to keep a change matching (NAMING.md,
+ * "Never add a matching hack to keep a cleanup"); tools/check_hack_sites.py
+ * still counts the deleted names.
+ *
+ * SOFT_TOUCH_REG reads and writes `x`; SOFT_USE_REG only reads it. GCC 2.8.1
+ * makes an asm with no output implicitly volatile, so SOFT_USE_REG is a
+ * scheduling fence despite its spelling. The read/write form avoids that rule
+ * but still changes dependencies and may move. Inspect the RTL
+ * (CODEGEN_MODEL.md section 11).
  *
  * Expansions are plain statement-asm. Do not wrap them in do/while or
- * extra braces: that changes stack and scheduling. GCC 2.8.1 has no
- * variadic macros; use the numbered forms for multiple operands.
- *
- * register T x asm("v0") creates hard-register RTL; only top-level register
- * declarations globally reserve the register. Local fp pins can be invalid.
- * Instruction-emitting asm (lui/lo, sll, move) stays written out.
+ * extra braces: that changes stack and scheduling.
  */
-#define SCHED_BARRIER() __asm__ volatile("")
-#define SOFT_BARRIER()  __asm__("")
+#define SOFT_TOUCH_REG(x) __asm__("" : "+r"(x))
+#define SOFT_USE_REG(x)   __asm__("" :: "r"(x))
 
 /*
  * MATCHING CARRIER, not reconstructed source. Clears a dead flag and leaves an
@@ -104,56 +103,6 @@
     flag = 0;           \
     do {                \
     } while (0)
-
-#define COMPILER_BARRIER()      __asm__ volatile("" ::: "memory")
-#define SOFT_COMPILER_BARRIER() __asm__("" ::: "memory")
-
-#define TOUCH_REG(x)                  __asm__ volatile("" : "+r"(x))
-#define TOUCH_REG2(a, b)              __asm__ volatile("" : "+r"(a), "+r"(b))
-#define TOUCH_REG3(a, b, c)           __asm__ volatile("" : "+r"(a), "+r"(b), "+r"(c))
-#define TOUCH_REG4(a, b, c, d)        __asm__ volatile("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d))
-#define TOUCH_REG5(a, b, c, d, e)     __asm__ volatile("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d), "+r"(e))
-#define TOUCH_REG_MEM(x)              __asm__ volatile("" : "+r"(x) :: "memory")
-#define TOUCH_REG2_MEM(a, b)          __asm__ volatile("" : "+r"(a), "+r"(b) :: "memory")
-#define TOUCH_REG_USE(x, y)           __asm__ volatile("" : "+r"(x) : "r"(y))
-#define TOUCH_REG_USE2(x, y, z)       __asm__ volatile("" : "+r"(x) : "r"(y), "r"(z))
-#define TOUCH_REG2_USE(a, b, c)       __asm__ volatile("" : "+r"(a), "+r"(b) : "r"(c))
-
-#define SOFT_TOUCH_REG(x)             __asm__("" : "+r"(x))
-#define SOFT_TOUCH_REG2(a, b)         __asm__("" : "+r"(a), "+r"(b))
-#define SOFT_TOUCH_REG3(a, b, c)      __asm__("" : "+r"(a), "+r"(b), "+r"(c))
-#define SOFT_TOUCH_REG4(a, b, c, d)   __asm__("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d))
-#define SOFT_TOUCH_REG5(a, b, c, d, e) \
-    __asm__("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d), "+r"(e))
-#define SOFT_TOUCH_REG_USE(x, y) __asm__("" : "+r"(x) : "r"(y))
-#define SOFT_TOUCH_REG_USE2(x, y, z) __asm__("" : "+r"(x) : "r"(y), "r"(z))
-#define SOFT_TOUCH_REG2_USE(a, b, c) __asm__("" : "+r"(a), "+r"(b) : "r"(c))
-
-/* Output-only: gives `x` a definition that emits no MIPS. It is the third
- * form alongside TOUCH_REG ("+r") and USE_REG ("r"): the value `x` held
- * before is dead from here on, so the allocator and the scheduler stop
- * treating the variable as one range. */
-#define DEF_REG(x)              __asm__ volatile("" : "=r"(x))
-#define SOFT_DEF_REG(x)         __asm__("" : "=r"(x))
-
-#define USE_REG(x)              __asm__ volatile("" :: "r"(x))
-#define USE_REG2(a, b)          __asm__ volatile("" :: "r"(a), "r"(b))
-#define USE_REG3(a, b, c)       __asm__ volatile("" :: "r"(a), "r"(b), "r"(c))
-#define USE_REG4(a, b, c, d)    __asm__ volatile("" :: "r"(a), "r"(b), "r"(c), "r"(d))
-#define USE_REG5(a, b, c, d, e) __asm__ volatile("" :: "r"(a), "r"(b), "r"(c), "r"(d), "r"(e))
-#define SOFT_USE_REG(x)         __asm__("" :: "r"(x))
-#define SOFT_USE_REG2(a, b)     __asm__("" :: "r"(a), "r"(b))
-
-#define CLOBBER_REG(reg) __asm__ volatile("" ::: #reg)
-
-#define TOUCH_MEM(x) __asm__("" : : "m"(x))
-
-#define MOVE_ZERO(x)       __asm__ volatile("" : "=r"(x) : "0"(0))
-/* Schedulable variant: the `move` may be placed anywhere in its block. */
-#define SOFT_MOVE_ZERO(x)  __asm__("" : "=r"(x) : "0"(0))
-#define COPY_REG(dst, src) __asm__ volatile("" : "=r"(dst) : "r"(src))
-/* `+&r` / `"r"` cannot overlap, so GCC emits `move` and frees src. */
-#define COPY_REG_EC(dst, src) __asm__ volatile("" : "+&r"(dst) : "r"(src))
 
 /// Exports `orig`, defined in this file, under a second name `alias`: one more
 /// global symbol at the same address, adding no bytes. The compiler has no
