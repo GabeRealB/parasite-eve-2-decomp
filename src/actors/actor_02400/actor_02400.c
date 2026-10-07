@@ -1092,11 +1092,7 @@ static void Actor02400_Fn0208C(Task* task)
     scratch->translation.vy                       = coord->coord.t[1];
     scratch->translation.vz                       = coord->coord.t[2];
     coord->coord                                  = work->baseMatrix;
-    scratch->rescale.matrix.rotationWords.m00M01  = ONE;
-    scratch->rescale.matrix.rotationWords.m02M10  = 0;
-    scratch->rescale.matrix.rotationWords.m11M12  = ONE;
-    scratch->rescale.matrix.rotationWords.m20M21  = 0;
-    scratch->rescale.matrix.rotationWords.m22     = ONE;
+    gfxSetRotIdentity(&scratch->rescale.matrix.mat);
     ScaleMatrix(&scratch->rescale.matrix.mat, &scratch->rescale.scale);
     MulMatrix(&coord->coord, &scratch->rescale.matrix.mat);
     coord->coord.t[0] = scratch->translation.vx;
