@@ -497,7 +497,7 @@ static void Telephone_BuildWeaponUsage(UiList* list, UiObject* obj)
         id = i + 0x80;
         c  = *itemGetText(id, ITEM_TEXT_NAME, 1);
         if ((c != 0) && (c != 0xA) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[i] > 0)) {
-            Gp_SetItemSeenBit(id, 1);
+            itemSetIdentified(id, 1);
             *p++ = id;
             count++;
             total += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponUseCounts[i];

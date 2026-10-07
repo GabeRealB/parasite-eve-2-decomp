@@ -6,7 +6,7 @@
 /// collected bit 0x10, CAP commands 0xA and 6 and two stage sounds -- and
 /// hands it to the event gate with the incoming record; the gate's 0 (the
 /// prerequisite missing) is answered as 2, and once the gate has latched the
-/// event item 0x110 is marked seen. Any other record first drops nibble 0x55
+/// event item 0x110 is identified. Any other record first drops nibble 0x55
 /// from 2 back to 1 unless it is only a query. For 0x15 it also clears nibble
 /// 0x4B when it reads 7, and answers 1 on stage 3 and otherwise only while
 /// nibble 0x32 is 2. Everything else answers 1.
@@ -28,7 +28,7 @@ s32 waterTowerEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
             ret = 2;
         }
         if (ROOM_EVENT_ACTIVE != 0) {
-            Gp_SetItemSeenBit(0x110, 1);
+            itemSetIdentified(0x110, 1);
         }
         return ret;
     }

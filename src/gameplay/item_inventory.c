@@ -9,7 +9,7 @@
 #include "gameplay/starter_inventory.h"
 
 /* Count item `id` in saved rows 0..254 through a cleared range. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, inventoryGetItemQuantity(&(scan), (id)))
 
 #include "main/mc.h"
 #include "main/session.h"
@@ -917,7 +917,7 @@ void func_800B8014(void)
             str++;
         }
         if (*str == '\n') {
-            Gp_SetItemSeenBit(i, 1);
+            itemSetIdentified(i, 1);
         }
         i++;
     } while (i < 0x180);

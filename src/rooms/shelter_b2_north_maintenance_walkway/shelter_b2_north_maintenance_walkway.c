@@ -750,7 +750,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
             result = 2;
         }
         if (gRoomEventActive != 0) {
-            Gp_SetItemSeenBit(0x122, 1);
+            itemSetIdentified(0x122, 1);
         }
         return result;
     }

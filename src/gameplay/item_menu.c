@@ -739,7 +739,7 @@ void func_800BD6DC(UiList* arg0, UiObject* arg1)
                 if ((inventoryFindLastItemRowInRange(item, (&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1))) == NULL) && (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) == 0)) {
                     prompt = 6;
                 }
-            } else if ((Gp_SumScanQty((&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1)), item) != 0) || (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0)) {
+            } else if ((inventoryGetItemQuantity((&Gp_MoveScanSrc + (scanOwner->spawnArg1.value ^ 1)), item) != 0) || (inventoryCanAddItem((&Gp_MoveScanSrc + (arg1->owner->spawnArg1.value ^ 1)), item) != 0)) {
                 chooseQty = 1;
             } else {
                 prompt = 6;
@@ -1217,7 +1217,7 @@ static inline void _gpDropOrphanedWeaponLoads(void)
                 loadedItemId = slot->primaryItemId;
                 // Battery 0xB9 is a built-in primary supply and has no carried stack.
                 if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != 0xB9)) {
-                    if (Gp_SumScanQty(scan, loadedItemId) == 0) {
+                    if (inventoryGetItemQuantity(scan, loadedItemId) == 0) {
                         slot->primaryQty = 0;
                     }
                 }
@@ -1225,7 +1225,7 @@ static inline void _gpDropOrphanedWeaponLoads(void)
                 // Built-in secondary supplies (Battery 0xB5/0xBB/0xBE, Fuel 0xBD) have no carried stack.
                 if ((loadedItemId != INVENTORY_ITEM_NONE) && (loadedItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) && (loadedItemId != 0xB5) && (loadedItemId != 0xBB) &&
                     (loadedItemId != 0xBD) && (loadedItemId != 0xBE)) {
-                    if (Gp_SumScanQty(scan, loadedItemId) == 0) {
+                    if (inventoryGetItemQuantity(scan, loadedItemId) == 0) {
                         slot->secondaryQty = 0;
                     }
                 }

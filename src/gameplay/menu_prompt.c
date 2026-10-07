@@ -192,7 +192,7 @@ void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     } else if (arg3 == 0) {
         icon = 6;
         kind = 8;
-    } else if (flag0 == 0 && Gp_HasItemSeenBit(arg3) == 0) {
+    } else if (flag0 == 0 && itemIsIdentified(arg3) == 0) {
         icon = 2;
         kind = 2;
     } else if (arg3 < 0x60) {
@@ -804,7 +804,7 @@ void Gp_ArmorStatsPanelTask(Task* arg0)
         req5.drawMode   = TEXT_DRAW_OUTLINED;
         textDrawString(&req5, Gp_StrAttachments);
 
-        for (i = 0; i < Gp_GetModLevel(item); i++) {
+        for (i = 0; i < equipmentGetArmorAttachmentSlotCount(item); i++) {
             InventoryItemRange* scan;
             InventoryItemRow*   rec;
             InventoryItemRow*   found;
@@ -1610,7 +1610,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                     equipmentClearSelectedRemovableLoads(item, EQUIPMENT_CLEAR_LOAD_BOTH);
                     rec       = Gp_SelItemRec;
                     p->weapon = rec->itemId - 0x7F;
-                    Gp_SetItemSeenBit(rec->itemId, 1);
+                    itemSetIdentified(rec->itemId, 1);
                     Gp_ItemOrderMode = 0;
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                 } else {
@@ -1786,7 +1786,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
         } else if (mode == rowState) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                 if (Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, weapon, Gp_SelItemRec->itemId, -1) >= 0) {
-                    Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
+                    itemSetIdentified(Gp_SelItemRec->itemId, 1);
                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                     Gp_ItemOrderMode = 0;
                 } else {
@@ -2184,7 +2184,7 @@ void Gp_ArmorMenuTask(Task* arg0)
 
         id = cfg->armor + 0x5F;
         if (id != 0) {
-            menu->itemCount = Gp_GetModLevel(id);
+            menu->itemCount = equipmentGetArmorAttachmentSlotCount(id);
         }
         menu->visibleRowCount.unsignedValue = menu->itemCount;
         if ((s8)menu->itemCount >= 4) {
@@ -2215,7 +2215,7 @@ void Gp_ArmorMenuTask(Task* arg0)
 
         id = gPlayerStatus.armor + 0x5F;
         if (id != 0) {
-            menu->itemCount = Gp_GetModLevel(id);
+            menu->itemCount = equipmentGetArmorAttachmentSlotCount(id);
         }
         {
             u8 n;
@@ -2327,7 +2327,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     if ((u32)(Gp_SelItemRec->itemId - 0x60) < 0x20U) {
                         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
                         Gp_EquipMod(Gp_SelItemRec->itemId);
-                        Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
+                        itemSetIdentified(Gp_SelItemRec->itemId, 1);
                         Gp_ItemOrderMode = 0;
                     } else {
                         Task* parent;

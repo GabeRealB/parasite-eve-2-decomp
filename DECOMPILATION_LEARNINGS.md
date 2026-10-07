@@ -8872,7 +8872,7 @@ for (i = arg0; i < 8; i++) {
 }
 ```
 
-`Gp_NextMappedSlot` is the example. The outer `(u32)index >= 8` early `-1` is a
+`equipmentFindNextCarriedWeaponSupply` is the example. The outer `(u32)index >= 8` early `-1` is a
 separate `sltiu`/`bnez` and must stay outside the loop.
 
 ## Hoist `%hi(store_global)` before the array base
@@ -23878,8 +23878,8 @@ materialises `b`'s address first into `$v1`. After a call, do `p = &b` inside
 the `if` body so `lui v1,%hi(b)` fills the `beqz` delay slot; assigning `p`
 before the call puts the `lui` too early.
 
-`Gp_AgeFlag119Void` is the example (`p = &Gp_PlayTimeMark`; `(s16)(D_80072174 - *p) >= 2`).
-The same shape is how `Gp_PlayTimeDelta` emits `lui v1,Gp_PlayTimeMark` first as a leaf.
+`inventoryUpdateIceBag` is the example (`markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark`; `(s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= INVENTORY_ICE_BAG_MELT_MINUTES`).
+The same shape is how `Gp_PlayTimeDelta` materialises the minute marker's address first as a leaf.
 
 ## Hoist an independent field load so an increment fills the `jal` delay
 
@@ -24179,7 +24179,7 @@ if ((u32)idx < N) {
 return ret;
 ```
 
-`Gp_GetRelatedQty` is the pure example. The `register … asm("v1")` pin also
+`equipmentGetWeaponLoadCapacity` is the pure example. The `register … asm("v1")` pin also
 forces the same-reg `lui`/`addiu`, but the two-load shape is the source that
 produces it without a hard register.
 
@@ -25272,7 +25272,7 @@ if ((u32)idx < 0x20) {
 ```
 
 `p = &table[index]` (not `table[index].field`) is what schedules `sll` before
-the table `lui`. `Gp_GetModLevel` is the example.
+the table `lui`. `equipmentGetArmorAttachmentSlotCount` is the example.
 
 ## Load the global first so `lui` precedes `xori`/`sltu` of `!= 1`
 
@@ -25335,7 +25335,7 @@ if (ret == 0) {
 return ret;
 ```
 
-`Gp_ItemSortKey` is the example. The unpinned version is a 98% register swap;
+`inventoryGetItemSortKey` is the example. The unpinned version is a 98% register swap;
 pinning both drops to ~89%.
 
 ## Pin table `$v1` + session `$a0` so a two-level lookup hoists both `lui`s
@@ -25723,7 +25723,7 @@ The inverted `if ((u32)index < N) { work; return val != 0; } return 1;` is
 swapped to `bnez` and CSE reuses the shift's `li v1,1` as `move v0,v1`.
 Taking `&base` before the check also hoists `lui`/`addiu` above the divide.
 
-`Gp_HasItemSeenBit` is the example.
+`itemIsIdentified` is the example.
 
 ## `&table[i]` then `*slot` vs `table[i]` for prologue / `$v0` reuse
 
@@ -25894,7 +25894,7 @@ val = obj->field_1 & 2;
 return val != 0; /* andi 2; sltu v0, zero, v0 */
 ```
 
-`Gp_GetAreaFlag2` is the example. Same shape as `inventoryHasCollectedBit` / `Gp_HasItemSeenBit`
+`Gp_GetAreaFlag2` is the example. Same shape as `inventoryHasCollectedBit` / `itemIsIdentified`
 but needed even for a constant 1-bit mask.
 
 ## Assign loop setup before consuming a jal return so it fills `andi` / `addiu`
@@ -26887,7 +26887,7 @@ p->field_6D0[word] |= bit;
 
 A single `p = &gMcSaveData` before the `value` test stuck at 83%
 (`sllv t0` for the mask, CSEd base). Same `p->arr[i]` form as the
-reader (`Gp_HasItemSeenBit`). `Gp_SetItemSeenBit` is the example.
+reader (`itemIsIdentified`). `itemSetIdentified` is the example.
 
 ## Share the pointer temp across switch cases so the load dest stays `$v1`
 
@@ -26946,7 +26946,7 @@ That pins 0xFFFF in `$t2` too early and lets the first `lhu` clobber `$v0`.
 Leave the literal in both compares so CSE does `li v0, 0xFFFF` / `beq` /
 `move t2, v0`.
 
-`Gp_NthCollectedId` is the example. Pre-loop `one = 1` stuck at 94% with only
+`inventoryGetCollectedItemId` is the example. Pre-loop `maskUnit = 1U` stuck at 94% with only
 the `t4`/`t3` swap.
 
 ## Late `i = 1` needs other loop constants live first
@@ -28749,7 +28749,7 @@ if (rec->itemId == item) {
 ```
 
 `Gp_InitModeEquip` is the example. The rest of the loop is the same shape
-as `Gp_SumScanQty` (`off + (s32)table`, `limit = count`). A literal
+as `inventoryGetItemQuantity` (`gpItemRowAt(table, firstRow)`, `rowLimit = rowCount`). A literal
 `== 0x81` after the switch stuck at 84% with the table in `$v1` and no
 `$t0`.
 
@@ -34425,7 +34425,7 @@ if (count != 0) {
 
 `Gp_UiBoostMp` `jal`s `Gp_RecalcMaxMp` then `cfg->field_1c = cfg->field_1e`,
 so `cfg`/`save` live in `$s0`/`$s1`. The HP sibling must write the
-`Gp_RecalcMaxHp` body inline (no `jal`): `cfg` stays in `$a1`, `save` in
+`equipmentRecalculateMaxHp` body inline (no `jal`): `cfg` stays in `$a1`, `save` in
 `$t0`. Cache original `field_18` in an `s32` so the `Gp_HpMpWork` store is
 `lh a3` / `sw a3` and the clamp is `slt v0, v0, a3`:
 
@@ -34439,7 +34439,7 @@ if (cfg->field_1a < hp) {
 cfg->field_18 = cfg->field_1a;
 ```
 
-Calling `Gp_RecalcMaxHp()` instead emits a `jal` and reallocates those
+Calling `equipmentRecalculateMaxHp()` instead emits a `jal` and reallocates those
 pointers into callee-saved regs. `Gp_UiBoostHp` is the example.
 
 ## Split an unaligned 4-byte copy so `lui` / `li a1` / `addiu $t4` match the jal args
@@ -41629,12 +41629,12 @@ constants:
 case 0x42:
     memset(&scan, 0, sizeof(scan));
     scan.rowCount = 0xFF;
-    if (Gp_SumScanQty(&scan, 0x98)) {
+    if (inventoryGetItemQuantity(&scan, 0x98)) {
         return 1;
     }
     memset(&scan, 0, sizeof(scan));
     scan.rowCount = 0xFF;
-    if (Gp_SumScanQty(&scan, 0x42)) {
+    if (inventoryGetItemQuantity(&scan, 0x42)) {
         return 1;
     }
     return 0;
@@ -41655,7 +41655,7 @@ merge.
 Fix: put an empty memory barrier before each duplicated `return 0`.
 
 ```c
-    if (Gp_SumScanQty(&scan, 0x42)) {
+    if (inventoryGetItemQuantity(&scan, 0x42)) {
         return 1;
     }
     asm("" ::: "memory");
@@ -50368,16 +50368,16 @@ increment and the call argument are the same constant, and GCC only shares it
 when the call is written **first**.
 
 ```c
-/* Target: li a1,1 / lh a0,0(s0) / jal Gp_SetItemSeenBit / addu s1,s1,a1 */
+/* Target: li a1,1 / lh a0,0(s0) / jal itemSetIdentified / addu s1,s1,a1 */
 if (func_800B7420(*weapon) != 0) {
-    Gp_SetItemSeenBit(*weapon, 1);
+    itemSetIdentified(*weapon, 1);
     count += 1;
 }
 
 /* Mismatch: addiu s1,s1,1 as its own insn, then li a1,1 in the jal slot */
 if (func_800B7420(*weapon) != 0) {
     count += 1;
-    Gp_SetItemSeenBit(*weapon, 1);
+    itemSetIdentified(*weapon, 1);
 }
 ```
 
@@ -50620,8 +50620,8 @@ symptom here was `reorder`, not `regs`.
 ## A global read at two widths belongs in a union, not a second `extern`
 
 `Gp_StatRows` is declared once in `include/gameplay/268.h`, but the two TUs that
-read its head field disagree about the width: gameplay's `Gp_RecalcMaxHp` does
-`lhu v0, 0(v0)` (the value goes straight into a `u16` config field), while the
+read its head field disagree about the width: gameplay's `equipmentRecalculateMaxHp` does
+`lhu v0, 0(v0)` (the value enters a `u16` accumulator before the `s16` maximum), while the
 Mist shooting gallery's STATUS panel does `lw s2, 0(v0)` and compares it with
 `slti … 0x64`. Declaring the array a second time with a word-wide row type is
 not an option — both headers are included by the same overlay `.c`, so the two
@@ -50632,7 +50632,7 @@ member it needs:
 
 ```c
 typedef union {
-    u16 hp;     /* Gp_RecalcMaxHp: lhu */
+    u16 hp;     /* equipmentRecalculateMaxHp: lhu */
     s32 hpWord; /* shooting gallery STATUS: lw */
 } PlayerModeBaseHp;
 
@@ -142392,7 +142392,7 @@ same register another address uses as `shift+tbl`, check whether splat's
 symbol is a *virtual base*: here `Gp_QtyById0` is `Gp_RelatedQty0 - 0x200`,
 pointing into unrelated data, and the real object is the 32-entry array.
 Indexing that array with a separate offset variable, the way
-`Gp_GetRelatedQty` does (`item -= 0x80; Gp_RelatedQty0.rows[item].capacity`),
+`equipmentGetWeaponLoadCapacity` does (`weaponIndex = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST; Gp_RelatedQty0.rows[weaponIndex].capacity`),
 makes CSE rebuild it from the base register as `(tbl + 0x200)` via its
 related-value lookup, with the order the target has; `&Gp_RelatedQty0.rows[item -
 0x80]` for the row folds to the virtual base. Writing `item - 0x80` inline in
@@ -150603,12 +150603,12 @@ constant).
   in front of the goto loop then go too: loop.c hoists the three in the same
   order.
 - **The converse: `next = i + 1; *out = next; i = next;` keeps an index from
-  being a biv.** `Gp_FindScanQty` recomputes `arg0[i]` with `sll; addu` every
-  iteration. `while (i < n) { if (hit) { ...; break; } i++; *arg2 = i; }`
+  being a biv.** `inventoryFindStackQuantity` recomputes `table[currentRowIndex]` with `sll; addu` every
+  iteration. `while (i < n) { if (hit) { ...; break; } i++; *rowIndex = i; }`
   reduces the address to a pointer stepped by 4 (2 insns shorter). With the
   three statements above in the body it matches: `basic_induction_var`, for
   `i = <reg>`, looks only at the insn *immediately before* for that
-  register's set, finds the store to `*arg2` instead, and gives up, so `i` is
+  register's set, finds the store to `*rowIndex` instead, and gives up, so `i` is
   not an induction variable and nothing is reduced. The image's mark is
   `addiu v0,t0,1; sw v0; move t0,v0`.
 - **`if (x != A) { if (x == B) { extra; goto store; } } else { store: tail; }`**

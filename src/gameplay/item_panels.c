@@ -709,12 +709,12 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
         switch (item) {
             case 9:
                 scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                if (Gp_SumScanQty(scan, 0x9F) != 0) {
+                if (inventoryGetItemQuantity(scan, 0x9F) != 0) {
                     arg1->status = 0x1A;
-                } else if (Gp_SumScanQty(scan, 0x9E) != 0) {
+                } else if (inventoryGetItemQuantity(scan, 0x9E) != 0) {
                     src    = 0x9E;
                     result = 0x9F;
-                } else if (Gp_SumScanQty(scan, 0x9D) != 0) {
+                } else if (inventoryGetItemQuantity(scan, 0x9D) != 0) {
                     src    = 0x9D;
                     result = 0x9E;
                 } else {
@@ -723,9 +723,9 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                 break;
             case 0xC:
                 scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                if (Gp_SumScanQty(scan, 0x80) != 0) {
+                if (inventoryGetItemQuantity(scan, 0x80) != 0) {
                     arg1->status = 0x1A;
-                } else if (Gp_SumScanQty(scan, 0x83) != 0) {
+                } else if (inventoryGetItemQuantity(scan, 0x83) != 0) {
                     src    = 0x83;
                     result = 0x80;
                 } else {
@@ -739,7 +739,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
             case 0x45:
             case 0x46:
                 scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-                if (Gp_SumScanQty(scan, 0x94) != 0) {
+                if (inventoryGetItemQuantity(scan, 0x94) != 0) {
                     if (item == 0xA) {
                         arg1->status = 0x1A;
                     } else if (inventoryCanAddItem(scan, 0xA) != 0) {
@@ -756,7 +756,7 @@ void func_800CB6FC(UiObject* arg0, Task* arg1)
                     arg1->status        = 0x17;
                     // Find the variant being carried; the add-on it has mounted comes back to the inventory.
                     for (carried = 0; carried < ARRAY_SIZE(sp20.u.variantTable.variants); carried++) {
-                        if (Gp_SumScanQty(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, variants[carried].weaponItemId) != 0) {
+                        if (inventoryGetItemQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, variants[carried].weaponItemId) != 0) {
                             extra = variants[carried].mountedItemId;
                             if (item == ten && variants[carried].weaponItemId == 0x93) {
                                 extra = 0;
@@ -1230,7 +1230,7 @@ void Gp_ItemCountHeaderTask(Task* arg0)
     color = 0x606060;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     cur   = Gp_CountScanItems(scan);
-    cap   = Gp_GetScanCount(scan);
+    cap   = inventoryGetRangeCapacity(scan);
     textItoaUnsigned(buf, cur);
     textAppendString(buf, (const u8*)Gp_StrSlash);
     textItoaUnsigned(buf2, cap);

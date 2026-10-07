@@ -405,7 +405,7 @@ void Gp_MenuRootTask(Task* arg0)
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 D_80114DE0 = equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId;
             }
-            Gp_AgeFlag119Void();
+            inventoryUpdateIceBag();
             arg0->killCountdown = 1;
             arg0->state         = 0xA;
             if ((arg0->spawnArg1.value == 0x42) || (arg0->spawnArg1.value == 0x44)) {

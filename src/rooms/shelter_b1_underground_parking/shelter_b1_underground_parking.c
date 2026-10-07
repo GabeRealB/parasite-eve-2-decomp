@@ -318,9 +318,9 @@ static u8 Shop_Data_80181AA4[];
 
 /// The charge panel's title, and the quantity and item map of the slot it is
 /// animating.
-static const char             Shop_Data_8017D6F4[];
-static s32                    Shop_Data_80187628;
-static EquipmentWeaponSupply* Shop_Data_8018762C;
+static const char                   Shop_Data_8017D6F4[];
+static s32                          Shop_Data_80187628;
+static const EquipmentWeaponSupply* Shop_Data_8018762C;
 
 /// Label of the held-quantity line.
 static u8 Shop_Data_80181AC4[];
@@ -1659,7 +1659,7 @@ WorldCollisionSurfaceProperties* D_shelter_b1_underground_parking_8018D724[8] = 
 
 static s32 Shop_Data_80187628 = 0;
 
-static EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
+static const EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
 
 Task* D_shelter_b1_underground_parking_8018D74C = NULL;
 
@@ -2196,7 +2196,7 @@ void func_shelter_b1_underground_parking_80183560(Task* arg0)
                 gGameSession->roomObjsDirty                                = state;
                 evsStartScript(D_shelter_b1_underground_parking_801872D8, EVENT_SCRIPT_HUD_KEEP);
                 gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 1);
-                Gp_SetItemSeenBit(0x123, 1);
+                itemSetIdentified(0x123, 1);
             } else {
                 Gp_MsgPlayerWeapon(1);
             }

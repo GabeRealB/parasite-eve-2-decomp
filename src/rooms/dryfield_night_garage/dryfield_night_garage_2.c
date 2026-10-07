@@ -1105,7 +1105,7 @@ AreaApplyRec D_dryfield_night_garage_80187620[2] = {
 
 s32 Shop_Data_80187628;
 
-EquipmentWeaponSupply* Shop_Data_8018762C;
+const EquipmentWeaponSupply* Shop_Data_8018762C;
 
 void func_dryfield_night_garage_801809A4(Task* arg0)
 {

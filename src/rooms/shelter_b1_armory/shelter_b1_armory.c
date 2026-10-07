@@ -243,7 +243,7 @@ void func_shelter_b1_armory_80180214(Task* task)
         case 4:
             if (capIsBusy() == 0) {
                 if ((u16)task->spawnArg1.value == 2) {
-                    Gp_SetItemSeenBit(0x105, 1);
+                    itemSetIdentified(0x105, 1);
                 }
                 Gp_MsgPlayerWeapon(1);
                 gGameSession->eventState = 0;

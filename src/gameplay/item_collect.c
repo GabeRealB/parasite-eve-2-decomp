@@ -27,12 +27,21 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-/// 0xFFFF-terminated item-id list walked by `Gp_NthCollectedId`. Each id's
+/// 0xFFFF-terminated item-id list walked by `inventoryGetCollectedItemId`. Each id's
 /// low 7 bits index a collected-item bit in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits`.
 extern u16 Gp_CollectedIds[];
 
 /// Unreferenced nonzero halfword after the collected-item terminator.
 extern u16 D_80114B32;
+
+/// Catalogue identification flags stored in the live save.
+enum {
+    ITEM_IDENTIFICATION_ID_LIMIT      = 0x180,
+    ITEM_IDENTIFICATION_BITS_PER_WORD = 32
+};
+
+/// Whole saved minutes before the Ice Bag becomes a Bag of Water.
+enum { INVENTORY_ICE_BAG_MELT_MINUTES = 2 };
 
 static inline s32 _gpGetModLevel(s32 item);
 
@@ -165,7 +174,7 @@ u16 Gp_CollectedIds[41] = {
 u16 D_80114B32 = 0x1131;
 
 /* Count item `id` in saved rows 0..254 through a cleared range. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, inventoryGetItemQuantity(&(scan), (id)))
 
 /* Item names and descriptions shared by the inventory tables. */
 
@@ -192,84 +201,99 @@ u16 D_80114B32 = 0x1131;
 
 /* Item table a scan window lies in. */
 
-s32 Gp_NthCollectedId(s32 arg0, s32 arg1)
+s32 inventoryGetCollectedItemId(s32 collectedIndex, s32 unused)
 {
-    u16* p;
-    s32  ret;
-    s32* bits;
-    s32  bit;
-    s32  item;
-    s32  one;
+    enum {
+        INVENTORY_COLLECTED_LIST_END       = 0xFFFF,
+        INVENTORY_COLLECTION_ID_MASK       = 0x7F,
+        INVENTORY_COLLECTION_BITS_PER_WORD = 32
+    };
+    const u16* collectedIds;
+    s32        collectedItemId;
+    const s32* collectionWord;
+    s32        bitIndex;
+    s32        itemId;
+    u32        maskUnit;
 
-    p   = Gp_CollectedIds;
-    ret = 0;
-    if (*p != 0xFFFF) {
+    collectedIds    = Gp_CollectedIds;
+    collectedItemId = INVENTORY_ITEM_NONE;
+    if (*collectedIds != INVENTORY_COLLECTED_LIST_END) {
         do {
-            item  = *p;
-            bits  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
-            one   = 1;
-            bit   = item & 0x7F;
-            bits += bit / 32;
-            bit  %= 32;
-            if (*bits & (one << bit)) {
-                arg0--;
-                p++;
-                if (arg0 >= 0) {
+            itemId          = *collectedIds;
+            collectionWord  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits;
+            maskUnit        = 1U;
+            bitIndex        = itemId & INVENTORY_COLLECTION_ID_MASK;
+            collectionWord += bitIndex / INVENTORY_COLLECTION_BITS_PER_WORD;
+            bitIndex       %= INVENTORY_COLLECTION_BITS_PER_WORD;
+            if (*collectionWord & (maskUnit << bitIndex)) {
+                collectedIndex--;
+                collectedIds++;
+                if (collectedIndex >= 0) {
                     continue;
                 }
-                ret = item;
+                collectedItemId = itemId;
                 break;
             }
-            p++;
-        } while (*p != 0xFFFF);
+            collectedIds++;
+        } while (*collectedIds != INVENTORY_COLLECTED_LIST_END);
     }
-    return ret;
+    return collectedItemId;
 }
 
-s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1)
+/// Borrows the base row table selected by a readable inventory range.
+///
+/// The range is unchanged; saved and area tables last with their images,
+/// while the indirect table's owner determines its lifetime.
+static inline InventoryItemRow* _inventoryGetRangeTable(const InventoryItemRange* range)
 {
-    InventoryItemRow* tmp;
     InventoryItemRow* table;
-    InventoryItemRow* row;
-    s32               i;
-    s32               acc;
-    s32               count;
-    s32               start;
-    s32               limit;
 
-    if (arg1 >= 0x100) {
-        return inventoryHasCollectedBit(arg1);
-    }
-
-    acc = 0;
-    switch (arg0->tableId) {
+    switch (range->tableId) {
         case INVENTORY_ITEM_TABLE_AREA_GRANTS:
-            tmp = Gp_ItemTable2;
+            table = Gp_ItemTable2;
             break;
         case INVENTORY_ITEM_TABLE_INDIRECT:
-            tmp = Gp_ItemTable1;
+            table = Gp_ItemTable1;
             break;
         default:
-            tmp = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
+            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
             break;
     }
-    table = tmp;
-    i     = 0;
-    count = arg0->rowCount;
-    start = arg0->firstRow;
-    if (count != 0) {
-        limit = count;
+    return table;
+}
 
-        row = gpItemRowAt(table, start);
-        do {
-            if (row->itemId == arg1) {
-                acc += row->qty;
-            }
-            i++;
-            row++;
-        } while (i < limit);
+s32 inventoryGetItemQuantity(const InventoryItemRange* range, s32 itemId)
+{
+    enum { INVENTORY_KEY_ITEM_FIRST = 0x100 };
+    InventoryItemRow*       table;
+    const InventoryItemRow* row;
+    s32                     rowIndex;
+    s32                     quantity;
+    s32                     rowCount;
+    s32                     firstRow;
+    s32                     rowLimit;
+
+    if (itemId >= INVENTORY_KEY_ITEM_FIRST) {
+        return inventoryHasCollectedBit(itemId);
     }
-    return acc;
+
+    quantity = 0;
+    table    = _inventoryGetRangeTable(range);
+    rowIndex = 0;
+    rowCount = range->rowCount;
+    firstRow = range->firstRow;
+    if (rowCount != 0) {
+        rowLimit = rowCount;
+        row      = gpItemRowAt(table, firstRow);
+        do {
+            if (row->itemId == itemId) {
+                quantity += row->qty;
+            }
+            rowIndex++;
+            row++;
+        } while (rowIndex < rowLimit);
+    }
+    return quantity;
 }
 
 static void func_800BB7B4(Task* arg0)
@@ -277,24 +301,24 @@ static void func_800BB7B4(Task* arg0)
     arg0->extra.tmd->flags = 0;
 }
 
-void Gp_SetItemSeenBit(s32 arg0, s32 arg1)
+void itemSetIdentified(s32 itemId, s32 identified)
 {
-    McSaveData* p;
-    s32         word;
-    s32         bit;
+    McSaveData* save;
+    s32         wordIndex;
+    u32         bitMask;
 
-    word = arg0 / 32;
-    bit  = 1 << (arg0 % 32);
-    if ((u32)arg0 >= 0x180) {
+    wordIndex = itemId / ITEM_IDENTIFICATION_BITS_PER_WORD;
+    bitMask   = 1U << (itemId % ITEM_IDENTIFICATION_BITS_PER_WORD);
+    if ((u32)itemId >= ITEM_IDENTIFICATION_ID_LIMIT) {
         return;
     }
-    if (arg1 == 0) {
-        p                            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        p->state.itemSeenBits[word] &= ~bit;
+    if (identified == 0) {
+        save                                 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        save->state.itemSeenBits[wordIndex] &= ~bitMask;
         return;
     }
-    p                            = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    p->state.itemSeenBits[word] |= bit;
+    save                                 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    save->state.itemSeenBits[wordIndex] |= bitMask;
 }
 
 static void Gp_ApplyBit2List(AreaObjectRoom* table, u32* dest)
@@ -316,20 +340,21 @@ void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2)
     *p   |= mask;
 }
 
-s32 Gp_GetRelatedQty(s32 arg0, s32 arg1)
+s32 equipmentGetWeaponLoadCapacity(s32 weaponItemId, s32 loadSelection)
 {
-    s32 ret;
+    s32 capacity;
+    s32 weaponIndex;
 
-    arg0 -= EQUIPMENT_WEAPON_ITEM_FIRST;
-    ret   = 0;
-    if ((u32)arg0 < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
-        if (arg1 == 0) {
-            ret = Gp_RelatedQty0.rows[arg0].capacity;
+    weaponIndex = weaponItemId - EQUIPMENT_WEAPON_ITEM_FIRST;
+    capacity    = 0;
+    if ((u32)weaponIndex < ARRAY_SIZE(Gp_RelatedQty0.rows)) {
+        if (loadSelection == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
+            capacity = Gp_RelatedQty0.rows[weaponIndex].capacity;
         } else {
-            ret = Gp_RelatedQty1.rows[arg0].capacity;
+            capacity = Gp_RelatedQty1.rows[weaponIndex].capacity;
         }
     }
-    return ret;
+    return capacity;
 }
 
 static s32 Gp_GetBit2Flag(GameLocationKey* arg0, s32 arg1)
@@ -452,48 +477,48 @@ void Gp_WaitItemFlag2(Task* arg0)
     }
 }
 
-s32 Gp_FindScanQty(InventoryItemRow* arg0, InventoryItemRange* arg1, s32* arg2, s32 arg3)
+s16 inventoryFindStackQuantity(const InventoryItemRow* table, const InventoryItemRange* range, s32* rowIndex, s32 itemId)
 {
-    s32 i;
-    s32 ret;
-    s32 next;
+    s32 currentRowIndex;
+    s32 quantity;
+    s32 nextRowIndex;
 
-    i   = *arg2;
-    ret = 0;
-    while (i < arg1->firstRow + arg1->rowCount) {
-        if (arg0[i].itemId == arg3) {
-            ret = arg0[i].qty;
+    currentRowIndex = *rowIndex;
+    quantity        = 0;
+    while (currentRowIndex < range->firstRow + range->rowCount) {
+        if (table[currentRowIndex].itemId == itemId) {
+            quantity = table[currentRowIndex].qty;
             break;
         }
-        next  = i + 1;
-        *arg2 = next;
-        i     = next;
+        nextRowIndex    = currentRowIndex + 1;
+        *rowIndex       = nextRowIndex;
+        currentRowIndex = nextRowIndex;
     }
-    return (s16)ret;
+    return quantity;
 }
 
-s32 Gp_NextMappedSlot(s32 arg0)
+s32 equipmentFindNextCarriedWeaponSupply(s32 firstSupplyIndex)
 {
-    InventoryItemRange*    scan;
-    s32                    i;
-    EquipmentWeaponSupply* supply;
+    const InventoryItemRange*    range;
+    s32                          supplyIndex;
+    const EquipmentWeaponSupply* supply;
 
-    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    if ((u32)arg0 >= EQUIPMENT_WEAPON_SUPPLY_COUNT) {
-        return -1;
+    range = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    if ((u32)firstSupplyIndex >= EQUIPMENT_WEAPON_SUPPLY_COUNT) {
+        return EQUIPMENT_WEAPON_SUPPLY_NOT_FOUND;
     }
-    for (i = arg0; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
-        supply = &Gp_ItemMaps[i];
-        if (Gp_SumScanQty(scan, supply->weaponItemId)) {
-            return i;
+    for (supplyIndex = firstSupplyIndex; supplyIndex < EQUIPMENT_WEAPON_SUPPLY_COUNT; supplyIndex++) {
+        supply = &Gp_ItemMaps[supplyIndex];
+        if (inventoryGetItemQuantity(range, supply->weaponItemId)) {
+            return supplyIndex;
         }
     }
-    return -1;
+    return EQUIPMENT_WEAPON_SUPPLY_NOT_FOUND;
 }
 
-EquipmentWeaponSupply* Gp_GetItemMap(s32 arg0)
+const EquipmentWeaponSupply* equipmentGetWeaponSupply(s32 supplyIndex)
 {
-    return &Gp_ItemMaps[arg0];
+    return &Gp_ItemMaps[supplyIndex];
 }
 
 s32 Gp_HasMappedItem(void)
@@ -506,7 +531,7 @@ s32 Gp_HasMappedItem(void)
     found = 0;
     scan  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     for (i = 0, supply = Gp_ItemMaps; i < EQUIPMENT_WEAPON_SUPPLY_COUNT; i++) {
-        if (Gp_SumScanQty(scan, supply->weaponItemId)) {
+        if (inventoryGetItemQuantity(scan, supply->weaponItemId)) {
             found = 1;
             break;
         }
@@ -543,7 +568,7 @@ static s32 Gp_SumItemQty(s32 arg0)
 
     memset(&query, 0, sizeof(query));
     query.rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS;
-    return Gp_SumScanQty(&query, arg0);
+    return inventoryGetItemQuantity(&query, arg0);
 }
 
 static void Gp_SetPlayerScan(s32 arg0)
@@ -606,92 +631,98 @@ static void Gp_InitItemSeenBits(void)
             str++;
         }
         if (*str == '\n') {
-            Gp_SetItemSeenBit(i, 1);
+            itemSetIdentified(i, 1);
         }
         i++;
     } while (i < 0x180);
 }
 
-s32 Gp_HasItemSeenBit(s32 arg0)
+bool itemIsIdentified(s32 itemId)
 {
-    McSaveData* p;
-    s32         word;
-    s32         bit;
-    s32         val;
+    const McSaveData* save;
+    s32               wordIndex;
+    u32               bitMask;
+    u32               identifiedBit;
 
-    word = arg0 / 32;
-    bit  = 1 << (arg0 % 32);
-    if ((u32)arg0 >= 0x180) {
-        return 1;
+    wordIndex = itemId / ITEM_IDENTIFICATION_BITS_PER_WORD;
+    bitMask   = 1U << (itemId % ITEM_IDENTIFICATION_BITS_PER_WORD);
+    if ((u32)itemId >= ITEM_IDENTIFICATION_ID_LIMIT) {
+        return true;
     }
-    p   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    val = p->state.itemSeenBits[word] & bit;
-    return val != 0;
+    save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    identifiedBit = save->state.itemSeenBits[wordIndex] & bitMask;
+    return identifiedBit != 0;
 }
 
-void Gp_RecalcMaxHp(void)
+void equipmentRecalculateMaxHp(void)
 {
-    PlayerStatus*        cfg;
-    McSaveData*          save;
-    PlayerModeBaseStats* table;
-    u16                  val;
+    PlayerStatus*              status;
+    const McSaveData*          save;
+    const PlayerModeBaseStats* modeStats;
+    u16                        maximumHp;
 
-    cfg        = &gPlayerStatus;
-    table      = Gp_StatRows;
-    save       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    val        = table[save->state.gameMode].baseHp.hp;
-    cfg->hpMax = val;
-    val       += save->state.hpBonus;
-    cfg->hpMax = val;
-    if (cfg->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        val       += Gp_ModStatAttrs[cfg->armor - 1].hpBonus;
-        cfg->hpMax = val;
+    // Preserve 16-bit narrowing before the signed maximum is capped.
+    status        = &gPlayerStatus;
+    modeStats     = Gp_StatRows;
+    save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    maximumHp     = modeStats[save->state.gameMode].baseHp.hp;
+    status->hpMax = maximumHp;
+    maximumHp    += save->state.hpBonus;
+    status->hpMax = maximumHp;
+    if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
+        maximumHp    += Gp_ModStatAttrs[status->armor - 1].hpBonus;
+        status->hpMax = maximumHp;
     }
-    if (cfg->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
-        cfg->hpMax = PLAYER_STATUS_STAT_MAX;
+    if (status->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
+        status->hpMax = PLAYER_STATUS_STAT_MAX;
     }
-    if (cfg->hp > cfg->hpMax) {
-        cfg->hp = cfg->hpMax;
+    if (status->hp > status->hpMax) {
+        status->hp = status->hpMax;
     }
 }
 
-void Gp_FillHpMp(void)
+void equipmentRestoreHpMp(void)
 {
-    PlayerStatus* p;
+    PlayerStatus* status;
 
-    p     = &gPlayerStatus;
-    p->hp = p->hpMax;
-    p->mp = p->mpMax;
+    status     = &gPlayerStatus;
+    status->hp = status->hpMax;
+    status->mp = status->mpMax;
 }
 
-s32 Gp_GetScanCount(InventoryItemRange* scan)
+s32 inventoryGetRangeCapacity(const InventoryItemRange* range)
 {
-    return scan->rowCount;
+    return range->rowCount;
 }
 
-s32 Gp_ItemSortKey(s32 id)
+s32 inventoryGetItemSortKey(s32 itemId)
 {
+    enum {
+        INVENTORY_SORT_ARMOR_ITEM_FIRST = 0x60,
+        INVENTORY_SORT_EMPTY_KEY        = 0x1000,
+        INVENTORY_SORT_FALLBACK_OFFSET  = 0x100
+    };
     s32 key;
 
     key = 0;
-    if (id == 0) {
-        key = 0x1000;
-    } else if (id > 0 && id < 0x60) {
-        key = Gp_ItemSortKey0[id];
-    } else if (id >= 0x60 && id < 0x80) {
-        key = Gp_ItemSortKey60[id - 0x60];
-    } else if (id >= 0x80 && id < 0xA0) {
-        key = Gp_ItemSortKey80[id - 0x80];
-    } else if (id >= 0xA0 && id < 0xC0) {
-        key = Gp_ItemSortKeyA0[id - 0xA0];
+    if (itemId == INVENTORY_ITEM_NONE) {
+        key = INVENTORY_SORT_EMPTY_KEY;
+    } else if (itemId > 0 && itemId < INVENTORY_SORT_ARMOR_ITEM_FIRST) {
+        key = Gp_ItemSortKey0[itemId];
+    } else if (itemId >= INVENTORY_SORT_ARMOR_ITEM_FIRST && itemId < EQUIPMENT_WEAPON_ITEM_FIRST) {
+        key = Gp_ItemSortKey60[itemId - INVENTORY_SORT_ARMOR_ITEM_FIRST];
+    } else if (itemId >= EQUIPMENT_WEAPON_ITEM_FIRST && itemId < INVENTORY_CONSUMABLE_ITEM_FIRST) {
+        key = Gp_ItemSortKey80[itemId - EQUIPMENT_WEAPON_ITEM_FIRST];
+    } else if (itemId >= INVENTORY_CONSUMABLE_ITEM_FIRST && itemId < (INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT)) {
+        key = Gp_ItemSortKeyA0[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST];
     }
     if (key == 0) {
-        key = id + 0x100;
+        key = itemId + INVENTORY_SORT_FALLBACK_OFFSET;
     }
     return key;
 }
 
-void Gp_MarkPlayTime(void)
+void inventoryResetIceBagTimer(void)
 {
     gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime;
 }
@@ -704,39 +735,39 @@ static s16 Gp_PlayTimeDelta(void)
     return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes;
 }
 
-s32 Gp_AgeFlag119(void)
+/// Converts the held Ice Bag when the signed elapsed-minute timer expires.
+///
+/// Returns whether the collection bits changed; the timer marker is retained.
+static inline s32 _inventoryMeltIceBagIfExpired(void)
 {
-    s32  ret;
-    u16* markMinutes;
+    s32        melted;
+    const u16* markMinutes;
 
-    ret = 0;
+    melted = 0;
     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) != 0) {
         markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
-        if ((s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= 2) {
+        if ((s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= INVENTORY_ICE_BAG_MELT_MINUTES) {
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
             inventorySetCollectedBit(INVENTORY_COLLECTION_ID_BAG_OF_WATER);
-            ret = 1;
+            melted = 1;
         }
     }
-    return ret;
+    return melted;
 }
 
-void Gp_AgeFlag119Void(void)
+s32 inventoryMeltIceBagIfExpired(void)
 {
-    u16* markMinutes;
-
-    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) != 0) {
-        markMinutes = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE].payload.state.playTimeMark;
-        if ((s16)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime - *markMinutes) >= 2) {
-            inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG);
-            inventorySetCollectedBit(INVENTORY_COLLECTION_ID_BAG_OF_WATER);
-        }
-    }
+    return _inventoryMeltIceBagIfExpired();
 }
 
-s32 Gp_GetModLevel(s32 arg0)
+void inventoryUpdateIceBag(void)
 {
-    return _gpGetModLevel(arg0);
+    _inventoryMeltIceBagIfExpired();
+}
+
+s32 equipmentGetArmorAttachmentSlotCount(s32 armorItemId)
+{
+    return _gpGetModLevel(armorItemId);
 }
 
 void Gp_TickBoostPanel(Task* arg0)

@@ -51,7 +51,7 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
     found = 0;
     if (item >= 0xA0) {
         index = scan->firstRow;
-        return Gp_FindScanQty(table, scan, &index, item);
+        return inventoryFindStackQuantity(table, scan, &index, item);
     }
     for (i = scan->firstRow; i < scan->firstRow + scan->rowCount; i++) {
         if (table[i].itemId == item) {
@@ -174,7 +174,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     index = scan->firstRow;
     slot  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    have  = (s16)Gp_FindScanQty(table, scan, &index, arg2);
+    have  = inventoryFindStackQuantity(table, scan, &index, arg2);
     have -= Gp_CountEquippedRelated(scan, arg2);
     if (arg0 == 0) {
         if (slot->primaryItemId == arg2) {
@@ -253,7 +253,7 @@ s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     index = arg0->firstRow;
     slot  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems[arg1 - EQUIPMENT_WEAPON_ITEM_FIRST];
-    have  = (s16)Gp_FindScanQty(table, arg0, &index, arg2);
+    have  = inventoryFindStackQuantity(table, arg0, &index, arg2);
     have -= Gp_CountEquippedRelated(arg0, arg2);
     if (slot->primaryItemId == arg2) {
         have += slot->primaryQty;
@@ -278,7 +278,7 @@ s32 Gp_EquipRelatedItem(InventoryItemRange* arg0, s32 arg1, s32 arg2, s32 arg3)
         used = 0;
     }
     if (used > 0) {
-        Gp_SetItemSeenBit(arg2, 1);
+        itemSetIdentified(arg2, 1);
     }
     return used;
 }
@@ -306,7 +306,7 @@ PlayerModeBaseStats Gp_StatRows[4] = {
 };
 
 /* Count item `id` in saved rows 0..254 through a cleared range. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, inventoryGetItemQuantity(&(scan), (id)))
 
 s32 func_800B7420(s32 arg0)
 {

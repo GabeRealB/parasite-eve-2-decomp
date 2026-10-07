@@ -139,7 +139,7 @@ segments:
       - [0x24814, c, item_inventory] # item-description readers and inventory operations
       - [0x24D88, c, item_sort] # inventorySortItems
       - [0x25D4C, c, item_boost] # Gp_UiBoostAttach
-      - [0x27E68, c, item_collect] # Gp_NthCollectedId
+      - [0x27E68, c, item_collect] # inventoryGetCollectedItemId
       - [0x28D0C, c, item_move_check] # Gp_CanMoveItems
       - [0x28E34, c, item_menu] # Gp_ItemMoveChild
       - [0x2C1FC, c, menu_root] # Gp_MenuRootTask

@@ -199,8 +199,8 @@ extern WorldCollisionGrid gFollowCollisionGrid;
 /// Work pair of the charge panel `func_shelter_1f_heliport_8017F2D4`: the
 /// animated quantity in 24.8 fixed point, and the item map of the slot being
 /// charged.
-static s32                    Shop_Data_80187628;
-static EquipmentWeaponSupply* Shop_Data_8018762C;
+static s32                          Shop_Data_80187628;
+static const EquipmentWeaponSupply* Shop_Data_8018762C;
 
 /// The event the message handler latched for the room's event task: the spawn
 /// argument of its helper task 0x31, the message, the flag saying one was
@@ -587,7 +587,7 @@ WorldCollisionSurfaceProperties* D_shelter_1f_heliport_80182C78[8] = {
 
 static s32 Shop_Data_80187628 = 0;
 
-static EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
+static const EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
 
 RoomFadeStorage gRoomEventFade = { 0 };
 

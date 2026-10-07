@@ -202,14 +202,14 @@ void func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
         attr        = &Gp_ModStatAttrs[(arg1)-0x60];
         selStats[0] = attr->hpBonus;
         selStats[1] = attr->mpBonus;
-        selStats[2] = Gp_GetModLevel(arg1);
+        selStats[2] = equipmentGetArmorAttachmentSlotCount(arg1);
         itemRow     = selStats;
         eqRow       = eqStats;
         attr        = &Gp_ModStatAttrs[(cfg->armor + 0x5F) - 0x60];
         count       = 3;
         eqStats[0]  = attr->hpBonus;
         eqStats[1]  = attr->mpBonus;
-        eqStats[2]  = Gp_GetModLevel(cfg->armor + 0x5F);
+        eqStats[2]  = equipmentGetArmorAttachmentSlotCount(cfg->armor + 0x5F);
         D_80114D80  = D_8010E994;
     } else {
         return;

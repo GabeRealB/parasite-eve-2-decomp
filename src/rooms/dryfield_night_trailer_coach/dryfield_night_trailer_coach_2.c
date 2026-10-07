@@ -836,7 +836,7 @@ AreaApplyRec D_dryfield_night_trailer_coach_8018C208[2] = {
 
 s32 Shop_Data_80187628 = 0;
 
-EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
+const EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
 
 Task* gRoomCutsceneSoundTask = NULL;
 

@@ -7,7 +7,7 @@ void mainStreetPlayTimeTask(Task* task)
 {
     if (capIsBusy() == 0) {
         if (capGetVariantKey() == 1) {
-            Gp_MarkPlayTime();
+            inventoryResetIceBagTimer();
         }
         if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) != 0 && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BAG_OF_WATER) != 0) {
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_BAG_OF_WATER);

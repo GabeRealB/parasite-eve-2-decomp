@@ -742,7 +742,7 @@ static void func_dryfield_night_water_tank_8017D870(Task* task)
 static void func_dryfield_night_water_tank_8017D94C(Task* task)
 {
     if (gGameSession->location.loc.variant == 0xB) {
-        Gp_MarkPlayTime();
+        inventoryResetIceBagTimer();
     }
 }
 

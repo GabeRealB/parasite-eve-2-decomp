@@ -1106,7 +1106,7 @@ static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task)
 void func_dryfield_main_street_8017E2F4(s32 arg0)
 {
     sceneEngageBattle(arg0);
-    Gp_SetItemSeenBit(0x10A, 1);
+    itemSetIdentified(0x10A, 1);
 }
 
 /// Spawns the ramp task described at `D_dryfield_main_street_8018156C` and

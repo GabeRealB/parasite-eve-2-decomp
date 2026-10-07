@@ -1353,7 +1353,7 @@ void func_actor_146300_80131ECC(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_AgeFlag119();
+            inventoryMeltIceBagIfExpired();
             switch (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS)) {
                 case 2:
                     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_ICE_BAG) == 0) {

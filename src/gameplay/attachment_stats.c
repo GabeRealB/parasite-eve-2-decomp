@@ -1295,7 +1295,7 @@ static void Gp_UseItemTask(HudState* hud)
                     }
                 }
                 if (Gp_StateC08.activeIndex >= ATTACHMENT_SPELL_COUNT) {
-                    Gp_SetItemSeenBit(Gp_SelItemRec->itemId, 1);
+                    itemSetIdentified(Gp_SelItemRec->itemId, 1);
                     inventoryRemoveItemRow(NULL, Gp_SelItemRec, 0);
                 }
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.activeIndex] < 0x270F) {

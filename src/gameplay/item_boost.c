@@ -69,7 +69,7 @@ u8           Gp_StrAttachAvail[] = "attachments available.";
 UiObjectDesc Gp_BoostPanelDesc   = { USER_INTERFACE_PANEL_TITLE_STYLE, { 10, 20, 30, 40 }, 12, 0, TASK_BODY_NONE, 192, Gp_TickBoostPanel, 0 };
 
 /* Count item `id` in saved rows 0..254 through a cleared range. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, Gp_SumScanQty(&(scan), (id)))
+#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, inventoryGetItemQuantity(&(scan), (id)))
 
 /* Item names and descriptions shared by the inventory tables. */
 
@@ -1011,7 +1011,7 @@ s32 Gp_ScanStackQty(InventoryItemRange* arg0, s32 arg1)
     index = arg0->firstRow;
     table = inventoryGetRangeTable(arg0);
     if ((u32)(arg1 - 0xA0) < 0x20) {
-        ret = (s16)Gp_FindScanQty(table, arg0, &index, arg1);
+        ret = inventoryFindStackQuantity(table, arg0, &index, arg1);
     } else {
         ret = 0;
     }

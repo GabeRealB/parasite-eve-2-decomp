@@ -286,7 +286,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
     blocked = 0;
     itemId  = work->rowIds[prompt->currentItemIndex];
     /* &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems hoisted into a saved register here, as the original does,
-       instead of being rematerialised at the Gp_SumScanQty call. */
+       instead of being rematerialised at the inventoryGetItemQuantity call. */
     scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
     if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         Shop_Data_801819EC = itemId;
@@ -327,7 +327,7 @@ static void Shop_ItemRow(UiList* prompt, UiObject* obj)
                 uiSetPromptText(Gp_StrEmpty, 0, 0);
             }
         }
-        if (Gp_SumScanQty(scan, 0x8F) != 0) {
+        if (inventoryGetItemQuantity(scan, 0x8F) != 0) {
             blocked          = 1;
             prompt->colorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
         }
@@ -416,14 +416,14 @@ static void Shop_AddItem(UiList* list, UiObject* obj, s32 item)
         }
     }
 
-    Gp_SetItemSeenBit(item, 1);
+    itemSetIdentified(item, 1);
     work->rowIds[list->itemCount] = item;
     list->itemCount++;
 }
 
 /// Fills the `_ShopItemListWork` of the task owning `obj` with the ids the
 /// shop currently offers, counting them into `list`, the list control of that
-/// work block. It then sorts them by `Gp_ItemSortKey`, caps the visible row
+/// work block. It then sorts them by `inventoryGetItemSortKey`, caps the visible row
 /// count at 9 and clears the cursor item.
 ///
 /// The upper halfword of the owning task's `spawnArg1` is the mode, which picks
@@ -520,9 +520,9 @@ static void Shop_BuildItemList(UiList* list, UiObject* obj)
 
     work = obj->owner->work;
     for (i = 0; i < list->itemCount - 1; i++) {
-        key = Gp_ItemSortKey(work->rowIds[i]);
+        key = inventoryGetItemSortKey(work->rowIds[i]);
         for (k = i + 1; k < list->itemCount; k++) {
-            otherKey = Gp_ItemSortKey(work->rowIds[k]);
+            otherKey = inventoryGetItemSortKey(work->rowIds[k]);
             if (otherKey < key) {
                 tmp             = work->rowIds[i];
                 key             = otherKey;
@@ -850,7 +850,7 @@ static void Shop_BuyRow(UiList* prompt, UiObject* obj)
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         if (cfg->bp >= price) {
             if (inventoryCanAddItem(scan, itemId) == 0) {
-                if ((u32)(itemId - 0xA0) < 0x20U && Gp_SumScanQty(scan, itemId) != 0) {
+                if ((u32)(itemId - 0xA0) < 0x20U && inventoryGetItemQuantity(scan, itemId) != 0) {
                     uiSpawnObject(&Shop_Data_80181BA0, 2, 1, 1, obj);
                 } else {
                     uiSpawnObject(&Shop_Data_80181BA0, 1, 1, 1, obj);
@@ -925,18 +925,18 @@ static void Shop_NoticeTask(Task* task)
 /// reports 6 to the parent.
 static void Shop_ChargeTask(Task* task)
 {
-    UiObject*              obj;
-    EquipmentWeaponSupply* supply;
-    EquipmentWeaponLoad*   slot;
-    s32                    slotId;
-    s32                    itemId;
-    s32                    weaponItemId;
-    s32                    supplyItemId;
-    s32                    qty;
-    s32                    y;
-    s32                    h;
-    s32                    status;
-    s16                    countdown;
+    UiObject*                    obj;
+    const EquipmentWeaponSupply* supply;
+    EquipmentWeaponLoad*         slot;
+    s32                          slotId;
+    s32                          itemId;
+    s32                          weaponItemId;
+    s32                          supplyItemId;
+    s32                          qty;
+    s32                          y;
+    s32                          h;
+    s32                          status;
+    s16                          countdown;
 
     obj         = task->spawnArg2.pointer;
     obj->result = USER_INTERFACE_RESULT_NONE;
@@ -947,21 +947,21 @@ static void Shop_ChargeTask(Task* task)
         task->state           = task->state + 1;
     }
     if (task->state == 1) {
-        slotId                = Gp_NextMappedSlot(task->spawnArg1.value);
+        slotId                = equipmentFindNextCarriedWeaponSupply(task->spawnArg1.value);
         task->spawnArg1.value = slotId;
         if (slotId < 0) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
         } else {
-            supply             = Gp_GetItemMap(slotId);
+            supply             = equipmentGetWeaponSupply(slotId);
             Shop_Data_8018762C = supply;
             itemId             = supply->weaponItemId;
             slot               = equipmentGetWeaponLoad(itemId);
             if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
                 Shop_Data_80187628 = slot->primaryQty;
-                slot->primaryQty   = Gp_GetRelatedQty(itemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+                slot->primaryQty   = equipmentGetWeaponLoadCapacity(itemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
             } else {
                 Shop_Data_80187628 = slot->secondaryQty;
-                slot->secondaryQty = Gp_GetRelatedQty(itemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+                slot->secondaryQty = equipmentGetWeaponLoadCapacity(itemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
             }
             task->killCountdown  = 0xBC;
             Shop_Data_80187628 <<= 8;
@@ -972,9 +972,9 @@ static void Shop_ChargeTask(Task* task)
     weaponItemId = Shop_Data_8018762C->weaponItemId;
     supplyItemId = Shop_Data_8018762C->supplyItemId;
     if (Shop_Data_8018762C->supplyLoad == EQUIPMENT_WEAPON_SUPPLY_PRIMARY) {
-        qty = Gp_GetRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+        qty = equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
     } else {
-        qty = Gp_GetRelatedQty(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+        qty = equipmentGetWeaponLoadCapacity(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
     }
     qty               <<= 8;
     Shop_Data_80187628 += 0x40;

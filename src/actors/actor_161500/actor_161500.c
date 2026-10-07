@@ -1504,7 +1504,7 @@ void func_actor_161500_80132150(void)
 void func_actor_161500_801321B4(Task* arg0)
 {
     D_80115768 = 1;
-    Gp_SetItemSeenBit(0x124, 1);
+    itemSetIdentified(0x124, 1);
     gameFlagSetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE, 2);
     evsStartScript(D_actor_161500_80137AB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     taskKill(arg0);

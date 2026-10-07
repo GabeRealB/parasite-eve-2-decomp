@@ -258,8 +258,8 @@ void func_actor_143000_80133EE4(Task* arg0)
             Gp_CapFile = 0;
             Gp_LoadCapFile(1);
             capSetTexturePage(0x340, 0);
-            Gp_SetItemSeenBit(0x121, 1);
-            Gp_SetItemSeenBit(0x122, 1);
+            itemSetIdentified(0x121, 1);
+            itemSetIdentified(0x122, 1);
             evsStartScript(D_actor_143000_80135A20, EVENT_SCRIPT_HUD_KEEP);
             arg0->state++;
             return;

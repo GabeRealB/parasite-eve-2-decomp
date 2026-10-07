@@ -65,7 +65,7 @@ s32 parkingLotEventMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* o
         req.collectedBit  = 0x10;
         ret               = roomEventGate(&req, out);
         if (ROOM_EVENT_ACTIVE != 0) {
-            Gp_SetItemSeenBit(0x110, 1);
+            itemSetIdentified(0x110, 1);
         }
     } else {
         return 1;

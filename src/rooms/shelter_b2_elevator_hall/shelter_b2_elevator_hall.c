@@ -530,7 +530,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
         req.collectedBit  = 0x21;
         ret               = roomEventGate(&req, out);
         if (gRoomEventActive.eventStarted != 0) {
-            Gp_SetItemSeenBit(0x121, 1);
+            itemSetIdentified(0x121, 1);
         }
         return ret;
     }

@@ -540,7 +540,7 @@ void Gp_ReloadPromptTask(Task* arg0)
             equipmentClearSelectedRemovableLoads(hi, Gp_ReloadMode);
             other = textMeasureLineWidth((const u8*)Gp_StrRemoved);
         } else {
-            Gp_SetItemSeenBit(lo, 1);
+            itemSetIdentified(lo, 1);
             text = itemGetText(lo, ITEM_TEXT_NAME, 0);
             Gp_EquipRelatedItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, hi, lo, -1);
             other       = textMeasureLineWidth((const u8*)Gp_StrLoaded);
@@ -666,7 +666,7 @@ void Gp_EquipPromptTask(Task* arg0)
                 }
                 p->weapon = val - 0x7F;
                 inventoryDetachItem(rec);
-                Gp_SetItemSeenBit(val, 1);
+                itemSetIdentified(val, 1);
             }
         } else if ((u32)(val - 0x60) < 0x20U) {
             Gp_EquipMod(val);

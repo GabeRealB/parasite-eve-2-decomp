@@ -471,7 +471,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0);
 
 static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place);
 
-/// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon
+/// Inline form of `equipmentGetWeaponLoadCapacity`: the most of a related item weapon
 /// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.
 static inline s32 _gpRelatedQty(s32 item, s32 bank);
 
@@ -4494,7 +4494,7 @@ static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place)
     }
 }
 
-/// Inline form of `Gp_GetRelatedQty`: the most of a related item weapon
+/// Inline form of `equipmentGetWeaponLoadCapacity`: the most of a related item weapon
 /// `item` can hold, from bank `bank`'s table, or 0 for a non-weapon id.
 static inline s32 _gpRelatedQty(s32 item, s32 bank)
 {
@@ -4523,7 +4523,7 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
     found = 0;
     if (item >= 0xA0) {
         index = scan->firstRow;
-        return Gp_FindScanQty(table, scan, &index, item);
+        return inventoryFindStackQuantity(table, scan, &index, item);
     }
     for (i = scan->firstRow; i < scan->firstRow + scan->rowCount; i++) {
         if (table[i].itemId == item) {

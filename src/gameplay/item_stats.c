@@ -206,7 +206,7 @@ void func_800C5F70(Task* arg0)
         if ((item < 0x100) || (item == 0x10C) || (item == 0x113) || (item == 0x114) ||
             (item == 0x11B) || (item == 0x11F) || (item == 0x125) || (item == 0x127) ||
             (item == 0x128) || (item == 0x129) || (item == 0x107)) {
-            Gp_SetItemSeenBit(item, 1);
+            itemSetIdentified(item, 1);
         }
         if (item == 0x125) {
             gameFlagSetNibble(GAME_FLAG_ITEM_125_EXAMINED, 1);
@@ -475,7 +475,7 @@ void func_800C5F70(Task* arg0)
                 req80.colorRgb   = altColor;
                 req80.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                 req80.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                textDrawString(&req80, textItoaUnsigned(buf40, Gp_GetModLevel(item)));
+                textDrawString(&req80, textItoaUnsigned(buf40, equipmentGetArmorAttachmentSlotCount(item)));
                 req90.x          = obj->panel.contentOriginX.unsignedValue + x;
                 req90.y          = obj->panel.contentOriginY.unsignedValue + (y - 2);
                 req90.otIndex    = obj->panel.otIndex.signedValue + 1;
@@ -641,7 +641,7 @@ void Gp_UseKeyItemRow(Task* arg0)
     if (arg0->state == 0) {
         menu     = &D_8010E960;
         roomTask = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
-        item     = Gp_NthCollectedId(menu->selectedItemIndex, 0);
+        item     = inventoryGetCollectedItemId(menu->selectedItemIndex, 0);
         ret      = taskMessageDispatch(roomTask, 0x13F1, item, 0);
         if (ret == 1) {
             arg0->spawnArg1.value = item;
@@ -760,7 +760,7 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
     UiObject*   obj;
     s32         baseY;
 
-    item  = Gp_NthCollectedId(arg0->currentItemIndex, 0);
+    item  = inventoryGetCollectedItemId(arg0->currentItemIndex, 0);
     x     = arg0->rowTextX.signedValue;
     y     = arg0->rowTextY.signedValue;
     color = arg0->colorRgb;

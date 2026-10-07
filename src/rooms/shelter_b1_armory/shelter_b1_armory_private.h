@@ -10,7 +10,7 @@
 
 extern s32 Shop_Data_80187628;
 
-extern EquipmentWeaponSupply* Shop_Data_8018762C;
+extern const EquipmentWeaponSupply* Shop_Data_8018762C;
 
 extern RoomEventMsg gRoomEventMsg;
 

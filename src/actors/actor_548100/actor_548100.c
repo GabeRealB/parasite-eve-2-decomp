@@ -1054,8 +1054,8 @@ static void func_actor_548100_80132808(Task* arg0)
     if (capIsBusy() == 0) {
         if (capGetVariantKey() == 0xB) {
             if (gameFlagGetNibble(GAME_FLAG_110) != 0) {
-                Gp_SetItemSeenBit(0x120, 1);
-                Gp_SetItemSeenBit(0x12C, 1);
+                itemSetIdentified(0x120, 1);
+                itemSetIdentified(0x12C, 1);
             }
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_SWITCH, 0, 0);
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, 0, 0);

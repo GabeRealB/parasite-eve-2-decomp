@@ -29,7 +29,7 @@ void Gp_RecalcMaxMp(void);
 /// Equips item `arg0` (ids `0x60..0x7F`) as `gPlayerStatus.armor`
 /// (item id − 0x5F). Marks the new row's `field_1` as −1 and clears the
 /// previous selection, then recomputes max HP/MP (same bodies as
-/// `Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`), refreshes every inventory row with
+/// `equipmentRecalculateMaxHp` / `Gp_RecalcMaxMp`), refreshes every inventory row with
 /// `inventoryDetachItem`, and sets the collected bit in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemSeenBits`.
 /// `arg0 == 0` only recomputes HP/MP. Both of those paths copy current
 /// HP/MP into `Gp_HpMpWork`; any other id returns without that copy.
@@ -62,7 +62,7 @@ void Gp_ResetInventory(void);
 /// zeros the `Gp_DefaultScan` item table, writes `{0, 0x14, 0}` into
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`, and if that table has an equipped 0x60–0x7F
 /// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP
-/// (`Gp_RecalcMaxHp` / `Gp_RecalcMaxMp`). Heals current HP/MP to max, then
+/// (`equipmentRecalculateMaxHp` / `Gp_RecalcMaxMp`). Heals current HP/MP to max, then
 /// clears `Gp_StateC08.activeIndex` / `wheelIndex`.
 void Gp_ClearInventory(void);
 
@@ -165,31 +165,82 @@ InventoryItemRow* inventoryGetRangeTable(const InventoryItemRange* range);
 /// marker from the live save, even if the bit was already set.
 void inventorySetCollectedBit(s32 collectionId);
 
-s32 Gp_AgeFlag119(void);
+/// Converts a held Ice Bag to a Bag of Water when its two-minute timer expires.
+///
+/// Returns 1 only when the collection bits change, otherwise 0. Elapsed saved
+/// minutes narrow to signed 16 bits before comparison; the marker is retained.
+/// Collecting an Ice Bag or `inventoryResetIceBagTimer` restarts the timer.
+s32 inventoryMeltIceBagIfExpired(void);
 
-s32 Gp_SumScanQty(InventoryItemRange* arg0, s32 arg1);
+/// Sums matching row quantities, or returns a key item's collection bit.
+///
+/// Row ids below 0x100 use the descriptor's selected table and include loaded
+/// ammunition in the total. The range must fit readable backing storage; zero
+/// rows returns zero. Ids >= 0x100 instead query the collection flag
+/// selected by their low seven bits, without reading the range. Inputs
+/// are borrowed and left unchanged.
+s32 inventoryGetItemQuantity(const InventoryItemRange* range, s32 itemId);
 
-void Gp_SetItemSeenBit(s32 arg0, s32 arg1);
+/// Sets or clears an item's persistent catalogue identification flag.
+///
+/// `itemId` must be nonnegative; ids >= 0x180 are ignored. Zero `identified`
+/// clears the flag and any nonzero value sets it. Identification controls the
+/// name, description and icon independently of possession or collection.
+void itemSetIdentified(s32 itemId, s32 identified);
 
 void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2);
 
-s32 Gp_NextMappedSlot(s32 arg0);
+/// No carried weapon with a built-in supply was found.
+enum { EQUIPMENT_WEAPON_SUPPLY_NOT_FOUND = -1 };
 
-EquipmentWeaponSupply* Gp_GetItemMap(s32 arg0);
+/// Finds the next built-in supply whose weapon is in the live carried range.
+///
+/// Starts at `firstSupplyIndex` inclusively. Returns a catalogue index 0..7,
+/// or `EQUIPMENT_WEAPON_SUPPLY_NOT_FOUND` for an invalid start or no match.
+/// The carried range must fit its readable table; neither it nor loads change.
+s32 equipmentFindNextCarriedWeaponSupply(s32 firstSupplyIndex);
+
+/// Borrows one read-only row of the built-in weapon-supply catalogue.
+///
+/// `supplyIndex` must be 0..7; there is no bounds check. The row remains valid
+/// while gameplay is loaded and names the weapon, supply item and load to refill.
+const EquipmentWeaponSupply* equipmentGetWeaponSupply(s32 supplyIndex);
 
 s32 Gp_HasMappedItem(void);
 
-void Gp_RecalcMaxHp(void);
+/// Recomputes maximum HP from the game mode, permanent bonus and equipped armor.
+///
+/// The live save's mode must be 0..3 and equipped armor 0..32. Each addition
+/// narrows through an unsigned 16-bit accumulator before the signed maximum
+/// is capped at 250. Current HP is reduced only when it exceeds the new maximum.
+void equipmentRecalculateMaxHp(void);
 
-s32 Gp_ItemSortKey(s32 arg0);
+/// Returns a catalogue order key, an id-based fallback or the empty-row key.
+///
+/// Remapped row ids use their category table; a zero remap or other id falls
+/// back to `itemId + 0x100`. Id zero returns 0x1000. Remap inputs must be
+/// 1..0x47, 0x60..0x6E or 0x80..0xBF; unused ordinary/armor gaps outside those
+/// ranges exceed the declared tables despite passing the raw category tests.
+/// The shop's 0xFFFE recharge-service id uses the numerical fallback.
+s32 inventoryGetItemSortKey(s32 itemId);
 
 s32 Gp_HasStockedItem(s32 arg0);
 
-void Gp_MarkPlayTime(void);
+/// Restarts the Ice Bag's melting timer at the live save's whole play minutes.
+///
+/// Room events use this to hold or restart melting. Collection bits are left
+/// intact; collecting an Ice Bag also refreshes this marker.
+void inventoryResetIceBagTimer(void);
 
-s32 Gp_GetRelatedQty(s32 arg0, s32 arg1);
+/// Returns the maximum rounds or supply units in one weapon load.
+///
+/// Weapon item ids 0x80..0x9F index the catalogue; other ids return zero.
+/// Zero `loadSelection` selects primary and every nonzero value secondary.
+/// The result is a capacity, independently of possession or remaining charge.
+s32 equipmentGetWeaponLoadCapacity(s32 weaponItemId, s32 loadSelection);
 
-void Gp_FillHpMp(void);
+/// Restores current HP and MP to their already computed maxima.
+void equipmentRestoreHpMp(void);
 
 void func_800BC4BC(void);
 

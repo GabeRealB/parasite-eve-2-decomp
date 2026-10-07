@@ -714,7 +714,7 @@ void Gp_EquipHeld(s32 arg0)
         }
         p->weapon = arg0 - 0x7F;
         inventoryDetachItem(rec);
-        Gp_SetItemSeenBit(arg0, 1);
+        itemSetIdentified(arg0, 1);
     }
 }
 
@@ -997,7 +997,7 @@ static void Gp_SpawnItemUsePrompt(UiList* arg0, UiObject* arg1)
     if (*slot != NULL) {
         one = 1;
         if (uiSpawnObject(&D_8010EE88, (s32)(id), one, one, arg1) != NULL) {
-            Gp_SetItemSeenBit(id, 1);
+            itemSetIdentified(id, 1);
         }
         arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     } else {

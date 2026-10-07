@@ -152,7 +152,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                     rec->attachSlot = arg0->attachSlot;
                     inventoryDetachItem(arg0);
                 }
-                Gp_SetItemSeenBit(id, 1);
+                itemSetIdentified(id, 1);
             }
             ret = 1;
         } else if ((u32)(id - 0xA0) < 0x20U) {
@@ -169,7 +169,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                     slot->primaryItemId = id;
                     slot->primaryQty    = 0;
                 }
-                Gp_SetItemSeenBit(id, 1);
+                itemSetIdentified(id, 1);
                 ret = 1;
             } else if (Gp_EquipRelatedBank(1, held, id, 0) == 0) {
                 Gp_PendingRelatedId = -id;
@@ -179,7 +179,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                     slot->secondaryItemId = id;
                     slot->secondaryQty    = 0;
                 }
-                Gp_SetItemSeenBit(id, 1);
+                itemSetIdentified(id, 1);
                 ret = 1;
             }
 
@@ -275,7 +275,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                         if ((u32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus < 0xFAU) {
                             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus += 5;
                         }
-                        Gp_RecalcMaxHp();
+                        equipmentRecalculateMaxHp();
                         Gp_HealPending = 1;
                         ret            = 1;
                         cfg->hp        = cfg->hpMax;
@@ -352,7 +352,7 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                 arg0->itemId     = INVENTORY_ITEM_NONE;
                 arg0->qty        = 0;
                 arg0->attachSlot = INVENTORY_ATTACHMENT_NONE;
-                Gp_SetItemSeenBit(id, 1);
+                itemSetIdentified(id, 1);
             }
         }
     }
@@ -483,7 +483,7 @@ void func_800D6334(Task* task)
     if (task->state == 0) {
         Gp_HealPending = 0;
         Gp_UsedItemId  = 0;
-        if (D_8010F884 >= Gp_GetModLevel(armor)) {
+        if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armor)) {
             D_8010F884 = 0;
         }
         uiSpawnObject(&D_8010F8B4, 0, 0, 0, panel);
@@ -530,7 +530,7 @@ void func_800D6334(Task* task)
         }
         Gp_DrawItemIcon(panel, selectedX, y, item, flags);
         selectedX = x;
-        for (slot = 0; slot < Gp_GetModLevel(armor); slot++, selectedX += 13) {
+        for (slot = 0; slot < equipmentGetArmorAttachmentSlotCount(armor); slot++, selectedX += 13) {
             if (slot != D_8010F884) {
                 selected = NULL;
                 scan     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
@@ -592,12 +592,12 @@ void func_800D6334(Task* task)
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             D_8010F884--;
             if (D_8010F884 < 0) {
-                D_8010F884 += Gp_GetModLevel(armor);
+                D_8010F884 += equipmentGetArmorAttachmentSlotCount(armor);
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT)) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
             D_8010F884++;
-            if (D_8010F884 >= Gp_GetModLevel(armor)) {
+            if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armor)) {
                 D_8010F884 = 0;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu)) {

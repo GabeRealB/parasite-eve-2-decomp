@@ -1342,7 +1342,7 @@ void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
             Gp_FillPlayerHpMp();
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_PARTHENON_KEY);
             inventoryClearCollectedBit(0x102);
-            Gp_SetItemSeenBit(0x102, 1);
+            itemSetIdentified(0x102, 1);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
             taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184E68, 0, 0, 0);

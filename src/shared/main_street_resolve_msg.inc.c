@@ -101,7 +101,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         if (ROOM_EVENT_ACTIVE != 0) {
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY);
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_LOBBY_KEY);
-            Gp_SetItemSeenBit(0x113, 1);
+            itemSetIdentified(0x113, 1);
         }
         if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_093) == 0) {
             Gp_SetNibbleIf(msg->flagId, 0);
@@ -121,7 +121,7 @@ s32 mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg*
         if (ROOM_EVENT_ACTIVE != 0) {
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY);
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_LOBBY_KEY);
-            Gp_SetItemSeenBit(0x113, 1);
+            itemSetIdentified(0x113, 1);
         }
         if (msg->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_094) == 0) {
             Gp_SetNibbleIf(msg->flagId, 0);

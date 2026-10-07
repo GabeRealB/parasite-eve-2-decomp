@@ -959,12 +959,12 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
         case 2:
             break;
         case 3:
-            Gp_SetItemSeenBit(0x40, 1);
+            itemSetIdentified(0x40, 1);
             inventoryGiveItem(scan, 0x40, 1);
             break;
         case 4:
-            Gp_SetItemSeenBit(0x40, 1);
-            Gp_SetItemSeenBit(5, 1);
+            itemSetIdentified(0x40, 1);
+            itemSetIdentified(5, 1);
             inventoryGiveItem(scan, 0x40, 1)->attachSlot = 2;
             inventoryGiveItem(scan, 5, 1)->attachSlot    = 3;
             inventoryGiveItem(scan, 5, 1)->attachSlot    = 4;
@@ -972,9 +972,9 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
             Gp_DebugAttachLevels[1]                      = 1;
             break;
         case 5:
-            Gp_SetItemSeenBit(0x40, 1);
-            Gp_SetItemSeenBit(1, 1);
-            Gp_SetItemSeenBit(6, 1);
+            itemSetIdentified(0x40, 1);
+            itemSetIdentified(1, 1);
+            itemSetIdentified(6, 1);
             inventoryGiveItem(scan, 0x40, 1);
             inventoryGiveItem(scan, 1, 1);
             inventoryGiveItem(scan, 1, 1);
@@ -985,7 +985,7 @@ void func_mist_shooting_gallery_8017DCAC(s32 mode)
             Gp_DebugAttachLevels[1]   = 1;
             break;
     }
-    Gp_FillHpMp();
+    equipmentRestoreHpMp();
     Gp_ApplyItemMap();
 }
 void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
@@ -1036,7 +1036,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
             Gp_EquipMod(0x6C);
             inventoryGiveItem(scan, ammo, 0x3E7)->attachSlot = selected;
             Gp_EquipRelatedItem(scan, item, ammo, -1);
-            Gp_FillHpMp();
+            equipmentRestoreHpMp();
             arg1->result = USER_INTERFACE_RESULT_CONFIRM;
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
@@ -1081,7 +1081,7 @@ void func_mist_shooting_gallery_8017E090(Task* task)
         weapon = D_mist_shooting_gallery_80184F34;
         do {
             if (func_800B7420(*weapon) != 0) {
-                Gp_SetItemSeenBit(*weapon, 1);
+                itemSetIdentified(*weapon, 1);
                 count += 1;
             }
             i++;
@@ -1734,12 +1734,12 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
             task->killCountdown = 0xA;
             uiStartTreeClosing(obj, obj->owner);
-            Gp_RecalcMaxHp();
+            equipmentRecalculateMaxHp();
             Gp_RecalcMaxMp();
 
             cfg->exp = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
             cfg->bp  = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
-            Gp_FillHpMp();
+            equipmentRestoreHpMp();
             task->state = task->state + 1;
         }
     } else {

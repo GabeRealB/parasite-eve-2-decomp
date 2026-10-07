@@ -47,7 +47,7 @@ void Gp_UiBoostAttach(struct UiObject* arg0, Task* arg1);
 void Gp_UiBoostMp(struct UiObject* arg0, Task* arg1);
 
 /// HP counterpart of `Gp_UiBoostMp`: adds 5 to `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.hpBonus`
-/// (clamped below 250), recomputes max HP (same body as `Gp_RecalcMaxHp`),
+/// (clamped below 250), recomputes max HP (same body as `equipmentRecalculateMaxHp`),
 /// heals current HP to that max, then consumes `Gp_SelItemRec` and spawns
 /// `Gp_BoostPanelDesc`. `Gp_NoticePanelTask` is called with `spawnArg1` forced to 0x1C.
 void Gp_UiBoostHp(struct UiObject* arg0, Task* arg1);
@@ -167,8 +167,12 @@ void Gp_InitModeEquip(void);
 /// separate Ice Bag play-time marker and inventory rows are left intact.
 void inventoryClearCollectedBits(void);
 
-/// `arg1` is unused; some callers pass 0 so the `jal` delay slot is `move a1, zero`.
-s32 Gp_NthCollectedId(s32 arg0, s32 arg1);
+/// Returns the item id at a zero-based position among held listed key items.
+///
+/// Only set collection bits in the ordered, terminated key-item list count.
+/// `collectedIndex` must be nonnegative; an exhausted list returns
+/// `INVENTORY_ITEM_NONE`. `unused` is ignored and preserves the call interface.
+s32 inventoryGetCollectedItemId(s32 collectedIndex, s32 unused);
 
 /// Angle units used when capturing the saved player facing (4096 per turn).
 enum {
@@ -180,18 +184,41 @@ void Gp_SavePlayerPos(void);
 
 void Gp_SyncHeldRelated(void);
 
-s32 Gp_HasItemSeenBit(s32 arg0);
+/// Returns whether an item uses its identified catalogue text and icon.
+///
+/// `itemId` must be nonnegative. Ids below 0x180 consult the live save's flag;
+/// larger ids return true. Items with no unidentified text start identified,
+/// and examination, use or story events can identify others.
+bool itemIsIdentified(s32 itemId);
 
-/// Number of rows `scan` covers, i.e. how many items the window can hold.
-s32 Gp_GetScanCount(InventoryItemRange* scan);
+/// Returns the range's number of row slots, including free rows.
+///
+/// The descriptor must be readable; the result is 0..255. Its backing table
+/// is not inspected and the descriptor is left unchanged.
+s32 inventoryGetRangeCapacity(const InventoryItemRange* range);
 
-s32 Gp_GetModLevel(s32 arg0);
+/// Returns an armor item's base plus saved bonus attachment slots, capped at ten.
+///
+/// Armor item ids 0x60..0x7F index the live save's signed bonus; other ids
+/// return zero. This counts attachment positions, independently of occupancy.
+s32 equipmentGetArmorAttachmentSlotCount(s32 armorItemId);
 
 void Gp_TickBoostPanel(Task* arg0);
 
-s32 Gp_FindScanQty(InventoryItemRow* arg0, InventoryItemRange* arg1, s32* arg2, s32 arg3);
+/// Returns the first matching stack's quantity from an absolute row cursor.
+///
+/// `table` must be the range's readable backing table. On entry `*rowIndex`
+/// must be within the range, or at its end. Skipped rows advance the cursor;
+/// a hit leaves it at that row, and exhaustion leaves it at the end. There is
+/// no lower-bound check. The result narrows the stored u16 to s16; zero also
+/// means no match. The table and descriptor are borrowed without modification.
+s16 inventoryFindStackQuantity(const InventoryItemRow* table, const InventoryItemRange* range, s32* rowIndex, s32 itemId);
 
-void Gp_AgeFlag119Void(void);
+/// Updates the Ice Bag's two-minute melting transition without returning status.
+///
+/// Uses the same collection-bit transition and signed 16-bit elapsed-minute
+/// comparison as `inventoryMeltIceBagIfExpired`; the marker is retained.
+void inventoryUpdateIceBag(void);
 
 void func_800B8014(void);
 
@@ -226,7 +253,7 @@ extern u16 Gp_PubItemId;
 
 s32 Gp_LookupBit2Item(s32 arg0);
 
-/// Byte remap of an item id used as a sort/order key (`Gp_ItemSortKey` /
+/// Byte remap of an item id used as a sort/order key (`inventoryGetItemSortKey` /
 /// `inventorySortItems`). Split by item class: 0x01–0x5F → `Gp_ItemSortKey0[id]`,
 /// 0x60–0x7F → `Gp_ItemSortKey60[id-0x60]`, 0x80–0x9F → `Gp_ItemSortKey80[id-0x80]`,
 /// 0xA0–0xBF → `Gp_ItemSortKeyA0[id-0xA0]`. A 0 entry (or an id outside those

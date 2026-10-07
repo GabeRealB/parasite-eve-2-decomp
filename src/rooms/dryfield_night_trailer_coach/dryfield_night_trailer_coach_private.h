@@ -66,7 +66,7 @@ extern AreaApplyRec D_dryfield_night_trailer_coach_8018C208[2];
 
 extern s32 Shop_Data_80187628;
 
-extern EquipmentWeaponSupply* Shop_Data_8018762C;
+extern const EquipmentWeaponSupply* Shop_Data_8018762C;
 
 extern Task* gRoomCutsceneSoundTask;
 

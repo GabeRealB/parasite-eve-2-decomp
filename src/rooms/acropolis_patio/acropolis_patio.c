@@ -1798,7 +1798,7 @@ s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, Room
             var_v0 = 2;
             if (arg2->queryOnly == 0) {
                 taskSpawnFromTable(D_acropolis_patio_801802BC, 1, 0, 0);
-                Gp_SetItemSeenBit(0x101, 1);
+                itemSetIdentified(0x101, 1);
                 D_acropolis_patio_80187064 = arg2->warp;
                 D_acropolis_patio_80187065 = arg2->room;
                 return 2;

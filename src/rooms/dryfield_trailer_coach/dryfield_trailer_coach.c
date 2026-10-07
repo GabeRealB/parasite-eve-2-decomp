@@ -1391,7 +1391,7 @@ AreaApplyRec D_dryfield_trailer_coach_80189C50[15] = {
 
 static s32 Shop_Data_80187628 = 0;
 
-static EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
+static const EquipmentWeaponSupply* Shop_Data_8018762C = NULL;
 
 RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask = { 0 };
 
@@ -1456,7 +1456,7 @@ static UiObjectDesc Shop_Data_80181C10;
 /// charged.
 static s32 Shop_Data_80187628;
 
-static EquipmentWeaponSupply* Shop_Data_8018762C;
+static const EquipmentWeaponSupply* Shop_Data_8018762C;
 
 /// Descriptor of the panel `func_dryfield_trailer_coach_8017FE98` opens.
 static UiObjectDesc Shop_Data_80181B30;
