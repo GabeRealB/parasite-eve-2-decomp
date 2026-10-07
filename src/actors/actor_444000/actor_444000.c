@@ -4182,7 +4182,6 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     GluttonWork* work;
     GluttonWork* buffers;
     GluttonWork* escorts;
-    GfxMatrix*   mtx;
     TmdObject*   tmd;
     TmdObject*   model;
     TmdObject*   escortTmd;
@@ -4374,12 +4373,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 
     freeCoord                                          = &work->swipeCoord.node;
     work->swipeCoord.node.parent                       = task->extra.tmd->coords;
-    work->swipeCoord.packed.coord.rotationWords.m00M01 = ONE;
-    mtx                                                = &work->swipeCoord.packed.coord;
-    mtx->rotationWords.m02M10                          = 0;
-    mtx->rotationWords.m11M12                          = ONE;
-    mtx->rotationWords.m20M21                          = 0;
-    mtx->rotationWords.m22                             = ONE;
+    gfxSetRotIdentity(&work->swipeCoord.node.coord);
     work->swipeCoord.node.coord.t[0] = work->swipeCoord.node.coord.t[1] = work->swipeCoord.node.coord.t[2] = 0;
     work->swipeCoord.node.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(freeCoord);
