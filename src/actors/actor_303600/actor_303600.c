@@ -10,6 +10,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/geometry.h"
@@ -105,6 +106,33 @@ typedef struct {
 } _Actor303600ShaftWork;
 STATIC_ASSERT_SIZEOF(_Actor303600ShaftWork, 0x3C);
 
+/// Cues posted by the cutscene script; actor cues 1..5 are forwarded unchanged.
+///
+/// Only one cue is pending: another post replaces it before the controller runs.
+/// The pose/animation and figure cues are interpreted by the Eve package.
+enum {
+    ACTOR_303600_CUTSCENE_CUE_NONE                  = 0,
+    ACTOR_303600_CUTSCENE_CUE_PREPARE_POSE          = 1,
+    ACTOR_303600_CUTSCENE_CUE_PLAY_ANIMATION        = 2,
+    ACTOR_303600_CUTSCENE_CUE_BRIGHTEN_ACTOR        = 3,
+    ACTOR_303600_CUTSCENE_CUE_SHOW_SHAFT_AND_FLASH  = 4,
+    ACTOR_303600_CUTSCENE_CUE_FADE_FIGURE           = 5,
+    ACTOR_303600_CUTSCENE_CUE_FADE_TO_WHITE_FAST    = 6,
+    ACTOR_303600_CUTSCENE_CUE_FADE_TO_WHITE_SLOW    = 7,
+    ACTOR_303600_CUTSCENE_CUE_BLACK_COVER_AND_FLASH = 8,
+};
+
+/// White-fade task states and the byte intensity interval it draws.
+enum {
+    ACTOR_303600_WHITE_FADE_ALLOCATE      = 0,
+    ACTOR_303600_WHITE_FADE_DRAW          = 1,
+    ACTOR_303600_WHITE_FADE_MAX_INTENSITY = 255,
+    ACTOR_303600_WHITE_FADE_END_INTENSITY = 256,
+};
+
+/// Fractional bits of the shaft's translation, speed, acceleration and limit.
+enum { ACTOR_303600_SHAFT_FRACTION_BITS = 16 };
+
 extern Task*    D_actor_303600_8016E4C0;
 extern Task*    D_actor_303600_8016E4C4;
 extern TaskDesc D_actor_303600_80162E98[];
@@ -115,7 +143,7 @@ extern TaskDesc D_actor_303600_8016E468[];
 extern TaskMessageEntry D_actor_303600_8016E480[];
 
 /// The overlay's three flat lights, loaded into the model by
-/// `func_actor_303600_80162A0C`; one `GsF_LIGHT` (0x10 bytes) each.
+/// `_actor303600InitShaftSegmentLighting`; one `GsF_LIGHT` (0x10 bytes) each.
 extern GsF_LIGHT D_actor_303600_8016E490[3];
 
 /// The cutscene's two script blocks, handed to `evsStartScriptWithSkip` together when the
@@ -127,27 +155,27 @@ extern EvsCommand D_actor_303600_80162DD8[];
 /// (`Gp_StateC08.mode`) or a live `gDisplayState.pendingMode` holds the scene, and `gDisplayState.spriteVariant` is the
 /// latch state 2 below sets alongside `gMcSaveData`.
 
-static void func_actor_303600_80162850(Task* task);
-static void func_actor_303600_80162950(Task* task);
-static void func_actor_303600_80162A04(Task* task);
-static void func_actor_303600_80162A0C(Task* task);
+static void _actor303600KillShaft(Task* task);
+static void _actor303600SpawnShaftSegment(Task* task);
+static void _actor303600IdleShaftSegment(Task* task);
+static void _actor303600InitShaftSegmentLighting(Task* task);
 
 static TmdSource _gActor303600Model0814C;
-s32              func_actor_303600_80162870(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-void             func_actor_303600_801628E4(Task*);
+static s32       _actor303600HandleShaftCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
+static void      _actor303600ShaftSegmentTask(Task* task);
 void             func_actor_303600_80162A7C(Task*);
 
-void func_actor_303600_80161E60(Task*);
-void func_actor_303600_8016216C(Task*);
-void func_actor_303600_801622E8(Task*);
-void func_actor_303600_801623CC(Task*);
-void func_actor_303600_801624B0(void);
-void func_actor_303600_8016253C(void);
-void func_actor_303600_80162600(s16);
-void func_actor_303600_80162620(void);
-void func_actor_303600_80162658(void);
-void func_actor_303600_80162678(void);
-void func_actor_303600_80162698(void);
+static void _actor303600DrawBlackCoverTask(Task* task);
+void        func_actor_303600_8016216C(Task*);
+static void _actor303600FadeFromWhiteTask(Task* task);
+static void _actor303600FadeToWhiteTask(Task* task);
+static void _actor303600SendCutsceneEndCommand(void);
+void        func_actor_303600_8016253C(void);
+static void _actor303600PostCutsceneCue(s16 cue);
+static void _actor303600LockCutsceneControls(void);
+static void _actor303600StageCutsceneAudio(void);
+static void _actor303600StartCutscenePlayback(void);
+static void _actor303600CancelCutscenePlayback(void);
 
 EvsSceneKey D_actor_303600_80162AE8 = { 6, 12, 11 };
 
@@ -155,31 +183,31 @@ EvsCommand D_actor_303600_80162AF0[31] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_303600_80162AE8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_303600_80162658 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_303600_80162620 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_303600_80162600 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600StageCutsceneAudio }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600LockCutsceneControls }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor303600PostCutsceneCue }, { .value = ACTOR_303600_CUTSCENE_CUE_PREPARE_POSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_303600_80162678 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600StartCutscenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_303600_80162600 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor303600PostCutsceneCue }, { .value = ACTOR_303600_CUTSCENE_CUE_PLAY_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_303600_80162600 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor303600PostCutsceneCue }, { .value = ACTOR_303600_CUTSCENE_CUE_BRIGHTEN_ACTOR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_303600_80162600 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor303600PostCutsceneCue }, { .value = ACTOR_303600_CUTSCENE_CUE_FADE_TO_WHITE_FAST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_303600_80162600 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor303600PostCutsceneCue }, { .value = ACTOR_303600_CUTSCENE_CUE_SHOW_SHAFT_AND_FLASH }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_303600_80162600 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor303600PostCutsceneCue }, { .value = ACTOR_303600_CUTSCENE_CUE_FADE_FIGURE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_303600_80162600 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor303600PostCutsceneCue }, { .value = ACTOR_303600_CUTSCENE_CUE_FADE_TO_WHITE_SLOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_303600_80162600 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor303600PostCutsceneCue }, { .value = ACTOR_303600_CUTSCENE_CUE_BLACK_COVER_AND_FLASH }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_303600_80162698 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600CancelCutscenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_303600_801624B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600SendCutsceneEndCommand }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -198,9 +226,9 @@ EvsCommand D_actor_303600_80162DD8[8] = {
 
 TaskDesc D_actor_303600_80162E98[4] = {
     { { { TASK_BODY_NONE, 192 } }, func_actor_303600_8016216C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_303600_801622E8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_303600_801623CC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_303600_80161E60, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor303600FadeFromWhiteTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor303600FadeToWhiteTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor303600DrawBlackCoverTask, { .value = 0 } },
 };
 
 static TmdBone _gActor303600Model02DD0Skeleton[1] = {
@@ -364,11 +392,11 @@ Actor303600ViewKey D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT] = {
 
 TaskDesc D_actor_303600_8016E468[2] = {
     { { { TASK_BODY_COORD, 192 } }, func_actor_303600_80162A7C, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_303600_801628E4, { .model = &_gActor303600Model0814C } },
+    { { { TASK_BODY_TMD, 192 } }, _actor303600ShaftSegmentTask, { .model = &_gActor303600Model0814C } },
 };
 
 TaskMessageEntry D_actor_303600_8016E480[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_303600_80162870 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor303600HandleShaftCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -384,34 +412,40 @@ Task* D_actor_303600_8016E4C4;
 
 static void func_actor_303600_80161F40(Task* arg0);
 static void func_actor_303600_801626C0(Task* task);
-static void func_actor_303600_801627B8(Task* task);
+static void _actor303600ScrollShaft(Task* task);
 
-/// Entry 3 of `D_actor_303600_80162E98`, spawned by the teardown and by
-/// command 8: every frame it covers the screen with an opaque black tile,
-/// linked 15 slots below `gGpuCurrentOt`, followed by a draw-mode packet with
-/// dithering on. It never ends itself.
-void func_actor_303600_80161E60(Task* task)
+/// Covers the centred 320x240 frame in opaque black for this callback tick.
+///
+/// Requires room in the frame arena for a TILE and DR_TPAGE, and a writable
+/// foreground OT tag 15 entries before the current base. The GPU borrows both
+/// packets until completion. Ignores the task and never ends it; the owner must
+/// stop it when the cover is no longer needed.
+static void _actor303600DrawBlackCoverTask(Task* task)
 {
-    TILE*     p;
-    DR_TPAGE* dr;
+    enum { ACTOR_303600_BLACK_COVER_WIDTH     = 320,
+           ACTOR_303600_BLACK_COVER_HEIGHT    = 240,
+           ACTOR_303600_BLACK_COVER_OT_OFFSET = 15 };
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setlen(p, 3);
-    setcode(p, 0x60);
-    p->r0 = 0;
-    p->g0 = 0;
-    p->b0 = 0;
-    p->x0 = -0xA0;
-    p->y0 = -0x78;
-    p->w  = 0x140;
-    p->h  = 0xF0;
-    addPrim(gGpuCurrentOt - 0xF, p);
+    TILE*     tile;
+    DR_TPAGE* drawMode;
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 0, 1, 0);
-    addPrim(gGpuCurrentOt - 0xF, dr);
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    setTile(tile);
+    tile->r0 = 0;
+    tile->g0 = 0;
+    tile->b0 = 0;
+    tile->x0 = -ACTOR_303600_BLACK_COVER_WIDTH / 2;
+    tile->y0 = -ACTOR_303600_BLACK_COVER_HEIGHT / 2;
+    tile->w  = ACTOR_303600_BLACK_COVER_WIDTH;
+    tile->h  = ACTOR_303600_BLACK_COVER_HEIGHT;
+    addPrim(gGpuCurrentOt - ACTOR_303600_BLACK_COVER_OT_OFFSET, tile);
+
+    // OT links prepend: the later draw-mode packet runs before the tile.
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, 0, 1, 0);
+    addPrim(gGpuCurrentOt - ACTOR_303600_BLACK_COVER_OT_OFFSET, drawMode);
 }
 
 /// Command dispatcher the cutscene controller steps while the cutscene is up.
@@ -545,108 +579,122 @@ void func_actor_303600_8016216C(Task* arg0)
     }
 }
 
-/// Fade-out driver: the same eight-byte channel block `func_actor_303600_801623CC`
-/// walks up, walked the other way.  State 0 allocates it and fills all three
-/// channels with 0xFF; a failed allocation kills the task outright.  State 1
-/// draws the overlay tinted `r`/`g`/`r` in mode 1, steps all three channels down
-/// by `Task::spawnArg1` -- the fade rate, not a colour -- and once `r` has gone
-/// below zero clears `D_actor_303600_8016E4C4` before killing the task.
-void func_actor_303600_801622E8(Task* arg0)
+/// Allocates, initializes and advances one white-fade task into its draw state.
+///
+/// Scoped to the two white-fade callbacks below. fadeTask is a live Task*;
+/// fadeWork and allocatedFadeWork are distinct ScreenFadeWork* local lvalues.
+/// Arguments are used repeatedly and must have no side effects. On allocation
+/// failure this kills fadeTask and returns from the containing void callback.
+/// initialIntensity must be zero or 255 and is evaluated once per channel.
+#define ACTOR_303600_BEGIN_WHITE_FADE(fadeTask, fadeWork, allocatedFadeWork, initialIntensity) \
+    {                                                                                          \
+        (allocatedFadeWork) = memMalloc(sizeof(*(allocatedFadeWork)), false);                  \
+        (fadeTask)->work    = (allocatedFadeWork);                                             \
+        if ((allocatedFadeWork) == NULL) {                                                     \
+            taskKill(fadeTask);                                                                \
+            return;                                                                            \
+        }                                                                                      \
+        (fadeWork)         = (allocatedFadeWork);                                              \
+        (fadeWork)->b      = (initialIntensity);                                               \
+        (fadeWork)->g      = (initialIntensity);                                               \
+        (fadeWork)->r      = (initialIntensity);                                               \
+        (fadeTask)->state += 1;                                                                \
+    }
+
+/// Removes an additive white flash, starting at intensity 255.
+///
+/// State 0 allocates task-owned `ScreenFadeWork` and draws the first frame in
+/// the same tick; allocation failure kills the task. State 1 draws r/g/r and
+/// then steps all three signed halfword channels. `spawnArg1.value` supplies
+/// the low 16-bit intensity step per callback tick; the controller uses 4 or 8.
+/// After red becomes negative, clears the singleton fade pointer and kills the
+/// task. Keep the frame arena and foreground OT available for drawing.
+static void _actor303600FadeFromWhiteTask(Task* task)
 {
     ScreenFadeWork* work;
-    ScreenFadeWork* alloc;
+    ScreenFadeWork* allocatedWork;
 
-    work = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            work         = alloc;
-            work->b      = 0xFF;
-            work->g      = 0xFF;
-            work->r      = 0xFF;
-            arg0->state += 1;
+    work = task->work;
+    switch (task->state) {
+        case ACTOR_303600_WHITE_FADE_ALLOCATE:
+            ACTOR_303600_BEGIN_WHITE_FADE(task, work, allocatedWork, ACTOR_303600_WHITE_FADE_MAX_INTENSITY);
             /* fallthrough */
-        case 1:
+        case ACTOR_303600_WHITE_FADE_DRAW:
+            // Draw the current intensity before stepping the signed channels.
             fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_ADD);
-            work->r -= (u16)arg0->spawnArg1.value;
-            work->g -= (u16)arg0->spawnArg1.value;
-            work->b -= (u16)arg0->spawnArg1.value;
+            work->r -= (u16)task->spawnArg1.value;
+            work->g -= (u16)task->spawnArg1.value;
+            work->b -= (u16)task->spawnArg1.value;
             if (work->r < 0) {
                 D_actor_303600_8016E4C4 = NULL;
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }
 }
 
-/// Fade-in driver: state 0 allocates the eight-byte channel block and clears
-/// all three channels; a failed allocation kills the task outright.  State 1
-/// runs every frame: it draws the overlay tinted `r`/`g`/`r` in mode 1, steps
-/// all three channels by `Task::spawnArg1` -- the fade rate, not a colour -- and
-/// once `r` has passed 0x100 clears `D_actor_303600_8016E4C4` before killing the
-/// task.  The fade-out counterpart that walks the same block the other way, from
-/// 0xFF down past zero, is `func_actor_303600_801622E8`.
-void func_actor_303600_801623CC(Task* arg0)
+/// Builds an additive fade to white, starting at intensity zero.
+///
+/// State 0 allocates task-owned `ScreenFadeWork` and draws the first frame in
+/// the same tick; allocation failure kills the task. State 1 draws r/g/r and
+/// then steps all three signed halfword channels. `spawnArg1.value` supplies
+/// the low 16-bit intensity step per callback tick; the controller uses 4 or 8.
+/// After red reaches 256 or more, clears the singleton fade pointer and kills the
+/// task. Keep the frame arena and foreground OT available for drawing.
+static void _actor303600FadeToWhiteTask(Task* task)
 {
     ScreenFadeWork* work;
-    ScreenFadeWork* alloc;
+    ScreenFadeWork* allocatedWork;
 
-    work = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
-                return;
-            }
-            work         = alloc;
-            work->b      = 0;
-            work->g      = 0;
-            work->r      = 0;
-            arg0->state += 1;
+    work = task->work;
+    switch (task->state) {
+        case ACTOR_303600_WHITE_FADE_ALLOCATE:
+            ACTOR_303600_BEGIN_WHITE_FADE(task, work, allocatedWork, 0);
             /* fallthrough */
-        case 1:
+        case ACTOR_303600_WHITE_FADE_DRAW:
+            // Draw the current intensity before stepping the signed channels.
             fadeDrawOverlay(work->r, work->g, work->r, GPU_BLEND_ADD);
-            work->r += (u16)arg0->spawnArg1.value;
-            work->g += (u16)arg0->spawnArg1.value;
-            work->b += (u16)arg0->spawnArg1.value;
-            if (work->r >= 0x100) {
+            work->r += (u16)task->spawnArg1.value;
+            work->g += (u16)task->spawnArg1.value;
+            work->b += (u16)task->spawnArg1.value;
+            if (work->r >= ACTOR_303600_WHITE_FADE_END_INTENSITY) {
                 D_actor_303600_8016E4C4 = NULL;
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }
 }
 
-/// One-shot announcement of the cutscene: while the work block's
-/// `endCommandSent` latch is still clear, hand the slot-4 task the session's two id
-/// bytes plus selector 9 as message 0x7DA, record 9 in `lastActorCommand` and
-/// raise the latch so the message goes out only once.
-void func_actor_303600_801624B0(void)
-{
-    _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
-    ActorCommand              msg;
+#undef ACTOR_303600_BEGIN_WHITE_FADE
 
-    if (work->endCommandSent == 0) {
-        msg.context.loc.stage = gGameSession->location.loc.stage;
-        msg.context.loc.area  = gGameSession->location.loc.area;
-        msg.command           = 9;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        work->lastActorCommand = 9;
-        work->endCommandSent   = 1;
+/// Broadcasts the cutscene's final actor command at most once.
+///
+/// Requires the live cutscene controller and its allocated work. The scene
+/// receives a borrowed stack command with the current stage and area; dispatch
+/// is synchronous. Eve interprets command 9 as battle completion with rewards.
+/// The controller's latch is shared with the skip callback, preventing a second
+/// broadcast when either path has already sent it.
+static void _actor303600SendCutsceneEndCommand(void)
+{
+    enum { ACTOR_303600_CUTSCENE_END_ACTOR_COMMAND = 9 };
+
+    _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
+    ActorCommand              endCommand;
+
+    if (work->endCommandSent == false) {
+        endCommand.context.loc.stage = gGameSession->location.loc.stage;
+        endCommand.context.loc.area  = gGameSession->location.loc.area;
+        endCommand.command           = ACTOR_303600_CUTSCENE_END_ACTOR_COMMAND;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &endCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+        work->lastActorCommand = ACTOR_303600_CUTSCENE_END_ACTOR_COMMAND;
+        work->endCommandSent   = true;
     }
 }
 
 /// Cutscene teardown: kill the task a previous cutscene left in
 /// `D_actor_303600_8016E4C4`, then, while the work block's `endCommandSent`
 /// latch is still clear, send the same 0x7DA announcement
-/// `func_actor_303600_801624B0` sends and latch selector 9.  Finishes by
+/// `_actor303600SendCutsceneEndCommand` sends and latch selector 9.  Finishes by
 /// spawning the overlay's own continuation task -- `D_actor_303600_80162E98`
 /// entry 3 -- so this runs exactly once per cutscene.
 void func_actor_303600_8016253C(void)
@@ -672,38 +720,55 @@ void func_actor_303600_8016253C(void)
     taskSpawnFromTable(D_actor_303600_80162E98, 3, 0, 0);
 }
 
-void func_actor_303600_80162600(s16 arg0)
+/// Replaces the cutscene controller's pending cue for its next update.
+///
+/// Requires the live controller and its allocated work. Pass an
+/// `ACTOR_303600_CUTSCENE_CUE_*` value (0..8); EVS narrows its operand to s16,
+/// which is stored in the unsigned halfword cue slot. Posting also clears an
+/// otherwise unused halfword whose role is unproven.
+static void _actor303600PostCutsceneCue(s16 cue)
 {
     _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
 
-    work->command = arg0;
+    work->command = cue;
     work->field_6 = 0;
 }
 
-void func_actor_303600_80162620(void)
+/// Locks the attachment controls and requests PE-effect cancellation.
+///
+/// Requires the room-effect controller. Cancellation is observed on its next
+/// update; the event lock remains set for the surrounding cutscene to release.
+static void _actor303600LockCutsceneControls(void)
 {
     roomEffectRequestCancelPe();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-/// Opcode-0x0D callback in the actor's cutscene script: stages the selected
-/// scene's deferred audio start through `cdCmdStageSceneAudioStart`.
-void func_actor_303600_80162658(void)
+/// Stages the selected cutscene's deferred audio-start request.
+///
+/// Requires a successfully selected scene and prepared playback buffers.
+/// The CD scheduler later commits this replacement request.
+static void _actor303600StageCutsceneAudio(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-/// Opcode-0x0D callback in the actor's cutscene script: requests the selected
-/// scene's playback through `cdCmdEnqueueScenePlayback`.
-void func_actor_303600_80162678(void)
+/// Requests playback of the selected cutscene's audio session.
+///
+/// Keep the selected scene and its prepared buffers live until the CD request
+/// is consumed. A scene without an audio slot enters playback immediately.
+static void _actor303600StartCutscenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-/// Opcode-0x0D callback in the actor's cutscene script: restores the stream
-/// random-number state, then drops the pending replacement CD command through
-/// `cdCmdCancelScene`.
-void func_actor_303600_80162698(void)
+/// Finishes scene streaming and requests cancellation of cutscene CD work.
+///
+/// Requires a previously selected scene. Restores the saved random state before
+/// dropping the deferred request; `cdCmdCancelScene` repeats stream completion.
+/// Retains both calls, including their random reseeding. Releases no buffers or
+/// tasks; their owners handle teardown.
+static void _actor303600CancelCutscenePlayback(void)
 {
     streamFinishScene();
     cdCmdCancelScene();
@@ -750,77 +815,79 @@ static void func_actor_303600_801626C0(Task* task)
         childCoord->coord.t[2] = 0;
     }
     task->msgTable     = D_actor_303600_8016E480;
-    task->exitCallback = func_actor_303600_80162850;
+    task->exitCallback = _actor303600KillShaft;
     task->state       += 1;
 }
 
-/// Per-frame motion of the scrolling shaft: ramp `scrollSpeed` by `scrollAccel`
-/// toward `scrollSpeedLimit`, drop the ramp once the speed passes the limit in
-/// the ramp's own direction, add the speed to `scrollY`, wrap that by one
-/// segment height back within half a segment of zero, and publish its integer
-/// half as the task coordinate's Y.  The accel is read once for the sum and
-/// once for the limit test -- the second read is the branch's own copy of it in
-/// the target.
-static void func_actor_303600_801627B8(Task* task)
+/// Advances the shaft's speed ramp and repeating Y translation by one tick.
+///
+/// Requires initialized shaft work and a live coordinate body. Motion uses
+/// signed 16.16 world-coordinate units; the ramp stops after crossing its
+/// directional limit and retains the overshoot. Wraps once by a segment height
+/// when Y leaves +/-4000, then publishes the signed integer half and marks the
+/// transform dirty. Commanded speeds are smaller than one segment per tick.
+static void _actor303600ScrollShaft(Task* task)
 {
-    _Actor303600ShaftWork* work  = task->work;
-    GfxCoord*              coord = task->extra.tmd->coords;
-    s32                    speed;
-    s32                    y;
-    s32                    passedLimit;
+    _Actor303600ShaftWork* shaftWork  = task->work;
+    GfxCoord*              shaftCoord = task->extra.coordBody->coord;
+    s32                    nextSpeed;
+    s32                    nextScrollY;
+    s32                    crossedSpeedLimit;
 
-    speed             = work->scrollSpeed + work->scrollAccel;
-    work->scrollSpeed = speed;
-    if (work->scrollAccel > 0) {
-        passedLimit = speed > work->scrollSpeedLimit;
+    // Stop the ramp after crossing the limit; retain the overshoot.
+    nextSpeed              = shaftWork->scrollSpeed + shaftWork->scrollAccel;
+    shaftWork->scrollSpeed = nextSpeed;
+    if (shaftWork->scrollAccel > 0) {
+        crossedSpeedLimit = nextSpeed > shaftWork->scrollSpeedLimit;
     } else {
-        passedLimit = speed < work->scrollSpeedLimit;
+        crossedSpeedLimit = nextSpeed < shaftWork->scrollSpeedLimit;
     }
-    if (passedLimit != 0) {
-        work->scrollAccel = 0;
+    if (crossedSpeedLimit != 0) {
+        shaftWork->scrollAccel = 0;
     }
-    y                  = work->scrollY.word + work->scrollSpeed;
-    work->scrollY.word = y;
+    nextScrollY             = shaftWork->scrollY.word + shaftWork->scrollSpeed;
+    shaftWork->scrollY.word = nextScrollY;
     // The segments are identical, so a jump of one segment height is unseen.
-    if (y > (ACTOR_303600_SHAFT_SEGMENT_HEIGHT / 2) << 16) {
-        work->scrollY.word = y - (ACTOR_303600_SHAFT_SEGMENT_HEIGHT << 16);
-    } else if (y < -((ACTOR_303600_SHAFT_SEGMENT_HEIGHT / 2) << 16)) {
-        work->scrollY.word = y + (ACTOR_303600_SHAFT_SEGMENT_HEIGHT << 16);
+    if (nextScrollY > (ACTOR_303600_SHAFT_SEGMENT_HEIGHT / 2) << ACTOR_303600_SHAFT_FRACTION_BITS) {
+        shaftWork->scrollY.word = nextScrollY - (ACTOR_303600_SHAFT_SEGMENT_HEIGHT << ACTOR_303600_SHAFT_FRACTION_BITS);
+    } else if (nextScrollY < -((ACTOR_303600_SHAFT_SEGMENT_HEIGHT / 2) << ACTOR_303600_SHAFT_FRACTION_BITS)) {
+        shaftWork->scrollY.word = nextScrollY + (ACTOR_303600_SHAFT_SEGMENT_HEIGHT << ACTOR_303600_SHAFT_FRACTION_BITS);
     }
-    coord->coord.t[1]   = work->scrollY.halves.integer;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    shaftCoord->coord.t[1]   = shaftWork->scrollY.halves.integer;
+    shaftCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Exit callback the scrolling shaft installs at `Task::exitCallback`, and the
-/// third entry of its state table: kills the task.
-static void func_actor_303600_80162850(Task* task)
+/// Tears down the shaft and dispatches exits to its child segment tasks.
+///
+/// Used both as the installed exit callback and the shaft's terminal state.
+/// Follows `taskKill`'s release rules; callers must not keep using the task.
+static void _actor303600KillShaft(Task* task)
 {
     taskKill(task);
 }
 
-/// Message 0x7DB handler, listed in `D_actor_303600_8016E480` -- the table
-/// `func_actor_303600_801626C0` installs at `Task::msgTable`.  The payload is
-/// the borrowed actor command `_sceneBroadcastToPlacedActors` forwards to the scene
-/// manager's placed children, so the halfword switched on here is the sender's selector:
-/// 0 sets the shaft's scroll speed to 384.0 (16.16 world units a frame) and
-/// ramps it by +8.0 a frame toward 768.0, 1 ramps whatever speed it has by
-/// -6.0 a frame toward -768.0, and every other selector exits the task
-/// through its own `Task::exitCallback`.  `func_actor_303600_801627B8` is what
-/// consumes the ramped speed.
-s32 func_actor_303600_80162870(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Applies a scrolling command to the live shaft, or exits it for other commands.
+///
+/// Receives `ACTOR_COMMAND_MESSAGE_APPLY` with a borrowed, read-only command
+/// valid through synchronous dispatch. Only its selector is read; stage, area,
+/// messageId and unusedArg are ignored. Forward starts at +384 with a +8 ramp
+/// toward +768; reverse ramps the current speed by -6 toward -768, all in
+/// world units per callback tick. Every other selector invokes the installed
+/// exit callback. Returns zero for every selector, including teardown.
+static s32 _actor303600HandleShaftCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg)
 {
     _Actor303600ShaftWork* work;
 
     work = task->work;
-    switch (msg->command) {
-        case 0:
-            work->scrollSpeed      = 384 << 16;
-            work->scrollAccel      = 8 << 16;
-            work->scrollSpeedLimit = 768 << 16;
+    switch (command->command) {
+        case ACTOR_303600_SHAFT_COMMAND_SCROLL_FORWARD:
+            work->scrollSpeed      = 384 << ACTOR_303600_SHAFT_FRACTION_BITS;
+            work->scrollAccel      = 8 << ACTOR_303600_SHAFT_FRACTION_BITS;
+            work->scrollSpeedLimit = 768 << ACTOR_303600_SHAFT_FRACTION_BITS;
             break;
-        case 1:
-            work->scrollAccel      = -(6 << 16);
-            work->scrollSpeedLimit = -(768 << 16);
+        case ACTOR_303600_SHAFT_COMMAND_REVERSE_SCROLL:
+            work->scrollAccel      = -(6 << ACTOR_303600_SHAFT_FRACTION_BITS);
+            work->scrollSpeedLimit = -(768 << ACTOR_303600_SHAFT_FRACTION_BITS);
             break;
         default:
             task->exitCallback(task);
@@ -833,74 +900,87 @@ s32 func_actor_303600_80162870(Task* task, s32 msgId, ActorCommand* msg, s32 arg
 /// callback. Dispatched by `func_actor_303600_80162A7C`.
 static const TaskFuncTable3 D_actor_303600_80161E48 = { {
     func_actor_303600_801626C0,
-    func_actor_303600_801627B8,
-    func_actor_303600_80162850,
+    _actor303600ScrollShaft,
+    _actor303600KillShaft,
 } };
 
 /// State table of the shaft's segment tasks: spawn, an empty per-frame tick and
-/// `taskKill`. Dispatched by `func_actor_303600_801628E4`.
+/// `taskKill`. Dispatched by `_actor303600ShaftSegmentTask`.
 static const TaskFuncTable3 D_actor_303600_80161E54 = { {
-    func_actor_303600_80162950,
-    func_actor_303600_80162A04,
+    _actor303600SpawnShaftSegment,
+    _actor303600IdleShaftSegment,
     taskKill,
 } };
 
-/// Per-frame dispatcher of the shaft's segment tasks: runs their spawn, tick or
-/// exit state from `D_actor_303600_80161E54`, skipping the frame while
-/// `gSceneCombatState.actorControl` is set.
-void func_actor_303600_801628E4(Task* task)
+/// Dispatches the shaft segment's spawn, idle or exit state while actors run.
+///
+/// `Task::state` must be 0..2; the table is copied before dispatch. A non-running
+/// actor-control value holds initialization and state callbacks. The idle state
+/// is empty because the segment follows its parent's transform and the model
+/// draw pass renders it independently.
+static void _actor303600ShaftSegmentTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_303600_80161E54;
+    stateHandlers = D_actor_303600_80161E54;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
 
-/// Builds the actor's light / colour matrix pair, hangs it off the task's
-/// `work` slot, and splices this task's model root under its spawn parent's.
-static void func_actor_303600_80162950(Task* task)
+/// Allocates a segment's lighting and attaches it to the scrolling shaft.
+///
+/// Requires a TMD task and a live coordinate-body shaft task in spawnArg2.
+/// The task owns its zeroed lighting work; the model borrows its matrices until
+/// teardown. Links both the coordinate and task to the shaft, enables active
+/// drawing and enters idle state. Allocation failure kills the segment.
+static void _actor303600SpawnShaftSegment(Task* task)
 {
-    Task*                         parent      = task->spawnArg2.pointer;
-    TmdObject*                    obj         = task->extra.tmd;
-    GfxCoord*                     coord       = obj->coords;
-    TmdObject*                    parentObj   = parent->extra.tmd;
-    GfxCoord*                     parentCoord = parentObj->coords;
-    _Actor303600ShaftSegmentWork* work;
+    Task*                         shaftTask    = task->spawnArg2.pointer;
+    TmdObject*                    segmentModel = task->extra.tmd;
+    GfxCoord*                     segmentCoord = segmentModel->coords;
+    ModelObjectCoordBody*         shaftBody    = shaftTask->extra.coordBody;
+    GfxCoord*                     shaftCoord   = shaftBody->coord;
+    _Actor303600ShaftSegmentWork* lightingWork;
 
-    work = memCalloc(sizeof(*work), 0);
-    if (work == NULL) {
+    lightingWork = memCalloc(sizeof(*lightingWork), 0);
+    if (lightingWork == NULL) {
         taskKill(task);
         return;
     }
 
-    task->work          = work;
-    coord->parent       = parentCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_303600_80162A0C(task);
-    taskReparent(parent, task);
-    obj->flags  &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    task->state += 1;
+    // Coordinate parenting supplies motion; task parenting supplies teardown.
+    task->work                 = lightingWork;
+    segmentCoord->parent       = shaftCoord;
+    segmentCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor303600InitShaftSegmentLighting(task);
+    taskReparent(shaftTask, task);
+    segmentModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    task->state         += 1;
 }
 
-static void func_actor_303600_80162A04(Task* task)
+/// Keeps a shaft segment idle while parent motion and model drawing continue.
+///
+/// This state deliberately performs no per-frame work.
+static void _actor303600IdleShaftSegment(Task* task)
 {
 }
 
-/// Points the task's model at the light / colour matrix pair in its own work
-/// block and loads the overlay's three flat lights into them.
-static void func_actor_303600_80162A0C(Task* task)
+/// Binds a segment's owned lighting matrices and fills them from the three lights.
+///
+/// Requires allocated segment work and a live TMD model. Each flat-light index
+/// is a matrix row (0..2); the model borrows both matrices for the task's life.
+static void _actor303600InitShaftSegmentLighting(Task* task)
 {
-    _Actor303600ShaftSegmentWork* work = task->work;
-    TmdObject*                    obj  = task->extra.tmd;
+    _Actor303600ShaftSegmentWork* lightingWork = task->work;
+    TmdObject*                    segmentModel = task->extra.tmd;
     GsF_LIGHT*                    light;
-    s32                           i;
+    s32                           lightIndex;
 
-    obj->lightMtx = &work->lightMtx;
-    obj->colorMtx = &work->colorMtx;
-    for (i = 0, light = D_actor_303600_8016E490; i < 3; i++, light++) {
-        gfxSetFlatLight(i, light, &work->lightMtx, &work->colorMtx);
+    segmentModel->lightMtx = &lightingWork->lightMtx;
+    segmentModel->colorMtx = &lightingWork->colorMtx;
+    for (lightIndex = 0, light = D_actor_303600_8016E490; lightIndex < (s32)ARRAY_SIZE(D_actor_303600_8016E490); lightIndex++, light++) {
+        gfxSetFlatLight(lightIndex, light, &lightingWork->lightMtx, &lightingWork->colorMtx);
     }
 }
 

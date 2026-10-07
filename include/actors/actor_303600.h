@@ -7,6 +7,16 @@
 
 #include "main/tmd_types.h"
 
+/// Commands carried by `ActorCommand::command` for the scrolling shaft.
+///
+/// Speeds are world-coordinate units per callback tick. The ramp stops only
+/// after crossing its limit, retaining the resulting speed. Other commands
+/// tear down the shaft and its child segments.
+enum {
+    ACTOR_303600_SHAFT_COMMAND_SCROLL_FORWARD = 0, // Start at +384, add +8 per tick toward +768.
+    ACTOR_303600_SHAFT_COMMAND_REVERSE_SCROLL = 1, // Add -6 per tick to the current speed toward -768.
+};
+
 /// Lengths of the two sequences that drive the figure and the camera of the
 /// scene `actor_403600` plays, in records.
 ///

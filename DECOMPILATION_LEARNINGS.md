@@ -46502,13 +46502,13 @@ the `0x80` allocator use the `0x80` block.
 
 The companion case, and the one that nearly cost a wrong struct. In
 `actor_303600` the overlay's documented work block is the 0x44 light/colour
-matrix pair (`_Actor303600ShaftSegmentWork`) `func_actor_303600_80162950` allocates, and the 0x7DB handler
-`func_actor_303600_80162870` writes `0x28`, `0x34` and `0x38` of
+matrix pair (`_Actor303600ShaftSegmentWork`) `_actor303600SpawnShaftSegment` allocates, and the 0x7DB handler
+`_actor303600HandleShaftCommand` writes `0x28`, `0x34` and `0x38` of
 `task->work` — all three *inside* that pair's second `MATRIX` (0x20..0x3F, at
 `m[1][1]`, `t[0]`, `t[1]`). That reading compiles and is wrong. The block is a
 separate 0x3C-byte structure (`_Actor303600ShaftWork`), and the same task's state-1 handler
-`func_actor_303600_801627B8` reads those three offsets as plain `s32`
-(`scrollSpeed += scrollAccel`, clamped against `scrollSpeedLimit`) — a motion triple no matrix
+`_actor303600ScrollShaft` reads those three offsets as plain `s32`
+(`scrollSpeed += scrollAccel`, ramping until it passes `scrollSpeedLimit`) — a motion triple no matrix
 work produces.
 
 Here the handler and the allocator are in different units of the overlay, so the
@@ -53455,7 +53455,7 @@ pseudo-splitting problem. Try the duplicated read first, then a second local in
 the branch arms, and only reach for `SOFT_TOUCH_REG` when the split has to
 happen inside one basic block.
 
-## The same-block `move aN, vN` before an add is the same double read, and a sibling field's store does not kill the equivalence (func_actor_303600_801627B8, 2026-09-17)
+## The same-block `move aN, vN` before an add is the same double read, and a sibling field's store does not kill the equivalence (_actor303600ScrollShaft, 2026-09-17)
 
 The copy in "A stray `move sN, aN` after a load" need not cross a call, and it
 can be caller-saved to caller-saved. The rig update ramps a 16.16 speed and then
@@ -100491,7 +100491,7 @@ sibling `_actor560800SetCarrierModelDraw` (same overlay, same `TmdObject::flags`
 that tree, which is the cheapest source of the shape for a message handler in
 this family.
 
-## m2c's separate scalars for one message record lose every field whose address is not the one taken — and the payload's literal then CSEs into the sender's own `$s0` (func_actor_303600_801624B0, 2026-09-16)
+## m2c's separate scalars for one message record lose every field whose address is not the one taken — and the payload's literal then CSEs into the sender's own `$s0` (_actor303600SendCutsceneEndCommand, 2026-09-16)
 
 The seed fills a 0x7DA payload out of three locals m2c emitted one per field —
 `u8 sp10; u8 sp11; s16 sp12;` — and passes only the first by address
@@ -100537,7 +100537,7 @@ The sibling `func_actor_303600_8016253C` in the same unit repeats the block byte
 for byte (`addiu $s0,$zero,0x9` / `sh $s0,0xC($s1)` included, with `$s0` reused
 from an earlier global load), so this body is the template to port it from.
 
-## m2c's unknown pointer type is `s32`, so a walker's byte-stride increment gets scaled by 4 (func_actor_303600_80162A0C, 2026-09-16)
+## m2c's unknown pointer type is `s32`, so a walker's byte-stride increment gets scaled by 4 (_actor303600InitShaftSegmentLighting, 2026-09-16)
 
 m2c renders a pointer whose target type it cannot see as `M2C_UNK *` and keeps
 the *byte* offset in the increment. `M2C_UNK` is `typedef s32 M2C_UNK`, so
@@ -100566,13 +100566,13 @@ trap applies to any `M2C_UNK*` walker in a seed: when the target's `addiu`
 disagrees with the seed's increment constant, the element type is wrong, not the
 constant.
 
-## A twin can differ by a *code literal* too — and when it lives in `src/<family>/lib/`, the overlay gets its own copy (func_actor_303600_801623CC, 2026-09-16)
+## A twin can differ by a *code literal* too — and when it lives in `src/<family>/lib/`, the overlay gets its own copy (_actor303600FadeToWhiteTask, 2026-09-16)
 
 The starred multi-class line in the brief is worth more than the `find` answer,
 and this is the third reason why. `overlay_dup_index.py find` decides equality on
 disassembly *text*, so a twin that reads different data is not a copy, and
 neither is one whose **call carries a different literal**. Here
-`func_actor_303600_801623CC` is `ActorsShared80133b5c`
+`_actor303600FadeToWhiteTask` is `ActorsShared80133b5c`
 (`src/actors/lib/`) with exactly two edits: `fadeDrawOverlay`'s mode argument is
 `1` where the twin passes `2`, and one extra `D_actor_303600_8016E4C4 = NULL;`
 before the exit. `find` reports one copy — the function itself.
@@ -100601,9 +100601,9 @@ Inputs: `base_1.i`
 `2939c045e98d94813eff515ade12f5c7af939d1aa63c86de3df930c9f1133d9a`.
 
 ## Equal `insert` and `delete` counts with a matching block/instruction count is
-an operand-width signature, not scheduling (func_actor_303600_801622E8, 2026-09-16)
+an operand-width signature, not scheduling (_actor303600FadeFromWhiteTask, 2026-09-16)
 
-`func_actor_303600_801622E8` is the fade-out twin of the `func_actor_303600_801623CC`
+`_actor303600FadeFromWhiteTask` is the fade-out twin of the `_actor303600FadeToWhiteTask`
 entry above, and its m2c seed scored 75.4% with
 
 ```

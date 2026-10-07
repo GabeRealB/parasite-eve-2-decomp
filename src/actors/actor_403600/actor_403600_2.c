@@ -4152,8 +4152,8 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
 {
     SVECTOR             offset;
     GfxCoord            view;
-    ActorCommand        startMsg;
-    ActorCommand        stopMsg;
+    ActorCommand        forwardCommand;
+    ActorCommand        reverseCommand;
     Actor303600ViewKey* key;
     s32                 i;
     s32                 transparency;
@@ -4192,10 +4192,10 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
     }
     if (work->mode != ACTOR_403600_MODE_SCENE_FADE) {
         if (work->sceneFrame == 1) {
-            startMsg.context.loc.stage = 4;
-            startMsg.context.loc.area  = 0x16;
-            startMsg.command           = 0;
-            TASK_MESSAGE_DISPATCH_POINTER(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &startMsg, 0);
+            forwardCommand.context.loc.stage = 4;
+            forwardCommand.context.loc.area  = 0x16;
+            forwardCommand.command           = ACTOR_303600_SHAFT_COMMAND_SCROLL_FORWARD;
+            TASK_MESSAGE_DISPATCH_POINTER(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &forwardCommand, 0);
             gDisplayState.screenDistance = 0x149;
             gte_SetGeomScreen(gDisplayState.screenDistance);
             gte_SetGeomOffset(0, 0);
@@ -4221,10 +4221,10 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
             effectSpawn(EFFECT_EVE_LIGHT_BEAM, &view, 0x300, &offset);
         }
         if (work->phaseFrame == 0x15E) {
-            stopMsg.context.loc.stage = 4;
-            stopMsg.context.loc.area  = 0x16;
-            stopMsg.command           = 1;
-            TASK_MESSAGE_DISPATCH_POINTER(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &stopMsg, 0);
+            reverseCommand.context.loc.stage = 4;
+            reverseCommand.context.loc.area  = 0x16;
+            reverseCommand.command           = ACTOR_303600_SHAFT_COMMAND_REVERSE_SCROLL;
+            TASK_MESSAGE_DISPATCH_POINTER(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &reverseCommand, 0);
         }
     } else {
         if (work->phaseFrame >= 0x258) {
