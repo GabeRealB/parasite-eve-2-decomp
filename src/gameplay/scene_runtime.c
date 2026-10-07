@@ -1921,20 +1921,14 @@ static inline void _gfxComposeNodeRotation(const GfxCoord* node, MATRIX* worldRo
 void gfxComposeNodeWorldTransform(const GfxCoord* node, MATRIX* worldRotation, SVECTOR* worldTranslation)
 {
     SVECTOR localTranslation;
-    s32     unitScale;
 
     if (node->parent != &gGfxViewCoord) {
         gfxComposeNodeWorldTransform(node->parent, worldRotation, worldTranslation);
     } else {
-        unitScale                        = ONE;
-        MATRIX_PAIR(worldRotation, 0, 0) = unitScale;
-        MATRIX_PAIR(worldRotation, 0, 2) = 0;
-        MATRIX_PAIR(worldRotation, 1, 1) = unitScale;
-        MATRIX_PAIR(worldRotation, 2, 0) = 0;
-        worldRotation->m[2][2]           = unitScale;
-        worldTranslation->vx             = 0;
-        worldTranslation->vy             = 0;
-        worldTranslation->vz             = 0;
+        gfxSetRotIdentity(worldRotation);
+        worldTranslation->vx = 0;
+        worldTranslation->vy = 0;
+        worldTranslation->vz = 0;
     }
 
     // Each hierarchy level truncates translations to signed halfwords.
