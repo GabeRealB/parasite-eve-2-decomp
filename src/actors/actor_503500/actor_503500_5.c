@@ -1588,7 +1588,6 @@ static void func_actor_503500_80145A2C(Task* arg0)
     WorldCollisionContact*             contacts;
     EffectWork*                        eff;
     Task*                              child;
-    GfxRotationWords*                  m;
     s32                                pan;
     s32                                pan2;
 
@@ -1600,12 +1599,7 @@ static void func_actor_503500_80145A2C(Task* arg0)
     }
     arg0->work = work;
 
-    m         = (GfxRotationWords*)&coord->coord;
-    m->m00M01 = ONE;
-    m->m02M10 = 0;
-    m->m11M12 = ONE;
-    m->m20M21 = 0;
-    m->m22    = ONE;
+    gfxSetRotIdentity(&coord->coord);
 
     capsule  = &work->capsule;
     contacts = work->contacts;
