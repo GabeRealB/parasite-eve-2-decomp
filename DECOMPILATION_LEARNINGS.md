@@ -153635,3 +153635,29 @@ during the scan.
 
 Note on the 2026-10-07 entry "The steering macros named in older entries no
 longer exist": `CSE_STEER` now has no use either.
+
+## A copy that overruns one array into the next needs the word view; check where a member is *named* before calling it unused (animation bank extension storage, 2026-10-07)
+
+The 37 `_...AnimationBankExtensionStorage` unions pair a `data` struct
+(`sets[N]` then play requests) with `s32 words[M]`. A reference survey found
+`words` accessed nowhere and proposed plain structs. It is used by all 37: each
+`AnimationBankCopyRequest` takes its source from it,
+
+```c
+AnimationBankCopyRequest D_x = { { .words = D_storage.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
+```
+
+and `Gp_CopyPlayerAnim` / `Gp_CopyAllyAnim` then read `wordCount` words through
+that pointer. `N` is below the count in every case, so the same request written
+as `{ .sets = D_storage.sets }` over a struct would link to the same bytes but
+read past `sets[N]` through a pointer derived from that array - the overrun the
+in-bounds rule forbids, hidden rather than removed. The union member is the
+array the copy is in bounds of; keep it.
+
+General point: a member that appears only as the address expression in another
+object's initializer has no member *access* a cursor-based scan reports. Grep
+`\.member\b` textually before retyping, and treat "no access" from a survey as
+a candidate, not a finding. The same holds for `McSaveData.preview`: one site
+(`_mcVerifySaveHeaderChecksum`), but the verifier sums 56 bytes from
+`location`, which in a cached `McSavePreview` are opaque and in the resident
+`McSaveState` are named fields, so neither type can contain the other.
