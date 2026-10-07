@@ -84,7 +84,7 @@ segments:
       # source file src/main/hasm/Fs_DecompressChunk.s (sibling out_path).
       - [0x808, .rodata, hasm/Fs_DecompressChunk]
       - { start: 0x824, type: hasm, name: hasm/Fs_DecompressChunk, linker_section_order: .rodata }
-      - { start: 0xB98, type: hasm, name: hasm/Fs_DecompressImage, linker_section_order: .rodata }
+      - { start: 0xB98, type: hasm, name: hasm/fsDecompressImagePayload, linker_section_order: .rodata }
       # TMD stream handlers (function pointers from _tmdResolveSourceDrawHandlers), not rodata.
       - { start: 0xDAC, type: hasm, name: hasm/tmdSkipStreamRecord, linker_section_order: .rodata }
       - { start: 0xDCC, type: hasm, name: hasm/Tmd_StreamHandler_Prim32, linker_section_order: .rodata } # +alabel tmdDrawStreamPrimG3PreXform

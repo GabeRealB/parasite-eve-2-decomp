@@ -12,7 +12,7 @@ That is the first normal module `.rodata`; PsyQ `.rdata` follows.
 | File | Symbol(s) | VRAM | Role |
 |------|-----------|------|------|
 | `Fs_DecompressChunk.s` | `jtbl_Fs_DecompressChunk` + `Fs_DecompressChunk` | `0x80010008` / `0x80010024` | Resume jump table + resumable LZ for FS CD chunks |
-| `Fs_DecompressImage.s` | `Fs_DecompressImage` | `0x80010398` | Non-resumable LZ for image strips → VRAM |
+| `fsDecompressImagePayload.s` | `fsDecompressImagePayload` | `0x80010398` | Non-resumable LZSS for a complete image/CLUT payload into RAM |
 | `tmdSkipStreamRecord.s` | `tmdSkipStreamRecord` | `0x800105AC` | Fallback record handler: steps over elements the current pass does not consume |
 | `Tmd_StreamHandler_Prim32.s` | `Prim32` + alabel `tmdDrawStreamPrimG3PreXform` | `0x800105CC` / `0x800105F4` | Pre-transformed untextured gouraud triangles, one entry per prim code (0x32 blended / 0x30 opaque) |
 | `Tmd_StreamHandler_Prim3A.s` | `Prim3A` + alabel `tmdDrawStreamPrimG4PreXform` | `0x800106F0` / `0x80010718` | Pre-transformed untextured gouraud quads, one entry per prim code (0x3A blended / 0x38 opaque) |

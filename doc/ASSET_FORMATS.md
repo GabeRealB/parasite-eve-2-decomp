@@ -214,7 +214,7 @@ python3 tools/peassets/lzss_roundtrip_report.py --log layout_diff.log
 |---|---|---|---|---|
 | `0x0` | Room package | `.pe2pkg` | `Fs_DecompressChunk` | LZSS body; overlays load at `load_addr` |
 | `0x1` | Image | `.pe2img` | `fsBeginImageColumns` + `Fs_LoadImageStrip` | Sequential LZSS strips → VRAM |
-| `0x2` | Color lookup table | `.pe2clut` | `Fs_LoadImageChunk` + `Fs_DecompressImage` | 16-byte image header + LZSS → ABGR1555 |
+| `0x2` | Color lookup table | `.pe2clut` | `Fs_LoadImageChunk` + `fsDecompressImagePayload` | 16-byte image header + LZSS → ABGR1555 |
 | `0x4` | Dialogue / cap2 | `.pe2cap2` | (package-like) | Often has load address |
 | `0x5` | Room background | `.bs` | MDEC path | PSX BS v2 → PNG (320×240) |
 | `0x6` | Music | `.spk` | SndLoad / SPU | `hSPK` bank → WAV samples |
@@ -251,11 +251,18 @@ Algorithm family (same as `Fs_DecompressChunk` / md_hyena-style):
 - Flag bit: `1` = literal byte, `0` = back-reference
 - Back-ref: 8-bit offset, 4-bit length; copy `length + 2` bytes
 - Offset `0` = end of stream
-- Dictionary correction: stored offset is decremented by 1 before use
+- The offline decoder starts its ring write cursor at 0 and decrements stored
+  offsets by 1; the runtime starts at 1 and uses absolute ring indices.
 
 Implementation: `tools/peassets/lzss.py` (decode / trim / pack / production
 encode). Runtime: `Fs_DecompressChunk.s` (resumable, CD-fed) and
-`Fs_DecompressImage.s` (non-resumable, in-memory). Same bitstream for both.
+`fsDecompressImagePayload.s` (non-resumable, in-memory). Same bitstream for both.
+
+`fsDecompressImagePayload` decodes into RAM and leaves both global byte
+cursors unchanged. Its 256-byte scratchpad ring is not cleared, and its
+eight-bit reads can fetch one byte beyond the end token. The caller must
+provide readable lookahead, valid history for any unwritten ring slots and
+enough output storage; the decoder checks scratch-stack clearance only.
 
 **Encode policies, identity scores, multi_max research, and tool map:** see
 [`LZSS_ENCODER.md`](LZSS_ENCODER.md).
@@ -392,7 +399,7 @@ Example: `w=256, h=6` → 1536 colours (six 256-colour palettes), common for
 `Fs_LoadImageChunk`:
 
 1. Build `RECT` from `x, y, w, h`. Rows 245 through 255 receive the active Y shift, and chunk mode 2 adds one row.
-2. `Fs_DecompressImage` from bytes after the header.
+2. `fsDecompressImagePayload` from bytes after the header.
 3. `LoadImage2` the palette into VRAM.
 
 Do **not** treat the bytes after the header as raw colours without LZSS.

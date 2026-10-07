@@ -9,9 +9,9 @@ jtbl_Fs_DecompressChunk     = 0x80010008;
 Fs_DecompressChunk          = 0x80010024; // type:func
 
 //--------------------------------------------------------------------
-//--- PA: 0x00B98   VA: 0x80010398   subsegment: hasm, Fs_DecompressImage
+//--- PA: 0x00B98   VA: 0x80010398   subsegment: hasm, fsDecompressImagePayload
 //--------------------------------------------------------------------
-Fs_DecompressImage          = 0x80010398; // type:func
+fsDecompressImagePayload    = 0x80010398; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x00DAC   VA: 0x800105AC   subsegment: hasm, TMD stream handlers

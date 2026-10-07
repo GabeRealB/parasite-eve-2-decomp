@@ -23324,7 +23324,7 @@ Named handwritten helpers (see `src/main/hasm/README.md`):
 | Symbol | Role |
 |--------|------|
 | `Fs_DecompressChunk` (+ jtbl in same `.s`) | Resumable LZ for FS CD chunks |
-| `Fs_DecompressImage` | Non-resumable LZ for image strips |
+| `fsDecompressImagePayload` | Non-resumable LZSS for a complete image/CLUT payload into RAM |
 | `tmdDrawModelStream` | Draw command groups with per-part GTE transforms and light matrices |
 
 ```yaml

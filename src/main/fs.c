@@ -1477,9 +1477,9 @@ u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
     Fs_ImageRect.w   = img->w;
     Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
     Fs_ImageRect.h   = img->h;
-    Fs_DecompressImage();
+    fsDecompressImagePayload();
 
-    if (D5B498_8006D748 == 0xFFFF) {
+    if (D5B498_8006D748 == FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY) {
         _fsResumeDrawing(ot);
         return 0x7F;
     }

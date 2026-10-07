@@ -1,6 +1,6 @@
 """LZSS codec used by Parasite Eve 2 (``.pe2pkg``, image strips, CLUTs).
 
-Format (matches ``Fs_DecompressChunk`` / ``Fs_DecompressImage``)::
+Format (matches ``Fs_DecompressChunk`` / ``fsDecompressImagePayload``)::
 
     Bitstream is MSB-first within each byte.
 
@@ -14,10 +14,11 @@ Format (matches ``Fs_DecompressChunk`` / ``Fs_DecompressImage``)::
             length = get_bits(4) + 2       # copy length 2..17
             # copy from ring[offset - 1], advancing both read and write indices
 
-The ring is 256 bytes, initially zero. The Python model writes the first
-output byte at index 0 and encodes match starts as ``index + 1`` (so encoded
-offset ``0`` stays reserved for EOS). This is isomorphic to the game's model
-(write cursor starts at 1; offset is the absolute ring index).
+The Python model zeroes its 256-byte ring, writes the first output byte at
+index 0 and encodes match starts as ``index + 1`` (so encoded offset ``0``
+stays reserved for EOS). The game's write cursor starts at 1 and the offset
+is an absolute ring index. ``fsDecompressImagePayload`` does not clear its
+scratchpad ring; the index conventions agree for history written by the stream.
 
 Decoder is based on md_hyena's implementation with defensive bounds checks
 for padded chunk tails.

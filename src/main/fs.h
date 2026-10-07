@@ -91,8 +91,26 @@ s32 CdCmd_StopMdec(s32 clearFb);
 /// mid-stream when the sector buffer ends (resume jtbl in same TU).
 void Fs_DecompressChunk(void);
 
-/// Non-resumable LZ unpack for image strips before LoadImage2 (handwritten hasm).
-void Fs_DecompressImage(void);
+/// Status halfwords produced by `fsDecompressImagePayload`.
+enum {
+    FILE_SYSTEM_IMAGE_DECODE_COMPLETE     = 1,
+    FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY = 0xFFFF,
+};
+
+/// Decodes one complete image/CLUT LZSS payload into caller-provided RAM.
+///
+/// Set `Fs_ChunkReadPtr` to the compressed bytes after the image header and
+/// `Fs_ChunkWritePtr` to storage for the entire decoded payload. Input must
+/// contain a zero-offset end token and allow one byte of lookahead; neither
+/// input nor output bounds are checked. Both global pointers are left intact.
+///
+/// Uses scratchpad bytes [0, 256) as a ring, starting its write index at 1.
+/// The ring is not cleared: references to unwritten slots require valid prior
+/// contents. The initialized scratch-stack cursor must have a byte offset
+/// greater than 256; otherwise no payload is read or written. Reports
+/// FILE_SYSTEM_IMAGE_DECODE_COMPLETE or FILE_SYSTEM_IMAGE_DECODE_SCRATCH_BUSY
+/// through `D5B498_8006D748`. Decoding is synchronous and does not upload to VRAM.
+void fsDecompressImagePayload(void);
 
 /// Builds folder sector offsets from the mounted stage's first CDF sector.
 ///

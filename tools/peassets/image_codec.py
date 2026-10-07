@@ -12,7 +12,7 @@ Matches the main executable load path in ``fs.c``:
     ``RECT(w=0x40, h=0x20)`` halfwords = ``0x1000`` bytes. Column height comes
     from ``D5B498_8006ACD4`` (default ``0x100``).
 
-**Type 2 – CLUT (``Fs_LoadImageChunk`` + ``Fs_DecompressImage``)**
+**Type 2 – CLUT (``Fs_LoadImageChunk`` + ``fsDecompressImagePayload``)**
     ``FsImageChunk`` header (``u16 x, y, h, w`` then 8 unread bytes) then **LZSS**
     payload decompressing to ``w * h`` ABGR1555 colours.
 
