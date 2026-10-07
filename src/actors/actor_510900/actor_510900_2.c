@@ -460,7 +460,7 @@ static WorldCollisionGridFace _gActor510900Collision35E1C[3];
 
 /// The extra face normal `func_actor_510900_8013B424` installs as
 /// `Gp_GridParams->normals[3]` while the actor's own face is in the grid.
-extern SVECTOR D_actor_510900_80167C60;
+extern SVECTOR D_actor_510900_80167C60[1];
 
 /// The four face corners that face uses, copied into
 /// `Gp_GridParams->vertices[12..15]`.
@@ -468,7 +468,7 @@ extern SVECTOR D_actor_510900_80167C68[4];
 
 /// The `WorldCollisionGridFace` record for that face, copied into
 /// `Gp_GridParams->faces[3]`.
-extern WorldCollisionGridFace D_actor_510900_80167C88;
+extern WorldCollisionGridFace D_actor_510900_80167C88[1];
 
 static s32  _actor510900TrySelectAttack(Task* task);
 static void _actor510900UpdatePlayerRange(Task* task);
@@ -837,16 +837,17 @@ static WorldCollisionGridFace _gActor510900Collision35E1C[3] = {
 #include "assets/actor_510900_collision_35E1C.inc"
 };
 
-SVECTOR D_actor_510900_80167C60 = { -4096, 0, 0, 0 };
-
-SVECTOR D_actor_510900_80167C68[4] = {
-    { -5952, -200, -1248, 0 },
-    { -5952, -200, -2500, 0 },
-    { -5952, 0, -1248, 0 },
-    { -5952, 0, -2500, 0 },
+SVECTOR D_actor_510900_80167C60[1] = {
+#include "assets/actor_510900_collision_35E40.inc"
 };
 
-WorldCollisionGridFace D_actor_510900_80167C88 = { { 12, 13, 14, 15 }, 3, 0 };
+SVECTOR D_actor_510900_80167C68[4] = {
+#include "assets/actor_510900_collision_35E48.inc"
+};
+
+WorldCollisionGridFace D_actor_510900_80167C88[1] = {
+#include "assets/actor_510900_collision_35E68.inc"
+};
 
 u16 D_actor_510900_80167C94[12] = {
     25,
@@ -3811,8 +3812,8 @@ void func_actor_510900_8013B424(s32 arg0)
         for (i = 0; i < 4; i++) {
             verts[12 + i] = D_actor_510900_80167C68[i];
         }
-        normals[3] = D_actor_510900_80167C60;
-        faces[3]   = D_actor_510900_80167C88;
+        normals[3] = D_actor_510900_80167C60[0];
+        faces[3]   = D_actor_510900_80167C88[0];
     } else {
         normals[3].vx = 0;
         normals[3].vy = 0;

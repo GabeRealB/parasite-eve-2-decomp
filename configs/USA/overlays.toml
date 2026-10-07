@@ -4482,7 +4482,7 @@ objects = [
   { kind = "model", at = "0x109B0", in_c = true },
   { kind = "modelSource", at = "0x1131C", in_c = true },
   { kind = "animation", at = "0x11340", sets = ["0x11CC0", "0x11FB8", "0x129B0", "0x13884", "0x142A0", "0x14E4C", "0x172DC", "0x17CB8", "0x186E0", "0x18B5C", "0x1A250", "0x1A994", "0x1BFA8", "0x1CBA8", "0x1D868", "0x1E56C", "0x1EF7C", "0x1F668", "0x2035C", "0x2093C", "0x213E4", "0x217A4", "0x22074", "0x223F8", "0x24128", "0x24FE8", "0x267A8", "0x273B8", "0x27994", "0x27FDC", "0x2A068", "0x2B800", "0x2BC04", "0x2E9DC", "0x324C0", "0x353AC", "0x35474", "0x35B20"], in_c = true },
-  { kind = "collisionPatch", at = "0x35DA4", pieces = ["vectors 3", "vectors 12", "faces 3"], in_c = true },
+  { kind = "collisionPatch", at = "0x35DA4", pieces = ["vectors 3", "vectors 12", "faces 3", "vectors 1", "vectors 4", "faces 1"], in_c = true },
 ]
 
 [actors.overlays.actor_511000]
