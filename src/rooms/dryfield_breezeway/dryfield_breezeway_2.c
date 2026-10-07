@@ -1070,16 +1070,10 @@ static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, SVECTOR* arg2, 
     SVECTOR   corner2;
     SVECTOR   corner3;
     GfxMatrix matw;
-    MATRIX*   mtx;
     long      flag;
     POLY_FT4* p;
 
-    mtx                       = &matw.mat;
-    matw.rotationWords.m00M01 = ONE;
-    matw.rotationWords.m02M10 = 0;
-    MATRIX_PAIR(mtx, 1, 1)    = 0x1000;
-    matw.rotationWords.m20M21 = 0;
-    mtx->m[2][2]              = 0x1000;
+    gfxSetRotIdentity(&matw.mat);
     matw.mat.t[0]             = 0;
     matw.mat.t[1]             = 0;
     matw.mat.t[2]             = 0;
