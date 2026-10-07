@@ -2584,9 +2584,9 @@ static void func_actor_405800_80135780(Task* arg0)
     TmdObject*                    dst;
     TmdObject*                    src;
     MATRIX*                       mdst;
-    GfxMatrix*                    pm;
-    GfxMatrix*                    pm2;
-    GfxMatrix                     m;
+    MATRIX*                       pm;
+    MATRIX*                       pm2;
+    MATRIX                        m;
 
     root              = arg0->extra.tmd->coords;
     work              = (_Actor405800IvoryStalkerWork*)arg0->work;
@@ -2602,18 +2602,18 @@ static void func_actor_405800_80135780(Task* arg0)
     coord->coord.t[1] = 0;
     coord->coord.t[2] = 0;
     pm                = &m;
-    gfxSetRotIdentity(&pm->mat);
-    RotMatrixY(-0x180, &pm->mat);
+    gfxSetRotIdentity(pm);
+    RotMatrixY(-0x180, pm);
     mdst                   = &coord->coord;
-    mdst->m[0][0]          = pm->mat.m[0][0];
-    mdst->m[0][1]          = pm->mat.m[0][1];
-    mdst->m[0][2]          = pm->mat.m[0][2];
-    mdst->m[1][0]          = pm->mat.m[1][0];
-    mdst->m[1][1]          = pm->mat.m[1][1];
-    mdst->m[1][2]          = pm->mat.m[1][2];
-    mdst->m[2][0]          = pm->mat.m[2][0];
-    mdst->m[2][1]          = pm->mat.m[2][1];
-    mdst->m[2][2]          = pm->mat.m[2][2];
+    mdst->m[0][0]          = pm->m[0][0];
+    mdst->m[0][1]          = pm->m[0][1];
+    mdst->m[0][2]          = pm->m[0][2];
+    mdst->m[1][0]          = pm->m[1][0];
+    mdst->m[1][1]          = pm->m[1][1];
+    mdst->m[1][2]          = pm->m[1][2];
+    mdst->m[2][0]          = pm->m[2][0];
+    mdst->m[2][1]          = pm->m[2][1];
+    mdst->m[2][2]          = pm->m[2][2];
     src                    = arg0->extra.tmd;
     dst                    = task->extra.tmd;
     dst->texturePageOffset = src->texturePageOffset;
@@ -2641,18 +2641,18 @@ static void func_actor_405800_80135780(Task* arg0)
         tmdBuildBufferHalf(dst);
     }
     pm2 = &m;
-    gfxSetRotIdentity(&pm2->mat);
-    RotMatrixY(0x180, &pm2->mat);
+    gfxSetRotIdentity(pm2);
+    RotMatrixY(0x180, pm2);
     mdst          = &coord->coord;
-    mdst->m[0][0] = pm2->mat.m[0][0];
-    mdst->m[0][1] = pm2->mat.m[0][1];
-    mdst->m[0][2] = pm2->mat.m[0][2];
-    mdst->m[1][0] = pm2->mat.m[1][0];
-    mdst->m[1][1] = pm2->mat.m[1][1];
-    mdst->m[1][2] = pm2->mat.m[1][2];
-    mdst->m[2][0] = pm2->mat.m[2][0];
-    mdst->m[2][1] = pm2->mat.m[2][1];
-    mdst->m[2][2] = pm2->mat.m[2][2];
+    mdst->m[0][0] = pm2->m[0][0];
+    mdst->m[0][1] = pm2->m[0][1];
+    mdst->m[0][2] = pm2->m[0][2];
+    mdst->m[1][0] = pm2->m[1][0];
+    mdst->m[1][1] = pm2->m[1][1];
+    mdst->m[1][2] = pm2->m[1][2];
+    mdst->m[2][0] = pm2->m[2][0];
+    mdst->m[2][1] = pm2->m[2][1];
+    mdst->m[2][2] = pm2->m[2][2];
     obj->lightMtx = &work->lightMtx;
     obj->colorMtx = &work->colorMtx;
 }
@@ -3186,7 +3186,7 @@ static void func_actor_405800_8013706C(Task* arg0, s16 arg1)
     _Actor405800IvoryStalkerWork* work = (_Actor405800IvoryStalkerWork*)arg0->work;
     SVECTOR                       v;
     SVECTOR                       out;
-    GfxMatrix                     rot;
+    MATRIX                        rot;
     s16                           n;
 
     work->distanceMode = arg1;
@@ -3197,24 +3197,24 @@ static void func_actor_405800_8013706C(Task* arg0, s16 arg1)
                 v.vx = work->targetPos.vx - arg0->extra.tmd->coords->coord.t[0];
                 v.vy = work->targetPos.vy - arg0->extra.tmd->coords->coord.t[1] - 0x384;
                 v.vz = work->targetPos.vz - arg0->extra.tmd->coords->coord.t[2];
-                gfxSetRotIdentity(&rot.mat);
-                rot.mat.t[0] = 0;
-                rot.mat.t[1] = 0;
-                rot.mat.t[2] = 0;
-                RotMatrixY(-work->yaw, &rot.mat);
-                ApplyMatrixSV(&rot.mat, &v, &out);
+                gfxSetRotIdentity(&rot);
+                rot.t[0] = 0;
+                rot.t[1] = 0;
+                rot.t[2] = 0;
+                RotMatrixY(-work->yaw, &rot);
+                ApplyMatrixSV(&rot, &v, &out);
             } else {
 
                 v.vx = work->targetPos.vx - arg0->extra.tmd->coords->coord.t[0];
                 v.vy = work->targetPos.vy - arg0->extra.tmd->coords->coord.t[1] - 0x640;
                 v.vz = work->targetPos.vz - arg0->extra.tmd->coords->coord.t[2];
-                gfxSetRotIdentity(&rot.mat);
-                rot.mat.t[0] = 0;
-                rot.mat.t[1] = 0;
-                rot.mat.t[2] = 0;
-                RotMatrixY(-work->yaw, &rot.mat);
-                RotMatrixZ(-work->roll, &rot.mat);
-                ApplyMatrixSV(&rot.mat, &v, &out);
+                gfxSetRotIdentity(&rot);
+                rot.t[0] = 0;
+                rot.t[1] = 0;
+                rot.t[2] = 0;
+                RotMatrixY(-work->yaw, &rot);
+                RotMatrixZ(-work->roll, &rot);
+                ApplyMatrixSV(&rot, &v, &out);
             }
             work->capsule.ends[0].vx = out.vx;
             work->capsule.ends[0].vy = out.vy;
@@ -3323,21 +3323,21 @@ static s32 func_actor_405800_801373E0(Task* arg0)
 /// identity matrix for `angle`.
 static inline void _actor405800SetCoordRotation(GfxCoord* coord, s16 angle)
 {
-    GfxMatrix rot;
+    MATRIX    rot;
     MATRIX*   dst;
 
-    gfxSetRotIdentity(&rot.mat);
-    RotMatrixY(angle, &rot.mat);
+    gfxSetRotIdentity(&rot);
+    RotMatrixY(angle, &rot);
     dst          = &coord->coord;
-    dst->m[0][0] = rot.mat.m[0][0];
-    dst->m[0][1] = rot.mat.m[0][1];
-    dst->m[0][2] = rot.mat.m[0][2];
-    dst->m[1][0] = rot.mat.m[1][0];
-    dst->m[1][1] = rot.mat.m[1][1];
-    dst->m[1][2] = rot.mat.m[1][2];
-    dst->m[2][0] = rot.mat.m[2][0];
-    dst->m[2][1] = rot.mat.m[2][1];
-    dst->m[2][2] = rot.mat.m[2][2];
+    dst->m[0][0] = rot.m[0][0];
+    dst->m[0][1] = rot.m[0][1];
+    dst->m[0][2] = rot.m[0][2];
+    dst->m[1][0] = rot.m[1][0];
+    dst->m[1][1] = rot.m[1][1];
+    dst->m[1][2] = rot.m[1][2];
+    dst->m[2][0] = rot.m[2][0];
+    dst->m[2][1] = rot.m[2][1];
+    dst->m[2][2] = rot.m[2][2];
 }
 
 static void func_actor_405800_801375C4(Task* task)
