@@ -653,24 +653,6 @@ typedef struct {
 } BossStrangerWalker;
 STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 
-/// Bearing of `pos` from the full-width translation of `coord` on the XZ
-/// plane. The offset is staged in a scratch-stack `VECTOR` as in
-/// `_actorAngleBearingXZ` and released before `ratan2` runs.
-static __inline__ s32 overlayCoordBearingXZ(SVECTOR3* pos, GfxCoord* coord)
-{
-    VECTOR* head;
-    VECTOR* delta;
-
-    head                         = SCRATCH_STACK_CURSOR(VECTOR);
-    delta                        = head - 1;
-    delta->vx                    = pos->vx - coord->coord.t[0];
-    SCRATCH_STACK_CURSOR(VECTOR) = delta;
-    delta->vy                    = pos->vy - coord->coord.t[1];
-    delta->vz                    = pos->vz - coord->coord.t[2];
-    SCRATCH_STACK_CURSOR(VECTOR) = head;
-    return ratan2(delta->vx, delta->vz);
-}
-
 /// One morph of a TMD model: what the included `modelMorph` code needs to
 /// snapshot the model's rest shape and to deform it by a 0..`ONE` ramp.
 ///

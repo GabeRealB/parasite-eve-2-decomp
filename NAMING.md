@@ -469,6 +469,11 @@ The XZ and XY point-bearing helpers in `include/overlay.h` also belong to
 from signed 16-bit positions in their common coordinate frame, using +Z or
 +Y respectively as zero and +X as the positive quarter-turn direction,
 without composing transforms.
+The point-from-coordinate bearing in
+`src/shared/boss_stranger_turn_toward.inc.c` belongs to the same subsystem.
+It measures a packed signed-halfword target from the reference's full-width
+local translation in the reference's parent frame, with +Z as zero. Both
+carriers keep private inline instances beside the shared turn implementation.
 The cached-frame bearing helper also belongs to `actorAngle`: it takes a target
 offset through the transpose of the reference's composed basis, then measures
 its X/Z yaw. Both caches must already describe the same composition frame;
