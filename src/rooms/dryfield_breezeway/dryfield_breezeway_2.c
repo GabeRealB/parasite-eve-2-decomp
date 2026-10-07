@@ -121,8 +121,8 @@ enum {
 ///
 /// The block also owns the two matrices the task's model is lit with.
 typedef struct {
-    GfxMatrix lightMatrix;      // Light-direction matrix of the task's model
-    GfxMatrix colorMatrix;      // Light-colour matrix of the task's model; its translation is the background colour
+    MATRIX    lightMatrix;      // Light-direction matrix of the task's model
+    MATRIX    colorMatrix;      // Light-colour matrix of the task's model; its translation is the background colour
     s32       keyItemAccepted;  // Answer to the last key-item query (0 refused, 1 the room's item was offered)
     byte      field_44[8];      // Never accessed; role unproven
     s16       hotspotId;        // `id` of the hotspot the player confirmed on the model; never read
@@ -697,9 +697,9 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
         hs++;
     }
 
-    ext->colorMtx = &work->colorMatrix.mat;
+    ext->colorMtx = &work->colorMatrix;
     ext->flags    = 0;
-    ext->lightMtx = &work->lightMatrix.mat;
+    ext->lightMtx = &work->lightMatrix;
     coord->parent = NULL;
 
     gGameSession->eventState   = 1;
@@ -712,32 +712,32 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
         _DryfieldBreezewayKeyItemEventWork* eventWork = arg0->work;
         TmdObject*                          eventObj  = arg0->extra.tmd;
 
-        gfxSetRotIdentity(&eventWork->lightMatrix.mat);
-        gfxSetRotIdentity(&eventWork->colorMatrix.mat);
+        gfxSetRotIdentity(&eventWork->lightMatrix);
+        gfxSetRotIdentity(&eventWork->colorMatrix);
 
-        eventObj->lightMtx = &eventWork->lightMatrix.mat;
+        eventObj->lightMtx = &eventWork->lightMatrix;
 
-        eventWork->colorMatrix.mat.m[0][0] = 0x1000;
-        eventWork->colorMatrix.mat.m[0][1] = 0x1000;
-        eventWork->colorMatrix.mat.m[0][2] = 0x1000;
-        eventWork->colorMatrix.mat.m[1][0] = 0x1000;
-        eventWork->colorMatrix.mat.m[1][1] = 0x1000;
-        eventWork->colorMatrix.mat.m[1][2] = 0x1000;
-        eventWork->colorMatrix.mat.m[2][0] = 0x1000;
-        eventWork->colorMatrix.mat.m[2][1] = 0x1000;
-        eventWork->colorMatrix.mat.m[2][2] = 0x1000;
+        eventWork->colorMatrix.m[0][0] = 0x1000;
+        eventWork->colorMatrix.m[0][1] = 0x1000;
+        eventWork->colorMatrix.m[0][2] = 0x1000;
+        eventWork->colorMatrix.m[1][0] = 0x1000;
+        eventWork->colorMatrix.m[1][1] = 0x1000;
+        eventWork->colorMatrix.m[1][2] = 0x1000;
+        eventWork->colorMatrix.m[2][0] = 0x1000;
+        eventWork->colorMatrix.m[2][1] = 0x1000;
+        eventWork->colorMatrix.m[2][2] = 0x1000;
 
-        eventWork->lightMatrix.mat.m[0][0] = 0x1000;
-        eventWork->lightMatrix.mat.m[0][1] = 0x1000;
-        eventWork->lightMatrix.mat.m[0][2] = 0x1000;
-        eventWork->lightMatrix.mat.m[1][0] = 0;
-        eventWork->lightMatrix.mat.m[1][1] = 0x1000;
-        eventWork->lightMatrix.mat.m[1][2] = 0x1000;
-        eventWork->lightMatrix.mat.m[2][0] = 0x1000;
-        eventWork->lightMatrix.mat.m[2][1] = 0x1000;
-        eventWork->lightMatrix.mat.m[2][2] = 0;
+        eventWork->lightMatrix.m[0][0] = 0x1000;
+        eventWork->lightMatrix.m[0][1] = 0x1000;
+        eventWork->lightMatrix.m[0][2] = 0x1000;
+        eventWork->lightMatrix.m[1][0] = 0;
+        eventWork->lightMatrix.m[1][1] = 0x1000;
+        eventWork->lightMatrix.m[1][2] = 0x1000;
+        eventWork->lightMatrix.m[2][0] = 0x1000;
+        eventWork->lightMatrix.m[2][1] = 0x1000;
+        eventWork->lightMatrix.m[2][2] = 0;
 
-        eventObj->colorMtx = &eventWork->colorMatrix.mat;
+        eventObj->colorMtx = &eventWork->colorMatrix;
         worldCoordSetModelAmbientColor(eventObj, 0x800, 0x800, 0x800);
     }
 }
@@ -1070,17 +1070,17 @@ static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, SVECTOR* arg2, 
     SVECTOR   corner1;
     SVECTOR   corner2;
     SVECTOR   corner3;
-    GfxMatrix matw;
+    MATRIX    matw;
     long      flag;
     POLY_FT4* p;
 
-    gfxSetRotIdentity(&matw.mat);
-    matw.mat.t[0] = 0;
-    matw.mat.t[1] = 0;
-    matw.mat.t[2] = 0;
-    RotMatrixZ(arg0, &matw.mat);
-    SetRotMatrix(&matw.mat);
-    SetTransMatrix(&matw.mat);
+    gfxSetRotIdentity(&matw);
+    matw.t[0] = 0;
+    matw.t[1] = 0;
+    matw.t[2] = 0;
+    RotMatrixZ(arg0, &matw);
+    SetRotMatrix(&matw);
+    SetTransMatrix(&matw);
 
     probe.vx = 0;
     probe.vy = arg1;
