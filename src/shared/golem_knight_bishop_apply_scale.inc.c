@@ -6,21 +6,21 @@
 void golemKnightBishopApplyScale(Task* arg0)
 {
     void**                 scratch;
-    GfxMatrix*             head;
-    GfxMatrix*             m;
+    MATRIX*                head;
+    MATRIX*                m;
     GfxCoord*              coord;
     GolemKnightBishopWork* work;
 
     scratch                             = SCRATCH_HEAD_ADDR;
-    head                                = SCRATCH_HEAD_AT(scratch, GfxMatrix);
+    head                                = SCRATCH_HEAD_AT(scratch, MATRIX);
     m                                   = head - 1;
-    SCRATCH_HEAD_AT(scratch, GfxMatrix) = m;
+    SCRATCH_HEAD_AT(scratch, MATRIX) = m;
     coord                               = &arg0->extra.tmd->coords[0];
     work                                = arg0->work;
 
     coord->coord = work->unscaledRootMtx;
-    gfxSetRotIdentity(&m->mat);
-    ScaleMatrix(&m->mat, &work->scale);
-    MulMatrix(&coord->coord, &m->mat);
-    SCRATCH_POP_AT(scratch, GfxMatrix);
+    gfxSetRotIdentity(m);
+    ScaleMatrix(m, &work->scale);
+    MulMatrix(&coord->coord, m);
+    SCRATCH_POP_AT(scratch, MATRIX);
 }
