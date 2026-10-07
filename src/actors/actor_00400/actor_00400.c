@@ -3235,17 +3235,11 @@ static inline void _actor00400ApplyRootRotation(Task* task)
     _Actor00400Work*  work;
     GfxCoord*         coord;
     GfxMatrix         m;
-    GfxRotationWords* ia;
     MATRIX*           dst;
 
     work                   = task->work;
     coord                  = task->extra.tmd->coords;
-    ia                     = &m.rotationWords;
-    m.rotationWords.m00M01 = ONE;
-    m.rotationWords.m02M10 = 0;
-    ia->m11M12             = ONE;
-    m.rotationWords.m20M21 = 0;
-    ia->m22                = ONE;
+    gfxSetRotIdentity(&m.mat);
     RotMatrixZ(work->rotation.vz, &m.mat);
     RotMatrixY(work->rotation.vy, &m.mat);
     dst                 = &coord->coord;
