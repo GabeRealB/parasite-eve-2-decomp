@@ -7,7 +7,6 @@ s32 factoryLiftJamTurnBack(Task* task)
     FactoryLiftWork* work  = task->work;
     GfxCoord*        coord = task->extra.tmd->coords;
     s32              done  = 0;
-    GfxMatrix*       mat;
 
     switch (work->yawStep) {
         case 0:
@@ -80,13 +79,8 @@ s32 factoryLiftJamTurnBack(Task* task)
         work->yawStep = 4;
         done          = 1;
     }
-    mat                       = (GfxMatrix*)&coord->coord;
-    mat->rotationWords.m00M01 = ONE;
-    mat->rotationWords.m02M10 = 0;
-    mat->rotationWords.m11M12 = ONE;
-    mat->rotationWords.m20M21 = 0;
-    mat->rotationWords.m22    = ONE;
-    RotMatrixY(work->yaw.halves.integer, &mat->mat);
+    gfxSetRotIdentity(&coord->coord);
+    RotMatrixY(work->yaw.halves.integer, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     return done;
 }
