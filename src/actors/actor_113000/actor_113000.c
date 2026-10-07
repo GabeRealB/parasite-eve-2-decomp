@@ -1141,16 +1141,26 @@ TaskMessageEntry D_actor_113000_8013ABC0[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Posts an intermediate blink image, restarts its dwell and selects the next step.
+/// Queues a closed or half-open eye image, restarts its dwell and advances the blink.
 ///
-/// Borrows the task, writable work/upload list and readable rectangle through the
-/// call; the upload's pixel storage must remain live until GPU transfer completes.
-static inline void _actor113000AdvanceBlinkImage(Task* task, _Actor113000Work* work,
+/// Requires a live TMD `actorTask` and its writable `work`, with `blinkStep`
+/// equal to `ACTOR_113000_BLINK_CLOSED` or `ACTOR_113000_BLINK_HALF`. Resets
+/// `blinkCountdown` to `blinkFrameDelay` and selects the following step. A
+/// nonnegative delay makes that step due after that many blink ticks plus one;
+/// the caller performs the countdown, and this helper does not test it.
+///
+/// `uploadList` must be non-NULL, writable and terminated, with the eye image
+/// in its first copy entry. That destination is replaced using `eyeRect` and
+/// the model's texture page. Rectangle units and transfer bounds follow
+/// `actorRenderUploadTexture`. The rectangle and records
+/// are borrowed only for this call; pixel storage must remain valid and unchanged
+/// until GPU transfer completes. Upload results are ignored; this does not wait.
+static inline void _actor113000AdvanceBlinkImage(Task* actorTask, _Actor113000Work* work,
                                                  GpuImageUpload* uploadList, const RECT* eyeRect)
 {
-    actorRenderUploadTexture(task, uploadList, eyeRect);
+    actorRenderUploadTexture(actorTask, uploadList, eyeRect);
     work->blinkCountdown = work->blinkFrameDelay;
-    work->blinkStep      = work->blinkStep + 1;
+    ++work->blinkStep;
 }
 
 /// Advances the actor's timed closed, half-open and open eye sequence by one tick.
