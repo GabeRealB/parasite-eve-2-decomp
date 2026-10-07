@@ -196,7 +196,7 @@ static const TaskFuncTable3 D_actor_135400_80131E30 = { {
 } };
 
 /// State table of the main task: spawn, per-frame tick and exit callback.
-/// Dispatched by `func_actor_135400_801325A8`.
+/// Dispatched by `_actor135400GaryDouglasTask`.
 static const TaskFuncTable3 D_actor_135400_80131E3C = { {
     func_actor_135400_80132064,
     _actor135400GaryDouglasTick,
@@ -217,7 +217,7 @@ static void      _actor135400FlintTask(Task* task);
 static s32  _actor135400GaryDouglasApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static void _actor135400GaryDouglasHeadTask(Task* task);
 static void _actor135400GaryDouglasCarriedTask(Task* task);
-void        func_actor_135400_801325A8(Task*);
+static void _actor135400GaryDouglasTask(Task* task);
 
 static TmdBone _gActor135400GaryDouglasBodySkeleton[20] = {
 #include "assets/gary_douglas_body_skeleton.inc"
@@ -412,7 +412,7 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_135400_8013A4AC[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_135400_801325A8, { .model = &_gActor135400GaryDouglasBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135400GaryDouglasTask, { .model = &_gActor135400GaryDouglasBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasHeadTask, { .model = &_gActor135400GaryDouglasHeadHat } },
     { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasCarriedTask, { .model = &_gActor135400Model071AC } },
 };
@@ -607,18 +607,21 @@ GsF_LIGHT D_actor_135400_8013F904[3] = {
     { 0, 0, 4096, 96, 96, 96 },
 };
 
-/// Freezes a carried model's world transform and removes its body-part parent.
+/// Detaches Gary Douglas's carried model root at its current world placement.
 ///
-/// Borrows a live root and output temporaries for this call. The old ancestry
-/// must end at the world coordinate; translations retain the composer's s16
-/// truncation. Lighting and task teardown relationships remain shared.
-static inline void _actor135400GaryDouglasDetachCarriedRoot(GfxCoord* rootCoord, GfxMatrix* worldTransform, SVECTOR* worldPosition)
+/// Requires a live non-world root with acyclic ancestry ending at `gGfxViewCoord`.
+/// Borrows separate writable matrix and vector scratch storage for this call;
+/// only the Q12 rotation and translation xyz are outputs. Translation uses integer
+/// coordinate units and retains signed-halfword truncation at each ancestor.
+/// Reparents the root to the world coordinate and invalidates its composed cache.
+/// Model lighting and the task teardown parent are retained.
+static inline void _actor135400GaryDouglasDetachCarriedRoot(GfxCoord* rootCoord, MATRIX* worldRotation, SVECTOR* worldTranslation)
 {
-    gfxComposeNodeWorldTransform(rootCoord, &worldTransform->mat, worldPosition);
-    rootCoord->coord        = worldTransform->mat;
-    rootCoord->coord.t[0]   = worldPosition->vx;
-    rootCoord->coord.t[1]   = worldPosition->vy;
-    rootCoord->coord.t[2]   = worldPosition->vz;
+    gfxComposeNodeWorldTransform(rootCoord, worldRotation, worldTranslation);
+    rootCoord->coord        = *worldRotation;
+    rootCoord->coord.t[0]   = worldTranslation->vx;
+    rootCoord->coord.t[1]   = worldTranslation->vy;
+    rootCoord->coord.t[2]   = worldTranslation->vz;
     rootCoord->parent       = &gGfxViewCoord;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -647,7 +650,7 @@ static void _actor135400GaryDouglasUpdateCarriedPlacement(Task* task)
         case ACTOR_135400_CARRIED_PLACEMENT_DETACH:
             rootCoord = task->extra.tmd->coords;
             // Freeze the inherited transform before detaching from the body.
-            _actor135400GaryDouglasDetachCarriedRoot(rootCoord, &worldTransform, &worldPosition);
+            _actor135400GaryDouglasDetachCarriedRoot(rootCoord, &worldTransform.mat, &worldPosition);
             task->spawnArg1.value += 1;
             break;
         case ACTOR_135400_CARRIED_PLACEMENT_WAIT_EVENT:
@@ -718,8 +721,12 @@ static void func_actor_135400_80132064(Task* arg0)
     arg0->state       += 1;
 }
 
-/// Steps Gary Douglas's Q12 head-turn weight, retaining its 4095 upper limit.
-static inline void _actor135400GaryDouglasStepHeadTurn(_Actor135400GaryDouglasWork* work)
+/// Ramps Gary Douglas's blend weight for head aiming toward the player.
+///
+/// Requires live work with `turnWeight` in 0..4095, in 1/4096 units. A nonzero
+/// `turnWeightRising` adds 256 with a cap of 4095; zero subtracts 128 with a
+/// floor of zero. Changes only the weight; the caller applies the head rotation.
+static inline void _actor135400GaryDouglasStepHeadTurnWeight(_Actor135400GaryDouglasWork* work)
 {
     enum {
         ACTOR_135400_GARY_DOUGLAS_HEAD_TURN_RISE = 0x100,
@@ -777,7 +784,7 @@ static void _actor135400GaryDouglasTick(Task* task)
         }
         actorRenderComposeCoord(&task->extra.tmd->coords[ACTOR_135400_GARY_DOUGLAS_SHADOW_PART]);
         worldCoordSetModelLighting(model, task->extra.tmd->coords[ACTOR_135400_GARY_DOUGLAS_SHADOW_PART].workm.t, 0, ACTOR_135400_GARY_DOUGLAS_ROOM_LIGHT_COUNT);
-        _actor135400GaryDouglasStepHeadTurn(work);
+        _actor135400GaryDouglasStepHeadTurnWeight(work);
         animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_135400_GARY_DOUGLAS_HEAD_MAX_YAW, ACTOR_135400_GARY_DOUGLAS_HEAD_MAX_PITCH, work->turnWeight);
     }
 }
@@ -821,16 +828,18 @@ static void _actor135400GaryDouglasCarriedTask(Task* task)
 #define MODEL_PLACEMENT_ATTACH_PART_TASK _modelPlacementAttachPart
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// Per-frame dispatcher of the main task: runs its spawn, tick or exit state
-/// from `D_actor_135400_80131E3C`, skipping the frame while `gSceneCombatState.actorControl` is
-/// set.
-void func_actor_135400_801325A8(Task* task)
+/// Dispatches Gary Douglas's spawn, tick or exit state while actor control is running.
+///
+/// Requires a live body task with state 0..2 and this package's code loaded.
+/// Paused or hidden actor control defers every state, including spawn and exit.
+/// The selected handler can release the task; no task storage is used afterwards.
+static void _actor135400GaryDouglasTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_135400_80131E3C;
+    handlers = D_actor_135400_80131E3C;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        handlers.funcs[task->state](task);
     }
 }
 
@@ -1094,26 +1103,39 @@ static void _actor135400FlintInitLighting(Task* task)
     }
 }
 
-/// Installs Flint's bank and restarts or blends every driven slot into the requested clip.
+/// Applies Flint's play request and immediately advances every driven model part.
+///
+/// Requires live work and a nineteen-part model, bank index 0 and clip ID 1..6.
+/// The request is borrowed for this call and may be the work's cycle request,
+/// but must not overlap the rig or model state. Playback borrows the work's
+/// slot/pose arrays, model coordinates and loaded package clips until teardown.
+/// Every request, including a repeated clip, drives slots 1..18; root slot 0 is
+/// untouched. Nonzero blend interpolates an already ticking rig, otherwise the
+/// slots restart. `blendFrames` is in whole frames (0..2047 keeps blend time
+/// nonnegative); collision choice is ignored. Enables subsequent ticking and
+/// leaves the cycle cursor, hold timer and deferred buffer release intact.
 static inline void _actor135400FlintApplyAnimationRequest(_Actor135400FlintWork* work, TmdObject* model, const AnimationPlayRequest* request)
 {
+    enum { ACTOR_135400_FLINT_FIRST_DRIVEN_SLOT = 1 };
     s32 slotIndex;
 
+    // Rebind borrowed playback storage only when the requested bank changes.
     if (request->source.index != work->model.bank) {
         work->model.bank = request->source.index;
         animationInitContext(&work->rig.anim, D_actor_135400_8013F8D4[work->model.bank], model, work->rig.poses, work->rig.slots);
     }
     work->model.animId = request->animationId;
     if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        for (slotIndex = ACTOR_135400_FLINT_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
         }
     } else {
-        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        for (slotIndex = ACTOR_135400_FLINT_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
         }
     }
-    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+    // Apply the new pose immediately before handing playback to the frame tick.
+    for (slotIndex = ACTOR_135400_FLINT_FIRST_DRIVEN_SLOT; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationTickSlot(&work->rig.anim, slotIndex);
     }
     work->model.ticking = 1;
