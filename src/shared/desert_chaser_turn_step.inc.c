@@ -41,7 +41,7 @@ void desertChaserTurnStep(Task* arg0)
     scratch->offset.vy  = gPlayerStatus.coordMtx->t[1] - targetCoord->coord.t[1];
     z                   = gPlayerStatus.coordMtx->t[2] - targetCoord->coord.t[2];
     scratch->offset.vz  = z;
-    firstDelta          = actorYawTo(arg0->extra.tmd->coords, head[-1].offset.vx, z);
+    firstDelta          = _actorAngleTurnToOffset(arg0->extra.tmd->coords, head[-1].offset.vx, z);
     scratch->turn       = (s16)firstDelta;
     work->lookYawTarget = (u16)firstDelta;
     if (scratch->turn < 0) {

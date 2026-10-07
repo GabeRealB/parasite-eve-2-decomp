@@ -4740,7 +4740,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 work->stateTimer  = 0;
             }
             work->lookYawTarget = 0;
-            charge->turn        = actorYawTo(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
+            charge->turn        = _actorAngleTurnToOffset(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
             if (work->stateTimer >= 0xB) {
                 if (abs(charge->turn) < 0x200) {
                     if (!_actorRangeOutsideRadiusXZ(&charge->delta, 0x7D0)) {
@@ -4782,7 +4782,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
                 work->stateTimer  = 0;
             }
-            charge->turn = actorYawTo(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
+            charge->turn = _actorAngleTurnToOffset(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
             if (work->rig.slots[1].status.fields.flags & 0x100) {
                 work->animId      = 0x1D;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
@@ -4803,7 +4803,7 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     charge->delta.vx                   = -charge->delta.vx;
                     charge->delta.vy                   = -charge->delta.vy;
                     charge->delta.vz                   = -charge->delta.vz;
-                    charge->turn                       = actorYawTo(task->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
+                    charge->turn                       = _actorAngleTurnToOffset(task->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
                     if (abs(charge->turn) < 0x400) {
                         amount                       = -0x64;
                         work->playerAnim.animationId = 4;
@@ -4971,7 +4971,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                 func_actor_401300_80132910(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
             work->lookYawTarget = 0;
-            leap->turn          = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, delta->vz);
+            leap->turn          = _actorAngleTurnToOffset(arg0->extra.tmd->coords, head[-1].delta.vx, delta->vz);
             if (work->stateTimer >= 0xB) {
                 work->animId       = 0x20;
                 work->animRequest  = ACTOR_401300_ANIM_REQUEST_BLEND;
@@ -5021,7 +5021,7 @@ static void func_actor_401300_8013E930(Task* arg0)
                     leap->delta.vx               = work->leapStartPos.vx - task->extra.tmd->coords->coord.t[0];
                     leap->delta.vy               = work->leapStartPos.vy - task->extra.tmd->coords->coord.t[1];
                     leap->delta.vz               = work->leapStartPos.vz - task->extra.tmd->coords->coord.t[2];
-                    leap->turn                   = actorYawTo(task->extra.tmd->coords, head[-1].delta.vx, delta->vz);
+                    leap->turn                   = _actorAngleTurnToOffset(task->extra.tmd->coords, head[-1].delta.vx, delta->vz);
                     if (abs(leap->turn) < 0x400) {
                         amount                       = -0x46;
                         work->playerAnim.animationId = 4;

@@ -1428,7 +1428,7 @@ static void func_actor_356100_80164158(Task* arg0)
     yaw                 = ratan2(aim->delta.vx, aim->delta.vz) + 0x800;
     aim->yawFromPlayer  = yaw;
     aim->yawFromPlayer  = _actorAngleNormalizeYaw(yaw);
-    aim->turn           = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
+    aim->turn           = _actorAngleTurnToOffset(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
     work->lookYawTarget = aim->turn;
     diff                = aim->yawFromPlayer - aim->playerYaw;
     if (ABS(diff) < 0x44 && (((s16)work->sidestepCount / 2) + 3) < work->stateTimer && ABS(aim->turn) < 0x80) {
@@ -1651,7 +1651,7 @@ static void func_actor_356100_801653F4(Task* arg0)
         chase->delta.vy     = gPlayerStatus.coordMtx->t[1] - cur->coord.t[1];
         chase->delta.vz     = gPlayerStatus.coordMtx->t[2] - cur->coord.t[2];
         coord               = arg0->extra.tmd->coords;
-        chase->turn         = actorYawTo(coord, head[-1].delta.vx, chase->delta.vz);
+        chase->turn         = _actorAngleTurnToOffset(coord, head[-1].delta.vx, chase->delta.vz);
         facing              = arg0->extra.tmd->coords;
         chase->heading      = ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         work->turnYaw       = chase->heading;
@@ -1993,7 +1993,7 @@ static void func_actor_356100_801668FC(Task* actor)
 /// same body as `Actor01900_Fn06100`. Going live resets the model and starts
 /// clip 3 at speed 8 with `blendActive` cleared and `circleCount` zeroed;
 /// otherwise the chase scratch takes the player offset, the root is pushed out of
-/// the `pushContacts` collision records and `actorYawTo` gives the wrapped
+/// the `pushContacts` collision records and `_actorAngleTurnToOffset` gives the wrapped
 /// turn, which `lookYawTarget` snapshots. A turn under 0x200 while the player is
 /// still within 0x384 moves the state to 0xB; the turn is then clamped to
 /// [-0x40, 0x40], the root yaw is re-derived from it and the root rescaled to a
@@ -2027,7 +2027,7 @@ static void func_actor_356100_80166CF0(Task* arg0)
     actorConfigPositionDelta(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_356100_80163508(arg0);
-    ang                 = actorYawTo(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
+    ang                 = _actorAngleTurnToOffset(arg0->extra.tmd->coords, aim->delta.vx, aim->delta.vz);
     aim->turn           = ang;
     work->lookYawTarget = ang;
     if (aim->turn < 0x200) {
@@ -2362,7 +2362,7 @@ static void func_actor_356100_8016804C(Task* arg0)
 /// and the same body as `func_actor_401300_8013A5C0`. Going live resets the
 /// model and starts clip 1 at speed 0x10 with the 0x13 state parked in
 /// `animId`; otherwise the chase scratch takes the player offset,
-/// `actorYawTo` gives the wrapped turn, `lookYawTarget` snapshots it, it is
+/// `_actorAngleTurnToOffset` gives the wrapped turn, `lookYawTarget` snapshots it, it is
 /// clamped to [-0x80, 0x80] and halved, the root yaw is re-derived from it and
 /// the root coordinate rescaled to a uniform 0x1194. Once the state has settled
 /// on 0x11 the collision step pushes the root out of the `pushContacts` records
@@ -2403,7 +2403,7 @@ static void func_actor_356100_801684F0(Task* arg0)
     aim                 = (SCRATCH_HEAD_AT(scratch, ActorChaseScratch) = head - 1);
     aim->delta.vy       = gPlayerStatus.coordMtx->t[1] - cur->coord.t[1];
     aim->delta.vz       = gPlayerStatus.coordMtx->t[2] - cur->coord.t[2];
-    aim->turn           = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, aim->delta.vz);
+    aim->turn           = _actorAngleTurnToOffset(arg0->extra.tmd->coords, head[-1].delta.vx, aim->delta.vz);
     work->lookYawTarget = aim->turn;
     if (ABS(aim->turn) <= 0x80 && work->animId == 2) {
         work->animRate    = 0x16;

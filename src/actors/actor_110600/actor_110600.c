@@ -1905,7 +1905,7 @@ static void func_actor_110600_80135194(Task* arg0)
     delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
     d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
     d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    angle    = actorYawTo(arg0->extra.tmd->coords, delta.vx, d->vz);
+    angle    = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
     if (abs(angle) < 0x3E8) {
         if (actorOutsideRadius(&delta, work->noticeRangeAhead) == 0)
             work->state = ACTOR_110600_STATE_ALERT;
@@ -1985,7 +1985,7 @@ static void func_actor_110600_80135454(Task* arg0)
     walker->speed       = ramp;
     bossStrangerTick(walker);
     work->stateFrame++;
-    angle = actorYawTo(arg0->extra.tmd->coords, delta.vx, d->vz);
+    angle = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
     if (abs(angle) < 0x80) {
         if (actorOutsideRadius(&delta, 500) != 0) {
             if (actorOutsideRadius(&delta, 1000) == 0 && work->stateFrame >= 25)
@@ -2050,7 +2050,7 @@ static void func_actor_110600_80135A18(Task* arg0)
     delta.vx            = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
     d->vy               = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
     d->vz               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    angle               = actorYawTo(arg0->extra.tmd->coords, delta.vx, d->vz);
+    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
     work->lookYawTarget = angle;
     func_actor_110600_80134728(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
@@ -3006,7 +3006,7 @@ static void func_actor_110600_80137980(Task* arg0)
     delta.vx            = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
     d->vy               = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
     d->vz               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    angle               = actorYawTo(arg0->extra.tmd->coords, delta.vx, d->vz);
+    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
     work->lookYawTarget = angle;
     func_actor_110600_80134728(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {

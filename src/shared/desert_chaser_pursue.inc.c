@@ -90,7 +90,7 @@ void desertChaserPursue(Task* arg0)
         distanceSquared            = ActorContact_ScratchPosition.vx * ActorContact_ScratchPosition.vx;
         scratch->pushLengthSquared = distanceSquared;
         scratch->pushLengthSquared = distanceSquared + ActorContact_ScratchPosition.vz * ActorContact_ScratchPosition.vz;
-        yaw                        = actorYawTo(arg0->extra.tmd->coords, ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
+        yaw                        = _actorAngleTurnToOffset(arg0->extra.tmd->coords, ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
         if ((abs(yaw) >= 0x601) && (scratch->pushLengthSquared >= 0xE11U)) {
 #if !DESERT_CHASER_RUN_SEQUENCE
             if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && _actor00100IsInMesaDropRegion(arg0)) {
@@ -129,11 +129,11 @@ void desertChaserPursue(Task* arg0)
                 contactYaw          = ratan2(scratch->offset.vx, scratch->offset.vz) + 0x800;
                 scratch->catchYaw   = contactYaw;
                 scratch->catchYaw   = _actorAngleNormalizeYaw(contactYaw);
-                scratch->turn       = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+                scratch->turn       = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
                 scratch->offset.vy  = 0;
                 scratch->offset.vx  = -scratch->offset.vx;
                 scratch->offset.vz  = -scratch->offset.vz;
-                scratch->playerTurn = actorYawTo(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+                scratch->playerTurn = _actorAngleTurnToOffset(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
                 if (abs(scratch->playerTurn) < 0x400) {
                     work->playerAnim.source.sets = gDesertChaserFrontAnim;
                 } else {
@@ -220,7 +220,7 @@ void desertChaserPursue(Task* arg0)
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    scratch->turn                         = actorYawTo(arg0->extra.tmd->coords, work->playerDelta.vx, work->playerDelta.vz);
+    scratch->turn                         = _actorAngleTurnToOffset(arg0->extra.tmd->coords, work->playerDelta.vx, work->playerDelta.vz);
     _desertChaserAnimTick(arg0);
     if (work->animId == 2) {
         if (scratch->turn >= 0x41) {

@@ -2437,7 +2437,7 @@ static s32 func_actor_403000_80134204(GfxCoord* arg0)
     scratch->offset.vz  = v->vz;
     scratch->offset.vx -= coord->coord.t[0];
     scratch->offset.vz -= coord->coord.t[2];
-    angle               = actorYawTo(coord, scratch->offset.vx, scratch->offset.vz);
+    angle               = _actorAngleTurnToOffset(coord, scratch->offset.vx, scratch->offset.vz);
     if (angle < 0x400) {
         scratch->ringDir = 1;
     } else {
@@ -3440,7 +3440,7 @@ static void func_actor_403000_80137084(Task* arg0)
         t->vx         = wip->coordMtx->t[0] - pos->coord.t[0];
         t->vy         = wip->coordMtx->t[1] - pos->coord.t[1];
         t->vz         = wip->coordMtx->t[2] - pos->coord.t[2];
-        scratch->turn = mag = actorYawTo(arg0->extra.tmd->coords, t->vx, t->vz);
+        scratch->turn = mag = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t->vx, t->vz);
         work->neckYawTarget = mag;
         if (scratch->turn > 0x40) {
             scratch->turn = 0x40;
@@ -3462,7 +3462,7 @@ static void func_actor_403000_80137084(Task* arg0)
         t->vx         = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
         t->vy         = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
         t->vz         = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
-        scratch->turn = mag = actorYawTo(arg0->extra.tmd->coords, t->vx, t->vz);
+        scratch->turn = mag = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t->vx, t->vz);
         work->neckYawTarget = mag;
         coord               = arg0->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
@@ -3590,7 +3590,7 @@ static void func_actor_403000_801377C8(Task* arg0)
             t->vx         = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
             t->vy         = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
             t->vz         = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
-            scratch->turn = mag = actorYawTo(arg0->extra.tmd->coords, t->vx, t->vz);
+            scratch->turn = mag = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t->vx, t->vz);
             if (ABS(mag) < 0x400) {
                 if (_actor403000HasPlayerContact(work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts)) && enemy->hp > 0 && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403000_80158DD0.hold, 0) == 0) {
                     work->state            = ACTOR_403000_STATE_GRAB_CATCH;
@@ -3848,7 +3848,7 @@ static void func_actor_403000_801386E8(Task* arg0)
         t->vx         = gPlayerStatus.coordMtx->t[0] - coord3->coord.t[0];
         t->vy         = gPlayerStatus.coordMtx->t[1] - coord3->coord.t[1];
         t->vz         = gPlayerStatus.coordMtx->t[2] - coord3->coord.t[2];
-        scratch->turn = mag = actorYawTo(arg0->extra.tmd->coords, t->vx, t->vz);
+        scratch->turn = mag = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t->vx, t->vz);
         if (scratch->turn > 0x40) {
             scratch->turn = 0x40;
         } else if (scratch->turn < -0x40) {
@@ -3954,7 +3954,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         t1->vx                              = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
         t1->vy                              = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
         t1->vz                              = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
-        scratch->turn                       = actorYawTo(arg0->extra.tmd->coords, t1->vx, t1->vz);
+        scratch->turn                       = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t1->vx, t1->vz);
         scratch->turn                      += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4011,7 +4011,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         t3->vx         = gPlayerStatus.coordMtx->t[0] - pos2->coord.t[0];
         t3->vy         = gPlayerStatus.coordMtx->t[1] - pos2->coord.t[1];
         t3->vz         = gPlayerStatus.coordMtx->t[2] - pos2->coord.t[2];
-        scratch->turn  = actorYawTo(arg0->extra.tmd->coords, t3->vx, t3->vz);
+        scratch->turn  = _actorAngleTurnToOffset(arg0->extra.tmd->coords, t3->vx, t3->vz);
         scratch->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, scratch->turn, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4173,7 +4173,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
     scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
@@ -4266,7 +4266,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
     scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
@@ -4398,7 +4398,7 @@ static void func_actor_403000_8013A678(Task* arg0)
     scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
     scratch->offset.vy  = 0;
     scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-    angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
@@ -4487,7 +4487,7 @@ static void func_actor_403000_8013ACBC(Task* arg0)
         scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
         scratch->offset.vy  = 0;
         scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-        angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+        angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
         scratch->turn       = angle;
         work->neckYawTarget = 0;
         scratch->turn      += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
@@ -4580,7 +4580,7 @@ static void func_actor_403000_8013B238(Task* arg0)
         scratch->offset.vx -= arg0->extra.tmd->coords->coord.t[0];
         scratch->offset.vy -= arg0->extra.tmd->coords->coord.t[1];
         scratch->offset.vz -= arg0->extra.tmd->coords->coord.t[2];
-        angle               = actorYawTo(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
+        angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->offset.vx, scratch->offset.vz);
         mag                 = angle;
         scratch->turn       = mag;
         if (ABS(mag) < 0x400) {

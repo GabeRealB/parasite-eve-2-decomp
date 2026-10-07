@@ -114057,7 +114057,7 @@ Scratch `nonmatchings/func_actor_356100_80164158-vacuum`.
 GCC 2.8.1 sets `DECL_SAVED_INSNS` when a function's own `rest_of_compilation`
 runs, i.e. when its definition is reached; a call above that point cannot
 inline and is emitted as a real `jal`. A scratch `base.c` holds one function and
-the headers, so helpers that live in the `.c` — here `actorYawTo`,
+the headers, so helpers that live in the `.c` — here `_actorAngleTurnToOffset`,
 `actorStepForward` and `Actor356100_PushRecords` — are not visible at all
 and become implicit declarations. Nothing warns under `-w`, the build passes,
 and the score is merely low: 60.998% with 491 instructions against the target's
@@ -149658,7 +149658,7 @@ attempts; left as it was.
   find-hit inline, 13 gotos went on the first build.
 - The desert chaser's hand-expanded turns (`facing = coords; angle = ratan2;
   delta = angle - ratan2(...); wrapped = delta; <wrap loops>`) are
-  `actorYawTo(coords, x, z)`; all seven sites of `desertChaserRoam`,
+  `_actorAngleTurnToOffset(coords, x, z)`; all seven sites of `desertChaserRoam`,
   `desertChaserTurnStep` and `desertChaserTurnStepProbe` matched with the
   call, and 22 locals went.
 - Not converted: `func_acropolis_bridge_801856E0`. Its switch has
@@ -150098,7 +150098,7 @@ attempts; left as it was.
   `li v1,1` compare operand is what cse reuses for the `= 1` stores, so they
   are written as plain constants (`work->animId = RAT_ANIM_IDLE`).
 - `gluttonEscortState`: a hand-expanded wrap whose input is `ratan2(x, z) -
-  ratan2(-m[2][0], m[2][2])` is `actorYawTo(coord, x, z)` whole; the `angle`
+  ratan2(-m[2][0], m[2][2])` is `_actorAngleTurnToOffset(coord, x, z)` whole; the `angle`
   local goes.
 - `func_actor_800300_801628D0`: `if (a < d) goto in_range; if (p == 2) goto
   reset; in_range: if (d < b) break; if (p != 1) break; reset:` is one

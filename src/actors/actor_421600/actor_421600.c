@@ -2694,7 +2694,7 @@ static void func_actor_421600_80136138(Task* arg0)
     turn->delta.vx      = turn->delta.vx - (u16)arg0->extra.tmd->coords->coord.t[0];
     turn->delta.vy      = 0;
     turn->delta.vz      = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
-    angle               = actorYawTo(arg0->extra.tmd->coords, turn->delta.vx, turn->delta.vz);
+    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, turn->delta.vx, turn->delta.vz);
     turn->angle         = angle;
     work->lookYawTarget = angle;
     if (turn->angle >= 0x21)
@@ -3522,7 +3522,7 @@ static void func_actor_421600_8013B00C(Task* arg0)
     turn->delta.vy = 0;
     turn->delta.vz = turn->delta.vz - (u16)arg0->extra.tmd->coords->coord.t[2];
     _desertChaserAnimTick(arg0);
-    angle               = actorYawTo(arg0->extra.tmd->coords, turn->delta.vx, turn->delta.vz);
+    angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, turn->delta.vx, turn->delta.vz);
     turn->angle         = angle;
     work->lookYawTarget = angle;
     if (turn->angle >= 0x81) {

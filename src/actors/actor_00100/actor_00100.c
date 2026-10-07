@@ -2547,7 +2547,7 @@ static void Actor00100_Fn070DC(Task* arg0)
     scratch->delta.vz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     _desertChaserAnimTick(arg0);
-    firstDelta             = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, scratch->delta.vz);
+    firstDelta             = _actorAngleTurnToOffset(arg0->extra.tmd->coords, head[-1].delta.vx, scratch->delta.vz);
     scratch->turn          = firstDelta;
     work->lookYawTarget    = firstDelta;
     playerX                = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
@@ -2560,7 +2560,7 @@ static void Actor00100_Fn070DC(Task* arg0)
     targetYaw              = ratan2(scratch->delta.vx, (s32)z) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     scratch->yawFromPlayer = targetYaw;
     scratch->yawFromPlayer = _actorAngleNormalizeYaw(targetYaw);
-    finalDelta             = actorYawTo(arg0->extra.tmd->coords, scratch->delta.vx, scratch->delta.vz);
+    finalDelta             = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->delta.vx, scratch->delta.vz);
     scratch->turn          = (s16)finalDelta;
     work->lookYawTarget    = (s16)finalDelta;
     magnitude              = abs(scratch->yawFromPlayer - scratch->playerYaw);
@@ -2686,7 +2686,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
     scratch->delta.vz                     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     _desertChaserAnimTick(arg0);
-    firstDelta             = actorYawTo(arg0->extra.tmd->coords, head[-1].delta.vx, scratch->delta.vz);
+    firstDelta             = _actorAngleTurnToOffset(arg0->extra.tmd->coords, head[-1].delta.vx, scratch->delta.vz);
     scratch->turn          = firstDelta;
     work->lookYawTarget    = firstDelta;
     playerX                = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
@@ -2699,7 +2699,7 @@ static void Actor00100_Fn08E7C(Task* arg0)
     targetYaw              = ratan2(scratch->delta.vx, (s32)z) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     scratch->yawFromPlayer = targetYaw;
     scratch->yawFromPlayer = _actorAngleNormalizeYaw(targetYaw);
-    finalDelta             = actorYawTo(arg0->extra.tmd->coords, scratch->delta.vx, scratch->delta.vz);
+    finalDelta             = _actorAngleTurnToOffset(arg0->extra.tmd->coords, scratch->delta.vx, scratch->delta.vz);
     scratch->turn          = (s16)finalDelta;
     work->lookYawTarget    = (s16)finalDelta;
     if (abs(scratch->screen.vx) < 0x78 && abs(scratch->screen.vy) < 0x64 && abs(scratch->turn) < 0x200) {

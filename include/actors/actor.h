@@ -1591,14 +1591,25 @@ static __inline__ s16 actorMatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* 
     return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
 }
 
-/// The turn from `coord`'s heading to the bearing of the offset (`x`, `z`),
-/// wrapped.
-static __inline__ s16 actorYawTo(GfxCoord* coord, s16 x, s16 z)
+/// Returns the signed horizontal turn from a coordinate's heading to an X/Z offset.
+///
+/// `headingCoord` must provide a live local rotation. `offsetX` and `offsetZ`
+/// express a direction in its parent coordinate frame, with both components
+/// using the same scale; position differences use game coordinate units.
+/// Wider caller values narrow to signed 16 bits on entry. Translation, parent
+/// links and the composition cache are neither read nor changed.
+///
+/// The bearing minus heading difference narrows to signed 16 bits before
+/// wrapping. The result uses 4096 units per turn and lies in [-2048, 2048],
+/// retaining both half-turn endpoints. A zero offset uses the SDK's zero
+/// bearing, so the result is the wrapped negative heading. Callers apply any
+/// turn limit and rotation themselves.
+static __inline__ s16 _actorAngleTurnToOffset(const GfxCoord* headingCoord, s16 offsetX, s16 offsetZ)
 {
-    s32 angle;
+    s32 offsetBearing;
 
-    angle = ratan2(x, z);
-    return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    offsetBearing = ratan2(offsetX, offsetZ);
+    return _actorAngleNormalizeYaw(offsetBearing - ratan2(-headingCoord->coord.m[2][0], headingCoord->coord.m[2][2]));
 }
 
 /// The turn from `coord`'s heading to the bearing of the offset `dir`,

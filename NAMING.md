@@ -448,12 +448,13 @@ advance their poses and count ticks and slot-1 control-jump ticks. The resident
 request state or counters.
 
 `actorAngle` owns scalar heading and turn-angle normalization, and the turn from
-an actor's heading toward the live player, shared by actor packages. Its inline
-interface is `include/actors/actor.h`, with static instances marked `_`. Angles
-use 4096 units per turn; signed wrapping retains both half-turn endpoints and
-narrows the input to 16 bits before wrapping. The player turn also writes the
-translation offset in signed 16-bit game coordinates and requires both roots
-in the same parent coordinate frame; it does not compose or rotate them.
+a coordinate's heading toward an X/Z offset or the live player, shared by actor
+packages. Its inline interface is `include/actors/actor.h`, with static instances
+marked `_`. Angles use 4096 units per turn; signed wrapping retains both
+half-turn endpoints and narrows the input to 16 bits before wrapping. The player
+turn also writes the translation offset in signed 16-bit game coordinates and
+requires both roots in the same parent coordinate frame; it does not compose or
+rotate them.
 The cached-frame bearing helper also belongs to `actorAngle`: it takes a target
 offset through the transpose of the reference's composed basis, then measures
 its X/Z yaw. Both caches must already describe the same composition frame;

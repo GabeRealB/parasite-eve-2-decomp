@@ -3159,7 +3159,7 @@ static void func_actor_444000_8013482C(Task* task)
     sc->offset.vy = gPlayerStatus.coordMtx->t[1] - model->coord.t[1];
     sc->offset.vz = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
 
-    work->neckYawTarget = actorYawTo(task->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
+    work->neckYawTarget = _actorAngleTurnToOffset(task->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
 
     switch (work->phase) {
         case 0: {
@@ -5143,7 +5143,7 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
     sc->offset.vx = sc->anchor.vx - player->extra.tmd->coords->coord.t[0];
     sc->offset.vy = 0;
     sc->offset.vz = sc->anchor.vz - player->extra.tmd->coords->coord.t[2];
-    yaw           = actorYawTo(player->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
+    yaw           = _actorAngleTurnToOffset(player->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
     sc->playerYaw = yaw;
     if (abs(sc->playerYaw) > 0x400) {
         if (sc->playerYaw > 0) {
@@ -5161,7 +5161,7 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
     sc->offset.vx       = player->extra.tmd->coords->coord.t[0] - sc->anchor.vx;
     sc->offset.vy       = 0;
     sc->offset.vz       = player->extra.tmd->coords->coord.t[2] - sc->anchor.vz;
-    work->neckYawTarget = actorYawTo(task->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
+    work->neckYawTarget = _actorAngleTurnToOffset(task->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
 
     VectorNormalSS(&sc->offset, &sc->offset);
     gte_lddp(0x384);
@@ -6020,7 +6020,7 @@ static void func_actor_444000_801411C8(Task* arg0)
     d->vx               = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     d->vy               = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
     d->vz               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    work->neckYawTarget = actorYawTo(arg0->extra.tmd->coords, d->vx, d->vz);
+    work->neckYawTarget = _actorAngleTurnToOffset(arg0->extra.tmd->coords, d->vx, d->vz);
 
     if (gGluttonLimbReach >= 0x191) {
         gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
@@ -6189,7 +6189,7 @@ static void func_actor_444000_80141618(Task* task)
     sc->toPlayer.vx     = cfg->coordMtx->t[0] - coord->coord.t[0];
     sc->toPlayer.vy     = cfg->coordMtx->t[1] - coord->coord.t[1];
     sc->toPlayer.vz     = cfg->coordMtx->t[2] - coord->coord.t[2];
-    work->neckYawTarget = actorYawTo(task->extra.tmd->coords, sc->toPlayer.vx, sc->toPlayer.vz);
+    work->neckYawTarget = _actorAngleTurnToOffset(task->extra.tmd->coords, sc->toPlayer.vx, sc->toPlayer.vz);
     if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0x13) {
         work->animId   = 1;
         work->animStep = GLUTTON_ANIM_STEP_BLEND;
