@@ -152491,8 +152491,8 @@ merges the load into the copy (`(set gv:HI (zero_extend:HI (mem:QI)))`, the
 image's `lbu t5,9(v1)`), and because `gh` has other sets its count is not
 reset: `Register 99 used 21 times across 157 insns`, 5350. No insn is added,
 so B holds by itself. No statement is needed between the load and the copy
-here, unlike Gp_DrawHpMpStats: the copy is `HI` from `SI`, so cse's copy swap
-does not apply. The same thing through `gu`, or in the glyph loop through
+here, unlike Gp_DrawHpMpStats (measured; presumably because the copy is `HI`
+from `SI` and cse's copy swap wants equal modes - not checked in the dumps). The same thing through `gu`, or in the glyph loop through
 `width`, gives the right order too but moves one `lbu` (the merged load sits
 where the copy was).
 
