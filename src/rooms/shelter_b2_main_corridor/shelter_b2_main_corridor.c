@@ -110,11 +110,7 @@ typedef struct {
 } _RoomDepartureStorage;
 STATIC_ASSERT_SIZEOF(_RoomDepartureStorage, 0x10);
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b2_main_corridor_8018965C[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u8 D_shelter_b2_main_corridor_8018965C_value __asm__("D_shelter_b2_main_corridor_8018965C");
+extern u8 D_shelter_b2_main_corridor_8018965C;
 
 /// Spawn argument of the helper task 0x31 the room's exit task starts.
 extern RoomFadeStorage gRoomEventFade;
@@ -1601,12 +1597,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_b2_main_corridor_8018965C[4] = {
-    0,
-    223,
-    124,
-    44,
-};
+u8 D_shelter_b2_main_corridor_8018965C = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_b2_main_corridor_8018965D = 223;
+
+u8 D_shelter_b2_main_corridor_8018965E = 124;
+
+u8 D_shelter_b2_main_corridor_8018965F = 44;
 
 /// Next byte for mixed water quad and draw-mode packets in a borrowed actor-load buffer.
 ///
@@ -1687,11 +1685,11 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
     } else {
         return 1;
     }
-    p                                         = &staged;
-    staged.capCmd                             = capCmd;
-    staged.flagId                             = flag;
-    staged.fade                               = 0;
-    D_shelter_b2_main_corridor_8018965C_value = 0;
+    p                                   = &staged;
+    staged.capCmd                       = capCmd;
+    staged.flagId                       = flag;
+    staged.fade                         = 0;
+    D_shelter_b2_main_corridor_8018965C = 0;
     if (gameFlagGetNibble(p->flagId) == 0 || p->flagId == 0) {
         if (out->queryOnly != ROOM_EVENT_EXECUTE) {
             return 2;
@@ -1702,7 +1700,7 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
             gameFlagSetNibble(p->flagId, 1);
         }
         taskSpawnFromTable(&D_shelter_b2_main_corridor_80182C08, 0, 0, 0);
-        D_shelter_b2_main_corridor_8018965C_value = 1;
+        D_shelter_b2_main_corridor_8018965C = 1;
         return 2;
     }
     return 1;
