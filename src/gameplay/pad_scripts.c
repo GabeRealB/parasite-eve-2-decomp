@@ -119,15 +119,11 @@ static void _padScriptTickLanes(Task* task);
 
 static void _padScriptBinaryLaneStoppedState(Task* task);
 
-static void Gp_TickScriptADelay(Task* task);
-
 static void _padScriptBinaryLaneLoopState(Task* task);
 
 static void _padScriptBinaryLaneJumpState(Task* task);
 
 static void _padScriptVariableLaneStoppedState(Task* task);
-
-static void Gp_TickScriptBDelay(Task* task);
 
 static void _padScriptVariableLaneLoopState(Task* task);
 
@@ -137,36 +133,50 @@ static const TaskFuncTable3 Gp_Script18States;
 static const TaskFuncTable5 Gp_ScriptAStates;
 static const TaskFuncTable5 Gp_ScriptBStates;
 
-/// Initializes an owned ramp from Q8 endpoints and a nonzero signed frame count.
-///
-/// The signed span division truncates toward zero. The motor task posts before
-/// adding the step, so the endpoint supplies the slope without an extra post.
-static inline void _padScriptInitializeRamp(_PadScriptLerpWork* work, s16 durationFrames, s32 startQ8, s32 endQ8)
-{
-    work->framesRemaining = durationFrames;
-    work->intensity.q8    = startQ8;
-    work->intensityStep   = (endQ8 - startQ8) / durationFrames;
-}
-
 /// Updates a lane's LOOP counter and advances its byte-sized command cursor.
 ///
-/// Both pointers address distinct fields of the live script work. A zero
-/// counter loads the command's operand; a nonzero counter decrements instead.
-/// Cursor increment wraps modulo 256, leaving execution for the next frame.
-static inline void _padScriptAdvanceLoop(u8* counter, u8* nextStep, u16 commandWord)
-{
-    u8 loopCount;
-
-    loopCount = *counter;
-    if (loopCount == 0) {
-        loopCount = commandWord >> PAD_SCRIPT_OPERAND_SHIFT;
-        *counter  = loopCount;
-        (*nextStep)++;
-    } else {
-        loopCount--;
-        *counter = loopCount;
-        (*nextStep)++;
+/// Both pointers address distinct writable bytes in the live script work.
+/// A zero counter loads `loopOperand` (0..255); a nonzero counter decrements
+/// instead. The next-command index increments modulo 256 and must still
+/// address a live borrowed command. Execution resumes on the next eligible
+/// script frame; the following JUMP tests the updated counter.
+///
+/// Use as a standalone statement in a braced body. Pointer arguments are
+/// evaluated once, in declaration order; the operand is evaluated once only
+/// when the counter is zero. The three `padScriptLoopCounter`,
+/// `padScriptStepIndex` and `padScriptLoopCount` locals are internal to the
+/// expansion: argument expressions must not use those identifiers. No outer
+/// local or global is captured.
+#define PAD_SCRIPT_ADVANCE_LOOP(loopCounter, stepIndex, loopOperand) \
+    {                                                                \
+        u8* padScriptLoopCounter = (loopCounter);                    \
+        u8* padScriptStepIndex   = (stepIndex);                      \
+        u8  padScriptLoopCount;                                      \
+        padScriptLoopCount = *padScriptLoopCounter;                  \
+        if (padScriptLoopCount == 0) {                               \
+            padScriptLoopCount    = (loopOperand);                   \
+            *padScriptLoopCounter = padScriptLoopCount;              \
+            (*padScriptStepIndex)++;                                 \
+        } else {                                                     \
+            padScriptLoopCount--;                                    \
+            *padScriptLoopCounter = padScriptLoopCount;              \
+            (*padScriptStepIndex)++;                                 \
+        }                                                            \
     }
+
+/// Initializes a variable-motor ramp's countdown, starting intensity and Q8 step.
+///
+/// `ramp` is live writable work owned by the motor task. `durationFrames` is
+/// nonzero, with positive counts used for ordinary playback; signed counts
+/// are retained. Both endpoints use eight fractional bits; their difference
+/// and its quotient must fit in `s32`. Signed division truncates toward zero.
+/// Each eligible script frame posts the current whole byte before adding the
+/// step, with no final endpoint post.
+static inline void _padScriptInitializeRamp(_PadScriptLerpWork* ramp, s16 durationFrames, s32 startQ8, s32 endQ8)
+{
+    ramp->framesRemaining = durationFrames;
+    ramp->intensity.q8    = startQ8;
+    ramp->intensityStep   = (endQ8 - startQ8) / durationFrames;
 }
 
 /// Executes the binary motor lane's next command in a live script task.
@@ -202,7 +212,7 @@ static void _padScriptStepBinaryLane(Task* task)
             work->holdWaitFrames = commandWord >> PAD_SCRIPT_OPERAND_SHIFT;
             work->holdStep++;
         } else if (opcode == PAD_SCRIPT_LOOP) {
-            _padScriptAdvanceLoop(&work->holdLoopCount, &work->holdStep, commandWord);
+            PAD_SCRIPT_ADVANCE_LOOP(&work->holdLoopCount, &work->holdStep, commandWord >> PAD_SCRIPT_OPERAND_SHIFT);
         } else if (opcode == PAD_SCRIPT_JUMP) {
             if (work->holdLoopCount == 0) {
                 work->holdStep++;
@@ -245,7 +255,7 @@ static void _padScriptStepVariableLane(Task* task)
             work->lerpWaitFrames = commandWord >> PAD_SCRIPT_OPERAND_SHIFT;
             work->lerpStep++;
         } else if (opcode == PAD_SCRIPT_LOOP) {
-            _padScriptAdvanceLoop(&work->lerpLoopCount, &work->lerpStep, commandWord);
+            PAD_SCRIPT_ADVANCE_LOOP(&work->lerpLoopCount, &work->lerpStep, commandWord >> PAD_SCRIPT_OPERAND_SHIFT);
         } else if (opcode == PAD_SCRIPT_JUMP) {
             if (work->lerpLoopCount == 0) {
                 work->lerpStep++;
@@ -439,12 +449,19 @@ static void _padScriptBinaryLaneStoppedState(Task* task)
 {
 }
 
-static void Gp_TickScriptADelay(Task* task)
+/// Counts down the binary lane's PLAY or WAIT delay and steps when it expires.
+///
+/// `task` is the live interpreter task with owned script work. Each call is
+/// one eligible script frame: actor-control freeze pauses these calls unless
+/// the session permits script execution. Predecrement stores a byte before
+/// testing it, so an initial zero takes 256 calls to expire. Stepping may post
+/// another vibration segment or traverse an immediate JUMP chain.
+static void _padScriptTickBinaryLaneDelay(Task* task)
 {
-    _PadScriptWork* state;
+    _PadScriptWork* work;
 
-    state = task->work;
-    if (--state->holdWaitFrames == 0) {
+    work = task->work;
+    if (--work->holdWaitFrames == 0) {
         _padScriptStepBinaryLane(task);
     }
 }
@@ -472,12 +489,19 @@ static void _padScriptVariableLaneStoppedState(Task* task)
 {
 }
 
-static void Gp_TickScriptBDelay(Task* task)
+/// Counts down the variable lane's PLAY or WAIT delay and steps when it expires.
+///
+/// `task` is the live interpreter task with owned script work. Each call is
+/// one eligible script frame: actor-control freeze pauses these calls unless
+/// the session permits script execution. Predecrement stores a byte before
+/// testing it, so an initial zero takes 256 calls to expire. Stepping may spawn
+/// another variable-motor ramp or traverse an immediate JUMP chain.
+static void _padScriptTickVariableLaneDelay(Task* task)
 {
-    _PadScriptWork* state;
+    _PadScriptWork* work;
 
-    state = task->work;
-    if (--state->lerpWaitFrames == 0) {
+    work = task->work;
+    if (--work->lerpWaitFrames == 0) {
         _padScriptStepVariableLane(task);
     }
 }
@@ -539,8 +563,8 @@ static const TaskFuncTable3 Gp_Script18States = { {
 // Indexed by the lane opcode: stop, play, wait, loop, jump.
 static const TaskFuncTable5 Gp_ScriptAStates = { {
     _padScriptBinaryLaneStoppedState,
-    Gp_TickScriptADelay,
-    Gp_TickScriptADelay,
+    _padScriptTickBinaryLaneDelay,
+    _padScriptTickBinaryLaneDelay,
     _padScriptBinaryLaneLoopState,
     _padScriptBinaryLaneJumpState,
 } };
@@ -548,8 +572,8 @@ static const TaskFuncTable5 Gp_ScriptAStates = { {
 // Indexed by the lane opcode: stop, play, wait, loop, jump.
 static const TaskFuncTable5 Gp_ScriptBStates = { {
     _padScriptVariableLaneStoppedState,
-    Gp_TickScriptBDelay,
-    Gp_TickScriptBDelay,
+    _padScriptTickVariableLaneDelay,
+    _padScriptTickVariableLaneDelay,
     _padScriptVariableLaneLoopState,
     _padScriptVariableLaneJumpState,
 } };

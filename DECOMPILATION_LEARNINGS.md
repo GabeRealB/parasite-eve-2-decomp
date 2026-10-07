@@ -28504,7 +28504,7 @@ if (tmp == 0) {
 }
 ```
 
-`_padScriptStepBinaryLane` case 3 (inlined from `_padScriptAdvanceLoop`) is the example. The shared-after-if form stuck at
+`_padScriptStepBinaryLane` case 3 (expanded from `PAD_SCRIPT_ADVANCE_LOOP`) is the example. The shared-after-if form stuck at
 97% with only those two `lbu`s merged. The extra live ranges also
 swapped `cmd` / table-pointer coloring (`$v1`/`$a2`) without a pin.
 
