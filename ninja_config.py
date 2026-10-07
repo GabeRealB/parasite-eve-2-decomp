@@ -245,7 +245,10 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
             # where only `.tmd` differs from its own name.
             type_dir = {".tmd": "model"}.get(rec["ext"], rec["ext"].lstrip("."))
             raw = ASSETS_DIR / version / "raw" / type_dir / f"{aid}{rec['ext']}"
-            width = {True: 1, "u8": 1, "u16": 2, "u32": 4, "TmdBone": "TmdBone"}[rec["include"]]
+            # "layout" names a record of mixed member widths, spelled in the
+            # record's own `layout` (see gen_asset_inc.py).
+            width = (rec["layout"] if rec["include"] == "layout" else
+                     {True: 1, "u8": 1, "u16": 2, "u32": 4, "TmdBone": "TmdBone"}[rec["include"]])
             out.append((raw, BUILD_DIR / "include" / "assets" / f"{aid}.inc", width))
     return out
 
@@ -1198,7 +1201,7 @@ def ninja_build(
             writer.build(
                 outputs=str(inc), rule="asset-inc", inputs=str(raw),
                 implicit=[str(GEN_ASSET_INC)] + ([str(GEN_MODEL_INC)] if width == "TmdBone" else []),
-                variables={"width": str(width)},
+                variables={"width": shlex.quote(str(width))},
             )
         ASSET_INC_OUTPUTS.append(str(inc))
     for raw, outputs, load, source, name in model_includes(version):

@@ -622,6 +622,19 @@ the first package by name, and the others include that id.
 | `.path` | `movie_path`, `camera_path` | one position (or camera transform) per movie or scene frame |
 | `.motion` | `motion_curve` | baked per-frame motion of a prop or figure: positions, angles |
 
+`include` is the element width the initializer is spelled in - `'u8'`, `'u16'`
+or `'u32'`, whichever the object's C element type is made of - and the list is
+flat, so brace elision fills any array or struct of that one width. A record
+whose members differ in width takes `"include": 'layout'` and a `layout`: a
+Python `struct` format for **one** record, limited to `b B h H i I` and `x`
+padding. `tools/gen_asset_inc.py` then writes one line of member values per
+record, still without braces, so the same include serves the record type at any
+array nesting (`ViewCamera x[400][2]` is `'9h 2x 3i I'`: a `MATRIX` and a
+`u32`). Padding has no initializer and compiles to zero, so the generator
+refuses a record whose padding bytes are not zero. The layout reaches the
+generator on the `asset-inc` rule's command line, so changing it rebuilds the
+include.
+
 A new record needs a re-extraction (`python3 ninja_config.py -iso_min`) before
 the build can read its `raw/` file.
 
