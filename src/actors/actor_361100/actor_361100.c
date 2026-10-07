@@ -125,30 +125,46 @@ void func_actor_403600_80138C9C(Actor403600Ripple* state);
 void func_actor_403600_801353D0(Actor403600Ripple* state, GfxCoord* coord);
 
 static void func_actor_361100_80161FF8(Task* arg0);
-static void func_actor_361100_80162B18(Task* task);
-static void func_actor_361100_80162D28(Task* arg0);
-static void func_actor_361100_80162DE4(Task* arg0);
-static void func_actor_361100_80162E04(Task* arg0);
-static void func_actor_361100_801631C4(Task* task);
-static void func_actor_361100_80163410(Task* arg0);
-static void func_actor_361100_80163494(Task* arg0);
-static void func_actor_361100_801634B4(Task* arg0);
 
-/// `Task::state` handlers `func_actor_361100_80162CBC` dispatches through.
+/// Draw modes with deferred primitive-buffer release or manual buffer recovery.
+///
+/// Modes 0 and 1 use `ACTOR_MESSAGE_DRAW_HIDE` and `ACTOR_MESSAGE_DRAW_SHOW`.
+/// Releasing stores mode 2 as the countdown: ticks seeing 2, 1, then 0 free it.
+enum {
+    ACTOR_361100_DRAW_HIDE_RELEASE         = 2,
+    ACTOR_361100_DRAW_SHOW_EXISTING_BUFFER = 3,
+};
+
+/// No primitive-buffer release pending in either model task.
+enum { ACTOR_361100_BUFFER_FREE_IDLE = -1 };
+
+/// One parent-relative coordinate unit in signed 16.16 translation.
+enum { ACTOR_361100_TRANSLATION_ONE = 0x10000 };
+
+static void _actor361100TickTentacle(Task* task);
+static void _actor361100InitTentacle(Task* task);
+static void _actor361100ExitTentacle(Task* task);
+static void _actor361100BindTentacleLighting(Task* task);
+static void _actor361100TickAyaBrea(Task* task);
+static void _actor361100InitAyaBrea(Task* task);
+static void _actor361100ExitAyaBrea(Task* task);
+static void _actor361100BindAyaBreaLighting(Task* task);
+
+/// `Task::state` handlers `_actor361100TentacleTask` dispatches through.
 static const TaskFuncTable3 D_actor_361100_80161E24 = {
     {
-        func_actor_361100_80162D28,
-        func_actor_361100_80162B18,
-        func_actor_361100_80162DE4,
+        _actor361100InitTentacle,
+        _actor361100TickTentacle,
+        _actor361100ExitTentacle,
     },
 };
 
-/// `Task::state` handlers `func_actor_361100_801633A4` dispatches through.
+/// `Task::state` handlers `_actor361100AyaBreaTask` dispatches through.
 static const TaskFuncTable3 D_actor_361100_80161E30 = {
     {
-        func_actor_361100_80163410,
-        func_actor_361100_801631C4,
-        func_actor_361100_80163494,
+        _actor361100InitAyaBrea,
+        _actor361100TickAyaBrea,
+        _actor361100ExitAyaBrea,
     },
 };
 
@@ -156,14 +172,14 @@ static AnimationSet _gActor361100Animation0973C;
 static AnimationSet _gActor361100Animation09AA8;
 static AnimationSet _gActor361100Animation09C88;
 static TmdSource    _gActor361100Model06038;
-s32                 func_actor_361100_80162F58(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
-s32                 func_actor_361100_80162FF4(Task*, s32, s32, s32);
-s32                 func_actor_361100_801630D4(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-s32                 func_actor_361100_801634D0(Task*, s32, AnimationPlayRequest*, s32);
-s32                 func_actor_361100_80163670(Task*, s32, s32, s32);
-s32                 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-void                func_actor_361100_80162CBC(Task*);
-void                func_actor_361100_801633A4(Task*);
+static s32          _actor361100PlaceTentacle(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
+static s32          _actor361100SetTentacleDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg);
+static s32          _actor361100ApplyTentacleCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
+static s32          _actor361100PlayAyaBreaAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32          _actor361100SetAyaBreaDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg);
+static s32          _actor361100ApplyAyaBreaCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
+static void         _actor361100TentacleTask(Task* task);
+static void         _actor361100AyaBreaTask(Task* task);
 
 extern AnimationPlayRequest D_actor_361100_80165CA0;
 extern ActorCommand         D_actor_361100_80165DD4;
@@ -779,13 +795,13 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_361100_8016BAD0,
 };
 
-TaskDesc D_actor_361100_8016BAE4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_361100_80162CBC, { .model = &_gActor361100Model06038 } };
+TaskDesc D_actor_361100_8016BAE4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor361100TentacleTask, { .model = &_gActor361100Model06038 } };
 
 TaskMessageEntry D_actor_361100_8016BAF0[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actorMotionPlayAnim19 },
-    { ACTOR_MESSAGE_PLACE, func_actor_361100_80162F58 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_361100_80162FF4 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_361100_801630D4 },
+    { ACTOR_MESSAGE_PLACE, _actor361100PlaceTentacle },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor361100SetTentacleDrawMode },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor361100ApplyTentacleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -921,13 +937,13 @@ AnimationSet** D_actor_361100_80171BA8[1] = {
     D_actor_361100_80171B94,
 };
 
-TaskDesc D_actor_361100_80171BAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_361100_801633A4, { .model = &_gActor361100AyaBreaBody } };
+TaskDesc D_actor_361100_80171BAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor361100AyaBreaTask, { .model = &_gActor361100AyaBreaBody } };
 
 TaskMessageEntry D_actor_361100_80171BB8[5] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_361100_801634D0 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor361100PlayAyaBreaAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_361100_80163670 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_361100_80163750 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor361100SetAyaBreaDrawMode },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor361100ApplyAyaBreaCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1479,37 +1495,45 @@ void func_actor_361100_80162B0C(s32 unused)
     D_actor_361100_80171BE0 = 0;
 }
 
-/// Per-frame tick of the tentacle: adds `velocity` to `carry` and moves the
-/// root part's local translation by the whole units that makes, keeping the
-/// fractions -- runs the `moveFrames` countdown that zeroes `velocity` while it
-/// is at 0, ticks the animation slots once `model.ticking` has latched, and
-/// while the part is visible rebuilds its world matrix and hands the result to
-/// `worldCoordUpdateActorColor`. `freeCountdown` counts the model's buffers down to
-/// the free.
+/// Applies one signed 16.16 root translation step and retains fractional carry.
 ///
-/// The twin of `func_actor_361100_801631C4`, which moves Aya's body the same
-/// way from a work block that keeps `velocity` and `carry` in the other order,
-/// stops its move a tick earlier and draws a ground shadow under the second
-/// part.
-static void func_actor_361100_80162B18(Task* task)
-{
-    TmdObject*                ext  = task->extra.tmd;
-    _Actor361100TentacleWork* work = task->work;
-    GfxCoord*                 coord;
-    VECTOR                    pos;
-    s32                       i;
+/// rootCoord and work must be side-effect-free pointer expressions to live,
+/// disjoint writable storage. work is either package model's work block;
+/// velocity is in the root parent's frame and its fourth word is unused.
+/// Both arguments are evaluated repeatedly. The block captures no identifiers,
+/// has no return or jump, and is undefined after the two model tick consumers.
+#define ACTOR_361100_INTEGRATE_ROOT_TRANSLATION(rootCoord, work)      \
+    {                                                                 \
+        (work)->carry[0].word    += (work)->velocity.vx;              \
+        (work)->carry[1].word    += (work)->velocity.vy;              \
+        (work)->carry[2].word    += (work)->velocity.vz;              \
+        (rootCoord)->coord.t[0]  += (work)->carry[0].halves.integer;  \
+        (rootCoord)->coord.t[1]  += (work)->carry[1].halves.integer;  \
+        (rootCoord)->coord.t[2]  += (work)->carry[2].halves.integer;  \
+        (rootCoord)->composeStamp = GRAPHICS_COORD_DIRTY;             \
+        (work)->carry[0].word     = (work)->carry[0].halves.fraction; \
+        (work)->carry[1].word     = (work)->carry[1].halves.fraction; \
+        (work)->carry[2].word     = (work)->carry[2].halves.fraction; \
+    }
 
-    coord                = ext->coords;
-    work->carry[0].word += work->velocity.vx;
-    work->carry[1].word += work->velocity.vy;
-    work->carry[2].word += work->velocity.vz;
-    coord->coord.t[0]   += work->carry[0].halves.integer;
-    coord->coord.t[1]   += work->carry[1].halves.integer;
-    coord->coord.t[2]   += work->carry[2].halves.integer;
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    work->carry[0].word  = work->carry[0].halves.fraction;
-    work->carry[1].word  = work->carry[1].halves.fraction;
-    work->carry[2].word  = work->carry[2].halves.fraction;
+/// Advances the tentacle's scripted translation, animation and model lighting.
+///
+/// Requires the initialized, live model/work and its borrowed Enemy. Translation
+/// adds signed 16.16 velocity to the root's parent-relative position, retaining
+/// fractional carry. An uninterrupted move armed with N runs for N+1 updating
+/// ticks: the tick that finds zero still moves before stopping. Hidden models
+/// still move and animate; only lighting is skipped. A pending buffer release
+/// runs after movement and drawing preparation, on the tick finding zero.
+static void _actor361100TickTentacle(Task* task)
+{
+    TmdObject*                model = task->extra.tmd;
+    _Actor361100TentacleWork* work  = task->work;
+    GfxCoord*                 rootCoord;
+    VECTOR                    worldPosition;
+    s32                       slotIndex;
+
+    rootCoord = model->coords;
+    ACTOR_361100_INTEGRATE_ROOT_TRANSLATION(rootCoord, work);
     if (work->moveFrames >= 0) {
         if (work->moveFrames == 0) {
             work->velocity.vx = 0;
@@ -1519,197 +1543,228 @@ static void func_actor_361100_80162B18(Task* task)
         work->moveFrames--;
     }
     if (work->model.ticking != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        pos.vx = coord->workm.t[0];
-        pos.vy = coord->workm.t[1];
-        pos.vz = coord->workm.t[2];
-        worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(rootCoord);
+        worldPosition.vx = rootCoord->workm.t[0];
+        worldPosition.vy = rootCoord->workm.t[1];
+        worldPosition.vz = rootCoord->workm.t[2];
+        worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
 }
 
-/// State dispatcher: runs `Task::state` through `D_actor_361100_80161E24` --
-/// setup (`func_actor_361100_80162D28`), per-frame tick (`func_actor_361100_80162B18`)
-/// and exit (`func_actor_361100_80162DE4`) -- while `gSceneCombatState.actorControl` is clear.
-void func_actor_361100_80162CBC(Task* task)
+/// Dispatches the tentacle's lifecycle while scene actors are running.
+///
+/// Requires a live TMD task with a borrowed Enemy in spawnArg2 and state 0
+/// (initialize), 1 (update) or 2 (exit). Other states are outside the table.
+/// Pausing scene actors also pauses initialization and both countdowns.
+static void _actor361100TentacleTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_361100_80161E24;
+    states = D_actor_361100_80161E24;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        states.funcs[task->state](task);
     }
 }
 
-/// Spawn callback: allocates the work block into `Task::work`, seeds the
-/// three -1 bytes, clears `carry` and arms the spawn
-/// argument `Enemy` with the coordinate's root matrix, then enters the
-/// `func_actor_361100_80162E04` state with `D_actor_361100_8016BAF0`
-/// installed at `Task::msgTable`. The task exits through
-/// `func_actor_361100_80162DE4` if the allocation fails.
-static void func_actor_361100_80162D28(Task* arg0)
+/// Allocates the tentacle's owned work and enables its update/message handlers.
+///
+/// Requires the model's live root coordinate and a borrowed Enemy in spawnArg2.
+/// Publishes its local matrix on the Enemy, clears its contact table, and binds
+/// model lighting to the work's matrices. Allocation failure exits the enemy
+/// task. Success advances state and retains the work until task teardown.
+static void _actor361100InitTentacle(Task* task)
 {
     _Actor361100TentacleWork* work;
-    GfxCoord*                 coord;
+    GfxCoord*                 rootCoord;
     Enemy*                    enemy;
 
-    coord = arg0->extra.tmd->coords;
-    enemy = arg0->spawnArg2.pointer;
+    rootCoord = task->extra.tmd->coords;
+    enemy     = task->spawnArg2.pointer;
 
     work = memCalloc(sizeof(_Actor361100TentacleWork), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
 
-    arg0->work          = work;
+    task->work          = work;
     work->model.animId  = ACTOR_MODEL_STATE_NONE;
     work->model.bank    = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown = -1;
+    work->freeCountdown = ACTOR_361100_BUFFER_FREE_IDLE;
     work->carry[0].word = 0;
     work->carry[1].word = 0;
     work->carry[2].word = 0;
 
-    enemy->field_4  = &coord->coord;
+    enemy->field_4  = &rootCoord->coord;
     enemy->field_48 = 0;
     enemy->recs     = 0;
 
-    func_actor_361100_80162E04(arg0);
+    _actor361100BindTentacleLighting(task);
 
-    arg0->msgTable     = D_actor_361100_8016BAF0;
-    arg0->exitCallback = func_actor_361100_80162DE4;
-    arg0->state       += 1;
+    task->msgTable     = D_actor_361100_8016BAF0;
+    task->exitCallback = _actor361100ExitTentacle;
+    task->state       += 1;
 }
 
-static void func_actor_361100_80162DE4(Task* arg0)
+/// Releases the tentacle's Enemy and starts task/model teardown.
+///
+/// The live task must borrow an Enemy in spawnArg2. Default teardown owns the
+/// work allocation; its lighting matrices remain borrowed by the model.
+static void _actor361100ExitTentacle(Task* task)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }
 
-static void func_actor_361100_80162E04(Task* arg0)
+/// Binds the tentacle model's lighting matrices to its owned work.
+///
+/// Requires initialized work and a live model. The model borrows both matrices
+/// until task teardown; later lighting updates populate them.
+static void _actor361100BindTentacleLighting(Task* task)
 {
-    TmdObject*                ext;
+    TmdObject*                model;
     _Actor361100TentacleWork* work;
 
-    work          = arg0->work;
-    ext           = arg0->extra.tmd;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    work            = task->work;
+    model           = task->extra.tmd;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
 }
 
 #include "../../shared/actor_motion_play19.inc.c"
 
-/// Places the actor at `placement`: drops the opcode's translation straight
-/// into the root part's local matrix, stores its Euler angles in the
-/// coordinate's own `rot` slot and rebuilds the rotation from them with
-/// `RotMatrixZYX`. Clearing `composeStamp` makes `actorRenderComposeCoordChain` recompute the
-/// composed matrix from it, and clearing `carry` and `velocity` stops the move
-/// in progress.
-s32 func_actor_361100_80162F58(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
+/// Places the tentacle's root and stops its translation without resetting its timer.
+///
+/// Requires initialized work, a live root and a readable, word-aligned placement
+/// through dispatch. XYZ uses whole units in the root parent's frame; Euler
+/// angles use 4096 units per turn. Builds Rz * Ry * Rx and records all three
+/// angles. Clears velocity and fractional carry but leaves moveFrames alone.
+/// The payload is not retained; msgId and unusedArg are ignored. Returns 0.
+static s32 _actor361100PlaceTentacle(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg)
 {
-    GfxCoord*                 coord;
+    GfxCoord*                 rootCoord;
     _Actor361100TentacleWork* work;
 
-    work                = task->work;
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = placement->pos.vx;
-    coord->coord.t[1]   = placement->pos.vy;
-    coord->coord.t[2]   = placement->pos.vz;
-    coord->param.rot.vx = placement->rot.vx;
-    coord->param.rot.vy = placement->rot.vy;
-    coord->param.rot.vz = placement->rot.vz;
-    RotMatrixZYX(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->carry[0].word = 0;
-    work->carry[1].word = 0;
-    work->carry[2].word = 0;
-    work->velocity.vx   = 0;
-    work->velocity.vy   = 0;
-    work->velocity.vz   = 0;
+    work                    = task->work;
+    rootCoord               = task->extra.tmd->coords;
+    rootCoord->coord.t[0]   = placement->pos.vx;
+    rootCoord->coord.t[1]   = placement->pos.vy;
+    rootCoord->coord.t[2]   = placement->pos.vz;
+    rootCoord->param.rot.vx = placement->rot.vx;
+    rootCoord->param.rot.vy = placement->rot.vy;
+    rootCoord->param.rot.vz = placement->rot.vz;
+    RotMatrixZYX(&rootCoord->param.rot, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    work->carry[0].word     = 0;
+    work->carry[1].word     = 0;
+    work->carry[2].word     = 0;
+    work->velocity.vx       = 0;
+    work->velocity.vy       = 0;
+    work->velocity.vz       = 0;
     return 0;
 }
 
-s32 func_actor_361100_80162FF4(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Changes tentacle visibility and primitive-buffer ownership policy.
+///
+/// Requires a live model and initialized work. Mode 0 hides and enables automatic
+/// buffer recovery; 1 shows, requests a buffer and enables recovery; 2 hides,
+/// disables recovery and schedules release on the third subsequent updating
+/// tick; 3 shows while keeping recovery disabled. Showing does not cancel an
+/// earlier release. msgId and unusedArg are ignored. Returns 0 for modes 0..3,
+/// or 1 without changing anything for other values.
+static s32 _actor361100SetTentacleDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg)
 {
     _Actor361100TentacleWork* work;
-    TmdObject*                obj;
-    s32                       ret;
+    TmdObject*                model;
+    s32                       result;
 
-    obj = task->extra.tmd;
-    ret = 0;
+    model  = task->extra.tmd;
+    result = 0;
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_361100_DRAW_HIDE_RELEASE:
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work                = task->work;
             work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_361100_DRAW_SHOW_EXISTING_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
-/// Message 0x7DB handler, listed in `D_actor_361100_8016BAF0` -- the table
-/// `func_actor_361100_80162D28` installs at `Task::msgTable`, and the twin of
-/// `D_actor_361100_80171BB8` where `func_actor_361100_80163750` serves the same
-/// id. 0 parks the actor, clearing `velocity`; 1, 2 and 3 start one of three
-/// preset moves, setting `velocity` to the move's displacement divided by its
-/// frame count and `moveFrames` to that count; every other sub-command exits
-/// the task through its own `Task::exitCallback`.
-s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Stops the tentacle, starts one of its three translation legs, or exits it.
+///
+/// Requires initialized work and a readable ActorCommand through dispatch. Only
+/// its command word is read; context, msgId and unusedArg are ignored. Command 0
+/// zeros velocity but keeps fractional carry and the countdown. Commands 1..3
+/// set signed 16.16 velocity and arm 25, 26 or 14 ticks respectively, retaining
+/// carry. Uninterrupted movement applies 26, 27 or 15 steps, including the tick
+/// that finds zero. Every other command calls the task's exit handler. The
+/// payload is not retained. Returns 0.
+static s32 _actor361100ApplyTentacleCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg)
 {
+    enum {
+        ACTOR_361100_TENTACLE_COMMAND_STOP        = 0,
+        ACTOR_361100_TENTACLE_COMMAND_MOVE_FIRST  = 1,
+        ACTOR_361100_TENTACLE_COMMAND_MOVE_SECOND = 2,
+        ACTOR_361100_TENTACLE_COMMAND_MOVE_THIRD  = 3,
+        ACTOR_361100_TENTACLE_FIRST_LEG_FRAMES    = 25,
+        ACTOR_361100_TENTACLE_SECOND_LEG_FRAMES   = 26,
+        ACTOR_361100_TENTACLE_THIRD_LEG_FRAMES    = 14,
+    };
     _Actor361100TentacleWork* work;
 
     work = task->work;
-    switch (msg->command) {
-        case 0:
+    // Commands replace velocity/countdown but preserve the fractional carry.
+    switch (command->command) {
+        case ACTOR_361100_TENTACLE_COMMAND_STOP:
             work->velocity.vx = 0;
             work->velocity.vy = 0;
             work->velocity.vz = 0;
             break;
-        case 1:
-            work->velocity.vx = -230 * 0x10000 / 25;
-            work->velocity.vy = -7970 * 0x10000 / 25;
-            work->velocity.vz = 290 * 0x10000 / 25;
-            work->moveFrames  = 25;
+        case ACTOR_361100_TENTACLE_COMMAND_MOVE_FIRST:
+            work->velocity.vx = -230 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_FIRST_LEG_FRAMES;
+            work->velocity.vy = -7970 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_FIRST_LEG_FRAMES;
+            work->velocity.vz = 290 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_FIRST_LEG_FRAMES;
+            work->moveFrames  = ACTOR_361100_TENTACLE_FIRST_LEG_FRAMES;
             break;
-        case 2:
-            work->velocity.vx = -1350 * 0x10000 / 26;
-            work->velocity.vy = -4430 * 0x10000 / 26;
-            work->velocity.vz = 740 * 0x10000 / 26;
-            work->moveFrames  = 26;
+        case ACTOR_361100_TENTACLE_COMMAND_MOVE_SECOND:
+            work->velocity.vx = -1350 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_SECOND_LEG_FRAMES;
+            work->velocity.vy = -4430 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_SECOND_LEG_FRAMES;
+            work->velocity.vz = 740 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_SECOND_LEG_FRAMES;
+            work->moveFrames  = ACTOR_361100_TENTACLE_SECOND_LEG_FRAMES;
             break;
-        case 3:
-            work->velocity.vx = 1350 * 0x10000 / 14;
-            work->velocity.vy = 6340 * 0x10000 / 14;
-            work->velocity.vz = -4140 * 0x10000 / 14;
-            work->moveFrames  = 14;
+        case ACTOR_361100_TENTACLE_COMMAND_MOVE_THIRD:
+            work->velocity.vx = 1350 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_THIRD_LEG_FRAMES;
+            work->velocity.vy = 6340 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_THIRD_LEG_FRAMES;
+            work->velocity.vz = -4140 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_TENTACLE_THIRD_LEG_FRAMES;
+            work->moveFrames  = ACTOR_361100_TENTACLE_THIRD_LEG_FRAMES;
             break;
         default:
             task->exitCallback(task);
@@ -1718,34 +1773,28 @@ s32 func_actor_361100_801630D4(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
     return 0;
 }
 
-/// Per-frame tick of Aya's body: adds `velocity` to `carry` and moves the root
-/// part's local translation by the whole units that makes, keeping the
-/// fractions -- runs the `moveFrames` countdown that zeroes `velocity` while it
-/// is at 1, ticks the animation slots once `model.ticking` has latched, and
-/// while the part is visible draws its ground shadow, rebuilds the second
-/// part's world matrix from it and relights the model through `worldCoordSetModelLighting`.
-/// `freeCountdown` counts the model's buffers down to the free. Every use of
-/// the second part's coordinate (`TmdObject::coords[1]`) is re-read from
-/// `task`, not cached.
-static void func_actor_361100_801631C4(Task* task)
+/// Advances Aya's scripted body translation, animation, ground shadow and lighting.
+///
+/// Requires initialized work, the live nineteen-part model and room effect
+/// state. Signed 16.16 velocity moves the root in its parent's frame, retaining
+/// fractional carry. An uninterrupted move armed with N runs for N updating
+/// ticks, stopping after the tick that finds one. Hidden models still move and
+/// animate. Visible models project the second part's cached world position for
+/// a shadow before recomposing that part and updating lighting. Pending buffer
+/// release runs last, on the tick finding zero.
+static void _actor361100TickAyaBrea(Task* task)
 {
-    TmdObject*               ext  = task->extra.tmd;
-    _Actor361100AyaBreaWork* work = (_Actor361100AyaBreaWork*)task->work;
-    GfxCoord*                coord;
-    VECTOR3                  pos;
-    s32                      i;
+    // Ground-shadow half-side, in whole coordinate units before view rotation.
+    enum { ACTOR_361100_AYA_SHADOW_HALF_SIZE = 512 };
+    TmdObject*               model = task->extra.tmd;
+    _Actor361100AyaBreaWork* work  = task->work;
+    GfxCoord*                rootCoord;
+    VECTOR3                  groundPosition;
+    s32                      slotIndex;
 
-    coord                = ext->coords;
-    work->carry[0].word += work->velocity.vx;
-    work->carry[1].word += work->velocity.vy;
-    work->carry[2].word += work->velocity.vz;
-    coord->coord.t[0]   += work->carry[0].halves.integer;
-    coord->coord.t[1]   += work->carry[1].halves.integer;
-    coord->coord.t[2]   += work->carry[2].halves.integer;
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    work->carry[0].word  = work->carry[0].halves.fraction;
-    work->carry[1].word  = work->carry[1].halves.fraction;
-    work->carry[2].word  = work->carry[2].halves.fraction;
+    // Integrate whole root displacement and retain only the fractional carry.
+    rootCoord = model->coords;
+    ACTOR_361100_INTEGRATE_ROOT_TRANSLATION(rootCoord, work);
     if (work->moveFrames > 0) {
         if (work->moveFrames == 1) {
             work->velocity.vx = 0;
@@ -1755,169 +1804,221 @@ static void func_actor_361100_801631C4(Task* task)
         work->moveFrames--;
     }
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        // Sample the cached second-part position before recomposing it.
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
+            effectDrawGroundShadow(&groundPosition, ACTOR_361100_AYA_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, 3);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
 }
 
-/// State dispatcher: runs `Task::state` through `D_actor_361100_80161E30` --
-/// setup (`func_actor_361100_80163410`), per-frame tick (`func_actor_361100_801631C4`)
-/// and exit (`func_actor_361100_80163494`) -- while `gSceneCombatState.actorControl` is clear.
-void func_actor_361100_801633A4(Task* task)
-{
-    TaskFuncTable3 sp;
+#undef ACTOR_361100_INTEGRATE_ROOT_TRANSLATION
 
-    sp = D_actor_361100_80161E30;
+/// Dispatches Aya's body lifecycle while scene actors are running.
+///
+/// Requires a live TMD task with a borrowed Enemy in spawnArg2 and state 0
+/// (initialize), 1 (update) or 2 (exit). Other states are outside the table.
+/// Pausing scene actors also pauses initialization and both countdowns.
+static void _actor361100AyaBreaTask(Task* task)
+{
+    TaskFuncTable3 states;
+
+    states = D_actor_361100_80161E30;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        states.funcs[task->state](task);
     }
 }
 
-static void func_actor_361100_80163410(Task* arg0)
+/// Allocates Aya's owned body work and enables its update/message handlers.
+///
+/// Requires a live model and a borrowed Enemy in spawnArg2 for teardown.
+/// Marks the rig unbound so its first play request installs bank 0, and binds
+/// the model's lighting to the work's matrices. Allocation failure exits the
+/// enemy task. Success advances state and retains work until task teardown.
+static void _actor361100InitAyaBrea(Task* task)
 {
     _Actor361100AyaBreaWork* work;
 
     work = memCalloc(sizeof(_Actor361100AyaBreaWork), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
 
-    arg0->work          = work;
+    task->work          = work;
     work->model.animId  = ACTOR_MODEL_STATE_NONE;
     work->model.bank    = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown = -1;
-    func_actor_361100_801634B4(arg0);
-    arg0->msgTable     = D_actor_361100_80171BB8;
-    arg0->exitCallback = func_actor_361100_80163494;
-    arg0->state       += 1;
+    work->freeCountdown = ACTOR_361100_BUFFER_FREE_IDLE;
+    _actor361100BindAyaBreaLighting(task);
+    task->msgTable     = D_actor_361100_80171BB8;
+    task->exitCallback = _actor361100ExitAyaBrea;
+    task->state       += 1;
 }
 
-static void func_actor_361100_80163494(Task* arg0)
-{
-    enemyTaskExit(arg0);
-}
-
-static void func_actor_361100_801634B4(Task* arg0)
-{
-    TmdObject*               ext;
-    _Actor361100AyaBreaWork* work;
-
-    ext           = arg0->extra.tmd;
-    work          = (_Actor361100AyaBreaWork*)arg0->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
-}
-
-/// Applies the requested animation bank and clip to this actor's rig.
+/// Releases Aya's body Enemy and starts task/model teardown.
 ///
-/// A changed bank installs its set table. The requested clip is applied to the slots.
-/// Blends an already ticking rig when requested, using a whole-frame duration;
-/// otherwise resets the slots before ticking them.
-s32 func_actor_361100_801634D0(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3)
+/// The live task must borrow an Enemy in spawnArg2. Default teardown owns the
+/// work allocation; its lighting matrices remain borrowed by the model.
+static void _actor361100ExitAyaBrea(Task* task)
 {
-    _Actor361100AyaBreaWork* work;
-    TmdObject*               ext;
-    s32                      i;
+    enemyTaskExit(task);
+}
 
-    work = (_Actor361100AyaBreaWork*)task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_361100_80171BA8[work->model.bank], ext, work->rig.poses,
-                             work->rig.slots);
-    }
-    work->model.animId = msg->animationId;
-    if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+/// Binds Aya's body model lighting matrices to its owned work.
+///
+/// Requires initialized work and a live model. The model borrows both matrices
+/// until task teardown; later lighting updates populate them.
+static void _actor361100BindAyaBreaLighting(Task* task)
+{
+    TmdObject*               model;
+    _Actor361100AyaBreaWork* work;
+
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
+}
+
+/// Starts or blends the requested clip on Aya's bound non-root animation slots.
+///
+/// work must own a bound rig with loaded clip data. request is borrowed through
+/// the call; its clip id narrows to the model's signed byte and blend duration
+/// uses whole frames. Slot 0 is reserved for separately scripted root motion.
+static inline void _actor361100StartAyaBreaClip(_Actor361100AyaBreaWork* work, const AnimationPlayRequest* request)
+{
+    s32 slotIndex;
+
+    work->model.animId = request->animationId;
+    if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->model.animId, 0, request->blendFrames);
         }
     } else {
-        for (i = 1; i < 0x13; i++) {
-            animationResetSlot(&work->rig.anim, i, work->model.animId);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationResetSlot(&work->rig.anim, slotIndex, work->model.animId);
         }
     }
-    for (i = 1; i < 0x13; i++) {
-        animationTickSlot(&work->rig.anim, i);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
     work->model.ticking = 1;
+}
+
+/// Applies an animation request to Aya's body, restarting even the current clip.
+///
+/// Requires initialized work and a readable request through synchronous dispatch.
+/// source.index must be 0 and animationId 1..4; the package's bank data must stay
+/// loaded during playback. Stored bank/clip ids narrow to signed bytes. Drives
+/// slots 1..18, leaving root motion to the scripted translation. Nonzero blend
+/// interpolates an already ticking rig for blendFrames whole frames (0..2047);
+/// otherwise slots reset. Ticks the new clip once immediately, then enables
+/// future ticks. Collision choice, msgId and unusedArg are ignored. Returns 0.
+static s32 _actor361100PlayAyaBreaAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg)
+{
+    _Actor361100AyaBreaWork* work;
+    TmdObject*               model;
+
+    work  = task->work;
+    model = task->extra.tmd;
+    // A bank switch rebinds the rig; every request restarts or blends its clip.
+    if (request->source.index != work->model.bank) {
+        work->model.bank   = request->source.index;
+        work->model.animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&work->rig.anim, D_actor_361100_80171BA8[work->model.bank], model, work->rig.poses,
+                             work->rig.slots);
+    }
+    _actor361100StartAyaBreaClip(work, request);
     return 0;
 }
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-s32 func_actor_361100_80163670(Task* task, s32 arg1, s32 mode, s32 arg3)
-{
-    TmdObject* obj;
-    s32        ret;
-
-    obj = task->extra.tmd;
-    ret = 0;
-    switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-        case 2:
-            obj->flags                                           |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            ((_Actor361100AyaBreaWork*)task->work)->freeCountdown = mode;
-            obj->flags                                           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            break;
-        default:
-            ret = 1;
-            break;
-    }
-    return ret;
-}
-
-/// Message 0x7DB handler, listed in `D_actor_361100_80171BB8`, the table the
-/// task installs at `Task::msgTable`. 0 parks the actor, clearing `velocity`
-/// and `moveFrames`; 1 starts the one preset move, 450 units along +Y over 160
-/// frames, setting `velocity` to that displacement divided by the frame count
-/// and `moveFrames` to the count; every other sub-command exits the task
-/// through its own `Task::exitCallback`.
-s32 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Changes Aya's body visibility and primitive-buffer ownership policy.
+///
+/// Requires a live model and initialized work. Mode 0 hides and enables automatic
+/// buffer recovery; 1 shows, requests a buffer and enables recovery; 2 hides,
+/// disables recovery and schedules release on the third subsequent updating
+/// tick; 3 shows while keeping recovery disabled. Showing does not cancel an
+/// earlier release. msgId and unusedArg are ignored. Returns 0 for modes 0..3,
+/// or 1 without changing anything for other values.
+static s32 _actor361100SetAyaBreaDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg)
 {
     _Actor361100AyaBreaWork* work;
+    TmdObject*               model;
+    s32                      result;
 
-    work = (_Actor361100AyaBreaWork*)task->work;
-    switch (msg->command) {
-        case 0:
+    model  = task->extra.tmd;
+    result = 0;
+    switch (mode) {
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case ACTOR_361100_DRAW_HIDE_RELEASE:
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work                = task->work;
+            work->freeCountdown = mode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        case ACTOR_361100_DRAW_SHOW_EXISTING_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            break;
+        default:
+            result = 1;
+            break;
+    }
+    return result;
+}
+
+/// Stops Aya's body, starts its upward translation, or exits it.
+///
+/// Requires initialized work and a readable ActorCommand through dispatch. Only
+/// its command word is read; context, msgId and unusedArg are ignored. Command 0
+/// zeros velocity and moveFrames while retaining fractional carry. Command 1
+/// adds 450/160 units along the root parent's +Y on each of 160 updating ticks,
+/// with velocity truncated to signed 16.16. Every other command calls the
+/// task's exit handler. The payload is not retained. Returns 0.
+static s32 _actor361100ApplyAyaBreaCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg)
+{
+    enum {
+        ACTOR_361100_AYA_COMMAND_STOP = 0,
+        ACTOR_361100_AYA_COMMAND_RISE = 1,
+        ACTOR_361100_AYA_RISE_FRAMES  = 160,
+    };
+    _Actor361100AyaBreaWork* work;
+
+    work = task->work;
+    switch (command->command) {
+        case ACTOR_361100_AYA_COMMAND_STOP:
             work->velocity.vx = 0;
             work->velocity.vy = 0;
             work->velocity.vz = 0;
             work->moveFrames  = 0;
             break;
-        case 1:
-            work->velocity.vy = 450 * 0x10000 / 160;
+        case ACTOR_361100_AYA_COMMAND_RISE:
+            work->velocity.vy = 450 * ACTOR_361100_TRANSLATION_ONE / ACTOR_361100_AYA_RISE_FRAMES;
             work->velocity.vx = 0;
             work->velocity.vz = 0;
-            work->moveFrames  = 160;
+            work->moveFrames  = ACTOR_361100_AYA_RISE_FRAMES;
             break;
         default:
             task->exitCallback(task);

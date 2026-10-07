@@ -42251,7 +42251,7 @@ Both counts include the queried function itself: `same_src` / `same_bytes` are
 the two classes the hit belongs to, and the loop marks the hit's own row `=`
 unconditionally. So the `1` in `same body: 1 copies` is the query, and
 `identical bytes: 1` with the only `=` on the queried name means *no other* copy
-is byte-identical. `func_actor_361100_80163670` printed `same body: 2 copies
+is byte-identical. `_actor361100SetAyaBreaDrawMode` printed `same body: 2 copies
 identical bytes: 1`, itself `=` and its twin - the immediately preceding match -
 `~` at a different link offset. The `~` row is the port: the twin's matched C
 body copied verbatim scored 100.00 with every penalty zero on the first build.
@@ -49228,7 +49228,7 @@ whose *second* parameter is `$a2`, not `$a1` — the prologue diff was
 The penalty label depends on whether the parameter is copied to a callee-saved
 register first. When the body uses the argument *directly* as an addressing
 base, there is no `move` to diff and the scorer reports the six displaced
-`lw`/`lhu` operands as `stack` instead of `regs` — `func_actor_361100_80162F58`
+`lw`/`lhu` operands as `stack` instead of `regs` — `_actor361100PlaceTentacle`
 scored 99.85% at `stack=6` with every other penalty zero, and the whole diff was
 `lw $v0, 0x0($a1)` against the target's `0x0($a2)`. A pure `stack` penalty with
 the frame and the local count otherwise identical is a base-register mismatch,
@@ -49295,7 +49295,7 @@ costs two instructions the target does not have.
 A second cost, and the one that does not look like a call-site problem. The
 message handlers are reached through `Task::msgTable` with `TaskMessageHandler`'s
 four argument positions. For this message the third argument is a record pointer.
-In `func_actor_361100_80163750` m2c saw the halfword the handler had just loaded
+In `_actor361100ApplyAyaBreaCommand` m2c saw the halfword the handler had just loaded
 still sitting in `$a1` at the `jalr` and passed it as an argument:
 
 ```c
@@ -49313,9 +49313,9 @@ separate `zero_extendhisi2/1` (`andi`) instead of the target's single
 the field itself so the load keeps one use:
 
 ```c
-s32 func_actor_361100_80163750(Task* task, s32 msgId, ActorCommand* msg) {
-    work = (_Actor361100AyaBreaWork*)task->work;
-    switch (msg->command) { ...; default: task->exitCallback(task); }
+static s32 _actor361100ApplyAyaBreaCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg) {
+    work = task->work;
+    switch (command->command) { ...; default: task->exitCallback(task); }
     return 0;
 }
 ```
@@ -69882,18 +69882,18 @@ with the call's first argument. Reproduce with an explicit `VECTOR worldPos;`, a
 `(VECTOR*)coord->workm.t` directly (the `room_util20` form) instead emits no
 stack copy and no reloads.
 
-`func_actor_361100_801631C4` is the same mechanism spread over three uses, and
-shows what caching the *wrong* local costs. Keeping `GfxCoord* coord =
-ext->field_8` and using it for the tail made the tail's four `field_8` reads a
+`_actor361100TickAyaBrea` is the same mechanism spread over three uses, and
+shows what caching the *wrong* local costs. Keeping `GfxCoord* rootCoord =
+model->coords` and using it for the tail made the tail's four `coords` reads a
 single CSE'd base held in `$s0`/`$s2`; that both killed the re-derivation the
 target has and let `task` die at the top, so the target's `$s3 = task` / `$s2 =
-ext` pair came out as `$s3 = ext` with no `task` at all (83.9%, 15 instructions
-short). Spelling the chain out — `((TmdObject*)task->extra)->coords[1].composeStamp`,
-`actorRenderComposeCoord(&((TmdObject*)task->extra)->coords[1])` — while keeping the
-`ext` local for `ext->field_C` and the two calls that pass it reproduces the
+model` pair came out as `$s3 = model` with no `task` at all (83.9%, 15 instructions
+short). Spelling the chain out — `task->extra.tmd->coords[1].composeStamp`,
+`actorRenderComposeCoord(&task->extra.tmd->coords[1])` — while keeping the
+`model` local for `model->flags` and the two calls that pass it reproduces the
 target exactly. The tell is which pointer the reload chain walks: when the tail
 does `lw v0,0x2C(sX)` + `lw a0,8(v0)` with `sX` the *task*, the source re-read
-`task->extra`, not a cached pointer.
+`task->extra.tmd`, not a cached pointer.
 
 ## Transposed rotation copied through two base registers: one inline-asm block
 
@@ -82763,7 +82763,7 @@ offsets is not evidence that the byte arithmetic was the original. Here the
 residual gap was entirely m2c's control-flow shape — its `do`/`while` rotation
 of `for (i = 1; i < 0x14; i++)` — and the body turned out to be the actors'
 shared per-frame tick, so copying the already-matched sibling
-(`func_actor_335800_80163568`, `func_actor_361100_801631C4`) reached 100% with
+(`func_actor_335800_80163568`, `_actor361100TickAyaBrea`) reached 100% with
 every penalty zero in one build.
 
 Inputs: `base_1.i`
@@ -83355,7 +83355,7 @@ an `s8`/`s16` argument that reaches the call through a merge.
 
 ## A same-body sibling can be one non-emitting statement away: `TOUCH_REG` flips global-alloc's priority order
 
-**Problem.** `func_actor_361100_80162D28` scored 98.085% with `regs=18` and
+**Problem.** `_actor361100InitTentacle` scored 98.085% with `regs=18` and
 nothing else: 47/47 instructions, 4/4 blocks, same predicates, same order, same
 `jal`s. The only difference was that the seed put `index` in `$s0` and
 `Task::spawnArg2` in `$s1`, where the target has them the other way round.
@@ -83369,7 +83369,7 @@ asm. The same body is matched in `actor_503500` as
 `func_actor_503500_8014642C`, and its C carries a statement ours was missing:
 
 ```c
-    func_actor_361100_80162E04(arg0);
+    _actor361100BindTentacleLighting(task);
     TOUCH_REG(enemy);
 ```
 
@@ -83393,7 +83393,7 @@ range is the lever, and the pin is not needed.
 
 ## A byte-identical sibling in another overlay is the whole answer, not just a nudge
 
-**Problem.** `func_actor_361100_80162FF4` seeded at 74.036% with `branch=4 regs=6
+**Problem.** `_actor361100SetTentacleDrawMode` seeded at 74.036% with `branch=4 regs=6
 reorder=7 insert=4 delete=6`. m2c had rendered a four-arm `switch` as a nested
 `if` chain, which is why the `branch`/`insert`/`delete` penalties were there at
 all; the rest looked like ordinary allocation and scheduling noise.
@@ -83445,17 +83445,17 @@ and nothing to promote.
 
 ## A word stored into an `s8` field is loaded with `lbu`, not `lw`
 
-**Symptom.** `func_actor_361100_801634D0` stores the message payload's
+**Symptom.** `_actor361100PlayAyaBreaAnimation` stores the message payload's
 animation id and bank index into the work block's two `s8` fields, and the
 target loads them as *bytes*: `lbu $v1, 0x0($s2)` feeding `sb $v1, 0x43E($s1)`,
 and `lbu $v0, 0x4($s2)` feeding `sb $v0, 0x43D($s1)`. The same two words are
 read as words elsewhere in the same body — `lw $v0, 0x0($s2)` for the
-`if (msg->field_0 != work->model.bank)` compare, `lw $v0, 0x8($s2)` for the
+`if (request->source.index != work->model.bank)` compare, `lw $v0, 0x8($s2)` for the
 flag — so the `lbu` reads as evidence that the message fields are `u8` and the
 word loads as evidence that they are not.
 
 **Cause.** GCC 2.8.1 narrows the *store*, not the load it was fed from:
-`work->model.bank = msg->field_0;` with a 4-byte source and an `s8` destination
+`work->model.bank = request->source.index;` with a 4-byte source and an `s8` destination
 is a fresh byte load of the source followed by `sb`, even when the word value
 is already live in a register from the compare immediately above. The
 destination's signedness does not change it — both fields are `s8` and both
@@ -83463,7 +83463,7 @@ stores come out `lbu`/`sb`. Reading the field back for value (`lb` when it is
 an array index or a compare operand) is a separate access and sign-extends
 normally.
 
-**Fix.** Leave the source field 4 bytes wide. Retyping `field_0` / `animationId` to
+**Fix.** Leave the source field 4 bytes wide. Retyping `source.index` / `animationId` to
 `u8` to "explain" the `lbu` trades one mismatch for another: the compare loses
 its `lw`, and the byte loads that were already correct stay correct. The
 message type here is `AnimationPlayRequest` — the
@@ -83481,7 +83481,7 @@ address's other accesses in the function before retyping anything.
 
 ## A shared switch tail is what cross-jumping derives, not a `goto` to reconstruct
 
-**Symptom.** `func_actor_361100_801630D4` has three cases ending in the same
+**Symptom.** `_actor361100ApplyTentacleCommand` has three cases ending in the same
 three stores. m2c reconstructs that as a `goto` whose label sits inside the
 first case carrying the tail, and the object comes out with the tail *there*:
 cases 2 and 3 jump **backwards** into case 1's block, and case 1 falls into it.
@@ -83518,10 +83518,10 @@ case 1:
 
 The rest of the m2c body was wrong in the same direction: it had dropped the
 unused third argument, so `$a2` became a `move` of `$a0` and the payload came
-out of `$a1`. The signature is `(Task* task, s32 value, ActorCommand* msg)`,
+out of `$a1`. The signature is `(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg)`,
 and the `default` arm calls `task->exitCallback(task)` — `$a0` is never
 reloaded, which is what distinguishes it from the twin
-`func_actor_361100_80163750`, whose work pointer lives in `$v1` for the same
+`_actor361100ApplyAyaBreaCommand`, whose work pointer lives in `$v1` for the same
 reason (`$a1` is the switch value there).
 
 **Generalisation.** When several switch arms share a trailing statement
@@ -84949,7 +84949,7 @@ the load (see the `do { } while (0)` entry above).
 
 Worth trying before anything else on this codebase's many pose setters: the
 original sources put `coord->composeStamp = 0` last anyway, which the matched siblings
-`playerActorPlace` (gameplay) and `func_actor_361100_80162F58` both show.
+`playerActorPlace` (gameplay) and `_actor361100PlaceTentacle` both show.
 
 Inputs: `base_3.i` (clear before the last store, 92.000%)
 `9e6011d969a8e6d447b9d70019987803a34c2625a18aaa84eb3f9dccee7b17d8`,
@@ -98881,7 +98881,7 @@ order cannot change - but the bodies stay where the `case` statements put them.
 They are emitted first and the tree is created afterwards and spliced in above
 them: in `.jump` the three bodies are insns 38/45/52 and the tree is 83-98 with
 the `code_label`s at 91/100/117. A matched sibling shows the same rule the other
-way round - `func_actor_361100_80163670`'s cases are ascending in the source and
+way round - `_actor361100SetAyaBreaDrawMode`'s cases are ascending in the source and
 its case-body blocks come out ascending.
 
 So when the target's case bodies are not in ascending order, the source's case
@@ -124095,7 +124095,7 @@ matched sibling does:
 
 **Related trap in the same seed.** m2c also emits a chain of independent
 read-modify-writes in the order the *scheduler* happened to place the stores,
-not the source order. In `func_actor_361100_80162B18` three accumulator adds
+not the source order. In `_actor361100TickTentacle` three accumulator adds
 (`0x480 += 0x490`, `0x484 += 0x494`, `0x488 += 0x498`) came out of m2c as
 `0x480`, `0x488`, `0x484`, and feeding that back reproduced a *different*
 store order than the target. The loads are the tells: they keep the source
@@ -124104,8 +124104,8 @@ the store order is the schedule. Write the statements in the natural order --
 the same order the sibling function and the following `(u16)` mask run use --
 and the scheduler reproduces the target's stores on its own.
 
-Worked example: `func_actor_361100_80162B18`, whose matched twin
-`func_actor_361100_801631C4` has the identical body with the two accumulator
+Worked example: `_actor361100TickTentacle`, whose matched twin
+`_actor361100TickAyaBrea` has the identical body with the two accumulator
 groups swapped -- 88.79% -> 100.00% in one edit, `stack` never penalised.
 
 **Second worked example, and the tell is not always the frame.**
