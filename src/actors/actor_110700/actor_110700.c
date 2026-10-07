@@ -44,13 +44,25 @@ extern TaskMessageEntry D_actor_110700_8013BFA0[];
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 D_actor_110700_8013BFC0[];
 
-static void func_actor_110700_80131E78(Enemy* enemy, Task* task);
-static void func_actor_110700_80131F44(Enemy* enemy, Task* task);
+static void _actor110700No9GolemSetup(Enemy* enemy, Task* task);
+static void _actor110700No9GolemUpdate(Enemy* enemy, Task* task);
 
 static TmdSource _gActor110700No9GolemAkropolisBody;
-s32              func_actor_110700_8013201C(Task*, s32, AnimationPlayRequest*, s32);
-s32              func_actor_110700_801320D8(Task*, s32, s32, s32);
-void             func_actor_110700_80131E24(Task*);
+static s32       _actor110700No9GolemPlayAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg);
+static s32       _actor110700No9GolemSetModelDraw(Task* task, s32 msgId, s32 drawFlags, s32 unusedArg);
+static void      _actor110700No9GolemTask(Task* task);
+
+/// Task states of the script-posed No. 9 golem.
+enum {
+    ACTOR_110700_STATE_SETUP  = 0,
+    ACTOR_110700_STATE_UPDATE = 1,
+};
+
+/// No animation has been requested; the unseeded slots must not advance.
+enum { ACTOR_110700_ANIMATION_NONE = 0 };
+
+/// Model coordinate 0 is the placement root; body animation starts at 1.
+enum { ACTOR_110700_FIRST_ANIMATED_PART = 1 };
 
 static TmdBone _gActor110700No9GolemAkropolisBodySkeleton[19] = {
 #include "assets/no9_golem_akropolis_body_skeleton.inc"
@@ -194,12 +206,12 @@ static AnimationSet _gActor110700Animation0A14C = {
     { NULL, _gActor110700Animation0A14CBank1, NULL, NULL, _gActor110700Animation0A14CBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_110700_8013BF94 = { { { TASK_BODY_TMD, 96 } }, func_actor_110700_80131E24, { .model = &_gActor110700No9GolemAkropolisBody } };
+TaskDesc D_actor_110700_8013BF94 = { { { TASK_BODY_TMD, 96 } }, _actor110700No9GolemTask, { .model = &_gActor110700No9GolemAkropolisBody } };
 
 TaskMessageEntry D_actor_110700_8013BFA0[4] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_110700_8013201C },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor110700No9GolemPlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_110700_801320D8 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor110700No9GolemSetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -230,109 +242,142 @@ u8 D_actor_110700_8013BFC0[24] = {
     128,
 };
 
-/// The actor's task entry. Runs the handler for the task's current state,
-/// passing the `Enemy` the task was spawned with: state 0 sets the actor up,
-/// state 1 is its per-frame update. The two-entry handler table is built on
-/// the stack on every call.
-void func_actor_110700_80131E24(Task* task)
+/// Runs the script-posed No. 9 golem's setup or per-frame update.
+///
+/// Requires a live TMD task with its owning `Enemy` in `spawnArg2.pointer`.
+/// `state` must be `ACTOR_110700_STATE_SETUP` or `ACTOR_110700_STATE_UPDATE`;
+/// there is no bounds check. Setup failure may destroy both arguments.
+static void _actor110700No9GolemTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        func_actor_110700_80131E78,
-        func_actor_110700_80131F44,
+    EnemyTaskFunc stateHandlers[] = {
+        [ACTOR_110700_STATE_SETUP]  = _actor110700No9GolemSetup,
+        [ACTOR_110700_STATE_UPDATE] = _actor110700No9GolemUpdate,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
-/// State 0: allocates the work block, points the model at the block's light
-/// and colour matrices, shows it, seeds the animation slots, installs the
-/// message table and moves to state 1. If the allocation fails the enemy is
-/// destroyed instead.
-static void func_actor_110700_80131E78(Enemy* enemy, Task* task)
+/// Allocates the golem's animation and lighting storage and enables script messages.
+///
+/// Requires a newly spawned TMD task and its live owning `Enemy`. The task
+/// owns the primary-heap work block; its model borrows the lighting matrices
+/// until teardown. Playback remains inactive until a play request seeds the
+/// slots. Allocation failure destroys the enemy and task; success selects
+/// `ACTOR_110700_STATE_UPDATE`.
+static void _actor110700No9GolemSetup(Enemy* enemy, Task* task)
 {
-    GfxCoord*                 coord;
-    TmdObject*                obj;
+    GfxCoord*                 rootCoord;
+    TmdObject*                model;
     _Actor110700No9GolemWork* work;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(_Actor110700No9GolemWork), false);
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    work      = memCalloc(sizeof(_Actor110700No9GolemWork), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    task->work    = work;
-    obj->lightMtx = &work->light;
-    obj->colorMtx = &work->color;
-    obj->flags    = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_110700_8013BFC0, obj, work->rig.poses, work->rig.slots);
-    work->animId        = 0;
-    task->msgTable      = D_actor_110700_8013BFA0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    task->state         = 1;
+    // The model and animation context borrow storage owned by this task.
+    task->work      = work;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    model->flags    = 0;
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_110700_8013BFC0, model, work->rig.poses, work->rig.slots);
+    work->animId            = ACTOR_110700_ANIMATION_NONE;
+    task->msgTable          = D_actor_110700_8013BFA0;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->state             = ACTOR_110700_STATE_UPDATE;
 }
 
-/// State 1, run every frame: ticks animation slots 1..0x12 once an animation
-/// has been started, then pushes the world translation of the model's second
-/// coordinate on the scratch stack and hands it to `worldCoordUpdateActorColor`.
-static void func_actor_110700_80131F44(Enemy* enemy, Task* task)
+/// Advances the golem's animation and samples lighting at its first animated part.
+///
+/// Requires completed setup and the live owning `Enemy`. Advances slots 1..18
+/// once per call only after a play request; slot 0 is the undriven model root.
+/// Samples coordinate 1's existing composed translation in world units.
+/// Reserves one `VECTOR` on the initialized scratch stack through playback
+/// and lighting; both callees require additional nested scratch space.
+static void _actor110700No9GolemUpdate(Enemy* enemy, Task* task)
 {
     _Actor110700No9GolemWork* work;
-    GfxCoord*                 coord;
-    VECTOR*                   block;
-    s32                       i;
+    GfxCoord*                 partCoord;
+    VECTOR*                   worldPosition;
+    s32                       slotIndex;
 
-    work  = task->work;
-    coord = &task->extra.tmd->coords[1];
-    SCRATCH_STACK_RESERVE_BYTES(0x10);
-    block = SCRATCH_STACK_CURSOR(VECTOR);
-    if (work->animId != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+    work      = task->work;
+    partCoord = &task->extra.tmd->coords[ACTOR_110700_FIRST_ANIMATED_PART];
+    SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    worldPosition = SCRATCH_STACK_CURSOR(VECTOR);
+    if (work->animId != ACTOR_110700_ANIMATION_NONE) {
+        for (slotIndex = ACTOR_110700_FIRST_ANIMATED_PART; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
-    block->vx = coord->workm.t[0];
-    block->vy = coord->workm.t[1];
-    block->vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    // Lighting reads only XYZ; the VECTOR's fourth word stays untouched.
+    worldPosition->vx = partCoord->workm.t[0];
+    worldPosition->vy = partCoord->workm.t[1];
+    worldPosition->vz = partCoord->workm.t[2];
+    worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Message 0x7D3 handler: starts the animation the payload names, storing its
-/// id in the work block and reseeding slots 1..0x12 with it.
-s32 func_actor_110700_8013201C(Task* task, s32 msgId, AnimationPlayRequest* args, s32 arg3)
+/// Restarts the golem's driven tracks in the animation set stored in its work.
+///
+/// Requires initialized work and an animation-set index in 1..5. Slot 0 is
+/// the undriven root; slots 1..18 each restart their corresponding track.
+static inline void _actor110700No9GolemRestartTracks(_Actor110700No9GolemWork* work)
+{
+    s32 slotIndex;
+
+    slotIndex = ACTOR_110700_FIRST_ANIMATED_PART;
+    do {
+        animationResetSlot(&work->rig.anim, slotIndex, work->animId);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
+}
+
+/// Restarts the golem's body animation for `ACTOR_MESSAGE_PLAY_ANIMATION`.
+///
+/// Requires completed setup and a readable, word-aligned request through
+/// dispatch. `animationId` selects package set 1..5; zero has no set and is
+/// invalid here. Copies only that word and retains no payload pointer. Bank,
+/// blend and collision choices are ignored: every request restarts slots
+/// 1..18 without a transition from the old pose. Ignores `msgId` and the
+/// second argument. Returns 0.
+static s32 _actor110700No9GolemPlayAnimation(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg)
 {
     _Actor110700No9GolemWork* work;
-    s32                       i;
 
     work         = task->work;
-    work->animId = args->animationId;
-    i            = 1;
-    do {
-        animationResetSlot(&work->rig.anim, i, work->animId);
-        i++;
-    } while (i < ARRAY_SIZE(work->rig.slots));
+    work->animId = request->animationId;
+    _actor110700No9GolemRestartTracks(work);
     return 0;
 }
 
 #include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
-/// Message 0x7D5 handler: sets the model's visibility from `arg2`. Bit 0 clear
-/// replaces the object's flags with 0x80 (hidden), bit 0 set clears them
-/// (shown); bit 1 then ORs in 0x4.
-s32 func_actor_110700_801320D8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Replaces the golem's model flags for `ACTOR_MESSAGE_SET_MODEL_DRAW`.
+///
+/// Requires a live TMD task. Bit 0 permits active drawing; without it the
+/// model is excluded. Bit 1 suppresses automatic missing-buffer allocation.
+/// All other request bits are ignored and all unrelated model flags are
+/// cleared. Allocates and frees no buffers. Ignores `msgId` and the second
+/// argument. Returns 0.
+static s32 _actor110700No9GolemSetModelDraw(Task* task, s32 msgId, s32 drawFlags, s32 unusedArg)
 {
-    TmdObject* obj;
+    enum {
+        ACTOR_110700_MODEL_DRAW_SHOW             = 1 << 0,
+        ACTOR_110700_MODEL_DRAW_SKIP_AUTO_BUFFER = 1 << 1,
+    };
+    TmdObject* model;
 
-    obj = task->extra.tmd;
-    if (!(arg2 & 1)) {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model = task->extra.tmd;
+    if (!(drawFlags & ACTOR_110700_MODEL_DRAW_SHOW)) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        obj->flags = 0;
+        model->flags = 0;
     }
-    if (arg2 & 2) {
-        obj         = task->extra.tmd;
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_110700_MODEL_DRAW_SKIP_AUTO_BUFFER) {
+        task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
