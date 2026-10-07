@@ -1488,7 +1488,6 @@ void func_dryfield_breezeway_80181264(Task* task)
 {
     EffectWork* work  = task->spawnArg2.pointer;
     GfxCoord*   coord = task->extra.coordBody->coord;
-    MATRIX*     m;
     SVECTOR     delta;
     SVECTOR     dir;
     SVECTOR     pos;
@@ -1507,12 +1506,7 @@ void func_dryfield_breezeway_80181264(Task* task)
 
     switch (task->state) {
         case 0:
-            m                    = &coord->coord;
-            MATRIX_PAIR(m, 0, 0) = 0x1000;
-            MATRIX_PAIR(m, 0, 2) = 0;
-            MATRIX_PAIR(m, 1, 1) = 0x1000;
-            MATRIX_PAIR(m, 2, 0) = 0;
-            m->m[2][2]           = 0x1000;
+            gfxSetRotIdentity(&coord->coord);
             work->pos.vx         = (u16)task->spawnArg1.value & 0xFFF;
             work->scale          = 0x50;
             gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
