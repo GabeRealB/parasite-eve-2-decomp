@@ -63,11 +63,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/follow_collision.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern s8 D_shelter_1f_heliport_80182CB0[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern s8 D_shelter_1f_heliport_80182CB0_value __asm__("D_shelter_1f_heliport_80182CB0");
+extern s8 D_shelter_1f_heliport_80182CB0;
 
 extern void func_actor_161500_80131FBC(void);
 extern void func_actor_161500_80132038(void);
@@ -594,12 +590,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_1f_heliport_80182CB0[4] = {
-    0,
-    2,
-    68,
-    -32,
-};
+s8 D_shelter_1f_heliport_80182CB0 = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_1f_heliport_80182CB1 = 2;
+
+u8 D_shelter_1f_heliport_80182CB2 = 68;
+
+u8 D_shelter_1f_heliport_80182CB3 = 224;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
@@ -625,7 +623,7 @@ static const TaskFuncTable3 D_shelter_1f_heliport_8017D710 = {
 
 static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_1f_heliport_80182CB0_value = 0;
+    D_shelter_1f_heliport_80182CB0 = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -634,7 +632,7 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatche
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_shelter_1f_heliport_80181194, 0, 0, 0);
-            D_shelter_1f_heliport_80182CB0_value = 1;
+            D_shelter_1f_heliport_80182CB0 = 1;
         }
         return 2;
     }
