@@ -3617,8 +3617,8 @@ static void func_actor_403000_801377C8(Task* arg0)
                     t->vx                  = gPlayerStatus.coordMtx->t[0] - pos->coord.t[0];
                     t->vy                  = gPlayerStatus.coordMtx->t[1] - pos->coord.t[1];
                     t->vz                  = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
-                    scratch->yawFromPlayer = ratan2(scratch->offset.vx, scratch->offset.vz) + 0x800;
-                    scratch->yawFromPlayer = mag = actorWrapAngle(scratch->yawFromPlayer);
+                    scratch->yawFromPlayer = ratan2(scratch->offset.vx, scratch->offset.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+                    scratch->yawFromPlayer = mag = _actorAngleNormalizeYaw(scratch->yawFromPlayer);
                     mag                         -= scratch->playerYaw;
                     if (ABS(mag) < 0x400) {
                         work->playerAnimation.source.sets          = D_actor_403000_80158C08;

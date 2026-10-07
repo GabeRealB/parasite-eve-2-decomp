@@ -1622,7 +1622,7 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
 
     for (s->i = 0; s->i < s->count; s->i++) {
         for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->bearing[s->i] - (u16)s->bearing[s->j]);
+            s->diff = _actorAngleNormalizeYaw(s->bearing[s->i] - s->bearing[s->j]);
             if (abs(s->diff) > 0x400) {
                 s->kept[s->i] = 0;
                 s->kept[s->j] = 0;
@@ -3010,7 +3010,7 @@ static void func_actor_421600_8013903C(Task* arg0)
     vec->vz                               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     coord2                                = arg0->extra.tmd->coords;
     angle                                 = ratan2(head[-2].vx, vec->vz) - ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-    angle                                 = actorWrapAngle(angle);
+    angle                                 = _actorAngleNormalizeYaw(angle);
     work->lookYawTarget                   = angle;
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s16)ratan2(vec->vx, vec->vz), 1);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

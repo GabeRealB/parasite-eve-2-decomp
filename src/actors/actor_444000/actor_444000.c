@@ -4674,7 +4674,7 @@ body:
             ratan2(-task->extra.tmd->coords->workm.m[2][0],
                    task->extra.tmd->coords->workm.m[2][2]);
     sc->contactYaw = angle;
-    sc->contactYaw = actorWrapAngle(angle);
+    sc->contactYaw = _actorAngleNormalizeYaw(angle);
 
     if (work->animId != 4) {
         work->neckYaw       = 0;

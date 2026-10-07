@@ -1349,7 +1349,7 @@ static void Actor01200_Fn02918(Enemy* arg0, Task* arg1)
         angle            = ratan2(sc->hitOffset.vx, sc->hitOffset.vz) -
                 ratan2(-arg1->extra.tmd->coords->workm.m[2][0], arg1->extra.tmd->coords->workm.m[2][2]);
         sc->hitYaw = angle;
-        sc->hitYaw = actorWrapAngle(angle);
+        sc->hitYaw = _actorAngleNormalizeYaw(angle);
         Actor01200_Fn026A0(arg1, sc->hitYaw, sc->hitKey);
         worldTargetAddReadoutAmount(&arg0->node, sc->damage, 0);
         arg0->hp -= sc->damage;

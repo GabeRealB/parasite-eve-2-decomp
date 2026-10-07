@@ -1606,7 +1606,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
     scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
     coord             = arg1->extra.tmd->coords;
     angle             = ratan2(scratch->delta.vx, scratch->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    scratch->turn     = actorWrapAngle(angle);
+    scratch->turn     = _actorAngleNormalizeYaw(angle);
     if (!overlayOutOfRange(&scratch->delta, 600)) {
         mag = (scratch->turn >= 0) ? scratch->turn : -scratch->turn;
         if (mag < 0x200) {
@@ -1615,7 +1615,7 @@ static void Actor04000_Fn0168C(Enemy* arg0, Task* arg1)
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
                     coord         = player->extra.tmd->coords;
                     angle         = ratan2(scratch->delta.vx, scratch->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-                    scratch->turn = actorWrapAngle(angle);
+                    scratch->turn = _actorAngleNormalizeYaw(angle);
                     if (scratch->turn < 0) {
                         Actor04000_D0C530.source.sets = Actor04000_D0C510;
                     } else {
@@ -1911,7 +1911,7 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
     turn->delta.vz    = gPlayerStatus.coordMtx->t[2] - pos->coord.t[2];
     coord             = arg1->extra.tmd->coords;
     angle             = ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    turn->angle       = actorWrapAngle(angle);
+    turn->angle       = _actorAngleNormalizeYaw(angle);
     if (turn->angle > 0x10) {
         turn->angle = 0x10;
     }
@@ -1942,7 +1942,7 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
     turn->delta.vz = gPlayerStatus.coordMtx->t[2] - target->coord.t[2];
     coord          = arg1->extra.tmd->coords;
     angle          = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    turn->angle    = actorWrapAngle(angle);
+    turn->angle    = _actorAngleNormalizeYaw(angle);
     if (!overlayOutOfRange(&turn->delta, 600)) {
         mag = (turn->angle >= 0) ? turn->angle : -turn->angle;
         if (mag < 0x200) {
@@ -2309,7 +2309,7 @@ static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
         angle            = ratan2(sc->hitOffset.vx, sc->hitOffset.vz) -
                 ratan2(-arg1->extra.tmd->coords->workm.m[2][0], arg1->extra.tmd->coords->workm.m[2][2]);
         sc->hitYaw = angle;
-        sc->hitYaw = actorWrapAngle(angle);
+        sc->hitYaw = _actorAngleNormalizeYaw(angle);
         Actor04000_Fn03D30(arg1, sc->hitYaw, sc->hitKey);
         snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280003;
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
@@ -2370,7 +2370,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
     turn->delta.vz    = work->patrolPoints[work->patrolIndex].vz - arg1->extra.tmd->coords->coord.t[2];
     coord             = arg1->extra.tmd->coords;
     angle             = ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    turn->angle       = actorWrapAngle(angle);
+    turn->angle       = _actorAngleNormalizeYaw(angle);
     if (turn->angle > 0x20) {
         turn->angle = 0x20;
     }
@@ -2399,7 +2399,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
     if (!overlayOutOfRange(&turn->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
         angle = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorWrapAngle(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
+        if (_actorAngleNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
             work->state = ACTOR_04000_STATE_CHASE;
         }
     }
@@ -2454,7 +2454,7 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
     turn->delta.vz                        = work->spawnPos.vz - arg1->extra.tmd->coords->coord.t[2];
     coord                                 = arg1->extra.tmd->coords;
     angle                                 = ratan2(head[-1].delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    turn->angle                           = actorWrapAngle(angle);
+    turn->angle                           = _actorAngleNormalizeYaw(angle);
     if (turn->angle > 0x10) {
         turn->angle = 0x10;
     }
@@ -2476,7 +2476,7 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
     if (!overlayOutOfRange(&turn->delta, 2000)) {
         coord = arg1->extra.tmd->coords;
         angle = ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        if (actorWrapAngle(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
+        if (_actorAngleNormalizeYaw(angle) < 0x400 || !overlayOutOfRange(&turn->delta, 1000)) {
             work->state = ACTOR_04000_STATE_CHASE;
         }
     }

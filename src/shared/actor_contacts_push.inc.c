@@ -46,9 +46,9 @@ static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 c
             st->delta.vx       = (u16)st->forward.vx - (u16)st->origin.vx;
             st->delta.vy       = (u16)st->forward.vy - (u16)st->origin.vy;
             st->delta.vz       = (u16)st->forward.vz - (u16)st->origin.vz;
-            st->bearing[st->i] = (u16)st->bearing[st->i] - ratan2(st->delta.vx, st->delta.vz);
+            st->bearing[st->i] = st->bearing[st->i] - ratan2(st->delta.vx, st->delta.vz);
 
-            st->bearing[st->i] = actorWrapAngle(st->bearing[st->i]);
+            st->bearing[st->i] = _actorAngleNormalizeYaw(st->bearing[st->i]);
         }
     }
 
@@ -68,8 +68,8 @@ static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 c
                 continue;
             }
             if (st->bearing[st->j] != ACTOR_CONTACT_BEARING_PUSH_END) {
-                st->diff = (u16)st->bearing[st->j] - (u16)st->bearing[st->i];
-                st->diff = actorWrapAngle(st->diff);
+                st->diff = st->bearing[st->j] - st->bearing[st->i];
+                st->diff = _actorAngleNormalizeYaw(st->diff);
                 if (abs(st->diff) > 0x400) {
                     break;
                 }

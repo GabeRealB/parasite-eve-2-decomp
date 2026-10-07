@@ -1495,7 +1495,7 @@ static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s
 
     for (s->i = 0; s->i < s->count; s->i++) {
         for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = actorWrapAngle((u16)s->bearing[s->i] - (u16)s->bearing[s->j]);
+            s->diff = _actorAngleNormalizeYaw(s->bearing[s->i] - s->bearing[s->j]);
             if (abs(s->diff) > 0x400) {
                 s->kept[s->i] = 0;
                 s->kept[s->j] = 0;
@@ -2476,9 +2476,9 @@ static void Actor00100_Fn070DC(Task* arg0)
     scratch->delta.vy      = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     z                      = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
     scratch->delta.vz      = z;
-    targetYaw              = ratan2(scratch->delta.vx, (s32)z) + 0x800;
+    targetYaw              = ratan2(scratch->delta.vx, (s32)z) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     scratch->yawFromPlayer = targetYaw;
-    scratch->yawFromPlayer = actorWrapAngle(targetYaw);
+    scratch->yawFromPlayer = _actorAngleNormalizeYaw(targetYaw);
     finalDelta             = actorYawTo(arg0->extra.tmd->coords, scratch->delta.vx, scratch->delta.vz);
     scratch->turn          = (s16)finalDelta;
     work->lookYawTarget    = (s16)finalDelta;
@@ -2606,9 +2606,9 @@ static void Actor00100_Fn08E7C(Task* arg0)
     scratch->delta.vy      = gPlayerStatus.coordMtx->t[1] - coord2->coord.t[1];
     z                      = gPlayerStatus.coordMtx->t[2] - coord2->coord.t[2];
     scratch->delta.vz      = z;
-    targetYaw              = ratan2(scratch->delta.vx, (s32)z) + 0x800;
+    targetYaw              = ratan2(scratch->delta.vx, (s32)z) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     scratch->yawFromPlayer = targetYaw;
-    scratch->yawFromPlayer = actorWrapAngle(targetYaw);
+    scratch->yawFromPlayer = _actorAngleNormalizeYaw(targetYaw);
     finalDelta             = actorYawTo(arg0->extra.tmd->coords, scratch->delta.vx, scratch->delta.vz);
     scratch->turn          = (s16)finalDelta;
     work->lookYawTarget    = (s16)finalDelta;

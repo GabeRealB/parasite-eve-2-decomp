@@ -1764,10 +1764,4 @@ static __inline__ void actorSetScratchHead(void* head)
     SCRATCH_STACK_CURSOR(void) = head;
 }
 
-/// Wraps an angle into [-0x800, 0x800]; see `_actorAngleNormalizeYaw`.
-static __inline__ s16 actorWrapAngle(s16 angle)
-{
-    return _actorAngleNormalizeYaw(angle);
-}
-
 #endif // INCLUDE_ACTORS_ACTOR_H

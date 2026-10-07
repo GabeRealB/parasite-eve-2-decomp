@@ -4333,7 +4333,7 @@ static void func_actor_403200_8013A4A0(Task* arg0)
                 ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
                        arg0->extra.tmd->coords->workm.m[2][2]);
         sc->contactYaw = angle;
-        sc->contactYaw = actorWrapAngle(angle);
+        sc->contactYaw = _actorAngleNormalizeYaw(angle);
 
         work->neckYaw       = 0;
         work->neckYawTarget = 0;
@@ -4497,7 +4497,7 @@ static void func_actor_403200_8013B3C8(Task* arg0)
     sc->toPlayer.vz     = gPlayerStatus.coordMtx->t[2] - model->coord.t[2];
     facing              = arg0->extra.tmd->coords;
     ang                 = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    ang                 = actorWrapAngle(ang);
+    ang                 = _actorAngleNormalizeYaw(ang);
     work->neckYawTarget = ang;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403200RainLaunchScratch);
 }
@@ -4915,7 +4915,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         coord   = arg0->extra.tmd->coords;
         yaw     = ratan2(posp->vx, posp->vz) -
               ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        yaw                                       = actorWrapAngle(yaw);
+        yaw                                       = _actorAngleNormalizeYaw(yaw);
         work->neckYawTarget                       = yaw;
         D_actor_403200_8015F8E0[0]                = 0;
         D_actor_403200_8015F8F4.context.loc.stage = 0;
@@ -5859,7 +5859,7 @@ static void func_actor_403200_8013EB64(Task* arg0)
     facing       = arg0->extra.tmd->coords;
     angle        = ratan2(toPlayer->vx, toPlayer->vz) -
             ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    angle               = actorWrapAngle(angle);
+    angle               = _actorAngleNormalizeYaw(angle);
     work->neckYawTarget = angle;
     if (gGluttonEnded == 1) {
         work->stateTicks = 0;
@@ -6098,7 +6098,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
         sc->toPlayer.vz     = cfg->coordMtx->t[2] - coord->coord.t[2];
         facing              = arg0->extra.tmd->coords;
         angle               = ratan2(sc->toPlayer.vx, sc->toPlayer.vz) - ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-        angle               = actorWrapAngle(angle);
+        angle               = _actorAngleNormalizeYaw(angle);
         work->neckYawTarget = angle;
         if ((work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && work->animId == 0x13) {
             work->animId   = 1;

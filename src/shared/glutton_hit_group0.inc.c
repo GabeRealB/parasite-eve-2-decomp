@@ -97,7 +97,7 @@ void gluttonHitGroup0(Task* arg0)
                 ratan2(-arg0->extra.tmd->coords->workm.m[2][0],
                        arg0->extra.tmd->coords->workm.m[2][2]);
         sc->contactYaw = angle;
-        sc->contactYaw = actorWrapAngle(angle);
+        sc->contactYaw = _actorAngleNormalizeYaw(angle);
 
 #if GLUTTON_ROOM == GLUTTON_INCINERATOR
         if (work->animId != 4) {

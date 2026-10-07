@@ -37,7 +37,6 @@ void desertChaserRoam(Task* arg0)
     s16                      adjustedDelta;
     s32                      originalMagnitude;
     s16                      wrappedYaw;
-    s32                      finalYaw;
     s32                      turnDelta;
     s32                      finalDelta;
     s32                      yawDifference;
@@ -199,12 +198,11 @@ void desertChaserRoam(Task* arg0)
                     }
                     playerX                = -(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0];
                     scratch->playerYaw     = ratan2((s32)playerX, (s32)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-                    targetYaw              = ratan2((s32)scratch->toPlayer.vx, (s32)scratch->toPlayer.vz) + 0x800;
+                    targetYaw              = ratan2((s32)scratch->toPlayer.vx, (s32)scratch->toPlayer.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
                     scratch->yawFromPlayer = targetYaw;
-                    wrappedYaw             = actorWrapAngle(targetYaw);
-                    finalYaw               = wrappedYaw;
-                    scratch->yawFromPlayer = (s16)finalYaw;
-                    yawDifference          = finalYaw - scratch->playerYaw;
+                    wrappedYaw             = _actorAngleNormalizeYaw(targetYaw);
+                    scratch->yawFromPlayer = wrappedYaw;
+                    yawDifference          = wrappedYaw - scratch->playerYaw;
                     if (yawDifference < 0) {
                         yawDifference = -yawDifference;
                     }

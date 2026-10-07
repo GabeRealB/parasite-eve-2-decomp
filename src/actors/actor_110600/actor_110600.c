@@ -2313,7 +2313,7 @@ static void func_actor_110600_80136210(Task* arg0)
         facing                = arg0->extra.tmd->coords;
         angle                 = yaw - ratan2((s32)-facing->workm.m[2][0], (s32)facing->workm.m[2][2]);
         scratch->hitYaw       = angle;
-        scratch->hitYaw       = actorWrapAngle(scratch->hitYaw);
+        scratch->hitYaw       = _actorAngleNormalizeYaw(scratch->hitYaw);
         func_actor_110600_80135E20(arg0, scratch->hitYaw, scratch->hitKey);
         work->lookYaw       = 0;
         work->lookYawTarget = 0;

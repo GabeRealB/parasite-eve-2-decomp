@@ -149094,7 +149094,7 @@ top-tested exits also leave the whole project matching.
 Symptom: `Actor04000_Fn03FB4` scans its contacts with an inline
 `FindHit` (`for` + `break` + `return key` from inside the loop). As a `for`
 the found-and-return block was moved out of the loop, to the middle of the
-inlined `actorWrapAngle` thirty insns later; the image keeps it in place.
+inlined `_actorAngleNormalizeYaw` thirty insns later; the image keeps it in place.
 The scan had been written as a `goto` loop with the hoisted constants
 (`0xFFFF0000`, `0x20000`) in locals.
 
@@ -149971,10 +149971,10 @@ attempts; left as it was.
 - **The `for (;;) { if (a >= -0x800) goto wrapped; a += 0x1000; }` wraps of
   `func_actor_403000_801377C8`** (written that way so that no depth-0
   `BARRIER` precedes the scan's found stub, see "A loop's early-exit stub
-  lands after the nearest outer BARRIER") are `actorWrapAngle`: its
-  `if (c) step; else break;` loops are real loops as well. The sibling
+  lands after the nearest outer BARRIER") are `_actorAngleNormalizeYaw`: its
+  explicit top-tested exit loops are real loops as well. The sibling
   `func_actor_403000_801386E8`, recorded as *needing* the goto wrap's barrier
-  for its stub, also matches with `actorWrapAngle` and the found-flag scan as
+  for its stub, also matches with `_actorAngleNormalizeYaw` and the found-flag scan as
   a `for` + `break` + `return 1` / `return 0` inline: the barrier its stub
   sits behind is the `if`/`else if` clamp after the wrap, not the wrap.
 - Not converted: **the three-group contact scan of
@@ -150670,7 +150670,7 @@ constant).
   `if / else` that picks `coord`, and the nothing-landed path releases the
   scratch block and returns. The `||` of two scan-and-land pairs is 5 insns
   longer. The dumping-hole build still needs its `do { } while (0)` around the
-  angle wrap for the `sc` / `work` ranking, and with `actorWrapAngle` inside
+  angle wrap for the `sc` / `work` ranking, and with `_actorAngleNormalizeYaw` inside
   it the first `contactYaw` store moves one insn later, so the two wrap
   `goto`s stay there.
 - Not converted: `func_800CC41C` (`slot = K; goto store;` over a second
