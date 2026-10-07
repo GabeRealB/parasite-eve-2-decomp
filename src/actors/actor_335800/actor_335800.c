@@ -166,11 +166,11 @@ static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_actor_335800_80162640(Task* arg0);
 static void func_actor_335800_80162844(Task* task);
 static void _actor335800GaryDouglasPartIdle(Task* task);
-static void func_actor_335800_80162F7C(Task* arg0);
-static void func_actor_335800_80162F9C(Task* arg0);
-static void func_actor_335800_80162FF4(Task* arg0);
-static void func_actor_335800_80162FFC(Task* task);
-static void func_actor_335800_80163124(Task* task);
+static void _actor335800GaryDouglasExit(Task* task);
+static void _actor335800GaryDouglasBindLighting(Task* task);
+static void _actor335800GaryDouglasIdle(Task* task);
+static void _actor335800GaryDouglasRunWalkStep(Task* task);
+static void _actor335800GaryDouglasBeginApproach(Task* task);
 static void _actor335800FlintUpdate(Task* task);
 static void _actor335800FlintInit(Task* task);
 static void _actor335800FlintExit(Task* task);
@@ -194,7 +194,7 @@ static const TaskFuncTable3 D_actor_335800_80161E24 = { {
 static const TaskFuncTable3 D_actor_335800_80161E30 = { {
     func_actor_335800_80162640,
     func_actor_335800_80162844,
-    func_actor_335800_80162F7C,
+    _actor335800GaryDouglasExit,
 } };
 
 /// Step handlers of the parent block's motion sequence, indexed by
@@ -202,12 +202,12 @@ static const TaskFuncTable3 D_actor_335800_80161E30 = { {
 /// forward, walk until arrival, then turn to the placement yaw.
 static const TaskFuncTable4 D_actor_335800_80161E3C = { {
     _actorMotionFaceTarget,
-    func_actor_335800_80163124,
+    _actor335800GaryDouglasBeginApproach,
     _actorMotionArrive,
     _actorMotionTurnToYaw,
 } };
 
-/// The constant local-space offset `func_actor_335800_80163124` rotates for
+/// The constant local-space offset `_actor335800GaryDouglasBeginApproach` rotates for
 /// the parent block: straight ahead along the part's own +Z.
 static const VECTOR D_actor_335800_80161E4C = { 0, 0, 0x200000, 0 };
 
@@ -233,9 +233,9 @@ static const TaskFuncTable4 D_actor_335800_80161E68 = { {
 static const VECTOR D_actor_335800_80161E78 = { 0, 0, 0x200000, 0 };
 
 static void _actor335800SceneGroundShadowTask(Task* task);
-void        func_actor_335800_80162364(Task*);
-void        func_actor_335800_801624DC(Task*);
-void        func_actor_335800_80162588(Task*);
+static void _actor335800StartSceneVariantTask(Task* task);
+static void _actor335800RestorePlayerAnimationOnBattleResetTask(Task* task);
+static void _actor335800SceneScreenShakeTask(Task* task);
 
 extern ActorTransform           D_actor_335800_80164F80;
 extern AnimationPlayRequest     D_actor_335800_80164E54;
@@ -251,11 +251,11 @@ extern ActorTransform           D_actor_335800_80164FB0;
 static void                     _actor335800StageSceneAudioStart(void);
 static void                     _actor335800StartScenePlayback(void);
 static void                     _actor335800FinishStreamedScene(void);
-void                            func_actor_335800_801620C0(void);
+static void                     _actor335800SpawnSceneGroundShadow(void);
 void                            func_actor_335800_801623D8(void);
 static void                     _actor335800EnableDisplay(void);
 static void                     _actor335800SetStageAmbientMuted(s32 muted);
-void                            func_actor_335800_80162558(void);
+static void                     _actor335800SpawnSceneScreenShake(void);
 
 extern AnimationPlayRequest     D_actor_335800_80164E40;
 extern AnimationPlayRequest     D_actor_335800_80164E7C;
@@ -269,14 +269,14 @@ extern AnimationBankCopyRequest D_actor_335800_80164E24;
 extern EvsSceneKey              D_actor_335800_80165050;
 extern EvsSceneKey              D_actor_335800_80165058;
 extern ActorTransform           D_actor_335800_80164EA4[5];
-s32                             func_actor_335800_8016343C(Task*, s32, s32, s32);
-s32                             func_actor_335800_8016354C(Task* task, s32 msgId, ActorCommand* request, s32);
+static s32                      _actor335800GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
+static s32                      _actor335800GaryDouglasRequestDim(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
 static s32                      _actor335800FlintStartWalk(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* clips);
 static s32                      _actor335800FlintPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32                      _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static s32                      _actor335800FlintSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 static s32                      _actor335800FlintIgnoreCommand(Task* task, s32 messageId, s32 unusedCommand, s32 unusedArg);
-void                            func_actor_335800_801620A0(void);
+static void                     _actor335800CancelStreamedScene(void);
 static void                     _actor335800SetSceneRoom(u8 room);
 static void                     _actor335800PlacePlayerForScene(void);
 static void                     _actor335800PlacePlayerAfterScene(s32 faceQuarterTurn);
@@ -286,7 +286,6 @@ static void                     _actor335800SetSceneEvent(s8 sceneEvent);
 static void                     _actor335800StopStageMusic(s32 fadeTicks);
 static void                     _actor335800SetPostSceneObjective(void);
 static void                     _actor335800LockAttachmentsAndCancelEffects(void);
-void                            func_actor_335800_80162558(void);
 static void                     _actor335800GaryDouglasPartTask(Task* task);
 void                            func_actor_335800_80162F10(Task*);
 static void                     _actor335800FlintTask(Task* task);
@@ -381,9 +380,9 @@ static AnimationSet _gActor335800Animation02F98 = {
 
 TaskDesc D_actor_335800_80164DE0[4] = {
     { { { TASK_BODY_COORD, 192 } }, _actor335800SceneGroundShadowTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_335800_801624DC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_335800_80162364, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_335800_80162588, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor335800RestorePlayerAnimationOnBattleResetTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor335800StartSceneVariantTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor335800SceneScreenShakeTask, { .value = 0 } },
 };
 
 AnimationSet* D_actor_335800_80164E10[5] = {
@@ -479,7 +478,7 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165048 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162558 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneScreenShake }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = D_actor_335800_80164EA4 } }, { .value = 0 } },
@@ -517,7 +516,7 @@ EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164F44 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_801620C0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneGroundShadow }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165030 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80164FC8 } }, { .value = 0 } },
@@ -558,7 +557,7 @@ EvsCommand D_actor_335800_80165720[5] = {
 EvsCommand D_actor_335800_80165798[19] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_801620A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800CancelStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800LockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -584,7 +583,7 @@ EvsCommand D_actor_335800_80165960[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_335800_80164E24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_335800_80164E40 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800PlacePlayerForScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_80162558 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneScreenShake }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 140 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -884,9 +883,9 @@ TaskDesc D_actor_335800_8016EADC[3] = {
 TaskMessageEntry D_actor_335800_8016EB00[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_335800_8016343C },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor335800GaryDouglasSetDrawMode },
     { ACTOR_MESSAGE_WALK_TO, _actorMotionStartWalk },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_335800_8016354C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor335800GaryDouglasRequestDim },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -975,7 +974,11 @@ TaskMessageEntry D_actor_335800_80172EA8[6] = {
 
 static inline void _actor335800SetView(s32 view);
 
-/// Places a shadow coordinate behind the scene pose in its parent's frame.
+/// Initializes the scene shadow's root 1000 units before the pose along parent Z.
+///
+/// Borrows a live writable coordinate and a placement in its parent's frame.
+/// Copies XYZ and Euler angles (4096 units per turn), rebuilds the rotation
+/// and marks composition dirty. The offset follows parent Z regardless of yaw.
 static inline void _actor335800PlaceSceneShadow(GfxCoord* coord, const ActorTransform* placement)
 {
     enum { ACTOR_335800_SHADOW_START_Z_OFFSET = 1000 };
@@ -1078,16 +1081,21 @@ static void _actor335800FinishStreamedScene(void)
     streamFinishScene();
 }
 
-/// Script callback: cancels the pending overlay replacement and activates the
-/// loaded one.
-void func_actor_335800_801620A0(void)
+/// Cancels queued scene work and finishes streamed playback during skip recovery.
+///
+/// Discards the deferred CD request, requests queue cancellation and finishes
+/// the scene, restoring the pre-scene random generators. Requires a prior scene
+/// selection whose saved random values remain live.
+static void _actor335800CancelStreamedScene(void)
 {
     cdCmdCancelScene();
 }
 
-void func_actor_335800_801620C0(void)
+/// Spawns the balcony scene's moving ground shadow; allocation failure is ignored.
+static void _actor335800SpawnSceneGroundShadow(void)
 {
-    taskSpawnFromTable(D_actor_335800_80164DE0, 0, 0, 0);
+    enum { ACTOR_335800_SCENE_GROUND_SHADOW_TASK = 0 };
+    taskSpawnFromTable(D_actor_335800_80164DE0, ACTOR_335800_SCENE_GROUND_SHADOW_TASK, 0, 0);
 }
 
 /// Selects the saved and live scene room and requests deferred object relinking.
@@ -1226,18 +1234,24 @@ static void _actor335800SetSceneSpriteBatchesHidden(s32 hidden)
     }
 }
 
-void func_actor_335800_80162364(Task* arg0)
+/// Starts one of the two balcony scene variants, then ends on its next dispatch.
+///
+/// Initial state is zero. A zero first spawn argument selects stream 59, nonzero
+/// stream 60; both scripts borrow this loaded package's data and hide/restore
+/// the HUD. The task does not wait for playback; any nonzero state kills it.
+static void _actor335800StartSceneVariantTask(Task* task)
 {
-    if (arg0->state == 0) {
-        if (arg0->spawnArg1.value != 0) {
+    enum { ACTOR_335800_SCENE_VARIANT_START = 0 };
+    if (task->state == ACTOR_335800_SCENE_VARIANT_START) {
+        if (task->spawnArg1.value != 0) {
             evsStartScript(D_actor_335800_80166098, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         } else {
             evsStartScript(D_actor_335800_80165FC0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
-        arg0->state += 1;
+        task->state += 1;
         return;
     }
-    taskKill(arg0);
+    taskKill(task);
 }
 
 void func_actor_335800_801623D8(void)
@@ -1297,45 +1311,74 @@ static void _actor335800SetStageAmbientMuted(s32 muted)
     gameFlagSetNibble(GAME_FLAG_STAGE_AMBIENT_MUTED, muted);
 }
 
-void func_actor_335800_801624DC(Task* arg0)
+/// Waits for battle reset, applies the player's package-selected clip and ends.
+///
+/// Requires a live player and the package's animation bank and request.
+/// Retrieves the player slot before writing the weapon-animation bank index,
+/// then synchronously plays bank 1 clip 51. A missing player is not tested;
+/// the reset flag remains set. The task waits indefinitely while it is clear.
+static void _actor335800RestorePlayerAnimationOnBattleResetTask(Task* task)
 {
-    Task* slot;
+    Task* playerTask;
 
     if (gGameSession->battleResetPending != 0) {
-        slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         playerActorWriteWeaponAnimationBankIndex(&D_actor_335800_80164E7C.source.index);
-        TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
-        taskKill(arg0);
+        TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_PLAY, &D_actor_335800_80164E7C, 0);
+        taskKill(task);
     }
 }
 
-void func_actor_335800_80162558(void)
+/// Spawns vibration-driven scene screen shake; allocation failure is ignored.
+static void _actor335800SpawnSceneScreenShake(void)
 {
-    taskSpawnFromTable(D_actor_335800_80164DE0, 3, 0, 0);
+    enum { ACTOR_335800_SCENE_SCREEN_SHAKE_TASK = 3 };
+    taskSpawnFromTable(D_actor_335800_80164DE0, ACTOR_335800_SCENE_SCREEN_SHAKE_TASK, 0, 0);
 }
 
-void func_actor_335800_80162588(Task* arg0)
+/// Samples a one-pixel shake from vibration task activity and the tick's parity.
+///
+/// Borrows the task's signed halfword tick counter without changing it. The
+/// binary motor's activity gives +1 on odd ticks; the variable motor's activity
+/// gives -1 on even ticks, overriding zero there. Other samples are zero.
+static inline s8 _actor335800SampleSceneShake(const Task* task, u8 motorActivity)
 {
-    s8  var_a0;
-    u8  temp_v1;
-    s32 count;
+    s8  offsetY;
+    s32 tick;
+
+    offsetY = 0;
+    if (motorActivity & GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE) {
+        // Widen the unsigned halfword before narrowing its parity to a byte.
+        tick    = (u16)task->killCountdown;
+        offsetY = tick & 1;
+    }
+    if ((motorActivity & GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE) && !(task->killCountdown & 1)) {
+        offsetY = -1;
+    }
+    return offsetY;
+}
+
+/// Shakes the screen during an unskipped event, then clears the offset and ends.
+///
+/// Requires a bodyless task; `killCountdown` is a halfword tick counter here,
+/// initially zero on spawn and incremented modulo 65536 per active dispatch. Offsets
+/// use pixels: binary-motor activity produces 0/+1, variable-motor activity
+/// -1/0, both -1/+1. These are task activity bits, not delivered motor strength.
+/// An idle or skipped event clears the persistent display offset before teardown.
+static void _actor335800SceneScreenShakeTask(Task* task)
+{
+    s8 offsetY;
+    u8 motorActivity;
 
     if ((gGameSession->eventState != 0) && (gGameSession->evtSkipped == 0)) {
-        temp_v1 = gGameSession->padScriptFlags;
-        var_a0  = 0;
-        if (temp_v1 & GAME_SESSION_PAD_SCRIPT_HOLD_ACTIVE) {
-            count  = (u16)arg0->killCountdown;
-            var_a0 = count & 1;
-        }
-        if ((temp_v1 & GAME_SESSION_PAD_SCRIPT_LERP_ACTIVE) && !(arg0->killCountdown & 1)) {
-            var_a0 = -1;
-        }
-        displaySetShakeY(var_a0);
-        arg0->killCountdown += 1;
+        motorActivity = gGameSession->padScriptFlags;
+        offsetY       = _actor335800SampleSceneShake(task, motorActivity);
+        displaySetShakeY(offsetY);
+        task->killCountdown += 1;
         return;
     }
     displaySetShakeY(0);
-    taskKill(arg0);
+    taskKill(task);
 }
 
 static void func_actor_335800_80162640(Task* arg0)
@@ -1408,9 +1451,9 @@ static void func_actor_335800_80162640(Task* arg0)
             tmdBuildBufferHalf(model);
         }
     }
-    func_actor_335800_80162F9C(arg0);
+    _actor335800GaryDouglasBindLighting(arg0);
     arg0->msgTable     = D_actor_335800_8016EB00;
-    arg0->exitCallback = func_actor_335800_80162F7C;
+    arg0->exitCallback = _actor335800GaryDouglasExit;
     arg0->state       += 1;
 }
 
@@ -1418,7 +1461,7 @@ static void func_actor_335800_80162844(Task* task)
 {
     TmdObject*                   ext      = task->extra.tmd;
     _Actor335800GaryDouglasWork* work     = (_Actor335800GaryDouglasWork*)task->work;
-    TaskFunc                     funcs[2] = { func_actor_335800_80162FF4, func_actor_335800_80162FFC };
+    TaskFunc                     funcs[2] = { _actor335800GaryDouglasIdle, _actor335800GaryDouglasRunWalkStep };
     VECTOR3                      pos;
     GfxCoord*                    coord;
     const AnimationRecord*       rec;
@@ -1517,56 +1560,76 @@ void func_actor_335800_80162F10(Task* task)
     }
 }
 
-static void func_actor_335800_80162F7C(Task* arg0)
+/// Releases Douglas's enemy record and tears down his body and attached models.
+///
+/// Requires his live enemy in the second spawn argument. Work and child tasks
+/// are released by teardown; model storage may remain until deferred collection.
+static void _actor335800GaryDouglasExit(Task* task)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }
 
-static void func_actor_335800_80162F9C(Task* arg0)
+/// Binds Douglas's work-owned lighting matrices and samples the room's lights.
+///
+/// Requires initialized work and a live twenty-part model whose part 1 has a
+/// composed world position. Samples up to three selected lights there and records
+/// full-lighting mode. The model and its attached parts borrow the matrices until
+/// task teardown; this does not compose coordinates or allocate light storage.
+static void _actor335800GaryDouglasBindLighting(Task* task)
 {
-    TmdObject*                   ext;
+    enum { ACTOR_335800_GARY_DOUGLAS_LIGHT_COUNT = 3 };
+    TmdObject*                   model;
     _Actor335800GaryDouglasWork* work;
 
-    work          = (_Actor335800GaryDouglasWork*)arg0->work;
-    ext           = arg0->extra.tmd;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
-    worldCoordSetModelLighting(ext, arg0->extra.tmd->coords[1].workm.t, 0, 3);
+    work            = task->work;
+    model           = task->extra.tmd;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
+    worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, ACTOR_335800_GARY_DOUGLAS_LIGHT_COUNT);
     work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL;
 }
 
-static void func_actor_335800_80162FF4(Task* arg0)
+/// Retains Douglas's idle motion state without changing velocity or animation.
+static void _actor335800GaryDouglasIdle(Task* task)
 {
 }
 
-/// Motion handler 1 of the parent block: copies the step-handler table onto
-/// the stack and runs the entry `walk.motionStep` selects.
-static void func_actor_335800_80162FFC(Task* task)
+/// Runs the current step of Douglas's scripted walk.
+///
+/// Requires initialized work with `walk.motionStep` in 0..3: face the target,
+/// begin approach, detect arrival, or turn to the destination yaw. The selected
+/// step uses a live model root; the table is indexed without a bounds check.
+static void _actor335800GaryDouglasRunWalkStep(Task* task)
 {
     _Actor335800GaryDouglasWork* work;
     TaskFuncTable4               handlers;
 
-    work     = (_Actor335800GaryDouglasWork*)task->work;
+    work     = task->work;
     handlers = D_actor_335800_80161E3C;
     handlers.funcs[work->walk.motionStep](task);
 }
 
 #include "../../shared/actor_motion_face.inc.c"
 
-/// Step 1: rotates the constant forward offset `D_actor_335800_80161E4C`
-/// through the root part's matrix into `work->walk.velocity`, seeds
-/// `walk.lastDistance` with `ACTOR_WALK_DISTANCE_NONE` and advances the step.
-static void func_actor_335800_80163124(Task* task)
+/// Starts Douglas's forward approach and primes the next arrival test.
+///
+/// Requires initialized work and a live root already facing the destination.
+/// Rotates a signed 16.16 forward velocity into the root parent's frame: 32
+/// coordinate units per update for a unit-scale root. Seeds the previous gaps
+/// with `ACTOR_WALK_DISTANCE_NONE` and advances to arrival checking, without
+/// changing translation or fractional carry.
+static void _actor335800GaryDouglasBeginApproach(Task* task)
 {
     _Actor335800GaryDouglasWork* work;
-    GfxCoord*                    coord;
-    VECTOR                       vec;
+    GfxCoord*                    rootCoord;
+    VECTOR                       forwardVelocity;
 
-    coord = task->extra.tmd->coords;
-    work  = (_Actor335800GaryDouglasWork*)task->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    vec = D_actor_335800_80161E4C;
-    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    // Rotate velocity without adding the root's translation.
+    forwardVelocity = D_actor_335800_80161E4C;
+    ApplyMatrixLV(&rootCoord->coord, &forwardVelocity, &work->walk.velocity);
     work->walk.lastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
     work->walk.lastDistance.vz = ACTOR_WALK_DISTANCE_NONE;
@@ -1579,53 +1642,78 @@ static void func_actor_335800_80163124(Task* task)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-s32 func_actor_335800_8016343C(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Sets Douglas's body visibility and buffer policy, copying all flags to his parts.
+///
+/// Requires initialized work, a live body and both live head/gun tasks; missing
+/// parts are dereferenced even for an invalid mode. Modes 0/1 hide/show with
+/// automatic buffer recovery; 1 also allocates the body's buffer if absent.
+/// Modes 2/3 hide/show without automatic recovery; 2 schedules body-buffer
+/// release on the third update after the request. Other modes do not cancel a
+/// pending release. Allocation failure is ignored and parts retain their buffers.
+/// Ignores message ID and fourth argument; returns 0 for modes 0..3, else 1.
+static s32 _actor335800GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
+    enum {
+        ACTOR_335800_GARY_DOUGLAS_DRAW_HIDE                  = 0,
+        ACTOR_335800_GARY_DOUGLAS_DRAW_SHOW_ALLOCATE         = 1,
+        ACTOR_335800_GARY_DOUGLAS_DRAW_HIDE_RELEASE          = 2,
+        ACTOR_335800_GARY_DOUGLAS_DRAW_SHOW_SKIP_AUTO_BUFFER = 3
+    };
     _Actor335800GaryDouglasWork* work;
-    TmdObject*                   obj;
-    TmdObject*                   objA;
-    TmdObject*                   objB;
-    s32                          ret;
+    TmdObject*                   bodyModel;
+    TmdObject*                   headModel;
+    TmdObject*                   gunModel;
+    s32                          result;
 
-    work = (_Actor335800GaryDouglasWork*)task->work;
-    obj  = task->extra.tmd;
-    objA = work->headTask->extra.tmd;
-    objB = work->gunTask->extra.tmd;
-    ret  = 0;
+    work      = task->work;
+    bodyModel = task->extra.tmd;
+    headModel = work->headTask->extra.tmd;
+    gunModel  = work->gunTask->extra.tmd;
+    result    = 0;
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_335800_GARY_DOUGLAS_DRAW_HIDE:
+            bodyModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_335800_GARY_DOUGLAS_DRAW_SHOW_ALLOCATE:
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(bodyModel);
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_335800_GARY_DOUGLAS_DRAW_HIDE_RELEASE:
+            bodyModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            // The mode value also supplies the two-tick release countdown.
             work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_335800_GARY_DOUGLAS_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    objA->flags = obj->flags;
-    objB->flags = obj->flags;
-    return ret;
+    // Parts inherit the complete body flags even when the mode is unrecognized.
+    headModel->flags = bodyModel->flags;
+    gunModel->flags  = bodyModel->flags;
+    return result;
 }
 
-s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
+/// Requests half-strength lighting for Douglas when actor command 0 is received.
+///
+/// Borrows a readable request and initialized work. The next visible update
+/// halves the shared lighting matrices and suppresses the ground shadow until
+/// a view relights the model. Repeating command 0 requests another halving.
+/// Ignores the command's context, other command values, message ID and fourth
+/// argument; acknowledges every request with 0.
+static s32 _actor335800GaryDouglasRequestDim(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg)
 {
+    enum { ACTOR_335800_GARY_DOUGLAS_COMMAND_DIM = 0 };
     _Actor335800GaryDouglasWork* work;
 
-    work = (_Actor335800GaryDouglasWork*)arg0->work;
-    if (request->command == 0) {
+    work = task->work;
+    if (request->command == ACTOR_335800_GARY_DOUGLAS_COMMAND_DIM) {
         work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_DIM_REQUESTED;
     }
     return 0;
@@ -1633,8 +1721,9 @@ s32 func_actor_335800_8016354C(Task* arg0, s32 arg1, ActorCommand* request, s32 
 
 /// Applies Flint's signed 16.16 XYZ velocity and retains the unsigned fractions.
 ///
-/// Borrows initialized work and a live writable root. Composition is marked
-/// dirty even while stationary; integer halves are signed, fractions zero-extended.
+/// Velocity uses the root parent's coordinate units. Borrows initialized work
+/// and a live writable root. Composition is marked dirty even while stationary;
+/// integer halves are signed, fractions zero-extended.
 static inline void _actor335800FlintIntegrateVelocity(_Actor335800FlintWork* work, GfxCoord* coord)
 {
     work->walk.carry[0].word += work->walk.velocity.vx;

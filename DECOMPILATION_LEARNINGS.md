@@ -64111,7 +64111,7 @@ unread arguments in place:
 s32 handler(Task* arg0, s32 arg1, MsgPayload* arg2, s32 arg3)
 ```
 
-`func_actor_335800_8016354C` and `ActorsShared80164af0` are both this shape.
+`_actor335800GaryDouglasRequestDim` and `ActorsShared80164af0` are both this shape.
 When the object dump differs from the target only by an argument register —
 `$a1` where the target has `$a2`, or `$a2` where it has `$a3` — check the
 caller's arity before touching the body: the fix is usually a parameter the
@@ -84478,15 +84478,15 @@ scalar. A load whose address depends on a pointer parameter is evicted by every
 store, of any width, and the practical consequence is the same: the duplicate
 `lw` belongs in the source.
 
-`func_actor_335800_80162F9C` reads `Task::extra` twice around its two matrix
+`_actor335800GaryDouglasBindLighting` reads `Task::extra` twice around its two matrix
 stores, and the second load is again the whole match:
 
 ```
-lw    $v1, 0x2C($a0)      ; ext = arg0->extra
+lw    $v1, 0x2C($a0)      ; model = task->extra.tmd
 addiu $v0, $s0, 0x478
-sw    $v0, 0x1C($v1)      ; ext->field_1C = &work->light
+sw    $v0, 0x1C($v1)      ; model->lightMtx = &work->model.light
 addiu $v0, $s0, 0x498
-sw    $v0, 0x20($v1)      ; ext->field_20 = &work->color
+sw    $v0, 0x20($v1)      ; model->colorMtx = &work->model.color
 lw    $v0, 0x2C($a0)      ; <- second load
 li    $a3, 3
 lw    $a1, 0x8($v0)
@@ -84499,13 +84499,13 @@ The trap is that the sibling `_actor335800FlintBindLighting`, later in the same
 translation unit, does the *same two stores* with the pointer hoisted into a
 local and has no second load -- because nothing dereferences it after the
 stores. Hoisting here costs the match: 78.409%, 22 instructions to 20, because
-with only one load `ext` is allocated straight into `$a0` and the `move $a0,$v1`
+with only one load `model` is allocated straight into `$a0` and the `move $a0,$v1`
 goes with the reload. Three builds isolate the cause:
 
 | second read | stores between | `lw 0x2C($a0)` |
 |---|---|---|
-| `((TmdObject*)index->extra)->coords[1].workm.t` (target shape) | 2 x `sw` | 2 |
-| `ext->field_8[1].workm.t` (hoisted into the local) | 2 x `sw` | 1 |
+| `task->extra.tmd->coords[1].workm.t` (target shape) | 2 x `sw` | 2 |
+| `model->coords[1].workm.t` (hoisted into the local) | 2 x `sw` | 1 |
 | target shape, stores deleted | none | 1 |
 
 Row 3 is the control: two source reads alone do not produce two loads. The
@@ -84569,8 +84569,8 @@ Two things the seed gets wrong beyond the type:
 * The call order is **source order**, and it varies between neighbours. The
   gameplay siblings (`src/gameplay/3CD8.c`, `3688.c`) inline the slot call —
   `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, (s32)&rec, 0)` — so it evaluates
-  after `playerActorWriteWeaponAnimationBankIndex`. `func_actor_335800_801624DC` instead binds it first
-  (`slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);`), which is why `$s1` holds the slot across the
+  after `playerActorWriteWeaponAnimationBankIndex`. `_actor335800RestorePlayerAnimationOnBattleResetTask` instead binds it first
+  (`playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);`), which is why `$s1` holds the slot across the
   `playerActorWriteWeaponAnimationBankIndex` call. Both spellings match their own target; pick from the
   register that survives the call, not from the sibling.
 
@@ -99144,16 +99144,16 @@ reproduce.
 Latch the halfword in a wider local and the load stays `HImode`:
 
 ```c
-s32 count;
+s32 tick;
 ...
-count = (u16)arg0->killCountdown;   /* lhu 0x2A(s0) */
-v     = count & 1;                  /* andi a0, v0, 1 */
+tick    = (u16)task->killCountdown; /* lhu 0x2A(s0) */
+offsetY = tick & 1;                /* andi a0, v0, 1 */
 ```
 
 The `(u16)` cast is what selects the zero-extending load; the AND now has a
 register operand, which cannot be narrowed, and the QI truncation into the `s8`
 is free, so the object is byte-identical to the direct assignment minus the
-narrowing. `func_actor_335800_80162588` is the worked example: the direct
+narrowing. `_actor335800SceneScreenShakeTask` is the worked example: the direct
 assignment was 95.65% with `insert=1 delete=1` and exactly one differing line
 (`lbu` for `lhu` at the first of three loads of the same field); the latch
 scored 100.00% on the first build. Same rule stated for a *call argument* is in
@@ -125487,7 +125487,7 @@ doing and that nothing else moved.
 
 ## Sibling `p->child->field` chains emit in the *reverse* of their statement order
 
-`_actor350700KyleMadiganWalkerSetDrawModeMsg` is the `func_actor_335800_8016343C` body shape with
+`_actor350700KyleMadiganWalkerSetDrawModeMsg` is the `_actor335800GaryDouglasSetDrawMode` body shape with
 one more child: a four-way switch over `TmdObject::flags`, then a republish of
 the result onto the objects of the three child tasks at `handTasks[0]` / `handTasks[1]`
 / `heldItemTask`. The target emits the three child loads `0x4FC`, `0x504`, `0x500`:
