@@ -35,7 +35,7 @@ void ratContacts(Task* actor)
     frame  = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
     coord  = actor->extra.tmd->coords;
     ctx    = actor->spawnArg2.pointer;
-    result = func_800E0C10(work->gridContacts, &frame->delta, 4, NULL);
+    result = worldCollisionResolvePushback(work->gridContacts, &frame->delta, 4, NULL);
     switch (result) {
         case 0:
             break;

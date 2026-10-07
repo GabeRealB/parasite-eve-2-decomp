@@ -1761,7 +1761,7 @@ static void Actor01600_Fn00BAC(Task* actor)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor01600ContactScratch);
     ctx     = actor->spawnArg2.pointer;
     coord   = actor->extra.tmd->coords;
-    mode    = func_800E0C10(work->bodySphere.contacts, &scratch->delta, ARRAY_SIZE(work->bodySphere.contacts), &scratch->contributorMask);
+    mode    = worldCollisionResolvePushback(work->bodySphere.contacts, &scratch->delta, ARRAY_SIZE(work->bodySphere.contacts), &scratch->contributorMask);
     world   = coord + 1;
     switch (mode) {
         case 1:

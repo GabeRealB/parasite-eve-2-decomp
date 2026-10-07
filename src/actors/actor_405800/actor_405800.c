@@ -2923,10 +2923,10 @@ static void func_actor_405800_80136388(Task* arg0)
         }
     }
 
-    switch (func_800E0C10(work->gridContacts, &delta, ARRAY_SIZE(work->gridContacts), NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->gridContacts, &delta, ARRAY_SIZE(work->gridContacts), NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             stepZ = delta.fixed.vz.halves.integer;
             stepX = delta.fixed.vx.word >> 16;
             if (delta.fixed.vx.word & 0xFFFF) {
@@ -2944,7 +2944,7 @@ static void func_actor_405800_80136388(Task* arg0)
                 }
             }
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0] = work->prevRootPos.vx;
             blocked           = 1;
             coord->coord.t[2] = work->prevRootPos.vz;

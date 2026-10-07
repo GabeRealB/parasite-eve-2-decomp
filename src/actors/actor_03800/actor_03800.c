@@ -1050,7 +1050,7 @@ static void Actor03800_Fn00A98(Task* arg0)
     frame  = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
     coord  = work->rootCoord;
     ctx    = arg0->spawnArg2.pointer;
-    result = func_800E0C10(work->gridContacts, &frame->delta, ARRAY_SIZE(work->gridContacts), NULL);
+    result = worldCollisionResolvePushback(work->gridContacts, &frame->delta, ARRAY_SIZE(work->gridContacts), NULL);
     if (result != 0) {
         for (i = 0; i < ARRAY_SIZE(work->gridContacts); i++) {
             if ((work->gridContacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {

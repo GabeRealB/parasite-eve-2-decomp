@@ -1,7 +1,7 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
 /// Collision response of the dropping first enemy: the contact table at
-/// `contacts` is run through `func_800E0C10` with a 0x48-byte scratch. Response 1
+/// `contacts` is run through `worldCollisionResolvePushback` with a 0x48-byte scratch. Response 1
 /// adds the returned X and Z offsets to the root; only the first one also adds
 /// Y, latches `dropCollided`, sets the fall speed to -0x64 and takes a quarter off
 /// the step length. Response 2 puts the root back where the last step started.
@@ -16,7 +16,7 @@ void sucklercephDropCollide(Task* arg0)
     work     = arg0->work;
     scratch  = SCRATCH_STACK_RESERVE_BLOCK(ActorContactDeltaWideScratch);
     coord    = arg0->extra.tmd->coords;
-    movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
+    movement = worldCollisionResolvePushback(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
     switch (movement) {
         case 0:
             break;

@@ -25149,7 +25149,7 @@ Two other pieces have to stay wide:
   (`temp = head->next; if (temp != NULL) { node = temp; ... }`) forces
   `lw v0` / `move v1, v0` in the delay slot, then `sw` / `li a1`.
 
-`Gp_ClearObj3AList` is the example (sibling `Gp_ClearObj4AList` is the same shape
+`worldCollisionClearOccluderList` is the example (sibling `worldCollisionClearTriggerList` is the same shape
 on `WorldCollisionTrigger` / `Gp_Obj4ALists`).
 
 ## Chained `r = g = b` plus the `<= 0` arm first for CVECTOR stores
@@ -26681,14 +26681,14 @@ at 84% with only that register move missing. `Gp_CaptureActorPad` is the example
 
 ## Hoist the list-head load before the already-linked early-out
 
-`Gp_LinkObj4A` (and the same-shape `Gp_LinkObj3A` / `worldCollisionLinkBody`)
+`worldCollisionLinkTrigger` (and the same-shape `worldCollisionLinkOccluder` / `worldCollisionLinkBody`)
 computes `&table[index]` first, then interleaves `lbu flags` with `lw head`.
 Loading the head *inside* the `!(flags & 0x20)` arm delays that work until
 after `bnez` and also inverts the empty-list `beqz`.
 
 Load the head first, then split `*head` through a temp so the empty
 check is `lw v0` / `beqz` / `move v1, v0` (same temp trick as
-`Gp_ClearObj3AList`). Put the non-empty walk first so `beqz` goes to the
+`worldCollisionClearOccluderList`). Put the non-empty walk first so `beqz` goes to the
 empty insert:
 
 ```c
@@ -26712,7 +26712,7 @@ if (!(flags & 0x20)) {
 }
 ```
 
-`Gp_LinkObj4A` is the example. The empty-first `if (node == NULL)` form
+`worldCollisionLinkTrigger` is the example. The empty-first `if (node == NULL)` form
 stuck at 39%.
 
 ## Load the predicate into the same `s32` so `li` overwrites `$v0`
@@ -27321,7 +27321,7 @@ trick: without it, `lui %hi(table)` steals the `beq` delay instead of
 
 When `a1`/`a2` live across a call, GCC 2.8.1 saves them in *parameter*
 order (`move s4, a1` then `move s3, a2`) as a prologue batch, before
-later statements. An early `idx = 3` that kills `$a0` does **not** by
+later statements. An early `playerSlot = 3` that kills `$a0` does **not** by
 itself delay those saves.
 
 Copying into new locals after the kill *does* delay them to the target
@@ -27329,45 +27329,45 @@ spot (after `li a0, 3`), but the two moves then emit in *callee-saved
 register* order (`s3` then `s4`):
 
 ```c
-other = global;
-idx   = 3;          /* kills $a0; node already saved */
-msk   = mask;       /* want move s4, a1 first */
-mch   = match;      /* want move s3, a2 second */
-slot  = gameGetTaskSlot(idx);
+boundary       = global;
+playerSlot     = 3;          /* kills $a0; body already saved */
+bodyFlagsMask  = flagsMask;       /* want move s4, a1 first */
+bodyFlagsMatch = flagsMatch;      /* want move s3, a2 second */
+slot           = gameGetTaskSlot(playerSlot);
 ```
 
 Pinning both with `register ... asm("s4")` / `asm("s3")` restores source
-order, but then `(u16)match` cannot rewrite `$s3` in place: the target's
+order, but then `(u16)flagsMatch` cannot rewrite `$s3` in place: the target's
 `andi s3, s3, 0xFFFF` in the `beqz` delay slot becomes `andi v1, s3,
 0xFFFF` / `bne v0, v1`.
 
-The fix is the local's *type*, not a pin. With `s32 mch = match` and a
-`(u16)mch` in the loop test, the truncation is a separate `zero_extend`
+The fix is the local's *type*, not a pin. With `s32 bodyFlagsMatch = flagsMatch` and a
+`(u16)bodyFlagsMatch` in the loop test, the truncation is a separate `zero_extend`
 that loop hoists to the preheader; the `a2` copy then has two dependents
 (the call and the `andi`), and `rank_for_schedule` prefers the insn with
 more dependents, so `move s3, a2` is scheduled before `move s4, a1`.
-Declaring the local `u16 mch = match` makes the truncation part of the
+Declaring the local `u16 bodyFlagsMatch = flagsMatch` makes the truncation part of the
 assignment: the `a2` copy and the `a1` copy are then symmetric (one
 dependent each, the call), the tie falls to source order, and the
 `andi s3, s3, 0xFFFF` still lands after the call in the `beqz` delay
 slot:
 
 ```c
-s32 msk;
-u16 mch;
+s32 bodyFlagsMask;
+u16 bodyFlagsMatch;
 ...
-idx   = 3;
-msk   = mask;
-mch   = match;          /* u16 local: 100% */
-actor = gameGetTaskSlot(idx)->work;
-for (; node != NULL; node = node->next) {
-    if ((node->flags & msk) == mch) {
+playerSlot     = 3;
+bodyFlagsMask  = flagsMask;
+bodyFlagsMatch = flagsMatch;          /* u16 local: 100% */
+playerActor    = gameGetTaskSlot(playerSlot)->work;
+for (; body != NULL; body = body->next) {
+    if ((body->flags & bodyFlagsMask) == bodyFlagsMatch) {
 ```
 
-`func_800E06AC` (sibling of matched `func_800E0608`) is the example.
+`worldCollisionScanViewBoundaries` (sibling of matched `func_800E0608`) is the example.
 Natural C is 88.75% (saves too early). Explicit `s32` locals with a
 `(u16)` cast at the compare are 99.167% (only those two pairs swapped);
-`u16 mch` matches.
+`u16 bodyFlagsMatch` matches.
 
 ## Assign `a - b` before `ABS()` so the negate stays `negu`
 
@@ -30254,17 +30254,17 @@ register u8*     head asm("v0");
 register VECTOR* vec asm("s1");
 
 head = *scratch;
-((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
+((VECTOR*)(head - 0x10))->vx = segmentEnd->vx - segmentStart->vx;
 head                         = head - 0x10;
 vec                          = (VECTOR*)head;
 __asm__ volatile("" : "+r"(vec) : "r"(head));
-vec->vy  = arg1->vy - arg0->vy;
+vec->vy  = segmentEnd->vy - segmentStart->vy;
 *scratch = vec;
-vec->vz  = arg1->vz - arg0->vz;
+vec->vz  = segmentEnd->vz - segmentStart->vz;
 VectorNormal(vec, vec);
 ```
 
-`func_800E0308` is the example. This is the `playerActorPlanarDistance` store-first
+`worldCollisionSegmentOccluded` is the example. This is the `playerActorPlanarDistance` store-first
 alloc plus the `func_80103E7C` `+r` copy, needed when the scratch block
 is also `$a0` of a later call.
 
@@ -32201,7 +32201,7 @@ move  s4, a3
 sw    ra, 0x24(sp)
 ```
 
-`func_801011D0` is the example (`func_800E0FEC(..., arg3)`).
+`func_801011D0` is the example (`worldCollisionResolveResponsePushback(..., arg3)`).
 
 ## `>= 0` ternary for `bltz` / `lui 0xffff` / `lui 1`
 
@@ -35587,7 +35587,7 @@ do {
     if (rec->key.value & 0x100000) {
         dx = arg1->workm.t[0] - rec->point.vx;
         /* ... */
-        func_800E0FEC((s32)rec, ...);
+        worldCollisionResolveResponsePushback((s32)rec, ...);
     }
     rec++;
 } while (++i < 6);
@@ -38098,7 +38098,7 @@ head     = *scratch;
 s        = (_WorldCollisionResponsePushbackScratch*)(head - 0x40);
 ```
 
-`func_800E0FEC` is the example (that one instruction was the whole diff at
+`worldCollisionResolveResponsePushback` is the example (that one instruction was the whole diff at
 99.45%). This is the mirror image of "Assign `lhs = *p = expr` so the temp
 stays in `$v0`": there the `sw` must use the alloc temp, here it must use the
 block copy, so check which register the target's `sw` reads before picking a
@@ -39188,7 +39188,7 @@ outrank `pan` for `$s0`. It had to be `u32`, or the `>>=` became `sra`.
 
 ## A `$fp` prologue plus a `sll/srl/addiu 7/srl/sll` size dance is a VLA
 
-`func_800E0C10` opens with `sw $fp,0x14($sp); move $fp,$sp; ...; subu $sp,$sp,$v0`
+`worldCollisionResolvePushback` opens with `sw $fp,0x14($sp); move $fp,$sp; ...; subu $sp,$sp,$v0`
 where `$v0 = ((n << 4) >> 3) + 7` rounded down to a multiple of 8. That is
 GCC 2.8.1 emitting a variable-length array: the `<< 4` is the element size in
 *bits* and the `>> 3` converts it to bytes, so `<<4 >>3` means a 2-byte element
@@ -39202,18 +39202,18 @@ zeroing some locals, put the array in a nested block so the declaration comes
 after those statements:
 
 ```c
-count = 0;
-ret   = 0;
-mask  = 0;
+nonFloorCount = 0;
+result        = 0;
+surfaceMask   = 0;
 {
-    s16 list[arg2];   /* alloca lands here, after the three `move ...,zero` */
+    s16 nonFloorIndices[contactCount]; /* alloca lands here, after the three `move ...,zero` */
     ...
 }
 ```
 
 Without the inner block C89 forces the declaration to the top of the function
 and the three `move` instructions land after `subu $sp`. This alone was 95.8% ->
-100% in `func_800E0C10`.
+100% in `worldCollisionResolvePushback`.
 
 ## One C variable = one hard register: split reused temporaries per loop
 
@@ -45467,7 +45467,7 @@ beq  v1, v0, ...
 already has other definitions elsewhere in the function keeps the copy, and puts
 it in the register that scratch already uses. Pick the reused local by which
 register the target wants: in `Actor00400_Fn01B90` the `$v1` scratch holds the
-`Gp_TickObjFlag4` result, the `func_800E0C10` switch index *and* the switch
+`Gp_TickObjFlag4` result, the `worldCollisionResolvePushback` switch index *and* the switch
 index copy, while a second scratch in `$a1` holds only the sign-extended tick
 count — using the wrong one of the two moved four `lh` loads to `$a1`.
 
@@ -48877,7 +48877,7 @@ add one.
 ## A `Fixed16` high half: `.halves.integer` gives `lhu`, `.word >> 16` gives `lh`
 
 `func_acropolis_cafeteria_80181ED4` copies the three 16.16 deltas
-`func_800E0C10` leaves in the scratch block into an `SVECTOR`. Writing the
+`worldCollisionResolvePushback` leaves in the scratch block into an `SVECTOR`. Writing the
 obvious union field
 
 ```c
@@ -56573,7 +56573,7 @@ assignment:
     if (worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
-    func_800E0FEC(work->capsuleContacts, &blk->delta, 1, &idx);
+    worldCollisionResolveResponsePushback(work->capsuleContacts, &blk->delta, 1, &idx);
     idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
 check:
     param = Gp_RoomParamTables[...][...][idx];   /* reload: `check` is a join */
@@ -56581,7 +56581,7 @@ check:
     goto move;
 trySphereContacts:
     if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-        func_800E0FEC(work->sphereContacts, &blk->delta, 1, &idx);
+        worldCollisionResolveResponsePushback(work->sphereContacts, &blk->delta, 1, &idx);
         idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
         goto check;
     }
@@ -56610,7 +56610,7 @@ pointer in the opposite order from its sibling: 4 refs across 22 insns
 
 ```c
 SOFT_USE_REG2(head, head);
-func_800E0FEC(rec, &(head - 1)->delta, 1, &idx); /* head: _GrenadeShellFlightScratch*, one past the block */
+worldCollisionResolveResponsePushback(rec, &(head - 1)->delta, 1, &idx); /* head: _GrenadeShellFlightScratch*, one past the block */
 ```
 
 Two things that do *not* work here. `SOFT_TOUCH_REG(head)` (`"+r"`) also adds
@@ -79636,7 +79636,7 @@ sh    s4, 0x390(s0)
 `allocno_calls_crossed == 0`, so any `move $sN, v0` at a call site says the
 destination pseudo reaches across a call and therefore had to live in a
 callee-saved register. The target produces the same `move s4, v0` after
-`func_800E0C10` *and* after `Gp_GetIdParam2`, with everything between them
+`worldCollisionResolvePushback` *and* after `Gp_GetIdParam2`, with everything between them
 reading `$s4`; two short block-local pseudos (which is what two C variables
 give, and what the candidate had) cannot do that. The source change is to merge
 the two locals — here the stun value into the movement value:
@@ -143176,7 +143176,7 @@ clamp, is also the out-of-line `func_replay_bonus_801175F0`; inlined twice
 here, it needed no pins.
 ## Pins on a scratch frame stood for references that only exist until reload (Actor00700_Fn00334, 2026-09-26)
 
-Symptom: a contact walk (`func_800E0C10` push, then a loop over three
+Symptom: a contact walk (`worldCollisionResolvePushback` push, then a loop over three
 contact records) matched with `SOFT_TOUCH_REG` on the new scratch head, a
 read through `oldHead[-3]`, and ten `USE_REG`s on the frame pointer. Written
 as a plain `for` loop over `recs[i]` with a `switch`, the frame lost the
@@ -148800,7 +148800,7 @@ colour, a `u8` intermediate, chained and read-back stores all give one `andi`.
 ## Two call pairs that cross-jumping merged: the join is why a stack local is reloaded, and each pair is a reference (grenadeShellFly, 2026-10-05)
 
 **Symptom.** `count(capsule) ? … : count(sphere) ? … : skip`, then one
-`func_800E0FEC(list, &delta, 1, &idx); idx = classify(&idx);` and a table
+`worldCollisionResolveResponsePushback(list, &delta, 1, &idx); idx = classify(&idx);` and a table
 lookup on `idx`. The target stores the class to `idx`'s slot and loads it back
 ten instructions later, sets `a0` in the delay slot of each count's branch, and
 keeps the scratch head in the lower call-saved register. Written with one call
@@ -148820,14 +148820,14 @@ order and the image has it there:
 
 ```c
 if (count(work->capsuleContacts, GRID) == 0) goto trySphere;
-func_800E0FEC(work->capsuleContacts, &(head - 1)->delta, 1, &idx);
+worldCollisionResolveResponsePushback(work->capsuleContacts, &(head - 1)->delta, 1, &idx);
 idx = classify(&idx);
 classified:
     … lookup on idx …
     goto move;
 trySphere:
 if (count(work->sphereContacts, GRID) != 0) {
-    func_800E0FEC(work->sphereContacts, &(head - 1)->delta, 1, &idx);
+    worldCollisionResolveResponsePushback(work->sphereContacts, &(head - 1)->delta, 1, &idx);
     idx = classify(&idx);
     goto classified;
 }
@@ -150161,7 +150161,7 @@ attempts; left as it was.
   else { break; } }` with the mask written in place (loop.c hoists `li a1,-121`).
   `if (next == NULL) break;` in the middle is rotated; `node->flags &= K` on the
   `u8` field narrows to `andi 0x87`, so the `s32 flags` temporary stays
-  (`Gp_ClearObj3AList`, `Gp_ClearObj4AList`).
+  (`worldCollisionClearOccluderList`, `worldCollisionClearTriggerList`).
 - **`goto draw;` from one state into the next state's tail, where the tail's
   duplicate swapped registers** (`Fs_BootImageMachine`, see the sample entry):
   the tail goes after the switch, the two states `break`, the others `return`

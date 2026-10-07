@@ -746,7 +746,7 @@ static void func_actor_356100_80165B30(Task* arg0);
 /// Tick of the state-0xB aim run.
 static void func_actor_356100_80166018(Task* arg0);
 
-/// Tick that hands `func_800E0C10` the `pushContacts` collision record.
+/// Tick that hands `worldCollisionResolvePushback` the `pushContacts` collision record.
 /// `actorMoveForwardNonzero` testing the freeze flag through a
 /// `McSaveData*` rather than `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`, and without its zero-amount guard.
 /// Reads the X component back through `vec`, as `Actor01900_StepForward` does —
@@ -791,7 +791,7 @@ static __inline__ void Actor356100_PushRecordsSave(McSaveData* save, GfxCoord* c
         SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
         block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
         block->moved = 0;
-        if (func_800E0C10(rec, &block->delta, count, NULL) != 0) {
+        if (worldCollisionResolvePushback(rec, &block->delta, count, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
             coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
             coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
             coord->coord.t[2] += block->delta.fixed.vz.halves.integer;
@@ -1288,7 +1288,7 @@ static __inline__ void Actor356100_StepForward(GfxCoord* coord, s16 amount)
     }
 }
 
-/// Pushes `coord` out of the `WorldCollisionContact` records `rec` by `func_800E0C10`'s
+/// Pushes `coord` out of the `WorldCollisionContact` records `rec` by `worldCollisionResolvePushback`'s
 /// averaged 16.16 delta, then lifts it by `height`. `head` is the scratch
 /// cursor read before the `ActorContactPushScratch` block is reserved, the
 /// block's end, so the body reaches the block two ways as the original does:
@@ -1307,7 +1307,7 @@ static __inline__ void Actor356100_PushRecords(GfxCoord* coord, WorldCollisionCo
         SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
         block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
         block->moved = 0;
-        if (func_800E0C10(rec, &block->delta, count, NULL) != 0) {
+        if (worldCollisionResolvePushback(rec, &block->delta, count, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
             coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
             coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
             coord->coord.t[2] += block->delta.fixed.vz.halves.integer;
@@ -1351,7 +1351,7 @@ static __inline__ s32 Actor356100_PushRecordsAlways(GfxCoord* coord, WorldCollis
     SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
     block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
     block->moved = 0;
-    if (func_800E0C10(rec, &block->delta, count, NULL) != 0) {
+    if (worldCollisionResolvePushback(rec, &block->delta, count, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
         coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
         coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
         coord->coord.t[2] += block->delta.fixed.vz.halves.integer;

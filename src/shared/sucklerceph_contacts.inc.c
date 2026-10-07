@@ -1,7 +1,7 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
 /// Contact handler of the first enemy, with 0x4C bytes of scratch. The
-/// `func_800E0C10` push-back from its contact table moves the root (response
+/// `worldCollisionResolvePushback` push-back from its contact table moves the root (response
 /// 1) or restores the position the last step started from (response 2), and
 /// the hit cooldown ticks down. Coming within 0x320 of the player moves a live
 /// enemy to its dying stage. Each of the four contacts is then handled by
@@ -34,7 +34,7 @@ void sucklercephContacts(Task* arg0)
     scratch  = SCRATCH_STACK_RESERVE_BLOCK(SucklercephContactsScratch);
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;
-    movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), &scratch->gridKeyMask);
+    movement = worldCollisionResolvePushback(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), &scratch->gridKeyMask);
     switch (movement) {
         case 0:
             break;

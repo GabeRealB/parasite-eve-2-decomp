@@ -86,7 +86,7 @@ STATIC_ASSERT_SIZEOF(_Actor110600PatrolLayoutScratch, 0x2C);
 /// the acropolis bridge room's `func_acropolis_bridge_80184638`.
 
 /// One per-frame behaviour step the walker runs while `skipGround` is clear:
-/// steps it toward its current patrol node. `func_800E0C10` produces the
+/// steps it toward its current patrol node. `worldCollisionResolvePushback` produces the
 /// 16.16 delta; the high half of each component becomes the whole-unit step,
 /// rounded away from zero whenever a fraction is left over. While `lockHeight`
 /// is set the walker is pinned vertically, otherwise Y also carries a constant

@@ -464,7 +464,7 @@ static void* Gp_ScanLockNodes(Task* arg0, VECTOR3* out, s32 flag)
         block->targetView.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
         block->targetView.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
         block->targetView.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
-        if (func_800E0308(&block->targetView, &block->eyeView) != 1) {
+        if (worldCollisionSegmentOccluded(&block->targetView, &block->eyeView) != 1) {
             bestAngle = angle;
             best      = node;
             bestDist  = dist;

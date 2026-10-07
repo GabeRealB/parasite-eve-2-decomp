@@ -567,7 +567,7 @@ static void Gp_InitDirState(Task* arg0)
 
 static void Gp_DirTaskState1(Task* task)
 {
-    Gp_CommitObj4CSave();
+    worldCollisionConsumeViewBoundaryHits();
     func_800AD6BC();
 }
 

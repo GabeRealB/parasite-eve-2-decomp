@@ -113,7 +113,7 @@ void Gp_MsgPlayerDirFacing(void)
         Gp_DirAlt       = 0;
         D_80114CD4      = 0;
         D_80114CDD      = 0;
-    } else if (Gp_TakePendingObj4C(&D_80114CD4, &Gp_DirAlt, &Gp_DirAltNibble)) {
+    } else if (worldCollisionReadActionHit(&D_80114CD4, &Gp_DirAlt, &Gp_DirAltNibble)) {
         if ((u8)D_80114CD4 == WORLD_COLLISION_TRIGGER_ACTION_WARP) {
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             Gp_DirPhase++;

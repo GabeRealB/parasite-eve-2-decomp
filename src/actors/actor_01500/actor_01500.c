@@ -1009,7 +1009,7 @@ static void Actor01500_Fn004EC(Task* actor)
     SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
     frame  = SCRATCH_STACK_CURSOR(ActorContactOverlapPushScratch);
     coord  = actor->extra.tmd->coords;
-    result = func_800E0C10(work->roomContacts, &frame->delta, ARRAY_SIZE(work->roomContacts), NULL);
+    result = worldCollisionResolvePushback(work->roomContacts, &frame->delta, ARRAY_SIZE(work->roomContacts), NULL);
     if (result != 0) {
         // A push with no vertical part is a wall: rest on it, facing into the first grid contact.
         if (work->noWallPerch == 0 && work->action == ACTOR_01500_ACTION_CHASE && frame->delta.fixed.vy.word == 0) {

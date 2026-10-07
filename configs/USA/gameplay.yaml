@@ -156,7 +156,7 @@ segments:
       - [0x465FC, c, world_targets] # worldTargetDrawOverlay
       - [0x47F2C, c, world_collision] # Gp_TickWorldCollision
       - [0x4A140, c, collision_grid] # func_800DD940
-      - [0x4CA94, c, object_lists] # Gp_ClearObjHeads
+      - [0x4CA94, c, object_lists] # worldCollisionResetListsAndGrid
       - [0x4E7EC, c, damage] # Gp_ComputeDamage
       - [0x4F4D4, c, object_fields] # Gp_LookupIdField
       - [0x4F9E8, c, object_task] # func_800E31E8

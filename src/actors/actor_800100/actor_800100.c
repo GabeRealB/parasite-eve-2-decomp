@@ -3239,7 +3239,7 @@ static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg
             dist += abs(arg1->workm.t[1] - rec->point.vy);
             dist += abs(arg1->workm.t[2] - rec->point.vz);
             if (dist < minDist) {
-                func_800E0FEC(rec, &block->pushback, 1, &idx);
+                worldCollisionResolveResponsePushback(rec, &block->pushback, 1, &idx);
                 idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     minDist = dist;

@@ -1394,7 +1394,7 @@ static void func_actor_206100_8014B698(Task* task)
 /// `_Actor206100ShotWork::velocity`, then decides whether the shot bursts.
 ///
 /// `hit` is raised when either of the shot's two contacts reports one of the
-/// three kinds 1/3/5, or when `func_800E0C10` finds the sphere against the
+/// three kinds 1/3/5, or when `worldCollisionResolvePushback` finds the sphere against the
 /// room's grid without bit 8 in its mask. Once it is raised - or at
 /// `ACTOR_206100_SHOT_LIFETIME` frames - the sphere's grid and pair tests are
 /// switched off, the task's state is bumped and the burst is thrown with kind
@@ -1432,7 +1432,7 @@ static void func_actor_206100_8014B8B4(Task* task)
                 }
             }
         }
-        n = func_800E0C10(shot->contacts, &delta, ARRAY_SIZE(shot->contacts), &mask);
+        n = worldCollisionResolvePushback(shot->contacts, &delta, ARRAY_SIZE(shot->contacts), &mask);
         if (n < 3) {
             if (n > 0) {
                 if ((mask & 8) == 0) {

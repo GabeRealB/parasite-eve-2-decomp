@@ -159,7 +159,7 @@ void func_800AD6BC(void)
             if (D_80114D08 != 0) {
                 D_80114D08 = (u16)D_80114D08 - 1;
             }
-            if (Gp_TakePendingObj4C(&Gp_DirFlags, &Gp_DirByte, &Gp_DirNibble) != 0) {
+            if (worldCollisionReadActionHit(&Gp_DirFlags, &Gp_DirByte, &Gp_DirNibble) != 0) {
                 if (D_80114CD0 != (s16)Gp_DirFlags) {
                     D_80114CDC = 1;
                 } else {

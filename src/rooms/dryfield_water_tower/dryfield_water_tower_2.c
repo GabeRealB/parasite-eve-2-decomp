@@ -308,8 +308,8 @@ static SVECTOR                _gDryfieldWaterTowerCollision04560[8];
 /// 0xFF38, 0, 0xFDA8, 0xC8, 0x320, 0xFC18 and 0xFCE0 -- are ever read.
 extern u16 D_dryfield_water_tower_80181C60[];
 
-/// The room's 4A object -- the list node `Gp_LinkObj4A` chains into
-/// `Gp_Obj4ALists` and `Gp_UnlinkObj4A` takes out again. Command 3 of
+/// The room's 4A object -- the list node `worldCollisionLinkTrigger` chains into
+/// `Gp_Obj4ALists` and `worldCollisionUnlinkTrigger` takes out again. Command 3 of
 /// `func_dryfield_water_tower_8017E93C` enables its action trigger with `flags`, the
 /// same bit `func_acropolis_fountain_8017DA1C` raises on the fountain's node.
 
@@ -2553,9 +2553,9 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             state->phase++;
 
         case DRYFIELD_WATER_TOWER_RUN_PHASE_TIMING:
-            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
+            if (worldCollisionReadActionHit(&objId, &objA, &objB) != 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
                 (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (reason = (s8)objA) == 2) {
-                Gp_UnlinkObj4A(0, (D_dryfield_water_tower_80186A84 + 6));
+                worldCollisionUnlinkTrigger(0, (D_dryfield_water_tower_80186A84 + 6));
                 state->nextView = Gp_FindViewIndex(9);
                 func_800E8634(D_dryfield_water_tower_80181E88, 0, D_dryfield_water_tower_80181FF0);
                 state->runResult = reason;
@@ -2757,7 +2757,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
             break;
 
         case 3:
-            if (Gp_TakePendingObj4C(&objId, &objA, &objB) != 0 && (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)objA == 1) {
+            if (worldCollisionReadActionHit(&objId, &objA, &objB) != 0 && (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)objA == 1) {
                 state->actorSceneTask = taskSpawnFromTable(D_dryfield_water_tower_8018277C, 0, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_PROGRESS, 1);
                 arg0->state++;

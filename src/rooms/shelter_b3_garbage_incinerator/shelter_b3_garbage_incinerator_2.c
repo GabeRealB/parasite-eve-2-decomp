@@ -842,9 +842,9 @@ static inline void _shelterB3GarbageIncineratorSetRoom(s16 room)
 void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
 {
     VECTOR                                pos;
-    u16                                   id;
-    s8                                    kind;
-    u8                                    arg;
+    u16                                   control;
+    u8                                    actionId;
+    u8                                    actionArgument;
     TmdObject*                            obj;
     GfxCoord*                             coord;
     _ShelterB3GarbageIncineratorLiftWork* work;
@@ -899,13 +899,13 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
         case 1:
-            if (Gp_TakePendingObj4C(&id, (u8*)&kind, &arg) == 0) {
+            if (worldCollisionReadActionHit(&control, &actionId, &actionArgument) == 0) {
                 break;
             }
-            if ((id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) != WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
+            if ((control & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) != WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
                 break;
             }
-            if (kind == 1) {
+            if ((s8)actionId == 1) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, 0, 0);
                 if (gGameSession->location.loc.room < 4) {

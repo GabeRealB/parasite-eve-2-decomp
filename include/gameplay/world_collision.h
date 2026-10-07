@@ -58,22 +58,71 @@ s32 worldCollisionTestOccluderSegment(const WorldCollisionOccluder* occluder, co
 
 extern WorldCollisionTrigger* Gp_PendingObj4C;
 
-s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
+/// Returns 1 when any enabled sight occluder crosses the segment, else 0.
+///
+/// Endpoints are view-space positions in game units, in the current composed
+/// view frame used to place the room's occluders. Endpoint and parallel-plane
+/// intersections are rejected; quad edges and either crossing direction count.
+/// The segment delta must fit signed halfwords and have squared length in
+/// 1..0x7FFFFFFF for SDK normalization. Inputs are unchanged and not retained.
+/// Keep query storage clear of the initialized scratch stack's 144-byte peak
+/// reservation. Releases scratch storage on every exit and changes GTE state.
+s32 worldCollisionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* segmentEnd);
 
-/// Averages the first `arg2` `WorldCollisionContact` records of `arg0` into `delta`
-/// (a signed 16.16 world-space correction) and, when `arg3` is non-NULL, stores the
-/// `1 << key` bitmask of the contributing records there. Records
-/// below the floor cutoff are averaged separately and added on top.
-/// Returns 0 when nothing contributed, 2 when two records push in
-/// opposing directions, and 1 otherwise.
-s32 func_800E0C10(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3);
+/// Grid-contact presence and opposed-normal status returned by pushback resolvers.
+enum {
+    WORLD_COLLISION_PUSHBACK_NO_GRID_HIT = 0,
+    WORLD_COLLISION_PUSHBACK_GRID_HIT    = 1,
+    WORLD_COLLISION_PUSHBACK_OPPOSED     = 2
+};
 
-/// Accumulates the push-back of the first `arg2` `WorldCollisionContact` records of
-/// `arg0` into `delta` (a signed 16.16 world-space correction) and, when `arg3` is
-/// non-NULL, stores the `1 << key` bitmask of the contributing
-/// records there. Returns 0 when nothing contributed, 2 when two kind-0
-/// records push in opposing directions, and 1 otherwise.
-s32 func_800E0FEC(WorldCollisionContact* arg0, WorldCollisionDelta* delta, s32 arg2, s32* arg3);
+/// Sums grid pushback and adds the average vertical correction from floor normals.
+///
+/// Reads exactly `contactCount` elements, ignoring LAST and non-grid contacts.
+/// Supply a nonnegative count no greater than 32768, live readable contacts,
+/// and disjoint writable outputs. Zero count returns NO_GRID_HIT and leaves
+/// both outputs untouched. Otherwise XYZ in `delta` is always written as signed
+/// 16.16 room-space correction.
+/// Normals use 4096 per unit and distances use game units. Normals with Y below
+/// -3546 contribute only Y, averaged with signed division before conversion;
+/// other enabled responses are summed without averaging or response-kind dispatch.
+///
+/// `surfaceMaskOut` may be NULL; otherwise it receives the OR of `1 << key`
+/// over every occupied grid contact, including suppressed surfaces. Target
+/// shifts use key bits 0..4; valid grid surface classes are 0..7. Suppression
+/// flags must be loaded for the active room. Returns GRID_HIT for any occupied
+/// grid contact, even with zero correction, or OPPOSED when two enabled
+/// non-floor normals oppose strongly on X or Z. OPPOSED still writes the delta.
+/// Uses a count-sized signed-halfword index array on the C stack and 52 bytes
+/// on the initialized scratch stack, disjoint from inputs and outputs. Releases
+/// scratch storage before return and retains no pointers.
+s32 worldCollisionResolvePushback(const WorldCollisionContact* contacts, WorldCollisionDelta* delta, s32 contactCount, s32* surfaceMaskOut);
+
+/// Resolves grid overlap, floor-lift and edge-slide contacts into one correction.
+///
+/// Reads exactly `contactCount` elements, in 0..32, ignoring LAST and non-grid
+/// contacts. Supply live readable contacts and disjoint writable outputs.
+/// Zero count returns NO_GRID_HIT without touching either output. Otherwise
+/// XYZ in `delta` is always written as signed 16.16 room-space correction.
+/// Normals use 4096 per unit and distances use game units. Suppression flags
+/// must be loaded for the active room; suppressed surfaces provide no correction.
+///
+/// Response 0 sums normal times distance; response 1 keeps the last floor's
+/// negative Y lift; response 2 keeps the nearest horizontal edge correction.
+/// Other response values provide no correction. Zero is the edge-distance
+/// sentinel, so a selected zero-distance edge can be replaced by a later edge.
+/// Any enabled response-0 contact selects overlap plus floor; otherwise the
+/// result is floor plus edge. Signed word arithmetic and narrowing are retained.
+///
+/// `surfaceMaskOut` may be NULL; otherwise it receives the OR of `1 << key`
+/// over every occupied grid contact, including suppressed and unknown responses.
+/// Target shifts use key bits 0..4; valid grid surface classes are 0..7.
+/// Returns GRID_HIT for any occupied grid contact, even with zero correction,
+/// or OPPOSED for strongly opposed enabled response-0 normals on X or Z.
+/// OPPOSED still writes the delta. Uses 32 byte-sized indices on the C stack
+/// and 64 bytes on the initialized scratch stack, clear of inputs and outputs.
+/// Releases scratch storage before return and retains no pointers.
+s32 worldCollisionResolveResponsePushback(const WorldCollisionContact* contacts, WorldCollisionDelta* delta, s32 contactCount, s32* surfaceMaskOut);
 
 /// Collision groups selected when linking a body; group membership determines pair-test partners.
 ///
@@ -111,9 +160,30 @@ void worldCollisionLinkBody(s32 listIndex, WorldCollisionBody* body);
 /// is freed or reset; owners must restore flags before linking it again.
 void worldCollisionUnlinkBody(WorldCollisionBody* body);
 
-void Gp_LinkObj4A(s32 arg0, WorldCollisionTrigger* arg1);
+/// Runtime trigger lists; list membership selects the collision test and hit consumer.
+enum {
+    WORLD_COLLISION_TRIGGER_LIST_ACTION          = 0,
+    WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES = 1
+};
 
-void Gp_UnlinkObj4A(s32 arg0, WorldCollisionTrigger* arg1);
+/// Appends a borrowed trigger to the selected action or view-boundary list.
+///
+/// `listIndex` is WORLD_COLLISION_TRIGGER_LIST_ACTION or
+/// WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES. A non-NULL trigger already
+/// marked LINKED is left unchanged. Otherwise linking sets LINKED and installs
+/// both links, preserving insertion order, other flags and the hit latch.
+/// The owner keeps the trigger and its bound transform alive until unlinking;
+/// initialize geometry and explicitly enable the trigger before collision scans.
+void worldCollisionLinkTrigger(s32 listIndex, WorldCollisionTrigger* trigger);
+
+/// Unlinks a borrowed trigger, retaining only its kind and resource LAST marker.
+///
+/// `unusedListIndex` is ignored; the incoming link identifies the actual list.
+/// A linked trigger must have valid predecessor and successor links. Repairs
+/// those links before clearing its own, without freeing storage or changing
+/// geometry, transform or hit latch. Unlinked triggers are unchanged; pass
+/// enables must be restored before a removed trigger is used again.
+void worldCollisionUnlinkTrigger(s32 unusedListIndex, WorldCollisionTrigger* trigger);
 
 /// Clears a caller-owned collision-contact table and marks its final entry.
 ///
@@ -174,6 +244,16 @@ s32 worldCollisionSurfaceClassFromMask(const u8* mask);
 /// the SDK logarithm's GTE leading-sign-bit-count state for a nonzero byte.
 s32 worldCollisionSurfaceClassFromKey(s32 key);
 
-s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2);
+/// Reads the first latched action trigger and enables subsequent hit clearing.
+///
+/// Returns 1 for the first hit in insertion order and writes its control word
+/// and both full, selector-dependent parameter bytes to non-NULL, disjoint
+/// outputs. See `WorldCollisionTrigger` for each selector's interpretation.
+/// Returns 0 without writing outputs when no hit exists. Reading preserves
+/// every latch, so repeated reads can return the same trigger before the next
+/// collision tick. Once a hit is read, action latches are cleared before each
+/// subsequent trigger scan until `worldCollisionResetListsAndGrid` resets the
+/// clearing gate. Outputs are borrowed only for this call.
+s32 worldCollisionReadActionHit(u16* controlOut, u8* parameter0Out, u8* parameter1Out);
 
 #endif // GAMEPLAY_WORLD_COLLISION_H

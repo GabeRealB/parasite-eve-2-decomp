@@ -5105,7 +5105,7 @@ static void func_actor_403000_8013C864(Enemy* arg0, Task* arg1)
         scratch->sightOrigin.vx = arg1->extra.tmd->coords->workm.t[0];
         scratch->sightOrigin.vy = arg1->extra.tmd->coords->workm.t[1];
         scratch->sightOrigin.vz = arg1->extra.tmd->coords->workm.t[2];
-        if (func_800E0308(&scratch->sightOrigin, &scratch->sightTarget) != 1) {
+        if (worldCollisionSegmentOccluded(&scratch->sightOrigin, &scratch->sightTarget) != 1) {
             work->playerVisible = 1;
         } else {
             work->playerVisible = 0;

@@ -1073,7 +1073,7 @@ static void func_actor_207200_8014B87C(Task* arg0)
     }
 }
 
-/// Per-frame collision handling. Each six-record table's `func_800E0C10`
+/// Per-frame collision handling. Each six-record table's `worldCollisionResolvePushback`
 /// result pushes the model back (1) or snaps it to `prevRootPos` (2). Records of
 /// `bodyContacts` then dispatch on their kind: 1 starts the side attack when the
 /// player is off-angle and near, 2 is a hit, which only deals damage once
@@ -1102,15 +1102,15 @@ static void func_actor_207200_8014BEF4(Task* arg0)
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->headContacts, &scratch->delta, ARRAY_SIZE(work->headContacts), NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->headContacts, &scratch->delta, ARRAY_SIZE(work->headContacts), NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
             coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
             coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0] = work->prevRootPos.vx;
             coord->coord.t[1] = work->prevRootPos.vy;
             coord->coord.t[2] = work->prevRootPos.vz;
@@ -1119,15 +1119,15 @@ static void func_actor_207200_8014BEF4(Task* arg0)
             }
             break;
     }
-    switch (func_800E0C10(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
             coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
             coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0] = work->prevRootPos.vx;
             coord->coord.t[1] = work->prevRootPos.vy;
             coord->coord.t[2] = work->prevRootPos.vz;

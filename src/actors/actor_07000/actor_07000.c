@@ -1475,7 +1475,7 @@ static void Actor07000_Fn03E08(Task* arg0)
     coord    = arg0->extra.tmd->coords;
     enemy    = arg0->spawnArg2.pointer;
     scratch  = head;
-    movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
+    movement = worldCollisionResolvePushback(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
     switch (movement) {
         case 0:
             break;
@@ -2248,7 +2248,7 @@ static void Actor07000_Fn05400(Enemy* arg0, Task* arg1)
 }
 
 /// Collision response of the specimen's second form: node 2's collision table
-/// is run through `func_800E0C10` with a 0x38-byte scratch. Response 1 adds
+/// is run through `worldCollisionResolvePushback` with a 0x38-byte scratch. Response 1 adds
 /// the returned X and Z offsets to the root; only the first one (while
 /// `dropCollided` is clear) also adds Y, latches the response in `twistActive` and
 /// `dropCollided`, arms `twist.vx` to 0x400, sets the fall speed `fallSpeed` to
@@ -2265,7 +2265,7 @@ static void Actor07000_Fn0595C(Task* arg0)
     work     = arg0->work;
     scratch  = SCRATCH_STACK_RESERVE_BLOCK(ActorContactDeltaScratch);
     coord    = arg0->extra.tmd->coords;
-    movement = func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
+    movement = worldCollisionResolvePushback(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL);
     switch (movement) {
         case 0:
             break;

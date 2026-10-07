@@ -44,15 +44,15 @@ void golemPawnRookTakeHits(Task* arg0)
     scratch = SCRATCH_STACK_CURSOR(GolemPawnRookHitScratch);
     enemy   = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->groundContacts, &head[-1].delta, ARRAY_SIZE(work->groundContacts), NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->groundContacts, &head[-1].delta, ARRAY_SIZE(work->groundContacts), NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             self->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
             self->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
             self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             self->coord.t[0] = work->prevRootPos.vx;
             self->coord.t[1] = work->prevRootPos.vy;
             self->coord.t[2] = work->prevRootPos.vz;
@@ -61,14 +61,14 @@ void golemPawnRookTakeHits(Task* arg0)
     worldCollisionClearContacts(work->groundContacts);
 
     if (work->hurtBody.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
-        switch (func_800E0C10(work->hurtContacts, &scratch->delta, ARRAY_SIZE(work->hurtContacts), NULL)) {
-            case 0:
+        switch (worldCollisionResolvePushback(work->hurtContacts, &scratch->delta, ARRAY_SIZE(work->hurtContacts), NULL)) {
+            case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
                 break;
-            case 1:
+            case WORLD_COLLISION_PUSHBACK_GRID_HIT:
                 self->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
                 self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
-            case 2:
+            case WORLD_COLLISION_PUSHBACK_OPPOSED:
                 self->coord.t[0] = work->prevRootPos.vx;
                 self->coord.t[2] = work->prevRootPos.vz;
                 break;

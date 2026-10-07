@@ -1,6 +1,6 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
-/// Turns the 16.16 collision delta from func_800E0C10 into a whole-unit step
+/// Turns the 16.16 collision delta from worldCollisionResolvePushback into a whole-unit step
 /// rounded away from zero, and adds a 0x10 fall unless `lockHeight` pins Y.
 /// Y is applied in bands (+8 hop above 0x20, -0x20 drop below -0x20, otherwise
 /// the plain step). `offOrigin` is then 1 when the local X or Z translation
@@ -20,7 +20,7 @@ void bossStrangerApplyGroundStep(BossStrangerWalker* work)
     head                                                = SCRATCH_STACK_CURSOR(BossStrangerGroundStepScratch);
     SCRATCH_STACK_CURSOR(BossStrangerGroundStepScratch) = head - 1;
     s                                                   = head - 1;
-    if (func_800E0C10(work->recs, &s->delta, work->recCount, NULL) != 0) {
+    if (worldCollisionResolvePushback(work->recs, &s->delta, work->recCount, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
         dx         = head[-1].delta.fixed.vx.halves.integer;
         dz         = s->delta.fixed.vz.halves.integer;
         s->move.vx = dx;

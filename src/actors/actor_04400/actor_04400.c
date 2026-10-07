@@ -867,7 +867,7 @@ static const TaskFuncTable4 gMadChaserDangleSteps = { {
 /// `arg1` is set) and kind 3 push the model out, kind 2 applies a hit -
 /// damage, status effects and the pending state request in `hitReaction` -
 /// unless `hitCooldown` is still cooling down. Then ticks the status flags,
-/// applies `func_800E0C10`'s collision step (snapping back to `prevRootPos` when
+/// applies `worldCollisionResolvePushback`'s collision step (snapping back to `prevRootPos` when
 /// it reports a conflict) and moves the root by the combined step and
 /// push-out.
 void madChaserApplyContacts(Task* arg0, s16 arg1)
@@ -1000,10 +1000,10 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
         }
     }
 
-    switch (func_800E0C10(work->contacts, &delta, 8, NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->contacts, &delta, 8, NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             stepZ = delta.fixed.vz.halves.integer;
             stepX = delta.fixed.vx.word >> 16;
             if (delta.fixed.vx.word & 0xFFFF) {
@@ -1021,7 +1021,7 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
                 }
             }
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0]   = work->prevRootPos.vx;
             coord->coord.t[2]   = work->prevRootPos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

@@ -1995,7 +1995,7 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* f
     temp_s0 = gGameSession->location.loc.variant;
     if (temp_s0 == 2 && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
         if (((const DirectionActionRequest*)firstArg)->actionId == 1) {
-            Gp_UnlinkObj4A(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
+            worldCollisionUnlinkTrigger(0, &D_dryfield_night_saloon_g_r_801887DC[13]);
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 0x0C), 0, 0);
         } else if (((const DirectionActionRequest*)firstArg)->actionId == temp_s0) {
             msg.context.loc.stage = gGameSession->location.loc.stage;

@@ -7,7 +7,7 @@ static s32 ActorContact_PushContact(GfxCoord* coord, WorldCollisionContact* rec,
 
     block        = SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
     block->moved = 0;
-    if (func_800E0C10(rec, &block->delta, arg2, NULL) != 0) {
+    if (worldCollisionResolvePushback(rec, &block->delta, arg2, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
         coord->coord.t[0]                    += block->delta.fixed.vx.word >> 16;
         coord->coord.t[2]                    += block->delta.fixed.vz.word >> 16;
         ActorContact_GetScratchPosition()->vx = block->delta.fixed.vx.word >> 16;

@@ -464,7 +464,7 @@ static void Actor02400_Fn0095C(Enemy* enemy, Task* task)
     task->state             = 1;
 }
 
-/// Resolves this frame's contacts. The push-back from `func_800E0C10` moves
+/// Resolves this frame's contacts. The push-back from `worldCollisionResolvePushback` moves
 /// the body, or puts it back at `prevPos`; then each of `bodyContacts` is
 /// handled by kind. A hit (kind 2) outside `hitCooldown` is classified by the
 /// attacker's parameters: it adds to `staggerDamage` without taking HP, deals
@@ -501,7 +501,7 @@ static void Actor02400_Fn00C08(Task* task)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
     coord   = task->extra.tmd->coords;
     enemy   = task->spawnArg2.pointer;
-    res     = func_800E0C10(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL);
+    res     = worldCollisionResolvePushback(work->bodyContacts, &scratch->delta, ARRAY_SIZE(work->bodyContacts), NULL);
     switch (res) {
         case 1:
             coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;

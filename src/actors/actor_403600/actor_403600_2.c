@@ -2515,17 +2515,17 @@ static void func_actor_403600_8013D15C(Task* arg0)
     work    = arg0->work;
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactDeltaWideScratch);
     enemy   = arg0->spawnArg2.pointer;
-    switch (func_800E0C10(work->hitContacts, &scratch->delta, 4, 0)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->hitContacts, &scratch->delta, 4, 0)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             if ((arg0 == D_actor_403600_801606A8) && (work->ignorePushOut == 0)) {
                 work->worldCoord.coord.t[0] += scratch->delta.fixed.vx.halves.integer;
                 work->worldCoord.coord.t[1] += scratch->delta.fixed.vy.halves.integer;
                 work->worldCoord.coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             }
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             if ((arg0 == D_actor_403600_801606A8) && (work->ignorePushOut == 0)) {
                 work->worldCoord.coord.t[0] += scratch->delta.fixed.vx.halves.integer;
                 work->worldCoord.coord.t[1] += scratch->delta.fixed.vy.halves.integer;

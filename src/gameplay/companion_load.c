@@ -489,7 +489,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
         if (viewBoundaryTriggers != NULL) {
             for (i = 0;; i++) {
                 viewBoundaryTriggers[i].coord = &gGfxViewCoord;
-                Gp_LinkObj4A(1, &viewBoundaryTriggers[i]);
+                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES, &viewBoundaryTriggers[i]);
                 viewBoundaryTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
                 if (viewBoundaryTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
@@ -499,7 +499,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
         if (actionTriggers != NULL) {
             for (i = 0;; i++) {
                 actionTriggers[i].coord = &gGfxViewCoord;
-                Gp_LinkObj4A(0, &actionTriggers[i]);
+                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &actionTriggers[i]);
                 actionTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
                 if (actionTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
@@ -508,7 +508,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
         }
         if (occluders != NULL) {
             for (i = 0;; i++) {
-                Gp_LinkObj3A(0, &occluders[i]);
+                worldCollisionLinkOccluder(0, &occluders[i]);
                 occluders[i].flags |= WORLD_COLLISION_OCCLUDER_ENABLED;
                 if (occluders[i].flags & WORLD_COLLISION_OCCLUDER_LAST) {
                     break;

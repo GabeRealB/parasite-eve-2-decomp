@@ -2737,10 +2737,10 @@ static void func_mine_mesa_8017DC80(Task* arg0)
 
 static void func_mine_mesa_8017DD44(void)
 {
-    Gp_UnlinkObj4A(0, &(D_mine_mesa_801890A0 + 1)[0]);
-    Gp_UnlinkObj4A(0, &(D_mine_mesa_801890A0 + 1)[1]);
-    Gp_UnlinkObj4A(0, &(D_mine_mesa_801890A0 + 1)[2]);
-    Gp_UnlinkObj4A(0, &(D_mine_mesa_801890A0 + 1)[3]);
+    worldCollisionUnlinkTrigger(0, &(D_mine_mesa_801890A0 + 1)[0]);
+    worldCollisionUnlinkTrigger(0, &(D_mine_mesa_801890A0 + 1)[1]);
+    worldCollisionUnlinkTrigger(0, &(D_mine_mesa_801890A0 + 1)[2]);
+    worldCollisionUnlinkTrigger(0, &(D_mine_mesa_801890A0 + 1)[3]);
 }
 
 /// State handlers of the room task `func_mine_mesa_8017DD98` drives: the

@@ -1,7 +1,7 @@
 /* Part of the player detection library; see player_detection.h. */
 
 /// Rotates the slot-3 player's and this actor's raised root positions into
-/// world space and returns `func_800E0308` on the pair.
+/// the composed view frame and returns `worldCollisionSegmentOccluded` on the pair.
 s32 detectSightBlocked(Task* arg0)
 {
     Task*                        player;
@@ -41,7 +41,7 @@ s32 detectSightBlocked(Task* arg0)
     block->actorEye.vx += gGfxViewCoord.workm.t[0];
     block->actorEye.vy += gGfxViewCoord.workm.t[1];
     block->actorEye.vz += gGfxViewCoord.workm.t[2];
-    block->blocked      = func_800E0308(&block->playerEye, actorEye);
+    block->blocked      = worldCollisionSegmentOccluded(&block->playerEye, actorEye);
     SCRATCH_STACK_RELEASE_BLOCK(PlayerDetectionSightScratch);
     return block->blocked;
 }

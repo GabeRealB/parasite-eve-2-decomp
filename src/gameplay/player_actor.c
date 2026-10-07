@@ -4991,7 +4991,7 @@ s32 func_801011D0(GfxCoord* arg0, WorldCollisionContact* arg1, s32 arg2, s32* ar
     s32                  ret;
 
     delta = SCRATCH_STACK_RESERVE_BLOCK(WorldCollisionDelta);
-    ret   = func_800E0FEC(arg1, delta, arg2, arg3);
+    ret   = worldCollisionResolveResponsePushback(arg1, delta, arg2, arg3);
     if (ret != 0) {
         GP_ROUND_FIXED_AWAY(delta->fixed.vx.word);
         GP_ROUND_FIXED_AWAY(delta->fixed.vy.word);
@@ -7290,7 +7290,7 @@ s32 Gp_PickNearestRec18(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* a
             dist += abs(arg1->workm.t[1] - rec->point.vy);
             dist += abs(arg1->workm.t[2] - rec->point.vz);
             if (dist < minDist) {
-                func_800E0FEC(rec, &block->pushback, 1, &idx);
+                worldCollisionResolveResponsePushback(rec, &block->pushback, 1, &idx);
                 idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     minDist = dist;

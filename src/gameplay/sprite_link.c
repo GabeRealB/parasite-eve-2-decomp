@@ -367,9 +367,9 @@ static void Gp_LinkRoomObjects(Task* task)
     sess = &gGameSession->location.loc;
     Gp_LoadStageView();
     Gp_GridParams = NULL;
-    Gp_ClearObj4AList(1);
-    Gp_ClearObj4AList(0);
-    Gp_ClearObj3AList(0);
+    worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES);
+    worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_ACTION);
+    worldCollisionClearOccluderList(0);
     roomResources = Gp_RoomObjTables[sess->stage - 1]->areaRooms[sess->area - 1];
     if (roomResources != NULL) {
         grid                 = roomResources[sess->room - 1].grid;
@@ -384,7 +384,7 @@ static void Gp_LinkRoomObjects(Task* task)
         if (viewBoundaryTriggers != NULL) {
             for (i = 0;; i++) {
                 viewBoundaryTriggers[i].coord = &gGfxViewCoord;
-                Gp_LinkObj4A(1, &viewBoundaryTriggers[i]);
+                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES, &viewBoundaryTriggers[i]);
                 viewBoundaryTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
                 if (viewBoundaryTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
@@ -394,7 +394,7 @@ static void Gp_LinkRoomObjects(Task* task)
         if (actionTriggers != NULL) {
             for (i = 0;; i++) {
                 actionTriggers[i].coord = &gGfxViewCoord;
-                Gp_LinkObj4A(0, &actionTriggers[i]);
+                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &actionTriggers[i]);
                 actionTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
                 if (actionTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
@@ -403,7 +403,7 @@ static void Gp_LinkRoomObjects(Task* task)
         }
         if (occluders != NULL) {
             for (i = 0;; i++) {
-                Gp_LinkObj3A(0, &occluders[i]);
+                worldCollisionLinkOccluder(0, &occluders[i]);
                 occluders[i].flags |= WORLD_COLLISION_OCCLUDER_ENABLED;
                 if (occluders[i].flags & WORLD_COLLISION_OCCLUDER_LAST) {
                     break;

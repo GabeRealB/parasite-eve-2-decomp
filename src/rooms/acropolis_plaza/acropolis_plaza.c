@@ -4583,7 +4583,7 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
 
 /// Steps the plaza's streamed scene, returning zero while it is still running.
 ///
-/// Seven steps driven by the pending `WorldCollisionTrigger` event `Gp_TakePendingObj4C`
+/// Seven steps driven by the pending `WorldCollisionTrigger` event `worldCollisionReadActionHit`
 /// reports. `ready` is that event's "take it" flag, qualified by `gPlayerStatus.interactionPressed`
 /// so an event that arrives with the id's sign bit clear is only acted on when
 /// that global is set. Steps 0 and 2 latch the event into the work block and
@@ -4607,7 +4607,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
     u32                          latchedKind;
     u16                          latchedKind16;
 
-    ready = Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub);
+    ready = worldCollisionReadActionHit(&evtId, &evtKind, &evtSub);
     if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC) && (ready != 0)) {
         ready = gPlayerStatus.interactionPressed != 0;
     }
@@ -4636,7 +4636,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 work->sceneArg.startFrame      = work->resumeFrame;
                 work->sceneTask =
                     taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
-                Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991F0);
+                worldCollisionUnlinkTrigger(0, &D_acropolis_plaza_801991F0);
                 work->step = work->step + 1;
             }
             break;
@@ -4686,9 +4686,9 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 latchedKind   = work->eventKind;
                 latchedKind16 = (s8)latchedKind;
                 if (latchedKind16 == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
-                    Gp_UnlinkObj4A(0, &D_acropolis_plaza_801991A4);
+                    worldCollisionUnlinkTrigger(0, &D_acropolis_plaza_801991A4);
                 } else if ((u16)(s8)latchedKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
-                    Gp_UnlinkObj4A(0, D_acropolis_plaza_8019923C);
+                    worldCollisionUnlinkTrigger(0, D_acropolis_plaza_8019923C);
                 }
                 work->step = work->step - 1;
                 if ((s8)work->eventKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {

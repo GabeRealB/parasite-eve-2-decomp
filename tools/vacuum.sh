@@ -470,7 +470,7 @@ forget_difficult_entry() {
   # Also clear the real list when a retry pass was aimed at a subset via
   # VACUUM_DIFFICULT_FILE. Otherwise a match removes the name from the override
   # file and leaves it in tools/difficult_functions, where it keeps advertising
-  # a give-up for a function that is now matched - func_800E06AC and
+  # a give-up for a function that is now matched - worldCollisionScanViewBoundaries and
   # _worldCollisionMarkCapsuleGridCandidates both landed from a near-miss pass and stayed listed at 99.167%
   # and 99.565%.
   if [[ "$DIFFICULT_FUNCTIONS" != "tools/difficult_functions" ]] \

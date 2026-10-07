@@ -1,6 +1,6 @@
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
-/// Per-frame hit handler. Applies the `func_800E0C10` push-back from the four
+/// Per-frame hit handler. Applies the `worldCollisionResolvePushback` push-back from the four
 /// `bodyContacts` records to the root coordinate (restoring `prevRootPos` when two
 /// records conflict), then walks the records: a kind-1 hit or a kind-2 hit
 /// whose distance-scaled damage is nonzero plays the hit sound and sparks and
@@ -28,15 +28,15 @@ void skullStalkerHits(Task* arg0)
     coord                                          = obj->coords;
     enemy                                          = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->bodyContacts, &head[-1].delta, ARRAY_SIZE(work->bodyContacts), NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->bodyContacts, &head[-1].delta, ARRAY_SIZE(work->bodyContacts), NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             coord->coord.t[0] += sc->delta.fixed.vx.halves.integer;
             coord->coord.t[1] += sc->delta.fixed.vy.halves.integer;
             coord->coord.t[2] += sc->delta.fixed.vz.halves.integer;
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0] = work->prevRootPos.vx;
             coord->coord.t[1] = work->prevRootPos.vy;
             coord->coord.t[2] = work->prevRootPos.vz;

@@ -3474,10 +3474,10 @@ static void func_actor_400600_80136968(Task* arg0)
         }
     }
 
-    switch (func_800E0C10(work->bodyContacts, &delta, 8, NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->bodyContacts, &delta, 8, NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             stepZ = delta.fixed.vz.halves.integer;
             stepX = delta.fixed.vx.word >> 16;
             if (delta.fixed.vx.word & 0xFFFF) {
@@ -3495,7 +3495,7 @@ static void func_actor_400600_80136968(Task* arg0)
                 }
             }
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0]   = work->prevRootPos.vx;
             coord->coord.t[2]   = work->prevRootPos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;

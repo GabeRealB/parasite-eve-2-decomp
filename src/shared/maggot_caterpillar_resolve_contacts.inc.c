@@ -33,7 +33,7 @@ void maggotCaterpillarResolveContacts(Task* arg0)
     scratch = SCRATCH_STACK_CURSOR(MaggotCaterpillarContactsScratch) = head - 1;
     enemy                                                            = (Enemy*)arg0->spawnArg2.pointer;
     work->landed                                                     = 0;
-    result                                                           = func_800E0C10(work->gridContacts, &scratch->delta, 4, NULL);
+    result                                                           = worldCollisionResolvePushback(work->gridContacts, &scratch->delta, 4, NULL);
     if (result != 0) {
         if (work->behaviour == MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH) {
             work->landed = 1;

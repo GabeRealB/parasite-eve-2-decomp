@@ -1399,7 +1399,7 @@ static s32 func_actor_401000_80135374(GfxCoord* coord, WorldCollisionContact* re
     SCRATCH_STACK_CURSOR(ActorContactCappedPushScratch) = head - 1;
     s                                                   = head - 1;
     s->moved                                            = 0;
-    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
+    if (worldCollisionResolvePushback(rec, &s->delta, arg2, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
         s->step.vx = head[-1].delta.fixed.vx.word >> 16;
         s->step.vy = s->delta.fixed.vy.word >> 16;
         s->step.vz = s->delta.fixed.vz.word >> 16;

@@ -1824,10 +1824,10 @@ static void Actor00400_Fn01B90(Task* arg0)
         }
     }
 
-    switch (func_800E0C10(work->gridContacts, &delta, ARRAY_SIZE(work->gridContacts), 0)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->gridContacts, &delta, ARRAY_SIZE(work->gridContacts), 0)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             tmp                 = delta.fixed.vx.halves.integer;
             work->armAnchor.vx += tmp;
             tmp                 = delta.fixed.vz.halves.integer;
@@ -1866,7 +1866,7 @@ static void Actor00400_Fn01B90(Task* arg0)
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0] = work->prevRootPos.vx;
             coord->coord.t[2] = work->prevRootPos.vz;
             break;
@@ -2292,7 +2292,7 @@ static void Actor00400_Fn02648(Task* arg0, s32 arg1)
 /// shot bursts.
 ///
 /// `hidden` is raised when either of the shot's two contacts reports one of
-/// the three kinds 1/3/5, or when `func_800E0C10` finds the sphere against the
+/// the three kinds 1/3/5, or when `worldCollisionResolvePushback` finds the sphere against the
 /// room's grid and the current stage and area are not among the exceptions.
 /// Once it is raised - or at `ACTOR_00400_SHOT_LIFETIME` frames, or when
 /// `gSceneCombatState.actor00400HideRequested` is set - the sphere's grid and pair tests are
@@ -2342,7 +2342,7 @@ static void Actor00400_Fn02D48(Task* arg0)
                     }
                 }
             }
-            n = func_800E0C10(work->contacts, &delta, 2, &mask);
+            n = worldCollisionResolvePushback(work->contacts, &delta, 2, &mask);
             if (n < 3) {
                 if (n > 0) {
                     if (gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER &&

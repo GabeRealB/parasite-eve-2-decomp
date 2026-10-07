@@ -2,7 +2,7 @@
  * checks for a wall between the actor's and the player's head-height points. A
  * reach test checks whether the player is outside the actor's facing arc or
  * too far from a point ahead of it. A segment-versus-wall test is carried as a
- * package-private copy of gameplay's func_800E0308. Packages include only the
+ * package-private copy of gameplay's worldCollisionSegmentOccluded. Packages include only the
  * tests they carry.
  *
  * Include this header in the prologue and each fragment at its function's

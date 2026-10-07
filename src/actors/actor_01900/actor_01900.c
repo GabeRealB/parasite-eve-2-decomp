@@ -1927,7 +1927,7 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
     SCRATCH_STACK_CURSOR(ActorContactCappedPushScratch) = blk;
     s                                                   = blk;
     s->moved                                            = 0;
-    if (func_800E0C10(rec, &s->delta, arg2, NULL) != 0) {
+    if (worldCollisionResolvePushback(rec, &s->delta, arg2, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
         s->step.vx = head[-1].delta.fixed.vx.word >> 16;
         s->step.vy = s->delta.fixed.vy.word >> 16;
         s->step.vz = s->delta.fixed.vz.word >> 16;

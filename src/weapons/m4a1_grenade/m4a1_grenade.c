@@ -290,7 +290,7 @@ static void func_m4a1_grenade_8011D654(Task* arg0)
 /// Flight state: steps the grenade along `dir`. A category-3 contact in
 /// `sphereContacts` detonates it, as does `flightTimer` passing 0xFFFFF.
 /// Grid contacts on `capsuleContacts` are resolved first, then those on
-/// `sphereContacts`; the chosen table is handed to `func_800E0FEC` /
+/// `sphereContacts`; the chosen table is handed to `worldCollisionResolveResponsePushback` /
 /// `worldCollisionSurfaceClassFromMask` for the surface it crossed. A surface that blocks probes
 /// detonates when it accepts weapon impacts, and otherwise advances the task
 /// to the exit state. Any other surface detonates only for surface index 1
@@ -341,7 +341,7 @@ static void func_m4a1_grenade_8011D994(Task* arg0)
     if (worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
-    func_800E0FEC(work->capsuleContacts, &scratch->delta, 1, &idx);
+    worldCollisionResolveResponsePushback(work->capsuleContacts, &scratch->delta, 1, &idx);
     idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
 check:
     surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
@@ -356,7 +356,7 @@ check:
     goto move;
 trySphereContacts:
     if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-        func_800E0FEC(work->sphereContacts, &scratch->delta, 1, &idx);
+        worldCollisionResolveResponsePushback(work->sphereContacts, &scratch->delta, 1, &idx);
         idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
         goto check;
     }

@@ -4533,7 +4533,7 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
                     }
                 }
             }
-            collision = func_800E0C10(D_actor_403100_80155814[i].contacts, &delta, ARRAY_SIZE(flame->contacts), 0);
+            collision = worldCollisionResolvePushback(D_actor_403100_80155814[i].contacts, &delta, ARRAY_SIZE(flame->contacts), 0);
             if (collision == 0) {
                 flame->position.vx += flame->velocity.vx;
                 flame->position.vy += flame->velocity.vy;

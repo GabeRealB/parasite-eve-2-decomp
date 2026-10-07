@@ -1414,9 +1414,9 @@ static inline void _acropolisFountainInitSprayQuad(POLY_FT4* quad, u8 modulation
 
 void func_acropolis_fountain_8017DA1C(void)
 {
-    Gp_UnlinkObj4A(0, &D_acropolis_fountain_8017F9C0[5]);
+    worldCollisionUnlinkTrigger(0, &D_acropolis_fountain_8017F9C0[5]);
     D_acropolis_fountain_8017E7A4.coord = &gGfxViewCoord;
-    Gp_LinkObj4A(0, &D_acropolis_fountain_8017E7A4);
+    worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &D_acropolis_fountain_8017E7A4);
     D_acropolis_fountain_8017E7A4.flags |= WORLD_COLLISION_TRIGGER_ENABLED;
 }
 

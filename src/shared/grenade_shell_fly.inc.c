@@ -48,7 +48,7 @@ void grenadeShellFly(Task* arg0)
     head  = SCRATCH_STACK_CURSOR(_GrenadeShellFlightScratch);
     /* Pushed and then re-derived rather than stored from `scratch`: the scratch
        head has to stay live in its own register, because the `WorldCollisionDelta`
-       handed to `func_800E0FEC` below is addressed off it and not off `scratch`. */
+       handed to `worldCollisionResolveResponsePushback` below is addressed off it and not off `scratch`. */
     SCRATCH_STACK_CURSOR(_GrenadeShellFlightScratch) = head - 1;
     scratch                                          = head - 1;
     coord->composeStamp                              = GRAPHICS_COORD_DIRTY;
@@ -92,7 +92,7 @@ void grenadeShellFly(Task* arg0)
     if (worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
-    func_800E0FEC(work->capsuleContacts, &(head - 1)->delta, 1, &idx);
+    worldCollisionResolveResponsePushback(work->capsuleContacts, &(head - 1)->delta, 1, &idx);
     idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
 classified:
     surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
@@ -109,7 +109,7 @@ classified:
     goto move;
 trySphereContacts:
     if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-        func_800E0FEC(work->sphereContacts, &(head - 1)->delta, 1, &idx);
+        worldCollisionResolveResponsePushback(work->sphereContacts, &(head - 1)->delta, 1, &idx);
         idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
         goto classified;
     }

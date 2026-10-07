@@ -633,9 +633,9 @@ static s32 func_actor_342100_80162F54(Task* arg0)
 /// `encounterTask` stores go through the block the task held on entry.
 void func_actor_342100_801630A4(Task* arg0)
 {
-    u16                    id;
-    s8                     kind;
-    u8                     extra;
+    u16                    control;
+    u8                     actionId;
+    u8                     actionArgument;
     _Actor342100BlazeWork* work;
     _Actor342100BlazeWork* newWork;
     s32                    ready;
@@ -674,7 +674,7 @@ void func_actor_342100_801630A4(Task* arg0)
             break;
         case 1:
             if (gameFlagGetNibble(GAME_FLAG_11E) != 0) {
-                if (Gp_TakePendingObj4C(&id, (u8*)&kind, &extra) != 0 && (id & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && kind == 1) {
+                if (worldCollisionReadActionHit(&control, &actionId, &actionArgument) != 0 && (control & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)actionId == 1) {
                     work->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
                     arg0->state++;
                 }

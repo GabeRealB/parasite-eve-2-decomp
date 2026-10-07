@@ -859,14 +859,14 @@ static void Actor03700_Fn000A4(Enemy* arg0, Task* task)
     task->state       = 1;
 }
 
-/// Collision step. Applies the `func_800E0C10` push-back to the root coordinate
+/// Collision step. Applies the `worldCollisionResolvePushback` push-back to the root coordinate
 /// (a delta for 1, an absolute reset to `prevPos` for 2), then walks the four
 /// contacts: kind 1, a player's body, sets `touchingPlayer` and pushes the actor
 /// out along the deepest overlap; kind 2 is a hit from a player slot, which
 /// deals its damage and spawns the hit effect. Any damage kills, recording
 /// `deathEffect`; a hit that only repels sends an actor off its perch into
 /// `ACTION_RETREAT`, or into `ACTION_RELEASE` while it holds the player.
-/// Moves the root by the grid response `response` of `func_800E0C10`: 1 adds the
+/// Moves the root by the grid response `response` of `worldCollisionResolvePushback`: 1 adds the
 /// push-out it returned, 2 restores the previous position, anything else leaves it.
 static inline void _actor03700ApplyGridResponse(GfxCoord* coord, _Actor03700Work* work, ActorContactOverlapPushScratch* scratch, s32 response)
 {
@@ -912,7 +912,7 @@ static void Actor03700_Fn0042C(Task* task, TmdObject* arg1, s32 arg2)
     work    = task->work;
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactOverlapPushScratch);
     coord   = task->extra.tmd->coords;
-    _actor03700ApplyGridResponse(coord, work, scratch, func_800E0C10(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL));
+    _actor03700ApplyGridResponse(coord, work, scratch, worldCollisionResolvePushback(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), NULL));
     i                    = 0;
     work->touchingPlayer = 0;
     do {

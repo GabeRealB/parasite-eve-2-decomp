@@ -2029,7 +2029,7 @@ static void func_actor_120300_801335D8(Task* task)
 /// up (`Gp_StateC08.mode` / `gDisplayState.pendingMode`), builds the work block, then either arms
 /// play (`func_actor_120300_80133330`) once flag nibble 0x2D is set or sends
 /// the slot-3 weapon record and starts the script. States 1-4 step the area
-/// records, the pending `Gp_TakePendingObj4C` cue, and the overlay-load
+/// records, the pending `worldCollisionReadActionHit` cue, and the overlay-load
 /// phases. Every path but the cutscene-busy early-out then ticks the two
 /// animation helpers, draws the floor quad, and scales the model.
 void func_actor_120300_801337C4(Task* arg0)
@@ -2102,7 +2102,7 @@ void func_actor_120300_801337C4(Task* arg0)
         case 2:
             ready = 0;
             temp  = arg0->work;
-            if ((s16)Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
+            if ((s16)worldCollisionReadActionHit(&evtId, &evtKind, &evtSub) != 0) {
                 if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC)) {
                     if ((evtId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
                         ready = gPlayerStatus.interactionPressed != 0;

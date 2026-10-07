@@ -1286,7 +1286,7 @@ static __inline__ s32 _actor01100FindClass2Contact(SVECTOR* out, WorldCollisionC
 }
 
 /// Pushes `coord` out of the world contacts in `contacts` with
-/// `func_800E0C10`, stepping each nonzero fractional X/Z delta one unit away
+/// `worldCollisionResolvePushback`, stepping each nonzero fractional X/Z delta one unit away
 /// from zero, and raises the height by 0x80 for the caller to restore.
 /// Returns nonzero when the push moved the model on X or Z; always 0 while
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is 1.
@@ -1302,7 +1302,7 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, WorldCollisionContact*
     SCRATCH_STACK_RESERVE_BLOCK(ActorContactPushScratch);
     block        = SCRATCH_STACK_CURSOR(ActorContactPushScratch);
     block->moved = 0;
-    if (func_800E0C10(contacts, &block->delta, 3, NULL) != 0) {
+    if (worldCollisionResolvePushback(contacts, &block->delta, 3, NULL) != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
         coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
         coord->coord.t[1] += block->delta.fixed.vy.halves.integer;
         coord->coord.t[2] += block->delta.fixed.vz.halves.integer;

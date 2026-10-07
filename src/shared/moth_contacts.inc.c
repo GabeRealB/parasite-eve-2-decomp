@@ -26,7 +26,7 @@ void mothContacts(Task* arg0)
     head     = SCRATCH_STACK_CURSOR(void);
     delta    = (SCRATCH_STACK_CURSOR(void) = head - 1);
     coord    = arg0->extra.tmd->coords;
-    movement = func_800E0C10(work->gridContacts, delta, ARRAY_SIZE(work->gridContacts), 0);
+    movement = worldCollisionResolvePushback(work->gridContacts, delta, ARRAY_SIZE(work->gridContacts), 0);
     switch (movement) {
         case 0:
             break;

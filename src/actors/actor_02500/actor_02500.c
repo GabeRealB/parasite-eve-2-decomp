@@ -789,7 +789,7 @@ static void Actor02500_Fn00078(Enemy* ctx, Task* actor)
 }
 
 /// Per-frame collision and damage pass. Carves an `ActorOverlapPushScratch` off
-/// the scratchpad stack, lets `func_800E0C10` resolve this frame's movement
+/// the scratchpad stack, lets `worldCollisionResolvePushback` resolve this frame's movement
 /// into it, then walks the three `hitContacts` records: kind 2 is a hit that
 /// costs the enemy HP and plays a sound, kinds 1 and 3 push it away from the
 /// obstacle, and the strongest push is applied to the coordinate at the end.
@@ -819,10 +819,10 @@ static void Actor02500_Fn00494(Task* actor)
     coord                                                 = actor->extra.tmd->coords;
     ctx                                                   = actor->spawnArg2.pointer;
     work->blocked                                         = 0;
-    switch (func_800E0C10(work->gridContacts, &frame->delta, ARRAY_SIZE(work->gridContacts), NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->gridContacts, &frame->delta, ARRAY_SIZE(work->gridContacts), NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
             coord->coord.t[1] += frame->delta.fixed.vy.halves.integer;
             coord->coord.t[2] += frame->delta.fixed.vz.halves.integer;
@@ -830,7 +830,7 @@ static void Actor02500_Fn00494(Task* actor)
                 work->blocked = 1;
             }
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0] = work->prevPos.vx;
             coord->coord.t[1] = work->prevPos.vy;
             coord->coord.t[2] = work->prevPos.vz;

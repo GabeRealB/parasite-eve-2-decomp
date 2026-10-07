@@ -1819,7 +1819,7 @@ static void func_actor_521100_801322F8(Task* arg0, TmdObject* arg1, s32 arg2)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactDeltaWideScratch);
     coord   = arg0->extra.tmd->coords;
     enemy   = arg0->spawnArg2.pointer;
-    result  = func_800E0C10(work->groundContacts, &scratch->delta, ARRAY_SIZE(work->groundContacts), NULL);
+    result  = worldCollisionResolvePushback(work->groundContacts, &scratch->delta, ARRAY_SIZE(work->groundContacts), NULL);
     switch (result) {
         case 0:
             break;

@@ -21,8 +21,8 @@ extern WorldCollisionPairHandler Gp_PairHandlers[5];
 /// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.
 extern WorldCollisionPairRule D_8010FA4C[4][4];
 
-/// Set to 1 by `Gp_TakePendingObj4C` when a pending `Gp_PendingObj4C` node is found;
-/// `Gp_TickWorldCollision` then calls `Gp_ClearPendingObj4C` to clear those flags.
+/// Set to 1 by `worldCollisionReadActionHit` when a pending `Gp_PendingObj4C` node is found;
+/// `Gp_TickWorldCollision` then calls `worldCollisionClearActionHits` to clear those flags.
 extern s32 Gp_PendingObj4CFlag;
 
 void Gp_CollideObjGrid(WorldCollisionBody* arg0);
@@ -105,7 +105,13 @@ extern WorldCollisionBody* Gp_ObjList7;
 
 extern WorldCollisionBody* Gp_ObjList8;
 
-void Gp_ClearObjHeads(void);
+/// Drops all body, trigger and occluder list bindings and the active room grid.
+///
+/// Also resets the action-hit clearing gate. Does not walk the old lists,
+/// repair node links or clear LINKED, ENABLED, contacts or hit latches, and frees
+/// no storage. Use at area-load teardown after old owners stop using the lists;
+/// retained nodes must have their list state reinitialized before relinking.
+void worldCollisionResetListsAndGrid(void);
 
 /// Pair-dispatch callback for routes that perform no contact test.
 ///
@@ -113,15 +119,46 @@ void Gp_ClearObjHeads(void);
 /// the handler index, changes no state, and returns 0 (no contact).
 s32 worldCollisionPairNop(WorldCollisionBody* firstBody, WorldCollisionBody* secondBody, s32 handlerIndex);
 
-void Gp_ClearObj4AList(s32 arg0);
+/// Empties one trigger list and removes runtime list/pass state from its nodes.
+///
+/// `listIndex` selects ACTION or VIEW_BOUNDARIES on a live, acyclic list. Clears
+/// every node's links and flags except its kind and resource LAST marker;
+/// geometry, transform and hit latch survive. Storage remains owned by the
+/// caller. Empty lists are unchanged.
+void worldCollisionClearTriggerList(s32 listIndex);
 
-void Gp_LinkObj3A(s32 arg0, WorldCollisionOccluder* occluder);
+/// Appends a borrowed sight occluder to the active list in insertion order.
+///
+/// `listIndex` must be 0, the sole occluder list. The non-NULL occluder and the
+/// list head remain live until unlinking. Already-LINKED nodes are unchanged;
+/// otherwise installs both links and sets LINKED, preserving all other flags
+/// and geometry. The owner initializes the quad and sets ENABLED separately.
+void worldCollisionLinkOccluder(s32 listIndex, WorldCollisionOccluder* occluder);
 
-void Gp_ClearObj3AList(s32 arg0);
+/// Empties the active sight-occluder list and clears each node's runtime state.
+///
+/// `listIndex` must be 0 and the list live and acyclic. Clears both links and
+/// flag bits 3..6, preserving the uninterpreted low three bits, resource LAST
+/// marker and all geometry. Does not free the borrowed records. An empty list
+/// is unchanged.
+void worldCollisionClearOccluderList(s32 listIndex);
 
-void Gp_LoadRoomParams(void);
+/// Loads the current area's eight surface-class pushback suppression flags.
+///
+/// Requires a live session and loaded stage/area table with all eight non-NULL
+/// surface records. Clears the active cache to APPLY_PUSHBACK, then copies each
+/// record's full suppressPushback byte into its s32 cache entry. Grid response
+/// queries use zero to enable correction and any nonzero value to suppress it.
+void worldCollisionLoadSurfacePushbackFlags(void);
 
-void Gp_CommitObj4CSave(void);
+/// Consumes view-boundary latches and requests the last applicable destination view.
+///
+/// Every hit on the live, acyclic boundary list is cleared. A hit requests its
+/// parameter1 destination in the live save only when parameter0 equals the
+/// session's source view; that source remains unchanged throughout the walk,
+/// so the last matching entry wins. Parameters are valid 1-based views in the
+/// current room. No node is unlinked or freed, and no hit is required to run.
+void worldCollisionConsumeViewBoundaryHits(void);
 
 void Gp_CollideLists(WorldCollisionBody* a, WorldCollisionBody* b);
 
@@ -129,9 +166,29 @@ void Gp_CollideListGrid(WorldCollisionBody* node);
 
 void func_800E0608(WorldCollisionBody* node, s32 mask, s32 match);
 
-void func_800E06AC(WorldCollisionBody* node, s32 mask, s32 match);
+/// Tests enabled view boundaries against the first body matching a flags filter.
+///
+/// Compares `(body->flags & flagsMask)` with the low halfword of `flagsMatch`.
+/// Matching bodies must be motion spheres with live composed transforms; the
+/// player task must exist and its previousPosition supplies the movement origin
+/// in the body's parent frame. Tests every enabled boundary on the live view
+/// list, latching hits without clearing earlier ones. The boundary cursor is
+/// initialized once and is exhausted by the first matching body; later matching
+/// bodies receive no tests. Borrows all storage and changes GTE state.
+void worldCollisionScanViewBoundaries(WorldCollisionBody* body, s32 flagsMask, s32 flagsMatch);
 
-void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
+/// Converts a composed view-space position to signed room-grid XZ cell indices.
+///
+/// Requires the active grid, its composed view transform and positive cellSize.
+/// Applies the transpose rotation, then subtracts the view coordinate's local
+/// XZ translation and adds the grid biases before division in game units.
+/// A negative biased axis produces WORLD_COLLISION_GRID_INVALID_CELL; a
+/// nonnegative axis divides by cellSize and narrows to a signed halfword.
+/// Y is set to zero and the output pad halfword is untouched. Upper bounds are
+/// checked by callers, not clamped here. Input XYZ is unchanged. Storage must
+/// be clear of the initialized scratch stack's 16-byte reservation, released
+/// before return. Changes GTE state and retains no pointers.
+void worldCollisionViewToCell(const VECTOR* viewPosition, SVECTOR* cellOut);
 
 /// Places a body's local centre/origin in its cached coordinate composition frame.
 ///
@@ -160,6 +217,11 @@ void worldCollisionGetBodyComposedPosition(const WorldCollisionBody* body, VECTO
 /// and arithmetic state, and retains no pointers.
 void worldCollisionPlaceFloorSegment(const WorldCollisionBody* body, VECTOR endpoints[2], SVECTOR* direction);
 
-void Gp_ClearPendingObj4C(void);
+/// Clears every hit latch on the linked action-trigger list.
+///
+/// Leaves links, geometry, flags and the action-hit clearing gate unchanged.
+/// The collision tick calls this before rescanning once an action hit has been
+/// read; direct callers need only supply a live, acyclic list.
+void worldCollisionClearActionHits(void);
 
 #endif // GAMEPLAY_PRIVATE_WORLD_COLLISION_H

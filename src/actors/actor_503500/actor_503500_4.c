@@ -5167,7 +5167,7 @@ static void func_actor_503500_80144778(Task* arg0)
     work     = arg0->work;
     contacts = work->contacts;
     if (work->landed == 0) {
-        result                  = func_800E0C10(contacts, &delta, ARRAY_SIZE(work->contacts), NULL);
+        result                  = worldCollisionResolvePushback(contacts, &delta, ARRAY_SIZE(work->contacts), NULL);
         work->gridContactResult = result;
         switch (result) {
             case 0:

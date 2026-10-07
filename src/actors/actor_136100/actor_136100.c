@@ -2015,7 +2015,7 @@ void func_actor_136100_8013379C(s32 arg0)
     }
 }
 
-/// Cue handler: when the pending `Gp_TakePendingObj4C` event is a positive
+/// Cue handler: when the pending `worldCollisionReadActionHit` event is a positive
 /// id 5 (and `gPlayerStatus.interactionPressed` is set), kind 0x12 in phase 0 or kind 0x13 in phase 1
 /// notifies via `func_actor_136100_80134A18` and plays the phase's first cue on
 /// the first hit (`func_800E8634`, advancing `followUpSeen`) or its repeat cue after.
@@ -2030,7 +2030,7 @@ static s32 func_actor_136100_80133904(Task* task)
     s16               ready;
 
     ready = 0;
-    if (Gp_TakePendingObj4C(&evtId, &evtKind, &evtSub) != 0) {
+    if (worldCollisionReadActionHit(&evtId, &evtKind, &evtSub) != 0) {
         if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC)) {
             if ((evtId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
                 ready = gPlayerStatus.interactionPressed != 0;
@@ -2112,13 +2112,13 @@ static void func_actor_136100_80133A88(Task* task)
     task->msgTable = D_actor_136100_8013F2F4;
 }
 
-/// Classify the pending `Gp_TakePendingObj4C` event for the cutscene's start
+/// Classify the pending `worldCollisionReadActionHit` event for the cutscene's start
 /// cue: id 5 with kind 0x10 is 1 (phase 0), kind 0x11 is 2 (phase 1), anything
 /// else 0.  The `s16` return is what keeps the result in its own pseudo, copied
 /// into the caller's compare register after the join.
 static inline s16 func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* evtSub)
 {
-    if (Gp_TakePendingObj4C(evtId, evtKind, evtSub) != 0) {
+    if (worldCollisionReadActionHit(evtId, evtKind, evtSub) != 0) {
         if ((*evtId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
             if ((s8)*evtKind == 0x10) {
                 return 1;
@@ -2276,7 +2276,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 }
                 ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, message.animation);
                 func_800E8634(D_actor_136100_8013F46C, 0, D_actor_136100_8013F784);
-                Gp_UnlinkObj4A(0, &D_dryfield_night_main_street_8018824C[8]);
+                worldCollisionUnlinkTrigger(0, &D_dryfield_night_main_street_8018824C[8]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
                 arg0->state++;
@@ -2291,7 +2291,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 }
                 ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, message.animation);
                 func_800E8634(D_actor_136100_8013FD84, 0, D_actor_136100_80140114);
-                Gp_UnlinkObj4A(0, &D_dryfield_night_main_street_8018824C[9]);
+                worldCollisionUnlinkTrigger(0, &D_dryfield_night_main_street_8018824C[9]);
                 ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(arg0, message.copy);
                 gameFlagSetNibble(GAME_FLAG_NIGHT_MAIN_STREET_CUTSCENE_SEEN, 1);
                 arg0->state++;

@@ -47,7 +47,7 @@ void loadingRestoreViewGraphicsTask(Task* task);
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 /// Each entry is an array of `WorldCollisionSurfaceProperties**`, indexed by area - 1.
-/// Each room has eight surface-class pointers; `Gp_LoadRoomParams` copies only
+/// Each room has eight surface-class pointers; `worldCollisionLoadSurfacePushbackFlags` copies only
 /// their `suppressPushback` flags into `Gp_RoomParams`.
 extern WorldCollisionSurfaceProperties*** Gp_RoomParamTables[];
 

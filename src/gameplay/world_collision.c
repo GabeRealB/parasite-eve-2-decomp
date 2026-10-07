@@ -312,13 +312,13 @@ void Gp_TickWorldCollision(Task* unused)
         Gp_CollideLists(Gp_ObjList3, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList4, Gp_ObjList8);
         if (Gp_PendingObj4CFlag != 0) {
-            Gp_ClearPendingObj4C();
+            worldCollisionClearActionHits();
         }
         func_800E0608(Gp_ObjList0, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
                       WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_ROOM_TRIGGER_ENABLED | WORLD_COLLISION_BODY_MOTION_SPHERE);
         if (gGameSession->suppressViewTriggers == 0) {
-            func_800E06AC(Gp_ObjList0, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
-                          WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_MOTION_SPHERE);
+            worldCollisionScanViewBoundaries(Gp_ObjList0, WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_KIND_MASK,
+                                             WORLD_COLLISION_BODY_PAIR_ENABLED | WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED | WORLD_COLLISION_BODY_MOTION_SPHERE);
         }
     }
 }
@@ -622,7 +622,7 @@ void Gp_CollideObjGrid(WorldCollisionBody* arg0)
     SCRATCH_STACK_CURSOR(void) = head - sizeof(_WorldCollisionGridSphereScratch);
     scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
     worldCollisionGetBodyComposedPosition(arg0, &scratch->centre);
-    Gp_LocalToGrid((VECTOR3*)&scratch->centre, (SVECTOR3*)&scratch->gridCell);
+    worldCollisionViewToCell(&scratch->centre, &scratch->gridCell);
 
     if ((u16)scratch->gridCell.vx < Gp_GridParams->cellCountX && (u16)scratch->gridCell.vz < Gp_GridParams->cellCountZ) {
         cell = Gp_GridParams->cellFaceIds[scratch->gridCell.vx * Gp_GridParams->cellCountZ + scratch->gridCell.vz];
@@ -909,7 +909,7 @@ void Gp_CollideObjGridDir(WorldCollisionBody* arg0)
     scratch                    = (_WorldCollisionGridSphereScratch*)(head - sizeof(_WorldCollisionGridSphereScratch));
     motionContext              = arg0->context.motion;
     worldCollisionGetBodyComposedPosition(arg0, &scratch->centre);
-    Gp_LocalToGrid((VECTOR3*)&scratch->centre, (SVECTOR3*)&scratch->gridCell);
+    worldCollisionViewToCell(&scratch->centre, &scratch->gridCell);
 
     _worldCollisionCollideMovingSphereCell(arg0, scratch, motionContext);
 

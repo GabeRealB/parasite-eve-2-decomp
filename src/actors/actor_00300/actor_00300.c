@@ -1517,15 +1517,15 @@ static void Actor00300_Fn00E54(Task* arg0)
     scratch = SCRATCH_STACK_CURSOR(_Actor00300HitScratch);
     enemy   = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->gridContacts, &scratch->delta, ARRAY_SIZE(work->gridContacts), NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->gridContacts, &scratch->delta, ARRAY_SIZE(work->gridContacts), NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             self->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
             self->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
             self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             self->coord.t[0] = work->prevPos.vx;
             self->coord.t[1] = work->prevPos.vy;
             self->coord.t[2] = work->prevPos.vz;
@@ -1534,14 +1534,14 @@ static void Actor00300_Fn00E54(Task* arg0)
     worldCollisionClearContacts(work->gridContacts);
 
     if (work->hitBody.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
-        switch (func_800E0C10(work->hitContacts, &scratch->delta, ARRAY_SIZE(work->hitContacts), NULL)) {
-            case 0:
+        switch (worldCollisionResolvePushback(work->hitContacts, &scratch->delta, ARRAY_SIZE(work->hitContacts), NULL)) {
+            case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
                 break;
-            case 1:
+            case WORLD_COLLISION_PUSHBACK_GRID_HIT:
                 self->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
                 self->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
-            case 2:
+            case WORLD_COLLISION_PUSHBACK_OPPOSED:
                 self->coord.t[0] = work->prevPos.vx;
                 self->coord.t[2] = work->prevPos.vz;
                 break;

@@ -12,7 +12,7 @@ typedef struct {
 } _GolemKnightBishopHitScratch;
 STATIC_ASSERT_SIZEOF(_GolemKnightBishopHitScratch, 0x30);
 
-/// Per-frame hit handler: applies the `func_800E0C10` push-back from
+/// Per-frame hit handler: applies the `worldCollisionResolvePushback` push-back from
 /// `groundContacts` and (while `hurtBody` is grid-enabled) `hurtContacts` to
 /// the root coordinate, counts `hitCooldown` down and re-arms `hurtBody` when
 /// it ends, and for each weapon hit in `hurtContacts` outside the cooldown
@@ -46,15 +46,15 @@ void golemKnightBishopTakeHits(Task* arg0)
     coord                                              = arg0->extra.tmd->coords;
     enemy                                              = arg0->spawnArg2.pointer;
 
-    switch (func_800E0C10(work->groundContacts, &sc->delta, ARRAY_SIZE(work->groundContacts), NULL)) {
-        case 0:
+    switch (worldCollisionResolvePushback(work->groundContacts, &sc->delta, ARRAY_SIZE(work->groundContacts), NULL)) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
             coord->coord.t[0] += head[-1].delta.fixed.vx.halves.integer;
             coord->coord.t[1] += sc->delta.fixed.vy.halves.integer;
             coord->coord.t[2] += sc->delta.fixed.vz.halves.integer;
             break;
-        case 2:
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
             coord->coord.t[0] = work->prevRootPos.vx;
             coord->coord.t[1] = work->prevRootPos.vy;
             coord->coord.t[2] = work->prevRootPos.vz;
@@ -63,14 +63,14 @@ void golemKnightBishopTakeHits(Task* arg0)
     worldCollisionClearContacts(work->groundContacts);
 
     if (work->hurtBody.flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
-        switch (func_800E0C10(work->hurtContacts, &sc->delta, ARRAY_SIZE(work->hurtContacts), NULL)) {
-            case 0:
+        switch (worldCollisionResolvePushback(work->hurtContacts, &sc->delta, ARRAY_SIZE(work->hurtContacts), NULL)) {
+            case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
                 break;
-            case 1:
+            case WORLD_COLLISION_PUSHBACK_GRID_HIT:
                 coord->coord.t[0] += sc->delta.fixed.vx.halves.integer;
                 coord->coord.t[2] += sc->delta.fixed.vz.halves.integer;
                 break;
-            case 2:
+            case WORLD_COLLISION_PUSHBACK_OPPOSED:
                 coord->coord.t[0] = work->prevRootPos.vx;
                 coord->coord.t[2] = work->prevRootPos.vz;
                 break;

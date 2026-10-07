@@ -117,7 +117,7 @@ void func_800AA548(s32 arg0)
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0)) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 1;
     }
-    Gp_LoadRoomParams();
+    worldCollisionLoadSurfacePushbackFlags();
     gGameSession->cutsceneHold = 0;
     Gp_ResetMenuLock();
     displaySetShakeY(0);
@@ -553,7 +553,7 @@ void Gp_LoadWaitAreaCd(Task* task)
     }
 
     if (_gpAdvanceAreaCd()) {
-        Gp_ClearObjHeads();
+        worldCollisionResetListsAndGrid();
         Tmd_InitLists();
         ds2 = &gDisplayState;
         actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[ds2->drawBuffer]);
