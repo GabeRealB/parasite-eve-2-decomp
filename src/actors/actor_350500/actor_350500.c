@@ -33,7 +33,7 @@ extern AnimationSet*  D_actor_350500_80168E8C[5];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
+/// `_reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -41,8 +41,8 @@ extern TaskMessageEntry gReverseWalkMessages[];
 
 /// Spawn, tick and exit handlers, dispatched by `func_actor_350500_80162360`.
 static const TaskFuncTable3 D_actor_350500_80161E24 = { {
-    reverseWalkSpawn,
-    reverseWalkUpdate,
+    _reverseWalkSpawn,
+    _reverseWalkUpdate,
     _reverseWalkExit,
 } };
 
@@ -205,7 +205,7 @@ TaskMessageEntry gReverseWalkMessages[6] = {
     { ACTOR_MESSAGE_WALK_TO, _reverseWalkStartWalkMsg },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor350500ReverseWalkCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
-}; /// Per-frame tick: runs the idle or the walk handler `walk.motion` selects,
+};
 #include "../../shared/reversing_walker_update.inc.c"
 
 #include "../../shared/actor_motion_arrive19.inc.c"

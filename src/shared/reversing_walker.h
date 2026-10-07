@@ -49,9 +49,9 @@ enum {
 /// The facing step begins each new walk and is restored when the walk ends.
 enum { REVERSE_WALK_STEP_FACE_TARGET = 0 };
 
-void        reverseWalkUpdate(Task* arg0);
+static void _reverseWalkUpdate(Task* task);
 static s32  _reverseWalkStartWalkMsg(Task* task, s32 messageId, const ActorTransform* destination, const ActorMotionWalkAnim* animations);
-void        reverseWalkSpawn(Task* arg0);
+static void _reverseWalkSpawn(Task* task);
 static void _reverseWalkOrientForWalk(Task* task);
 static void _reverseWalkBeginMove(Task* task);
 static void _reverseWalkTurnToYaw(Task* task);

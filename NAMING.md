@@ -610,8 +610,9 @@ task's work block `ReverseWalkWork`. `KyleMadiganWalkerWork` in
 `include/actors/actor.h` is the work block of the twenty-part Kyle Madigan
 walker that `actor_135600` and `actor_350700` each carry as their own
 functions, with the tasks of his hands and of what he holds.
-The facing, movement-start, final-turn, lighting, idle, walk-phase dispatch,
-exit and walk/draw message handlers keep static per-carrier instances marked
+The spawn, frame update, velocity integration, facing, movement-start,
+final-turn, lighting, idle, walk-phase dispatch, exit and walk/draw message
+handlers keep static per-carrier instances marked
 `_reverseWalk`. Package-local direction-command handlers retain their package
 prefix.
 

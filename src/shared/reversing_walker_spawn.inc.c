@@ -1,32 +1,36 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
-/// Spawn state of the enemy actor: allocates the 0x4C8-byte work block that
-/// every later handler reads through `Task::work`, seeds the three -1 bytes
-/// and three cleared words the work's own init expects, republishes the light
-/// and colour matrices onto the display object, then installs the message
-/// table and the exit handler. An allocation failure ends the task instead of
-/// leaving a half-built actor behind.
-void reverseWalkSpawn(Task* arg0)
+/// Initializes the reversing walker's owned work, messages and teardown callback.
+///
+/// Call once in task state 0 with a live nineteen-part TMD model, no existing
+/// work and an owned enemy record in `spawnArg2.pointer`. Allocates zeroed
+/// `ReverseWalkWork` on the primary heap, initially idle with backward walks
+/// selected. No animation context is bound until a play request.
+/// The model borrows the work's light and colour matrices until teardown.
+/// Success advances the task to update state 1; failure releases the enemy
+/// and starts task teardown, so the caller must not use them afterwards.
+static void _reverseWalkSpawn(Task* task)
 {
+    enum { REVERSE_WALK_BUFFER_RELEASE_DISABLED = -1 };
     ReverseWalkWork* work;
 
     work = memCalloc(sizeof(ReverseWalkWork), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
 
-    arg0->work               = work;
+    task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown      = -1;
+    work->freeCountdown      = REVERSE_WALK_BUFFER_RELEASE_DISABLED;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    _reverseWalkBindLighting(arg0);
+    _reverseWalkBindLighting(task);
 
-    arg0->msgTable     = gReverseWalkMessages;
-    arg0->exitCallback = _reverseWalkExit;
-    arg0->state       += 1;
+    task->msgTable     = gReverseWalkMessages;
+    task->exitCallback = _reverseWalkExit;
+    task->state       += 1;
 }

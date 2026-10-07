@@ -40,7 +40,7 @@ extern AnimationSet*  D_actor_350700_801708C0[6];
 extern AnimationSet** gActorMotionAnimBanks[1];
 
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
+/// `_reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -66,8 +66,8 @@ static void _actor350700KyleMadiganWalkerBeginMove(Task* task);
 /// Spawn, tick and exit handlers of the enemy actor, dispatched by
 /// `func_actor_350700_80162398`.
 static const TaskFuncTable3 D_actor_350700_80161E24 = { {
-    reverseWalkSpawn,
-    reverseWalkUpdate,
+    _reverseWalkSpawn,
+    _reverseWalkUpdate,
     _reverseWalkExit,
 } };
 
@@ -536,7 +536,7 @@ TaskMessageEntry D_actor_350700_8017090C[6] = {
     { ACTOR_MESSAGE_WALK_TO, _actorMotionStartWalk },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor350700KyleMadiganWalkerIgnoreCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
-}; /// Per-frame tick of the enemy actor: dispatches through the local two-entry table
+};
 #include "../../shared/reversing_walker_update.inc.c"
 
 #include "../../shared/actor_motion_arrive19.inc.c"
