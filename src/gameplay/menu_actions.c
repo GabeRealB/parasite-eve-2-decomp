@@ -154,7 +154,7 @@ static InventoryItemRow* func_800CE980(InventoryItemRange* arg0, s32 arg1);
 
 static s32 func_800CEA00(InventoryItemRange* arg0, s32 arg1);
 
-static s32 Gp_IsEquippedItem(s32 arg0);
+static s32 _equipmentIsSelectedItem(s32 itemId);
 
 static s32 func_800CEC5C(InventoryItemRow* arg0);
 
@@ -178,7 +178,7 @@ static void Gp_DrawMapMarks(Task* arg0);
 
 static void func_800D0C34(Task* arg0);
 
-static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2);
+static s32 _menuMapDrawAreaIcons(const Task* task, u8 area, u8 unvisited);
 
 static void Gp_EnqueueMapRoomCd(void);
 
@@ -194,7 +194,7 @@ static void func_800D2020(u8 arg0);
 
 static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s32 comparePreviousLevel, s32 barX, s32 valueY, s32 column);
 
-static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
+static void _itemMenuDrawPeSpecifications(UiObject* object, s32 abilityId, s32 nextLevel);
 
 /// Texture treatment for a map area's shape, independent of its visited flags.
 typedef enum {
@@ -217,6 +217,32 @@ enum {
     ATTACHMENT_MENU_ENERGY_MASK   = 0xC,
     ATTACHMENT_MENU_ENERGY_SHIFT  = 2,
     ATTACHMENT_MENU_LEVEL_MASK    = 3
+};
+
+/// Constants used by this translation unit's item-menu callbacks.
+enum {
+    ITEM_MENU_STATE_INITIAL                  = 0,
+    ITEM_MENU_TEXT_COLOR_RGB                 = 0x606060,
+    ITEM_MENU_PE_DISPLAY_CURRENT_LEVEL       = 0,
+    ITEM_MENU_PE_DISPLAY_NEXT_LEVEL          = 1,
+    ITEM_MENU_COMMAND_USE_ATTACH             = 6,
+    ITEM_MENU_COMMAND_KEY_ITEMS              = 8,
+    ITEM_MENU_NOTICE_NONE                    = -1,
+    ITEM_MENU_DISCARD_ALLOWED                = 0x10,
+    ITEM_MENU_NOTICE_CANNOT_DISCARD          = 1,
+    ITEM_MENU_NOTICE_CANNOT_DISCARD_EQUIPPED = 2,
+    ITEM_MENU_NOTICE_CANNOT_DISCARD_LOADED   = 3,
+    ITEM_MENU_NOTICE_INSUFFICIENT_EXP        = 12,
+    ITEM_MENU_NOTICE_MAX_PE_LEVEL            = 13,
+    ITEM_MENU_PROMPT_CONFIRM_DISCARD         = 0,
+    ITEM_MENU_ARMOR_ITEM_FIRST               = 0x60,
+    ITEM_MENU_PE_MAX_LEVEL                   = 3,
+    ITEM_MENU_PE_ABILITIES_PER_ELEMENT       = 3,
+    ITEM_MENU_PE_ELEMENT_LOWER_ROW_BIT       = 1,
+    ITEM_MENU_PE_ELEMENT_RIGHT_COLUMN_BIT    = 2,
+    ITEM_MENU_PE_ROW_HEIGHT_PIXELS           = 15,
+    ITEM_MENU_PE_PREVIEW_DESCRIPTION_LINE    = 4,
+    ITEM_MENU_PE_COMMAND_ROW_COUNT           = 2
 };
 
 static inline s32 _gpIsItemRowFree(InventoryItemRow* arg0)
@@ -432,21 +458,26 @@ void Gp_SetHolderItemText(s32 arg0)
     }
 }
 
-static s32 Gp_IsEquippedItem(s32 arg0)
+/// Tests whether an item is the selected weapon, armor or one of that weapon's consumables.
+///
+/// Item ids use weapon 0x80..0x9F, armor 0x60..0x7F and consumable 0xA0..0xBF
+/// ranges. A configured consumable counts even with no remaining load; other
+/// weapons' selections and armor attachments do not count. Returns 0 or 1.
+static s32 _equipmentIsSelectedItem(s32 itemId)
 {
-    s32           ret;
-    PlayerStatus* p;
+    s32                 equipped;
+    const PlayerStatus* player;
 
-    ret = 0;
-    p   = &gPlayerStatus;
-    if ((((u32)(arg0 - 0x80) < 0x20U) && (p->weapon == arg0 - 0x7F)) ||
-        (((u32)(arg0 - 0x60) < 0x20U) && (p->armor == arg0 - 0x5F)) ||
-        (((u32)(arg0 - 0xA0) < 0x20U) && (p->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
-         ((equipmentGetWeaponLoad(p->weapon + 0x7F)->primaryItemId == arg0) ||
-          (equipmentGetWeaponLoad(p->weapon + 0x7F)->secondaryItemId == arg0)))) {
-        ret = 1;
+    equipped = 0;
+    player   = &gPlayerStatus;
+    if ((((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems)) && (player->weapon == itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1))) ||
+        (((u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus)) && (player->armor == itemId - (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) ||
+        (((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) && (player->weapon != PLAYER_STATUS_EQUIPMENT_NONE) &&
+         ((equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->primaryItemId == itemId) ||
+          (equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId == itemId)))) {
+        equipped = 1;
     }
-    return ret;
+    return equipped;
 }
 
 static s32 func_800CEC5C(InventoryItemRow* arg0)
@@ -885,9 +916,9 @@ void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
     }
 }
 
-void func_800CFA34(UiObject* arg0, Task* arg1)
+void itemMenuApplySelectedHealingItem(UiObject* object, Task* task)
 {
-    itemMenuApplyHealingPanel(arg0, arg1, Gp_SelItemRec->itemId);
+    itemMenuApplyHealingPanel(object, task, Gp_SelItemRec->itemId);
 }
 
 void func_800CFA60(Task* arg0)
@@ -1298,7 +1329,7 @@ static void Gp_DrawMapMarks(Task* arg0)
         do {
             if (shapes[(u8)i].page == (s8)Gp_MapRoomId) {
                 if (shapes[(u8)i].model == NULL) {
-                    Gp_DrawMapIcons(arg0, (u8)i, 0);
+                    _menuMapDrawAreaIcons(arg0, (u8)i, 0);
                 } else {
                     which = 0;
                     if ((u8)i >= 0x21U) {
@@ -1325,25 +1356,25 @@ static void Gp_DrawMapMarks(Task* arg0)
                     }
                     if (gameFlagGetNibble(flagTbl[Gp_MapRoomId]) == 0) {
                         if ((bit & flags[which]) == 0) {
-                            if (Gp_DrawMapIcons(arg0, (u8)i, 1) != 0) {
+                            if (_menuMapDrawAreaIcons(arg0, (u8)i, 1) != 0) {
                                 _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_DIM, (u16)scaleQ12);
                             } else {
                                 _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_PATTERN, (u16)scaleQ12);
                             }
                         } else if ((bit & Gp_AreaIdBits[which]) != 0) {
                             _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_RED, (u16)scaleQ12);
-                            Gp_DrawMapIcons(arg0, (u8)i, 0);
+                            _menuMapDrawAreaIcons(arg0, (u8)i, 0);
                         } else {
-                            Gp_DrawMapIcons(arg0, (u8)i, 0);
+                            _menuMapDrawAreaIcons(arg0, (u8)i, 0);
                         }
                     } else if ((bit & flags[which]) == 0) {
                         _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_DIM, (u16)scaleQ12);
-                        Gp_DrawMapIcons(arg0, (u8)i, 1);
+                        _menuMapDrawAreaIcons(arg0, (u8)i, 1);
                     } else if ((bit & Gp_AreaIdBits[which]) != 0) {
                         _menuMapDrawAreaShape(obj, shapes[(u8)idx].model, MENU_MAP_AREA_FILL_RED, (u16)scaleQ12);
-                        Gp_DrawMapIcons(arg0, (u8)i, 0);
+                        _menuMapDrawAreaIcons(arg0, (u8)i, 0);
                     } else {
-                        Gp_DrawMapIcons(arg0, (u8)i, 0);
+                        _menuMapDrawAreaIcons(arg0, (u8)i, 0);
                     }
                 }
             }
@@ -1436,103 +1467,123 @@ static void func_800D0C34(Task* arg0)
     }
 }
 
-static s32 Gp_DrawMapIcons(Task* arg0, u8 arg1, u8 arg2)
+/// Draws an area's enabled icons on the selected map page and reports an objective marker.
+///
+/// Borrows the live task's UiObject and the current stage (1..5) icon table.
+/// area is the map-area index; nonzero unvisited suppresses fixed icons.
+/// Returns 1 if an objective marker was queued, otherwise 0. The page-zero
+/// terminator must be reached within the byte-sized table index. Icons are
+/// centered 16x16 sprites in signed map pixels, queued below the panel OT base;
+/// the caller supplies packet space and valid OT indices. Scratch is released
+/// per icon. Objective brightness pulses from 0 to 255 using the display clock.
+static s32 _menuMapDrawAreaIcons(const Task* task, u8 area, u8 unvisited)
 {
-    UiObject*    obj;
-    MenuMapIcon* icons;
-    u8           i;
-    s32          ret;
-    u8           otOff;
-    s32          lum;
+    enum {
+        MENU_MAP_ICON_PAGE_END           = 0,
+        MENU_MAP_ICON_FIXED_PICTURE_KIND = 0,
+        MENU_MAP_ICON_SHADED_SPRITE_CODE = 0x7C,
+        MENU_MAP_ICON_RAW_SPRITE_CODE    = 0x7D,
+        MENU_MAP_ICON_SINE_ONE_Q12       = 4096,
+        MENU_MAP_ICON_BRIGHTNESS_LIMIT   = 256,
+        MENU_MAP_ICON_BRIGHTNESS_MAX     = 255,
+        MENU_MAP_ICON_HALF_SIZE_PIXELS   = 8,
+        MENU_MAP_ICON_FIXED_OT_OFFSET    = 27,
+        MENU_MAP_ICON_MARKER_OT_OFFSET   = 28
+    };
+    UiObject*          object;
+    const MenuMapIcon* icons;
+    u8                 iconIndex;
+    s32                drewObjective;
+    u8                 otOffset;
+    s32                brightness;
 
-    otOff = 0;
-    i     = 0;
-    ret   = 0;
-    obj   = arg0->spawnArg2.pointer;
-    icons = D_8010F0CC[gGameSession->location.loc.stage - 1];
-    lum   = (rsin(gDisplayState.loopCount << 6) + 0x1000) >> 5;
+    otOffset      = 0;
+    iconIndex     = 0;
+    drewObjective = 0;
+    object        = task->spawnArg2.pointer;
+    icons         = D_8010F0CC[gGameSession->location.loc.stage - 1];
+    brightness    = (rsin(gDisplayState.loopCount << 6) + MENU_MAP_ICON_SINE_ONE_Q12) >> 5;
 
+    // Objective markers use the whole objective byte; fixed icons use nibble flags.
     for (;;) {
         _MenuMapIconCentreScratch* centre;
-        SPRT_16*                   p;
-        DR_TPAGE*                  dr;
-        u16                        clut;
+        SPRT_16*                   sprite;
+        DR_TPAGE*                  texturePage;
+        u16                        palette;
 
-        if (icons[i].page == 0) {
+        if (icons[iconIndex].page == MENU_MAP_ICON_PAGE_END) {
             break;
         }
-        if (icons[i].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
-            if (icons[i].condition != gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE)) {
-                i++;
+        if (icons[iconIndex].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
+            if (icons[iconIndex].condition != gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE)) {
+                iconIndex++;
                 continue;
             }
-        } else if (icons[i].condition != 0) {
-            if (gameFlagGetNibble(icons[i].condition) == 0) {
-                i++;
+        } else if (icons[iconIndex].condition != 0) {
+            if (gameFlagGetNibble(icons[iconIndex].condition) == 0) {
+                iconIndex++;
                 continue;
             }
         }
-        if ((arg2 != 0) && (icons[i].kind < MENU_MAP_ICON_KIND_OBJECTIVE)) {
-            i++;
+        if ((unvisited != 0) && (icons[iconIndex].kind < MENU_MAP_ICON_KIND_OBJECTIVE)) {
+            iconIndex++;
             continue;
         }
-        if ((icons[i].page == (s8)Gp_MapRoomId) && (icons[i].area == arg1)) {
+        if ((icons[iconIndex].page == (s8)Gp_MapRoomId) && (icons[iconIndex].area == area)) {
             centre          = SCRATCH_STACK_RESERVE_BLOCK(_MenuMapIconCentreScratch);
-            centre->field_8 = 0;
-            centre->field_6 = 0;
-            centre->field_4 = 0;
-            centre->x       = icons[i].x;
-            p               = gGpuPrimCursor;
-            gGpuPrimCursor  = p + 1;
-            centre->y       = icons[i].y;
-            if (icons[i].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
-                if (lum == 0x100) {
-                    lum = 0xFF;
+            centre->field_4 = centre->field_6 = centre->field_8 = 0;
+            centre->x                                           = icons[iconIndex].x;
+            sprite                                              = gGpuPrimCursor;
+            gGpuPrimCursor                                      = sprite + 1;
+            centre->y                                           = icons[iconIndex].y;
+            if (icons[iconIndex].kind == MENU_MAP_ICON_KIND_OBJECTIVE) {
+                if (brightness == MENU_MAP_ICON_BRIGHTNESS_LIMIT) {
+                    brightness = MENU_MAP_ICON_BRIGHTNESS_MAX;
                 }
-                GPU_PRIMITIVE_COLOR_WORD(p, 0) = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+                GPU_PRIMITIVE_COLOR_WORD(sprite, 0) = ((brightness & 0xFF) << 0x10) | ((brightness & 0xFF) << 8) | (brightness & 0xFF);
             }
-            setlen(p, 3);
-            setcode(p, 0x7C);
-            if (icons[i].kind != MENU_MAP_ICON_KIND_OBJECTIVE) {
-                setcode(p, 0x7D);
+            setlen(sprite, sizeof(*sprite) / sizeof(u32) - 1);
+            setcode(sprite, MENU_MAP_ICON_SHADED_SPRITE_CODE);
+            if (icons[iconIndex].kind != MENU_MAP_ICON_KIND_OBJECTIVE) {
+                setcode(sprite, MENU_MAP_ICON_RAW_SPRITE_CODE);
             }
-            setSemiTrans(p, 1);
-            switch (icons[i].kind) {
-                case 0:
-                    clut    = GetClut(0x20, 0x101);
-                    otOff   = 0x1B;
-                    p->clut = clut;
-                    p->u0   = 0x50;
-                    p->v0   = 0;
+            setSemiTrans(sprite, 1);
+            switch (icons[iconIndex].kind) {
+                case MENU_MAP_ICON_FIXED_PICTURE_KIND:
+                    palette      = GetClut(0x20, 0x101);
+                    otOffset     = MENU_MAP_ICON_FIXED_OT_OFFSET;
+                    sprite->clut = palette;
+                    sprite->u0   = 0x50;
+                    sprite->v0   = 0;
                     break;
                 case MENU_MAP_ICON_KIND_TELEPHONE:
-                    clut    = GetClut(0x10, 0x101);
-                    otOff   = 0x1C;
-                    p->clut = clut;
-                    p->u0   = 0x40;
-                    p->v0   = 0;
+                    palette      = GetClut(0x10, 0x101);
+                    otOffset     = MENU_MAP_ICON_MARKER_OT_OFFSET;
+                    sprite->clut = palette;
+                    sprite->u0   = 0x40;
+                    sprite->v0   = 0;
                     break;
                 case MENU_MAP_ICON_KIND_OBJECTIVE:
-                    clut    = GetClut(0x40, 0x101);
-                    otOff   = 0x1C;
-                    ret     = 1;
-                    p->clut = clut;
-                    p->u0   = 0x70;
-                    p->v0   = 0;
+                    palette       = GetClut(0x40, 0x101);
+                    otOffset      = MENU_MAP_ICON_MARKER_OT_OFFSET;
+                    drewObjective = 1;
+                    sprite->clut  = palette;
+                    sprite->u0    = 0x70;
+                    sprite->v0    = 0;
                     break;
             }
-            p->x0 = centre->x - 8;
-            p->y0 = centre->y - 8;
-            addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - otOff], p);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setDrawTPage(dr, 0, 0, 0xE);
-            addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue - otOff], dr);
+            sprite->x0 = centre->x - MENU_MAP_ICON_HALF_SIZE_PIXELS;
+            sprite->y0 = centre->y - MENU_MAP_ICON_HALF_SIZE_PIXELS;
+            addPrim(&gGpuCurrentOt[object->panel.otIndex.signedValue - otOffset], sprite);
+            texturePage    = gGpuPrimCursor;
+            gGpuPrimCursor = texturePage + 1;
+            setDrawTPage(texturePage, 0, 0, 0xE);
+            addPrim(&gGpuCurrentOt[object->panel.otIndex.signedValue - otOffset], texturePage);
             SCRATCH_STACK_RELEASE_BLOCK(_MenuMapIconCentreScratch);
         }
-        i++;
+        iconIndex++;
     }
-    return ret;
+    return drewObjective;
 }
 
 static void Gp_EnqueueMapRoomCd(void)
@@ -1988,377 +2039,394 @@ void Gp_PeMenuListTask(Task* arg0)
     }
 }
 
-void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawPeUpgradeRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    s32         flags;
-    s32         item;
+    TextDrawReq request;
+    s32         abilityId;
+    s32         noticeId;
 
-    flags = arg1->owner->spawnArg1.value;
-    if (flags & 3) {
-        req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-        req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-        req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.colorRgb   = arg0->colorRgb;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_StrStrengthen);
+    abilityId = object->owner->spawnArg1.value;
+    if (abilityId & ATTACHMENT_MENU_LEVEL_MASK) {
+        request.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+        request.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+        request.otIndex    = object->panel.otIndex.signedValue + 1;
+        request.colorRgb   = list->colorRgb;
+        request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        request.alignment  = TEXT_ALIGNMENT_LEFT;
+        request.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&request, (const u8*)Gp_StrStrengthen);
     } else {
-        req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-        req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-        req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.colorRgb   = arg0->colorRgb;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Gp_StrRevive);
+        request.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+        request.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+        request.otIndex    = object->panel.otIndex.signedValue + 1;
+        request.colorRgb   = list->colorRgb;
+        request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        request.alignment  = TEXT_ALIGNMENT_LEFT;
+        request.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&request, (const u8*)Gp_StrRevive);
     }
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            item = -1;
+            noticeId = ITEM_MENU_NOTICE_NONE;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            if ((flags & 3) == 3) {
-                item = 0xD;
+            if ((abilityId & ATTACHMENT_MENU_LEVEL_MASK) == ITEM_MENU_PE_MAX_LEVEL) {
+                noticeId = ITEM_MENU_NOTICE_MAX_PE_LEVEL;
             }
-            if (item >= 0) {
-                itemMenuSpawnNotice(arg1, item, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
-                arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            if (noticeId >= 0) {
+                itemMenuSpawnNotice(object, noticeId, 0, ITEM_MENU_NOTICE_RESULT_DISMISS);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                uiSpawnObject(&D_8010F7A4, flags, 1, 0xA, arg1);
-                arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                uiSpawnObject(&D_8010F7A4, abilityId, USER_INTERFACE_PANEL_ACTIVE, 0xA, object);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
     }
 }
 
-void Gp_PeCommandMenuTask(Task* arg0)
+void itemMenuPeCommandTask(Task* task)
 {
-    UiObject*          obj;
-    UiList*            menu;
-    Task*              owner;
+    UiObject*          object;
+    UiList*            list;
+    Task*              ownerTask;
     Task*              child;
-    Task*              next;
-    Task*              head;
-    UiObject*          childObj;
-    UiListRowCallback* table;
-    s32                flag;
-    s32                two;
+    Task*              nextChild;
+    Task*              firstChild;
+    UiObject*          childObject;
+    UiListRowCallback* callbacks;
+    s32                childResult;
+    s32                rowCount;
 
-    menu = &D_8010F5FC;
-    obj  = arg0->spawnArg2.pointer;
-    if (arg0->state == 0) {
-        table                               = menu->rowCallbacks;
-        table[0]                            = Gp_DrawReviveCmd;
-        table[1]                            = itemMenuDrawPeCancelRow;
-        two                                 = 2;
-        menu->visibleRowCount.unsignedValue = two;
-        menu->itemCount                     = two;
-        if ((arg0->spawnArg1.value & 3) != 3) {
-            itemMenuSetPreviewItem(arg0->spawnArg1.value + 1, CD_COMMAND_DISPLAY_LOAD_MENU);
+    list   = &D_8010F5FC;
+    object = task->spawnArg2.pointer;
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        callbacks                           = list->rowCallbacks;
+        callbacks[0]                        = itemMenuDrawPeUpgradeRow;
+        callbacks[1]                        = itemMenuDrawPeCancelRow;
+        rowCount                            = ITEM_MENU_PE_COMMAND_ROW_COUNT;
+        list->visibleRowCount.unsignedValue = rowCount;
+        list->itemCount                     = rowCount;
+        if ((task->spawnArg1.value & ATTACHMENT_MENU_LEVEL_MASK) != ITEM_MENU_PE_MAX_LEVEL) {
+            itemMenuSetPreviewItem(task->spawnArg1.value + 1, CD_COMMAND_DISPLAY_LOAD_MENU);
         }
     }
-    owner       = obj->owner;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    if (owner->state == 0) {
-        uiFitPanelToList(menu, &(obj)->panel);
-        owner->state = owner->state + 1;
+    ownerTask      = object->owner;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    if (ownerTask->state == ITEM_MENU_STATE_INITIAL) {
+        uiFitPanelToList(list, &(object)->panel);
+        ownerTask->state = ownerTask->state + 1;
     }
-    uiUpdateList(menu, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    uiUpdateList(list, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
-    head = owner->firstChild;
-    if (head != NULL) {
-        child = head;
+    // Child acceptance restores input; a finished upgrade completes this command menu.
+    firstChild = ownerTask->firstChild;
+    if (firstChild != NULL) {
+        child = firstChild;
         do {
-            childObj = child->spawnArg2.pointer;
-            flag     = childObj->result;
-            next     = child->nextSibling;
-            switch (flag) {
+            childObject = child->spawnArg2.pointer;
+            childResult = childObject->result;
+            nextChild   = child->nextSibling;
+            switch (childResult) {
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-                    uiStartTreeClosing(childObj, childObj->owner);
+                    object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+                    uiStartTreeClosing(childObject, childObject->owner);
                     break;
                 case USER_INTERFACE_RESULT_DISMISS:
-                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
                 case USER_INTERFACE_RESULT_CANCEL:
-                    obj->result = flag;
+                    object->result = childResult;
                     break;
             }
-            child = next;
-        } while (child != owner->firstChild);
+            child = nextChild;
+        } while (child != ownerTask->firstChild);
     }
 }
 
-void Gp_DiscardWarnTask(Task* arg0)
+/// Clears a discarded consumable's primary and secondary selections in every saved weapon.
+///
+/// itemId is 0xA0..0xBF. Both the selected id and remaining quantity are reset;
+/// other selections and weapon metadata are retained.
+static inline void _itemMenuClearDiscardedConsumableSelections(s32 itemId)
 {
-    InventoryItemRow* rec;
-    s32               id;
+    s32                  weaponItemId;
+    EquipmentWeaponLoad* weaponLoad;
+
+    weaponItemId = EQUIPMENT_WEAPON_ITEM_FIRST;
+    do {
+        weaponLoad = equipmentGetWeaponLoad(weaponItemId);
+        if (weaponLoad->primaryItemId == itemId) {
+            weaponLoad->primaryItemId = INVENTORY_ITEM_NONE;
+            weaponLoad->primaryQty    = 0;
+        }
+        if (weaponLoad->secondaryItemId == itemId) {
+            weaponLoad->secondaryItemId = INVENTORY_ITEM_NONE;
+            weaponLoad->secondaryQty    = 0;
+        }
+        weaponItemId += 1;
+    } while (weaponItemId < EQUIPMENT_WEAPON_ITEM_FIRST + (s32)ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems));
+}
+
+void itemMenuDiscardTask(Task* task)
+{
+    InventoryItemRow* selectedRow;
+    s32               itemId;
     Task*             child;
-    UiObject*         childObj;
-    UiObject*         parentObj;
-    UiObject*         obj;
-    s32               mode;
-    u8*               text;
-    UiObject*         spawned;
+    UiObject*         answerObject;
+    UiObject*         commandObject;
+    UiObject*         object;
+    s32               restrictionNotice;
+    const u8*         promptText;
+    UiObject*         confirmationMenu;
 
-    rec = Gp_SelItemRec;
-    id  = rec->itemId;
+    selectedRow = Gp_SelItemRec;
+    itemId      = selectedRow->itemId;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    mode        = 0x10;
-    if (Gp_ItemDescs[id].flags & ITEM_FLAG_NO_DISCARD) {
-        mode = 1;
-    } else if (((u32)(id - 0xA0) < 0x20U) && (equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, id) > 0)) {
-        mode = 3;
-    } else if (Gp_IsEquippedItem(id) != 0) {
-        mode = 2;
+    object            = task->spawnArg2.pointer;
+    object->result    = USER_INTERFACE_RESULT_NONE;
+    restrictionNotice = ITEM_MENU_DISCARD_ALLOWED;
+    if (Gp_ItemDescs[itemId].flags & ITEM_FLAG_NO_DISCARD) {
+        restrictionNotice = ITEM_MENU_NOTICE_CANNOT_DISCARD;
+    } else if (((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) && (equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId) > 0)) {
+        restrictionNotice = ITEM_MENU_NOTICE_CANNOT_DISCARD_LOADED;
+    } else if (_equipmentIsSelectedItem(itemId) != 0) {
+        restrictionNotice = ITEM_MENU_NOTICE_CANNOT_DISCARD_EQUIPPED;
     }
-    if (mode != 0x10) {
-        arg0->spawnArg1.value = mode;
-        itemMenuNoticeTask(arg0);
+    if (restrictionNotice != ITEM_MENU_DISCARD_ALLOWED) {
+        task->spawnArg1.value = restrictionNotice;
+        itemMenuNoticeTask(task);
         return;
     }
-    text = Gp_PromptTexts[0];
-    if (arg0->state == 0) {
-        uiSizePanelForTextWide(&(obj)->panel, text);
-        spawned = itemMenuSpawnYesNoMenuDefaultNo(obj);
-        if (spawned != NULL) {
-            spawned->panel.bounds.unsignedRect.x = (obj->panel.bounds.unsignedRect.x + obj->panel.bounds.unsignedRect.w) - 0x18;
+    promptText = Gp_PromptTexts[ITEM_MENU_PROMPT_CONFIRM_DISCARD];
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        uiSizePanelForTextWide(&(object)->panel, promptText);
+        confirmationMenu = itemMenuSpawnYesNoMenuDefaultNo(object);
+        if (confirmationMenu != NULL) {
+            confirmationMenu->panel.bounds.unsignedRect.x = (object->panel.bounds.unsignedRect.x + object->panel.bounds.unsignedRect.w) - 0x18;
         }
-        arg0->state += 1;
+        task->state += 1;
     }
-    uiDrawPanelLabelWithChildFocus(&(obj)->panel, Gp_StrAttention2);
-    textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, text, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    uiDrawPanelLabelWithChildFocus(&(object)->panel, Gp_StrAttention2);
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, promptText, ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 
-    child = arg0->firstChild;
+    // A Yes answer removes the whole stack after clearing its equipment selections.
+    child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            parentObj = arg0->parent->spawnArg2.pointer;
-            if (childObj->resultValue == 0x33) {
-                if ((u32)(id - 0x80) < 0x20U) {
-                    EquipmentWeaponLoad* slot;
-                    PlayerStatus*        cfg;
+        answerObject = child->spawnArg2.pointer;
+        if (answerObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+            commandObject = task->parent->spawnArg2.pointer;
+            if (answerObject->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
+                if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems)) {
+                    EquipmentWeaponLoad* weaponLoad;
+                    PlayerStatus*        player;
 
-                    slot = equipmentGetWeaponLoad(id);
-                    cfg  = &gPlayerStatus;
-                    equipmentClearRemovableLoads(id);
-                    slot->field_4 = 0;
-                    if (cfg->weapon == (id - 0x7F)) {
-                        cfg->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
+                    weaponLoad = equipmentGetWeaponLoad(itemId);
+                    player     = &gPlayerStatus;
+                    equipmentClearRemovableLoads(itemId);
+                    weaponLoad->field_4 = 0;
+                    if (player->weapon == (itemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1))) {
+                        player->weapon = PLAYER_STATUS_EQUIPMENT_NONE;
                     }
-                } else if ((u32)(id - 0xA0) < 0x20U) {
-                    s32                  i;
-                    EquipmentWeaponLoad* slot;
+                } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                    _itemMenuClearDiscardedConsumableSelections(itemId);
+                } else if ((u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus)) {
+                    PlayerStatus* player;
 
-                    i = 0x80;
-                    do {
-                        slot = equipmentGetWeaponLoad(i);
-                        if (slot->primaryItemId == id) {
-                            slot->primaryItemId = INVENTORY_ITEM_NONE;
-                            slot->primaryQty    = 0;
-                        }
-                        if (slot->secondaryItemId == id) {
-                            slot->secondaryItemId = INVENTORY_ITEM_NONE;
-                            slot->secondaryQty    = 0;
-                        }
-                        i += 1;
-                    } while (i < 0xA0);
-                } else if ((u32)(id - 0x60) < 0x20U) {
-                    PlayerStatus* cfg;
-
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[id - 0x60] = 0;
-                    cfg                                                                = &gPlayerStatus;
-                    if (cfg->armor == (id - 0x5F)) {
-                        cfg->armor = PLAYER_STATUS_EQUIPMENT_NONE;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[itemId - ITEM_MENU_ARMOR_ITEM_FIRST] = 0;
+                    player                                                                                       = &gPlayerStatus;
+                    if (player->armor == (itemId - (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) {
+                        player->armor = PLAYER_STATUS_EQUIPMENT_NONE;
                     }
                 }
-                inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, rec, INVENTORY_REMOVE_WHOLE_STACK);
+                inventoryRemoveItemRow(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, selectedRow, INVENTORY_REMOVE_WHOLE_STACK);
             }
-            parentObj->result = USER_INTERFACE_RESULT_CONFIRM;
+            commandObject->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
 
-void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1)
+void itemMenuDrawPeAbilityRow(UiList* list, UiObject* object)
 {
-    s32       count;
-    s32       item;
-    s32       idx;
-    s32       slot;
-    s32       off;
-    s32       base;
-    s32       status;
-    s32       one;
-    UiObject* obj;
+    s32       level;
+    s32       abilityId;
+    s32       elementIndex;
+    s32       energyIndex;
+    s32       elementIdBits;
+    s32       energyIdBase;
+    s32       panelControl;
+    s32       activeMode;
+    UiObject* childObject;
 
-    idx   = arg1->owner->spawnArg1.value;
-    slot  = arg0->currentItemIndex;
-    count = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[slot + idx * 3];
-    off   = idx * 16;
-    base  = slot * 4 + 0x300;
-    item  = off + base + count;
-    if (count == 0) {
-        arg0->colorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
+    elementIndex  = object->owner->spawnArg1.value;
+    energyIndex   = list->currentItemIndex;
+    level         = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[energyIndex + elementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT];
+    elementIdBits = elementIndex * (1 << ATTACHMENT_MENU_ELEMENT_SHIFT);
+    energyIdBase  = energyIndex * (1 << ATTACHMENT_MENU_ENERGY_SHIFT) + ITEM_TEXT_PACKED_ID_FIRST;
+    abilityId     = elementIdBits + energyIdBase + level;
+    if (level == 0) {
+        list->colorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
-    itemMenuDrawItemRow(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, item, arg0->colorRgb, 0);
-    if (count != 0) {
-        itemMenuDrawParasiteEnergyLevel(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, count, arg0->colorRgb);
+    itemMenuDrawItemRow(object, list->rowTextX.signedValue, list->rowTextY.signedValue, abilityId, list->colorRgb, 0);
+    if (level != 0) {
+        itemMenuDrawParasiteEnergyLevel(object, list->rowTextX.signedValue, list->rowTextY.signedValue, level, list->colorRgb);
     }
-    status = arg1->panel.control.word;
-    one    = 1;
-    if (((status >> 16) == one) || (status == one)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            uiSetPromptPeItem(item, 0, 0);
+    panelControl = object->panel.control.word;
+    activeMode   = USER_INTERFACE_PANEL_ACTIVE;
+    if (((panelControl >> 16) == activeMode) || (panelControl == activeMode)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            uiSetPromptPeItem(abilityId, 0, 0);
         }
     }
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        itemMenuSetPreviewItem(abilityId, CD_COMMAND_DISPLAY_LOAD_MENU);
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            one = 1;
-            obj = uiSpawnObject(&D_8010F670, item, one, one, arg1);
+            activeMode  = USER_INTERFACE_PANEL_ACTIVE;
+            childObject = uiSpawnObject(&D_8010F670, abilityId, activeMode, activeMode, object);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            if (obj != NULL) {
-                uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
-                arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            if (childObject != NULL) {
+                uiPositionRowDialog(&(childObject)->panel, list, &(object)->panel);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            one = 1;
-            uiSpawnObject(&D_8010F7F8, item, one, one, arg1);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            activeMode = USER_INTERFACE_PANEL_ACTIVE;
+            uiSpawnObject(&D_8010F7F8, abilityId, activeMode, activeMode, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
 
-void func_800D29B0(Task* arg0)
+/// Sets the list's two or three visible PE abilities from one element's saved levels.
+///
+/// Borrows three levels in 0..3. The third ability is available when learned
+/// or when both preceding abilities reach level 3; item and visible counts agree.
+static inline void _itemMenuSetPeVisibleAbilityCount(UiList* list, const u8* elementLevels)
 {
-    UiObject* obj;
-    UiList*   menu;
-    Task*     child;
-    UiObject* childObj;
-    u8*       levels;
-    s32       flag;
-    s32       last;
-    s32       textIndex;
-
-    obj          = arg0->spawnArg2.pointer;
-    textIndex    = arg0->spawnArg1.value;
-    arg0->status = 0;
-    menu         = &D_80114DF8[arg0->spawnArg1.value];
-    uiDrawPanelLabel(&(obj)->panel, D_8010F644[textIndex]);
-    if (arg0->state == 0) {
-        menu->rowCallbacks                        = D_8010F620;
-        menu->itemCount                           = 3;
-        menu->visibleRowCount.unsignedValue       = 3;
-        menu->wrapNavigation                      = 0;
-        menu->rowHeight                           = 0xF;
-        menu->currentItemIndex                    = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        uiFitPanelToList(menu, &(obj)->panel);
-        levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
-        if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
-            menu->itemCount = menu->visibleRowCount.unsignedValue = 3;
-        } else {
-            menu->itemCount = menu->visibleRowCount.unsignedValue = 2;
-        }
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        menu->selectedItemIndex                   = 0;
-        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        if (arg0->spawnArg1.value & 1) {
-            obj->panel.bounds.unsignedRect.y = obj->panel.bounds.unsignedRect.h - 0x50;
-        }
-        arg0->state++;
-    }
-    levels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[arg0->spawnArg1.value * 3];
-    if (levels[2] != 0 || (levels[0] == 3 && levels[1] == levels[0])) {
-        menu->itemCount = menu->visibleRowCount.unsignedValue = 3;
+    if (elementLevels[2] != 0 || (elementLevels[0] == ITEM_MENU_PE_MAX_LEVEL && elementLevels[1] == elementLevels[0])) {
+        list->itemCount = list->visibleRowCount.unsignedValue = ITEM_MENU_PE_ABILITIES_PER_ELEMENT;
     } else {
-        menu->itemCount = menu->visibleRowCount.unsignedValue = 2;
+        list->itemCount = list->visibleRowCount.unsignedValue = 2;
     }
-    uiUpdateList(menu, &obj->panel);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+}
+
+void itemMenuPeElementTask(Task* task)
+{
+    UiObject* object;
+    UiList*   list;
+    Task*     child;
+    UiObject* childObject;
+    const u8* elementLevels;
+    s32       childResult;
+    s32       lastItemIndex;
+    s32       captionIndex;
+
+    object       = task->spawnArg2.pointer;
+    captionIndex = task->spawnArg1.value;
+    task->status = 0;
+    list         = &D_80114DF8[task->spawnArg1.value];
+    uiDrawPanelLabel(&(object)->panel, (const char*)D_8010F644[captionIndex]);
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        list->rowCallbacks                        = D_8010F620;
+        list->itemCount                           = ITEM_MENU_PE_ABILITIES_PER_ELEMENT;
+        list->visibleRowCount.unsignedValue       = ITEM_MENU_PE_ABILITIES_PER_ELEMENT;
+        list->wrapNavigation                      = 0;
+        list->rowHeight                           = ITEM_MENU_PE_ROW_HEIGHT_PIXELS;
+        list->currentItemIndex                    = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
+        uiFitPanelToList(list, &(object)->panel);
+        elementLevels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[task->spawnArg1.value * ITEM_MENU_PE_ABILITIES_PER_ELEMENT];
+        _itemMenuSetPeVisibleAbilityCount(list, elementLevels);
+        list->firstVisibleItemIndex.unsignedValue = 0;
+        list->selectedItemIndex                   = 0;
+        list->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        if (task->spawnArg1.value & ITEM_MENU_PE_ELEMENT_LOWER_ROW_BIT) {
+            object->panel.bounds.unsignedRect.y = object->panel.bounds.unsignedRect.h - 0x50;
+        }
+        task->state++;
+    }
+    elementLevels = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[task->spawnArg1.value * ITEM_MENU_PE_ABILITIES_PER_ELEMENT];
+    _itemMenuSetPeVisibleAbilityCount(list, elementLevels);
+    // Transfer focus around the four siblings, clamping horizontal row selection.
+    uiUpdateList(list, &object->panel);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
-        } else if (menu->actionResult == USER_INTERFACE_LIST_ACTION_AT_END && !(arg0->spawnArg1.value & 1)) {
-            UiObject* verticalObj;
-            UiList*   verticalMenu;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
+        } else if (list->actionResult == USER_INTERFACE_LIST_ACTION_AT_END && !(task->spawnArg1.value & ITEM_MENU_PE_ELEMENT_LOWER_ROW_BIT)) {
+            UiObject* verticalObject;
+            UiList*   verticalList;
 
-            verticalObj  = arg0->nextSibling->spawnArg2.pointer;
-            verticalMenu = &D_80114DF8[arg0->spawnArg1.value] + 1;
+            verticalObject = task->nextSibling->spawnArg2.pointer;
+            verticalList   = &D_80114DF8[task->spawnArg1.value] + 1;
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            verticalObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-            verticalMenu->selectedItemIndex = 0;
-            obj->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
-        } else if (menu->actionResult == USER_INTERFACE_LIST_ACTION_AT_START && (arg0->spawnArg1.value & 1)) {
-            UiObject* verticalObj;
-            UiList*   verticalMenu;
+            verticalObject->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
+            verticalList->selectedItemIndex    = 0;
+            object->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
+        } else if (list->actionResult == USER_INTERFACE_LIST_ACTION_AT_START && (task->spawnArg1.value & ITEM_MENU_PE_ELEMENT_LOWER_ROW_BIT)) {
+            UiObject* verticalObject;
+            UiList*   verticalList;
 
-            verticalObj  = arg0->nextSibling->nextSibling->nextSibling->spawnArg2.pointer;
-            verticalMenu = &D_80114DF8[arg0->spawnArg1.value] - 1;
+            verticalObject = task->nextSibling->nextSibling->nextSibling->spawnArg2.pointer;
+            verticalList   = &D_80114DF8[task->spawnArg1.value] - 1;
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            verticalObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-            verticalMenu->selectedItemIndex = verticalMenu->itemCount - 1;
-            obj->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
+            verticalObject->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
+            verticalList->selectedItemIndex    = verticalList->itemCount - 1;
+            object->panel.control.word         = USER_INTERFACE_PANEL_INACTIVE;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
-            if (!(arg0->spawnArg1.value & 2)) {
+            if (!(task->spawnArg1.value & ITEM_MENU_PE_ELEMENT_RIGHT_COLUMN_BIT)) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-                    UiObject* nextObj;
-                    UiList*   nextMenu;
+                    UiObject* horizontalObject;
+                    UiList*   horizontalList;
 
-                    nextObj  = arg0->nextSibling->nextSibling->spawnArg2.pointer;
-                    nextMenu = &D_80114DF8[arg0->spawnArg1.value] + 2;
+                    horizontalObject = task->nextSibling->nextSibling->spawnArg2.pointer;
+                    horizontalList   = &D_80114DF8[task->spawnArg1.value] + 2;
                     sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                    nextObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-                    last                        = nextMenu->itemCount - 1;
-                    nextMenu->selectedItemIndex = menu->selectedItemIndex;
-                    if (last < nextMenu->selectedItemIndex) {
-                        nextMenu->selectedItemIndex = last;
+                    horizontalObject->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
+                    lastItemIndex                        = horizontalList->itemCount - 1;
+                    horizontalList->selectedItemIndex    = list->selectedItemIndex;
+                    if (lastItemIndex < horizontalList->selectedItemIndex) {
+                        horizontalList->selectedItemIndex = lastItemIndex;
                     }
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                    object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-                UiObject* nextObj;
-                UiList*   nextMenu;
+                UiObject* horizontalObject;
+                UiList*   horizontalList;
 
-                nextObj  = arg0->nextSibling->nextSibling->spawnArg2.pointer;
-                nextMenu = &D_80114DF8[arg0->spawnArg1.value] - 2;
+                horizontalObject = task->nextSibling->nextSibling->spawnArg2.pointer;
+                horizontalList   = &D_80114DF8[task->spawnArg1.value] - 2;
                 sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-                nextObj->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
-                last                        = nextMenu->itemCount - 1;
-                nextMenu->selectedItemIndex = menu->selectedItemIndex;
-                if (last < nextMenu->selectedItemIndex) {
-                    nextMenu->selectedItemIndex = last;
+                horizontalObject->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER;
+                lastItemIndex                        = horizontalList->itemCount - 1;
+                horizontalList->selectedItemIndex    = list->selectedItemIndex;
+                if (lastItemIndex < horizontalList->selectedItemIndex) {
+                    horizontalList->selectedItemIndex = lastItemIndex;
                 }
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
     }
-    child = arg0->firstChild;
+    child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        flag     = childObj->result;
-        if (flag == USER_INTERFACE_RESULT_CONFIRM) {
-            uiStartTreeClosing(childObj, childObj->owner);
-            obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-        } else if (flag == USER_INTERFACE_RESULT_CANCEL) {
-            obj->result = flag;
+        childObject = child->spawnArg2.pointer;
+        childResult = childObject->result;
+        if (childResult == USER_INTERFACE_RESULT_CONFIRM) {
+            uiStartTreeClosing(childObject, childObject->owner);
+            object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+        } else if (childResult == USER_INTERFACE_RESULT_CANCEL) {
+            object->result = childResult;
         }
     }
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_FOCUS_TRANSFER) {
-        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+    if (object->panel.control.word == USER_INTERFACE_PANEL_FOCUS_TRANSFER) {
+        object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
     }
 }
 
@@ -2438,152 +2506,158 @@ void itemMenuNoticeTask(Task* task)
     }
 }
 
-void Gp_PeUpgradePanelTask(Task* arg0)
+void itemMenuPeUpgradeTask(Task* task)
 {
-    u8            str[0x20];
-    TextDrawReq   req;
-    TextDrawReq   req2;
-    TextDrawReq   req3;
-    TextDrawReq   req4;
-    UiObject*     obj;
-    UiObject*     dialog;
-    UiObject*     childObj;
+/// Discounts the purchase panel's s32 cost lvalue in place.
+///
+/// Reads live gameMode first, then clearCount only for a nonpositive mode.
+/// Positive modes pay 4/5; cleared normal games pay 2/5. Signed division rounds
+/// toward zero and the caller later keeps the low 16 bits. costValue must be
+/// a side-effect-free s32 lvalue: the selected branch reads and writes it.
+/// Expands to a standalone block and is defined only for this purchase task.
+#define ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(costValue)                         \
+    {                                                                         \
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {          \
+            (costValue) = ((costValue) * 4) / 5;                              \
+        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) { \
+            (costValue) = ((costValue) * 2) / 5;                              \
+        }                                                                     \
+    }
+
+    u8            numberText[0x20];
+    TextDrawReq   expLabelRequest;
+    TextDrawReq   costLabelRequest;
+    TextDrawReq   bonusLabelRequest;
+    TextDrawReq   mpLabelRequest;
+    UiObject*     object;
+    UiObject*     confirmationMenu;
+    UiObject*     childObject;
     Task*         child;
-    Task*         next;
-    s32           id;
-    s32           row2;
-    s32           col2;
-    s32           lvl2;
-    s32           row3;
-    s32           col3;
-    s32           lvl3;
-    s32           row;
-    s32           col;
-    s32           lvl;
-    s32           y;
-    s32           bonusIdx;
-    s32           x;
-    s32           cost;
-    PlayerStatus* cfg;
-    s32           price;
+    Task*         nextChild;
+    s32           abilityId;
+    s32           bonusElementIndex;
+    s32           bonusEnergyIndex;
+    s32           bonusLevel;
+    s32           purchaseElementIndex;
+    s32           purchaseEnergyIndex;
+    s32           purchaseLevel;
+    s32           elementIndex;
+    s32           energyIndex;
+    s32           nextLevel;
+    s32           lineY;
+    s32           bonusColumn;
+    s32           labelX;
+    s32           displayCost;
+    PlayerStatus* player;
+    s32           purchaseCost;
 
-    obj         = arg0->spawnArg2.pointer;
-    id          = arg0->spawnArg1.value;
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    object         = task->spawnArg2.pointer;
+    abilityId      = task->spawnArg1.value;
+    object->result = USER_INTERFACE_RESULT_NONE;
 
-    if (arg0->state == 0) {
-        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(2) + 1);
-        dialog = itemMenuSpawnYesNoMenu(obj);
-        if (dialog != NULL) {
-            dialog->panel.animationTicks         = obj->panel.animationTicks - 8;
-            dialog->panel.bounds.unsignedRect.y += 4;
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        uiSetPanelContentSize(&(object)->panel, 0, uiGetTextRowsHeight(2) + 1);
+        confirmationMenu = itemMenuSpawnYesNoMenu(object);
+        if (confirmationMenu != NULL) {
+            confirmationMenu->panel.animationTicks         = object->panel.animationTicks - 8;
+            confirmationMenu->panel.bounds.unsignedRect.y += 4;
         }
-        uiSpawnObject(D_8010F7C0, id, 0, 1, obj);
-        arg0->state = arg0->state + 1;
+        uiSpawnObject(D_8010F7C0, abilityId, 0, 1, object);
+        task->state = task->state + 1;
     }
 
-    x = 0x20;
-    y = obj->panel.contentTop.signedValue + 0xF;
+    labelX = 0x20;
+    lineY  = object->panel.contentTop.signedValue + 0xF;
 
-    req.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
-    req.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req.colorRgb   = 0x606060;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, D_8009720C);
+    expLabelRequest.x          = object->panel.contentOriginX.unsignedValue + labelX;
+    expLabelRequest.y          = (s16)(object->panel.contentOriginY.unsignedValue - 8) + lineY;
+    expLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    expLabelRequest.colorRgb   = ITEM_MENU_TEXT_COLOR_RGB;
+    expLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    expLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
+    expLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&expLabelRequest, (const u8*)D_8009720C);
 
-    req2.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
-    req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.colorRgb   = 0x606060;
-    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req2.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req2.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req2, Gp_StrCost);
+    costLabelRequest.x          = object->panel.contentOriginX.unsignedValue + labelX;
+    costLabelRequest.y          = (s16)(object->panel.contentOriginY.unsignedValue - 2) + lineY;
+    costLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    costLabelRequest.colorRgb   = ITEM_MENU_TEXT_COLOR_RGB;
+    costLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    costLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
+    costLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&costLabelRequest, (const u8*)Gp_StrCost);
 
-    row  = ((id + 1) & 0x30) >> 4;
-    col  = ((id + 1) & 0xC) >> 2;
-    lvl  = (id + 1) & 3;
-    cost = Gp_IdParamHi.rows[(row * 3 + col) * 3 + lvl].column.expCost;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
-        cost = (cost * 4) / 5;
-    } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
-        cost = (cost * 2) / 5;
-    }
-    textDrawUiLine(obj, x + 0x30, y, textItoaSigned(str, cost & 0xFFFF), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    elementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
+    energyIndex  = ((abilityId + 1) & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
+    nextLevel    = (abilityId + 1) & ATTACHMENT_MENU_LEVEL_MASK;
+    displayCost  = Gp_IdParamHi.rows[(elementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + energyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + nextLevel].column.expCost;
+    ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(displayCost);
+    textDrawUiLine(object, labelX + 0x30, lineY, textItoaSigned(numberText, displayCost & 0xFFFF), ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    y += 0xF;
+    lineY += 0xF;
 
-    req3.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
-    req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.colorRgb   = 0x606060;
-    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req3.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req3.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req3, Gp_StrBonus);
+    bonusLabelRequest.x          = object->panel.contentOriginX.unsignedValue + labelX;
+    bonusLabelRequest.y          = (s16)(object->panel.contentOriginY.unsignedValue - 8) + lineY;
+    bonusLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    bonusLabelRequest.colorRgb   = ITEM_MENU_TEXT_COLOR_RGB;
+    bonusLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    bonusLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
+    bonusLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&bonusLabelRequest, (const u8*)Gp_StrBonus);
 
-    req4.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req4.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 2) + y;
-    req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.colorRgb   = 0x606060;
-    req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req4.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req4.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req4, D_80097220);
+    mpLabelRequest.x          = object->panel.contentOriginX.unsignedValue + labelX;
+    mpLabelRequest.y          = (s16)(object->panel.contentOriginY.unsignedValue - 2) + lineY;
+    mpLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    mpLabelRequest.colorRgb   = ITEM_MENU_TEXT_COLOR_RGB;
+    mpLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    mpLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
+    mpLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&mpLabelRequest, (const u8*)D_80097220);
 
-    bonusIdx = ATTACHMENT_LEVEL_MP_BONUS;
-    row2     = ((id + 1) & 0x30) >> 4;
-    col2     = ((id + 1) & 0xC) >> 2;
-    lvl2     = (id + 1) & 3;
-    textDrawUiLine(obj, x + 0x30, y, textItoaSigned(str, Gp_IdParamHi.rows[(row2 * 3 + col2) * 3 + lvl2].value[bonusIdx]),
-                   0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    bonusColumn       = ATTACHMENT_LEVEL_MP_BONUS;
+    bonusElementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
+    bonusEnergyIndex  = ((abilityId + 1) & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
+    bonusLevel        = (abilityId + 1) & ATTACHMENT_MENU_LEVEL_MASK;
+    textDrawUiLine(object, labelX + 0x30, lineY, textItoaSigned(numberText, Gp_IdParamHi.rows[(bonusElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + bonusLevel].value[bonusColumn]),
+                   ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    if (arg0->firstChild != NULL) {
-        child = arg0->firstChild;
+    // Recheck affordability on Yes, then purchase the level and restore the new MP maximum.
+    if (task->firstChild != NULL) {
+        child = task->firstChild;
         do {
-            childObj = child->spawnArg2.pointer;
-            next     = child->nextSibling;
-            row3     = ((id + 1) & 0x30) >> 4;
-            col3     = ((id + 1) & 0xC) >> 2;
-            lvl3     = (id + 1) & 3;
-            if (childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
-                if (childObj->resultValue == 0x33) {
-                    cfg   = &gPlayerStatus;
-                    price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].column.expCost;
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
-                        price = (price * 4) / 5;
-                    } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
-                        price = (price * 2) / 5;
-                    }
-                    if (cfg->exp < (price & 0xFFFF)) {
-                        uiSpawnObject(&D_8010F788, 0xC, 1, 1, obj);
-                        uiStartTreeClosing(childObj, childObj->owner);
+            childObject          = child->spawnArg2.pointer;
+            nextChild            = child->nextSibling;
+            purchaseElementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
+            purchaseEnergyIndex  = ((abilityId + 1) & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
+            purchaseLevel        = (abilityId + 1) & ATTACHMENT_MENU_LEVEL_MASK;
+            if (childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+                if (childObject->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
+                    player       = &gPlayerStatus;
+                    purchaseCost = Gp_IdParamHi.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
+                    ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(purchaseCost);
+                    if (player->exp < (purchaseCost & 0xFFFF)) {
+                        uiSpawnObject(&D_8010F788, ITEM_MENU_NOTICE_INSUFFICIENT_EXP, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                        uiStartTreeClosing(childObject, childObject->owner);
                     } else {
-                        price = Gp_IdParamHi.rows[(row3 * 3 + col3) * 3 + lvl3].column.expCost;
-                        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode > 0) {
-                            price = (price * 4) / 5;
-                        } else if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
-                            price = (price * 2) / 5;
-                        }
-                        cfg->exp                                                                                         -= price & 0xFFFF;
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
+                        purchaseCost = Gp_IdParamHi.rows[(purchaseElementIndex * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseEnergyIndex) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT + purchaseLevel].column.expCost;
+                        ITEM_MENU_DISCOUNT_PE_UPGRADE_COST(purchaseCost);
+                        player->exp                                                                                                                                                                                                                                            -= purchaseCost & 0xFFFF;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels[((abilityId & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT) + ((abilityId & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT) * ITEM_MENU_PE_ABILITIES_PER_ELEMENT] = (abilityId & ATTACHMENT_MENU_LEVEL_MASK) + 1;
                         equipmentRecalculateMaxMp();
-                        cfg->mp        = cfg->mpMax;
-                        Gp_HpMpWork.mp = cfg->mp;
-                        obj->result    = USER_INTERFACE_RESULT_DISMISS;
+                        player->mp     = player->mpMax;
+                        Gp_HpMpWork.mp = player->mp;
+                        object->result = USER_INTERFACE_RESULT_DISMISS;
                     }
                 } else {
-                    obj->result = USER_INTERFACE_RESULT_DISMISS;
+                    object->result = USER_INTERFACE_RESULT_DISMISS;
                 }
-            } else if (childObj->result == USER_INTERFACE_RESULT_DISMISS) {
-                obj->result = USER_INTERFACE_RESULT_DISMISS;
+            } else if (childObject->result == USER_INTERFACE_RESULT_DISMISS) {
+                object->result = USER_INTERFACE_RESULT_DISMISS;
             }
-            child = next;
-        } while (child != arg0->firstChild);
+            child = nextChild;
+        } while (child != task->firstChild);
     }
+#undef ITEM_MENU_DISCOUNT_PE_UPGRADE_COST
 }
 
 /// Draws a PE level parameter as a number and bar, optionally beside its previous level.
@@ -2773,80 +2847,88 @@ static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s3
 #undef ITEM_MENU_PREPARE_ABILITY_VALUE_TEXT
 }
 
-static void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
+/// Draws a PE ability's name, level, area preview, casting cost and ATP-loss bars.
+///
+/// Borrows the live object and a packed PE id with element 0..3, ability 0..2,
+/// and level 0..3. Exactly 1 for nextLevel selects level+1 and compares against
+/// the previous level, except level zero has no comparison. That mode requires
+/// a starting level below 3. Preview packets remain hidden until CD resources
+/// are ready; coordinates are pixels relative to the panel content origin.
+static void _itemMenuDrawPeSpecifications(UiObject* object, s32 abilityId, s32 nextLevel)
 {
-    TextDrawReq req;
-    TextDrawReq req2;
-    TextDrawReq req3;
-    s32         color;
-    s32         color2;
-    s32         x;
-    s32         y;
-    s32         mask;
-    s32         line;
-    s32         temp;
-    u8*         text;
+    TextDrawReq areaLabelRequest;
+    TextDrawReq costLabelRequest;
+    TextDrawReq atpLabelRequest;
+    s32         textColorRgb;
+    s32         parameterColorRgb;
+    s32         contentX;
+    s32         contentY;
+    s32         level;
+    s32         contentTop;
+    s32         parameterTop;
+    const u8*   labelText;
 
-    if (arg2 == 1) {
-        if ((arg1 & 3) == 0) {
-            arg2 = 0;
+    // Level zero has no previous learned level to compare against.
+    if (nextLevel == ITEM_MENU_PE_DISPLAY_NEXT_LEVEL) {
+        if ((abilityId & ATTACHMENT_MENU_LEVEL_MASK) == 0) {
+            nextLevel = ITEM_MENU_PE_DISPLAY_CURRENT_LEVEL;
         }
-        arg1 += 1;
+        abilityId += 1;
     }
 
-    color = 0x606060;
-    x     = arg0->panel.contentLeft.signedValue + 2;
-    y     = arg0->panel.contentTop.signedValue + 0xF;
-    mask  = arg1 & 3;
-    itemMenuDrawItemRow(arg0, x, y, arg1, color, 0);
-    if (mask != 0) {
-        itemMenuDrawParasiteEnergyLevel(arg0, x, y, mask, color);
+    textColorRgb = ITEM_MENU_TEXT_COLOR_RGB;
+    contentX     = object->panel.contentLeft.signedValue + 2;
+    contentY     = object->panel.contentTop.signedValue + 0xF;
+    level        = abilityId & ATTACHMENT_MENU_LEVEL_MASK;
+    itemMenuDrawItemRow(object, contentX, contentY, abilityId, textColorRgb, 0);
+    if (level != 0) {
+        itemMenuDrawParasiteEnergyLevel(object, contentX, contentY, level, textColorRgb);
     }
 
-    text           = Gp_StrAreaEffect;
-    x              = arg0->panel.contentLeft.signedValue + 2;
-    line           = arg0->panel.contentTop.signedValue;
-    y              = line + 0x21;
-    req.x          = arg0->panel.contentOriginX.unsignedValue + x;
-    req.y          = arg0->panel.contentOriginY.unsignedValue + line + 0x1C;
-    req.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req.colorRgb   = color;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, text);
+    labelText                   = (const u8*)Gp_StrAreaEffect;
+    contentX                    = object->panel.contentLeft.signedValue + 2;
+    contentTop                  = object->panel.contentTop.signedValue;
+    contentY                    = contentTop + 0x21;
+    areaLabelRequest.x          = object->panel.contentOriginX.unsignedValue + contentX;
+    areaLabelRequest.y          = object->panel.contentOriginY.unsignedValue + contentTop + 0x1C;
+    areaLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    areaLabelRequest.colorRgb   = textColorRgb;
+    areaLabelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    areaLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    areaLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&areaLabelRequest, labelText);
 
     if (cdCmdIsIdle() & 0xFFFF) {
-        itemMenuDrawPreview(arg0, x, y, ITEM_MENU_PREVIEW_SMALL);
+        itemMenuDrawPreview(object, contentX, contentY, ITEM_MENU_PREVIEW_SMALL);
     } else {
-        itemMenuDrawPreview(arg0, x, y, ITEM_MENU_PREVIEW_SMALL | ITEM_MENU_PREVIEW_HIDDEN);
+        itemMenuDrawPreview(object, contentX, contentY, ITEM_MENU_PREVIEW_SMALL | ITEM_MENU_PREVIEW_HIDDEN);
     }
 
-    color2          = 0x606060;
-    text            = Gp_StrCastCost;
-    x               = arg0->panel.contentLeft.signedValue + 0x54;
-    temp            = arg0->panel.contentTop.signedValue;
-    req2.x          = arg0->panel.contentOriginX.unsignedValue + 1 + x;
-    req2.y          = arg0->panel.contentOriginY.unsignedValue + temp + 0x24;
-    y               = temp + 0x36;
-    req2.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req2.colorRgb   = color2;
-    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req2.alignment  = TEXT_ALIGNMENT_LEFT;
-    req2.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req2, text);
-    _itemMenuDrawAbilityParameterBar(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_CAST_COST);
+    parameterColorRgb           = ITEM_MENU_TEXT_COLOR_RGB;
+    labelText                   = (const u8*)Gp_StrCastCost;
+    contentX                    = object->panel.contentLeft.signedValue + 0x54;
+    parameterTop                = object->panel.contentTop.signedValue;
+    costLabelRequest.x          = object->panel.contentOriginX.unsignedValue + 1 + contentX;
+    costLabelRequest.y          = object->panel.contentOriginY.unsignedValue + parameterTop + 0x24;
+    contentY                    = parameterTop + 0x36;
+    costLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    costLabelRequest.colorRgb   = parameterColorRgb;
+    costLabelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    costLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    costLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&costLabelRequest, labelText);
+    _itemMenuDrawAbilityParameterBar(object, abilityId, nextLevel, contentX, contentY, ATTACHMENT_LEVEL_CAST_COST);
 
-    req3.x          = arg0->panel.contentOriginX.unsignedValue + 1 + x;
-    req3.y          = arg0->panel.contentOriginY.unsignedValue + temp + 0x46;
-    req3.otIndex    = arg0->panel.otIndex.signedValue + 1;
-    req3.colorRgb   = color2;
-    req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req3.alignment  = TEXT_ALIGNMENT_LEFT;
-    req3.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req3, Gp_StrAtpLoss);
-    y = temp + 0x58;
-    _itemMenuDrawAbilityParameterBar(arg0, arg1, arg2, x, y, ATTACHMENT_LEVEL_ATP_LOSS);
+    atpLabelRequest.x          = object->panel.contentOriginX.unsignedValue + 1 + contentX;
+    atpLabelRequest.y          = object->panel.contentOriginY.unsignedValue + parameterTop + 0x46;
+    atpLabelRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+    atpLabelRequest.colorRgb   = parameterColorRgb;
+    atpLabelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+    atpLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+    atpLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
+    textDrawString(&atpLabelRequest, (const u8*)Gp_StrAtpLoss);
+    contentY = parameterTop + 0x58;
+    _itemMenuDrawAbilityParameterBar(object, abilityId, nextLevel, contentX, contentY, ATTACHMENT_LEVEL_ATP_LOSS);
 }
 
 void Gp_MapMenuListTask(Task* arg0)
@@ -3236,66 +3318,66 @@ s32 itemMenuIsHotspotActionConfirmed(void)
     return D_80114E88;
 }
 
-void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawUseAttachCommandRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    s32         status;
-    s32         one;
+    TextDrawReq request;
+    s32         panelControl;
+    s32         activeMode;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, Gp_StrUse2);
+    request.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    request.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+    request.otIndex    = object->panel.otIndex.signedValue + 1;
+    request.colorRgb   = list->colorRgb;
+    request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    request.alignment  = TEXT_ALIGNMENT_LEFT;
+    request.drawMode   = TEXT_DRAW_FILL_ONLY;
+    textDrawString(&request, (const u8*)Gp_StrUse2);
 
-    status = arg1->panel.control.word;
-    one    = 1;
-    if (((status >> 16) == one) || (status == one)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            uiSetPromptText(Gp_StrUseAttachHelp, 0, 0);
+    panelControl = object->panel.control.word;
+    activeMode   = USER_INTERFACE_PANEL_ACTIVE;
+    if (((panelControl >> 16) == activeMode) || (panelControl == activeMode)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            uiSetPromptText((const u8*)Gp_StrUseAttachHelp, 0, 0);
         }
     }
 
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            arg1->resultValue = 6;
-            arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = ITEM_MENU_COMMAND_USE_ATTACH;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
 
-void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawKeyItemCommandRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    s32         status;
-    s32         one;
+    TextDrawReq request;
+    s32         panelControl;
+    s32         activeMode;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, Gp_StrKeyItem2);
+    request.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
+    request.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
+    request.otIndex    = object->panel.otIndex.signedValue + 1;
+    request.colorRgb   = list->colorRgb;
+    request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
+    request.alignment  = TEXT_ALIGNMENT_LEFT;
+    request.drawMode   = TEXT_DRAW_FILL_ONLY;
+    textDrawString(&request, (const u8*)Gp_StrKeyItem2);
 
-    status = arg1->panel.control.word;
-    one    = 1;
-    if (((status >> 16) == one) || (status == one)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            uiSetPromptText(Gp_StrUseKeyHelp, 0, 0);
+    panelControl = object->panel.control.word;
+    activeMode   = USER_INTERFACE_PANEL_ACTIVE;
+    if (((panelControl >> 16) == activeMode) || (panelControl == activeMode)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            uiSetPromptText((const u8*)Gp_StrUseKeyHelp, 0, 0);
         }
     }
 
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            arg1->resultValue = 8;
-            arg1->result      = USER_INTERFACE_RESULT_CONFIRM;
+            object->resultValue = ITEM_MENU_COMMAND_KEY_ITEMS;
+            object->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -3455,61 +3537,61 @@ static void Gp_DrawPushCmd(UiObject* arg0, Task* arg1)
     }
 }
 
-void Gp_DrawNextLevelCmd(Task* arg0)
+void itemMenuPeNextLevelTask(Task* task)
 {
-    UiObject* obj;
-    s32       spawnArg;
-    s32       saved;
-    s32       y;
+    UiObject* object;
+    s32       abilityId;
+    s32       savedPanelControl;
+    s32       descriptionBottomY;
     const u8* text;
 
-    obj                     = arg0->spawnArg2.pointer;
-    spawnArg                = arg0->spawnArg1.value;
-    saved                   = obj->panel.control.word;
-    obj->result             = USER_INTERFACE_RESULT_NONE;
-    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrNextLevel);
-    obj->panel.control.word = saved;
-    func_800D3D98(obj, spawnArg, 1);
-    y    = obj->panel.contentBottom.signedValue;
-    text = itemGetText(spawnArg + 1, ITEM_TEXT_DESCRIPTION_FIRST, 1);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, y - 0xF, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    text = itemGetText(spawnArg + 1, ITEM_TEXT_DESCRIPTION_SECOND, 1);
-    textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, y, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    object                     = task->spawnArg2.pointer;
+    abilityId                  = task->spawnArg1.value;
+    savedPanelControl          = object->panel.control.word;
+    object->result             = USER_INTERFACE_RESULT_NONE;
+    object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+    uiDrawPanelLabel(&(object)->panel, Gp_StrNextLevel);
+    object->panel.control.word = savedPanelControl;
+    _itemMenuDrawPeSpecifications(object, abilityId, ITEM_MENU_PE_DISPLAY_NEXT_LEVEL);
+    descriptionBottomY = object->panel.contentBottom.signedValue;
+    text               = itemGetText(abilityId + 1, ITEM_TEXT_DESCRIPTION_FIRST, 1);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, descriptionBottomY - 0xF, text, ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    text = itemGetText(abilityId + 1, ITEM_TEXT_DESCRIPTION_SECOND, 1);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, descriptionBottomY, text, ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
 
-void func_800D573C(Task* arg0)
+void itemMenuHealingTask(Task* task)
 {
-    UiObject* obj;
+    UiObject* object;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    itemMenuApplyHealingPanel(obj, arg0, arg0->spawnArg1.value);
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    itemMenuApplyHealingPanel(object, task, task->spawnArg1.value);
 }
 
-void Gp_DrawSpecsCmd(Task* arg0)
+void itemMenuPeSpecificationsTask(Task* task)
 {
-    UiObject* obj;
-    s32       spawnArg;
+    UiObject* object;
+    s32       abilityId;
     const u8* text;
 
-    obj         = arg0->spawnArg2.pointer;
-    spawnArg    = arg0->spawnArg1.value;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrSpecs2);
-    if ((spawnArg & 3) == 0) {
-        spawnArg += 1;
+    object         = task->spawnArg2.pointer;
+    abilityId      = task->spawnArg1.value;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&(object)->panel, Gp_StrSpecs2);
+    if ((abilityId & ATTACHMENT_MENU_LEVEL_MASK) == 0) {
+        abilityId += 1;
     }
-    func_800D3D98(obj, spawnArg, 0);
+    _itemMenuDrawPeSpecifications(object, abilityId, ITEM_MENU_PE_DISPLAY_CURRENT_LEVEL);
     if (cdCmdIsIdle() & 0xFFFF) {
-        text = textSkipLines(fsGetChunkPayload(), 4);
-        textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, 0x14, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        text = textSkipLines(fsGetChunkPayload(), ITEM_MENU_PE_PREVIEW_DESCRIPTION_LINE);
+        textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, 0x14, text, ITEM_MENU_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel | PAD_BUTTON_TRIANGLE) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
 }

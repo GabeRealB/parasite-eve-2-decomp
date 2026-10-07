@@ -7756,7 +7756,7 @@ table[0] = func_A;
 table[1] = func_B;
 ```
 
-`Gp_PeCommandMenuTask` is the example. Direct `menu->rowCallbacks[i]` stuck at 98.8%
+`itemMenuPeCommandTask` is the example. Direct `menu->rowCallbacks[i]` stuck at 98.8%
 with an extra load and the wrong `lui` register.
 
 ## Retain the coordinate pointer in v0 so `lw v0,8(v0)` feeds the `+ N` delay slot
@@ -27577,7 +27577,7 @@ if ((range_a && p->sel_a == id - Ka) ||
 }
 ```
 
-`Gp_IsEquippedItem` is the example. The if/else-if form stuck at 96.6%;
+`_equipmentIsSelectedItem` is the example. The if/else-if form stuck at 96.6%;
 dropping the temp but keeping if/else-if reached 98.7% with only the
 register swap and `lbu a0`.
 
@@ -28403,7 +28403,7 @@ base  = slot * 4 + 0x300;
 item  = off + base + count;
 ```
 
-`Gp_DrawPeSlotRow` is the example. The one-expression form stuck at 98–99%
+`itemMenuDrawPeAbilityRow` is the example. The one-expression form stuck at 98–99%
 with only those three instructions different.
 
 ## Index a u16 table with the stored u8, not `(u8)arg`
@@ -29839,7 +29839,7 @@ if (flags & 3) {
 ```
 
 GCC tail-merges the common stores + `jal` into one call. Filling once
-and then calling in both arms still CSEs the fill. `Gp_DrawReviveCmd` is
+and then calling in both arms still CSEs the fill. `itemMenuDrawPeUpgradeRow` is
 the example.
 
 ## `SVECTOR` fill before `RotMatrixZYX`: write `vx`, `vy`, then `vz = 0`
@@ -32808,7 +32808,7 @@ equipmentClearRemovableLoads(a0id);
 ```
 
 Pinning `cfg` here, or writing `slot = equipmentGetWeaponLoad(id)` directly,
-restores `lui s2` / `move a0` in the delay slot. `Gp_DiscardWarnTask` is the
+restores `lui s2` / `move a0` in the delay slot. `itemMenuDiscardTask` is the
 example.
 
 ## Free scratch through `SCRATCH_STACK_CURSOR_SLOT`, not a live pointer, so it re-`lui`s `$a0`
@@ -34044,7 +34044,7 @@ req.otIndex = draw + 1;
 `y = temp + 0x58` plus `asm("" : "+r"(temp) : "r"(draw))` still hoists,
 or else pulls an earlier `lh field_18` out of its `lhu baseX` delay.
 `asm volatile` parks the add correctly but inserts `nop`s and delays
-`la`. `func_800D3D98` is the example.
+`la`. `_itemMenuDrawPeSpecifications` is the example.
 
 ## Two spilled offset locals for two `i + off + table` loops
 
@@ -37224,7 +37224,7 @@ return ret;
 Do *not* reach for a fully `goto`-based loop (`loop: ... goto loop;`) instead:
 without the loop notes GCC skips loop-invariant motion, and the tail of the body
 then CSEs `%hi(gGpuCurrentOt)` / `0xFF000000` into extra long-lived temps that
-the target rematerialises with `lui` at each use. `Gp_DrawMapIcons` went
+the target rematerialises with `lui` at each use. `_menuMapDrawAreaIcons` went
 75% (goto loop) → 92% (`while`, peeled) → 96% (`for (;;)` + `goto end`).
 
 ## Put the first `i++; continue;` inline so the shared increment block lands early
@@ -39060,7 +39060,7 @@ and the whole tail reschedules. Verified with micro-tests: only a *scalar*
 store (`*(u32*)p = ...`) conflicts with such a global — `p->field`,
 `((P_TAG*)p)->addr` and `ot[k]` are all struct references and never do; making
 the store scalar blocks the hoist but then also invalidates the cached
-`gGpuCurrentOt`, adding a reload the target does not have. `Gp_DrawMapIcons` in
+`gGpuCurrentOt`, adding a reload the target does not have. `_menuMapDrawAreaIcons` in
 the same file is matched *with* the hoist, so source order does not decide it
 (`dr = ...` before, between or after the two `setaddr`s compiles byte for byte
 identically). No formulation found yet; `func_800D15D0` stalls at 95.4% on
@@ -40062,7 +40062,7 @@ as a register-allocation lever to try, and retry the direct form afterwards.
 
 ## Preheader `move` copies of invariants: recompute them in *fresh* locals at the top of the loop body
 
-`Gp_PeUpgradePanelTask` computes a packed index (`row`/`col`/`lvl` from `id + 1`) before
+`itemMenuPeUpgradeTask` computes a packed index (`row`/`col`/`lvl` from `id + 1`) before
 a `do`/`while` and again inside it. The target's preheader is
 
 ```
@@ -40219,11 +40219,11 @@ hoisted — so convert only the globals the target keeps inside.
 
 ## `TextDrawReq` field order is `x, y, otIndex, colorRgb, glyphTable, alignment, drawMode`
 
-The four request blocks in `Gp_PeUpgradePanelTask` were the last mismatch at 96%: the
+The four request blocks in `itemMenuPeUpgradeTask` were the last mismatch at 96%: the
 `sw colorRgb` / `sb glyphTable/alignment/drawMode` group scheduled three slots
 too early and `li s0, 1` floated to the top of the block. Moving `otIndex`
 ahead of `colorRgb` in the source — the order the already-matched
-`itemMenuDrawAbilityDescription` / `Gp_DrawKeyItemCmd` in the same TU use — fixed all four blocks at
+`itemMenuDrawAbilityDescription` / `itemMenuDrawKeyItemCommandRow` in the same TU use — fixed all four blocks at
 once and took the function to 100%. When several sibling `TextDrawReq` blocks
 all miss by the same shuffle, copy the field order from a matched neighbour
 before touching anything else.
@@ -65936,7 +65936,7 @@ penalties after these changes.
 
 ## Panel-navigation locals and an index snapshot preserve GCC 2.8.1 allocation
 
-`func_800D29B0` matched without pins or empty asm after replacing the m2c
+`itemMenuPeElementTask` matched without pins or empty asm after replacing the m2c
 navigation gotos with the neighbouring UI tasks' `else if` structure. Give each
 navigation arm its own `UiObject*` and `UiList*` locals. Reusing one pair across
 both horizontal arms gave the list pointer eight references across 24 RTL
@@ -145247,7 +145247,7 @@ quotient into `col` and copy it: `row = col = i / 3; col = i - row * 3;`.
 With `col` set twice and `row` a copy, CSE does not share the second
 `row*3`, combine has nothing to cancel, and the `move` is the copy.
 
-## A loop whose body opens with declarations keeps its top-of-loop `break` test in place (Gp_DrawMapIcons, 2026-09-26)
+## A loop whose body opens with declarations keeps its top-of-loop `break` test in place (_menuMapDrawAreaIcons, 2026-09-26)
 
 `expand_end_loop` only rotates a loop (guard test before `LOOP_BEG`, exit test
 at the bottom) when its scan from the loop start reaches a jump to the loop's

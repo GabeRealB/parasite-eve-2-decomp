@@ -274,7 +274,14 @@ void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1);
 
 void Gp_KeyItemMenuTask(Task* arg0);
 
-void func_800D29B0(Task* arg0);
+/// Updates one element's PE list and transfers focus through the four sibling panels.
+///
+/// spawnArg1 selects fire/wind/water/earth (0..3); spawnArg2 is the live owned
+/// object. Requires the four siblings in that order and saved levels 0..3.
+/// The third ability appears when learned or when both preceding abilities
+/// reach level 3. Horizontal moves retain the row, clamped to the target list;
+/// vertical moves select its first/last row. Child acceptance restores input.
+void itemMenuPeElementTask(Task* task);
 
 void Gp_DrawUsePrompt(UiList* arg0, UiObject* arg1);
 
@@ -334,7 +341,12 @@ void Gp_DrawMovePrompt(UiList* arg0, UiObject* arg1);
 
 void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1);
 
-void func_800CFA34(UiObject* arg0, Task* arg1);
+/// Applies the selected inventory recovery item through its task-owned healing panel.
+///
+/// Borrows the live `Gp_SelItemRec`; its item id must satisfy
+/// `itemMenuApplyHealingPanel`'s inventory-item contract. The dispatch supplies
+/// object == task->spawnArg2.pointer and task == object->owner.
+void itemMenuApplySelectedHealingItem(UiObject* object, Task* task);
 
 void func_800CFA60(Task* arg0);
 
@@ -368,23 +380,64 @@ void Gp_MapDrawTask(Task* arg0);
 
 void Gp_PeMenuListTask(Task* arg0);
 
-void Gp_DrawReviveCmd(UiList* arg0, UiObject* arg1);
+/// Draws Revive for an unlearned PE ability or Strengthen for a learned one.
+///
+/// The owner's spawnArg1 is the packed ability id, with level 0..3 in its
+/// low two bits. Active Confirm opens an EXP purchase dialog for levels 0..2,
+/// or a maximum-level notice for level 3, then suspends this panel's input.
+void itemMenuDrawPeUpgradeRow(UiList* list, UiObject* object);
 
-void Gp_PeCommandMenuTask(Task* arg0);
+/// Runs the selected PE ability's Revive/Strengthen and Cancel command list.
+///
+/// spawnArg1 is a packed PE id; spawnArg2 borrows its live owned object.
+/// State 0 sizes the shared two-row list and loads the next-level preview
+/// unless already at level 3. Cancel returns CONFIRM; Menu and child CANCEL
+/// propagate CANCEL. Child CONFIRM closes the child and restores input;
+/// child DISMISS finishes this command menu with CONFIRM.
+void itemMenuPeCommandTask(Task* task);
 
-void Gp_DiscardWarnTask(Task* arg0);
+/// Rejects a restricted discard or confirms removal of the selected whole stack.
+///
+/// Borrows the stable selected row and a live task-owned object with a parent
+/// command panel. Protected items, loaded consumables and selected equipment
+/// show a notice. Otherwise a default-No dialog offers Yes/No; Yes clears
+/// the item's saved equipment selections and removes the whole carried stack.
+/// Either answer confirms the parent command panel.
+void itemMenuDiscardTask(Task* task);
 
-void Gp_DrawPeSlotRow(UiList* arg0, UiObject* arg1);
+/// Draws one PE ability and its learned level, with command and specification input.
+///
+/// The owner selects element 0..3; currentItemIndex selects ability 0..2;
+/// saved levels are 0..3. Level zero dims the row. Selection updates the
+/// help/preview; Confirm opens the upgrade commands, Triangle specifications.
+/// The command dialog takes input only after a successful spawn.
+void itemMenuDrawPeAbilityRow(UiList* list, UiObject* object);
 
-void Gp_PeUpgradePanelTask(Task* arg0);
+/// Shows and confirms the EXP purchase of the selected PE ability's next level.
+///
+/// spawnArg1 is a packed PE id at level 0..2; spawnArg2 is the live owned object.
+/// EXP cost uses the next level, discounted to 4/5 in positive game modes or
+/// 2/5 after a normal-game clear, then narrowed to its low 16 bits. Yes checks
+/// affordability again, spends EXP, stores the next level and restores MP to
+/// the recalculated maximum. Insufficient EXP shows a notice. No or completed
+/// purchase returns DISMISS; the next-level preview is a child panel.
+void itemMenuPeUpgradeTask(Task* task);
 
 void Gp_MapMenuListTask(Task* arg0);
 
 void Gp_MapScreenTask(Task* arg0);
 
-void Gp_DrawUseAttachCmd(UiList* arg0, UiObject* arg1);
+/// Draws Use, publishes menu command 6 on Confirm and supplies the selected-row help.
+///
+/// The command opens the carried inventory/attachment list. Help is shown for
+/// active input or suspended active mode; only an active list row handles input.
+void itemMenuDrawUseAttachCommandRow(UiList* list, UiObject* object);
 
-void Gp_DrawKeyItemCmd(UiList* arg0, UiObject* arg1);
+/// Draws Key Item, publishes menu command 8 on Confirm and supplies selected-row help.
+///
+/// The command opens the collected key-item list. Help is shown for active
+/// input or suspended active mode; only an active list row handles input.
+void itemMenuDrawKeyItemCommandRow(UiList* list, UiObject* object);
 
 /// Draws the PE release/strengthen menu's Cancel row and confirms the parent on selection.
 ///
@@ -395,11 +448,27 @@ void Gp_DrawMapCmd(UiList* arg0, UiObject* arg1);
 
 void Gp_DrawDiscardCmd(UiList* arg0, UiObject* arg1);
 
-void Gp_DrawNextLevelCmd(Task* arg0);
+/// Draws a PE ability's next-level preview, parameter comparisons and descriptions.
+///
+/// spawnArg1 is a packed PE id at level 0..2; spawnArg2 is the live owned
+/// preview object. The title draws with active styling while preserving its
+/// control word. Level-zero abilities suppress previous-level comparison.
+/// This child remains passive; its parent owns purchase input.
+void itemMenuPeNextLevelTask(Task* task);
 
-void func_800D573C(Task* arg0);
+/// Applies a task-selected recovery item or Healing PE through the healing panel.
+///
+/// spawnArg2 is the live owned object; spawnArg1 must satisfy
+/// `itemMenuApplyHealingPanel`'s healing-id and MP-affordability contract.
+void itemMenuHealingTask(Task* task);
 
-void Gp_DrawSpecsCmd(Task* arg0);
+/// Draws the selected PE ability's specifications and polls dismissal input.
+///
+/// spawnArg1 is its packed id, level 0..3; spawnArg2 is the live owned object.
+/// Unlearned abilities show level-one parameters. Once the preview resource
+/// is ready, its text from line 4 onward supplies the extended description.
+/// Active Confirm/Cancel/Triangle returns CONFIRM; Menu returns CANCEL.
+void itemMenuPeSpecificationsTask(Task* task);
 
 void Gp_DrawExaminePushCmd(UiList* arg0, UiObject* arg1);
 

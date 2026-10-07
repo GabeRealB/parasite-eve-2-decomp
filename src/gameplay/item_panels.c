@@ -453,16 +453,16 @@ u8* Gp_PromptTexts[] = {
     Gp_StrCannotSwitchWith,
 };
 
-UiListRowCallback D_8010F5C8[2] = { Gp_DrawUseAttachCmd, Gp_DrawKeyItemCmd };
+UiListRowCallback D_8010F5C8[2] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow };
 
 UiList D_8010F5D0 = { D_8010F5C8, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback Gp_PeCmdFns[2] = { Gp_DrawReviveCmd, itemMenuDrawPeCancelRow };
+UiListRowCallback Gp_PeCmdFns[2] = { itemMenuDrawPeUpgradeRow, itemMenuDrawPeCancelRow };
 
 UiList D_8010F5FC = { Gp_PeCmdFns, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
 UiListRowCallback D_8010F620[1] = {
-    Gp_DrawPeSlotRow,
+    itemMenuDrawPeAbilityRow,
 };
 
 u8 Gp_StrFire[] = "Fire";
@@ -482,7 +482,7 @@ u8* D_8010F644[4] = {
 
 UiObjectDesc D_8010F654[1] = { { 3, { -136, -50, 60, 80 }, 24, 0, TASK_BODY_NONE, 192, Gp_PeMenuListTask, 0 } };
 
-UiObjectDesc D_8010F670 = { 3, { -136, -50, 70, 80 }, 20, 0, TASK_BODY_NONE, 192, Gp_PeCommandMenuTask, 0 };
+UiObjectDesc D_8010F670 = { 3, { -136, -50, 70, 80 }, 20, 0, TASK_BODY_NONE, 192, itemMenuPeCommandTask, 0 };
 
 // "EXP"
 // "MP"
