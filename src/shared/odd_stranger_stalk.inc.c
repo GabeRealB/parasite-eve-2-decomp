@@ -51,7 +51,7 @@ void oddStrangerStalk(Task* arg0)
     chase                                   = head - 1;
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
         if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
-            oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+            _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);

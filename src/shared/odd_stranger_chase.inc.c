@@ -58,7 +58,7 @@ void oddStrangerChase(Task* arg0)
 #endif
         work->exitCounter++;
     } else {
-        oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->exitCounter >= 7) {

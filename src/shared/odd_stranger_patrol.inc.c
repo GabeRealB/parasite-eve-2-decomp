@@ -6,7 +6,7 @@
 /// that waypoint is clamped to +-0x20, added back to the facing yaw and the
 /// root rotation rescaled by 0x1194. The `_playerDetectionOutOfReach` probe
 /// gates a 0xA forward step, the obstacle walk runs against `gridContacts`
-/// (plus `hitContacts` through `oddStrangerPushContacts` when the spawn
+/// (plus `hitContacts` through `_oddStrangerApplyBodyPushback` when the spawn
 /// sub-type is 0x10), and each arm counts `stateTimer` up while the yaw stays
 /// inside 0x80.
 /// The tail drops the actor to state 6 on the `gPlayerStatus` range checks and
@@ -82,7 +82,7 @@ void oddStrangerPatrol(Task* arg0)
         } else {
             rec = work->hitContacts;
             if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, rec, ARRAY_SIZE(work->hitContacts)) != 1 && _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-                oddStrangerPushContacts(arg0, rec, ARRAY_SIZE(work->hitContacts));
+                _oddStrangerApplyBodyPushback(arg0, rec, ARRAY_SIZE(work->hitContacts));
             } else {
                 if (ABS(work->lookYawTarget) < 0x80) {
                     work->stateTimer = (u16)work->stateTimer + 1;
@@ -95,7 +95,7 @@ void oddStrangerPatrol(Task* arg0)
                 ABS(work->lookYawTarget) < 0x80) {
                 work->stateTimer++;
             } else {
-                oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+                _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
         } else {
             if ((_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 ||
@@ -103,7 +103,7 @@ void oddStrangerPatrol(Task* arg0)
                 ABS(work->lookYawTarget) < 0x80) {
                 work->stateTimer++;
             } else {
-                oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+                _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
         }
 #endif

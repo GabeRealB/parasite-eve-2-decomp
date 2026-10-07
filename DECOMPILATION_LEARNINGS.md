@@ -80883,9 +80883,9 @@ Inputs: `base_5.c` (`base_5.i`
 
 ## A `?:` stored straight into a field is one *store per arm* in the RTL, and that reference can decide a register
 
-`func_actor_401000_80135374` matched byte-for-byte except for a `$s0`/`$s1`
+`_actor401000ApplyGridPushback` matched byte-for-byte except for a `$s0`/`$s1`
 swap: the 0x20-byte scratch block pointer against the `SVECTOR*` local `step`
-(= `&s->step`, allocated right before use). `allocno_compare` orders allocnos by
+(= `&push->step`, allocated right before use). `allocno_compare` orders allocnos by
 `floor_log2(n_refs) * n_refs / live_length`, and the tracer reads the two
 candidates out directly:
 
@@ -80901,7 +80901,7 @@ One reference is worth 25% here because 32 crosses the power of two
 and `step` takes `$s0`. The reference itself comes from the clamp:
 
 ```c
-s->step.vy = (vy <= 0) ? -0x12C : 0x12C;   /* two stores in the RTL: one per arm */
+push->step.vy = (stepY <= 0) ? -0x12C : 0x12C;   /* two stores in the RTL: one per arm */
 ```
 
 A conditional expression whose destination is memory is expanded per arm, so the
@@ -80910,15 +80910,15 @@ the object, but `flow.c` counts both. Assigning the same `?:` to a local first
 emits a single store:
 
 ```c
-clamped    = (vy <= 0) ? -0x12C : 0x12C;
-s->step.vy = clamped;                      /* one store in the RTL */
+cappedY    = (stepY <= 0) ? -0x12C : 0x12C;
+push->step.vy = cappedY;                      /* one store in the RTL */
 ```
 
 The surviving store count at that offset reads 4 → 3 → 2 as the temporary is
 added to the second and then both clamps, tracking `REG_N_REFS` 32 → 31 → 30;
 either single temporary is enough to match, and two 100% candidates differing
-only in *which* clamp holds it are the control. A duplicate `s->step.vy =
-clamped;` does **not** put the reference back — cse deletes a redundant
+only in *which* clamp holds it are the control. A duplicate `push->step.vy =
+cappedY;` does **not** put the reference back — cse deletes a redundant
 same-value store before `flow.c` runs, so the extra store has to be one the
 compiler cannot prove dead.
 
@@ -97914,7 +97914,7 @@ Inputs: `base.i` (m2c cast form, 92.32%)
 
 `sched1` schedules one basic block at a time, so nothing inside an `if` body can
 appear above the branch that guards it — read *backwards*, that makes an
-instruction's position a witness about the C. `func_actor_401000_8013DEC8`'s
+instruction's position a witness about the C. `_actor401000RiseFront`'s
 target loads the `Enemy*` at `0x20` in the gap the seed fills with a `nop`:
 
 ```
@@ -108404,29 +108404,29 @@ same clamp shape is in the matched `_desertChaserApplyLookTurn`
 (`src/shared/desert_chaser_anim_tick.inc.c`), which uses `s32 appliedYaw` for
 exactly this reason.
 
-## An identical tail in both arms of an `if`/`else` is not dead code: it moves the promotion of a loop bound out of the loop (`oddStrangerPushContacts`, 2026-09-16)
+## An identical tail in both arms of an `if`/`else` is not dead code: it moves the promotion of a loop bound out of the loop (`_oddStrangerApplyBodyPushback`, 2026-09-16)
 
 The record-walking push body writes its coordinate update in both arms of the
 length test, which `jump2` (`-fcross-jumping`, on at `-O2`) merges back into one
 shared block, so removing the duplication looks free:
 
 ```
-if (s->len >= 0x96) { ...normalise...; coord.t[0] += vx / 2; coord.t[2] += vz / 2; }
+if (push->offsetLength >= 0x96) { ...normalise...; coord.t[0] += vx / 2; coord.t[2] += vz / 2; }
 else                {                coord.t[0] += vx / 2; coord.t[2] += vz / 2; }
 ```
 
 Both spellings give the same update block and the same instruction count for
-that block, but they do not give the same *loop*. The loop is `for (s->i = 0;
-s->i < count; s->i++)` with `s16 i` in memory and an `s16 count` parameter, and
-the extra arm is what keeps `count`'s sign extension out of the loop:
+that block, but they do not give the same *loop*. The loop is `for (push->recordIndex = 0;
+push->recordIndex < contactCount; push->recordIndex++)` with a signed-halfword `recordIndex` in memory and an `s16 contactCount` parameter, and
+the extra arm is what keeps `contactCount`'s sign extension out of the loop:
 
 ```
 /* shared tail (93.5%)                          /* duplicated tail (target, 100%) */
 sll  v0,s2,0x10                                 sw   s4,0x20(sp)
 sra  v0,v0,0x10                                 move s4,s2
 blez v0,...                                     ...
-move s2,v0            <- count sign-extended    lhu  v0,0x18(s0)
-lhu  v0,0x18(s0)        out of the loop         sll  v1,s4,0x10     <- count stays raw
+move s2,v0            <- contactCount sign-extended    lhu  v0,0x18(s0)
+lhu  v0,0x18(s0)        out of the loop         sll  v1,s4,0x10     <- contactCount stays raw
 nop                                             addiu v0,v0,0x1
 addiu v0,v0,0x1                                 sh   v0,0x18(s0)
 sh   v0,0x18(s0)                                sll  v0,v0,0x10
@@ -108436,10 +108436,10 @@ slt  v0,v0,s2
 ```
 
 With the shared tail the loop is small enough for `loop.c` to hoist the
-promotion of `count` and compare the already-widened pair; with the duplicated
+promotion of `contactCount` and compare the already-widened pair; with the duplicated
 tail it cannot, so the test shifts both halfwords left by 16 and compares those
 (`slt` on two values with the same low 16 bits is the 16-bit signed compare),
-which needs a second live copy of `count` in `$s4` and the extra stack slot.
+which needs a second live copy of `contactCount` in `$s4` and the extra stack slot.
 `_actor401300ApplyBodyPushback` carries the duplication in its matched source with
 this note on it; the m2c seed has the shared spelling and scores 73.4%.
 
@@ -108937,7 +108937,7 @@ no pass dump showing a decision to argue with, diff the *operand widths and disp
 object dump before touching lifetimes or the scheduler. `M2C_FIELD` is a bag of casts with no
 declaration behind it.
 
-## An m2c temp assigned in several arms of one `if`/`else` chain is a *global* allocno; store straight to the destination instead (func_actor_401000_80138BB4, 2026-09-16)
+## An m2c temp assigned in several arms of one `if`/`else` chain is a *global* allocno; store straight to the destination instead (_actor401000FallFront, 2026-09-16)
 
 A 99.765% first build whose only penalty was `regs=4` and whose only differing lines were three
 operands of the tail — the state value the target keeps in `$v0` came out in `$v1`:
@@ -108993,7 +108993,7 @@ form. Inputs: `base_1.i` SHA256
 `a79abd137951e3d2ddb037175e14a222c707a46093307202c216ea90bd2c8d9f`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-Confirmed independently on `func_actor_401000_8013CEF0` (2026-09-16), the same TU's state-10 twin.
+Confirmed independently on `_actor401000RefallFront` (2026-09-16), the same TU's `REFALL_FRONT` twin.
 Its m2c seed carried *two* artifacts, this one and the `ptr + K`-scales-by-`sizeof` shape from the
 `_actor323300StrangerInitLighting` entry above (`temp_s0 + 0x8F0` on a 0xC24-byte struct, which GCC
 materialised as `lui`/`ori`/`addu` rather than an `addiu`). Repairing only the scaling moved the seed
@@ -109001,7 +109001,7 @@ materialised as `lui`/`ori`/`addu` rather than an `addiu`). Repairing only the s
 a seed well below 99% on instruction count can still be this class underneath. Fix them one at a
 time — the isolation build is what tells you which one is left. `regs` stays non-zero until the tail
 is rewritten, which is the recognition cue when the percentage is otherwise unremarkable.
-Scratch `nonmatchings/func_actor_401000_80138BB4-vacuum`.
+Scratch `nonmatchings/_actor401000FallFront-vacuum`.
 
 ## A payload global in the overlay's data is the shared message struct, and the twin may keep it inline instead
 
@@ -109045,14 +109045,14 @@ Inputs: `base_1.i` SHA256
 
 ## A twin that differs by one statement still needs the twin: diff the two `.s`, not the two C files
 
-`func_actor_401000_801352DC` is the actor height-clamp scan: walk the actor's
+`_actor401000ClampRootHeight` is the actor height-clamp scan: walk the actor's
 `*HeightClamp` table, match `(GameSession.location.loc.stage, .area)` against a
-row's `field_0` / `field_2`, clamp `coord->coord.t[1]` into [`lo`, `hi`] and
+row's `stage` / `area`, clamp `root->coord.t[1]` into [`minY`, `row->maxY`] and
 return. Its twins are `_actor401300ClampRoomHeight` (`USA/actors/actor_401300`)
 and `_actor01900ClampRootHeight` (`src/actors/actor_01900/actor_01900.c`), and BRIEF's
 `shape` / `fields` classes rate both 0.99 — but `overlay_dup_index.py find`
 reports this body as its own only copy, because the twins are *not* equivalent:
-the 401000 one clears `coord->composeStamp` before returning and they do not.
+the 401000 one clears `root->composeStamp` before returning and they do not.
 
 That single store is the whole difference, and it is invisible in the C but
 obvious in the `.s`: where the twins end the match arm with
@@ -109069,7 +109069,7 @@ obvious in the `.s`: where the twins end the match arm with
         sw   $zero, 0x0($a1)
 ```
 
-So the reading is `coord->composeStamp = 0;` (this project's `GfxCoord` puts `composeStamp`
+So the reading is `root->composeStamp = 0;` (this project's `GfxCoord` puts `composeStamp`
 at +0x0 and `coord` at +0x4, so `0x1C` is `coord.t[1]` and `0x0` is `composeStamp`), the
 `if/else` clamp is the twins' source verbatim, and the two must be written in
 that order — the store is outside the `if/else`, immediately before `return`.
@@ -109077,8 +109077,8 @@ Transporting the twin's source and then adding the missing statement scored
 100.000% with all six penalties zero on the first build; `base.c`'s m2c
 loop-with-`goto` shape scored 47.1% with `insert=10 delete=9`.
 
-The neighbouring unmatched `func_actor_401000_80135374` reads the same
-`D_actor_401000_80154FD0` table and is the twins' `HasHeightClamp` helper.
+The neighbouring unmatched `_actor401000ApplyGridPushback` reads the same
+`D_actor_401000_80154FD0` table through `_actor401000HasRoomHeightClamp`.
 `ActorHeightClamp` (2 x 0x10 rows, `(1, 3, -0x12C, 0)` and
 `(5, 0x1D, 0, 0x12C)`) now lives in `include/actors/actor.h`.
 
@@ -109229,7 +109229,7 @@ if (kind == 1) {
 }
 ```
 
-This is the same repair as the `func_actor_401000_80138BB4` entry above, reached from the other end:
+This is the same repair as the `_actor401000FallFront` entry above, reached from the other end:
 there the recognition cue was the extra allocno in `.greg`, here it is the `x = b` insn sitting in a
 block whose call result it then conflicts with. Two other shapes were tried and are **not** the fix,
 both scoring 99.880% with the identical five operands: the `else if` chain (`if (kind != 1) { ... }
@@ -109338,9 +109338,9 @@ Inputs: `base_3.c` `09994bd5ea83966bbc12bfc85b0b848128705e2f840d0791363d99cb209c
 `base_3.i` `9ca1f486b6fe7035e7065bf1d5dd3bad12fd7b3528ac457b1f0cf333eb56eb7f`
 (100.000%; the folded `default: goto` form scores the same).
 
-## A TU's two near-identical inline helpers differ by one register: the residual `addu $sN,$sM,$zero` names which was inlined (func_actor_401000_801388F4, 2026-09-16)
+## A TU's two near-identical inline helpers differ by one register: the residual `addu $sN,$sM,$zero` names which was inlined (_actor401000FallBack, 2026-09-16)
 
-`func_actor_401000_801388F4` is the actor's state-8 body, the 401000 twin of
+`_actor401000FallBack` is the actor's `FALL_BACK` body, the 401000 twin of
 `func_actor_401300_80138CF8`. Both take one forward step through `-0x57` while a
 `0x12C` probe is still in range, and the step block is an inlined helper. The
 catch is that the family carries **two** helpers with that body:
@@ -109474,7 +109474,7 @@ Inputs: `base_1.i` SHA256
 `c3ac8de0fe019c6509d0ed9ed5338bf0467036e6f8afddb8d1da7ec58c53f5b8`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A `static __inline__` called above its definition is a `jal`, not an expansion — move the helper, not the caller (func_actor_401000_80138F50, 2026-09-16)
+## A `static __inline__` called above its definition is a `jal`, not an expansion — move the helper, not the caller (_actor401000Dormant, 2026-09-16)
 
 A unit emits its functions in source order, so a matched body has to occupy the
 position its address in the overlay gives it. When the `static __inline__`
@@ -109484,7 +109484,7 @@ without a warning and silently loses the inline:
 
 ```c
 static __inline__ s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius);         /* declaration only */
-void func_actor_401000_80138F50(Actor401000* arg0) { ... _actorRangeOutsideRadiusXZ(offset, radius) ... }
+void _actor401000Dormant(Task* task) { ... _actorRangeOutsideRadiusXZ(offset, radius) ... }
 static __inline__ s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius) { ... }  /* below the caller */
 ```
 
@@ -109945,15 +109945,15 @@ SHA256 `3c6e5416b9428507050f03e919cc4d0ec7bf2aebe0f0f0c6a12fb72cc23a09cd`;
 target.o SHA256 `011697edbdc0d7ec7feb062aaebfadb649fb782d14c37d76cfffe087b448ed12`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Two loads feeding one subtract: the target's asm order and the target's `$v0` can be mutually exclusive (func_actor_401000_80135AA4, 2026-09-17)
+## Two loads feeding one subtract: the target's asm order and the target's `$v0` can be mutually exclusive (_actor401000Chase, 2026-09-17)
 
 A `regs`-only leftover can be unreachable from the source when a pair of loads
-feeds one non-commutative op. `angle = chase->pad_A - chase->pad_8;` compiles to
+feeds one non-commutative op. `angle = chase->yawFromPlayer - chase->playerYaw;` compiles to
 two `lh` into fresh pseudos and one `subu`; the target's shape is
 
 ```
-lh   $v0, 0xA($s3)      # chase->pad_A -> $v0
-lh   $v1, 0x8($s3)      # chase->pad_8 -> $v1
+lh   $v0, 0xA($s3)      # chase->yawFromPlayer -> $v0
+lh   $v1, 0x8($s3)      # chase->playerYaw -> $v1
 subu $v0, $v0, $v1
 ```
 
@@ -109969,7 +109969,7 @@ local b16 q1 [222 = pad_A] refs=2 span=4 priority=5000  -> $v1
 Priority is `floor_log2(refs)*refs/span`: **the shorter-lived quantity is
 allocated first and takes the lower register**, so the load emitted *second* in
 the RTL wins `$v0`. Splitting the pair into two source statements
-(`padB = chase->pad_8; angle = chase->pad_A - padB;`) does move `pad_A` into
+(`padB = chase->playerYaw; angle = chase->yawFromPlayer - padB;`) does move `pad_A` into
 `$v0` exactly as the target has it, but the RTL then emits `pad_8` first and
 `sched2` keeps that order, so the pair comes out swapped against the target.
 Both spellings sit at the same distance from the target; neither reaches it.
@@ -109986,18 +109986,18 @@ spelling will produce it and the function belongs in `tools/difficult_functions`
 
 Related, from the same session: the scratch-pointer push documented above ("A
 scratch block's `-= 1` push") also appears as an assignment expression —
-`chase = (*(Actor401000ChaseScratch**)SCRATCH_STACK_CURSOR_SLOT = head - 1);` with the
-delta written from `&head[-1].delta`. Written as two statements the inlined
+`chase = (SCRATCH_STACK_CURSOR(ActorChaseScratch) = savedCursor - 1);` with the
+delta written from `&savedCursor[-1].delta`. Written as two statements the inlined
 `pos` parameter coalesces with `chase` (one `addiu` instead of `addiu`+`move`),
 the function compiles one instruction short and every later branch
 displacement is 4 off: 98.376% -> 99.187%, 712 -> 713 instructions. The
 permuter found it; the fused spelling is the port.
 
 Inputs: `base_9.i` SHA256 `9658585ffff25663ba132d2214d0128c0a68e1587acb48889156525e2150579a`
-(`nonmatchings/func_actor_401000_80135AA4-vacuum/base_9.i`); target.o SHA256
+(`nonmatchings/_actor401000Chase-vacuum/base_9.i`); target.o SHA256
 `36915893463b102e437b41d846c946b414f9a613f0479ee1c2881c9d3ad9c9e0`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Evidence: `tools/permuter_findings/func_actor_401000_80135AA4/`, session
+Evidence: `tools/permuter_findings/_actor401000Chase/`, session
 `LEARNINGS.md` in the scratch directory, `/tmp/gcc-obs-35aa4` (tracer events).
 
 ## Every long-lived register wrong by one: a reused local the source wrote once (func_actor_800100_80163214, 2026-09-16)
@@ -136720,7 +136720,7 @@ base_3: `9f5a709da399986dcb7aee89ca5f958e9f748229f91c1e3c250a594b438eebbd`.
 Both traced compilations emitted byte-identical assembly with/without observation.
 
 
-## Later memory operations change an earlier call delay slot through block-wide potential weighting (oddStrangerPushContacts, 2026-09-20)
+## Later memory operations change an earlier call delay slot through block-wide potential weighting (_oddStrangerApplyBodyPushback, 2026-09-20)
 
 A pre-call zero store followed by two argument copies had the wrong order:
 `sh; move a0; jal; move a1`, while the target wanted the store in the call
@@ -136766,22 +136766,22 @@ Scope: this measured scheduler decision, not a universal tail-duplication fix.
 Evidence: `tools/compiler_evidence/2026-09-20-actor401000-35704.json`, including
 plans, scores, source/compiler hashes and selected raw events. Full sources,
 dumps and traces are retained in
-`tools/permuter_findings/oddStrangerPushContacts/` and the scratch.
+`tools/permuter_findings/_oddStrangerApplyBodyPushback/` and the scratch.
 Compiler: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Input base_1: `6aaa8a5c2cb06b31bd5c6f63afffad4615041cc43e34bf66d23e4e35f81ca84d`.
 Input base_2: `61faca5d9755b13ba0b9e7a6a6e7d2c242201bad5a83358cc99327e295add754`.
 Both traces confirmed byte-identical assembly with and without observation.
 
 
-## A dedicated ABS condition joins the first load, subtraction, abs and compare into one local quantity (func_actor_401000_80135AA4, 2026-09-20)
+## A dedicated ABS condition joins the first load, subtraction, abs and compare into one local quantity (_actor401000Chase, 2026-09-20)
 
 The archived 99.187% seed was stuck on init scheduling and `pad_A - pad_8` registers. Retrieval found two newer solutions. Transferring the two SOFT_BARRIER boundaries plus u16 speed preload from func_actor_401300_801365F8 fixed all init differences (99.972%, regs=4 only). Both flag chains now reuse v0; constant3 and speed reuse v1. As in that sibling, sched1 places the speed load after the first flag store, and sched2 moves it before the mask. Individual boundary minimality was not tested.
 
-The remaining shared `angle` used explicit if/negation twice and was global. Keeping the later angle unchanged and writing `diff = chase->pad_A - chase->pad_8; if (ABS(diff) < 0x44)` for the first condition reached 100%. This was a preplanned transfer from _actor356100Chase, not another load-order permutation.
+The remaining shared `angle` used explicit if/negation twice and was global. Keeping the later angle unchanged and writing `playerFacingError = chase->yawFromPlayer - chase->playerYaw; if (ABS(playerFacingError) < 0x44)` for the first condition reached 100%. This was a preplanned transfer from _actor356100Chase, not another load-order permutation.
 
 A tracer on the exact candidate observes block16 q1=[230,229,87,223], refs8/span10/priority24000 -> v0 (compare, abs, diff, pad_A load); q2=[226], refs2/span2/priority10000 -> v1 (pad_8 load). Both scheduler passes keep pad_A before pad_8. The older session's inference that the target needed reversed sched1 loads followed by a sched2 swap was false: tying the longer chain changes priority while preserving load order. `abssi2` with equal input/output registers emits the target bgez/nop/negu.
 
-Unscoped build verification succeeded. Compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd; traced input 43688afde3e933cb9fe7a0d2ecab0b7d50472028d9cec4336ae4faa6961ed795. Observer assembly was unchanged. Selected events, plans/build fingerprints and limits: tools/compiler_evidence/2026-09-20-actor401000-35aa4.json. Full trace and the independent unresolved permuter wrapper gain are retained under tools/permuter_findings/func_actor_401000_80135AA4/.
+Unscoped build verification succeeded. Compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd; traced input 43688afde3e933cb9fe7a0d2ecab0b7d50472028d9cec4336ae4faa6961ed795. Observer assembly was unchanged. Selected events, plans/build fingerprints and limits: tools/compiler_evidence/2026-09-20-actor401000-35aa4.json. Full trace and the independent unresolved permuter wrapper gain are retained under tools/permuter_findings/_actor401000Chase/.
 
 ## A conditional assigned directly to a field expands differently from a shared next-state local (oddStrangerTakeHit, 2026-09-20)
 
@@ -150137,12 +150137,12 @@ attempts; left as it was.
 ### Goto removal, batch 23: a cap applied twice, a range switch, a cue ladder that stays (2026-10-06)
 
 - **`if (H) { if (in range) goto add; clamp; } if (in range) goto add; clamp;
-  add:`** (`func_actor_401000_80135374`, the Y cap of the capped push) is a
+  add:`** (`_actor401000ApplyGridPushback`, the Y cap of the capped push) is a
   `static inline void` with two early `return`s. Writing the cap as two plain
-  `if (abs(vy) > K) s->step.vy = ...;` statements does not give the first
+  `if (abs(stepY) > K) push->step.vy = ...;` statements does not give the first
   test's jump past the second: `thread_jumps` cannot see through the `abs`
   (it has a branch of its own), so the in-range arm lands on the second test.
-  The inline's pre-existing `clamped` temporary is still needed (`$s0`/`$s1`
+  The inline's pre-existing `cappedY` temporary is still needed (`$s0`/`$s1`
   swap without it).
 - **`if (x >= 2) goto kill; if (x < 0) goto kill; t->arg = x; return; kill:`**
   is `switch (x) { case 0: case 1: ...; break; default: kill; }`: one range

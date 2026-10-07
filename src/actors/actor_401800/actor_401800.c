@@ -1322,62 +1322,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 
 #include "../../shared/odd_stranger_face_player.inc.c"
 
-/// Push the root coordinate out of a `WorldCollisionContact` table: take a 0x34 scratch, seed
-/// its position from the second coordinate, then walk the records until `count`
-/// or a zero `key`. Each kind 0x10000 / 0x30000 record contributes half its
-/// offset along X and Z, normalised to length 0x96 first when it is longer than
-/// that; `hit` reports whether one was seen.
-/// Same body as `_actor01900ApplyBodyPushback` / `_actor401300ApplyBodyPushback`, with the
-/// coordinate update written out in both arms of the length test.
-s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
-{
-    ActorBodyPushScratch* head;
-    ActorBodyPushScratch* s;
-    ActorBodyPushScratch* blk;
-
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
-        return 0;
-    }
-    arg0->extra.tmd->coords[1].composeStamp    = GRAPHICS_COORD_DIRTY;
-    head                                       = SCRATCH_STACK_CURSOR(ActorBodyPushScratch);
-    blk                                        = head - 1;
-    SCRATCH_STACK_CURSOR(ActorBodyPushScratch) = blk;
-    s                                          = blk;
-    actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-    s->position.vx = arg0->extra.tmd->coords[1].workm.t[0];
-    s->position.vy = arg0->extra.tmd->coords[1].workm.t[1];
-    s->position.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    s->hit         = 0;
-    for (s->recordIndex = 0; s->recordIndex < count; s->recordIndex++) {
-        if (recs[s->recordIndex].key.value == 0) {
-            s->marks[s->recordIndex] = ACTOR_BODY_PUSH_MARK_END;
-            break;
-        }
-        s->kind = recs[s->recordIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
-        if (s->kind == 0x10000 || s->kind == 0x30000) {
-            s->hit = 1;
-            worldCollisionCalcContactWorldOffset(&s->position, &recs[s->recordIndex], &s->offset);
-            s->offsetLength = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
-            s->offsetLength = SquareRoot0(s->offsetLength);
-            if (s->offsetLength >= 0x96) {
-                s->offset.vy = 0;
-                VectorNormalSS(&s->offset, &s->offset);
-                gte_lddp(0x96);
-                gte_ldsv(&s->offset);
-                gte_gpf12();
-                gte_stsv(&s->offset);
-                arg0->extra.tmd->coords->coord.t[0] += s->offset.vx / 2;
-                arg0->extra.tmd->coords->coord.t[2] += s->offset.vz / 2;
-            } else {
-                arg0->extra.tmd->coords->coord.t[0] += s->offset.vx / 2;
-                arg0->extra.tmd->coords->coord.t[2] += s->offset.vz / 2;
-            }
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        }
-    }
-    SCRATCH_STACK_RELEASE_BLOCK(ActorBodyPushScratch);
-    return s->hit;
-}
+#include "../../shared/odd_stranger_push_body.inc.c"
 
 static __inline__ s32 Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r)
 {
@@ -1443,7 +1388,7 @@ static void func_actor_401800_80136560(Task* arg0)
     SCRATCH_HEAD_AT(scratch, ActorChaseScratch) = block;
     chase                                       = block;
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-        oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     coord                                 = arg0->extra.tmd->coords;
     head[-1].delta.vx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
@@ -1670,7 +1615,7 @@ static void func_actor_401800_801381E4(Task* arg0)
             arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
         if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-            oddStrangerPushContacts(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+            _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
 }

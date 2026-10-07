@@ -369,7 +369,21 @@ void oddStrangerWalkingDeath(Task* arg0);
 
 void oddStrangerTakeHit(Task* arg0);
 
-/* Defined by each package. */
-s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count);
+/// Pushes the model root away from player/companion and enemy-body contacts.
+///
+/// Requires a live TMD task, readable `contactCount` contacts (0..12), parts
+/// 0 and 1, and one free body-push scratch block plus any callee scratch space.
+/// Stops at the first zero key. Each push is measured from part 1's composed
+/// position. Variant 1 removes the room view basis, caps at 107 units and uses
+/// an arithmetic right shift by two; variant 2 uses the world-offset resolver,
+/// caps at 150 units and divides by two with truncation toward zero. X/Z are
+/// added to the root's parent-space translation; inputs are borrowed for the call.
+/// Composed positions and separations must fit signed halfwords, and squared
+/// X/Z sums must fit s32. Requires the active grid view basis in variant 1 and
+/// the composed global view basis in variant 2; neither basis is refreshed here.
+/// Returns 1 on seeing an eligible body even if its push is zero; freeze or
+/// view-ready state returns 0 without changing the model. Releases scratch
+/// storage before reading the result, while its bytes remain intact.
+static s32 _oddStrangerApplyBodyPushback(Task* task, const WorldCollisionContact* contacts, s16 contactCount);
 
 #endif /* SRC_SHARED_ODD_STRANGER_H */
