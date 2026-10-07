@@ -153746,3 +153746,35 @@ overlay function (its settings name the scratch environment's `target.bin` /
 `source.bin`); for a data-layout change, `cmp build/USA/out/<pkg>
 assets/USA/pe2pkg/<pkg>.pe2pkg` plus `objdump -dr` on the object for the
 relocation symbols is the check.
+
+## Bank-extension storages, plain batch: 29 unions become their objects (2026-10-07)
+
+Follows the `actor_450900` entry above. The 29 storages that hold only a set
+table, copy requests and play requests, and that only data references, are now
+their real objects in 19 images. What made the batch mechanical:
+
+- **The table's end is decided by its own content.** A set word is NULL or a
+  pointer to an `AnimationSet` elsewhere in the image; the word after the last
+  one is either a pointer back to the table's own start (a copy request stored
+  directly behind it) or a small bank selector (a play request). Neither can be
+  read as a set, so the copy is not needed as evidence.
+- **Check references in the package, not in the C.** Scan the original image
+  for every data word and every `lui`/`addiu` pair landing in the storage. A
+  storage with no code hit can be split without touching an instruction: a
+  data relocation against `sym+off` and one against a new symbol at that
+  address are the same bytes. The referenced offsets found this way have to
+  equal the member uses in the source, and each has to be an object start.
+- **A play request the scripts name is its own object; a run nobody names is
+  an array** (one unnamed request stays a scalar). This is the convention the
+  files already used for the requests after each storage.
+- **Stale symbol-map entries can sit inside a storage.** `actor_146300` had
+  two unsized entries at addresses the union covered. Replace them with the
+  sized entries of the split instead of adding duplicates.
+- The copy request keeps its count (`ANIMATION_BANK_EXTENSION_CAPACITY` or the
+  literal) and names the table through `.sets`; `ARRAY_SIZE` there would be a
+  different, smaller copy.
+
+Left as unions: the storages a function names (`actor_143000`, `actor_260400`,
+`actor_260500`, `actor_451100`, `dryfield_trailer_coach`,
+`neo_ark_observatory`) and the `actor_160600` companion storage, which also
+holds a placement.
