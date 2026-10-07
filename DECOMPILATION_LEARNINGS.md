@@ -65238,7 +65238,7 @@ it - and insert after whichever entity carries the block below:
 
 ```
 0x00000 D_actor_403000_80131E20      D_actor_403000_80131E20.s
-0x00004 jtbl_actor_403000_80131E24   func_actor_403000_801324EC.s
+0x00004 jtbl_actor_403000_80131E24   _actor403000ApplyCommand.s
 ...
 0x001E4 ActorsShared80135df4Table    ActorsShared80135df4Table.s   <- new line here
 0x001F4 jtbl_actor_403000_80132014   func_actor_403000_8013D98C.s
@@ -86016,7 +86016,7 @@ the field comparison, so it is *not* also charged as `regs` (penalty 5). Only
 `$`-prefixed spelling all fail the capture — so the mislabel lands precisely on
 the argument registers, which is where a missing-parameter bug shows up.
 
-`func_actor_403000_8013D464` (m2c seed: two params, so the payload arrived in
+`_actor403000PlayAnimation` (m2c seed: two params, so the payload arrived in
 `$a1`) scored 99.909% as `stack=1 branch=0 regs=0 reorder=0 insert=0 delete=0`
 with `blocks=1/1 predicates_match=True` and an identical opcode histogram — the
 signature the section above describes, but wearing the other label. Adding the
@@ -86034,11 +86034,11 @@ still installed by an `INCLUDE_ASM` spawn handler shows as "none found", but
 `grep <func> asm/<ver>/<overlay>/` finds the install site immediately — and
 the *offset it is stored to* gives the signature for free.
 
-`func_actor_403000_801343B8` installs `func_actor_403000_8013D4F4` with
+`_actor403000Spawn` installs `_actor403000Exit` with
 
 ```
-lui   v0, %hi(func_actor_403000_8013D4F4)
-addiu v0, v0, %lo(func_actor_403000_8013D4F4)
+lui   v0, %hi(_actor403000Exit)
+addiu v0, v0, %lo(_actor403000Exit)
 sw    v0, 0x18(s7)          /* s7 = Task* */
 ```
 
@@ -97534,7 +97534,7 @@ Two consequences worth planning for before the edit: the new unit takes the
 `actor_401800_3.c`, with its three `INCLUDE_ASM` folder strings rewritten), and
 the symbol splat had grouped the pad into is dropped from the built object, so
 the cut offsets in the manifest are the only record of the run's length.
-## Promoting a body from the middle of an overlay splits the unit and moves the `rodata` pin with it (func_actor_403000_8013D268, 2026-09-16)
+## Promoting a body from the middle of an overlay splits the unit and moves the `rodata` pin with it (_actor403000SetModelDraw, 2026-09-16)
 
 `overlay_dup_index.py promote` writes the span and the shared symbol and stops;
 everything the split does to the carrier is the caller's problem. When the span
@@ -97636,7 +97636,7 @@ based at 0xDEC. The overlay's other callers say it is not:
 
 ```
 func_actor_403000_8013C864:  jal worldCollisionClearContacts ; a0 = work + 0xDE8
-func_actor_403000_801343B8:  sw  $v0, 0xDE4($s6)       ; v0 = work + 0xDE8
+_actor403000Spawn:  sw  $v0, 0xDE4($s6)       ; v0 = work + 0xDE8
 ```
 
 `worldCollisionClearContacts` takes a table *start* and walks to the last-element bit,
@@ -104813,50 +104813,50 @@ target.o SHA256 `718984f6e9ee7d2bef28ae4e84a7b3690269e5f3f6919ea2ca1d4c63938cfc7
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00400_Fn097C8-vacuum`.
 
-## One pointer local reused across a spawn handler's sections goes global and drags the whole allocation (func_actor_403000_801343B8, 2026-09-16)
+## One pointer local reused across a spawn handler's sections goes global and drags the whole allocation (_actor403000Spawn, 2026-09-16)
 
 A 0x558 spawn handler links six `WorldCollisionBody` nodes in a row. The target keeps a
 different value in `$s0` for each stretch - the anim source, `0x12C`, the second
-record table, each of three node pointers, then `&dir` for the GTE scale -
+record table, each of three node pointers, then `&scaledHeading` for the GTE scale -
 which reads like one reused `WorldCollisionBody* o`. Writing it that way reached 91.7%:
 `o` has many sets and deaths, so local-alloc rejects it (see "local-alloc only
 sees single-death pseudos"); global-alloc then puts it in `$s6`, pushing the
-work pointer and `index` down a register and moving the CSE constants.
-sched1 also moved `o = &dir` above the preceding `gfxReadMatrixZAxis` call (UID 712
+work pointer and `enemy` down a register and moving the CSE constants.
+sched1 also moved `o = &scaledHeading` above the preceding `gfxReadMatrixZAxis` call (UID 712
 ahead of call 706 in `.sched`), after which reload CSE wrote it as `move $s6,$a1`
 and a load-delay `nop` disappeared.
 
-**Fix.** Give every stretch its own single-assignment local (`animSrc`,
-`rootContacts`, `headContacts`, `torsoBody`, `hindBody`, `neckBody`, `dirp`). Each one dies once
+**Fix.** Give every stretch its own single-assignment local (`animationSets`,
+`rootContacts`, `headContacts`, `body` in each `_actor403000InitPartSphere` expansion, `headingVector`). Each one dies once
 inside the block, so local-alloc hands them all `$s0` in turn. This took the
-score from 91.7% to 98.7% in a single edit, and the `&dir` set stayed below the call.
+score from 91.7% to 98.7% in a single edit, and the `&scaledHeading` set stayed below the call.
 The last 1.3% was plain statement order: `playerAnimation.animationId = 1` before
 `playerAnimation.blendFrames = 3` gives the constant its own `$v1` quantity ahead of the
-`playerAnimation.source.sets` store. Same function: `index->field_40 = D.field_4;` written
-*before* `index->field_50 = &D;` is what puts the `lhu` into `$v1` while `$v0`
+`playerAnimation.source.sets` store. Same function: `enemy->hp = D_actor_403000_8013DA00.hpMax;` written
+*before* `enemy->param = &D_actor_403000_8013DA00;` is what puts the `lhu` into `$v1` while `$v0`
 still holds `&D`.
 
 Unresolved: sched.c only ties a pseudo's set to the preceding call when the
-pseudo crosses no calls, and `dirp` still crosses `VectorNormalSS`, so that rule
+pseudo crosses no calls, and `headingVector` still crosses `VectorNormalSS`, so that rule
 does not explain why the split stopped the move. I did not trace it.
 
 ### A comparison stored into a narrow (`s8`) local keeps its temp and `move`
 
-`func_actor_403000_80134204`: the target computed `slti v0,a0,C` then `move a1,v0`
-for `col = x < C`, and emitted the `xori` of `row = z >= C` *after* the next
-table's `lui/addiu` instead of right after its `slti`. With `s32 col`/`row`,
+`_actor403000ChooseRingDirection`: the target computed `slti v0,a0,C` then `move a1,v0`
+for `column = positionX < C`, and emitted the `xori` of `row = positionZ >= C` *after* the next
+table's `lui/addiu` instead of right after its `slti`. With `s32 column`/`row`,
 combine folds the store-flag straight into the variable (`slti a1,a0,C`) and
 keeps `slt`+`xori` adjacent. Declaring both locals `s8` blocks that fold (the
 scc result goes through a QImode lowpart), reproducing the separate temp, the
 `move`, and the late `xori` - with no extra `andi`/sign-extension, since the
-values are 0..5. Same function: `v = &D[idx]` put the result in the table's
-register (`addu v0,v1,v0`); a separate `table = D; v = &table[idx];` let `v` tie
+values are 0..5. Same function: `waypoint = &D[idx]` put the result in the table's
+register (`addu v0,v1,v0`); a separate `waypoints = D; waypoint = &waypoints[idx];` let `waypoint` tie
 to the shifted index instead (`addu v0,v0,v1`).
 
 **A `rodata_head` past a jump table has to come back when that table's function is matched.**
 `actor_403000` got `rodata_head = "0x84"` so `_actor403000CanChasePlayer`'s
 rodata would start the unit, which parked the two jump tables at `0x4`/`0x3C`
-in `actor_403000_hdr` as assembly. Matching `func_actor_403000_801324EC` (the
+in `actor_403000_hdr` as assembly. Matching `_actor403000ApplyCommand` (the
 `0x4` table) then fails at link with `undefined reference to .Lactor_403000_…`
 from `actor_403000_hdr.rodata.s`. The fix is `rodata_head = "0x4"` alone: the
 unit owns `0x4..` again, the compiled table starts its `.rodata`, splat keeps
@@ -114512,7 +114512,7 @@ own, and each was reached by a separate build:
 
 The wrap loop is unrelated to all of that and wants the m2c-shaped `if`/`else`
 with `goto` labels, exactly as `func_actor_401300_8013267C` and
-`func_actor_403000_80134204` have it: `if (angle < 0) { if (angle < -0x800) {
+`_actor403000ChooseRingDirection` have it: `if (angle < 0) { if (angle < -0x800) {
 angle += 0x1000; goto loop_neg; } } else { ... }`. Writing the two passes as
 `while` loops loses the `bgez` on `angle << 16` (81.8% -> 90.99% came mostly
 from this plus the prologue loads).
