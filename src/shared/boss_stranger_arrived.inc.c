@@ -20,8 +20,8 @@ s16 bossStrangerArrived(BossStrangerWalker* walker)
     toNode->vy = 0;
     toNode->vz = toNode->vz - walker->coord->coord.t[2];
 
-    if (!overlayWalkerOutOfRange(toNode, walker->speedTarget * 4) ||
-        !overlayWalkerOutOfRange(toNode, 300)) {
+    if (!actorOutsideRadius(toNode, walker->speedTarget * 4) ||
+        !actorOutsideRadius(toNode, 300)) {
         SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
         return 1;
     }

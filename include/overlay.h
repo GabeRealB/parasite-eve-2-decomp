@@ -653,27 +653,6 @@ typedef struct {
 } BossStrangerWalker;
 STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 
-/// Whether the XZ offset staged in `d` is at least `r` long, squaring both
-/// sides in a scratch block of its own.
-static __inline__ s32 overlayWalkerOutOfRange(SVECTOR* d, s16 r)
-{
-    OverlayRangeScratch* b;
-    OverlayRangeScratch* head;
-
-    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head - 1;
-    b                                         = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-
-    b->dx                                     = d->vx;
-    b->dz                                     = d->vz;
-    b->radius                                 = r;
-    b->dx                                     = b->dx * b->dx;
-    b->dz                                     = b->dz * b->dz;
-    b->radius                                 = b->radius * b->radius;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
-    return b->dx + b->dz >= b->radius;
-}
-
 /// Bearing of `pos` from the full-width translation of `coord` on the XZ
 /// plane. The offset is staged in a scratch-stack `VECTOR` as in
 /// `_actorAngleBearingXZ` and released before `ratan2` runs.

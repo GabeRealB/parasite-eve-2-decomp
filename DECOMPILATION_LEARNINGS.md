@@ -58784,7 +58784,7 @@ block and then hands it to a range test that carves off 0xC more bytes:
 ```c
 d->vz = d->vz - work->coord->coord.t[2];
 ...
-overlayWalkerOutOfRange(d, work->field_5C * 4)
+actorOutsideRadius(d, work->speedTarget * 4)
 ```
 
 Passing `d->vx`/`d->vz` by value, the loads happen while CSE still knows
