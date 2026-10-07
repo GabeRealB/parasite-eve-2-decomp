@@ -97811,7 +97811,7 @@ overlay's task global they read (`D_actor_461800_80143898` against
 serve both — matching each copy separately is the correct call, not a pairing.
 Check `build/USA/dup_index.json`'s per-function `refs` before trusting a promote
 run to have refused.
-## A global's address is materialised from the first *use*, so a folded cast address makes `&D+4` the base (oddStrangerGrabHold, 2026-09-16)
+## A global's address is materialised from the first *use*, so a folded cast address makes `&D+4` the base (_oddStrangerGrabStrike, 2026-09-16)
 
 m2c's seed wrote both halves of one global through the same cast expression —
 `M2C_FIELD(&D_actor_401000_80154F1C, s32 *, 4) = 2;` then
@@ -97835,9 +97835,9 @@ the `+4` a store displacement, which is what the target does (96.47%, then the
 block below to 100%):
 
 ```c
-AnimationPlayRequest* msg = &D_actor_401000_80154F1C;
-msg->animationId   = 2;
-taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FF, (s32)msg, 0);
+AnimationPlayRequest* playerAnimation = &D_actor_401000_80154F1C;
+playerAnimation->animationId = 2;
+taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3FF, (s32)playerAnimation, 0);
 ```
 
 The fix came from the matched sibling `func_actor_356100_8016A468`
@@ -108965,7 +108965,7 @@ Scratch `nonmatchings/func_actor_401000_80138BB4-vacuum`.
 
 ## A payload global in the overlay's data is the shared message struct, and the twin may keep it inline instead
 
-`oddStrangerGrab` writes three `sw` at `0`/`4`/`8` and three `sh` at
+`_oddStrangerGrabPull` writes three `sw` at `0`/`4`/`8` and three `sh` at
 `0x10`/`0x12`/`0x14` into `D_actor_401000_80155018`, a 0x20-byte zeroed run in
 the package's `.data` with no symbol anywhere under `src/`. That is `ActorTransform`
 (`include/gameplay/message.h`) — the same 0x18-byte slot-3 payload the stack-local
@@ -108973,10 +108973,10 @@ senders use ("A short frame around a `taskMessageDispatch` payload means the wro
 payload type"). Declare it in the overlay header and reach it through a pointer:
 
 ```c
-ActorTransform* msg;
+ActorTransform* playerPlacement;
 ...
-msg         = &D_actor_401000_80155018;
-msg->pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0];
+playerPlacement         = &D_actor_401000_80155018;
+playerPlacement->pos.vx = ((TmdObject*)player->extra)->coords->coord.t[0];
 ```
 
 The struct supplies the mixed `sw`/`sh` widths on its own, so the position triple

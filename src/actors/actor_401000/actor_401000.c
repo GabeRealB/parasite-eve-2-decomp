@@ -76,7 +76,7 @@ extern TaskMessageEntry D_actor_401000_80154F90[8];
 /// `gOddStrangerAnimSets[16]` at on entering its state.
 extern AnimationSet gOddStrangerDormantAnimSet;
 
-/// Message 0x3FF payload of `oddStrangerGrabHold` and
+/// Message 0x3FF payload of `_oddStrangerGrabStrike` and
 /// `oddStrangerGrabRelease`: the animation argument the player task reads
 /// when the actor's live-actor flag goes up.
 extern AnimationPlayRequest gOddStrangerPlayerAnim;
@@ -100,7 +100,7 @@ extern SVECTOR gOddStrangerHitOffsets[12];
 /// `func_actor_401000_80135374` walk.
 extern ActorHeightClamp D_actor_401000_80154FD0[];
 
-/// Message 0x3E9 payload of `oddStrangerGrab`: the player task's
+/// Message 0x3E9 payload of `_oddStrangerGrabPull`: the player task's
 /// world position, then the yaw from the actor to it, handed straight to the
 /// slot-3 handler. The 401000 twin of the block `func_actor_401300_80138800`
 /// keeps inline at `_Actor401300Work.playerPlacement`.
@@ -2199,8 +2199,8 @@ static const OddStrangerStateTable gOddStrangerStates = { {
     oddStrangerTurnAround,
     oddStrangerSidestep,
     func_actor_401000_801378DC,
-    oddStrangerGrab,
-    oddStrangerGrabHold,
+    _oddStrangerGrabPull,
+    _oddStrangerGrabStrike,
     oddStrangerGrabRelease,
     _oddStrangerRiseBack,
     func_actor_401000_8013DEC8,

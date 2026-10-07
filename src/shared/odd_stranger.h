@@ -162,6 +162,13 @@ enum {
     ODD_STRANGER_LAST_BLENDED_SLOT   = 10
 };
 
+/// Pose and hit-effect settings shared by the pull and strike of a held player.
+enum {
+    ODD_STRANGER_GRAB_PITCH            = -ACTOR_TRANSFORM_ANGLE_TURN / 32, // 4096 units per turn
+    ODD_STRANGER_GRAB_HIT_EFFECT_KEY   = 0x1001,                           // Weapon-property row 1; bit 12 is ignored by the effect lookup
+    ODD_STRANGER_GRAB_EXTRA_PUFF_COUNT = 2                                 // Puffs added after the weapon-puff recipe's initial spawns
+};
+
 /// Work block of the Odd Stranger task, in both of its packages.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`; the
@@ -320,8 +327,8 @@ void        oddStrangerHoldAim(Task* arg0);
 static void _oddStrangerSpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey);
 static void _oddStrangerDown(Task* task);
 static void _oddStrangerDormantScripted(Task* task);
-void        oddStrangerGrab(Task* arg0);
-void        oddStrangerGrabHold(Task* arg0);
+static void _oddStrangerGrabPull(Task* task);
+static void _oddStrangerGrabStrike(Task* task);
 static void _oddStrangerStatusHold(Task* task);
 void        oddStrangerTurnAround(Task* arg0);
 

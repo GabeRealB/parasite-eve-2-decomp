@@ -1,9 +1,12 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Restarts the primary part tracks and records the requested animation as applied.
+/// Restarts the primary rig on its requested animation and records that selection.
 ///
-/// Requires a bound primary rig and a loaded set covering slots 1..18. Reset
-/// installs normal rate; the driver reapplies the requested rate before ticking.
+/// `work->rig.anim` must be bound to `work->rig.slots` and nineteen live model
+/// coordinates, with `animId` selecting a loaded set covering tracks 1..18.
+/// Slot 0 remains the placed root. Reset installs normal rate; the driver
+/// reapplies `animRate`, in sixteenths of a frame, before ticking the poses.
+/// This records `appliedAnim` without consuming the request or clearing cues.
 static __inline__ void _oddStrangerRestartPrimaryAnimation(OddStrangerWork* work)
 {
     s32 slotIndex;

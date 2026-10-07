@@ -56,7 +56,7 @@
 
 static const OddStrangerStateTable gOddStrangerStates;
 
-/// Payload of the `0x3FF` message `oddStrangerGrabHold` sends: the same
+/// Payload of the `0x3FF` message `_oddStrangerGrabStrike` sends: the same
 /// 0x14-byte animation record other actors keep as `AnimationPlayRequest` data
 /// (`D_actor_356100_80173244` and friends); `field_4` is the animation id.
 extern AnimationPlayRequest gOddStrangerPlayerAnim;
@@ -91,7 +91,7 @@ extern ActorStrangerVariant D_actor_401800_8013E700[];
 
 extern TaskMessageEntry D_actor_401800_80155A80[8];
 
-/// Payload `oddStrangerGrab` fills and sends with message 0x3E9.
+/// Payload `_oddStrangerGrabPull` fills and sends with message 0x3E9.
 // Only the leading value has established accesses. Preserve the following
 // zero bytes in this allocation; trailing fields versus TU padding remains
 // unresolved (see the local actors/rooms data review).
@@ -2086,8 +2086,8 @@ static const OddStrangerStateTable gOddStrangerStates = { {
     oddStrangerTurnAround,
     oddStrangerSidestep,
     func_actor_401800_801381E4,
-    oddStrangerGrab,
-    oddStrangerGrabHold,
+    _oddStrangerGrabPull,
+    _oddStrangerGrabStrike,
     oddStrangerGrabRelease,
     _oddStrangerRiseBack,
     func_actor_401800_8013E4F0,
