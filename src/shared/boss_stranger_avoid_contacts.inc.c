@@ -1,89 +1,121 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
-/// Unless actors are frozen, gathers the bearings of up to eight avoid-contact
-/// records (kind 0x10000 also sets blocked). Agreeing bearings each push the
-/// walker 10 units away along that direction, and the push is accumulated in
-/// push.
-void bossStrangerAvoidContacts(BossStrangerWalker* work)
+/// Applies a normalized yaw-axis step to the walker and its accumulated XZ push.
+///
+/// `parentYaw` uses 4096 units per turn; `signedDistance` is in game-coordinate
+/// units, with negative distances moving away. Borrows the caller's live scratch
+/// block, overwrites its rotation and direction, and retains GTE Q12 scaling.
+/// The caller initializes `push` and dirties the coordinate after the step.
+static inline void _bossStrangerAccumulateAvoidanceStep(BossStrangerWalker* walker, ActorContactSteerScratch* scratch, s16 parentYaw, s16 signedDistance)
 {
-    ActorContactSteerScratch* s;
-    s16                       diff;
+    gfxRotMatrixY(&scratch->rot, parentYaw, GRAPHICS_ROTATION_REPLACE);
+    gfxReadMatrixZAxis(&scratch->rot, &scratch->dir);
+    VectorNormalSS(&scratch->dir, &scratch->dir);
+    gte_lddp(signedDistance);
+    gte_ldsv(&scratch->dir);
+    gte_gpf12();
+    gte_stsv(&scratch->dir);
+    walker->push.vx           += scratch->dir.vx;
+    walker->push.vz           += scratch->dir.vz;
+    walker->coord->coord.t[0] += scratch->dir.vx;
+    walker->coord->coord.t[2] += scratch->dir.vz;
+}
+
+/// Nudges the walker away from compatible contact bearings and records the correction.
+///
+/// Unless `actorsFrozen` equals 1, clears `push` and `blocked`, scans at most
+/// `avoidCount` records (0..255), and stops at a zero key or eight accepted
+/// contacts. Accepts player/companion and enemy body kinds, plus any nonzero key
+/// with a zero low halfword. Seeing a player body sets `blocked` even if its
+/// bearing is later rejected. Contact flags and distances are not tested.
+///
+/// Each surviving bearing adds a nominal ten-unit step away in parent-frame
+/// XZ and accumulates it in the signed-halfword `push`; Y stays zero. The
+/// pairwise pass rejects every bearing more than a quarter turn from another
+/// collected bearing before that outer bearing's push is considered.
+/// It chooses XY rather than XZ when the normalized cached Y axis has Z
+/// magnitude at least 2072 (4096 is unit length).
+///
+/// Requires a live coordinate with `workm` composed in the contact points'
+/// frame, that many readable contact entries, and initialized scratch storage.
+/// No pointer is retained; the enclosing tick dirties the coordinate cache.
+static void _bossStrangerAvoidContacts(BossStrangerWalker* walker)
+{
+    enum {
+        BOSS_STRANGER_AVOID_XY_AXIS_Z_THRESHOLD    = 0x818, // Normalized Q12 Y-axis Z magnitude
+        BOSS_STRANGER_AVOID_MAX_BEARING_SEPARATION = 0x400, // Quarter turn
+        BOSS_STRANGER_AVOID_PUSH_DISTANCE          = 10     // Game-coordinate units
+    };
+    ActorContactSteerScratch* scratch;
+    s16                       pushYaw;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return;
     }
 
-    work->blocked = 0;
-    work->push.vz = 0;
-    work->push.vy = 0;
-    work->push.vx = 0;
+    walker->blocked = 0;
+    walker->push.vz = 0;
+    walker->push.vy = 0;
+    walker->push.vx = 0;
 
-    s = SCRATCH_STACK_RESERVE_BLOCK(ActorContactSteerScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorContactSteerScratch);
 
-    gfxReadMatrixYAxis(&work->coord->workm, &s->dir);
-    VectorNormalSS(&s->dir, &s->dir);
+    // Choose the bearing plane and cache its heading before collecting contacts.
+    gfxReadMatrixYAxis(&walker->coord->workm, &scratch->dir);
+    VectorNormalSS(&scratch->dir, &scratch->dir);
 
-    if (ABS(s->dir.vz) < 0x818) {
-        s->heading = ratan2(-work->coord->workm.m[2][0], work->coord->workm.m[2][2]);
+    if (ABS(scratch->dir.vz) < BOSS_STRANGER_AVOID_XY_AXIS_Z_THRESHOLD) {
+        scratch->heading = ratan2(-walker->coord->workm.m[2][0], walker->coord->workm.m[2][2]);
     } else {
-        s->heading = -ratan2(-work->coord->workm.m[0][2], work->coord->workm.m[1][2]);
+        scratch->heading = -ratan2(-walker->coord->workm.m[0][2], walker->coord->workm.m[1][2]);
     }
 
-    s->origin.vx = (u16)work->coord->workm.t[0];
-    s->origin.vy = (u16)work->coord->workm.t[1];
-    s->origin.vz = (u16)work->coord->workm.t[2];
-    s->count     = 0;
+    scratch->origin.vx = walker->coord->workm.t[0];
+    scratch->origin.vy = walker->coord->workm.t[1];
+    scratch->origin.vz = walker->coord->workm.t[2];
+    scratch->count     = 0;
 
-    for (s->i = 0; s->i < work->avoidCount; s->i++) {
-        if (work->avoidRecs[s->i].key.value == 0) {
+    for (scratch->i = 0; scratch->i < walker->avoidCount; scratch->i++) {
+        if (walker->avoidRecs[scratch->i].key.value == 0) {
             break;
         }
-        s->kind = work->avoidRecs[s->i].key.value & 0xFFFF0000;
-        if (s->kind != 0x10000) {
-            if (s->kind != 0x30000 && (u16)work->avoidRecs[s->i].key.value != 0) {
+        scratch->kind = walker->avoidRecs[scratch->i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
+        if (scratch->kind != WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+            if (scratch->kind != WORLD_COLLISION_CONTACT_ENEMY_BODY && (u16)walker->avoidRecs[scratch->i].key.value != 0) {
                 continue;
             }
         } else {
-            work->blocked = 1;
+            walker->blocked = 1;
         }
 
-        if (ABS(s->dir.vz) < 0x818) {
-            s->bearing[s->count] =
-                _actorAngleBearingXZ(&work->avoidRecs[s->i].point, &s->origin);
+        if (ABS(scratch->dir.vz) < BOSS_STRANGER_AVOID_XY_AXIS_Z_THRESHOLD) {
+            scratch->bearing[scratch->count] =
+                _actorAngleBearingXZ(&walker->avoidRecs[scratch->i].point, &scratch->origin);
         } else {
-            s->bearing[s->count] =
-                _actorAngleBearingXY(&work->avoidRecs[s->i].point, &s->origin);
+            scratch->bearing[scratch->count] =
+                _actorAngleBearingXY(&walker->avoidRecs[scratch->i].point, &scratch->origin);
         }
-        s->kept[s->count] = 1;
-        s->count++;
-        if (s->count >= ARRAY_SIZE(s->bearing)) {
+        scratch->kept[scratch->count] = 1;
+        scratch->count++;
+        if (scratch->count >= ARRAY_SIZE(scratch->bearing)) {
             break;
         }
     }
 
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = _actorAngleNormalizeYaw(s->bearing[s->i] - s->bearing[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->kept[s->i] = 0;
-                s->kept[s->j] = 0;
+    // Reject conflicting pairs while applying the surviving outer bearings.
+    for (scratch->i = 0; scratch->i < scratch->count; scratch->i++) {
+        for (scratch->j = scratch->i + 1; scratch->j < scratch->count; scratch->j++) {
+            scratch->diff = _actorAngleNormalizeYaw(scratch->bearing[scratch->i] - scratch->bearing[scratch->j]);
+            if (abs(scratch->diff) > BOSS_STRANGER_AVOID_MAX_BEARING_SEPARATION) {
+                scratch->kept[scratch->i] = 0;
+                scratch->kept[scratch->j] = 0;
             }
         }
-        if (s->kept[s->i] != 0) {
-            diff = ((u16)s->bearing[s->i] - (u16)s->heading) +
-                   ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
-            s->diff = diff;
-            gfxRotMatrixY(&s->rot, diff, 1);
-            gfxReadMatrixZAxis(&s->rot, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            work->push.vx           += s->dir.vx;
-            work->push.vz           += s->dir.vz;
-            work->coord->coord.t[0] += s->dir.vx;
-            work->coord->coord.t[2] += s->dir.vz;
+        if (scratch->kept[scratch->i] != 0) {
+            pushYaw = (scratch->bearing[scratch->i] - scratch->heading) +
+                      ratan2(-walker->coord->coord.m[2][0], walker->coord->coord.m[2][2]);
+            scratch->diff = pushYaw;
+            _bossStrangerAccumulateAvoidanceStep(walker, scratch, pushYaw, -BOSS_STRANGER_AVOID_PUSH_DISTANCE);
         }
     }
 

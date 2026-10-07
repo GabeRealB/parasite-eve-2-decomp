@@ -1,114 +1,137 @@
 /* Part of the library; see boss_stranger.h. Inline helpers the fragments use. */
 
-/// The walker's per-tick body, open on the scratch frame `bossStrangerTick`
-/// hands it. State 1 heads straight for the player matrix's translation, using
-/// `playerId` as the one-based player selector; state 2 walks `nav`'s
-/// `nodeOrder` and re-plans whenever the state or one of the node bytes
-/// changed, and state 3 follows the patrol route. `speed` then ramps towards
-/// `speedTarget` by at most `speedStep` a frame; while it is non-zero it
-/// scales (`GPF`) the normalised facing column of the model matrix into the
-/// per-frame world step, which is added to the coordinate's translation and
-/// kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`
-/// zeroes the step instead. Written as an inline so the two scratch-head
-/// accesses inside one frame stay absolute; see
-/// `func_acropolis_bridge_8018532C` in `acropolis_bridge_12.c`, the same body.
-static __inline__ void bossStrangerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
-                                        BossStrangerTickScratch* block)
+/// Applies the signed facing step and stores the resulting movement vector.
+///
+/// Reserves one uninitialized `SVECTOR` even at zero speed; a zero speed leaves
+/// `moveStep` intact. Nonzero speed uses the normalized local Z axis and GTE Q12
+/// scaling, adds XYZ to the parent-frame translation, and dirties the cache.
+static inline void _bossStrangerApplyFacingStep(BossStrangerWalker* walker, GfxCoord* coord, s16 speed)
 {
-    u8*           head2;
-    SVECTOR3*     pos;
-    PlayerStatus* cfg;
-    SVECTOR*      sv;
-    SVECTOR*      gsv;
-    SVECTOR*      step;
-    GfxCoord*     coord;
-    s16           sdiff;
-    s32           diff;
-    s16           speed;
-    s32           cur;
-    s32           target;
-    s32           result;
+    SVECTOR* moveScratchEnd;
+    SVECTOR* moveScratch;
+    SVECTOR* gteMove;
 
+    moveScratchEnd                = SCRATCH_STACK_CURSOR(SVECTOR);
+    moveScratch                   = moveScratchEnd - 1;
+    SCRATCH_STACK_CURSOR(SVECTOR) = moveScratch;
+    // Both aliases address the live move block; GTE transfers use this copy.
+    gteMove = moveScratch;
+    if (speed != 0) {
+        gfxReadMatrixZAxis(&coord->coord, moveScratch);
+        VectorNormalSS(moveScratch, moveScratch);
+        gte_lddp(speed);
+        gte_ldsv(gteMove);
+        gte_gpf12();
+        gte_stsv(gteMove);
+        coord->coord.t[0]  += moveScratchEnd[-1].vx;
+        coord->coord.t[1]  += moveScratch->vy;
+        coord->coord.t[2]  += moveScratch->vz;
+        walker->moveStep    = moveScratchEnd[-1];
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+}
+
+/// Selects the steering goal, turns, ramps speed and applies the walker's frame movement.
+///
+/// `frame` is the live tick reservation and equals `scratchEnd - 1`.
+/// Chase copies the selected player's translation; patrol writes the route
+/// goal. Idle and close-in leave the goal unwritten but still turn toward it.
+/// No known carrier selects close-in: if selected, it reserves four additional
+/// bytes, plans along `nodeOrder`, and releases those bytes only on arrival.
+/// A non-arriving close-in tick therefore leaves the cursor four bytes lower.
+/// The purpose of this extra reservation is unproven.
+///
+/// Speed uses an unsigned stored target/current value but a signed-halfword
+/// difference to choose the ramp branch, and a signed-halfword step for GTE
+/// movement. A zero speed retains the previous `moveStep`; actorsFrozen == 1
+/// clears XYZ instead. Optional ground and avoidance steps follow facing motion.
+/// Requires live walker/navigation/coordinate storage and the callees' contracts.
+/// Chase requires `playerId` to select live resident player storage; only id 1
+/// has established storage. Borrows the frame and nested initialized scratch
+/// storage for this call. The enclosing tick releases the frame and dirties the coordinate.
+static __inline__ void _bossStrangerStep(BossStrangerWalker* walker, BossStrangerTickScratch* scratchEnd,
+                                         BossStrangerTickScratch* frame)
+{
+    const PlayerStatus* player;
+    SVECTOR3*           goal;
+    SVECTOR*            moveStep;
+    GfxCoord*           coord;
+    s16                 signedSpeedGap;
+    s32                 speedGap;
+    s16                 speed;
+    s32                 targetSpeed;
+    s32                 currentSpeed;
+    s32                 nextSpeed;
+
+    enum { BOSS_STRANGER_CLOSE_SCRATCH_RESERVATION_BYTES = 4 };
+
+    // Select a goal only in the chase and patrol states.
     switch (walker->state) {
         case BOSS_STRANGER_WALKER_IDLE:
             break;
         case BOSS_STRANGER_WALKER_CHASE:
-            cfg              = &gPlayerStatus + (walker->playerId - 1);
-            pos              = &head[-1].goal;
-            head[-1].goal.vx = (u16)cfg->coordMtx->t[0];
-            pos->vy          = (u16)cfg->coordMtx->t[1];
-            pos->vz          = (u16)cfg->coordMtx->t[2];
+            player   = &gPlayerStatus + (walker->playerId - 1);
+            goal     = &scratchEnd[-1].goal;
+            goal->vx = player->coordMtx->t[0];
+            goal->vy = player->coordMtx->t[1];
+            goal->vz = player->coordMtx->t[2];
             break;
         case BOSS_STRANGER_WALKER_CLOSE:
-            SCRATCH_STACK_RESERVE_BYTES(4);
-            walker->actorNode = bossStrangerNodeNearestActor(walker, 1);
-            walker->selfNode  = bossStrangerNodeNearestSelf(walker);
+            SCRATCH_STACK_RESERVE_BYTES(BOSS_STRANGER_CLOSE_SCRATCH_RESERVATION_BYTES);
+            walker->actorNode = _bossStrangerNodeNearestPlayer(walker, 1);
+            walker->selfNode  = _bossStrangerNodeNearestSelf(walker);
             if (walker->prevState != walker->state || walker->selfNode != walker->prevSelfNode ||
                 walker->actorNode != walker->prevActorNode) {
-                bossStrangerPlanToward(walker, 1);
+                _bossStrangerPlanToward(walker, 1);
                 walker->node = walker->nav->nodeOrder[walker->cursor];
             }
             walker->prevState     = walker->state;
             walker->prevSelfNode  = walker->selfNode;
             walker->prevActorNode = walker->actorNode;
-            if (bossStrangerArrived(walker) != 0) {
+            if (_bossStrangerArrived(walker) != 0) {
                 walker->cursor += (u8)walker->orderStep;
                 walker->node    = walker->nav->nodeOrder[walker->cursor];
-                SCRATCH_STACK_RELEASE_BYTES(4);
+                SCRATCH_STACK_RELEASE_BYTES(BOSS_STRANGER_CLOSE_SCRATCH_RESERVATION_BYTES);
             }
             break;
         case BOSS_STRANGER_WALKER_PATROL:
-            bossStrangerFollowRoute(walker, &head[-1].goal);
+            _bossStrangerFollowRoute(walker, &scratchEnd[-1].goal);
             break;
     }
-    bossStrangerTurnToward(walker, &block->goal);
+    _bossStrangerTurnToward(walker, &frame->goal);
 
-    cur    = walker->speedTarget;
-    target = walker->speed;
-    if (cur != target) {
-        diff  = cur - target;
-        sdiff = diff;
-        if (sdiff > walker->speedStep) {
-            result = target + walker->speedStep;
-        } else if (sdiff < -walker->speedStep) {
-            result = target - walker->speedStep;
+    // Preserve the signed-halfword comparison of the unsigned speed gap.
+    targetSpeed  = walker->speedTarget;
+    currentSpeed = walker->speed;
+    if (targetSpeed != currentSpeed) {
+        speedGap       = targetSpeed - currentSpeed;
+        signedSpeedGap = speedGap;
+        if (signedSpeedGap > walker->speedStep) {
+            nextSpeed = currentSpeed + walker->speedStep;
+        } else if (signedSpeedGap < -walker->speedStep) {
+            nextSpeed = currentSpeed - walker->speedStep;
         } else {
-            result = target + diff;
+            nextSpeed = currentSpeed + speedGap;
         }
-        walker->speed = result;
+        walker->speed = nextSpeed;
     }
 
-    coord = walker->coord;
-    speed = walker->speed;
-    step  = &walker->moveStep;
-    if (gMcSaveData[0].state.actorsFrozen == 1) {
-        step->vz            = 0;
-        step->vy            = 0;
+    // Convert the normalized facing axis into this frame's signed step.
+    coord    = walker->coord;
+    speed    = walker->speed;
+    moveStep = &walker->moveStep;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
+        moveStep->vz        = 0;
+        moveStep->vy        = 0;
         walker->moveStep.vx = 0;
     } else {
-        head2                    = SCRATCH_STACK_CURSOR(u8);
-        sv                       = (SVECTOR*)(head2 - 8);
-        SCRATCH_STACK_CURSOR(u8) = (u8*)sv;
-        gsv                      = sv;
-        if (speed != 0) {
-            gfxReadMatrixZAxis(&coord->coord, sv);
-            VectorNormalSS(sv, sv);
-            gte_lddp(speed);
-            gte_ldsv(gsv);
-            gte_gpf12();
-            gte_stsv(gsv);
-            coord->coord.t[0]  += ((SVECTOR*)(head2 - 8))->vx;
-            coord->coord.t[1]  += sv->vy;
-            coord->coord.t[2]  += sv->vz;
-            walker->moveStep    = *(SVECTOR*)(head2 - 8);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        }
-        SCRATCH_STACK_RELEASE_BYTES(8);
+        _bossStrangerApplyFacingStep(walker, coord, speed);
     }
     if (walker->skipGround == 0) {
-        bossStrangerApplyGroundStep(walker);
+        _bossStrangerApplyGroundStep(walker);
     }
     if (walker->skipAvoid == 0) {
-        bossStrangerAvoidContacts(walker);
+        _bossStrangerAvoidContacts(walker);
     }
 }

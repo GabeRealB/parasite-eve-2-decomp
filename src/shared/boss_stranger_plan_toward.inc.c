@@ -1,74 +1,101 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
-/// Re-plans the walker's position in `nav`'s `nodeOrder` so that it heads
-/// towards actor `actor`. It collects every slot of that order naming the
-/// node nearest the actor and every slot naming the node nearest the walker,
-/// then picks the pair of slots that are closest together: the walker's
-/// `cursor` becomes the slot on its own side, `goalSlot` records the slot on
-/// the actor's side, and `orderStep` becomes the +1 / -1 direction the cursor
-/// has to travel along the order to close the gap -- which the caller then
-/// applies, as does the last line here. Both lists hold at most eight slots,
-/// so an order with more matches than that is silently truncated; if no pair
-/// was found at all the routine only complains and leaves the cursor where it
-/// was.
-void bossStrangerPlanToward(BossStrangerWalker* work, s16 actor)
+/// Collects ordered occurrences of the two nearest nodes into the plan's slot lists.
+///
+/// Each list takes up to eight entries. Retains the count-indexed marker writes,
+/// including the full-list overrun; valid caller orders have fewer than eight
+/// occurrences of each node. Borrows the live plan and navigation records.
+static inline void _bossStrangerCollectPlanSlots(const BossStrangerWalker* walker, BossStrangerPlanTowardScratch* plan)
 {
-    BossStrangerPlanTowardScratch* s;
-    s32                            gap;
-    s32                            bestGap;
-
-    s = SCRATCH_STACK_RESERVE_BLOCK(BossStrangerPlanTowardScratch);
-
-    // Collect the order slots that name each of the two nodes.
-    s->actorNode      = bossStrangerNodeNearestActor(work, actor);
-    s->selfNode       = bossStrangerNodeNearestSelf(work);
-    s->actorSlotCount = 0;
-    s->selfSlotCount  = 0;
-    for (s->outerIndex = 0; s->outerIndex < work->nav->orderCount; s->outerIndex++) {
-        if (work->nav->nodeOrder[s->outerIndex] == s->actorNode && s->actorSlotCount < BOSS_STRANGER_PLAN_SLOT_CAPACITY) {
-            s->actorSlots[s->actorSlotCount] = s->outerIndex;
-            s->actorSlotCount++;
+    plan->actorSlotCount = 0;
+    plan->selfSlotCount  = 0;
+    for (plan->outerIndex = 0; plan->outerIndex < walker->nav->orderCount; plan->outerIndex++) {
+        if (walker->nav->nodeOrder[plan->outerIndex] == plan->actorNode && plan->actorSlotCount < BOSS_STRANGER_PLAN_SLOT_CAPACITY) {
+            plan->actorSlots[plan->actorSlotCount] = plan->outerIndex;
+            plan->actorSlotCount++;
         }
-        if (work->nav->nodeOrder[s->outerIndex] == s->selfNode && s->selfSlotCount < BOSS_STRANGER_PLAN_SLOT_CAPACITY) {
-            s->selfSlots[s->selfSlotCount] = s->outerIndex;
-            s->selfSlotCount++;
+        if (walker->nav->nodeOrder[plan->outerIndex] == plan->selfNode && plan->selfSlotCount < BOSS_STRANGER_PLAN_SLOT_CAPACITY) {
+            plan->selfSlots[plan->selfSlotCount] = plan->outerIndex;
+            plan->selfSlotCount++;
         }
     }
 
     // A full list has no room for its end marker; see the block's notes.
-    s->actorSlots[s->actorSlotCount] = BOSS_STRANGER_PLAN_SLOT_END;
-    s->selfSlots[s->selfSlotCount]   = BOSS_STRANGER_PLAN_SLOT_END;
+    plan->actorSlots[plan->actorSlotCount] = BOSS_STRANGER_PLAN_SLOT_END;
+    plan->selfSlots[plan->selfSlotCount]   = BOSS_STRANGER_PLAN_SLOT_END;
+}
+
+/// Selects the closest slot pair and records the walker's starting slot and direction.
+///
+/// Ties keep the first pair. An empty list leaves the walker's cursor, goal slot
+/// and direction untouched, with `bestGap` at its no-pair sentinel. The main
+/// plan operation subsequently advances the cursor even in that case.
+static inline void _bossStrangerSelectClosestPlanSlots(BossStrangerWalker* walker, BossStrangerPlanTowardScratch* plan)
+{
+    s32 slotGap;
+    s32 previousBestGap;
 
     // Take the pair of slots, one from each list, that are closest together.
-    s->bestGap = BOSS_STRANGER_PLAN_GAP_NONE;
-    for (s->outerIndex = 0; s->outerIndex < BOSS_STRANGER_PLAN_SLOT_CAPACITY; s->outerIndex++) {
-        if (s->actorSlots[s->outerIndex] == BOSS_STRANGER_PLAN_SLOT_END) {
+    plan->bestGap = BOSS_STRANGER_PLAN_GAP_NONE;
+    for (plan->outerIndex = 0; plan->outerIndex < BOSS_STRANGER_PLAN_SLOT_CAPACITY; plan->outerIndex++) {
+        if (plan->actorSlots[plan->outerIndex] == BOSS_STRANGER_PLAN_SLOT_END) {
             break;
         }
-        for (s->innerIndex = 0; s->innerIndex < BOSS_STRANGER_PLAN_SLOT_CAPACITY; s->innerIndex++) {
-            if (s->selfSlots[s->innerIndex] == BOSS_STRANGER_PLAN_SLOT_END) {
+        for (plan->innerIndex = 0; plan->innerIndex < BOSS_STRANGER_PLAN_SLOT_CAPACITY; plan->innerIndex++) {
+            if (plan->selfSlots[plan->innerIndex] == BOSS_STRANGER_PLAN_SLOT_END) {
                 break;
             }
-            gap     = s->actorSlots[s->outerIndex] - s->selfSlots[s->innerIndex];
-            bestGap = s->bestGap;
-            s->gap  = gap;
-            gap     = ABS(gap);
-            if (gap < bestGap) {
-                s->bestGap     = gap;
-                work->cursor   = s->selfSlots[s->innerIndex];
-                work->goalSlot = s->actorSlots[s->outerIndex];
-                if (s->gap < 0) {
-                    work->orderStep = -1;
+            slotGap         = plan->actorSlots[plan->outerIndex] - plan->selfSlots[plan->innerIndex];
+            previousBestGap = plan->bestGap;
+            plan->gap       = slotGap;
+            slotGap         = ABS(slotGap);
+            if (slotGap < previousBestGap) {
+                plan->bestGap    = slotGap;
+                walker->cursor   = plan->selfSlots[plan->innerIndex];
+                walker->goalSlot = plan->actorSlots[plan->outerIndex];
+                if (plan->gap < 0) {
+                    walker->orderStep = -1;
                 } else {
-                    work->orderStep = 1;
+                    walker->orderStep = 1;
                 }
             }
         }
     }
+}
 
-    if (s->bestGap == BOSS_STRANGER_PLAN_GAP_NONE) {
+/// Plans one step along the navigation node order toward the selected player.
+///
+/// Finds the nodes nearest the player and walker, collects their order slots,
+/// and selects the pair with the smallest absolute slot gap (first pair wins
+/// ties). Sets `goalSlot`, sets `orderStep` to -1 or +1, and advances `cursor`
+/// one slot from the selected walker-side slot, with byte wrap and no bound check.
+/// If no pair exists, prints a diagnostic and still advances the old cursor
+/// using the old direction; it does not leave the cursor unchanged.
+///
+/// Requires the nearest-node scan contracts, a readable `orderCount`-entry
+/// `nodeOrder`, and a resulting cursor that names a valid order slot.
+/// `playerId` is one-based; every known caller supplies the resident player 1.
+/// Each scratch list accepts eight slots, then drops later matches, but its
+/// marker is written at the count: eight player slots write one byte beyond
+/// the block, and eight walker slots overwrite the first player slot with the
+/// end marker, preventing any pair. Valid orders keep each count below eight;
+/// both carriers name each node once. Borrows initialized scratch storage for
+/// the plan and nested node scans; all walker/navigation pointers remain borrowed.
+static void _bossStrangerPlanToward(BossStrangerWalker* walker, s16 playerId)
+{
+    BossStrangerPlanTowardScratch* plan;
+
+    plan = SCRATCH_STACK_RESERVE_BLOCK(BossStrangerPlanTowardScratch);
+
+    // Collect the order slots that name each of the two nodes.
+    plan->actorNode = _bossStrangerNodeNearestPlayer(walker, playerId);
+    plan->selfNode  = _bossStrangerNodeNearestSelf(walker);
+    _bossStrangerCollectPlanSlots(walker, plan);
+    _bossStrangerSelectClosestPlanSlots(walker, plan);
+
+    if (plan->bestGap == BOSS_STRANGER_PLAN_GAP_NONE) {
         printf(_gPatrolNoPairMsg);
     }
-    work->cursor += (u8)work->orderStep;
+    walker->cursor += (u8)walker->orderStep;
     SCRATCH_STACK_RELEASE_BLOCK(BossStrangerPlanTowardScratch);
 }

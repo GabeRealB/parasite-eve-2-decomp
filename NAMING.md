@@ -668,7 +668,9 @@ values are separate from runtime stage numbers.
 
 `bossStranger` owns the included Boss Stranger movement core shared by
 `actor_110600` and `acropolis_bridge`. Its implementation interface is
-`src/shared/boss_stranger.h`. The movement record is `BossStrangerWalker` in
+`src/shared/boss_stranger.h`. Each carrier keeps private static
+instances marked `_bossStranger`; neither exports this movement interface.
+The movement record is `BossStrangerWalker` in
 `include/overlay.h`, with `BossStrangerNode`, `BossStrangerNav` and
 `BossStrangerRoute` beside it. State values use `BOSS_STRANGER_WALKER_`.
 The blocks of the two nearest-node scans are

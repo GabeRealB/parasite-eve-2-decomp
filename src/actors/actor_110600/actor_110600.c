@@ -71,35 +71,6 @@ typedef struct {
 } _Actor110600PatrolLayoutScratch;
 STATIC_ASSERT_SIZEOF(_Actor110600PatrolLayoutScratch, 0x2C);
 
-/// Returns the patrol node nearest the walker: the squared XZ distance between
-/// each node and the low halfwords of the walker coordinate's translation,
-/// with the running best and the cursor staged in a `BossStrangerNodeNearestSelfScratch`.
-
-/// Returns the node the walker's route cursor steps onto, reseeding the scan's
-/// stored node byte for the `actor` variant of the walker. Same body as the
-/// acropolis bridge room's `func_acropolis_bridge_801843A0`.
-
-/// Re-resolves the walker's patrol node against `nav`'s `nodeOrder` at the
-/// walker's `cursor` once the state or the node bytes have moved. Same body as
-/// the acropolis bridge room's `func_acropolis_bridge_80184638`.
-
-/// One per-frame behaviour step the walker runs while `skipGround` is clear:
-/// steps it toward its current patrol node. `worldCollisionResolvePushback` produces the
-/// 16.16 delta; the high half of each component becomes the whole-unit step,
-/// rounded away from zero whenever a fraction is left over. While `lockHeight`
-/// is set the walker is pinned vertically, otherwise Y also carries a constant
-/// 0x10 fall. Y is applied in three bands: a +8 hop above 0x20, a -0x20 drop
-/// below -0x20, and the plain step in between. `offOrigin` is 1 when the local
-/// X or Z translation is nonzero afterwards; nothing reads it. Same body as
-/// the acropolis bridge room's `func_acropolis_bridge_80184908`.
-
-/// The second per-frame behaviour step, skipped while `skipAvoid` is set. Same
-/// body as the acropolis bridge room's `func_acropolis_bridge_80184B94`.
-
-/// Turns the walker towards `pos` by at most `turnLimit` angle units a frame.
-/// The wrapped relative bearing drives the consecutive-turn counter, then
-/// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
-
 /// Values of `_Actor110600Work::state`: the index of the handler the per-frame
 /// tick runs.
 ///
@@ -323,21 +294,6 @@ static s32 _actor110600PollAnimationSound(_Actor110600Work* work);
 static void _actor110600AlertState(Task* task);
 
 static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey);
-
-/// Per-tick walker step. Opens a scratch frame and runs the chase, close-in
-/// or patrol, then the speed ramp and the optional ground and avoidance steps.
-
-/// Measures the walker's node against the coordinate it is moving towards,
-/// leaving the three per-axis deltas in the scratchpad, and reports whether it
-/// has arrived: 1 while the delta is inside either of two radii -- the walker's
-/// `speedTarget` * 4, or a flat 300 -- and 0 once it is outside both.
-
-/// Steers the walker along its patrol route: resolves the node the route
-/// cursor names, and on the frame `bossStrangerArrived` reports arrival
-/// it raises the route's `arrived` flag, clears the turn counters and steps
-/// the cursor onto the next node — wrapping back to the first at
-/// `OVERLAY_WALKER_ROUTE_END`. `pos` receives the position of the node it is
-/// heading for, so on the arrival frame it already describes the new node.
 
 /// Enters work state 2 (`animRequest`) on a live actor: clear the model object,
 /// clear bit 0x8000 of `attackBody.flags` and set 0x4000 of `gridBody.flags`,
@@ -1121,7 +1077,7 @@ static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/boss_stranger_follow_route.inc.c"
 
-#include "../../shared/boss_stranger_nearest_actor.inc.c"
+#include "../../shared/boss_stranger_nearest_player.inc.c"
 
 #include "../../shared/boss_stranger_nearest_self.inc.c"
 
@@ -2039,7 +1995,7 @@ static void func_actor_110600_80135194(Task* arg0)
         work->walker.turnLimit        = 0x10;
     }
     work->walker.speed = work->walkSpeed;
-    bossStrangerTick(&work->walker);
+    _bossStrangerTick(&work->walker);
     coord    = arg0->extra.tmd->coords;
     d        = &delta;
     delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
@@ -2131,7 +2087,7 @@ static void func_actor_110600_80135454(Task* arg0)
     walker->speedStep   = 0;
     walker->speedTarget = ramp;
     walker->speed       = ramp;
-    bossStrangerTick(walker);
+    _bossStrangerTick(walker);
     work->stateFrame++;
     angle = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
     if (abs(angle) < 0x80) {
@@ -2600,7 +2556,7 @@ static void func_actor_110600_80136888(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
     }
-    bossStrangerTick(&work->walker);
+    _bossStrangerTick(&work->walker);
     _actor110600TickAnimation(arg0);
     if (work->animId == 0x18) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
@@ -2661,7 +2617,7 @@ static void func_actor_110600_801369D8(Task* arg0)
         work->lookYawTarget           = 0;
     }
     walker2 = &work->walker;
-    bossStrangerTick(walker2);
+    _bossStrangerTick(walker2);
     _actor110600TickAnimation(arg0);
     if (work->animId == 0x1D) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
@@ -3801,7 +3757,7 @@ static void func_actor_110600_80138980(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
     }
-    bossStrangerTick(&work->walker);
+    _bossStrangerTick(&work->walker);
     _actor110600TickAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         if (enemy->hp > 0) {
@@ -3865,7 +3821,7 @@ static void func_actor_110600_80138AFC(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
     }
-    bossStrangerTick(&work->walker);
+    _bossStrangerTick(&work->walker);
     _actor110600TickAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
@@ -3899,7 +3855,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
     }
-    bossStrangerTick(&work->walker);
+    _bossStrangerTick(&work->walker);
     _actor110600TickAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;

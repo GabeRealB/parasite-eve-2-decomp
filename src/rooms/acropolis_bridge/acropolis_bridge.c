@@ -4533,7 +4533,7 @@ static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 
 #include "../../shared/boss_stranger_follow_route.inc.c"
 
-#include "../../shared/boss_stranger_nearest_actor.inc.c"
+#include "../../shared/boss_stranger_nearest_player.inc.c"
 
 #include "../../shared/boss_stranger_nearest_self.inc.c"
 
@@ -4546,7 +4546,7 @@ static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 #include "../../shared/boss_stranger_turn_toward.inc.c"
 
 /// Runs the walker's per-frame step inside the `BossStrangerTickScratch` frame
-/// `bossStrangerTick` opened for it. `head` is the scratch cursor as it was
+/// `_bossStrangerTick` opened for it. `head` is the scratch cursor as it was
 /// before the frame was reserved, one frame past `block`, so the position the
 /// states steer towards is `head[-1].goal`, the same object as `block->goal`.
 ///
@@ -4587,27 +4587,27 @@ static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickSc
             break;
         case BOSS_STRANGER_WALKER_CLOSE:
             SCRATCH_STACK_RESERVE_BYTES(4);
-            walker->actorNode = bossStrangerNodeNearestActor(walker, 1);
-            walker->selfNode  = bossStrangerNodeNearestSelf(walker);
+            walker->actorNode = _bossStrangerNodeNearestPlayer(walker, 1);
+            walker->selfNode  = _bossStrangerNodeNearestSelf(walker);
             if (walker->prevState != walker->state || walker->selfNode != walker->prevSelfNode ||
                 walker->actorNode != walker->prevActorNode) {
-                bossStrangerPlanToward(walker, 1);
+                _bossStrangerPlanToward(walker, 1);
                 walker->node = walker->nav->nodeOrder[walker->cursor];
             }
             walker->prevState     = walker->state;
             walker->prevSelfNode  = walker->selfNode;
             walker->prevActorNode = walker->actorNode;
-            if (bossStrangerArrived(walker) != 0) {
+            if (_bossStrangerArrived(walker) != 0) {
                 walker->cursor += (u8)walker->orderStep;
                 walker->node    = walker->nav->nodeOrder[walker->cursor];
                 SCRATCH_STACK_RELEASE_BYTES(4);
             }
             break;
         case BOSS_STRANGER_WALKER_PATROL:
-            bossStrangerFollowRoute(walker, &head[-1].goal);
+            _bossStrangerFollowRoute(walker, &head[-1].goal);
             break;
     }
-    bossStrangerTurnToward(walker, &block->goal);
+    _bossStrangerTurnToward(walker, &block->goal);
 
     cur    = walker->speedTarget;
     target = walker->speed;
@@ -4654,10 +4654,10 @@ static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickSc
         SCRATCH_STACK_RELEASE_BYTES(8);
     }
     if (walker->skipGround == 0) {
-        bossStrangerApplyGroundStep(walker);
+        _bossStrangerApplyGroundStep(walker);
     }
     if (walker->skipAvoid == 0) {
-        bossStrangerAvoidContacts(walker);
+        _bossStrangerAvoidContacts(walker);
     }
 }
 
@@ -5142,7 +5142,7 @@ void func_acropolis_bridge_80185F28(Task* task)
     } else {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
-    bossStrangerTick(&work->walker);
+    _bossStrangerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (cfg->coordMtx->t[1] >= 0x2BD) {
         work->state = 2;
@@ -5250,7 +5250,7 @@ void func_acropolis_bridge_801861A0(Task* task)
     if (work->walker.scale < 0x1000) {
         _acropolisBridgeGrowEnemyScale(work);
     }
-    bossStrangerTick(&work->walker);
+    _bossStrangerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (_acropolisBridgeAttackLanded(task)) {
         work->state = 3;
@@ -5306,7 +5306,7 @@ void func_acropolis_bridge_801863A8(Task* task)
     } else if (enemy->node.state.parts.flags == 0) {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     }
-    bossStrangerTick(&work->walker);
+    _bossStrangerTick(&work->walker);
     func_acropolis_bridge_8018581C(task);
     if (work->walker.routeData.cursor != 0) {
         if (cfg->coordMtx->t[1] < 0x321) {

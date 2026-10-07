@@ -2,6 +2,9 @@
 
 /// Stages a point's XYZ offset from a coordinate's local translation for a bearing query.
 ///
+/// `point` is packed signed-halfword XYZ in `originCoord`'s parent frame.
+/// The translation stays signed 32-bit; differences must fit signed 32-bit
+/// game-coordinate units. Rotation and the composition cache are not read.
 /// Requires one free word-aligned scratch `VECTOR` below the initialized
 /// cursor. Writes XYZ without touching `pad` and restores the cursor;
 /// consume the returned block before anything reserves scratch again.
@@ -45,44 +48,56 @@ static __inline__ s32 _actorAngleBearingFromCoordXZ(const SVECTOR3* point, const
     return ratan2(delta->vx, delta->vz);
 }
 
-/// Turns the walker towards `pos` by at most `turnLimit` angle units a frame.
-/// The wrapped relative bearing drives the consecutive-turn counter, then
-/// becomes the absolute yaw the model's saved scale matrix is rebuilt around.
-void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos)
+/// Turns the walker toward a packed target position within its per-frame yaw limit.
+///
+/// `goal` and the coordinate's local translation must share the parent frame;
+/// angles use 4096 units per turn. Narrows the bearing-minus-heading to a signed
+/// halfword and normalizes to [-2048, 2048], retaining both half-turn endpoints.
+/// Updates `turnRun` modulo 65536; all three duration tiers set `turnBonus` to
+/// zero. `turnLimit` zero suppresses turning. The saved scale basis is copied
+/// back and yaw is multiplied onto it, retaining translation.
+/// Returns unchanged when the live save's `unknown_5C0` equals 1.
+/// Requires the bearing helper's coordinate/range contract and initialized
+/// scratch storage for the turn block and nested bearing/rotation blocks.
+/// Borrows the read-only goal for this call; the enclosing tick dirties the cache.
+static void _bossStrangerTurnToward(BossStrangerWalker* walker, const SVECTOR3* goal)
 {
-    BossStrangerTurnTowardScratch* s;
+    enum {
+        BOSS_STRANGER_TURN_FIRST_DURATION_FRAMES  = 30,
+        BOSS_STRANGER_TURN_SECOND_DURATION_FRAMES = 60
+    };
+    BossStrangerTurnTowardScratch* scratch;
     GfxCoord*                      coord;
-    s16                            diff;
-    s32                            angle;
+    s32                            normalizedTurn;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.unknown_5C0 == 1)
         return;
-    s     = SCRATCH_STACK_RESERVE_BLOCK(BossStrangerTurnTowardScratch);
-    coord = work->coord;
-    diff  = _actorAngleBearingFromCoordXZ(pos, coord) -
-           ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    angle    = _actorAngleNormalizeYaw(diff);
-    s->angle = angle;
-    if (angle != 0)
-        work->turnRun++;
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(BossStrangerTurnTowardScratch);
+    coord          = walker->coord;
+    normalizedTurn = _actorAngleNormalizeYaw(_actorAngleBearingFromCoordXZ(goal, coord) -
+                                             ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    scratch->angle = normalizedTurn;
+    if (normalizedTurn != 0)
+        walker->turnRun++;
     else
-        work->turnRun = 0;
+        walker->turnRun = 0;
     // Extra turn allowance by how long the walker has kept turning; every
     // tier grants nothing, so the limit is always `turnLimit` alone.
-    if (work->turnRun > 60)
-        work->turnBonus = 0;
-    else if (work->turnRun > 30)
-        work->turnBonus = 0;
+    if (walker->turnRun > BOSS_STRANGER_TURN_SECOND_DURATION_FRAMES)
+        walker->turnBonus = 0;
+    else if (walker->turnRun > BOSS_STRANGER_TURN_FIRST_DURATION_FRAMES)
+        walker->turnBonus = 0;
     else
-        work->turnBonus = 0;
-    if (work->turnLimit + work->turnBonus < s->angle)
-        s->angle = work->turnLimit + work->turnBonus;
-    if (s->angle < -(work->turnLimit + work->turnBonus))
-        s->angle = -(work->turnLimit + work->turnBonus);
-    if (work->turnLimit == 0)
-        s->angle = 0;
-    s->angle += ratan2(-work->coord->coord.m[2][0], work->coord->coord.m[2][2]);
-    memcpy(work->coord->coord.m, work->scaleMtx.m, sizeof(work->scaleMtx.m));
-    gfxRotMatrixY(&work->coord->coord, s->angle, 0);
+        walker->turnBonus = 0;
+    if (walker->turnLimit + walker->turnBonus < scratch->angle)
+        scratch->angle = walker->turnLimit + walker->turnBonus;
+    if (scratch->angle < -(walker->turnLimit + walker->turnBonus))
+        scratch->angle = -(walker->turnLimit + walker->turnBonus);
+    if (walker->turnLimit == 0)
+        scratch->angle = 0;
+    // Rebuild yaw on the saved scale basis after clamping the relative turn.
+    scratch->angle += ratan2(-walker->coord->coord.m[2][0], walker->coord->coord.m[2][2]);
+    memcpy(walker->coord->coord.m, walker->scaleMtx.m, sizeof(walker->scaleMtx.m));
+    gfxRotMatrixY(&walker->coord->coord, scratch->angle, GRAPHICS_ROTATION_COMPOSE);
     SCRATCH_STACK_RELEASE_BLOCK(BossStrangerTurnTowardScratch);
 }

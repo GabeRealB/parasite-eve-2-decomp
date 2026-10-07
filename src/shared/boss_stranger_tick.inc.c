@@ -1,18 +1,21 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
-/// Per-tick walker step. Opens a scratch frame, runs `bossStrangerStep`
-/// (chase, close-in or patrol, then the speed ramp and optional ground and
-/// avoidance steps) and marks the coordinate dirty. Same body as the
-/// acropolis bridge room's `func_acropolis_bridge_8018532C`.
-void bossStrangerTick(BossStrangerWalker* walker)
+/// Advances the walker once and invalidates its composed coordinate.
+///
+/// Opens an uninitialized goal frame, runs the steering and movement step,
+/// marks the coordinate dirty and releases one frame from the resulting cursor.
+/// Requires `_bossStrangerStep`'s live-input and scratch contracts. Idle retains
+/// stale goal data; close-in also does so and, on a non-arriving tick, leaves
+/// the cursor four bytes below its entry value even after the frame release.
+/// The known carriers select idle, chase or patrol. No pointer is retained.
+static void _bossStrangerTick(BossStrangerWalker* walker)
 {
-    BossStrangerTickScratch* head;
-    BossStrangerTickScratch* block;
+    BossStrangerTickScratch* scratchEnd;
+    BossStrangerTickScratch* frame;
 
-    head                                          = SCRATCH_STACK_CURSOR(BossStrangerTickScratch);
-    SCRATCH_STACK_CURSOR(BossStrangerTickScratch) = head - 1;
-    block                                         = SCRATCH_STACK_CURSOR(BossStrangerTickScratch);
-    bossStrangerStep(walker, head, block);
+    scratchEnd = SCRATCH_STACK_CURSOR(BossStrangerTickScratch);
+    frame      = SCRATCH_STACK_RESERVE_BLOCK(BossStrangerTickScratch);
+    _bossStrangerStep(walker, scratchEnd, frame);
     walker->coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(BossStrangerTickScratch);
 }

@@ -2108,8 +2108,8 @@ if (delta < 0) {
 
 This is the unpinned form of "Pin the wrap dest so `temp = delta` is
 `move v1, s0`" (`Gp_ApplyDirArg`), which needed a `$v1` pin because both
-temps were `s32`. Same shape as `func_acropolis_bridge_80185104`
-(`s16 diff, t`).
+temps were `s32`. Same shape as `_bossStrangerTurnToward`
+(a signed-halfword input to `_actorAngleNormalizeYaw`).
 
 `_actor01900StateAlert` is the example. Controlled `base_9.c` reproduced the
 permuter a6 wrap object (98.75%). Inputs: `base_9.i`
@@ -16405,7 +16405,7 @@ for (scan->node = 0; scan->node < work->nav->nodeCount; scan->node++) {
 
 Symptom is a small `insert`/`delete` pair with an extra `lw` at the loop head
 and a differently-coloured register in the latch, on a loop that is otherwise
-correct. `func_acropolis_bridge_8018450C` went 91% -> 100% on this rewrite
+correct. `_bossStrangerNodeNearestSelf` went 91% -> 100% on this rewrite
 alone. Reach for it whenever the target's loop body uses a register the
 preheader loaded.
 
@@ -57988,17 +57988,17 @@ reload.
 
 ## A missing `move $a0,$sN` before a `jal` does not mean the call takes no arguments
 
-`func_acropolis_bridge_80184208` calls `func_acropolis_bridge_80184024` with no
+`_bossStrangerFollowRoute` calls `_bossStrangerArrived` with no
 argument setup at all:
 
 ```
     move   $s0, $a0          # work
     ...
-    jal    func_acropolis_bridge_80184024
+    jal    _bossStrangerArrived
      sb    $v0, 0x6a($s0)
 ```
 
-m2c reads that literally and emits `func_acropolis_bridge_80184024()`. The
+m2c reads that literally and emits `_bossStrangerArrived()`. The
 callee does take the pointer — every other call site in the overlay sets `$a0`
 explicitly — but here `$a0` still holds the incoming argument, so GCC 2.8.1
 deletes the redundant `$a0 = pseudo` copy: the prologue's `move $s0,$a0` tells
@@ -58426,7 +58426,7 @@ void func_…(Work* w)
 }
 ```
 
-`func_acropolis_bridge_8018532C` went from 88% to 97% on that split alone. The
+`_bossStrangerTick` went from 88% to 97% on that split alone. The
 third reference (`block = *SCRATCH_STACK_CURSOR_SLOT` after the store) is not redundant:
 CSE folds it to `move $s0, $v0`, which is the target's extra copy into the
 callee-saved register.
@@ -58489,7 +58489,7 @@ if (D_80072729 == 1) {
 ```
 
 That was the last instruction between 99.2% and 100% on
-`func_acropolis_bridge_8018532C`.
+`_bossStrangerTick`.
 
 ## Wrap-around interpolation needs the raw difference *and* an `s16` copy of it
 
@@ -58777,7 +58777,7 @@ field loads sit above or below the helper's own prologue. When the helper opens
 a nested scratch block, that prologue contains a store — and stores are what
 invalidate CSE's record of the value a field already holds.
 
-`func_acropolis_bridge_80184024` stages an XZ delta in an 8-byte scratchpad
+`_bossStrangerArrived` stages an XZ delta in an 8-byte scratchpad
 block and then hands it to a range test that carves off 0xC more bytes:
 
 ```c
@@ -58824,7 +58824,7 @@ Two smaller pieces of the same function, both about where a widening happens:
   `b->dx = d->vx`, is the `lh`. `u16` cells read through `(s16)d->x` compile
   the same, so a match through them does not show the cells are unsigned.
 - `lhu` + `sll 18` + `sra 16` is a 16-bit *parameter*, not a 16-bit field:
-  `s16 r` fed `work->field_5C * 4`. Give the same helper an `s16` parameter for
+  `s16 r` fed `walker->speedTarget * 4`. Give the same helper an `s16` parameter for
   a value that is already a field and the conversion stops folding into the
   load, leaving `lhu` + `sll 16` + `sra 16` where the target has one `lh`.
 
@@ -58852,7 +58852,7 @@ local. This is also what fixes a mixed pair such as the target's `lh $v1, 6($s0)
 next to `lhu $v0, 0x12($s0)` in one `addu`: the operand that came from an `s32`
 local is the `lh`, the one read and stored back in place is the `lhu`. Reading
 both fields directly gives `lhu` twice and swaps the `addu` operands.
-`func_acropolis_bridge_80184908` is the example.
+`_bossStrangerApplyGroundStep` is the example.
 
 The same pair turns up with no `s32` temp in sight when one field feeds a 32-bit
 expression and another is copied in place. `_actor800100GetContactDistance` reads
@@ -58901,12 +58901,12 @@ if (y < 0) {
 ```
 
 Placing it after `a = y` instead — outside the branch, volatile or not — costs
-the delay-slot copy and drops the score. `func_acropolis_bridge_80184908` is the
+the delay-slot copy and drops the score. `_bossStrangerApplyGroundStep` is the
 example; it was the last instruction between 99.97% and 100%.
 
 ## A `move` in the preheader can be a struct field re-read, not a second local
 
-`func_acropolis_bridge_801843A0` stages a pointer in its `SCRATCH_STACK_CURSOR_SLOT` block
+`_bossStrangerNodeNearestPlayer` stages a pointer in its `SCRATCH_STACK_CURSOR_SLOT` block
 and then reads through it three times per loop iteration. The target hoists that
 pointer into the preheader as a plain register copy, sitting in the loop guard's
 delay slot:
@@ -59194,7 +59194,7 @@ sb    a1, 0x73(s1)    /* wanted: sb a3, 0x73(s1) with li a3, -1 */
 Declaring the field `s8` keeps `-1` a distinct rtx, so loop-invariant motion
 hoists `li a3, -1` and `li a2, 1` alongside the `0xFF`. If the field is later
 read back with `lbu` rather than `lb`, cast at the use site — `x += (u8)p->flag;`
-still compiles to a plain `lbu`. `func_acropolis_bridge_80184638` needs both
+still compiles to a plain `lbu`. `_bossStrangerPlanToward` needs both
 halves of this.
 
 ## `for (i = 0; i < p->n; i++)` keeps `p` cached; m2c's guarded `do`/`while` does not
@@ -59447,7 +59447,7 @@ address out of a register"). The helper form is what restores the per-access
 `lui $a3, 0x1F80` / `lui $at, 0x1F80` macro expansion *and* hands the loop a
 pointer parameter to hoist, which is where the target's otherwise unexplained
 `addiu $s0, $s1, 0x28` in the loop-guard delay slot comes from.
-`func_acropolis_bridge_80184B94` went 91.7% -> 99.5% on this change alone; the
+`_bossStrangerAvoidContacts` went 91.7% -> 99.5% on this change alone; the
 remaining 0.5% was a `SOFT_BARRIER()` keeping a `sh` out of the following
 branch's delay slot.
 
@@ -98762,8 +98762,8 @@ Check `find` before starting: the brief's "similar matched bodies" list is the f
 `similar` tier and says as much, while `find`'s equality is exact and marks which
 copies are already matched.
 
-Worked case, byte-identical: `func_actor_110600_80133550` turned out to be
-`func_acropolis_bridge_80185104` verbatim — `find` printed it with `~ ... matched`
+Worked case, byte-identical: the actor carrier's `_bossStrangerTurnToward` turned out to be
+the bridge carrier's copy verbatim — `find` printed it with `~ ... matched`
 (one `=` for the two copies' own images, `~` because the room's copy sits at the
 room load address). When the sibling is already matched, confirm it at
 instruction level before porting, since text equality only drops position:
@@ -98783,9 +98783,9 @@ entry above.
 
 The ported body's scratch blocks travel with it too, and the receiving overlay's
 own close-but-different helper must not be substituted for them. The third body
-of this pair, the walker arrival test `func_actor_110600_80132470` =
-`func_acropolis_bridge_80184024`, stages its XZ delta in an 8-byte block and
-squares it through a range helper. `include/actors/actor_110600.h` already
+of this pair, the walker arrival test `_bossStrangerArrived`, shared by both
+carriers, stages its XZ delta in an 8-byte block and
+squares it through a range helper. `include/actors/actor.h` already
 carried `actorOutsideRadius(SVECTOR* pos, s16 radius)`, the same algorithm over
 an `SVECTOR`'s signed `vx`/`vz` cells, written for the aiming stage;
 re-expressing the half-ported body through it missed, and the sibling's shape
@@ -98799,8 +98799,8 @@ copy to the target too. A miss through the local helper is evidence about the
 body's shape at that moment, not that the block is a different type.
 
 Two shortcuts on that confirmation step. First, the sibling's `nm -S` size is a
-one-line pre-check: `func_actor_110600_80133A94` is `func_acropolis_bridge_8018532C`
-and both are 0x3B4 bytes (`nm -S build/USA/src/rooms/acropolis_bridge/*.c.o` against
+one-line pre-check: the actor and bridge copies of `_bossStrangerTick`
+are both 0x3B4 bytes (`nm -S build/USA/src/rooms/acropolis_bridge/*.c.o` against
 the size on the `nonmatching` line of the target `.s`). Different sizes mean the two
 bodies are not the same stream, and `find`'s `~` only promised that they were equal
 at some point. Second, diff the sibling's *compiled object* rather than its `.s`:
@@ -114297,7 +114297,7 @@ either form, because it inlines `index->field_2C->field_C = 0;` inside the `if`.
 The walker base is the same m2c artefact: `work + 0xB28` on an
 `_Actor110600Work*` scales by `sizeof` and emits `li $4,0x850000` /
 `ori $4,0xE0` / `addu`. Use the siblings' `(BossStrangerWalker*)((u8*)work +
-0xB28)`, and let `func_actor_110600_80133A94` recompute it rather than reusing
+0xB28)`, and let `_bossStrangerTick` recompute it rather than reusing
 the local — the target materializes it twice, once in the `jal` delay slot.
 
 Inputs: `base_2.i` (99.762%) SHA256
@@ -114654,10 +114654,10 @@ SHA256 `419e3593688ace0aa8571144eadd5afd9df115a41808e59459aa6cfcbcc4fb91`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor110600LurkAlertState-vacuum`.
 
-## An undeclared callee leaves the CALL_INSN with no argument uses, and the post-reload scheduler ranks the call differently — moving a nearby parameter copy a clock (func_actor_110600_80132654, 2026-09-16)
+## An undeclared callee leaves the CALL_INSN with no argument uses, and the post-reload scheduler ranks the call differently — moving a nearby parameter copy a clock (_bossStrangerFollowRoute, 2026-09-16)
 
-`func_actor_110600_80132654` is the acropolis walker's patrol step —
-`func_acropolis_bridge_80184208`'s body word for word — and the whole function
+`_bossStrangerFollowRoute` is the acropolis walker's patrol step —
+shared by the actor and bridge carriers word for word — and the whole function
 matched on the first try except for one instruction. The target fills the
 load-delay slot after `lw v0,0(v0)` with the second parameter's copy:
 
@@ -114675,16 +114675,16 @@ right after a load mentions the loaded register). 98.427%, penalties
 instruction causes.
 
 The cause is the callee's declaration. Written the way m2c/splat leaves it, as
-`s16 func_actor_110600_80132470();` called with no arguments, the call has no
+`s16 _bossStrangerArrived();` called with no arguments, the call has no
 argument `use`, and `.sched2`'s header shows the jal at `priority = 4,
 ref_count = 1`, picked at T-3 — after the delay-slot `sb` at T-4, so reorg has
 to move the `sb` in behind it. Declaring the callee with its real prototype and
 passing the argument:
 
 ```c
-s16 func_actor_110600_80132470(BossStrangerWalker* walker);
+static s16 _bossStrangerArrived(const BossStrangerWalker* walker);
 ...
-if (func_actor_110600_80132470(work) == 0) {
+if (_bossStrangerArrived(walker) == 0) {
 ```
 
 gives the same jal `priority = 1, ref_count = 1`, which puts it *in the ready
@@ -114699,14 +114699,14 @@ Read `.sched2`'s per-insn `priority = N, ref_count = N` block against the
 target when a copy sits one clock off: a call whose priority differs from every
 neighbouring insn's is the tell, and the fix is in the declaration, not the
 schedule. Same body in two overlays does not mean the same declaration does the
-job — `func_acropolis_bridge_80184024` is declared with a parameter above the
+job — `_bossStrangerArrived` is declared with a parameter above the
 sibling that calls it.
 
 Inputs: `base_2.i` SHA256
 `fa81beb297c6423834a8746412d339268a6a41c1764a0eb9d6f7a3d1c4f736f2`; target.o
 SHA256 `63ad3c227ceb88ae6089d1fea6ba705dc884094cefbf9bb74829025763aa5834`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80132654-vacuum`.
+Scratch `nonmatchings/_bossStrangerFollowRoute-vacuum`.
 
 ## A switch's shared tail belongs after the *last* case that falls into it
 
@@ -114961,17 +114961,17 @@ SHA256 `b1efe505e4bef7407cc166e1ab99993ef1fb04dd27d30e716fc1b9c9ea027085`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor110600TickAnimation-vacuum`.
 
-## A cross-family twin ports verbatim, but its helper structs must be re-declared and the header must name their module headers (func_actor_110600_801327EC, 2026-09-16)
+## A cross-family twin ports verbatim, but its helper structs must be re-declared and the header must name their module headers (_bossStrangerNodeNearestPlayer, 2026-09-16)
 
 The brief's *Similar matched bodies* list is scored on opcode shape, fields and
 call flow, so a `1.00` in all three classes is an exact twin and not merely a
-resemblance. `func_actor_110600_801327EC` is the acropolis bridge room's
-`func_acropolis_bridge_801843A0` (the brief files it under a different overlay,
+resemblance. `_bossStrangerNodeNearestPlayer` in the actor carrier is the acropolis bridge room's
+copy of the same function (the brief files it under a different overlay,
 `USA/rooms/acropolis_bridge`); `overlay_dup_index.py find` calls the pair
 `identical bytes: 2`, so the port is a type rename, not a rewrite. Porting it
 took the m2c baseline from 85.70% (`regs=33 insert=5 delete=5 stack=1`) to
 100.00% with every penalty zero on the first build, and the scratch body was
-`func_actor_110600_80132958`'s shape one function down the same file — the
+`_bossStrangerNodeNearestSelf`'s shape one function down the same file — the
 already-matched neighbour in the *same* TU is worth as much as the twin.
 
 Two things the port has to carry that a `sed` of the type names does not:
@@ -114992,7 +114992,7 @@ Inputs: `base_1.i` SHA256
 `3a7d90348e37ffdeee703f85dcf9befdd605902d53b344f7f65d1443b0cbc23a`; target.o
 SHA256 `7f463d67729cf193e6a692651ca656a06fe06807ad998540d48b5c9e78eb0f3f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_801327EC-vacuum`.
+Scratch `nonmatchings/_bossStrangerNodeNearestPlayer-vacuum`.
 
 ## A switch that reuses one C variable across its cases fuses them into one cross-block pseudo (_actor110600PollAnimationSound, 2026-09-16)
 
@@ -115187,18 +115187,18 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80136B20-vacuum`.
 
-## `promote` is family-scoped, so a cross-family twin is a template rather than a shared body (func_actor_110600_80132D54, 2026-09-17)
+## `promote` is family-scoped, so a cross-family twin is a template rather than a shared body (_bossStrangerApplyGroundStep, 2026-09-17)
 
 `overlay_dup_index.py find` lists copies across the whole tree, but `promote`
 serves only the copies in the body's own family — the shared unit would live in
 `src/<family>/lib/` and the span would go into that family's manifest entries.
-`func_actor_110600_80132D54` is one of two copies, the other being acropolis
-bridge's `func_acropolis_bridge_80184908`; `find` prints `same body: 2 copies`,
+The actor carrier's `_bossStrangerApplyGroundStep` is one of two copies,
+the other being the acropolis bridge carrier's; `find` prints `same body: 2 copies`,
 and `promote` then answers `only one copy in actors, nothing to share` and
 writes nothing. That reads like a contradiction but is not one: actors and rooms
 are separate link outputs with their own work-block types, so there is no object
 the two could share. The sibling that reached this state first
-(`func_actor_110600_801327EC`) gets the identical answer, so the boundary is
+(`_bossStrangerNodeNearestPlayer`) gets the identical answer, so the boundary is
 general and not a quirk of this pair.
 
 The port is still the fast path, and cheaper than the *same*-family promotion
@@ -115217,7 +115217,7 @@ target.o SHA256
 `a9dda71d041d0c8e416e7099dad0d5f25eda587c7dcae59d60d78ca1e06d7de3`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80132D54-vacuum`.
+Scratch `nonmatchings/_bossStrangerApplyGroundStep-vacuum`.
 
 ## Two read-modify-writes on one object are emitted in the scheduler's order, not the source's; the reload scratch pairing is what identifies the source order (func_actor_110600_80137F2C, 2026-09-17)
 
@@ -115277,12 +115277,12 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80137F2C-vacuum`.
 
-## A retired `.s` takes a string symbol with it; naming it in C reaches 100% where a literal caps at 99.9% (func_actor_110600_80132A84, 2026-09-17)
+## A retired `.s` takes a string symbol with it; naming it in C reaches 100% where a literal caps at 99.9% (_bossStrangerPlanToward, 2026-09-17)
 
 The reader-retires-its-own-`.s` case above, with a string instead of a scalar,
 and one consequence the scalar example does not show.
 
-`func_actor_110600_80132A84` prints `"s->root_cnt == 0xff about \n"`, and
+`_bossStrangerPlanToward` prints `"s->root_cnt == 0xff about \n"`, and
 `migrate_rodata_to_functions` had folded that string into the function's own
 `.s` as `D_actor_110600_80131E24` - text and rodata shared one file. Matching
 the body retires that `.s`, so the link fails exactly as the scalar case does:
@@ -115326,7 +115326,7 @@ __attribute__((section(".rodata"))) = "AUNT"`) are the existing precedent; a
 plain `const char[]` already lands in `.rodata`, so the attribute is only worth
 writing when the `.c` cannot order it there by declaration position.
 
-The rest of the body is a cross-family twin (`func_acropolis_bridge_80184638`,
+The rest of the body is a cross-family twin (`_bossStrangerPlanToward`,
 instruction-identical, same string text): read the twin, `promote` answers
 `only one copy in actors, nothing to share`, and the port is a type rename - the
 m2c baseline 82.557% (`branch=12 regs=48 insert=15 delete=12`) went to 100.000%
@@ -115340,7 +115340,7 @@ target.o SHA256
 `9a9bb392d1a1330a35f3e9575910c7897471e696e278ef5249fb8c737925577a`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80132A84-vacuum`.
+Scratch `nonmatchings/_bossStrangerPlanToward-vacuum`.
 ## A pointer C assigns in two blocks stays one cross-block pseudo, and that pseudo takes the register the block-local values needed (func_actor_335800_80162640, 2026-09-17)
 
 Two sibling `if` bodies that each build the same `GameLocationKey` from the session
@@ -144243,7 +144243,7 @@ radius were at `3589` against `3571` in `allocno_compare` (7 refs / 39 insns vs
 the code. When a touch's only job is extra refs on a value, look for an earlier,
 short-lived value of the same kind that the original may have kept in the same
 local.
-## A lone dead load before a store, with the stored field reloaded after it, is an if/else with identical arms and a *two-branch* test (func_actor_110600_80133550, 2026-09-26)
+## A lone dead load before a store, with the stored field reloaded after it, is an if/else with identical arms and a *two-branch* test (_bossStrangerTurnToward, 2026-09-26)
 
 **Symptom.** `lhu v1,0x62(s2)` whose value is never read, then
 `sh zero,0x64(s2)`, then `lhu v1,0x64(s2)` reading the zero back. Seeded with

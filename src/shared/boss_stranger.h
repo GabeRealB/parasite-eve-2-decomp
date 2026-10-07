@@ -154,17 +154,14 @@ typedef struct {
 } BossStrangerTickScratch;
 STATIC_ASSERT_SIZEOF(BossStrangerTickScratch, 0x28);
 
-s16  bossStrangerArrived(BossStrangerWalker* walker);
-void bossStrangerFollowRoute(BossStrangerWalker* work, SVECTOR3* pos);
-u8   bossStrangerNodeNearestActor(BossStrangerWalker* work, s32 actor);
-u8   bossStrangerNodeNearestSelf(BossStrangerWalker* work);
-void bossStrangerPlanToward(BossStrangerWalker* work, s16 actor);
-void bossStrangerApplyGroundStep(BossStrangerWalker* work);
-void bossStrangerAvoidContacts(BossStrangerWalker* work);
-void bossStrangerTurnToward(BossStrangerWalker* work, SVECTOR3* pos);
-void bossStrangerTick(BossStrangerWalker* walker);
-
-static inline void bossStrangerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
-                                    BossStrangerTickScratch* block);
+static s16  _bossStrangerArrived(const BossStrangerWalker* walker);
+static void _bossStrangerFollowRoute(BossStrangerWalker* walker, SVECTOR3* goal);
+static u8   _bossStrangerNodeNearestPlayer(const BossStrangerWalker* walker, s16 playerId);
+static u8   _bossStrangerNodeNearestSelf(const BossStrangerWalker* walker);
+static void _bossStrangerPlanToward(BossStrangerWalker* walker, s16 playerId);
+static void _bossStrangerApplyGroundStep(BossStrangerWalker* walker);
+static void _bossStrangerAvoidContacts(BossStrangerWalker* walker);
+static void _bossStrangerTurnToward(BossStrangerWalker* walker, const SVECTOR3* goal);
+static void _bossStrangerTick(BossStrangerWalker* walker);
 
 #endif /* SRC_SHARED_BOSS_STRANGER_H */
