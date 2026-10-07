@@ -65474,7 +65474,7 @@ if/else form first whenever the target spends a `j` to reach a shared store.
 
 ## `lhu` in a field-to-field copy says nothing about signedness — a `short` copy uses it too
 
-`func_actor_107600_80132C4C` copies the 3x3 rotation of a matrix and reads every
+`_actor107600CopyMountRotation` copies the 3x3 rotation of a matrix and reads every
 element with `lhu`:
 
 ```
@@ -65489,7 +65489,7 @@ The unsigned load is easy to read as evidence that the source fields are `u16`,
 and m2c does exactly that — its output casts each element through `u16 *`. They
 are not: the arguments are Psy-Q `MATRIX*`, whose `m[3][3]` is `short`.
 
-The reason is that `dst->m[i][j] = src->m[i][j]` between two `short` lvalues is a
+The reason is that `destination->m[i][j] = source->m[i][j]` between two `short` lvalues is a
 plain HImode move. No value ever widens to SImode, so GCC 2.8.1 selects `movhi`,
 whose load half is `lhu` — the zero-extension is free and the high bits are dead
 before the `sh`. `lh` appears only where the loaded `short` is *used* at word
@@ -65502,7 +65502,7 @@ and carries no type information, while `lhu` feeding an `andi`/`addu`/`jal` does
 mean the field is unsigned.
 
 The alternating one-register `lhu` / `nop` / `sh` shape also rules out a struct
-assignment, which is worth knowing because `*dst = *src;` is the tempting short
+assignment, which is worth knowing because `*destination = *source;` is the tempting short
 way to write a fixed-size copy. GCC 2.8.1 expands a struct copy as a block move,
 and for an 18-byte struct of alignment 2 that is unaligned *word* moves batched
 four registers at a time, loads first and stores after:
@@ -68779,18 +68779,17 @@ mistyped pointer, and the callee's *caller/initialiser* usually names the real
 field.
 
 **Exception - do not retype when the pointer is a scratchpad carve.**
-`func_actor_107600_80134E5C` had the same signature (`regs=2`, the two
+`_actor107600PlaceTargetOffset` had the same signature (`regs=2`, the two
 immediates off by exactly 16) but the `VECTOR*` was correct and retyping it
 would have broken the carve. m2c had written the carve as
 `temp_s0 = temp_s1 - 0x10` against a `VECTOR*` head, so C scaled a byte offset
 by `sizeof(VECTOR)`: `addiu s0,s1,-0x100` where the target has `-0x10`, and
 `+0x100` for `*(VECTOR**)SCRATCH_STACK_CURSOR_SLOT += 0x10`. The fix is to state the
-carve in element units (`temp_s1 - 1`) or, as every sibling here writes it,
-against a `u8*` head:
+carve in element units (`temp_s1 - 1`) or against a byte cursor:
 
 ```c
-head  = *scratch;
-block = (VECTOR*)(head - 0x10);
+savedCursor = SCRATCH_HEAD_AT(scratchSlot, VECTOR);
+offset = savedCursor - 1;
 ```
 
 The ratio alone cannot tell the two cases apart — ask whether the mistyped
@@ -76699,7 +76698,7 @@ a known struct, so
 
 ```c
 m = (MATRIX*)(*(u8**)SCRATCH_STACK_CURSOR_SLOT - 0x20);
-func_actor_107600_80132C4C(m, &coord->coord);
+_actor107600CopyMountRotation(m, &coord->coord);
 ```
 
 The tell that this is the bug and not a coincidence: the wrong immediate is
@@ -76734,7 +76733,7 @@ clause fires and no dependence is recorded. Written m2c-style
 (`M2C_FIELD(work, u16 *, 0x54)`, `(mem:HI ...)`) it is not in-struct, the clause
 cannot fire, and a TRUE dependence pins the load after the store.
 
-`func_actor_107600_80134A50` (96.73% -> 100.00%) is the worked example, and the
+`_actor107600UpdateTargetRotation` (96.73% -> 100.00%) is the worked example, and the
 two dumps are the whole difference:
 
 ```c
@@ -76762,7 +76761,7 @@ shape needs.
 
 ## A load used only inside the `if` still belongs above it, and the hoist moves the arm block's allocation
 
-`func_actor_107600_80132A7C` (67.32% -> 100.00%, one edit) is a two-statement
+`_actor107600RetireMount` (67.32% -> 100.00%, one edit) is a two-statement
 state handler; the whole difference is where `index->parent` is read. The target
 reads it in block A, before the compare, although `parent` is dereferenced only
 inside the arm, and it holds the constant in `$v1` and the compared halfword in
@@ -76806,7 +76805,7 @@ target's entry block whose value is only *used* in an arm is a source-level
 hoist, not a load the scheduler sank out of the arm, and it re-ranks that
 block's quantities as well.
 
-Example: `func_actor_107600_80132A7C`. Input: `base_1.i`
+Example: `_actor107600RetireMount`. Input: `base_1.i`
 `319fc7f543e86c771a88987b018926d2b3b57541b2a301754ab7ab55c44c783f`.
 
 ## Typing `index->parent->work`: follow the spawner, not the offset
@@ -76836,7 +76835,7 @@ Note the direction of the search: the actor's own overlay never mentions the
 spawner, so the answer comes from the *room* side. Room overlays import the
 table by absolute address, which is what makes the symbol greppable at all.
 
-Example: `func_actor_107600_80132A7C`.
+Example: `_actor107600RetireMount`.
 
 ## A `u16` field cast to `s16` must be cast *inside* the division, or the divide is `multu`
 
@@ -76935,13 +76934,13 @@ function's object *is* the original, so `build/USA/src/<overlay>/<unit>.c.o`
 answers a codegen question directly. `companionGetPlayerPlanarDistance` (`src/gameplay/player_state.c`) is
 the same shape but `return distance;` after the release, so its result is unavoidably
 live across it; its tail there is `lw v1,0(s1)` / `nop` / `addiu v1,v1,0x10` /
-`sw v1,0(s1)`. `func_actor_107600_80134E5C`, with no live value at that point,
+`sw v1,0(s1)`. `_actor107600PlaceTargetOffset`, with no live value at that point,
 reloads into `$v0` and fills the delay with an independent `lw`. Example:
 `func_actor_107600_80134D9C` (93.57% -> 100%).
 
 ## Assembly is the launch order *reversed* - so a wrong group order is a source-order problem, not a comparator one
 
-**Symptom.** `func_actor_107600_80132ED0` sat at 99.294% (`reorder=1`) with a
+**Symptom.** `_actor107600InitTarget` sat at 99.294% (`reorder=1`) with a
 single swapped pair in the entry block: the target loads the spawn byte before
 the enemy pointer, the build emitted the enemy pointer first.
 
@@ -76976,12 +76975,12 @@ the comparator has none.
 **Fix.** Read the byte before the pointer it must precede:
 
 ```c
-obj     = arg0->extra;
-variant = *(u8*)&arg0->spawnArg1;   /* lower LUID -> emitted before enemy */
-enemy   = arg0->spawnArg2;
+model     = task->extra.tmd;
+spawnByte = (u8)task->spawnArg1.value;   /* lower LUID -> emitted before enemy */
+enemy     = task->spawnArg2.pointer;
 ```
 
-**Example:** `func_actor_107600_80132ED0` - the same rule had already taken the
+**Example:** `_actor107600InitTarget` - the same rule had already taken the
 `field_140`/`field_144` hunk from 93.176% to 99.294% by moving the
 `work->field_140` assignment above the two `field_144`/`field_146` stores.
 
@@ -77011,17 +77010,17 @@ the compare's uid.
 merge happens in place, early. Typing the temp wider does it:
 
 ```c
-u32 variant;                        /* not u8 */
-variant = *(u8*)&arg0->spawnArg1;   /* load QI, zero_extend to SI, same statement */
+u32 spawnByte;                       /* not u8 */
+spawnByte = (u8)task->spawnArg1.value;   /* load QI, zero_extend to SI, same statement */
 ```
 
 Combine then merges the pair at uid ~15 - before `enemy` (17) - and block 0
-emits `obj`, `lbu`, `enemy`, `coord`. Related but opposite in direction to "Latch
+emits `model`, `lbu`, `enemy`, `rootCoord`. Related but opposite in direction to "Latch
 a byte-field value in an `s32` local": there an `s32` local stops combine from
 *narrowing* a `lw`; here it stops combine from *relocating* an `lbu`.
 
-**Example:** `func_actor_107600_80132ED0` (99.294% -> 100%, `u8 variant` -> `u32
-variant`, everything else unchanged).
+**Example:** `_actor107600InitTarget` (99.294% -> 100%, `u8 spawnByte` -> `u32
+spawnByte`, everything else unchanged).
 
 ## One body, two declaration orders: the `birthing_insn_p` priority bump makes initialiser order the emitted order
 
@@ -106074,7 +106073,7 @@ was what let the *preceding* range-test branch take `lui $v1` into its delay slo
 
 `func_actor_107600_80134BAC` switches on a request and, in every case, reloads
 `index->field_1C` and jumps to one shared `sh v0,0x158(v1); sh zero,0x15A(v1)`
-tail - the body of the sibling setter `func_actor_107600_80134B98`, which GCC
+tail - the body of the sibling setter `_actor107600SetTargetState`, which GCC
 2.8.1 does not inline on its own (the plain call builds a frame). Writing
 `index->field_1C->state = 2; index->field_1C->step = 0;` per case keeps
 two loads (93%). A block-scoped `{ _Actor107600TargetWork* w = arg0->field_1C;
@@ -106127,13 +106126,13 @@ the `move $a0` after them.
 narrowed to `sll 3`, the second reorders the increment). Declare the counter
 `s16 v = work->field + 1;` and write `((v << 16) >> 13) - 0x38`.
 The same `sll 16; sra 13; addiu -0x38` from a `u16` field read directly
-(func_actor_107600_80133668) matched as `((s16)work->field - 7) * 8`: the
+(_actor107600UpdateTargetFlinch) matched as `((s16)work->field - 7) * 8`: the
 factored subtraction keeps GCC from narrowing the store to `sll 3`, and
 combine then distributes it back into the shift pair plus `-0x38`.
 
-### Lowering `rodata_head` can hand a unit a table splat hides inside a *matched* function's `.s` (func_actor_107600_80132160, 2026-09-16)
+### Lowering `rodata_head` can hand a unit a table splat hides inside a *matched* function's `.s` (_actor107600UpdateStandingMountPath, 2026-09-16)
 
-`actor_107600` had `rodata_head = "0x8C"`, so `func_actor_107600_80132160`'s
+`actor_107600` had `rodata_head = "0x8C"`, so `_actor107600UpdateStandingMountPath`'s
 jump table at 0x24 sat in the asm header and the C body failed to link
 (`undefined reference to .Lactor_107600_801321D0`). Lowering the head to `0x24`
 is the fix from the `rodata_head` entry above, but it also moved two dispatch
@@ -149061,7 +149060,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   (`factoryPowerScene`, `storeToggleTask`, `_shelterR47PlayCapCommandTask`, first
   try each). The known limit applies: cross-jumping runs after allocation, so
   a duplicated tail that mentions a pseudo in a close priority race swaps
-  registers. `func_actor_107600_80132514` took two of its three `goto stop`
+  registers. `_actor107600UpdateHangingMountPath` took two of its three `goto stop`
   as duplicates and swapped `$t0/$t1` on the third; `Fs_BootImageMachine`
   swapped `$s1/$s3` when the shared draw tail was duplicated or made an inline.
 - **A hand-written dispatch tree (`if (s == 1) goto case1; if (s >= 2) goto

@@ -90,3 +90,19 @@ D_actor_107600_80134F84 = 0x80134F84; // size:0x10 defined:True
 D_actor_107600_80134F94 = 0x80134F94; // size:0xE4 defined:True
 
 D_mist_shooting_gallery_8018E0C4 = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
+_actor107600UpdateStandingMountPath = 0x80132160; // type:func
+_actor107600UpdateHangingMountPath = 0x80132514; // type:func
+_actor107600RetireMount = 0x80132a7c; // type:func
+_actor107600DestroyMount = 0x80132ac0; // type:func
+_actor107600CopyMountRotation = 0x80132c4c; // type:func
+_actor107600UpdateFixedMount = 0x80132d54; // type:func
+_actor107600InitTarget = 0x80132ed0; // type:func
+_actor107600UpdateTargetFlinch = 0x80133668; // type:func
+_actor107600FoldTarget = 0x801337fc; // type:func
+_actor107600TumbleDestroyedTarget = 0x801339a4; // type:func
+_actor107600DestroyTarget = 0x80134920; // type:func
+_actor107600InitTargetCollision = 0x80134958; // type:func
+_actor107600UpdateTargetRotation = 0x80134a50; // type:func
+_actor107600CopyTargetRotation = 0x80134b2c; // type:func
+_actor107600SetTargetState = 0x80134b98; // type:func
+_actor107600PlaceTargetOffset = 0x80134e5c; // type:func
