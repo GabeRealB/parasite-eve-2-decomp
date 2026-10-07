@@ -1614,9 +1614,9 @@ void Gp_EffSprTask81(Task* arg0)
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                 if (mem->index == 0) {
                     effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->scale + 0x22200, 0);
-                    mem->index           = 1;
-                    mem->age             = 0;
-                    mem->scale         >>= 2;
+                    mem->index   = 1;
+                    mem->age     = 0;
+                    mem->scale >>= 2;
                     gfxSetRotIdentity(&coord->coord);
                 }
                 mem->age += (u16)gDisplayState.animFrame & 1;
@@ -3563,18 +3563,18 @@ void effectSpriteTaskA7(Task* task)
     }
     // Reparent at the origin; upward acceleration is expressed in that frame.
     if (task->state == EFFECT_DRAW_TASK_NEW) {
-        randomState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->scale                      = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
-        work->angle                      = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
-        parentCoord                      = work->parent;
-        work->move.vy                    = -(work->scale & 7);
-        coord->parent                    = parentCoord;
+        randomState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->scale   = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+        work->angle   = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
+        parentCoord   = work->parent;
+        work->move.vy = -(work->scale & 7);
+        coord->parent = parentCoord;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]                = 0;
-        coord->coord.t[1]                = 0;
-        coord->coord.t[0]                = 0;
-        coord->composeStamp              = GRAPHICS_COORD_DIRTY;
-        gRandomLcgState                  = randomState;
+        coord->coord.t[2]   = 0;
+        coord->coord.t[1]   = 0;
+        coord->coord.t[0]   = 0;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        gRandomLcgState     = randomState;
         task->state++;
     }
     actorRenderComposeCoord(coord);
@@ -3782,15 +3782,15 @@ void Gp_EffCtlTask7F(Task* arg0)
     if (arg0->state == 0) {
         coord->parent = mem->parent;
         gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[0]    = mem->pos.vx;
-        coord->coord.t[1]    = mem->pos.vy;
-        coord->coord.t[2]    = mem->pos.vz;
-        coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-        arg0->state          = 1;
-        mem->scale           = arg0->spawnArg1.halves.low;
-        temp                 = arg0->spawnArg1.halves.high;
-        step                 = temp;
-        mem->index           = temp;
+        coord->coord.t[0]   = mem->pos.vx;
+        coord->coord.t[1]   = mem->pos.vy;
+        coord->coord.t[2]   = mem->pos.vz;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        arg0->state         = 1;
+        mem->scale          = arg0->spawnArg1.halves.low;
+        temp                = arg0->spawnArg1.halves.high;
+        step                = temp;
+        mem->index          = temp;
         if (step != 1) {
             step = step * 3;
         } else {
