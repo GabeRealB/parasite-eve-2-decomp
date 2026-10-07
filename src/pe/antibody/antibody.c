@@ -112,15 +112,9 @@ void func_antibody_8012EF34(Task* arg0)
         mem->age = mem->age + 1;
         switch (arg0->state) {
             case 0: {
-                GfxRotationWords* rot;
 
-                rot                 = (GfxRotationWords*)&coord->coord;
                 coord->parent       = mem->parent;
-                rot->m00M01         = ONE;
-                rot->m02M10         = 0;
-                rot->m11M12         = ONE;
-                rot->m20M21         = 0;
-                rot->m22            = ONE;
+                gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
