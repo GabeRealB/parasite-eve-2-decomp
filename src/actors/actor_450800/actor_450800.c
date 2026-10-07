@@ -2707,11 +2707,11 @@ void func_actor_450800_80131F28(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(2);
+        capSelectLoadedFile(2);
         capSetTexturePage(0x340, 0);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 
 void func_actor_450800_80131F70(u32 arg0)

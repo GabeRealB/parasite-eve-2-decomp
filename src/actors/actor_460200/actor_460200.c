@@ -2181,11 +2181,11 @@ void func_actor_460200_801320E0(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(arg0);
+        capSelectLoadedFile(arg0);
         capSetTexturePage(0x340, 0);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 
 /// The same filter under the name the cutscene script's command 13 calls.

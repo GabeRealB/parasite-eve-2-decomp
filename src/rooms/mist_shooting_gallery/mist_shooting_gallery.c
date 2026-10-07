@@ -1847,10 +1847,10 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
             Gp_CapFile = 0;
             // Select the relocated CAP file and its VRAM texture-page origin.
             if (task->spawnArg2.value == MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS) {
-                Gp_LoadCapFile(MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
+                capSelectLoadedFile(MIST_SHOOTING_GALLERY_CAP_FILE_HIGH_COMMANDS);
                 texturePageX = MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_HIGH_COMMANDS;
             } else {
-                Gp_LoadCapFile(MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
+                capSelectLoadedFile(MIST_SHOOTING_GALLERY_CAP_FILE_LOW_COMMANDS);
                 texturePageX = MIST_SHOOTING_GALLERY_CAP_TEXTURE_X_LOW_COMMANDS;
             }
             capSetTexturePage(texturePageX, 0);
@@ -1865,7 +1865,7 @@ void func_mist_shooting_gallery_8017FDD0(Task* task)
             return;
         case 2:
             Gp_MsgPlayerWeapon(1);
-            Gp_ResetCap();
+            capReset();
             taskKill(task);
             break;
     }

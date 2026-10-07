@@ -2415,11 +2415,11 @@ void func_actor_443500_80131E3C(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(1);
+        capSelectLoadedFile(1);
         capSetTexturePage(0x240, 0x100);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 
 void func_actor_443500_80131E84(s32 arg0)
@@ -2427,11 +2427,11 @@ void func_actor_443500_80131E84(s32 arg0)
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) > 0) {
         if (arg0 != 0) {
             Gp_CapFile = 0;
-            Gp_LoadCapFile(1);
+            capSelectLoadedFile(1);
             capSetTexturePage(0x240, 0x100);
             return;
         }
-        Gp_ResetCap();
+        capReset();
     }
 }
 

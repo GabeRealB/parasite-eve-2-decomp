@@ -2241,7 +2241,7 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
     switch (task->state) {
         case 0:
             Gp_CapFile = 0;
-            Gp_LoadCapFile(2);
+            capSelectLoadedFile(2);
             capSetTexturePage(0x300, 0);
             Gp_RunCapCmd(task->spawnArg1.value, 0);
             task->state++;
@@ -2253,7 +2253,7 @@ void func_shelter_b1_underground_parking_80183714(Task* task)
             break;
         case 2:
             Gp_MsgPlayerWeapon(1);
-            Gp_ResetCap();
+            capReset();
             taskKill(task);
             break;
     }

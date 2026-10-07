@@ -617,7 +617,7 @@ void func_shelter_r36_8017D5E8(Task* task)
                 slot = 1;
             } else {
                 Gp_CapFile = 0;
-                Gp_LoadCapFile(3);
+                capSelectLoadedFile(3);
                 capSetTexturePage(0x140, 0x100);
                 slot = 2;
             }
@@ -632,7 +632,7 @@ void func_shelter_r36_8017D5E8(Task* task)
                     gGameSession->deathFadeFrames = state;
                     taskKill(task);
                 } else {
-                    Gp_ResetCap();
+                    capReset();
                     task->state++;
                 }
             }
@@ -692,7 +692,7 @@ void func_shelter_r36_8017D870(s32 arg0)
 
     if (arg0 != 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(arg0);
+        capSelectLoadedFile(arg0);
         var_a0 = 0x2C0;
         if (arg0 == 1) {
             var_a0 = 0x280;
@@ -700,7 +700,7 @@ void func_shelter_r36_8017D870(s32 arg0)
         capSetTexturePage(var_a0, 0x100);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 
 /// Message-table handler for message 0x13F1. Does nothing.

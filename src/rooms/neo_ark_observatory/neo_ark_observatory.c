@@ -1737,7 +1737,7 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
     switch (task->state) {
         case 0:
             Gp_CapFile = 0;
-            Gp_LoadCapFile(1);
+            capSelectLoadedFile(1);
             capSetTexturePage(0x300, 0);
             Gp_SpawnIfCapIdle(task->spawnArg1.value, 0);
             task->state++;
@@ -1750,7 +1750,7 @@ void func_neo_ark_observatory_8017FB1C(Task* task)
             break;
         case 2:
             Gp_MsgPlayerWeapon(1);
-            Gp_ResetCap();
+            capReset();
             taskKill(task);
             break;
     }

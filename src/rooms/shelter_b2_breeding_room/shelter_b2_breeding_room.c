@@ -116,7 +116,7 @@ s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 
                 func_800E3FAC(0xA2, 0x1F);
             }
             Gp_CapFile = 0;
-            Gp_LoadCapFile(1);
+            capSelectLoadedFile(1);
             capSetTexturePage(0x140, 0x100);
             Gp_MsgPlayerWeapon(0);
             Gp_RunCapCmd1(1);
@@ -147,7 +147,7 @@ s32 func_shelter_b2_breeding_room_8017D758(Task* arg0, s32 arg1, s32 arg2, s32 a
 void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
 {
     if (capIsBusy() == 0) {
-        Gp_ResetCap();
+        capReset();
         Gp_MsgPlayerWeapon(1);
         taskKill(arg0);
     }

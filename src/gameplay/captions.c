@@ -94,7 +94,7 @@ static s16 _capGetTextLineLeftX(const u16* text, s32 selectedLineIndex);
 
 static s32 _capGetTextLineAdvance(const u16* text);
 
-void func_800E704C(void);
+static void _capAdvanceRecord(void);
 
 void func_8072455C(s16 arg0, s32 arg1);
 
@@ -105,18 +105,22 @@ void func_80724714(void);
 /// Advances a marker's 8..15 grey pulse and reverses at either endpoint.
 ///
 /// The pointers address distinct writable s32 words: a level in 8..15 and
-/// direction (0 rising, 1 falling).
+/// direction (0 rising, 1 falling). At 8 the direction must be rising; at 15
+/// it must be falling. Each call changes the level by one before reversing.
 static inline void _capStepMarkerPulse(s32* greyLevel, s32* falling)
 {
-    if (*falling == 0) {
+    enum { CAP_MARKER_PULSE_RISING  = 0,
+           CAP_MARKER_PULSE_FALLING = 1 };
+
+    if (*falling == CAP_MARKER_PULSE_RISING) {
         (*greyLevel)++;
         if (*greyLevel >= CAP_MARKER_PULSE_MAX) {
-            *falling = 1;
+            *falling = CAP_MARKER_PULSE_FALLING;
         }
     } else {
         (*greyLevel)--;
-        if (*greyLevel < CAP_MARKER_PULSE_MIN + 1) {
-            *falling = 0;
+        if (*greyLevel <= CAP_MARKER_PULSE_MIN) {
+            *falling = CAP_MARKER_PULSE_RISING;
         }
     }
 }
@@ -186,7 +190,7 @@ void func_800E44A0(Task* task)
         stageRequestFrameCapture();
         Task_SpawnPtr(1, 0x2C, 0, &D_801155A0);
     }
-    eventIndex = Gp_FindCapEvt((s32)(s16)D_801155AE);
+    eventIndex = capFindVariantRecord((s32)(s16)D_801155AE);
     D_801155AE = (u16)eventIndex;
     D_801155B2 = _capGetTextBlockLeftX(Gp_CapTable[eventIndex].textRef.text);
     eventFlags = Gp_CapTable[(s16)D_801155AE].control.text.flags;
@@ -255,7 +259,7 @@ void func_800E44A0(Task* task)
         if (eventFlags & CAP_SEQUENCE_DELAYED_MESSAGE) {
             taskSpawnFromTable(D_8010FB4C, 1, Gp_CapTable[(s16)D_801155AE].control.scene.messageValue | (Gp_CapTable[(s16)D_801155AE].control.scene.messageDelayFrames << 8) | (Gp_CapTable[(s16)D_801155AE].trigger.messageRecipient << 0x10), 0);
         }
-        func_800E704C();
+        _capAdvanceRecord();
         sceneText = Gp_CapTable[(s16)D_801155AE].textRef;
         if (sceneText.offset != CAP_TEXT_REF_END) {
             D_801155B4 = capGetTextFirstBaselineY(sceneText.text);
@@ -351,7 +355,7 @@ void func_800E44A0(Task* task)
                         Gp_CapEventKey = Gp_CapTable[(s16)D_801155AE].control.action.fallbackKey;
                     }
                 }
-                func_800E704C();
+                _capAdvanceRecord();
                 D_801155AC = 0;
                 D_801155B0 = 0;
                 D_801155C0 = 0;
@@ -372,7 +376,7 @@ void func_800E44A0(Task* task)
                     return;
                 }
                 if (D_8011569A == 0) {
-                    func_800E704C();
+                    _capAdvanceRecord();
                     timedText = Gp_CapTable[(s16)D_801155AE].textRef;
                     if (timedText.offset == CAP_TEXT_REF_END) {
                         task->state += 1;
@@ -391,7 +395,7 @@ void func_800E44A0(Task* task)
                 }
             } else {
                 func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
-                nextChoiceIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
+                nextChoiceIndex = capFindVariantRecord((s16)D_801155AE + 1);
                 if (((Gp_CapTable[nextChoiceIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextChoiceIndex].actionId == 0) && ((Gp_CapTable[nextChoiceIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextChoiceIndex].control.text.pauseFrames == 0)) && (D_801155BE == 0) && !(Gp_CapTable[nextChoiceIndex].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
                     _capDrawContinueCaret(0xA0, 0xDC);
                 } else {
@@ -443,7 +447,7 @@ void func_800E44A0(Task* task)
                         Gp_CapEventKey = (s16)D_801155D0[D_801155C0].eventKey;
                     }
                     D_8011567A = (s16)(u16)D_80115678;
-                    func_800E704C();
+                    _capAdvanceRecord();
                     choiceText = Gp_CapTable[(s16)D_801155AE].textRef;
                     if (choiceText.offset == CAP_TEXT_REF_END) {
                         task->state += 1;
@@ -499,7 +503,7 @@ void func_800E44A0(Task* task)
             }
             if ((padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) || (D_80115670 & CAP_SEQUENCE_INSTANT_TEXT)) {
                 D_801155AC    = func_800E5578(Gp_CapTable[(s16)D_801155AE].textRef.text, 0x80, 1, Gp_CapTable[(s16)D_801155AE].control.text.title | ((Gp_CapTable[(s16)D_801155AE].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << 8));
-                nextTextIndex = Gp_FindCapEvt((s16)D_801155AE + 1);
+                nextTextIndex = capFindVariantRecord((s16)D_801155AE + 1);
                 if (((Gp_CapTable[nextTextIndex].textRef.offset != CAP_TEXT_REF_END) && (Gp_CapTable[nextTextIndex].actionId == 0) && ((Gp_CapTable[nextTextIndex].control.text.displayFrames != 0) || (Gp_CapTable[nextTextIndex].control.text.pauseFrames == 0))) || (Gp_CapTable[(s16)D_801155AE].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
                     _capDrawContinueCaret(0xA0, 0xDC);
                     return;
@@ -1174,35 +1178,42 @@ void capSetTexturePage(s16 vramX, s16 vramY)
     D_80115656 = vramY;
 }
 
-void Gp_LoadCapFile(s32 arg0)
+void capSelectLoadedFile(s32 dataResourceOrdinal)
 {
-    s32 i;
-    s32 count;
+    s32 resourceSlotIndex;
+    s32 dataResourceIndex;
 
-    count = 0;
-    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
-        if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_DATA) {
-            if (count == arg0) {
+    dataResourceIndex = 0;
+    for (resourceSlotIndex = 0; resourceSlotIndex < ARRAY_SIZE(D_8006C338); resourceSlotIndex++) {
+        if (D_8006C338[resourceSlotIndex].kind == FILE_SYSTEM_RESOURCE_DATA) {
+            if (dataResourceIndex == dataResourceOrdinal) {
                 if (gDisplayState.debugMode != 0) {
                     func_80724714();
                 }
-                Gp_CapFile = D_8006C338[i].data;
+                Gp_CapFile = D_8006C338[resourceSlotIndex].data;
                 capRelocateFile(Gp_CapFile);
                 break;
             }
-            count++;
+            dataResourceIndex++;
         }
     }
 }
 
-void Gp_ResetCap(void)
+void capReset(void)
 {
-    Gp_CapTable = 0;
+    enum {
+        CAP_DEFAULT_FILE_ORDINAL   = 0,
+        CAP_DEFAULT_TEXTURE_VRAM_X = 384,
+        CAP_DEFAULT_TEXTURE_VRAM_Y = 0
+    };
+
+    // Release the selection before restoring the bundle's default CAP resource.
+    Gp_CapTable = NULL;
     D_801156A8  = 0;
     D_8011565A  = 0;
-    capSetTexturePage(0x180, 0);
-    Gp_CapFile = 0;
-    Gp_LoadCapFile(0);
+    capSetTexturePage(CAP_DEFAULT_TEXTURE_VRAM_X, CAP_DEFAULT_TEXTURE_VRAM_Y);
+    Gp_CapFile = NULL;
+    capSelectLoadedFile(CAP_DEFAULT_FILE_ORDINAL);
     D_8011569C = 0;
 }
 
@@ -1211,16 +1222,12 @@ void capSetTextUpdateCallback(CapTextUpdateCallback callback)
     D_80115660 = callback;
 }
 
-void Gp_ApplyCapEvtFlags(void)
+void capApplyRecordPlaybackSettings(void)
 {
     CapSequenceRecord* record;
     u8                 soundAndTextFlags;
-    CapSequenceRecord* sequence;
-    s32                recordIndex;
 
-    recordIndex       = (s16)D_801155AE;
-    sequence          = Gp_CapTable;
-    record            = _capSequenceRecordAt(sequence, recordIndex);
+    record            = _capSequenceRecordAt(Gp_CapTable, (s16)D_801155AE);
     soundAndTextFlags = record->trigger.soundAndTextFlags;
     D_80115670        = soundAndTextFlags;
     // A minimum playback interval disables instant reveal.
@@ -1230,19 +1237,19 @@ void Gp_ApplyCapEvtFlags(void)
     D_80115678 = record->minDisplayFrames;
 }
 
-s32 Gp_FindCapEvt(s32 arg0)
+s32 capFindVariantRecord(s32 recordIndex)
 {
     CapSequenceRecord* record;
 
     for (;;) {
-        record = _capSequenceRecordAt(Gp_CapTable, arg0);
+        record = _capSequenceRecordAt(Gp_CapTable, recordIndex);
         if (record->textRef.offset != CAP_TEXT_REF_END && record->key != Gp_CapEventKey) {
-            arg0++;
+            recordIndex++;
         } else {
             break;
         }
     }
-    return arg0;
+    return recordIndex;
 }
 
 void capClearUnstartedSequenceTask(Task* task)
@@ -1259,50 +1266,85 @@ void capClearUnstartedSequenceTask(Task* task)
     task->state++;
 }
 
-/// `spawnArg1` packs three bytes: bits 0-7 are the message argument, bits
-/// 8-15 the delay in frames, and bits 16-23 the recipient - 0 for slot 3, 1
-/// for slot 0xA, otherwise `sceneFindPlacedActor(n - 2)`.
-void Gp_DelayedMsgTask(Task* task)
+/// Sends a CAP texture-sequence or eye-mode request to its selected actor.
+///
+/// Recipient 0 requires the player, 1 skips an absent companion, and 2..17
+/// select placed actors 0..15 in the initialized scene. Missing actors are
+/// skipped. `textureMode` is the zero-extended low byte of the CAP request;
+/// its interpretation belongs to the receiver.
+static inline void _capDispatchTextureMessage(s32 recipient, s32 textureMode)
 {
-    s32   val;
-    s32   mode;
-    Task* slot;
+    enum {
+        CAP_TEXTURE_RECIPIENT_PLAYER            = 0,
+        CAP_TEXTURE_RECIPIENT_COMPANION         = 1,
+        CAP_TEXTURE_RECIPIENT_PLACED_ACTOR_BASE = 2,
+        CAP_TEXTURE_MESSAGE_SET_ACTOR_EYES      = 0x7E0
+    };
+    Task* targetTask;
+
+    if (recipient == CAP_TEXTURE_RECIPIENT_PLAYER) {
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, textureMode, 0);
+    } else if (recipient == CAP_TEXTURE_RECIPIENT_COMPANION) {
+        targetTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+        if (targetTask != NULL) {
+            taskMessageDispatch(targetTask, GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, textureMode, 0);
+        }
+    } else {
+        targetTask = sceneFindPlacedActor(recipient - CAP_TEXTURE_RECIPIENT_PLACED_ACTOR_BASE);
+        if (targetTask != NULL) {
+            taskMessageDispatch(targetTask, CAP_TEXTURE_MESSAGE_SET_ACTOR_EYES, textureMode, 0);
+        }
+    }
+}
+
+void capDelayedTextureMessageTask(Task* task)
+{
+    enum {
+        CAP_TEXTURE_MESSAGE_STATE_INIT      = 0,
+        CAP_TEXTURE_MESSAGE_STATE_WAIT      = 1,
+        CAP_TEXTURE_MESSAGE_BYTE_MASK       = 0xFF,
+        CAP_TEXTURE_MESSAGE_DELAY_SHIFT     = 8,
+        CAP_TEXTURE_MESSAGE_RECIPIENT_SHIFT = 16
+    };
+    s32 textureMode;
+    s32 recipient;
 
     switch (task->state) {
-        case 0:
-            task->killCountdown = (task->spawnArg1.value >> 8) & 0xFF;
+        case CAP_TEXTURE_MESSAGE_STATE_INIT:
+            task->killCountdown = (task->spawnArg1.value >> CAP_TEXTURE_MESSAGE_DELAY_SHIFT) & CAP_TEXTURE_MESSAGE_BYTE_MASK;
             task->state++;
             break;
-        case 1:
+        case CAP_TEXTURE_MESSAGE_STATE_WAIT:
             if (task->killCountdown == 0) {
-                mode = (task->spawnArg1.value >> 16) & 0xFF;
-                val  = task->spawnArg1.value & 0xFF;
-                if (mode == 0) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, val, 0);
-                } else if (mode == 1) {
-                    slot = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-                    if (slot != NULL) {
-                        taskMessageDispatch(slot, GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, val, 0);
-                    }
-                } else {
-                    slot = sceneFindPlacedActor(mode - 2);
-                    if (slot != NULL) {
-                        taskMessageDispatch(slot, 0x7E0, val, 0);
-                    }
-                }
+                recipient   = (task->spawnArg1.value >> CAP_TEXTURE_MESSAGE_RECIPIENT_SHIFT) & CAP_TEXTURE_MESSAGE_BYTE_MASK;
+                textureMode = task->spawnArg1.value & CAP_TEXTURE_MESSAGE_BYTE_MASK;
+                _capDispatchTextureMessage(recipient, textureMode);
                 taskKill(task);
             }
+            // Teardown also rewrites this counter; retain the decrement afterward.
             task->killCountdown--;
             break;
     }
 }
 
-void func_800E704C(void)
+/// Selects the next record for the current CAP variant and resets its playback gates.
+///
+/// Requires a selected, relocated sequence and a current nonterminal index.
+/// The next matching record or terminator must be within the loaded file and
+/// fit a nonnegative signed halfword. The stored index increments as u16 and
+/// is sign-extended for the scan. Callers handle the returned terminal selection.
+/// Caret delay counts eligible draw calls; choice lockout counts visible-choice frames.
+static void _capAdvanceRecord(void)
 {
+    enum {
+        CAP_CONTINUE_CARET_DELAY_CALLS  = 30,
+        CAP_CHOICE_CONFIRM_DELAY_FRAMES = 15
+    };
+
     D_801155AE++;
-    D_801155AE       = Gp_FindCapEvt((s16)D_801155AE);
+    D_801155AE       = capFindVariantRecord((s16)D_801155AE);
     D_80115648       = 0;
-    Gp_CapCaretDelay = 0x1E;
-    D_80115659       = 0xF;
-    Gp_ApplyCapEvtFlags();
+    Gp_CapCaretDelay = CAP_CONTINUE_CARET_DELAY_CALLS;
+    D_80115659       = CAP_CHOICE_CONFIRM_DELAY_FRAMES;
+    capApplyRecordPlaybackSettings();
 }

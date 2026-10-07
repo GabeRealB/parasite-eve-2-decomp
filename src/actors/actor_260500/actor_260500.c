@@ -1521,11 +1521,11 @@ void func_actor_260500_80149E38(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(2);
+        capSelectLoadedFile(2);
         capSetTexturePage(0x340, 0);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 
 /// Sends message 0x7D4 (placement) with the record at

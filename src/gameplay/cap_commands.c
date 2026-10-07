@@ -53,7 +53,7 @@ AnimationPlayRequest Gp_WeaponMsgRec = { { 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 
 
 TaskDesc D_8010FB4C[3] = {
     { { { TASK_BODY_NONE, 32 } }, capClearUnstartedSequenceTask, { NULL } },
-    { { { TASK_BODY_NONE, 32 } }, Gp_DelayedMsgTask, { NULL } },
+    { { { TASK_BODY_NONE, 32 } }, capDelayedTextureMessageTask, { NULL } },
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 

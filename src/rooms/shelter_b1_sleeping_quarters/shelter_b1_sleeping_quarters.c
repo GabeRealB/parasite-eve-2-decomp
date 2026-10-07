@@ -137,7 +137,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
     switch (task->state) {
         case 0:
             Gp_CapFile = 0;
-            Gp_LoadCapFile(1);
+            capSelectLoadedFile(1);
             capSetTexturePage(0x2C0, 0);
             Gp_RunCapCmd(task->spawnArg1.value, 1);
             task->state++;
@@ -149,7 +149,7 @@ void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
             break;
         case 2:
             Gp_MsgPlayerWeapon(1);
-            Gp_ResetCap();
+            capReset();
             taskKill(task);
             break;
     }

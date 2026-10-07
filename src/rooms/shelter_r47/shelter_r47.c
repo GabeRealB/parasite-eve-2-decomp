@@ -868,7 +868,7 @@ static void func_shelter_r47_80180650(Task* task)
     switch (task->state) {
         case 0:
             Gp_CapFile = 0;
-            Gp_LoadCapFile(1);
+            capSelectLoadedFile(1);
             capSetTexturePage(0x240, 0x100);
             Gp_RunCapCmd1(task->spawnArg1.value);
             task->state++;
@@ -881,7 +881,7 @@ static void func_shelter_r47_80180650(Task* task)
             break;
         case 2:
             Gp_MsgPlayerWeapon(1);
-            Gp_ResetCap();
+            capReset();
             taskKill(task);
             break;
     }
@@ -920,9 +920,9 @@ static void func_shelter_r47_8018080C(Task* task)
 
     switch (task->state) {
         case 0:
-            Gp_ResetCap();
+            capReset();
             Gp_CapFile = 0;
-            Gp_LoadCapFile(1);
+            capSelectLoadedFile(1);
             capSetTexturePage(0x240, 0x100);
             Gp_RunCapCmd1(8);
             task->state++;
@@ -931,7 +931,7 @@ static void func_shelter_r47_8018080C(Task* task)
             if (capIsBusy() != 0) {
                 break;
             }
-            Gp_ResetCap();
+            capReset();
             Gp_MsgPlayerWeapon(1);
             nibble = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165);
             if (nibble < 3) {
@@ -947,9 +947,9 @@ static void func_shelter_r47_801808D4(Task* task)
 {
     switch (task->state) {
         case 0:
-            Gp_ResetCap();
+            capReset();
             Gp_CapFile = 0;
-            Gp_LoadCapFile(2);
+            capSelectLoadedFile(2);
             capSetTexturePage(0x140, 0x100);
             Gp_RunCapCmd1(7);
             task->state++;
@@ -958,7 +958,7 @@ static void func_shelter_r47_801808D4(Task* task)
             if (capIsBusy() != 0) {
                 break;
             }
-            Gp_ResetCap();
+            capReset();
             Gp_MsgPlayerWeapon(1);
         default:
             taskKill(task);

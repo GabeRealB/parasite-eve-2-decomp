@@ -2,7 +2,7 @@
 
 /// Task body of the room's cutscene, driven by the
 /// `RoomCutsceneRec` in `spawnArg2`. It holds both characters'
-/// weapons, hides the HUD, forces the scripted view and loads the CAP file,
+/// weapons, hides the HUD, forces the scripted view and selects the loaded CAP resource,
 /// then starts the scene's CAP slot together with its sound task (entry 1 of
 /// `gRoomCutsceneTaskDescs`); confirm or cancel skips the scene.
 /// Afterwards it runs the follow-up CAP command (slot 1 picks it from game
@@ -52,7 +52,7 @@ void roomCutsceneTask(Task* task)
         case 3:
             if (script->capFile != 0) {
                 Gp_CapFile = 0;
-                Gp_LoadCapFile(script->capFile);
+                capSelectLoadedFile(script->capFile);
                 a0 = script->capTPageX;
                 a1 = 0;
                 if (a0 == 0) {
@@ -161,7 +161,7 @@ void roomCutsceneTask(Task* task)
             gGameSession->eventState       = 0;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             if (script->capFile != 0) {
-                Gp_ResetCap();
+                capReset();
             }
             D_80114D08 = 0xA;
             taskKill(task);

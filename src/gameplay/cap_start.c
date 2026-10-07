@@ -84,13 +84,13 @@ s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2)
         D_8011564A = -1;
     }
 
-    D_801155AE = Gp_FindCapEvt((s16)D_801155AE);
+    D_801155AE = capFindVariantRecord((s16)D_801155AE);
     if (Gp_CapTable[(s16)D_801155AE].textRef.offset == CAP_TEXT_REF_END) {
         Gp_CapTable = 0;
         return 0;
     }
 
-    Gp_ApplyCapEvtFlags();
+    capApplyRecordPlaybackSettings();
     D_801155B4 = capGetTextFirstBaselineY(Gp_CapTable[(s16)D_801155AE].textRef.text);
     D_801155B6 = capGetTextBlockHeight(Gp_CapTable[(s16)D_801155AE].textRef.text);
     D_80115666 = arg1;

@@ -1017,11 +1017,11 @@ void func_actor_260400_80149F5C(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(1);
+        capSelectLoadedFile(1);
         capSetTexturePage(0x340, 0);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 
 void func_actor_260400_80149FA4(void)

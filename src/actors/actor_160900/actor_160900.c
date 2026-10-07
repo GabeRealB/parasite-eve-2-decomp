@@ -1927,7 +1927,7 @@ void func_actor_160900_8013418C(Task* arg0)
                 work->kyleFreeHand      = taskSpawnFromTable(D_actor_160900_8013FB50, 6, 0, work->kyle);
             }
             Gp_CapFile = 0;
-            Gp_LoadCapFile(3);
+            capSelectLoadedFile(3);
             capSetTexturePage(0x180, 0);
             arg0->state += 1;
             return;

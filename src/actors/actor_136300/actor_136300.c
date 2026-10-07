@@ -1590,9 +1590,9 @@ void func_actor_136300_80132A7C(s32 arg0)
 {
     if (arg0 == 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(1);
+        capSelectLoadedFile(1);
         capSetTexturePage(0x180, 0x100);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }

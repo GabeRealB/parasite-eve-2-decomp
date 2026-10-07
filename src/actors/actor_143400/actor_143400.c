@@ -619,11 +619,11 @@ void func_actor_143400_80131E24(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(2);
+        capSelectLoadedFile(2);
         capSetTexturePage(0x140, 0x100);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 
 /// Applies the 0xFF-terminated area record list at `D_shelter_r47_8018A638` through

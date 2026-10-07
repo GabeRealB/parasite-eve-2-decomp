@@ -8926,7 +8926,7 @@ type3 = 3;                    /* li v0, 3 — fills the lbu delay */
 if (slot->kind == type3) { /* lbu v1; bne v1, v0 */
 ```
 
-A bare `if (slot->kind == 3)` still hoists. `Gp_LoadCapFile` is the example.
+A bare `if (slot->kind == 3)` still hoists. `capSelectLoadedFile` is the example.
 
 ## Finding which pass causes a mismatch
 
@@ -24564,19 +24564,19 @@ swaps the two.
 Pin the later value; leave the parameter unpinned:
 
 ```c
-register s32 val asm("s0");
+register s32 textureMode asm("s0");
 
 switch (task->state) {
 case 1:
     if (task->killCountdown == 0) {
-        val = arg->field_0; /* live across taskMessageDispatch */
+        textureMode = arg->field_0; /* live across taskMessageDispatch */
         ...
     }
 }
 ```
 
-Pinning both (`task` to `$s1` and `val` to `$s0`) also matches, but only
-`val` is required. `Gp_DelayedMsgTask` is the example. Inverse of "Copy `value`
+Pinning both (`task` to `$s1` and `textureMode` to `$s0`) also matches, but only
+`textureMode` is required. `capDelayedTextureMessageTask` is the example. Inverse of "Copy `value`
 to a dest local so `index` keeps `$s0`".
 
 ## `ret += idx` keeps a pointer chain in `$v0`
@@ -24749,8 +24749,8 @@ done:
 The argument/return must be `s32` so GCC does not emit `sll`/`sra 16`
 around the index. Callers compiled against the old `s16` prototype still
 need that extend: pass `(s16)u16_index` so the call site keeps
-`sll`/`sra 16` in the `jal` delay (`func_800E704C` / `D_801155AE`).
-`Gp_FindCapEvt` is the example.
+`sll`/`sra 16` in the `jal` delay (`_capAdvanceRecord` / `D_801155AE`).
+`capFindVariantRecord` is the example.
 
 ## Sparse switch on `x & 0xFFFF0000` needs a signed mask for `slt`
 
@@ -25924,7 +25924,7 @@ target = (u8)raw - 1;
 ```
 
 `Gp_ViewLoadImage` is the example. Pair with `register s32 typeN asm("v0")` (see
-`Gp_LoadCapFile`) so the per-iteration kind compare rematerializes as `li v0, K`
+`capSelectLoadedFile`) so the per-iteration kind compare rematerializes as `li v0, K`
 instead of a hoisted `li t0, K`.
 
 ## Assign the pointer chain first so a later store stays after the loads
@@ -80958,7 +80958,7 @@ instructions against the target's 20 with `Structure: match` and 34.95%. Read
 each field read's offset against the `.s`: `lbu $v0, 0x5($v1)` with the
 `addiu $v1, $v1, 0xC` sitting in that `beq`'s delay slot is the tell that both
 tests read the same element. `func_actor_215100_8014C418` matched 100% on its
-first attempt from the sibling shape `Gp_FindCapEvt` (gameplay, the same
+first attempt from the sibling shape `capFindVariantRecord` (gameplay, the same
 21-instruction body modulo its globals); `regs=13 insert=6 delete=7` on the m2c
 seed was this artefact, not an allocation problem.
 
@@ -85509,11 +85509,11 @@ void func_actor_161500_80131F50(s32 arg0)
             }
             arg0 = capFile;   /* after the join — see below */
         }
-        Gp_LoadCapFile(arg0);
+        capSelectLoadedFile(arg0);
         capSetTexturePage(0x340, 0);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 ```
 
@@ -146376,7 +146376,7 @@ shared by several switch cases, look for a case that bypasses the local.
 Merging nested `if (a) { if (b) ...` into `if (a && b)`, and a
 `default: return;` in place of a return after the switch, did not change
 the code.
-## Two bytes of one packed word, read by shift and mask, lower the base pointer's allocation priority (Gp_DelayedMsgTask, 2026-09-27)
+## Two bytes of one packed word, read by shift and mask, lower the base pointer's allocation priority (capDelayedTextureMessageTask, 2026-09-27)
 
 **Symptom.** A task callback reads two bytes of `Task::spawnArg1` (`lbu 0x36`,
 `lbu 0x34`) just before three calls, and the second byte must survive the calls.
@@ -149894,8 +149894,8 @@ attempts; left as it was.
   Written `if (end) { state += 1; } else {...}` the earlier increment ends in
   its own jump, is processed first and is the one deleted, as in the image.
 - **A scan whose pointer was stepped by hand next to its index** (`p++;
-  arg0++;` with `flag = -1; id = key; base = table;` in locals,
-  `Gp_FindCapEvt`) is the loop over the index alone, the record looked up
+  recordIndex++;` with `flag = -1; id = key; base = table;` in locals,
+  `capFindVariantRecord`) is the loop over the index alone, the record looked up
   inside it: `for (;;) { p = at(table, i); if (p->a != END && p->key != key)
   i++; else break; }`. loop.c hoists the three values and reduces the lookup
   to the stepped pointer. Keeping `p++` in a real loop fails: `p` becomes an

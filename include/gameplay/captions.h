@@ -108,9 +108,26 @@ s32 capIsBusy(void);
 
 s32 Gp_AbortCap(void);
 
-void Gp_ResetCap(void);
+/// Clears CAP playback selection and restores the bundle's default dialogue resource.
+///
+/// Clears the retained choice index, playback-started flag and current file,
+/// selects data resource zero, restores the texture-page origin to (384, 0)
+/// in VRAM pixels, and selects ordinary view lookup. Existing playback must
+/// have stopped; this resets selection without killing its task. The default
+/// resource follows `capSelectLoadedFile`'s storage and relocation requirements.
+void capReset(void);
 
-void Gp_LoadCapFile(s32 arg0);
+/// Selects and relocates one already loaded CAP data resource in the current CDF bundle.
+///
+/// `dataResourceOrdinal` is zero-based among FILE_SYSTEM_RESOURCE_DATA slots,
+/// excluding image and empty slots. No file I/O or allocation occurs. A missing
+/// ordinal leaves the current file and tables unchanged. A selected resource
+/// becomes the current file even if its CAP magic is invalid; failed relocation
+/// leaves the previously published glyph and command tables unchanged.
+/// The payload must be fully loaded, non-null, word-aligned writable KSEG0
+/// storage satisfying `capRelocateFile`'s complete-file bounds. Its storage is
+/// borrowed and must stay loaded while its file, tables or text are in use.
+void capSelectLoadedFile(s32 dataResourceOrdinal);
 
 /// Sets the update hook for timed CAP text reveal, or clears it with NULL.
 ///

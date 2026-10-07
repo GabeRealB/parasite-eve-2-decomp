@@ -2152,11 +2152,11 @@ void func_actor_215100_8014AEC4(s32 arg0)
 {
     if (arg0 != 0) {
         Gp_CapFile = 0;
-        Gp_LoadCapFile(1);
+        capSelectLoadedFile(1);
         capSetTexturePage(0x300, 0);
         return;
     }
-    Gp_ResetCap();
+    capReset();
 }
 
 void func_actor_215100_8014AF0C(void)

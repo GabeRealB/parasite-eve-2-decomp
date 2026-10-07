@@ -720,16 +720,16 @@ void func_mist_parking_80184668(Task* arg0)
 
 void func_mist_parking_801846A4(s32 arg0)
 {
-    Gp_ResetCap();
+    capReset();
     switch (arg0) {
         case 1:
             Gp_CapFile = 0;
-            Gp_LoadCapFile(1);
+            capSelectLoadedFile(1);
             capSetTexturePage(0x140, 0x100);
             break;
         case 2:
             Gp_CapFile = 0;
-            Gp_LoadCapFile(2);
+            capSelectLoadedFile(2);
             capSetTexturePage(0x2C0, 0);
             break;
     }

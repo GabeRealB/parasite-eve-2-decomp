@@ -133,7 +133,7 @@ code stream; the containing file must stay loaded during playback. Text codes
 are u16 elements, with 0xFFFF ending the stream. The separate table-end sentinel
 `CAP_TEXT_REF_END` (`-1`) is never relocated or dereferenced.
 
-`Gp_FindCapEvt(start)` scans forward from `start` through `Gp_CapTable` and
+`capFindVariantRecord(start)` scans forward from `start` through `Gp_CapTable` and
 stops at the first record whose `textRef.offset == CAP_TEXT_REF_END` **or** whose `key` equals
 the current `Gp_CapEventKey`, returning the index. So an event slot is a run of
 records terminated by `-1`, and the key selects a variant within the run.
@@ -254,7 +254,7 @@ distinct from the outer CDF chunk opcodes.
 
 Here slots 2..7 describe six image resources starting at raw offset `0x7F0`,
 with RAM destinations beginning at `0x80188920`. Slots 14 and 15 describe the
-two CAP2 blobs, at `0x80189BD0` and `0x8018AB20`. Caption selection counts
+two CAP2 blobs, at `0x80189BD0` and `0x8018AB20`. `capSelectLoadedFile` counts
 kind-3 resources in directory order; that kind can also hold STF credits or
 MDEC bitstreams in other bundles, so it does not by itself identify a CAP file.
 

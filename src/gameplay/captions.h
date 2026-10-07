@@ -179,9 +179,23 @@ s16 capGetTextBlockHeight(const u16* text);
 /// The borrowed stream and glyph table have `capGetTextBlockHeight`'s bounds.
 s16 capGetTextFirstBaselineY(const u16* codes);
 
-void Gp_ApplyCapEvtFlags(void);
+/// Initializes the selected record's effective text flags and minimum-frame counter.
+///
+/// Requires a relocated selected sequence and a valid current record index,
+/// interpreted as a signed halfword. Copies the sound/text byte, clearing
+/// instant text when the minimum interval is nonzero, and seeds that interval
+/// in frames. The terminal record may be selected but its text is never read.
+void capApplyRecordPlaybackSettings(void);
 
-s32 Gp_FindCapEvt(s32 arg0);
+/// Finds the first record at or after `recordIndex` for the current variant key.
+///
+/// Returns its slot index, or the terminal record's index regardless of its key.
+/// Slot zero is the command header; playback starts at slot one. Requires a
+/// relocated selected sequence with a matching record or terminator reachable
+/// inside its live CAP file. No bounds check is performed. Playback callers
+/// require both the starting index and result to be in slots 1..32767, because
+/// they store and address the result as a signed-halfword index.
+s32 capFindVariantRecord(s32 recordIndex);
 
 /// Clears a selected CAP sequence if queued playback has not begun.
 ///
@@ -190,9 +204,18 @@ s32 Gp_FindCapEvt(s32 arg0);
 /// `task` must be a live task; neither spawn argument is consumed.
 void capClearUnstartedSequenceTask(Task* task);
 
-/// `spawnArg1` packs three bytes: bits 0-7 are the message argument, bits
-/// 8-15 the delay in frames, and bits 16-23 the recipient - 0 for slot 3, 1
-/// for slot 0xA, otherwise `sceneFindPlacedActor(n - 2)`.
-void Gp_DelayedMsgTask(Task* task);
+/// Sends a delayed CAP texture-sequence or eye-mode message, then kills its task.
+///
+/// `spawnArg1.value` packs mode in bits 0..7, delay in bits 8..15 (0..255 wait
+/// dispatches), and recipient in bits 16..23; bits 24..31 and `spawnArg2` are
+/// ignored. Recipient 0 targets the player, 1 the companion, and 2..17 placed
+/// actors 0..15 in the current scene. Larger selectors are forwarded unchecked.
+/// Player/companion receive a texture-sequence mode; placed actors an eye mode.
+/// A missing companion or placed actor drops the message. The player and scene
+/// manager must exist for their respective paths; receiver overlays stay loaded
+/// through synchronous dispatch. The first callback initializes the countdown;
+/// a zero delay sends on the following callback. Requires a live bodyless task
+/// and deferred collection, since the counter is decremented after teardown.
+void capDelayedTextureMessageTask(Task* task);
 
 #endif // GAMEPLAY_PRIVATE_CAPTIONS_H

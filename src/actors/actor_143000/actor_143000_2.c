@@ -256,7 +256,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             srand(gDisplayState.gameTick);
             Gp_MsgPlayerWeapon(0);
             Gp_CapFile = 0;
-            Gp_LoadCapFile(1);
+            capSelectLoadedFile(1);
             capSetTexturePage(0x340, 0);
             itemSetIdentified(0x121, 1);
             itemSetIdentified(0x122, 1);
@@ -311,7 +311,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             }
             return;
         case 12:
-            Gp_ResetCap();
+            capReset();
             taskKill(arg0);
             return;
         case 20:
@@ -380,7 +380,7 @@ void func_actor_143000_80133EE4(Task* arg0)
             return;
         case 41:
             if (capIsBusy() == 0) {
-                Gp_ResetCap();
+                capReset();
                 func_800E3FAC(0xA2, 0x27);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 2);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
@@ -434,13 +434,13 @@ void func_actor_143000_801344A8(s32 arg0)
 void func_actor_143000_801344D8(void)
 {
     Gp_CapFile = 0;
-    Gp_LoadCapFile(3);
+    capSelectLoadedFile(3);
     capSetTexturePage(0x180, 0x100);
 }
 
 void func_actor_143000_8013450C(void)
 {
-    Gp_ResetCap();
+    capReset();
 }
 
 void func_actor_143000_8013452C(u8 arg0)

@@ -72,7 +72,7 @@ void Gp_InitCapTask(Task* task)
         taskKill(task);
         return;
     }
-    Gp_ResetCap();
+    capReset();
     D_801156B8     = NULL;
     task->msgTable = D_8010FB90;
     gameSetTaskSlot(task, GAME_TASK_SLOT_CAP_CONTROL);
