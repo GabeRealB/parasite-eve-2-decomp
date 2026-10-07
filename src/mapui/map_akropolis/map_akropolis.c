@@ -125,13 +125,23 @@ enum {
     MAP_AKROPOLIS_KEY_ITEM_MENU_CLOSE_TICKS = 10,
 };
 
-/// Places two full decoded frames after the workspace's VLC output buffer.
-static __inline__ void _mapAkropolisPlaceMovieFrames(s32 frameBytes)
+/// Places the VLC-expanded input buffers and two RGB16 decoded frames.
+///
+/// `decodedFrameBytes` is width in pixels * height in rows * two bytes, positive
+/// and word-aligned. The movie workspace reserves that many bytes for input
+/// slot 1, followed by two frames; input slot 0 starts after the actor region's
+/// 64 KiB ring. Both regions must fit their VLC output and stay available until
+/// playback and pending DMA finish. Only pointers are assigned; no allocation,
+/// clearing or capacity check occurs.
+static __inline__ void _mapAkropolisPlaceMovieDecodeBuffers(size_t decodedFrameBytes)
 {
-    D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
-    D_8006AC50[1] = D_8006AC40;
-    D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + frameBytes);
-    D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + frameBytes);
+    u8* firstDecodedFrame;
+
+    D_8006AC50[0]     = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+    D_8006AC50[1]     = D_8006AC40;
+    firstDecodedFrame = (u8*)D_8006AC40 + decodedFrameBytes;
+    D_8006AC48[0]     = (u_long*)firstDecodedFrame;
+    D_8006AC48[1]     = (u_long*)(firstDecodedFrame + decodedFrameBytes);
 }
 
 void mapAkropolisSetupMovieBuffers(const GameLocationKey* location)
@@ -176,7 +186,7 @@ void mapAkropolisSetupMovieBuffers(const GameLocationKey* location)
         case GAME_AREA_ACROPOLIS_FORKED_ROAD:
         case GAME_AREA_ACROPOLIS_OBSERVATORY:
             frameBytes = D_8006AC5A * D_8006AC6C * 2;
-            _mapAkropolisPlaceMovieFrames(frameBytes);
+            _mapAkropolisPlaceMovieDecodeBuffers(frameBytes);
             break;
         case GAME_AREA_ACROPOLIS_PROMENADE:
             promenadePixelCount = D_8006AC5A * D_8006AC6C;

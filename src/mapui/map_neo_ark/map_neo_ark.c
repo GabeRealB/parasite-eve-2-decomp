@@ -160,14 +160,22 @@ void mapNeoArkSetupMovieBuffers(const GameLocationKey* location)
 /// Unity MIDI master gain used to normalize the selected song level.
 enum { MAP_NEO_ARK_MIDI_GAIN_FULL = 127 };
 
-/// Applies master gain and the song ramp to the area's current singleton level.
-static __inline__ s32 _mapNeoArkApplyAreaMusicVolume(LinInterp* ramp)
+/// Returns the area's ducked song level after master gain and the song fade.
+///
+/// The area update must first initialize the shared level from the song's
+/// 16-bit mix level. Master gain is 0..127; multiplication and division by 127
+/// use unsigned 32-bit arithmetic before applying the ramp's 0..65535 gain.
+/// `songRamp` borrows the live song's writable ramp: applying it can clear a
+/// completed step, but does not advance its clock. The result is a playback
+/// level for subsequent channel and note scaling, without clamping.
+static __inline__ s32 _mapNeoArkApplyAreaMusicVolume(LinInterp* songRamp)
 {
-    u32 scaledVolume;
+    u32 masterGain;
+    u32 volumeProduct;
 
-    scaledVolume = midiGetMasterVolume() & 0xFF;
-    scaledVolume = scaledVolume * D_800820E0;
-    return linInterpApply(ramp, scaledVolume / (u32)MAP_NEO_ARK_MIDI_GAIN_FULL);
+    masterGain    = (u8)midiGetMasterVolume();
+    volumeProduct = masterGain * D_800820E0;
+    return linInterpApply(songRamp, volumeProduct / (u32)MAP_NEO_ARK_MIDI_GAIN_FULL);
 }
 
 s32 mapNeoArkUpdateMusicVolume(u32 fullVolume, u8 areaId, LinInterp* ramp)
