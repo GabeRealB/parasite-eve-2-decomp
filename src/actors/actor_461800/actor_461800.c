@@ -71,7 +71,7 @@ extern Task* D_actor_461800_80143898;
 extern FootstepWalkWork* gFootstepWalkWork;
 
 /// The second variant's task, published by its spawn routine
-/// `footstepWalkSpawn` so the handlers can reach its model.
+/// `_footstepWalkSpawn` so the handlers can reach its model.
 extern Task* gFootstepWalkTask;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
@@ -1423,7 +1423,7 @@ static s32 _actor461800ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageI
 void func_actor_461800_80133554(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        footstepWalkSpawn,
+        _footstepWalkSpawn,
         func_actor_461800_801335B0,
     };
 

@@ -895,12 +895,12 @@ static void _actor151000SetBlackout(s32 enabled)
 
 /// The enemy's task body: publishes the task's work block in
 /// `gFootstepWalkWork`, then runs the handler for the task's state from a
-/// table built on the stack - the spawn handler `footstepWalkSpawn`,
+/// table built on the stack - the spawn handler `_footstepWalkSpawn`,
 /// then the per-frame `func_actor_151000_80132450`.
 void func_actor_151000_801323F4(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        footstepWalkSpawn,
+        _footstepWalkSpawn,
         func_actor_151000_80132450,
     };
 

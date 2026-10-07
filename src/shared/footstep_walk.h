@@ -27,8 +27,8 @@
  *   Task*             gFootstepWalkTask         the walker's task
  *   s16               gFootstepWalkMode         the mode of the last walk
  *   s16               gFootstepWalkBlendFrames  the blend the next reseed uses
- *   the animation stream and message table the spawn state installs, as
- *   gFootstepWalkAnims and gFootstepWalkMsgTable
+ *   the native animation-set pointer table and message table the spawn state
+ *   installs, as gFootstepWalkAnims and gFootstepWalkMsgTable
  */
 
 #ifndef SRC_SHARED_FOOTSTEP_WALK_H
@@ -42,10 +42,7 @@
 #include "actors/actor.h"
 
 #include "gameplay/animation.h"
-#include "gameplay/enemy.h"
 #include "gameplay/message.h"
-
-#include "main/task_types.h"
 
 /// Travel modes accepted by the walk-target handler; these do not select a clip.
 enum {
@@ -113,7 +110,5 @@ typedef struct {
     u8                     playFootsteps; // Nonzero once a script has turned the step sounds on: the update then runs the step check each frame. Never cleared
 } FootstepWalkWork;
 STATIC_ASSERT_SIZEOF(FootstepWalkWork, 0x4C0);
-
-void footstepWalkSpawn(Enemy* enemy, Task* task);
 
 #endif /* SRC_SHARED_FOOTSTEP_WALK_H */

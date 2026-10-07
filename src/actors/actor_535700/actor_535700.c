@@ -1217,12 +1217,12 @@ static void _actor535700FinishScene(void)
 
 /// The first enemy's task body: publishes the task's work block in
 /// `gFootstepWalkWork`, then runs the handler for the task's state from
-/// a table built on the stack - the spawn handler `footstepWalkSpawn`,
+/// a table built on the stack - the spawn handler `_footstepWalkSpawn`,
 /// then the per-frame `func_actor_535700_801324D4`.
 void func_actor_535700_80132478(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        footstepWalkSpawn,
+        _footstepWalkSpawn,
         func_actor_535700_801324D4,
     };
 
