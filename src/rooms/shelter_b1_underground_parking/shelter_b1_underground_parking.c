@@ -79,6 +79,8 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
 
+static s32 _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
+
 /// `ActionPromptHotspot::id` of the selector panel's enter button, which
 /// commits the pending switch pattern. The four switch hotspots carry the bit
 /// each one toggles in that pattern instead (8, 4, 2, 1).
@@ -1974,7 +1976,7 @@ void func_shelter_b1_underground_parking_80182DB4(Task* task)
                     gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 2);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1B;
                 }
-                handler      = roomVariantResolveNeoArk;
+                handler      = _roomVariantResolveNeoArk;
                 rec.stage    = GAME_STAGE_SHELTER_NEO_ARK;
                 rec.area     = GAME_AREA_SHELTER_1F_PARKING_GARAGE;
                 rec.room     = 1;
@@ -2074,7 +2076,13 @@ static void _shelterB1UndergroundParkingAmbienceTask(Task* task)
     }
 }
 
-#define ROOM_VARIANT_RESOLVE_NEO_ARK roomVariantResolveNeoArk
+/// Binds the Neo Ark room-variant definition to this room's private resolver.
+///
+/// Supply one function identifier with the `RoomVariantResolver` signature;
+/// its prologue declaration establishes static linkage. Keep the binding
+/// through the fragment, then undefine it. No arguments, runtime evaluation,
+/// captured values, stringification or token pasting are involved.
+#define ROOM_VARIANT_RESOLVE_NEO_ARK _roomVariantResolveNeoArk
 #include "../../shared/room_variants_neo_ark.inc.c"
 #undef ROOM_VARIANT_RESOLVE_NEO_ARK
 

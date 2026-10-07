@@ -502,6 +502,12 @@ Each carrier declares that instance in its prologue to establish its linkage;
 `map_shelter` instead binds the public `mapShelterRoomVariantResolve` instance,
 declared in its public header.
 
+`ROOM_VARIANT_RESOLVE_NEO_ARK` likewise selects the Neo Ark resolver's function
+identifier. The two Shelter departure carriers declare `_roomVariantResolveNeoArk`
+static in their prologues; `map_neo_ark` binds its public
+`mapNeoArkResolveRoomVariant`, declared in its public header. Each binding
+surrounds the corresponding fragment include and is undefined afterwards.
+
 `effectSprite` owns the included animated sprite and debris tasks and their
 textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its
 configuration macros use `EFFECT_SPRITE_` and select declarations matching each

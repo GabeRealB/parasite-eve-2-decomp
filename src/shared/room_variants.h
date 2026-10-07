@@ -43,13 +43,6 @@ typedef s32 (*RoomVariantResolver)(RoomEventMsg* request, RoomEventMsg* reply);
 #define ROOM_VARIANT_RESOLVE_SHELTER _roomVariantResolveShelter
 #endif
 
-/// Resolves Neo Ark destination rooms from game progress for a room-local departure.
-///
-/// Reads `request->areaId` and `request->queryOnly`; on `ROOM_EVENT_EXECUTE` only,
-/// writes `reply->room` for the observatory, pavilion, altar, shrine and pyramid.
-/// Other areas and queries preserve the initialized reply. The arguments may
-/// alias; neither pointer is retained. Always returns 1.
-s32 roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
 s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 s32 roomVariantParkingLotMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 s32 roomVariantMotelBalconyMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);

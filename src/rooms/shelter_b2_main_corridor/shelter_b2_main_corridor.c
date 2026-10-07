@@ -73,6 +73,8 @@
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
+static s32 _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
+
 /// Storage of the departure task's descriptor, with the four bytes before it.
 ///
 /// `desc` is the spawn recipe the room's exit task hands to the task system
@@ -83,7 +85,7 @@
 /// in the image and have no established access. They are not alignment: the
 /// last function ends on the boundary they start at, and the descriptor needs
 /// only word alignment. The only other room that carries
-/// `roomVariantResolveNeoArk` has the same four zero bytes directly before
+/// `_roomVariantResolveNeoArk` has the same four zero bytes directly before
 /// its own departure descriptor, and no other room with a departure
 /// descriptor has them, so they are likely an unreferenced variable of that
 /// shared source rather than part of the descriptor. Their role is unproven;
@@ -122,7 +124,7 @@ extern RoomEventMsg gRoomEventStagedMsg;
 /// been spawned. Nothing else in the room reads it.
 
 /// A second copy of the staged event block, taken whole once the block has been
-/// passed through `roomVariantResolveNeoArk`.
+/// passed through `_roomVariantResolveNeoArk`.
 extern _RoomDepartureStorage gRoomDeparture;
 
 /// The exit being taken, read by the exit task.
@@ -1817,7 +1819,7 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
                     gameFlagSetNibble(GAME_FLAG_0F8, 1);
                 }
             }
-            resolve = roomVariantResolveNeoArk;
+            resolve = _roomVariantResolveNeoArk;
             Gp_MsgPlayerWeapon(0);
             param.areaId    = D_shelter_b2_main_corridor_80189684.area;
             param.warp      = D_shelter_b2_main_corridor_80189684.warp;
@@ -1834,7 +1836,13 @@ void func_shelter_b2_main_corridor_8017DEB0(Task* arg0)
     }
 }
 
-#define ROOM_VARIANT_RESOLVE_NEO_ARK roomVariantResolveNeoArk
+/// Binds the Neo Ark room-variant definition to this room's private resolver.
+///
+/// Supply one function identifier with the `RoomVariantResolver` signature;
+/// its prologue declaration establishes static linkage. Keep the binding
+/// through the fragment, then undefine it. No arguments, runtime evaluation,
+/// captured values, stringification or token pasting are involved.
+#define ROOM_VARIANT_RESOLVE_NEO_ARK _roomVariantResolveNeoArk
 #include "../../shared/room_variants_neo_ark.inc.c"
 #undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
