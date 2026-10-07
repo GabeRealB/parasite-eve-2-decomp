@@ -1714,7 +1714,6 @@ static void func_actor_400500_80132438(Task* arg0)
     SVECTOR*                     dirp;
     SVECTOR                      delta;
     GfxMatrix                    rot;
-    GfxMatrix*                   src;
     _Actor400500GrayStalkerWork* work;
     GfxCoord*                    coord;
     GfxCoord*                    other;
@@ -1723,7 +1722,6 @@ static void func_actor_400500_80132438(Task* arg0)
     s16                          vz;
     s32                          y;
     s32                          z;
-    s32                          one;
     u16                          counter;
 
     work  = (_Actor400500GrayStalkerWork*)arg0->work;
@@ -1764,17 +1762,11 @@ static void func_actor_400500_80132438(Task* arg0)
         work->targetBearing       = (ratan2(dir.vx, dir.vz) - (u16)work->yaw) & 0xFFF;
         delta.vx                  = (u16)other->coord.t[0] - (u16)work->playerPrevPos.vx;
         delta.vy                  = (u16)other->coord.t[1] - (u16)work->playerPrevPos.vy;
-        one                       = ONE;
         delta.vz                  = (u16)other->coord.t[2] - (u16)work->playerPrevPos.vz;
-        src                       = &rot;
-        rot.rotationWords.m00M01  = one;
-        rot.rotationWords.m02M10  = 0;
-        src->rotationWords.m11M12 = one;
-        rot.rotationWords.m20M21  = 0;
-        src->rotationWords.m22    = one;
+        gfxSetRotIdentity(&rot.mat);
         heading                   = work->yaw;
-        RotMatrixY(-heading, &src->mat);
-        ApplyMatrixSV(&src->mat, &delta, &work->playerLocalMove);
+        RotMatrixY(-heading, &rot.mat);
+        ApplyMatrixSV(&rot.mat, &delta, &work->playerLocalMove);
     }
 }
 
