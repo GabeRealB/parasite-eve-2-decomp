@@ -185,6 +185,9 @@ enum {
     ACTOR_403100_ANIMATION_STAGGER = 10,
 };
 
+/// Clip used for the entrance and aimed impact in the balcony scene.
+enum { ACTOR_403100_ANIMATION_SCENE_IMPACT = 3 };
+
 /// Walking phases selected by the approach, stun and low-health scene steps.
 enum {
     ACTOR_403100_WALK_APPROACH      = 0,
@@ -1338,9 +1341,9 @@ static void _actor403100PlayerReactionNone(void);
 
 static void _actor403100HoldPlayerHitPose(void);
 
-static void func_actor_403100_8013E1E4(void);
+static void _actor403100BeginPlayerHitRecovery(void);
 
-static void func_actor_403100_8013E2BC(void);
+static void _actor403100FinishPlayerHitRecovery(void);
 
 static void func_actor_403100_8013BA64(Task* arg0);
 
@@ -1404,33 +1407,33 @@ static void func_actor_403100_8013E88C(Task* arg0);
 
 static void func_actor_403100_8013E920(Task* arg0);
 
-static void func_actor_403100_8013ED50(Task* arg0);
+static void _actor403100BeginSceneEntrance(Task* task);
 
 static void func_actor_403100_8013EDDC(Task* task);
 
-static void func_actor_403100_8013EE28(Task* arg0);
+static void _actor403100BeginSceneAimAndImpact(Task* task);
 
-static void func_actor_403100_8013EEB0(Task* task);
+static void _actor403100WaitAfterSceneAimAndImpact(Task* task);
 
-static void func_actor_403100_8013EEB8(Task* arg0);
+static void _actor403100StepSceneAdvance(Task* task);
 
-static void func_actor_403100_8013EF24(Task* task);
+static void _actor403100WaitAfterSceneAdvance(Task* task);
 
-static void func_actor_403100_8013EF2C(Task* task);
+static void _actor403100WaitAfterSceneFlameBreath(Task* task);
 
-static void func_actor_403100_8013EF34(Task* task);
+static void _actor403100BeginSceneBalconyImpact(Task* task);
 
-static void func_actor_403100_8013EF58(Task* task);
+static void _actor403100WaitAfterSceneBalconyImpact(Task* task);
 
-static void func_actor_403100_8013EF60(Task* task);
+static void _actor403100BlendSceneWalk(Task* task);
 
-static void func_actor_403100_8013EFC0(Task* task);
+static void _actor403100WaitAfterSceneTurn(Task* task);
 
-static void func_actor_403100_8013EFC8(Task* arg0);
+static void _actor403100BeginSceneFlameRetreat(Task* task);
 
-static void func_actor_403100_8013F034(Task* arg0);
+static void _actor403100BeginSceneDeparture(Task* task);
 
-static void func_actor_403100_8013F0A8(Task* arg0);
+static void _actor403100FinishSceneDeparture(Task* task);
 
 static void _actor403100BeginAttackApproach(Task* task);
 
@@ -1701,8 +1704,8 @@ static const _Actor403100PlayerReactionTable D_actor_403100_80131E24 = {
     {
         _actor403100PlayerReactionNone,
         _actor403100HoldPlayerHitPose,
-        func_actor_403100_8013E1E4,
-        func_actor_403100_8013E2BC,
+        _actor403100BeginPlayerHitRecovery,
+        _actor403100FinishPlayerHitRecovery,
     },
 };
 
@@ -2900,8 +2903,10 @@ static void func_actor_403100_801351F8(Task* arg0)
 }
 /// Releases every live puff in the Burner's 28-entry flame pool.
 ///
-/// Active puffs own linked collision bodies; clearing their latches and unlinking
-/// them returns those slots to the emitter. Storage remains owned by the package.
+/// Requires an initialized pool: every active slot owns a linked attack body.
+/// Clearing the active latch before unlinking returns the slot to the emitter;
+/// inactive slots are left alone, so repeated teardown is harmless. The package
+/// retains the pool storage. Callers manage emission timing and breath audio.
 static inline void _actor403100ReleaseFlames(void)
 {
     s32 flameIndex;
@@ -3416,7 +3421,7 @@ static void func_actor_403100_80136610(Task* arg0)
 /// Steps of the behaviour mode `func_actor_403100_8013E96C`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131EB0 = {
     {
-        func_actor_403100_8013ED50,
+        _actor403100BeginSceneEntrance,
         func_actor_403100_8013506C,
         func_actor_403100_8013EDDC,
     },
@@ -3425,9 +3430,9 @@ static const TaskFuncTable3 D_actor_403100_80131EB0 = {
 /// Steps of the behaviour mode `func_actor_403100_8013E9D8`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131EBC = {
     {
-        func_actor_403100_8013EE28,
+        _actor403100BeginSceneAimAndImpact,
         func_actor_403100_801351F8,
-        func_actor_403100_8013EEB0,
+        _actor403100WaitAfterSceneAimAndImpact,
     },
 };
 
@@ -3435,9 +3440,9 @@ static const TaskFuncTable3 D_actor_403100_80131EBC = {
 static const TaskFuncTable4 D_actor_403100_80131EC8 = {
     {
         _actor403100BeginSceneAdvance,
-        func_actor_403100_8013EEB8,
+        _actor403100StepSceneAdvance,
         func_actor_403100_801354A0,
-        func_actor_403100_8013EF24,
+        _actor403100WaitAfterSceneAdvance,
     },
 };
 
@@ -3446,16 +3451,16 @@ static const TaskFuncTable3 D_actor_403100_80131ED8 = {
     {
         _actor403100BeginSceneFlameBreath,
         _actor403100StepSceneFlameBreath,
-        func_actor_403100_8013EF2C,
+        _actor403100WaitAfterSceneFlameBreath,
     },
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013EB68`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131EE4 = {
     {
-        func_actor_403100_8013EF34,
+        _actor403100BeginSceneBalconyImpact,
         func_actor_403100_8013588C,
-        func_actor_403100_8013EF58,
+        _actor403100WaitAfterSceneBalconyImpact,
     },
 };
 
@@ -3464,15 +3469,15 @@ static const TaskFuncTable4 D_actor_403100_80131EF0 = {
     {
         func_actor_403100_801359DC,
         func_actor_403100_80135AE0,
-        func_actor_403100_8013EF60,
-        func_actor_403100_8013EFC0,
+        _actor403100BlendSceneWalk,
+        _actor403100WaitAfterSceneTurn,
     },
 };
 
 /// Steps of the behaviour mode `func_actor_403100_8013EC4C`, indexed by `subState`.
 static const TaskFuncTable4 D_actor_403100_80131F00 = {
     {
-        func_actor_403100_8013EFC8,
+        _actor403100BeginSceneFlameRetreat,
         func_actor_403100_80135C00,
         func_actor_403100_80135F30,
         func_actor_403100_80136100,
@@ -3482,9 +3487,9 @@ static const TaskFuncTable4 D_actor_403100_80131F00 = {
 /// Steps of the behaviour mode `func_actor_403100_8013ECD0`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131F10 = {
     {
-        func_actor_403100_8013F034,
+        _actor403100BeginSceneDeparture,
         func_actor_403100_8013631C,
-        func_actor_403100_8013F0A8,
+        _actor403100FinishSceneDeparture,
     },
 };
 
@@ -6729,25 +6734,43 @@ static void _actor403100HoldPlayerHitPose(void)
         _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_ANIMATION_ARM_HIT, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
     }
 }
-static void func_actor_403100_8013E1E4(void)
+/// Blends the player from the completed arm-hit clip into their weapon's aim pose.
+///
+/// Runs the HIT_ENDING stage. Requires live player/singleton work, character id
+/// 1..2 and a loaded equipped-weapon animation bank. Its aim-entry set becomes
+/// entry 4 of the package's player table and must remain live through recovery.
+/// The stack request is consumed synchronously; the table stays borrowed.
+static void _actor403100BeginPlayerHitRecovery(void)
 {
-    AnimationPlayRequest sp;
+    enum {
+        ACTOR_403100_PLAYER_ANIMATION_HIT_RECOVERY    = 4,
+        ACTOR_403100_NATIVE_PLAYER_AIM_ENTRY          = 7,
+        ACTOR_403100_PLAYER_HIT_RECOVERY_BLEND_FRAMES = 3,
+    };
+    AnimationPlayRequest request;
 
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        _gActor403100PlayerAnimationSets[4] = (Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[7];
-        sp.source.sets                      = _gActor403100PlayerAnimationSets;
-        sp.blend                            = ANIMATION_BLEND_INTERPOLATE;
-        sp.blendFrames                      = 3;
-        sp.enableWorldCollision             = ANIMATION_WORLD_COLLISION_DISABLE;
-        sp.animationId                      = 4;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sp, 0);
+        // Reuse the equipped weapon's aim-entry pose while retaining scripted control.
+        _gActor403100PlayerAnimationSets[ACTOR_403100_PLAYER_ANIMATION_HIT_RECOVERY] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[ACTOR_403100_NATIVE_PLAYER_AIM_ENTRY];
+        request.source.sets                                                          = _gActor403100PlayerAnimationSets;
+        request.blend                                                                = ANIMATION_BLEND_INTERPOLATE;
+        request.blendFrames                                                          = ACTOR_403100_PLAYER_HIT_RECOVERY_BLEND_FRAMES;
+        request.enableWorldCollision                                                 = ANIMATION_WORLD_COLLISION_DISABLE;
+        request.animationId                                                          = ACTOR_403100_PLAYER_ANIMATION_HIT_RECOVERY;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &request, 0);
         D_actor_403100_80155808->playerReactionStage = ACTOR_403100_PLAYER_REACTION_RECOVERING;
     }
 }
-static void func_actor_403100_8013E2BC(void)
+
+/// Returns the player to normal control when the arm-hit recovery pose settles.
+///
+/// Runs the RECOVERING stage with the live player and singleton work. Restores
+/// the native weapon bank and collision while preserving part 1's horizontal offset,
+/// then clears the reaction countdown, recorded clip and hand-contact latch.
+static void _actor403100FinishPlayerHitRecovery(void)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET, 0);
         D_actor_403100_80155808->playerReactionFrames = 0;
         D_actor_403100_80155808->playerAnimationId    = 0;
         D_actor_403100_80155808->handTouchedPlayer    = 0;
@@ -7015,20 +7038,36 @@ static void func_actor_403100_8013ED48(Task* task)
 {
 }
 
-static void func_actor_403100_8013ED50(Task* arg0)
+/// Latches a normal-rate clip restart for the next scene animation update.
+///
+/// `animationId` selects a loaded Burner clip in the live singleton rig.
+/// No pose is ticked here; the scene step or its dispatcher applies the request.
+static inline void _actor403100RequestSceneAnimationReset(s16 animationId)
 {
-    GfxCoord* coord;
-
-    coord                                     = arg0->extra.tmd->coords;
-    D_actor_403100_80155808->sceneScale       = 0x1400;
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId      = 3;
+    D_actor_403100_80155808->animationId      = animationId;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+}
+
+/// Places the Burner for the entrance across the balcony's +X axis.
+///
+/// Scene command 1 starts at (-10000, -600, -9000) in root-parent game
+/// coordinates, yaw 0 and Q12 scale 1.25. Requires the live task model and
+/// singleton rig. Starts the impact clip immediately, clears the stride/frame
+/// counters and advances to the entrance movement; the dispatcher ticks again.
+static void _actor403100BeginSceneEntrance(Task* task)
+{
+    enum { ACTOR_403100_SCENE_ENTRANCE_SCALE_Q12 = ONE * 5 / 4 };
+    GfxCoord* rootCoord;
+
+    rootCoord                           = task->extra.tmd->coords;
+    D_actor_403100_80155808->sceneScale = ACTOR_403100_SCENE_ENTRANCE_SCALE_Q12;
+    _actor403100RequestSceneAnimationReset(ACTOR_403100_ANIMATION_SCENE_IMPACT);
     _actor403100UpdateAnimation();
     D_actor_403100_80155808->rotation.vy = 0;
-    coord->coord.t[0]                    = -0x2710;
-    coord->coord.t[1]                    = -0x258;
-    coord->coord.t[2]                    = -0x2328;
+    rootCoord->coord.t[0]                = -0x2710;
+    rootCoord->coord.t[1]                = -0x258;
+    rootCoord->coord.t[2]                = -0x2328;
     D_actor_403100_80155808->stridePhase = 0;
     D_actor_403100_80155808->stateFrames = 0;
     D_actor_403100_80155808->subState    = D_actor_403100_80155808->subState + 1;
@@ -7045,127 +7084,190 @@ static void func_actor_403100_8013EDDC(Task* task)
     }
 }
 
-static void func_actor_403100_8013EE28(Task* arg0)
+/// Places the Burner for the balcony scene's aimed impact.
+///
+/// Scene command 2 restarts the impact clip, initially lets animation aim the
+/// head and advances to the timed aim/impact cues. The root is (-5904, 0,
+/// -10310) in parent game coordinates, yaw 0 and Q12 scale 0x1910. Requires
+/// live task/model and singleton rig; the dispatcher applies yaw and scale.
+static void _actor403100BeginSceneAimAndImpact(Task* task)
 {
-    GfxCoord* coord;
+    enum { ACTOR_403100_SCENE_AIM_AND_IMPACT_SCALE_Q12 = 0x1910 };
+    GfxCoord* rootCoord;
 
-    coord                                     = arg0->extra.tmd->coords;
+    rootCoord                                 = task->extra.tmd->coords;
     D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
     D_actor_403100_80155808->aimMode          = ACTOR_403100_AIM_ANIMATED;
-    D_actor_403100_80155808->animationId      = 3;
+    D_actor_403100_80155808->animationId      = ACTOR_403100_ANIMATION_SCENE_IMPACT;
     D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    _actor403100UpdateAnimation(arg0);
+    _actor403100UpdateAnimation(task);
     D_actor_403100_80155808->rotation.vy = 0;
-    coord->coord.t[0]                    = -0x1710;
-    coord->coord.t[1]                    = 0;
-    coord->coord.t[2]                    = -0x2846;
-    D_actor_403100_80155808->sceneScale  = 0x1910;
+    rootCoord->coord.t[0]                = -0x1710;
+    rootCoord->coord.t[1]                = 0;
+    rootCoord->coord.t[2]                = -0x2846;
+    D_actor_403100_80155808->sceneScale  = ACTOR_403100_SCENE_AIM_AND_IMPACT_SCALE_Q12;
     D_actor_403100_80155808->stateFrames = 0;
     D_actor_403100_80155808->subState   += 1;
 }
-static void func_actor_403100_8013EEB0(Task* task)
+/// Leaves scene command 2 at its final substate until another command arrives.
+///
+/// Animation and head aiming continue in the dispatcher. `task` is unused.
+static void _actor403100WaitAfterSceneAimAndImpact(Task* task)
 {
 }
 
-static void func_actor_403100_8013EEB8(Task* arg0)
+/// Advances the Burner 100 parent-coordinate units along +Z for 32 scene ticks.
+///
+/// Runs scene command 3 after placement, with a live task/model and singleton
+/// work. The frame counter wraps as a halfword; exactly tick 32 clears it and
+/// advances to the impact cues. Each call also ticks the animation.
+static void _actor403100StepSceneAdvance(Task* task)
 {
-    GfxCoord* coord;
+    enum { ACTOR_403100_SCENE_ADVANCE_FRAMES = 32 };
+    GfxCoord* rootCoord;
 
-    coord                                 = arg0->extra.tmd->coords;
+    rootCoord                             = task->extra.tmd->coords;
     D_actor_403100_80155808->stateFrames += 1;
-    coord->coord.t[2]                    += 0x64;
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x20) {
+    rootCoord->coord.t[2]                += 100;
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SCENE_ADVANCE_FRAMES) {
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState   += 1;
     }
     _actor403100UpdateAnimation();
 }
-static void func_actor_403100_8013EF24(Task* task)
+/// Leaves scene command 3 at its final substate until another command arrives.
+///
+/// The dispatcher continues drawing the placed model. `task` is unused.
+static void _actor403100WaitAfterSceneAdvance(Task* task)
 {
 }
 
-static void func_actor_403100_8013EF2C(Task* task)
+/// Leaves scene command 4 at its final substate after the flame-breath clip ends.
+///
+/// Animation and head aiming continue in the dispatcher. `task` is unused.
+static void _actor403100WaitAfterSceneFlameBreath(Task* task)
 {
 }
 
-static void func_actor_403100_8013EF34(Task* task)
+/// Starts the timed sprite impact on the balcony during scene command 5.
+///
+/// Clears the singleton's cue timer and sprite-sequence cursor, then advances
+/// to the timed sound, shake and sprite changes. `task` is unused.
+static void _actor403100BeginSceneBalconyImpact(Task* task)
 {
     D_actor_403100_80155808->stateFrames = 0;
     D_actor_403100_80155808->auxFrames   = 0;
     D_actor_403100_80155808->subState    = D_actor_403100_80155808->subState + 1;
 }
 
-static void func_actor_403100_8013EF58(Task* task)
+/// Leaves scene command 5 at its final substate after the balcony sprite cues.
+///
+/// Waits for another actor command without advancing counters. `task` is unused.
+static void _actor403100WaitAfterSceneBalconyImpact(Task* task)
 {
 }
 
-static void func_actor_403100_8013EF60(Task* task)
+/// Blends into the walk pose after scene command 6's turn clip settles.
+///
+/// Requires the live singleton rig. Waits specifically for slot 2's held
+/// boundary pose, then requests a 180-frame blend at normal rate and advances
+/// to the final substate. The dispatcher applies the request. `task` is unused.
+static void _actor403100BlendSceneWalk(Task* task)
 {
+    enum { ACTOR_403100_SCENE_WALK_BLEND_FRAMES = 180 };
     if (_actor403100Slot2AnimationSettled()) {
-        D_actor_403100_80155808->animationBlendFrames = 0xB4;
-        D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
-        D_actor_403100_80155808->animationId          = 1;
-        D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
-        D_actor_403100_80155808->subState            += 1;
+        _actor403100RequestAnimationBlendInline(ACTOR_403100_ANIMATION_WALK, ANIMATION_RATE_ONE, ACTOR_403100_SCENE_WALK_BLEND_FRAMES);
+        D_actor_403100_80155808->subState += 1;
     }
 }
-static void func_actor_403100_8013EFC0(Task* task)
+
+/// Leaves scene command 6 at its final substate with the walk clip playing.
+///
+/// The dispatcher continues animation until another command arrives. `task` is unused.
+static void _actor403100WaitAfterSceneTurn(Task* task)
 {
 }
 
-static void func_actor_403100_8013EFC8(Task* arg0)
+/// Places the Burner for the flame bursts and retreat of scene command 7.
+///
+/// Requires live task/model and singleton rig. Starts clip 20 on the next
+/// dispatcher update, with the root at (-1180, 0, 4400) in parent game units,
+/// yaw three quarters of a turn and Q12 scale 1.25. The 16-entry ordering bias
+/// lasts through the flame-burst clips and is cleared when retreat starts.
+static void _actor403100BeginSceneFlameRetreat(Task* task)
 {
-    TmdObject* obj;
-    GfxCoord*  coord;
+    enum {
+        ACTOR_403100_ANIMATION_SCENE_FLAME_RETREAT = 20,
+        ACTOR_403100_SCENE_FLAME_RETREAT_SCALE_Q12 = ONE * 5 / 4,
+        ACTOR_403100_SCENE_FLAME_RETREAT_OT_OFFSET = 16,
+    };
+    TmdObject* model;
+    GfxCoord*  rootCoord;
 
-    obj               = arg0->extra.tmd;
-    obj->otOffset     = 0x10;
-    coord             = obj->coords;
-    coord->coord.t[0] = -0x49C;
-    coord->coord.t[2] = 0x1130;
-    coord->coord.t[1] = 0;
+    model                 = task->extra.tmd;
+    model->otOffset       = ACTOR_403100_SCENE_FLAME_RETREAT_OT_OFFSET;
+    rootCoord             = model->coords;
+    rootCoord->coord.t[0] = -0x49C;
+    rootCoord->coord.t[2] = 0x1130;
+    rootCoord->coord.t[1] = 0;
 
-    D_actor_403100_80155808->rotation.vy      = 0xC00;
-    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId      = 0x14;
-    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    D_actor_403100_80155808->sceneScale       = 0x1400;
-    D_actor_403100_80155808->stateFrames      = 0;
-    D_actor_403100_80155808->subState         = D_actor_403100_80155808->subState + 1;
+    D_actor_403100_80155808->rotation.vy = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
+    _actor403100RequestSceneAnimationReset(ACTOR_403100_ANIMATION_SCENE_FLAME_RETREAT);
+    D_actor_403100_80155808->sceneScale  = ACTOR_403100_SCENE_FLAME_RETREAT_SCALE_Q12;
+    D_actor_403100_80155808->stateFrames = 0;
+    D_actor_403100_80155808->subState    = D_actor_403100_80155808->subState + 1;
 }
 
-static void func_actor_403100_8013F034(Task* arg0)
+/// Places the Burner for the final departure along the room's -Z axis.
+///
+/// Scene command 8 starts clip 24 on the next dispatcher update and clears
+/// both frame counters and the stride phase. Requires live task/model and
+/// singleton rig. Root position is (-2800, 768, -3700) in parent game units,
+/// with half-turn yaw and Q12 scale 1.25; the timed departure lasts 280 ticks.
+static void _actor403100BeginSceneDeparture(Task* task)
 {
-    GfxCoord* coord;
+    enum {
+        ACTOR_403100_ANIMATION_SCENE_DEPARTURE = 24,
+        ACTOR_403100_SCENE_DEPARTURE_SCALE_Q12 = ONE * 5 / 4,
+    };
+    GfxCoord* rootCoord;
 
-    coord             = arg0->extra.tmd->coords;
-    coord->coord.t[0] = -0xAF0;
-    coord->coord.t[1] = 0x300;
-    coord->coord.t[2] = -0xE74;
+    rootCoord             = task->extra.tmd->coords;
+    rootCoord->coord.t[0] = -0xAF0;
+    rootCoord->coord.t[1] = 0x300;
+    rootCoord->coord.t[2] = -0xE74;
 
-    D_actor_403100_80155808->rotation.vy      = 0x800;
-    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId      = 0x18;
-    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    D_actor_403100_80155808->sceneScale       = 0x1400;
-    D_actor_403100_80155808->stridePhase      = 0;
-    D_actor_403100_80155808->stateFrames      = 0;
-    D_actor_403100_80155808->auxFrames        = 0;
-    D_actor_403100_80155808->subState         = D_actor_403100_80155808->subState + 1;
+    D_actor_403100_80155808->rotation.vy = ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+    _actor403100RequestSceneAnimationReset(ACTOR_403100_ANIMATION_SCENE_DEPARTURE);
+    D_actor_403100_80155808->sceneScale  = ACTOR_403100_SCENE_DEPARTURE_SCALE_Q12;
+    D_actor_403100_80155808->stridePhase = 0;
+    D_actor_403100_80155808->stateFrames = 0;
+    D_actor_403100_80155808->auxFrames   = 0;
+    D_actor_403100_80155808->subState    = D_actor_403100_80155808->subState + 1;
 }
 
-static void func_actor_403100_8013F0A8(Task* arg0)
+/// Finishes departure with no BP/MP and half EXP, then selects actor teardown.
+///
+/// Requires live task/model, singleton work, session and enemy parameters.
+/// Hides the model and selects balcony variant 4 before releasing the battle
+/// hold. Reward changes persist in the package parameter record, so repeating
+/// this callback would halve EXP again; the task advances to exit after one call.
+static void _actor403100FinishSceneDeparture(Task* task)
 {
-    TmdObject* obj;
+    enum {
+        ACTOR_403100_DEPARTURE_ROOM_VARIANT = 4,
+        ACTOR_403100_TASK_EXIT              = 5,
+    };
+    TmdObject* model;
 
-    obj                                = arg0->extra.tmd;
-    obj->flags                        |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model                              = task->extra.tmd;
+    model->flags                      |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     D_actor_403100_8014762C.bp         = 0;
     D_actor_403100_8014762C.mp         = 0;
     D_actor_403100_8014762C.exp      >>= 1;
-    gGameSession->location.loc.variant = 4;
-    sceneReleaseBattleRefWithRewards(arg0, 0);
-    arg0->state                       = 5;
+    gGameSession->location.loc.variant = ACTOR_403100_DEPARTURE_ROOM_VARIANT;
+    sceneReleaseBattleRefWithRewards(task, 0);
+    task->state                       = ACTOR_403100_TASK_EXIT;
     D_actor_403100_80155808->state    = 0;
     D_actor_403100_80155808->subState = 0;
 }
