@@ -1090,7 +1090,11 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 #include "../../shared/mad_chaser_to_alert.inc.c"
 #undef madChaserToAlertState
 
+/// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
+/// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.
+#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserTakeHitRequest
 #include "../../shared/mad_chaser_walk_state.inc.c"
+#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
 #include "../../shared/mad_chaser_leap_state.inc.c"
 
@@ -1184,22 +1188,24 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 #include "../../shared/mad_chaser_recoil_heavy_end.inc.c"
 
 /// A further copy, under this file's own name.
-#define madChaserWalkState      func_actor_341700_80169B40
-#define gMadChaserWalkSteps     gMadChaserLurkHoldSteps
-#define madChaserTakeHitRequest _madChaserJoinAlert
+#define madChaserWalkState  func_actor_341700_80169B40
+#define gMadChaserWalkSteps gMadChaserLurkHoldSteps
+// This lurk instance joins a shared alert instead of consuming a hit reaction.
+#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef madChaserWalkState
 #undef gMadChaserWalkSteps
-#undef madChaserTakeHitRequest
+#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
 /// A further copy, under this file's own name.
-#define madChaserWalkState      func_actor_341700_80169BC8
-#define gMadChaserWalkSteps     gMadChaserLurkCrouchSteps
-#define madChaserTakeHitRequest _madChaserJoinAlert
+#define madChaserWalkState  func_actor_341700_80169BC8
+#define gMadChaserWalkSteps gMadChaserLurkCrouchSteps
+// This lurk instance joins a shared alert instead of consuming a hit reaction.
+#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef madChaserWalkState
 #undef gMadChaserWalkSteps
-#undef madChaserTakeHitRequest
+#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
 #include "../../shared/mad_chaser_lurk_rise_state.inc.c"
 

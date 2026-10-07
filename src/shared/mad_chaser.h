@@ -236,7 +236,7 @@ void        madChaserPulledIn(Task* arg0);
 void        madChaserPulledLimp(Task* arg0);
 static void _madChaserQueueSoundBank(void);
 static void _madChaserSetAlertHold(Task* task, s32 claim);
-s32         madChaserTakeHitRequest(Task* arg0);
+static s16  _madChaserTakeHitRequest(Task* task);
 static void _madChaserQueueCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
 static void _madChaserTurnToPlayer(Task* task, s32 turnStep);
 void        madChaserStatusHold(Task* arg0);

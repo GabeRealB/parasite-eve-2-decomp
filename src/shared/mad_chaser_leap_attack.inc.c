@@ -18,7 +18,7 @@ void madChaserLeapAttack(Task* arg0)
     s16            speed;
 
     if ((s16)++work->stateFrames < 40) {
-        if ((s16)madChaserTakeHitRequest(arg0)) {
+        if (_madChaserTakeHitRequest(arg0)) {
             return;
         }
     } else {

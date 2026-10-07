@@ -104368,10 +104368,10 @@ Scratch `nonmatchings/Actor04400_Fn06C70-vacuum`.
 
 ## A jump table in a *shared* unit needs its `rodata` cut in every package that links it
 
-`Actor04400_Fn0648C` (USA/actors/lib/actor_104400_text_tail) is a 24-instruction
+`_madChaserQueueCommand` (USA/actors/lib/actor_104400_text_tail) is a 24-instruction
 message handler whose twin `func_actor_342400_801695C0` was already matched, so
 the body was a port: separate `case 1:`..`case 5:` bodies that all store
-`arg2->field_2` into `field_44C`. A single `case 1 ... 5` folds into
+`request->command` into `work->command`. A single `case 1 ... 5` folds into
 `addiu -1` / `sltiu` / range test and loses the table (46.9%, `delete=10`,
 `unresolved indirect jump`); five identical bodies cross-jump into one and keep
 it (100.00%, all penalties zero).
@@ -104419,7 +104419,7 @@ A scoped `--only <overlay>` build says nothing about the other slots.
 Inputs: `base_1.i` SHA256 `c7b1119a0f8bb4f4b7ab640fb37b549d102f6cec33549a25b54f6d5d961c092f`;
 target SHA256 `18b53dab655dbc16dd16e54216ea292bbeeb34e1e9ed9c203e2f056bafa5c5ef`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor04400_Fn0648C-vacuum`.
+Scratch `nonmatchings/_madChaserQueueCommand-vacuum`.
 
 ## m2c's narrow type for a sign-extended call result keeps the raw value out of `$v0` (Actor04400_Fn07B4C, 2026-09-16)
 

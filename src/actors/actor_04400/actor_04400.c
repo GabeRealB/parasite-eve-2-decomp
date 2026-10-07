@@ -83,7 +83,7 @@ static void Actor04400_Fn07CF0(Task* arg0);
 static void Actor04400_Fn07D78(Task* arg0);
 static void Actor04400_Fn07F04(Task* arg0);
 static void Actor04400_Fn089C0(Task* arg0);
-static void Actor04400_Fn08A9C(Task* arg0);
+static void _madChaserDropDeathHold(Task* task);
 static void Actor04400_Fn08AA4(Task* arg0);
 static void Actor04400_Fn08C08(Task* arg0);
 static void Actor04400_Fn08DA4(Task* arg0);
@@ -107,8 +107,6 @@ static const TaskFuncTable4 Actor04400_D00174;
 static const TaskFuncTable6 gMadChaserPullSteps;
 
 static TmdSource _gActor04400MadChaserBody;
-
-void Actor04400_Fn0648C(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 
 static TmdBone _gActor04400MadChaserBurstHeadSkeleton[1] = {
 #include "assets/mad_chaser_burst_head_skeleton.inc"
@@ -688,7 +686,7 @@ AnimationSet* gMadChaserAnimBank[21] = {
 
 TaskMessageEntry gMadChaserMsgTable[3] = {
     { ACTOR_MESSAGE_PLACE, _madChaserPlaceRoot },
-    { ACTOR_COMMAND_MESSAGE_APPLY, Actor04400_Fn0648C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _madChaserQueueCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -727,30 +725,31 @@ u8 gMadChaserSettleAnims[19] = { 5, 6, 5, 6, 5, 6, 6, 5, 5, 5, 6, 6, 5, 5, 5, 6,
 
 #include "../../shared/mad_chaser_inlines.inc.c"
 
-static __inline__ s16 Actor04400_PickStep(s16 step, s16 push);
-static void           Actor04400_Fn03390(Task* arg0);
+static void Actor04400_Fn03390(Task* arg0);
 
-/// Picks the per-axis step: the collision `step` when there is one and the
-/// push-out opposes it, otherwise whichever of the two is larger in the
-/// direction of `step`.
-static __inline__ s16 Actor04400_PickStep(s16 step, s16 push)
+/// Selects one axis of collision correction, giving grid pushback priority.
+///
+/// Both arguments and the result are signed whole parent-coordinate units.
+/// With no grid correction, use the actor correction. Opposing corrections
+/// retain the grid step; aligned corrections use the larger displacement.
+static __inline__ s16 _madChaserSelectPushbackStep(s16 gridStep, s16 actorStep)
 {
-    if (step == 0) {
-        return push;
+    if (gridStep == 0) {
+        return actorStep;
     }
-    if ((step > 0 && push < 0) || (step < 0 && push > 0)) {
-        return step;
+    if ((gridStep > 0 && actorStep < 0) || (gridStep < 0 && actorStep > 0)) {
+        return gridStep;
     }
-    if (step > 0) {
-        if (push < step) {
-            return step;
+    if (gridStep > 0) {
+        if (actorStep < gridStep) {
+            return gridStep;
         }
-        return push;
+        return actorStep;
     }
-    if (push < step) {
-        return push;
+    if (actorStep < gridStep) {
+        return actorStep;
     }
-    return step;
+    return gridStep;
 }
 
 /// Task-state handlers of the first enemy form, dispatched by
@@ -1036,10 +1035,10 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
         work->hitCooldown--;
     }
     if (blocked == 0) {
-        work->anchorPos.vx += Actor04400_PickStep(stepX, maxX >> 3);
-        work->anchorPos.vz += Actor04400_PickStep(stepZ, maxZ >> 3);
-        coord->coord.t[0]  += Actor04400_PickStep(stepX, maxX >> 3);
-        coord->coord.t[2]  += Actor04400_PickStep(stepZ, maxZ >> 3);
+        work->anchorPos.vx += _madChaserSelectPushbackStep(stepX, maxX >> 3);
+        work->anchorPos.vz += _madChaserSelectPushbackStep(stepZ, maxZ >> 3);
+        coord->coord.t[0]  += _madChaserSelectPushbackStep(stepX, maxX >> 3);
+        coord->coord.t[2]  += _madChaserSelectPushbackStep(stepZ, maxZ >> 3);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     SCRATCH_STACK_RELEASE_BYTES(8);
@@ -1213,7 +1212,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathSettleQuiet,
     Actor04400_Fn089C0,
     madChaserDropBodies,
-    Actor04400_Fn08A9C,
+    _madChaserDropDeathHold,
 } };
 
 /// State handlers `madChaserShrinkDeathTick` dispatches by `state`.
@@ -1278,83 +1277,9 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_alert_hold.inc.c"
 
-/// While `hitTaken` is 1, consumes the pending request in `hitReaction`:
-/// requests 1..5 jump the state machine to states 6, 7, 8, 7 and 9 at
-/// sub-state 0, anything else is just cleared. Returns 1 when `hitTaken` is 1
-/// and 0 otherwise. Each case reloads the work block through its own local;
-/// one shared local lands in `$a0` instead of `$v1`.
-s32 madChaserTakeHitRequest(Task* arg0)
-{
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
+#include "../../shared/mad_chaser_take_request.inc.c"
 
-    if (work->hitTaken == 1) {
-        switch ((s16)(work->hitReaction - 1)) {
-            case MAD_CHASER_HIT_REACTION_LIGHT - 1: {
-                MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->state         = 6;
-                w->subState      = 0;
-                break;
-            }
-            case MAD_CHASER_HIT_REACTION_HEAVY - 1: {
-                MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->state         = 7;
-                w->subState      = 0;
-                break;
-            }
-            case MAD_CHASER_HIT_REACTION_STATUS - 1: {
-                MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->state         = 8;
-                w->subState      = 0;
-                break;
-            }
-            case MAD_CHASER_HIT_REACTION_BLAST - 1: {
-                MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->state         = 7;
-                w->subState      = 0;
-                break;
-            }
-            case MAD_CHASER_HIT_REACTION_KNOCKDOWN - 1: {
-                MadChaserWork* w = (MadChaserWork*)arg0->work;
-                w->state         = 9;
-                w->subState      = 0;
-                break;
-            }
-        }
-        work->hitReaction = MAD_CHASER_HIT_REACTION_NONE;
-        return 1;
-    }
-    return 0;
-}
-
-/// Message handler: on message 0x2C00 whose low nibble is 1..5, store the
-/// message halfword in `command`. The five identical case bodies are
-/// cross-jumped into one, but only separate bodies keep the jump table; a
-/// single `case 1 ... 5` becomes a range test. `arg1` is the dispatch's
-/// handler index and is unused here.
-void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
-{
-    MadChaserWork* work = (MadChaserWork*)arg0->work;
-
-    if (request->context.key == 0x2C00) {
-        switch (request->command & MAD_CHASER_COMMAND_KIND_MASK) {
-            case MAD_CHASER_COMMAND_EMERGE:
-                work->command = request->command;
-                break;
-            case MAD_CHASER_COMMAND_PULL:
-                work->command = request->command;
-                break;
-            case MAD_CHASER_COMMAND_VANISH:
-                work->command = request->command;
-                break;
-            case MAD_CHASER_COMMAND_DROP_DEATH:
-                work->command = request->command;
-                break;
-            case MAD_CHASER_COMMAND_SHRINK_DEATH:
-                work->command = request->command;
-                break;
-        }
-    }
-}
+#include "../../shared/mad_chaser_command_msg.inc.c"
 
 #include "../../shared/mad_chaser_msg_place.inc.c"
 
@@ -1391,7 +1316,11 @@ void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 #include "../../shared/mad_chaser_to_alert.inc.c"
 #undef madChaserToAlertState
 
+/// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
+/// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.
+#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserTakeHitRequest
 #include "../../shared/mad_chaser_walk_state.inc.c"
+#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
 #include "../../shared/mad_chaser_leap_state.inc.c"
 
@@ -1488,22 +1417,24 @@ void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 #include "../../shared/mad_chaser_recoil_heavy_end.inc.c"
 
 /// A further copy, under this file's own name.
-#define madChaserWalkState      Actor04400_Fn07CF0
-#define gMadChaserWalkSteps     Actor04400_D00150
-#define madChaserTakeHitRequest _madChaserJoinAlert
+#define madChaserWalkState  Actor04400_Fn07CF0
+#define gMadChaserWalkSteps Actor04400_D00150
+// This lurk instance joins a shared alert instead of consuming a hit reaction.
+#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef madChaserWalkState
 #undef gMadChaserWalkSteps
-#undef madChaserTakeHitRequest
+#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
 /// A further copy, under this file's own name.
-#define madChaserWalkState      Actor04400_Fn07D78
-#define gMadChaserWalkSteps     Actor04400_D0015C
-#define madChaserTakeHitRequest _madChaserJoinAlert
+#define madChaserWalkState  Actor04400_Fn07D78
+#define gMadChaserWalkSteps Actor04400_D0015C
+// This lurk instance joins a shared alert instead of consuming a hit reaction.
+#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef madChaserWalkState
 #undef gMadChaserWalkSteps
-#undef madChaserTakeHitRequest
+#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
 
 #include "../../shared/mad_chaser_lurk_rise_state.inc.c"
 
@@ -1557,7 +1488,11 @@ void Actor04400_Fn0648C(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
 
 #include "../../shared/mad_chaser_drop_bodies.inc.c"
 
-static void Actor04400_Fn08A9C(Task* arg0)
+/// Holds the final drop-death state after the collision bodies are unlinked.
+///
+/// The task and model remain alive for the enclosing death tick's drawing and
+/// periodic blast effects. This handler leaves the live task unchanged.
+static void _madChaserDropDeathHold(Task* task)
 {
 }
 
