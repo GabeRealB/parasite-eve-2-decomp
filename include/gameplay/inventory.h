@@ -139,7 +139,4 @@ typedef struct {
 } ItemDesc;
 STATIC_ASSERT_SIZEOF(ItemDesc, 0x8);
 
-/// Scan dest used while `Gp_InitStarterInv` copies the current inventory out.
-#define D_8010D55C Gp_ScanPtrs[3]
-
 #endif // GAMEPLAY_INVENTORY_H

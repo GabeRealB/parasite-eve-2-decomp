@@ -821,7 +821,7 @@ void func_mist_parking_80182A44(Task* task)
                         }
                     }
                     if (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE) == 2 && inventoryIsItemLimitReached(0x6C) == 0) {
-                        if (inventoryGiveItem(D_8010D55C, 0x6C, 1) != 0) {
+                        if (inventoryGiveItem(Gp_ScanPtrs[3], 0x6C, 1) != 0) {
                             gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE, 3);
                             areaSetCurrentObjectState(0x24, 2);
                         }

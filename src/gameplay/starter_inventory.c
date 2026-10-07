@@ -87,7 +87,7 @@ void Gp_InitStarterInv(void)
             break;
     }
     rec  = &tmp[scan->firstRow];
-    dest = D_8010D55C;
+    dest = Gp_ScanPtrs[3];
     i    = 0;
     if (scan->rowCount != 0) {
         do {
