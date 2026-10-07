@@ -7,6 +7,7 @@
 #include "gte.h"
 #include "common.h"
 
+#include "actors/actor_260400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
@@ -69,10 +70,8 @@ extern void func_actor_161500_80132038(void);
 extern void func_actor_161500_80132110(void);
 extern void func_actor_161500_8013230C(void);
 extern void func_actor_161500_801322A0(void);
-extern void func_actor_260400_80149E38(void);
 extern void func_actor_260500_80149E80(void);
 extern void func_actor_260500_80149EBC(void);
-extern void func_actor_260400_80149FA4(void);
 
 extern TaskDesc D_actor_161500_80136CDC;
 
@@ -744,7 +743,7 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s3
                 func_actor_260500_80149EBC();
             }
             if (gGameSession->location.loc.variant == 2) {
-                func_actor_260400_80149E38();
+                actor260400StartHeliportConversation();
             }
             break;
         case 2:
@@ -773,7 +772,7 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
         func_actor_260500_80149E80();
     }
     if (gGameSession->location.loc.variant == 2) {
-        func_actor_260400_80149FA4();
+        actor260400RestoreHeliportPlacement();
     }
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         func_actor_161500_8013230C();

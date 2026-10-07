@@ -1301,7 +1301,7 @@ Inputs: `base.i` (one `void *arg2`, 99.963%)
 
 Do not gate the check on `regs`, either: an undercount can read with **zero**
 register leftovers, because the allocator re-homes the parameter and the cost
-lands somewhere else. In `func_actor_260400_8014A998` the seed's lone `arg2`
+lands somewhere else. In `_actor260400SetScriptedWalkerModelDraw` the seed's lone `drawFlags`
 went to `$a0`, a later pseudo took `$a2`, and the entry grew one
 `move a2,a0` - `insert=1 branch=3`, no `regs` at all, the three `branch` points
 being only the address shift behind the extra word. An entry `move` whose
@@ -1310,7 +1310,7 @@ mismatched `addu $s2`: restoring the two dropped parameters removed the move and
 left every other instruction - including the `andi a0,a2,0x1` the seed already
 had - exactly where it was.
 
-Inputs: `base.i` (one `s32 arg2`, 97.216%, `insert=1 branch=3`)
+Inputs: `base.i` (one `s32 drawFlags`, 97.216%, `insert=1 branch=3`)
 `e4f9ca6894d0a33174af1d55321996561a981e1d7e277579d4f7837aa671673e`,
 `base_1.i` (three parameters, 100.000%)
 `c21f28abf90540a97303a8dcf3a377a23dfe90a0e772c829cffe714cc2dfefeb`.
@@ -72571,7 +72571,7 @@ The signal is not limited to a clean `regs` profile, and the gap is worth
 counting even when the penalty mix reads as a scheduling fault. When the dropped
 parameter is a whole pointer rather than a value compared against a branch, the
 surviving arguments shift registers with it and the mispacked call tail shows up
-as `insert` / `reorder` / `stack`: `func_actor_260400_8014A908` reads its payload
+as `insert` / `reorder` / `stack`: `_actor260400PlayScriptedWalkerAnimation` reads its payload
 through `$a2`, and the two-parameter seed carried it in `$a0`, giving `regs=4
 stack=6 insert=3 reorder=1` at 87.184% with `blocks=7/7` — a `nop`-filled load
 delay and an empty `jal` delay slot where the target interleaves two address
@@ -97790,7 +97790,7 @@ reference's entry block as well:
 The hoist also restores the `beqz` delay slot: with the load demoted into the case
 block, sched2 moves `addu a3,v1,v0` into that slot and the entry block loses its
 `nop`; with the load hoisted there is nothing to fill it. 100% with all penalties
-zero, preprocessed input `base_2.i`. `func_actor_260400_8014A6F8` is the same body
+zero, preprocessed input `base_2.i`. `_actor260400MongooseTask` is the same body
 in another overlay and was matched separately — see the promotion note below.
 
 ## `promote`'s overlay-local guard keys on the *unit* prefix, so an overlay-prefixed global slips through
@@ -97804,7 +97804,7 @@ not fire and the promotion would proceed to write the span and the shared symbol
 into every carrier's map. The link is where it then fails, in the overlays that do
 not define the name, after the manifest has already been touched.
 
-`_actor461800ScriptedWalkerAttachmentTask` / `func_actor_260400_8014A6F8` are the worked case:
+`_actor461800ScriptedWalkerAttachmentTask` / `_actor260400MongooseTask` are the worked case:
 byte-equal bodies modulo the link address whose only difference is *which*
 overlay's task global they read (`D_actor_461800_80143898` against
 `D_actor_260400_80154C74`). Two distinct variables, so one shared object cannot
@@ -102014,30 +102014,30 @@ removes both.
 `base_4.i` `6b30e4ec9b10c261d81b15d3c850723e12087d27b1ef3635ce78c108844a4b52`
 (89.256%). One identifier apart.
 
-## A store through the aliasing pointer blocks the re-read too, with no `jal` in sight (func_actor_260400_8014A908, 2026-09-16)
+## A store through the aliasing pointer blocks the re-read too, with no `jal` in sight (_actor260400PlayScriptedWalkerAnimation, 2026-09-16)
 
 The rule above is not about the `jal`. A store the compiler cannot disambiguate
 kills CSE's entry for the global just as well, and on this codebase the aliasing
 store is usually one made *through the loaded pointer itself* — so the same
 function shape appears with no call between the two loads.
 
-`func_actor_260400_8014A908`, the play-animation handler in the same overlay as
-the section above, writes three fields of `ActorsShared80131f9cWork` and the
+`_actor260400PlayScriptedWalkerAnimation`, the play-animation handler in the same overlay as
+the section above, writes three fields through `_gScriptedWalkWork` and the
 target reloads the global for the last group: the first two stores reuse the
 pointer loaded in the `beqz` delay slot (`sh $v0,0x4B8($v1)`, then
 `sh $v0,0x4B4($v1)` on either arm), and the merge block loads it again,
-`lui $v0,%hi(ActorsShared80131f9cWork)` / `lw $v0,%lo(...)`, for
+`lui $v0,%hi(_gScriptedWalkWork)` / `lw $v0,%lo(...)`, for
 `sh $zero,0x4BA($v0)` in the `jal` delay slot. m2c's repeated
-`M2C_FIELD(ActorsShared80131f9cWork, …)` already reproduces that — `base.i.rtl`
+`M2C_FIELD(_gScriptedWalkWork, …)` already reproduces that — `base.i.rtl`
 carries four loads of the symbol, one per use.
 
 Naming it in a local collapses them into one and deletes the rest:
 
 ```c
     /* 75.250% */
-    ScratchWork* work = (ScratchWork*)ActorsShared80131f9cWork;
+    _Actor260400Work* work = _gScriptedWalkWork;
 
-    work->field_4B8 = preset->animationId;
+    work->st.animId = request->animationId;
     ...
 ```
 
@@ -102061,7 +102061,7 @@ Inputs (source sha256): `base_1.c`
 `base_2.c` `d5180be30dd9fe65c903a5c31ca0a532d7a9c37b813e1d48c330b6bfd30892b5`
 (100.000%). The 100% body names no pointer local, and the only other change
 between the two is the parameter list: `(void* arg2)` in the m2c seed versus
-`(Task* task, s32 value, AnimationPlayRequest* preset)`.
+`(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request)`.
 ## An address-taken local reused across a call ranks above the task pointer and takes `$s0`; reloading it in the source fixes both the reload and the swap
 
 `_actor113000Spawn` is a spawn handler whose shape is the matched
@@ -102906,7 +102906,7 @@ the truncated value as a narrower memory reference. The struct stays a plain
 `s32` preset field and a plain `s16` work field, and the shape reproduces
 exactly. Reading the two widths as two declarations sends you hunting for a
 union that the original never had; the sibling bodies in the same family
-(`func_actor_260400_8014A908`, `func_actor_461800_80133898`) declare it the
+(`_actor260400PlayScriptedWalkerAnimation`, `func_actor_461800_80133898`) declare it the
 plain way and match.
 
 This is the *store* analogue of `## (u16) cast on an s16 field forces lhu`:

@@ -1,3 +1,5 @@
+#include "actors/actor_260400.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -121,16 +123,16 @@ extern Task* D_actor_260400_80154C74;
 static s16 _gScriptedWalkMode;
 
 static void func_actor_260400_8014A5AC(Enemy* enemy, Task* task);
-static void func_actor_260400_8014A630(Task* task);
+static void _actor260400ExitScriptedWalker(Task* task);
 
 static TmdSource _gActor260400RupertBroderickHurtMongoose;
 static TmdSource _gActor260400RupertBroderickHurtBody;
 void             func_actor_260400_8014A550(Task*);
-void             func_actor_260400_8014A6F8(Task*);
+static void      _actor260400MongooseTask(Task* task);
 
-s32 func_actor_260400_8014A908(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_260400_8014A998(Task*, s32, s32, s32);
-s32 func_actor_260400_8014AAA4(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32 _actor260400PlayScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32 _actor260400SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument);
+s32        func_actor_260400_8014AAA4(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 
 extern AnimationPlayRequest D_actor_260400_8014C4D8;
 extern AnimationPlayRequest D_actor_260400_8014C4EC;
@@ -151,7 +153,7 @@ extern AnimationPlayRequest D_actor_260400_8014C618;
 extern AnimationPlayRequest D_actor_260400_8014C62C;
 extern AnimationPlayRequest D_actor_260400_8014C640;
 extern AnimationPlayRequest D_actor_260400_8014C654;
-void                        func_actor_260400_80149F5C(s32);
+static void                 _actor260400SelectConversationCaptions(s32 useConversationFile);
 
 static AnimationSet _gActor260400Animation0105C;
 static AnimationSet _gActor260400Animation01300;
@@ -378,7 +380,7 @@ ActorCommand D_actor_260400_8014C784 = { { .loc = { 5, 4 } }, 2 };
 
 EvsCommand D_actor_260400_8014C788[82] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_260400_80149F5C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor260400SelectConversationCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_260400_8014C668.data.playerBaseClipRequests[0] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -456,7 +458,7 @@ EvsCommand D_actor_260400_8014C788[82] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_260400_8014C668.data.playerBaseClipRequests[0] }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_260400_80149F5C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor260400SelectConversationCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -477,7 +479,7 @@ EvsCommand D_actor_260400_8014CF38[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_260400_8014C784 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_260400_80149F5C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor260400SelectConversationCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -898,8 +900,8 @@ static TmdSource _gActor260400RupertBroderickHurtBody = {
 static s16 _gScriptedWalkBlendFrames = SCRIPTED_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_260400_80154BE8[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_260400_8014A908 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_260400_8014A998 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor260400PlayScriptedWalkerAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor260400SetScriptedWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _scriptedWalkPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_260400_8014AAA4 },
     { ACTOR_MESSAGE_WALK_TO, scriptedWalkTo },
@@ -908,7 +910,7 @@ TaskMessageEntry D_actor_260400_80154BE8[6] = {
 
 TaskDesc D_actor_260400_80154C18[2] = {
     { { { TASK_BODY_TMD, 192 } }, func_actor_260400_8014A550, { .model = &_gActor260400RupertBroderickHurtBody } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_260400_8014A6F8, { .model = &_gActor260400RupertBroderickHurtMongoose } },
+    { { { TASK_BODY_TMD, 192 } }, _actor260400MongooseTask, { .model = &_gActor260400RupertBroderickHurtMongoose } },
 };
 
 u8 D_actor_260400_80154C30[64] = {
@@ -980,57 +982,82 @@ u8 D_actor_260400_80154C30[64] = {
 
 Task* D_actor_260400_80154C74;
 
-void        func_actor_260400_80149E38(void);
-void        func_actor_260400_80149FA4(void);
 static void func_actor_260400_80149FE0(Enemy* enemy, Task* task);
 
-void func_actor_260400_80149E38(void)
+void actor260400StartHeliportConversation(void)
 {
+    enum {
+        ACTOR_260400_TALK_INTRO            = 0,
+        ACTOR_260400_TALK_AWAIT_GIFTS      = 1,
+        ACTOR_260400_TALK_AFTER_GIFTS      = 2,
+        ACTOR_260400_TALK_FOURTH           = 3,
+        ACTOR_260400_TALK_REPEAT           = 4,
+        ACTOR_260400_MAEDA_AMMO_OBJECT     = 4,
+        ACTOR_260400_MONGOOSE_OBJECT       = 5,
+        ACTOR_260400_GIFT_OBJECT_AVAILABLE = 1,
+    };
+
     switch (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
-        case 0:
+        case ACTOR_260400_TALK_INTRO:
             evsStartScriptWithSkip(D_actor_260400_8014C788, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_260400_8014CF38);
-            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, ACTOR_260400_TALK_AWAIT_GIFTS);
             break;
-        case 1:
-            if ((areaGetCurrentObjectState(4) == 1) || (areaGetCurrentObjectState(5) == 1)) {
+        case ACTOR_260400_TALK_AWAIT_GIFTS:
+            // Repeat the reminder until neither gift has its available state.
+            if ((areaGetCurrentObjectState(ACTOR_260400_MAEDA_AMMO_OBJECT) == ACTOR_260400_GIFT_OBJECT_AVAILABLE) ||
+                (areaGetCurrentObjectState(ACTOR_260400_MONGOOSE_OBJECT) == ACTOR_260400_GIFT_OBJECT_AVAILABLE)) {
                 evsStartScript(D_actor_260400_8014D118, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
                 evsStartScript(D_actor_260400_8014D208, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-                gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 2);
+                gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, ACTOR_260400_TALK_AFTER_GIFTS);
             }
             break;
-        case 2:
+        case ACTOR_260400_TALK_AFTER_GIFTS:
             evsStartScript(D_actor_260400_8014D340, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 3);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, ACTOR_260400_TALK_FOURTH);
             break;
-        case 3:
+        case ACTOR_260400_TALK_FOURTH:
             evsStartScript(D_actor_260400_8014D4A8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 4);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, ACTOR_260400_TALK_REPEAT);
             break;
-        case 4:
+        case ACTOR_260400_TALK_REPEAT:
             evsStartScript(D_actor_260400_8014D610, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }
 
-void func_actor_260400_80149F5C(s32 arg0)
+/// Selects the opening conversation's CAP file and texture page, or restores defaults.
+///
+/// Event scripts pass nonzero on entry and zero after completion or skip.
+/// The selected file is data resource ordinal 1 of the loaded bundle, with
+/// its text texture at (832, 0) VRAM pixels. Resources must already be loaded
+/// and remain live through playback. A missing resource leaves the cleared
+/// current-file pointer NULL; zero restores the default file and playback state.
+static void _actor260400SelectConversationCaptions(s32 useConversationFile)
 {
-    if (arg0 != 0) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(1);
-        capSetTexturePage(0x340, 0);
+    enum {
+        ACTOR_260400_CONVERSATION_CAP_FILE_ORDINAL = 1,
+        ACTOR_260400_CONVERSATION_TEXTURE_VRAM_X   = 832,
+        ACTOR_260400_CONVERSATION_TEXTURE_VRAM_Y   = 0,
+    };
+
+    if (useConversationFile != 0) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(ACTOR_260400_CONVERSATION_CAP_FILE_ORDINAL);
+        capSetTexturePage(ACTOR_260400_CONVERSATION_TEXTURE_VRAM_X, ACTOR_260400_CONVERSATION_TEXTURE_VRAM_Y);
         return;
     }
     capReset();
 }
 
-void func_actor_260400_80149FA4(void)
+void actor260400RestoreHeliportPlacement(void)
 {
-    Task* slot;
+    enum { ACTOR_260400_HELIPORT_PLACEMENT_INDEX = 0 };
+    Task* walkerTask;
 
-    slot = sceneFindPlacedActor(0);
-    if (slot != 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_260400_8014C668.data.actorPlacements[0], 0);
+    walkerTask = sceneFindPlacedActor(ACTOR_260400_HELIPORT_PLACEMENT_INDEX);
+    if (walkerTask != NULL) {
+        TASK_MESSAGE_DISPATCH_POINTER(walkerTask, ACTOR_MESSAGE_PLACE, &D_actor_260400_8014C668.data.actorPlacements[0], 0);
     }
 }
 
@@ -1059,7 +1086,7 @@ static void func_actor_260400_80149FE0(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_260400_8014A630;
+    task->exitCallback               = _actor260400ExitScriptedWalker;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
@@ -1117,44 +1144,69 @@ void func_actor_260400_8014A550(Task* task)
 #undef walkerUpdate
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
-/// back to `enemyDestroy` and kills the revolver task.
-static void func_actor_260400_8014A630(Task* task)
+/// Releases the scripted walker's enemy and task, then tears down its Mongoose task.
+///
+/// Installed as the walker's exit callback. Requires its enemy, allocated work
+/// and successfully spawned Mongoose task. The binary reads the Mongoose pointer
+/// from the released work after parent teardown; the published walker pointers
+/// are left unchanged. Models follow `taskKill`'s delayed or immediate release.
+static void _actor260400ExitScriptedWalker(Task* task)
 {
-    _Actor260400Work* work = task->work;
+    _Actor260400Work* walkerWork = task->work;
 
     enemyDestroy(task->spawnArg2.pointer, task);
-    taskKill(work->mongoose);
+    // Retain the binary's post-free read and teardown order.
+    taskKill(walkerWork->mongoose);
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Task handler of the revolver the spawn routine starts: the first tick hangs
-/// the task's coordinate frame off the actor's model part `spawnArg1`, shows
-/// its model and steps to state 1; every later tick relights the model from a
-/// point 0x320 above the actor's root translation.
-void func_actor_260400_8014A6F8(Task* task)
+/// Attaches a drawable Mongoose model root to a borrowed walker coordinate.
+///
+/// The model owns its root; the walker coordinate must remain live while the
+/// attachment uses it. Translation and rotation of the root are retained.
+static __inline__ void _actor260400AttachMongooseModel(TmdObject* model, GfxCoord* root, GfxCoord* walkerPart)
 {
-    TmdObject* extra = task->extra.tmd;
-    GfxCoord*  coord = extra->coords;
-    GfxCoord*  parts = D_actor_260400_80154C74->extra.tmd->coords;
-    GfxCoord*  part  = parts + task->spawnArg1.value;
-    VECTOR     vec;
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->flags       = 0;
+    root->parent       = walkerPart;
+}
+
+/// Parents the Mongoose to the scripted walker and updates its room lighting.
+///
+/// Requires live TMD models on this task and the published walker task.
+/// `spawnArg1.value` must index 0..19 of the walker's coordinates; the spawn
+/// uses part 8. State 0 attaches the root, clears draw flags and enters state 1.
+/// State 1 samples all three lights at the walker's composed world translation,
+/// 800 world units above it in negative Y. The parent coordinate is borrowed
+/// until teardown; transforms must be composed and lighting scratch/GTE state
+/// available. Other states do nothing.
+static void _actor260400MongooseTask(Task* task)
+{
+    enum {
+        ACTOR_260400_MONGOOSE_ATTACH       = 0,
+        ACTOR_260400_MONGOOSE_LIGHT        = 1,
+        ACTOR_260400_MONGOOSE_LIGHT_HEIGHT = 800,
+        ACTOR_260400_MONGOOSE_LIGHT_COUNT  = 3,
+    };
+    TmdObject* mongooseModel = task->extra.tmd;
+    GfxCoord*  mongooseRoot  = mongooseModel->coords;
+    GfxCoord*  walkerCoords  = D_actor_260400_80154C74->extra.tmd->coords;
+    GfxCoord*  walkerPart    = walkerCoords + task->spawnArg1.value;
+    VECTOR     lightSample;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            extra->flags        = 0;
-            coord->parent       = part;
+        case ACTOR_260400_MONGOOSE_ATTACH:
+            _actor260400AttachMongooseModel(mongooseModel, mongooseRoot, walkerPart);
             task->state++;
             break;
-        case 1:
-            vec.vx = parts->workm.t[0];
-            vec.vy = parts->workm.t[1] - 0x320;
-            vec.vz = parts->workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
+        case ACTOR_260400_MONGOOSE_LIGHT:
+            lightSample.vx = walkerCoords->workm.t[0];
+            lightSample.vy = walkerCoords->workm.t[1] - ACTOR_260400_MONGOOSE_LIGHT_HEIGHT;
+            lightSample.vz = walkerCoords->workm.t[2];
+            worldCoordSetModelLighting(mongooseModel, &lightSample, 0, ACTOR_260400_MONGOOSE_LIGHT_COUNT);
             break;
     }
 }
@@ -1165,53 +1217,69 @@ void func_actor_260400_8014A6F8(Task* task)
 
 #include "../../shared/scripted_walk_blend_anim.inc.c"
 
-/// Message 0x7D3 (play animation): adopts the preset's animation id when it is
-/// one of the first 0x10, latching the reset mode -- 1 for the blended reseed,
-/// 2 for the plain one -- and the blend duration the blended reseed forwards,
-/// then runs the update on the actor's task. Ids past the range are rejected
-/// with -1 and leave the work block untouched.
-s32 func_actor_260400_8014A908(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
+/// Reseeds the published scripted walker from a borrowed animation request.
+///
+/// Requires a live walker and initialized rig. Loaded clip keys are 1..12.
+/// The signed check rejects IDs >= 16 with -1, but accepts negative IDs and NULL
+/// entries 0/13/14/15; acceptance alone does not establish a playable clip.
+/// An accepted ID narrows to `s16`. Nonzero blend latches the low signed halfword
+/// of `blendFrames`, in whole normal-rate frames (0..2047 keeps playback time
+/// nonnegative); zero blend restarts and leaves that latch intact. Reseeding
+/// runs immediately. Receiver, message ID, second payload and the other request
+/// words are ignored. Returns 0 after acceptance and retains no request pointer.
+static s32 _actor260400PlayScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    if (preset->animationId < 0x10) {
-        _gScriptedWalkWork->st.animId = preset->animationId;
-        if (preset->blend != ANIMATION_BLEND_RESET) {
+    enum { ACTOR_260400_ANIMATION_TABLE_CAPACITY = 16 };
+
+    if (request->animationId < ACTOR_260400_ANIMATION_TABLE_CAPACITY) {
+        _gScriptedWalkWork->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            _gScriptedWalkBlendFrames    = preset->blendFrames;
+            _gScriptedWalkBlendFrames    = request->blendFrames;
         } else {
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkWork->st.field_6 = 0;
+        // Apply the restart now; ordinary movement waits for a later update.
         _scriptedWalkUpdate(D_actor_260400_80154C74);
         return 0;
     }
     return -1;
 }
 
-/// Message 0x7D5 (visibility): bit 0 of `arg2` shows both the actor's and the
-/// revolver's model (flags 0) or hides them (0x80), and bit 1 ORs in 0x4. Until
-/// message 0x7DB has enabled the revolver (`mongooseShown`), its model is kept
-/// hidden at 0x84 whatever the mask says.
-s32 func_actor_260400_8014A998(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Replaces the scripted walker and Mongoose models' draw flags.
+///
+/// Requires the live published walker, work block and successfully spawned
+/// Mongoose model. Bit 0 permits active drawing; bit 1 suppresses automatic
+/// primitive-buffer allocation. All other model flags are cleared and other
+/// request bits ignored. The Mongoose stays hidden with automatic buffering
+/// suppressed until its command enables it. No buffers are allocated or freed.
+/// Receiver, message ID and second payload are ignored. Returns 0.
+static s32 _actor260400SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument)
 {
-    TmdObject* obj;
-    TmdObject* helperObj;
+    enum {
+        ACTOR_260400_WALKER_DRAW_SHOW             = 1 << 0,
+        ACTOR_260400_WALKER_DRAW_SKIP_AUTO_BUFFER = 1 << 1,
+    };
+    TmdObject* walkerModel;
+    TmdObject* mongooseModel;
 
-    obj       = D_actor_260400_80154C74->extra.tmd;
-    helperObj = _gScriptedWalkWork->mongoose->extra.tmd;
+    walkerModel   = D_actor_260400_80154C74->extra.tmd;
+    mongooseModel = _gScriptedWalkWork->mongoose->extra.tmd;
 
-    if (arg2 & 1) {
-        obj->flags       = 0;
-        helperObj->flags = 0;
+    if (drawFlags & ACTOR_260400_WALKER_DRAW_SHOW) {
+        walkerModel->flags   = 0;
+        mongooseModel->flags = 0;
     } else {
-        obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        helperObj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        walkerModel->flags   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        mongooseModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (arg2 & 2) {
-        obj->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-        helperObj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_260400_WALKER_DRAW_SKIP_AUTO_BUFFER) {
+        walkerModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        mongooseModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     if (_gScriptedWalkWork->mongooseShown == 0) {
-        helperObj->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        mongooseModel->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     }
     return 0;
 }
