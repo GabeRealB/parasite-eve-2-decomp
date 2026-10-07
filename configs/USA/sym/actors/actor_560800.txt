@@ -682,3 +682,4 @@ _actor560800ApplyCarrierCommand = 0x80138a4c; // type:func
 _actor560800RaiseCarrier = 0x80138bcc; // type:func
 _actor560800CarryNo9Away = 0x80138d04; // type:func
 _actor560800SetCarrierModelDraw = 0x801393ec; // type:func
+_actorMsgPlaceYawPitchRollCarrier = 0x80139440; // type:func

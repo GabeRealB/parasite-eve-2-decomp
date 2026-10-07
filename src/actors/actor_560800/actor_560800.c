@@ -331,7 +331,7 @@ static void      _actor560800ApplyCarrierCommand(Task* task, s32 messageId, Acto
 void             func_actor_560800_80138FC8(Task*);
 void             func_actor_560800_80139360(Task*, s32, s32, s32);
 static void      _actor560800SetCarrierModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
-void             func_actor_560800_80139440(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+static void      _actorMsgPlaceYawPitchRollCarrier(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg);
 
 static AnimationSet _gActor560800Animation1EE00;
 static AnimationSet _gActor560800Animation1F0F8;
@@ -4067,7 +4067,7 @@ s32 D_actor_560800_8017572C[6] = {
 
 TaskMessageEntry D_actor_560800_80175744[3] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor560800SetCarrierModelDraw },
-    { ACTOR_MESSAGE_PLACE, func_actor_560800_80139440 },
+    { ACTOR_MESSAGE_PLACE, _actorMsgPlaceYawPitchRollCarrier },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor560800ApplyCarrierCommand },
 };
 
@@ -7389,7 +7389,12 @@ static void _actor560800SetCarrierModelDraw(Task* task, s32 messageId, s32 drawM
     }
 }
 
-/// A second copy of the handler, under this file's own name.
-#define actorMsgPlaceYawPitchRoll func_actor_560800_80139440
+/// Selects the private Y/X/Z placement callback for the carrier model.
+///
+/// The value is one static function identifier with signature
+/// `void (Task*, s32, const ActorTransform*, s32)`, declared before its message
+/// table. The binding applies only to the following fragment inclusion and
+/// evaluates no arguments.
+#define ACTOR_MESSAGE_PLACE_YAW_PITCH_ROLL_HANDLER _actorMsgPlaceYawPitchRollCarrier
 #include "../../shared/actor_messages_place_ypr.inc.c"
-#undef actorMsgPlaceYawPitchRoll
+#undef ACTOR_MESSAGE_PLACE_YAW_PITCH_ROLL_HANDLER

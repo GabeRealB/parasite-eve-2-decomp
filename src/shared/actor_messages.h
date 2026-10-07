@@ -112,7 +112,15 @@ s32 actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s
 /// the angle vector passed to the SDK's unqualified input signature.
 s32 actorMsgPlaceRotMatrix(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 
-void actorMsgPlaceYawPitchRoll(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+/// Places the model root with Ry * Rx * Rz for `ACTOR_MESSAGE_PLACE`.
+///
+/// Requires a live TMD task with a writable root coordinate and a readable,
+/// word-aligned placement through the call. Position uses the root parent's
+/// frame; signed angles use 4096 units per turn. Reads only vector X/Y/Z,
+/// retains no payload pointer and leaves the stored Euler angles unchanged.
+/// Invalidates composition. Ignores the message ID and second payload word;
+/// no return value is defined.
+void actorMsgPlaceYawPitchRoll(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg);
 
 /// Places a model in world space by parenting its root to `gGfxViewCoord`.
 ///
