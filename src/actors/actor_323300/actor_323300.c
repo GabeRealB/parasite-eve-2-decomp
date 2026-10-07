@@ -114,8 +114,8 @@ typedef struct {
     s32            transformCountdown; // Stage of the transformation, from `ACTOR_323300_TRANSFORM_START` down to 0 by `_STEP` a tick
     GfxCoord       unscaledParts[3];   // This tick's parts 3, 4 and 5 as they were before the scale; parts 4, 5 and 6 are parented to them in that order
     VECTOR         partBasePos[19];    // Translation of each part's coordinate as the spawn left it, entries 1 to 18; the tick shortens parts 4 and 5 from their `vy` and reads no other
-    GfxMatrix      light;              // Light-direction matrix lent to the model object, identity
-    GfxMatrix      color;              // Light-colour matrix lent to the model object, identity
+    MATRIX         light;              // Light-direction matrix lent to the model object, identity
+    MATRIX         color;              // Light-colour matrix lent to the model object, identity
 } _Actor323300StrangerWork;
 STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 
@@ -1121,8 +1121,8 @@ static void _actor323300StrangerExit(Task* task)
 static void _actor323300StrangerInitLighting(Task* task)
 {
     _Actor323300StrangerWork* work;
-    GfxMatrix*                light;
-    GfxMatrix*                color;
+    MATRIX*                   light;
+    MATRIX*                   color;
     GfxCoord*                 coords;
     TmdObject*                model;
 
@@ -1132,11 +1132,11 @@ static void _actor323300StrangerInitLighting(Task* task)
 
     light = &work->light;
     color = &work->color;
-    gfxSetRotIdentity(&light->mat);
-    gfxSetRotIdentity(&color->mat);
+    gfxSetRotIdentity(light);
+    gfxSetRotIdentity(color);
 
-    model->lightMtx = &light->mat;
-    model->colorMtx = &color->mat;
+    model->lightMtx = light;
+    model->colorMtx = color;
 
     coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&coords[1]);
