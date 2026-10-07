@@ -3304,7 +3304,7 @@ static void Actor00100_Fn0A288(Enemy* enemy, Task* actor)
     scratch->vx = 0;
     scratch->vy = 0;
     scratch->vz = 0;
-    actorTransformToView(actor->extra.tmd->coords + 2, scratch);
+    _actorRenderTransformToWorld(actor->extra.tmd->coords + 2, scratch);
     enemy->bodyPos.vx = (s32)(s16)scratch->vx;
     enemy->bodyPos.vy = (s32)scratch->vy;
     enemy->bodyPos.vz = (s32)scratch->vz;

@@ -3820,7 +3820,7 @@ static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s32 horizontalS
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Collapse state: spawns effect 0x600A5 at the actor's view-space position on
+/// Collapse state: spawns effect 0x600A5 at the actor's world-space position on
 /// frame 30, switches the light mode on 30/42, and from frame 26 squashes the
 /// root coordinate's Y scale; state 0x24 follows after frame 64.
 static void func_actor_401300_80139134(Task* arg0)
@@ -3850,7 +3850,7 @@ static void func_actor_401300_80139134(Task* arg0)
                 pos.vx = 0;
                 pos.vy = 0;
                 pos.vz = 0;
-                actorTransformToView(&arg0->extra.tmd->coords[2], &pos);
+                _actorRenderTransformToWorld(&arg0->extra.tmd->coords[2], &pos);
                 work->burnCoord.parent       = &gGfxViewCoord;
                 work->burnCoord.coord.t[0]   = pos.vx;
                 work->burnCoord.coord.t[1]   = arg0->extra.tmd->coords->coord.t[1];
@@ -4466,7 +4466,7 @@ static void func_actor_401300_8013BB30(Task* arg0)
                     vec.vx = 0;
                     vec.vy = 0;
                     vec.vz = 0;
-                    actorTransformToView(arg0->extra.tmd->coords + 2, &vec);
+                    _actorRenderTransformToWorld(arg0->extra.tmd->coords + 2, &vec);
                     work->burnCoord.parent       = &gGfxViewCoord;
                     work->burnCoord.coord.t[0]   = vec.vx;
                     work->burnCoord.coord.t[1]   = arg0->extra.tmd->coords->coord.t[1];
@@ -5698,7 +5698,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
         scratch->position.vx = 0;
         scratch->position.vy = 0;
         scratch->position.vz = 0;
-        actorTransformToView(actor->extra.tmd->coords + 1, &scratch->position);
+        _actorRenderTransformToWorld(actor->extra.tmd->coords + 1, &scratch->position);
         work->hitBody.pos.vx         = scratch->position.vx;
         work->hitBody.pos.vy         = scratch->position.vy;
         work->hitBody.pos.vz         = scratch->position.vz;
@@ -5846,7 +5846,7 @@ static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)
     scratch->position.vx = 0;
     scratch->position.vy = 0;
     scratch->position.vz = 0;
-    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->position);
+    _actorRenderTransformToWorld(actor->extra.tmd->coords + 2, &scratch->position);
 
     work->bodyPosHistory[work->bodyPosCursor].vx = scratch->position.vx;
     work->bodyPosHistory[work->bodyPosCursor].vy = scratch->position.vy;
@@ -5966,7 +5966,7 @@ static s32 func_actor_401300_801417F0(Task* arg0)
     SVECTOR out;
 
     memset(&out, 0, 8);
-    actorTransformToView(&arg0->extra.tmd->coords[1], &out);
+    _actorRenderTransformToWorld(&arg0->extra.tmd->coords[1], &out);
     return (u16)(out.vz + 0x12B) < 0xA27;
 }
 

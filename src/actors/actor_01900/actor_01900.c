@@ -3560,7 +3560,7 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
     scratch->position.vx = 0;
     scratch->position.vy = 0;
     scratch->position.vz = 0;
-    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->position);
+    _actorRenderTransformToWorld(actor->extra.tmd->coords + 2, &scratch->position);
 
     work->bodyPosHistory[work->bodyPosCursor].vx = scratch->position.vx;
     work->bodyPosHistory[work->bodyPosCursor].vy = scratch->position.vy;

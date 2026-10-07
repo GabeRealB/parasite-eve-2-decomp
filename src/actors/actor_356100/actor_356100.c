@@ -2904,7 +2904,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     blk = SCRATCH_STACK_CURSOR(_Actor356100TickScratch);
     if (work->state == ACTOR_356100_STATE_SCRIPTED_DEATH) {
         blk->viewPos.vx = blk->viewPos.vy = blk->viewPos.vz = 0;
-        actorTransformToView(&arg1->extra.tmd->coords[1], &blk->viewPos);
+        _actorRenderTransformToWorld(&arg1->extra.tmd->coords[1], &blk->viewPos);
         gfxSetRotIdentity(&blk->shadowCoord.coord);
         blk->shadowCoord.parent       = &gGfxViewCoord;
         blk->shadowCoord.coord.t[0]   = blk->viewPos.vx;
@@ -2929,7 +2929,7 @@ static void func_actor_356100_80169854(Enemy* arg0, Task* arg1)
     blk->viewPos.vx = 0;
     blk->viewPos.vy = 0;
     blk->viewPos.vz = 0;
-    actorTransformToView(&arg1->extra.tmd->coords[2], &blk->viewPos);
+    _actorRenderTransformToWorld(&arg1->extra.tmd->coords[2], &blk->viewPos);
     work->bodyPosHistory[work->bodyPosCursor].vx = blk->viewPos.vx;
     work->bodyPosHistory[work->bodyPosCursor].vy = blk->viewPos.vy;
     work->bodyPosHistory[work->bodyPosCursor].vz = blk->viewPos.vz;

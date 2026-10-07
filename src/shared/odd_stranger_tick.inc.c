@@ -8,8 +8,8 @@
 /// `hitCooldown` down into `oddStrangerTakeHit`, carries a new
 /// `state` into `prevState`/`stateEntered` (snapping the root to `grabStartPos` on a
 /// 0xB/0xD transition), dispatches through the table, re-flags `hitBody`,
-/// then appends the view-space position to the `bodyPosHistory` ring and publishes
-/// it as the enemy's `field_1C` while the `animId` clip is 0x14/0x15.
+/// then appends the world-space position to the `bodyPosHistory` ring and publishes
+/// it as `Enemy::bodyPos` while the `animId` clip is 0x14/0x15.
 void oddStrangerTick(Enemy* enemy, Task* actor)
 {
     VECTOR                    pos;
@@ -132,7 +132,7 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     scratch->position.vx = 0;
     scratch->position.vy = 0;
     scratch->position.vz = 0;
-    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->position);
+    _actorRenderTransformToWorld(actor->extra.tmd->coords + 2, &scratch->position);
 
     work->bodyPosHistory[work->bodyPosCursor].vx = scratch->position.vx;
     work->bodyPosHistory[work->bodyPosCursor].vy = scratch->position.vy;

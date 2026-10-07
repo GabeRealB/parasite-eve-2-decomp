@@ -102689,9 +102689,9 @@ We got `addiu a3` before the `lui`. With a constant id (`0x60054`), the same hel
 **Fix.** `SpawnVar(s32* id, ...)` with `effectSpawn(*id, ...)` in the body, called as
 `SpawnVar(&gRoomEffectWaterRippleId, ...)`. The address's `lui` moves up with the argument
 setup and the `lw` stays with the call. 99.32% -> 99.97%. The same trick fixed the
-last swap in a hand-written `actorTransformToView`: create
-`outp = &out` right after `svp = &sv` instead of passing `&out` through a
-second level of inlining.
+last swap in a hand-written `_actorRenderTransformToWorld`: create
+the caller's output-vector address right after `parentPointPtr = &parentPoint`
+instead of passing that address through a second level of inlining.
 
 ## A variable shared by two cross-jumped arms is global; give each arm its own (func_actor_401300_80134F90)
 
@@ -135979,8 +135979,8 @@ An archived 93.071% seed used `while (p->parent != NULL && p != view)` followed
 by `if (p == view) copy_output();`. Its .loop dump rotated the parent check
 and hoisted address constants only past the initial null guard. The target
 instead exits immediately on a null parent and copies output only from the
-non-null view arm. Matched `actorTransformToView` and
-`actorTransformToView` supplied that nested-if/goto shape. Using it with
+non-null view arm. Matched `_actorRenderTransformToWorld` and
+`_actorRenderTransformToWorld` supplied that nested-if/goto shape. Using it with
 explicit output/vector address locals reached 98.878%; structural diagnostics
 changed from different to matching, the unconditional back edge reappeared,
 and the tail addresses became eligible for the switch delay slots. Equal block
@@ -143182,14 +143182,16 @@ were imitating; the walk form gave an extra giv for `&v->vz` instead.
 Symptom: a body with `goto` parent-chain loops pinned to `s0`/`s2` and two
 cross-jumped copies of the `ActorScaleRotScratch` rescale, each pinning the
 scratch head. Both are inlined helpers: `_actorRenderTransformLocalPointToWorld` /
-`actorTransformToView` for the walk, and one `_actorRenderRescaleYawY` call per arm
+`_actorRenderTransformToWorld` for the walk, and one `_actorRenderRescaleYawY` call per arm
 of an `if` for the rescale (jump2 merges the shared tail itself).
 
-The two walk helpers differ only in setup scheduling. `actorTransformToView`
-names `svp`/`view`/`vecp` locals, so the stack-address setups issue before
-the `extra.tmd` load; `_actorRenderTransformLocalPointToWorld` takes
-`&parentPoint`/`&transformedPoint` directly and puts `view`, `svp` first and
-`vecp` after that load. When only those three
+The two walk helpers differ only in setup scheduling.
+`_actorRenderTransformToWorld` names
+`parentPointPtr`/`viewCoord`/`transformedPointPtr` locals, so the stack-address
+setups issue before the `extra.tmd` load;
+`_actorRenderTransformLocalPointToWorld` takes
+`&parentPoint`/`&transformedPoint` directly and puts the view and staged-point
+addresses first and the long-result address after that load. When only those three
 `addiu`s are out of place, swap to the other helper.
 
 ## An inlined helper's early `return` lets its value land in the caller's variable; one `return` keeps a separate pseudo (Actor01100_Fn04DB4, 2026-09-26)
@@ -150732,7 +150734,7 @@ constant).
 - The parent-chain walk of the stranger's range test (`loop: if (p->parent) {
   if (p != view) { ...; p = p->parent; goto loop; } store; }`) is `for (;;) {
   if (p->parent) { if (p != view) { ...; continue; } store; } break; }`;
-  `actorTransformToView` in `include/actors/actor.h` has the same shape.
+  `_actorRenderTransformToWorld` in `include/actors/actor.h` has the same shape.
 
 ## Removing `goto`: unsigned switch trees, range cases, and when a written-out tail does not merge (stage, cdsync, player_state, 2026-10-06)
 

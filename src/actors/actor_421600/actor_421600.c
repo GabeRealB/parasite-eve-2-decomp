@@ -4428,7 +4428,7 @@ static void                         func_actor_421600_8013D658(Enemy* enemy, Tas
     scratch->bodyPos.vx = 0U;
     scratch->bodyPos.vy = 0;
     scratch->bodyPos.vz = 0;
-    actorTransformToView(actor->extra.tmd->coords + 2, &scratch->bodyPos);
+    _actorRenderTransformToWorld(actor->extra.tmd->coords + 2, &scratch->bodyPos);
     enemy->bodyPos.vx = (s32)(s16)scratch->bodyPos.vx;
     enemy->bodyPos.vy = (s32)scratch->bodyPos.vy;
     enemy->bodyPos.vz = (s32)scratch->bodyPos.vz;

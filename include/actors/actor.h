@@ -1108,41 +1108,72 @@ static __inline__ void _actorRenderLocalizeRotation(const GfxCoord* joint, MATRI
     }
 }
 
-/// Carries `out` from the frame of `p` up the parent chain to the view
-/// coordinate, leaving it in view space. `out` is written only when the walk
-/// reaches the view coordinate.
-static __inline__ void actorTransformToView(GfxCoord* p, SVECTOR* out)
+/// Transforms an actor-local point in place into world space.
+///
+/// `localCoord` and its borrowed ancestors must remain live, word-aligned and
+/// form an acyclic chain. `point` supplies readable and writable signed XYZ
+/// in game coordinate units, with halfword alignment and separate from the
+/// hierarchy. Each local matrix uses 12-fractional-bit coefficients (`ONE`
+/// is 1.0); the result narrows to signed halfwords after every parent step.
+/// Cached matrices and composition stamps are neither read nor changed.
+///
+/// Replaces only XYZ when the walk reaches `gGfxViewCoord` with a non-NULL
+/// parent, excluding its view matrix. A parentless node, including the view
+/// itself, leaves the point unchanged. The fourth halfword is untouched.
+/// Borrows both inputs for this call, uses no scratch stack, and overwrites
+/// GTE rotation, translation, vector, accumulator, IR and flag state. Captured
+/// overflow flags do not affect the result; no success status is returned.
+static __inline__ void _actorRenderTransformToWorld(const GfxCoord* localCoord, SVECTOR* point)
 {
-    SVECTOR   sv;
-    VECTOR    vec;
-    s32       flag;
-    SVECTOR*  svp   = &sv;
-    GfxCoord* view  = &gGfxViewCoord;
-    VECTOR*   vecp  = &vec;
-    s32*      flagp = &flag;
-    sv.vx           = out->vx;
-    sv.vy           = out->vy;
-    sv.vz           = out->vz;
-loop:
-    if (p->parent != NULL) {
-        if (p != view) {
-            gte_SetTransMatrix(&p->coord);
-            gte_SetRotMatrix(&p->coord);
-            gte_ldv0(svp);
-            gte_rtv0tr();
-            gte_stlvnl(vecp);
-            gte_stflg(flagp);
-            sv.vx = vec.vx;
-            sv.vy = vec.vy;
-            sv.vz = vec.vz;
-            p     = p->parent;
-            goto loop;
+    SVECTOR         parentPoint;
+    VECTOR          transformedPoint;
+    s32             gteFlags;
+    SVECTOR*        parentPointPtr      = &parentPoint;
+    const GfxCoord* viewCoord           = &gGfxViewCoord;
+    VECTOR*         transformedPointPtr = &transformedPoint;
+    s32*            gteFlagsPtr         = &gteFlags;
+
+/// Transforms a staged point through a local-to-parent matrix into long XYZ.
+///
+/// Arguments are stable, side-effect-free pointers to disjoint, word-aligned
+/// objects: a readable MATRIX, a readable SVECTOR with initialized XYZ, a
+/// writable VECTOR and a writable s32 FLAG word. Coefficients have 12 fractional
+/// bits; translation and XYZ use game units. Evaluates `localToParent` twice
+/// and the other pointers once each. The GTE load reads the staged point's
+/// ignored fourth halfword; stores replace only the long XYZ and FLAG word.
+/// Captures no caller identifiers, changes GTE working state and expands to a
+/// single compound statement. Overflow flags are captured without rejecting XYZ.
+/// Use as a standalone statement within braces; requires the project's GTE macros.
+#define ACTOR_RENDER_STEP_POINT_TO_PARENT(localToParent, stagedPoint, longResult, flags) \
+    {                                                                                    \
+        gte_SetTransMatrix((localToParent));                                             \
+        gte_SetRotMatrix((localToParent));                                               \
+        gte_RotTrans((stagedPoint), (longResult), (flags));                              \
+    }
+
+    // Stage the walk so an incomplete chain cannot partially change the point.
+    parentPoint.vx = point->vx;
+    parentPoint.vy = point->vy;
+    parentPoint.vz = point->vz;
+    for (;;) {
+        if (localCoord->parent != NULL) {
+            if (localCoord != viewCoord) {
+                // Keep the halfword truncation at each parent instead of composing matrices.
+                ACTOR_RENDER_STEP_POINT_TO_PARENT(&localCoord->coord, parentPointPtr, transformedPointPtr, gteFlagsPtr);
+                parentPoint.vx = transformedPoint.vx;
+                parentPoint.vy = transformedPoint.vy;
+                parentPoint.vz = transformedPoint.vz;
+                localCoord     = localCoord->parent;
+                continue;
+            }
+            point->vx = parentPoint.vx;
+            point->vy = parentPoint.vy;
+            point->vz = parentPoint.vz;
         }
-        out->vx = sv.vx;
-        out->vy = sv.vy;
-        out->vz = sv.vz;
+        break;
     }
 }
+#undef ACTOR_RENDER_STEP_POINT_TO_PARENT
 
 /// Wraps an actor heading or turn difference into [-2048, 2048].
 ///

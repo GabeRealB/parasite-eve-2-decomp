@@ -1,6 +1,6 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/// Updates the cutscene chaser's lighting, behavior state and view-space body position.
+/// Updates the cutscene chaser's lighting, behavior state and world-space body position.
 ///
 /// Requires live enemy/model/work and a work state indexing the carrier's
 /// four-entry behavior table. The state handler runs with scratch storage
@@ -34,8 +34,8 @@ static void _desertChaserFrameState(Enemy* enemy, Task* task)
     scratch->bodyPos.vx = 0;
     scratch->bodyPos.vy = 0;
     scratch->bodyPos.vz = 0;
-    // Publish the neck-base origin in view space after the state has moved it.
-    actorTransformToView(&task->extra.tmd->coords[2], &scratch->bodyPos);
+    // Publish the neck-base origin in world space after the state has moved it.
+    _actorRenderTransformToWorld(&task->extra.tmd->coords[2], &scratch->bodyPos);
     enemy->bodyPos.vx = scratch->bodyPos.vx;
     enemy->bodyPos.vy = scratch->bodyPos.vy;
     enemy->bodyPos.vz = scratch->bodyPos.vz;
