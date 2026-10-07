@@ -3815,7 +3815,7 @@ static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s32 horizontalS
     yawScratch->scale.vy = verticalScale;
     yawScratch->scale.vz = horizontalScale;
     ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
-    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -4767,7 +4767,7 @@ static __inline__ void _actor401300RestoreRootYawScale(Task* actor)
     yawScratch->scale.vy = ACTOR_401300_ROOT_SCALE;
     yawScratch->scale.vx = ACTOR_401300_ROOT_SCALE;
     ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
-    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
     coord->composeStamp                    = GRAPHICS_COORD_DIRTY;
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);

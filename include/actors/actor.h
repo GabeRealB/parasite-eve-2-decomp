@@ -1239,23 +1239,27 @@ static __inline__ s16 _actorAngleTurnToPlayer(const Task* actor, SVECTOR* toPlay
     return _actorAngleNormalizeYaw(playerBearing - ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]));
 }
 
-/// Copies a yaw rebuild's nine rotation coefficients into a coordinate.
+/// Copies nine rotation and scale coefficients into a coordinate's local matrix.
 ///
-/// `rotation` must supply nine initialized coefficients in a word-aligned
-/// `MATRIX`, separate from the live, writable `coord`. Translation and matrix
-/// alignment bytes stay intact; the caller marks the composition cache dirty
-/// after installing the rotation.
-static __inline__ void _actorRenderCopyRotation(GfxCoord* coord, const MATRIX* rotation)
+/// `destination` must be a live, writable, word-aligned `GfxCoord`. `source`
+/// must supply three readable rows of three initialized signed Q12 coefficients,
+/// aligned for `s16` and separate from the destination. Their values are copied
+/// unchanged; only `destination->coord.m` is overwritten. Local translation,
+/// matrix alignment bytes and all other coordinate state stay intact.
+///
+/// The caller must set `GfxCoord::composeStamp` to `GRAPHICS_COORD_DIRTY` after
+/// the copy, before using the composed matrix. No storage is reserved or retained.
+static __inline__ void _actorRenderCopyRotation(GfxCoord* destination, const s16 source[3][3])
 {
-    coord->coord.m[0][0] = rotation->m[0][0];
-    coord->coord.m[0][1] = rotation->m[0][1];
-    coord->coord.m[0][2] = rotation->m[0][2];
-    coord->coord.m[1][0] = rotation->m[1][0];
-    coord->coord.m[1][1] = rotation->m[1][1];
-    coord->coord.m[1][2] = rotation->m[1][2];
-    coord->coord.m[2][0] = rotation->m[2][0];
-    coord->coord.m[2][1] = rotation->m[2][1];
-    coord->coord.m[2][2] = rotation->m[2][2];
+    destination->coord.m[0][0] = source[0][0];
+    destination->coord.m[0][1] = source[0][1];
+    destination->coord.m[0][2] = source[0][2];
+    destination->coord.m[1][0] = source[1][0];
+    destination->coord.m[1][1] = source[1][1];
+    destination->coord.m[1][2] = source[1][2];
+    destination->coord.m[2][0] = source[2][0];
+    destination->coord.m[2][1] = source[2][1];
+    destination->coord.m[2][2] = source[2][2];
 }
 
 /// Replaces a coordinate's rotation with its current yaw at a uniform scale.
@@ -1289,7 +1293,7 @@ static __inline__ void _actorRenderRescaleYaw(GfxCoord* coord, s16 uniformScale)
     ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
     // Copy only rotation coefficients, preserving the coordinate's translation.
-    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }

@@ -22,7 +22,7 @@ static __inline__ void _actorRenderRescaleYawHalf(GfxCoord* coord)
     ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
     // Install only the rebuilt rotation, leaving translation intact.
-    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
@@ -51,7 +51,7 @@ static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalS
     ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
     // Install only the rebuilt rotation, leaving translation intact.
-    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);

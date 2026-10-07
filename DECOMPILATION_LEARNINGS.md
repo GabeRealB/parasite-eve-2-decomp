@@ -88532,7 +88532,7 @@ later one. The head-relative spelling of the read in the scaled-helper trial,
 `((T*)(head - 0x34))->rotation.m[0][0]`, gave `-0x34(head)` in all nine copies,
 which kept the previous pop value alive in `$s2` (99.67%, `regs` only).
 Reading through the reserved block matched, as `_actorRenderRescaleYaw` now
-does through `_actorRenderCopyRotation`'s matrix pointer. The mechanism is in cse.c `find_best_addr`:
+does through `_actorRenderCopyRotation`'s coefficient-array pointer. The mechanism is in cse.c `find_best_addr`:
 
 - A `(plus reg const)` address is never folded to a bare REG, because
   `ADDRESS_COST` ties at 1 and a tie only wins with a *higher* `rtx_cost`.

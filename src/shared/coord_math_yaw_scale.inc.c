@@ -29,7 +29,7 @@ static void _actorRenderSetYawScale(GfxCoord* coord, s16 uniformScale)
     ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
     // Install only rotation coefficients, preserving the coordinate's translation.
-    _actorRenderCopyRotation(coord, &yawScratch->rotation);
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
