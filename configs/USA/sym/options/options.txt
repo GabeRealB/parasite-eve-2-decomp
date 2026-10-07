@@ -1,2 +1,10 @@
 // Overlay-local symbols for options (file 20100).
 optionsUpdateMenuTask = 0x801d4b64; // type:func
+_optionsUpdateSoundRow = 0x801d404c; // type:func
+_optionsUpdateMusicVolumeRow = 0x801d42a8; // type:func
+_optionsUpdateCursorRow = 0x801d4504; // type:func
+_optionsUpdateVibrationRow = 0x801d4724; // type:func
+_optionsUpdateMovementRow = 0x801d4944; // type:func
+_optionsUpdateKeyConfigurationTask = 0x801d4d0c; // type:func
+_optionsUpdateKeyConfigurationRow = 0x801d5954; // type:func
+_optionsUpdateRestoreDefaultsRow = 0x801d5a4c; // type:func

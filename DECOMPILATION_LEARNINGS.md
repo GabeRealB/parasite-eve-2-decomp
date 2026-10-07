@@ -5871,7 +5871,7 @@ textDrawUiLine((UiObject*)a0tmp, arg1->field_1C + 6, arg0->rowTextY.signedValue,
 
 Field loads stay through `value` (`lh 0x1C(s6)`), not the `$a0` copy. Without
 the touches, `title` CSEs into the call and the `lui a3` sinks back next to
-the `jal`. `func_options_801D4504` is the example.
+the `jal`. `_optionsUpdateCursorRow` is the example.
 
 ## Pre-loop `n2 = 2; two = n2` so a signed `/ 2` keeps `div $t0` not `$a1`
 
@@ -5904,7 +5904,7 @@ does not. Same function as the previous entry.
 
 ## A `saved` copy live across the loop blocks `n2` rematerialising as `$t0`
 
-The stereo/mono options prompt (`func_options_801D404C`) is the 2-choice
+The stereo/mono options prompt (`_optionsUpdateSoundRow`) is the 2-choice
 sibling plus a stack copy of the old selection so it can call
 `sndOutputSetStereo` only on change. That extra allocno is enough to stop the
 `n2 = 2; two = n2` rematerialise-as-`$t0` trick above: `n2` steals `$s7`,
@@ -5943,7 +5943,7 @@ The mix-mode call itself is three `sndOutputSetStereo` sites
 cross-jumping produces `beqz` / `li a0,1` / `li v0,1` / `bne` / `move a0,0`
 into one `jal`. A `mix` local if-converts to `xor`/`sltu`.
 
-`func_options_801D42A8` is the 4-choice sibling of the same shape.
+`_optionsUpdateMusicVolumeRow` is the 4-choice sibling of the same shape.
 
 ## Compute the UV column into `$a0` before the row so `cell` stays in `$v1`
 
@@ -63867,8 +63867,8 @@ registers. `func_replay_bonus_80117598` is the example.
 
 ## `li t0, N` before a loop `div` reused by `addu p, p, t0` is two spilled constants, not one local
 
-`func_options_801D42A8` draws four labels the way its two-label sibling
-`func_options_801D4504` does, but where the sibling advances the label pointer
+`_optionsUpdateMusicVolumeRow` draws four labels the way its two-label sibling
+`_optionsUpdateCursorRow` does, but where the sibling advances the label pointer
 with `addiu s5, s5, 4` the target reuses the divisor register:
 
 ```
@@ -63930,7 +63930,7 @@ doubled figure when you compute its priority from the dump.
 
 ## A per-iteration table copy: its `%hi` hoists on `threshold * lifetime >= loop insns`, and 2-D indexing buys the lifetime
 
-`func_options_801D4D0C` copies a 16-byte UV table onto the stack every
+`_optionsUpdateKeyConfigurationTask` copies a 16-byte UV table onto the stack every
 iteration (`lwl/lwr` from `D_options_801D403C`, `swl/swr` to `0xE0($sp)`) and
 the target has `lui $t5, %hi(table)` hoisted out of the loop with the
 `addiu $t9, $t5, %lo(table)` left inside. The exact rule in `loop.c`'s
@@ -63959,12 +63959,12 @@ typedef struct { _OptionsKeyIconUv icons[8]; } _OptionsKeyIconUvs;
 typedef union { TextDrawReq labelRequest; _OptionsKeyIconUvs iconUvs; } _OptionsKeyConfigStackSlot;
 ...
 do {
-    sharedSlot.iconUvs = Options_KeyIconUvs;   /* per-iteration copy: 1 insn + high */
+    finalBattleLabelAndIconSlot.iconUvs = Options_KeyIconUvs;   /* per-iteration copy: 1 insn + high */
     ...
-    p->u0 = sharedSlot.iconUvs.icons[i].u;
-    p->v0 = sharedSlot.iconUvs.icons[i].v;     /* +1 folds into the mem offset */
+    iconSprite->u0 = finalBattleLabelAndIconSlot.iconUvs.icons[iconRowIndex].u;
+    iconSprite->v0 = finalBattleLabelAndIconSlot.iconUvs.icons[iconRowIndex].v;     /* +1 folds into the mem offset */
     ...
-} while (++i < 7);
+} while (++iconRowIndex < OPTIONS_KEY_ASSIGNMENT_ROWS);
 ```
 
 materialises the array base `(plus fp 0xE0)` as its own insn *between* the
@@ -147512,7 +147512,7 @@ the record was indexed from its start. Name the positions with an enum rather
 than forcing members onto it; the union that used to give this record both a
 member view and a `shorts[8]` view existed only for this.
 
-## A block-scoped aggregate takes a slot an inlined helper released, but two block-scoped aggregates never share (func_options_801D4D0C, 2026-10-04)
+## A block-scoped aggregate takes a slot an inlined helper released, but two block-scoped aggregates never share (_optionsUpdateKeyConfigurationTask, 2026-10-04)
 
 **Symptom.** The key configuration screen builds twelve 16-byte `TextDrawReq`
 records and one 16-byte glyph table in a frame with room for twelve: the table
@@ -148275,7 +148275,7 @@ that is both "set where the pinned one dies" and "assigned from a call"
 elsewhere, and split it by block. This corrects "Pin the child task to `$a0`
 for `lw a0,0x20(a0)`".
 
-### A two-insn priority tie: write the three-way mode test as a `switch` (func_options_801D404C, 2026-10-05)
+### A two-insn priority tie: write the three-way mode test as a `switch` (_optionsUpdateSoundRow, 2026-10-05)
 
 **Symptom.** `arg0` and `span` swapped `$s7`/`$fp`. `.lreg` gives `arg0` 8
 refs over 216 insns and `span` 3 over 27: both `floor_log2(refs)*refs/len`

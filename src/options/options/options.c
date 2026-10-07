@@ -66,36 +66,41 @@ static u8 D_options_801D5E0C[20] = "Default setting.";
 static u8 D_options_801D5E20[56] = "The function of the { button\nand ~ button is switched.";
 static u8 D_options_801D5E58[56] = "This mode uses the ~ button and\n | button for combat.";
 
-/// Forward declarations for the list-item tables below; these are defined
-/// later in this unit.
-static void func_options_801D404C(UiList* arg0, UiObject* arg1);
-static void func_options_801D42A8(UiList* arg0, UiObject* arg1);
-static void func_options_801D4504(UiList* arg0, UiObject* arg1);
-static void func_options_801D4724(UiList* arg0, UiObject* arg1);
-static void func_options_801D4944(UiList* arg0, UiObject* arg1);
-static void func_options_801D5954(UiList* arg0, UiObject* arg1);
-static void func_options_801D5A4C(UiList* arg0, UiObject* arg1);
-static void func_options_801D4D0C(Task* task);
+/// Suspended-control encoding and saved default-movement selectors.
+enum {
+    OPTIONS_SUSPENDED_CONTROL_SHIFT = 16,
+    OPTIONS_MOVEMENT_WALK           = 0,
+    OPTIONS_MOVEMENT_RUN            = 1
+};
+
+static void _optionsUpdateSoundRow(UiList* list, UiObject* object);
+static void _optionsUpdateMusicVolumeRow(UiList* list, UiObject* object);
+static void _optionsUpdateCursorRow(UiList* list, UiObject* object);
+static void _optionsUpdateVibrationRow(UiList* list, UiObject* object);
+static void _optionsUpdateMovementRow(UiList* list, UiObject* object);
+static void _optionsUpdateKeyConfigurationRow(UiList* list, UiObject* object);
+static void _optionsUpdateRestoreDefaultsRow(UiList* list, UiObject* object);
+static void _optionsUpdateKeyConfigurationTask(Task* owningTask);
 
 /// Sits immediately before the list tables; zero on disc.
 static u8 D_options_801D5E90[4] = { 0, 0, 0, 0 };
 
 /// The seven list-item renderers the main options list dispatches through.
 static UiListRowCallback D_options_801D5E94[7] = {
-    func_options_801D404C,
-    func_options_801D42A8,
-    func_options_801D4504,
-    func_options_801D4724,
-    func_options_801D4944,
-    func_options_801D5954,
-    func_options_801D5A4C,
+    _optionsUpdateSoundRow,
+    _optionsUpdateMusicVolumeRow,
+    _optionsUpdateCursorRow,
+    _optionsUpdateVibrationRow,
+    _optionsUpdateMovementRow,
+    _optionsUpdateKeyConfigurationRow,
+    _optionsUpdateRestoreDefaultsRow,
 };
 
 /// The main options list: seven rows of 0x12 pixels.
 static UiList D_options_801D5EB0 = { D_options_801D5E94, 0x07, 0x07, 0x00, 0x12 };
 
 /// The key-config sub-list renders every row with the same function.
-static UiListRowCallback D_options_801D5ED4[1] = { func_options_801D4724 };
+static UiListRowCallback D_options_801D5ED4[1] = { _optionsUpdateVibrationRow };
 
 /// That sub-list: one row of 0x0F pixels.
 static UiList D_options_801D5ED8 = { D_options_801D5ED4, 0x01, 0x01, 0x00, 0x0F };
@@ -111,7 +116,7 @@ static UiObjectDesc D_options_801D5EFC = {
     0x0000,
     TASK_BODY_NONE,
     0x00C0,
-    func_options_801D4D0C,
+    _optionsUpdateKeyConfigurationTask,
     0,
 };
 
@@ -152,64 +157,74 @@ STATIC_ASSERT_SIZEOF(_OptionsKeyConfigStackSlot, 0x10);
 
 static const _OptionsKeyIconUvs Options_KeyIconUvs;
 
-static void func_options_801D404C(UiList* arg0, UiObject* arg1)
+/// Draws the Sound row and applies stereo/mono changes immediately.
+///
+/// Borrows the list and object under `UiListRowCallback`'s contract. The live
+/// sound option is 0 stereo or 1 mono. Active row input wraps Left/Right through
+/// the labels; drawing uses the option from before input. The selected row
+/// publishes help while panel control is active or suspended active.
+static void _optionsUpdateSoundRow(UiList* list, UiObject* object)
 {
-    u8*  labels[2] = { D_options_801D5B68, D_options_801D5B70 };
-    u8** p;
-    s32  i;
-    s32  y;
-    s32  x;
-    s32  span;
-    s32  selected;
-    s32  one;
-    u32  textColorRgb;
-    s32  status;
-    s32  saved;
-    s32  columnCount;
+    enum { OPTIONS_SOUND_STEREO = 0,
+           OPTIONS_SOUND_MONO   = 1 };
+    const u8*  labels[] = { D_options_801D5B68, D_options_801D5B70 };
+    const u8** labelCursor;
+    s32        choiceIndex;
+    s32        choiceOffsetNumerator;
+    s32        choicesLeftX;
+    s32        choicesSpanPixels;
+    s32        selectedMode;
+    s32        choiceStep;
+    u32        textColorRgb;
+    s32        controlMode;
+    s32        previousMode;
+    s32        choiceCount;
 
-    columnCount = 2;
-    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B60, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    i        = 0;
-    p        = labels;
-    saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
-    y        = 0;
-    selected = saved;
-    x        = arg1->panel.contentLeft.signedValue + 0x78;
-    span     = arg1->panel.contentRight.signedValue - x;
+    choiceCount = ARRAY_SIZE(labels);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5B60, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    choiceIndex           = 0;
+    labelCursor           = labels;
+    previousMode          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode;
+    choiceOffsetNumerator = 0;
+    selectedMode          = previousMode;
+    choicesLeftX          = object->panel.contentLeft.signedValue + 0x78;
+    choicesSpanPixels     = object->panel.contentRight.signedValue - choicesLeftX;
+    // Space the saved choices across the row before processing this frame's input.
     do {
-        if (i != selected) {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
+        if (choiceIndex != selectedMode) {
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
-        one = 1;
-        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-        p++;
-        y += span;
-        i++;
-    } while (i < 2);
-    if (arg0->rowInputEnabled == one) {
-        if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
+
+        choiceStep = 1;
+        textDrawUiLine(object, choicesLeftX + choiceOffsetNumerator / choiceCount, list->rowTextY.signedValue, *labelCursor, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        labelCursor++;
+        choiceOffsetNumerator += choicesSpanPixels;
+        choiceIndex           += choiceStep;
+    } while (choiceIndex < ARRAY_SIZE(labels));
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected += one;
-            if (selected >= 2) {
-                selected = 0;
+            selectedMode += choiceStep;
+            if (selectedMode >= ARRAY_SIZE(labels)) {
+                selectedMode = OPTIONS_SOUND_STEREO;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected -= 1;
-            if (selected < 0) {
-                selected += 2;
+            selectedMode -= 1;
+            if (selectedMode < 0) {
+                selectedMode += ARRAY_SIZE(labels);
             }
         }
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode = selected;
-    if (saved != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode = selectedMode;
+    if (previousMode != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
         switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.soundMode) {
-            case 0:
+            case OPTIONS_SOUND_STEREO:
                 sndOutputSetStereo(SOUND_OUTPUT_STEREO);
                 break;
-            case 1:
+            case OPTIONS_SOUND_MONO:
                 sndOutputSetStereo(SOUND_OUTPUT_MONO);
                 break;
             default:
@@ -217,250 +232,272 @@ static void func_options_801D404C(UiList* arg0, UiObject* arg1)
                 break;
         }
     }
-    status = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
+    controlMode = object->panel.control.word;
+    if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5C7C, 0, 0);
     }
 }
 
-static void func_options_801D42A8(UiList* arg0, UiObject* arg1)
+/// Draws the Music row and applies saved music-volume changes immediately.
+///
+/// Borrows the list and object under `UiListRowCallback`'s contract. Saved
+/// indices 0..3 select levels 3, 2, 1 and Off. Active row input wraps Left/Right
+/// through the labels. The changed signed save byte triggers volume application;
+/// the selected row publishes help with active or suspended active control.
+static void _optionsUpdateMusicVolumeRow(UiList* list, UiObject* object)
 {
-    u8* labels[4] = {
+    enum { OPTIONS_MUSIC_FULL_VOLUME = 0 };
+    const u8* labels[] = {
         D_options_801D5B80,
         D_options_801D5B84,
         D_options_801D5B88,
         D_options_801D5B8C,
     };
-    u8**      p;
-    u8*       title;
-    UiObject* a0tmp;
-    s32       i;
-    s32       y;
-    s32       x;
-    s32       span;
-    s32       selected;
-    s32       saved;
-    s32       one;
-    u32       textColorRgb;
-    s32       count;
-    s32       status;
+    const u8** labelCursor;
+    s32        choiceIndex;
+    s32        choiceOffsetNumerator;
+    s32        choicesLeftX;
+    s32        choicesSpanPixels;
+    s32        selectedMode;
+    s32        choiceStep;
+    s32        previousMode;
+    u32        textColorRgb;
+    s32        choiceCount;
+    s32        controlMode;
 
-    count = 4;
-    a0tmp = arg1;
-    title = D_options_801D5B78;
-    textDrawUiLine(a0tmp, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    i        = 0;
-    p        = labels;
-    saved    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume;
-    y        = i;
-    selected = saved;
-    x        = arg1->panel.contentLeft.signedValue + 0x78;
-    span     = arg1->panel.contentRight.signedValue - x;
+    choiceCount = ARRAY_SIZE(labels);
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5B78, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    choiceIndex           = 0;
+    labelCursor           = labels;
+    previousMode          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume;
+    choiceOffsetNumerator = 0;
+    selectedMode          = previousMode;
+    choicesLeftX          = object->panel.contentLeft.signedValue + 0x78;
+    choicesSpanPixels     = object->panel.contentRight.signedValue - choicesLeftX;
+    // Space the saved choices across the row before processing this frame's input.
     do {
-        if (i != selected) {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
+        if (choiceIndex != selectedMode) {
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
-        one = 1;
-        textDrawUiLine(arg1, x + y / count, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-        p++;
-        y += span;
-        i += one;
-    } while (i < 4);
-    if (arg0->rowInputEnabled == one) {
-        if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
+
+        choiceStep = 1;
+        textDrawUiLine(object, choicesLeftX + choiceOffsetNumerator / choiceCount, list->rowTextY.signedValue, *labelCursor, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        labelCursor++;
+        choiceOffsetNumerator += choicesSpanPixels;
+        choiceIndex           += choiceStep;
+    } while (choiceIndex < ARRAY_SIZE(labels));
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected += one;
-            if (selected >= count) {
-                selected = 0;
+            selectedMode += choiceStep;
+            if (selectedMode >= choiceCount) {
+                selectedMode = OPTIONS_MUSIC_FULL_VOLUME;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected -= 1;
-            if (selected < 0) {
-                selected += count;
+            selectedMode -= 1;
+            if (selectedMode < 0) {
+                selectedMode += choiceCount;
             }
         }
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume = selected;
-    if (saved != (s8)selected) {
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.musicVolume = selectedMode;
+    if (previousMode != (s8)selectedMode) {
         midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
     }
-    status = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
+    controlMode = object->panel.control.word;
+    if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5CA8, 0, 0);
     }
 }
 
-static void func_options_801D4504(UiList* arg0, UiObject* arg1)
+/// Draws the Cursor row and selects remembered or reset menu selection.
+///
+/// Borrows the list and object under `UiListRowCallback`'s contract. Saved
+/// index 0 selects Memory and 1 Standard. Active row input wraps Left/Right;
+/// the selected row publishes help with active or suspended active control.
+static void _optionsUpdateCursorRow(UiList* list, UiObject* object)
 {
-    u8*  labels[2] = { D_options_801D5BA4, D_options_801D5B98 };
-    u8** p;
-    s32  i;
-    s32  y;
-    s32  x;
-    s32  span;
-    s32  selected;
-    s32  one;
-    u32  textColorRgb;
-    s32  n2;
-    s32  status;
-
-    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B90, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    i        = 0;
-    p        = labels;
-    y        = i;
-    selected = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode;
-    x        = arg1->panel.contentLeft.signedValue + 0x78;
-    span     = arg1->panel.contentRight.signedValue - x;
-    n2       = 2;
+    enum { OPTIONS_CURSOR_MEMORY = 0 };
+    const u8*  labels[] = { D_options_801D5BA4, D_options_801D5B98 };
+    const u8** labelCursor;
+    s32        choiceIndex;
+    s32        choiceOffsetNumerator;
+    s32        choicesLeftX;
+    s32        choicesSpanPixels;
+    s32        selectedMode;
+    s32        choiceStep;
+    u32        textColorRgb;
+    s32        choiceCount;
+    s32        controlMode;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5B90, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    choiceIndex           = 0;
+    labelCursor           = labels;
+    choiceOffsetNumerator = 0;
+    selectedMode          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode;
+    choicesLeftX          = object->panel.contentLeft.signedValue + 0x78;
+    choicesSpanPixels     = object->panel.contentRight.signedValue - choicesLeftX;
+    choiceCount           = ARRAY_SIZE(labels);
+    // Space the saved choices across the row before processing this frame's input.
     do {
-        if (i != selected) {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
+        if (choiceIndex != selectedMode) {
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
-        one = 1;
-        textDrawUiLine(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-        p++;
-        y += span;
-        i += one;
-    } while (i < 2);
-    if (arg0->rowInputEnabled == one) {
-        if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
+
+        choiceStep = 1;
+        textDrawUiLine(object, choicesLeftX + choiceOffsetNumerator / choiceCount, list->rowTextY.signedValue, *labelCursor, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        labelCursor++;
+        choiceOffsetNumerator += choicesSpanPixels;
+        choiceIndex           += choiceStep;
+    } while (choiceIndex < ARRAY_SIZE(labels));
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected += one;
-            if (selected >= n2) {
-                selected = 0;
+            selectedMode += choiceStep;
+            if (selectedMode >= choiceCount) {
+                selectedMode = OPTIONS_CURSOR_MEMORY;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected -= 1;
-            if (selected < 0) {
-                selected += n2;
+            selectedMode -= 1;
+            if (selectedMode < 0) {
+                selectedMode += choiceCount;
             }
         }
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode = selected;
-    status                                              = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cursorMode = selectedMode;
+    controlMode                                         = object->panel.control.word;
+    if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5CE4, 0, 0);
     }
 }
 
-static void func_options_801D4724(UiList* arg0, UiObject* arg1)
+/// Draws the Vibration row and updates the live on/off setting.
+///
+/// Serves both the full settings list and the vibration-only list, borrowing
+/// the arguments under `UiListRowCallback`'s contract. Saved index 0 means On
+/// and 1 Off. Active row input wraps Left/Right; the selected row publishes
+/// help with active or suspended active control.
+static void _optionsUpdateVibrationRow(UiList* list, UiObject* object)
 {
-    u8*  labels[2] = { D_options_801D5B58, D_options_801D5B5C };
-    u8** p;
-    u8*  title;
-    s32  i;
-    s32  y;
-    s32  x;
-    s32  span;
-    s32  selected;
-    s32  one;
-    u32  textColorRgb;
-    s32  n2;
-    s32  status;
-
-    title = D_options_801D5B4C;
-    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    i        = 0;
-    p        = labels;
-    y        = i;
-    selected = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
-    x        = arg1->panel.contentLeft.signedValue + 0x78;
-    span     = arg1->panel.contentRight.signedValue - x;
-    n2       = 2;
+    enum { OPTIONS_VIBRATION_ON = 0 };
+    const u8*  labels[] = { D_options_801D5B58, D_options_801D5B5C };
+    const u8** labelCursor;
+    s32        choiceIndex;
+    s32        choiceOffsetNumerator;
+    s32        choicesLeftX;
+    s32        choicesSpanPixels;
+    s32        selectedMode;
+    s32        choiceStep;
+    u32        textColorRgb;
+    s32        choiceCount;
+    s32        controlMode;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5B4C, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    choiceIndex           = 0;
+    labelCursor           = labels;
+    choiceOffsetNumerator = 0;
+    selectedMode          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
+    choicesLeftX          = object->panel.contentLeft.signedValue + 0x78;
+    choicesSpanPixels     = object->panel.contentRight.signedValue - choicesLeftX;
+    choiceCount           = ARRAY_SIZE(labels);
+    // Space the saved choices across the row before processing this frame's input.
     do {
-        if (i != selected) {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
+        if (choiceIndex != selectedMode) {
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
-        one = 1;
-        textDrawUiLine(arg1, x + y / n2, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-        p++;
-        y += span;
-        i += one;
-    } while (i < 2);
-    if (arg0->rowInputEnabled == one) {
-        if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
+
+        choiceStep = 1;
+        textDrawUiLine(object, choicesLeftX + choiceOffsetNumerator / choiceCount, list->rowTextY.signedValue, *labelCursor, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        labelCursor++;
+        choiceOffsetNumerator += choicesSpanPixels;
+        choiceIndex           += choiceStep;
+    } while (choiceIndex < ARRAY_SIZE(labels));
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected += one;
-            if (selected >= n2) {
-                selected = 0;
+            selectedMode += choiceStep;
+            if (selectedMode >= choiceCount) {
+                selectedMode = OPTIONS_VIBRATION_ON;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected -= 1;
-            if (selected < 0) {
-                selected += n2;
+            selectedMode -= 1;
+            if (selectedMode < 0) {
+                selectedMode += choiceCount;
             }
         }
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = selected;
-    status                                             = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = selectedMode;
+    controlMode                                        = object->panel.control.word;
+    if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5D28, 0, 0);
     }
 }
 
-static void func_options_801D4944(UiList* arg0, UiObject* arg1)
+/// Draws the Movement row and selects walking or running as the default.
+///
+/// Borrows the list and object under `UiListRowCallback`'s contract. Saved
+/// index 0 selects Walk and 1 Run. Active row input wraps Left/Right; the
+/// selected row publishes help with active or suspended active control.
+static void _optionsUpdateMovementRow(UiList* list, UiObject* object)
 {
-    u8*  labels[2] = { D_options_801D5BC4, D_options_801D5BCC };
-    u8** p;
-    u8*  title;
-    s32  i;
-    s32  y;
-    s32  x;
-    s32  span;
-    s32  selected;
-    s32  one;
-    u32  textColorRgb;
-    s32  columnCount;
-    s32  status;
-
-    title = D_options_801D5BB8;
-    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, title, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    i           = 0;
-    p           = labels;
-    y           = i;
-    selected    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode;
-    x           = arg1->panel.contentLeft.signedValue + 0x78;
-    span        = arg1->panel.contentRight.signedValue - x;
-    columnCount = 2;
+    const u8*  labels[] = { D_options_801D5BC4, D_options_801D5BCC };
+    const u8** labelCursor;
+    s32        choiceIndex;
+    s32        choiceOffsetNumerator;
+    s32        choicesLeftX;
+    s32        choicesSpanPixels;
+    s32        selectedMode;
+    s32        choiceStep;
+    u32        textColorRgb;
+    s32        choiceCount;
+    s32        controlMode;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5BB8, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    choiceIndex           = 0;
+    labelCursor           = labels;
+    choiceOffsetNumerator = 0;
+    selectedMode          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode;
+    choicesLeftX          = object->panel.contentLeft.signedValue + 0x78;
+    choicesSpanPixels     = object->panel.contentRight.signedValue - choicesLeftX;
+    choiceCount           = ARRAY_SIZE(labels);
+    // Space the saved choices across the row before processing this frame's input.
     do {
-        if (i != selected) {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_DIMMED);
+        if (choiceIndex != selectedMode) {
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
         } else {
-            textColorRgb = uiGetTextColor(arg1, USER_INTERFACE_TEXT_COLOR_NORMAL);
+            textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
         }
-        one = 1;
-        textDrawUiLine(arg1, x + y / columnCount, arg0->rowTextY.signedValue, *p, textColorRgb, one, TEXT_ALIGNMENT_LEFT);
-        p++;
-        y += span;
-        i += one;
-    } while (i < 2);
-    if (arg0->rowInputEnabled == one) {
-        if (padCheckButtons(0, one, PAD_BUTTON_RIGHT) != 0) {
+
+        choiceStep = 1;
+        textDrawUiLine(object, choicesLeftX + choiceOffsetNumerator / choiceCount, list->rowTextY.signedValue, *labelCursor, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        labelCursor++;
+        choiceOffsetNumerator += choicesSpanPixels;
+        choiceIndex           += choiceStep;
+    } while (choiceIndex < ARRAY_SIZE(labels));
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected += one;
-            if (selected >= columnCount) {
-                selected = 0;
+            selectedMode += choiceStep;
+            if (selectedMode >= choiceCount) {
+                selectedMode = OPTIONS_MOVEMENT_WALK;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            selected -= 1;
-            if (selected < 0) {
-                selected += columnCount;
+            selectedMode -= 1;
+            if (selectedMode < 0) {
+                selectedMode += choiceCount;
             }
         }
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode = selected;
-    status                                            = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode = selectedMode;
+    controlMode                                       = object->panel.control.word;
+    if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5D68, 0, 0);
     }
 }
@@ -474,8 +511,8 @@ static inline void _optionsCenterVibrationPanel(UiPanel* panel)
     enum { OPTIONS_VIBRATION_CONTENT_WIDTH_PIXELS = 192 };
 
     uiSetPanelContentSize(panel, OPTIONS_VIBRATION_CONTENT_WIDTH_PIXELS, 0);
-    panel->bounds.unsignedRect.y = -((s16)panel->bounds.unsignedRect.h / 2);
-    panel->bounds.unsignedRect.x = -((s16)panel->bounds.unsignedRect.w / 2);
+    panel->bounds.rect.y = -(panel->bounds.rect.h / 2);
+    panel->bounds.rect.x = -(panel->bounds.rect.w / 2);
 }
 
 void optionsUpdateMenuTask(Task* owningTask)
@@ -533,376 +570,313 @@ void optionsUpdateMenuTask(Task* owningTask)
     }
 }
 
-static void func_options_801D4D0C(Task* task)
+/// Draws the button-assignment chart and edits the live controller layout.
+///
+/// `owningTask` borrows its live `UiObject` from spawnArg2. The options overlay
+/// and UI drawing resources must remain live; layout must be 0..2 (A/B/C), and
+/// default movement 0 Walk or 1 Run. The first update fits the panel and saves
+/// the initial layout in spawnArg1. Coordinates are content pixels until panel
+/// origins are added; icon storage and OT entries are supplied by the UI.
+///
+/// Active input cycles Right/Down forward or Up/Left backward. Confirm and
+/// Cancel both publish confirm; Menu publishes cancel. Edits apply immediately
+/// and neither exit restores the initial layout. Drawing reflects the layout
+/// read before this update's input. The parent owns closing and release.
+static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
 {
-    UiObject*                  obj       = (UiObject*)task->spawnArg2.pointer;
-    u8*                        labels[3] = { D_options_801D5C64, D_options_801D5C6C, D_options_801D5C74 };
-    u8*                        runWalk;
-    TextDrawReq                req0;
-    TextDrawReq                req1;
-    TextDrawReq                req2;
-    TextDrawReq                req3;
-    TextDrawReq                req4;
-    TextDrawReq                req5;
-    TextDrawReq                req6;
-    TextDrawReq                req7;
-    TextDrawReq                req8;
-    TextDrawReq                req9;
-    TextDrawReq                req10;
-    _OptionsKeyConfigStackSlot sharedSlot;
-    s32                        x;
-    s32                        y;
-    s32                        yHdr;
-    s32                        y1;
-    s32                        edge;
-    s32                        base;
-    s32                        xRight;
-    s32                        status;
-    s32                        status2;
-    s32                        i;
-    s32                        h;
-    s32                        w;
-    s32                        l1;
-    s32                        r1;
-    s32                        l2;
-    s32                        r2;
-    s32                        type;
-    s32                        one;
-    s32                        one2;
-    s32                        one3;
-    s32                        color;
-    s32                        color2;
-    s32                        two;
-    s32                        textAlignment;
-    s32                        walkMode;
-    s32                        barY;
-    u8*                        str;
-    SPRT*                      p;
+/// Sets a positioned chart request's medium outlined style and draws its label.
+///
+/// `requestValue` is a live TextDrawReq lvalue with X/Y already set. It is
+/// evaluated repeatedly and must have no side effects; `objectValue` is a
+/// borrowed live UI object. Color is packed RGB and alignment is TEXT_ALIGNMENT_*.
+/// Other arguments are evaluated once. The drawer mutates the request but
+/// retains neither argument. Use as a standalone statement in a compound block.
+#define OPTIONS_KEY_DRAW_ASSIGNMENT(requestValue, objectValue, colorValue, alignmentValue, textValue) \
+    (requestValue).otIndex    = (objectValue)->panel.otIndex.signedValue + 1;                         \
+    (requestValue).colorRgb   = (colorValue);                                                         \
+    (requestValue).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                              \
+    (requestValue).alignment  = (alignmentValue);                                                     \
+    (requestValue).drawMode   = TEXT_DRAW_OUTLINED;                                                   \
+    textDrawString(&(requestValue), (textValue))
+    enum {
+        OPTIONS_KEY_TASK_INITIAL           = 0,
+        OPTIONS_KEY_TASK_READY             = 1,
+        OPTIONS_KEY_LAYOUT_A               = 0,
+        OPTIONS_KEY_LAYOUT_B               = 1,
+        OPTIONS_KEY_LAYOUT_C               = 2,
+        OPTIONS_KEY_ASSIGNMENT_ROWS        = 7,
+        OPTIONS_KEY_FACE_BUTTON_ROWS       = 4,
+        OPTIONS_KEY_PANEL_TEXT_ROWS        = 9,
+        OPTIONS_KEY_ICON_EDGE_PIXELS       = 15,
+        OPTIONS_KEY_SHOULDER_HEIGHT_PIXELS = 8,
+        OPTIONS_KEY_ICON_CLUT              = 0x3C00, // VRAM palette at (0, 240)
+        OPTIONS_KEY_ICON_RAW_TEXTURE       = 1,
+        OPTIONS_KEY_LABEL_COLOR_RGB        = 0x606060,
+        OPTIONS_KEY_SELECTOR_COLOR_RGB     = 0x1741F
+    };
+    UiObject*                  object   = owningTask->spawnArg2.pointer;
+    const u8*                  labels[] = { D_options_801D5C64, D_options_801D5C6C, D_options_801D5C74 };
+    const u8*                  alternateMovementLabel;
+    TextDrawReq                menuTopFaceRequest;
+    TextDrawReq                menuSecondFaceRequest;
+    TextDrawReq                menuConfirmRequest;
+    TextDrawReq                menuHelpRequest;
+    TextDrawReq                menuScrollDownRequest;
+    TextDrawReq                menuScrollUpRequest;
+    TextDrawReq                normalActionRequest;
+    TextDrawReq                normalAlternateDrawWeaponRequest;
+    TextDrawReq                battleTopFaceRequest;
+    TextDrawReq                battleSecondFaceRequest;
+    TextDrawReq                battleActionRequest;
+    _OptionsKeyConfigStackSlot finalBattleLabelAndIconSlot;
+    s32                        contentTopY;
+    s32                        penX;
+    s32                        penY;
+    s32                        headerY;
+    s32                        selectorTopY;
+    s32                        contentRightX;
+    s32                        contentLeftX;
+    s32                        layoutLabelX;
+    s32                        selectorControlMode;
+    s32                        promptControlMode;
+    s32                        iconRowIndex;
+    s32                        iconHeight;
+    s32                        iconWidth;
+    s32                        upCaretOuterRightX;
+    s32                        upCaretOriginInsetX;
+    s32                        downCaretOuterRightX;
+    s32                        downCaretOriginInsetX;
+    s32                        layout;
+    u32                        labelColorRgb;
+    s32                        battleAlignment;
+    s32                        defaultMovement;
+    s32                        selectorSeparatorY;
+    const u8*                  battleActionLabel;
+    SPRT*                      iconSprite;
 
-    runWalk  = D_options_801D5C10;
-    x        = obj->panel.contentTop.signedValue;
-    one      = 1;
-    walkMode = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode;
-    type     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
-    y        = x + 0xF;
-    if (walkMode == one) {
-        runWalk = D_options_801D5C14;
+    alternateMovementLabel = D_options_801D5C10;
+    contentTopY            = object->panel.contentTop.signedValue;
+
+    defaultMovement = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.moveMode;
+    layout          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
+    penY            = contentTopY + 0xF;
+    if (defaultMovement == OPTIONS_MOVEMENT_RUN) {
+        alternateMovementLabel = D_options_801D5C14;
     }
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, "Key Configuration");
-    if (task->state == 0) {
-        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(9) + 6);
-        task->spawnArg1.value = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
-        task->state          += 1;
+    // Fit once, retaining the initial layout in the task payload.
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, "Key Configuration");
+    if (owningTask->state == OPTIONS_KEY_TASK_INITIAL) {
+        uiSetPanelContentSize(&object->panel, 0, uiGetTextRowsHeight(OPTIONS_KEY_PANEL_TEXT_ROWS) + 6);
+        owningTask->spawnArg1.value = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
+        owningTask->state          += OPTIONS_KEY_TASK_READY - OPTIONS_KEY_TASK_INITIAL;
     }
-    y1     = x + 1;
-    edge   = obj->panel.contentRight.signedValue;
-    xRight = edge - 0x3B;
-    l1     = (s16)obj->panel.bounds.unsignedRect.x + (s16)obj->panel.bounds.unsignedRect.w;
-    r1     = obj->panel.contentOriginX.signedValue + 5;
-    uiDrawFlatCaret(&(obj)->panel, l1 - r1, y1, 0x606060, USER_INTERFACE_CARET_UP);
-    l2 = (s16)obj->panel.bounds.unsignedRect.x + (s16)obj->panel.bounds.unsignedRect.w;
-    r2 = obj->panel.contentOriginX.signedValue + 5;
-    uiDrawFlatCaret(&(obj)->panel, l2 - r2, y, 0x606060, USER_INTERFACE_CARET_DOWN);
-    textDrawUiLine(obj, xRight, y, labels[type], 0x606060, one, TEXT_ALIGNMENT_LEFT);
-    status = obj->panel.control.word;
-    if (((status >> 16) == one) || (status == one)) {
-        uiEaseAndDrawCursor(&(obj)->panel, xRight, x + 7);
-        if (obj->panel.control.word == one) {
-            obj->panel.otIndex.signedValue = obj->panel.otIndex.signedValue + 1;
-            uiFillRectInterior(&(obj)->panel, edge - 0x40, y1, 0x3A, 0xE, 0x1741FU);
-            obj->panel.otIndex.signedValue = obj->panel.otIndex.signedValue - 1;
+    selectorTopY        = contentTopY + 1;
+    contentRightX       = object->panel.contentRight.signedValue;
+    layoutLabelX        = contentRightX - 0x3B;
+    upCaretOuterRightX  = object->panel.bounds.rect.x + object->panel.bounds.rect.w;
+    upCaretOriginInsetX = object->panel.contentOriginX.signedValue + 5;
+    uiDrawFlatCaret(&object->panel, upCaretOuterRightX - upCaretOriginInsetX, selectorTopY, OPTIONS_KEY_LABEL_COLOR_RGB, USER_INTERFACE_CARET_UP);
+    downCaretOuterRightX  = object->panel.bounds.rect.x + object->panel.bounds.rect.w;
+    downCaretOriginInsetX = object->panel.contentOriginX.signedValue + 5;
+    uiDrawFlatCaret(&object->panel, downCaretOuterRightX - downCaretOriginInsetX, penY, OPTIONS_KEY_LABEL_COLOR_RGB, USER_INTERFACE_CARET_DOWN);
+    textDrawUiLine(object, layoutLabelX, penY, labels[layout], OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    selectorControlMode = object->panel.control.word;
+    if (((selectorControlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (selectorControlMode == USER_INTERFACE_PANEL_ACTIVE)) {
+        uiEaseAndDrawCursor(&object->panel, layoutLabelX, contentTopY + 7);
+        if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+            object->panel.otIndex.signedValue = object->panel.otIndex.signedValue + 1;
+            uiFillRectInterior(&object->panel, contentRightX - 0x40, selectorTopY, 0x3A, 0xE, OPTIONS_KEY_SELECTOR_COLOR_RGB);
+            object->panel.otIndex.signedValue = object->panel.otIndex.signedValue - 1;
         }
     }
-    barY = y + 2;
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, barY);
-    color = 0x606060;
-    uiDrawVerticalSeparator(&(obj)->panel, y + 5, obj->panel.contentBottom.signedValue, obj->panel.contentLeft.signedValue + 0x5F);
-    y   += 0x13;
-    base = obj->panel.contentLeft.signedValue;
-    one2 = 1;
-    x    = base + 0x1E;
-    textDrawUiLine(obj, x, y, D_options_801D5C4C, color, one2, TEXT_ALIGNMENT_LEFT);
-    yHdr = y;
-    y   += 0xB;
+    selectorSeparatorY = penY + 2;
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, selectorSeparatorY);
+    labelColorRgb = OPTIONS_KEY_LABEL_COLOR_RGB;
+    uiDrawVerticalSeparator(&object->panel, penY + 5, object->panel.contentBottom.signedValue, object->panel.contentLeft.signedValue + 0x5F);
+    penY        += 0x13;
+    contentLeftX = object->panel.contentLeft.signedValue;
 
-    /* Left column: button names. */
-    req0.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req0.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y              += 0xF;
-    req0.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req0.colorRgb   = color;
-    req0.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req0.alignment  = TEXT_ALIGNMENT_LEFT;
-    req0.drawMode   = one2;
-    textDrawString(&req0, D_options_801D5BD4);
+    penX = contentLeftX + 0x1E;
+    textDrawUiLine(object, penX, penY, D_options_801D5C4C, labelColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    headerY = penY;
+    penY   += 0xB;
 
-    req1.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req1.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y              += 0xF;
-    req1.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req1.colorRgb   = color;
-    req1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req1.alignment  = TEXT_ALIGNMENT_LEFT;
-    req1.drawMode   = one2;
-    textDrawString(&req1, D_options_801D5BD4);
+    // Show menu actions, including the two Cancel rows and the scroll controls.
+    menuTopFaceRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    menuTopFaceRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY                += 0xF;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(menuTopFaceRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, D_options_801D5BD4);
 
-    req2.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req2.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y              += 0xF;
-    req2.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req2.colorRgb   = color;
-    req2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req2.alignment  = TEXT_ALIGNMENT_LEFT;
-    req2.drawMode   = one2;
-    textDrawString(&req2, D_options_801D5BD0);
+    menuSecondFaceRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    menuSecondFaceRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY                   += 0xF;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(menuSecondFaceRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, D_options_801D5BD4);
 
-    req3.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req3.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y              += 0xF;
-    req3.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req3.colorRgb   = color;
-    req3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req3.alignment  = TEXT_ALIGNMENT_LEFT;
-    req3.drawMode   = one2;
-    textDrawString(&req3, D_options_801D5BDC);
+    menuConfirmRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    menuConfirmRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY                += 0xF;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(menuConfirmRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, D_options_801D5BD0);
 
-    req4.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req4.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y              += 0x1E;
-    req4.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req4.colorRgb   = color;
-    req4.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req4.alignment  = TEXT_ALIGNMENT_LEFT;
-    req4.drawMode   = one2;
-    textDrawString(&req4, D_options_801D5BE4);
+    menuHelpRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    menuHelpRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY             += 0xF;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(menuHelpRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, D_options_801D5BDC);
 
-    req5.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req5.y          = obj->panel.contentOriginY.unsignedValue + y;
-    x               = base + 0x6A;
-    y               = yHdr;
-    req5.otIndex    = obj->panel.otIndex.signedValue + one2;
-    req5.colorRgb   = color;
-    req5.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req5.alignment  = TEXT_ALIGNMENT_LEFT;
-    req5.drawMode   = one2;
-    textDrawString(&req5, D_options_801D5BF0);
+    menuScrollDownRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    menuScrollDownRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY                   += 0x1E;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(menuScrollDownRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, D_options_801D5BE4);
 
-    /* Middle column: run / walk assignments. */
-    textDrawUiLine(obj, x, y, D_options_801D5C54, color, one2, TEXT_ALIGNMENT_LEFT);
-    y += 0xB;
-    if (type != one2) {
-        req6.x          = obj->panel.contentOriginX.unsignedValue + x;
-        req6.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req6.otIndex    = obj->panel.otIndex.signedValue + one2;
-        req6.colorRgb   = color;
-        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req6.alignment  = TEXT_ALIGNMENT_LEFT;
-        req6.drawMode   = one2;
-        textDrawString(&req6, D_options_801D5BFC);
+    menuScrollUpRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    menuScrollUpRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penX                  = contentLeftX + 0x6A;
+    penY                  = headerY;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(menuScrollUpRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, D_options_801D5BF0);
+
+    // Show normal-play actions; the movement button uses the non-default gait.
+    textDrawUiLine(object, penX, penY, D_options_801D5C54, labelColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    penY += 0xB;
+    if (layout != OPTIONS_KEY_LAYOUT_B) {
+        normalActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+        normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, D_options_801D5BFC);
     } else {
-        req6.x          = obj->panel.contentOriginX.unsignedValue + x;
-        req6.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req6.otIndex    = obj->panel.otIndex.signedValue + one2;
-        req6.colorRgb   = color;
-        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req6.alignment  = TEXT_ALIGNMENT_LEFT;
-        req6.drawMode   = one2;
-        textDrawString(&req6, runWalk);
+        normalActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+        normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, labelColorRgb, TEXT_ALIGNMENT_LEFT, alternateMovementLabel);
     }
 
-    y += 0xF;
-    if (type != 1) {
-        req6.x          = obj->panel.contentOriginX.unsignedValue + x;
-        req6.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req6.colorRgb   = 0x606060;
-        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req6.alignment  = TEXT_ALIGNMENT_LEFT;
-        req6.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req6, runWalk);
+    penY += 0xF;
+    if (layout != OPTIONS_KEY_LAYOUT_B) {
+        normalActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+        normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_LEFT, alternateMovementLabel);
     } else {
-        req6.x          = obj->panel.contentOriginX.unsignedValue + x;
-        req6.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req6.colorRgb   = 0x606060;
-        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req6.alignment  = TEXT_ALIGNMENT_LEFT;
-        req6.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req6, D_options_801D5BFC);
+        normalActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+        normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_LEFT, D_options_801D5BFC);
     }
 
-    y              += 0xF;
-    color2          = 0x606060;
-    req6.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
-    req6.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y              += 0xF;
-    req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req6.colorRgb   = color2;
-    req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req6.alignment  = TEXT_ALIGNMENT_CENTER;
-    req6.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req6, D_options_801D5C08);
+    penY += 0xF;
 
-    two = 2;
-    if (type == two) {
-        req6.x          = obj->panel.contentOriginX.unsignedValue + x;
-        req6.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req6.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req6.colorRgb   = color2;
-        req6.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req6.alignment  = TEXT_ALIGNMENT_LEFT;
-        req6.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req6, D_options_801D5BFC);
+    normalActionRequest.x = object->panel.contentOriginX.unsignedValue + ((object->panel.contentRight.signedValue + 0x60 + object->panel.contentLeft.signedValue) / 2);
+    normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY                 += 0xF;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_CENTER, D_options_801D5C08);
 
-        y              += 0xF;
-        req7.x          = obj->panel.contentOriginX.unsignedValue + x;
-        req7.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req7.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req7.colorRgb   = color2;
-        req7.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req7.alignment  = TEXT_ALIGNMENT_LEFT;
-        req7.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req7, D_options_801D5BFC);
+    if (layout == OPTIONS_KEY_LAYOUT_C) {
+        normalActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+        normalActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(normalActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_LEFT, D_options_801D5BFC);
+
+        penY                              += 0xF;
+        normalAlternateDrawWeaponRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+        normalAlternateDrawWeaponRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(normalAlternateDrawWeaponRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_LEFT, D_options_801D5BFC);
     }
 
-    /* Right column: per-scheme labels, right-aligned. */
-    y    = yHdr;
-    x    = obj->panel.contentRight.signedValue - 4;
-    one3 = 1;
-    textDrawUiLine(obj, x, y, D_options_801D5C5C, color2, one3, TEXT_ALIGNMENT_RIGHT);
-    y            += 0xB;
-    textAlignment = TEXT_ALIGNMENT_RIGHT;
-    if (type == 0) {
-        str = D_options_801D5C1C;
-    } else if (type == one3) {
-        str = D_options_801D5BD4;
+    // Show battle actions; the PE Menu entry is centered when it spans both columns.
+    penY = headerY;
+    penX = object->panel.contentRight.signedValue - 4;
+    textDrawUiLine(object, penX, penY, D_options_801D5C5C, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    penY           += 0xB;
+    battleAlignment = TEXT_ALIGNMENT_RIGHT;
+    if (layout == OPTIONS_KEY_LAYOUT_A) {
+        battleActionLabel = D_options_801D5C1C;
+    } else if (layout == OPTIONS_KEY_LAYOUT_B) {
+        battleActionLabel = D_options_801D5BD4;
     } else {
-        str = D_options_801D5C34;
+        battleActionLabel = D_options_801D5C34;
     }
-    req8.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req8.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y              += 0xF;
-    req8.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req8.colorRgb   = 0x606060;
-    req8.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req8.alignment  = textAlignment;
-    req8.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req8, str);
+    battleTopFaceRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    battleTopFaceRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY                  += 0xF;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(battleTopFaceRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, battleActionLabel);
 
-    if (type == 0) {
-        str = D_options_801D5BD4;
-    } else if (type == 1) {
-        str = D_options_801D5C1C;
+    if (layout == OPTIONS_KEY_LAYOUT_A) {
+        battleActionLabel = D_options_801D5BD4;
+    } else if (layout == OPTIONS_KEY_LAYOUT_B) {
+        battleActionLabel = D_options_801D5C1C;
     } else {
-        str = D_options_801D5BD4;
+        battleActionLabel = D_options_801D5BD4;
     }
-    req9.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req9.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y              += 0x1E;
-    req9.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req9.colorRgb   = 0x606060;
-    req9.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req9.alignment  = textAlignment;
-    req9.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req9, str);
+    battleSecondFaceRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    battleSecondFaceRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY                     += 0x1E;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(battleSecondFaceRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, battleActionLabel);
 
-    if (type == 2) {
-        req10.x          = obj->panel.contentOriginX.unsignedValue + x;
-        req10.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req10.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req10.colorRgb   = 0x606060;
-        req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req10.alignment  = textAlignment;
-        req10.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req10, D_options_801D5C40);
+    if (layout == OPTIONS_KEY_LAYOUT_C) {
+        battleActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+        battleActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(battleActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, D_options_801D5C40);
     } else {
-        req10.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
-        req10.y          = obj->panel.contentOriginY.unsignedValue + y;
-        req10.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req10.colorRgb   = 0x606060;
-        req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req10.alignment  = TEXT_ALIGNMENT_CENTER;
-        req10.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req10, D_options_801D5C2C);
+        battleActionRequest.x = object->panel.contentOriginX.unsignedValue + ((object->panel.contentRight.signedValue + 0x60 + object->panel.contentLeft.signedValue) / 2);
+        battleActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(battleActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_CENTER, D_options_801D5C2C);
     }
 
-    y += 0xF;
-    if (type == 0) {
-        str = D_options_801D5C34;
-    } else if (type == 1) {
-        str = D_options_801D5C34;
+    penY += 0xF;
+    if (layout == OPTIONS_KEY_LAYOUT_A) {
+        battleActionLabel = D_options_801D5C34;
+    } else if (layout == OPTIONS_KEY_LAYOUT_B) {
+        battleActionLabel = D_options_801D5C34;
     } else {
-        str = D_options_801D5C1C;
+        battleActionLabel = D_options_801D5C1C;
     }
-    req10.x          = obj->panel.contentOriginX.unsignedValue + x;
-    req10.y          = obj->panel.contentOriginY.unsignedValue + y;
-    y               += 0xF;
-    req10.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req10.colorRgb   = 0x606060;
-    req10.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req10.alignment  = textAlignment;
-    req10.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req10, str);
+    battleActionRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+    battleActionRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+    penY                 += 0xF;
+    OPTIONS_KEY_DRAW_ASSIGNMENT(battleActionRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, battleActionLabel);
 
-    if (type != 2) {
-        sharedSlot.labelRequest.x          = obj->panel.contentOriginX.unsignedValue + x;
-        sharedSlot.labelRequest.y          = obj->panel.contentOriginY.unsignedValue + y;
-        sharedSlot.labelRequest.otIndex    = obj->panel.otIndex.signedValue + 1;
-        sharedSlot.labelRequest.colorRgb   = 0x606060;
-        sharedSlot.labelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        sharedSlot.labelRequest.alignment  = textAlignment;
-        sharedSlot.labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&sharedSlot.labelRequest, D_options_801D5C40);
+    if (layout != OPTIONS_KEY_LAYOUT_C) {
+        finalBattleLabelAndIconSlot.labelRequest.x = object->panel.contentOriginX.unsignedValue + penX;
+        finalBattleLabelAndIconSlot.labelRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(finalBattleLabelAndIconSlot.labelRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, battleAlignment, D_options_801D5C40);
     } else {
-        sharedSlot.labelRequest.x          = obj->panel.contentOriginX.unsignedValue + ((obj->panel.contentRight.signedValue + 0x60 + obj->panel.contentLeft.signedValue) / 2);
-        sharedSlot.labelRequest.y          = obj->panel.contentOriginY.unsignedValue + y;
-        sharedSlot.labelRequest.otIndex    = obj->panel.otIndex.signedValue + 1;
-        sharedSlot.labelRequest.colorRgb   = 0x606060;
-        sharedSlot.labelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        sharedSlot.labelRequest.alignment  = TEXT_ALIGNMENT_CENTER;
-        sharedSlot.labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&sharedSlot.labelRequest, D_options_801D5C2C);
+        finalBattleLabelAndIconSlot.labelRequest.x = object->panel.contentOriginX.unsignedValue + ((object->panel.contentRight.signedValue + 0x60 + object->panel.contentLeft.signedValue) / 2);
+        finalBattleLabelAndIconSlot.labelRequest.y = object->panel.contentOriginY.unsignedValue + penY;
+        OPTIONS_KEY_DRAW_ASSIGNMENT(finalBattleLabelAndIconSlot.labelRequest, object, OPTIONS_KEY_LABEL_COLOR_RGB, TEXT_ALIGNMENT_CENTER, D_options_801D5C2C);
     }
 
-    /* Key icons down the left edge: four 15x15 buttons, then three 15x8. */
-    y = yHdr;
-    x = obj->panel.contentLeft.signedValue + 2;
-    i = 0;
+    // Draw seven button glyphs; the stored eighth origin has no displayed row.
+    penY         = headerY;
+    penX         = object->panel.contentLeft.signedValue + 2;
+    iconRowIndex = 0;
     do {
-        sharedSlot.iconUvs = Options_KeyIconUvs;
-        w                  = 0xF;
-        h                  = 0xF;
-        p                  = gGpuPrimCursor;
-        gGpuPrimCursor     = p + 1;
-        p->y0              = y - 0xF;
-        p->x0              = x;
-        if (i >= 4) {
-            h     = 8;
-            p->y0 = y - 0xB;
+        finalBattleLabelAndIconSlot.iconUvs = Options_KeyIconUvs;
+        iconWidth                           = OPTIONS_KEY_ICON_EDGE_PIXELS;
+        iconHeight                          = OPTIONS_KEY_ICON_EDGE_PIXELS;
+        iconSprite                          = gGpuPrimCursor;
+        gGpuPrimCursor                      = iconSprite + 1;
+        iconSprite->y0                      = penY - OPTIONS_KEY_ICON_EDGE_PIXELS;
+        iconSprite->x0                      = penX;
+        if (iconRowIndex >= OPTIONS_KEY_FACE_BUTTON_ROWS) {
+            iconHeight     = OPTIONS_KEY_SHOULDER_HEIGHT_PIXELS;
+            iconSprite->y0 = penY - 0xB;
         }
-        y      += 0xF;
-        p->w    = w;
-        p->h    = h;
-        p->u0   = sharedSlot.iconUvs.icons[i].u;
-        p->v0   = sharedSlot.iconUvs.icons[i].v;
-        p->clut = 0x3C00;
-        setlen(p, 4);
-        setcode(p, 0x65);
-        addPrim(&gGpuCurrentOt[obj->panel.otIndex.signedValue + 1], p);
-        i++;
-    } while (i < 7);
+        penY            += 0xF;
+        iconSprite->w    = iconWidth;
+        iconSprite->h    = iconHeight;
+        iconSprite->u0   = finalBattleLabelAndIconSlot.iconUvs.icons[iconRowIndex].u;
+        iconSprite->v0   = finalBattleLabelAndIconSlot.iconUvs.icons[iconRowIndex].v;
+        iconSprite->clut = OPTIONS_KEY_ICON_CLUT;
+        setSprt(iconSprite);
+        setShadeTex(iconSprite, OPTIONS_KEY_ICON_RAW_TEXTURE);
+        addPrim(&gGpuCurrentOt[object->panel.otIndex.signedValue + 1], iconSprite);
+        iconRowIndex++;
+    } while (iconRowIndex < OPTIONS_KEY_ASSIGNMENT_ROWS);
 
-    status2 = obj->panel.control.word;
-    if (((status2 >> 16) == 1) || (status2 == 1)) {
-        switch (type) {
-            case 0:
+    promptControlMode = object->panel.control.word;
+    if (((promptControlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (promptControlMode == USER_INTERFACE_PANEL_ACTIVE)) {
+        switch (layout) {
+            case OPTIONS_KEY_LAYOUT_A:
                 uiSetPromptText(D_options_801D5E0C, 0, 0);
                 break;
-            case 1:
+            case OPTIONS_KEY_LAYOUT_B:
                 uiSetPromptText(D_options_801D5E20, 0, 0);
                 break;
-            case 2:
+            case OPTIONS_KEY_LAYOUT_C:
                 uiSetPromptText(D_options_801D5E58, 0, 0);
                 break;
             default:
@@ -910,21 +884,24 @@ static void func_options_801D4D0C(Task* task)
                 break;
         }
     }
-    uiQueueTexturePage(obj->panel.otIndex.signedValue + 1, 0);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    // Queue the glyph page before its sprites in the same ordering-table entry.
+    uiQueueTexturePage(object->panel.otIndex.signedValue + 1, 0);
+    // Layout edits are live; both confirmation buttons acknowledge without rollback.
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 1)) % 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 1)) % ARRAY_SIZE(labels);
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_UP | PAD_BUTTON_LEFT) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + 2)) % 3;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout = ((s8)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout + (ARRAY_SIZE(labels) - 1))) % ARRAY_SIZE(labels);
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
+#undef OPTIONS_KEY_DRAW_ASSIGNMENT
 }
 
 /* Defined after the function so its rodata follows the function's own
@@ -940,32 +917,42 @@ static const _OptionsKeyIconUvs Options_KeyIconUvs = { {
     { 0xA0, 0x58 },
 } };
 
-static void func_options_801D5954(UiList* arg0, UiObject* arg1)
+/// Draws Key Config and opens its child editor when Confirm is pressed.
+///
+/// Borrows the arguments under `UiListRowCallback`'s contract. The selected
+/// row publishes help with active or suspended active control. Active input
+/// spawns a child with active control and a one-tick opening delay, then
+/// suspends the parent even if allocation fails. The parent handles child exit.
+static void _optionsUpdateKeyConfigurationRow(UiList* list, UiObject* object)
 {
-    s32 status;
-
-    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5BAC, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    status = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
+    s32 controlMode;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5BAC, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    controlMode = object->panel.control.word;
+    if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5DA4, 0, 0);
     }
-    if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+    if ((list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        uiSpawnObject(&D_options_801D5EFC, 0, 1, 1, arg1);
-        arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        uiSpawnObject(&D_options_801D5EFC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
 
-static void func_options_801D5A4C(UiList* arg0, UiObject* arg1)
+/// Draws Restore Defaults and immediately resets live options on Confirm.
+///
+/// Borrows the arguments under `UiListRowCallback`'s contract. The selected
+/// row publishes help with active or suspended active control. Active input
+/// restores saved option defaults and applies sound/music settings; no child
+/// confirmation dialog is opened and the options panel remains active.
+static void _optionsUpdateRestoreDefaultsRow(UiList* list, UiObject* object)
 {
-    s32 status;
-
-    textDrawUiLine(arg1, arg1->panel.contentLeft.signedValue + 6, arg0->rowTextY.signedValue, D_options_801D5B2C, arg0->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    status = arg1->panel.control.word;
-    if ((((status >> 0x10) == 1) || (status == 1)) && (arg0->selectedItemIndex == arg0->currentItemIndex)) {
+    s32 controlMode;
+    textDrawUiLine(object, object->panel.contentLeft.signedValue + 6, list->rowTextY.signedValue, D_options_801D5B2C, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    controlMode = object->panel.control.word;
+    if ((((controlMode >> OPTIONS_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlMode == USER_INTERFACE_PANEL_ACTIVE)) && (list->selectedItemIndex == list->currentItemIndex)) {
         uiSetPromptText(D_options_801D5DDC, 0, 0);
     }
-    if ((arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
+    if ((list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
         mcResetOptions();
     }
