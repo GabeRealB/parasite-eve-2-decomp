@@ -108369,8 +108369,8 @@ The same block's two compared quantities need `s32` too: with
 the `(u16)`/`(s16)`-cast values it matches, giving `$a0` for the target and
 `$v1` for the current one, `lhu` for the two `...Bits` reads and `sh` for the
 stores. Both fixes together took the function from m2c's 82.5% to 99.7%; the
-same clamp shape is in the matched `Actor00100_Fn02788`
-(`src/actors/lib/actor_400100_damage.c`), which uses `s32 clampedAngle` for
+same clamp shape is in the matched `_desertChaserApplyLookTurn`
+(`src/shared/desert_chaser_anim_tick.inc.c`), which uses `s32 appliedYaw` for
 exactly this reason.
 
 ## An identical tail in both arms of an `if`/`else` is not dead code: it moves the promotion of a loop bound out of the loop (`oddStrangerPushContacts`, 2026-09-16)

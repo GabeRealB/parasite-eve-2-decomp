@@ -1,47 +1,64 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/// Eases a 4096-unit look bearing and distributes its clamped yaw over neck parts 2..4.
+/// Steps the look yaw toward its target and adds limited world-Y turns to the pose.
+///
+/// Angles are signed, in 4096 units per revolution. Each call moves `lookYaw`
+/// toward `lookYawTarget` by at most 113 units, without wrapping the difference.
+/// Only the applied turn is limited to +/-1280: model parts 2 and 3 receive
+/// one third each, and part 4 receives one half, with division toward zero.
+/// A zero updated yaw leaves those parts untouched.
+///
+/// `work` must be this task's initialized writable chaser work block. A nonzero
+/// updated yaw requires a live model with parts 2..4 holding the freshly
+/// animated pose and parent chains reaching `gGfxViewCoord`, plus initialized
+/// scratch-stack room for one `MATRIX`, released before returning. Coordinate
+/// caches and GTE registers may change; all storage remains caller-owned.
 static __inline__ void _desertChaserApplyLookTurn(Task* task, DesertChaserWork* work)
 {
-    s32 targetAngle;
-    s32 currentAngle;
-    s32 targetAngleBits;
-    s32 currentAngleBits;
-    s16 angle;
-    s32 clampedAngle;
-    s16 thirdAngle;
+    enum {
+        DESERT_CHASER_LOOK_YAW_STEP  = 0x71,
+        DESERT_CHASER_LOOK_YAW_LIMIT = 0x500
+    };
+    s32 targetYaw;
+    s32 currentYaw;
+    s32 targetYawBits;
+    s32 currentYawBits;
+    s16 updatedYaw;
+    s32 appliedYaw;
+    s16 thirdYaw;
 
-    // Ease the look turn and distribute it over the three neck joints.
-    targetAngle      = work->lookYawTarget;
-    currentAngle     = work->lookYaw;
-    targetAngleBits  = (u16)work->lookYawTarget;
-    currentAngleBits = (u16)work->lookYaw;
-    if (currentAngle < targetAngle) {
-        if ((targetAngle - currentAngle) >= 0x72) {
-            work->lookYaw = currentAngleBits + 0x71;
+    // Keep tracking the target even when it lies beyond the pose limit.
+    targetYaw      = work->lookYawTarget;
+    currentYaw     = work->lookYaw;
+    targetYawBits  = (u16)work->lookYawTarget;
+    currentYawBits = (u16)work->lookYaw;
+    if (currentYaw < targetYaw) {
+        if ((targetYaw - currentYaw) > DESERT_CHASER_LOOK_YAW_STEP) {
+            work->lookYaw = currentYawBits + DESERT_CHASER_LOOK_YAW_STEP;
         } else {
-            work->lookYaw = targetAngleBits;
+            work->lookYaw = targetYawBits;
         }
-    } else if ((currentAngle - targetAngle) >= 0x72) {
-        work->lookYaw = currentAngleBits - 0x71;
+    } else if ((currentYaw - targetYaw) > DESERT_CHASER_LOOK_YAW_STEP) {
+        work->lookYaw = currentYawBits - DESERT_CHASER_LOOK_YAW_STEP;
     } else {
-        work->lookYaw = targetAngleBits;
+        work->lookYaw = targetYawBits;
     }
-    angle        = work->lookYaw;
-    clampedAngle = (u16)work->lookYaw;
-    if (angle != 0) {
-        if (angle >= 0x501) {
-            clampedAngle = 0x500;
+    // Limit the pose correction independently of the stored yaw.
+    updatedYaw = work->lookYaw;
+    appliedYaw = (u16)work->lookYaw;
+    if (updatedYaw != 0) {
+        if (updatedYaw > DESERT_CHASER_LOOK_YAW_LIMIT) {
+            appliedYaw = DESERT_CHASER_LOOK_YAW_LIMIT;
         }
-        if (angle < -0x500) {
-            clampedAngle = -0x500;
+        if (updatedYaw < -DESERT_CHASER_LOOK_YAW_LIMIT) {
+            appliedYaw = -DESERT_CHASER_LOOK_YAW_LIMIT;
         }
-        thirdAngle = (s16)clampedAngle / 3;
-        _actorRenderYawJointInWorld(&task->extra.tmd->coords[2], thirdAngle);
+        thirdYaw = (s16)appliedYaw / 3;
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[2], thirdYaw);
         task->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        _actorRenderYawJointInWorld(&task->extra.tmd->coords[3], thirdAngle);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[3], thirdYaw);
         task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        _actorRenderYawJointInWorld(&task->extra.tmd->coords[4], (s16)clampedAngle / 2);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[4], (s16)appliedYaw / 2);
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }
