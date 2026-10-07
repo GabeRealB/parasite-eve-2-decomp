@@ -56,6 +56,46 @@
 
 #include "overlay.h"
 
+/// Navigation sweep steps, in yaw units, degrees and world-coordinate reach.
+enum {
+    ACTOR_01600_PROBE_YAW_STEP    = 0x71,
+    ACTOR_01600_PROBE_DEGREE_STEP = 10,
+    ACTOR_01600_PROBE_LAST_DEGREE = 359,
+    ACTOR_01600_PROBE_REACH       = 2000,
+    ACTOR_01600_MIN_TURN_STEP     = 0x20,
+};
+
+/// Packed collision identity of this scavenger body.
+enum { ACTOR_01600_BODY_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x10 };
+
+/// Results of the clear-heading search; the direction bit selects a turn animation.
+enum {
+    ACTOR_01600_HEADING_PENDING    = 0,
+    ACTOR_01600_HEADING_DIRECT     = 1,
+    ACTOR_01600_HEADING_ARC        = 2,
+    ACTOR_01600_HEADING_DIRECTION  = 0x80,
+    ACTOR_01600_HEADING_BLOCKED    = 0xFF,
+    ACTOR_01600_HEADING_BEST_UNSET = 0xFFFF,
+    ACTOR_01600_WIDE_ARC           = ACTOR_TRANSFORM_ANGLE_HALF_TURN / 2,
+    ACTOR_01600_REAR_ARC_MIN       = ACTOR_TRANSFORM_ANGLE_HALF_TURN - 0x80,
+    ACTOR_01600_REAR_ARC_MAX       = ACTOR_TRANSFORM_ANGLE_HALF_TURN + 0x80,
+};
+
+/// Playback requests used when no clip should advance, or when a resting actor is hit.
+enum {
+    ACTOR_01600_ANIMATION_NONE     = 0xFF,
+    ACTOR_01600_ANIMATION_REST     = 1,
+    ACTOR_01600_ANIMATION_HIT_WAKE = 0xA,
+    ACTOR_01600_ANIMATION_STAGGER  = 0xE,
+};
+
+/// Placement modes interpreted during setup; other modes wait for their numbered wave.
+enum {
+    ACTOR_01600_PLACEMENT_ACTIVE     = 0,
+    ACTOR_01600_PLACEMENT_FIRST_WAVE = 1,
+    ACTOR_01600_PLACEMENT_SCRIPTED   = 3,
+};
+
 /// Yaw stored in an end of a `_Actor01600ClearArc` that the sweep has not recorded yet.
 ///
 /// No swept yaw can equal it: the sweep runs from 0 to 0xFE4.
@@ -330,10 +370,7 @@ typedef struct {
 } _Actor01600PathProbeAimScratch;
 STATIC_ASSERT_SIZEOF(_Actor01600PathProbeAimScratch, 0x30);
 
-/// Index of the `gPlayerActorTasks` actor nearer to `arg0`, or 0 when slot 0 is
-/// empty (or slot 1 is at least as far). The distance is planar: the Y
-/// difference is computed into the scratch vector but never enters the sum.
-static s32 Actor01600_Fn052C4(Task* arg0);
+static s32 _actor01600SelectNearestPlayer(Task* actor);
 
 extern GameActorButtonPressHold Actor01600_D12878;
 extern ActorTransform           Actor01600_D12890;
@@ -353,10 +390,10 @@ static void Actor01600_Fn01420(Task* arg0);
 static void Actor01600_Fn04054(Enemy* arg0, Task* arg1);
 void        Actor01600_Fn066E8(Task* arg0);
 
-static s32 Actor01600_Fn045A8(Task* arg0, s32* distance);
-static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle);
+static s32 _actor01600MeasureTarget(Task* actor, s32* horizontalDistance);
+static s32 _actor01600StepPathProbe(Task* actor, s32 reachDistance, s32 relativeYaw);
 
-static u8 Actor01600_Fn04EB0(Task* arg0);
+static u8 _actor01600SearchClearHeading(Task* actor);
 
 /// Scratch-stack block the scavenger's ground shadow is placed in when it is
 /// drawn under the root.
@@ -391,7 +428,7 @@ typedef struct {
 } _Actor01600SidestepScratch;
 STATIC_ASSERT_SIZEOF(_Actor01600SidestepScratch, 0x3C);
 
-static void Actor01600_Fn03A60(Task* actor);
+static void _actor01600StepTurn(Task* actor);
 
 extern AnimationPlayRequest Actor01600_D127D8;
 
@@ -407,8 +444,8 @@ extern AnimationSet* Actor01600_D127EC[31];
 // Typed callback views for the task message dispatcher.
 
 extern TaskMessageEntry Actor01600_D127A4[3];
-static void             Actor01600_Fn05400(Task* actor);
-static void             Actor01600_Fn06EA4(Task* actor);
+static void             _actor01600InitPlacement(Task* actor);
+static void             _actor01600Exit(Task* actor);
 
 extern DamageAttack Actor01600_D09F04[2];
 
@@ -418,15 +455,15 @@ extern SVECTOR Actor01600_D09F3C[];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static void Actor01600_Fn001F4(Enemy* ctx, Task* actor);
-static void Actor01600_Fn00480(Task* arg0);
+static void _actor01600Init(Enemy* enemy, Task* actor);
+static void _actor01600LinkCollisionBodies(Task* actor);
 static void Actor01600_Fn00674(Enemy* arg0, Task* arg1);
-static void Actor01600_Fn00A4C(Task* arg0);
+static void _actor01600ConsumeReactions(Task* actor);
 static void Actor01600_Fn00BAC(Task* arg0);
-static void Actor01600_Fn0131C(Task* arg0, s32 damage);
+static void _actor01600ApplyDamage(Task* actor, s32 damage);
 static void Actor01600_Fn017BC(Task* arg0);
 static void Actor01600_Fn020F8(Task* arg0);
-static void Actor01600_Fn03D48(Task* arg0);
+static void _actor01600StepAnimation(Task* actor);
 static void Actor01600_Fn03EEC(Task* arg0);
 static void Actor01600_Fn04AD8(Task* arg0);
 static s32  Actor01600_Fn05558(Task* arg0);
@@ -436,9 +473,9 @@ static void Actor01600_Fn06744(Task* arg0);
 static void Actor01600_Fn06810(Enemy* arg0, Task* arg1);
 static void Actor01600_Fn06880(Task* arg0);
 static void Actor01600_Fn06A84(Task* arg0);
-static void Actor01600_Fn06F10(Task* arg0);
+static void _actor01600ReleaseGrab(Task* actor);
 static u8   Actor01600_Fn06F78(void);
-static void Actor01600_Fn06FDC(Task* arg0, s32 arg1);
+static void _actor01600Remove(Task* actor, s32 skipBodyUnlink);
 
 static AnimationSet _gActor01600Actor101600Animation0A1A8;
 static AnimationSet _gActor01600Actor101600Animation0A4C0;
@@ -473,8 +510,8 @@ static AnimationSet _gActor01600Actor101600Animation10B6C;
 static AnimationSet _gActor01600Actor101600Animation11820;
 static AnimationSet _gActor01600Actor101600Animation12074;
 static AnimationSet _gActor01600Actor101600Animation1277C;
-s32                 Actor01600_Fn05B08(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
-s32                 Actor01600_Fn07100(Task*, s32, s32, s32);
+static s32          _actor01600HandleCommand(Task* actor, s32 messageId, const ActorCommand* request, s32 unusedArg);
+static s32          _actor01600HandleReleaseHold(Task* actor, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 void                Actor01600_Fn066E8(Task*);
 
 extern AnimationSet* Actor01600_D127C8[4];
@@ -1356,8 +1393,8 @@ static AnimationSet _gActor01600Actor101600Animation1277C = {
 };
 
 TaskMessageEntry Actor01600_D127A4[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, Actor01600_Fn05B08 },
-    { 2014, Actor01600_Fn07100 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor01600HandleCommand },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor01600HandleReleaseHold },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1443,56 +1480,61 @@ static __inline__ void update_actor_color(Enemy* ctx, GfxCoord* attach)
 }
 
 static const EnemyTaskFuncTable3 Actor01600_D00004 = {
-    { Actor01600_Fn001F4, Actor01600_Fn00674, Actor01600_Fn04054 },
+    { _actor01600Init, Actor01600_Fn00674, Actor01600_Fn04054 },
 };
 
-static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
+/// Creates the scavenger's work, animation and target entry, then applies its placement mode.
+///
+/// The task owns the primary-heap work block and borrows this overlay's assets.
+/// Allocation failure destroys the enemy; success advances to the live task state.
+static void _actor01600Init(Enemy* enemy, Task* actor)
 {
-    SVECTOR          sp18;
-    GfxCoord*        next_coord;
-    s32              i;
-    u32              random;
-    GfxCoord*        coord;
-    TmdObject*       obj;
+    SVECTOR          facingAxis;
+    GfxCoord*        bodyCoord;
+    s32              partIndex;
+    u32              randomState;
+    GfxCoord*        rootCoord;
+    TmdObject*       model;
     _Actor01600Work* work;
 
-    obj        = actor->extra.tmd;
-    coord      = obj->coords;
-    work       = memCalloc(sizeof(_Actor01600Work), false);
-    next_coord = coord + 1;
+    model     = actor->extra.tmd;
+    rootCoord = model->coords;
+    work      = memCalloc(sizeof(_Actor01600Work), false);
+    bodyCoord = rootCoord + 1;
     if (work == NULL) {
-        enemyDestroy(ctx, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
+    // Publish the owned work and the borrowed lighting and targeting storage.
     actor->work               = work;
-    obj->flags                = 0;
-    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx             = &work->lightMatrix;
-    obj->colorMtx             = &work->colorMatrix;
+    model->flags              = 0;
+    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
+    model->lightMtx           = &work->lightMatrix;
+    model->colorMtx           = &work->colorMatrix;
     work->targetAnchor.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&work->targetAnchor.coord);
-    work->targetAnchor.coord.t[0]   = (s32)coord->coord.t[0];
-    work->targetAnchor.coord.t[1]   = (s32)coord->coord.t[1];
-    work->targetAnchor.coord.t[2]   = (s32)coord->coord.t[2];
+    work->targetAnchor.coord.t[0]   = rootCoord->coord.t[0];
+    work->targetAnchor.coord.t[1]   = rootCoord->coord.t[1];
+    work->targetAnchor.coord.t[2]   = rootCoord->coord.t[2];
     work->targetAnchor.composeStamp = GRAPHICS_COORD_DIRTY;
     work->targetAnchorPhase         = ACTOR_01600_TARGET_ANCHOR_FOLLOW;
-    ctx->field_4                    = &coord->coord;
-    ctx->field_48                   = 0;
-    worldTargetLinkNode(&ctx->node);
-    ctx->bodyPos.vy             = -0x190;
-    ctx->node.state.parts.flags = 0;
-    ctx->coord                  = coord;
-    ctx->bodyPos.vx             = 0;
-    ctx->bodyPos.vz             = 0;
-    ctx->param                  = &Actor01600_D09F0C;
-    ctx->recs                   = work->bodySphere.contacts;
-    ctx->hp                     = (u16)Actor01600_D09F0C.hpMax;
-    work->hitEffect.spawnArgLo  = 0x280;
-    work->hitEffect.spawnArgHi  = 2;
-    work->hitEffect.coord       = next_coord;
-    animationInitContext(&work->anim, Actor01600_D127EC, obj, work->poses, work->slots);
-    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-        animationResetSlot(&work->anim, i, 1);
+    enemy->field_4                  = &rootCoord->coord;
+    enemy->field_48                 = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->bodyPos.vy             = -0x190;
+    enemy->node.state.parts.flags = 0;
+    enemy->coord                  = rootCoord;
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->param                  = &Actor01600_D09F0C;
+    enemy->recs                   = work->bodySphere.contacts;
+    enemy->hp                     = (u16)Actor01600_D09F0C.hpMax;
+    work->hitEffect.spawnArgLo    = 0x280;
+    work->hitEffect.spawnArgHi    = 2;
+    work->hitEffect.coord         = bodyCoord;
+    animationInitContext(&work->anim, Actor01600_D127EC, model, work->poses, work->slots);
+    for (partIndex = 1; partIndex < ARRAY_SIZE(work->slots); partIndex++) {
+        animationResetSlot(&work->anim, partIndex, 1);
     }
     sceneAcquireBattleRef(0);
     work->animRequest     = 1;
@@ -1517,34 +1559,27 @@ static void Actor01600_Fn001F4(Enemy* ctx, Task* actor)
     work->grabTargetIndex = 0;
     work->scriptedDelay   = 0;
     work->longLeap        = 0;
-    work->animRate        = 0x10;
-    random                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    work->reactionDelay   = (s16)(((random >> 0x10) & 0x1F) + 1);
-    gRandomLcgState       = random;
-    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &sp18);
-    work->yaw = ratan2((s32)sp18.vx, (s32)sp18.vz);
-    Actor01600_Fn05400(actor);
-    actor->exitCallback = &Actor01600_Fn06EA4;
+    work->animRate        = ANIMATION_RATE_ONE;
+    randomState           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    work->reactionDelay   = (s16)(((randomState >> 0x10) & 0x1F) + 1);
+    gRandomLcgState       = randomState;
+    gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &facingAxis);
+    work->yaw = ratan2(facingAxis.vx, facingAxis.vz);
+    _actor01600InitPlacement(actor);
+    actor->exitCallback = &_actor01600Exit;
     actor->msgTable     = Actor01600_D127A4;
-    actor->state        = (s32)(actor->state + 1);
+    actor->state        = actor->state + 1;
 }
 
-static void Actor01600_Fn00480(Task* actor)
+/// Links the sight capsule with the work's single owned contact.
+///
+/// Requires an unlinked sensor and live root; tests are enabled by the next body link.
+static __inline__ void _actor01600LinkSight(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* sightContacts)
 {
-    _Actor01600Work*       work;
-    WorldCollisionContact* table1;
-    GfxCoord*              coord;
-    WorldCollisionContact* table2;
-    WorldCollisionContact* table3;
-    WorldCollisionContact* table4;
-
-    work                             = actor->work;
-    coord                            = actor->extra.tmd->coords;
     work->sight.shape.ends[0].vz     = 0xFA0;
     work->sight.shape.end0Radius     = 0x384;
-    table1                           = work->sight.contacts;
     work->sight.shape.end1Radius     = 0x64;
-    work->sight.shape.contacts       = table1;
+    work->sight.shape.contacts       = sightContacts;
     work->sight.body.context.capsule = &work->sight.shape;
     work->sight.body.pos.vx          = 0;
     work->sight.body.pos.vy          = -0x190;
@@ -1552,13 +1587,20 @@ static void Actor01600_Fn00480(Task* actor)
     work->sight.body.key             = 0;
     work->sight.body.radius          = 0;
     work->sight.body.flags           = WORLD_COLLISION_BODY_CAPSULE;
-    work->sight.body.coord           = coord;
+    work->sight.body.coord           = rootCoord;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sight.body);
-    worldCollisionInitContacts(table1, ARRAY_SIZE(work->sight.contacts), 0);
-    table2                                 = work->bodySphere.contacts;
-    work->bodySphere.body.coord            = coord;
-    work->bodySphere.body.context.contacts = table2;
-    work->bodySphere.body.key              = 0x30010;
+    worldCollisionInitContacts(sightContacts, ARRAY_SIZE(work->sight.contacts), 0);
+}
+
+/// Links the body sphere and enables the sight sensor prepared immediately before it.
+///
+/// The work owns the eight contacts; `bodyContacts` points to their first entry.
+/// The body must be unlinked and the root coordinate live throughout its link.
+static __inline__ void _actor01600LinkBodySphere(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* bodyContacts)
+{
+    work->bodySphere.body.coord            = rootCoord;
+    work->bodySphere.body.context.contacts = bodyContacts;
+    work->bodySphere.body.key              = ACTOR_01600_BODY_KEY;
     work->bodySphere.body.radius           = 0x190;
     work->bodySphere.body.pos.vx           = 0;
     work->bodySphere.body.pos.vy           = -0x190;
@@ -1566,14 +1608,21 @@ static void Actor01600_Fn00480(Task* actor)
     work->bodySphere.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->sight.body.flags                |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->bodySphere.body);
-    worldCollisionInitContacts(table2, ARRAY_SIZE(work->bodySphere.contacts), 0);
-    table3                               = work->pathProbe.contacts;
+    worldCollisionInitContacts(bodyContacts, ARRAY_SIZE(work->bodySphere.contacts), 0);
+}
+
+/// Links the path-probe capsule and enables the previously linked body sphere.
+///
+/// Requires an unlinked sensor and its single owned contact. The next bite link
+/// disables this probe until a heading search arms it.
+static __inline__ void _actor01600LinkPathProbe(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* pathProbeContacts)
+{
     work->pathProbe.shape.ends[0].vz     = 0x1F4;
     work->pathProbe.shape.ends[0].vx     = 0x1F4;
     work->pathProbe.shape.end0Radius     = 1;
     work->pathProbe.shape.end1Radius     = 1;
-    work->pathProbe.shape.contacts       = table3;
-    work->pathProbe.body.coord           = coord;
+    work->pathProbe.shape.contacts       = pathProbeContacts;
+    work->pathProbe.body.coord           = rootCoord;
     work->pathProbe.body.context.capsule = &work->pathProbe.shape;
     work->pathProbe.body.pos.vx          = 0;
     work->pathProbe.body.pos.vy          = -0x190;
@@ -1583,10 +1632,17 @@ static void Actor01600_Fn00480(Task* actor)
     work->pathProbe.body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->bodySphere.body.flags         |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->pathProbe.body);
-    worldCollisionInitContacts(table3, ARRAY_SIZE(work->pathProbe.contacts), 0);
-    table4                           = work->bite.contacts;
-    work->bite.body.coord            = coord;
-    work->bite.body.context.contacts = table4;
+    worldCollisionInitContacts(pathProbeContacts, ARRAY_SIZE(work->pathProbe.contacts), 0);
+}
+
+/// Links the bite sphere with its pair test off and disarms the prepared path probe.
+///
+/// The work owns the single contact addressed by `biteContacts`. The body must
+/// be unlinked and its root coordinate live throughout the link.
+static __inline__ void _actor01600LinkBiteSphere(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* biteContacts)
+{
+    work->bite.body.coord            = rootCoord;
+    work->bite.body.context.contacts = biteContacts;
     work->bite.body.pos.vx           = 0;
     work->bite.body.pos.vy           = -0x186;
     work->bite.body.pos.vz           = 0;
@@ -1595,8 +1651,28 @@ static void Actor01600_Fn00480(Task* actor)
     work->bite.body.radius           = 0x12C;
     work->bite.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->bite.body);
-    worldCollisionInitContacts(table4, ARRAY_SIZE(work->bite.contacts), 0);
+    worldCollisionInitContacts(biteContacts, ARRAY_SIZE(work->bite.contacts), 0);
     work->bite.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+}
+
+/// Links the scavenger's sight, body, path probe and bite with their owned contact tables.
+///
+/// The four bodies must be unlinked. Sight and body tests start enabled; the path
+/// probe and bite start disabled. Their coordinate and work storage must remain
+/// live until unlinking. Centres and radii use root-local world coordinate units.
+static void _actor01600LinkCollisionBodies(Task* actor)
+{
+    _Actor01600Work* work;
+    GfxCoord*        rootCoord;
+
+    work      = actor->work;
+    rootCoord = actor->extra.tmd->coords;
+    // Configure the broad sight capsule before its tests are enabled by the body link.
+    _actor01600LinkSight(work, rootCoord, work->sight.contacts);
+    _actor01600LinkBodySphere(work, rootCoord, work->bodySphere.contacts);
+    // The thin probe starts disabled; a heading search arms it between frames.
+    _actor01600LinkPathProbe(work, rootCoord, work->pathProbe.contacts);
+    _actor01600LinkBiteSphere(work, rootCoord, work->bite.contacts);
 }
 
 static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
@@ -1630,7 +1706,7 @@ static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
         }
         Actor01600_Fn04AD8(arg1);
         if (arg0->reactionFlags != 0) {
-            Actor01600_Fn00A4C(arg1);
+            _actor01600ConsumeReactions(arg1);
         }
         Actor01600_Fn00BAC(arg1);
         if (work->airborne == 0) {
@@ -1649,8 +1725,8 @@ static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
             sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             id = (((u16)((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000A;
             sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            Actor01600_Fn06F10(arg1);
-            Actor01600_Fn06FDC(arg1, 0);
+            _actor01600ReleaseGrab(arg1);
+            _actor01600Remove(arg1, 0);
         }
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             if (coord->coord.t[1] > 0) {
@@ -1661,12 +1737,12 @@ static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
                 sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                 id = (((u16)((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000A;
                 sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                Actor01600_Fn06F10(arg1);
-                Actor01600_Fn06FDC(arg1, 0);
+                _actor01600ReleaseGrab(arg1);
+                _actor01600Remove(arg1, 0);
             }
         }
         Actor01600_Fn01420(arg1);
-        Actor01600_Fn03D48(arg1);
+        _actor01600StepAnimation(arg1);
         Actor01600_Fn06A84(arg1);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
@@ -1682,48 +1758,52 @@ static void Actor01600_Fn00674(Enemy* arg0, Task* arg1)
     }
 }
 
-static void Actor01600_Fn00A4C(Task* arg0)
+/// Consumes grounded stagger, buildup and damage-over-time reactions.
+///
+/// Airborne reactions remain pending. A grounded damage-over-time reaction
+/// releases a held player before its damage pulse and clears only on expiry.
+static void _actor01600ConsumeReactions(Task* actor)
 {
-    Enemy*           ctx;
+    Enemy*           enemy;
     _Actor01600Work* work;
-    s16              state;
+    s16              behavior;
     s32              damage;
-    u8               flags2;
-    u8               flags1;
+    u8               remainingReactions;
+    u8               pendingReactions;
 
-    ctx    = arg0->spawnArg2.pointer;
-    flags1 = ctx->reactionFlags;
-    work   = arg0->work;
-    if ((flags1 & ENEMY_REACTION_STAGGER) && (work->airborne == 0)) {
-        ctx->reactionFlags = flags1 & ENEMY_REACTION_STAGGER_CLEAR;
-        work->behavior     = ACTOR_01600_BEHAVIOR_STAGGER;
-        work->animRate     = 0x14;
-        work->stateTimer   = 0;
-        work->animRequest  = 0xE;
+    enemy            = actor->spawnArg2.pointer;
+    pendingReactions = enemy->reactionFlags;
+    work             = actor->work;
+    if ((pendingReactions & ENEMY_REACTION_STAGGER) && (work->airborne == 0)) {
+        enemy->reactionFlags = pendingReactions & ENEMY_REACTION_STAGGER_CLEAR;
+        work->behavior       = ACTOR_01600_BEHAVIOR_STAGGER;
+        work->animRate       = 0x14;
+        work->stateTimer     = 0;
+        work->animRequest    = 0xE;
     }
-    flags2 = ctx->reactionFlags;
-    if ((flags2 & ENEMY_REACTION_BUILDUP) && (work->behavior != ACTOR_01600_BEHAVIOR_STAGGER) && (work->airborne == 0)) {
-        ctx->reactionFlags = flags2 & ENEMY_REACTION_BUILDUP_CLEAR;
-        work->behavior     = ACTOR_01600_BEHAVIOR_BUILDUP;
+    remainingReactions = enemy->reactionFlags;
+    if ((remainingReactions & ENEMY_REACTION_BUILDUP) && (work->behavior != ACTOR_01600_BEHAVIOR_STAGGER) && (work->airborne == 0)) {
+        enemy->reactionFlags = remainingReactions & ENEMY_REACTION_BUILDUP_CLEAR;
+        work->behavior       = ACTOR_01600_BEHAVIOR_BUILDUP;
         if (work->buildupKnocksDown != 0) {
-            work->animRequest = 0xE;
+            work->animRequest = ACTOR_01600_ANIMATION_STAGGER;
             work->behavior    = ACTOR_01600_BEHAVIOR_BUILDUP_DOWN;
         }
         work->stateTimer = 0;
     }
-    if ((ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) && (work->airborne == 0)) {
-        Actor01600_Fn06F10(arg0);
-        damage = damageTickEnemyDamageOverTime(ctx);
+    if ((enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) && (work->airborne == 0)) {
+        _actor01600ReleaseGrab(actor);
+        damage = damageTickEnemyDamageOverTime(enemy);
         if (damage != 0) {
-            state = work->behavior;
-            if ((state != ACTOR_01600_BEHAVIOR_STAGGER) && (state != ACTOR_01600_BEHAVIOR_BUILDUP_DOWN)) {
+            behavior = work->behavior;
+            if ((behavior != ACTOR_01600_BEHAVIOR_STAGGER) && (behavior != ACTOR_01600_BEHAVIOR_BUILDUP_DOWN)) {
                 work->behavior    = ACTOR_01600_BEHAVIOR_ROAM;
                 work->animRequest = 0xA;
             }
-            Actor01600_Fn0131C(arg0, damage);
+            _actor01600ApplyDamage(actor, damage);
         }
-        if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
-            ctx->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
+            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 }
@@ -1798,7 +1878,7 @@ static void Actor01600_Fn00BAC(Task* actor)
                         effectSpawn(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords + 1, 3, 0);
                     }
                     damageAccumulateLifeDrainHp(ctx, work->bodySphere.contacts[contactIndex].key.value, damage, 0);
-                    Actor01600_Fn0131C(actor, damage);
+                    _actor01600ApplyDamage(actor, damage);
                     count = damageGetPlayerAttackHitCooldown(work->bodySphere.contacts[contactIndex].key.value);
                     if (count > 0)
                         work->hitCooldown = count;
@@ -1865,7 +1945,7 @@ static void Actor01600_Fn00BAC(Task* actor)
                         worldCollisionClearContacts(work->bite.contacts);
                         work->animBlendFrames = 0;
                         work->verticalSpeed  += 20;
-                        amount                = Actor01600_Fn045A8(actor, &distance);
+                        amount                = _actor01600MeasureTarget(actor, &distance);
                         if (amount < 0)
                             amount = -amount;
                         if (amount < 0x400) {
@@ -1936,7 +2016,7 @@ static void Actor01600_Fn00BAC(Task* actor)
             work->attackAction    = ACTOR_01600_ACTION_KNOCKBACK;
             work->animBlendFrames = 0;
             work->verticalSpeed  += 20;
-            amount                = Actor01600_Fn045A8(actor, &distance);
+            amount                = _actor01600MeasureTarget(actor, &distance);
             if (amount < 0)
                 amount = -amount;
             if (amount < 0x400) {
@@ -1952,36 +2032,40 @@ static void Actor01600_Fn00BAC(Task* actor)
     return;
 }
 
-static void Actor01600_Fn0131C(Task* arg0, s32 damage)
+/// Subtracts damage from the scavenger and reports it to the target readout.
+///
+/// Hit points retain halfword subtraction. A lethal hit begins dying and disarms
+/// the bite; a surviving hit stops forward motion and clears the alert.
+static void _actor01600ApplyDamage(Task* actor, s32 damage)
 {
-    s32              id;
-    s32              pan;
-    Enemy*           ctx;
+    s32              soundScriptId;
+    s32              audioPan;
+    Enemy*           enemy;
     _Actor01600Work* work;
-    GfxCoord*        coord;
+    GfxCoord*        rootCoord;
 
-    ctx     = arg0->spawnArg2.pointer;
-    work    = arg0->work;
-    coord   = arg0->extra.tmd->coords;
-    ctx->hp = (u16)(ctx->hp - damage);
-    worldTargetAddReadoutAmount(&ctx->node, damage, 0);
+    enemy     = actor->spawnArg2.pointer;
+    work      = actor->work;
+    rootCoord = actor->extra.tmd->coords;
+    enemy->hp = enemy->hp - damage;
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
     work->reactionDelay = 1;
-    if ((s16)ctx->hp <= 0) {
+    if (enemy->hp <= 0) {
         work->dead             = 1;
         work->deathPhase       = ACTOR_01600_DEATH_BEGIN;
         work->bite.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        id                     = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000A;
-        sndEvtRequestScriptStart(id, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        soundScriptId          = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4010000A;
+        sndEvtRequestScriptStart(soundScriptId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
     } else {
-        if (work->animRequest == 1) {
-            work->animRequest = 0xA;
+        if (work->animRequest == ACTOR_01600_ANIMATION_REST) {
+            work->animRequest = ACTOR_01600_ANIMATION_HIT_WAKE;
             work->animFrame   = 0;
         }
         work->forwardSpeed = 0;
         work->alerted      = 0;
-        id                 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40100009;
-        pan                = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        soundScriptId      = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40100009;
+        audioPan           = (s8)worldCoordGetOriginAudioPan(rootCoord);
+        sndEvtRequestScriptStart(soundScriptId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
     }
 }
 
@@ -2025,7 +2109,7 @@ static void Actor01600_Fn01420(Task* arg0)
             Actor01600_Fn06744(arg0);
             break;
         case ACTOR_01600_BEHAVIOR_STAGGER:
-            Actor01600_Fn06F10(arg0);
+            _actor01600ReleaseGrab(arg0);
             work->stateTimer = work->stateTimer + 1;
             if (work->animRequest == 0xE && work->animFrame < 0x11) {
                 work->forwardSpeed = -0x3C;
@@ -2047,7 +2131,7 @@ static void Actor01600_Fn01420(Task* arg0)
             Actor01600_Fn06744(arg0);
             break;
         case ACTOR_01600_BEHAVIOR_BUILDUP:
-            Actor01600_Fn06F10(arg0);
+            _actor01600ReleaseGrab(arg0);
             work->animRequest = 0x13;
             if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
                 work->behavior          = ACTOR_01600_BEHAVIOR_ROAM;
@@ -2061,7 +2145,7 @@ static void Actor01600_Fn01420(Task* arg0)
             work->animRequest = 0x11;
             break;
         case ACTOR_01600_BEHAVIOR_BUILDUP_DOWN:
-            Actor01600_Fn06F10(arg0);
+            _actor01600ReleaseGrab(arg0);
             if (work->animRequest == 0xE) {
                 if (work->animFrame >= 0x2C && work->recoilActive == 0 &&
                     ((u16)work->animFrame & 2)) {
@@ -2214,7 +2298,7 @@ static void Actor01600_Fn017BC(Task* actor)
             work->forwardSpeed    = 0;
             work->animRate        = 0x10;
             work->animBlendFrames = 0;
-            contact               = Actor01600_Fn04EB0(actor) & 0xFF;
+            contact               = _actor01600SearchClearHeading(actor) & 0xFF;
             if (contact != 0) {
                 flags                      = work->pathProbe.body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                 work->pathProbe.body.flags = flags;
@@ -2283,7 +2367,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 } else {
                     work->forwardSpeed = 0x3C;
                 }
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
             } else {
                 work->forwardSpeed = 0;
             }
@@ -2335,7 +2419,7 @@ static void Actor01600_Fn017BC(Task* actor)
                 } else {
                     work->forwardSpeed = 0x3C;
                 }
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
             } else {
                 work->forwardSpeed = 0;
             }
@@ -2406,7 +2490,7 @@ static void Actor01600_Fn017BC(Task* actor)
             }
             work->forwardSpeed = 0;
             if ((u32)((u16)work->animFrame - 4) < 0x11U) {
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
             }
             if (work->animFrame >= 0x1C) {
                 work->animPlaying       = 0;
@@ -2506,7 +2590,7 @@ static void Actor01600_Fn020F8(Task* actor)
     ctx         = actor->spawnArg2.pointer;
     work        = actor->work;
     coord       = actor->extra.tmd->coords;
-    flags       = Actor01600_Fn052C4(actor) & 0xFF;
+    flags       = _actor01600SelectNearestPlayer(actor) & 0xFF;
     effectCoord = &actor->extra.tmd->coords[2];
     memset(&offset, 0, 8);
     offset.vy = 0x32;
@@ -2519,7 +2603,7 @@ static void Actor01600_Fn020F8(Task* actor)
             work->animRate        = 0x10;
             if ((u32)((u16)work->animFrame - 9) < 9U) {
                 work->forwardSpeed = 0x3C;
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
                 Actor01600_Fn06974(actor, 0x46);
                 if (work->targetAnchorPhase == ACTOR_01600_TARGET_ANCHOR_FOLLOW) {
                     work->targetAnchorPhase = ACTOR_01600_TARGET_ANCHOR_DETACH;
@@ -2537,7 +2621,7 @@ static void Actor01600_Fn020F8(Task* actor)
                 work->forwardSpeed = 0;
                 work->animRequest  = 0x17;
             }
-            angle = Actor01600_Fn045A8(actor, &distance);
+            angle = _actor01600MeasureTarget(actor, &distance);
             if (!(Actor01600_Fn06C94(actor, angle, distance) & 0xFF)) {
                 if (Actor01600_Fn04974(actor, angle, distance, flags) & 0xFF) {
                     if (work->animFrame >= 0xA) {
@@ -2572,7 +2656,7 @@ static void Actor01600_Fn020F8(Task* actor)
             work->animRequest     = 6;
             if ((u32)((u16)work->animFrame - 8) < 8U) {
                 work->forwardSpeed = 0x3C;
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
                 Actor01600_Fn06974(actor, -0x5A);
                 if (work->targetAnchorPhase == ACTOR_01600_TARGET_ANCHOR_FOLLOW) {
                     work->targetAnchorPhase = ACTOR_01600_TARGET_ANCHOR_DETACH;
@@ -2585,7 +2669,7 @@ static void Actor01600_Fn020F8(Task* actor)
             }
             if ((u32)((u16)work->animFrame - 0x1A) < 9U) {
                 work->forwardSpeed = 0x3C;
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
                 Actor01600_Fn06974(actor, 0x46);
                 if (work->targetAnchorPhase == ACTOR_01600_TARGET_ANCHOR_FOLLOW) {
                     work->targetAnchorPhase = ACTOR_01600_TARGET_ANCHOR_DETACH;
@@ -2600,7 +2684,7 @@ static void Actor01600_Fn020F8(Task* actor)
                     return;
                 }
             }
-            angle = Actor01600_Fn045A8(actor, &distance);
+            angle = _actor01600MeasureTarget(actor, &distance);
             if (!(Actor01600_Fn06C94(actor, angle, distance) & 0xFF)) {
                 if (Actor01600_Fn04974(actor, angle, distance, flags) & 0xFF) {
                     if (work->animFrame >= 8) {
@@ -2642,7 +2726,7 @@ static void Actor01600_Fn020F8(Task* actor)
                 sndEvtRequestScriptStart(id, (s32)pan14, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if ((u32)((u16)work->animFrame - 4) < 0x11U) {
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
             }
             if (work->animFrame >= 0x1C) {
                 work->animPlaying = 0;
@@ -2671,7 +2755,7 @@ static void Actor01600_Fn020F8(Task* actor)
                 sndEvtRequestScriptStart(id, (s32)pan_case3, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             if ((u32)((u16)work->animFrame - 4) < 0x11U) {
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
             }
             if (work->animFrame >= 0x1C) {
                 work->animPlaying = 0;
@@ -2752,7 +2836,7 @@ static void Actor01600_Fn020F8(Task* actor)
                         work->forwardSpeed = 0x19;
                     }
                 }
-                Actor01600_Fn03A60(actor);
+                _actor01600StepTurn(actor);
             }
             if ((work->animFrame == 9) && (work->entranceLeap == 0)) {
                 work->bite.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -2891,7 +2975,7 @@ static void Actor01600_Fn020F8(Task* actor)
             work->jumpHeight      = 0;
             switch (temp_v1_7) {
                 case 19:
-                    Actor01600_Fn03A60(actor);
+                    _actor01600StepTurn(actor);
                     Actor01600_Fn06974(actor, 0xA);
                     if (work->animFrame >= 0xD) {
                         work->forwardSpeed = 0x5A;
@@ -3203,91 +3287,95 @@ static void Actor01600_Fn020F8(Task* actor)
     }
 }
 
-static void Actor01600_Fn03A60(Task* arg0)
+/// Steps the scavenger's facing according to its target, random or requested turn mode.
+///
+/// Yaws use 4096 units per turn. Rebuilds the root's rotation from yaw alone,
+/// leaving translation intact. The selected player task must exist even in hold mode.
+static void _actor01600StepTurn(Task* actor)
 {
-    Task**            slot;
-    Task**            slots;
-    s16               mode;
-    s16               diff;
-    s32               current;
-    s16               angle;
-    s32               absoluteDiff;
+    Task**            targetSlot;
+    Task**            playerTasks;
+    s16               turnMode;
+    s16               yawDifference;
+    s32               currentYaw;
+    s16               steppedYaw;
+    s32               yawDistance;
     s32               randomTurn;
-    s16               turn;
+    s16               turnStep;
     s32               randomStep;
-    s16               wrap;
-    s32               amount;
-    s32               remaining;
-    s32               remaining2;
-    u16               wanted;
+    s16               wrappedDifference;
+    s32               requestedStep;
+    s32               randomRemaining;
+    s32               requestedRemaining;
+    u16               targetYaw;
     u32               randomState;
-    u32               randomState2;
-    u32               random;
-    GfxCoord*         playerCoord;
+    u32               stepRandomState;
+    u32               randomBits;
+    GfxCoord*         targetCoord;
     _Actor01600Work*  work;
-    GfxCoord*         coord;
+    GfxCoord*         rootCoord;
     ActorFaceScratch* scratch;
 
-    work        = arg0->work;
-    coord       = arg0->extra.tmd->coords;
-    slots       = gPlayerActorTasks;
-    slot        = &slots[Actor01600_Fn052C4(arg0) & 0xFF];
+    work        = actor->work;
+    rootCoord   = actor->extra.tmd->coords;
+    playerTasks = gPlayerActorTasks;
+    targetSlot  = &playerTasks[_actor01600SelectNearestPlayer(actor) & 0xFF];
     scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    mode        = work->turnMode;
-    playerCoord = (*slot)->extra.tmd->coords;
-    switch (mode) {
+    turnMode    = work->turnMode;
+    targetCoord = (*targetSlot)->extra.tmd->coords;
+    switch (turnMode) {
         case ACTOR_01600_TURN_TRACK_TARGET:
-            scratch->delta.vx = playerCoord->coord.t[0] - coord->coord.t[0];
+            scratch->delta.vx = targetCoord->coord.t[0] - rootCoord->coord.t[0];
             scratch->delta.vy = 0;
-            scratch->delta.vz = playerCoord->coord.t[2] - coord->coord.t[2];
-            wanted            = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
-            diff              = wanted - (work->yaw & 0xFFF);
-            absoluteDiff      = diff >= 0 ? diff : -diff;
-            turn              = diff;
-            if (absoluteDiff < 0x21) {
-                work->yaw = wanted;
+            scratch->delta.vz = targetCoord->coord.t[2] - rootCoord->coord.t[2];
+            targetYaw         = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            yawDifference     = targetYaw - (work->yaw & ACTOR_TRANSFORM_ANGLE_MASK);
+            yawDistance       = yawDifference >= 0 ? yawDifference : -yawDifference;
+            turnStep          = yawDifference;
+            if (yawDistance < (ACTOR_01600_MIN_TURN_STEP + 1)) {
+                work->yaw = targetYaw;
             } else {
-                if (absoluteDiff >= 0x801) {
-                    wrap = diff - 0x1000;
-                    if (diff <= 0) {
-                        wrap = 0x1000 - diff;
+                if (yawDistance >= (ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1)) {
+                    wrappedDifference = yawDifference - ACTOR_TRANSFORM_ANGLE_TURN;
+                    if (yawDifference <= 0) {
+                        wrappedDifference = ACTOR_TRANSFORM_ANGLE_TURN - yawDifference;
                     }
-                    turn = wrap;
+                    turnStep = wrappedDifference;
                 }
-                current = (s16)work->yaw;
-                if (turn > 0) {
-                    work->yaw = (u16)(current + 0x20);
+                currentYaw = work->yaw;
+                if (turnStep > 0) {
+                    work->yaw = (u16)(currentYaw + ACTOR_01600_MIN_TURN_STEP);
                 } else {
-                    work->yaw = (u16)(current - 0x20);
+                    work->yaw = (u16)(currentYaw - ACTOR_01600_MIN_TURN_STEP);
                 }
             }
             break;
         case ACTOR_01600_TURN_RANDOM_BEGIN:
             randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            random          = randomState >> 0x10;
-            randomTurn      = (random & 0x3FF) + 0x400;
+            randomBits      = randomState >> 0x10;
+            randomTurn      = (randomBits & 0x3FF) + 0x400;
             gRandomLcgState = randomState;
-            if (random & 0x400) {
+            if (randomBits & 0x400) {
                 randomTurn = -randomTurn;
             }
             work->turnRemaining = randomTurn;
             work->turnMode      = ACTOR_01600_TURN_RANDOM;
             break;
         case ACTOR_01600_TURN_RANDOM:
-            randomState2    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            randomStep      = (randomState2 >> 0x10) & 0x17;
-            gRandomLcgState = randomState2;
+            stepRandomState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            randomStep      = (stepRandomState >> 0x10) & 0x17;
+            gRandomLcgState = stepRandomState;
             if (work->turnRemaining <= 0) {
                 randomStep = -randomStep;
             }
-            turn      = randomStep;
-            work->yaw = (u16)(work->yaw + turn);
-            remaining = work->turnRemaining - turn;
-            if ((remaining >= 0 ? remaining : -remaining) < 0x20) {
+            turnStep        = randomStep;
+            work->yaw       = (u16)(work->yaw + turnStep);
+            randomRemaining = work->turnRemaining - turnStep;
+            if ((randomRemaining >= 0 ? randomRemaining : -randomRemaining) < ACTOR_01600_MIN_TURN_STEP) {
                 work->turnMode      = ACTOR_01600_TURN_TRACK_TARGET;
                 work->turnRemaining = 0;
             } else {
-                work->turnRemaining -= turn;
+                work->turnRemaining -= turnStep;
             }
             break;
         case ACTOR_01600_TURN_HOLD:
@@ -3297,68 +3385,75 @@ static void Actor01600_Fn03A60(Task* arg0)
             work->turnRemaining = (s16)work->turnRequest;
             break;
         case ACTOR_01600_TURN_REQUEST:
-            amount = work->turnRate;
+            requestedStep = work->turnRate;
             if (work->turnRemaining <= 0) {
-                amount = -amount;
+                requestedStep = -requestedStep;
             }
-            turn      = amount;
-            angle     = work->yaw + amount;
-            work->yaw = (u16)angle;
-            if (angle >= 0x801) {
-                work->yaw = angle - 0x1000;
-            } else if (angle < -0x800) {
-                work->yaw = angle + 0x1000;
+            turnStep   = requestedStep;
+            steppedYaw = work->yaw + requestedStep;
+            work->yaw  = (u16)steppedYaw;
+            if (steppedYaw >= (ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1)) {
+                work->yaw = steppedYaw - ACTOR_TRANSFORM_ANGLE_TURN;
+            } else if (steppedYaw < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+                work->yaw = steppedYaw + ACTOR_TRANSFORM_ANGLE_TURN;
             }
-            remaining2 = work->turnRemaining - turn;
-            if ((remaining2 >= 0 ? remaining2 : -remaining2) < work->turnRate) {
+            requestedRemaining = work->turnRemaining - turnStep;
+            if ((requestedRemaining >= 0 ? requestedRemaining : -requestedRemaining) < work->turnRate) {
                 work->turnMode      = ACTOR_01600_TURN_HOLD;
                 work->turnRemaining = 0;
             } else {
-                work->turnRemaining -= turn;
+                work->turnRemaining -= turnStep;
             }
             break;
     }
+    // Rebuild only the facing rotation; pitch and roll do not carry through this turn.
     scratch->rot.vx = 0;
     scratch->rot.vy = (u16)work->yaw;
     scratch->rot.vz = 0;
-    RotMatrix(&scratch->rot, &coord->coord);
+    RotMatrix(&scratch->rot, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-static void Actor01600_Fn03D48(Task* arg0)
+/// Starts a changed animation request or ticks the eight model-part slots already playing.
+///
+/// Rates use sixteenths and blend lengths use frames. The no-animation sentinel
+/// leaves playback untouched. Selected clips have their body-part XZ translation
+/// suppressed or offset after playback; the root is not moved here.
+static void _actor01600StepAnimation(Task* actor)
 {
     _Actor01600Work* work;
-    GfxCoord*        coord;
-    s16              anim;
-    s32              i;
+    GfxCoord*        rootCoord;
+    s16              animationId;
+    s32              partIndex;
 
-    work = arg0->work;
+    work = actor->work;
 
-    if (work->animRequest != 0xFF) {
+    if (work->animRequest != ACTOR_01600_ANIMATION_NONE) {
         if (work->animRequest != work->animPlaying) {
-            work->animPlaying = (s16)(u16)work->animRequest;
+            work->animPlaying = work->animRequest;
             work->animFrame   = 0;
-            for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-                animationSeekSlotWithBlend(&work->anim, i, work->animRequest, 0, (s32)work->animBlendFrames);
+            for (partIndex = 1; partIndex < ARRAY_SIZE(work->slots); partIndex++) {
+                animationSeekSlotWithBlend(&work->anim, partIndex, work->animRequest, 0, work->animBlendFrames);
             }
         } else {
             work->animFrame = (u16)work->animFrame + 1;
-            for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-                work->slots[i].rate = work->animRate;
-                animationTickSlot(&work->anim, i);
+            for (partIndex = 1; partIndex < ARRAY_SIZE(work->slots); partIndex++) {
+                work->slots[partIndex].rate = work->animRate;
+                animationTickSlot(&work->anim, partIndex);
             }
         }
-        anim = work->animRequest;
-        if (anim == 28 || anim == 30 || anim == 9 || anim == 21 || anim == 22 || anim == 5 || anim == 6 || anim == 27) {
-            arg0->extra.tmd->coords[1].coord.t[0] = 0;
-            arg0->extra.tmd->coords[1].coord.t[2] = 0;
-            arg0->extra.tmd->coords[1].coord.t[0] = 0;
-            arg0->extra.tmd->coords[1].coord.t[2] = 0;
+        // Keep locomotion in the root instead of the selected clips' body-part translation.
+        animationId = work->animRequest;
+        if (animationId == 28 || animationId == 30 || animationId == 9 || animationId == 21 || animationId == 22 || animationId == 5 || animationId == 6 || animationId == 27) {
+            actor->extra.tmd->coords[1].coord.t[0] = 0;
+            actor->extra.tmd->coords[1].coord.t[2] = 0;
+            actor->extra.tmd->coords[1].coord.t[0] = 0;
+            actor->extra.tmd->coords[1].coord.t[2] = 0;
             return;
-        } else if (anim == 29) {
-            arg0->extra.tmd->coords[1].coord.t[0] = 0;
-            coord                                 = arg0->extra.tmd->coords;
-            coord[1].coord.t[2]                   = (s32)(coord[1].coord.t[2] - 0x2BC);
+        } else if (animationId == 29) {
+            actor->extra.tmd->coords[1].coord.t[0] = 0;
+            rootCoord                              = actor->extra.tmd->coords;
+            rootCoord[1].coord.t[2]                = rootCoord[1].coord.t[2] - 0x2BC;
         }
     }
 }
@@ -3411,7 +3506,7 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
     _Actor01600Work*  w;
     SceneCombatState* state;
     AttachmentState*  attachment;
-    SVECTOR           aim;
+    s32               unusedDistance;
     s32               dist;
     s32               anim;
     s16               phase;
@@ -3435,13 +3530,13 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
     }
     switch (work->deathPhase) {
         case ACTOR_01600_DEATH_BEGIN:
-            Actor01600_Fn06F10(arg1);
+            _actor01600ReleaseGrab(arg1);
             if (work->burstState != 2) {
                 anim                  = work->behavior;
                 work->animBlendFrames = 0;
                 work->animRate        = 0x14;
                 if (anim != ACTOR_01600_BEHAVIOR_STAGGER && anim != ACTOR_01600_BEHAVIOR_BUILDUP_DOWN) {
-                    dist = Actor01600_Fn045A8(arg1, (s32*)&aim);
+                    dist = _actor01600MeasureTarget(arg1, &unusedDistance);
                     if (dist < 0) {
                         dist = -dist;
                     }
@@ -3533,14 +3628,14 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
             timer           = work->exitTimer - 1;
             work->exitTimer = timer;
             if (timer == 0) {
-                Actor01600_Fn06EA4(arg1);
+                _actor01600Exit(arg1);
             }
             return;
         default:
             return;
     }
 
-    Actor01600_Fn03D48(arg1);
+    _actor01600StepAnimation(arg1);
     coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coords);
     count            = work->colorTimer + 1;
@@ -3554,26 +3649,29 @@ static void Actor01600_Fn04054(Enemy* arg0, Task* arg1)
     update_actor_color(arg0, attach);
 }
 
-/// Measures the player against the actor: returns the yaw the actor would have
-/// to turn through to face the player, wrapped into -0x800..0x800, and writes
-/// the horizontal distance to `distance`.
-static s32 Actor01600_Fn045A8(Task* arg0, s32* distance)
+/// Returns the nearer player actor's relative yaw and writes its horizontal distance.
+///
+/// Requires a live selected player task and a writable `horizontalDistance` word.
+/// Yaw uses composed world matrices, is wrapped to -2048..2048, and uses 4096
+/// units per turn with signed-halfword offsets. Distance uses full-width root
+/// translations in their common parent frame, in world coordinate units.
+static s32 _actor01600MeasureTarget(Task* actor, s32* horizontalDistance)
 {
-    GfxCoord*                 coord;
-    GfxCoord*                 other;
+    GfxCoord*                 rootCoord;
+    GfxCoord*                 targetCoord;
     ActorRangeBearingScratch* scratch;
-    s32                       angle;
+    s32                       relativeYaw;
 
-    other              = gPlayerActorTasks[Actor01600_Fn052C4(arg0) & 0xFF]->extra.tmd->coords;
-    coord              = arg0->extra.tmd->coords;
-    scratch            = SCRATCH_STACK_RESERVE_BLOCK(ActorRangeBearingScratch);
-    angle              = _actorAngleBearingInFrame(&scratch->bearing, coord, other);
-    scratch->offset.vx = other->coord.t[0] - coord->coord.t[0];
-    scratch->offset.vy = other->coord.t[1] - coord->coord.t[1];
-    scratch->offset.vz = other->coord.t[2] - coord->coord.t[2];
-    *distance          = SquareRoot0(scratch->offset.vx * scratch->offset.vx + scratch->offset.vz * scratch->offset.vz);
+    targetCoord         = gPlayerActorTasks[_actor01600SelectNearestPlayer(actor) & 0xFF]->extra.tmd->coords;
+    rootCoord           = actor->extra.tmd->coords;
+    scratch             = SCRATCH_STACK_RESERVE_BLOCK(ActorRangeBearingScratch);
+    relativeYaw         = _actorAngleBearingInFrame(&scratch->bearing, rootCoord, targetCoord);
+    scratch->offset.vx  = targetCoord->coord.t[0] - rootCoord->coord.t[0];
+    scratch->offset.vy  = targetCoord->coord.t[1] - rootCoord->coord.t[1];
+    scratch->offset.vz  = targetCoord->coord.t[2] - rootCoord->coord.t[2];
+    *horizontalDistance = SquareRoot0(scratch->offset.vx * scratch->offset.vx + scratch->offset.vz * scratch->offset.vz);
     SCRATCH_STACK_RELEASE_BLOCK(ActorRangeBearingScratch);
-    return angle;
+    return relativeYaw;
 }
 
 static s32 Actor01600_Fn047A0(Task* arg0)
@@ -3594,7 +3692,7 @@ static s32 Actor01600_Fn047A0(Task* arg0)
     coord = arg0->extra.tmd->coords;
     if (((GameActor*)gPlayerActorTasks[work->grabTargetIndex]->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         if (Actor01600_D12870 != 1) {
-            difference = Actor01600_Fn045A8(arg0, &distance);
+            difference = _actor01600MeasureTarget(arg0, &distance);
             if (difference < 0) {
                 difference = -difference;
             }
@@ -3667,7 +3765,7 @@ static s32 Actor01600_Fn04974(Task* actor, s32 angle, s32 distance, s32 flags)
                     angleAbs = tmp ? angle : -angle;
                     if (angleAbs < 0x101) {
                         work->pathProbe.body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                        Actor01600_Fn04EB0(actor);
+                        _actor01600SearchClearHeading(actor);
                         if (work->pathSearchPhase >= ACTOR_01600_PATH_SEARCH_BEGIN_SWEEP) {
                             work->animRequest       = 0x19;
                             work->alerted           = 0;
@@ -3756,310 +3854,345 @@ static void Actor01600_Fn04AD8(Task* arg0)
     actorRenderComposeCoord(&work->targetAnchor);
 }
 
-/// Reserves a `_Actor01600PathProbeAimScratch`, updates `probeYaw` either by `angle` (clamped
-/// into (-0x800, 0x801]) or, when `angle` is 0, by its own 0x71 / 0xA step -
-/// returning 1 once the degree counter `sweepDegrees` passes a full turn - then
-/// turns (0, 0, `distance`) by the resulting yaw into `pathProbe.shape.ends[0]`
-/// and, on a sweep step, extends or closes the clear arc `clearArcs[clearArcCount]`.
-static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
+/// Turns a root-local probe reach about Y using the current stored probe yaw.
+///
+/// `scratch->reach` must be initialized; `yaw` borrows a readable signed
+/// halfword outside the block, in 4096-unit turns. Writes the far end and
+/// rotation basis, leaving translation untouched, and overwrites GTE rotation registers.
+static __inline__ void _actor01600RotateProbeReach(_Actor01600PathProbeAimScratch* scratch, const s16* yaw)
 {
-    _Actor01600PathProbeAimScratch* scratch;
-    _Actor01600Work*                work;
-    MATRIX*                         rotation;
-    SVECTOR*                        farEnd;
-    s16                             temp_v0_3;
-    s16                             temp_v0_4;
-    s16                             temp_v0_5;
-    s16                             temp_v1_2;
-    s32                             scaled;
-    s32                             startYaw;
-    s32                             var_s4;
+    MATRIX*  rotation;
+    SVECTOR* farEnd;
 
-    var_s4            = 0;
-    work              = arg0->work;
-    scratch           = SCRATCH_STACK_RESERVE_BLOCK(_Actor01600PathProbeAimScratch);
-    scratch->reach.vx = 0;
-    scratch->reach.vy = 0;
-    scratch->reach.vz = distance;
-    if (angle == 0) {
-        temp_v1_2          = (u16)work->sweepDegrees + 0xA;
-        scaled             = temp_v1_2 << 0x10;
-        var_s4             = scaled > 0x01670000;
-        work->probeYaw     = (u16)work->probeYaw + 0x71;
-        work->sweepDegrees = temp_v1_2;
-    } else {
-        work->probeYaw = (s16)angle;
-        if ((s16)angle >= 0x801) {
-            work->probeYaw = angle - 0x1000;
-        } else if ((s16)angle < -0x800) {
-            work->probeYaw = angle + 0x1000;
-        }
-    }
-    // Turn the probe's length about Y to its yaw; the turned length is the capsule's far end.
     rotation = &scratch->rotation;
     gfxSetRotIdentity(rotation);
-    RotMatrixY(work->probeYaw, rotation);
+    RotMatrixY(*yaw, rotation);
     farEnd = &scratch->farEnd;
     gte_SetRotMatrix(rotation);
     gte_ldv0(&scratch->reach);
     gte_rtv0();
     gte_stsv(farEnd);
+}
+
+/// Reads the previous probe contact and aims the capsule for the next collision pass.
+///
+/// `reachDistance` is in world units, narrowed to a signed halfword. Nonzero
+/// `relativeYaw` selects a directed probe in 4096-unit turns; zero instead advances
+/// the ten-degree sweep and records its clear arcs. Even a target dead ahead
+/// takes that sweep branch. Returns 1 for a clear directed probe or a finished
+/// sweep, then clears the consumed contact. Calls require a valid clear-arc index.
+static s32 _actor01600StepPathProbe(Task* actor, s32 reachDistance, s32 relativeYaw)
+{
+    _Actor01600PathProbeAimScratch* scratch;
+    _Actor01600Work*                work;
+    s16                             openArcIndex;
+    s16                             blockedArcIndex;
+    s16                             nextArcIndex;
+    s16                             sweepDegrees;
+    s32                             scaledSweepDegrees;
+    s32                             startYaw;
+    s32                             probeComplete;
+
+    probeComplete     = 0;
+    work              = actor->work;
+    scratch           = SCRATCH_STACK_RESERVE_BLOCK(_Actor01600PathProbeAimScratch);
+    scratch->reach.vx = 0;
+    scratch->reach.vy = 0;
+    scratch->reach.vz = reachDistance;
+    if (relativeYaw == 0) {
+        sweepDegrees       = (u16)work->sweepDegrees + ACTOR_01600_PROBE_DEGREE_STEP;
+        scaledSweepDegrees = sweepDegrees << 0x10;
+        probeComplete      = scaledSweepDegrees > (ACTOR_01600_PROBE_LAST_DEGREE << 16);
+        work->probeYaw     = (u16)work->probeYaw + ACTOR_01600_PROBE_YAW_STEP;
+        work->sweepDegrees = sweepDegrees;
+    } else {
+        work->probeYaw = (s16)relativeYaw;
+        if ((s16)relativeYaw >= (ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1)) {
+            work->probeYaw = relativeYaw - ACTOR_TRANSFORM_ANGLE_TURN;
+        } else if ((s16)relativeYaw < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+            work->probeYaw = relativeYaw + ACTOR_TRANSFORM_ANGLE_TURN;
+        }
+    }
+    // Turn the probe's length about Y to its yaw; the turned length is the capsule's far end.
+    _actor01600RotateProbeReach(scratch, &work->probeYaw);
     work->pathProbe.shape.ends[0].vx = scratch->farEnd.vx;
     work->pathProbe.shape.ends[0].vz = scratch->farEnd.vz;
+    // This contact belongs to the previous aim: the collision pass has not tested the new one yet.
     if (work->pathProbe.contacts[0].key.parts.kind != (WORLD_COLLISION_CONTACT_GRID >> 16)) {
-        if (angle == 0) {
-            temp_v0_3 = work->clearArcCount;
-            if (work->clearArcs[temp_v0_3].startYaw == ACTOR_01600_CLEAR_ARC_UNSET) {
-                work->clearArcs[temp_v0_3].startYaw = work->probeYaw;
+        if (relativeYaw == 0) {
+            openArcIndex = work->clearArcCount;
+            if (work->clearArcs[openArcIndex].startYaw == ACTOR_01600_CLEAR_ARC_UNSET) {
+                work->clearArcs[openArcIndex].startYaw = work->probeYaw;
             } else {
-                work->clearArcs[temp_v0_3].endYaw = work->probeYaw;
-                if (var_s4 == 1) {
+                work->clearArcs[openArcIndex].endYaw = work->probeYaw;
+                if (probeComplete == 1) {
                     work->clearArcCount = (u16)work->clearArcCount + 1;
                 }
             }
         } else {
-            var_s4 = 1;
+            probeComplete = 1;
         }
-    } else if (angle == 0) {
-        temp_v0_4 = work->clearArcCount;
-        startYaw  = work->clearArcs[temp_v0_4].startYaw;
+    } else if (relativeYaw == 0) {
+        blockedArcIndex = work->clearArcCount;
+        startYaw        = work->clearArcs[blockedArcIndex].startYaw;
         if (startYaw != ACTOR_01600_CLEAR_ARC_UNSET) {
             // The probe is blocked: close the open arc, one step wide if it never got a second clear step.
-            if (work->clearArcs[temp_v0_4].endYaw == ACTOR_01600_CLEAR_ARC_UNSET) {
-                work->clearArcs[temp_v0_4].endYaw = startYaw;
+            if (work->clearArcs[blockedArcIndex].endYaw == ACTOR_01600_CLEAR_ARC_UNSET) {
+                work->clearArcs[blockedArcIndex].endYaw = startYaw;
             }
-            temp_v0_5           = (u16)work->clearArcCount + 1;
-            work->clearArcCount = temp_v0_5;
-            if (temp_v0_5 >= ARRAY_SIZE(work->clearArcs) - 1) {
+            nextArcIndex        = (u16)work->clearArcCount + 1;
+            work->clearArcCount = nextArcIndex;
+            if (nextArcIndex >= ARRAY_SIZE(work->clearArcs) - 1) {
                 work->clearArcCount = ARRAY_SIZE(work->clearArcs) - 1;
             }
         }
     }
     worldCollisionClearContacts(work->pathProbe.contacts);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor01600PathProbeAimScratch);
-    return var_s4;
+    return probeComplete;
 }
 
-static u8 Actor01600_Fn04EB0(Task* arg0)
+/// Advances the frame-delayed search for a clear heading toward the nearer player actor.
+///
+/// The path probe's grid tests must run between calls. Returns 0 while pending,
+/// 1 for a direct heading, 2 for a swept arc, or 0xFF when the sweep found no arc.
+/// Bit 0x80 accompanies the direct/arc result as the turn-animation direction.
+/// Stores the signed turn and its per-frame rate in the work block.
+static u8 _actor01600SearchClearHeading(Task* actor)
 {
-    SVECTOR          dir;
-    s32              distance;
+    SVECTOR          facingAxis;
+    s32              targetDistance;
     _Actor01600Work* work;
-    s32              flags;
-    s32              angle;
-    s32              mag;
-    s32              other;
-    s32              span;
-    s32              midpoint;
-    s32              best;
-    s32              direction;
-    s32              i;
-    s32              count;
-    s32              result; // The bearing, a probe's verdict, then the turn direction flag
-    s32              circle;
-    s32              turn;
+    s32              directionFlags;
+    s32              targetYaw;
+    s32              turnMagnitude;
+    s32              clearArcCount;
+    s32              wrappedDistance;
+    s32              arcSpanOrEndDistance;
+    s32              arcMidpointOrStartDistance;
+    s32              bestDistance;
+    s32              candidateDirection;
+    s32              arcIndex;
+    s32              arcCount;
+    s32              result; // Shared bearing, probe verdict and turn-direction result
+    s32              fullTurn;
+    s32              candidateDistance;
 
-    work  = arg0->work;
-    flags = 0;
+    work           = actor->work;
+    directionFlags = 0;
     switch (work->pathSearchPhase) {
         case ACTOR_01600_PATH_SEARCH_PROBE_TARGET:
-            result = Actor01600_Fn045A8(arg0, &distance);
-            Actor01600_Fn04C64(arg0, distance, result);
+            result = _actor01600MeasureTarget(actor, &targetDistance);
+            _actor01600StepPathProbe(actor, targetDistance, result);
             work->turnRequest = result;
             work->pathSearchPhase++;
             break;
         case ACTOR_01600_PATH_SEARCH_CHECK_TARGET:
-            work->turnRequest = Actor01600_Fn045A8(arg0, &distance);
-            result            = Actor01600_Fn04C64(arg0, distance, work->turnRequest);
+            work->turnRequest = _actor01600MeasureTarget(actor, &targetDistance);
+            result            = _actor01600StepPathProbe(actor, targetDistance, work->turnRequest);
             if (result & 0xFF) {
-                gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &dir);
-                ratan2(dir.vx, dir.vz);
-                mag   = __builtin_abs(work->turnRequest);
-                other = 0x1000 - mag;
-                if (other < mag) {
-                    result = 0;
-                    angle  = other;
+                gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &facingAxis);
+                ratan2(facingAxis.vx, facingAxis.vz);
+                turnMagnitude   = __builtin_abs(work->turnRequest);
+                wrappedDistance = ACTOR_TRANSFORM_ANGLE_TURN - turnMagnitude;
+                if (wrappedDistance < turnMagnitude) {
+                    result    = 0;
+                    targetYaw = wrappedDistance;
                 } else {
-                    result = 0x80;
-                    angle  = mag;
+                    result    = ACTOR_01600_HEADING_DIRECTION;
+                    targetYaw = turnMagnitude;
                 }
-                work->turnRate = angle / 16;
-                if (work->turnRate < 0x20)
-                    work->turnRate = 0x20;
-                return result | 1;
+                work->turnRate = targetYaw / 16;
+                if (work->turnRate < ACTOR_01600_MIN_TURN_STEP)
+                    work->turnRate = ACTOR_01600_MIN_TURN_STEP;
+                return result | ACTOR_01600_HEADING_DIRECT;
             }
             work->pathSearchPhase++;
             break;
         case ACTOR_01600_PATH_SEARCH_BEGIN_SWEEP:
-            work->probeYaw      = -0x71;
+            // Seed the first sample at zero yaw and empty the full eight-arc table.
+            work->probeYaw      = -ACTOR_01600_PROBE_YAW_STEP;
             work->clearArcCount = 0;
-            work->sweepDegrees  = -10;
-            for (i = 0; i < ARRAY_SIZE(work->clearArcs); i++) {
-                work->clearArcs[i].startYaw = ACTOR_01600_CLEAR_ARC_UNSET;
-                work->clearArcs[i].endYaw   = ACTOR_01600_CLEAR_ARC_UNSET;
+            work->sweepDegrees  = -ACTOR_01600_PROBE_DEGREE_STEP;
+            for (arcIndex = 0; arcIndex < ARRAY_SIZE(work->clearArcs); arcIndex++) {
+                work->clearArcs[arcIndex].startYaw = ACTOR_01600_CLEAR_ARC_UNSET;
+                work->clearArcs[arcIndex].endYaw   = ACTOR_01600_CLEAR_ARC_UNSET;
             }
-            Actor01600_Fn04C64(arg0, 2000, 0);
+            _actor01600StepPathProbe(actor, ACTOR_01600_PROBE_REACH, 0);
             work->pathSearchPhase++;
             break;
         case ACTOR_01600_PATH_SEARCH_SWEEP:
-            result = Actor01600_Fn04C64(arg0, 2000, 0);
+            result = _actor01600StepPathProbe(actor, ACTOR_01600_PROBE_REACH, 0);
             if (result & 0xFF) {
                 if (!work->clearArcCount)
-                    return 0xFF;
+                    return ACTOR_01600_HEADING_BLOCKED;
                 work->pathSearchPhase++;
             } else
-                return 0;
+                return ACTOR_01600_HEADING_PENDING;
             break;
         case ACTOR_01600_PATH_SEARCH_CHOOSE_ARC:
-            angle = Actor01600_Fn045A8(arg0, &distance);
-            if (angle < 0)
-                angle += 0x1000;
-            mag               = work->clearArcCount;
+            // Wide arcs choose their nearer edge; narrow arcs choose the midpoint.
+            targetYaw = _actor01600MeasureTarget(actor, &targetDistance);
+            if (targetYaw < 0)
+                targetYaw += ACTOR_TRANSFORM_ANGLE_TURN;
+            clearArcCount     = work->clearArcCount;
             work->turnRequest = 0;
-            if (mag == 1) {
+            if (clearArcCount == 1) {
                 s32 endYaw   = work->clearArcs[0].endYaw;
                 s32 startYaw = work->clearArcs[0].startYaw;
 
-                span = endYaw - startYaw;
-                if (span >= 0x400) {
-                    span     = __builtin_abs(angle - endYaw);
-                    midpoint = __builtin_abs(angle - startYaw);
-                    if (span < midpoint)
+                arcSpanOrEndDistance = endYaw - startYaw;
+                if (arcSpanOrEndDistance >= ACTOR_01600_WIDE_ARC) {
+                    arcSpanOrEndDistance       = __builtin_abs(targetYaw - endYaw);
+                    arcMidpointOrStartDistance = __builtin_abs(targetYaw - startYaw);
+                    if (arcSpanOrEndDistance < arcMidpointOrStartDistance)
                         work->turnRequest = endYaw;
                     else
                         work->turnRequest = startYaw;
                 } else
-                    work->turnRequest = startYaw + span / 2;
+                    work->turnRequest = startYaw + arcSpanOrEndDistance / 2;
             } else {
-                best = 0xFFFF;
-                i    = 0;
-                if (mag > 0) {
-                    circle = 0x1000;
-                    count  = mag;
+                bestDistance = ACTOR_01600_HEADING_BEST_UNSET;
+                arcIndex     = 0;
+                if (clearArcCount > 0) {
+                    fullTurn = ACTOR_TRANSFORM_ANGLE_TURN;
+                    arcCount = clearArcCount;
                     do {
-                        s32 endYaw   = work->clearArcs[i].endYaw;
-                        s32 startYaw = work->clearArcs[i].startYaw;
+                        s32 endYaw   = work->clearArcs[arcIndex].endYaw;
+                        s32 startYaw = work->clearArcs[arcIndex].startYaw;
 
-                        span     = endYaw - startYaw;
-                        midpoint = startYaw + span / 2;
-                        if (midpoint < 0x780 || midpoint > 0x880) {
-                            turn      = __builtin_abs(angle - midpoint);
-                            other     = circle - turn;
-                            direction = 0;
-                            if (other < turn)
-                                turn = other;
+                        arcSpanOrEndDistance       = endYaw - startYaw;
+                        arcMidpointOrStartDistance = startYaw + arcSpanOrEndDistance / 2;
+                        // Exclude arc midpoints close to directly behind the scavenger.
+                        if (arcMidpointOrStartDistance < ACTOR_01600_REAR_ARC_MIN || arcMidpointOrStartDistance > ACTOR_01600_REAR_ARC_MAX) {
+                            candidateDistance  = __builtin_abs(targetYaw - arcMidpointOrStartDistance);
+                            wrappedDistance    = fullTurn - candidateDistance;
+                            candidateDirection = 0;
+                            if (wrappedDistance < candidateDistance)
+                                candidateDistance = wrappedDistance;
                             else
-                                direction = 0x80;
-                            if (turn < best) {
-                                flags = direction;
-                                best  = turn;
-                                if (span >= 0x400) {
-                                    s32 endYaw   = work->clearArcs[i].endYaw;
-                                    s32 startYaw = work->clearArcs[i].startYaw;
+                                candidateDirection = ACTOR_01600_HEADING_DIRECTION;
+                            if (candidateDistance < bestDistance) {
+                                directionFlags = candidateDirection;
+                                bestDistance   = candidateDistance;
+                                if (arcSpanOrEndDistance >= ACTOR_01600_WIDE_ARC) {
+                                    s32 endYaw   = work->clearArcs[arcIndex].endYaw;
+                                    s32 startYaw = work->clearArcs[arcIndex].startYaw;
 
-                                    span     = __builtin_abs(angle - endYaw);
-                                    midpoint = __builtin_abs(angle - startYaw);
-                                    if (span < midpoint)
-                                        midpoint = endYaw;
+                                    arcSpanOrEndDistance       = __builtin_abs(targetYaw - endYaw);
+                                    arcMidpointOrStartDistance = __builtin_abs(targetYaw - startYaw);
+                                    if (arcSpanOrEndDistance < arcMidpointOrStartDistance)
+                                        arcMidpointOrStartDistance = endYaw;
                                     else
-                                        midpoint = startYaw;
+                                        arcMidpointOrStartDistance = startYaw;
                                 }
-                                work->turnRequest = midpoint;
+                                work->turnRequest = arcMidpointOrStartDistance;
                             }
                         }
-                        i++;
-                    } while (i < count);
+                        arcIndex++;
+                    } while (arcIndex < arcCount);
                 }
             }
-            if (work->turnRequest > 0x800)
-                work->turnRequest -= 0x1000;
-            else if (work->turnRequest < -0x800)
-                work->turnRequest += 0x1000;
-            gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &dir);
-            ratan2(dir.vx, dir.vz);
-            angle = __builtin_abs(work->turnRequest);
-            if (angle > 0x800)
-                angle = 0x1000 - angle;
-            work->turnRate = angle / 16;
-            if (work->turnRate < 0x20)
-                work->turnRate = 0x20;
-            return flags | 2;
+            if (work->turnRequest > ACTOR_TRANSFORM_ANGLE_HALF_TURN)
+                work->turnRequest -= ACTOR_TRANSFORM_ANGLE_TURN;
+            else if (work->turnRequest < -ACTOR_TRANSFORM_ANGLE_HALF_TURN)
+                work->turnRequest += ACTOR_TRANSFORM_ANGLE_TURN;
+            gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &facingAxis);
+            ratan2(facingAxis.vx, facingAxis.vz);
+            targetYaw = __builtin_abs(work->turnRequest);
+            if (targetYaw > ACTOR_TRANSFORM_ANGLE_HALF_TURN)
+                targetYaw = ACTOR_TRANSFORM_ANGLE_TURN - targetYaw;
+            work->turnRate = targetYaw / 16;
+            if (work->turnRate < ACTOR_01600_MIN_TURN_STEP)
+                work->turnRate = ACTOR_01600_MIN_TURN_STEP;
+            return directionFlags | ACTOR_01600_HEADING_ARC;
     }
-    return 0;
+    return ACTOR_01600_HEADING_PENDING;
 }
 
-static s32 Actor01600_Fn052C4(Task* arg0)
+/// Selects the nearer player-actor slot by horizontal distance, with ties going to the player.
+///
+/// Returns the player slot when either task is absent, including when only the
+/// companion exists. Distances use signed-halfword position differences; Y is
+/// stored in the temporary but excluded from the comparison. No task is retained.
+static s32 _actor01600SelectNearestPlayer(Task* actor)
 {
-    GfxCoord* coord;
-    GfxCoord* other;
-    SVECTOR   d;
-    s32       dist;
+    GfxCoord* rootCoord;
+    GfxCoord* playerCoord;
+    SVECTOR   offset;
+    s32       playerDistance;
 
-    coord = arg0->extra.tmd->coords;
+    rootCoord = actor->extra.tmd->coords;
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] != NULL) {
-        other = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
-        d.vx  = (u16)other->coord.t[0] - (u16)coord->coord.t[0];
-        d.vy  = (u16)other->coord.t[1] - (u16)coord->coord.t[1];
-        d.vz  = (u16)other->coord.t[2] - (u16)coord->coord.t[2];
-        dist  = SquareRoot0((d.vx * d.vx) + (d.vz * d.vz));
+        playerCoord    = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
+        offset.vx      = (u16)playerCoord->coord.t[0] - (u16)rootCoord->coord.t[0];
+        offset.vy      = (u16)playerCoord->coord.t[1] - (u16)rootCoord->coord.t[1];
+        offset.vz      = (u16)playerCoord->coord.t[2] - (u16)rootCoord->coord.t[2];
+        playerDistance = SquareRoot0((offset.vx * offset.vx) + (offset.vz * offset.vz));
         if (gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] != NULL) {
-            other = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
-            d.vx  = (u16)other->coord.t[0] - (u16)coord->coord.t[0];
-            d.vy  = (u16)other->coord.t[1] - (u16)coord->coord.t[1];
-            d.vz  = (u16)other->coord.t[2] - (u16)coord->coord.t[2];
-            return SquareRoot0((d.vx * d.vx) + (d.vz * d.vz)) < dist;
+            playerCoord = gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION]->extra.tmd->coords;
+            offset.vx   = (u16)playerCoord->coord.t[0] - (u16)rootCoord->coord.t[0];
+            offset.vy   = (u16)playerCoord->coord.t[1] - (u16)rootCoord->coord.t[1];
+            offset.vz   = (u16)playerCoord->coord.t[2] - (u16)rootCoord->coord.t[2];
+            return SquareRoot0((offset.vx * offset.vx) + (offset.vz * offset.vz)) < playerDistance;
         }
     }
     return 0;
 }
 
-static void Actor01600_Fn05400(Task* arg0)
+/// Activates an ordinary placement or stages a scavenger waiting for its wave cue.
+///
+/// Mode 0 links collision bodies and allocates primitive buffers. Mode 3 keeps
+/// the staged model visible; other waiting modes hide it and defer buffer allocation.
+/// Waiting placements are suspended, not lockable, and counted in the wave population.
+static void _actor01600InitPlacement(Task* actor)
 {
-    TmdObject*       obj;
-    TmdObject*       obj2;
-    TmdObject*       obj3;
-    TmdObject*       obj4;
-    s32              kind;
-    Enemy*           ctx;
+    TmdObject*       model;
+    TmdObject*       drawModel;
+    TmdObject*       hiddenModel;
+    TmdObject*       bufferModel;
+    s32              placementMode;
+    Enemy*           enemy;
     _Actor01600Work* work;
 
-    ctx  = arg0->spawnArg2.pointer;
-    kind = ctx->place->mode;
-    work = arg0->work;
-    switch (kind) {
-        case 0:
-            Actor01600_Fn00480(arg0);
-            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
-            obj          = arg0->extra.tmd;
-            obj->flags  &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            obj2         = arg0->extra.tmd;
-            obj2->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->active = 1;
+    enemy         = actor->spawnArg2.pointer;
+    placementMode = enemy->place->mode;
+    work          = actor->work;
+    switch (placementMode) {
+        case ACTOR_01600_PLACEMENT_ACTIVE:
+            _actor01600LinkCollisionBodies(actor);
+            tmdAllocPrimitiveBuffer(actor->extra.tmd);
+            model             = actor->extra.tmd;
+            model->flags     &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            drawModel         = actor->extra.tmd;
+            drawModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->active      = 1;
             return;
-        case 3:
-            work->entranceLeap          = 1;
-            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            work->active                = 0;
-            work->suspended             = 1;
-            work->scriptedRotation.vx   = 0;
-            work->scriptedRotation.vy   = (u16)ctx->place->yaw;
-            work->scriptedRotation.vz   = 0;
-            Actor01600_D12874          += 1;
+        case ACTOR_01600_PLACEMENT_SCRIPTED:
+            work->entranceLeap            = 1;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            work->active                  = 0;
+            work->suspended               = 1;
+            work->scriptedRotation.vx     = 0;
+            work->scriptedRotation.vy     = (u16)enemy->place->yaw;
+            work->scriptedRotation.vz     = 0;
+            Actor01600_D12874            += 1;
             return;
-        case 1:
-            work->reactionDelay = kind;
+        case ACTOR_01600_PLACEMENT_FIRST_WAVE:
+            work->reactionDelay = placementMode;
 
+        // The first wave also waits, but starts its cue delay at one frame.
         default:
-            obj3                        = arg0->extra.tmd;
-            obj3->flags                |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj4                        = arg0->extra.tmd;
-            obj4->flags                |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->entranceLeap          = 1;
-            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            work->shadowHidden          = 1;
-            work->active                = 0;
-            work->suspended             = 1;
-            Actor01600_D12874          += 1;
+            hiddenModel                   = actor->extra.tmd;
+            hiddenModel->flags           |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bufferModel                   = actor->extra.tmd;
+            bufferModel->flags           |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->entranceLeap            = 1;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            work->shadowHidden            = 1;
+            work->active                  = 0;
+            work->suspended               = 1;
+            Actor01600_D12874            += 1;
             return;
     }
 }
@@ -4114,7 +4247,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
     switch (kind) {
         case 1:
         case 2:
-            Actor01600_Fn03A60(arg0);
+            _actor01600StepTurn(arg0);
             if ((u32)((u8)gSceneCombatState.actor01600Wave - 1) >= 2U) {
                 goto running;
             }
@@ -4155,7 +4288,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             }
             ctx->node.state.parts.flags = 0;
             work->active                = 1;
-            Actor01600_Fn00480(arg0);
+            _actor01600LinkCollisionBodies(arg0);
             if (gSceneCombatState.actor01600Wave == 1) {
                 work->bodySphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             }
@@ -4173,7 +4306,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
         case 3:
             if (gSceneCombatState.actor01600Wave == kind) {
                 if ((u8)params->variant == 1) {
-                    Actor01600_Fn06FDC(arg0, 1);
+                    _actor01600Remove(arg0, 1);
                 running:
                     return 1;
                 }
@@ -4181,7 +4314,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
                 work->reactionDelay = countdown2;
                 if ((countdown2 << 0x10) == 0) {
                     ctx->node.state.parts.flags = 0;
-                    Actor01600_Fn00480(arg0);
+                    _actor01600LinkCollisionBodies(arg0);
                     work->attackAction    = ACTOR_01600_ACTION_LUNGE_RECOVER;
                     work->active          = 1;
                     work->behavior        = ACTOR_01600_BEHAVIOR_ATTACK;
@@ -4197,7 +4330,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             if (arg0->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) {
                 goto running;
             }
-            Actor01600_Fn03D48(arg0);
+            _actor01600StepAnimation(arg0);
             Actor01600_Fn05F80(arg0);
             if (work->colorRefresh != 0) {
                 update_actor_color(ctx, arg0->extra.tmd->coords + 1);
@@ -4216,7 +4349,7 @@ static s32 Actor01600_Fn05558(Task* arg0)
             }
             ctx->node.state.parts.flags = 0;
             work->active                = 1;
-            Actor01600_Fn00480(arg0);
+            _actor01600LinkCollisionBodies(arg0);
             tmdAllocPrimitiveBuffer(arg0->extra.tmd);
             obj3                  = arg0->extra.tmd;
             obj3->flags          &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
@@ -4239,24 +4372,43 @@ static s32 Actor01600_Fn05558(Task* arg0)
     }
 }
 
-s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
+/// Applies a borrowed scene command to this placement's staged animation and visibility.
+///
+/// Commands 1..7 cue variant-specific poses, visibility or the final wave;
+/// command 8 releases rewards and destroys the task. The command context is
+/// ignored. Returns 0 for recognized commands and -1 otherwise. Message ID
+/// and the second payload are unused; the request need only live through dispatch.
+static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorCommand* request, s32 unusedArg)
 {
-    SVECTOR          rot;
-    Enemy*           ctx;
-    _Actor01600Work* work;
-    GfxCoord*        coord;
-    TmdObject*       obj;
-    u32              variant;
+    // The room cues have variant-specific animation responses.
+    enum {
+        ACTOR_01600_COMMAND_CUE_1            = 1,
+        ACTOR_01600_COMMAND_CUE_2            = 2,
+        ACTOR_01600_COMMAND_CUE_3            = 3,
+        ACTOR_01600_COMMAND_CUE_4            = 4,
+        ACTOR_01600_COMMAND_REFRESH_COLOR    = 5,
+        ACTOR_01600_COMMAND_BEGIN_FINAL_WAVE = 6,
+        ACTOR_01600_COMMAND_HIDE             = 7,
+        ACTOR_01600_COMMAND_DESTROY          = 8,
+        ACTOR_01600_WAVE_FINAL               = 3,
+    };
 
-    ctx     = arg0->spawnArg2.pointer;
-    coord   = arg0->extra.tmd->coords;
-    work    = arg0->work;
-    variant = ctx->place->variant;
+    SVECTOR          rotation;
+    Enemy*           enemy;
+    _Actor01600Work* work;
+    GfxCoord*        rootCoord;
+    TmdObject*       model;
+    u32              placementVariant;
+
+    enemy            = actor->spawnArg2.pointer;
+    rootCoord        = actor->extra.tmd->coords;
+    work             = actor->work;
+    placementVariant = enemy->place->variant;
 
     switch (request->command) {
-        case 1:
+        case ACTOR_01600_COMMAND_CUE_1:
             work->colorRefresh = 1;
-            if (variant == 2) {
+            if (placementVariant == 2) {
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->animFrame     = 0;
                 work->animPlaying   = 0;
@@ -4264,33 +4416,33 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                 work->scriptedAnim  = 9;
                 work->scriptedDelay = (gRandomLcgState >> 16) % 20;
             }
-            if (variant == 4) {
+            if (placementVariant == 4) {
                 work->animRequest = 0x11;
                 work->animPlaying = 0;
             }
-            if (variant == 3) {
-                work->animRequest = 0x11;
-                work->animPlaying = 0;
-                coord->coord.t[0] = 0x4021;
-                coord->coord.t[1] = -0x190;
-                coord->coord.t[2] = -0x6C0;
-                rot.vx            = 0;
-                rot.vy            = 0x600;
-                rot.vz            = 0;
-                RotMatrix(&rot, &coord->coord);
-                obj         = arg0->extra.tmd;
-                obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                obj         = arg0->extra.tmd;
-                obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            if (placementVariant == 3) {
+                work->animRequest     = 0x11;
+                work->animPlaying     = 0;
+                rootCoord->coord.t[0] = 0x4021;
+                rootCoord->coord.t[1] = -0x190;
+                rootCoord->coord.t[2] = -0x6C0;
+                rotation.vx           = 0;
+                rotation.vy           = 0x600;
+                rotation.vz           = 0;
+                RotMatrix(&rotation, &rootCoord->coord);
+                model         = actor->extra.tmd;
+                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                model         = actor->extra.tmd;
+                model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;
-        case 2:
+        case ACTOR_01600_COMMAND_CUE_2:
             work->colorRefresh = 1;
-            if (variant == 1) {
+            if (placementVariant == 1) {
                 work->animRequest = 0x1A;
                 work->animPlaying = 0;
             }
-            if (variant == 2) {
+            if (placementVariant == 2) {
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->animFrame     = 0;
                 work->animPlaying   = 0;
@@ -4298,26 +4450,26 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                 work->scriptedAnim  = 9;
                 work->scriptedDelay = (gRandomLcgState >> 16) % 20;
             }
-            if (variant == 3) {
-                obj         = arg0->extra.tmd;
-                obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                obj         = arg0->extra.tmd;
-                obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            if (placementVariant == 3) {
+                model         = actor->extra.tmd;
+                model->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+                model         = actor->extra.tmd;
+                model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             break;
-        case 3:
+        case ACTOR_01600_COMMAND_CUE_3:
             work->colorRefresh = 1;
-            if ((u32)(variant - 1) < 4) {
-                obj         = arg0->extra.tmd;
-                obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                obj         = arg0->extra.tmd;
-                obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            if ((u32)(placementVariant - 1) < 4) {
+                model         = actor->extra.tmd;
+                model->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+                model         = actor->extra.tmd;
+                model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            if (variant == 1) {
+            if (placementVariant == 1) {
                 work->animRequest = 9;
                 work->animPlaying = 0;
             }
-            if (variant == 2) {
+            if (placementVariant == 2) {
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->animFrame     = 0;
                 work->animPlaying   = 0;
@@ -4326,54 +4478,54 @@ s32 Actor01600_Fn05B08(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
                 work->scriptedDelay = (gRandomLcgState >> 16) % 20;
             }
             break;
-        case 4:
+        case ACTOR_01600_COMMAND_CUE_4:
             work->colorRefresh = 1;
-            if (variant == 1) {
-                work->animRequest = 0xFF;
+            if (placementVariant == 1) {
+                work->animRequest = ACTOR_01600_ANIMATION_NONE;
                 work->animPlaying = 0;
                 work->animFrame   = 0;
             }
-            if (variant == 2) {
+            if (placementVariant == 2) {
                 work->animRequest   = 3;
                 work->scriptedDelay = 0xA;
                 work->animFrame     = 0;
                 work->animPlaying   = 0;
                 work->scriptedAnim  = 7;
             }
-            if (variant == 4) {
+            if (placementVariant == 4) {
                 work->animFrame     = 0;
                 work->scriptedDelay = 7;
                 work->scriptedAnim  = 7;
             }
             break;
-        case 5:
+        case ACTOR_01600_COMMAND_REFRESH_COLOR:
             work->colorRefresh = 1;
             break;
-        case 6:
+        case ACTOR_01600_COMMAND_BEGIN_FINAL_WAVE:
             work->colorRefresh = 1;
-            if (variant == 3) {
-                Actor01600_Fn06FDC(arg0, 0);
+            if (placementVariant == 3) {
+                _actor01600Remove(actor, 0);
             }
-            if (variant == 2 || variant == 4) {
-                obj         = arg0->extra.tmd;
-                obj->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                obj         = arg0->extra.tmd;
-                obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            if (placementVariant == 2 || placementVariant == 4) {
+                model         = actor->extra.tmd;
+                model->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+                model         = actor->extra.tmd;
+                model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            gSceneCombatState.actor01600Wave = 3;
+            gSceneCombatState.actor01600Wave = ACTOR_01600_WAVE_FINAL;
             break;
-        case 7:
+        case ACTOR_01600_COMMAND_HIDE:
             work->colorRefresh = 1;
-            if ((u32)(variant - 1) < 4) {
-                obj         = arg0->extra.tmd;
-                obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                obj         = arg0->extra.tmd;
-                obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            if ((u32)(placementVariant - 1) < 4) {
+                model         = actor->extra.tmd;
+                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                model         = actor->extra.tmd;
+                model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             }
             break;
-        case 8:
-            sceneReleaseBattleRefWithRewards(arg0, 0x10);
-            enemyDestroy(ctx, arg0);
+        case ACTOR_01600_COMMAND_DESTROY:
+            sceneReleaseBattleRefWithRewards(actor, 0x10);
+            enemyDestroy(enemy, actor);
             Actor01600_D12874 -= 1;
             break;
         default:
@@ -4481,7 +4633,7 @@ static void Actor01600_Fn05F80(Task* arg0)
                     }
                 }
                 if ((s16)work->animFrame >= 0x12) {
-                    Actor01600_Fn06FDC(arg0, 0);
+                    _actor01600Remove(arg0, 0);
                 }
                 work->animFrame += 1;
                 break;
@@ -4767,7 +4919,7 @@ static s32 Actor01600_Fn06C1C(Task* arg0)
 
     work                        = arg0->work;
     work->pathProbe.body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    Actor01600_Fn04EB0(arg0);
+    _actor01600SearchClearHeading(arg0);
     if (work->pathSearchPhase >= ACTOR_01600_PATH_SEARCH_BEGIN_SWEEP) {
         work->animRequest       = 0x19;
         work->alerted           = 0;
@@ -4829,7 +4981,7 @@ static s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
         angle = (arg1 >= 0 ? arg1 : -arg1);
         if (angle < 0x201) {
             work->pathProbe.body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            Actor01600_Fn04EB0(arg0);
+            _actor01600SearchClearHeading(arg0);
             handled = 0;
             if (work->pathSearchPhase >= ACTOR_01600_PATH_SEARCH_BEGIN_SWEEP) {
                 work->animRequest       = 0x19;
@@ -4863,32 +5015,38 @@ static s32 Actor01600_Fn06D74(Task* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-/// Tears the actor down: flags its context node dead (`field_4` = 1), clears
-/// `field_54`, unlinks the node from its list and unlinks the four collision
-/// bodies held in the work block, then hands the task to `enemyTaskExit`.
-static void Actor01600_Fn06EA4(Task* arg0)
+/// Unlinks the scavenger's target and collision bodies, then releases its task and enemy work.
+///
+/// The task's exit callback; also used after the dying state's exit delay.
+/// Clears the enemy's borrowed hit table before teardown. The task and enemy
+/// must not be accessed afterwards.
+static void _actor01600Exit(Task* actor)
 {
-    Enemy*           ctx;
+    Enemy*           enemy;
     _Actor01600Work* work;
 
-    ctx  = arg0->spawnArg2.pointer;
-    work = arg0->work;
+    enemy = actor->spawnArg2.pointer;
+    work  = actor->work;
 
-    ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    ctx->recs                   = 0;
-    worldTargetUnlinkNode(&ctx->node);
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->recs                   = 0;
+    worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->pathProbe.body);
     worldCollisionUnlinkBody(&work->sight.body);
     worldCollisionUnlinkBody(&work->bodySphere.body);
     worldCollisionUnlinkBody(&work->bite.body);
-    enemyTaskExit(arg0);
+    enemyTaskExit(actor);
 }
 
-static void Actor01600_Fn06F10(Task* arg0)
+/// Releases a held player from scripted control and resets the scavenger's grab motion.
+///
+/// Has no effect without a held target. Dispatch is synchronous; the grab target
+/// remains stored but is no longer owned by this hold.
+static void _actor01600ReleaseGrab(Task* actor)
 {
     _Actor01600Work* work;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->holdingTarget != 0) {
         taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         Actor01600_D127D8.animationId = 0;
@@ -4924,30 +5082,35 @@ static u8 Actor01600_Fn06F78(void)
     return 0;
 }
 
-static void Actor01600_Fn06FDC(Task* arg0, s32 arg1)
+/// Hides and removes a staged scavenger, releasing its battle rewards and wave count.
+///
+/// Only the low byte of `skipBodyUnlink` is tested: nonzero skips collision
+/// unlinking for a placement whose bodies were never linked. The task and enemy
+/// are destroyed before return and must not be used afterwards.
+static void _actor01600Remove(Task* actor, s32 skipBodyUnlink)
 {
     _Actor01600Work* work;
-    Enemy*           ctx;
-    TmdObject*       obj;
-    TmdObject*       obj2;
+    Enemy*           enemy;
+    TmdObject*       model;
+    TmdObject*       bufferModel;
 
-    obj         = arg0->extra.tmd;
-    ctx         = arg0->spawnArg2.pointer;
-    work        = arg0->work;
-    obj->flags  = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-    obj2        = arg0->extra.tmd;
-    obj2->flags = (u16)(obj2->flags | TMD_OBJECT_SKIP_AUTO_BUFFER);
-    ctx->recs   = 0;
-    worldTargetUnlinkNode(&ctx->node);
-    if (!(arg1 & 0xFF)) {
+    model              = actor->extra.tmd;
+    enemy              = actor->spawnArg2.pointer;
+    work               = actor->work;
+    model->flags       = (u16)(model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
+    bufferModel        = actor->extra.tmd;
+    bufferModel->flags = (u16)(bufferModel->flags | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    enemy->recs        = 0;
+    worldTargetUnlinkNode(&enemy->node);
+    if (!(skipBodyUnlink & 0xFF)) {
         worldCollisionUnlinkBody(&work->pathProbe.body);
         worldCollisionUnlinkBody(&work->sight.body);
         worldCollisionUnlinkBody(&work->bodySphere.body);
         worldCollisionUnlinkBody(&work->bite.body);
     }
-    worldCoordSetActorColorMode(ctx, ENEMY_COLOR_WEIGHTED);
-    sceneReleaseBattleRefWithRewards(arg0, 0x10);
-    enemyDestroy(ctx, arg0);
+    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
+    sceneReleaseBattleRefWithRewards(actor, 0x10);
+    enemyDestroy(enemy, actor);
     Actor01600_D12874 -= 1;
 }
 
@@ -4971,8 +5134,16 @@ static void Actor01600_Fn070AC(Task* arg0, Task* arg1)
     }
 }
 
-s32 Actor01600_Fn07100(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Makes the current grab end on its next bite-count check.
+///
+/// Handles `ACTOR_MESSAGE_RELEASE_HOLD` without payloads and always returns 0.
+/// The count is set even when no grab is active; this does not release a target immediately.
+static s32 _actor01600HandleReleaseHold(Task* actor, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    ((_Actor01600Work*)arg0->work)->grabBiteCount = 6;
+    enum { ACTOR_01600_GRAB_RELEASE_COUNT = 6 };
+
+    _Actor01600Work* work = actor->work;
+
+    work->grabBiteCount = ACTOR_01600_GRAB_RELEASE_COUNT;
     return 0;
 }

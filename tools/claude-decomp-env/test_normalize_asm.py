@@ -16,7 +16,7 @@ class JumpTableNormalizationTest(unittest.TestCase):
 
     def test_other_actor_symbols_are_preserved(self):
         for normalize in (normalize_score, normalize_diff):
-            for symbol in ("Actor01600_Fn04EB0", "Actor01600_D001BC", "Actor01600_Jt001BC_extra"):
+            for symbol in ("_actor01600SearchClearHeading", "Actor01600_D001BC", "Actor01600_Jt001BC_extra"):
                 self.assertEqual(normalize(symbol), symbol)
 
 

@@ -75336,7 +75336,7 @@ words were already identical; only this spelling changed the schedule.
 `func_actor_405800_80137A60` (98.87% → 100%).
 
 
-## Actor01600_Fn0131C: splitting a shared pan temporary restores local allocation (GCC 2.8.1)
+## _actor01600ApplyDamage: splitting a shared pan temporary restores local allocation (GCC 2.8.1)
 
 A duplicated pair of sound-call tails scored 98% with regs=2/reorder=2. Both branches assigned the signed-byte pan to one s32 local; `.lreg` listed this pseudo r84 across blocks and `.greg` allocated it globally to s0, while the preceding shift temporary remained v0. Inlining only the first branch pan call split the result into block-local pseudos. `.lreg` then assigned both shift chains to s0, and `.greg` retained the id in s1 and coordinate in s2. `.dbr` put the arithmetic shift into the depth call delay slot. A preplanned controlled build (base_3) reproduced 100% without the permuter's unrelated pointer-alias mutation; the typed header port (base_4) also matched.
 
@@ -75346,7 +75346,7 @@ base_2.c preprocessed SHA256: daad989db6079dc54d1d51703e3c957aa4e78d16af44abc1b6
 
 base_3.c preprocessed SHA256: bf0383dfd910253bae5e7174b09d0f4e7c55fc62615c14cb490b932d4b7891f3.
 
-Evidence: tools/permuter_findings/Actor01600_Fn0131C/, run ba845fdbf0024d32, retained PERMUTER_ANALYSIS.md, prediction journal and base_3 RTL/allocation/delay dumps.
+Evidence: tools/permuter_findings/_actor01600ApplyDamage/, run ba845fdbf0024d32, retained PERMUTER_ANALYSIS.md, prediction journal and base_3 RTL/allocation/delay dumps.
 
 
 ## Actor01600_Fn06D74: define the narrow constant first to enable a later register copy
@@ -103937,9 +103937,9 @@ Inputs: `base.i`
 `dc2abb0341e4ff2df80a38174066942cdd58842df27d7efe1d7187d1bc6a4dec`.
 Scratch `nonmatchings/Actor01600_Fn06974-vacuum`.
 
-## Both arms storing to the *same* stack offsets is one reused local, not two (Actor01600_Fn052C4, 2026-09-16)
+## Both arms storing to the *same* stack offsets is one reused local, not two (_actor01600SelectNearestPlayer, 2026-09-16)
 
-`Actor01600_Fn052C4` measures the XZ distance to each of the two `gPlayerActorTasks`
+`_actor01600SelectNearestPlayer` measures the XZ distance to each of the two `gPlayerActorTasks`
 actors and returns which slot is nearer. Writing the two branches with their own
 scratch vector — `SVECTOR d0; SVECTOR d1;`, one per branch — scored 99.304% with
 `regs=11` and every emitted instruction correct. The diff was six lines: the
@@ -103951,7 +103951,7 @@ and `0x14` as well. Two locals of an aggregate type cannot share a slot —
 `assign_stack_local` advances the frame offset once per `expand_decl`, with no
 reuse between distinct variables — so identical offsets in both arms mean the
 source declares **one** vector and overwrites it. Collapsing to a single
-`SVECTOR d` written before each use took it to 100.000%, all penalties zero.
+`SVECTOR offset` written before each use took it to 100.000%, all penalties zero.
 
 This is the mirror of the "target frame is larger" entries: there an unused
 aggregate explains frame the C does not have, here a *duplicated* one explains
@@ -103961,7 +103961,7 @@ your frame is 8 (or 16) bytes too big and the gap is exactly the size of one
 more slot than the target needs, count the locals the source declares of that
 type rather than reaching for an unused one.
 
-A useful side-effect of the bug: the dead `d.vy` term is *load-bearing* here.
+A useful side-effect of the bug: the dead `offset.vy` term is *load-bearing* here.
 The Y difference is computed into the scratch vector and never enters the
 `SquareRoot0` sum, so a tidy rewrite that drops it loses four instructions per
 branch. m2c's seed had dropped it and stored nothing (80.73%, `delete=14`).
@@ -103973,7 +103973,7 @@ Inputs: `base.i`
 `dcba4392e393b46642e456aaed9a247fbfa57b0c4d00267a61382d4d3ba7d331` (two vectors, 99.304%),
 `base_2.i`
 `f13eb9f96bb853f83bf88657dd9c32831bfac4205939bf37fe97745dc143695a` (one vector, 100.000%).
-Scratch `nonmatchings/Actor01600_Fn052C4-vacuum`.
+Scratch `nonmatchings/_actor01600SelectNearestPlayer-vacuum`.
 
 ## A 16-bit temporary is an HImode pseudo, and a store of it costs a second load (Actor01600_Fn05F80, 2026-09-16)
 
@@ -104136,9 +104136,9 @@ Inputs: `base_1.i`
 `5d4a1d61308ba174182b504f827b670cbc73ad669f0590f72a89fdea4735a12d`
 (100.000%). Scratch `nonmatchings/Actor01600_Fn06A84-vacuum`.
 
-## A callee with no prototype is a `call_value`, and the `$v0` it defines re-homes the epilogue (Actor01600_Fn04C64, 2026-09-16)
+## A callee with no prototype is a `call_value`, and the `$v0` it defines re-homes the epilogue (_actor01600StepPathProbe, 2026-09-16)
 
-`Actor01600_Fn04C64` ends with `worldCollisionClearContacts(work->pathProbe.contacts)` and the
+`_actor01600StepPathProbe` ends with `worldCollisionClearContacts(work->pathProbe.contacts)` and the
 target's tail reads:
 
 ```
@@ -104174,7 +104174,7 @@ the callee undeclared — with a comment saying why, so the next reader does not
 Inputs: `base_7.i` (100.000%) SHA256 `c550579a33aa262c076f86b59ce83117363b546ad9b8213f3c9a2f3936330cb9`;
 target SHA256 `4f7afbfde205f7117829679e1b300cf0fb2077d86cda0e853d112a8212b85b59`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor01600_Fn04C64-vacuum`.
+Scratch `nonmatchings/_actor01600StepPathProbe-vacuum`.
 ## A lone `reorder=1` in the prologue, part 2: per-element stores to a local function-pointer array hoist the first `lui`; the aggregate initializer does not (Actor00400_Fn09260, 2026-09-16)
 
 `Actor00400_Fn09260` is a byte-for-byte copy of the matched `Actor00400_Fn078C8`
@@ -131725,9 +131725,9 @@ first choice: any dead write in another block that `combine` can fold - a
 comparison consumed by a branch is the reliable one - reclassifies the pseudo
 without costing an instruction.
 
-## An asm that emits the instruction anyway can name a pointer twice, buying a reference with no insn (Actor01600_Fn045A8, 2026-09-18)
+## An asm that emits the instruction anyway can name a pointer twice, buying a reference with no insn (_actor01600MeasureTarget, 2026-09-18)
 
-`Actor01600_Fn045A8` allocates a block below the scratchpad head, writes a
+`_actor01600MeasureTarget` allocates a block below the scratchpad head, writes a
 direction vector at negative offsets from the *head*, and writes a horizontal
 delta through the *allocated* pointer. Two callee-saved registers came out
 swapped: the coordinate the head reads from took `$s4` and the scratch pointer
@@ -131760,7 +131760,7 @@ one reference: `2*5/32 = 3125`, and the allocation lands. An output operand also
 keeps the asm out of the implicitly-volatile class that GCC 2.8.1 puts
 no-output asm in, so it is not a scheduling barrier.
 
-## An empty asm inserted into a block absorbs a load-delay slot and shifts every free insn by one (Actor01600_Fn045A8, 2026-09-18)
+## An empty asm inserted into a block absorbs a load-delay slot and shifts every free insn by one (_actor01600MeasureTarget, 2026-09-18)
 
 The obvious way to add that reference is `__asm__("" : "+r"(p))`, which emits
 nothing and adds two. It flips the allocation exactly as predicted - and costs
@@ -131774,7 +131774,7 @@ help - two placements inside the same block produced byte-identical output -
 and giving it a late operand to raise its priority moves the copy instead.
 Judge an empty asm by what its slot displaces, not by the instructions it emits.
 
-## Two stores keep their RTL order, so a statement split decides where the second one lands (Actor01600_Fn045A8, 2026-09-18)
+## Two stores keep their RTL order, so a statement split decides where the second one lands (_actor01600MeasureTarget, 2026-09-18)
 
 sched will not reorder two stores it cannot prove independent, so their emitted
 order is their source order - but *how far apart* they land is decided by
@@ -131795,9 +131795,9 @@ subtraction outranks it on priority and is placed after it, which is the ROM's
 order. A statement split is the lever whenever a store has to sit inside another
 statement's expansion.
 
-## Head-relative offsets into a reserved scratch block are an inlined helper on a nested member (Actor01600_Fn045A8, 2026-10-04)
+## Head-relative offsets into a reserved scratch block are an inlined helper on a nested member (_actor01600MeasureTarget, 2026-10-04)
 
-The three entries above steer `Actor01600_Fn045A8` with asm and statement
+The three entries above steer `_actor01600MeasureTarget` with asm and statement
 splits. None of it is needed. The block is 0x7C bytes and its top 0x40 have
 exactly the layout of `ActorBearingScratch` (`include/actors/actor.h`), the
 block `_actorAngleBearingInFrame` works in for `actor_07000`, `actor_01100` and
@@ -131806,8 +131806,8 @@ on it,
 
 ```c
 scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorRangeBearingScratch);
-angle   = _actorAngleBearingInFrame(&scratch->bearing, coord, other);
-scratch->offset.vx = other->coord.t[0] - coord->coord.t[0];
+relativeYaw = _actorAngleBearingInFrame(&scratch->bearing, rootCoord, targetCoord);
+scratch->offset.vx = targetCoord->coord.t[0] - rootCoord->coord.t[0];
 ```
 
 matches outright: the inlined `scratch` parameter is `head - 0x40`, so its
@@ -132447,7 +132447,7 @@ and the arm that returns a different constant (`default: return -1;`) branches
 So a `j <addr>` whose destination is a lone `move $v0,$zero` followed by the
 register restores, with one branch to `<addr>+4`, is the target telling you the
 source used `break` and a single trailing `return`. Converting the arms from
-`return 0;` to `break;` on `Actor01600_Fn05B08` moved 96.3% -> 97.9% and cleared
+`return 0;` to `break;` on `_actor01600HandleCommand` moved 96.3% -> 97.9% and cleared
 `branch`, `reorder` and most of `insert`/`delete` in one edit; no register work
 had any effect while the tail was wrong.
 
@@ -132462,7 +132462,7 @@ copy carries `REG_EQUIV (mem <arg slot>)`, and `update_equiv_regs` doubles its
 function therefore ranks *below* a short-lived pointer loaded out of it, and the
 allocator hands the lower `$sN` to the pointer.
 
-In `Actor01600_Fn05B08` the actor parameter had 15 refs over a doubled 296
+In `_actor01600HandleCommand` the actor parameter had 15 refs over a doubled 296
 insns (priority 1520) against the context pointer's 3 refs over 17 (1764), so
 the context took `$s1`. Neither side is movable by ordinary means: the context's
 live span is fixed by the jump table and its one use after the call, and
@@ -143872,7 +143872,7 @@ matches as a switch whose cases each `return` an inline lookup of their own
 table. The extension each case keeps in `s0`, and the one case that re-extends
 with `sll 16; sra 15`, come from those per-case copies, which jump2 then
 cross-jumps into one tail.
-## A pair of loads kept in source order: give each its own set-once local instead of `volatile` (Actor01600_Fn04EB0, 2026-09-26)
+## A pair of loads kept in source order: give each its own set-once local instead of `volatile` (_actor01600SearchClearHeading, 2026-09-26)
 
 A loop head read `high` then `low` from one range and the target kept that
 order. The tree forced it with `*(volatile s32*)&...` on both loads, because
@@ -148758,7 +148758,7 @@ where it was. Reusing another local for the load (`placeIndex`, `hp`,
 
 ## Five asm barriers measured and left (2026-10-05)
 
-- `Actor01600_Fn04EB0` (`TOUCH_REG(callAngle)`). Needs `callAngle = v0` to stay
+- `_actor01600SearchClearHeading` (`TOUCH_REG(callAngle)`). Needs `callAngle = v0` to stay
   above the next call's `a0 = arg0` copy, so that `arg0` conflicts with the
   block-local angle in `$s0` and takes `$s2`. Unpinned the copy is
   birth-promoted below it and `arg0`/`flags` swap. Reusing `flags` for the
@@ -151798,7 +151798,7 @@ in `.lreg` against the insns that mention the pseudo: a surplus is a set/use
 pair combine merged. The same stale count is why a local reused for a second
 value (Gp_UpdatePlayerMove) outranks two separate locals.
 
-### A call's result that must stay above the next call's arguments: a result variable shared with another `case` (Actor01600_Fn04EB0, 2026-10-07)
+### A call's result that must stay above the next call's arguments: a result variable shared with another `case` (_actor01600SearchClearHeading, 2026-10-07)
 
 **Problem.** `x = f(a, &d); g(a, d, x); p->field = x;` in one `case`. The
 target has `move s0,v0` first, then `move a0,s2`, and `a` in `$s2`, the
