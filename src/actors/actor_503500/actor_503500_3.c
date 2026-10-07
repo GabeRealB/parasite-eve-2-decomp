@@ -2767,7 +2767,7 @@ static void func_actor_503500_801374BC(Task* arg0)
 static void func_actor_503500_80137678(Task* arg0)
 {
     SVECTOR                           rot;
-    GfxMatrix                         m;
+    MATRIX                            m;
     _Actor503500PinkFlashEmitterWork* work;
     Enemy*                            enemy;
     GfxCoord*                         coord;
@@ -2809,12 +2809,12 @@ static void func_actor_503500_80137678(Task* arg0)
                 // Copy the nine coefficients as four words and a halfword; preserve the alignment halfword.
                 src   = (s32*)&m;
                 coord = arg0->extra.tmd->coords;
-                gfxComposeNodeWorldTransform(coord, &m.mat, &rot);
+                gfxComposeNodeWorldTransform(coord, &m, &rot);
                 out = (s32*)&coord->coord;
                 for (i = 0; i < 4; i++) {
                     *out++ = *src++;
                 }
-                coord->coord.m[2][2]         = m.mat.m[2][2];
+                coord->coord.m[2][2]         = m.m[2][2];
                 coord->coord.t[0]            = rot.vx;
                 coord->coord.t[1]            = rot.vy;
                 coord->coord.t[2]            = rot.vz;
@@ -2822,7 +2822,7 @@ static void func_actor_503500_80137678(Task* arg0)
                 work->velocity.fixed.vx.word = 0;
                 work->velocity.fixed.vy.word = 0;
                 work->velocity.fixed.vz.word = 0x100000;
-                ApplyMatrixLV(&m.mat, &work->velocity.vector, &work->velocity.vector);
+                ApplyMatrixLV(&m, &work->velocity.vector, &work->velocity.vector);
                 func_actor_503500_80135D00(arg0->parent, 0xC);
                 actorRenderComposeCoord(coord);
                 sndEvtRequestScriptStart(SOUND_BRAHMAN_PART_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
@@ -2864,16 +2864,16 @@ static void func_actor_503500_80137678(Task* arg0)
     rot.vx = work->spin.fixed.vx.word >> 16;
     rot.vy = work->spin.fixed.vy.word >> 16;
     rot.vz = work->spin.fixed.vz.word >> 16;
-    gfxSetRotIdentity(&m.mat);
-    RotMatrix(&rot, &m.mat);
+    gfxSetRotIdentity(&m);
+    RotMatrix(&rot, &m);
     gte_SetRotMatrix(&coord->coord);
-    gte_ldclmv(&m.mat);
+    gte_ldclmv(&m);
     gte_rtir();
     gte_stclmv(&coord->coord);
-    gte_ldclmv((char*)&m.mat + 2);
+    gte_ldclmv((char*)&m + 2);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 2);
-    gte_ldclmv((char*)&m.mat + 4);
+    gte_ldclmv((char*)&m + 4);
     gte_rtir();
     gte_stclmv((char*)&coord->coord + 4);
     work->positionCarry.fixed.vx.word += work->velocity.fixed.vx.word;
@@ -3185,7 +3185,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     GfxCoord*                   part;
     _Actor503500LargeChainWork* work;
     WorldCollisionContact*      rec;
-    GfxMatrix                   m;
+    MATRIX                      m;
     s32                         idx;
     s32                         i;
 
@@ -3202,9 +3202,9 @@ static void func_actor_503500_8013852C(Task* arg0)
     coord->coord.t[0] = D_actor_503500_8016F090[idx].vx;
     coord->coord.t[1] = D_actor_503500_8016F090[idx].vy;
     coord->coord.t[2] = D_actor_503500_8016F090[idx].vz;
-    gfxSetRotIdentity(&m.mat);
-    RotMatrix(&D_actor_503500_8016F0A0[idx], &m.mat);
-    MulMatrix0(&coord->coord, &m.mat, &coord->coord);
+    gfxSetRotIdentity(&m);
+    RotMatrix(&D_actor_503500_8016F0A0[idx], &m);
+    MulMatrix0(&coord->coord, &m, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     for (i = 1; i < ACTOR_503500_LARGE_CHAIN_PART_COUNT; i++) {
         work->bindPose[i] = coord[i].coord;
@@ -3314,7 +3314,7 @@ static void func_actor_503500_80138898(Task* arg0)
 static void func_actor_503500_80138A30(Task* arg0)
 {
     _Actor503500LargeChainWork* work;
-    GfxMatrix                   m;
+    MATRIX                      m;
     SVECTOR                     v;
     s32                         idx;
     s16                         hp;
@@ -3336,9 +3336,9 @@ static void func_actor_503500_80138A30(Task* arg0)
         func_actor_503500_8013ACC4(arg0, ACTOR_503500_LARGE_CHAIN_STATE_SHOOT);
         return;
     }
-    gfxSetRotIdentity(&m.mat);
-    RotMatrix(&work->tipOrbitAngles, &m.mat);
-    gte_SetRotMatrix(&m.mat);
+    gfxSetRotIdentity(&m);
+    RotMatrix(&work->tipOrbitAngles, &m);
+    gte_SetRotMatrix(&m);
     gte_ldv0(&D_actor_503500_8016F0C8);
     gte_rtv0();
     gte_stsv(&v);
