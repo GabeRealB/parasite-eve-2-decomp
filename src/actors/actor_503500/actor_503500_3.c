@@ -3177,13 +3177,6 @@ static const TaskFuncTable3 D_actor_503500_80131F9C = {
 /// parts 1 to 8 as `bindPose`, publishes the block's light and colour
 /// matrices, and makes the tip a target with full health, its `tipPosition`
 /// and `tipTarget` at the slot's rest offset.
-///
-/// The identity matrix's first word is stored through the union member and
-/// the rest through `ident`: the member store is a fixed-address struct
-/// reference, which keeps it in the store chain behind the `coord.t[]` writes
-/// so sched1 does not spend an idle slot on it. Through a cast pointer it
-/// would win that slot, the `RotMatrix` argument would be placed before the
-/// table row add, and `idx * 8` would drag the row pointer into `$s0`.
 static void func_actor_503500_8013852C(Task* arg0)
 {
     Enemy*                      enemy;
@@ -3193,7 +3186,6 @@ static void func_actor_503500_8013852C(Task* arg0)
     _Actor503500LargeChainWork* work;
     WorldCollisionContact*      rec;
     GfxMatrix                   m;
-    GfxRotationWords*           ident;
     s32                         idx;
     s32                         i;
 
@@ -3210,12 +3202,7 @@ static void func_actor_503500_8013852C(Task* arg0)
     coord->coord.t[0]      = D_actor_503500_8016F090[idx].vx;
     coord->coord.t[1]      = D_actor_503500_8016F090[idx].vy;
     coord->coord.t[2]      = D_actor_503500_8016F090[idx].vz;
-    m.rotationWords.m00M01 = ONE;
-    ident                  = &m.rotationWords;
-    ident->m02M10          = 0;
-    ident->m11M12          = ONE;
-    ident->m20M21          = 0;
-    ident->m22             = ONE;
+    gfxSetRotIdentity(&m.mat);
     RotMatrix(&D_actor_503500_8016F0A0[idx], &m.mat);
     MulMatrix0(&coord->coord, &m.mat, &coord->coord);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
