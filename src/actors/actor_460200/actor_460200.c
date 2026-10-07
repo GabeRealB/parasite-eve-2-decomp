@@ -121,13 +121,13 @@ static TmdSource _gActor460200SoldierBRifle;
 static TmdSource _gActor460200SoldierBBody;
 void             func_actor_460200_801330C8(Task*);
 
-s32 func_actor_460200_801334F0(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
-s32 func_actor_460200_80133568(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
+static s32 _pacedWalkPlaceSoldierB(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
+s32        func_actor_460200_80133568(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
 
 static TmdSource _gActor460200SoldierCBody;
 s32              func_actor_460200_80133C64(Task*, s32, AnimationPlayRequest*, s32);
 s32              func_actor_460200_80133CD0(Task*, s32, s32, s32);
-s32              func_actor_460200_80133D4C(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
+static s32       _pacedWalkPlaceSoldierC(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 s32              func_actor_460200_80133DC4(Task*, s32, s32, s32);
 s32              func_actor_460200_80133DCC(Task* task, s32 msgId, ActorTransform* target, s32 arg3);
 void             func_actor_460200_8013386C(Task*);
@@ -1297,7 +1297,7 @@ static AnimationSet _gActor460200Animation0DE08 = {
 TaskMessageEntry gPacedWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, pacedWalkPlayAnim },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, pacedWalkShowPair },
-    { ACTOR_MESSAGE_PLACE, pacedWalkPlace },
+    { ACTOR_MESSAGE_PLACE, PACED_WALK_PLACE },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80132C8C },
     { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1648,7 +1648,7 @@ static AnimationSet _gActor460200Animation162A0 = {
 TaskMessageEntry gStrideWalkMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _strideWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _strideWalkSetModelDraw },
-    { ACTOR_MESSAGE_PLACE, func_actor_460200_801334F0 },
+    { ACTOR_MESSAGE_PLACE, _pacedWalkPlaceSoldierB },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133568 },
     { ACTOR_MESSAGE_WALK_TO, _strideWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -2119,7 +2119,7 @@ static AnimationSet _gActor460200Animation1F6B4 = {
 TaskMessageEntry D_actor_460200_801514FC[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_460200_80133C64 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_460200_80133CD0 },
-    { ACTOR_MESSAGE_PLACE, func_actor_460200_80133D4C },
+    { ACTOR_MESSAGE_PLACE, _pacedWalkPlaceSoldierC },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133DC4 },
     { ACTOR_MESSAGE_WALK_TO, func_actor_460200_80133DCC },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -2372,10 +2372,12 @@ void strideWalkExit(Task* task)
 
 #include "../../shared/stride_walk_visibility.inc.c"
 
-/// The second walker's copy.
-#define pacedWalkPlace func_actor_460200_801334F0
+// Soldier B's placement uses the StrideWalkWork binding above.
+#undef PACED_WALK_PLACE
+#define PACED_WALK_PLACE _pacedWalkPlaceSoldierB
 #include "../../shared/paced_walk_place.inc.c"
-#undef pacedWalkPlace
+#undef PACED_WALK_PLACE
+#define PACED_WALK_PLACE pacedWalkPlace
 
 #undef PACED_WALK_WORK_T
 #define PACED_WALK_WORK_T PacedWalkWork
@@ -2516,10 +2518,12 @@ s32 func_actor_460200_80133C64(Task* task, s32 arg1, AnimationPlayRequest* args,
 #include "../../shared/paced_walk_show_pair.inc.c"
 #undef pacedWalkShowPair
 
-/// The third walker's copy.
-#define pacedWalkPlace func_actor_460200_80133D4C
+// Soldier C's placement uses the restored PacedWalkWork binding.
+#undef PACED_WALK_PLACE
+#define PACED_WALK_PLACE _pacedWalkPlaceSoldierC
 #include "../../shared/paced_walk_place.inc.c"
-#undef pacedWalkPlace
+#undef PACED_WALK_PLACE
+#define PACED_WALK_PLACE pacedWalkPlace
 
 s32 func_actor_460200_80133DC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 {

@@ -53,7 +53,7 @@ STATIC_ASSERT_SIZEOF(PacedWalkWork, 0x4F8);
 
 #ifndef PACED_WALK_WORK_T
 /// Type `_pacedWalkTickAnim`, `PACED_WALK_RESET_ANIM`, `PACED_WALK_BLEND_ANIM` and
-/// `pacedWalkPlace` take the block at `Task::work` as.
+/// `PACED_WALK_PLACE` take the block at `Task::work` as.
 ///
 /// Walkers whose work block is a type of their own carry some of those four,
 /// so each includer binds the type its walker allocates; the default is the
@@ -138,7 +138,24 @@ static void PACED_WALK_RESET_ANIM(Task* task);
 static void PACED_WALK_BLEND_ANIM(Task* task);
 s32         pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
 
-s32 pacedWalkPlace(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+#ifndef PACED_WALK_PLACE
+/// Selects the placement callback defined by a walker's placement fragment.
+///
+/// Defaults to `pacedWalkPlace`. Bind to a function identifier with signature
+/// `s32 name(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument)`.
+/// Bind before this header for the first instance's declaration, or undefine
+/// and rebind around an additional placement fragment. Declare additional
+/// instances in the carrier's prologue before their message tables; a static
+/// declaration gives the fragment's definition internal linkage.
+/// `PACED_WALK_WORK_T` must select the same receiver's allocated work type,
+/// with a writable `ActorEnemyState st`. Restore both bindings afterwards.
+/// This object-like alias evaluates no arguments, captures no locals and
+/// uses no stringification or token pasting. Header guards select the default
+/// only on the first inclusion.
+#define PACED_WALK_PLACE pacedWalkPlace
+#endif
+
+s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 
 void pacedWalkFrame(Enemy* enemy, Task* task);
 void pacedWalkSpawn(Enemy* enemy, Task* task);

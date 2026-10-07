@@ -746,6 +746,11 @@ instance `static`; additional instances keep the subsystem prefix (for example
 `_pacedWalkUpdateSoldierC`) and are declared `static` in the carrier's prologue
 before their callers. The update always uses `PacedWalkWork`; the work-type binding
 only selects the reusable animation and placement helpers' work type.
+`PACED_WALK_PLACE` selects the placement message callback, defaulting to
+`pacedWalkPlace`. Additional TU-local copies are declared `static` in the
+carrier's prologue before their tables, retain the `pacedWalk` identity and
+are bound to their allocated type through `PACED_WALK_WORK_T` around the
+placement fragment. Restore both bindings after a further instance.
 
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
 model and turns its head toward the player during talk scenes, carried by

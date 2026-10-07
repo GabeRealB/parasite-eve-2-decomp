@@ -147155,7 +147155,7 @@ each copy calls its own instance; package data works the same way (define the
 shared data name, or the library's access macro, to the copy's object). A
 fragment that walkers with different work block types carry takes the type the
 same way: `_pacedWalkTickAnim`, `PACED_WALK_RESET_ANIM`, `PACED_WALK_BLEND_ANIM`
-and `pacedWalkPlace` declare their block as `PACED_WALK_WORK_T`, which defaults
+and `PACED_WALK_PLACE` declare their block as `PACED_WALK_WORK_T`, which defaults
 to `PacedWalkWork` and which
 `actor_161500`, `actor_450800` and `actor_460200`'s second walker bind to the
 type that walker allocates, rather than viewing every block through a separate
