@@ -102047,37 +102047,37 @@ between the two is the parameter list: `(void* arg2)` in the m2c seed versus
 `(Task* task, s32 value, AnimationPlayRequest* preset)`.
 ## An address-taken local reused across a call ranks above the task pointer and takes `$s0`; reloading it in the source fixes both the reload and the swap
 
-`func_actor_113000_80131F90` is a spawn handler whose shape is the matched
+`_actor113000Spawn` is a spawn handler whose shape is the matched
 `func_actor_511000_80132480`. The m2c seed scored 93.912% with the two callee-
-saved homes swapped (`s0` = `task`, `s1` = `task->extra` in the target; ours had
-`s1` = `task`, `s0` = the extra pointer) and the pointer held across the
+saved homes swapped (`s0` = `task`, `s1` = `task->extra.tmd` in the target; ours had
+`s1` = `task`, `s0` = the model pointer) and the pointer held across the
 `worldCollisionProjectGroundPoint` call, where the target reloads it:
 
 ```
-lw     v0,0x2c(s0)      # target: fresh task->extra
+lw     v0,0x2c(s0)      # target: fresh task->extra.tmd
 nop
 lw     a0,8(v0)
 ```
 
-The seed kept the extra pointer in a local `extra` and passed `&pos` from it:
+The seed kept the model pointer in a local `model` and passed `&groundPoint` from it:
 
 ```c
-extra = (TmdObject*)task->extra;
+model = task->extra.tmd;
 ...
-if (worldCollisionProjectGroundPoint((VECTOR3*)extra->coords[1].workm.t, &pos) != 0) {
+if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&model->coords[1].workm), &groundPoint) != 0) {
 ```
 
 Writing the same access the way the target reads it — a fresh load of
-`task->extra`, which no call can CSE away because `memCalloc` has already
+`task->extra.tmd`, which no call can CSE away because `memCalloc` has already
 clobbered memory:
 
 ```c
-if (worldCollisionProjectGroundPoint((VECTOR3*)((TmdObject*)task->extra)->coords[1].workm.t, &pos) != 0) {
+if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
 ```
 
 is the whole fix, 93.912% -> 100.000%.
 
-**Cause.** The extra pointer is a global allocno either way, but its reference
+**Cause.** The model pointer is a global allocno either way, but its reference
 count is not: in the seed the pseudo has four (`lw` def, `lhu`, `sh`, plus the
 MEM base at the call), in the target three. `CODEGEN_MODEL.md` 10.4's rank is
 `floor_log2(n_refs) * n_refs / live_length`, and `dump.sh`'s "global allocation
@@ -102091,7 +102091,7 @@ order" line prints the allocnos in it:
 ```
 
 `r81` is the work block (`$v1` both times — it is born after the `memCalloc`
-call), `r80` the task parameter, `r82` the extra pointer. Dropping one
+call), `r80` the task parameter, `r82` the model pointer. Dropping one
 reference moves it below the parameter, and `find_reg` gives each allocno in
 rank order the lowest free callee-saved register, so the two swap homes. The
 rank order after the fix is the target's.
@@ -102106,7 +102106,7 @@ Inputs: `base.i` (m2c seed, 93.912%) SHA256 `70d1a105588491f512a88bed8a006b195d7
 `base_2.i` (100.000%) SHA256 `aa544501e59cc327e00fa0a74f98da4b7105d8ce40763585a4efa3cff1c4435e`;
 target SHA256 `9f8823a1e208a1a63dc0be03e83a2e344afb9a71a6dc5e87659535a227c26cdf`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_113000_80131F90-vacuum` (session `114148419da64b0fb843f683f2856ea1`).
+Scratch `nonmatchings/_actor113000Spawn-vacuum` (session `114148419da64b0fb843f683f2856ea1`).
 
 ## A load the target places *after* a `jal` is proof of source order — m2c had hoisted it above the call (func_actor_450200_80131FA8, 2026-09-16)
 
@@ -127977,7 +127977,7 @@ unrelated bases too. The sibling `func_actor_323000_80164A54` keeps the
 one-load shape without a local only because nothing is stored between its
 dispatch and its `msg->mode` read.
 
-## Two identical `case` bodies are merged after reload into one copy that the earlier case `j`s into (func_actor_113000_80131E30, 2026-09-17)
+## Two identical `case` bodies are merged after reload into one copy that the earlier case `j`s into (_actor113000TickBlink, 2026-09-17)
 
 The actor texture-upload state switches on a step counter; steps 1 and 2 differ
 only in which image record they post, so their bodies are the same three
@@ -128001,15 +128001,16 @@ rather than falling through:
     jal    actorRenderUploadTexture
 ```
 
-GCC reaches that shape from *duplicated source*, not from a shared helper and not
-from a source-level fallthrough: both arms are written out in full and the
-compiler merges the code they share. In 2.8.1 that is cross-jumping --
+GCC reaches that shape from duplicated arms, including a `static inline` helper
+expanded separately in each arm, rather than a source-level fallthrough. The
+current `_actor113000AdvanceBlinkImage` helper posts the image, restarts its dwell
+and advances its step; both expanded arms still match the shared retail tail.
+In 2.8.1 that is cross-jumping --
 `jump_optimize (insns, 1, 1, 0)` in `toplev.c`, i.e. the post-reload `jump2`
 pass, whose `find_cross_jump` / `do_cross_jump` in `jump.c` do the merge -- so
 the merge is *not* visible in `.flow` / `.cse` / `.greg` dumps and the `j` only
-appears from `.sched2` / `.jump2` on. Factoring the shared tail into a helper,
-or letting the earlier case fall into the later one, instead changes the block
-graph and the branch count; m2c's rendering of the same function (a `goto` into
+appears from `.sched2` / `.jump2` on. The earlier failed helper and fallthrough
+forms changed the block graph and the branch count; m2c's rendering of the same function (a `goto` into
 the tail from a case that `return`s) scores 59.030% with `insert=9 delete=15`.
 
 This is one of a family: `func_actor_511000_80132048` and
@@ -128022,12 +128023,12 @@ an `(s16)` cast both compile to) and the step is an `s16` (so the dispatch loads
 the load in the shared tail is `lhu` either way because only the low halfword of
 the increment is stored.
 
-Inputs: scratch `nonmatchings/func_actor_113000_80131E30-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor113000TickBlink-vacuum`, `base.c`
 59.030% (m2c), `base_1.c` 100.000%. Preprocessed `base_1.i`
 `05ba8b7e306371bc...`. Assembly `base_1.s` `30f2b1c2cc27fcae...`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## The same source form that stops a reload also re-homes the index: a store-fed quantity is born at the *store*, and its longer span is what frees `$v0` (func_actor_113000_80132208, 2026-09-17)
+## The same source form that stops a reload also re-homes the index: a store-fed quantity is born at the *store*, and its longer span is what frees `$v0` (_actor113000PlayAnimation, 2026-09-17)
 
 The body is the actor family's start-preset handler -- the one the previous
 entry covers from the CSE side. This overlay's target has the single-register
@@ -128035,7 +128036,7 @@ signature: `lw $v1,0(s0)` once, feeding the compare, the store to `0x47C` and
 the `sll $v1,$v1,2` of the table index, with the table address (`lui`/`addiu`)
 in `$v0` and the index chain in `$v1`.
 
-Indexing a **local** is not enough. `bank = msg->field_0;` used for the compare,
+Indexing a **local** is not enough. `bank = request->source.index;` used for the compare,
 the store and the index gives the right load count and the right instruction
 sequence -- 95.435%, `regs=11`, `opcode_delta` empty, only three registers
 wrong -- because it reshapes local-alloc's quantities. From `trace_gcc.py`:
@@ -128074,7 +128075,7 @@ lowering its `QTY_CMP_PRI` below the table address's. Reading it as a
 register-allocation problem and hunting for a pin or a scheduler lever is the
 wrong end: the quantity to lengthen is the one the local already created.
 
-Inputs: scratch `nonmatchings/func_actor_113000_80132208-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor113000PlayAnimation-vacuum`, `base.c`
 78.239% (m2c), `base_1.c` 89.932%, `base_3.c` 95.435% (local `bank`), `base_5.c`
 100.000%. Preprocessed `base_3.i`
 `98793c85dabc69a80ab3cbdf06b195574b795eb32bd1e05f571732cbbc3af533`, `base_5.i`
