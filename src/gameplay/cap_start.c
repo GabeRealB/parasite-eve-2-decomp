@@ -40,46 +40,68 @@ s16 D_801155C0;
 
 void func_807245B8(void);
 
-/// Selects the CAP sequence and resets its playback and initial text state.
+/// Selects a CAP sequence and seeds its text, choice and scene-control state.
+///
+/// `sequence` borrows the slot-zero command address of a relocated CAP sequence;
+/// playback records start at slot one. It must be non-null and its containing
+/// file must stay loaded until playback releases the selection. Previous
+/// playback must have stopped: replacing the selection does not kill its task.
+/// `variantKey` is stored as a signed halfword without validation; only 0..255
+/// can match the records' byte keys. No record is read here.
+///
+/// Initial text geometry is in screen pixels and is recomputed before drawing.
+/// Reveal advances when its counter reaches the delay limit, tested before
+/// incrementing; the confirmation lockout counts frames with choices drawn.
 static inline void _capInitializeSequencePlayback(CapSequenceRecord* sequence, s16 variantKey)
 {
     enum {
-        CAP_FIRST_PLAYBACK_RECORD_INDEX      = 1,
-        CAP_TEXT_INITIAL_LEFT_X              = 48,
-        CAP_TEXT_INITIAL_BASELINE_Y          = 192,
-        CAP_TEXT_SCREEN_WIDTH                = 320,
-        CAP_TEXT_INITIAL_REVEAL_DELAY_FRAMES = 7,
-        CAP_DEFAULT_CHOICE_STEP              = 1,
-        CAP_CHOICE_CONFIRM_DELAY_FRAMES      = 15
+        CAP_RECORD_INITIAL_PHASE            = 0,
+        CAP_FIRST_PLAYBACK_RECORD_INDEX     = 1,
+        CAP_TEXT_INITIAL_LEFT_X             = 48,
+        CAP_TEXT_INITIAL_BASELINE_Y         = 192,
+        CAP_TEXT_SCREEN_WIDTH               = 320,
+        CAP_TEXT_INITIAL_REVEAL_DELAY_LIMIT = 7, // Advancement after eight eligible updates from a zero counter.
+        CAP_DEFAULT_CHOICE_ROW_STRIDE       = 1,
+        CAP_CHOICE_CONFIRM_DELAY_FRAMES     = 15,
+        CAP_SCENE_CONTROL_IDLE              = 0,
+        CAP_VIEW_CHANGE_NONE                = 0,
+        CAP_TEXT_VIEW_TRANSITION_NONE       = 0,
+        CAP_PLAYBACK_NOT_STARTED            = 0,
+        CAP_SEQUENCE_VIEW_CHANGES_ENABLED   = 0,
+        CAP_ACTOR_CONTROL_RESTORE_ON_EXIT   = 0
     };
 
+    // Select the borrowed sequence before its first keyed record is scanned.
     Gp_CapEventKey = variantKey;
     Gp_CapTable    = sequence;
-    D_801155AC     = 0;
+    D_801155AC     = CAP_RECORD_INITIAL_PHASE;
     D_801155AE     = CAP_FIRST_PLAYBACK_RECORD_INDEX;
     D_801155B0     = 0;
-    D_801155B2     = CAP_TEXT_INITIAL_LEFT_X;
-    D_801155B4     = CAP_TEXT_INITIAL_BASELINE_Y;
-    D_801155B8     = CAP_TEXT_INITIAL_REVEAL_DELAY_FRAMES;
-    D_801155B2     = CAP_TEXT_SCREEN_WIDTH;
-    D_80115664     = 0;
-    D_8011569A     = 0;
-    D_80115698     = 0;
-    D_8011567A     = 0;
-    D_801155C0     = 0;
-    D_801156A8     = 0;
-    D_801155BC     = 0;
-    D_8011566E     = 0;
-    D_8011566F     = 0;
-    D_801155BA     = 0;
-    D_801155BB     = 0;
-    D_80115648     = 0;
-    D_8011566A     = 0;
-    D_8011565A     = 0;
-    D_80115688     = 0;
-    D_80115690     = 0;
-    D_80115680     = CAP_DEFAULT_CHOICE_STEP;
-    D_80115659     = CAP_CHOICE_CONFIRM_DELAY_FRAMES;
+    // The initial X preset is overwritten before any text is drawn.
+    D_801155B2 = CAP_TEXT_INITIAL_LEFT_X;
+    D_801155B4 = CAP_TEXT_INITIAL_BASELINE_Y;
+    D_801155B8 = CAP_TEXT_INITIAL_REVEAL_DELAY_LIMIT;
+    D_801155B2 = CAP_TEXT_SCREEN_WIDTH;
+
+    // Clear progress and pending transitions; record-specific timing follows.
+    D_80115664 = 0;
+    D_8011569A = 0;
+    D_80115698 = 0;
+    D_8011567A = 0;
+    D_801155C0 = 0;
+    D_801156A8 = 0;
+    D_801155BC = CAP_TEXT_VIEW_TRANSITION_NONE;
+    D_8011566E = CAP_SCENE_CONTROL_IDLE;
+    D_8011566F = 0;
+    D_801155BA = 0;
+    D_801155BB = CAP_VIEW_CHANGE_NONE;
+    D_80115648 = 0;
+    D_8011566A = 0;
+    D_8011565A = CAP_PLAYBACK_NOT_STARTED;
+    D_80115688 = CAP_SEQUENCE_VIEW_CHANGES_ENABLED;
+    D_80115690 = CAP_ACTOR_CONTROL_RESTORE_ON_EXIT;
+    D_80115680 = CAP_DEFAULT_CHOICE_ROW_STRIDE;
+    D_80115659 = CAP_CHOICE_CONFIRM_DELAY_FRAMES;
 }
 
 s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantKey)
