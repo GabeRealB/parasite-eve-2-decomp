@@ -417,7 +417,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_START_AREA_MUSIC:
                 if (D_801156C8 == 0) {
-                    Stage_RequestFromAreaTable((s16)work->command->operand0.value);
+                    stageMusicRequestAreaStart((s16)work->command->operand0.value);
                     D_801156C8 = 1;
                 }
                 break;

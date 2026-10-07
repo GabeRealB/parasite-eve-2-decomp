@@ -52,9 +52,11 @@ static s32 _cdSyncCancelDiscInit(AsyncCbEntry* entry);
 
 static void _cdVolSetLevel(s32 level);
 
-/// Writes equal signed register gains using the caller's common-attribute mask.
+/// Applies equal signed SPU register gains to the retained CD-input attributes.
 ///
-/// Callers select both CD volume bits before applying the retained record.
+/// `registerVolume` is already in hardware units; this helper does no level
+/// scaling or clamping. Callers must select both CD-volume mask bits first.
+/// Other fields are retained and the separate fade cursor is unchanged.
 static inline void _cdVolApplyRegisterVolume(s16 registerVolume)
 {
     Fs_SpuAttr.cd.volume.right = registerVolume;

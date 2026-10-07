@@ -25,6 +25,24 @@
 
 #include "mapui/map_shelter.h"
 
+/// Request modes and timing values consumed by the stage music task.
+///
+/// Request mode is the untruncated `Task::spawnArg1.value`. Countdown time is
+/// measured in task frames; the ambient fade is measured in audio updates.
+enum {
+    STAGE_MUSIC_REQUEST_ORDINARY         = 0,
+    STAGE_MUSIC_REQUEST_COUNTDOWN        = 2,
+    STAGE_MUSIC_REQUEST_LOAD_ONLY        = 3,
+    STAGE_MUSIC_LOAD_ACTIVE              = 0,
+    STAGE_MUSIC_LOAD_IDLE                = 0xFF,
+    STAGE_MUSIC_COUNTDOWN_INACTIVE       = 0,
+    STAGE_MUSIC_COUNTDOWN_ACTIVE         = 0xFF,
+    STAGE_MUSIC_COUNTDOWN_TIMEOUT_FRAMES = 300,
+    STAGE_MUSIC_COUNTDOWN_STOP_FRAMES    = 60,
+    STAGE_MUSIC_AMBIENT_FADE_TICKS       = 30,
+    STAGE_MUSIC_SEQUENCE_FILE_GROUP      = 4,
+};
+
 /// The music-table entry a stage music task loads and starts; its work block.
 ///
 /// The task's first state allocates it zeroed and chooses the entry once: an
@@ -79,15 +97,15 @@ void func_80704AD0(Task* arg0);
 
 void func_80704BC8(Task* arg0);
 
-static void Task_AllocIdMap(Task* task);
+static void _stageMusicSelectEntry(Task* task);
 
-static void Stage_LoadOrCountdownTask(Task* task);
+static void _stageMusicLoadSequence(Task* task);
 
-static void Stage_ApplyTableEntryWhenIdle(Task* task);
+static void _stageMusicStartWhenCdIdle(Task* task);
 
 static void Stage_DispatchTaskTable(Task* task);
 
-static void Stage_KillWhenIdle(Task* task);
+static void _stageMusicFinishWhenCdIdle(Task* task);
 
 u8 gStageMusicLoadState  = 0xFF;
 u8 gStageSceneMusicEntry = 0;
@@ -128,68 +146,87 @@ TaskDesc  D_80062780[]             = {
 };
 
 static const TaskFuncTable4 Stage_TaskStates = { {
-    Task_AllocIdMap,
-    Stage_LoadOrCountdownTask,
-    Stage_ApplyTableEntryWhenIdle,
-    Stage_KillWhenIdle,
+    _stageMusicSelectEntry,
+    _stageMusicLoadSequence,
+    _stageMusicStartWhenCdIdle,
+    _stageMusicFinishWhenCdIdle,
 } };
 
-static void Task_AllocIdMap(Task* task)
+/// Selects the scene's countdown entry and starts its 300-task-frame load deadline.
+///
+/// Borrows the current stage's loaded map table; the scene entry index must fit it.
+static inline void _stageMusicChooseCountdownEntry(_StageMusicSelection* selection)
 {
-    u8                    temp_s4;
-    u8                    temp_s1;
-    _StageMusicSelection* selection;
-    u8                    temp_a0;
-    s32                   ret;
-    s32                   field34;
+    s32              countdownStageId;
+    StageMusicEntry* countdownTable;
+    u16              countdownEntryIndex;
+    countdownStageId           = gGameSession->location.loc.stage;
+    Stage_MusicCountdownActive = STAGE_MUSIC_COUNTDOWN_ACTIVE;
+    countdownTable             = Stage_CountdownMusicTables[countdownStageId - 1];
+    countdownEntryIndex        = gStageSceneMusicEntry;
+    Stage_MusicCountdownFrames = STAGE_MUSIC_COUNTDOWN_TIMEOUT_FRAMES;
+    selection->index           = countdownEntryIndex;
+    selection->table           = countdownTable;
+}
 
-    temp_s4   = Stage_MusicRowLengths[gGameSession->location.loc.stage - 1];
-    selection = memCalloc(sizeof(_StageMusicSelection), 0);
+/// Allocates the task's music selection and chooses its area or countdown entry.
+///
+/// Reads the pending request's fade once. Stage must be 1..5, the map overlay
+/// must remain loaded, and the area/scene or countdown index must fit its table.
+/// Stops all MIDI sequences when room music is recorded, and the ambient loop
+/// when excluded by the area's first entry. Selections that bypass loading
+/// reach start-policy handling for every request mode.
+/// Allocation failure or an unusable selection finishes the task immediately.
+static void _stageMusicSelectEntry(Task* task)
+{
+    enum { STAGE_MUSIC_ALL_SEQUENCES = 0 };
+    u8                    columnCount;
+    u8                    sequenceId;
+    _StageMusicSelection* selection;
+    u8                    stageId;
+    s32                   sceneColumn;
+    s32                   requestMode;
+
+    columnCount = Stage_MusicRowLengths[gGameSession->location.loc.stage - 1];
+    selection   = memCalloc(sizeof(_StageMusicSelection), 0);
     if (selection == NULL) {
-        gStageMusicLoadState = 0xFF;
+        gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;
         taskKill(task);
         return;
     }
+    // The task owns the selection block; its table stays borrowed from the map overlay.
     task->work = selection;
     if (gStageRoomSong != 0) {
-        sndEvtRequestMidiStop(0, 1);
+        sndEvtRequestMidiStop(STAGE_MUSIC_ALL_SEQUENCES, 1);
         gStageRoomSong = 0;
     }
-    temp_a0                    = gGameSession->location.loc.stage;
-    ret                        = stageMusicSelectColumn(temp_a0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent, Stage_SceneEventLimits[temp_a0 - 1]);
-    field34                    = task->spawnArg1.value;
-    gStageMusicRow             = ret;
-    Stage_MusicCountdownActive = 0;
-    if (field34 == 2) {
-        s32              f7;
-        StageMusicEntry* p;
-        u16              v;
-        f7                         = gGameSession->location.loc.stage;
-        Stage_MusicCountdownActive = 0xFF;
-        p                          = Stage_CountdownMusicTables[f7 - 1];
-        v                          = gStageSceneMusicEntry;
-        Stage_MusicCountdownFrames = 0x12C;
-        selection->index           = v;
-        selection->table           = p;
+    stageId                    = gGameSession->location.loc.stage;
+    sceneColumn                = stageMusicSelectColumn(stageId, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent, Stage_SceneEventLimits[stageId - 1]);
+    requestMode                = task->spawnArg1.value;
+    gStageMusicRow             = sceneColumn;
+    Stage_MusicCountdownActive = STAGE_MUSIC_COUNTDOWN_INACTIVE;
+    if (requestMode == STAGE_MUSIC_REQUEST_COUNTDOWN) {
+        _stageMusicChooseCountdownEntry(selection);
     } else {
         selection->table = Stage_MusicTables[gGameSession->location.loc.stage - 1];
         selection->index =
-            gStageMusicRow + (gGameSession->location.loc.area * (temp_s4 & 0xFF));
-        if ((selection->table[gGameSession->location.loc.area * (temp_s4 & 0xFF)].sequenceId != STAGE_MUSIC_AMBIENT_AREA) &&
+            gStageMusicRow + (gGameSession->location.loc.area * columnCount);
+        if ((selection->table[gGameSession->location.loc.area * columnCount].sequenceId != STAGE_MUSIC_AMBIENT_AREA) &&
             (gStageAmbientOn != 0)) {
-            sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x1E);
+            sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, STAGE_MUSIC_AMBIENT_FADE_TICKS);
             gStageAmbientOn = 0;
         }
     }
-    temp_s1 = selection->table[selection->index].sequenceId;
-    if (temp_s1 == STAGE_MUSIC_NO_SEQUENCE) {
+    // A no-sequence entry uses the stored fade; replacement stops add one before truncation.
+    sequenceId = selection->table[selection->index].sequenceId;
+    if (sequenceId == STAGE_MUSIC_NO_SEQUENCE) {
         sndEvtRequestMidiStop(gStageCurrentSong, gStageMusicParams.fadeOutTicks);
-        gStageMusicLoadState = temp_s1;
+        gStageMusicLoadState = sequenceId;
         taskKill(task);
         return;
     }
-    gStageMusicLoadState = 0;
-    if (midiCanSelectSequence(selection->table[selection->index].sequenceId) == 1) {
+    gStageMusicLoadState = STAGE_MUSIC_LOAD_ACTIVE;
+    if (midiCanSelectSequence(selection->table[selection->index].sequenceId) == true) {
         if ((gStageCurrentSong != 0) && (midiIsSequenceBusy(gStageCurrentSong) != 0)) {
             sndEvtRequestMidiStop(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
         }
@@ -199,68 +236,92 @@ static void Task_AllocIdMap(Task* task)
     if (selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) {
         sndEvtRequestMidiStop(gStageCurrentSong, (gStageMusicParams.fadeOutTicks + 1) & 0xFFFF);
     } else if (midiIsSequenceBusy(gStageCurrentSong) == 0) {
+        // This path also bypasses the load-only mode's gate in the load state.
         task->state = task->state + 2;
         return;
     }
-    gStageMusicLoadState = 0xFF;
+    gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;
     taskKill(task);
 }
 
-static void Stage_LoadOrCountdownTask(Task* task)
+/// Queues the selected sequence file from the global CDF with its sprite-variant ID suffix.
+///
+/// Requires a free request-ring slot. Both byte blocks are copied synchronously;
+/// each block has four bytes, with byte 1 of the file key ignored.
+static inline void _stageMusicEnqueueSequenceLoad(_StageMusicSelection* selection)
 {
-    u8                    param1[8];
-    u8                    param2[8];
+    u8 fileKey[4];
+    u8 loadArgs[4];
+
+    // The global CDF key uses bytes 0, 2 and 3; byte 1 is ignored.
+    fileKey[3]  = 0;
+    fileKey[2]  = STAGE_MUSIC_SEQUENCE_FILE_GROUP;
+    fileKey[0]  = selection->table[selection->index].sequenceId;
+    loadArgs[0] = gGameSession->spriteVariant;
+    loadArgs[3] = 0;
+    loadArgs[2] = 0;
+    loadArgs[1] = CD_COMMAND_LOAD_DEFAULT;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadArgs);
+}
+
+/// Waits for outgoing music to stop, then queues the selected group-4 sequence file.
+///
+/// Requires the task-owned selection and a free CD request-ring slot. Load-only
+/// requests and ordinary deferred entries skip starting and wait for CD idle.
+/// A countdown request times out after 300 task frames, requesting a stop with
+/// a one-audio-update duration at 60 frames remaining; the sound queue rounds
+/// that duration to zero. Other requests wait without a timeout.
+static void _stageMusicLoadSequence(Task* task)
+{
     _StageMusicSelection* selection;
-    s32                   field34;
-    u8                    flag;
+    s32                   requestMode;
+    u8                    countdownActive;
 
     selection = task->work;
     if (midiIsSequenceBusy(gStageCurrentSong) == 0) {
-        param1[3] = 0;
-        param1[2] = 4;
-        param1[0] = selection->table[selection->index].sequenceId;
-        param2[0] = gGameSession->spriteVariant;
-        param2[3] = 0;
-        param2[2] = 0;
-        param2[1] = 0;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-        field34 = task->spawnArg1.value;
-        if (field34 == 3) {
+        _stageMusicEnqueueSequenceLoad(selection);
+        requestMode = task->spawnArg1.value;
+        if (requestMode == STAGE_MUSIC_REQUEST_LOAD_ONLY) {
             task->state = task->state + 2;
             return;
         }
-        if ((selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) && (field34 == 0)) {
+        if ((selection->table[selection->index].startMode == STAGE_MUSIC_START_DEFERRED) && (requestMode == STAGE_MUSIC_REQUEST_ORDINARY)) {
             task->state = task->state + 2;
             return;
         }
         task->state = task->state + 1;
         return;
     }
-    flag = Stage_MusicCountdownActive;
-    if (flag == 0xFF) {
+    // Countdown waits measure task frames; the stop request measures audio updates.
+    countdownActive = Stage_MusicCountdownActive;
+    if (countdownActive == STAGE_MUSIC_COUNTDOWN_ACTIVE) {
         Stage_MusicCountdownFrames = Stage_MusicCountdownFrames - 1;
-        if (Stage_MusicCountdownFrames == 0x3C) {
+        if (Stage_MusicCountdownFrames == STAGE_MUSIC_COUNTDOWN_STOP_FRAMES) {
             sndEvtRequestMidiStop(gStageCurrentSong, 1);
         }
         if (Stage_MusicCountdownFrames <= 0) {
-            gStageMusicLoadState = flag;
+            gStageMusicLoadState = countdownActive;
             taskKill(task);
         }
     }
 }
 
-/// Starts `entry`, the entry `selection` names, unless its start mode holds it
-/// back, then records the song and ends the task. A deferred entry leaves the
-/// task running until the view is ready.
-static inline void Stage_ApplyEntry(Task* task, _StageMusicSelection* selection, StageMusicEntry* entry)
+/// Applies the selected entry's start policy, records its sequence and ends the task.
+///
+/// `entry` must be the entry named by the task-owned `selection`. Immediate
+/// entries bypass view readiness; other startable entries wait for the view
+/// only on ordinary requests. Never-start entries still become the recorded
+/// current sequence. Queued starts require a matching loaded MIDI image at
+/// dispatch; the task does not wait for admission or successful playback.
+static inline void _stageMusicApplyEntry(Task* task, _StageMusicSelection* selection, StageMusicEntry* entry)
 {
     u8 startMode;
 
     startMode = entry->startMode;
     if (startMode != STAGE_MUSIC_START_NEVER) {
         if (startMode != STAGE_MUSIC_START_IMMEDIATE) {
-            if (task->spawnArg1.value == 0) {
-                if (gGameSession->viewReady != 1) {
+            if (task->spawnArg1.value == STAGE_MUSIC_REQUEST_ORDINARY) {
+                if (gGameSession->viewReady != true) {
                     return;
                 }
             }
@@ -268,38 +329,41 @@ static inline void Stage_ApplyEntry(Task* task, _StageMusicSelection* selection,
         sndEvtRequestMidiStart(entry->sequenceId, 0);
         midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
     }
-    gStageMusicLoadState = 0xFF;
+    gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;
     gStageCurrentSong    = selection->table[selection->index].sequenceId;
     taskKill(task);
 }
 
-static void Stage_ApplyTableEntryWhenIdle(Task* task)
+/// Applies the selected music entry once the resident CD request queue is idle.
+///
+/// Requires a live task-owned selection and its still-loaded map table.
+static void _stageMusicStartWhenCdIdle(Task* task)
 {
     _StageMusicSelection* selection;
 
     selection = task->work;
     if (cdCmdIsIdle() != 0) {
-        Stage_ApplyEntry(task, selection, &selection->table[selection->index]);
+        _stageMusicApplyEntry(task, selection, &selection->table[selection->index]);
     }
 }
 
-void Stage_RequestFromAreaTable(s32 arg0)
+void stageMusicRequestAreaStart(s32 fadeInTicks)
 {
-    GameSession*     g;
-    s32              idx;
-    s32              product;
-    StageMusicEntry* entry;
-    s32              temp;
+    GameSession*     session;
+    s32              stageIndex;
+    s32              areaRowOffset;
+    StageMusicEntry* areaTable;
+    s32              entryIndex;
 
-    g       = gGameSession;
-    idx     = g->location.loc.stage - 1;
-    product = g->location.loc.area * Stage_MusicRowLengths[idx];
-    temp    = (gStageMusicRow + product) & 0xFFFF;
-    entry   = Stage_MusicTables[idx];
-    if (entry[temp].sequenceId != STAGE_MUSIC_NO_SEQUENCE) {
-        if (entry[temp].startMode != STAGE_MUSIC_START_NEVER) {
-            sndEvtRequestMidiStart(entry[temp].sequenceId, arg0 & 0xFFFF);
-            gStageCurrentSong = entry[temp].sequenceId;
+    session       = gGameSession;
+    stageIndex    = session->location.loc.stage - 1;
+    areaRowOffset = session->location.loc.area * Stage_MusicRowLengths[stageIndex];
+    entryIndex    = (gStageMusicRow + areaRowOffset) & 0xFFFF;
+    areaTable     = Stage_MusicTables[stageIndex];
+    if (areaTable[entryIndex].sequenceId != STAGE_MUSIC_NO_SEQUENCE) {
+        if (areaTable[entryIndex].startMode != STAGE_MUSIC_START_NEVER) {
+            sndEvtRequestMidiStart(areaTable[entryIndex].sequenceId, fadeInTicks & 0xFFFF);
+            gStageCurrentSong = areaTable[entryIndex].sequenceId;
             midiApplyMusicVolume(MIDI_MUSIC_VOLUME_SAVED);
         }
     }
@@ -333,10 +397,13 @@ static void Stage_DispatchTaskTable(Task* task)
     handlers.funcs[task->state](task);
 }
 
-static void Stage_KillWhenIdle(Task* task)
+/// Finishes a music task once the resident CD request queue is idle.
+///
+/// Marks the music request idle before teardown releases its selection block.
+static void _stageMusicFinishWhenCdIdle(Task* task)
 {
     if (cdCmdIsIdle() != 0) {
-        gStageMusicLoadState = 0xFF;
+        gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;
         taskKill(task);
     }
 }

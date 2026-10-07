@@ -71,7 +71,7 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
         case 3:
             if (++task->killCountdown == 0x186) {
                 task->spawnArg1.value = 1;
-                Stage_RequestFromAreaTable(0xA);
+                stageMusicRequestAreaStart(0xA);
             }
             if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
@@ -82,7 +82,7 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
                 break;
             }
             if (task->spawnArg1.value == 0) {
-                Stage_RequestFromAreaTable(0xA);
+                stageMusicRequestAreaStart(0xA);
             }
             SetDispMask(0);
             cdCmdRequestCancel();

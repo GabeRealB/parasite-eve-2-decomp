@@ -91,7 +91,15 @@ s32 stageIsTransitionPending(void);
 /// neither this return nor the call itself means GPU readback has completed.
 s32 stageRequestFrameCapture(void);
 
-void Stage_RequestFromAreaTable(s32 arg0);
+/// Queues a start for the current area's scene-selected music-table entry.
+///
+/// The stage must be 1..5 and its map table must remain loaded; area and the
+/// cached scene column must select an entry in that table. No-sequence and
+/// never-start entries do nothing. The low halfword of `fadeInTicks` measures
+/// audio updates, including PAL timer updates; zero starts without a fade.
+/// Records the sequence and reapplies saved music volume without waiting for
+/// queue admission or actual playback.
+void stageMusicRequestAreaStart(s32 fadeInTicks);
 
 void Stage_RequestMidiFromMap(s32 arg0);
 

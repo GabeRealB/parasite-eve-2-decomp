@@ -55,7 +55,8 @@ passes a non-NULL value to `memFree`, so heap work belongs to the primary heap;
 callbacks release any nested resources first. A callback using borrowed storage
 must clear `work` before invoking default teardown. For example, the actor_503500
 tasks use static work slots and clear the pointer in their exit handlers.
-`Task_AllocIdMap` supplies one particular eight-byte work allocation; UI,
+`_stageMusicSelectEntry` allocates its eight-byte `_StageMusicSelection` to hold
+the selected entry index and a borrowed map-overlay music table; UI,
 scripts, title and other tasks supply their own types.
 
 ### 1.2 Spawn

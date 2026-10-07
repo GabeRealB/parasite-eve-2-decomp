@@ -10,9 +10,15 @@
 #include "display.h"
 #include "main/text.h"
 
+/// Ordering-table tags used by the caption and fade-tile page commands.
+enum {
+    PRIMITIVE_CAPTION_OT_INDEX = 4,
+    PRIMITIVE_FADE_OT_INDEX    = 5,
+};
+
 static void Prim_DrawSprt(PrimDrawParams* draw, u32 arg1, s32 arg2);
 
-static void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+static void _primDrawTexturePage(s32 blendMode, s32 tpageX, s32 tpageY, s32 otIndex);
 
 static s32 Prim_DrawFadeTile(RECT* rect, u8* arg1, s16* arg2);
 
@@ -89,7 +95,7 @@ s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
                             stream->glyphs[glyphIdx].width;
                     }
                 }
-                Prim_DrawTPage(1, stream->tpageX, stream->tpageY, 4);
+                _primDrawTexturePage(GPU_BLEND_ADD, stream->tpageX, stream->tpageY, PRIMITIVE_CAPTION_OT_INDEX);
                 *arg2 = *arg2 - 1;
                 if (*arg2 < 0) {
                     stream->cursor = stream->cursor + 1;
@@ -140,14 +146,22 @@ static void Prim_DrawSprt(PrimDrawParams* draw, u32 arg1, s32 arg2)
     AddPrim(gGpuCurrentOt + 4, p);
 }
 
-static void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues a 4-bit texture-page and blend-mode command for subsequent primitives.
+///
+/// `blendMode` is the unshifted GPU blend selector (0..3). VRAM X/Y are words
+/// and rows; all three inputs narrow to signed halfwords at the SDK boundary.
+/// `otIndex` must select a current ordering-table tag (callers use 4 or 5).
+/// Requires one word-aligned DR_TPAGE slot at the primitive cursor, retained
+/// until GPU completion. Enables drawing into the display area and disables dithering.
+static void _primDrawTexturePage(s32 blendMode, s32 tpageX, s32 tpageY, s32 otIndex)
 {
-    DR_TPAGE* p;
+    enum { PRIMITIVE_TEXTURE_DEPTH_4BIT = 0 };
+    DR_TPAGE* pagePacket;
 
-    p                 = (DR_TPAGE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(p + 1);
-    SetDrawTPage(p, 1, 0, GetTPage(0, (s16)arg0, (s16)arg1, (s16)arg2) & 0xFFFF);
-    AddPrim(gGpuCurrentOt + arg3, p);
+    pagePacket        = (DR_TPAGE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(pagePacket + 1);
+    SetDrawTPage(pagePacket, true, false, GetTPage(PRIMITIVE_TEXTURE_DEPTH_4BIT, (s16)blendMode, (s16)tpageX, (s16)tpageY));
+    AddPrim(gGpuCurrentOt + otIndex, pagePacket);
 }
 
 static s32 Prim_DrawFadeTile(RECT* rect, u8* arg1, s16* arg2)
@@ -167,7 +181,7 @@ static s32 Prim_DrawFadeTile(RECT* rect, u8* arg1, s16* arg2)
             sp.r         = 0;
             sp.semiTrans = 1;
             Prim_DrawTile(&sp);
-            Prim_DrawTPage(0, 0, 0, 5);
+            _primDrawTexturePage(GPU_BLEND_AVERAGE, 0, 0, PRIMITIVE_FADE_OT_INDEX);
             *arg2 = *arg2 - 1;
             if (*arg2 > 0) {
                 break;

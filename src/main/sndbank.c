@@ -152,7 +152,7 @@ static void _sndHeapReset(void);
 
 static long Spu_TimerCallback(void);
 
-static s32 Spu_TimerReentryWork(void);
+static s32 _spuRunTimerAudioUpdate(void);
 
 static void _audioTickReset(void);
 
@@ -946,13 +946,19 @@ static long Spu_TimerCallback(void)
         D_8007E0CC--;
         if (D_8007E0CC == 0) {
             D_800680A4 = 0;
-            Spu_TimerReentryWork();
+            _spuRunTimerAudioUpdate();
         }
     }
     return 0;
 }
 
-static s32 Spu_TimerReentryWork(void)
+/// Runs an extra PAL timer audio update under the sound driver's reentry guard.
+///
+/// Advances voices and registered audio polls, then flushes SPU changes without
+/// processing queued sound events. A held initialization/update guard skips
+/// the update. Releases the guard before incrementing the completed-update
+/// counter. Returns zero whether the update ran or was skipped.
+static s32 _spuRunTimerAudioUpdate(void)
 {
     if (D_800680C0 == 0) {
         return 0;

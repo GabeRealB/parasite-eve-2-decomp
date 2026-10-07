@@ -8416,7 +8416,7 @@ jr    ra
 volatile `_gCdAudioState` matches.
 
 `D_800680C0` is another interrupt-shared flag: the SPU timer callback
-`Spu_TimerCallback` / `Spu_TimerReentryWork` reads and writes it while main-line
+`Spu_TimerCallback` / `_spuRunTimerAudioUpdate` reads and writes it while main-line
 `Spu_InitSystem` does the same. Marking it `volatile` keeps stores out of
 `jal` delay slots (target has `nop` after `D_800680C0 = 0`).
 
@@ -11169,7 +11169,7 @@ return 0;
 
 The `if (flag != 0) { ...; return 0; } return 0;` form often becomes
 `bnez` + an explicit jump to the shared epilogue, which mis-schedules the
-success-path setup. `Spu_TimerReentryWork` needs this shape (with `volatile`
+success-path setup. `_spuRunTimerAudioUpdate` needs this shape (with `volatile`
 `D_800680C0`) to free `$v0` for the return value before the `D_800680BC`
 update.
 
@@ -13957,17 +13957,17 @@ Fix: load the field into a local once and reuse that local for both the
 equality-to-constant test and the later compare:
 
 ```c
-ac14 = D_8006AC14;          /* stays in $a0 */
-f12a = gDisplayState.videoMode; /* lhu v1, %lo(...+0x12a)(v0) */
-if (f12a == 1) {
-    if (ac14 == f12a) { /* bne a0, v1 — both already live */
+movieDisplayMode = D_8006AC14;          /* stays in $a0 */
+displayVideoMode = gDisplayState.videoMode; /* lhu v1, %lo(...+0x12a)(v0) */
+if (displayVideoMode == DISPLAY_VIDEO_STREAMING) {
+    if (movieDisplayMode == displayVideoMode) { /* bne a0, v1 — both already live */
         ...
     }
 }
 gDisplayState.mdecActive = 0; /* separate lui after calls; delay-slot-friendly */
 ```
 
-`CdCmd_StopMdec` is the pure example (`D_8006AC14` vs `gDisplayState.videoMode`).
+`streamPollMovieStop` is the pure example (`D_8006AC14` vs `gDisplayState.videoMode`).
 
 ## Equality comparison operand order controls `beq` register order
 
@@ -14650,7 +14650,7 @@ DecDCTvlcSize2(DecDCTBufSize(frame) / 2 + 2);
 
 Pair with a separate `DecDCTvlcSize2(0)` on the other branch (rather than a
 shared `size` phi) so the zero path still fills the `bnez` delay with
-`move a0,zero` and both paths share no local. `Mdec_DecodeFrame` is the example.
+`move a0,zero` and both paths share no local. `_mdecStepMovieDecode` is the example.
 
 ## Reload a global (not the local pointer) to fill a branch delay with `lui`
 
@@ -14706,7 +14706,7 @@ addPrim(gGpuCurrentOt + otz, p);
 ```
 
 `setDrawTPage` → `setlen` + `_get_mode`; `addPrim` → `setaddr`/`getaddr` on
-`P_TAG`. Same pattern as `Prim_DrawTPage` (which uses `AddPrim` the function
+`P_TAG`. Same pattern as `_primDrawTexturePage` (which uses `AddPrim` the function
 instead of the macro — that one is a real call). `uiQueueTexturePage` is the pure
 inline-macro example.
 
@@ -15520,10 +15520,10 @@ have (extension lives inside the callee for `GetTPage` etc.). Declare the
 callee as `s32` and cast to `s16` only where the body needs it:
 
 ```c
-void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+static void _primDrawTexturePage(s32 blendMode, s32 tpageX, s32 tpageY, s32 otIndex)
 {
     /* … */
-    GetTPage(0, (s16)arg0, (s16)arg1, (s16)arg2);
+    GetTPage(PRIMITIVE_TEXTURE_DEPTH_4BIT, (s16)blendMode, (s16)tpageX, (s16)tpageY);
 }
 ```
 
@@ -21325,9 +21325,9 @@ epilogue:
     cleanup();
 ```
 
-`Task_AllocIdMap` is the pure example (`field_1 == 1` → `sndEvtRequestMidiStop` then
-shared `D_80062734 = 0xFF; taskKill`). Explicit `goto epilogue` on the
-`midiIsSequenceBusy != 0` path inverted the `field_1` branch to `beq` with the
+`_stageMusicSelectEntry` is the pure example (`startMode == STAGE_MUSIC_START_DEFERRED` → `sndEvtRequestMidiStop` then
+shared `gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE; taskKill`). Explicit `goto epilogue` on the
+`midiIsSequenceBusy != 0` path inverted the `startMode` branch to `beq` with the
 bodies swapped.
 
 ## Force `lui a0` before `lh a1` for global+halfword call args
@@ -148019,7 +148019,7 @@ Matched this way: `Midi_InitSlot`, `Pad_Init` (`Pad_ClearState(&gPadStates[i])`
 followed by `gPadStates[i].field = ...`; the byte-offset counter and the
 separate `state` pointer of the old source were both givs the loop pass made
 from one `i`), `fsBuildFolderTables` (byte copy of
-`&destinationStreams[j & 0xFFFF]`) and `Stage_ApplyTableEntryWhenIdle`, where
+`&destinationStreams[j & 0xFFFF]`) and `_stageMusicStartWhenCdIdle`, where
 the pointer is used across blocks. An inline that returns a flag the caller
 tests leaves `li v0,1` / `beqz v0` at the join, so put the code that follows
 inside the helper (or keep it `void`) rather than returning a status.
@@ -150759,7 +150759,7 @@ constant).
   The same function's `headerIndex = 0; headerFound = 0; requestedView = *viewId;` in front of
   `for (; i < N; i++)` fixes the order of the three initial moves.
 - **A tail written out in each arm merges only if cse knows the same things
-  on every copy.** `Task_AllocIdMap`: `gStageMusicLoadState = 0xFF;
+  on every copy.** `_stageMusicSelectEntry`: `gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;
   taskKill(task); return;` copied into the deferred-start arm shared its 0xFF
   with an earlier `== 0xFF` compare (`li s3,255`, frame 8 bytes larger). Put
   the other copy where nothing is known instead: the allocation failure as an

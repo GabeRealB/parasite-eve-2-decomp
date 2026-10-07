@@ -2220,8 +2220,8 @@ static u16             func_acropolis_plaza_8017FB50(Task* task);
 /// Step 0 waits for `cdSyncPollCommand`: CD_SYNC_PENDING keeps waiting,
 /// CD_SYNC_RETRY flushes the drive first, and CD_SYNC_COMPLETE (or RETRY)
 /// promotes a 0x72 entry to 0x71 -- clearing the MDEC strip counters -- kicks
-/// the decoder, primes `Stream_PollPlayback` and advances to step 1. Step 1 polls
-/// `Stream_PollPlayback` every frame and retires the command once it reports done.
+/// the decoder, primes `streamPollMoviePlayback` and advances to step 1. Step 1 polls
+/// `streamPollMoviePlayback` every frame and retires the command once it reports done.
 void func_acropolis_plaza_8017D6D4(void)
 {
     CdCmdQueue* q;
@@ -2256,9 +2256,9 @@ void func_acropolis_plaza_8017D6D4(void)
                                     }
                                     Stream_KickDecode(slot & 0xFFFF);
                                     if (q->entries[q->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
-                                        Stream_PollPlayback(0, sectorOffset);
+                                        streamPollMoviePlayback(0, sectorOffset);
                                     } else if (q->entries[q->readIdx].cmd == CD_COMMAND_RESUME_STREAM_AT_POSITION) {
-                                        Stream_PollPlayback(1, q->activeRequest.resumeSector);
+                                        streamPollMoviePlayback(1, q->activeRequest.resumeSector);
                                     }
                                     q->step++;
                                     break;
@@ -2266,11 +2266,11 @@ void func_acropolis_plaza_8017D6D4(void)
                             /* fallthrough */
                         case 1:
                             if (q->entries[q->readIdx].cmd == CD_COMMAND_PLAY_STREAM_AT_OFFSET) {
-                                if (Stream_PollPlayback(0, sectorOffset) != 0) {
+                                if (streamPollMoviePlayback(0, sectorOffset) != 0) {
                                     cdCmdCompleteHeadRequest();
                                 }
                             } else if (q->entries[q->readIdx].cmd == CD_COMMAND_RESUME_STREAM_AT_POSITION) {
-                                if (Stream_PollPlayback(1, q->activeRequest.resumeSector) != 0) {
+                                if (streamPollMoviePlayback(1, q->activeRequest.resumeSector) != 0) {
                                     cdCmdCompleteHeadRequest();
                                 }
                             }
@@ -3675,7 +3675,7 @@ void func_acropolis_plaza_80180054(Task* task)
             work->sceneArg.skipStreamReset = 0;
             work->sceneArg.startFrame      = 0;
             work->sceneTask                = taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
-            Stage_RequestFromAreaTable(0);
+            stageMusicRequestAreaStart(0);
             taskSpawnFromTable(D_acropolis_plaza_80183824, 8, 6, 0);
             q->blockGamePause = 1;
             task->state       = task->state + 1;

@@ -237,7 +237,7 @@ static void CdCmd_HandleStreamDecode(void)
                         break;
                     }
                     state->continueMovie = 1;
-                    Stream_PollPlayback(0, ((u16)state->movieFrame - 1) * 0xA);
+                    streamPollMoviePlayback(0, ((u16)state->movieFrame - 1) * 0xA);
                     state->step = state->step + 1;
                     break;
             }
@@ -247,7 +247,7 @@ static void CdCmd_HandleStreamDecode(void)
         default:
             return;
     }
-    if ((s16)Stream_PollPlayback(0, ((u16)state->movieFrame - 1) * 0xA) != 0) {
+    if ((s16)streamPollMoviePlayback(0, ((u16)state->movieFrame - 1) * 0xA) != 0) {
         p = &gCdCmdQueue;
         if (p->busy != 0) {
             p->busy              = 0;
@@ -710,7 +710,7 @@ static void CdCmd_ProcessPhase1(void)
                     break;
                 case CD_COMMAND_CANCEL_FINISH:
                 case_2:
-                    if ((s16)CdCmd_StopMdec(1)) {
+                    if (streamPollMovieStop(1)) {
                         ret = 1;
                     } else {
                         CdCmd_HandleStreamDecode();
@@ -854,7 +854,7 @@ static void CdCmd_ProcessPhase2(void)
                     break;
                 case 2:
                 case_2:
-                    if ((s16)CdCmd_StopMdec(1)) {
+                    if (streamPollMovieStop(1)) {
                         ret = 1;
                     } else {
                         CdCmd_HandleStreamDecode();

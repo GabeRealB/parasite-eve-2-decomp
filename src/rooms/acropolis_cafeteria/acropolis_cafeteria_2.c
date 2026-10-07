@@ -930,7 +930,7 @@ void func_acropolis_cafeteria_8017E47C(Task* arg0)
 
         case 3:
             if (++task->killCountdown == 0x443) {
-                Stage_RequestFromAreaTable(0);
+                stageMusicRequestAreaStart(0);
                 task->spawnArg1.value = 1;
             }
             if (cdCmdIsIdle() & 0xFFFF) {
@@ -959,7 +959,7 @@ void func_acropolis_cafeteria_8017E47C(Task* arg0)
                 return;
             }
             if (task->spawnArg1.value == 0) {
-                Stage_RequestFromAreaTable(0);
+                stageMusicRequestAreaStart(0);
             }
             taskKill(task);
             displayResumeGameLoop();

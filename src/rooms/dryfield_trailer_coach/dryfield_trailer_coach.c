@@ -1849,7 +1849,7 @@ static void func_dryfield_trailer_coach_80182888(Task* arg0)
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
     } else {
-        Stage_RequestFromAreaTable(1);
+        stageMusicRequestAreaStart(1);
     }
     arg0->state = (s32)(arg0->state + 1);
 }

@@ -130,7 +130,17 @@ u16 streamGetFrameLimit(u16 slotIndex);
 
 void Stream_KickDecode(u32 arg0);
 
-/// Advances the CD/MDEC playback state machine.
-extern s32 Stream_PollPlayback(u16 resume, s32 sectorOffset);
+/// Polls movie startup, decoding, pause, looping and disc-recovery playback.
+///
+/// Initialize the selected movie and its retained workspaces before the first
+/// poll. With `sectorIsAbsolute` zero, `sectorOffset` counts sectors from the
+/// movie start; otherwise it is an absolute CD sector. Keep these inputs stable
+/// while the initial seek is pending. Recovery resumes at the last published
+/// frame using ten sectors per frame, independently of the initial offset.
+/// Returns 0 while running or waiting, and 1 after a nonlooping movie finishes.
+/// Completion restores display ownership but retains movie allocations.
+/// Requires serialized use of the resident CD channel; read-start retries and
+/// disc recovery have no timeout here.
+extern s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset);
 
 #endif // MAIN_STREAM_H

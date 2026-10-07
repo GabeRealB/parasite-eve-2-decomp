@@ -238,7 +238,7 @@ static void func_dryfield_gas_station_8017FEDC(Task* arg0)
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
     } else {
-        Stage_RequestFromAreaTable(1);
+        stageMusicRequestAreaStart(1);
     }
     arg0->state = (s32)(arg0->state + 1);
     D_80115598  = 1;

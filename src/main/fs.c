@@ -309,7 +309,7 @@ static void Fs_ReadSector(s32 sector);
 
 static void _fsSeekToSector(s32 absoluteSector);
 
-static void Fs_ReadNSyncCb(u8 status, u8* result);
+static void _fsReadNSyncCallback(u8 interruptStatus, u8* unusedResult);
 
 static void _fsPayloadReadStartedCallback(u8 interruptStatus, u8* unusedResult);
 
@@ -1868,7 +1868,7 @@ void Fs_RetryReadN(void)
     CdIntToPos(Fs_ReqSector, loc);
     CdControlF(CdlReadN, &loc[0].minute);
     if (Fs_CdOpStatus == 0x40) {
-        CdSyncCallback(Fs_ReadNSyncCb);
+        CdSyncCallback(_fsReadNSyncCallback);
         Fs_VBlank      = VSync(-1);
         Fs_CdOpStatus += 1;
     }
@@ -1958,7 +1958,7 @@ static void Fs_ReadSector(s32 sector)
         Fs_SeekSector = 0;
         CdIntToPos(sector, loc);
         CdControlF(CdlReadN, &loc[0].minute);
-        CdSyncCallback(Fs_ReadNSyncCb);
+        CdSyncCallback(_fsReadNSyncCallback);
     }
 }
 
@@ -2056,11 +2056,18 @@ void fsStartStage0HeaderRead(void)
     Fs_VBlank = VSync(-1);
 }
 
-static void Fs_ReadNSyncCb(u8 status, u8* result)
+/// Selects sector processing after a chunk or sound-bank ReadN command starts.
+///
+/// Every interrupt except CdlDiskError accepts the read. Chunk resumption
+/// enables streaming; a fresh chunk read disables it, while a sound-bank read
+/// initializes the loader before installing its ready callback. Result bytes
+/// are ignored. Success resets the timeout/error counters and removes this
+/// sync callback; a disk error selects the filesystem's soft restart path.
+static void _fsReadNSyncCallback(u8 interruptStatus, u8* unusedResult)
 {
-    if (status != CdlDiskError) {
-        if (Fs_CdOpStatus == 0x41) {
-            Fs_CdOpStatus = 0;
+    if (interruptStatus != CdlDiskError) {
+        if (Fs_CdOpStatus == FILE_SYSTEM_CD_OPERATION_RESUMING_CHUNK) {
+            Fs_CdOpStatus = FILE_SYSTEM_CD_OPERATION_PENDING;
             Fs_Streaming  = true;
             CdReadyCallback(_fsChunkReadyCallback);
         } else if (D5B498_8006ACC8 == false) {

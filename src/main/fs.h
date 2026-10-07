@@ -114,8 +114,6 @@ u16 cdSyncPollPause(void);
 /// that recovery state. Requires serialized drive use; command calls block.
 s16 cdSyncPollDiscRecovery(void);
 
-s32 CdCmd_StopMdec(s32 clearFb);
-
 /// Status halfwords reported through `D5B498_8006D748` by `fsDecompressStream`.
 enum {
     FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT  = 0,

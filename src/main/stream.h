@@ -7,6 +7,15 @@
 
 extern u16 D_8006AC58;
 
+/// Pauses the movie drive and releases its decoder and STR ring state.
+///
+/// Returns 0 while pause is pending and 1 after shutdown. A nonzero low
+/// halfword of `clearFramebuffers` clears both display-movie buffers before
+/// restoring the game display. Texture movies instead release their pause
+/// block when configured to do so. Movie workspaces are retained for restart;
+/// serialize calls with playback and the resident CD command channel.
+s16 streamPollMovieStop(s32 clearFramebuffers);
+
 /// Schedules a standalone background bitstream for asynchronous image decoding.
 ///
 /// `bitstream` starts a word-aligned PSX BS command stream and remains readable
