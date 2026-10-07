@@ -919,45 +919,60 @@ static void func_shelter_b1_sterilization_room_80180828(Task* task)
 
 #include "../../shared/backdrop_crossfade_live.inc.c"
 
-/// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
-/// slot 8, tinting both with `shade`, then append each half's tpage.
-void crossfadeDrawBackdrop(s32 shade)
+/// Queues an additive redraw of the captured backdrop for the room crossfade.
+///
+/// Samples 192x240 pixels at VRAM (832, 0) and 128x240 at (384, 256), placing
+/// them over the centered 320x240 frame. `shade` is RGB modulation (0 black,
+/// 0x80 unchanged); only its low byte is stored. Requires a completed capture
+/// and room for two `SPRT`s and two `DR_TPAGE`s in the current frame arena,
+/// borrowed by the GPU until completion. No capacity checks are made.
+static void _crossfadeDrawBackdrop(s32 shade)
 {
-    SPRT* p;
+    enum {
+        CROSSFADE_STERILIZATION_LEFT_VRAM_X  = 832,
+        CROSSFADE_STERILIZATION_RIGHT_VRAM_X = 384,
+        CROSSFADE_STERILIZATION_RIGHT_VRAM_Y = 256,
+    };
+    SPRT* sprite;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    setSemiTrans(p, 1);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->u0   = 0;
-    p->v0   = 0;
-    p->x0   = -0xA0;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0xC0;
-    p->h    = 0xF0;
-    addPrim(gGpuCurrentOt + 8, p);
-    _crossfadeSetTpage(0x340, 0);
+    /// Reserves and initializes one semitransparent, greyscale backdrop sprite.
+    ///
+    /// `spritePacket` must be a writable SPRT pointer local and `shadeValue` a
+    /// side-effect-free value, read three times. Uses the current frame arena;
+    /// the caller fills geometry and linkage and retains storage for the GPU.
+#define CROSSFADE_ALLOCATE_BACKDROP_SPRITE(spritePacket, shadeValue) \
+    {                                                                \
+        (spritePacket) = gGpuPrimCursor;                             \
+        gGpuPrimCursor = (spritePacket) + 1;                         \
+        setSprt(spritePacket);                                       \
+        setSemiTrans(spritePacket, 1);                               \
+        (spritePacket)->r0 = (shadeValue);                           \
+        (spritePacket)->g0 = (shadeValue);                           \
+        (spritePacket)->b0 = (shadeValue);                           \
+    }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    setSemiTrans(p, 1);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->u0   = 0;
-    p->v0   = 0;
-    p->x0   = 0x20;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0x80;
-    p->h    = 0xF0;
-    addPrim(gGpuCurrentOt + 8, p);
-    _crossfadeSetTpage(0x180, 0x100);
+    CROSSFADE_ALLOCATE_BACKDROP_SPRITE(sprite, shade);
+    sprite->u0   = 0;
+    sprite->v0   = 0;
+    sprite->x0   = -CROSSFADE_BACKDROP_WIDTH / 2;
+    sprite->y0   = -CROSSFADE_BACKDROP_HEIGHT / 2;
+    sprite->clut = 0;
+    sprite->w    = CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sprite->h    = CROSSFADE_BACKDROP_HEIGHT;
+    addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
+    _crossfadeSetTpage(CROSSFADE_STERILIZATION_LEFT_VRAM_X, 0);
+
+    CROSSFADE_ALLOCATE_BACKDROP_SPRITE(sprite, shade);
+    sprite->u0   = 0;
+    sprite->v0   = 0;
+    sprite->x0   = CROSSFADE_BACKDROP_LEFT_WIDTH - CROSSFADE_BACKDROP_WIDTH / 2;
+    sprite->y0   = -CROSSFADE_BACKDROP_HEIGHT / 2;
+    sprite->clut = 0;
+    sprite->w    = CROSSFADE_BACKDROP_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sprite->h    = CROSSFADE_BACKDROP_HEIGHT;
+    addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
+    _crossfadeSetTpage(CROSSFADE_STERILIZATION_RIGHT_VRAM_X, CROSSFADE_STERILIZATION_RIGHT_VRAM_Y);
+#undef CROSSFADE_ALLOCATE_BACKDROP_SPRITE
 }
 
 void func_shelter_b1_sterilization_room_80180D74(Task* task)
@@ -1082,7 +1097,7 @@ void func_shelter_b1_sterilization_room_801811E0(Task* task)
 
 static void func_shelter_b1_sterilization_room_80181244(Task* task)
 {
-    crossfadeDrawBackdrop(0x80);
+    _crossfadeDrawBackdrop(CROSSFADE_SHADE_UNITY);
     _crossfadeDrawLive(0);
     if (gGameSession->viewReady != 0) {
         task->killCountdown = 0x80;

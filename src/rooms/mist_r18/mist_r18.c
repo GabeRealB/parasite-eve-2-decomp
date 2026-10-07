@@ -41,6 +41,17 @@
 #include "mapui/map_akropolis.h"
 #include "../../shared/backdrop_crossfade.h"
 
+/// Packet placement and storage layout of this room's captions and captured backdrop.
+enum {
+    MIST_R18_CAPTION_SPRITE_OT_SLOT = 4,
+    MIST_R18_CAPTION_PLATE_OT_SLOT  = 5,
+    MIST_R18_TEXTURE_DEPTH_4BIT     = 0,
+    MIST_R18_TEXTURE_SHADE_UNITY    = 0x80,
+    MIST_R18_BACKDROP_LEFT_VRAM_X   = 832,
+    MIST_R18_BACKDROP_RIGHT_VRAM_X  = 640,
+    MIST_R18_BACKDROP_RIGHT_VRAM_Y  = 256,
+};
+
 extern WorldCoordRoomLights D_mist_r18_80186E44[1];
 
 s32 func_map_akropolis_8017A038(void);
@@ -48,13 +59,13 @@ s32 func_map_akropolis_80179FC8(s32 arg0, s32 arg1);
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void func_mist_r18_8017D960(Task* task);
-static void func_mist_r18_8017DBB8(s32 shade, s32 arg1);
-static void func_mist_r18_8017DD7C(Task* task);
-static void func_mist_r18_8017E39C(Task* task);
-static void func_mist_r18_8017E448(PrimDrawParams* sprite);
-static void func_mist_r18_8017E534(PrimDrawParams* sprite, u32 clutX, s32 clutY);
-static void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx);
-static void func_mist_r18_8017E8B8(Task* task);
+static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade);
+static void _mistR18CaptureBackdropState(Task* task);
+static void _mistR18AttachedModelIdleState(Task* task);
+static void _mistR18DrawTile(const PrimDrawParams* draw);
+static void _mistR18DrawSprite(const PrimDrawParams* draw, u32 clutX, s32 clutY);
+static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orderingTableSlot);
+static void _mistR18WaitForCrossfadeViewState(Task* task);
 static void func_mist_r18_8017ECF4(Task* arg0);
 
 /// The room's task-spawn table; its entries are started by index from the
@@ -73,7 +84,7 @@ extern EvsCommand D_mist_r18_8018645C[];
 extern EvsCommand D_mist_r18_8018651C[];
 extern EvsCommand D_mist_r18_80186564[];
 /// The two prop tasks `func_mist_r18_8017E6D8` spawns and
-/// `func_mist_r18_8017E784` tears down, by index.
+/// `_mistR18KillAttachedModel` tears down, by index.
 extern Task* D_mist_r18_80186E90;
 extern Task* D_mist_r18_80186E94;
 /// Handle of the task `func_mist_r18_8017EA2C` spawns.
@@ -83,11 +94,11 @@ extern s32 D_mist_r18_80186E9C;
 /// Set by `func_mist_r18_8017D960` when the alternate cutscene branch ran.
 extern s32 D_mist_r18_80186EA0;
 
-/// State handlers of the attached-model task `func_mist_r18_8017E2C8`
+/// State handlers of the attached-model task `_mistR18AttachedModelTask`
 /// dispatches: attach to the parent's part, an empty idle state, then
 /// `taskKill`.
 static const TaskFuncTable3 D_mist_r18_8017D5C4 = {
-    { _modelPlacementAttachPartTask, func_mist_r18_8017E39C, taskKill },
+    { _modelPlacementAttachPartTask, _mistR18AttachedModelIdleState, taskKill },
 };
 
 /// State handlers of the room's cutscene task `func_mist_r18_8017ED64`
@@ -97,10 +108,10 @@ static const TaskFuncTable3 D_mist_r18_8017D5D0 = {
 };
 
 /// State handlers of the backdrop task `func_mist_r18_8017E854` dispatches:
-/// blit the backdrop into the framebuffer, fade it in, fade it out, then
+/// capture the framebuffer as the backdrop, wait for the new view, crossfade, then
 /// `taskKill`.
 static const TaskFuncTable4 D_mist_r18_8017D5DC = {
-    { func_mist_r18_8017DD7C, func_mist_r18_8017E8B8, crossfadeOutState, taskKill },
+    { _mistR18CaptureBackdropState, _mistR18WaitForCrossfadeViewState, crossfadeOutState, taskKill },
 };
 
 extern AreaResource D_mist_r18_80186BD8[3];
@@ -109,11 +120,11 @@ extern WorldCollisionGrid D_mist_r18_801866F8[1];
 
 extern AnimationSet* D_mist_r18_80184F64[11];
 void                 func_mist_r18_8017E6D8(s32);
-void                 func_mist_r18_8017E784(s32);
+static void          _mistR18KillAttachedModel(s32 modelIndex);
 void                 func_mist_r18_8017E7F0(void);
 void                 func_mist_r18_8017E824(void);
 void                 func_mist_r18_8017EA2C(void);
-void                 func_mist_r18_8017EA60(void);
+static void          _mistR18KillPlacedProp(void);
 void                 func_mist_r18_8017EB48(void);
 void                 func_mist_r18_8017EBB8(void);
 void                 func_mist_r18_8017EBF8(void);
@@ -135,13 +146,13 @@ static AnimationSet _gMistR18Animation075CC;
 static AnimationSet _gMistR18Animation078C0;
 static TmdSource    _gMistR18Actor213000Model072AC;
 static TmdSource    _gMistR18Actor213000Prop;
-void                func_mist_r18_8017D5EC(Task*);
-void                func_mist_r18_8017DA8C(Task*);
-void                func_mist_r18_8017E2C8(Task*);
-void                func_mist_r18_8017E3A4(Task*);
+static void         _mistR18CaptionTask(Task* task);
+static void         _mistR18TextureFadeTask(Task* task);
+static void         _mistR18AttachedModelTask(Task* task);
+static void         _mistR18FadeTileTask(Task* task);
 void                func_mist_r18_8017E854(Task*);
-void                func_mist_r18_8017EA98(Task*);
-void                func_mist_r18_8017EC98(Task*);
+static void         _mistR18PlacePropTask(Task* task);
+static void         _mistR18ReleaseScriptPauseTask(Task* task);
 
 static TmdBone _gMistR18Actor213000Model072ACSkeleton[1] = {
 #include "assets/actor_213000_model_072AC_skeleton.inc"
@@ -489,14 +500,14 @@ u8 D_mist_r18_80184EA8[60] = {
 TextStream D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, Caption_Glyphs, 13, 45, 216, 29 };
 
 TaskDesc D_mist_r18_80184F04[8] = {
-    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017E2C8, { .model = &_gMistR18Actor213000Model072AC } },
-    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017E2C8, { .model = &_gMistR18Actor213000Prop } },
-    { { { TASK_BODY_COORD, 192 } }, func_mist_r18_8017DA8C, { .value = 0 } },
+    { { { TASK_BODY_TMD, 192 } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Model072AC } },
+    { { { TASK_BODY_TMD, 192 } }, _mistR18AttachedModelTask, { .model = &_gMistR18Actor213000Prop } },
+    { { { TASK_BODY_COORD, 192 } }, _mistR18TextureFadeTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017E854, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, func_mist_r18_8017EA98, { .model = &_gMistR18Actor213000Prop } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017D5EC, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017E3A4, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_r18_8017EC98, { .value = 0 } },
+    { { { TASK_BODY_TMD, 192 } }, _mistR18PlacePropTask, { .model = &_gMistR18Actor213000Prop } },
+    { { { TASK_BODY_NONE, 192 } }, _mistR18CaptionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistR18FadeTileTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistR18ReleaseScriptPauseTask, { .value = 0 } },
 };
 
 AnimationSet* D_mist_r18_80184F64[11] = {
@@ -674,12 +685,12 @@ EvsCommand D_mist_r18_8018576C[37] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_8018518C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185224 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18KillPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_r18_8017E784 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18KillAttachedModel }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185228 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
@@ -721,7 +732,7 @@ EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_r18_8017E784 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18KillAttachedModel }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -737,7 +748,7 @@ EvsCommand D_mist_r18_80185EBC[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18KillPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -805,8 +816,8 @@ EvsCommand D_mist_r18_8018639C[8] = {
 EvsCommand D_mist_r18_8018645C[8] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_r18_8017E784 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18KillPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18KillAttachedModel }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185228 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -822,7 +833,7 @@ EvsCommand D_mist_r18_8018651C[3] = {
 EvsCommand D_mist_r18_80186564[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18KillPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EA2C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1051,90 +1062,114 @@ s32 D_mist_r18_80186E9C;
 
 s32 D_mist_r18_80186EA0;
 
-/// Typewriter text task for the room's message box: state 0 measures the
-/// script (or, for a negative per-glyph delay, reveals all of it at once) and
-/// arms the countdown, state 1 draws the revealed glyphs each frame and
-/// advances one glyph whenever the countdown runs out. Any other state, or a
-/// session that has left the message, kills the task.
-void func_mist_r18_8017D5EC(Task* task)
+/// Reveals a glyph-script caption over a translucent black plate during an event.
+///
+/// Borrows the mutable `TextStream` in `spawnArg2.pointer`, its script and glyph
+/// table until teardown. `charDelay` and `delayReload` are callback ticks;
+/// a negative character delay reveals the complete caption on initialization.
+/// Uses unmasked glyph bytes (the room script has no high-bit glyph indices),
+/// centered draw-environment pixels and a plate inset of three pixels. The
+/// compiled probe reads the byte before `chars` at cursor zero and one byte
+/// after the terminator; the script storage must make both reads valid.
+/// State 0 initializes, state 1 redraws and advances the cursor, and all other
+/// states kill the task. Leaving the event also requests teardown.
+static void _mistR18CaptionTask(Task* task)
 {
-    PrimDrawParams sprite;
-    TextStream*    spawn;
-    s32            i;
+    enum {
+        MIST_R18_CAPTION_INITIALIZE = 0,
+        MIST_R18_CAPTION_REVEAL     = 1,
+        MIST_R18_CAPTION_FINISHED   = -1,
+        MIST_R18_FONT_PAGE_U_MASK   = 0x3F,
+    };
+    PrimDrawParams draw;
+    TextStream*    stream;
+    s32            byteIndex;
 
-    spawn = task->spawnArg2.pointer;
+    /// Draws the revealed prefix, leaving the pen after its final glyph.
+    ///
+    /// Uses this function's `stream`, `draw` and `byteIndex` locals, updating
+    /// the pen and loop index. Borrows script/glyph data and emits sprite
+    /// packets; glyph bytes must index the cell table directly. No early exits.
+#define MIST_R18_DRAW_CAPTION_PREFIX()                                                                              \
+    {                                                                                                               \
+        for (byteIndex = 0; byteIndex < stream->cursor; byteIndex++) {                                              \
+            if (stream->chars[byteIndex] == TEXT_STREAM_LINE_BREAK) {                                               \
+                draw.x  = stream->x;                                                                                \
+                draw.y += stream->lineHeight;                                                                       \
+            } else {                                                                                                \
+                draw.u = stream->glyphs[stream->chars[byteIndex]].u + (stream->tpageX & MIST_R18_FONT_PAGE_U_MASK); \
+                draw.v = stream->glyphs[stream->chars[byteIndex]].v + (u8)stream->tpageY;                           \
+                draw.w = stream->glyphs[stream->chars[byteIndex]].width;                                            \
+                draw.h = stream->glyphs[stream->chars[byteIndex]].height;                                           \
+                if (draw.h != 0) {                                                                                  \
+                    _mistR18DrawSprite(&draw, stream->clutX, stream->clutY);                                        \
+                }                                                                                                   \
+                draw.x += stream->glyphs[stream->chars[byteIndex]].width;                                           \
+            }                                                                                                       \
+        }                                                                                                           \
+    }
+
+    stream = task->spawnArg2.pointer;
     if (gGameSession->eventState == 0) {
-        task->state = -1;
+        task->state = MIST_R18_CAPTION_FINISHED;
     }
 
     switch (task->state) {
-        case 0:
-            spawn->cursor = 0;
-            if (spawn->charDelay < 0) {
-                i = 0;
-                if (spawn->chars[0] != TEXT_STREAM_END) {
+        case MIST_R18_CAPTION_INITIALIZE:
+            // Reset reveal timing; a negative delay exposes the complete script.
+            stream->cursor = 0;
+            if (stream->charDelay < 0) {
+                byteIndex = 0;
+                if (stream->chars[0] != TEXT_STREAM_END) {
                     do {
-                        i++;
-                        spawn->cursor++;
-                    } while (spawn->chars[i] != TEXT_STREAM_END);
+                        byteIndex++;
+                        stream->cursor++;
+                    } while (stream->chars[byteIndex] != TEXT_STREAM_END);
                 }
-                task->killCountdown = spawn->delayReload;
+                task->killCountdown = stream->delayReload;
             } else {
-                task->killCountdown = spawn->charDelay;
+                task->killCountdown = stream->charDelay;
             }
             task->state++;
             return;
 
-        case 1:
-            sprite.x         = spawn->x;
-            sprite.y         = spawn->y;
-            sprite.u         = spawn->tpageX;
-            sprite.v         = spawn->tpageY;
-            sprite.r         = 0x80;
-            sprite.g         = 0x80;
-            sprite.b         = 0x80;
-            sprite.semiTrans = 0;
-            sprite.unused_12 = ONE;
+        case MIST_R18_CAPTION_REVEAL:
+            // Redraw the revealed prefix, then advance its byte cursor on expiry.
+            draw.x         = stream->x;
+            draw.y         = stream->y;
+            draw.u         = stream->tpageX;
+            draw.v         = stream->tpageY;
+            draw.r         = MIST_R18_TEXTURE_SHADE_UNITY;
+            draw.g         = MIST_R18_TEXTURE_SHADE_UNITY;
+            draw.b         = MIST_R18_TEXTURE_SHADE_UNITY;
+            draw.semiTrans = 0;
+            draw.unused_12 = ONE;
 
-            if (spawn->chars[spawn->cursor - 1] != TEXT_STREAM_END) {
-                for (i = 0; i < spawn->cursor; i++) {
-                    if (spawn->chars[i] == TEXT_STREAM_LINE_BREAK) {
-                        sprite.x  = spawn->x;
-                        sprite.y += spawn->lineHeight;
-                    } else {
-                        sprite.u = spawn->glyphs[spawn->chars[i]].u + (spawn->tpageX & 0x3F);
-                        sprite.v = spawn->glyphs[spawn->chars[i]].v + (u8)spawn->tpageY;
-                        sprite.w = spawn->glyphs[spawn->chars[i]].width;
-                        sprite.h = spawn->glyphs[spawn->chars[i]].height;
-                        if (sprite.h != 0) {
-                            func_mist_r18_8017E534(&sprite, spawn->clutX, spawn->clutY);
-                        }
-                        sprite.x += spawn->glyphs[spawn->chars[i]].width;
-                    }
-                }
+            if (stream->chars[stream->cursor - 1] != TEXT_STREAM_END) {
+                MIST_R18_DRAW_CAPTION_PREFIX();
 
-                func_mist_r18_8017E654(1, spawn->tpageX, spawn->tpageY, 4);
+                _mistR18SetTexturePage(GPU_BLEND_ADD, stream->tpageX, stream->tpageY, MIST_R18_CAPTION_SPRITE_OT_SLOT);
 
                 if (--task->killCountdown < 0) {
-                    spawn->cursor++;
-                    if (spawn->chars[spawn->cursor] == TEXT_STREAM_END) {
-                        task->killCountdown = spawn->delayReload;
+                    stream->cursor++;
+                    if (stream->chars[stream->cursor] == TEXT_STREAM_END) {
+                        task->killCountdown = stream->delayReload;
                     } else {
-                        task->killCountdown = spawn->charDelay;
+                        task->killCountdown = stream->charDelay;
                     }
                 }
 
                 // The plate sits three pixels above and left of the pen.
-                sprite.x         = spawn->x - 3;
-                sprite.y         = spawn->y - 3;
-                sprite.w         = spawn->boxWidth;
-                sprite.h         = spawn->boxHeight;
-                sprite.b         = 0;
-                sprite.g         = 0;
-                sprite.r         = 0;
-                sprite.semiTrans = 1;
-                func_mist_r18_8017E448(&sprite);
-                func_mist_r18_8017E654(0, 0, 0, 5);
+                draw.x         = stream->x - 3;
+                draw.y         = stream->y - 3;
+                draw.w         = stream->boxWidth;
+                draw.h         = stream->boxHeight;
+                draw.b         = 0;
+                draw.g         = 0;
+                draw.r         = 0;
+                draw.semiTrans = 1;
+                _mistR18DrawTile(&draw);
+                _mistR18SetTexturePage(GPU_BLEND_AVERAGE, 0, 0, MIST_R18_CAPTION_PLATE_OT_SLOT);
                 return;
             }
             task->state++;
@@ -1144,6 +1179,7 @@ void func_mist_r18_8017D5EC(Task* task)
             break;
     }
     taskKill(task);
+#undef MIST_R18_DRAW_CAPTION_PREFIX
 }
 
 /// Cutscene step of the room's cutscene task: while no event is running and
@@ -1179,38 +1215,48 @@ static void func_mist_r18_8017D960(Task* task)
     }
 }
 
-/// Fade task for the room's backdrop tint: state 0 arms the fade, states 1/3
-/// ramp `killCountdown` up to 0x80 and back down to 0, state 2 holds until the
-/// hold counter runs out (or the session's skip gate is set). Every state but
-/// the last redraws through `func_mist_r18_8017DBB8`.
-void func_mist_r18_8017DA8C(Task* task)
+/// Fades two fixed textured rectangles in, holds them opaque, then fades them out.
+///
+/// `killCountdown` holds RGB modulation, stepped by 21 per callback; the ramp
+/// reaches 147 before switching to opaque raw-texture drawing. `spawnArg1.value`
+/// counts hold callbacks, shortened by event skipping. State 0 queues the zero
+/// level twice, states 1/3 ramp, state 2 holds, and later states kill the task.
+/// This is task-table entry 2; no room-local spawner or event command uses it.
+static void _mistR18TextureFadeTask(Task* task)
 {
-    s32 shade;
+    enum {
+        MIST_R18_TEXTURE_FADE_INITIALIZE = 0,
+        MIST_R18_TEXTURE_FADE_IN         = 1,
+        MIST_R18_TEXTURE_FADE_HOLD       = 2,
+        MIST_R18_TEXTURE_FADE_OUT        = 3,
+        MIST_R18_TEXTURE_FADE_STEP       = 21,
+    };
+    s32 fadeActive;
 
-    shade = 1;
+    fadeActive = 1;
     switch (task->state) {
-        case 0:
+        case MIST_R18_TEXTURE_FADE_INITIALIZE:
             task->killCountdown = 0;
-            func_mist_r18_8017DBB8(1, 0);
+            _mistR18DrawFadeSprites(1, 0);
             task->state++;
             break;
-        case 1:
-            task->killCountdown += 0x15;
-            if (task->killCountdown >= 0x81) {
-                shade = 0;
+        case MIST_R18_TEXTURE_FADE_IN:
+            task->killCountdown += MIST_R18_TEXTURE_FADE_STEP;
+            if (task->killCountdown >= MIST_R18_TEXTURE_SHADE_UNITY + 1) {
+                fadeActive = 0;
                 task->state++;
             }
             break;
-        case 2:
-            shade = 0;
+        case MIST_R18_TEXTURE_FADE_HOLD:
+            fadeActive = 0;
             task->spawnArg1.value--;
             if ((task->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {
                 task->state++;
             }
             break;
-        case 3:
-            task->killCountdown -= 0x15;
-            if (task->killCountdown < 0x16) {
+        case MIST_R18_TEXTURE_FADE_OUT:
+            task->killCountdown -= MIST_R18_TEXTURE_FADE_STEP;
+            if (task->killCountdown < MIST_R18_TEXTURE_FADE_STEP + 1) {
                 task->state++;
             }
             break;
@@ -1218,108 +1264,124 @@ void func_mist_r18_8017DA8C(Task* task)
             taskKill(task);
             return;
     }
-    func_mist_r18_8017DBB8(shade, task->killCountdown);
+    _mistR18DrawFadeSprites(fadeActive, task->killCountdown);
 }
 
-/// Draw the room's two backdrop tint sprites (upper-left and lower-right
-/// halves of the mist overlay) plus the trailing tpage packet. `shade` picks
-/// the sprite code - shade-texture (0x65) while the fade is ramping in,
-/// semi-transparent (0x66) otherwise - and `arg1` is the grey level written
-/// into all three colour channels.
-static void func_mist_r18_8017DBB8(s32 shade, s32 arg1)
+/// Queues the two fixed 4-bit texture rectangles used by the room's texture fade.
+///
+/// `fadeActive` selects modulated semitransparent drawing when nonzero, or
+/// opaque raw-texture drawing when zero. `shade` supplies RGB modulation through
+/// its low byte. Samples page (704, 0), with palettes at (0, 271)/(16, 271).
+/// Reserves two `SPRT`s and one `DR_TPAGE` in the frame arena; the additive page
+/// command executes first because OT insertion prepends packets. Requires that
+/// texture/palette data and packet storage remain live until the GPU finishes.
+static void _mistR18DrawFadeSprites(s32 fadeActive, s32 shade)
 {
-    SPRT*     sprt;
-    DR_TPAGE* tp;
-    s16       x;
-    s16       y;
+    enum {
+        MIST_R18_SPRITE_RAW_OPAQUE_CODE      = 0x65,
+        MIST_R18_SPRITE_MODULATED_BLEND_CODE = 0x66,
+        MIST_R18_FADE_FIRST_CLUT             = getClut(0, 271),
+        MIST_R18_FADE_SECOND_CLUT            = getClut(16, 271),
+        MIST_R18_FADE_TEXTURE_PAGE           = getTPage(MIST_R18_TEXTURE_DEPTH_4BIT, GPU_BLEND_ADD, 704, 0),
+    };
+    SPRT*     sprite;
+    DR_TPAGE* pageCommand;
+    s16       screenX;
+    s16       screenY;
 
-    x              = -0x96;
-    y              = -0x5A;
-    sprt           = gGpuPrimCursor;
-    gGpuPrimCursor = sprt + 1;
-    setSprt(sprt);
-    if (shade == 0) {
-        sprt->code = 0x65;
+    screenX        = -0x96;
+    screenY        = -0x5A;
+    sprite         = gGpuPrimCursor;
+    gGpuPrimCursor = sprite + 1;
+    setSprt(sprite);
+    if (fadeActive == 0) {
+        sprite->code = MIST_R18_SPRITE_RAW_OPAQUE_CODE;
     } else {
-        sprt->code = 0x66;
+        sprite->code = MIST_R18_SPRITE_MODULATED_BLEND_CODE;
     }
-    setXY0(sprt, x, y);
-    sprt->clut = 0x43C0;
-    setWH(sprt, 0xCF, 0x23);
-    setRGB0(sprt, arg1, arg1, arg1);
-    setUV0(sprt, 0, 0);
-    addPrim(gGpuCurrentOt + 4, sprt);
+    setXY0(sprite, screenX, screenY);
+    sprite->clut = MIST_R18_FADE_FIRST_CLUT;
+    setWH(sprite, 0xCF, 0x23);
+    setRGB0(sprite, shade, shade, shade);
+    setUV0(sprite, 0, 0);
+    addPrim(gGpuCurrentOt + MIST_R18_CAPTION_SPRITE_OT_SLOT, sprite);
 
-    x              = -0x22;
-    y              = 0x36;
-    sprt           = gGpuPrimCursor;
-    gGpuPrimCursor = sprt + 1;
-    setSprt(sprt);
-    if (shade == 0) {
-        sprt->code = 0x65;
+    screenX        = -0x22;
+    screenY        = 0x36;
+    sprite         = gGpuPrimCursor;
+    gGpuPrimCursor = sprite + 1;
+    setSprt(sprite);
+    if (fadeActive == 0) {
+        sprite->code = MIST_R18_SPRITE_RAW_OPAQUE_CODE;
     } else {
-        sprt->code = 0x66;
+        sprite->code = MIST_R18_SPRITE_MODULATED_BLEND_CODE;
     }
-    setXY0(sprt, x, y);
-    setRGB0(sprt, arg1, arg1, arg1);
-    setUV0(sprt, 0, 0x24);
-    sprt->clut = 0x43C1;
-    setWH(sprt, 0xB7, 0x23);
-    addPrim(gGpuCurrentOt + 4, sprt);
+    setXY0(sprite, screenX, screenY);
+    setRGB0(sprite, shade, shade, shade);
+    setUV0(sprite, 0, 0x24);
+    sprite->clut = MIST_R18_FADE_SECOND_CLUT;
+    setWH(sprite, 0xB7, 0x23);
+    addPrim(gGpuCurrentOt + MIST_R18_CAPTION_SPRITE_OT_SLOT, sprite);
 
-    tp             = gGpuPrimCursor;
-    gGpuPrimCursor = tp + 1;
-    setDrawTPage(tp, 1, 0, 0x2B);
-    addPrim(gGpuCurrentOt + 4, tp);
+    pageCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = pageCommand + 1;
+    setDrawTPage(pageCommand, true, false, MIST_R18_FADE_TEXTURE_PAGE);
+    addPrim(gGpuCurrentOt + MIST_R18_CAPTION_SPRITE_OT_SLOT, pageCommand);
 }
 
-/// Blit the room's backdrop out of the off-screen VRAM staging area into the
-/// two framebuffer halves, bracketing both `MoveImage`s with STP writes so the
-/// copied pixels keep their mask bit. The source row depends on which display
-/// buffer is live, then the task advances a state.
-static void func_mist_r18_8017DD7C(Task* task)
+/// Captures the current 320x240 draw framebuffer as the crossfade's saved backdrop.
+///
+/// Splits at column 192, copying to VRAM (832, 0) and (640, 256). Buffer 0
+/// starts at (0, 0), buffer 1 at (0, 272). The frame must already be rendered
+/// when OT slot 8 executes. Reserves two `DR_MOVE`s and two `DR_STP`s, borrowed
+/// by the GPU until frame completion. Resets the shade and advances the state.
+static void _mistR18CaptureBackdropState(Task* task)
 {
-    RECT     rect;
-    DR_STP*  stp;
-    DR_MOVE* mv;
-    s16      x;
-    s16      y;
+    enum {
+        MIST_R18_FRAMEBUFFER_LOWER_Y = 272,
+    };
+    RECT     sourceRect;
+    DR_STP*  maskCommand;
+    DR_MOVE* copyCommand;
+    s16      frameX;
+    s16      frameY;
 
     if (gDisplayState.drawBuffer == 0) {
-        x = 0;
-        y = 0;
+        frameX = 0;
+        frameY = 0;
     } else {
-        x = 0;
-        y = 0x110;
+        frameX = 0;
+        frameY = MIST_R18_FRAMEBUFFER_LOWER_Y;
     }
 
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 0);
-    addPrim(gGpuCurrentOt + 8, stp);
+    maskCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = maskCommand + 1;
+    SetDrawStp(maskCommand, false);
+    addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, maskCommand);
 
-    mv             = gGpuPrimCursor;
-    gGpuPrimCursor = mv + 1;
-    rect.x         = x;
-    rect.y         = y;
-    rect.w         = 0xC0;
-    rect.h         = 0xF0;
-    SetDrawMove(mv, &rect, 0x340, 0);
-    addPrim(gGpuCurrentOt + 8, mv);
+    copyCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = copyCommand + 1;
+    sourceRect.x   = frameX;
+    sourceRect.y   = frameY;
+    sourceRect.w   = CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sourceRect.h   = CROSSFADE_BACKDROP_HEIGHT;
+    SetDrawMove(copyCommand, &sourceRect, MIST_R18_BACKDROP_LEFT_VRAM_X, 0);
+    addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, copyCommand);
 
-    mv             = gGpuPrimCursor;
-    gGpuPrimCursor = mv + 1;
-    rect.x         = x + 0xC0;
-    rect.y         = y;
-    rect.w         = 0x80;
-    rect.h         = 0xF0;
-    SetDrawMove(mv, &rect, 0x280, 0x100);
-    addPrim(gGpuCurrentOt + 8, mv);
+    copyCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = copyCommand + 1;
+    sourceRect.x   = frameX + CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sourceRect.y   = frameY;
+    sourceRect.w   = CROSSFADE_BACKDROP_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sourceRect.h   = CROSSFADE_BACKDROP_HEIGHT;
+    SetDrawMove(copyCommand, &sourceRect, MIST_R18_BACKDROP_RIGHT_VRAM_X, MIST_R18_BACKDROP_RIGHT_VRAM_Y);
+    addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, copyCommand);
 
-    stp            = gGpuPrimCursor;
-    gGpuPrimCursor = stp + 1;
-    SetDrawStp(stp, 1);
-    addPrim(gGpuCurrentOt + 8, stp);
+    // Head insertion executes mask-on, right copy, left copy, then mask-off.
+    maskCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = maskCommand + 1;
+    SetDrawStp(maskCommand, true);
+    addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, maskCommand);
 
     task->killCountdown = 0;
     task->state++;
@@ -1327,88 +1389,106 @@ static void func_mist_r18_8017DD7C(Task* task)
 
 #include "../../shared/backdrop_crossfade_live.inc.c"
 
-/// Redraw the room's two backdrop halves as semi-transparent `SPRT`s in OT
-/// slot 8, tinting both with `shade`, then append each half's tpage.
-void crossfadeDrawBackdrop(s32 shade)
+/// Queues an additive redraw of the captured backdrop for the room crossfade.
+///
+/// Samples 192x240 pixels at VRAM (832, 0) and 128x240 at (640, 256), placing
+/// them over the centered 320x240 frame. `shade` is RGB modulation (0 black,
+/// 0x80 unchanged); only its low byte is stored. Requires the completed capture
+/// and room for two `SPRT`s and two `DR_TPAGE`s in the current frame arena.
+/// The GPU borrows those packets until completion; no capacity checks are made.
+static void _crossfadeDrawBackdrop(s32 shade)
 {
-    SPRT* p;
+    SPRT* sprite;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    setSemiTrans(p, 1);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->u0   = 0;
-    p->v0   = 0;
-    p->x0   = -0xA0;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0xC0;
-    p->h    = 0xF0;
-    addPrim(gGpuCurrentOt + 8, p);
-    _crossfadeSetTpage(0x340, 0);
+    /// Reserves and initializes one semitransparent, greyscale backdrop sprite.
+    ///
+    /// `spritePacket` must be a writable SPRT pointer local and `shadeValue` a
+    /// side-effect-free value, read three times. Uses the current frame arena;
+    /// the caller fills geometry and linkage and retains storage for the GPU.
+#define CROSSFADE_ALLOCATE_BACKDROP_SPRITE(spritePacket, shadeValue) \
+    {                                                                \
+        (spritePacket) = gGpuPrimCursor;                             \
+        gGpuPrimCursor = (spritePacket) + 1;                         \
+        setSprt(spritePacket);                                       \
+        setSemiTrans(spritePacket, 1);                               \
+        (spritePacket)->r0 = (shadeValue);                           \
+        (spritePacket)->g0 = (shadeValue);                           \
+        (spritePacket)->b0 = (shadeValue);                           \
+    }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setSprt(p);
-    setSemiTrans(p, 1);
-    p->r0   = shade;
-    p->g0   = shade;
-    p->b0   = shade;
-    p->u0   = 0;
-    p->v0   = 0;
-    p->x0   = 0x20;
-    p->y0   = -0x78;
-    p->clut = 0;
-    p->w    = 0x80;
-    p->h    = 0xF0;
-    addPrim(gGpuCurrentOt + 8, p);
-    _crossfadeSetTpage(0x280, 0x100);
+    CROSSFADE_ALLOCATE_BACKDROP_SPRITE(sprite, shade);
+    sprite->u0   = 0;
+    sprite->v0   = 0;
+    sprite->x0   = -CROSSFADE_BACKDROP_WIDTH / 2;
+    sprite->y0   = -CROSSFADE_BACKDROP_HEIGHT / 2;
+    sprite->clut = 0;
+    sprite->w    = CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sprite->h    = CROSSFADE_BACKDROP_HEIGHT;
+    addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
+    _crossfadeSetTpage(MIST_R18_BACKDROP_LEFT_VRAM_X, 0);
+
+    // Each prepended texture-page command executes before its sprite.
+    CROSSFADE_ALLOCATE_BACKDROP_SPRITE(sprite, shade);
+    sprite->u0   = 0;
+    sprite->v0   = 0;
+    sprite->x0   = CROSSFADE_BACKDROP_LEFT_WIDTH - CROSSFADE_BACKDROP_WIDTH / 2;
+    sprite->y0   = -CROSSFADE_BACKDROP_HEIGHT / 2;
+    sprite->clut = 0;
+    sprite->w    = CROSSFADE_BACKDROP_WIDTH - CROSSFADE_BACKDROP_LEFT_WIDTH;
+    sprite->h    = CROSSFADE_BACKDROP_HEIGHT;
+    addPrim(gGpuCurrentOt + CROSSFADE_ORDERING_TABLE_SLOT, sprite);
+    _crossfadeSetTpage(MIST_R18_BACKDROP_RIGHT_VRAM_X, MIST_R18_BACKDROP_RIGHT_VRAM_Y);
+#undef CROSSFADE_ALLOCATE_BACKDROP_SPRITE
 }
 
-/// Per-frame entry point of the attached-model task: run the handler its state
-/// selects from `D_mist_r18_8017D5C4` (attach to the parent's part, an empty
-/// idle state, then `taskKill`), copied onto the stack each frame.
-void func_mist_r18_8017E2C8(Task* task)
+/// Dispatches attachment, idle and teardown for either of the room's held models.
+///
+/// Requires a live TMD task and a state in 0..2. Setup borrows the parent TMD
+/// task in `spawnArg2.pointer`; `spawnArg1.value` indexes its part coordinates.
+/// The parent coordinate and lighting matrices must outlive the child. Setup
+/// joins the parent's teardown tree; state 1 keeps the attachment unchanged,
+/// and state 2 kills it. The three callbacks are copied by value before dispatch.
+static void _mistR18AttachedModelTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_mist_r18_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_mist_r18_8017D5C4;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// Idle state of the attached-model task: nothing to do until it is killed.
-static void func_mist_r18_8017E39C(Task* task)
+/// Keeps an attached model unchanged while its parent controls its lifetime.
+static void _mistR18AttachedModelIdleState(Task* task)
 {
 }
 
-/// Redraw the room's sprite rectangle each frame until the spawn countdown in
-/// `Task::spawnArg1` runs out, then kill the task.
+/// Draws a translucent black rectangle until its callback countdown expires.
 ///
-/// `Task::spawnArg2` points at the `RECT` to cover, in draw-environment
-/// pixels; the task borrows it and reads it again every frame.
-void func_mist_r18_8017E3A4(Task* task)
+/// In state 0, borrows the `RECT` in `spawnArg2.pointer` on every callback and
+/// covers (w - 1) by (h - 1) draw-environment pixels using average blending.
+/// Decrements `spawnArg1.value` after drawing; a nonpositive result or any other
+/// state kills the task. The rectangle must remain live until teardown.
+/// Task-table entry 6 has no room-local spawner or event-command reference.
+static void _mistR18FadeTileTask(Task* task)
 {
-    PrimDrawParams sprite;
-    RECT*          rect;
+    enum { MIST_R18_FADE_TILE_DRAW = 0 };
+    PrimDrawParams draw;
+    const RECT*    rect;
 
     rect = task->spawnArg2.pointer;
 
-    if (task->state == 0) {
-        sprite.x         = rect->x;
-        sprite.y         = rect->y;
-        sprite.w         = rect->w;
-        sprite.h         = rect->h;
-        sprite.b         = 0;
-        sprite.g         = 0;
-        sprite.r         = 0;
-        sprite.semiTrans = 1;
-        func_mist_r18_8017E448(&sprite);
-        func_mist_r18_8017E654(0, 0, 0, 5);
+    if (task->state == MIST_R18_FADE_TILE_DRAW) {
+        draw.x         = rect->x;
+        draw.y         = rect->y;
+        draw.w         = rect->w;
+        draw.h         = rect->h;
+        draw.b         = 0;
+        draw.g         = 0;
+        draw.r         = 0;
+        draw.semiTrans = 1;
+        _mistR18DrawTile(&draw);
+        _mistR18SetTexturePage(GPU_BLEND_AVERAGE, 0, 0, MIST_R18_CAPTION_PLATE_OT_SLOT);
 
         if (--task->spawnArg1.value > 0) {
             return;
@@ -1417,71 +1497,88 @@ void func_mist_r18_8017E3A4(Task* task)
     taskKill(task);
 }
 
-/// Emit the sprite's screen rectangle as a flat-shaded `TILE` into OT slot 5.
-static void func_mist_r18_8017E448(PrimDrawParams* sprite)
+/// Queues a coloured tile in the caption plate OT slot.
+///
+/// Borrows `draw` only for this call; it supplies screen X/Y, RGB and dimensions
+/// whose low halfwords become (w - 1)/(h - 1). Nonzero `semiTrans` enables GPU
+/// blending; the caller supplies its draw-mode command. Reserves one `TILE` in
+/// the frame arena, retained until the GPU completes; capacity is not checked.
+static void _mistR18DrawTile(const PrimDrawParams* draw)
 {
     TILE* tile;
 
     tile           = gGpuPrimCursor;
     gGpuPrimCursor = tile + 1;
     setTile(tile);
-    if (sprite->semiTrans == 0) {
+    if (draw->semiTrans == 0) {
         SetShadeTex(tile, 1);
         SetSemiTrans(tile, 0);
     } else {
         SetShadeTex(tile, 0);
         SetSemiTrans(tile, 1);
     }
-    tile->r0 = sprite->r;
-    tile->g0 = sprite->g;
-    tile->b0 = sprite->b;
-    tile->x0 = sprite->x;
-    tile->y0 = sprite->y;
-    tile->w  = sprite->w - 1;
-    tile->h  = sprite->h - 1;
-    AddPrim(gGpuCurrentOt + 5, tile);
+    tile->r0 = draw->r;
+    tile->g0 = draw->g;
+    tile->b0 = draw->b;
+    tile->x0 = draw->x;
+    tile->y0 = draw->y;
+    tile->w  = draw->w - 1;
+    tile->h  = draw->h - 1;
+    AddPrim(gGpuCurrentOt + MIST_R18_CAPTION_PLATE_OT_SLOT, tile);
 }
 
-/// Emit the sprite's screen rectangle as a textured `SPRT` into OT slot 4,
-/// with the CLUT taken from the framebuffer position `clutX`/`clutY`.
-static void func_mist_r18_8017E534(PrimDrawParams* sprite, u32 clutX, s32 clutY)
+/// Queues a caption sprite with the palette at VRAM `clutX`/`clutY`.
+///
+/// Borrows `draw` for the call. X/Y are draw-environment pixels, U/V take their
+/// low byte, and the dimensions become (w - 1)/(h - 1). Palette X is a pixel
+/// coordinate rounded down to a 16-pixel boundary; Y is a VRAM row.
+/// Nonzero `semiTrans` selects modulated blending,
+/// otherwise the texture is opaque and unmodulated. The caller queues the
+/// texture page separately. Reserves one `SPRT` until the GPU finishes.
+static void _mistR18DrawSprite(const PrimDrawParams* draw, u32 clutX, s32 clutY)
 {
-    SPRT* p;
-    u8    v;
+    SPRT* sprite;
+    u8    textureV;
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    SetSprt(p);
-    if (sprite->semiTrans == 0) {
-        SetShadeTex(p, 1);
-        SetSemiTrans(p, 0);
+    sprite         = gGpuPrimCursor;
+    gGpuPrimCursor = sprite + 1;
+    SetSprt(sprite);
+    if (draw->semiTrans == 0) {
+        SetShadeTex(sprite, 1);
+        SetSemiTrans(sprite, 0);
     } else {
-        SetShadeTex(p, 0);
-        SetSemiTrans(p, 1);
+        SetShadeTex(sprite, 0);
+        SetSemiTrans(sprite, 1);
     }
-    p->r0   = sprite->r;
-    p->g0   = sprite->g;
-    p->b0   = sprite->b;
-    p->x0   = sprite->x;
-    p->y0   = sprite->y;
-    p->u0   = sprite->u;
-    v       = sprite->v;
-    p->clut = getClut(clutX, clutY);
-    p->v0   = v;
-    p->w    = sprite->w - 1;
-    p->h    = sprite->h - 1;
-    AddPrim(gGpuCurrentOt + 4, p);
+    sprite->r0   = draw->r;
+    sprite->g0   = draw->g;
+    sprite->b0   = draw->b;
+    sprite->x0   = draw->x;
+    sprite->y0   = draw->y;
+    sprite->u0   = draw->u;
+    textureV     = draw->v;
+    sprite->clut = getClut(clutX, clutY);
+    sprite->v0   = textureV;
+    sprite->w    = draw->w - 1;
+    sprite->h    = draw->h - 1;
+    AddPrim(gGpuCurrentOt + MIST_R18_CAPTION_SPRITE_OT_SLOT, sprite);
 }
 
-/// Append a `DR_TPAGE` for the given tpage to OT slot `otIdx`.
-static void func_mist_r18_8017E654(s16 abr, s16 x, s16 y, s32 otIdx)
+/// Queues a 4-bit texture-page command before sprites in the selected OT slot.
+///
+/// `vramX`/`vramY` are signed 16-bit VRAM pixel coordinates; the SDK packs their
+/// page origin. The low two bits of `blendMode` select a `GPU_BLEND_*` mode.
+/// `orderingTableSlot` indexes the current OT and must be in bounds. Enables
+/// drawing in the display area, disables dithering, and reserves one `DR_TPAGE`
+/// until the GPU completes. Queue sprites first: OT insertion prepends packets.
+static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orderingTableSlot)
 {
-    DR_TPAGE* dr;
+    DR_TPAGE* pageCommand;
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    SetDrawTPage(dr, 1, 0, GetTPage(0, abr, x, y));
-    AddPrim(gGpuCurrentOt + otIdx, dr);
+    pageCommand    = gGpuPrimCursor;
+    gGpuPrimCursor = pageCommand + 1;
+    SetDrawTPage(pageCommand, true, false, GetTPage(MIST_R18_TEXTURE_DEPTH_4BIT, blendMode, vramX, vramY));
+    AddPrim(gGpuCurrentOt + orderingTableSlot, pageCommand);
 }
 
 /// Spawn prop task `idx` (0 or 1) into its slot if it is not already running,
@@ -1512,15 +1609,21 @@ void func_mist_r18_8017E6D8(s32 idx)
     }
 }
 
-/// Kill and clear prop task `idx` (0 or 1); other indices do nothing.
-void func_mist_r18_8017E784(s32 idx)
+/// Kills and clears the selected held-model task (0 first model, 1 second model).
+///
+/// Other indices do nothing. The handle is cleared even when already NULL.
+static void _mistR18KillAttachedModel(s32 modelIndex)
 {
-    if (idx == 0) {
+    enum {
+        MIST_R18_ATTACHED_FIRST_MODEL  = 0,
+        MIST_R18_ATTACHED_SECOND_MODEL = 1,
+    };
+    if (modelIndex == MIST_R18_ATTACHED_FIRST_MODEL) {
         if (D_mist_r18_80186E90 != NULL) {
             taskKill(D_mist_r18_80186E90);
         }
         D_mist_r18_80186E90 = NULL;
-    } else if (idx == 1) {
+    } else if (modelIndex == MIST_R18_ATTACHED_SECOND_MODEL) {
         if (D_mist_r18_80186E94 != NULL) {
             taskKill(D_mist_r18_80186E94);
         }
@@ -1549,18 +1652,27 @@ void func_mist_r18_8017E854(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Fade the room in. `Task::killCountdown` is reused as the 0..0x80 fade level.
-static void func_mist_r18_8017E8B8(Task* task)
+/// Waits for the crossfade's replacement view while advancing its saved shade.
+///
+/// Adds eight per callback with 16-bit wrapping, clamping the signed result at
+/// 64. Once the view is ready or the view index leaves 2, sets shade 128 and
+/// advances to the crossfade state. This state queues no drawing packets.
+static void _mistR18WaitForCrossfadeViewState(Task* task)
 {
-    u16 fade;
+    enum {
+        MIST_R18_CROSSFADE_WAIT_STEP  = 8,
+        MIST_R18_CROSSFADE_WAIT_SHADE = 64,
+        MIST_R18_CROSSFADE_WAIT_VIEW  = 2,
+    };
+    u16 shade;
 
-    fade                = (u16)task->killCountdown + 8;
-    task->killCountdown = fade;
-    if ((s16)fade >= 0x40) {
-        task->killCountdown = 0x40;
+    shade               = (u16)task->killCountdown + MIST_R18_CROSSFADE_WAIT_STEP;
+    task->killCountdown = shade;
+    if ((s16)shade >= MIST_R18_CROSSFADE_WAIT_SHADE) {
+        task->killCountdown = MIST_R18_CROSSFADE_WAIT_SHADE;
     }
-    if ((gGameSession->viewReady != 0) || (gGameSession->location.loc.view != 2)) {
-        task->killCountdown = 0x80;
+    if ((gGameSession->viewReady != 0) || (gGameSession->location.loc.view != MIST_R18_CROSSFADE_WAIT_VIEW)) {
+        task->killCountdown = CROSSFADE_SHADE_UNITY;
         task->state++;
     }
 }
@@ -1570,13 +1682,14 @@ static void func_mist_r18_8017E8B8(Task* task)
 #include "../../shared/backdrop_crossfade_tpage.inc.c"
 
 /// Spawn entry 4 of the room's task table and keep its handle in
-/// `D_mist_r18_80186E98`, which `func_mist_r18_8017EA60` kills.
+/// `D_mist_r18_80186E98`, which `_mistR18KillPlacedProp` kills.
 void func_mist_r18_8017EA2C(void)
 {
     D_mist_r18_80186E98 = taskSpawnFromTable(D_mist_r18_80184F04, 4, 0, 0);
 }
 
-void func_mist_r18_8017EA60(void)
+/// Kills the room's separately placed prop task and clears its saved handle.
+static void _mistR18KillPlacedProp(void)
 {
     if (D_mist_r18_80186E98 != NULL) {
         taskKill(D_mist_r18_80186E98);
@@ -1584,24 +1697,34 @@ void func_mist_r18_8017EA60(void)
     D_mist_r18_80186E98 = NULL;
 }
 
-void func_mist_r18_8017EA98(Task* task)
+/// Places the room's prop model once at its fixed cutscene transform.
+///
+/// Requires a live TMD body with root coordinate 0. State 0 sets its translation
+/// in parent-coordinate units and Euler angles in 4096 units per turn, rebuilds
+/// the rotation, invalidates composition, applies an OT bias of -8 and enables
+/// drawing. Later states retain the placement; task teardown owns the model.
+static void _mistR18PlacePropTask(Task* task)
 {
-    GfxCoord*  coord;
-    TmdObject* obj;
+    enum {
+        MIST_R18_PROP_PLACE_INITIALIZE = 0,
+        MIST_R18_PROP_ORDERING_BIAS    = -8,
+    };
+    GfxCoord*  root;
+    TmdObject* model;
 
-    if (task->state == 0) {
-        coord               = task->extra.tmd->coords;
-        coord->coord.t[0]   = -0x1496;
-        coord->coord.t[1]   = -0x2DA;
-        coord->coord.t[2]   = 0xB90;
-        coord->param.rot.vx = 0x6AA;
-        coord->param.rot.vy = -0xF8E;
-        coord->param.rot.vz = -0x333;
-        RotMatrixZYX(&coord->param.rot, &coord->coord);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        obj                 = task->extra.tmd;
-        obj->otOffset       = -8;
-        obj->flags         &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (task->state == MIST_R18_PROP_PLACE_INITIALIZE) {
+        root               = task->extra.tmd->coords;
+        root->coord.t[0]   = -0x1496;
+        root->coord.t[1]   = -0x2DA;
+        root->coord.t[2]   = 0xB90;
+        root->param.rot.vx = 0x6AA;
+        root->param.rot.vy = -0xF8E;
+        root->param.rot.vz = -0x333;
+        RotMatrixZYX(&root->param.rot, &root->coord);
+        root->composeStamp = GRAPHICS_COORD_DIRTY;
+        model              = task->extra.tmd;
+        model->otOffset    = MIST_R18_PROP_ORDERING_BIAS;
+        model->flags      &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         task->state++;
     }
 }
@@ -1648,7 +1771,11 @@ void func_mist_r18_8017EC78(void)
     cdCmdCancelScene();
 }
 
-void func_mist_r18_8017EC98(Task* task)
+/// Releases the event-script pause when the scene's view is no longer ready.
+///
+/// The spawner first sets the shared pause latch. Each callback clears it when
+/// `viewReady != 1`; the task neither advances its state nor kills itself.
+static void _mistR18ReleaseScriptPauseTask(Task* task)
 {
     if (gGameSession->viewReady != 1) {
         D_801156F9 = 0;

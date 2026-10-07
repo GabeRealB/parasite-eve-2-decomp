@@ -13,6 +13,6 @@ void crossfadeOutState(Task* task)
         task->killCountdown = 0;
         task->state++;
     }
-    crossfadeDrawBackdrop(task->killCountdown);
+    _crossfadeDrawBackdrop(task->killCountdown);
     _crossfadeDrawLive(CROSSFADE_SHADE_UNITY - task->killCountdown);
 }

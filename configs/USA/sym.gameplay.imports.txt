@@ -1723,7 +1723,7 @@ func_shelter_r47_8017EC04 = 0x8017EC04; // type:func absolute:True owner=shelter
 
 func_shelter_b6_nursery_8017EAC4 = 0x8017EAC4; // type:func absolute:True owner=shelter_b6_nursery
 
-func_shelter_1f_tent_8017EA60 = 0x8017EA60; // type:func absolute:True owner=shelter_1f_tent shared=rooms
+func_shelter_1f_tent_8017EA60 = 0x8017EA60; // type:func absolute:True owner=shelter_1f_tent
 
 func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func absolute:True owner=mist_shooting_gallery
 

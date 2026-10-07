@@ -49647,7 +49647,7 @@ uppercase `SetSprt` / `SetSemiTrans` / `AddPrim` are real Psy-Q functions
 reached by `jal`. Which one the original source used is visible in the target:
 a primitive emitter with no `jal` but a run of `sb`/`sw` to a cursor is the
 macro form, one with `jal SetSprt` is the function form. Two emitters in the
-same TU can disagree — `func_mist_r18_8017E534` calls the functions while
+same TU can disagree — `_mistR18DrawSprite` calls the functions while
 `func_mist_r18_8017E144` uses the macros.
 
 With the macro form, a constant `setSemiTrans(p, 1)` after `setSprt(p)` does
@@ -49743,7 +49743,7 @@ So the target's register assignment tells you the order the original source
 produced, and the order tells you which pseudo needs more references or a longer
 live range — a much narrower question than "why is `$a3` wrong".
 
-In `func_mist_r18_8017DBB8` the colour parameter (7 refs) outranked the two
+In `_mistR18DrawFadeSprites` the colour parameter (7 refs) outranked the two
 reassigned coordinate locals (4 refs each) and took `$a3`, where the target
 wanted it last in `$t4`. Widening the parameter from `s16` to `s32` was the fix:
 the wider pseudo's live length went 67 → 154 insns, which dropped its priority
@@ -150693,7 +150693,7 @@ constant).
   fallthrough */ case 4: ...; break; case 1: default: break;`. The fourth node
   below 2 is needed for the `slti 3`; which value it was is not recoverable.
 - **`default: goto kill;` with `state++; return; kill: taskKill(task);` after
-  the switch** (`func_mist_r18_8017D5EC`): `default: taskKill(task); return;`
+  the switch** (`_mistR18CaptionTask`): `default: taskKill(task); return;`
   puts the kill before the increment. The kill stays after the switch
   (`default: break;`), each case ends in `task->state++; return;`, and a case
   that left early with `break` is nested the other way round (`if (!end) {

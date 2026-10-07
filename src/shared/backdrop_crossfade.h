@@ -16,17 +16,20 @@
 
 #include "main/task_types.h"
 
-/// Shared ordering tag and RGB modulation scale for backdrop crossfade packets.
+/// Ordering tag, RGB modulation scale and captured-frame geometry for crossfades.
 enum {
     CROSSFADE_ORDERING_TABLE_SLOT = 8,
     CROSSFADE_SHADE_UNITY         = 0x80, // Textured RGB modulation at original brightness
+    CROSSFADE_BACKDROP_WIDTH      = 320,  // Full captured frame, in pixels
+    CROSSFADE_BACKDROP_HEIGHT     = 240,
+    CROSSFADE_BACKDROP_LEFT_WIDTH = 192,  // Split keeps each strip within one texture page
 };
 
 static void _crossfadeDrawLive(s32 shade);
 void        crossfadeOutState(Task* task);
 static void _crossfadeSetTpage(s32 vramX, s16 vramY);
 
-/* Defined by each package. */
-void crossfadeDrawBackdrop(s32 shade);
+/* Each carrier defines a private drawer for its saved-backdrop VRAM layout. */
+static void _crossfadeDrawBackdrop(s32 shade);
 
 #endif /* SRC_SHARED_BACKDROP_CROSSFADE_H */
