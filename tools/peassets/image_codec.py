@@ -2,13 +2,13 @@
 
 Matches the main executable load path in ``fs.c``:
 
-**Type 1 – Image (``fsBeginImageColumns`` + ``Fs_LoadImageStrip``)**
+**Type 1 – Image (``fsBeginImageColumns`` + ``fsUploadImageStrips``)**
     Work-entry table (``u16 x, u16 y, u32 offset``) terminated by ``x == 0xFFFF``.
     Entries give VRAM column positions only. Compressed strips are **sequential**
     from the first entry's offset (later ``offset`` fields are not seeks).
 
     Each strip is an independent LZSS block (dictionary reset between strips,
-    same as ``ADE1`` re-init in ``Fs_LoadImageStrip``). Strip size is always
+    same as ``ADE1`` re-init in ``fsUploadImageStrips``). Strip size is always
     ``RECT(w=0x40, h=0x20)`` halfwords = ``0x1000`` bytes. Column height comes
     from ``D5B498_8006ACD4`` (default ``0x100``).
 
@@ -146,7 +146,7 @@ def height_from_work_entries(entries: list[WorkEntry], term_y: int) -> int:
 def iter_lzss_strips(stream: bytes) -> Iterator[bytes]:
     """Yield independent 0x1000-byte VRAM strips from a sequential LZSS stream.
 
-    Matches ``Fs_LoadImageStrip``: each strip ends with offset==0, then the
+    Matches ``fsUploadImageStrips``: each strip ends with offset==0, then the
     dictionary is re-inited (``ADE1``) before the next strip.
     """
     ibcar = 0
