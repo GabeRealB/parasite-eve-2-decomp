@@ -3100,16 +3100,13 @@ static __inline__ void Actor444000_StepForward(GfxCoord* coord)
 static void func_actor_444000_8013482C(Task* task)
 {
     _Actor444000RunScratch* sc;
-    GfxMatrix*              mat;
     TmdObject*              tmd;
     GluttonWork*            work;
     Enemy*                  enemy;
     GfxCoord*               coord;
     GfxCoord*               model;
-    u8*                     head;
     s32                     frame;
 
-    head = SCRATCH_STACK_CURSOR(u8);
     SCRATCH_STACK_RESERVE_BYTES(sizeof(_Actor444000RunScratch));
     sc = SCRATCH_STACK_CURSOR(_Actor444000RunScratch);
 
@@ -3126,12 +3123,7 @@ static void func_actor_444000_8013482C(Task* task)
         work->animStep                = GLUTTON_ANIM_STEP_BLEND;
         work->hostExposed             = 0;
         work->neckPitchTarget         = 0;
-        mat                           = &((_Actor444000RunScratch*)(head - sizeof(_Actor444000RunScratch)))->rootMatrix;
-        mat->rotationWords.m00M01     = ONE;
-        mat->rotationWords.m02M10     = 0;
-        mat->rotationWords.m11M12     = ONE;
-        mat->rotationWords.m20M21     = 0;
-        mat->rotationWords.m22        = ONE;
+        gfxSetRotIdentity(&sc->rootMatrix.mat);
     }
 
     _gluttonTickAnim(task);
