@@ -3,7 +3,7 @@
 /// State-2 aim body, as in the Horned Stranger's `func_actor_401300_8013CBAC` and
 /// `Actor01900_Fn042BC`: on the live-actor flag it resets the effect node, forks
 /// the first clip and seeds the animation slots, then walks both obstacle tables
-/// and aims the actor at the player with `gfxRotMatrixY` / `actorRescaleYaw`.
+/// and aims the actor at the player with `gfxRotMatrixY` / `_actorRenderRescaleYaw`.
 /// `stateTimer` and `exitCounter` then count up under the `detectSightBlocked`
 /// clip test: the still-aiming arm re-wraps the turn, drops the actor to state
 /// 0xB once the 0x44C range check fails inside 0x200 and re-arms at 0x1B past
@@ -119,7 +119,7 @@ void oddStrangerStalk(Task* arg0)
     facing       = arg0->extra.tmd->coords;
     chase->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 2) {
         if (work->blendActive == 0) {

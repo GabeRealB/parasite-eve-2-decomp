@@ -93,7 +93,7 @@ void oddStrangerChase(Task* arg0)
     facing          = arg0->extra.tmd->coords;
     chase->heading += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->heading, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     coord                                 = arg0->extra.tmd->coords;
     work->lookYawTarget                   = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;

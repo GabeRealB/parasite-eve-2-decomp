@@ -52,6 +52,9 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
 
+/// Uniform model-root scale for yaw rebuilds, with 12 fractional bits.
+enum { ACTOR_01900_ROOT_SCALE = 0x1194 };
+
 /// Values of `_Actor01900Work::state`: the index of the handler the per-frame
 /// tick runs.
 ///
@@ -1376,7 +1379,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
             break;
     }
 
-    actorRescaleYaw(actor->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(actor->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     work->bodyPosCursor = 0;
     actor->state++;
 }
@@ -1866,7 +1869,7 @@ static void Actor01900_Fn03854(Task* arg0)
         coord      = arg0->extra.tmd->coords;
         aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-        actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
         Actor01900_Fn01C94(arg0);
         SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
     }
@@ -2142,7 +2145,7 @@ static void Actor01900_Fn042BC(Task* arg0)
     facing       = arg0->extra.tmd->coords;
     chase->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 3) {
         if (work->blendActive == 0) {
@@ -2234,7 +2237,7 @@ static void Actor01900_Fn04D14(Task* arg0)
     facing          = arg0->extra.tmd->coords;
     chase->heading += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->heading, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     coord                                 = arg0->extra.tmd->coords;
     work->lookYawTarget                   = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2336,7 +2339,7 @@ static void Actor01900_Fn0551C(Task* arg0)
         }
     }
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, work->turnYaw, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
         Actor01900_StepForward(arg0->extra.tmd->coords, 0x28);
@@ -2521,7 +2524,7 @@ static void Actor01900_Fn06100(Task* arg0)
     facing     = arg0->extra.tmd->coords;
     aim->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
         Actor01900_StepForward(arg0->extra.tmd->coords, 0x28);
@@ -2761,7 +2764,7 @@ static void Actor01900_Fn06F40(Task* arg0)
     facing       = arg0->extra.tmd->coords;
     turn->angle += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     if (work->blendActive == 0) {
         Actor01900_StepForward(arg0->extra.tmd->coords, 0xA);
     }
@@ -2904,7 +2907,7 @@ static void Actor01900_Fn07BA8(Task* arg0)
     coord      = arg0->extra.tmd->coords;
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 0x11) {
         work->stateTimer++;
@@ -2967,7 +2970,7 @@ static void Actor01900_Fn080A8(Task* arg0)
     coord      = arg0->extra.tmd->coords;
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     Actor01900_Fn01C94(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
@@ -3019,7 +3022,7 @@ static void Actor01900_Fn083E8(Task* arg0)
     coord     = arg0->extra.tmd->coords;
     aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     work->animRequest = ACTOR_01900_ANIM_REQUEST_RESET;
     Actor01900_Fn01C94(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
@@ -3246,7 +3249,7 @@ static void Actor01900_Fn09694(Task* arg0)
         facing     = arg0->extra.tmd->coords;
         aim->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-        actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & 0x100) {

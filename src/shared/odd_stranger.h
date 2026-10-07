@@ -66,6 +66,9 @@
 #include "actors/actor.h"
 #include "overlay.h"
 
+/// Uniform model-root scale for yaw rebuilds in both variants, with 12 fractional bits.
+enum { ODD_STRANGER_ROOT_SCALE = 0x1194 };
+
 /// Values of `OddStrangerWork::state`: the index of the handler the per-frame
 /// tick runs.
 ///

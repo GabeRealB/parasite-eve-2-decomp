@@ -7,7 +7,7 @@
 /// root's own rotation, and the pair (`turnYaw` / `turnYawTarget`) is what the
 /// per-frame arm then walks: the turn swings the facing 0x89 a frame until it
 /// reaches the seeded yaw, `gfxRotMatrixY` rebuilds the rotation from it and
-/// `actorRescaleYaw` re-scales the root by 0x1194. When the two have
+/// `_actorRenderRescaleYaw` re-scales the root by 0x1194. When the two have
 /// met the actor re-arms (`state` 8 or 0xB) off `dashCount`, the obstacle
 /// range and the `grabCooldown` cooldown, and the arm is then slid forward along
 /// its obstacle table. `grabCooldown` counts down once per entry.
@@ -77,7 +77,7 @@ void oddStrangerTurnAround(Task* arg0)
         }
     }
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, work->turnYaw, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
         if ((s16)detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, 0x28) != 0) {

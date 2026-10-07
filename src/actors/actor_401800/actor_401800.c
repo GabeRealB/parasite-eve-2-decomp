@@ -1304,7 +1304,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
             break;
     }
 
-    actorRescaleYaw(actor->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(actor->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     work->bodyPosCursor = 0;
     actor->state++;
 }
@@ -1480,7 +1480,7 @@ static void func_actor_401800_80136560(Task* arg0)
     facing       = arg0->extra.tmd->coords;
     chase->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 3) {
         if (work->blendActive == 0) {
@@ -1614,7 +1614,7 @@ static void func_actor_401800_801381E4(Task* arg0)
         Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
         ang = actorViewYaw(arg0->extra.tmd->coords, &dir);
         gfxRotMatrixY(&arg0->extra.tmd->coords[0].coord, ang, 0);
-        actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
         dir.vx                                = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         dir.vy                                = 0;
         dir.vz                                = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
@@ -2000,7 +2000,7 @@ static void func_actor_401800_8013B784(Task* arg0)
     coord     = arg0->extra.tmd->coords;
     aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     work->animRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
     oddStrangerDrive(arg0);
     if (work->grabCooldown != 0) {

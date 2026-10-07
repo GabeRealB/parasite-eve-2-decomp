@@ -380,10 +380,13 @@ interface is `include/title/title.h`, implemented by `src/title/title.c`.
 Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,
 whose entry points retain package identities.
 
-`actorRender` also owns the inline joint-rotation composition helpers in
-`include/actors/actor.h`. Each actor translation unit keeps its own static
-instance, with the `_` marker; composing up to an excluded view node produces
-a world-space rotation without changing the coordinate hierarchy.
+`actorRender` also owns the inline yaw rebuild and joint-rotation composition
+helpers in `include/actors/actor.h`. Each actor translation unit keeps its own static
+instance, with the `_` marker. The yaw rebuild replaces pitch, roll and scale
+with the coordinate's current yaw at a signed 12-fractional-bit uniform scale;
+translation stays intact and composition is marked dirty. Composing up to an
+excluded view node produces a world-space rotation without changing the
+coordinate hierarchy.
 The included world-yaw joint update in
 `src/shared/actor_contacts_turn_joint.inc.c` belongs to the same subsystem;
 `src/shared/actor_contacts.h` declares its static per-carrier interface beside

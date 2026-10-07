@@ -68,7 +68,7 @@ void oddStrangerPatrol(Task* arg0)
         }
         turn->angle += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
-        actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
         if (work->blendActive == 0 && (detectPlayerOutOfReach(arg0->extra.tmd->coords, 0x12C, ODD_STRANGER_WALK_STEP) << 16) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, ODD_STRANGER_WALK_STEP);
         }

@@ -45,7 +45,7 @@ void oddStrangerFacePlayer(Task* arg0)
     coord      = arg0->extra.tmd->coords;
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     oddStrangerDrive(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }

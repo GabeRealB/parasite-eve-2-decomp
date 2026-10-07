@@ -1115,7 +1115,7 @@ static __inline__ void Actor401000_BindMatrices(Task* actor)
 /// drops both obstacle tables.
 static __inline__ void Actor401000_InitPose(GfxCoord* coord, OddStrangerWork* work)
 {
-    actorRescaleYaw(coord, 0x1194);
+    _actorRenderRescaleYaw(coord, ODD_STRANGER_ROOT_SCALE);
     work->bodyPosCursor = 0;
     worldCollisionClearContacts(work->gridContacts);
     worldCollisionClearContacts(work->hitContacts);
@@ -1593,7 +1593,7 @@ static void func_actor_401000_80135AA4(Task* arg0)
     }
     chase->turn += ratan2(-arg0->extra.tmd->coords->coord.m[2][0], arg0->extra.tmd->coords->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 3) {
         if (work->blendActive == 0) {
@@ -1672,7 +1672,7 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->hitBody.radius                  = 0x1AE;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, actorPositionYaw(arg0, &delta, config), 0);
-        actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
         delta.vx                              = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         delta.vy                              = 0;
         delta.vz                              = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
@@ -1975,7 +1975,7 @@ static void func_actor_401000_8013A930(Task* arg0)
     coord     = arg0->extra.tmd->coords;
     aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     oddStrangerDrive(arg0);
     if (work->stateTimer < 0x32) {
         gfxRotMatrixX(&arg0->extra.tmd->coords[1].coord, 0x40, GRAPHICS_ROTATION_COMPOSE);
@@ -2021,7 +2021,7 @@ static void func_actor_401000_8013A930(Task* arg0)
         coord      = arg0->extra.tmd->coords;
         aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-        actorRescaleYaw(arg0->extra.tmd->coords, 0x1194);
+        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);

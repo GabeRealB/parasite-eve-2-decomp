@@ -956,7 +956,7 @@ Check the prototype before believing an m2c `void`: the overlay's own header is
 ours, and changing it costs nothing when the callers ignore the value.
 ## A unit-scale scratch helper is not the scaled one with `1`: its pop re-loads, and that decides who gets a call-saved register
 
-`actorRescaleYaw(coord, 1)` and `actorResetYaw(coord)` compute the
+`_actorRenderRescaleYaw(coord, 1)` and `actorResetYaw(coord)` compute the
 same thing, but only the second compiles to the target's tail in
 `oddStrangerWalkingDeath`. Inlining the *scaled* body nine times gave
 98.166% (`regs=56 reorder=10 delete=8`); the unit-scale body gave 100.000%.
@@ -88496,10 +88496,11 @@ wrong again; plain `s->i < count` gave the target's `sra v0; blez v0; move s7,v0
 `Actor01900_Fn0892C` ends with nine back-to-back `RescaleYaw`-style inlines
 (`head = *G; blk = head - 0x34; ...; *G = *G + 0x34`). The target reads the
 first matrix word as `-0x34(head)` in the first copy and as `0(blk)` in every
-later one. The existing `actorRescaleYaw` spells that read
-`((T*)(head - 0x34))->rotation.m[0][0]`, and that gave `-0x34(head)` in all nine copies,
+later one. The head-relative spelling of the read in the scaled-helper trial,
+`((T*)(head - 0x34))->rotation.m[0][0]`, gave `-0x34(head)` in all nine copies,
 which kept the previous pop value alive in `$s2` (99.67%, `regs` only).
-Reading `blk->rotation.m[0][0]` matched. The mechanism is in cse.c `find_best_addr`:
+Reading through the reserved block matched, as `_actorRenderRescaleYaw` now
+does through `_actorRenderCopyRotation`'s matrix pointer. The mechanism is in cse.c `find_best_addr`:
 
 - A `(plus reg const)` address is never folded to a bare REG, because
   `ADDRESS_COST` ties at 1 and a tie only wins with a *higher* `rtx_cost`.
@@ -111493,7 +111494,7 @@ shared; `get_label_before` then reuses the if/else's own join label.
 
 The source that produces this is a `static __inline__` helper called from both
 arms — the same idiom this overlay family already uses for the uniform-scale
-twin (`actorRescaleYaw`, `ActorsShared80135a60`), with the per-axis
+twin (`_actorRenderRescaleYaw`, `ActorsShared80135a60`), with the per-axis
 factor as an `s16` parameter:
 
     if (t < 0x1000) {
