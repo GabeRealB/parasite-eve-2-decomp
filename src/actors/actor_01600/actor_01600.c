@@ -4689,11 +4689,7 @@ static void Actor01600_Fn06880(Task* arg0)
     scratch->scale.vy                    = (s32)work->deathScaleY;
     scratch->scale.vz                    = ONE;
     coord->coord                         = work->deathMatrix;
-    scratch->matrix.rotationWords.m00M01 = ONE;
-    scratch->matrix.rotationWords.m02M10 = 0;
-    scratch->matrix.rotationWords.m11M12 = ONE;
-    scratch->matrix.rotationWords.m20M21 = 0;
-    scratch->matrix.rotationWords.m22    = ONE;
+    gfxSetRotIdentity(&scratch->matrix.mat);
     ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
     MulMatrix(&coord->coord, &scratch->matrix.mat);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
