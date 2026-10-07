@@ -152,27 +152,27 @@ static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void func_actor_511000_80131E78(Task* arg0);
 static void func_actor_511000_80132048(Task* arg0);
-static void func_actor_511000_80132224(Task* task);
+static void _actor511000IdleRupertRevolver(Task* task);
 static void func_actor_511000_80132480(Task* task);
 static void func_actor_511000_801325A4(Task* task);
-static void func_actor_511000_801329C4(Task* task);
-static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb);
+static void _actor511000TickHelicopterSearchlight(Task* task);
+static void _actor511000DrawHelicopterSearchlightGlow(Task* task, const CVECTOR* centerColor, const u8* rimRgb);
 static void func_actor_511000_80133034(Task* task);
 static void func_actor_511000_801330F0(Task* task);
 static void func_actor_511000_80133220(Task* task);
-static void func_actor_511000_80133240(Task* task);
-static void func_actor_511000_801332E4(Task* task);
-static void func_actor_511000_801333A4(Task* task);
-static void func_actor_511000_801333C4(Task* task);
-static void func_actor_511000_80133498(Task* task);
+static void _actor511000AttachHelicopterRotor(Task* task);
+static void _actor511000TickHelicopterRotor(Task* task);
+static void _actor511000KillHelicopterRotor(Task* task);
+static void _actor511000AttachHelicopterSearchlight(Task* task);
+static void _actor511000KillHelicopterSearchlight(Task* task);
 static void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans, s32 index);
-static void func_actor_511000_80133760(Task* task);
+static void _actor511000PlaceHelicopterPart(Task* task);
 static void func_actor_511000_801337F0(Task* task);
 static void func_actor_511000_80133958(Enemy* enemy, Task* task);
 static void func_actor_511000_80133B80(Enemy* enemy, Task* task);
-static void func_actor_511000_80133F48(Enemy* enemy, Task* task);
-static void func_actor_511000_80133F88(Enemy* enemy, Task* task);
-static void func_actor_511000_8013401C(Enemy* enemy, Task* task);
+static void _actor511000AttachNo9GolemPart8Model(Enemy* enemy, Task* task);
+static void _actor511000TickNo9GolemPart8Model(Enemy* enemy, Task* task);
+static void _actor511000AttachNo9GolemPart3Model(Enemy* enemy, Task* task);
 static void func_actor_511000_8013405C(Enemy* enemy, Task* task);
 static void func_actor_511000_801340F0(Enemy* enemy, Task* task);
 static void func_actor_511000_80134130(Enemy* enemy, Task* task);
@@ -181,7 +181,7 @@ static void func_actor_511000_80134130(Enemy* enemy, Task* task);
 /// attach state, an empty tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E24 = {
     _modelPlacementAttachPartTask,
-    func_actor_511000_80132224,
+    _actor511000IdleRupertRevolver,
     taskKill,
 };
 
@@ -213,17 +213,17 @@ static const TaskFuncTable3 D_actor_511000_80131E48 = {
 /// State table of a child placed at a translation preset under its spawner:
 /// the attach state, the spinning tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E54 = {
-    func_actor_511000_80133240,
-    func_actor_511000_801332E4,
-    func_actor_511000_801333A4,
+    _actor511000AttachHelicopterRotor,
+    _actor511000TickHelicopterRotor,
+    _actor511000KillHelicopterRotor,
 };
 
 /// State table of a child posed from the kill-countdown rotations: the attach
 /// state, the tick that follows the countdown and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E60 = {
-    func_actor_511000_801333C4,
-    func_actor_511000_801329C4,
-    func_actor_511000_80133498,
+    _actor511000AttachHelicopterSearchlight,
+    _actor511000TickHelicopterSearchlight,
+    _actor511000KillHelicopterSearchlight,
 };
 
 /// The enemy's three state handlers - spawn, per-frame tick and teardown.
@@ -269,7 +269,7 @@ extern u8      D_actor_511000_80147EC4[ACTOR_511000_PALETTE_BYTES];
 
 extern TaskMessageEntry D_actor_511000_80148FC4[];
 
-/// Translation presets `func_actor_511000_80133760` copies onto the root
+/// Translation presets `_actor511000PlaceHelicopterPart` copies onto the root
 /// coordinate; `Task::spawnArg1` selects the entry.
 extern SVECTOR D_actor_511000_80148FE4[];
 
@@ -293,8 +293,8 @@ s32              func_actor_511000_80132604(Task*, s32, AnimationPlayRequest*, s
 s32              func_actor_511000_801327A0(Task*, s32, s32, s32);
 s32              func_actor_511000_8013287C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
 s32              func_actor_511000_80132904(Task*, s32, s32, s32);
-void             func_actor_511000_80132150(Task*);
-void             func_actor_511000_8013222C(Task*);
+static void      _actor511000RupertRevolverTask(Task* task);
+static void      _actor511000RupertPropTask(Task* task);
 void             func_actor_511000_80132428(Task*);
 
 static AnimationSet _gActor511000Animation1121C;
@@ -316,8 +316,8 @@ static TmdSource _gActor511000Prop2;
 static TmdSource _gActor511000Prop3;
 static TmdSource _gActor511000Model0A41C;
 void             func_actor_511000_80133850(Task*);
-void             func_actor_511000_801338A8(Task*);
-void             func_actor_511000_80133900(Task*);
+static void      _actor511000HelicopterRotorTask(Task* task);
+static void      _actor511000HelicopterSearchlightTask(Task* task);
 
 static AnimationPackedPose _gActor511000Animation04CC8Bank1[84] = {
 #include "assets/actor_511000_animation_04CC8_bank1.inc"
@@ -365,9 +365,9 @@ AnimationSet gActor511000Animation07ADC = {
 
 TaskDesc D_actor_511000_80139924[4] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_80133850, { .model = &_gActor511000HelicopterBase } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_801338A8, { .model = &_gActor511000Prop2 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_801338A8, { .model = &_gActor511000Prop3 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_80133900, { .model = &_gActor511000Model0A41C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop2 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop3 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterSearchlightTask, { .model = &_gActor511000Model0A41C } },
 };
 
 static TmdBone _gActor511000HelicopterBaseSkeleton[1] = {
@@ -1269,8 +1269,8 @@ AnimationSet** D_actor_511000_801472E4[1] = {
 
 TaskDesc D_actor_511000_801472E8[3] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_511000_80132428, { .model = &_gActor511000RupertBroderickBody2 } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_511000_80132150, { .model = &_gActor511000RupertBroderickMongoose } },
-    { { { TASK_BODY_TMD, 192 } }, func_actor_511000_8013222C, { .model = &_gActor511000Prop1 } },
+    { { { TASK_BODY_TMD, 192 } }, _actor511000RupertRevolverTask, { .model = &_gActor511000RupertBroderickMongoose } },
+    { { { TASK_BODY_TMD, 192 } }, _actor511000RupertPropTask, { .model = &_gActor511000Prop1 } },
 };
 
 TaskMessageEntry D_actor_511000_8014730C[6] = {
@@ -2211,28 +2211,44 @@ static void func_actor_511000_80132048(Task* arg0)
     }
 }
 
-void func_actor_511000_80132150(Task* task)
+/// Runs Rupert Broderick's revolver attachment states.
+///
+/// `task->state` is 0 attach, 1 idle or 2 kill. At attachment,
+/// `spawnArg2.pointer` borrows the live parent TMD task and `spawnArg1.value`
+/// selects its model coordinate (part 8 in the body descriptor's spawn).
+/// The child's local transform and draw policy are retained. Attachment joins
+/// the parent's teardown tree; its coordinate and lighting must outlive the child.
+static void _actor511000RupertRevolverTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_511000_80131E24;
-    sp.funcs[task->state](task);
+    states = D_actor_511000_80131E24;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/model_placement_attach_part.inc.c"
 
-/// Tick state of the first state table's child: nothing to do, the chained
-/// coordinate follows the spawner by itself.
-static void func_actor_511000_80132224(Task* task)
+/// Leaves the revolver attachment unchanged between attachment and teardown.
+///
+/// Its chained coordinate follows the parent model part without a task update.
+static void _actor511000IdleRupertRevolver(Task* task)
 {
 }
 
-void func_actor_511000_8013222C(Task* task)
+/// Runs the states of Rupert Broderick's second held model.
+///
+/// `task->state` is 0 attach, 1 mirror parent draw policy or 2 kill.
+/// `spawnArg2.pointer` borrows the live parent TMD task; `spawnArg1.value`
+/// selects its model coordinate (part 12 in the body descriptor's spawn).
+/// The child borrows the parent's coordinate and lighting, joins its teardown
+/// tree and sorts two OT entries earlier. Missing buffers are requested when
+/// the parent permits automatic allocation, including while drawing is hidden.
+static void _actor511000RupertPropTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_511000_80131E30;
-    sp.funcs[task->state](task);
+    states = D_actor_511000_80131E30;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/model_placement_attach.inc.c"
@@ -2470,146 +2486,146 @@ s32 func_actor_511000_80132904(Task* arg0, s32 arg1, s32 mode, s32 arg3)
     return ret;
 }
 
-/// Per-frame tick for a child of the spawner: mirrors the parent model's
-/// visibility bit (`field_C` 0x80) onto its own model, and once the session
-/// reaches mode 0x18 poses its root coordinate from the parent's
-/// `killCountdown` entry in `D_actor_511000_80147AC4`. Within three steps of
-/// countdown 0x59 it also picks that distance's colour from
-/// `D_actor_511000_80149004`, darkened by 0x1E per channel, and hands both to
-/// `func_actor_511000_80132B14`.
-/// The table is loaded into its own local before indexing: `&table[d]` on the
-/// symbol directly shifts `d` ahead of the `lui`/`addiu` pair.
-static void func_actor_511000_801329C4(Task* task)
+/// Mirrors helicopter visibility and aims its searchlight during view 24.
+///
+/// `spawnArg2.pointer` borrows the parent TMD task. Its `killCountdown` is
+/// the sequence frame, constrained to 0..119 by the parent's update. Other
+/// views retain the searchlight's last pose. The glow spans frames 86..92,
+/// peaking at 89; its rim channels are 30 darker than the centre (30..225).
+static void _actor511000TickHelicopterSearchlight(Task* task)
 {
-    Task*      parent;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    CVECTOR*   col;
-    CVECTOR*   tbl;
-    s32        d;
-    s8         rgb[3];
+    enum { SEQUENCE_VIEW   = 0x18,
+           GLOW_PEAK_FRAME = 89,
+           RIM_SHADE_DROP  = 30 };
+    Task*          parentTask;
+    TmdObject*     model;
+    GfxCoord*      root;
+    const CVECTOR* centerColor;
+    const CVECTOR* colorTable;
+    s32            frameDistance;
+    u8             rimRgb[3];
 
-    parent = (Task*)task->spawnArg2.pointer;
-    extra  = task->extra.tmd;
-    coord  = extra->coords;
+    parentTask = task->spawnArg2.pointer;
+    model      = task->extra.tmd;
+    root       = model->coords;
 
-    if (!(parent->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (!(parentTask->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 
-    if (gGameSession->location.loc.view == 0x18) {
-        coord->param.rot.vx = D_actor_511000_80147AC4[parent->killCountdown].vx;
-        coord->param.rot.vy = D_actor_511000_80147AC4[parent->killCountdown].vy;
-        coord->param.rot.vz = D_actor_511000_80147AC4[parent->killCountdown].vz;
-        RotMatrix(&coord->param.rot, &coord->coord);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    // The parent advances and clamps this frame before its attached searchlight runs.
+    if (gGameSession->location.loc.view == SEQUENCE_VIEW) {
+        root->param.rot.vx = D_actor_511000_80147AC4[parentTask->killCountdown].vx;
+        root->param.rot.vy = D_actor_511000_80147AC4[parentTask->killCountdown].vy;
+        root->param.rot.vz = D_actor_511000_80147AC4[parentTask->killCountdown].vz;
+        RotMatrix(&root->param.rot, &root->coord);
+        root->composeStamp = GRAPHICS_COORD_DIRTY;
 
-        d = parent->killCountdown - 0x59;
-        if (d < 0) {
-            d = 0x59 - parent->killCountdown;
+        frameDistance = parentTask->killCountdown - GLOW_PEAK_FRAME;
+        if (frameDistance < 0) {
+            frameDistance = GLOW_PEAK_FRAME - parentTask->killCountdown;
         }
-        if (d < 4) {
-            tbl    = D_actor_511000_80149004;
-            col    = &tbl[d];
-            rgb[0] = col->r - 0x1E;
-            rgb[1] = col->g - 0x1E;
-            rgb[2] = col->b - 0x1E;
-            func_actor_511000_80132B14(task, col, rgb);
+        if (frameDistance < ARRAY_SIZE(D_actor_511000_80149004)) {
+            colorTable  = D_actor_511000_80149004;
+            centerColor = &colorTable[frameDistance];
+            rimRgb[0]   = centerColor->r - RIM_SHADE_DROP;
+            rimRgb[1]   = centerColor->g - RIM_SHADE_DROP;
+            rimRgb[2]   = centerColor->b - RIM_SHADE_DROP;
+            _actor511000DrawHelicopterSearchlightGlow(task, centerColor, rimRgb);
         }
     }
 }
 
-/// Draws a semi-transparent gradient disc at the model's root: projects the
-/// parent-composed origin, scales the 16 unit offsets in
-/// `D_actor_511000_80149014` by 0x12C/0x1000 around it, and fans 16 `POLY_G3`
-/// from the centre (`col`) to the rim (`rgb`) into one OT slot, followed by an
-/// additive draw-mode `DR_TPAGE`. Both `pts` and the offset table walk by
-/// pointer and `scale` is a variable, which is what keeps the `mult` and the
-/// retail induction-variable order.
-static void func_actor_511000_80132B14(Task* task, CVECTOR* col, s8* rgb)
+/// Draws the helicopter searchlight's additive, 300-pixel-radius screen glow.
+///
+/// Borrows a live TMD task, one centre colour and three unsigned rim channels
+/// for the call. Projects the model origin and emits 16 Gouraud triangles plus
+/// a draw-mode packet. The caller must provide primitive space for all packets;
+/// the current OT must contain the masked depth entry displaced by -30 tags.
+/// Projection flags are deliberately not used to clip or suppress the glow.
+static void _actor511000DrawHelicopterSearchlightGlow(Task* task, const CVECTOR* centerColor, const u8* rimRgb)
 {
-    SVECTOR   pos;
-    DVECTOR   pts[16];
-    MATRIX    mtx;
-    long      sxy;
-    long      p;
-    long      flag;
-    s32       otz;
-    POLY_G3*  prim;
-    DR_TPAGE* dr;
-    u16       x;
-    u16       y;
-    s32       scale;
-    u32*      ot;
-    s32       i;
-    DVECTOR*  pt;
-    DVECTOR*  src;
+    enum { RIM_POINT_COUNT    = 16,
+           RADIUS_PIXELS      = 300,
+           UNIT_OFFSET_SCALE  = 4096,
+           OT_DISPLACEMENT    = -30,
+           ADDITIVE_DRAW_PAGE = getTPage(0, GPU_BLEND_ADD, 640, 0) };
+    SVECTOR   worldOrigin;
+    DVECTOR   screenRim[RIM_POINT_COUNT];
+    MATRIX    worldTransform;
+    long      screenCenter;
+    long      projectionScale;
+    long      projectionFlags;
+    s32       sortDepth;
+    POLY_G3*  triangle;
+    DR_TPAGE* drawMode;
+    u16       centerX;
+    u16       centerY;
+    s32       radiusPixels;
+    u_long*   orderingTag;
+    s32       pointIndex;
+    DVECTOR*  rimPoint;
+    DVECTOR*  unitOffset;
 
-    gfxComposeNodeWorldTransform(task->extra.tmd->coords, &mtx, &pos);
+/// Emits one Gouraud triangle from the searchlight centre to two rim points.
+///
+/// `endPoint` is a live DVECTOR lvalue, evaluated twice without side effects.
+/// Captures `triangle` (overwritten), `rimPoint`, `centerX`, `centerY`,
+/// `centerColor`, `rimRgb`, `orderingTag` and `gGpuPrimCursor` (advanced by one
+/// POLY_G3). Requires a live OT tag and packet space. Expands to standalone
+/// statements inside a compound block and is undefined after the two uses.
+#define ACTOR_511000_EMIT_SEARCHLIGHT_TRIANGLE(endPoint) \
+    triangle       = gGpuPrimCursor;                     \
+    gGpuPrimCursor = triangle + 1;                       \
+    setPolyG3(triangle);                                 \
+    setSemiTrans(triangle, 1);                           \
+    triangle->x0 = centerX;                              \
+    triangle->y0 = centerY;                              \
+    triangle->x1 = rimPoint->vx;                         \
+    triangle->y1 = rimPoint->vy;                         \
+    triangle->x2 = (endPoint).vx;                        \
+    triangle->y2 = (endPoint).vy;                        \
+    triangle->r0 = centerColor->r;                       \
+    triangle->g0 = centerColor->g;                       \
+    triangle->b0 = centerColor->b;                       \
+    triangle->r1 = rimRgb[0];                            \
+    triangle->g1 = rimRgb[1];                            \
+    triangle->b1 = rimRgb[2];                            \
+    triangle->r2 = rimRgb[0];                            \
+    triangle->g2 = rimRgb[1];                            \
+    triangle->b2 = rimRgb[2];                            \
+    addPrim(orderingTag, triangle);
+
+    // Project the lamp origin; the halo radius stays fixed in screen pixels.
+    gfxComposeNodeWorldTransform(task->extra.tmd->coords, &worldTransform, &worldOrigin);
     SetRotMatrix(&gGfxViewCoord.workm);
     SetTransMatrix(&gGfxViewCoord.workm);
-    otz   = RotTransPers(&pos, &sxy, &p, &flag);
-    x     = sxy;
-    y     = sxy >> 16;
-    src   = D_actor_511000_80149014;
-    pt    = pts;
-    scale = 0x12C;
-    for (i = 0; i < 16; i++) {
-        pt->vx = x + scale * src->vx / 0x1000;
-        pt->vy = y + scale * src->vy / 0x1000;
-        pt++;
-        src++;
+    sortDepth    = RotTransPers(&worldOrigin, &screenCenter, &projectionScale, &projectionFlags);
+    centerX      = screenCenter;
+    centerY      = screenCenter >> 16;
+    unitOffset   = D_actor_511000_80149014;
+    rimPoint     = screenRim;
+    radiusPixels = RADIUS_PIXELS;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(screenRim); pointIndex++) {
+        rimPoint->vx = centerX + radiusPixels * unitOffset->vx / UNIT_OFFSET_SCALE;
+        rimPoint->vy = centerY + radiusPixels * unitOffset->vy / UNIT_OFFSET_SCALE;
+        rimPoint++;
+        unitOffset++;
     }
-    ot = (u32*)((u8*)gGpuCurrentOt + (((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) - 30;
-    pt = pts;
-    for (i = 0; i < 15; i++, pt++) {
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyG3(prim);
-        setSemiTrans(prim, 1);
-        prim->x0 = x;
-        prim->y0 = y;
-        prim->x1 = pt->vx;
-        prim->y1 = pt->vy;
-        prim->x2 = pt[1].vx;
-        prim->y2 = pt[1].vy;
-        prim->r0 = col->r;
-        prim->g0 = col->g;
-        prim->b0 = col->b;
-        prim->r1 = rgb[0];
-        prim->g1 = rgb[1];
-        prim->b1 = rgb[2];
-        prim->r2 = rgb[0];
-        prim->g2 = rgb[1];
-        prim->b2 = rgb[2];
-        addPrim(ot, prim);
+    // Pack the fan first, then prepend its additive draw mode to the same OT chain.
+    orderingTag = GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(sortDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK) + OT_DISPLACEMENT;
+    rimPoint    = screenRim;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(screenRim) - 1; pointIndex++, rimPoint++) {
+        ACTOR_511000_EMIT_SEARCHLIGHT_TRIANGLE(rimPoint[1]);
     }
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setPolyG3(prim);
-    setSemiTrans(prim, 1);
-    prim->x0 = x;
-    prim->y0 = y;
-    prim->x1 = pt->vx;
-    prim->y1 = pt->vy;
-    prim->x2 = pts[0].vx;
-    prim->y2 = pts[0].vy;
-    prim->r0 = col->r;
-    prim->g0 = col->g;
-    prim->b0 = col->b;
-    prim->r1 = rgb[0];
-    prim->g1 = rgb[1];
-    prim->b1 = rgb[2];
-    prim->r2 = rgb[0];
-    prim->g2 = rgb[1];
-    prim->b2 = rgb[2];
-    addPrim(ot, prim);
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 1, 0, 0x2A);
-    addPrim(ot, dr);
+    ACTOR_511000_EMIT_SEARCHLIGHT_TRIANGLE(screenRim[0]);
+#undef ACTOR_511000_EMIT_SEARCHLIGHT_TRIANGLE
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, 1, 0, ADDITIVE_DRAW_PAGE);
+    addPrim(orderingTag, drawMode);
 }
 
 /// Blends one little-endian 15-bit colour: `src0` weighted by `inv` and `src1`
@@ -2749,109 +2765,126 @@ static void func_actor_511000_80133220(Task* task)
     taskKill(task);
 }
 
-/// Inherits the parent model's light/color and visibility bit, chains this
-/// actor's root coordinate under the parent's, places it at the spawnArg1
-/// translation, and reparents the task.
-static void func_actor_511000_80133240(Task* task)
+/// Attaches a helicopter rotor to the hull and inherits its lighting and visibility.
+///
+/// Both TMD tasks must be live. `spawnArg2.pointer` borrows the helicopter;
+/// `spawnArg1.value` is 1 for the main rotor or 2 for the tail rotor. The
+/// placement is local to the hull root. Joins the parent's teardown tree and
+/// advances from state 0 to 1; borrowed coordinates and matrices must remain live.
+static void _actor511000AttachHelicopterRotor(Task* task)
 {
-    Task*      parent;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
+    Task*      parentTask;
+    TmdObject* model;
+    TmdObject* parentModel;
+    GfxCoord*  root;
+    GfxCoord*  parentRoot;
 
-    parent          = (Task*)task->spawnArg2.pointer;
-    parentExtra     = parent->extra.tmd;
-    extra           = task->extra.tmd;
-    dest            = parentExtra->coords;
-    extra->lightMtx = parentExtra->lightMtx;
-    extra->colorMtx = parentExtra->colorMtx;
-    extra->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coord           = extra->coords;
-    if (!(parentExtra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        extra->flags = 0;
+    parentTask  = task->spawnArg2.pointer;
+    parentModel = parentTask->extra.tmd;
+    model       = task->extra.tmd;
+    parentRoot  = parentModel->coords;
+    // Borrow the helicopter transform and lighting for this child task.
+    model->lightMtx = parentModel->lightMtx;
+    model->colorMtx = parentModel->colorMtx;
+    model->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    root            = model->coords;
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags = 0;
     }
-    func_actor_511000_80133760(task);
-    coord->parent = dest;
-    taskReparent(parent, task);
+    _actor511000PlaceHelicopterPart(task);
+    root->parent = parentRoot;
+    taskReparent(parentTask, task);
     task->state += 1;
 }
 
-/// Tracks the parent model's visibility bit every frame: while the parent model
-/// is hidden (`field_C` bit 0x80 clear) this clears its own bit and, for
-/// spawnArg1 1 or 2, spins the root coordinate's yaw (0x46) by 0x294 or its
-/// pitch (0x44) by 0x3E8, wrapping each to 0x1000. The rotation matrix is then
-/// rebuilt from the angles and the coordinate's `composeStamp` cleared. With the parent
-/// visible the rotation is left alone and the visibility bit is set instead.
-static void func_actor_511000_801332E4(Task* task)
+/// Spins a drawable helicopter's main or tail rotor and mirrors its visibility.
+///
+/// `spawnArg2.pointer` borrows the live helicopter TMD task. Part index 1
+/// advances yaw by 660 units per tick; index 2 advances pitch by 1000, with
+/// 4096 units per turn. Other indices only rebuild the matrix. A hidden parent
+/// hides the child and freezes its angles. Automatic-buffer policy is retained.
+static void _actor511000TickHelicopterRotor(Task* task)
 {
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
+    enum { MAIN_ROTOR      = 1,
+           TAIL_ROTOR      = 2,
+           MAIN_YAW_STEP   = 660,
+           TAIL_PITCH_STEP = 1000 };
+    Task*      parentTask;
+    TmdObject* model;
+    TmdObject* parentModel;
+    GfxCoord*  root;
 
-    extra       = task->extra.tmd;
-    coord       = extra->coords;
-    parentExtra = ((Task*)task->spawnArg2.pointer)->extra.tmd;
+    model       = task->extra.tmd;
+    root        = model->coords;
+    parentTask  = task->spawnArg2.pointer;
+    parentModel = parentTask->extra.tmd;
 
-    if (!(parentExtra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
+        // Read the stored angle unsigned, then wrap in 4096 units per turn.
         switch (task->spawnArg1.value) {
-            case 1:
-                coord->param.rot.vy = ((u16)coord->param.rot.vy + 0x294) & 0xFFF;
+            case MAIN_ROTOR:
+                root->param.rot.vy = ((u16)root->param.rot.vy + MAIN_YAW_STEP) & ACTOR_TRANSFORM_ANGLE_MASK;
                 break;
-            case 2:
-                coord->param.rot.vx = ((u16)coord->param.rot.vx + 0x3E8) & 0xFFF;
+            case TAIL_ROTOR:
+                root->param.rot.vx = ((u16)root->param.rot.vx + TAIL_PITCH_STEP) & ACTOR_TRANSFORM_ANGLE_MASK;
                 break;
         }
 
-        RotMatrix(&coord->param.rot, &coord->coord);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        RotMatrix(&root->param.rot, &root->coord);
+        root->composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }
-    extra->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
-static void func_actor_511000_801333A4(Task* task)
+/// Begins default teardown of an attached helicopter rotor.
+static void _actor511000KillHelicopterRotor(Task* task)
 {
     taskKill(task);
 }
 
-/// Inherits the parent model's light/color and visibility bit, chains this
-/// actor's root coordinate under the parent's, places it at the spawnArg1
-/// translation, copies `D_actor_511000_80147AC4` onto the Euler angles,
-/// rebuilds the rotation matrix, and reparents the task.
-static void func_actor_511000_801333C4(Task* task)
+/// Attaches the searchlight beneath the helicopter with the sequence's initial aim.
+///
+/// Both TMD tasks must be live. `spawnArg2.pointer` borrows the helicopter;
+/// `spawnArg1.value` is 3 for the searchlight's hull-relative translation.
+/// Borrows its root coordinate and lighting, inherits visibility and joins its
+/// teardown tree. Applies sequence frame 0 in 4096-unit Euler angles and
+/// advances to state 1. The parent resources must outlive the attached model.
+static void _actor511000AttachHelicopterSearchlight(Task* task)
 {
-    Task*      parent;
-    TmdObject* extra;
-    TmdObject* parentExtra;
-    GfxCoord*  coord;
-    GfxCoord*  dest;
+    Task*      parentTask;
+    TmdObject* model;
+    TmdObject* parentModel;
+    GfxCoord*  root;
+    GfxCoord*  parentRoot;
 
-    parent          = (Task*)task->spawnArg2.pointer;
-    parentExtra     = parent->extra.tmd;
-    extra           = task->extra.tmd;
-    dest            = parentExtra->coords;
-    extra->lightMtx = parentExtra->lightMtx;
-    extra->colorMtx = parentExtra->colorMtx;
-    extra->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coord           = extra->coords;
-    if (!(parentExtra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        extra->flags = 0;
+    parentTask  = task->spawnArg2.pointer;
+    parentModel = parentTask->extra.tmd;
+    model       = task->extra.tmd;
+    parentRoot  = parentModel->coords;
+    // Borrow the helicopter transform and lighting for this child task.
+    model->lightMtx = parentModel->lightMtx;
+    model->colorMtx = parentModel->colorMtx;
+    model->flags    = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    root            = model->coords;
+    if (!(parentModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        model->flags = 0;
     }
-    func_actor_511000_80133760(task);
-    (coord)->parent = dest;
-    taskReparent(parent, task);
-    coord->param.rot.vx = D_actor_511000_80147AC4[0].vx;
-    coord->param.rot.vy = D_actor_511000_80147AC4[0].vy;
-    coord->param.rot.vz = D_actor_511000_80147AC4[0].vz;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    task->state        += 1;
+    _actor511000PlaceHelicopterPart(task);
+    root->parent = parentRoot;
+    taskReparent(parentTask, task);
+    root->param.rot.vx = D_actor_511000_80147AC4[0].vx;
+    root->param.rot.vy = D_actor_511000_80147AC4[0].vy;
+    root->param.rot.vz = D_actor_511000_80147AC4[0].vz;
+    RotMatrix(&root->param.rot, &root->coord);
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->state       += 1;
 }
 
-static void func_actor_511000_80133498(Task* task)
+/// Begins default teardown of the helicopter's attached searchlight.
+static void _actor511000KillHelicopterSearchlight(Task* task)
 {
     taskKill(task);
 }
@@ -2952,23 +2985,25 @@ static void func_actor_511000_801336E0(Task* task, SVECTOR* rots, SVECTOR* trans
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Places the task's model at the indexed translation: copies
-/// `D_actor_511000_80148FE4[spawnArg1]` into the root coordinate's local
-/// translation, zeros the Euler angles, rebuilds the rotation matrix and
-/// marks the coordinate dirty.
-static void func_actor_511000_80133760(Task* task)
+/// Sets a helicopter part's hull-relative translation and resets its Euler angles.
+///
+/// Requires a live TMD body and an unchecked `spawnArg1.value` in 0..3;
+/// the attachment callers use 1 main rotor, 2 tail rotor or 3 searchlight.
+/// Rebuilds the local rotation and invalidates the composed transform without
+/// changing coordinate ancestry, task links, visibility or lighting.
+static void _actor511000PlaceHelicopterPart(Task* task)
 {
-    GfxCoord* coord;
+    GfxCoord* root;
 
-    coord               = task->extra.tmd->coords;
-    coord->coord.t[0]   = D_actor_511000_80148FE4[task->spawnArg1.value].vx;
-    coord->coord.t[1]   = D_actor_511000_80148FE4[task->spawnArg1.value].vy;
-    coord->coord.t[2]   = D_actor_511000_80148FE4[task->spawnArg1.value].vz;
-    coord->param.rot.vx = 0;
-    coord->param.rot.vy = 0;
-    coord->param.rot.vz = 0;
-    RotMatrix(&coord->param.rot, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    root               = task->extra.tmd->coords;
+    root->coord.t[0]   = D_actor_511000_80148FE4[task->spawnArg1.value].vx;
+    root->coord.t[1]   = D_actor_511000_80148FE4[task->spawnArg1.value].vy;
+    root->coord.t[2]   = D_actor_511000_80148FE4[task->spawnArg1.value].vz;
+    root->param.rot.vx = 0;
+    root->param.rot.vy = 0;
+    root->param.rot.vz = 0;
+    RotMatrix(&root->param.rot, &root->coord);
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Binds the task's TMD object to the work-block light/color matrices, clears
@@ -2997,20 +3032,30 @@ void func_actor_511000_80133850(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_actor_511000_801338A8(Task* task)
+/// Runs the helicopter rotor states: 0 attach, 1 spin and 2 kill.
+///
+/// The descriptor selects the main or tail rotor model. Attachment borrows
+/// the helicopter task through `spawnArg2.pointer`; `spawnArg1.value` is
+/// 1 main rotor or 2 tail rotor. The parent must outlive its attached child.
+static void _actor511000HelicopterRotorTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_511000_80131E54;
-    sp.funcs[task->state](task);
+    states = D_actor_511000_80131E54;
+    states.funcs[task->state](task);
 }
 
-void func_actor_511000_80133900(Task* task)
+/// Runs the helicopter searchlight states: 0 attach, 1 aim and glow, 2 kill.
+///
+/// Attachment requires a live helicopter TMD task in `spawnArg2.pointer`
+/// and part index 3 in `spawnArg1.value`. Its pose follows sequence frames
+/// 0..119 in view 24; the parent must outlive the attached model.
+static void _actor511000HelicopterSearchlightTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_511000_80131E60;
-    sp.funcs[task->state](task);
+    states = D_actor_511000_80131E60;
+    states.funcs[task->state](task);
 }
 
 /// Spawn handler: allocates the 0x488-byte work block and parks it in
@@ -3214,67 +3259,86 @@ s32 func_actor_511000_80133EAC(Task* task, s32 arg1, s32 arg2, s32 arg3)
 
 void func_actor_511000_80133EF4(Task* task)
 {
-    EnemyTaskFunc fns[2] = { func_actor_511000_80133F48, func_actor_511000_80133F88 };
+    EnemyTaskFunc fns[2] = { _actor511000AttachNo9GolemPart8Model, _actor511000TickNo9GolemPart8Model };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Spawn state of the model child attached to the spawner's part 8: chains
-/// the root coordinate under that part, takes the spawner work block's light
-/// and colour matrices, shows the model and advances to the tick state.
-static void func_actor_511000_80133F48(Enemy* enemy, Task* task)
+/// Attaches the No. 9 golem's part-8 model and shows it with the body's lighting.
+///
+/// The task's existing parent must own the live nineteen-part TMD body and
+/// its `_Actor511000No9GolemWork`. Borrows coordinate 8 and both work matrices,
+/// retains the child's local transform and advances from state 0 to 1.
+/// Parent coordinate and work storage must outlive the child. The enemy callback
+/// argument is unused; task parenting was established by the spawner.
+static void _actor511000AttachNo9GolemPart8Model(Enemy* enemy, Task* task)
 {
-    Task*                     parent;
-    TmdObject*                obj;
-    _Actor511000No9GolemWork* work;
-    GfxCoord*                 coord;
+    enum { PARENT_PART  = 8,
+           UPDATE_STATE = 1 };
+    Task*                     parentTask;
+    TmdObject*                model;
+    _Actor511000No9GolemWork* parentWork;
+    GfxCoord*                 root;
     GfxCoord*                 parentCoords;
 
-    parent       = task->parent;
-    obj          = task->extra.tmd;
-    parentCoords = parent->extra.tmd->coords;
-    coord        = obj->coords;
-    work         = parent->work;
+    parentTask   = task->parent;
+    model        = task->extra.tmd;
+    parentCoords = parentTask->extra.tmd->coords;
+    root         = model->coords;
+    parentWork   = parentTask->work;
 
-    coord->parent = &parentCoords[8];
-    obj->lightMtx = &work->light;
-    obj->flags    = 0;
-    obj->colorMtx = &work->color;
-    task->state   = 1;
+    root->parent    = &parentCoords[PARENT_PART];
+    model->lightMtx = &parentWork->light;
+    model->flags    = 0;
+    model->colorMtx = &parentWork->color;
+    task->state     = UPDATE_STATE;
 }
 
-static void func_actor_511000_80133F88(Enemy* arg0, Task* arg1)
+/// Invalidates and composes the golem's part-8 attachment transform each tick.
+///
+/// Requires a live child TMD root and its borrowed parent-coordinate chain.
+/// The enemy callback argument is unused; lighting and task state are retained.
+static void _actor511000TickNo9GolemPart8Model(Enemy* enemy, Task* task)
 {
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg1->extra.tmd->coords);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
 }
 
 void func_actor_511000_80133FC8(Task* task)
 {
-    EnemyTaskFunc fns[2] = { func_actor_511000_8013401C, func_actor_511000_8013405C };
+    EnemyTaskFunc fns[2] = { _actor511000AttachNo9GolemPart3Model, func_actor_511000_8013405C };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_511000_8013401C(Enemy* enemy, Task* task)
+/// Attaches the No. 9 golem's part-3 model and shows it with the body's lighting.
+///
+/// The task's existing parent must own the live nineteen-part TMD body and
+/// its `_Actor511000No9GolemWork`. Borrows coordinate 3 and both work matrices,
+/// retains the child's local transform and advances from state 0 to 1.
+/// Parent coordinate and work storage must outlive the child. The enemy callback
+/// argument is unused; task parenting was established by the spawner.
+static void _actor511000AttachNo9GolemPart3Model(Enemy* enemy, Task* task)
 {
-    Task*                     parent;
-    TmdObject*                obj;
-    _Actor511000No9GolemWork* work;
-    GfxCoord*                 coord;
+    enum { PARENT_PART  = 3,
+           UPDATE_STATE = 1 };
+    Task*                     parentTask;
+    TmdObject*                model;
+    _Actor511000No9GolemWork* parentWork;
+    GfxCoord*                 root;
     GfxCoord*                 parentCoords;
 
-    parent       = task->parent;
-    obj          = task->extra.tmd;
-    parentCoords = parent->extra.tmd->coords;
-    coord        = obj->coords;
-    work         = parent->work;
+    parentTask   = task->parent;
+    model        = task->extra.tmd;
+    parentCoords = parentTask->extra.tmd->coords;
+    root         = model->coords;
+    parentWork   = parentTask->work;
 
-    coord->parent = &parentCoords[3];
-    obj->lightMtx = &work->light;
-    obj->flags    = 0;
-    obj->colorMtx = &work->color;
-    task->state   = 1;
+    root->parent    = &parentCoords[PARENT_PART];
+    model->lightMtx = &parentWork->light;
+    model->flags    = 0;
+    model->colorMtx = &parentWork->color;
+    task->state     = UPDATE_STATE;
 }
 
 static void func_actor_511000_8013405C(Enemy* arg0, Task* arg1)

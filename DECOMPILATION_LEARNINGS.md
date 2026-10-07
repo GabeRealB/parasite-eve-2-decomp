@@ -111642,24 +111642,24 @@ four-way agreement, transcribe the sibling first and adapt only the overlay-loca
 table symbol and the work-struct field names.
 ## An `lhu` at a folded offset needs the *field* named unsigned — a pointer to the sub-object moves the load to `2(a1)`
 
-`func_actor_511000_801332E4` spins one Euler angle of a coordinate and the target
+`_actor511000TickHelicopterRotor` spins one Euler angle of a coordinate and the target
 reads and writes it as `lhu v0,0x46(s0)` / `sh v0,0x46(s0)`, with `s0` the
 coordinate pointer and the angle triple at 0x44. With `SVECTOR rot` (an `s16`
 member) both updates load `lh`. Three ways to ask for the unsigned load:
 
 ```c
 /* 1 - pointer to the sub-object: materializes the address */
-    Actor511000UVec* rot = (Actor511000UVec*)&coord->rot;
+    Actor511000UVec* rot = (Actor511000UVec*)&coord->param.rot;
     rot->vy = (rot->vy + 0x294) & 0xFFF;
 
 /* 2 - re-type the member (STATIC_ASSERT stays 0x4C) */
     /* 0x44 */ Actor511000UVec rot;
 
 /* 3 - cast at the load site */
-    coord->rot.vy = ((u16)coord->rot.vy + 0x294) & 0xFFF;
+    coord->param.rot.vy = ((u16)coord->param.rot.vy + 0x294) & 0xFFF;
 ```
 
-1 is wrong for the addressing, not for the `lhu`: `&coord->rot` is a computed
+1 is wrong for the addressing, not for the `lhu`: `&coord->param.rot` is a computed
 `s0 + 0x44` pseudo, so nothing folds and the body comes out `lhu v0,2(a1)` /
 `sh v0,2(a1)`, with that pointer live across the switch that follows -
 `reorder=6`, 79.2%.
@@ -111668,7 +111668,7 @@ member) both updates load `lh`. Three ways to ask for the unsigned load:
 reproducing the other, so they compile to the same object. Land 3: it is the
 rule in `CODEGEN_MODEL.md` §3, it keeps the member's real `SVECTOR` type at the
 sibling `RotMatrix` calls, and it leaves the struct's other readers alone. Here
-re-typing was safe - `func_actor_511000_801336E0` and `func_actor_511000_80133760` only ever *store*
+re-typing was safe - `func_actor_511000_801336E0` and `_actor511000PlaceHelicopterPart` only ever *store*
 into `rot`, and an `s16` -> `u16` store is the same `sh` - but that is analysis
 of those two callers, not a property of the change.
 
@@ -111685,7 +111685,7 @@ source `base_3.c` `dd5ad9488c048d4700a7b2155651a9ed7617f6341278e713c05808cfa4ebc
 (100.000%). Wrong-addressing variant `base_1.i`
 `7ce669a19de6d53a02f806d455099c6d6e67ca71fa8ac9ba503d435ea26e4bff`, source
 `base_1.c` `293407d2f17036a523783450d71e18ef61b05649f711581c904e785f50b8d82f`
-(79.229%, `reorder=6`). Scratch `nonmatchings/func_actor_511000_801332E4-vacuum`.
+(79.229%, `reorder=6`). Scratch `nonmatchings/_actor511000TickHelicopterRotor-vacuum`.
 
 ## A pointer load sitting in the entry block means the source read it *before* the `switch`
 
