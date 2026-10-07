@@ -73,11 +73,7 @@
 #include "../../shared/water_effects.h"
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern s8 D_neo_ark_pavilion_80187A1C[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern s8 D_neo_ark_pavilion_80187A1C_value __asm__("D_neo_ark_pavilion_80187A1C");
+extern s8 D_neo_ark_pavilion_80187A1C;
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -1073,12 +1069,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-s8 D_neo_ark_pavilion_80187A1C[4] = {
-    0,
-    38,
-    -53,
-    37,
-};
+s8 D_neo_ark_pavilion_80187A1C = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_neo_ark_pavilion_80187A1D = 38;
+
+u8 D_neo_ark_pavilion_80187A1E = 203;
+
+u8 D_neo_ark_pavilion_80187A1F = 37;
 
 RoomLatchedEvent gRoomEventLatched;
 
@@ -1102,7 +1100,7 @@ static s32 _neoArkPavilionRejectKeyItem(Task* task, s32 messageId, s32 itemId, s
 
 static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_neo_ark_pavilion_80187A1C_value = 0;
+    D_neo_ark_pavilion_80187A1C = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -1111,7 +1109,7 @@ static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEv
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_neo_ark_pavilion_80183864, 0, 0, 0);
-            D_neo_ark_pavilion_80187A1C_value = 1;
+            D_neo_ark_pavilion_80187A1C = 1;
         }
         return 2;
     }
