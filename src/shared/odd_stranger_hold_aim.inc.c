@@ -41,7 +41,7 @@ void oddStrangerHoldAim(Task* arg0)
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ODD_STRANGER_STATE_CHASE;
     }
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (aim->turn > 0) {
         aim->turn = 0;

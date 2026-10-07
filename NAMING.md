@@ -428,10 +428,13 @@ advance their poses and count ticks and slot-1 control-jump ticks. The resident
 `animation` subsystem supplies slot playback; it does not own these actors'
 request state or counters.
 
-`actorAngle` owns scalar heading and turn-angle normalization shared by actor
-packages. Its inline interface is `include/actors/actor.h`, with static instances
-marked `_`. Angles use 4096 units per turn; signed wrapping retains both half-turn
-endpoints and narrows the input to 16 bits before wrapping.
+`actorAngle` owns scalar heading and turn-angle normalization, and the turn from
+an actor's heading toward the live player, shared by actor packages. Its inline
+interface is `include/actors/actor.h`, with static instances marked `_`. Angles
+use 4096 units per turn; signed wrapping retains both half-turn endpoints and
+narrows the input to 16 bits before wrapping. The player turn also writes the
+translation offset in signed 16-bit game coordinates and requires both roots
+in the same parent coordinate frame; it does not compose or rotate them.
 
 Shared implementation interfaces live beside their source in `src/shared/`,
 including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,

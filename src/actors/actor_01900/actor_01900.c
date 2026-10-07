@@ -1865,7 +1865,7 @@ static void Actor01900_Fn03854(Task* arg0)
         if (work->rig.slots[1].status.fields.flags & 0x100) {
             work->state = ACTOR_01900_STATE_CHASE;
         }
-        aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+        aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
         work->lookYawTarget = aim->turn;
         if (aim->turn >= 0x11) {
             aim->turn = 0x10;
@@ -2839,7 +2839,7 @@ static void Actor01900_Fn07810(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn                = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    turn->angle         = actorPositionYaw(arg0, &turn->delta, &gPlayerStatus);
+    turn->angle         = _actorAngleTurnToPlayer(arg0, &turn->delta, &gPlayerStatus);
     work->lookYawTarget = turn->angle;
     if (turn->angle > 0x40) {
         turn->angle = 0x40;
@@ -2894,7 +2894,7 @@ static void Actor01900_Fn07BA8(Task* arg0)
     Actor01900_Fn01C94(arg0);
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                 = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (ABS(aim->turn) <= 0x80 && work->animId == 2) {
         work->animRate    = 0x16;
@@ -2966,7 +2966,7 @@ static void Actor01900_Fn080A8(Task* arg0)
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->state = ACTOR_01900_STATE_CHASE;
     }
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (aim->turn > 0) {
         aim->turn = 0;
@@ -3014,7 +3014,7 @@ static void Actor01900_Fn083E8(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     if (work->lookYawTarget < aim->turn) {
         if (aim->turn - work->lookYawTarget > 0x28) {
             work->lookYawTarget += 0x28;

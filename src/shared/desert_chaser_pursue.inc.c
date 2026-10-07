@@ -53,7 +53,7 @@ void desertChaserPursue(Task* arg0)
     ctx        = arg0->spawnArg2.pointer;
     if (work->stateEntered != 0) {
         obj              = arg0->extra.tmd;
-        initialDelta.pad = actorPositionYaw(arg0, &initialDelta, config);
+        initialDelta.pad = _actorAngleTurnToPlayer(arg0, &initialDelta, config);
         initialYaw       = (s16)initialDelta.pad;
         if (initialYaw > 0x300) {
             work->state = DESERT_CHASER_STATE_TURN_RIGHT;
@@ -211,9 +211,9 @@ void desertChaserPursue(Task* arg0)
                 }
             }
         }
-        scratch->playerBearing = actorPositionYaw(arg0, &scratch->offset, &gPlayerStatus);
+        scratch->playerBearing = _actorAngleTurnToPlayer(arg0, &scratch->offset, &gPlayerStatus);
     } else {
-        yaw                    = actorPositionYaw(arg0, &scratch->offset, &gPlayerStatus);
+        yaw                    = _actorAngleTurnToPlayer(arg0, &scratch->offset, &gPlayerStatus);
         scratch->playerBearing = yaw;
         if ((abs(yaw) >= 0x601) && (work->animId == 3)) {
             work->state = 0x1D;

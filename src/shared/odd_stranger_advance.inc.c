@@ -3,7 +3,7 @@
 /// Walk the actor at the player: on the live-actor flag it restarts the
 /// 0x12 clip and clears the spawn pose, then takes a 0xC-byte scratch stack
 /// turn block, aims it at `gPlayerStatus.coordMtx` through
-/// `actorPositionYaw`, clamps the turn to +-0x40 and adds the facing
+/// `_actorAngleTurnToPlayer`, clamps the turn to +-0x40 and adds the facing
 /// yaw back in before rebuilding the root coordinate. After
 /// `_actorContactApplyGridPushback` resolves `gridContacts`, `hitContacts`
 /// go to `oddStrangerPushContacts` if no horizontal grid correction resulted. The
@@ -36,7 +36,7 @@ void oddStrangerAdvance(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn                = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    turn->angle         = actorPositionYaw(arg0, &turn->delta, &gPlayerStatus);
+    turn->angle         = _actorAngleTurnToPlayer(arg0, &turn->delta, &gPlayerStatus);
     work->lookYawTarget = turn->angle;
     if (turn->angle > 0x40) {
         turn->angle = 0x40;

@@ -1987,7 +1987,7 @@ static void func_actor_401800_8013B784(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     if (work->lookYawTarget < aim->turn) {
         if (aim->turn - work->lookYawTarget >= 0x29) {
             work->lookYawTarget = (u16)work->lookYawTarget + 0x28;

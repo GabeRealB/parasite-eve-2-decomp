@@ -2402,7 +2402,7 @@ static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
             break;
     }
     scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    angle          = actorPositionYaw(arg0, &scratch->delta, &gPlayerStatus);
+    angle          = _actorAngleTurnToPlayer(arg0, &scratch->delta, &gPlayerStatus);
     scratch->angle = mag = angle;
     if ((mag < 0 ? -mag : mag) < 0x200) {
         SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
@@ -4757,7 +4757,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     func_actor_403000_80133AF8(arg0);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        angle         = actorPositionYaw(arg0, &scratch->offset, &gPlayerStatus);
+        angle         = _actorAngleTurnToPlayer(arg0, &scratch->offset, &gPlayerStatus);
         scratch->turn = (mag = angle);
         if (ABS(mag) > 0x300) {
             work->state        = ACTOR_403000_STATE_TURN;

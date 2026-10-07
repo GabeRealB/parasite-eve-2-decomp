@@ -4600,7 +4600,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
 
     _gluttonTickAnim(arg0);
 
-    work->neckYawTarget = actorPositionYaw(arg0, &sc->offset, &gPlayerStatus);
+    work->neckYawTarget = _actorAngleTurnToPlayer(arg0, &sc->offset, &gPlayerStatus);
 
     sc->offset.vz = 0;
     sc->offset.vy = 0;

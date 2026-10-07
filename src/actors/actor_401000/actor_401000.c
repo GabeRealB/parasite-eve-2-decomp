@@ -1676,7 +1676,7 @@ static void func_actor_401000_801378DC(Task* arg0)
         work->grabStartPos.vz                 = arg0->extra.tmd->coords->coord.t[2];
         work->hitBody.radius                  = 0x1AE;
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, actorPositionYaw(arg0, &delta, config), 0);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, _actorAngleTurnToPlayer(arg0, &delta, config), 0);
         _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
         delta.vx                              = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         delta.vy                              = 0;
@@ -1965,7 +1965,7 @@ static void func_actor_401000_8013A930(Task* arg0)
     work->stateTimer++;
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     if (work->lookYawTarget < aim->turn) {
         if (aim->turn - work->lookYawTarget > 0x28) {
             work->lookYawTarget += 0x28;
@@ -2014,7 +2014,7 @@ static void func_actor_401000_8013A930(Task* arg0)
         gfxRotMatrixX(&arg0->extra.tmd->coords[5].coord, 0x100 >> ((work->stateTimer - 0x31) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
-        aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+        aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
         if (aim->turn > 0x24) {
             aim->turn = 0x24;
         } else if (aim->turn < -0x24) {

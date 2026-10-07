@@ -88050,7 +88050,7 @@ once it is matched, the compiler emits the table, so remove the entries.
 scratch block whose head accesses are absolute (`lui $s2`/`lw 0x3FC($s2)`,
 `lui $at`/`sw`) between two `lui`/`ori` register-form bumps. Written out flat
 it stalled at 85% (goto loops, locals, `scratch_base`). The whole gap was
-source shape: the body is `actorPositionYaw` / `_actorAngleNormalizeYaw`
+source shape: the body is `_actorAngleTurnToPlayer` / `_actorAngleNormalizeYaw`
 (`include/actors/actor.h`) plus `ActorsShared80135a60(coord,
 0x1194)`, all as `static __inline__`. Inside the `s16`-returning inline the
 plain `while (1) { if (v >= -0x800) break; v += 0x1000; }` keeps the top test
@@ -109409,7 +109409,7 @@ shape / 0.97 fields / 0.95 calls). The m2c seed scored 80.62 with `regs=41
 insert=17 delete=17 branch=6`, and `.diagnosis.json` showed the candidate at 17
 blocks against the ROM's 16 — the flattened-helper symptom again. Writing the
 body out of the twin's four `static __inline__` helpers unchanged
-(`actorPositionYaw`, `_ConfigPositionDelta`, `_NormalizeYaw`,
+(`_actorAngleTurnToPlayer`, `_ConfigPositionDelta`, `_NormalizeYaw`,
 `_RescaleYaw`) scored **100.000 with every penalty zero on the first
 restructured build**.
 

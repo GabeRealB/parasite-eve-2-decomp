@@ -31,7 +31,7 @@ void oddStrangerBackOff(Task* arg0)
     _oddStrangerDriveAnimation(arg0);
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                 = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (ABS(aim->turn) < 0x81 && work->animId == 2) {
         work->animRate    = 0x16;

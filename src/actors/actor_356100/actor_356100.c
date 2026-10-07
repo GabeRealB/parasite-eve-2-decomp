@@ -1222,7 +1222,7 @@ static void func_actor_356100_80163CD4(Task* arg0)
 /// Turns the actor's facing onto the player in one step and rescales the root
 /// coordinate to 0x1194: the live branch resets the model and starts clip 1 at
 /// speed 0x10 with the 9 state parked in `animId`, otherwise the chase scratch
-/// takes the player offset, `actorPositionYaw` gives the wrapped turn,
+/// takes the player offset, `_actorAngleTurnToPlayer` gives the wrapped turn,
 /// `lookYawTarget` snapshots it, it is clamped to [-0x10, 0x10] and the root yaw is
 /// re-derived from it. Same body as `func_actor_401300_8013AAE8`.
 static void func_actor_356100_80163E2C(Task* arg0)
@@ -1253,7 +1253,7 @@ static void func_actor_356100_80163E2C(Task* arg0)
     if (work->rig.slots[1].status.fields.flags & 1) {
         work->state = ACTOR_356100_STATE_CHASE;
     }
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (aim->turn >= 0x11) {
         aim->turn = 0x10;
@@ -1802,7 +1802,7 @@ static void func_actor_356100_80165B30(Task* arg0)
 /// Turn-and-close tick, and the sibling of `func_actor_356100_801666B4` above
 /// it. Going live writes the animation request fields with `hitRadius`
 /// forced to 0x180 and the enemy's link node cleared, then turns the root
-/// coordinate onto the player through `actorPositionYaw` and rebuilds
+/// coordinate onto the player through `_actorAngleTurnToPlayer` and rebuilds
 /// its Y rotation at a uniform 0x1194 scale, re-seeding the offset from the
 /// player and clearing the two halfwords next to `playerHeld`. Each frame then
 /// re-runs the animation and, while the clip sits on 0x10 and the player is not
@@ -1836,7 +1836,7 @@ static void func_actor_356100_80166018(Task* arg0)
         work->animRate                = 0x10;
         work->animId                  = 4;
         func_actor_356100_80163508(arg0);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, actorPositionYaw(arg0, &pos, config), 0);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, _actorAngleTurnToPlayer(arg0, &pos, config), 0);
         _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_356100_ROOT_SCALE);
         pos.vx                                = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy                                = 0;
@@ -2301,7 +2301,7 @@ static void func_actor_356100_80167A7C(Task* arg0)
 /// the same body as `func_actor_401300_8013A208`. The live branch resets the
 /// model and starts clip 1 at speed 0x10 with the 0x12 state parked in
 /// `animId`; otherwise the turn scratch takes the player offset,
-/// `actorPositionYaw` gives the wrapped turn, `lookYawTarget` snapshots it,
+/// `_actorAngleTurnToPlayer` gives the wrapped turn, `lookYawTarget` snapshots it,
 /// it is clamped to [-0x40, 0x40] and the root yaw is re-derived from it. The
 /// root is then pushed out of the `pushContacts` collision records and one
 /// normalised unit along its own Y column scaled by `runStep`, which decays
@@ -2331,7 +2331,7 @@ static void func_actor_356100_8016804C(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn                = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    turn->angle         = actorPositionYaw(arg0, &turn->delta, &gPlayerStatus);
+    turn->angle         = _actorAngleTurnToPlayer(arg0, &turn->delta, &gPlayerStatus);
     work->lookYawTarget = turn->angle;
     if (turn->angle > 0x40) {
         turn->angle = 0x40;
@@ -2452,7 +2452,7 @@ static void func_actor_356100_801684F0(Task* arg0)
 /// coordinate to 0x1194: the live branch resets the model and starts clip 1 at
 /// speed 0x10 with the 0x13 state parked in `animId`, otherwise `stateTimer`
 /// ticks over for the 0xB-frame transition, the chase scratch takes the player
-/// offset, `actorPositionYaw` gives the wrapped turn, `lookYawTarget`
+/// offset, `_actorAngleTurnToPlayer` gives the wrapped turn, `lookYawTarget`
 /// snapshots it, the turn is clamped to [-0x20, 0x20] and the root yaw is
 /// re-derived from it before the work block's `state` takes the local `state` once the count-down
 /// expires. Same body as `func_actor_401300_8013AAE8`.
@@ -2488,7 +2488,7 @@ static void func_actor_356100_80168AFC(Task* arg0)
     if ((work->rig.slots[1].status.fields.flags & 1) || ((s16)work->stateTimer >= state)) {
         work->state = state;
     }
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (aim->turn >= 0x21) {
         aim->turn = 0x20;
@@ -2507,7 +2507,7 @@ static void func_actor_356100_80168AFC(Task* arg0)
 /// Turn the actor's facing onto the player in 0x28 steps and rescale the root
 /// coordinate to 0x1194: the live branch resets the model and starts clip 2 at
 /// speed 0x10 with the 0x13 state parked in `animId`, otherwise the aim
-/// scratch takes the player offset, `actorPositionYaw` gives the wrapped
+/// scratch takes the player offset, `_actorAngleTurnToPlayer` gives the wrapped
 /// turn, `lookYawTarget` walks toward it by at most 0x28 and the state flips to 0xB
 /// once it has caught up. Same body as `func_actor_401300_8013AE48`.
 static void func_actor_356100_80168E44(Task* arg0)
@@ -2536,7 +2536,7 @@ static void func_actor_356100_80168E44(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     if (work->lookYawTarget < aim->turn) {
         if (aim->turn - work->lookYawTarget > 0x28) {
             work->lookYawTarget += 0x28;

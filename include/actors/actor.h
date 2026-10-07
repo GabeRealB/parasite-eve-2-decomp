@@ -1175,23 +1175,35 @@ static __inline__ s16 _actorAngleNormalizeYaw(s16 yaw)
 }
 
 /// The offset from `coord` to the translation of `config`'s coordinate.
-static __inline__ void actorConfigPositionDelta(PlayerStatus* config, GfxCoord* coord, SVECTOR* pos)
+static __inline__ void actorConfigPositionDelta(const PlayerStatus* config, GfxCoord* coord, SVECTOR* pos)
 {
     pos->vx = config->coordMtx->t[0] - coord->coord.t[0];
     pos->vy = config->coordMtx->t[1] - coord->coord.t[1];
     pos->vz = config->coordMtx->t[2] - coord->coord.t[2];
 }
 
-/// The turn that would face `actor` toward `config`'s coordinate: the bearing
-/// of the offset, written to `pos`, less the actor's own heading, wrapped.
-static __inline__ s16 actorPositionYaw(Task* actor, SVECTOR* pos, PlayerStatus* config)
+/// Returns the signed horizontal turn from the actor's heading toward the player.
+///
+/// `actor` must have a live model root, and `playerStatus->coordMtx` must be
+/// the live player root matrix in the same parent coordinate frame. No hierarchy
+/// composition is performed. `toPlayer` must supply a writable `SVECTOR`, separate
+/// from both inputs; its XYZ components receive player minus actor translation
+/// in game coordinate units, narrowed to signed 16 bits. Its `pad` stays intact.
+///
+/// The bearing uses that narrowed X/Z offset; the actor's heading is extracted
+/// from its root rotation. Their difference narrows to signed 16 bits before
+/// wrapping. The result uses 4096 units per turn and lies in [-2048, 2048],
+/// retaining both half-turn endpoints. Neither root is rotated; callers apply
+/// any turn limit and rotation themselves.
+static __inline__ s16 _actorAngleTurnToPlayer(const Task* actor, SVECTOR* toPlayer, const PlayerStatus* playerStatus)
 {
-    GfxCoord* coord;
-    s32       angle;
-    actorConfigPositionDelta(config, actor->extra.tmd->coords, pos);
-    coord = actor->extra.tmd->coords;
-    angle = ratan2(pos->vx, pos->vz);
-    return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    const GfxCoord* rootCoord;
+    s32             playerBearing;
+
+    actorConfigPositionDelta(playerStatus, actor->extra.tmd->coords, toPlayer);
+    rootCoord     = actor->extra.tmd->coords;
+    playerBearing = ratan2(toPlayer->vx, toPlayer->vz);
+    return _actorAngleNormalizeYaw(playerBearing - ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]));
 }
 
 /// Copies a yaw rebuild's nine rotation coefficients into a coordinate.
@@ -1542,7 +1554,7 @@ static __inline__ void actorMatrixPositionDelta(MATRIX* m, GfxCoord* coord, SVEC
     pos->vz = m->t[2] - coord->coord.t[2];
 }
 
-/// `actorPositionYaw` toward the translation of `m`.
+/// `_actorAngleTurnToPlayer` toward the translation of `m`.
 static __inline__ s16 actorMatrixPositionYaw(Task* actor, SVECTOR* pos, MATRIX* m)
 {
     GfxCoord* coord;

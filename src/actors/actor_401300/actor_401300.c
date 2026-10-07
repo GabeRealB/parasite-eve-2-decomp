@@ -2911,7 +2911,7 @@ static void func_actor_401300_80136238(Task* arg0)
             work->state = ACTOR_401300_STATE_CHASE;
         }
     }
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (aim->turn > 0x10) {
         aim->turn = 0x10;
@@ -3402,7 +3402,7 @@ static void func_actor_401300_80138160(Task* arg0)
         work->animRate                = 0x10;
         work->animId                  = 4;
         func_actor_401300_80133A3C(arg0);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, actorPositionYaw(arg0, &pos, config), 0);
+        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, _actorAngleTurnToPlayer(arg0, &pos, config), 0);
         _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
         pos.vx                                = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
         pos.vy                                = 0;
@@ -3964,7 +3964,7 @@ static void func_actor_401300_8013A208(Task* arg0)
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     turn                = SCRATCH_STACK_CURSOR(ActorTurnScratch);
-    turn->angle         = actorPositionYaw(arg0, &turn->delta, &gPlayerStatus);
+    turn->angle         = _actorAngleTurnToPlayer(arg0, &turn->delta, &gPlayerStatus);
     work->lookYawTarget = turn->angle;
     if (turn->angle > 0x40) {
         turn->angle = 0x40;
@@ -4021,7 +4021,7 @@ static void func_actor_401300_8013A5C0(Task* arg0)
     func_actor_401300_80133A3C(arg0);
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                 = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (ABS(aim->turn) <= 0x80 && work->animId == 2) {
         work->animRate    = 0x16;
@@ -4095,7 +4095,7 @@ static void func_actor_401300_8013AAE8(Task* arg0)
     if ((work->rig.slots[1].status.fields.flags & 0x100) || work->stateTimer >= 0xB) {
         work->state = ACTOR_401300_STATE_GRAB;
     }
-    aim->turn           = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     work->lookYawTarget = aim->turn;
     if (aim->turn > 0x20) {
         aim->turn = 0x20;
@@ -4140,7 +4140,7 @@ static void func_actor_401300_8013AE48(Task* arg0)
     work->stateTimer++;
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+    aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
     if (work->lookYawTarget < aim->turn) {
         if (aim->turn - work->lookYawTarget > 0x28) {
             work->lookYawTarget += 0x28;
@@ -4189,7 +4189,7 @@ static void func_actor_401300_8013AE48(Task* arg0)
         gfxRotMatrixX(&arg0->extra.tmd->coords[5].coord, 0x100 >> ((work->stateTimer - 0x31) / 4), GRAPHICS_ROTATION_COMPOSE);
         arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
-        aim->turn = actorPositionYaw(arg0, &aim->delta, &gPlayerStatus);
+        aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
         if (aim->turn > 0x24) {
             aim->turn = 0x24;
         } else if (aim->turn < -0x24) {

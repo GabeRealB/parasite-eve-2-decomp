@@ -70,7 +70,7 @@ void desertChaserStrike(Task* arg0)
             }
             break;
         case 3:
-            yaw       = actorPositionYaw(arg0, vec, &gPlayerStatus);
+            yaw       = _actorAngleTurnToPlayer(arg0, vec, &gPlayerStatus);
             vec[1].vz = yaw;
             if (_desertChaserCapsuleTouchesGrid(arg0)) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 85);
