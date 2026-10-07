@@ -275,6 +275,11 @@ enum {
     ACTOR_105100_BEAM_COLOR_BRIGHT       = 3
 };
 
+/// Shield wait after a reaction interrupts an attack without breaking a charge.
+enum { ACTOR_105100_SHIELD_RECOVERY_TICKS = 30 };
+
+static void _actor105100Task(Task* task);
+static void _actor105100FireballTask(Task* task);
 static void _actor105100Spawn(Enemy* enemy, Task* task);
 static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1);
 static void func_actor_105100_80132C2C(Task* arg0);
@@ -284,7 +289,7 @@ static void _actor105100SummonFireballs(Task* task, Enemy* unusedEnemy);
 static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy);
 static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1);
 static void func_actor_105100_80133CE4(Task* arg0);
-static void func_actor_105100_80134130(Task* arg0);
+static void _actor105100PlayAnimationSounds(Task* task);
 static void func_actor_105100_80134284(Enemy* arg0, Task* arg1);
 static void _actor105100FireballSpawn(Enemy* enemy, Task* task);
 static void func_actor_105100_80134B00(Enemy* arg0, Task* arg1);
@@ -293,17 +298,17 @@ static void _actor105100BeamTick(Enemy* unusedEnemy, Task* task);
 static void _actor105100BeamMovePair(Task* task);
 static void _actor105100BeamMoveTriple(Task* task);
 static void _actor105100BeamSeekPlayer(Task* task);
-static void func_actor_105100_80135E54(Task* arg0);
+static void _actor105100UpdateStatusReactions(Task* task);
 static void _actor105100RaiseShield(Task* task);
 static void _actor105100ApplyPartnerHealing(Task* task);
-static void func_actor_105100_801360AC(Task* arg0);
-static void func_actor_105100_801361C4(Task* arg0);
+static void _actor105100Buildup(Task* task);
+static void _actor105100Stagger(Task* task);
 static void _actor105100StopLoopingSounds(Task* task);
-static void func_actor_105100_80136318(Task* arg0);
-static void func_actor_105100_80136408(Task* arg0);
-static void func_actor_105100_801364CC(Task* arg0);
-static void func_actor_105100_80136524(Task* arg0);
-static void func_actor_105100_801366D8(Enemy* arg0, Task* arg1);
+static void _actor105100Defeated(Task* task);
+static void _actor105100UpdateAnimation(Task* task);
+static void _actor105100RefreshColor(Task* task);
+static void _actor105100DrawShadow(Task* task);
+static void _actor105100FireballDestroy(Enemy* enemy, Task* task);
 static void _actor105100BeamDestroy(Enemy* enemy, Task* task);
 static void _actor105100BeamTask(Task* task);
 
@@ -314,9 +319,6 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// message 0x13F4 while the attachment wheel is open (`Gp_StateC08.mode`) or
 /// `gDisplayState.pendingMode` is live.
 
-/// Main-executable global with no module header yet: the remaining-enemy count
-/// `func_actor_105100_80136318` tests to decide whether the fight is over.
-
 /// The run of HP caps at 0x8014139C; `_actor105100ApplyPartnerHealing` reads the
 /// first entry. Declared as an aggregate on purpose: a bare `extern u16` makes
 /// `true_dependence` (`sched.c:846`) drop the dependence between the store to
@@ -325,7 +327,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// hoists this load above the store, ahead of the `sll`.
 
 /// The s16 run at 0x801414C8, one entry per animation in
-/// `_Actor105100Work::anim`; `func_actor_105100_80136408` reads the entry
+/// `_Actor105100Work::anim`; `_actor105100UpdateAnimation` reads the entry
 /// the new state selects before it re-queues every slot.
 extern s16 D_actor_105100_801414C8[];
 
@@ -365,7 +367,6 @@ static const EnemyTaskFuncTable3 D_actor_105100_80131E24 = {
 };
 
 static TmdSource _gActor105100StingerBody;
-void             func_actor_105100_80135DF8(Task*);
 
 static AnimationSet _gActor105100Animation0DD7C;
 static AnimationSet _gActor105100Animation0E518;
@@ -799,12 +800,9 @@ s16 D_actor_105100_80141450[10] = {
     0,
 };
 
-void func_actor_105100_80135DF8(Task*);
-void func_actor_105100_8013667C(Task*);
-
 TaskDesc D_actor_105100_80141464[3] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_105100_80135DF8, { .model = &_gActor105100StingerBody } },
-    { { { TASK_BODY_COORD, 96 } }, func_actor_105100_8013667C, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, _actor105100Task, { .model = &_gActor105100StingerBody } },
+    { { { TASK_BODY_COORD, 96 } }, _actor105100FireballTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, _actor105100BeamTask, { .value = 0 } },
 };
 
@@ -1039,8 +1037,8 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
             }
             break;
         case 1:
-            func_actor_105100_801364CC(arg1);
-            func_actor_105100_80136524(arg1);
+            _actor105100RefreshColor(arg1);
+            _actor105100DrawShadow(arg1);
             if (work->soundsMuted == 0) {
                 SndEvt_EnqueueType8(SOUND_BANK_TYPE_CHARACTER_ALL);
             }
@@ -1056,23 +1054,23 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
             return;
     }
     if (arg0->reactionFlags != 0) {
-        func_actor_105100_80135E54(arg1);
+        _actor105100UpdateStatusReactions(arg1);
     }
     func_actor_105100_80132C2C(arg1);
     func_actor_105100_80133134(arg1);
     if (work->knockbackActive != 0) {
         func_actor_105100_80133CE4(arg1);
     }
-    func_actor_105100_80136408(arg1);
-    func_actor_105100_80134130(arg1);
+    _actor105100UpdateAnimation(arg1);
+    _actor105100PlayAnimationSounds(arg1);
     _modelPlacementSetScaled(arg1, &work->placementMtx, work->scale, MODEL_PLACEMENT_SCALE_UNIFORM);
     if (work->shield.fields.active != 0) {
         shelterB6TrainingRoomSpawnShieldArcs(arg1);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    func_actor_105100_801364CC(arg1);
-    func_actor_105100_80136524(arg1);
+    _actor105100RefreshColor(arg1);
+    _actor105100DrawShadow(arg1);
 }
 
 /// Per-frame hit handler: walks the three `hitContacts` records. A category-2
@@ -1273,13 +1271,13 @@ static void func_actor_105100_80133134(Task* arg0)
             _actor105100RaiseShield(arg0);
             break;
         case ACTOR_105100_ACTION_BUILDUP:
-            func_actor_105100_801360AC(arg0);
+            _actor105100Buildup(arg0);
             break;
         case ACTOR_105100_ACTION_STAGGER:
-            func_actor_105100_801361C4(arg0);
+            _actor105100Stagger(arg0);
             break;
         case ACTOR_105100_ACTION_DEFEATED:
-            func_actor_105100_80136318(arg0);
+            _actor105100Defeated(arg0);
         default:
             break;
     }
@@ -1760,28 +1758,41 @@ static void func_actor_105100_80133CE4(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(ActorPlayerKnockbackScratch);
 }
 
-static void func_actor_105100_80134130(Task* arg0)
+/// Plays spatial sounds when the animated part's cue bits turn off.
+///
+/// Requires a live enemy, model and animation rig. Slot 1 supplies the cues;
+/// a missing record leaves the previous cue mask intact. The placement index
+/// supplies the sound instance tag. Pan and depth narrow to signed bytes.
+static void _actor105100PlayAnimationSounds(Task* task)
 {
-    s32                    snd;
-    s32                    pan;
-    s32                    pan2;
+    enum {
+        ACTOR_105100_CUE_2_END_SOUND = 0x40330001,
+        ACTOR_105100_CUE_1_END_SOUND = 0x40330002,
+    };
+
+    s32                    soundId;
+    s32                    cue2Pan;
+    s32                    cue1Pan;
     _Actor105100Work*      work;
-    GfxCoord*              self;
+    GfxCoord*              coord;
+    Enemy*                 enemy;
     const AnimationRecord* rec;
 
-    work = arg0->work;
-    self = arg0->extra.tmd->coords;
-    rec  = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
+    work  = task->work;
+    coord = task->extra.tmd->coords;
+    rec   = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
     if (rec != NULL) {
         if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->animCues & ANIMATION_RECORD_CUE_2)) {
-            snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330001;
-            pan = (s8)worldCoordGetOriginAudioPan(self);
-            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
+            enemy   = task->spawnArg2.pointer;
+            soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_105100_CUE_2_END_SOUND;
+            cue2Pan = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(soundId, cue2Pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
         if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->animCues & ANIMATION_RECORD_CUE_1)) {
-            snd  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330002;
-            pan2 = (s8)worldCoordGetOriginAudioPan(self);
-            sndEvtRequestScriptStart(snd, pan2, (s8)worldCoordGetOriginAudioDepth(self));
+            enemy   = task->spawnArg2.pointer;
+            soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_105100_CUE_1_END_SOUND;
+            cue1Pan = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(soundId, cue1Pan, (s8)worldCoordGetOriginAudioDepth(coord));
         }
         work->animCues = (u16)(rec->flags & ANIMATION_RECORD_CUE_MASK);
     }
@@ -1815,17 +1826,21 @@ static inline void _actor105100AnimUpdate(Task* task)
     }
 }
 
-/// Relights the actor of `task` for its model's world position.
+/// Updates the enemy's model lighting and colour at its composed root position.
+///
+/// Requires a live enemy in `spawnArg2.pointer` and a composed model root.
+/// Only the three world-coordinate components are sampled; colour modes and
+/// blends are applied by the world-lighting service.
 static inline void _actor105100UpdateColor(Task* task)
 {
     GfxCoord* coord;
-    VECTOR    pos;
+    VECTOR3   worldPosition;
 
-    coord  = task->extra.tmd->coords;
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+    coord            = task->extra.tmd->coords;
+    worldPosition.vx = coord->workm.t[0];
+    worldPosition.vy = coord->workm.t[1];
+    worldPosition.vz = coord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
 }
 
 /// Teardown handler in `D_actor_105100_80131E24`. Mode 1 of `gSceneCombatState.actorControl` only
@@ -2064,7 +2079,7 @@ static const EnemyTaskFuncTable3 D_actor_105100_80131E90 = {
     {
         _actor105100FireballSpawn,
         func_actor_105100_80134B00,
-        func_actor_105100_801366D8,
+        _actor105100FireballDestroy,
     },
 };
 
@@ -2376,6 +2391,10 @@ static void _actor105100BeamTick(Enemy* unusedEnemy, Task* task)
 }
 
 /// Advances a beam endpoint by its signed speed along its Q12 planar heading.
+///
+/// Translation is in world units per tick, with an arithmetic shift after each
+/// signed product. Only local X and Z change. The caller invalidates and
+/// composes the coordinate after moving it; neither pointer is retained.
 static inline void _actor105100MoveBeamEndpoint(GfxCoord* coord, const _Actor105100BeamWork* beam)
 {
     coord->coord.t[0] += (beam->direction.vx * beam->speed) >> ACTOR_105100_DIRECTION_SHIFT;
@@ -2555,28 +2574,42 @@ static void _actor105100BeamSeekPlayer(Task* task)
 
 #include "../../shared/fireball_ember.inc.c"
 
-void func_actor_105100_80135DF8(Task* arg0)
+/// Dispatches the enemy's spawn, per-frame update or teardown handler.
+///
+/// `task->state` must be 0..2; `spawnArg2.pointer` holds its live enemy.
+/// The descriptor supplies the nineteen-part model. A teardown handler may
+/// destroy the enemy, model, work block and task before returning.
+static void _actor105100Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = D_actor_105100_80131E24;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers = D_actor_105100_80131E24;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_105100_80135E54(Task* arg0)
+/// Consumes reaction flags and applies quarter-strength damage-over-time pulses.
+///
+/// Requires the live enemy and its work block. A buildup request selects the
+/// buildup action; its counters advance in that action. Each nonzero signed
+/// low-halfword pulse selects stagger or defeat from the resulting signed
+/// low-halfword HP, even when the reduced damage is zero. Expiry clears the
+/// damage-over-time flags. A pending stagger flag is only acknowledged here.
+static void _actor105100UpdateStatusReactions(Task* task)
 {
+    enum { ACTOR_105100_STATUS_DAMAGE_SHIFT = 2 };
+
     Enemy*            enemy;
     _Actor105100Work* work;
-    s32               state;
-    s32               damage;
-    s32               tick;
-    u8                flags;
+    s32               remainingHp;
+    s32               appliedDamage;
+    s32               pulseHighHalf;
+    u8                reactionFlags;
 
-    enemy = arg0->spawnArg2.pointer;
-    flags = enemy->reactionFlags;
-    work  = arg0->work;
-    if (flags & ENEMY_REACTION_STAGGER) {
-        enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
+    enemy         = task->spawnArg2.pointer;
+    reactionFlags = enemy->reactionFlags;
+    work          = task->work;
+    if (reactionFlags & ENEMY_REACTION_STAGGER) {
+        enemy->reactionFlags = reactionFlags & ENEMY_REACTION_STAGGER_CLEAR;
     }
     if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) && (work->action != ACTOR_105100_ACTION_BUILDUP)) {
         work->action         = ACTOR_105100_ACTION_BUILDUP;
@@ -2584,19 +2617,15 @@ static void func_actor_105100_80135E54(Task* arg0)
         work->buildupPending = 1;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        tick = damageTickEnemyDamageOverTime(enemy) << 0x10;
-        if (tick != 0) {
-            damage = tick >> 0x12;
-            worldTargetAddReadoutAmount(&enemy->node, damage, 0);
-            state     = (u16)enemy->hp - damage;
-            enemy->hp = state;
-            state   <<= 0x10;
-            if (state <= 0) {
-                state = ACTOR_105100_ACTION_DEFEATED;
-            } else {
-                state = ACTOR_105100_ACTION_STAGGER;
-            }
-            work->action     = state;
+        // Sign-extend the pulse's low halfword while dividing it by four.
+        pulseHighHalf = damageTickEnemyDamageOverTime(enemy) << 16;
+        if (pulseHighHalf != 0) {
+            appliedDamage = pulseHighHalf >> (16 + ACTOR_105100_STATUS_DAMAGE_SHIFT);
+            worldTargetAddReadoutAmount(&enemy->node, appliedDamage, 0);
+            remainingHp      = (u16)enemy->hp - appliedDamage;
+            enemy->hp        = remainingHp;
+            remainingHp    <<= 16;
+            work->action     = remainingHp <= 0 ? ACTOR_105100_ACTION_DEFEATED : ACTOR_105100_ACTION_STAGGER;
             work->actionStep = 0;
         }
         if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
@@ -2674,106 +2703,132 @@ static void _actor105100ApplyPartnerHealing(Task* task)
     sndEvtRequestScriptStart(healSound, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
 }
 
-/// `ACTION_BUILDUP`: step 0 starts the held animation, breaks a charge in
-/// progress, clears the summon phase, stops the looping sounds, turns
-/// `strikeBody`'s pair tests off and ends `ringEffect`; unless a charge was
-/// broken it also arms the shield cooldown. Step 1 waits on `damageTickEnemyBuildup`
-/// before clearing the enemy's buildup bit and `buildupPending`. Step 2 waits
-/// for frame 0xB of the recovery animation and returns to `ACTION_IDLE`.
-static void func_actor_105100_801360AC(Task* arg0)
+/// Disables the charge's strike sphere and stops drawing the active ring.
+///
+/// Drops the actor's ring reference after requesting state 4. Summon rings
+/// release themselves in that state; charge rings remain dormant until room
+/// cancellation. The effect task continues to own its work in either case.
+static inline void _actor105100DisableStrikeAndRing(_Actor105100Work* work)
 {
+    enum { ACTOR_105100_RING_STOP_REQUEST = 4 };
+    EffectWork* ring;
+
+    ring                    = work->ringEffect;
+    work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    if (ring != NULL) {
+        ring->task->state = ACTOR_105100_RING_STOP_REQUEST;
+        work->ringEffect  = NULL;
+    }
+}
+
+/// Holds the buildup reaction, then recovers to idle after eleven animation ticks.
+///
+/// Requires the enemy's task and live work. Entry interrupts summons and
+/// sounds, disables the strike and ring, and records a broken charge.
+/// Otherwise the shield waits thirty ticks before it can rise again.
+/// Completion clears the reaction flag and the pending-buildup latch.
+static void _actor105100Buildup(Task* task)
+{
+    enum {
+        ACTOR_105100_BUILDUP_BEGIN          = 0,
+        ACTOR_105100_BUILDUP_HOLD           = 1,
+        ACTOR_105100_BUILDUP_RECOVER        = 2,
+        ACTOR_105100_BUILDUP_RECOVERY_FRAME = 11,
+    };
+
     _Actor105100Work* work;
     Enemy*            enemy;
-    EffectWork*       eff;
-    s32               state;
+    s32               step;
 
-    work  = arg0->work;
-    state = work->actionStep;
-    enemy = arg0->spawnArg2.pointer;
-    switch (state) {
-        case 0:
+    work  = task->work;
+    step  = work->actionStep;
+    enemy = task->spawnArg2.pointer;
+    switch (step) {
+        case ACTOR_105100_BUILDUP_BEGIN:
+            // Interrupt the attack before holding the buildup animation.
             work->anim       = ACTOR_105100_ANIM_BUILDUP;
-            work->actionStep = 1;
+            work->actionStep = ACTOR_105100_BUILDUP_HOLD;
             if (work->charging != 0) {
                 work->charging               = 0;
                 work->chargeBroken           = 1;
                 work->shield.fields.cooldown = 0;
             }
             work->summonPhase = ACTOR_105100_SUMMON_NONE;
-            _actor105100StopLoopingSounds(arg0);
-            eff                    = work->ringEffect;
-            work->strikeBody.flags = work->strikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            if (eff != NULL) {
-                eff->task->state = 4;
-                work->ringEffect = NULL;
-            }
+            _actor105100StopLoopingSounds(task);
+            _actor105100DisableStrikeAndRing(work);
             if (work->chargeBroken == 0) {
-                work->shield.fields.cooldown = 0x1E;
+                work->shield.fields.cooldown = ACTOR_105100_SHIELD_RECOVERY_TICKS;
             }
             break;
-        case 1:
+        case ACTOR_105100_BUILDUP_HOLD:
             if (damageTickEnemyBuildup(enemy) != 0) {
                 work->anim            = ACTOR_105100_ANIM_BUILDUP_END;
-                work->actionStep      = 2;
+                work->actionStep      = ACTOR_105100_BUILDUP_RECOVER;
                 work->buildupPending  = 0;
                 enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
             }
             break;
-        case 2:
-            if (work->animFrame >= 0xB) {
+        case ACTOR_105100_BUILDUP_RECOVER:
+            if (work->animFrame >= ACTOR_105100_BUILDUP_RECOVERY_FRAME) {
                 work->action     = ACTOR_105100_ACTION_IDLE;
-                work->actionStep = 0;
+                work->actionStep = ACTOR_105100_BUILDUP_BEGIN;
                 work->anim       = ACTOR_105100_ANIM_IDLE;
             }
             break;
     }
 }
 
-/// `ACTION_STAGGER`: step 0 starts the stagger animation and makes the same
-/// cleanup as `ACTION_BUILDUP`'s; step 1 waits for frame 0x1D, then returns to
-/// `ACTION_IDLE`, or to `ACTION_BUILDUP` when `buildupPending` says a buildup
-/// was still being served.
-static void func_actor_105100_801361C4(Task* arg0)
+/// Interrupts the attack and plays twenty-nine ticks of stagger recovery.
+///
+/// Requires the enemy's live work. Entry clears charging and summons, stops
+/// their sounds, and disables the strike and ring. Unless a charge was already
+/// broken, it arms the thirty-tick shield wait. A pending buildup resumes after
+/// the stagger; otherwise the actor returns to idle.
+static void _actor105100Stagger(Task* task)
 {
-    _Actor105100Work* work;
-    EffectWork*       eff;
-    s32               state;
+    enum {
+        ACTOR_105100_STAGGER_BEGIN          = 0,
+        ACTOR_105100_STAGGER_WAIT           = 1,
+        ACTOR_105100_STAGGER_RECOVERY_FRAME = 29,
+    };
 
-    work  = arg0->work;
-    state = work->actionStep;
-    switch (state) {
-        case 0:
+    _Actor105100Work* work;
+    s32               step;
+
+    work = task->work;
+    step = work->actionStep;
+    switch (step) {
+        case ACTOR_105100_STAGGER_BEGIN:
             work->anim        = ACTOR_105100_ANIM_STAGGER;
-            work->actionStep  = 1;
+            work->actionStep  = ACTOR_105100_STAGGER_WAIT;
             work->charging    = 0;
             work->summonPhase = ACTOR_105100_SUMMON_NONE;
-            _actor105100StopLoopingSounds(arg0);
-            eff                    = work->ringEffect;
-            work->strikeBody.flags = work->strikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            if (eff != NULL) {
-                eff->task->state = 4;
-                work->ringEffect = NULL;
-            }
+            _actor105100StopLoopingSounds(task);
+            _actor105100DisableStrikeAndRing(work);
             if (work->chargeBroken == 0) {
-                work->shield.fields.cooldown = 0x1E;
+                work->shield.fields.cooldown = ACTOR_105100_SHIELD_RECOVERY_TICKS;
             }
             break;
-        case 1:
-            if (work->animFrame >= 0x1D) {
+        case ACTOR_105100_STAGGER_WAIT:
+            if (work->animFrame >= ACTOR_105100_STAGGER_RECOVERY_FRAME) {
                 if (work->buildupPending == 0) {
                     work->action = ACTOR_105100_ACTION_IDLE;
-                    work->anim   = state;
+                    work->anim   = ACTOR_105100_ANIM_IDLE;
                 } else {
                     work->action = ACTOR_105100_ACTION_BUILDUP;
                     work->anim   = ACTOR_105100_ANIM_BUILDUP;
                 }
-                work->actionStep = 0;
+                work->actionStep = ACTOR_105100_STAGGER_BEGIN;
             }
             break;
     }
 }
 
 /// Stops an active sound request with its release tail and clears its owner slot.
+///
+/// Borrows a writable request slot. Zero means no request; other values select
+/// the bank, instance and entry to stop. The slot is cleared after queuing the
+/// stop even if the event queue cannot admit it, so repeated cleanup is harmless.
 static inline void _actor105100StopLoopingSound(s32* requestSlot)
 {
     s32 requestId;
@@ -2801,80 +2856,58 @@ static void _actor105100StopLoopingSounds(Task* task)
     _actor105100StopLoopingSound(&work->chargeSound);
 }
 
-/// `ACTION_DEFEATED`. With the player still alive it clears the charge and
-/// summon state, stops the looping sounds, turns `strikeBody`'s pair tests
-/// off, ends `ringEffect` and moves the task to its death state (`state` 2).
-/// With the player already dead it instead leaves the enemy at 1 HP
-/// (`Enemy::hp`) in `ACTION_STAGGER`, leaving `state` alone.
+/// Ends attacks and enters teardown, unless the player has already died.
 ///
-/// The work block is read twice on purpose. The two loads do not CSE (the
-/// `charging` / `summonPhase` stores sit between them), and the first pointer is
-/// still live at the tail for `strikeBody.flags` and `ringEffect`, so the second one
-/// needs a register of its own.
-static void func_actor_105100_80136318(Task* arg0)
+/// Requires the live enemy and work block. Player death instead restores one
+/// enemy HP and selects stagger without changing the task state. Otherwise it
+/// clears charging and summons, stops their sounds, disables the strike and
+/// ring, and selects task state 2; destruction happens in that state.
+static void _actor105100Defeated(Task* task)
 {
     _Actor105100Work* work;
-    _Actor105100Work* sndWork;
-    EffectWork*       eff;
-    s32               snd;
+    _Actor105100Work* soundWork;
 
-    work = arg0->work;
+    work = task->work;
     if (gPlayerStatus.hp <= 0) {
-        ((Enemy*)arg0->spawnArg2.pointer)->hp = 1;
-        work->action                          = ACTOR_105100_ACTION_STAGGER;
-        work->actionStep                      = 0;
+        Enemy* enemy;
+
+        enemy            = task->spawnArg2.pointer;
+        enemy->hp        = 1;
+        work->action     = ACTOR_105100_ACTION_STAGGER;
+        work->actionStep = 0;
         return;
     }
 
     work->charging    = 0;
     work->summonPhase = ACTOR_105100_SUMMON_NONE;
 
-    sndWork = arg0->work;
+    soundWork = task->work;
+    _actor105100StopLoopingSound(&soundWork->fireballSound);
+    _actor105100StopLoopingSound(&soundWork->beamSound);
+    _actor105100StopLoopingSound(&soundWork->chargeSound);
 
-    snd = sndWork->fireballSound;
-    if (snd != 0) {
-        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndWork->fireballSound = 0;
-    }
-    snd = sndWork->beamSound;
-    if (snd != 0) {
-        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndWork->beamSound = 0;
-    }
-    snd = sndWork->chargeSound;
-    if (snd != 0) {
-        sndEvtRequestScriptStop(snd, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndWork->chargeSound = 0;
-    }
+    _actor105100DisableStrikeAndRing(work);
 
-    eff                    = work->ringEffect;
-    work->strikeBody.flags = work->strikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    if (eff != NULL) {
-        eff->task->state = 4;
-        work->ringEffect = NULL;
-    }
-
-    arg0->state = 2;
+    task->state = ACTOR_105100_TASK_TEARDOWN;
 }
 
-static void func_actor_105100_80136408(Task* arg0)
+/// Applies the enemy's animation request or advances its nineteen-part rig.
+///
+/// Requires live enemy work and model. A changed animation resets the tick
+/// counter and starts slots 1..18 with the table's blend duration in frames;
+/// otherwise those slots and the counter advance once. Slot 0 stays placed.
+static void _actor105100UpdateAnimation(Task* task)
 {
-    _actor105100AnimUpdate(arg0);
+    _actor105100AnimUpdate(task);
 }
 
-/// Relights the actor at its model's world position: copies the model
-/// coordinate's translation into a `VECTOR` and hands it with the context to
-/// `worldCoordUpdateActorColor`, with zero for the unused arguments.
-static void func_actor_105100_801364CC(Task* arg0)
+/// Updates the enemy's model lighting and colour at its composed root position.
+///
+/// Requires the task's live enemy and composed model root, including during
+/// a frozen update. The world-lighting service applies colour modes and blends.
+static void _actor105100RefreshColor(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR    vec;
-
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    _actor105100UpdateColor(task);
 }
 
 /// The child collision task's state handlers, indexed by `Task::state`:
@@ -2887,36 +2920,54 @@ static const EnemyTaskFuncTable3 D_actor_105100_80131EB0 = {
     },
 };
 
-static void func_actor_105100_80136524(Task* arg0)
+/// Draws the enemy's ground shadow at its composed root position.
+///
+/// Requires a live model root. The square has a half-side of 2500 world units
+/// and GPU shade 128. The drawing service borrows the three-component position
+/// for this call and applies the room-effect visibility policy.
+static void _actor105100DrawShadow(Task* task)
 {
+    enum {
+        ACTOR_105100_SHADOW_HALF_SIZE = 2500,
+        ACTOR_105100_SHADOW_SHADE     = 128,
+    };
     GfxCoord* coord;
-    VECTOR3   vec;
+    VECTOR3   worldPosition;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    effectDrawGroundShadow(&vec, 0x9C4, 0x80);
+    coord            = task->extra.tmd->coords;
+    worldPosition.vx = coord->workm.t[0];
+    worldPosition.vy = coord->workm.t[1];
+    worldPosition.vz = coord->workm.t[2];
+    effectDrawGroundShadow(&worldPosition, ACTOR_105100_SHADOW_HALF_SIZE, ACTOR_105100_SHADOW_SHADE);
 }
 
 #include "../../shared/model_placement_scale.inc.c"
 
-void func_actor_105100_8013667C(Task* arg0)
+/// Dispatches a summoned fireball's spawn, movement or teardown handler.
+///
+/// `task->state` must be 0..2; `spawnArg2.pointer` holds its live enemy.
+/// The descriptor supplies a single-coordinate body. Movement borrows a live
+/// model-bearing parent; teardown may destroy the fireball enemy and task.
+static void _actor105100FireballTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = D_actor_105100_80131E90;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers = D_actor_105100_80131E90;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_105100_801366D8(Enemy* arg0, Task* arg1)
+/// Unlinks a fireball's attack sphere and sweep capsule, then destroys it.
+///
+/// Requires live fireball work with both bodies linked. Enemy destruction
+/// releases the work and task; none of their pointers remain valid afterwards.
+static void _actor105100FireballDestroy(Enemy* enemy, Task* task)
 {
-    _Actor105100FireballWork* work;
+    _Actor105100FireballWork* fireball;
 
-    work = arg1->work;
-    worldCollisionUnlinkBody(&work->body);
-    worldCollisionUnlinkBody(&work->sweepBody);
-    enemyDestroy(arg0, arg1);
+    fireball = task->work;
+    worldCollisionUnlinkBody(&fireball->body);
+    worldCollisionUnlinkBody(&fireball->sweepBody);
+    enemyDestroy(enemy, task);
 }
 
 /// Dispatches one summoned beam's spawn, update or teardown state.

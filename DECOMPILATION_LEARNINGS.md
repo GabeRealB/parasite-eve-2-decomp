@@ -78983,7 +78983,7 @@ for the callee's real prototype before touching the source order.
 Unlike the `addiu aN,sp,off` signature in the entry above, this needs *no*
 explicit local pointer: `&vec` is what produces the single `addiu a0,sp,0x10`.
 
-Matched as `func_actor_105100_80136524`; the same body already exists in
+Matched as `_actor105100DrawShadow`; the same body already exists in
 `Actor00700_Fn01E9C`, `Actor02500_Fn02430` and `func_actor_300700_8016534C`,
 differing only in the actor type and the second constant.
 
@@ -79075,7 +79075,7 @@ Preprocessed SHA256 (97.857% struct-typed port, then the matching source):
 
 ## m2c's `s8 tmp = Call(); ... (s32)tmp` is not `s32 tmp = (s8)Call()`
 
-`func_actor_105100_80134130` is the enemy sound-event body shared with
+`_actor105100PlayAnimationSounds` is the enemy sound-event body shared with
 `Actor02000_Fn018A4`, and m2c's seed for it scored 89.824%. The seed narrows the
 pan *after* the call, into a byte temporary, and widens it at the use:
 
@@ -79125,7 +79125,7 @@ and the in-place `pan <<= 24; pan >>= 24` was the fix. Read the local's
 `.lreg`/`.greg` home and the destination of the `sll`/`sra` pair before choosing
 between the two spellings.
 
-Matched as `func_actor_105100_80134130`. Compiler SHA256:
+Matched as `_actor105100PlayAnimationSounds`. Compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 Preprocessed SHA256:
@@ -79173,7 +79173,7 @@ that hard register. `ashlsi3`'s template prints `sll %0,%1,%2` regardless
 as `sll $2,$2,$16` and the assembler encodes it as `sllv` -- same RTL, canonical
 mnemonic.
 
-Dump evidence, `func_actor_105100_80136408` (`base_1.c`, 100%):
+Dump evidence, `_actor105100UpdateAnimation` (`base_1.c`, 100%):
 
 - `.lreg` / `.sched`: `(insn 44 (set (reg:SI 97) (ashift:SI (reg:SI 93) (const_int 1))) 205 {ashlsi3})`
 - `.sched2`: the same insn with `(reg:SI 16 s0)` as the count and nothing else changed
@@ -79202,7 +79202,7 @@ This is a different face of the `reload_cse` entries above: those rewrite a
 constant *set* into a copy of a register (adding an instruction); this one
 rewrites an operand and changes which instruction is emitted.
 
-Matched as `func_actor_105100_80136408` (attempt 1). Compiler SHA256:
+Matched as `_actor105100UpdateAnimation` (attempt 1). Compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 Preprocessed SHA256:
@@ -79231,9 +79231,9 @@ case 1:
 }
 ```
 
-`func_actor_105100_801361C4` (`base.c` 89.0%, `base_1.c` 100%). The same
+`_actor105100Stagger` (`base.c` 89.0%, `base_1.c` 100%). The same
 function reads `animFrame` signed where the matched sibling
-`func_actor_105100_80136408` loads the same field with `lhu` for its `++`.
+`_actor105100UpdateAnimation` loads the same field with `lhu` for its `++`.
 That `lhu` says nothing about the field's signedness: an increment stored
 straight back truncates, so GCC loads zero-extended for `s16` and `u16` alike.
 The field was first kept `u16` on that reading, with `(s16)` at every compare
@@ -84715,7 +84715,7 @@ the escape covers every member at once:
 failure mode, not a diff artefact, and the cause is the *escape set*, not the
 statement list — an `s32 spN` m2c split is only equivalent to the original
 aggregate when every split member is read after the call. Read the shape-`1.00`
-sibling's C before editing: `func_actor_105100_80136524` in `actor_105100_2.c`
+sibling's C before editing: `_actor105100DrawShadow` in `actor_105100_2.c`
 is this body instruction for instruction, differing only in the `addiu a1`
 constant (0x9C4 vs 0x180), and `overlay_dup_index.py find` does *not* report it
 (equality is on disassembly text, and the immediate differs) — BRIEF.md's
@@ -137090,7 +137090,7 @@ base_2.i `1b06462b1305e46352e8ec5892ccc9fd8e9f34e68e5abfab567fa4bdfb07ba27`;
 base_3.i `f4a2793c5db0aa7b105e60f2d0d82020e762b467f937265b18e64f9e42f1ca53`;
 base_4.i `67f0a048b780c1daf57a64b8c7f46d013a4be5269b5da3c7dd0ed50f9520d685`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## Reuse a conditional state variable through its preceding store, not only the comparison (func_actor_105100_80135E54, 2026-09-20)
+## Reuse a conditional state variable through its preceding store, not only the comparison (_actor105100UpdateStatusReactions, 2026-09-20)
 
 The 99.762% seed differed only in the register holding constants 6/7 and their
 state store (`regs=3`). Sched1 hoisted the default constant into the health

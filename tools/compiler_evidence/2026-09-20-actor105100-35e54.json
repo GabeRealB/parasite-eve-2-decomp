@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_105100_80135E54",
+  "function": "_actor105100UpdateStatusReactions",
   "status": "supported; exact scratch match and unscoped BUILD SUCCEEDED",
   "prediction_source": "base_3.c",
   "scope": "GCC 2.8.1 PSX; preserving a store-before-overwrite dependency when reusing a comparison variable for conditional constants",
