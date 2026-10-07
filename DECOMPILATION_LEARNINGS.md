@@ -102939,11 +102939,11 @@ while the sibling shape hit 100.00% on the first edit. The bodies are not
 byte-identical across carriers (different offsets and id ranges), so
 `overlay_dup_index.py find` reports no copies and nothing is promoted.
 
-`func_actor_260500_8014A6C4`: 87.184% from the m2c seed, 100.00% all-zero
+`_footstepWalkQuietPlayAnimation`: 87.184% from the m2c seed, 100.00% all-zero
 penalties (`base_1.c`). Preprocessed SHA256
 `565cc7cb7d157f467f298d7be2dbd5fa0ce8aebebcab39962791b15bca1a61d7`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Session: `nonmatchings/func_actor_260500_8014A6C4-vacuum` (`base_1_diff`).
+Session: `nonmatchings/_footstepWalkQuietPlayAnimation-vacuum` (`base_1_diff`).
 ## Two `M2C_FIELD` stores into one global derive the second address as `-N`
 
 A pair of byte stores into the same save-data global, written the way m2c
@@ -129516,10 +129516,10 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## An m2c parameter list that skips a number is a dropped parameter, and every later argument is one register early
 
-The m2c seed for `func_actor_260500_8014A83C` declared
+The m2c seed for `_footstepWalkSetWalkTarget` declared
 
 ```c
-s32 func_actor_260500_8014A83C(void *arg0, void *arg2, s16 arg3) {
+s32 _footstepWalkSetWalkTarget(void *arg0, void *arg2, s16 arg3) {
 ```
 
 while the target takes four arguments of which the second is never read. m2c
@@ -129543,7 +129543,7 @@ the seed's prototype, not its register choices. Filling the hole and typing the
 arguments as the body needs them -
 
 ```c
-s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
+static s32 _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode)
 ```
 
 - was 100.000% with every penalty zero on the first build, at the same 88
@@ -129551,7 +129551,7 @@ instructions. The body was the matched sibling `func_actor_461800_80133A3C`
 (`overlay_dup_index.py similar`: shape 0.99, fields 1.00, cflow 1.00) copied
 with this overlay's global and work type; the two targets differ by exactly one
 instruction (0x160 against 0x15C), and diffing the two assembly listings named
-it: the seed needs `steps = 0`, which the sibling's `switch` does not have.
+it: the seed needs `stepDistance = 0`, which the sibling's `switch` does not have.
 
 So: an m2c seed whose parameters skip a number (`index`, `arg2`, `arg3`) has had
 one dropped, `void*` arguments m2c could not type are worth checking against
@@ -129559,7 +129559,7 @@ one dropped, `void*` arguments m2c could not type are worth checking against
 argument registers is worth re-measuring after the prototype is fixed rather
 than attacked with a pin or a search.
 
-Inputs: scratch `nonmatchings/func_actor_260500_8014A83C-vacuum`, `base.i`
+Inputs: scratch `nonmatchings/_footstepWalkSetWalkTarget-vacuum`, `base.i`
 sha256 `af1f3d8aa05712e46bf5db055ea30e972bfb680301d3b475709a1818ffb1c678`
 (90.011%) and `base_1.i` sha256
 `4a4059e648eca796e0fd30ab1b9a1e7b877621da23b7f7febf1c79d6f1048c30` (100.000%).

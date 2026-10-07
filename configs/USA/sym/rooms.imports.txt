@@ -569,9 +569,9 @@ D_actor_443500_80142C24 = 0x80142C24; // absolute:True owner=actor_443500
 D_actor_443500_801432FC = 0x801432FC; // absolute:True owner=actor_443500
 D_actor_443500_80143494 = 0x80143494; // absolute:True owner=actor_443500
 D_actor_444000_801449F4 = 0x801449F4; // absolute:True owner=actor_444000
-actor260400StartHeliportConversation = 0x80149E38; // type:func absolute:True owner=actor_260400 shared=actors
-func_actor_260500_80149E80 = 0x80149E80; // type:func absolute:True owner=actor_260500 shared=actors
-func_actor_260500_80149EBC = 0x80149EBC; // type:func absolute:True owner=actor_260500
+actor260400StartHeliportConversation = 0x80149E38; // type:func absolute:True owner=actor_260400
+actor260500RestoreHeliportPlacement = 0x80149E80; // type:func absolute:True owner=actor_260500 shared=actors
+actor260500StartHeliportConversation = 0x80149EBC; // type:func absolute:True owner=actor_260500
 actor260400RestoreHeliportPlacement = 0x80149FA4; // type:func absolute:True owner=actor_260400
 func_actor_215100_8014A398 = 0x8014A398; // type:func absolute:True owner=actor_215100
 func_actor_215100_8014A908 = 0x8014A908; // type:func absolute:True owner=actor_215100

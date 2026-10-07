@@ -1,3 +1,5 @@
+#include "actors/actor_260500.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
@@ -86,15 +88,23 @@ extern TaskMessageEntry D_actor_260500_80159D80[];
 extern u8               D_actor_260500_80159DBC[];
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
-static void func_actor_260500_8014A540(Task* task);
+static void _footstepWalkExit(Task* task);
+static void _footstepWalkQuietSpawn(Enemy* enemy, Task* task);
+
+/// Task-state indices of this package's quiet walker.
+enum {
+    ACTOR_260500_TASK_SPAWN       = 0,
+    ACTOR_260500_TASK_FRAME       = 1,
+    ACTOR_260500_TASK_STATE_COUNT = 2
+};
 
 static TmdSource _gActor260500JodieBouquetBody2;
-void             func_actor_260500_8014A460(Task*);
+static void      _actor260500Task(Task* task);
 
-s32 func_actor_260500_8014A6C4(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_260500_8014A754(Task*, s32, s32, s32);
-s32 func_actor_260500_8014A818(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-s32 func_actor_260500_8014A83C(Task*, s32, VECTOR*, s32);
+static s32 _footstepWalkQuietPlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32 _footstepWalkSetModelDraw(Task* unusedTask, s32 messageId, s32 drawMode, s32 unusedArgument);
+static s32 _footstepWalkApplyTurnCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument);
+static s32 _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
 extern AnimationPlayRequest D_actor_260500_8014C874;
 extern AnimationPlayRequest D_actor_260500_8014C888;
@@ -127,7 +137,7 @@ extern AnimationPlayRequest D_actor_260500_8014CAA4;
 extern AnimationPlayRequest D_actor_260500_8014CAB8;
 extern AnimationPlayRequest D_actor_260500_8014CACC;
 extern AnimationPlayRequest D_actor_260500_8014CAE0;
-void                        func_actor_260500_80149E38(s32);
+static void                 _actor260500SelectConversationCaptions(s32 useConversationFile);
 
 static AnimationSet _gActor260500Animation01024;
 static AnimationSet _gActor260500Animation01314;
@@ -395,7 +405,7 @@ ActorTransform D_actor_260500_8014CBE0 = { { 860, 0, 6180, 0 }, { 0, 0, 0, 0 } }
 
 EvsCommand D_actor_260500_8014CBF8[109] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_260500_80149E38 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor260500SelectConversationCaptions }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_260500_8014CAF4.data.playerBaseClipRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -500,7 +510,7 @@ EvsCommand D_actor_260500_8014CBF8[109] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_260500_8014CAF4.data.playerBaseClipRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_260500_80149E38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor260500SelectConversationCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -520,7 +530,7 @@ EvsCommand D_actor_260500_8014D630[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_260500_80149E38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor260500SelectConversationCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1344,15 +1354,15 @@ static TmdSource _gActor260500JodieBouquetBody2 = {
 static s16 _gFootstepWalkBlendFrames = FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_260500_80159D80[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_260500_8014A6C4 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_260500_8014A754 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkQuietPlayAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _footstepWalkSetModelDraw },
     { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_260500_8014A818 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_260500_8014A83C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _footstepWalkApplyTurnCommand },
+    { ACTOR_MESSAGE_WALK_TO, _footstepWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_260500_80159DB0 = { { { TASK_BODY_TMD, 192 } }, func_actor_260500_8014A460, { .model = &_gActor260500JodieBouquetBody2 } };
+TaskDesc D_actor_260500_80159DB0 = { { { TASK_BODY_TMD, 192 } }, _actor260500Task, { .model = &_gActor260500JodieBouquetBody2 } };
 
 u8 D_actor_260500_80159DBC[144] = {
     0,
@@ -1521,123 +1531,167 @@ Task* D_actor_260500_80159E50;
 /// of the animation clip; request values narrow to 16 bits without checking.
 static s16 _gFootstepWalkMode;
 
-void        func_actor_260500_80149E80(void);
-void        func_actor_260500_80149EBC(void);
-static void func_actor_260500_80149FB0(Enemy* enemy, Task* task);
-
-/// Loads cap file 2 and selects its font page (`capSetTexturePage(0x340, 0)`) when `arg0` is
-/// non-zero, otherwise resets the cap state.
-void func_actor_260500_80149E38(s32 arg0)
+/// Selects the opening conversation's CAP file and texture page, or restores defaults.
+///
+/// Event scripts pass nonzero on entry and zero after completion or skip.
+/// Uses already loaded data resource ordinal 2 and texture origin (832, 0)
+/// in VRAM pixels. Resources must remain live through playback. A missing
+/// resource leaves the cleared file pointer NULL; zero resets CAP selection
+/// and restores the bundle's default file and texture origin.
+static void _actor260500SelectConversationCaptions(s32 useConversationFile)
 {
-    if (arg0 != 0) {
-        Gp_CapFile = 0;
-        capSelectLoadedFile(2);
-        capSetTexturePage(0x340, 0);
+    enum {
+        ACTOR_260500_CONVERSATION_CAP_FILE_ORDINAL = 2,
+        ACTOR_260500_CONVERSATION_TEXTURE_VRAM_X   = 832,
+        ACTOR_260500_CONVERSATION_TEXTURE_VRAM_Y   = 0
+    };
+
+    if (useConversationFile != 0) {
+        Gp_CapFile = NULL;
+        capSelectLoadedFile(ACTOR_260500_CONVERSATION_CAP_FILE_ORDINAL);
+        capSetTexturePage(ACTOR_260500_CONVERSATION_TEXTURE_VRAM_X, ACTOR_260500_CONVERSATION_TEXTURE_VRAM_Y);
         return;
     }
     capReset();
 }
 
-/// Sends message 0x7D4 (placement) with the record at
-/// `D_actor_260500_8014CAF4.data.actorPlacements[0]` to placed actor 0, when present.
-void func_actor_260500_80149E80(void)
+void actor260500RestoreHeliportPlacement(void)
 {
-    Task* slot;
+    enum { ACTOR_260500_HELIPORT_PLACEMENT_INDEX = 0 };
+    Task* walkerTask;
 
-    slot = sceneFindPlacedActor(0);
-    if (slot != 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_actor_260500_8014CAF4.data.actorPlacements[0], 0);
+    walkerTask = sceneFindPlacedActor(ACTOR_260500_HELIPORT_PLACEMENT_INDEX);
+    if (walkerTask != NULL) {
+        TASK_MESSAGE_DISPATCH_POINTER(walkerTask, ACTOR_MESSAGE_PLACE, &D_actor_260500_8014CAF4.data.actorPlacements[0], 0);
     }
 }
 
-void func_actor_260500_80149EBC(void)
+void actor260500StartHeliportConversation(void)
 {
+    enum {
+        ACTOR_260500_TALK_INTRO  = 0,
+        ACTOR_260500_TALK_SECOND = 1,
+        ACTOR_260500_TALK_THIRD  = 2,
+        ACTOR_260500_TALK_FOURTH = 3,
+        ACTOR_260500_TALK_REPEAT = 4
+    };
+
     switch (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS)) {
-        case 0:
+        case ACTOR_260500_TALK_INTRO:
             evsStartScriptWithSkip(D_actor_260500_8014CBF8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_260500_8014D630);
-            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 1);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, ACTOR_260500_TALK_SECOND);
             break;
-        case 1:
+        case ACTOR_260500_TALK_SECOND:
             evsStartScript(D_actor_260500_8014D7C8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 2);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, ACTOR_260500_TALK_THIRD);
             break;
-        case 2:
+        case ACTOR_260500_TALK_THIRD:
             evsStartScript(D_actor_260500_8014D948, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 3);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, ACTOR_260500_TALK_FOURTH);
             break;
-        case 3:
+        case ACTOR_260500_TALK_FOURTH:
             evsStartScript(D_actor_260500_8014DAB0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, 4);
+            gameFlagSetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS, ACTOR_260500_TALK_REPEAT);
             break;
-        case 4:
+        case ACTOR_260500_TALK_REPEAT:
             evsStartScript(D_actor_260500_8014DCC0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }
 
-/// Spawn routine (state 0 of `func_actor_260500_8014A460`): allocates the work
-/// block and publishes it in `_gFootstepWalkWork` and the task's `work`
-/// slot, binds the model to the view and hands it the block's light and colour
-/// matrices, publishes the task in `D_actor_260500_80159E50`, relights the
-/// model from a point 0x320 above its translation and binds the animation
-/// stream. It then installs the message table and runs the first update with
-/// the reset mode 2 / id 4 it seeds.
-static void func_actor_260500_80149FB0(Enemy* enemy, Task* task)
+/// Binds this package's quiet-walker rig and queues startup clip 4 for reset.
+///
+/// The published work must be live and writable; `model` must have nineteen
+/// parts. The clip table, model coordinates, slots and poses are borrowed
+/// throughout playback. The caller processes the reset before ticking slots
+/// 1..18. Travel and turn-update counts start at zero.
+static __inline__ void _actor260500PrepareWalkerAnimation(TmdObject* model)
 {
-    VECTOR     vec;
-    GfxCoord*  coord;
-    TmdObject* obj;
-    void*      work;
+    enum { ACTOR_260500_STARTUP_ANIM_ID = 4 };
 
-    obj                = task->extra.tmd;
-    coord              = obj->coords;
-    work               = memCalloc(sizeof(FootstepWalkQuietWork), 0);
-    _gFootstepWalkWork = work;
-    task->work         = work;
-    if (work == NULL) {
-        enemyDestroy(enemy, task);
-        return;
-    }
-    task->exitCallback               = func_actor_260500_8014A540;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->lightMtx                    = &_gFootstepWalkWork->light;
-    obj->colorMtx                    = &_gFootstepWalkWork->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
-    D_actor_260500_80159E50          = task;
-    vec.vz                           = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&_gFootstepWalkWork->rig.anim, (AnimationSet**)D_actor_260500_80159DBC, obj,
+    animationInitContext(&_gFootstepWalkWork->rig.anim, (AnimationSet**)D_actor_260500_80159DBC, model,
                          _gFootstepWalkWork->rig.poses, _gFootstepWalkWork->rig.slots);
-    _gFootstepWalkWork->st.animId  = 4;
+    _gFootstepWalkWork->st.animId  = ACTOR_260500_STARTUP_ANIM_ID;
     _gFootstepWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
     _gFootstepWalkWork->st.travel  = 0;
     _gFootstepWalkWork->turnFrames = 0;
-    task->msgTable                 = D_actor_260500_80159D80;
+}
+
+/// Initializes the quiet walker's task-owned work, lighting and animation in state 0.
+///
+/// `enemy` is the live allocation in `task->spawnArg2.pointer`; the task must
+/// own a nineteen-part model and have no work allocation yet. Its zeroed
+/// `FootstepWalkQuietWork` is published for singleton handlers. The model
+/// borrows its matrices and the rig borrows the loaded clips and model storage.
+/// The view, primary heap and lighting query's scratch/GTE state must be ready.
+///
+/// Starts clip 4 without a pose tick, installs message and exit callbacks and
+/// enters frame state. Allocation failure destroys the enemy and starts task
+/// teardown; neither argument may be used afterwards. Exit releases the work
+/// without clearing the published pointers, which must then remain unused.
+static void _footstepWalkQuietSpawn(Enemy* enemy, Task* task)
+{
+    enum {
+        FOOTSTEP_WALK_OT_ENTRY_OFFSET       = 1,
+        FOOTSTEP_WALK_LIGHT_SAMPLE_Y_OFFSET = -800
+    };
+
+    VECTOR3                lightSamplePosition;
+    GfxCoord*              rootCoord;
+    TmdObject*             model;
+    FootstepWalkQuietWork* allocatedWork;
+
+    model              = task->extra.tmd;
+    rootCoord          = model->coords;
+    allocatedWork      = memCalloc(sizeof(*allocatedWork), false);
+    _gFootstepWalkWork = allocatedWork;
+    task->work         = allocatedWork;
+    if (allocatedWork == NULL) {
+        enemyDestroy(enemy, task);
+        return;
+    }
+    // The task owns the allocation; the model borrows its lighting matrices.
+    task->exitCallback               = _footstepWalkExit;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = false;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    model->otOffset                  = FOOTSTEP_WALK_OT_ENTRY_OFFSET;
+    model->lightMtx                  = &_gFootstepWalkWork->light;
+    model->colorMtx                  = &_gFootstepWalkWork->color;
+
+    // Sample the cached root position with the actor's vertical light offset.
+    lightSamplePosition.vx  = rootCoord->workm.t[0];
+    lightSamplePosition.vy  = rootCoord->workm.t[1] + FOOTSTEP_WALK_LIGHT_SAMPLE_Y_OFFSET;
+    D_actor_260500_80159E50 = task;
+    lightSamplePosition.vz  = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightSamplePosition, 0, ARRAY_SIZE(model->colorMtx->m[0]));
+
+    // Reset the driven slots before entering the ordinary frame state.
+    _actor260500PrepareWalkerAnimation(model);
+    task->msgTable = D_actor_260500_80159D80;
     _footstepWalkQuietUpdate(task);
     task->state++;
 }
 
 #include "../../shared/footstep_walk_quiet_update.inc.c"
 
-/// Two-state task handler: publishes the task's work block in
-/// `_gFootstepWalkWork` on the way through, then calls the spawn routine
-/// or the per-frame state, whichever `Task::state` selects from a table built
-/// on the stack.
-void func_actor_260500_8014A460(Task* task)
+/// Dispatches actor 260500's quiet-walker spawn or ordinary model frame.
+///
+/// The descriptor supplies a nineteen-part model and a live enemy in
+/// `spawnArg2.pointer`. State must be `ACTOR_260500_TASK_SPAWN` or
+/// `ACTOR_260500_TASK_FRAME`; indexing is unchecked. Publishes the task's
+/// current work before dispatch, including its initially NULL work at spawn.
+static void _actor260500Task(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        func_actor_260500_80149FB0,
+    void (*stateHandlers[ACTOR_260500_TASK_STATE_COUNT])(Enemy*, Task*) = {
+        _footstepWalkQuietSpawn,
         _actorRenderWalkerFrame,
     };
 
     _gFootstepWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
@@ -1659,9 +1713,11 @@ void func_actor_260500_8014A460(Task* task)
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// `Task::exitCallback` the spawn routine installs: hands the task's `Enemy`
-/// back to `enemyDestroy`.
-static void func_actor_260500_8014A540(Task* task)
+/// Releases the walker's enemy and starts default task/work/model teardown.
+///
+/// `task` must be live with its enemy in `spawnArg2.pointer`. Published task
+/// and work aliases are left unchanged and must not be used afterwards.
+static void _footstepWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -1672,18 +1728,26 @@ static void func_actor_260500_8014A540(Task* task)
 
 #include "../../shared/footstep_walk_quiet_blend_anim.inc.c"
 
-/// Play-animation message handler: adopts the preset's animation id when it is
-/// one of the first 0x24, latching the reset mode -- 1 for the blended reseed,
-/// 2 for the plain one -- and the reset argument the blended reseed forwards,
-/// then runs the update on the actor's task. Ids past the range are rejected
-/// with -1 and leave the work block untouched.
-s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* preset, s32 arg3)
+/// Starts the published quiet walker's requested animation synchronously.
+///
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION`; receiver, ID and second payload
+/// are ignored. The work and published actor task must be live. Borrows the
+/// request through dispatch, selecting this package's native clip table;
+/// bank and collision options are ignored. Nonzero blend uses whole-frame
+/// `blendFrames` (0..2047), narrowed to s16; reset leaves the duration unchanged.
+///
+/// Returns -1 without writes for IDs 36 and above, otherwise zero. The upper
+/// bound alone admits negative IDs and NULL table entries; callers must select
+/// a loaded clip with tracks 1..18 and keep the clip storage live for playback.
+static s32 _footstepWalkQuietPlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    if (preset->animationId < 0x24) {
-        _gFootstepWalkWork->st.animId = preset->animationId;
-        if (preset->blend != ANIMATION_BLEND_RESET) {
+    enum { FOOTSTEP_WALK_CLIP_ID_LIMIT = 36 };
+
+    if (request->animationId < FOOTSTEP_WALK_CLIP_ID_LIMIT) {
+        _gFootstepWalkWork->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            _gFootstepWalkBlendFrames    = preset->blendFrames;
+            _gFootstepWalkBlendFrames    = request->blendFrames;
         } else {
             _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
@@ -1694,76 +1758,103 @@ s32 func_actor_260500_8014A6C4(Task* task, s32 arg1, AnimationPlayRequest* prese
     return -1;
 }
 
-/// Visibility handler: bit 0 of `arg2` shows the actor's model (flags 0) or
-/// hides it (0x80), and bit 1 ORs in 0x4.
-s32 func_actor_260500_8014A754(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Replaces the published walker's model flags from a draw-mode bitmask.
+///
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` for a live published task and model;
+/// ignores receiver, ID and second payload. Bit 0 permits active drawing,
+/// bit 1 suppresses automatic primitive-buffer allocation, and other bits are
+/// ignored. All prior model flags are discarded. Returns zero.
+static s32 _footstepWalkSetModelDraw(Task* unusedTask, s32 messageId, s32 drawMode, s32 unusedArgument)
 {
-    TmdObject* obj;
+    enum {
+        FOOTSTEP_WALK_DRAW_VISIBLE          = 1,
+        FOOTSTEP_WALK_DRAW_SKIP_AUTO_BUFFER = 2
+    };
+    TmdObject* model;
 
-    obj = D_actor_260500_80159E50->extra.tmd;
-    if (arg2 & 1) {
-        obj->flags = 0;
+    model = D_actor_260500_80159E50->extra.tmd;
+    if (drawMode & FOOTSTEP_WALK_DRAW_VISIBLE) {
+        model->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (arg2 & 2) {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawMode & FOOTSTEP_WALK_DRAW_SKIP_AUTO_BUFFER) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
 
 #include "../../shared/footstep_walk_place.inc.c"
 
-/// Message 0x7DB: a zero payload halfword at 0x2 arms the work block's
-/// `turnFrames` at 0x14.
-s32 func_actor_260500_8014A818(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Schedules twenty turning updates for quiet-walker command 0.
+///
+/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` through the live published work block.
+/// Borrows the command for this call; ignores its context, receiver, ID and
+/// second payload. Other commands do nothing. The count is consumed only while
+/// the turn clip is playing, at 51/4096 turns per update; no clip is selected
+/// here. Repeated requests restart the count. Returns zero.
+static s32 _footstepWalkApplyTurnCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
-    if (msg->command == 0) {
-        _gFootstepWalkWork->turnFrames = 0x14;
+    enum {
+        FOOTSTEP_WALK_COMMAND_TURN = 0,
+        FOOTSTEP_WALK_TURN_UPDATES = 20
+    };
+
+    if (command->command == FOOTSTEP_WALK_COMMAND_TURN) {
+        _gFootstepWalkWork->turnFrames = FOOTSTEP_WALK_TURN_UPDATES;
     }
     return 0;
 }
 
-/// Approach handler: turns the model to face `target` -- away from it in mode
-/// 1, where the update then walks it backwards -- keeps the mode in
-/// `_gFootstepWalkMode`, and stores the number of steps the walk takes:
-/// the planar distance over the mode's step length, 60 in mode 0, 15 in mode 1
-/// and 25 in mode 2.
-s32 func_actor_260500_8014A83C(Task* task, s32 arg1, VECTOR* target, s32 mode)
+/// Faces a planar target and schedules whole moving updates to approach it.
+///
+/// Handles `ACTOR_MESSAGE_WALK_TO` for a live quiet-walker task and model.
+/// Borrows `target` in the root's parent space; only X/Z are read. Mode must
+/// be `FOOTSTEP_WALK_MODE_*` (0 forward 60, 1 backward 15, 2 forward 25
+/// units per update). Backward mode faces away from the target. The mode and
+/// heading narrow to s16; angles use 4096 units per turn.
+///
+/// Stores floor(planar distance / step distance) in s16 `st.travel`, without
+/// selecting a walk clip or retaining the target. Coordinate differences and
+/// their squared sum must fit s32, and callers must keep the count in 0..32767.
+/// Mode bounds are unchecked; an unsupported narrowed mode divides by zero.
+/// Returns zero; message ID is ignored.
+static s32 _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode)
 {
-    GfxCoord*              coord;
+    GfxCoord*              rootCoord;
     FootstepWalkQuietWork* work;
-    s32                    steps;
-    s32                    dx;
-    s32                    dz;
-    s32                    dist;
-    s32                    angle;
+    s32                    stepDistance;
+    s32                    deltaX;
+    s32                    deltaZ;
+    s32                    planarDistance;
+    s32                    targetYaw;
 
-    steps              = 0;
-    coord              = task->extra.tmd->coords;
+    stepDistance       = 0;
+    rootCoord          = task->extra.tmd->coords;
     work               = task->work;
     _gFootstepWalkMode = mode;
-    dx                 = target->vx - coord->coord.t[0];
-    dz                 = target->vz - coord->coord.t[2];
-    angle              = ratan2(dx, dz);
-    work->st.yaw       = angle;
+    deltaX             = target->vx - rootCoord->coord.t[0];
+    deltaZ             = target->vz - rootCoord->coord.t[2];
+    targetYaw          = ratan2(deltaX, deltaZ);
+    work->st.yaw       = targetYaw;
     if (_gFootstepWalkMode == FOOTSTEP_WALK_MODE_BACKWARD) {
-        work->st.yaw = angle + 0x800;
+        work->st.yaw = targetYaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     }
-    gfxRotMatrixY(&coord->coord, work->st.yaw, 1);
-    dist = SquareRoot0(dx * dx + dz * dz);
+    gfxRotMatrixY(&rootCoord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
+    // Travel counts moving updates; a fractional update is discarded.
+    planarDistance = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ);
     switch (_gFootstepWalkMode) {
         case FOOTSTEP_WALK_MODE_FORWARD:
-            steps = FOOTSTEP_WALK_FORWARD_DISTANCE;
+            stepDistance = FOOTSTEP_WALK_FORWARD_DISTANCE;
             break;
         case FOOTSTEP_WALK_MODE_BACKWARD:
-            steps = FOOTSTEP_WALK_BACKWARD_DISTANCE;
+            stepDistance = FOOTSTEP_WALK_BACKWARD_DISTANCE;
             break;
         case FOOTSTEP_WALK_MODE_SLOW_FORWARD:
-            steps = FOOTSTEP_WALK_SLOW_FORWARD_DISTANCE;
+            stepDistance = FOOTSTEP_WALK_SLOW_FORWARD_DISTANCE;
             break;
     }
-    work->st.travel = dist / steps;
+    work->st.travel = planarDistance / stepDistance;
     return 0;
 }
 

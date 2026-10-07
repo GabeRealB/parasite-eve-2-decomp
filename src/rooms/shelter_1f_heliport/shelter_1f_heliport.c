@@ -8,6 +8,7 @@
 #include "common.h"
 
 #include "actors/actor_260400.h"
+#include "actors/actor_260500.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
@@ -73,8 +74,6 @@ extern void func_actor_161500_80132038(void);
 extern void func_actor_161500_80132110(void);
 extern void func_actor_161500_8013230C(void);
 extern void func_actor_161500_801322A0(void);
-extern void func_actor_260500_80149E80(void);
-extern void func_actor_260500_80149EBC(void);
 
 extern TaskDesc D_actor_161500_80136CDC;
 
@@ -743,7 +742,7 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s3
     switch (in->warp) {
         case 1:
             if (gGameSession->location.loc.variant == 1) {
-                func_actor_260500_80149EBC();
+                actor260500StartHeliportConversation();
             }
             if (gGameSession->location.loc.variant == 2) {
                 actor260400StartHeliportConversation();
@@ -772,7 +771,7 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
     arg0->msgTable = D_shelter_1f_heliport_801811A0;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == 1) {
-        func_actor_260500_80149E80();
+        actor260500RestoreHeliportPlacement();
     }
     if (gGameSession->location.loc.variant == 2) {
         actor260400RestoreHeliportPlacement();
