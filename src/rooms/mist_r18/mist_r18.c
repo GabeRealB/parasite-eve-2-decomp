@@ -1348,7 +1348,7 @@ void crossfadeDrawBackdrop(s32 shade)
     p->w    = 0xC0;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    crossfadeSetTpage(0x340, 0);
+    _crossfadeSetTpage(0x340, 0);
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -1365,7 +1365,7 @@ void crossfadeDrawBackdrop(s32 shade)
     p->w    = 0x80;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    crossfadeSetTpage(0x280, 0x100);
+    _crossfadeSetTpage(0x280, 0x100);
 }
 
 /// Per-frame entry point of the attached-model task: run the handler its state

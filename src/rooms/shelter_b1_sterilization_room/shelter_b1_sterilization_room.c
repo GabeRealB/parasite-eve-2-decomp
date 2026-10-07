@@ -940,7 +940,7 @@ void crossfadeDrawBackdrop(s32 shade)
     p->w    = 0xC0;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    crossfadeSetTpage(0x340, 0);
+    _crossfadeSetTpage(0x340, 0);
 
     p              = gGpuPrimCursor;
     gGpuPrimCursor = p + 1;
@@ -957,7 +957,7 @@ void crossfadeDrawBackdrop(s32 shade)
     p->w    = 0x80;
     p->h    = 0xF0;
     addPrim(gGpuCurrentOt + 8, p);
-    crossfadeSetTpage(0x180, 0x100);
+    _crossfadeSetTpage(0x180, 0x100);
 }
 
 void func_shelter_b1_sterilization_room_80180D74(Task* task)
@@ -1083,7 +1083,7 @@ void func_shelter_b1_sterilization_room_801811E0(Task* task)
 static void func_shelter_b1_sterilization_room_80181244(Task* task)
 {
     crossfadeDrawBackdrop(0x80);
-    crossfadeDrawLive(0);
+    _crossfadeDrawLive(0);
     if (gGameSession->viewReady != 0) {
         task->killCountdown = 0x80;
         task->state++;

@@ -542,6 +542,13 @@ state and lifetime. Configuration bindings and task constants use
 `SCREEN_FADE_IN_TASK` to that instance's identifier; TU-local instances keep
 the subsystem prefix and the `_` marker.
 
+`crossfade` owns the included redraw of a frozen backdrop and the current draw
+buffer at complementary RGB modulation levels. Its private implementation
+interface is `src/shared/backdrop_crossfade.h`; rendering constants use
+`CROSSFADE_`. The live-frame drawer and texture-page command keep static
+per-carrier instances marked `_`. Each carrier supplies the stored-backdrop
+drawer for its own VRAM layout.
+
 `actionPrompt` owns the point-and-click action cursor shared by room and actor
 overlays. The resident per-port state and its public types are gameplay
 (`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The hotspot
