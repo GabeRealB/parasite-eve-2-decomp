@@ -23,6 +23,12 @@ typedef struct {
 /// and so is the one confirmed when the cursor is off the board.
 #define NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD 16
 
+/// Base room selectors before and after the first shrine enemy reveal.
+enum {
+    NEO_ARK_SHRINE_LAYOUT_BASE              = 1,
+    NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL = 4,
+};
+
 /// Work block of the task that runs the shrine's sliding-tile puzzle screen,
 /// allocated by its first state and kept at `Task::work`.
 ///
@@ -101,7 +107,16 @@ void neoArkShrineDrawPuzzleFrame();
 /// it neither allocates resources nor changes the saved or live room selectors.
 void neoArkShrineResetPuzzle(void);
 
-void func_neo_ark_shrine_8017D9A0(Task* task);
+/// Draws the puzzle and routes cursor confirmation to commands or a tile move.
+///
+/// State 2 requires owned `NeoArkShrinePuzzleWork` and port 0's live action
+/// prompt. CAP playback hides and stops the cursor and defers all input.
+/// Otherwise the first hit hotspot is latched on confirm: ids 0..15 select
+/// board cells and 16 selects the rest of the screen. Before examining the
+/// board, or off the board, enters command state 3; an examined cell enters
+/// slide state 6. Cancel enters close state 5 unless confirm already returned.
+/// Requires the puzzle drawing resources and the terminated hotspot table.
+void neoArkShrinePuzzleIdle(Task* task);
 
 void func_neo_ark_shrine_8017DB10(Task* arg0);
 
@@ -115,7 +130,16 @@ void func_neo_ark_shrine_8017DB10(Task* arg0);
 /// Reset advances to state 1; updates continue until the puzzle kills this task.
 void neoArkShrinePuzzleCursorTask(Task* task);
 
-void func_neo_ark_shrine_8017EAE0(Task*);
+/// Runs the shrine's sliding-tile puzzle and its timed room outcomes.
+///
+/// Requires a bodyless task with state 0..15; dispatch does not check bounds.
+/// State 0 allocates owned work, spawns the cursor and acquires a menu hold.
+/// States 1..6 handle cursor setup, input, commands, closing and tile moves;
+/// 7..8 and 14..15 switch room layouts, and 9..13 release the shrine enemies.
+/// Completion restores room control and requests a stop; the waiting room
+/// task polls that request to release the puzzle task and its work. The code,
+/// state table, board and drawing resources must remain loaded throughout.
+void neoArkShrinePuzzleTask(Task* task);
 
 /// Runs the first falling prop of the puzzle's enemy-release sequence.
 ///

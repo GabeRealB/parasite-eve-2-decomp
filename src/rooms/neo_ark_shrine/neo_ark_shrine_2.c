@@ -85,9 +85,7 @@ STATIC_ASSERT_SIZEOF(_NeoArkShrineFallingPropWork, 0x48);
 enum {
     NEO_ARK_SHRINE_PUZZLE_STATE_IDLE           = 2,
     NEO_ARK_SHRINE_PUZZLE_STATE_COMMAND_RESULT = 4,
-    NEO_ARK_SHRINE_LAYOUT_BASE                 = 1,
     NEO_ARK_SHRINE_LAYOUT_ACTIVE               = 2,
-    NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL    = 4,
     NEO_ARK_SHRINE_LAYOUT_ACTIVE_AFTER_REVEAL  = 5,
     NEO_ARK_SHRINE_LAYOUT_ENEMIES_RELEASED     = 6,
     NEO_ARK_SHRINE_ROOM_VIEW                   = 10,
@@ -184,17 +182,17 @@ static void _neoArkShrineFinishPuzzleEnemyRelease(Task* task);
 static void _neoArkShrineBeginPuzzleLayoutRestoration(Task* task);
 static void _neoArkShrineWaitPuzzleLayoutRestoration(Task* task);
 static void _neoArkShrineInitializeFirstFallingProp(Task* task);
-static void func_neo_ark_shrine_8017F578(Task* task);
-static void func_neo_ark_shrine_8017F640(Task* task);
+static void _neoArkShrineDropFirstProp(Task* task);
+static void _neoArkShrineWaitFirstPropLayoutRestore(Task* task);
 static void _neoArkShrineInitializeSecondFallingProp(Task* task);
-static void func_neo_ark_shrine_8017F738(Task* task);
+static void _neoArkShrineDropSecondProp(Task* task);
 
 /// State table of the shrine's cap script task, indexed by `Task::state`.
 static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
     {
         func_neo_ark_shrine_8017ECC4,
         _neoArkShrinePreparePuzzleCursor,
-        func_neo_ark_shrine_8017D9A0,
+        neoArkShrinePuzzleIdle,
         _neoArkShrineOpenPuzzleCommands,
         func_neo_ark_shrine_8017EE44,
         _neoArkShrineClosePuzzle,
@@ -212,11 +210,11 @@ static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
 };
 /// State table of the shrine's first falling prop, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_shrine_8017D610 = {
-    { _neoArkShrineInitializeFirstFallingProp, func_neo_ark_shrine_8017F578, func_neo_ark_shrine_8017F640, taskKill },
+    { _neoArkShrineInitializeFirstFallingProp, _neoArkShrineDropFirstProp, _neoArkShrineWaitFirstPropLayoutRestore, taskKill },
 };
 /// State table of the shrine's second falling prop, indexed by `Task::state`.
 static const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
-    { _neoArkShrineInitializeSecondFallingProp, func_neo_ark_shrine_8017F738, taskKill },
+    { _neoArkShrineInitializeSecondFallingProp, _neoArkShrineDropSecondProp, taskKill },
 };
 
 extern WorldCollisionGrid     D_neo_ark_shrine_80182D2C[1];
@@ -1136,14 +1134,12 @@ void neoArkShrineDrawPuzzleFrame()
     neoArkShrineAnimateAndDrawPuzzle();
 }
 
-/// Task callback of the shrine's cap script: dispatches `Task::state` through a
-/// copy of the script's state table.
-void func_neo_ark_shrine_8017EAE0(Task* task)
+void neoArkShrinePuzzleTask(Task* task)
 {
-    TaskFuncTable16 sp;
+    TaskFuncTable16 states;
 
-    sp = D_neo_ark_shrine_8017D5D0;
-    sp.funcs[task->state](task);
+    states = D_neo_ark_shrine_8017D5D0;
+    states.funcs[task->state](task);
 }
 
 void neoArkShrineFirstFallingPropTask(Task* task)
@@ -1257,16 +1253,18 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
 
 /// Restores player control, HUD, event gates and the room view after the puzzle.
 ///
-/// Requires the puzzle's acquired menu display hold. Releases that hold and
-/// resumes automatic player drawing; task completion is left to the caller.
+/// Requires a live player task and its attachments and one acquired menu hold.
+/// Resumes player control and automatic model drawing before releasing the
+/// hold, then clears the event, HUD and cutscene gates. Restores saved view
+/// selector 10; task completion and cursor teardown are left to the caller.
 static inline void _neoArkShrineResumeRoomFromPuzzle(void)
 {
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
+    gGameSession->hideHud                                      = false;
+    gGameSession->cutsceneHold                                 = false;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_ROOM_VIEW;
 }
 
@@ -1453,9 +1451,11 @@ void neoArkShrineResetPuzzle(void)
 /// Creates a falling prop's owned lighting work and places its model above the floor.
 ///
 /// `task` has a TMD body and starts with null work. X and Z are world-coordinate
-/// positions; Y starts at -3000. Work is published even on allocation failure,
-/// when the task is killed. Success exposes its matrices to the model, enables
-/// drawing, refreshes lighting and advances to the falling state.
+/// positions; Y starts at -3000, with positive Y downward. Allocates zeroed
+/// primary-heap work, so acceleration, velocity and drop frame count start at
+/// zero. Work is published even on allocation failure, when the task is killed.
+/// Success parents the model to the view coordinate, exposes the owned matrices
+/// to the model, allows normal drawing, refreshes lighting and enters the drop.
 static inline void _neoArkShrineInitializeFallingProp(Task* task, s32 startX, s32 startZ)
 {
     enum { NEO_ARK_SHRINE_PROP_START_Y = -3000 };
@@ -1497,33 +1497,65 @@ static void _neoArkShrineInitializeFirstFallingProp(Task* task)
     _neoArkShrineInitializeFallingProp(task, NEO_ARK_SHRINE_FIRST_PROP_START_X, NEO_ARK_SHRINE_FIRST_PROP_START_Z);
 }
 
-static void func_neo_ark_shrine_8017F578(Task* task)
+/// Advances a prop's accelerating drop and enters its next state below the floor.
+///
+/// Requires the task's owned drop work and model root. `accelerationStep` is
+/// world units per frame cubed. Acceleration and velocity narrow to signed
+/// halfwords after each addition; height is a signed 32-bit world Y coordinate.
+/// Equality at floor Y stays in the drop state until a later positive step.
+static inline void _neoArkShrineIntegratePropDrop(Task* task, _NeoArkShrineFallingPropWork* work,
+                                                  GfxCoord* coord, s32 accelerationStep)
 {
+    enum { NEO_ARK_SHRINE_PROP_FLOOR_Y = 0 };
+
+    work->fallAcceleration += accelerationStep;
+    work->fallVelocity     += work->fallAcceleration;
+    coord->coord.t[1]      += work->fallVelocity;
+    if (coord->coord.t[1] > NEO_ARK_SHRINE_PROP_FLOOR_Y) {
+        coord->coord.t[1] = NEO_ARK_SHRINE_PROP_FLOOR_Y;
+        task->state++;
+    }
+}
+
+/// Drops the first prop and starts its sound and motor ramp on drop frame four.
+///
+/// State 1 requires the TMD body and owned zero-initialized drop work. Positive
+/// world Y is downward. Acceleration grows by one world unit per frame squared
+/// each frame; acceleration, velocity and frame count narrow to signed halfwords.
+/// Crossing Y = 0 clamps the model to the floor and enters the restore wait.
+/// Refreshes composed coordinates and lighting even on the landing frame.
+static void _neoArkShrineDropFirstProp(Task* task)
+{
+    enum { NEO_ARK_SHRINE_FIRST_PROP_EFFECT_FRAME  = 4,
+           NEO_ARK_SHRINE_FIRST_PROP_RUMBLE_FRAMES = 24,
+           NEO_ARK_SHRINE_FIRST_PROP_RUMBLE_START  = 64,
+           NEO_ARK_SHRINE_FIRST_PROP_RUMBLE_END    = 255,
+           NEO_ARK_SHRINE_FIRST_PROP_ACCEL_STEP    = 1 };
+
     _NeoArkShrineFallingPropWork* work;
     GfxCoord*                     coord;
 
     work  = task->work;
     coord = task->extra.tmd->coords;
     work->fallFrames++;
-    if (work->fallFrames == 4) {
-        padScriptSpawnVariableMotorRamp(0x18, 0x40, 0xFF);
+    if (work->fallFrames == NEO_ARK_SHRINE_FIRST_PROP_EFFECT_FRAME) {
+        padScriptSpawnVariableMotorRamp(NEO_ARK_SHRINE_FIRST_PROP_RUMBLE_FRAMES,
+                                        NEO_ARK_SHRINE_FIRST_PROP_RUMBLE_START, NEO_ARK_SHRINE_FIRST_PROP_RUMBLE_END);
         sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PROP_1_FALL, 0, 0);
     }
-    // The drop accelerates harder every frame, and stops dead at floor height.
-    work->fallAcceleration += 1;
-    work->fallVelocity     += work->fallAcceleration;
-    coord->coord.t[1]      += work->fallVelocity;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = 0;
-        task->state++;
-    }
+    _neoArkShrineIntegratePropDrop(task, work, coord, NEO_ARK_SHRINE_FIRST_PROP_ACCEL_STEP);
     _neoArkShrineUpdateFallingPropLighting(task);
 }
 
-static void func_neo_ark_shrine_8017F640(Task* task)
+/// Keeps the landed first prop lit until the puzzle consumes its restore request.
+///
+/// State 2 requires the TMD body and owned lighting matrices. The request
+/// clears when a later tile move restores the base layout, or the board resets.
+/// Once clear, advances to the task's kill state without freeing anything here.
+static void _neoArkShrineWaitFirstPropLayoutRestore(Task* task)
 {
     _neoArkShrineUpdateFallingPropLighting(task);
-    if (D_neo_ark_shrine_8018686A == 0) {
+    if (D_neo_ark_shrine_8018686A == false) {
         task->state++;
     }
 }
@@ -1541,28 +1573,36 @@ static void _neoArkShrineInitializeSecondFallingProp(Task* task)
     _neoArkShrineInitializeFallingProp(task, NEO_ARK_SHRINE_SECOND_PROP_START_X, NEO_ARK_SHRINE_SECOND_PROP_START_Z);
 }
 
-static void func_neo_ark_shrine_8017F738(Task* task)
+/// Drops the second prop with sound on frame two and vibration on frame eighteen.
+///
+/// State 1 requires the TMD body and owned zero-initialized drop work. Positive
+/// world Y is downward. Acceleration grows by two world units per frame squared
+/// each frame; acceleration, velocity and frame count narrow to signed halfwords.
+/// Crossing Y = 0 clamps the model to the floor and enters the kill state.
+/// Refreshes composed coordinates and lighting even on the landing frame.
+static void _neoArkShrineDropSecondProp(Task* task)
 {
+    enum { NEO_ARK_SHRINE_SECOND_PROP_SOUND_FRAME   = 2,
+           NEO_ARK_SHRINE_SECOND_PROP_RUMBLE_FRAME  = 18,
+           NEO_ARK_SHRINE_SECOND_PROP_RUMBLE_FRAMES = 10,
+           NEO_ARK_SHRINE_SECOND_PROP_RUMBLE_START  = 160,
+           NEO_ARK_SHRINE_SECOND_PROP_RUMBLE_END    = 255,
+           NEO_ARK_SHRINE_SECOND_PROP_ACCEL_STEP    = 2 };
+
     _NeoArkShrineFallingPropWork* work;
     GfxCoord*                     coord;
 
     work  = task->work;
     coord = task->extra.tmd->coords;
     work->fallFrames++;
-    if (work->fallFrames == 2) {
+    if (work->fallFrames == NEO_ARK_SHRINE_SECOND_PROP_SOUND_FRAME) {
         sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PROP_2_FALL, 0, 0);
     }
-    if (work->fallFrames == 0x12) {
-        padScriptSpawnVariableMotorRamp(0xA, 0xA0, 0xFF);
+    if (work->fallFrames == NEO_ARK_SHRINE_SECOND_PROP_RUMBLE_FRAME) {
+        padScriptSpawnVariableMotorRamp(NEO_ARK_SHRINE_SECOND_PROP_RUMBLE_FRAMES,
+                                        NEO_ARK_SHRINE_SECOND_PROP_RUMBLE_START, NEO_ARK_SHRINE_SECOND_PROP_RUMBLE_END);
     }
-    // The drop accelerates harder every frame, and stops dead at floor height.
-    work->fallAcceleration += 2;
-    work->fallVelocity     += work->fallAcceleration;
-    coord->coord.t[1]      += work->fallVelocity;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = 0;
-        task->state++;
-    }
+    _neoArkShrineIntegratePropDrop(task, work, coord, NEO_ARK_SHRINE_SECOND_PROP_ACCEL_STEP);
     _neoArkShrineUpdateFallingPropLighting(task);
 }
 

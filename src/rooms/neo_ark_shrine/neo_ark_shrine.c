@@ -197,7 +197,7 @@ ActionPromptHotspot D_neo_ark_shrine_80182430[18] = {
 };
 
 TaskDesc D_neo_ark_shrine_80182508[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_neo_ark_shrine_8017EAE0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, neoArkShrinePuzzleTask, { .value = 0 } },
     { { { TASK_BODY_TMD, 192 } }, neoArkShrineFirstFallingPropTask, { .model = &_gNeoArkShrineModel049E8 } },
     { { { TASK_BODY_TMD, 192 } }, neoArkShrineSecondFallingPropTask, { .model = &_gNeoArkShrineModel04C6C } },
 };
@@ -278,7 +278,7 @@ s16 D_neo_ark_shrine_801825EC[16][5] = {
     { 11, 14, 255, 255, 255 },
 };
 
-static void func_neo_ark_shrine_8017D8F4(Task* task);
+static void _neoArkShrineInitializeRoom(Task* task);
 
 /// Refuses every collected key item offered to the shrine room.
 ///
@@ -362,7 +362,12 @@ void func_neo_ark_shrine_8017D84C(Task* task)
     }
 }
 
-static void func_neo_ark_shrine_8017D8F4(Task* task)
+/// Installs the room's message handlers and initializes the sliding-tile board.
+///
+/// State 0 requires the room's writable board and initial tables. Publishes
+/// the live task in the room slot and advances to the message-only idle state.
+/// No work block is allocated.
+static void _neoArkShrineInitializeRoom(Task* task)
 {
     task->msgTable = D_neo_ark_shrine_80181E34;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
@@ -378,7 +383,7 @@ static void _neoArkShrineRoomIdle(Task* task)
 /// State handlers of the room task `neoArkShrineRoomTask`, indexed by
 /// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_neo_ark_shrine_8017D5C4 = {
-    { func_neo_ark_shrine_8017D8F4, _neoArkShrineRoomIdle, taskKill },
+    { _neoArkShrineInitializeRoom, _neoArkShrineRoomIdle, taskKill },
 };
 
 void neoArkShrineRoomTask(Task* task)
@@ -389,74 +394,78 @@ void neoArkShrineRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Idle state of the shrine's cap script: the hotspot the cursor sits on is
-/// confirm-tested (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`) and its `id` / `promptKind` are
-/// latched into the work block's `selection` / `promptKind`. The confirm goes
-/// to state 3, which opens the command prompt, for
-/// `NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD` and for any board cell while
-/// `boardExamined` is clear; a board cell after that goes to state 6, which
-/// slides its tile. The scan walks the hotspot table the
-/// hit test `actionPromptHitTest` just marked, and
-/// `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED` leaves the scan by advancing the task to state 5.
+/// Routes the first marked hotspot and returns from the caller when confirmed.
 ///
-/// Both oddities below are allocator levers, not logic. The `do { } while (0)`
-/// around the last state store folds away, but flow counts the reference at
-/// loop depth 2, which is what lifts the parameter above the hotspot pointer in
-/// global-alloc's rank; without it the two swap `$s2`/`$s4`. Passing `task` to
-/// the per-frame helper is the sched1 counterpart: the extra `$a0` set makes
-/// the hotspot scan's argument setup *not* a "birthing insn" in sched1's
-/// `adjust_priority`, so it is not launched at `LAUNCH_PRIORITY` and the scan
-/// block keeps `hs` in the branch delay slot. At entry `$a0` still holds
-/// `task`, so the copy itself is dropped by the allocator.
-void func_neo_ark_shrine_8017D9A0(Task* task)
+/// Invoke in a braced statement context inside a void function, after hit
+/// testing and a confirm press. `task`, `prompt` and `work` must be stable
+/// live pointers; they are evaluated only for a hit, possibly repeatedly.
+/// `hotspot` must be a modifiable, stable `ActionPromptHotspot*` lvalue into
+/// a marked, terminated table; it advances while scanning. No argument may
+/// name the local `hotspotId`. Captures no caller identifiers. A hit latches
+/// its id and prompt kind and changes state; command mode also hides/stops
+/// the cursor. The return skips the caller's remaining input processing.
+#define NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION(task, prompt, work, hotspot)                          \
+    {                                                                                                  \
+        enum { NEO_ARK_SHRINE_PUZZLE_STATE_COMMANDS = 3,                                               \
+               NEO_ARK_SHRINE_PUZZLE_STATE_SLIDE    = 6 };                                                \
+        s16 hotspotId;                                                                                 \
+                                                                                                       \
+        hotspotId = (hotspot)->id;                                                                     \
+        if ((hotspot)->id != ACTION_PROMPT_HOTSPOT_END) {                                              \
+            do {                                                                                       \
+                if ((hotspot)->hit != 0) {                                                             \
+                    if (hotspotId == NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD || (work)->boardExamined == 0) { \
+                        (prompt)->mode        = ACTION_PROMPT_MODE_HIDDEN;                             \
+                        (prompt)->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;                           \
+                        (work)->selection     = (hotspot)->id;                                         \
+                        (work)->promptKind    = (hotspot)->promptKind;                                 \
+                        (task)->state         = NEO_ARK_SHRINE_PUZZLE_STATE_COMMANDS;                  \
+                        return;                                                                        \
+                    }                                                                                  \
+                    (work)->selection  = hotspotId;                                                    \
+                    (work)->promptKind = (hotspot)->promptKind;                                        \
+                    (task)->state      = NEO_ARK_SHRINE_PUZZLE_STATE_SLIDE;                            \
+                    return;                                                                            \
+                }                                                                                      \
+                (hotspot)++;                                                                           \
+                hotspotId = (hotspot)->id;                                                             \
+            } while ((hotspot)->id != ACTION_PROMPT_HOTSPOT_END);                                      \
+        }                                                                                              \
+    }
+
+void neoArkShrinePuzzleIdle(Task* task)
 {
-    ActionPromptHotspot*    hs     = D_neo_ark_shrine_80182430;
-    ActionPrompt*           prompt = D_80114D28;
-    NeoArkShrinePuzzleWork* work   = task->work;
-    u16                     id;
+    enum { NEO_ARK_SHRINE_PUZZLE_STATE_CLOSE  = 5,
+           NEO_ARK_SHRINE_PUZZLE_CONFIRM_SLOT = 0,
+           NEO_ARK_SHRINE_PUZZLE_CANCEL_SLOT  = 1 };
+
+    ActionPromptHotspot*    hotspot = D_neo_ark_shrine_80182430;
+    ActionPrompt*           prompt  = D_80114D28;
+    NeoArkShrinePuzzleWork* work    = task->work;
 
     neoArkShrineDrawPuzzleFrame(task);
-    gGameSession->hideHud = 1;
+    gGameSession->hideHud = true;
     if (capIsBusy() != 0) {
         prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (actionPromptHitTest(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    // Confirmation takes precedence over cancel and selects the first marked hit.
+    if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            id = hs->id;
-            if (hs->id != ACTION_PROMPT_HOTSPOT_END) {
-                do {
-                    if (hs->hit != 0) {
-                        if ((s16)id == NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD || work->boardExamined == 0) {
-                            prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
-                            prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                            work->selection     = hs->id;
-                            work->promptKind    = hs->promptKind;
-                            task->state         = 3;
-                            return;
-                        }
-                        work->selection  = id;
-                        work->promptKind = hs->promptKind;
-                        task->state      = 6;
-                        return;
-                    }
-                    hs++;
-                    id = hs->id;
-                } while (hs->id != ACTION_PROMPT_HOTSPOT_END);
-            }
+        if (prompt->buttons.slots[NEO_ARK_SHRINE_PUZZLE_CONFIRM_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
+            NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION(task, prompt, work, hotspot);
         }
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
-    if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-        do {
-            task->state = 5;
-        } while (0);
+    if (prompt->buttons.slots[NEO_ARK_SHRINE_PUZZLE_CANCEL_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
+        task->state = NEO_ARK_SHRINE_PUZZLE_STATE_CLOSE;
     }
 }
+
+#undef NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION
 
 /// Runs one step of the shrine's arrangement puzzle: for each of the five
 /// entries of the group the current slot selects, it rotates the entry's index
@@ -546,16 +555,19 @@ void func_neo_ark_shrine_8017DB10(Task* arg0)
 /// Moves one tile halfway towards its target and snaps small residuals.
 ///
 /// Requires a tile number in 0..15 and initialized screen origins in pixels.
+/// Includes tile zero, the gap. Each component uses a signed right shift
+/// (rounding negative half-steps down), then narrows to s16. Both components
+/// snap together only when their post-step residuals are strictly below four
+/// pixels. Mutates only that tile's drawn origin; its target remains unchanged.
 static inline void _neoArkShrineEasePuzzleTile(s32 tileNumber)
 {
     enum { NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS = 4 };
 
-    NeoArkShrineTileOrigin* drawnOrigin  = &D_neo_ark_shrine_8018688C[tileNumber];
-    NeoArkShrineTileOrigin* targetOrigin = &D_neo_ark_shrine_801868CC[tileNumber];
-
-    drawnOrigin->x += (targetOrigin->x - drawnOrigin->x) >> 1;
-    drawnOrigin->y += (targetOrigin->y - drawnOrigin->y) >> 1;
-    if (ABS(drawnOrigin->x - targetOrigin->x) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS &&
+    D_neo_ark_shrine_8018688C[tileNumber].x +=
+        (D_neo_ark_shrine_801868CC[tileNumber].x - D_neo_ark_shrine_8018688C[tileNumber].x) >> 1;
+    D_neo_ark_shrine_8018688C[tileNumber].y +=
+        (D_neo_ark_shrine_801868CC[tileNumber].y - D_neo_ark_shrine_8018688C[tileNumber].y) >> 1;
+    if (ABS(D_neo_ark_shrine_8018688C[tileNumber].x - D_neo_ark_shrine_801868CC[tileNumber].x) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS &&
         ABS(D_neo_ark_shrine_8018688C[tileNumber].y - D_neo_ark_shrine_801868CC[tileNumber].y) < NEO_ARK_SHRINE_PUZZLE_SNAP_PIXELS) {
         D_neo_ark_shrine_8018688C[tileNumber].x = D_neo_ark_shrine_801868CC[tileNumber].x;
         D_neo_ark_shrine_8018688C[tileNumber].y = D_neo_ark_shrine_801868CC[tileNumber].y;
@@ -603,24 +615,25 @@ void neoArkShrineAnimateAndDrawPuzzle(void)
 
 /// Consumes an accepted restore request and rebuilds the base shrine layout.
 ///
-/// `restoreRequest` must be 1, which also supplies the pre-reveal room selector.
-/// Saved and live room selectors change together; the motor ramp lasts 40 frames.
-static inline void _neoArkShrineRestorePuzzleLayout(s32 restoreRequest)
+/// Called only after the pending request equals true. Saved and live room
+/// selectors change together, to layout 1 before the first enemy reveal and
+/// layout 4 afterwards. The port-0 motor ramp lasts 40 eligible script frames,
+/// starting at intensity 48 and targeting 96.
+static inline void _neoArkShrineRestorePuzzleLayout(void)
 {
     enum {
-        NEO_ARK_SHRINE_BASE_LAYOUT_AFTER_REVEAL = 4,
-        NEO_ARK_SHRINE_RESTORE_RUMBLE_FRAMES    = 40,
-        NEO_ARK_SHRINE_RESTORE_RUMBLE_START     = 48,
-        NEO_ARK_SHRINE_RESTORE_RUMBLE_END       = 96,
+        NEO_ARK_SHRINE_RESTORE_RUMBLE_FRAMES = 40,
+        NEO_ARK_SHRINE_RESTORE_RUMBLE_START  = 48,
+        NEO_ARK_SHRINE_RESTORE_RUMBLE_END    = 96,
     };
 
     D_neo_ark_shrine_8018686A = false;
     if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = restoreRequest;
-        gGameSession->location.loc.room                            = restoreRequest;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_SHRINE_LAYOUT_BASE;
+        gGameSession->location.loc.room                            = NEO_ARK_SHRINE_LAYOUT_BASE;
     } else {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_SHRINE_BASE_LAYOUT_AFTER_REVEAL;
-        gGameSession->location.loc.room                            = NEO_ARK_SHRINE_BASE_LAYOUT_AFTER_REVEAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL;
+        gGameSession->location.loc.room                            = NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL;
     }
     gGameSession->roomObjsDirty = true;
     sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_REVERT, 0, 0);
@@ -666,7 +679,7 @@ static s16 _neoArkShrineCheckPuzzleArrangement(void)
     // Consume the pending restore only after the higher-priority pattern checks.
     restoreRequest = D_neo_ark_shrine_8018686A;
     if (restoreRequest == true) {
-        _neoArkShrineRestorePuzzleLayout(restoreRequest);
+        _neoArkShrineRestorePuzzleLayout();
     }
     if (D_neo_ark_shrine_8018686C[0] == 5 && D_neo_ark_shrine_8018686C[4] == 6 &&
         D_neo_ark_shrine_8018686C[8] == 7 && D_neo_ark_shrine_8018686C[12] == 8 &&

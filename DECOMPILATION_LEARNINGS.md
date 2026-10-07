@@ -72213,7 +72213,7 @@ logs. Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290
 - base_25.c preprocessed SHA256: `89737430e2e6d5e901a779b4b5d6ebd76a5a158d058935fe7564f0b9b5ceadeb`.
 - base_27.c preprocessed SHA256: `1291f2f06ac4cdde7f9e55a96ce21b2b96b427df0818c11d45d20a2343023035`.
 
-## A lone argument-taking call makes the next call's setup birthing; an argument the callee ignores fixes it for free (func_neo_ark_shrine_8017D9A0, 2026-09-17)
+## A lone argument-taking call makes the next call's setup birthing; an argument the callee ignores fixes it for free (neoArkShrinePuzzleIdle, 2026-09-17)
 
 **Symptom.** Everything matched but the two instructions around a call: the
 target puts the argument setup `addu a0,s4,zero` in the preceding `beqz`'s
