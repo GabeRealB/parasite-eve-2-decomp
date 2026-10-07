@@ -15,7 +15,7 @@
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
-#include "main/gfx_types.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -56,60 +56,74 @@ typedef struct {
 } _Actor317000Work;
 STATIC_ASSERT_SIZEOF(_Actor317000Work, 0x4CC);
 
+/// Leap tuning and animation choices of this actor package.
+enum {
+    ACTOR_317000_YAW_STEP       = 0x40, // 4096 angle units per turn
+    ACTOR_317000_LEAP_ANIMATION = 2,
+    ACTOR_317000_BLEND_FRAMES   = 5,
+};
+
+/// Model draw modes accepted by this package's message handler.
+enum {
+    ACTOR_317000_DRAW_HIDE_AUTO     = 0,
+    ACTOR_317000_DRAW_SHOW_ALLOCATE = 1,
+    ACTOR_317000_DRAW_HIDE_RELEASE  = 2,
+    ACTOR_317000_DRAW_SHOW_MANUAL   = 3,
+};
+
 /// Indexed by `_Actor317000Work::model.bank` for `animationInitContext`'s second
-/// argument by `func_actor_317000_80162458` and `_actorMotionPlayAnim19`.
+/// argument by `_actor317000BeginLeap` and `_actorMotionPlayAnim19`.
 /// Every preset the actor builds has `field_0` 0, so only the first word is
 /// ever read; the words after it (among them the address of
-/// `func_actor_317000_80162624`) suggest a larger record, not a bank array.
+/// `_actor317000Task`) suggest a larger record, not a bank array.
 extern AnimationSet*  D_actor_317000_8016CF1C[9];
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `func_actor_317000_8016267C`; terminator id `TASK_MESSAGE_TABLE_END`.
+/// `_actor317000Init`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
 extern TaskMessageEntry D_actor_317000_8016CF50[];
 
-static void func_actor_317000_80161E68(Task* task);
-static void func_actor_317000_801620BC(Task* task);
-static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4);
-static void func_actor_317000_8016267C(Task* arg0);
-static void func_actor_317000_80162724(Task* arg0);
-static void func_actor_317000_80162744(Task* arg0);
-static void func_actor_317000_80162760(Task* arg0);
-static void func_actor_317000_80162768(Task* arg0);
-static void func_actor_317000_801627D0(Task* arg0);
-static void func_actor_317000_801628D8(Task* task);
-static void func_actor_317000_80162950(Task* arg0);
-s32         func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3);
+static void _actor317000Update(Task* task);
+static void _actor317000FacePlayerAfterLeap(Task* task);
+static void _actor317000TurnHeadToTarget(Task* task, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight);
+static void _actor317000Init(Task* task);
+static void _actor317000Exit(Task* task);
+static void _actor317000BindLighting(Task* task);
+static void _actor317000Idle(Task* task);
+static void _actor317000RunLeapStep(Task* task);
+static void _actor317000TurnToLaunchYaw(Task* task);
+static void _actor317000LaunchLeap(Task* task);
+static void _actor317000LandLeap(Task* task);
+static s32  _actor317000SetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 
-/// The actor's three task states, which `func_actor_317000_80162624` runs by
+/// The actor's three task states, which `_actor317000Task` runs by
 /// `Task::state`: spawn, per-frame tick and exit.
 static const TaskFuncTable3 D_actor_317000_80161E24 = { {
-    func_actor_317000_8016267C,
-    func_actor_317000_80161E68,
-    func_actor_317000_80162724,
+    _actor317000Init,
+    _actor317000Update,
+    _actor317000Exit,
 } };
 
-/// The four step handlers `func_actor_317000_80162768` runs by
+/// The four step handlers `_actor317000RunLeapStep` runs by
 /// `_Actor317000Work::walk.motionStep`.
 static const TaskFuncTable4 D_actor_317000_80161E30 = { {
-    func_actor_317000_801627D0,
-    func_actor_317000_801628D8,
-    func_actor_317000_80162950,
-    func_actor_317000_801620BC,
+    _actor317000TurnToLaunchYaw,
+    _actor317000LaunchLeap,
+    _actor317000LandLeap,
+    _actor317000FacePlayerAfterLeap,
 } };
 
-/// The constant local-space offset `func_actor_317000_801628D8` rotates
+/// The constant local-space offset `_actor317000LaunchLeap` rotates
 /// through the root coordinate into `_Actor317000Work::walk.velocity`.
 static const VECTOR D_actor_317000_80161E40 = { 0, 0xFF800000, 0x400000, 0 };
 
 static TmdSource _gActor317000GrinningStrangerBody;
-s32              func_actor_317000_80162458(Task* task, s32 msgId, ActorTransform* place, ActorMotionWalkAnim*);
-s32              func_actor_317000_80162BC4(Task*, s32, s32, s32);
-s32              func_actor_317000_80162CA0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-void             func_actor_317000_80162624(Task*);
+static s32       _actor317000BeginLeap(Task* task, s32 messageId, const ActorTransform* launchPlacement, const ActorMotionWalkAnim* animationRequest);
+static s32       _actor317000ApplyCommand(Task* task, s32 messageId, const ActorCommand* commandRequest, s32 unusedArg);
+static void      _actor317000Task(Task* task);
 
 static TmdBone _gActor317000GrinningStrangerBodySkeleton[19] = {
 #include "assets/grinning_stranger_body_skeleton.inc"
@@ -335,471 +349,482 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_317000_8016CF1C,
 };
 
-TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_317000_80162624, { .model = &_gActor317000GrinningStrangerBody } };
+TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor317000Task, { .model = &_gActor317000GrinningStrangerBody } };
 
 TaskMessageEntry D_actor_317000_8016CF50[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_317000_80162BC4 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_317000_80162458 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_317000_80162CA0 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor317000SetDrawMode },
+    { ACTOR_MESSAGE_WALK_TO, _actor317000BeginLeap },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor317000ApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Per-frame tick. Runs the state body `_Actor317000Work::walk.motion` selects
-/// from a two-entry stack table, then integrates the 16.16 position: `velocity` is
-/// added to `walk.carry`, `velocity.vy` gains 0x120000 while `airborne` is raised, the
-/// integer halves move the root coordinate and only the fractions are kept.
-/// The animation slots tick, the second coordinate is refreshed while
-/// `gGameSession->viewReady` is set, `turnWeight` ramps up by 0x40 to `ONE` or
-/// down by 0x80 to 0 on `turnWeightRising`, and the aim body runs against slot 3.
-/// A non-negative `freeCountdown` counts down and frees the model buffers at 0.
-static void func_actor_317000_80161E68(Task* task)
+/// Applies this tick's signed 16.16 leap velocity and advances gravity for the next tick.
+///
+/// Requires live writable work and root storage. Carries narrow to signed
+/// halfword displacements; the retained fractions are zero-extended. Root
+/// composition is invalidated even for zero velocity.
+static inline void _actor317000IntegrateLeapVelocity(_Actor317000Work* work, GfxCoord* rootCoord)
 {
-    TmdObject*        ext                 = task->extra.tmd;
-    _Actor317000Work* work                = task->work;
-    void              (*states[2])(Task*) = { func_actor_317000_80162760, func_actor_317000_80162768 };
-    GfxCoord*         coord;
-    s32               i;
-
-    states[work->walk.motion](task);
-
-    coord                     = task->extra.tmd->coords;
+    enum { ACTOR_317000_LEAP_GRAVITY = 18 << 16 }; // Signed 16.16 units per tick squared
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
     work->walk.carry[2].word += work->walk.velocity.vz;
     if (work->airborne != 0) {
-        work->walk.velocity.vy += 0x120000;
+        work->walk.velocity.vy += ACTOR_317000_LEAP_GRAVITY;
     }
-    coord->coord.t[0]       += work->walk.carry[0].halves.integer;
-    coord->coord.t[1]       += work->walk.carry[1].halves.integer;
-    coord->coord.t[2]       += work->walk.carry[2].halves.integer;
-    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
+    rootCoord->coord.t[0]   += work->walk.carry[0].halves.integer;
+    rootCoord->coord.t[1]   += work->walk.carry[1].halves.integer;
+    rootCoord->coord.t[2]   += work->walk.carry[2].halves.integer;
+    rootCoord->composeStamp  = GRAPHICS_COORD_DIRTY;
     work->walk.carry[0].word = work->walk.carry[0].halves.fraction;
     work->walk.carry[1].word = work->walk.carry[1].halves.fraction;
     work->walk.carry[2].word = work->walk.carry[2].halves.fraction;
+}
+
+/// Updates the leap, animation, head turn, lighting and delayed buffer release.
+///
+/// Requires a live nineteen-part TMD model and initialized `_Actor317000Work`.
+/// `walk.motion` must be 0 (idle) or 1 (leaping). Displacement uses signed
+/// 16.16 root-frame units; gravity changes the next tick's vertical velocity.
+/// Slots 1..18 tick while playback is active. Lighting refresh requires a ready
+/// view, but motion and head turning run every tick. The update finding a zero
+/// release counter frees the primitive buffer, then disables the counter.
+static void _actor317000Update(Task* task)
+{
+    enum { ACTOR_317000_HEAD_WEIGHT_RISE = 0x40,
+           ACTOR_317000_HEAD_WEIGHT_FALL = 0x80,
+           ACTOR_317000_LIGHT_COUNT      = 3 };
+    TmdObject*        bodyModel         = task->extra.tmd;
+    _Actor317000Work* work              = task->work;
+    TaskFunc          motionHandlers[2] = { _actor317000Idle, _actor317000RunLeapStep };
+    GfxCoord*         rootCoord;
+    s32               slotIndex;
+
+    motionHandlers[work->walk.motion](task);
+
+    // Integrate this tick before gravity changes the next tick's velocity.
+    rootCoord = task->extra.tmd->coords;
+    _actor317000IntegrateLeapVelocity(work, rootCoord);
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, ACTOR_317000_LIGHT_COUNT);
     }
     if (work->turnWeightRising != 0) {
-        work->turnWeight += 0x40;
+        work->turnWeight += ACTOR_317000_HEAD_WEIGHT_RISE;
         if (work->turnWeight > ONE) {
             work->turnWeight = ONE;
         }
     } else {
-        work->turnWeight -= 0x80;
+        work->turnWeight -= ACTOR_317000_HEAD_WEIGHT_FALL;
         if (work->turnWeight < 0) {
             work->turnWeight = 0;
         }
     }
-    func_actor_317000_801621F4(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0x200, work->turnWeight);
+    _actor317000TurnHeadToTarget(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_TRANSFORM_ANGLE_TURN / 4, ACTOR_TRANSFORM_ANGLE_TURN / 8, work->turnWeight);
+    // Delay release until queued model primitives have left the frame buffers.
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(bodyModel);
         }
         work->freeCountdown--;
     }
 }
 
-/// Step handler at index 3 of `D_actor_317000_80161E30`. The actor's own coordinate and the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task's
-/// (the player) are normalised into `dir`, whose yaw `ratan2` takes over
-/// `dir.vz`, and the result is written as the roll/pitch-free facing
-/// `{ 0, yaw, 0 }` at `GfxCoord::param.rot`. The same yaw is then compared
-/// against the yaw `gfxExtractSmallestEuler` reads back out of the node's own matrix:
-/// when the two are within 0x40 (64 of 4096 units) the actor is facing its
-/// target already, which clears the work's dispatch index and its companion
-/// halfword; otherwise the matrix's yaw is stepped toward the target by that
-/// same 0x40 and `RotMatrix` rebuilds the node from the adjusted angles.
-static void func_actor_317000_801620BC(Task* task)
+/// Ends the leap by turning the root toward the player's position.
+///
+/// Requires a live player TMD task in `GAME_TASK_SLOT_PLAYER`, with both roots
+/// in the same coordinate frame. Turns by 64 of 4096 angle units per tick.
+/// A yaw gap of at most one step returns motion to idle without snapping the
+/// matrix to the target yaw. The desired yaw is also stored in `param.rot`.
+/// The signed-halfword yaw difference is retained without half-turn wrapping.
+static void _actor317000FacePlayerAfterLeap(Task* task)
 {
     _Actor317000Work* work;
-    GfxCoord*         coord;
-    GfxCoord*         target;
-    VECTOR            delta;
-    SVECTOR           dir;
-    SVECTOR           rot;
-    SVECTOR           ang;
-    s16               diff;
-    s32               absDiff;
-    s32               y;
+    GfxCoord*         rootCoord;
+    GfxCoord*         playerCoord;
+    VECTOR            toPlayer;
+    SVECTOR           direction;
+    SVECTOR           targetAngles;
+    SVECTOR           rootAngles;
+    s16               yawDelta;
+    s32               yawMagnitude;
+    s32               currentYaw;
 
-    coord  = task->extra.tmd->coords;
-    target = ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd)->coords;
-    work   = task->work;
+    rootCoord   = task->extra.tmd->coords;
+    playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+    work        = task->work;
 
-    delta.vx = target->coord.t[0] - coord->coord.t[0];
-    delta.vy = target->coord.t[1] - coord->coord.t[1];
-    delta.vz = target->coord.t[2] - coord->coord.t[2];
-    VectorNormalS(&delta, &dir);
+    toPlayer.vx = playerCoord->coord.t[0] - rootCoord->coord.t[0];
+    toPlayer.vy = playerCoord->coord.t[1] - rootCoord->coord.t[1];
+    toPlayer.vz = playerCoord->coord.t[2] - rootCoord->coord.t[2];
+    VectorNormalS(&toPlayer, &direction);
 
-    rot.vx = 0;
-    rot.vy = ratan2(dir.vx, dir.vz);
-    rot.vz = 0;
+    targetAngles.vx = 0;
+    targetAngles.vy = ratan2(direction.vx, direction.vz);
+    targetAngles.vz = 0;
 
-    coord->param.rot.vx = rot.vx;
-    coord->param.rot.vy = rot.vy;
-    coord->param.rot.vz = rot.vz;
+    rootCoord->param.rot.vx = targetAngles.vx;
+    rootCoord->param.rot.vy = targetAngles.vy;
+    rootCoord->param.rot.vz = targetAngles.vz;
 
-    gfxExtractSmallestEuler(&ang, &coord->coord);
-    diff    = ratan2(dir.vx, dir.vz) - ang.vy;
-    absDiff = abs(diff);
-    if (absDiff >= 0x41) {
-        y = ang.vy;
-        if (diff < 0) {
-            ang.vy = y - 0x40;
+    gfxExtractSmallestEuler(&rootAngles, &rootCoord->coord);
+    yawDelta     = ratan2(direction.vx, direction.vz) - rootAngles.vy;
+    yawMagnitude = abs(yawDelta);
+    if (yawMagnitude >= ACTOR_317000_YAW_STEP + 1) {
+        currentYaw = rootAngles.vy;
+        if (yawDelta < 0) {
+            rootAngles.vy = currentYaw - ACTOR_317000_YAW_STEP;
         } else {
-            ang.vy = y + 0x40;
+            rootAngles.vy = currentYaw + ACTOR_317000_YAW_STEP;
         }
     } else {
         work->walk.motion     = ACTOR_WALK_MOTION_IDLE;
         work->walk.motionStep = 0;
     }
-    RotMatrix(&ang, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    RotMatrix(&rootAngles, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Aim body the per-frame tick `func_actor_317000_80161E68` calls with
-/// `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` (the player) as `targetTask`; it never reads the three
-/// arguments after it (0x400, 0x200 and `_Actor317000Work::turnWeight`). The delta from the actor's sixth coordinate
-/// (`coord[5]`) to the target's fifth is normalised, taken through the
-/// transpose of the actor's third coordinate's `workm`, and normalised again
-/// into `dir`. The three `ratan2`s reduce `dir` to an Euler triple -- the YZ,
-/// XZ and XY plane angles, the middle one against the negated magnitude of
-/// `dir.vz` -- which is added halfword-wise to the euler `gfxExtractSmallestEuler`
-/// reads out of `coord[5]` before `RotMatrix` rebuilds it. An eighth of the
-/// rebuilt euler then offsets `coord[3]`'s own euler, and `coord[5]` is
-/// re-read and scaled by 5/8 before being rewritten as the identity rotated
-/// by it.
+/// Turns the head toward a target model and shares some rotation with part 3.
 ///
-/// `coord[5]` is kept as its own `head` pointer and `coord[3].coord` as its
-/// own `arm` matrix rather than indexed off `coord`: the second and third
-/// reads of `task->extra.tmd->coords` are re-derived rather than sharing the
-/// first, which is what keeps the task argument live in `$s1` across the
-/// calls and puts `&target[4]` in its own register.
-static void func_actor_317000_801621F4(Task* task, Task* targetTask, s32 arg2, s32 arg3, s32 arg4)
+/// Requires live subject coordinates 0..5 and target coordinates 0..4, with
+/// current composed matrices in the same frame. Uses the head at part 5 and
+/// target part 4, expressing their separation through part 2's transposed
+/// rotation. Angles use 4096 units per turn; additions narrow to halfwords.
+/// Part 3 receives one eighth of the resulting head Euler angles, and the head
+/// keeps five eighths. `maxYaw`, `maxPitch` and the 1/4096 `blendWeight` are
+/// accepted but ignored. Leaves composition stamps unchanged; retains no pointers.
+static void _actor317000TurnHeadToTarget(Task* task, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight)
 {
-    GfxCoord*         coord;
-    GfxCoord*         target;
-    GfxCoord*         head;
-    GfxCoord*         aim;
-    MATRIX*           arm;
-    GfxRotationWords* words;
-    VECTOR            delta;
-    VECTOR            dir;
-    SVECTOR           ang;
-    SVECTOR           vec;
-    SVECTOR           rot;
+    enum {
+        ACTOR_317000_HEAD_PART           = 5,
+        ACTOR_317000_TARGET_HEAD_PART    = 4,
+        ACTOR_317000_HEAD_REFERENCE_PART = 2,
+        ACTOR_317000_HEAD_SUPPORT_PART   = 3,
+    };
+    GfxCoord* subjectCoords;
+    GfxCoord* targetCoords;
+    GfxCoord* headCoord;
+    GfxCoord* targetHeadCoord;
+    MATRIX*   part3Rotation;
+    VECTOR    toTarget;
+    VECTOR    direction;
+    SVECTOR   headAngles;
+    SVECTOR   jointAngles;
+    SVECTOR   turnAngles;
 
-    coord  = task->extra.tmd->coords;
-    target = targetTask->extra.tmd->coords;
-    head   = &coord[5];
-    aim    = &target[4];
+    subjectCoords   = task->extra.tmd->coords;
+    targetCoords    = targetTask->extra.tmd->coords;
+    headCoord       = &subjectCoords[ACTOR_317000_HEAD_PART];
+    targetHeadCoord = &targetCoords[ACTOR_317000_TARGET_HEAD_PART];
 
-    delta.vx = aim->workm.t[0] - head->workm.t[0];
-    delta.vy = aim->workm.t[1] - head->workm.t[1];
-    delta.vz = aim->workm.t[2] - head->workm.t[2];
-    VectorNormal(&delta, &delta);
-    ApplyTransposeMatrixLV(&task->extra.tmd->coords[2].workm, &delta, &delta);
-    VectorNormal(&delta, &dir);
+    // Express the world separation in the subject's part-2 frame.
+    toTarget.vx = targetHeadCoord->workm.t[0] - headCoord->workm.t[0];
+    toTarget.vy = targetHeadCoord->workm.t[1] - headCoord->workm.t[1];
+    toTarget.vz = targetHeadCoord->workm.t[2] - headCoord->workm.t[2];
+    VectorNormal(&toTarget, &toTarget);
+    ApplyTransposeMatrixLV(&task->extra.tmd->coords[ACTOR_317000_HEAD_REFERENCE_PART].workm, &toTarget, &toTarget);
+    VectorNormal(&toTarget, &direction);
 
-    rot.vx = ratan2(dir.vz, dir.vy);
-    rot.vy = ratan2(dir.vx, -ABS(dir.vz));
-    rot.vz = ratan2(dir.vx, dir.vy);
+    turnAngles.vx = ratan2(direction.vz, direction.vy);
+    turnAngles.vy = ratan2(direction.vx, -ABS(direction.vz));
+    turnAngles.vz = ratan2(direction.vx, direction.vy);
 
-    gfxExtractSmallestEuler(&ang, &coord[5].coord);
-    ang.vx = (u16)ang.vx + (u16)rot.vx;
-    ang.vy = (u16)ang.vy + (u16)rot.vy;
-    ang.vz = (u16)ang.vz + (u16)rot.vz;
-    RotMatrix(&ang, &coord[5].coord);
+    gfxExtractSmallestEuler(&headAngles, &subjectCoords[ACTOR_317000_HEAD_PART].coord);
+    headAngles.vx = (u16)headAngles.vx + (u16)turnAngles.vx;
+    headAngles.vy = (u16)headAngles.vy + (u16)turnAngles.vy;
+    headAngles.vz = (u16)headAngles.vz + (u16)turnAngles.vz;
+    RotMatrix(&headAngles, &subjectCoords[ACTOR_317000_HEAD_PART].coord);
 
-    gfxExtractSmallestEuler(&rot, &coord[5].coord);
-    arm = &task->extra.tmd->coords[3].coord;
-    gfxExtractSmallestEuler(&vec, arm);
-    vec.vx = (u16)vec.vx + rot.vx / 8;
-    vec.vy = (u16)vec.vy + rot.vy / 8;
-    vec.vz = (u16)vec.vz + rot.vz / 8;
-    RotMatrix(&vec, arm);
+    // Share the resulting head rotation with part 3 before reducing the head pose.
+    gfxExtractSmallestEuler(&turnAngles, &subjectCoords[ACTOR_317000_HEAD_PART].coord);
+    part3Rotation = &task->extra.tmd->coords[ACTOR_317000_HEAD_SUPPORT_PART].coord;
+    gfxExtractSmallestEuler(&jointAngles, part3Rotation);
+    jointAngles.vx = (u16)jointAngles.vx + turnAngles.vx / 8;
+    jointAngles.vy = (u16)jointAngles.vy + turnAngles.vy / 8;
+    jointAngles.vz = (u16)jointAngles.vz + turnAngles.vz / 8;
+    RotMatrix(&jointAngles, part3Rotation);
 
-    gfxExtractSmallestEuler(&vec, &coord[5].coord);
-    vec.vx = vec.vx * 5 / 8;
-    vec.vy = vec.vy * 5 / 8;
-    vec.vz = vec.vz * 5 / 8;
+    gfxExtractSmallestEuler(&jointAngles, &subjectCoords[ACTOR_317000_HEAD_PART].coord);
+    jointAngles.vx = jointAngles.vx * 5 / 8;
+    jointAngles.vy = jointAngles.vy * 5 / 8;
+    jointAngles.vz = jointAngles.vz * 5 / 8;
 
-    words         = (GfxRotationWords*)&coord[5].coord;
-    words->m00M01 = ONE;
-    words->m02M10 = 0;
-    words->m11M12 = ONE;
-    words->m20M21 = 0;
-    words->m22    = ONE;
-    RotMatrix(&vec, &coord[5].coord);
+    gfxSetRotIdentity(&subjectCoords[ACTOR_317000_HEAD_PART].coord);
+    RotMatrix(&jointAngles, &subjectCoords[ACTOR_317000_HEAD_PART].coord);
 }
 
-/// Message 0x7DD handler of the table `func_actor_317000_8016267C` installs,
-/// and the actor's spawn body. The placement's position and rotation are
-/// copied into the work's `walk.target` and `walk.targetRot`, `walk.motion` --
-/// the index `func_actor_317000_80161E68` dispatches on -- is latched to 1, and
-/// the animation preset is filled: bank 0, the start clip from `anim`
-/// (`animationId`, or 2 when `anim` is absent), `nextAnimId` into
-/// `model.nextAnimId` (or 1 when absent), then blend, 5 frames and world
-/// collision on.
+/// Applies a changed start clip to the actor's nineteen-part animation rig.
 ///
-/// The preset is then installed the way `_actorMotionPlayAnim19` installs
-/// one, written out in-line: a changed `field_0` resets the bank in
-/// `gActorMotionAnimBanks19` through `animationInitContext` (`model.bank` latches it,
-/// `model.animId` goes back to -1), and a changed `field_4` -- or a preset asking
-/// for slots when `model.ticking` says the slots are already ticking -- is pushed
-/// onto `animationSeekSlotWithBlend`'s per-slot loop instead of the `animationResetSlot`
-/// one, followed by a `animationTickSlot` pass over the same 0x12 slots and
-/// `model.ticking` raised. Returns 0 either way.
-s32 func_actor_317000_80162458(Task* task, s32 arg1, ActorTransform* place, ActorMotionWalkAnim* anim)
+/// Borrows a live model, initialized work and a request through the call.
+/// Bank and clip must exist in `gActorMotionAnimBanks19`; a bank change binds
+/// the rig and invalidates the old clip. Slots 1..18 blend for the requested
+/// duration when already ticking, otherwise reset, then tick immediately.
+static inline void _actor317000ApplyLeapStartAnimation(Task* task, const AnimationPlayRequest* request)
 {
-    _Actor317000Work*     work;
-    _Actor317000Work*     w;
-    AnimationPlayRequest  preset;
-    AnimationPlayRequest* msg;
-    s32                   i;
-    TmdObject*            ext;
+    _Actor317000Work* playbackWork;
+    TmdObject*        bodyModel;
+    s32               slotIndex;
 
-    w                    = task->work;
-    w->walk.motion       = ACTOR_WALK_MOTION_WALKING;
-    w->walk.target.vx    = place->pos.vx;
-    w->walk.target.vy    = place->pos.vy;
-    w->walk.target.vz    = place->pos.vz;
-    w->walk.targetRot.vx = place->rot.vx;
-    w->walk.targetRot.vy = place->rot.vy;
-    w->walk.targetRot.vz = place->rot.vz;
-    preset.source.index  = 0;
-    if (anim != NULL) {
-        preset.animationId  = anim->animationId;
-        w->model.nextAnimId = anim->nextAnimId;
-    } else {
-        preset.animationId  = 2;
-        w->model.nextAnimId = 1;
+    playbackWork = task->work;
+    bodyModel    = task->extra.tmd;
+    if (request->source.index != playbackWork->model.bank) {
+        playbackWork->model.bank   = request->source.index;
+        playbackWork->model.animId = ACTOR_MODEL_STATE_NONE;
+        animationInitContext(&playbackWork->rig.anim, gActorMotionAnimBanks19[playbackWork->model.bank], bodyModel, playbackWork->rig.poses,
+                             playbackWork->rig.slots);
     }
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-
-    msg  = &preset;
-    work = task->work;
-    ext  = task->extra.tmd;
-    if (msg->source.index != work->model.bank) {
-        work->model.bank   = msg->source.index;
-        work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], ext, work->rig.poses,
-                             work->rig.slots);
-    }
-    if (msg->animationId != work->model.animId) {
-        work->model.animId = msg->animationId;
-        if (msg->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {
-            for (i = 1; i < 0x13; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->model.animId, 0, msg->blendFrames);
+    if (request->animationId != playbackWork->model.animId) {
+        playbackWork->model.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET && playbackWork->model.ticking != 0) {
+            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&playbackWork->rig.anim, slotIndex, playbackWork->model.animId, 0, request->blendFrames);
             }
         } else {
-            for (i = 1; i < 0x13; i++) {
-                animationResetSlot(&work->rig.anim, i, work->model.animId);
+            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+                animationResetSlot(&playbackWork->rig.anim, slotIndex, playbackWork->model.animId);
             }
         }
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(playbackWork->rig.slots); slotIndex++) {
+            animationTickSlot(&playbackWork->rig.anim, slotIndex);
         }
-        work->model.ticking = 1;
+        playbackWork->model.ticking = 1;
     }
+}
+
+/// Handles a walk-to message by starting this actor's scripted leap.
+///
+/// Requires initialized work and a live nineteen-part model. Borrows a readable
+/// placement and optional clip pair through dispatch; records the position
+/// without using it as an arrival target. The placement yaw selects the launch
+/// heading. An absent clip pair selects clips 2 and 1; supplied IDs must index
+/// bank 0's loaded clips. The start clip blends for five frames when already
+/// ticking, otherwise its slots reset. Returns 0; ignores the message ID.
+/// Keeps the current step, velocity and fractional carry, so a fresh sequence
+/// requires the idle step left by initialization or completion.
+static s32 _actor317000BeginLeap(Task* task, s32 messageId, const ActorTransform* launchPlacement, const ActorMotionWalkAnim* animationRequest)
+{
+    enum { ACTOR_317000_DEFAULT_LANDING_ANIMATION = 1 };
+    _Actor317000Work*    leapWork;
+    AnimationPlayRequest startRequest;
+
+    leapWork                    = task->work;
+    leapWork->walk.motion       = ACTOR_WALK_MOTION_WALKING;
+    leapWork->walk.target.vx    = launchPlacement->pos.vx;
+    leapWork->walk.target.vy    = launchPlacement->pos.vy;
+    leapWork->walk.target.vz    = launchPlacement->pos.vz;
+    leapWork->walk.targetRot.vx = launchPlacement->rot.vx;
+    leapWork->walk.targetRot.vy = launchPlacement->rot.vy;
+    leapWork->walk.targetRot.vz = launchPlacement->rot.vz;
+    startRequest.source.index   = 0;
+    if (animationRequest != NULL) {
+        startRequest.animationId   = animationRequest->animationId;
+        leapWork->model.nextAnimId = animationRequest->nextAnimId;
+    } else {
+        startRequest.animationId   = ACTOR_317000_LEAP_ANIMATION;
+        leapWork->model.nextAnimId = ACTOR_317000_DEFAULT_LANDING_ANIMATION;
+    }
+    startRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+    startRequest.blendFrames          = ACTOR_317000_BLEND_FRAMES;
+    startRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+
+    // Apply a changed clip immediately; an unchanged clip keeps its current cursor.
+    _actor317000ApplyLeapStartAnimation(task, &startRequest);
     return 0;
 }
 
-/// Task callback of the actor: copies the three-handler table
-/// `D_actor_317000_80161E24` (spawn `func_actor_317000_8016267C`, per-frame
-/// tick `func_actor_317000_80161E68`, exit `func_actor_317000_80162724`) onto
-/// the stack and runs the entry `Task::state` selects.
-void func_actor_317000_80162624(Task* task)
+/// Runs this actor's initialization, update or exit state.
+///
+/// Requires a live TMD task with `state` 0, 1 or 2 respectively; the stack-copied
+/// dispatch table has no bounds check. The actor package and its descriptor's
+/// model data must remain loaded for the task's lifetime.
+static void _actor317000Task(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_317000_80161E24;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_317000_80161E24;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// Spawn state of the enemy actor: allocates the 0x4CC-byte work block every
-/// later handler reads through `Task::work`, seeds the three -1 fields and the
-/// three cleared words the work's own init expects, republishes the light and
-/// colour matrices onto the display object, sets `TmdObject::flags` bit 0x80
-/// through the mode-0 call, then installs the message table and the exit
-/// handler. An allocation failure ends the task instead of leaving a
-/// half-built actor behind.
-static void func_actor_317000_8016267C(Task* arg0)
+/// Allocates the actor's playback and leap work and installs its callbacks.
+///
+/// The zeroed block belongs to the task and remains live until enemy teardown.
+/// Seeds unbound bank/clip IDs and a disabled buffer-release counter, lends the
+/// work's light and colour matrices to the TMD object, and starts hidden with
+/// automatic buffer handling. Allocation failure tears down the task.
+static void _actor317000Init(Task* task)
 {
+    enum { ACTOR_317000_BUFFER_FREE_NONE = -1 };
     _Actor317000Work* work;
 
     work = memCalloc(sizeof(_Actor317000Work), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
 
-    arg0->work               = work;
+    task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown      = -1;
+    work->freeCountdown      = ACTOR_317000_BUFFER_FREE_NONE;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    func_actor_317000_80162744(arg0);
-    func_actor_317000_80162BC4(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+    _actor317000BindLighting(task);
+    _actor317000SetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_317000_DRAW_HIDE_AUTO, 0);
 
-    arg0->msgTable     = D_actor_317000_8016CF50;
-    arg0->exitCallback = func_actor_317000_80162724;
-    arg0->state++;
+    task->msgTable     = D_actor_317000_8016CF50;
+    task->exitCallback = _actor317000Exit;
+    task->state++;
 }
 
-/// Exit handler, both the third entry of `D_actor_317000_80161E24` and the
-/// `Task::exitCallback` `func_actor_317000_8016267C` installs: ends the task
-/// through `enemyTaskExit`.
-static void func_actor_317000_80162724(Task* arg0)
+/// Tears down the actor through the enemy task lifecycle.
+///
+/// Used both as state 2 and as the exit callback; the task and its owned work
+/// must not be used after this call.
+static void _actor317000Exit(Task* task)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }
 
-/// Points the display object's light and colour matrices at the work block's
-/// own copies, `light` and `color` of `_Actor317000Work::model`.
-static void func_actor_317000_80162744(Task* arg0)
+/// Lends the work-owned light and colour matrices to the actor's TMD object.
+///
+/// Requires initialized live work and model storage. Both matrices must remain
+/// live while the model borrows them; no matrix contents are changed here.
+static void _actor317000BindLighting(Task* task)
 {
-    TmdObject*        ext;
+    TmdObject*        bodyModel;
     _Actor317000Work* work;
 
-    ext           = arg0->extra.tmd;
-    work          = arg0->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    bodyModel           = task->extra.tmd;
+    work                = task->work;
+    bodyModel->lightMtx = &work->model.light;
+    bodyModel->colorMtx = &work->model.color;
 }
 
-/// Index 0 of the two-entry table `func_actor_317000_80161E68` dispatches on
-/// `_Actor317000Work::walk.motion`: does nothing.
-static void func_actor_317000_80162760(Task* arg0)
+/// Leaves an idle actor's motion unchanged while its animation and head turn continue.
+static void _actor317000Idle(Task* task)
 {
 }
 
-/// Index 1 of the two-entry table `func_actor_317000_80161E68` dispatches on
-/// `_Actor317000Work::walk.motion`: copies the four step handlers
-/// `D_actor_317000_80161E30` onto the stack and runs the one
-/// `_Actor317000Work::walk.motionStep` selects, read sign-extended.
-static void func_actor_317000_80162768(Task* arg0)
+/// Dispatches the current leap phase from a stack copy of the package's table.
+///
+/// Requires initialized work with `walk.motionStep` 0..3: turn to launch yaw,
+/// launch, land, face the player. Initialization and the final phase establish
+/// step 0; each intervening phase advances once. Dispatch has no bounds check.
+static void _actor317000RunLeapStep(Task* task)
 {
     TaskFuncTable4    handlers;
     _Actor317000Work* work;
 
-    work     = arg0->work;
+    work     = task->work;
     handlers = D_actor_317000_80161E30;
-    handlers.funcs[work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](task);
 }
 
-/// Step handler at index 0 of `D_actor_317000_80161E30`: Euler-extracts the
-/// root coordinate into `vec`, and while the yaw gap to the target
-/// `work->walk.targetRot.vy` is at least 0x41 it steps `vec.vy` toward it by 0x40 --
-/// the step is taken on an `s32` widening of the extracted yaw -- and
-/// otherwise snaps the yaw to the target and plays anim 0x7D3 with a preset
-/// whose `field_4` is the literal 2, clearing the `airborne` flag and
-/// advancing `walk.motionStep`. Either way the root coordinate is rebuilt as the
-/// identity matrix rotated by `vec`.
-static void func_actor_317000_801627D0(Task* arg0)
+/// Turns to the requested launch yaw and selects the leap animation.
+///
+/// Requires initialized work and root coordinate. Angles use 4096 units per
+/// turn; moves at most 64 per tick, then snaps within that gap, selects clip 2
+/// with a five-frame blend, disables gravity and advances to launch.
+/// The signed-halfword yaw subtraction has no half-turn wrap correction.
+static void _actor317000TurnToLaunchYaw(Task* task)
 {
     _Actor317000Work*    work;
-    GfxRotationWords*    words;
-    GfxCoord*            coord;
-    SVECTOR              vec;
-    AnimationPlayRequest preset;
-    s32                  vy;
-    s16                  diff;
+    GfxCoord*            rootCoord;
+    SVECTOR              rootAngles;
+    AnimationPlayRequest launchRequest;
+    s32                  currentYaw;
+    s16                  yawDelta;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    gfxExtractSmallestEuler(&vec, &coord->coord);
-    diff = (u16)work->walk.targetRot.vy - (u16)vec.vy;
-    if (ABS(diff) >= 0x41) {
-        vy = vec.vy;
-        if (diff < 0) {
-            vec.vy = vy - 0x40;
+    gfxExtractSmallestEuler(&rootAngles, &rootCoord->coord);
+    yawDelta = (u16)work->walk.targetRot.vy - (u16)rootAngles.vy;
+    if (ABS(yawDelta) >= ACTOR_317000_YAW_STEP + 1) {
+        currentYaw = rootAngles.vy;
+        if (yawDelta < 0) {
+            rootAngles.vy = currentYaw - ACTOR_317000_YAW_STEP;
         } else {
-            vec.vy = vy + 0x40;
+            rootAngles.vy = currentYaw + ACTOR_317000_YAW_STEP;
         }
     } else {
-        vec.vy                      = work->walk.targetRot.vy;
-        preset.source.index         = 0;
-        preset.animationId          = 2;
-        preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-        preset.blendFrames          = 5;
-        preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+        rootAngles.vy                      = work->walk.targetRot.vy;
+        launchRequest.source.index         = 0;
+        launchRequest.animationId          = ACTOR_317000_LEAP_ANIMATION;
+        launchRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+        launchRequest.blendFrames          = ACTOR_317000_BLEND_FRAMES;
+        launchRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &launchRequest, 0);
         work->airborne = 0;
         work->walk.motionStep++;
     }
 
-    words         = (GfxRotationWords*)&coord->coord;
-    words->m00M01 = ONE;
-    words->m02M10 = 0;
-    words->m11M12 = ONE;
-    words->m20M21 = 0;
-    words->m22    = ONE;
-    RotMatrix(&vec, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    gfxSetRotIdentity(&rootCoord->coord);
+    RotMatrix(&rootAngles, &rootCoord->coord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Step handler at index 1 of `D_actor_317000_80161E30`, reached by the
-/// `walk.motionStep` advance `func_actor_317000_801627D0` ends with: rotates the constant local-space
-/// offset `D_actor_317000_80161E40` through the root part's matrix into
-/// `work->walk.velocity`, then raises `airborne` and moves the dispatcher on.
-static void func_actor_317000_801628D8(Task* task)
+/// Launches the actor by rotating its signed 16.16 local velocity into the root frame.
+///
+/// Requires an initialized root rotation and leap work. The package vector
+/// provides -128 Y and +64 Z coordinate units per tick before rotation.
+/// Enables gravity and advances to the landing check; retains fractional carry.
+static void _actor317000LaunchLeap(Task* task)
 {
     _Actor317000Work* work;
-    GfxCoord*         coord;
-    VECTOR            vec;
+    GfxCoord*         rootCoord;
+    VECTOR            launchVelocity;
 
-    coord = task->extra.tmd->coords;
-    work  = task->work;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
 
-    vec = D_actor_317000_80161E40;
-    ApplyMatrixLV(&coord->coord, &vec, &work->walk.velocity);
+    launchVelocity = D_actor_317000_80161E40;
+    ApplyMatrixLV(&rootCoord->coord, &launchVelocity, &work->walk.velocity);
     work->airborne = 1;
     work->walk.motionStep++;
 }
 
-/// Step handler at index 2 of `D_actor_317000_80161E30`, the step after
-/// `func_actor_317000_801628D8` and reached by the `walk.motionStep` advance that
-/// body ends with. While the root coordinate's Y is below -0x30 it does
-/// nothing; above it the rise is over: the local-space `work->walk.velocity` the
-/// previous body wrote is cleared, the animation is re-applied through message
-/// 0x7D3 with the latched `model.nextAnimId` state, and sound 0x400A000B is queued
-/// panned and attenuated from the root coordinate's matrix. The `airborne`
-/// flag the previous body raised is cleared and the dispatcher advances again.
-static void func_actor_317000_80162950(Task* arg0)
+/// Stops the leap near floor height, plays the queued clip and sounds the landing.
+///
+/// Requires initialized work and root coordinate. Waits while root Y is below
+/// -48 coordinate units, then blends to `model.nextAnimId` for five frames,
+/// plays the positional actor sound, clears velocity and gravity, and advances
+/// to face the player. It neither snaps root Y to the floor nor clears carry.
+static void _actor317000LandLeap(Task* task)
 {
-    GfxCoord*            coord;
+    enum {
+        ACTOR_317000_LANDING_Y     = -0x30, // Root-coordinate units; positive Y points down
+        ACTOR_317000_LANDING_SOUND = SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x0B),
+    };
+    GfxCoord*            rootCoord;
     _Actor317000Work*    work;
-    AnimationPlayRequest preset;
-    s32                  pan;
+    AnimationPlayRequest landingRequest;
+    s32                  audioPan;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    if (coord->coord.t[1] < -0x30) {
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
+    if (rootCoord->coord.t[1] < ACTOR_317000_LANDING_Y) {
         return;
     }
-    preset.source.index         = 0;
-    preset.animationId          = work->model.nextAnimId;
-    preset.blend                = ANIMATION_BLEND_INTERPOLATE;
-    preset.blendFrames          = 5;
-    preset.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    _actorMotionPlayAnim19(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
-    pan = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_ACTOR_311500, 0x0B), pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    landingRequest.source.index         = 0;
+    landingRequest.animationId          = work->model.nextAnimId;
+    landingRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+    landingRequest.blendFrames          = ACTOR_317000_BLEND_FRAMES;
+    landingRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    _actorMotionPlayAnim19(task, ACTOR_MESSAGE_PLAY_ANIMATION, &landingRequest, 0);
+    audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+    sndEvtRequestScriptStart(ACTOR_317000_LANDING_SOUND, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
 
     work->walk.velocity.vx = 0;
     work->walk.velocity.vy = 0;
@@ -812,81 +837,79 @@ static void func_actor_317000_80162950(Task* arg0)
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// Message 0x7D5 handler of `D_actor_317000_8016CF50`, also called directly by
-/// the spawn state `func_actor_317000_8016267C` with mode 0. `mode` sets or
-/// clears bit 0x80 of `TmdObject::flags` and sets or clears `TMD_OBJECT_SKIP_AUTO_BUFFER`:
+/// Handles the actor's draw mode and primitive-buffer ownership choice.
 ///
-///   mode 0  set 0x80, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 1  clear 0x80, `tmdAllocPrimitiveBuffer`, clear `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 2  set 0x80, store 2 in the countdown `_Actor317000Work::freeCountdown`
-///           that `func_actor_317000_80161E68` ends in `tmdFreePrimitiveBuffer`,
-///           set `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///   mode 3  clear 0x80, set `TMD_OBJECT_SKIP_AUTO_BUFFER`
-///
-/// Any other mode returns 1; the four known ones return 0. `arg3` is unused.
-s32 func_actor_317000_80162BC4(Task* task, s32 arg1, s32 mode, s32 arg3)
+/// Requires initialized work and a live TMD object. Modes: 0 hides with automatic
+/// buffers; 1 shows and allocates a buffer with automatic handling; 2 hides,
+/// schedules release on the third following update and disables automatic handling;
+/// 3 shows with manual buffers. Mode 3 requires a usable buffer already present.
+/// Other values return 1 unchanged; supported modes return 0. Message ID and
+/// fourth argument are ignored. Changing modes does not cancel a pending release.
+static s32 _actor317000SetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg)
 {
-    TmdObject*        obj;
+    TmdObject*        bodyModel;
     _Actor317000Work* work;
-    s32               ret;
+    s32               result;
 
-    obj  = task->extra.tmd;
-    work = task->work;
-    ret  = 0;
+    bodyModel = task->extra.tmd;
+    work      = task->work;
+    result    = 0;
     switch (mode) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_317000_DRAW_HIDE_AUTO:
+            bodyModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_317000_DRAW_SHOW_ALLOCATE:
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(bodyModel);
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_317000_DRAW_HIDE_RELEASE:
+            bodyModel->flags   |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->freeCountdown = mode;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            bodyModel->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_317000_DRAW_SHOW_MANUAL:
+            bodyModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            bodyModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    return ret;
+    return result;
 }
 
-/// Message 0x7DB handler of the table `func_actor_317000_8016267C` installs:
-/// latches the payload's halfword at 0x2 into `_Actor317000Work::turnWeightRising` --
-/// 0 for mode 0, the mode itself for mode 1 -- and for any other mode dumps the
-/// root coordinate's matrix translation (`"pos"`) and the euler angles
-/// `gfxExtractSmallestEuler` derives from its rotation matrix (`"rot"`) through
-/// `GPU_printf`, both under the `"%s=(%d,%d,%d)\n"` format. Returns 0
-/// either way.
-s32 func_actor_317000_80162CA0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Selects the head-turn weight ramp or prints the actor's root transform.
+///
+/// Borrows a readable command through dispatch and ignores its context tags.
+/// Commands 0 and 1 lower or raise the 1/4096 weight; all other values print root
+/// position in coordinate units and Euler rotation in 4096 units per turn.
+/// The head-turn routine currently ignores that weight. Requires initialized
+/// work and a live root; ignores message ID and fourth argument. Returns 0.
+static s32 _actor317000ApplyCommand(Task* task, s32 messageId, const ActorCommand* commandRequest, s32 unusedArg)
 {
+    enum { ACTOR_317000_COMMAND_LOWER_HEAD_WEIGHT = 0,
+           ACTOR_317000_COMMAND_RAISE_HEAD_WEIGHT = 1 };
     _Actor317000Work* work;
-    GfxCoord*         coord;
-    SVECTOR           rot;
-    s32               mode;
+    GfxCoord*         rootCoord;
+    SVECTOR           rootAngles;
+    s32               command;
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
-    mode  = msg->command;
-    switch (mode) {
-        case 0:
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    command   = commandRequest->command;
+    switch (command) {
+        case ACTOR_317000_COMMAND_LOWER_HEAD_WEIGHT:
             work->turnWeightRising = 0;
             break;
-        case 1:
-            work->turnWeightRising = mode;
+        case ACTOR_317000_COMMAND_RAISE_HEAD_WEIGHT:
+            work->turnWeightRising = command;
             break;
         default:
-            GPU_printf("%s=(%d,%d,%d)\n", "pos", coord->coord.t[0], coord->coord.t[1], coord->coord.t[2]);
-            gfxExtractSmallestEuler(&rot, &coord->coord);
-            GPU_printf("%s=(%d,%d,%d)\n", "rot", rot.vx, rot.vy, rot.vz);
+            GPU_printf("%s=(%d,%d,%d)\n", "pos", rootCoord->coord.t[0], rootCoord->coord.t[1], rootCoord->coord.t[2]);
+            gfxExtractSmallestEuler(&rootAngles, &rootCoord->coord);
+            GPU_printf("%s=(%d,%d,%d)\n", "rot", rootAngles.vx, rootAngles.vy, rootAngles.vz);
             break;
     }
     return 0;

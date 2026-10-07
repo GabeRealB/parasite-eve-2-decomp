@@ -85047,7 +85047,7 @@ the byte `airborne` at 0x4C4 (the target stores 0x4C4 with `sb`,
 so it is a byte, where actor_335800's is an `s16`). Nothing else moved, because
 the new fields only replace padding and the struct stays 0x4CC.
 
-Example: `func_actor_317000_801628D8` (46.833% -> 100.000%, one build).
+Example: `_actor317000LaunchLeap` (46.833% -> 100.000%, one build).
 
 Inputs: `base.i` (m2c seed, 46.833%)
 `5bcf753c2b26d9121df7681977eaba481097034781daad8a06bbe2b1aecf1af3`.
@@ -85252,7 +85252,7 @@ Inputs: `base_2.i` (two independent `if`s, each with the tail spelled out,
 a constant local-space offset through the root part's matrix into `work->walkVelocity`,
 opens the three per-axis stop thresholds to 0x7FFF and advances the handler
 counter. `_actor335800FlintBeginApproach`, `ActorsShared80132920` and
-`func_actor_317000_801628D8` are the same body, 32 instructions each.
+`_actor317000LaunchLeap` are the same body, 32 instructions each.
 
 **Symptom:** `overlay_dup_index.py find` reports `same body: 1 copies` - itself.
 Equality is decided on disassembly *text*, and the copies differ in every
@@ -101177,7 +101177,7 @@ Inputs: `base.i`
 `base_1.i` `cad5783bf08d48a08087b419551d9e0c8549be2c16e0ab3a77ede263accb054`
 (100.000%).
 
-## Two `-1` seeds of different widths each materialize, and that is the plain C (func_actor_317000_8016267C, 2026-09-16)
+## Two `-1` seeds of different widths each materialize, and that is the plain C (_actor317000Init, 2026-09-16)
 
 The enemy actors' spawn state seeds `-1` into the work block with two byte
 stores and one halfword store - `model.animId`/`model.bank` are `s8`, `freeCountdown` is
@@ -101210,12 +101210,12 @@ assignments:
 The same two-`addiu` shape is in the already-matched `_actor335800FlintInit`,
 whose work block is `s8`/`s8`/`s16` at the same three offsets, so this is the
 family's idiom rather than a property of one actor. Evidence: scratch
-`nonmatchings/func_actor_317000_8016267C-vacuum/`, `base_1.c` (100.000%, all
+`nonmatchings/_actor317000Init-vacuum/`, `base_1.c` (100.000%, all
 penalties zero, `Repeated assembly: base_1.c reproduces base.c`).
 
 ## A narrow switch index wants an `int` local, and that local is what keeps a byte store off a fresh `lbu`
 
-`func_actor_317000_80162CA0` dispatches a message payload's halfword and writes
+`_actor317000ApplyCommand` dispatches a message payload's halfword and writes
 it back into a byte field. Three spellings of the same source give three
 different objects:
 
@@ -101231,18 +101231,18 @@ Lone:
  sb    v1,0x4c5(a1)         /* the register the index was loaded into */
 ```
 
-* `switch (msg->field_2)` with `case 1: work->turnWeightRising = msg->field_2;` —
+* `switch (commandRequest->command)` with `case 1: work->turnWeightRising = commandRequest->command;` —
   expand emits the index as `(set (reg:SI N) (zero_extend:SI (mem/s:HI ...)))`,
   which folds into the `lhu` (no `andi`), but the *store's* right-hand side is
   re-expanded as `(set (reg:QI M) (mem/s:QI (plus ... 2)))`: a `subreg` of a
   `MEM` narrows the access to its own mode, so GCC loads the byte again instead
   of reusing the register it just loaded. One extra `lbu` (`regs=1 insert=1`,
   97.900%).
-* `u16 v = msg->field_2; switch (v)` — the index is now
+* `u16 v = commandRequest->command; switch (v)` — the index is now
   `(zero_extend:SI (reg/v:HI v))`, a convertible pattern with no memory to fold
   into, so GCC emits `lhu` *and* an explicit `andi v,0xffff` (this is what the
   m2c seed's `opcode_delta {12:0}` was).
-* `s32 mode = msg->field_2; switch (mode) { ... case 1: work->turnWeightRising = mode; }`
+* `s32 command = commandRequest->command; switch (command) { ... case 1: work->turnWeightRising = command; }`
   — the zero-extending `lhu` lands in one SI pseudo, the switch needs no
   conversion, and the byte store is a `subreg` of that *register*, so it reuses
   it: `sb v1`. 100.000%, all penalties zero.
@@ -101253,7 +101253,7 @@ The family's sibling `func_actor_350500_80162ABC` switches on the field directly
 and gets the right index that way -- because its case bodies store *constants*,
 the store takes the constant's register (`sb $a1`) and the narrowing never
 arises; the two forms are the same mechanism seen from either side. Evidence:
-scratch `nonmatchings/func_actor_317000_80162CA0-vacuum/`, `base_1.c` (97.900%)
+scratch `nonmatchings/_actor317000ApplyCommand-vacuum/`, `base_1.c` (97.900%)
 against `base_2.c` (100.000%, all penalties zero).
 
 ## `abs()` and a hand-written absolute value differ by one `move`, and the negation's operand tells them apart
@@ -101293,23 +101293,23 @@ Putting a copy statement between the truncation and the test (`x = diff;` before
 the copy itself, because `abssi2` is one insn and nothing can reach inside it.
 Reading the negation's operand is the discriminator: `negu dst,dst` after a
 `bgez`/`move` pair is `abs()` with dst != src; `negu dst,src` is a hand-written
-form. Evidence: scratch `nonmatchings/func_actor_317000_801620BC-vacuum/`,
+form. Evidence: scratch `nonmatchings/_actor317000FacePlayerAfterLeap-vacuum/`,
 `base_3.c` (99.936%, `negu v0,v1`) against `base_4.c` (100.000%, all penalties
 zero); matched carrier `_actor00300TickPursuit` (`s16 delta; s32 magnitude;
 magnitude = abs(delta);`) shows the same three instructions.
 
 ## A halfword field read twice is sign-extended only if the value flows into a wider local
 
-`ang.vy` (an `SVECTOR` field) is read twice in `func_actor_317000_801620BC`:
+`rootAngles.vy` (an `SVECTOR` field) is read twice in `_actor317000FacePlayerAfterLeap`:
 once as the right operand of a subtraction that is immediately truncated back
-to `s16`, and once for `ang.vy ± 0x40`, stored back through the same halfword
+to `s16`, and once for `rootAngles.vy ± 0x40`, stored back through the same halfword
 field. GCC loads it once, as `lhu`, because only the low 16 bits survive either
 use, and the `sll/sra` that would materialise the real `short` value is skipped:
 the adjustment comes out `addu v0,v1,0x40` off the zero-extended register.
-Assigning the field to an `s32` local first (`y = ang.vy;`) makes the widened
+Assigning the field to an `s32` local first (`currentYaw = rootAngles.vy;`) makes the widened
 value the one that is needed, so the conversion is emitted and the target's
 `sll v0,a0,16; sra v0,v0,16` reappears ahead of the `±0x40` (`regs=8` -> `regs=1`
-in one edit). Evidence: scratch `nonmatchings/func_actor_317000_801620BC-vacuum/`,
+in one edit). Evidence: scratch `nonmatchings/_actor317000FacePlayerAfterLeap-vacuum/`,
 `base_1.c`/`base_2.c` before the local was added.
 ## A local's address earns a callee-saved register only from the stores written *through* a pointer, and that shifts every other allocation (_actor135600AttachKyleMadiganHeldItem, 2026-09-16)
 
@@ -101475,7 +101475,7 @@ is not a `_StageMusicSelection`: the spawn state `memCalloc`s it (0x4CC here) in
 `Task::work`, exactly as in `actor_141000` / `actor_317000` / `actor_350500` /
 `actor_350700`, and this function republishes `&work->light` / `&work->color`
 onto `TmdObject::lightMtx` / `colorMtx` - the pair `_worldCoordInitPlayerLighting` otherwise
-points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `func_actor_317000_80162744` and
+points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`. `_actor317000BindLighting` and
 `func_actor_350700_801624B4` are the same republish in their own overlays.
 `_actor311900InitSwatLighting`, the very next unmatched function in this unit, is
 this body with a different light matrix: `m[0][0]` is `-0x1000` and the two
@@ -126418,7 +126418,7 @@ Inputs: scratch `nonmatchings/func_actor_323300_80162DF0-vacuum`, `base_1.c`
 75.687% (`beqz v0,...` with everything else already right), `base_5.c` 100.000%.
 Preprocessed `base_5.i` `4b72a01ea866e3db...`. Assembly `d94b8b542c67924d...`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A `MATRIX` identity written element-wise stays nine `sh`; GCC 2.8.1 does not merge adjacent constant halfword stores (func_actor_317000_801627D0, 2026-09-17)
+## A `MATRIX` identity written element-wise stays nine `sh`; GCC 2.8.1 does not merge adjacent constant halfword stores (_actor317000TurnToLaunchYaw, 2026-09-17)
 
 The actor turn-to-face bodies splat an identity over the root `GfxCoord::coord`
 before `RotMatrix` overwrites the 3x3, and retail emits five aligned stores:
@@ -126458,7 +126458,7 @@ whose field accesses cover 18 bytes without touching the alignment halfword;
 `base_2.c` is the experiment behind it. Reach for it
 whenever a `MATRIX` (or any 3x3-plus-halfword region) is splatted with constants
 and the target shows fewer stores than elements.
-## Whether a promotion renumbers units is decided by the span's *start*, and you can read that before running `promote` (func_actor_317000_80162BC4, 2026-09-17)
+## Whether a promotion renumbers units is decided by the span's *start*, and you can read that before running `promote` (_actor317000SetDrawMode, 2026-09-17)
 
 The `func_actor_323000_8016331C` entry above describes the expensive promotion:
 the new `shared` span cuts the unit that contained it in two, so every later
@@ -126494,9 +126494,9 @@ started right after a match still sees the pre-match split and refuses with
 `overlay_dup_index.py --rebuild <subcommand>`. And `promote` only needs *one*
 carrier matched — the compiler regenerates the body per link address, so the
 other carrier's copy can still be `INCLUDE_ASM`, as `actor_113000`'s was.
-## A load in the target's entry block is where the source put it -- sched1 cannot move one across a branch (func_actor_317000_80162BC4, 2026-09-17)
+## A load in the target's entry block is where the source put it -- sched1 cannot move one across a branch (_actor317000SetDrawMode, 2026-09-17)
 
-`func_actor_317000_80162BC4` loads the work pointer (`lw $v1, 0x1C($a0)`) at the
+`_actor317000SetDrawMode` loads the work pointer (`lw $v1, 0x1C($a0)`) at the
 top of the function, before the switch dispatch, and uses it once in case 2
 (`sh $a2, 0x4C8($v1)`). Its byte-shaped matched siblings
 `_actor335800FlintSetDrawMode` and `func_actor_503500_801466E0` load the same
@@ -126515,7 +126515,7 @@ than the C statement that produces it is therefore a **source** difference, not 
 scheduling one: name the value in the block the target loads it in.
 
 ```c
-obj  = task->extra;
+bodyModel = task->extra.tmd;
 work = task->work;   /* the entry-block load */
 ```
 
@@ -126526,28 +126526,28 @@ into case 2 is not a pure relocation, it frees the register. Two byte-shaped
 siblings are not enough to settle which form a third carrier used; read the
 block the load sits in.
 
-## The same pointer is cached for one use and re-derived for the next two (func_actor_317000_801621F4, 2026-09-17)
+## The same pointer is cached for one use and re-derived for the next two (_actor317000TurnHeadToTarget, 2026-09-17)
 
 The rule "inline the memory expression instead of caching it in a local" has a
-mixed form, and this function is written that way. `index->extra->coords` -- the
+mixed form, and this function is written that way. `task->extra.tmd->coords` -- the
 `GfxCoord*` array at the end of the task's `TmdObject` -- is loaded once
-into `$s3` and used for the `coord[5]` accesses at both ends of the function, but
+into `$s3` and used for the `subjectCoords[ACTOR_317000_HEAD_PART]` accesses at both ends of the function, but
 is *re-derived from the parameter* at two sites in the middle:
 
 ```c
-ApplyTransposeMatrixLV(&((TmdObject*)task->extra)->coords[2].workm, &delta, &delta);
+ApplyTransposeMatrixLV(&task->extra.tmd->coords[ACTOR_317000_HEAD_REFERENCE_PART].workm, &toTarget, &toTarget);
 ...
-arm = &((TmdObject*)task->extra)->coords[3].coord;
+part3Rotation = &task->extra.tmd->coords[ACTOR_317000_HEAD_SUPPORT_PART].coord;
 ```
 
-Caching both pointers once each (`coord` and `target`, m2c's shape) scored
+Caching both pointers once each (`subjectCoords` and `targetCoords`, m2c's shape) scored
 93.582% with `stack=0 branch=7 regs=31 reorder=2 insert=0 delete=7`, 146
 instructions against the target's 153. The shortfall is seven: one `move s1,a0`
 saving the task argument, one `addiu` per pointer local, and two three-instruction
 reloads.
 
 **Cause.** The reloads are not about instruction count, they are what keeps the
-**parameter** live. Reloading `task->extra->coords` across a call needs `task`
+**parameter** live. Reloading `task->extra.tmd->coords` across a call needs `task`
 itself, so `task` sits in `$s1` from the `move s1,a0` in the prologue to the last
 reload; the target's `$s3` is the coord base, and `$s1` is reused for the second
 reload's result once the parameter dies. Cache the pointer instead and the
@@ -126562,42 +126562,42 @@ looking for an allocation tie. If the target's leftover register is the
 *parameter register*, the missing reloads are the cause and the answer is a
 re-derivation, not a pin.
 
-Two smaller shape points from the same function. `&coord[5]` and `&target[4]`
-must be real pointer locals (`head`, `aim`): indexing `target[4].workm.t[0]` off
+Two smaller shape points from the same function. `&subjectCoords[ACTOR_317000_HEAD_PART]` and `&targetCoords[ACTOR_317000_TARGET_HEAD_PART]`
+must be real pointer locals (`headCoord`, `targetHeadCoord`): indexing `targetCoords[ACTOR_317000_TARGET_HEAD_PART].workm.t[0]` off
 the array base folds into one `lw $v1, 0x178($a1)` and loses the target's
-`addiu a1,a1,0x140`. And `&coord[3].coord` is a `MATRIX*` *local*, not a call
+`addiu a1,a1,0x140`. And `&subjectCoords[ACTOR_317000_HEAD_SUPPORT_PART].coord` is a `MATRIX*` *local*, not a call
 argument: it feeds both `gfxExtractSmallestEuler` and `RotMatrix`, so the target computes
 `addiu $s1,$v0,0xF4` once and passes `move a1,s1` twice; as a naked argument GCC
 folds it into `addiu a1,a1,0xF4` and drops the instruction.
 
-## A message handler's only reference is a `.word` in the family's `data` subsegment (func_actor_317000_80162458, 2026-09-17)
+## A message handler's only reference is a `.word` in the family's `data` subsegment (_actor317000BeginLeap, 2026-09-17)
 
 `BRIEF.md` reported `Callers: (none found in src/)`, and grepping the overlay's
 own `asm/USA/actors/nonmatchings/actor_317000/` for the name finds nothing at
 all — no `jal`, no `lui`/`addiu` pair. The single reference is a data word:
 
-    asm/USA/actors/data/actor_317000_data.data.s:5071: .word func_actor_317000_80162458
+    asm/USA/actors/data/actor_317000_data.data.s:5071: .word _actor317000BeginLeap
 
 so the search has to span the family's `data/` tree (`asm/<ver>/<family>/`, not
 just `<family>/nonmatchings/<overlay>/`), where the neighbours name it: it is
 the handler half of a `TaskMessageEntry` pair, id `0x7DD` in `D_actor_317000_8016CF50`
 (the same table the overlay's 0x7DB handler, 0x7D4 and `ActorsShared80162bc4`
 sit in). The matched installer names that table directly —
-`index->msgTable = D_actor_317000_8016CF50;` in `func_actor_317000_8016267C` — so
+`task->msgTable = D_actor_317000_8016CF50;` in `_actor317000Init` — so
 "which table is this handler in" is readable from `src/` without the binary.
 
 Worth doing before writing any C, because it settles what the empty caller list
 raises: a `TaskMessageEntry` handler is called as `(Task*, s32 messageId, TaskMessageArg firstArg, TaskMessageArg
 secondArg)` (`TaskMessageHandler`), and the overlay's neighbouring handler is the house
 spelling of the last two arguments —
-`s32 func_actor_317000_80162CA0(Task* task, s32 value, ActorCommand* msg)`.
+`s32 _actor317000ApplyCommand(Task* task, s32 messageId, const ActorCommand* commandRequest, s32 unusedArg)`.
 
 The body then came straight from the family's already-matched near-twin,
 `_actor141000StartAyaBreaWalk` (`overlay_dup_index.py similar` ranks it 1.00 on
 the call sequence, 0.97 shape): 115 instructions against 121, the difference
 being one `field_4C2` store this carrier does not make and one `field_4C8` test
 its else-branch does not. Transcribing the matched C verbatim — including its
-redundant `msg = &preset; work = task->work; ext = task->extra;`
+redundant `request = &startRequest; playbackWork = task->work; bodyModel = task->extra.tmd;`
 source-placement lines — scored 100% on the first build, headers adjusted only
 for this overlay's names.
 
