@@ -152636,3 +152636,60 @@ drop the local. When the result shows two identical loads next to each other
 instead of the move, something modifies the first register before the second
 read in the post-reload order; look for a constant folded into the first
 read's expression and give it its own statement.
+
+### `func_800E5578`: the two line-break barriers stand for one sched1 order that no plain C in the block gives (unchanged, 2026-10-07)
+
+Both `asm` statements in the `-2` arm stay. What they are needed for was
+measured by removing their effects one at a time; the result is a list of
+conditions, and a reason each plain-C form fails one of them.
+
+**What the image fixes.** `lineIdx`, `body` and `layout` are spilled, and
+reload hands out `t8 → t9 → t3 → t4` in insn order (the block before ends on
+`t8`). The target has `lhu t9,48(sp)` / `lw t3,20(sp)` / `lui t4`, so at
+reload the block reads `lineIdx + 1`, then `next = body + off`, then the
+`layout->vertical` byte. The target also has `sh s0,48(sp)` in the branch delay
+slot, after the `lbu`. After reload the `lbu` address is a bare `(reg t4)`,
+which conflicts with every `sp` slot, so sched2 cannot move that store across
+the `lbu`: the copy `lineIdx = <temp>` must already follow the `lbu` when
+sched1 is done. The sched1 order is therefore forced:
+`lineIdx + 1` < `next` < `lbu` < `lineIdx = ...` < branch.
+
+**Why the plain forms miss it** (backward scheduling, `sched.c`):
+
+- `lineIdx++; next = &body[i + 1]; if (layout->vertical == 0)`: after the
+  branch, `next` is single-set and live out, so it is launched at T-2; the
+  `lbu` is queued one cycle (load to branch) and lands above it. Reload order
+  `lineIdx, layout, body` (`t9, t3, t4`), 13 lines differ.
+- The copy can only be taken at T-2 when it is alone in the ready list: any
+  ready caret store beats it on `potential_hazard`, a ready `next` beats it on
+  priority. So both caret stores and `next` need an unscheduled dependent
+  there. `"+m"(*next)` is that dependent (it uses `next`, the stores precede
+  it, the `lbu` follows it). The target has no store or load through `next`.
+- With only the fake store (`asm("" : "+m"(*next))`), `lineIdx + 1` is
+  released at T-3, is launch priority and beats the priority-1 `asm`: it lands
+  after `next`, and `t9`/`t3` swap (8 lines). The `"=r"(g)` output read in the
+  other arm makes the `asm` a launch insn with a higher LUID, which is all the
+  second `asm` is for.
+- An `asm` reading the incremented value instead (`"+m"(*next) : "r"(t2)`)
+  gives the right reload registers with one site, but sched2 then keeps
+  `addiu s0,t9,1` above the `lbu` (5 lines).
+- Reusing an existing local for `lineIdx + 1` (`sel`, `t`) changes nothing:
+  cse puts the SI temporary back. `next = body; next += i + 1;` and a dead
+  `next = 0` at the top leave `next` single-set. A constant local
+  (`g = -0x58; ... y = g;`) is propagated by cse and leaves no insn.
+- A block boundary or a loop-note fence (`do { } while (0)`) cannot be it: in
+  sched2 the `lui t4` pair moves above `lw t3` and `addiu s0` below the `lbu`,
+  both across any point where the fence would sit.
+- A temporary shared between the offset and the flag would give the
+  anti-dependence, but the offset then has to be `i + 1` in a variable, which
+  costs `sll 16 / sra 16 / addiu 1 / sll 1`, or combine folds it away.
+
+One permuter run (600 s, about 3000 candidates) from the plain form found
+nothing below its base score.
+
+**Use.** When a barrier sits before a branch in a function with spilled
+values, write down the reload-register order the target shows and the position
+of every stack store relative to loads through a reload register: together
+they fix the sched1 order, and that tells whether a statement order can reach
+it at all. Here the order needs a dependent of the address computation that
+leaves no instruction.
