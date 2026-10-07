@@ -50,11 +50,6 @@
 
 #include "../../shared/glow_draw.h"
 
-#define D_shelter_b1_storeroom_80184A18 (D_shelter_b1_storeroom_80184998 + 16)
-#define D_shelter_b1_storeroom_80184A38 (D_shelter_b1_storeroom_80184998 + 20)
-#define D_shelter_b1_storeroom_80184A98 (D_shelter_b1_storeroom_80184998 + 32)
-#define D_shelter_b1_storeroom_80184AB8 (D_shelter_b1_storeroom_80184998 + 36)
-
 #include "../../shared/room_visual_effects.h"
 
 static RoomFxShade _gRoomEffectHaloShades[3];
@@ -664,36 +659,36 @@ void shelterB1StoreroomDrawGlowsTask(Task* task)
     // Select visible tube endpoints and point lights; RGB channels use packed nibbles.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[0], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[2], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[8], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[10], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[16], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A38[18], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[26], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[27], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A38[28], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[20], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[22], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[28], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[30], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[36], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[38], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[46], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[47], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[48], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[2], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[4], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[6], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[10], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[12], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[14], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[20], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[22], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[16], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[18], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[20], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[22], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[24], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[26], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[28], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[30], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[36], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[38], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[8], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[16], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A18[18], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[27], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[28], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184A18[29], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[16], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[24], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[43], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[44], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[45], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 5:
             _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
@@ -707,15 +702,15 @@ void shelterB1StoreroomDrawGlowsTask(Task* task)
             _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184AB8[2], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[4], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[5], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184AB8[6], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[36], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[38], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[40], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[41], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&D_shelter_b1_storeroom_80184998[42], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[0], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184A98[2], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
             break;
     }
 }
