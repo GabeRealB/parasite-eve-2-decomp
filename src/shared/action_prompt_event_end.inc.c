@@ -1,6 +1,13 @@
 /* Part of the action prompt library; see action_prompt.h. */
 
-/// Restores player, menu and scene state after an action-prompt event.
+/// Resumes play after a room's action-prompt event.
+///
+/// Requires the current player, its model and present attachments to be live,
+/// and one outstanding menu hold acquired by the event. Resumes ordinary player
+/// control, enables automatic model drawing, releases that one menu hold and
+/// clears the event, HUD and cutscene gates. Sets the live save's view to 4.
+/// The session and live save must be available. The caller owns cursor and
+/// event teardown.
 static inline void _actionPromptRestoreEventPlay(void)
 {
     enum {
@@ -12,8 +19,8 @@ static inline void _actionPromptRestoreEventPlay(void)
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->eventState                                   = ACTION_PROMPT_EVENT_IDLE;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
+    gGameSession->hideHud                                      = false;
+    gGameSession->cutsceneHold                                 = false;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTION_PROMPT_EVENT_RETURN_VIEW;
 }
 
