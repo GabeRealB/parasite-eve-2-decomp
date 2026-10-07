@@ -25,11 +25,7 @@
 
 #include "mapui/map_shelter.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b3_dumping_hole_8018F4A4[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u8 D_shelter_b3_dumping_hole_8018F4A4_value __asm__("D_shelter_b3_dumping_hole_8018F4A4");
+extern u8 D_shelter_b3_dumping_hole_8018F4A4;
 
 // Message-table callbacks use the argument views required by this TU.
 
@@ -280,8 +276,8 @@ static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
     if (gGameSession->location.loc.room >= 2) {
         taskSpawnFromTable(D_actor_342100_80164B78, 0, 0, 0);
     }
-    arg0->state                             += 1;
-    D_shelter_b3_dumping_hole_8018F4A4_value = 0;
+    arg0->state                       += 1;
+    D_shelter_b3_dumping_hole_8018F4A4 = 0;
 }
 
 /// Empty function; the unused local reserves the 0x10-byte stack frame the

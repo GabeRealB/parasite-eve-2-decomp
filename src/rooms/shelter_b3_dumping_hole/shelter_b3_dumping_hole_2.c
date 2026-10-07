@@ -185,22 +185,14 @@ extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[44];
 static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2);
 #include "../../shared/cap_captions.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u16 D_shelter_b3_dumping_hole_8018F4D4[2];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u16 D_shelter_b3_dumping_hole_8018F4D4_value __asm__("D_shelter_b3_dumping_hole_8018F4D4");
+extern u16 D_shelter_b3_dumping_hole_8018F4D4;
 
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 static u8 CapCaption_Data_8015E66C[4];
 // Scalar symbol view preserves the original byte/halfword address formation.
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u16 D_shelter_b3_dumping_hole_8018F4B0[2];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u16 D_shelter_b3_dumping_hole_8018F4B0_value __asm__("D_shelter_b3_dumping_hole_8018F4B0");
+extern u16 D_shelter_b3_dumping_hole_8018F4B0;
 
 /// The clips the dumping hole's one-time arrival scene adds to the player's animation bank.
 ///
@@ -2089,21 +2081,23 @@ WorldCollisionSurfaceProperties* D_shelter_b3_dumping_hole_8018F480[9] = {
     NULL,
 };
 
-u8 D_shelter_b3_dumping_hole_8018F4A4[4] = {
-    0,
-    74,
-    201,
-    8,
-};
+u8 D_shelter_b3_dumping_hole_8018F4A4 = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_b3_dumping_hole_8018F4A5 = 74;
+
+u8 D_shelter_b3_dumping_hole_8018F4A6 = 201;
+
+u8 D_shelter_b3_dumping_hole_8018F4A7 = 8;
 
 Task* D_shelter_b3_dumping_hole_8018F4A8 = NULL;
 
 Task* D_shelter_b3_dumping_hole_8018F4AC = NULL;
 
-u16 D_shelter_b3_dumping_hole_8018F4B0[2] = {
-    0,
-    0xDF0D,
-};
+u16 D_shelter_b3_dumping_hole_8018F4B0 = 0;
+
+/// A halfword stored after the scalar; nothing references it.
+u16 D_shelter_b3_dumping_hole_8018F4B2 = 0xDF0D;
 
 static CapCommandRef* CapCaption_Data_8015E650 = NULL;
 
@@ -2134,10 +2128,10 @@ static u8 CapCaption_Data_8015E66C[4] = {
     0,
 };
 
-u16 D_shelter_b3_dumping_hole_8018F4D4[2] = {
-    0,
-    0xD086,
-};
+u16 D_shelter_b3_dumping_hole_8018F4D4 = 0;
+
+/// A halfword stored after the scalar; nothing references it.
+u16 D_shelter_b3_dumping_hole_8018F4D6 = 0xD086;
 
 s32 D_shelter_b3_dumping_hole_8018F4D8;
 
@@ -3289,7 +3283,7 @@ static void _shelterB3DumpingHoleShardTask(Task* task)
     work  = task->work;
     coord = task->extra.coordBody->coord;
     spawn = task->spawnArg2.pointer;
-    if (D_shelter_b3_dumping_hole_8018F4B0_value == 0) {
+    if (D_shelter_b3_dumping_hole_8018F4B0 == 0) {
         taskKill(task);
         return;
     }
@@ -3471,16 +3465,16 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     work->pose.rot.vy = D_shelter_b3_dumping_hole_8018966C.rot.vy;
                     work->pose.rot.vz = D_shelter_b3_dumping_hole_8018966C.rot.vz;
                     TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &work->pose, 0);
-                    work->shardSpawn.offset.vx               = 0;
-                    work->shardSpawn.offset.vy               = 0;
-                    work->shardSpawn.offset.vz               = 0;
-                    D_shelter_b3_dumping_hole_8018F4B0_value = 1;
-                    work->shardSpawn.emitter                 = &task->extra.tmd->coords[2];
-                    work->shardSpawn.radius                  = 0x14;
-                    work->part3Scale.vx                      = 0x1000;
-                    work->part3Scale.vy                      = 0x1000;
-                    work->part3Scale.vz                      = 0x1000;
-                    work->timer                              = 0;
+                    work->shardSpawn.offset.vx         = 0;
+                    work->shardSpawn.offset.vy         = 0;
+                    work->shardSpawn.offset.vz         = 0;
+                    D_shelter_b3_dumping_hole_8018F4B0 = 1;
+                    work->shardSpawn.emitter           = &task->extra.tmd->coords[2];
+                    work->shardSpawn.radius            = 0x14;
+                    work->part3Scale.vx                = 0x1000;
+                    work->part3Scale.vy                = 0x1000;
+                    work->part3Scale.vz                = 0x1000;
+                    work->timer                        = 0;
                     work->step++;
                     break;
                 case 1:
@@ -3573,8 +3567,8 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            D_shelter_b3_dumping_hole_8018F4B0_value = 0;
-            work->field_96                           = 1;
+            D_shelter_b3_dumping_hole_8018F4B0 = 0;
+            work->field_96                     = 1;
             roomEffectRequestCancelAll();
             buf2.loc.context.loc.stage = gGameSession->location.loc.stage;
             buf2.loc.context.loc.area  = gGameSession->location.loc.area;
@@ -3666,10 +3660,10 @@ void func_shelter_b3_dumping_hole_80181430(void)
     work->field_96 = 1;
     roomEffectRequestCancelAll();
 
-    D_shelter_b3_dumping_hole_8018F4B0_value = 0;
-    request.context.loc.stage                = gGameSession->location.loc.stage;
-    request.context.loc.area                 = gGameSession->location.loc.area;
-    request.command                          = 0x13;
+    D_shelter_b3_dumping_hole_8018F4B0 = 0;
+    request.context.loc.stage          = gGameSession->location.loc.stage;
+    request.context.loc.area           = gGameSession->location.loc.area;
+    request.command                    = 0x13;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 
     displaySetShakeY(0);
@@ -3921,8 +3915,8 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     }
     if (work->enemy0 != NULL) {
         enemy           = work->enemy0;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << ENEMY_PLACE_INDEX_SHIFT;
-        D_shelter_b3_dumping_hole_8018F4D4_value++;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << ENEMY_PLACE_INDEX_SHIFT;
+        D_shelter_b3_dumping_hole_8018F4D4++;
         task                   = enemy->task;
         obj                    = task->extra.tmd;
         obj->texturePageOffset = 3;
@@ -3931,8 +3925,8 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4_value << ENEMY_PLACE_INDEX_SHIFT;
-        D_shelter_b3_dumping_hole_8018F4D4_value++;
+        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << ENEMY_PLACE_INDEX_SHIFT;
+        D_shelter_b3_dumping_hole_8018F4D4++;
         task                   = enemy->task;
         obj                    = task->extra.tmd;
         obj->texturePageOffset = 3;
@@ -4087,10 +4081,10 @@ static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
     for (i = 15; i >= 0; i--) {
         D_shelter_b3_dumping_hole_8018B7BC[i].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
     }
-    D_shelter_b3_dumping_hole_8018F4D4_value = 0;
-    arg0->work                               = work;
-    arg0->msgTable                           = D_shelter_b3_dumping_hole_8018B7AC;
-    arg0->state                             += 1;
+    D_shelter_b3_dumping_hole_8018F4D4 = 0;
+    arg0->work                         = work;
+    arg0->msgTable                     = D_shelter_b3_dumping_hole_8018B7AC;
+    arg0->state                       += 1;
 }
 
 static void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
@@ -4151,10 +4145,10 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
-            idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
+            idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4;
             work->enemy                                                                   = enemy;
             enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
-            D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
+            D_shelter_b3_dumping_hole_8018F4D4                                            = idx + 1;
             arg0->state                                                                  += 1;
             return;
         }
@@ -4202,10 +4196,10 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
-            idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4_value;
+            idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4;
             work->enemy                                                                   = enemy;
             enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
-            D_shelter_b3_dumping_hole_8018F4D4_value                                      = idx + 1;
+            D_shelter_b3_dumping_hole_8018F4D4                                            = idx + 1;
             arg0->state                                                                  += 1;
             return;
         }
