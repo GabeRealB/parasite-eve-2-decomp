@@ -73,6 +73,16 @@ enum {
     SCRIPTED_WALK_MODE_FORWARD_SHORT = 2, // Face the target and step forward by 25
 };
 
+/// Step lengths in model-parent coordinate units per moving update.
+///
+/// The walk-to handler divides planar target distance by these lengths.
+/// The backward mode applies the negative distance along the model's local Z.
+enum {
+    SCRIPTED_WALK_FORWARD_DISTANCE       = 60,
+    SCRIPTED_WALK_BACKWARD_DISTANCE      = 15,
+    SCRIPTED_WALK_SHORT_FORWARD_DISTANCE = 25,
+};
+
 #ifndef SCRIPTED_WALK_MODE
 /// Selects the walker's writable signed-halfword approach mode.
 ///
@@ -201,7 +211,23 @@ STATIC_ASSERT_SIZEOF(ScriptedWalkAttachmentsWork, 0x4F8);
 #define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendAnim
 #endif
 
-void scriptedWalkUpdate(Task* task);
+#ifndef SCRIPTED_WALK_UPDATE
+/// Selects the scripted walk update's function identifier for one instance.
+///
+/// Bind to a `void name(Task* task)` function identifier before including the
+/// update fragment. Its work type, published work pointer, mode, blend duration
+/// and tick/reset/blend helpers must all select the same walker. The default
+/// names the sole or first update in actor_143900, actor_260400 and actor_461800.
+/// actor_146300 and actor_420700 carry no update fragment.
+///
+/// A second instance needs a static prototype in its carrier's prologue; rebind
+/// around its fragment and restore the first binding afterwards. actor_143900
+/// selects `_scriptedWalkUpdateSecond` this way. This identifier alias has no
+/// arguments, captures no locals and evaluates no objects.
+#define SCRIPTED_WALK_UPDATE scriptedWalkUpdate
+#endif
+
+void SCRIPTED_WALK_UPDATE(Task* task);
 
 /// Advances the selected walker's non-root animation slots and applies their poses.
 ///

@@ -676,7 +676,11 @@ forward, backward and short forward distances. `SCRIPTED_WALK_TICK_ANIM`
 selects the private slot-tick instance and its update calls.
 `SCRIPTED_WALK_RESET_ANIM` selects the private track-restart instance and its
 update calls, with the same published work binding at both sites. A carrier with
-two walkers also selects its child-track blend definition and update call with
+two walkers selects its update definition with `SCRIPTED_WALK_UPDATE`, which
+defaults to `scriptedWalkUpdate`; `actor_143900` binds its additional private
+instance to `_scriptedWalkUpdateSecond`. The same instance's work, mode,
+duration and animation-helper bindings accompany the update binding.
+An additional walker also selects its child-track blend definition and update call with
 `SCRIPTED_WALK_BLEND_ANIM`, defaulting to the private `_scriptedWalkBlendAnim`.
 `SCRIPTED_WALK_BLEND_FRAMES` selects its writable signed-halfword duration
 latch, in whole normal-rate frames, defaulting to `_gScriptedWalkBlendFrames`.

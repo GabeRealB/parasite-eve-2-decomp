@@ -106,7 +106,7 @@ extern u8 D_actor_143900_80149688[];
 
 static void func_actor_143900_80132380(Enemy* enemy, Task* task);
 static void func_actor_143900_80132404(Task* task);
-static void func_actor_143900_80132A9C(Task* task);
+static void _scriptedWalkUpdateSecond(Task* task);
 static void func_actor_143900_80132E48(Enemy* enemy, Task* task);
 static void func_actor_143900_80132ECC(Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
@@ -1251,7 +1251,7 @@ static void func_actor_143900_80131E70(Enemy* enemy, Task* task)
     _gScriptedWalkWork->st.travel  = 0;
     _gScriptedWalkWork->turnFrames = 0;
     task->msgTable                 = D_actor_143900_801413BC;
-    scriptedWalkUpdate(task);
+    SCRIPTED_WALK_UPDATE(task);
     task->state += 1;
 }
 
@@ -1272,7 +1272,7 @@ void func_actor_143900_80132324(Task* task)
 }
 
 #define walkerFrame      func_actor_143900_80132380
-#define walkerUpdate     scriptedWalkUpdate
+#define walkerUpdate     SCRIPTED_WALK_UPDATE
 #define walkerDrawShadow _actorRenderDrawWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1316,7 +1316,7 @@ s32 func_actor_143900_80132624(Task* task, s32 arg1, AnimationPlayRequest* prese
             _gScriptedWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkWork->st.field_6 = 0;
-        scriptedWalkUpdate(D_actor_143900_801496BC);
+        SCRIPTED_WALK_UPDATE(D_actor_143900_801496BC);
         return 0;
     }
     return -1;
@@ -1411,12 +1411,16 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
     _gScriptedWalkSecondWork->st.travel  = 0;
     _gScriptedWalkSecondWork->turnFrames = 0;
     task->msgTable                       = D_actor_143900_80149634;
-    func_actor_143900_80132A9C(task);
+    _scriptedWalkUpdateSecond(task);
     task->state++;
 }
 
-/// The second walker's copy.
-#define scriptedWalkUpdate func_actor_143900_80132A9C
+#undef SCRIPTED_WALK_UPDATE
+/// Selects the second walker's private `void(Task*)` update for this inclusion.
+///
+/// The work, mode, duration and animation-helper bindings below select that
+/// same walker; its prologue prototype supplies static linkage.
+#define SCRIPTED_WALK_UPDATE _scriptedWalkUpdateSecond
 #undef SCRIPTED_WALK_TICK_ANIM
 /// Routes the second walker's update to its private `void(void)` animation tick.
 ///
@@ -1446,7 +1450,8 @@ static void func_actor_143900_801328D4(Enemy* enemy, Task* task)
 #undef SCRIPTED_WALK_WORK_T
 #define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
 #include "../../shared/scripted_walk_update.inc.c"
-#undef scriptedWalkUpdate
+#undef SCRIPTED_WALK_UPDATE
+#define SCRIPTED_WALK_UPDATE scriptedWalkUpdate
 #undef SCRIPTED_WALK_TICK_ANIM
 #undef SCRIPTED_WALK_RESET_ANIM
 #define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim
@@ -1477,7 +1482,7 @@ void func_actor_143900_80132DEC(Task* task)
 }
 
 #define walkerFrame      func_actor_143900_80132E48
-#define walkerUpdate     func_actor_143900_80132A9C
+#define walkerUpdate     _scriptedWalkUpdateSecond
 #define walkerDrawShadow _actorRenderDrawSecondWalkerGroundShadow
 #include "../../shared/walker_frame.inc.c"
 #undef walkerFrame
@@ -1585,7 +1590,7 @@ s32 func_actor_143900_801331C4(Task* task, s32 arg1, AnimationPlayRequest* prese
             _gScriptedWalkSecondWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gScriptedWalkSecondWork->st.field_6 = 0;
-        func_actor_143900_80132A9C(D_actor_143900_801496C8);
+        _scriptedWalkUpdateSecond(D_actor_143900_801496C8);
         return 0;
     }
     return -1;
