@@ -5477,6 +5477,7 @@ EMBEDDED_ASSETS = {
     'golem_grenade_launcher': {"source": 'actor_105600.pe2pkg', "vram": 0x8013C00C, "size": 0x280, "ext": '.tmd', "type": 'model'},
     'grinning_stranger_body': {"source": 'actor_101900.pe2pkg', "vram": 0x8013E29C, "size": 0x3E4C, "ext": '.tmd', "type": 'model'},
     'kyle_madigan_hand_left': {"source": 'actor_135600.pe2pkg', "vram": 0x801384E4, "size": 0x2F4, "ext": '.tmd', "type": 'model'},
+    'mine_mesa_motion_06BC4': {"source": 'mine_mesa.pe2pkg', "vram": 0x80184184, "size": 0x170, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
     'stalker_burst_arm_left': {"source": 'actor_400500.pe2pkg', "vram": 0x80142F94, "size": 0x154, "ext": '.tmd', "type": 'model'},
     'actor_303600_path_090D8': {"source": 'actor_303600.pe2pkg', "vram": 0x8016AEF8, "size": 0x3570, "ext": '.path', "type": 'camera_path', "include": 'u16'},
     'actor_461800_hand_right': {"source": 'actor_461800.pe2pkg', "vram": 0x801391BC, "size": 0x25C, "ext": '.tmd', "type": 'model'},
