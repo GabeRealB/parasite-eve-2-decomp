@@ -5291,8 +5291,8 @@ single addressable aggregate, not sibling scalars.
 
 Casting that address to an integer does not defeat the escape.
 `taskMessageDispatch` takes its payload as `(s32)&msg` throughout this project, and a
-`DwtwMsg7DB` (`u8`, `u8`, `u16`) local still keeps all three stores - the
-aggregate is addressable as a whole. `func_dryfield_water_tower_80180194` is the
+`ActorCommand` (`u8`, `u8`, `u16`) local still keeps all three stores - the
+aggregate is addressable as a whole. `_dryfieldWaterTowerStartChaserBattleOnce` is the
 case (m2c's three scalars: 88.1%, `delete=4`; one struct local: 100% first try,
 the same body as `ActorsShared80132724` plus its one-shot latch).
 
@@ -45990,7 +45990,7 @@ unequal. There is no dropped dependence to restore - both stores are released
 together by the load that depends on them - so a barrier and an array
 declaration have nothing to act on.
 
-`func_dryfield_water_tower_8017F9AC` reads a byte out of its state block into
+`_dryfieldWaterTowerSkipRunEnding` reads a byte out of its state block into
 `gMcSaveData.location.loc.view` and then sets `gGameSession->viewDirty`. Written to the
 imported address `D_8007216C` the block schedules as
 
@@ -47025,7 +47025,7 @@ gMcSaveData.location.loc.view = viewFindLogicalIndex(9);
 
 restores the order with no barrier and no shape claim, because both sides are
 now `MEM_IN_STRUCT_P` and *both* suppressing clauses in `true_dependence` go
-false. In `func_dryfield_water_tower_8017FA5C` -- a `viewFindLogicalIndex` result
+false. In `_dryfieldWaterTowerSkipPropClosingScene` -- a `viewFindLogicalIndex` result
 stored beside a `_DryfieldWaterTowerPropSceneWork*` load of `fallingPropTask` -- the schedule
 then matches the target instruction for instruction.
 
@@ -86596,12 +86596,12 @@ The trap does *not* need the generator to be missing an entry. `gMcSaveData`
 link to the same word and either would checksum — yet the struct spelling costs
 the scratch scorer 0.24% (`regs=2`) on an object whose instruction words are
 identical, because the target object is what relocates against the address name.
-`func_dryfield_water_tower_8017F908`: `gMcSaveData.location.loc.view` is 99.756%, the
+`_dryfieldWaterTowerSkipRunOpening`: `gMcSaveData.location.loc.view` is 99.756%, the
 address form 100.000%, and both produce the same `sb` (the reported `regs` is a
 counting artefact of the two renamed operands, not an allocation difference —
 do not go looking in `.lreg` for it). The struct spelling is not always wrong,
-though: `func_dryfield_water_tower_8017FA5C`, two functions away in the same
-file, needs it for the aliasing of that store with its `state->fallingPropTask` read.
+though: `_dryfieldWaterTowerSkipPropClosingScene`, two functions away in the same
+file, needs it for the aliasing of that store with its `work->fallingPropTask` read.
 Prefer whichever name the target relocates against, and when a body's schedule
 needs the other one, say so at both sites.
 
@@ -90168,7 +90168,7 @@ Inputs: `base.c` (m2c casts, 99.600%)
 `base_3.c` (struct fields, 100.000%)
 `ac3551549a89104fb97af7fe624965282fe0478e81a143706629e1fc97286480`.
 
-## A lone wrong `addiu` displacement is m2c's data type, and the message handler names it (func_dryfield_water_tower_80180220, 2026-09-15)
+## A lone wrong `addiu` displacement is m2c's data type, and the message handler names it (_dryfieldWaterTowerSkipActorScene, 2026-09-15)
 
 The ratio tell in "A m2c `ptr + 0xNNN` is scaled by `sizeof(*ptr)`" needs several
 displacements to fire. One alone reads as a plain layout error: m2c's seed
@@ -90178,20 +90178,20 @@ emitted `addiu a2,s0,0x60` where the target has `0x18`. One instruction, 99.891%
 `regs=1`.
 
 The route to the pointee type is the *receiver*, not the data. The room's script
-table pairs message 0x7D4 with `Room_Util08`, whose third parameter is a
+table pairs message 0x7D4 with `actorMsgPlaceYawPitchRoll`, whose third parameter is a
 `ActorTransform*` - `VECTOR pos` + `SVECTOR rot`, 0x18 bytes - and the bytes
 decode as one. Declaring the payloads as that type and indexing them reproduces
 the displacement while keeping the base symbol:
 
 ```c
 extern ActorTransform D_dryfield_water_tower_801823A8;
-extern ActorTransform D_dryfield_water_tower_801823D8[];
+extern ActorTransform D_dryfield_water_tower_801823C0[4];
 
-taskMessageDispatch(work->secondActorTask, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[0], 0);
-taskMessageDispatch(work->firstActorTask, 0x7D4, (s32)&D_dryfield_water_tower_801823D8[1], 0);
+TASK_MESSAGE_DISPATCH_POINTER(work->secondActorTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823C0[1], 0);
+TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823C0[2], 0);
 ```
 
-CSE keeps `&D_..._801823D8` in one register, so the second call is the single
+CSE keeps `&D_dryfield_water_tower_801823C0[1]` in one register, so the second call is the single
 `addiu a2,s0,0x18` the target has. 100.000%.
 
 **Do not fold the displacement into a neighbouring symbol instead.** The records
@@ -122704,7 +122704,7 @@ Inputs: `base_3.i` SHA256
 `e084f4d9b81135a0f783953897a820400875bbc21f5e7918bdaaf287653c3192`; landed source
 SHA256 `4d72540c7789c37a49a4a22685751c69d0f72b1248b25bb1bc0cacdd95a1eec3`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## Count the trailing `-1`s, not the loop's spelling: a guarded scan from a variable takes the `do/while` form with no source decrement (func_dryfield_water_tower_8017FB4C, 2026-09-17)
+## Count the trailing `-1`s, not the loop's spelling: a guarded scan from a variable takes the `do/while` form with no source decrement (_dryfieldWaterTowerGetEvenRunTimeLimitFrames, 2026-09-17)
 
 The writeback entry above ("A lone `addiu r,r,-1` after a scan loop is the
 delay-slot writeback") prescribes a plain `while` whose counter starts at zero
@@ -122737,11 +122737,11 @@ The matching source is the `do/while` from the pre-test value, with **no**
 decrement:
 
 ```c
-i = 0;
-if (D_dryfield_water_tower_8018767C[0].maxTimeouts < state->timeouts) {
+limitIndex = 0;
+if (D_dryfield_water_tower_8018767C[0].maxTimeouts < work->timeouts) {
     do {
-        i += 1;
-    } while (D_dryfield_water_tower_8018767C[i].maxTimeouts < state->timeouts);
+        limitIndex += 1;
+    } while (D_dryfield_water_tower_8018767C[limitIndex].maxTimeouts < work->timeouts);
 }
 ```
 

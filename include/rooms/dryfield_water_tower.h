@@ -11,6 +11,18 @@
 
 #include "main/task_types.h"
 
+/// Commands broadcast to the room's Desert Chasers with `ACTOR_COMMAND_MESSAGE_APPLY`.
+///
+/// `ActorCommand.context` names the Dryfield Water Tower stage and area.
+/// Commands are stored in a halfword by the sender and a byte by the actors.
+enum {
+    DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_BATTLE       = 0, // Restore health and release the first placed chaser from its scripted animation
+    DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_RUN          = 1, // Restore health and stage the remaining chasers for the timed mechanism run
+    DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_FINAL_BATTLE = 2, // Place the remaining chasers in the arena; report a room event when none remain
+    DRYFIELD_WATER_TOWER_CHASER_COMMAND_END_RUN            = 3, // Release a held player and send eligible chasers into their retreat state
+    DRYFIELD_WATER_TOWER_CHASER_COMMAND_HIDE               = 9, // Hide both chasers while the mechanism's opening script runs
+};
+
 extern u16 D_dryfield_water_tower_801876A8;
 
 extern u16 D_dryfield_water_tower_801876AA;
