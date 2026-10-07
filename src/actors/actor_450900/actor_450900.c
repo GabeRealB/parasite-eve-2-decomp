@@ -978,11 +978,13 @@ static void _actor450900ControlHeadAim(s32 command)
     }
 }
 
-/// Fades the player's Q12 head-aim weight in or out over eight updates.
+/// Fades the scene's Q12 head-aim blend weight toward full aiming or zero.
 ///
-/// Only `aim->rate` changes. Nonzero `enabled` adds ONE/8; zero subtracts it.
-/// Each update narrows to a signed halfword before clamping to its endpoint,
-/// preserving wraparound even for inputs outside the normal 0..ONE range.
+/// Requires writable `aim` with `rate` normally in 0..ONE; only that field
+/// changes. Nonzero `enabled` adds ONE/8 and caps at ONE; zero subtracts ONE/8
+/// and floors at zero. Holding either setting traverses the full range in
+/// eight calls. The result narrows to a signed halfword before the selected
+/// endpoint check, preserving wraparound for out-of-range inputs.
 static inline void _actor450900RampHeadAimWeight(AnimationHeadAim* aim, s32 enabled)
 {
     enum { ACTOR_450900_HEAD_AIM_FADE_TICKS = 8 };
