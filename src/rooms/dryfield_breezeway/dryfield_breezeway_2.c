@@ -192,6 +192,7 @@ extern ActionPromptHotspot D_dryfield_breezeway_80182E00[];
 /// on.
 extern ActionPromptHotspot D_dryfield_breezeway_80182DDC[];
 
+static void _actionPromptResetDefault(Task* task);
 static void func_dryfield_breezeway_8017E464(Task* arg0);
 static void func_dryfield_breezeway_8017E65C(Task* task);
 static void func_dryfield_breezeway_8017E81C(Task* task);
@@ -1155,13 +1156,13 @@ static void func_dryfield_breezeway_8017F1F4(s16 arg0, s16 arg1, SVECTOR* arg2, 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
 /// The room's prompt task, run from `D_dryfield_breezeway_80182DC0`: state 0
-/// resets both action-prompt slots (`actionPromptReset`), state
+/// resets both action-prompt slots (`_actionPromptResetDefault`), state
 /// 1 drives the cursor every frame after that
 /// (`_actionPromptMoveCursorsDefault`). The handler pair is built on the stack
 /// rather than read from rodata.
 void func_dryfield_breezeway_8017FA80(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
+    TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

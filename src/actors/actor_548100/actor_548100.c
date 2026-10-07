@@ -217,6 +217,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor548100ColorRow, 16);
 extern _Actor548100ColorRow D_actor_548100_801358A8[3];
 
+static void _actionPromptResetDefault(Task* task);
 static void func_actor_548100_80132420(Task* task);
 static void func_actor_548100_80132550(Task* task);
 static void func_actor_548100_80132684(Task* task);
@@ -2012,13 +2013,13 @@ static void func_actor_548100_8013461C(_Actor548100TexRect* rect)
 }
 
 /// Callback of the action-prompt task: a two-state dispatcher whose handler
-/// table is built on the stack. State 0, `actionPromptReset`, resets
+/// table is built on the stack. State 0, `_actionPromptResetDefault`, resets
 /// both prompt slots; state 1, `_actionPromptMoveCursorsDefault`, drives the cursor
 /// every frame from then on.
 void func_actor_548100_80134728(Task* task)
 {
     TaskFunc funcs[2] = {
-        actionPromptReset,
+        _actionPromptResetDefault,
         _actionPromptMoveCursorsDefault,
     };
 

@@ -81,6 +81,7 @@ typedef struct {
 } _NeoArkShrineFallingPropWork;
 STATIC_ASSERT_SIZEOF(_NeoArkShrineFallingPropWork, 0x48);
 
+static void _actionPromptResetDefault(Task* task);
 static void _neoArkShrineUpdateFallingPropLighting(Task* task);
 static void _neoArkShrineDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
@@ -1057,7 +1058,7 @@ NeoArkShrineTileOrigin D_neo_ark_shrine_801868CC[16] = { 0 };
 /// state 1 moves the cursor from the pad every frame after.
 void func_neo_ark_shrine_8017EA70(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
+    TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

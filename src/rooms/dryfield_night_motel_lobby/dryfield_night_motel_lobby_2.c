@@ -80,6 +80,7 @@ extern AreaApplyRec D_dryfield_night_motel_lobby_801844AC[];
 /// draws; the second name is the same run from its second entry.
 
 static s16  func_dryfield_night_motel_lobby_80180734(void);
+static void _actionPromptResetDefault(Task* task);
 static void _dryfieldNightMotelLobbyDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
 static void func_dryfield_night_motel_lobby_80180E98(Task* task);
@@ -836,7 +837,7 @@ static s16 func_dryfield_night_motel_lobby_80180734(void)
 
 void func_dryfield_night_motel_lobby_80180D08(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
+    TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

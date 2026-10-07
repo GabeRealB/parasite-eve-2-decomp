@@ -63,6 +63,7 @@ extern _ShelterR47MapMark* D_shelter_r47_801875D8[];
 extern s16 D_shelter_r47_801875EC[];
 extern s16 D_shelter_r47_801875F8[][2];
 
+static void _actionPromptResetDefault(Task* task);
 static void func_shelter_r47_801816CC(Task* task);
 static void func_shelter_r47_80181F14(Task* task, s16 y);
 static void func_shelter_r47_801820C0(s16 arg0);
@@ -974,12 +975,12 @@ void func_shelter_r47_80183210(void)
 }
 
 /// Two-state dispatcher of the action prompt, with its handler table built on
-/// the stack: state 0 runs `actionPromptReset` and state 1 runs
+/// the stack: state 0 runs `_actionPromptResetDefault` and state 1 runs
 /// `_actionPromptMoveCursorsDefault`.
 void func_shelter_r47_80183234(Task* task)
 {
     TaskFunc funcs[2] = {
-        actionPromptReset,
+        _actionPromptResetDefault,
         _actionPromptMoveCursorsDefault,
     };
 

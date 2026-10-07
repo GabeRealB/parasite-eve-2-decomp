@@ -63,6 +63,8 @@
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/factory_lift.h"
 
+static void _actionPromptResetDefault(Task* task);
+
 extern TaskDesc gRoomEventTaskDesc;
 
 /// The world-space points the room's three glow discs are drawn at.

@@ -8,10 +8,10 @@
  * _outline_rect and _event_end (each with the .inc.c suffix). A package includes only the
  * fragments it carries. The cursor drawer has a static instance in each
  * carrier, as does the event-end state (declared in its carrier's prologue);
- * cursor-motion instances are also static. The other fragments default to
- * external linkage for callers in the same package's other files. Reset and
- * motion bindings can select additional private instances declared in the
- * carrier's prologue.
+ * reset and cursor-motion instances are also static. The hotspot test and
+ * outline default to external linkage for callers in the same package's other
+ * files. Declare reset instances in the carrier's prologue; reset and motion
+ * bindings can select additional private instances there.
  */
 
 #ifndef SRC_SHARED_ACTION_PROMPT_H
@@ -40,18 +40,19 @@ STATIC_ASSERT_SIZEOF(ActionPromptRect, 0x8);
 
 /// Selects the task callback defined by the reset fragment.
 ///
-/// Bind to a function identifier with signature `void(Task* task)`. The default
-/// is `actionPromptReset`, shared between files in some packages. Acropolis
-/// security and Shelter R47 bind an additional static `_actionPromptReset`
-/// instance, declared in each carrier's prologue before its callers. Rebind
-/// around that reset fragment and restore the default afterwards. A binding
-/// supplied before this header also selects this prototype.
+/// Bind to a translation-unit-local function identifier with signature
+/// `void(Task* task)`. The default is `_actionPromptResetDefault`. Declare each
+/// selected instance static in its carrier's prologue before its callers; this
+/// header supplies only the binding, not a function declaration. A binding
+/// supplied before this header overrides the default.
+///
+/// Acropolis security and Shelter R47 bind an additional `_actionPromptReset`
+/// instance around a second reset-fragment inclusion, then restore the default.
 /// This object-like alias captures no arguments, repeats no evaluation and
 /// uses neither stringification nor token pasting.
 #ifndef ACTION_PROMPT_RESET_TASK
-#define ACTION_PROMPT_RESET_TASK actionPromptReset
+#define ACTION_PROMPT_RESET_TASK _actionPromptResetDefault
 #endif
-void ACTION_PROMPT_RESET_TASK(Task* task);
 
 /// Selects the task callback defined by the cursor-motion fragment.
 ///

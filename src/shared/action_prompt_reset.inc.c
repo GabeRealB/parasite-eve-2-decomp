@@ -30,16 +30,20 @@ static inline void _actionPromptResetPort(ActionPrompt* prompt)
 }
 #endif
 
-/// Resets both ports' cursor motion and double-press timers, then advances the task.
+/// Prepares both ports' action cursors and advances the task to cursor motion.
 ///
-/// Borrows the two gameplay-owned prompts regardless of the task's port selector.
-/// Positions return to the origin in 1/512-pixel units, motion speed to
-/// `ACTION_PROMPT_SPEED_RESET`, the press window to
-/// `ACTION_PROMPT_DOUBLE_PRESS_FRAMES` nominal 60-Hz ticks and the cursor to idle.
-/// Pixel positions, button classifications and latched press positions are
-/// retained until the cursor-motion state updates them. The caller supplies a
-/// live task in the reset state; no task work is required or allocated.
-void ACTION_PROMPT_RESET_TASK(Task* task)
+/// Requires a live, non-NULL task and the two writable gameplay-owned prompts.
+/// Resets both prompts regardless of `task->spawnArg1.value`: centers their
+/// 1/512-pixel positions, selects `ACTION_PROMPT_SPEED_RESET` and the idle
+/// sprite, sets a 15-tick double-press window and clears both button arm counters.
+/// Ticks are nominal 60-Hz units, advanced by cursor motion's `frameTicks`.
+/// Published pixel positions, button classifications and latched press positions
+/// are preserved; motion classifies the next presses using that retained data
+/// before publishing the centered position plus any new movement.
+///
+/// Increments `Task::state` by one. Prompt dispatchers call this in state 0 and
+/// move the selected port(s) in state 1. No task work is required or allocated.
+static void ACTION_PROMPT_RESET_TASK(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
     s32           port;

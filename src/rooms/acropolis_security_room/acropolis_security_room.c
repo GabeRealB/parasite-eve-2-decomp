@@ -447,6 +447,7 @@ static inline void _acropolisSecurityRoomInitGlowLine(LINE_G3* line, s16 brightn
     setRGB2(line, 0, 0, 0);
 }
 
+static void _actionPromptResetDefault(Task* task);
 static void func_acropolis_security_room_8017D930(Task* task);
 static void _acropolisSecurityRoomMessageIdle(Task* task);
 static void func_acropolis_security_room_8017D9DC(Task* task);
@@ -2583,12 +2584,12 @@ static void func_acropolis_security_room_8017E37C(Task* task)
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
 /// Two-state dispatcher whose handler table is built on the stack rather than
-/// read from `.data`: state 0 runs `actionPromptReset` and
+/// read from `.data`: state 0 runs `_actionPromptResetDefault` and
 /// state 1 runs `_actionPromptMoveCursorsDefault`.
 void func_acropolis_security_room_8017E9D8(Task* task)
 {
     TaskFunc funcs[2] = {
-        actionPromptReset,
+        _actionPromptResetDefault,
         _actionPromptMoveCursorsDefault,
     };
 
@@ -3214,7 +3215,7 @@ void func_acropolis_security_room_80180294(Task* task)
 #define ACTION_PROMPT_RESET_TASK _actionPromptReset
 #include "../../shared/action_prompt_reset.inc.c"
 #undef ACTION_PROMPT_RESET_TASK
-#define ACTION_PROMPT_RESET_TASK actionPromptReset
+#define ACTION_PROMPT_RESET_TASK _actionPromptResetDefault
 
 /// First `TaskDesc` of `D_acropolis_security_room_80182700`: starts the room's
 /// looping ambience, then rides alongside the cutscene task

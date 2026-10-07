@@ -73,6 +73,8 @@ static const TaskFuncTable7 _gFactoryPanelStates = {
     },
 };
 
+static void _actionPromptResetDefault(Task* task);
+
 void factoryPanelRun(Task*);
 void factoryPromptTask(Task*);
 void factoryPanelTrigger(Task*, s32, s32, s32);

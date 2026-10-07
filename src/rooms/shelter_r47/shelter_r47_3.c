@@ -2154,7 +2154,7 @@ static void func_shelter_r47_8018580C(Task* task)
 #define ACTION_PROMPT_RESET_TASK _actionPromptReset
 #include "../../shared/action_prompt_reset.inc.c"
 #undef ACTION_PROMPT_RESET_TASK
-#define ACTION_PROMPT_RESET_TASK actionPromptReset
+#define ACTION_PROMPT_RESET_TASK _actionPromptResetDefault
 
 /// Queues the additive, flickering cool-grey disc pair used by this room's view glows.
 ///

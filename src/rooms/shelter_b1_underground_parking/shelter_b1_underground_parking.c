@@ -83,7 +83,8 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
 
-static s32 _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
+static void _actionPromptResetDefault(Task* task);
+static s32  _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
 
 /// `ActionPromptHotspot::id` of the selector panel's enter button, which
 /// commits the pending switch pattern. The four switch hotspots carry the bit
@@ -2375,7 +2376,7 @@ static void _shelterB1UndergroundParkingDrawPanelIndicators(void)
 /// pair on the stack and calls the entry `Task::state` names.
 void func_shelter_b1_underground_parking_80184234(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
+    TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

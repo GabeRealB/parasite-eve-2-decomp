@@ -253,6 +253,7 @@ extern EffectUnitQuadCorner D_acropolis_bridge_8018990C[4];
 
 extern EnemyParams D_acropolis_bridge_80190C5C;
 
+static void _actionPromptResetDefault(Task* task);
 static void func_acropolis_bridge_8017DC68(Task* arg0);
 
 // Preserve the following nonzero bytes with this scalar's storage.
@@ -3469,7 +3470,7 @@ static void _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 o
 /// action prompts, state 1 moves and draws their cursors.
 void func_acropolis_bridge_8017F280(Task* task)
 {
-    TaskFunc states[2] = { actionPromptReset, _actionPromptMoveCursorsDefault };
+    TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }

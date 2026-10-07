@@ -80,6 +80,7 @@ extern u8                  D_actor_143000_80134570[];
 extern ActionPromptHotspot D_actor_143000_80134580[];
 extern const char*         D_actor_143000_801345F8[3];
 
+static void _actionPromptResetDefault(Task* task);
 static void func_actor_143000_80132A04(Task* arg0);
 static void func_actor_143000_80133664(Task* task);
 static void func_actor_143000_80133698(Task* task);
@@ -672,13 +673,13 @@ static void func_actor_143000_80132D10(Task* arg0)
 
 /// Callback of the action-prompt task that `func_actor_143000_801324C8` spawns
 /// from `D_actor_143000_80134558`: a two-state dispatcher whose handler table
-/// is built on the stack. State 0, `actionPromptReset`, resets both
+/// is built on the stack. State 0, `_actionPromptResetDefault`, resets both
 /// prompt slots; state 1, `_actionPromptMoveCursorsDefault`, drives the cursor every
 /// frame from then on.
 void func_actor_143000_80133578(Task* task)
 {
     TaskFunc funcs[2] = {
-        actionPromptReset,
+        _actionPromptResetDefault,
         _actionPromptMoveCursorsDefault,
     };
 

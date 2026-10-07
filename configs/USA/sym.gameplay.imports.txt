@@ -1153,7 +1153,7 @@ shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask = 0x8018067
 
 func_shelter_b2_north_maintenance_walkway_80181A80 = 0x80181A80; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
-shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x80181BB4; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x80181BB4; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
 shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x80182618; // type:func absolute:True owner=shelter_b2_north_maintenance_walkway
 
