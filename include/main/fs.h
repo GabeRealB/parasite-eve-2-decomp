@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "main/fs_types.h"
+#include "main/session_types.h"
 #include "main/stream_types.h"
 
 /// The program's one resident CD-command queue.
@@ -215,11 +216,29 @@ bool Fs_StageCdfIsAvailable(u32 stageIdx);
 
 u8 Fs_LoadImageChunk(FsImageChunk* img, u8 retryNonzero);
 
-void Fs_BeginBootLoad(u8* arg0, s16 arg1);
+/// Caption choices for a location loading screen.
+enum {
+    GAME_FLOW_LOAD_CAPTION_NORMAL    = 0,
+    GAME_FLOW_LOAD_CAPTION_ALTERNATE = 1,
+};
+
+/// Arms the location loading screen and resets its image workspace.
+///
+/// Copies only the destination's stage and area; the key need not survive
+/// this call. Zero selects the normal caption, nonzero its story-event variant
+/// where available. The image workspace must be initialized and available for
+/// clearing. Sets two-VBlank frame timing; later updates start the image load
+/// and run the caption/fade sequence.
+void gameFlowBeginLoadScreen(const GameLocationKey* destination, s16 alternateCaption);
 
 void Fs_EnsureBootLoadStarted(void);
 
-u8* Fs_GetChunkPayload(void);
+/// Borrows the remainder of the current chunk's opening sector.
+///
+/// Text chunks stay here because their loader copies no payload. Valid bytes
+/// end at the chunk header's sectorLen; the rest of the returned 0x7F0-byte
+/// view includes sector pad. The next sector read overwrites this storage.
+u8* fsGetChunkPayload(void);
 
 /// Empty entry point called on scripted scene view changes; its intended role is unproven.
 void cdCmdSceneViewChangeNoOp(void);

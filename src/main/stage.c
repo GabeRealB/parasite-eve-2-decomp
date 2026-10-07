@@ -1110,14 +1110,14 @@ static void Mdec_ProcessDecode(void)
                             Fs_ChunkMode    = 2;
                             D5B498_8006C233 = STREAM_SCENE_STRIP_X_SHIFT_PAGES;
                         }
-                        Fs_CopyWorkEntries((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
+                        fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
                         while (Fs_LoadImageStrip(1) != 1) {
                             r = Fs_LoadImageStrip(1);
                             if (r == 1) {
                                 break;
                             }
                             if (r == 0x7F) {
-                                Fs_CopyWorkEntries((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
+                                fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[i]));
                             }
                         }
                         Fs_ChunkMode    = 0;

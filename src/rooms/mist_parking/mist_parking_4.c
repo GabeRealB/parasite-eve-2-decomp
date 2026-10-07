@@ -649,7 +649,7 @@ void func_mist_parking_80184468(s32 arg0)
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(0, 0x11, 0, 0);
     if (arg0 == 5) {
-        Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
+        gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
     }
 }
 
@@ -670,7 +670,7 @@ void func_mist_parking_8018451C(Task* task)
     gDisplayState.spriteVariant                                 = 1;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(0, 0x11, 0, 0);
-    Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
+    gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
 }
 
 /// Spawns entry 1 of `D_mist_parking_80190824` and keeps its handle in

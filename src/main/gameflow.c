@@ -406,7 +406,7 @@ static void GameFlow_EnqueueDefaultLoad(Task* task)
     u8 param2[8];
 
     if ((u8)LoadUi_PollDiskSwap() == 0) {
-        Fs_BeginBootLoad((u8*)&gGameSession->location.loc, 0);
+        gameFlowBeginLoadScreen(&gGameSession->location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
         param1[3] = 0;
         param1[2] = 0;
         param1[0] = 0;

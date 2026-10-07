@@ -224,7 +224,7 @@ void func_800C5F70(Task* arg0)
             case 2:
                 if (cdCmdIsIdle() & 0xFFFF) {
                     lines = 0;
-                    p     = textSkipLines(Fs_GetChunkPayload(), 5);
+                    p     = textSkipLines(fsGetChunkPayload(), 5);
                     while (*p != 0) {
                         if (*p == '\\') {
                             p++;
@@ -277,7 +277,7 @@ void func_800C5F70(Task* arg0)
         }
         if (ready == 1) {
             x       = 2;
-            payload = Fs_GetChunkPayload();
+            payload = fsGetChunkPayload();
             y       = obj->panel.contentTop.signedValue + 0x1E;
             for (i = 0; i < 5; i++) {
                 req20.x          = obj->panel.contentOriginX.unsignedValue + x;

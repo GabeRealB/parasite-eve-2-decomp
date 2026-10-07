@@ -147,7 +147,7 @@ s32 LoadUi_PollDiskSwap(void)
 
     switch (D_8007A394) {
         case 0:
-            D_8007A393 = Fs_GetStageDiskKind();
+            D_8007A393 = fsGetRequiredStageDisc();
             if (D_8007A393 == 0) {
                 break;
             }
@@ -170,7 +170,7 @@ s32 LoadUi_PollDiskSwap(void)
             return 0xFF;
         case 1:
             if (cdCmdIsIdle()) {
-                Fs_StopCd();
+                cdSyncStopDisc();
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
                 D_8007A394++;
             }
@@ -193,14 +193,14 @@ s32 LoadUi_PollDiskSwap(void)
             }
             return 0xFF;
         case 3:
-            if ((u8)Fs_WaitDiskSwap() == 0xFF) {
-                Fs_ClearDiskError();
+            if (cdSyncWaitForDiscSwap() == CD_SYNC_DISC_SWAP_ERROR) {
+                cdSyncWaitForCommandCompletion();
                 D_8007A392 = 2;
                 D_8007A390 = 0x8080;
                 D_8007A394 = 1;
                 return 0xFF;
             } else {
-                Fs_ClearDiskError();
+                cdSyncWaitForCommandCompletion();
                 D_8007A394++;
                 return 0xFF;
             }
@@ -213,7 +213,7 @@ s32 LoadUi_PollDiskSwap(void)
                     }
                     VSync(0);
                 }
-                Fs_ClearDiskError();
+                cdSyncWaitForCommandCompletion();
             }
             if (Wip_SysFlags.discNumber != D_8007A393) {
                 D_8007A392 = 2;

@@ -1481,7 +1481,7 @@ void func_actor_136300_8013267C(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MINE_MESA;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-            Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
+            gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_TRUCK_KEY);
             gDisplayState.spriteVariant = 1;
             taskSpawn(0, 0x11, 0, 0);

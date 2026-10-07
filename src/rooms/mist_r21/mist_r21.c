@@ -87,7 +87,7 @@ static void func_mist_r21_8017D678(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PLAZA;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
-        Fs_BeginBootLoad((u8*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 0);
+        gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
         taskSpawn(0, 0x11, 1, 0);
         taskKill(task);
     }

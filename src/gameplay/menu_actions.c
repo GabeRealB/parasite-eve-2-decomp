@@ -654,7 +654,7 @@ void Gp_DrawItemDescLine(UiList* arg0, UiObject* arg1)
         text = itemGetText(id, idx + 1, 1);
         textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
-        text = textSkipLines(Fs_GetChunkPayload(), arg0->currentItemIndex + 5);
+        text = textSkipLines(fsGetChunkPayload(), arg0->currentItemIndex + 5);
         textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
@@ -1731,7 +1731,7 @@ void Gp_HelpPanelTask(Task* arg0)
             }
             break;
         case 2:
-            textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x14, Fs_GetChunkPayload(), 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+            textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0x14, fsGetChunkPayload(), 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
             status = obj->panel.control.word;
             if (status == 1) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | PAD_BUTTON_TRIANGLE) != 0) {
@@ -3486,7 +3486,7 @@ void Gp_DrawSpecsCmd(Task* arg0)
     }
     func_800D3D98(obj, spawnArg, 0);
     if (cdCmdIsIdle() & 0xFFFF) {
-        text = textSkipLines(Fs_GetChunkPayload(), 4);
+        text = textSkipLines(fsGetChunkPayload(), 4);
         textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, 0x14, text, 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

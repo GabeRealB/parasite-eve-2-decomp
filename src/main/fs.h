@@ -94,21 +94,55 @@ void Fs_DecompressChunk(void);
 /// Non-resumable LZ unpack for image strips before LoadImage2 (handwritten hasm).
 void Fs_DecompressImage(void);
 
-void Fs_InitFolderTable(s32 stageIdx);
+/// Builds folder sector offsets from the mounted stage's first CDF sector.
+///
+/// The caller must already have read that sector into `Fs_CdSector`.
+/// `unusedStageIndex` is ignored. Input ends at a zero sectorCount and must fit
+/// the 50-record runtime table; later folder requests require matching IDs.
+void fsInitFolderTable(s32 unusedStageIndex);
 
 void Fs_SelectStage(s32 stageIdx);
 
 void Fs_InitStage0Tables(void);
 
-void Fs_ClearDiskError(void);
+/// Blocks until a CD command completes, recovering a disc error if necessary.
+///
+/// Recovery waits for a closed shell and a readable CD-ROM, then restores
+/// double-speed reads with sector headers. It has no timeout and does not
+/// clear the filesystem's error counter or reissue the failed read.
+void cdSyncWaitForCommandCompletion(void);
 
-u8 Fs_WaitDiskSwap(void);
+/// Results of the blocking tray-swap probe.
+enum {
+    CD_SYNC_DISC_SWAP_COMPLETE = 0,
+    CD_SYNC_DISC_SWAP_ERROR    = 0xFF,
+};
 
-void Fs_WaitDiskReset(s8 withSectHdr);
+/// Waits for a tray open/close cycle and probes the new disc's volume sector.
+///
+/// Blocks without a timeout until standby and TOC readiness, then starts a
+/// 2048-byte read at sector 16. A disk error returns CD_SYNC_DISC_SWAP_ERROR;
+/// success pauses and restores double speed with sector headers. Does not
+/// check which game disc was inserted or copy the volume descriptor to RAM.
+u8 cdSyncWaitForDiscSwap(void);
 
-void Fs_StopCd(void);
+/// Waits for a readable CD-ROM and restores the filesystem's read mode.
+///
+/// Completes the pending command, resets drive mode, and waits without a
+/// timeout for a closed shell and ready CD-ROM; no tray cycle is required.
+/// Nonzero `includeSectorHeader` enables headers in double-speed reads.
+/// The caller manages callbacks and reissues its interrupted request.
+void cdSyncWaitForReadableDisc(s8 includeSectorHeader);
 
-s32 Fs_GetStageDiskKind(void);
+/// Resets drive mode, waits three VBlanks, and stops the spindle.
+void cdSyncStopDisc(void);
+
+/// Returns the disc needed by the current stage when its CDF is absent.
+///
+/// Returns GAME_MAIN_DISC_1 for stages 1/2, GAME_MAIN_DISC_2 for stages 4/5,
+/// and GAME_MAIN_DISC_UNKNOWN when available or when no disc is selected by
+/// those stage rules. Requires a stage index within `Fs_StageCdfSectors`.
+s32 fsGetRequiredStageDisc(void);
 
 void Fs_ScanIsoDirectory(s32 mode);
 
@@ -116,9 +150,16 @@ void Fs_ScanIsoDirectory(s32 mode);
 /// `retryNonzero` disables timeout aborts when non-zero.
 u8 Fs_LoadImageStrip(s32 arg0);
 
-/// Copy a terminated FsImageColumn list into Fs_WorkEntries and set up
-/// Fs_ImageRect / load state for the following image transfer.
-void Fs_CopyWorkEntries(FsImageColumn* arg0);
+/// Copies a column table and primes the first strip of its compressed image.
+///
+/// The table must have at least two readable records, with an X terminator
+/// among its first 31 records. Its first dataOffset locates the compressed
+/// stream in bytes from `table`; that storage must survive the transfer.
+/// Columns are 64 VRAM halfwords wide and strips are 32 rows high. High-VRAM
+/// columns and mode 2 apply the configured X-page shift; mode 2 also adds 128
+/// rows to the first column only. A second-record terminator can override the
+/// default 256-row column height. No storage is allocated or GPU upload started.
+void fsBeginImageColumns(const FsImageColumn* table);
 
 /// Look up a packed file id and start a CD load.
 /// Returns the resolved absolute sector (low 16 bits), or 0 on failure.
@@ -128,11 +169,17 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3);
 /// that folder into `Fs_CdSector` (cmd-queue load path).
 void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2);
 
-/// After a folder sector is in `Fs_CdSector`: resolve file-list offsets into
-/// `D_8006C158` for folder `arg1*100+arg2`, then copy stream descriptors from
-/// sector+0x514 into `Stream_Slots` for folder `arg1*100+1`, adjusting offsets
-/// by the folder base and `Fs_StageCdfSectors[arg0]`.
-void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2);
+/// Builds file and stream lookup tables from a loaded folder directory sector.
+///
+/// Uses the low bytes of the arguments: files are rebased from folder
+/// `fileGroup * 100 + folderIndex`, streams from folder `fileGroup * 100 + 1`.
+/// File sectors remain relative to the stage CDF; stream sectors include its
+/// disc base. Rebases the buffered stream descriptors in place before copying
+/// each complete record. Both folder IDs must exist in the mounted table.
+/// The file list must terminate at zero sectorOffset within its sector view,
+/// with file IDs inside the destination table's extent (currently unproven).
+/// The stream list must end at a zero key with at most 15 active records.
+void fsBuildFolderTables(s32 stage, s32 fileGroup, s32 folderIndex);
 
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
 void Boot_LoadInitialFile(struct Task* task);

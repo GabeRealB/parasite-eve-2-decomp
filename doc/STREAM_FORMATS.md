@@ -12,7 +12,7 @@ and **seeks the CD** to feed hardware (SPU or MDEC) in real time.
 | Area | Code / tools |
 |------|----------------|
 | Descriptor struct | `include/main/stream_types.h` (`StreamSlot`), `tools/peassets/format.py` |
-| Runtime load of descriptors | `src/main/fs.c` (`Fs_BuildFolderTables`, `Fs_InitStage0TablesCb`) |
+| Runtime load of descriptors | `src/main/fs.c` (`fsBuildFolderTables`, `Fs_InitStage0TablesCb`) |
 | Movie play | `src/main/stream.c` (`Stream_*`, `Mdec_*`), `cdcmd.c` (cmd `0x61`) |
 | Audio play | `src/main/cdaudio.c`, `cdstream.c` (`CdStream_*`, `_MtsHeader`) |
 | MTS codec / extract | `mts_codec.py`, `extract.py` (also `extract_streams.py`) |
@@ -73,7 +73,7 @@ the eighteen-entry serialized capacity does not enlarge the runtime table.
 
 ### 1.4 Runtime table
 
-`Fs_BuildFolderTables` copies non-empty entries into **`Stream_Slots[15]`**
+`fsBuildFolderTables` copies non-empty entries into **`Stream_Slots[15]`**
 (BSS). Title may bulk-copy `Fs_Streams` → `Stream_Slots`. Lookup:
 `streamFindMovieSlot` selects a loaded movie using the location key's view byte
 as stream ID, its room byte (or descriptor group 0 as a wildcard), and a 16-bit

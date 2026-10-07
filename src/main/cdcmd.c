@@ -319,7 +319,7 @@ static void CdCmd_HandleFileLoad(void)
             if (CdSync(1, NULL) == CdlDiskError) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
-                Fs_WaitDiskReset(1);
+                cdSyncWaitForReadableDisc(1);
                 state->step = 1;
                 break;
             }
@@ -335,7 +335,7 @@ static void CdCmd_HandleFileLoad(void)
                             /* fallthrough */
                         case 1:
                             if (CdSync(1, NULL) == CdlDiskError) {
-                                Fs_WaitDiskReset(1);
+                                cdSyncWaitForReadableDisc(1);
                             }
                             state->step = 1;
                             break;
@@ -370,7 +370,7 @@ static void CdCmd_HandleFileLoad(void)
                     CdFlush();
                     /* fallthrough */
                 case 1:
-                    Fs_BuildFolderTables(req[3], req[2], req[1]);
+                    fsBuildFolderTables(req[3], req[2], req[1]);
                     state->step = state->step + 1;
                     break;
             }
@@ -388,7 +388,7 @@ static void CdCmd_HandleFileLoad(void)
             if (CdSync(1, NULL) == CdlDiskError) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
-                Fs_WaitDiskReset(1);
+                cdSyncWaitForReadableDisc(1);
                 state->step = 4;
                 break;
             }
@@ -404,7 +404,7 @@ static void CdCmd_HandleFileLoad(void)
                             /* fallthrough */
                         case 1:
                             if (CdSync(1, NULL) == CdlDiskError) {
-                                Fs_WaitDiskReset(1);
+                                cdSyncWaitForReadableDisc(1);
                             }
                             state->step = 4;
                             break;
@@ -491,7 +491,7 @@ static void CdCmd_HandleMount(void)
                     if (CdSync(1, NULL) == CdlDiskError) {
                         CdSyncCallback(NULL);
                         CdReadyCallback(NULL);
-                        Fs_WaitDiskReset(1);
+                        cdSyncWaitForReadableDisc(1);
                         state->step = 0;
                         return;
                     }
@@ -505,7 +505,7 @@ static void CdCmd_HandleMount(void)
                                     /* fallthrough */
                                 case 1:
                                     if (CdSync(1, NULL) == CdlDiskError) {
-                                        Fs_WaitDiskReset(1);
+                                        cdSyncWaitForReadableDisc(1);
                                     }
                                     state->step = 0;
                                     return;
@@ -540,7 +540,7 @@ static void CdCmd_HandleMount(void)
                             CdFlush();
                             /* fallthrough */
                         case 1:
-                            Fs_InitFolderTable(stageIndex & 0xFF);
+                            fsInitFolderTable(stageIndex & 0xFF);
                             if (state->busy != 0) {
                                 state->busy          = 0;
                                 gDisplayState.cdBusy = DISPLAY_CD_IDLE;
@@ -589,7 +589,7 @@ static void CdCmd_HandleMount(void)
                     /* fallthrough */
                 case 1:
                     if (CdSync(1, NULL) == CdlDiskError) {
-                        Fs_WaitDiskReset(1);
+                        cdSyncWaitForReadableDisc(1);
                     }
                     Fs_InitStage0Tables();
                     return;

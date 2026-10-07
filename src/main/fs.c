@@ -172,7 +172,7 @@ static u16 Fs_FolderTableLen;
 static u8 D_8006C150[8];
 
 /// Absolute sector offsets for folder-local file ids (indexed by file id).
-/// Filled by `Fs_BuildFolderTables` from the folder file list in `Fs_CdSector`.
+/// Filled by `fsBuildFolderTables` from the folder file list in `Fs_CdSector`.
 static s32 D_8006C158[0x33];
 
 s32 Fs_ReqSector;
@@ -275,7 +275,7 @@ static const char Fs_Stage0HeaderName[];
 
 static const char Fs_InitBitstreamName[];
 
-static void Fs_ResetBootLoadState(void);
+static void _gameFlowResetLoadScreenState(void);
 
 static void Fs_CdReadyCb(u8 status, u8* result);
 
@@ -301,23 +301,35 @@ static void Fs_SeekToPosCb(u8 status, u8* result);
 
 static void Fs_OnCdError(u8 arg0);
 
-static void Fs_ContinueDrawing(u_long* ot);
+static void _fsResumeDrawing(u_long* resumeAddress);
+
+/// Searches the mounted folder table from an initialized index to its active end.
+///
+/// Both arguments must be plain, stable local variables: they are read repeatedly
+/// and index is incremented. A missing ID leaves index at the active count.
+#define FILE_SYSTEM_FIND_FOLDER_INDEX(requestedId, index)                 \
+    for (; (u16)(index) < Fs_FolderTableLen; (index)++) {                 \
+        if ((requestedId) == Fs_FolderTable[(index) & 0xFFFF].folderId) { \
+            break;                                                        \
+        }                                                                 \
+    }
 
 /// Unreferenced.
 static s32 D_8005EBC0 = 0;
 
-static void Fs_ResetBootLoadState(void)
+/// Clears the loading-screen phase and active latch without releasing buffers.
+static void _gameFlowResetLoadScreenState(void)
 {
     Fs_BootLoadPhase           = 0;
-    gCdCmdQueue.bootLoadActive = 0;
+    gCdCmdQueue.bootLoadActive = false;
 }
 
-void Fs_BeginBootLoad(u8* arg0, s16 arg1)
+void gameFlowBeginLoadScreen(const GameLocationKey* destination, s16 alternateCaption)
 {
-    gCdCmdQueue.bootLoadActive = 1;
-    Fs_LoadParams.stage        = arg0[3];
-    Fs_LoadParams.area         = arg0[2];
-    D5B498_8006ACC0            = arg1;
+    gCdCmdQueue.bootLoadActive = true;
+    Fs_LoadParams.stage        = destination->stage;
+    Fs_LoadParams.area         = destination->area;
+    D5B498_8006ACC0            = alternateCaption;
 
     memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
     displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
@@ -586,7 +598,7 @@ static u8 Fs_ProcessChunkHeader(void)
             break;
 
         case FILE_SYSTEM_CHUNK_IMAGE:
-            Fs_CopyWorkEntries((FsImageColumn*)Fs_CdSector.chunk.data.bytes);
+            fsBeginImageColumns((FsImageColumn*)Fs_CdSector.chunk.data.bytes);
             status = Fs_LoadImageStrip(0);
             if (status == 0xFF || status == 0x7F) {
                 Fs_OnCdError(0);
@@ -897,7 +909,7 @@ void Fs_SelectStage(s32 stageIdx)
     dest            = Fs_CdSector.bytes;
 
     if (CdSync(1, NULL) == CdlDiskError) {
-        Fs_WaitDiskReset(1);
+        cdSyncWaitForReadableDisc(1);
     }
 
     Fs_CdOpStatus     = 0;
@@ -929,7 +941,7 @@ static inline void _fsStartRead(s32 sector, s32 endSector, u8* dest, u8 phase)
     CdlLOC loc[2];
 
     if (CdSync(1, NULL) == CdlDiskError) {
-        Fs_WaitDiskReset(true);
+        cdSyncWaitForReadableDisc(true);
     }
 
     Fs_CdOpStatus     = 0;
@@ -987,93 +999,86 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     _fsStartRead(sector, sector, Fs_CdSector.bytes, 0);
 }
 
-/// Copies one stream descriptor byte by byte.
-static inline void Fs_CopyStreamSlot(StreamSlot* destination, StreamSlot* source)
+/// Copies all bytes of one stream descriptor into a distinct writable slot.
+static inline void _fsCopyStreamSlot(StreamSlot* destination, const StreamSlot* source)
 {
-    s32 k;
-    u8* src;
-    u8* dst;
+    s32       byteIndex;
+    const u8* sourceBytes;
+    u8*       destinationBytes;
 
-    src = (u8*)source;
-    dst = (u8*)destination;
-    for (k = 0; (u16)k < sizeof(*destination); k++) {
-        dst[k & 0xFFFF] = src[k & 0xFFFF];
+    sourceBytes      = (const u8*)source;
+    destinationBytes = (u8*)destination;
+    for (byteIndex = 0; (u16)byteIndex < sizeof(*destination); byteIndex++) {
+        destinationBytes[byteIndex & 0xFFFF] = sourceBytes[byteIndex & 0xFFFF];
     }
 }
 
-void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
+void fsBuildFolderTables(s32 stage, s32 fileGroup, s32 folderIndex)
 {
     enum { FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET = 0x514 };
     STATIC_ASSERT(sizeof(Fs_CdSector.fileList) <= FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET, fs_file_list_precedes_stream_table);
-    s32 i;
-    s32 j;
-    s32 folderId;
-    union {
-        FsCdfFile*    file;
-        _FsCdfFolder* folder;
-    } files;
-    s32*          table;
-    s32           offset;
-    _FsCdfFolder* folder;
-    StreamSlot*   sourceStreams;
-    StreamSlot*   destinationStreams;
+    s32                 folderTableIndex;
+    s32                 entryIndex;
+    s32                 folderId;
+    const FsCdfFile*    fileList;
+    const _FsCdfFolder* streamFolder;
+    s32*                fileSectors;
+    const s32*          stageBaseSector;
+    s32                 fileSectorOffset;
+    const _FsCdfFolder* fileFolder;
+    StreamSlot*         sourceStreams;
+    StreamSlot*         destinationStreams;
 
-    i        = 0;
-    folderId = ((u8)arg1 * 100) + (u8)arg2;
-    for (; (u16)i < Fs_FolderTableLen; i++) {
-        if (folderId == Fs_FolderTable[i & 0xFFFF].folderId) {
-            break;
-        }
-    }
+    folderTableIndex = 0;
+    folderId         = ((u8)fileGroup * 100) + (u8)folderIndex;
+    FILE_SYSTEM_FIND_FOLDER_INDEX(folderId, folderTableIndex);
 
-    files.file = Fs_CdSector.fileList;
-    j          = 0;
-    table      = D_8006C158;
+    fileList    = Fs_CdSector.fileList;
+    entryIndex  = 0;
+    fileSectors = D_8006C158;
     {
-        _FsCdfFolder* sp = Fs_FolderTable;
-        folder           = sp + (i & 0xFFFF);
+        _FsCdfFolder* folderTable = Fs_FolderTable;
+        fileFolder                = folderTable + (folderTableIndex & 0xFFFF);
     }
     for (;;) {
-        offset = files.file[j & 0xFFFF].sectorOffset;
-        if (offset != 0) {
-            table[files.file[j & 0xFFFF].fileId] = offset + folder->sectorOffset;
-            j                                   += 1;
+        fileSectorOffset = fileList[entryIndex & 0xFFFF].sectorOffset;
+        if (fileSectorOffset != 0) {
+            fileSectors[fileList[entryIndex & 0xFFFF].fileId] = fileSectorOffset + fileFolder->sectorOffset;
+            entryIndex                                       += 1;
         } else {
             break;
         }
     }
 
-    // Resolve the stream folder independently of the file-load folder.
-    i             = 0;
-    folderId      = ((u8)arg1 * 100) + 1;
-    sourceStreams = (StreamSlot*)(Fs_CdSector.bytes + FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET);
-    for (; (u16)i < Fs_FolderTableLen; i++) {
-        if (folderId == Fs_FolderTable[i & 0xFFFF].folderId) {
-            break;
-        }
-    }
+    // Streams use the area's room folder even when files came from another folder.
+    folderTableIndex = 0;
+    folderId         = ((u8)fileGroup * 100) + 1;
+    sourceStreams    = (StreamSlot*)(Fs_CdSector.bytes + FILE_SYSTEM_FOLDER_STREAM_TABLE_OFFSET);
+    FILE_SYSTEM_FIND_FOLDER_INDEX(folderId, folderTableIndex);
 
-    j = 0;
+    entryIndex = 0;
     {
-        _FsCdfFolder* sp = Fs_FolderTable;
-        files.folder     = sp + (i & 0xFFFF);
+        _FsCdfFolder* folderTable = Fs_FolderTable;
+        streamFolder              = folderTable + (folderTableIndex & 0xFFFF);
     }
     {
-        s32* sp = Fs_StageCdfSectors;
-        table   = sp + (u8)arg0;
+        const s32* stageSectors = Fs_StageCdfSectors;
+        stageBaseSector         = stageSectors + (u8)stage;
     }
     // Publish complete descriptors with absolute CD sectors.
     destinationStreams = Stream_Slots;
     for (;;) {
-        if (sourceStreams[j & 0xFFFF].key.word != STREAM_KEY_TERMINATOR) {
-            sourceStreams[j & 0xFFFF].startSector += files.folder->sectorOffset + *table;
-            Fs_CopyStreamSlot(&destinationStreams[j & 0xFFFF], &sourceStreams[j & 0xFFFF]);
-            j += 1;
+        if (sourceStreams[entryIndex & 0xFFFF].key.word != STREAM_KEY_TERMINATOR) {
+            sourceStreams[entryIndex & 0xFFFF].startSector += streamFolder->sectorOffset + *stageBaseSector;
+            _fsCopyStreamSlot(&destinationStreams[entryIndex & 0xFFFF], &sourceStreams[entryIndex & 0xFFFF]);
+            entryIndex += 1;
         } else {
             break;
         }
     }
 }
+
+#undef FILE_SYSTEM_FIND_FOLDER_INDEX
 
 static void Fs_InitStage0TablesCb(u8 status, u8* result)
 {
@@ -1281,7 +1286,7 @@ restart:
     _fsStartRead(0x16, 0x16, Fs_CdSector.bytes, 0);
     while (Fs_CdOpStatus != 0xFF) {
         if (Fs_CdOpStatus == 0x80) {
-            Fs_ClearDiskError();
+            cdSyncWaitForCommandCompletion();
             goto restart;
         }
         VSync(0);
@@ -1294,7 +1299,7 @@ restart:
             _fsStartRead(0x14, 0x14, sec, 0);
             while (Fs_CdOpStatus != 0xFF) {
                 if (Fs_CdOpStatus == 0x80) {
-                    Fs_ClearDiskError();
+                    cdSyncWaitForCommandCompletion();
                     goto restart;
                 }
                 VSync(0);
@@ -1375,7 +1380,7 @@ restart:
         Wip_SysFlags.discNumber = GAME_MAIN_DISC_2;
     }
 
-    Fs_ClearDiskError();
+    cdSyncWaitForCommandCompletion();
 
     if ((mode & 0xFF) != 0) {
         if (initBsSector != 0) {
@@ -1394,13 +1399,13 @@ restart:
             while (Fs_CdOpStatus != 0xFF) {
                 if (Fs_CdOpStatus == 0x80) {
                     if (CdSync(1, NULL) == CdlDiskError) {
-                        Fs_WaitDiskReset(true);
+                        cdSyncWaitForReadableDisc(true);
                     }
                     goto restart;
                 }
                 VSync(0);
             }
-            Fs_ClearDiskError();
+            cdSyncWaitForCommandCompletion();
         }
     }
 
@@ -1445,7 +1450,7 @@ u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
         }
         if (GetRCnt(RCntCNT2) >= 0x6E40) {
             if (arg1 == 0) {
-                Fs_ContinueDrawing(ot);
+                _fsResumeDrawing(ot);
                 return 0x7F;
             }
         }
@@ -1475,7 +1480,7 @@ u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
     Fs_DecompressImage();
 
     if (D5B498_8006D748 == 0xFFFF) {
-        Fs_ContinueDrawing(ot);
+        _fsResumeDrawing(ot);
         return 0x7F;
     }
 
@@ -1496,52 +1501,60 @@ u8 Fs_LoadImageChunk(FsImageChunk* chunk, u8 arg1)
     } while (0);
 
     D_8006C4C8[D5B498_8006ADF4] = (u8)Fs_ImageRect.h;
-    Fs_ContinueDrawing(ot);
+    _fsResumeDrawing(ot);
     return 0;
 }
 
-void Fs_CopyWorkEntries(FsImageColumn* arg0)
+void fsBeginImageColumns(const FsImageColumn* table)
 {
-    FsImageColumn* src;
-    s32            i;
+    enum {
+        FILE_SYSTEM_IMAGE_COLUMN_WIDTH           = 64,
+        FILE_SYSTEM_IMAGE_COLUMN_STRIP_ROWS      = 32,
+        FILE_SYSTEM_IMAGE_COLUMN_RELOCATION_ROWS = 128,
+        FILE_SYSTEM_IMAGE_COLUMN_ROW_COUNT_MASK  = FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN - 1,
+    };
+    const FsImageColumn* column;
+    s32                  columnIndex;
 
-    src = arg0;
-    i   = 0;
+    // Retain the terminator: it also carries single-column height metadata.
+    column      = table;
+    columnIndex = 0;
     while (1) {
-        Fs_WorkEntries[i].x          = src->x;
-        Fs_WorkEntries[i].y          = src->y;
-        Fs_WorkEntries[i].dataOffset = src->dataOffset;
-        if (Fs_WorkEntries[i].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
+        Fs_WorkEntries[columnIndex].x          = column->x;
+        Fs_WorkEntries[columnIndex].y          = column->y;
+        Fs_WorkEntries[columnIndex].dataOffset = column->dataOffset;
+        if (Fs_WorkEntries[columnIndex].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
             break;
         }
-        src++;
-        i++;
+        column++;
+        columnIndex++;
     }
 
-    if ((Fs_WorkEntries[0].y >= 0x100U) || (Fs_ChunkMode == 2)) {
-        Fs_ImageRect.x = Fs_WorkEntries[0].x + D5B498_8006C233 * 64;
+    // Relocate the initial strip; subsequent columns keep their recorded Y.
+    if ((Fs_WorkEntries[0].y >= (u32)FILE_SYSTEM_IMAGE_COLUMN_ROWS) || (Fs_ChunkMode == 2)) {
+        Fs_ImageRect.x = Fs_WorkEntries[0].x + D5B498_8006C233 * FILE_SYSTEM_IMAGE_COLUMN_WIDTH;
     } else {
         Fs_ImageRect.x = Fs_WorkEntries[0].x;
     }
 
     if (Fs_ChunkMode == 2) {
-        Fs_ImageRect.y = Fs_WorkEntries[0].y + 0x80;
+        Fs_ImageRect.y = Fs_WorkEntries[0].y + FILE_SYSTEM_IMAGE_COLUMN_RELOCATION_ROWS;
     } else {
         Fs_ImageRect.y = Fs_WorkEntries[0].y;
     }
 
-    Fs_ImageRect.w  = 0x40;
-    Fs_ImageRect.h  = 0x20;
+    Fs_ImageRect.w  = FILE_SYSTEM_IMAGE_COLUMN_WIDTH;
+    Fs_ImageRect.h  = FILE_SYSTEM_IMAGE_COLUMN_STRIP_ROWS;
     D5B498_8006ACD4 = FILE_SYSTEM_IMAGE_COLUMN_ROWS;
 
-    Fs_ChunkReadPtr = (u8*)arg0 + Fs_WorkEntries[0].dataOffset;
+    Fs_ChunkReadPtr = (u8*)table + Fs_WorkEntries[0].dataOffset;
 
     // A terminator in the second record may set the single column's height.
     if (Fs_WorkEntries[1].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
         if (Fs_WorkEntries[1].y == Fs_WorkEntries[1].x) {
             D5B498_8006ACD4 = FILE_SYSTEM_IMAGE_COLUMN_SHORT_ROWS;
         } else if (Fs_WorkEntries[1].y & FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN) {
-            D5B498_8006ACD4 = Fs_WorkEntries[1].y & 0x7FFF;
+            D5B498_8006ACD4 = Fs_WorkEntries[1].y & FILE_SYSTEM_IMAGE_COLUMN_ROW_COUNT_MASK;
         }
     }
 
@@ -1573,7 +1586,7 @@ u8 Fs_LoadImageStrip(s32 mode)
         }
         if (GetRCnt(RCntCNT2) >= 0x6E40) {
             if (retry == 0) {
-                Fs_ContinueDrawing(FS_DRAW_BREAK_FAILED);
+                _fsResumeDrawing(FS_DRAW_BREAK_FAILED);
                 return 0x7F;
             }
         }
@@ -1592,11 +1605,11 @@ u8 Fs_LoadImageStrip(s32 mode)
         }
         Fs_DecompressChunk();
         if (D5B498_8006D748 == 0xFFFF) {
-            Fs_ContinueDrawing(ot);
+            _fsResumeDrawing(ot);
             return 0x7F;
         }
         if (D5B498_8006D748 == 0) {
-            Fs_ContinueDrawing(ot);
+            _fsResumeDrawing(ot);
             if ((u8)mode == 0) {
                 Fs_ChunkReadPtr = Fs_CdSector.bytes;
                 if (GetRCnt(RCntCNT2) >= 0x6E40) {
@@ -1624,7 +1637,7 @@ u8 Fs_LoadImageStrip(s32 mode)
         D5B498_8006ACD4 -= 0x20;
         if ((s16)D5B498_8006ACD4 <= 0) {
             if (Fs_WorkEntries[D5B498_8006ADE0].x == FILE_SYSTEM_IMAGE_COLUMN_END) {
-                Fs_ContinueDrawing(ot);
+                _fsResumeDrawing(ot);
                 if ((u8)mode == 0) {
                     Fs_ChunkReadPtr = Fs_CdSector.bytes;
                     if (GetRCnt(RCntCNT2) >= 0x6E40) {
@@ -1659,7 +1672,7 @@ u8 Fs_LoadImageStrip(s32 mode)
             Fs_ChunkReadPtr++;
             count++;
             if (Fs_ChunkReadPtr >= D_8006CCD8 || count >= 6U) {
-                Fs_ContinueDrawing(ot);
+                _fsResumeDrawing(ot);
                 if ((u8)mode == 0) {
                     Fs_ChunkReadPtr = D_8006CCD8 - 0x800;
                     if (GetRCnt(RCntCNT2) >= 0x6E40) {
@@ -1673,43 +1686,41 @@ u8 Fs_LoadImageStrip(s32 mode)
     }
 }
 
-void Fs_ClearDiskError(void)
+void cdSyncWaitForCommandCompletion(void)
 {
-    u8  done;
-    s32 status;
-    u8  ctrlParam[8];
-    u8  ctrlResult[8];
+    u8  commandComplete;
+    s32 syncStatus;
+    u8  modeParameters[8];
+    u8  commandResult[8];
 
-    done = 0;
+    commandComplete = 0;
     do {
-        // Poll the status of the current command.
-        status = CdSync(1, NULL);
-        switch (status) {
+        syncStatus = CdSync(1, NULL);
+        switch (syncStatus) {
             case CdlNoIntr:
                 break;
             case CdlComplete:
-                done = 1;
+                commandComplete = 1;
                 break;
             case CdlDiskError:
-                // Wait for the command to finish and reset the operation mode.
+                // Leave read mode before waiting for a ready CD-ROM.
                 CdSync(0, NULL);
-                ctrlParam[0] = 0;
-                CdControlB(CdlSetmode, ctrlParam, NULL);
+                modeParameters[0] = 0;
+                CdControlB(CdlSetmode, modeParameters, NULL);
                 VSync(3);
 
-                // Wait until the CD shell is closed with a valid disk.
                 do {
                     do {
-                        CdControlB(CdlNop, NULL, ctrlResult);
-                    } while (ctrlResult[0] & CdlStatShellOpen);
+                        CdControlB(CdlNop, NULL, commandResult);
+                    } while (commandResult[0] & CdlStatShellOpen);
                 } while (CdDiskReady(0) != CdlComplete || CdGetDiskType() != CdlCdromFormat);
 
-                // Enable double speed and sector header.
-                ctrlParam[0] = CdlModeSpeed | CdlModeSize1;
-                CdControlB(CdlSetmode, ctrlParam, NULL);
+                // Resume double-speed reads with sector headers.
+                modeParameters[0] = CdlModeSpeed | CdlModeSize1;
+                CdControlB(CdlSetmode, modeParameters, NULL);
                 VSync(3);
         }
-    } while (done == 0);
+    } while (commandComplete == 0);
 }
 
 void Fs_RetryReadN(void)
@@ -1749,62 +1760,62 @@ void Fs_RetryReadN(void)
     }
 }
 
-u8 Fs_WaitDiskSwap(void)
+u8 cdSyncWaitForDiscSwap(void)
 {
-    s32    status;
-    u8     ctrlParam[8];
-    u8     ctrlResult[8];
-    CdlLOC loc[2];
+    enum {
+        CD_SYNC_VOLUME_DESCRIPTOR_SECTOR = 16,
+        CD_SYNC_TOC_RETRY_VBLANKS        = 30,
+    };
+    s32    tocCommandAccepted;
+    u8     modeParameters[8];
+    u8     commandResult[8];
+    CdlLOC volumeLocation[2];
 
     VSync(0);
 
-    // Wait until the CD shell is opened.
+    // Observe a full tray cycle before probing the replacement disc.
     do {
-        CdControlB(CdlNop, NULL, ctrlResult);
-    } while ((ctrlResult[0] & CdlStatShellOpen) == 0);
+        CdControlB(CdlNop, NULL, commandResult);
+    } while ((commandResult[0] & CdlStatShellOpen) == 0);
 
-    // Wait until the CD shell is closed.
     do {
-        CdControlB(CdlNop, NULL, ctrlResult);
-    } while ((ctrlResult[0] & CdlStatShellOpen) != 0);
+        CdControlB(CdlNop, NULL, commandResult);
+    } while ((commandResult[0] & CdlStatShellOpen) != 0);
 
-    // Wait until the CD is spinning.
-    while ((ctrlResult[0] & CdlStatStandby) == 0) {
-        CdControlB(CdlNop, NULL, ctrlResult);
+    while ((commandResult[0] & CdlStatStandby) == 0) {
+        CdControlB(CdlNop, NULL, commandResult);
     }
 
-    // Wait until the TOC is read.
-    status = CdControlB(CdlGetTN, NULL, ctrlResult);
-    while (ctrlResult[0] != CdlStatStandby || status == CdlNoIntr) {
-        VSync(0x1e);
-        status = CdControlB(CdlGetTN, NULL, ctrlResult);
+    // Wait for the new TOC and spindle readiness before starting a data read.
+    tocCommandAccepted = CdControlB(CdlGetTN, NULL, commandResult);
+    while (commandResult[0] != CdlStatStandby || tocCommandAccepted == CdlNoIntr) {
+        VSync(CD_SYNC_TOC_RETRY_VBLANKS);
+        tocCommandAccepted = CdControlB(CdlGetTN, NULL, commandResult);
     }
 
-    // Enable double speed.
-    ctrlParam[0] = CdlModeSpeed;
-    CdControlB(CdlSetmode, ctrlParam, NULL);
+    modeParameters[0] = CdlModeSpeed;
+    CdControlB(CdlSetmode, modeParameters, NULL);
     VSync(3);
 
-    // Read the volume descriptor (sector 16).
-    CdIntToPos(0x10, loc);
-    CdControlB(CdlReadN, &loc[0].minute, ctrlResult);
+    // Probe the ISO volume sector using ordinary 2048-byte data mode.
+    CdIntToPos(CD_SYNC_VOLUME_DESCRIPTOR_SECTOR, volumeLocation);
+    CdControlB(CdlReadN, &volumeLocation[0].minute, commandResult);
 
-    // A disk error fails the swap. The status and error bytes are still
-    // tested, but every outcome of those tests returns the same -1.
-    if (CdSync(0, ctrlResult) == CdlDiskError) {
-        if (ctrlResult[0] & CdlStatError) {
-            if (ctrlResult[1] & 0x40) {
-                return -1;
+    // The response-bit tests all return the same failure byte in the binary.
+    if (CdSync(0, commandResult) == CdlDiskError) {
+        if (commandResult[0] & CdlStatError) {
+            if (commandResult[1] & 0x40) {
+                return CD_SYNC_DISC_SWAP_ERROR;
             }
         }
-        return -1;
+        return CD_SYNC_DISC_SWAP_ERROR;
     }
 
-    // Enable the sector header.
-    CdControlB(CdlPause, NULL, ctrlResult);
-    ctrlParam[0] = CdlModeSpeed | CdlModeSize1;
-    CdControlB(CdlSetmode, ctrlParam, NULL);
-    return 0;
+    // A successful probe leaves the drive paused in the filesystem's read mode.
+    CdControlB(CdlPause, NULL, commandResult);
+    modeParameters[0] = CdlModeSpeed | CdlModeSize1;
+    CdControlB(CdlSetmode, modeParameters, NULL);
+    return CD_SYNC_DISC_SWAP_COMPLETE;
 }
 
 void Fs_ReadSectorEx(s32 sector, s32 arg1, u8* arg2, u8 arg3)
@@ -1817,7 +1828,7 @@ static void Fs_ReadSector(s32 sector)
     CdlLOC loc[2];
 
     if (CdSync(1, NULL) == CdlDiskError) {
-        Fs_WaitDiskReset(true);
+        cdSyncWaitForReadableDisc(true);
     }
 
     Fs_CdOpStatus   = 0;
@@ -1837,31 +1848,31 @@ static void Fs_ReadSector(s32 sector)
     }
 }
 
-void Fs_WaitDiskReset(s8 withSectHdr)
+void cdSyncWaitForReadableDisc(s8 includeSectorHeader)
 {
-    u8 ctrlParam[8];
-    u8 ctrlResult[8];
+    u8 modeParameters[8];
+    u8 commandResult[8];
 
     // Wait for the command to finish and reset the operation mode.
     CdSync(0, NULL);
-    ctrlParam[0] = 0;
-    CdControlB(CdlSetmode, ctrlParam, NULL);
+    modeParameters[0] = 0;
+    CdControlB(CdlSetmode, modeParameters, NULL);
     VSync(3);
 
-    // Wait until the CD shell is opened and closed again with a valid disk.
+    // Wait for a closed shell with a readable CD-ROM; no opening is required.
     do {
         do {
-            CdControlB(CdlNop, NULL, ctrlResult);
-        } while ((ctrlResult[0] & CdlStatShellOpen) != 0);
+            CdControlB(CdlNop, NULL, commandResult);
+        } while ((commandResult[0] & CdlStatShellOpen) != 0);
     } while (CdDiskReady(0) != CdlComplete || CdGetDiskType() != CdlCdromFormat);
 
     // Enable double speed and optionally also the sector header.
-    if (withSectHdr != 0) {
-        ctrlParam[0] = CdlModeSpeed | CdlModeSize1;
+    if (includeSectorHeader != 0) {
+        modeParameters[0] = CdlModeSpeed | CdlModeSize1;
     } else {
-        ctrlParam[0] = CdlModeSpeed;
+        modeParameters[0] = CdlModeSpeed;
     }
-    CdControlB(CdlSetmode, ctrlParam, NULL);
+    CdControlB(CdlSetmode, modeParameters, NULL);
     VSync(3);
 }
 
@@ -1871,7 +1882,7 @@ static void Fs_SeekToPos(s32 sector)
 
     Fs_CdOpStatus = 0;
     if (CdSync(1, NULL) == CdlDiskError) {
-        Fs_WaitDiskReset(true);
+        cdSyncWaitForReadableDisc(true);
     }
 
     Fs_SeekSector = sector;
@@ -1881,28 +1892,28 @@ static void Fs_SeekToPos(s32 sector)
     Fs_VBlank = VSync(-1);
 }
 
-void Fs_InitFolderTable(s32 unused)
+void fsInitFolderTable(s32 unusedStageIndex)
 {
-    u32                   offset;
-    FsCdfFolderListEntry* entry;
+    u32                   sectorOffset;
+    FsCdfFolderListEntry* folderEntry;
 
     Fs_FolderTableLen = 0;
-    entry             = Fs_CdSector.folderList.entries;
+    folderEntry       = Fs_CdSector.folderList.entries;
 
     // The folder table fills the CDF's first sector, so the first folder
     // starts at sector 1. Each sector count places the folder after it.
-    offset = 1;
+    sectorOffset = 1;
     while (true) {
-        if (entry->sectorCount == FS_CDF_FOLDER_CANARY) {
+        if (folderEntry->sectorCount == FS_CDF_FOLDER_CANARY) {
             return;
         }
 
-        Fs_FolderTable[Fs_FolderTableLen].folderId     = entry->folderId;
-        Fs_FolderTable[Fs_FolderTableLen].sectorOffset = offset;
+        Fs_FolderTable[Fs_FolderTableLen].folderId     = folderEntry->folderId;
+        Fs_FolderTable[Fs_FolderTableLen].sectorOffset = sectorOffset;
         Fs_FolderTableLen                             += 1;
 
-        offset += entry->sectorCount;
-        entry  += 1;
+        sectorOffset += folderEntry->sectorCount;
+        folderEntry  += 1;
     }
 }
 
@@ -1989,17 +2000,19 @@ static void Fs_OnCdError(u8 arg0)
     CdControlF(CdlPause, NULL);
 }
 
-static void Fs_ContinueDrawing(u_long* ot)
+/// Waits for GPU upload completion before resuming the interrupted draw DMA.
+///
+/// `resumeAddress` is the opaque `BreakDraw` result, including its -1 failure
+/// sentinel. `ContinueDraw` forwards it to the DMA register, without a CPU
+/// dereference. Both successful uploads and aborted transfers use this path.
+static void _fsResumeDrawing(u_long* resumeAddress)
 {
-    // Wait until the gpu is idling and then continue drawing. With a NULL
-    // first argument, ContinueDraw passes ot to the DMA address register,
-    // including the -1 sentinel; it does not dereference ot as a C object.
     while (IsIdleGPU(-1) != 0) {
     }
-    ContinueDraw(NULL, ot);
+    ContinueDraw(NULL, resumeAddress);
 }
 
-u8* Fs_GetChunkPayload(void)
+u8* fsGetChunkPayload(void)
 {
     return Fs_CdSector.chunk.data.bytes;
 }
@@ -2025,30 +2038,30 @@ void Fs_CheckReadTimeout(void)
     CdControlB(CdlPause, NULL, ctrlResult);
 }
 
-void Fs_StopCd(void)
+void cdSyncStopDisc(void)
 {
-    u8 ctrlParam[9];
+    u8 modeParameters[9];
 
-    ctrlParam[0] = 0;
-    ctrlParam[8] = 0;
-    CdControlB(CdlSetmode, ctrlParam, NULL);
+    modeParameters[0] = 0;
+    modeParameters[8] = 0;
+    CdControlB(CdlSetmode, modeParameters, NULL);
 
     VSync(3);
     CdControlB(CdlStop, NULL, NULL);
 }
 
-s32 Fs_GetStageDiskKind(void)
+s32 fsGetRequiredStageDisc(void)
 {
     u8 stage;
 
     stage = gGameSession->location.loc.stage;
     if (Fs_StageCdfSectors[stage] == 0) {
-        if (stage == 1 || stage == 2) {
-            return 1;
+        if (stage == GAME_STAGE_ACROPOLIS || stage == GAME_STAGE_DRYFIELD) {
+            return GAME_MAIN_DISC_1;
         }
-        if (stage == 4 || stage == 5) {
-            return 2;
+        if (stage == GAME_STAGE_MINE_SHELTER || stage == GAME_STAGE_SHELTER_NEO_ARK) {
+            return GAME_MAIN_DISC_2;
         }
     }
-    return 0;
+    return GAME_MAIN_DISC_UNKNOWN;
 }

@@ -12983,7 +12983,7 @@ if (stage == 1 || stage == 2) return 1;
 if (stage == 4 || stage == 5) return 2;
 ```
 
-`Fs_GetStageDiskKind` needs the equality spelling.
+`fsGetRequiredStageDisc` needs the equality spelling.
 
 ## Unsigned divide by 65535 needs `(u32)` cast
 
@@ -19837,7 +19837,7 @@ __asm__("lhu %0, %%lo(Fs_WorkEntries)(%1)" : "=r"(t) : "r"(ace_hi));
 
 Also: `s8_global * 64` (or `(s8)u8_global * 64`) emits `lb; sll 6`, while
 `s8_global << 6` emits `lbu; sll 24; sra 18`. Prefer multiply for signed-byte
-scale factors. `Fs_CopyWorkEntries` is the pure example.
+scale factors. `fsBeginImageColumns` is the pure example.
 
 ## Fade step: non-volatile `lh` + volatile `lhu` + dual temps
 
@@ -21594,32 +21594,29 @@ Fix: give the second loop its own counter/sum/pointer locals and pin each set
 independently. `_mcStatePrepareSectionRead` is the pure example — block-checksum walk then
 first-byte sum over `Mc_BufferSlots[1..8]`.
 
-## Reuse a pointer var across phases to force shared hard registers
+## Independent typed pointers can share hard registers across phases
 
-When two sequential phases need the same hard register for different logical
-pointers (e.g. file-list base in phase 1 and stream-folder base in phase 2 both
-in `$t2`), reusing one C variable across both phases forces the shared colouring:
+Two sequential phases can use the same hard register for different logical
+pointers (the file-list base in phase 1 and stream-folder base in phase 2 both
+use `$t2`) without a union joining unrelated pointer types:
 
 ```c
-union {
-    FsCdfFile*    file;
-    _FsCdfFolder* folder;
-} files;
+const FsCdfFile* fileList;
+const _FsCdfFolder* streamFolder;
 
-files.file = Fs_CdSector.fileList;
-/* phase 1: walk files.file[j] */
+fileList = Fs_CdSector.fileList;
+/* phase 1: walk fileList[entryIndex] */
 ...
-/* phase 2: reuse the same local for the stream-side folder entry */
-files.folder = Fs_FolderTable + (i & 0xFFFF);
-stream->startSector += files.folder->sectorOffset + stage;
+/* phase 2: locate the stream-side folder entry */
+streamFolder = Fs_FolderTable + (folderTableIndex & 0xFFFF);
+stream->startSector += streamFolder->sectorOffset + stage;
 ```
 
-The two pointers differ in type, so the one variable is a union of both rather
-than a cast of the folder entry to the file record.
-
-Separate `files` / `folder2` locals often colour differently and shift every
-`$tN` assignment. `Fs_BuildFolderTables` needs this so phase-1 file base and phase-2
-stream folder share `$t2`.
+In `fsBuildFolderTables`, these separate typed locals match the shared `$t2`
+allocation. Its file-sector output table and stage-sector input likewise use
+separate `fileSectors` and `stageBaseSector` locals. The former register-sharing
+union is unnecessary. The two folder searches match as a source-local loop
+macro; an inline function changes nine words in the second phase's allocation.
 
 ## Index-first cast for `addu rd, index, base`
 
@@ -21637,7 +21634,9 @@ file = &files[j & 0xFFFF];
 file = (FsCdfFile*)(((j & 0xFFFF) << 3) + (s32)files);
 ```
 
-Same for stream stride `* 0x28`. `Fs_BuildFolderTables` needs both forms.
+The same operand-order issue can occur for stream stride `* 0x28`.
+`fsBuildFolderTables` now uses typed file indices and `_fsCopyStreamSlot`
+arguments; its indexed addresses need no pointer/integer conversions.
 
 ## `asm("")` after a move that must own the next `beqz` delay slot
 
@@ -21657,8 +21656,8 @@ if (stream->field_C != 0) {
 
 The barrier pins `src` before later independent inits, so the delay-slot filler
 takes `move a2, a0`. Without it, `k = 0` or the `dst` `addu` wins the slot.
-`Fs_BuildFolderTables` is the pure example (also uses the project’s existing `asm("")`
-pattern from `Fs_PrepareFolderLoad`).
+Earlier `fsBuildFolderTables` attempts used this barrier. Its current typed
+`_fsCopyStreamSlot` inline call matches without an asm statement.
 
 ## Late `andi s0, src, 0xFFFF` in call arg setup
 
@@ -32341,7 +32340,7 @@ addiu t4, v1, %lo(gPlayerStatus)
 `cfg = &gPlayerStatus` emits `lui v0` / `addiu t4, v0`. Occupying `$v0`
 with the upcoming `lbu` of a scan field spills other incoming args.
 Pin `cfg` to the dest register and emit the split pair (same form as
-`_textItoaHex` / `Fs_CopyWorkEntries`):
+`_textItoaHex` / `fsBeginImageColumns`):
 
 ```c
 register PlayerStatus* cfg asm("t4");
@@ -65843,7 +65842,7 @@ do {
     Fs_ChunkReadPtr++;
     count++;
     if (Fs_ChunkReadPtr >= D_8006CCD8 || count >= 6U) {
-        Fs_ContinueDrawing(ot);
+        _fsResumeDrawing(ot);
         /* Conditional rewind and return remain inside this loop. */
     }
 } while (1);
@@ -145393,7 +145392,7 @@ member instead of a bitfield, CSE merged the two loads even across the
 volatile store; with a scalar `u32*`, the store kept the second load below it.
 No word view is needed beside the bitfield: every user of the status word,
 the queue's own functions included, matches through the named bits.
-## A test whose every outcome returns the same value survives only as nested `if`s with one trailing `return` (Fs_WaitDiskSwap, 2026-09-26)
+## A test whose every outcome returns the same value survives only as nested `if`s with one trailing `return` (cdSyncWaitForDiscSwap, 2026-09-26)
 
 The target tests two status bits, `beqz` to the epilogue on each, then ends
 the inner test with an unconditional `j` to that same epilogue - three paths,
@@ -146669,7 +146668,7 @@ tested, so the load says nothing. The zero test does: an `s16` field compiles
 `andi v0,v0,0xffff; bnez`. A tree body that reached the `sll` through
 `*(volatile u16*)` and a hand-shifted `(half << 16) == 0` was standing in for
 an `s16` field declared `u16`; retyping the field removed both.
-## A pointer copy that must lead its block is written after the store through the original pointer (Fs_BuildFolderTables, 2026-09-27)
+## A pointer copy that must lead its block is written after the store through the original pointer (fsBuildFolderTables, 2026-09-27)
 
 **Symptom.** After `if (stream->x != 0)` the target copies the pointer
 (`move a2,a0`) as the first insn of the fall-through, so dbr puts it in the
@@ -147959,7 +147958,7 @@ for (i = 0; (s32)i < ARRAY_SIZE(song->voiceSlots); i++) {
 Matched this way: `Midi_InitSlot`, `Pad_Init` (`Pad_ClearState(&gPadStates[i])`
 followed by `gPadStates[i].field = ...`; the byte-offset counter and the
 separate `state` pointer of the old source were both givs the loop pass made
-from one `i`), `Fs_BuildFolderTables` (byte copy of
+from one `i`), `fsBuildFolderTables` (byte copy of
 `&destinationStreams[j & 0xFFFF]`) and `Stage_ApplyTableEntryWhenIdle`, where
 the pointer is used across blocks. An inline that returns a flag the caller
 tests leaves `li v0,1` / `beqz v0` at the join, so put the code that follows

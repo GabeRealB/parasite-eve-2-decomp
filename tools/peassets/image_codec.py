@@ -2,7 +2,7 @@
 
 Matches the main executable load path in ``fs.c``:
 
-**Type 1 – Image (``Fs_CopyWorkEntries`` + ``Fs_LoadImageStrip``)**
+**Type 1 – Image (``fsBeginImageColumns`` + ``Fs_LoadImageStrip``)**
     Work-entry table (``u16 x, u16 y, u32 offset``) terminated by ``x == 0xFFFF``.
     Entries give VRAM column positions only. Compressed strips are **sequential**
     from the first entry's offset (later ``offset`` fields are not seeks).

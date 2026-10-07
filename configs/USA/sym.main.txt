@@ -534,8 +534,8 @@ Fs_BootImageMachine               = 0x8002226C; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x12D18   VA: 0x80022518   subsegment: c, fs
 //--------------------------------------------------------------------
-Fs_ResetBootLoadState             = 0x80022518; // type:func
-Fs_BeginBootLoad             = 0x8002252C; // type:func
+_gameFlowResetLoadScreenState             = 0x80022518; // type:func
+gameFlowBeginLoadScreen             = 0x8002252C; // type:func
 Fs_EnsureBootLoadStarted             = 0x80022598; // type:func
 Fs_StepBootImage             = 0x800225D4; // type:func
 Fs_LoadFile                 = 0x8002265C; // type:func
@@ -544,30 +544,30 @@ Fs_ProcessChunkHeader       = 0x80022CF0; // type:func
 Fs_ProcessChunkData         = 0x800231A8; // type:func
 Fs_SelectStage              = 0x8002362C; // type:func
 Fs_PrepareFolderLoad               = 0x80023748; // type:func
-Fs_BuildFolderTables               = 0x8002397C; // type:func
+fsBuildFolderTables               = 0x8002397C; // type:func
 Fs_InitStage0TablesCb       = 0x80023B6C; // type:func
 Fs_ScanIsoDirectory         = 0x80023FA0; // type:func
 Fs_LoadImageChunk               = 0x800246B0; // type:func
-Fs_CopyWorkEntries               = 0x800248B4; // type:func
+fsBeginImageColumns               = 0x800248B4; // type:func
 Fs_LoadImageStrip               = 0x80024A28; // type:func
-Fs_ClearDiskError           = 0x80024DB8; // type:func
+cdSyncWaitForCommandCompletion           = 0x80024DB8; // type:func
 Fs_RetryReadN             = 0x80024EC0; // type:func
-Fs_WaitDiskSwap             = 0x80024FEC; // type:func
+cdSyncWaitForDiscSwap             = 0x80024FEC; // type:func
 Fs_ReadSectorEx             = 0x80025170; // type:func
 Fs_ReadSector               = 0x8002526C; // type:func
-Fs_WaitDiskReset            = 0x80025338; // type:func
+cdSyncWaitForReadableDisc            = 0x80025338; // type:func
 Fs_SeekToPos                = 0x80025408; // type:func
-Fs_InitFolderTable          = 0x8002548C; // type:func
+fsInitFolderTable          = 0x8002548C; // type:func
 Fs_InitStage0Tables         = 0x800254FC; // type:func
 Fs_ReadNSyncCb             = 0x80025580; // type:func
 Fs_ReadNReadyCb             = 0x8002563C; // type:func
 Fs_SeekToPosCb              = 0x800256A8; // type:func
 Fs_OnCdError             = 0x800256F4; // type:func
-Fs_ContinueDrawing          = 0x8002576C; // type:func
-Fs_GetChunkPayload               = 0x800257A4; // type:func
+_fsResumeDrawing          = 0x8002576C; // type:func
+fsGetChunkPayload               = 0x800257A4; // type:func
 Fs_CheckReadTimeout             = 0x800257B0; // type:func
-Fs_StopCd                   = 0x80025850; // type:func
-Fs_GetStageDiskKind               = 0x80025898; // type:func
+cdSyncStopDisc                   = 0x80025850; // type:func
+fsGetRequiredStageDisc               = 0x80025898; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x160F4   VA: 0x800258f4   subsegment: o, libgpu/break
