@@ -1332,7 +1332,7 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
 /// blend contexts through `animationTickSlotPose`, then hand both poses to
 /// `animationApplyPoseWithBlendedRotation` with `blendWeight` and its complement; the rest
 /// only rewrite the primary slot and `animationTickSlot` it. Same body as
-/// `func_actor_403000_801336B4`, which walks 24 slots instead of 19.
+/// `_actor403000TickBlendedSlots`, which walks 24 slots instead of 19.
 static void func_actor_110600_80134438(Task* arg0)
 {
     AnimationPose     pose;

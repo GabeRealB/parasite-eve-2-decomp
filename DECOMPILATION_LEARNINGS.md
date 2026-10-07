@@ -97591,7 +97591,7 @@ work->animId = work->requestedAnimId;   /* lhu $v0, 0xAC6($s0); sh $v0, 0xAC4($s
 ```
 
 `Actor403000Work::requestedAnimId` was declared `u16` on exactly that evidence (two
-copies in `func_actor_403000_80133AF8`), but the same function also reads the
+copies in `_actor403000UpdateAnimation`), but the same function also reads the
 field `lh` twice — a compare against the neighbouring `animId` and an
 argument passed on — and `func_actor_403000_8013D72C` needs `lh` for
 `requestedAnimId == 0x1B`. Declaring it `s16` satisfies both `lh` readers and leaves
@@ -103557,7 +103557,7 @@ Scratch `nonmatchings/Actor00100_Fn03340-vacuum`.
 
 ## A shape-1.00 sibling that is already matched in `src/`: port its C shape, not m2c's pointer arithmetic (func_actor_110600_80134438, 2026-09-16)
 
-The brief's similar list named `func_actor_403000_801336B4` at shape 1.00 / calls
+The brief's similar list named `_actor403000TickBlendedSlots` at shape 1.00 / calls
 1.00 / cflow 1.00 (starred) - and unlike the case above it is a **matched body
 with its source in the tree** (`src/actors/actor_403000/actor_403000.c:394`).
 Normalizing both `.s` files and diffing shows the same 75 instructions with eight
@@ -103592,7 +103592,7 @@ view's `slots[]` at 0x24 (stride 0x28): it is `rig.slots[1].status`, and
 `_Actor110600Work` now declares the two rigs in place as `ActorAnimRig19`;
 the sibling showed the same overlap until `Actor403000Work` declared the
 animation members in place: the halfword its other view named is
-`slots[1].status`, and `func_actor_403000_801336B4` now reads that one struct
+`slots[1].status`, and `_actor403000TickBlendedSlots` now reads that one struct
 without a cast. Declare a second view as its own struct and cast
 `index->field_1C` to it only while the slots themselves are not declared.
 
@@ -104854,7 +104854,7 @@ register (`addu v0,v1,v0`); a separate `table = D; v = &table[idx];` let `v` tie
 to the shifted index instead (`addu v0,v0,v1`).
 
 **A `rodata_head` past a jump table has to come back when that table's function is matched.**
-`actor_403000` got `rodata_head = "0x84"` so `func_actor_403000_80133FC0`'s
+`actor_403000` got `rodata_head = "0x84"` so `_actor403000CanChasePlayer`'s
 rodata would start the unit, which parked the two jump tables at `0x4`/`0x3C`
 in `actor_403000_hdr` as assembly. Matching `func_actor_403000_801324EC` (the
 `0x4` table) then fails at link with `undefined reference to .Lactor_403000_…`
@@ -104951,7 +104951,7 @@ sign-extension appears because the `& 0xF` bounds it.
 
 ### `lb` from a table copied straight into an `s8` field: the inline returns `s32`
 
-`func_actor_403000_80137084` stores `Actor403000_Cell(coord)` (a `u8` table
+`func_actor_403000_80137084` stores `_actor403000GetRingCell(coord)` (a `u8` table
 lookup) directly into two `s8` scratch fields, and the ROM loads the byte with
 `lb` before the `sb`. With the inline returning `s8` - as it did for
 `func_actor_403000_80139AE0`, which assigns the result to an `s16` - the load
@@ -104962,15 +104962,15 @@ reproduces `lb`, and the other caller still matches.
 
 ### `lb a0` then `sll/sra 24` of the same register: an `s16` local holding the `s8` result
 
-`func_actor_403000_80138DB0` stores `Actor403000_Cell(index's coord)` into
+`func_actor_403000_80138DB0` stores `_actor403000GetRingCell(index's coord)` into
 `scratch->cell` and computes `diff = cell - scratch->playerCell` from the same
 value. The ROM loads with `lb a0`, sign-extends `a0` *again* (`sll v0,a0,24;
 sra v0,v0,24`) for the subtraction, and does the `sb a0` in the first branch's
 delay slot. Every `s8`/`s32` local form lets cse fold the second extension (and
 the `sign = ±1` chain then lays out differently, `li v0,-1` preloaded instead of
-a `j` over it). What matched: `s16 cell = Cell(...); scratch->cell = cell;
+a `j` over it). What matched: `s16 cell = _actor403000GetRingCell(...); scratch->cell = cell;
 diff = (s8)cell - scratch->playerCell;` with the inline written as
-`s8 Cell(...) { s32 cell; ... cell = (s8)table[i]; return cell; }`. The
+`s8 _actor403000GetRingCell(...) { s32 cell; ... cell = (s8)table[i]; return cell; }`. The
 previous entry's `s32`-returning form gave `lb` but folded the re-extension;
 returning `s8` directly (`return (s8)table[i];`) gave `lbu`. The `s32`
 intermediate inside an `s8` inline keeps `lb`, and `80137084` still matches.
@@ -112769,7 +112769,7 @@ use.
 **Family.** The body - blend pose slots 1..N, the first ten from both animation
 contexts with `0x1000 - weight`, the rest ticked - now has three matched members, each
 using its actor's task work block: `_actor01900TickBlendedAnimSlots`
-(`rig.anim` +0x1C, weight +0x8AC, bound 0x13), `func_actor_403000_801336B4` (`anim` +0x14,
+(`rig.anim` +0x1C, weight +0x8AC, bound 0x13), `_actor403000TickBlendedSlots` (`anim` +0x14,
 weight +0xAD4, bound 0x18) and `_actor356100TickBlendedAnimation` (`rig.anim` +0x1C, weight
 +0x98C, bound 0x15). Because `AnimationContext` is 0x14 bytes, each rig's slot array
 starts exactly 0x14 after its context, which fixes `slots[i].rate` at `+9` off that
@@ -114905,7 +114905,7 @@ work pointer into a local of its own: with one variable for all three arms the
 cross-jump merged the wrong pair (each arm's trailing clip-id store plus its
 jump), leaving two copies of the tail where the target has one and an object
 three instructions long. Writing the tail into every arm — and giving each arm
-its own copy of the pointer, as the sibling `func_actor_403000_80133AF8` does
+its own copy of the pointer, as the sibling `_actor403000UpdateAnimation` does
 with `seekWork` / `resetWork` / `tickWork` — is what reproduces the target's
 single tail at 100%: 79.96% with the tail shared through `else goto`, 91.9% with
 it duplicated and one variable, 97.4% once each arm had its own copy.
@@ -146198,7 +146198,7 @@ with `TOUCH_REG`.
 local, stored to the field, and the switch read the field back:
 
 ```c
-s16 b = Actor403000_Cell(coords);   /* static inline s8, int inside */
+s16 b = _actor403000GetRingCell(coords);   /* static inline s8, int inside */
 scratch->base = b;
 switch (scratch->base) { ... }
 ```
@@ -147868,7 +147868,7 @@ order, where `indices[spriteSlot + (frame - 120) * 4]` through a flat pointer lo
 distributed the `- 480` into the displacement (`lbu v0, -480(a2)`).
 
 Related, from three animation ticks (`_oddStrangerDriveAnimation`, `_desertChaserAnimTick`,
-`func_actor_403000_80133AF8`): `(s8*)((to + from * 45) + (u32)table)` is
+`_actor403000UpdateAnimation`): `(s8*)((to + from * 45) + (u32)table)` is
 `table[from][to]` on `s8 table[45][45]` named directly - `addu v0, a2, v0` /
 `addu v0, v0, s5`. A slot pointer local walked beside it (`seekSlot += 1`) put
 its initialiser after the hoisted table address; subscripting
@@ -149995,7 +149995,7 @@ attempts; left as it was.
 
 - **`if (d < -5) goto neg; if (d < 0) goto pos; if (d < 5) { neg: s = -1; } else
   { pos: s = 1; }`**, twelve times in `actor_403000.c`, is one `static inline s8`
-  (`_actor403000RingSide(s16 diff)`). How its returns are written matters at
+  (`_actor403000RingSide(s16 cellDifference)`). How its returns are written matters at
   one site only. `if (d < -5) return -1; if (d < 0) return 1; if (d < 5)
   return -1; return 1;` matched every site where the result runs straight
   into the code after it; in `func_actor_403000_8013A08C`, where the call is
@@ -150042,7 +150042,7 @@ attempts; left as it was.
   separates the two shapes is whether the shared block is the *end* of both
   arms.
 - **`xWork = arg0->work;` followed by a slot loop, several times in one
-  function, are inlines taking the task** (`func_actor_403000_80133AF8`: seek,
+  function, are inlines taking the task** (`_actor403000UpdateAnimation`: seek,
   restart, overlay restart, tick and the foreleg turn, five alias locals and
   eleven index and slot-pointer locals). The hand-reduced `slot[1].rate = ...; slot +=
   1; do { } while` loops were plain `for (i = 1; i < ARRAY_SIZE(work->slots);

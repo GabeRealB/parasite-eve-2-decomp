@@ -482,12 +482,47 @@ extern SVECTOR D_actor_403000_80158D64[];
 /// Turn joint `coord` by `yaw` about Y in view space, keeping it expressed in
 /// its parent's frame.
 
-/// Tick the work block's animation: start the requested clip on the main rig
-/// when `animStart` asks (blending in, or from its first frame), start the
-/// overlay clip when `overlayStart` asks, then tick every slot at `animRate`,
-/// mixing the overlay in while `overlayActive` is set. After the clips come
-/// the procedural joint rotations and the clip's sound cues.
-static void func_actor_403000_80133AF8(Task* arg0);
+/// Eases a joint-angle lvalue toward a symmetrically clamped target.
+///
+/// `sway` and `target` must be distinct, side-effect-free writable s16 lvalues.
+/// The target is captured once, then replaced by its clamped value; both
+/// lvalues are evaluated repeatedly. `limit` and `step` must be positive,
+/// side-effect-free angle quantities fitting s16 and are evaluated repeatedly.
+/// All quantities use the same angle units. Captures no caller locals and
+/// forms one compound statement; callers provide the trailing semicolon.
+#define ACTOR_403000_EASE_JOINT_ANGLE(sway, target, limit, step) \
+    {                                                            \
+        s16 requestedTarget;                                     \
+        s32 difference;                                          \
+                                                                 \
+        requestedTarget = (target);                              \
+        if (requestedTarget > (limit)) {                         \
+            (target) = (limit);                                  \
+        }                                                        \
+        if (requestedTarget < -(limit)) {                        \
+            (target) = -(limit);                                 \
+        }                                                        \
+        if ((sway) < (target)) {                                 \
+            if ((target) - (sway) > (step)) {                    \
+                (sway) += (step);                                \
+            } else {                                             \
+                (sway) = (target);                               \
+            }                                                    \
+        }                                                        \
+        if ((target) < (sway)) {                                 \
+            difference = (sway) - (target);                      \
+            if (difference < 0) {                                \
+                difference = -difference;                        \
+            }                                                    \
+            if (difference > (step)) {                           \
+                (sway) -= (step);                                \
+            } else {                                             \
+                (sway) = (target);                               \
+            }                                                    \
+        }                                                        \
+    }
+
+static void _actor403000UpdateAnimation(Task* task);
 
 static s32 func_actor_403000_80134204(GfxCoord* coord);
 
@@ -1549,11 +1584,11 @@ SVECTOR D_actor_403000_80158DF0[18];
 
 static void                func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2);
 static void                func_actor_403000_801330D4(GfxCoord* parent);
-static void                func_actor_403000_801332E8(Task* arg0);
-static void                func_actor_403000_80133444(Task* arg0);
-static void                func_actor_403000_801336B4(Task* arg0);
-static s32                 func_actor_403000_801337E0(Task* arg0, Actor403000Work* work);
-static s32                 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2);
+static void                _actor403000UpdateTorsoSway(Task* task);
+static void                _actor403000UpdateHeadSway(Task* task);
+static void                _actor403000TickBlendedSlots(Task* task);
+static s32                 _actor403000PollAnimationSound(Task* task, Actor403000Work* work);
+static s32                 _actor403000CanChasePlayer(Task* task, s16 actorCell, s16 playerCell);
 static void                func_actor_403000_801343B8(Enemy* arg0, Task* arg1);
 static void                func_actor_403000_80134910(Task* arg0, s16 arg1, s32 arg2);
 static s32                 func_actor_403000_80134E00(Task* arg0);
@@ -1566,10 +1601,10 @@ static void                func_actor_403000_8013603C(Task* arg0);
 static void                func_actor_403000_801365D0(Task* arg0);
 static void                func_actor_403000_80136B14(Task* arg0);
 static void                func_actor_403000_80136D68(Task* arg0);
-static __inline__ void     Actor403000_ScaleVec(SVECTOR* v, u16 k);
-static __inline__ SVECTOR* Actor403000_PushVec(void);
-static __inline__ void     Actor403000_PopVec(void);
-static inline s8           Actor403000_Cell(GfxCoord* coord);
+static __inline__ void     _actor403000ScaleVectorQ12(SVECTOR* vector, u16 scaleQ12);
+static __inline__ SVECTOR* _actor403000ReserveScratchVector(void);
+static __inline__ void     _actor403000ReleaseScratchVector(void);
+static inline s8           _actor403000GetRingCell(GfxCoord* coord);
 static void                func_actor_403000_80137084(Task* arg0);
 static void                func_actor_403000_801384E8(Task* arg0);
 static void                func_actor_403000_801386E8(Task* arg0);
@@ -1929,469 +1964,526 @@ static void func_actor_403000_801330D4(GfxCoord* parent)
     D_actor_403000_80158DF0[0].vz = scratch->emitterPos.vz;
 }
 
-static void func_actor_403000_801332E8(Task* arg0)
+/// Eases the torso roll and replaces the rotations of its two sway parts.
+///
+/// Angles use 4096 units per turn. The target is limited to +-700 and the
+/// stored sway moves at most 64 units per call; parts 22 and 23 receive half
+/// and three quarters of that roll. `task` must own a live 24-part model and
+/// an `Actor403000Work` block.
+static void _actor403000UpdateTorsoSway(Task* task)
 {
-    Actor403000Work* work;
-    s16              target;
-    s16              orig;
-    s32              diff;
+    enum {
+        ACTOR_403000_TORSO_SWAY_LIMIT = 700,
+        ACTOR_403000_TORSO_SWAY_STEP  = 64,
+    };
 
-    work   = arg0->work;
-    orig   = work->torsoSwayTarget;
-    target = orig;
-    if (orig > 700) {
-        target = 700;
-    }
-    if (orig < -700) {
-        target = -700;
-    }
-    if (work->torsoSway < target) {
-        if (target - work->torsoSway > 64) {
-            work->torsoSway += 64;
-        } else {
-            work->torsoSway = target;
-        }
-    }
-    if (target < work->torsoSway) {
-        diff = work->torsoSway - target;
-        if (diff < 0) {
-            diff = -diff;
-        }
-        if (diff > 64) {
-            work->torsoSway -= 64;
-        } else {
-            work->torsoSway = target;
-        }
-    }
-    gfxRotMatrixZ(&arg0->extra.tmd->coords[22].coord, work->torsoSway / 2, GRAPHICS_ROTATION_REPLACE);
-    arg0->extra.tmd->coords[22].composeStamp = GRAPHICS_COORD_DIRTY;
-    gfxRotMatrixZ(&arg0->extra.tmd->coords[23].coord, work->torsoSway * 3 / 4, GRAPHICS_ROTATION_REPLACE);
-    arg0->extra.tmd->coords[23].composeStamp = GRAPHICS_COORD_DIRTY;
+    Actor403000Work* work;
+    s16              clampedTarget;
+
+    work          = task->work;
+    clampedTarget = work->torsoSwayTarget;
+    ACTOR_403000_EASE_JOINT_ANGLE(work->torsoSway, clampedTarget, ACTOR_403000_TORSO_SWAY_LIMIT, ACTOR_403000_TORSO_SWAY_STEP);
+    gfxRotMatrixZ(&task->extra.tmd->coords[22].coord, work->torsoSway / 2, GRAPHICS_ROTATION_REPLACE);
+    task->extra.tmd->coords[22].composeStamp = GRAPHICS_COORD_DIRTY;
+    gfxRotMatrixZ(&task->extra.tmd->coords[23].coord, work->torsoSway * 3 / 4, GRAPHICS_ROTATION_REPLACE);
+    task->extra.tmd->coords[23].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_403000_80133444(Task* arg0)
+/// Adds a head roll that responds to changes in the smoothed neck yaw.
+///
+/// Angles use 4096 units per turn. Neck changes of at least 8 build the roll
+/// target in their direction (2 units below 24, otherwise 32); a quiet neck
+/// resets it to zero. The sway eases by at most 48 toward the target clamped
+/// to +-640, then composes half and three quarters onto parts 6 and 7.
+/// Requires a live 24-part model and `Actor403000Work` at `task->work`.
+static void _actor403000UpdateHeadSway(Task* task)
 {
-    Actor403000Work* work;
-    s16              target;
-    s16              orig;
-    s32              diff;
-    s32              delta;
+    enum {
+        ACTOR_403000_HEAD_SWAY_LIMIT            = 0x280,
+        ACTOR_403000_HEAD_SWAY_STEP             = 48,
+        ACTOR_403000_HEAD_SWAY_MIN_NECK_CHANGE  = 8,
+        ACTOR_403000_HEAD_SWAY_FAST_NECK_CHANGE = 24,
+        ACTOR_403000_HEAD_SWAY_FAST_TARGET_STEP = 32,
+        ACTOR_403000_HEAD_SWAY_SLOW_TARGET_STEP = 2,
+    };
 
-    work = arg0->work;
-    if (work->neckYaw < work->prevNeckYaw && (diff = abs(work->neckYaw - work->prevNeckYaw)) >= 8 && work->headSwayTarget > -0x280) {
-        if (diff >= 24) {
+    Actor403000Work* work;
+    s16              clampedTarget;
+    s32              neckYawChange;
+
+    work = task->work;
+    // Build the roll target from this frame's neck movement before easing it.
+    if (work->neckYaw < work->prevNeckYaw && (neckYawChange = abs(work->neckYaw - work->prevNeckYaw)) >= ACTOR_403000_HEAD_SWAY_MIN_NECK_CHANGE && work->headSwayTarget > -ACTOR_403000_HEAD_SWAY_LIMIT) {
+        if (neckYawChange >= ACTOR_403000_HEAD_SWAY_FAST_NECK_CHANGE) {
             if (work->headSwayTarget > 0) {
-                work->headSwayTarget = -32;
+                work->headSwayTarget = -ACTOR_403000_HEAD_SWAY_FAST_TARGET_STEP;
             } else {
-                work->headSwayTarget -= 32;
+                work->headSwayTarget -= ACTOR_403000_HEAD_SWAY_FAST_TARGET_STEP;
             }
         } else {
             if (work->headSwayTarget > 0) {
-                work->headSwayTarget = -2;
+                work->headSwayTarget = -ACTOR_403000_HEAD_SWAY_SLOW_TARGET_STEP;
             } else {
-                work->headSwayTarget -= 2;
+                work->headSwayTarget -= ACTOR_403000_HEAD_SWAY_SLOW_TARGET_STEP;
             }
         }
-    } else if (work->neckYaw > work->prevNeckYaw && (diff = abs(work->neckYaw - work->prevNeckYaw)) >= 8 && work->headSwayTarget < 0x280) {
-        if (diff >= 24) {
+    } else if (work->neckYaw > work->prevNeckYaw && (neckYawChange = abs(work->neckYaw - work->prevNeckYaw)) >= ACTOR_403000_HEAD_SWAY_MIN_NECK_CHANGE && work->headSwayTarget < ACTOR_403000_HEAD_SWAY_LIMIT) {
+        if (neckYawChange >= ACTOR_403000_HEAD_SWAY_FAST_NECK_CHANGE) {
             if (work->headSwayTarget < 0) {
-                work->headSwayTarget = 32;
+                work->headSwayTarget = ACTOR_403000_HEAD_SWAY_FAST_TARGET_STEP;
             } else {
-                work->headSwayTarget += 32;
+                work->headSwayTarget += ACTOR_403000_HEAD_SWAY_FAST_TARGET_STEP;
             }
         } else {
             if (work->headSwayTarget < 0) {
-                work->headSwayTarget = 2;
+                work->headSwayTarget = ACTOR_403000_HEAD_SWAY_SLOW_TARGET_STEP;
             } else {
-                work->headSwayTarget += 2;
+                work->headSwayTarget += ACTOR_403000_HEAD_SWAY_SLOW_TARGET_STEP;
             }
         }
     } else {
         work->headSwayTarget = 0;
     }
-    target            = work->headSwayTarget;
+    clampedTarget     = work->headSwayTarget;
     work->prevNeckYaw = work->neckYaw;
-    orig              = target;
-    if (orig > 640) {
-        target = 640;
-    }
-    if (orig < -640) {
-        target = -640;
-    }
-    if (work->headSway < target) {
-        if (target - work->headSway > 48) {
-            work->headSway += 48;
-        } else {
-            work->headSway = target;
-        }
-    }
-    if (target < work->headSway) {
-        delta = work->headSway - target;
-        if (delta < 0) {
-            delta = -delta;
-        }
-        if (delta > 48) {
-            work->headSway -= 48;
-        } else {
-            work->headSway = target;
-        }
-    }
-    gfxRotMatrixZ(&arg0->extra.tmd->coords[6].coord, work->headSway / 2, GRAPHICS_ROTATION_COMPOSE);
-    arg0->extra.tmd->coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
-    gfxRotMatrixZ(&arg0->extra.tmd->coords[7].coord, work->headSway * 3 / 4, GRAPHICS_ROTATION_COMPOSE);
-    arg0->extra.tmd->coords[7].composeStamp = GRAPHICS_COORD_DIRTY;
+    ACTOR_403000_EASE_JOINT_ANGLE(work->headSway, clampedTarget, ACTOR_403000_HEAD_SWAY_LIMIT, ACTOR_403000_HEAD_SWAY_STEP);
+    gfxRotMatrixZ(&task->extra.tmd->coords[6].coord, work->headSway / 2, GRAPHICS_ROTATION_COMPOSE);
+    task->extra.tmd->coords[6].composeStamp = GRAPHICS_COORD_DIRTY;
+    gfxRotMatrixZ(&task->extra.tmd->coords[7].coord, work->headSway * 3 / 4, GRAPHICS_ROTATION_COMPOSE);
+    task->extra.tmd->coords[7].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_403000_801336B4(Task* arg0)
+/// Advances both rigs and mixes the overlay rotation over model parts 1..10.
+///
+/// All main slots 1..23 run at `animRate - 3` sixteenths of a frame; overlay
+/// slots 1..10 run at `overlayRate`. Translation comes from the main pose.
+/// `overlayWeight` is passed as the main rotation's weight and its complement
+/// weights the overlay, in units of 1/4096. Requires both bound rigs and a live
+/// 24-part model; both temporary poses remain live through each application.
+static void _actor403000TickBlendedSlots(Task* task)
 {
-    AnimationPose     pose;
-    AnimationPose     blendPose;
-    AnimationContext* anim;
-    s16               weight;
-    s16               i;
+    enum {
+        ACTOR_403000_OVERLAY_PART_END       = 0xB,
+        ACTOR_403000_OVERLAY_MAIN_RATE_BIAS = 3,
+    };
+
+    AnimationPose     mainPose;
+    AnimationPose     overlayPose;
+    AnimationContext* mainAnim;
+    s16               mainWeight;
+    s16               slotIndex;
     Actor403000Work*  work;
 
-    work   = arg0->work;
-    weight = work->overlayWeight;
-    anim   = &work->anim;
-    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-        if (i < 0xB) {
-            work->blendSlots[i].rate = work->overlayRate;
-            work->slots[i].rate      = (work->animRate - 3);
-            animationTickSlotPose(anim, i, &pose, 0);
-            animationTickSlotPose(&work->blendAnim, i, &blendPose, 0);
-            animationApplyPoseWithBlendedRotation(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+    work       = task->work;
+    mainWeight = work->overlayWeight;
+    mainAnim   = &work->anim;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+        if (slotIndex < ACTOR_403000_OVERLAY_PART_END) {
+            work->blendSlots[slotIndex].rate = work->overlayRate;
+            work->slots[slotIndex].rate      = (work->animRate - ACTOR_403000_OVERLAY_MAIN_RATE_BIAS);
+            animationTickSlotPose(mainAnim, slotIndex, &mainPose, 0);
+            animationTickSlotPose(&work->blendAnim, slotIndex, &overlayPose, 0);
+            animationApplyPoseWithBlendedRotation(mainAnim, slotIndex, &mainPose, &overlayPose, mainWeight, ONE - mainWeight);
         } else {
-            work->slots[i].rate = (work->animRate - 3);
-            animationTickSlot(&work->anim, i);
+            work->slots[slotIndex].rate = (work->animRate - ACTOR_403000_OVERLAY_MAIN_RATE_BIAS);
+            animationTickSlot(&work->anim, slotIndex);
         }
     }
 }
 
-static s32 func_actor_403000_801337E0(Task* arg0, Actor403000Work* work)
+/// Polls slot 1 for a newly crossed sound cue and returns its script id, or zero.
+///
+/// Uses the low ten bits of the current pose's record index and remembers
+/// them in `slotCueIndex[1]`. Decreasing indices rearm later forward crossings.
+/// Only the last matching cue in switch order is returned if several are
+/// crossed together. `work` must remain live; the unused `task` parameter
+/// preserves the call signature present in the image.
+static s32 _actor403000PollAnimationSound(Task* task, Actor403000Work* work)
 {
-    s32 ret;
+    enum {
+        ACTOR_403000_CUE_CLIP_PROWL       = 1,
+        ACTOR_403000_CUE_CLIP_WALK        = 2,
+        ACTOR_403000_CUE_CLIP_LUNGE       = 7,
+        ACTOR_403000_CUE_CLIP_DROP        = 8,
+        ACTOR_403000_CUE_CLIP_TURN        = 9,
+        ACTOR_403000_CUE_CLIP_GRAB_RUSH   = 11,
+        ACTOR_403000_CUE_CLIP12           = 12, // No local request establishes this clip's action
+        ACTOR_403000_CUE_CLIP_KNOCKDOWN   = 14,
+        ACTOR_403000_CUE_CLIP_LUNGE_CATCH = 17,
+    };
+    enum {
+        ACTOR_403000_SOUND_PROWL_TURN_EARLY   = 0x401E0002,
+        ACTOR_403000_SOUND_PROWL_TURN_LATE    = 0x401E0001,
+        ACTOR_403000_SOUND_KNOCKDOWN          = 0x401E000E,
+        ACTOR_403000_SOUND_WALK_LATE          = 0x401E0003,
+        ACTOR_403000_SOUND_WALK_EARLY         = 0x401E0004,
+        ACTOR_403000_SOUND_CLIP12_RECORD19    = 0x401E0008,
+        ACTOR_403000_SOUND_GRAB_RUSH_RECORD18 = 0x401E0007,
+        ACTOR_403000_SOUND_GRAB_RUSH_RECORD15 = 0x401E000C,
+        ACTOR_403000_SOUND_LUNGE              = 0x401E0009,
+        ACTOR_403000_SOUND_LUNGE_CATCH        = 0x401E000B,
+        ACTOR_403000_SOUND_DROP               = 0x401E000D,
+    };
 
-    ret = 0;
+    s32 soundId;
+
+    soundId = SOUND_SCRIPT_REQUEST_NO_OP;
     if (work->slotCueIndex[1] == (work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-        return ret;
+        return soundId;
     }
     switch ((s16)(work->requestedAnimId - 1)) {
-        case 0:
+        case ACTOR_403000_CUE_CLIP_PROWL - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x21 && work->slotCueIndex[1] < 0x21) {
-                ret = 0x401E0002;
+                soundId = ACTOR_403000_SOUND_PROWL_TURN_EARLY;
             }
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x2C && work->slotCueIndex[1] < 0x2C) {
-                ret = 0x401E0001;
+                soundId = ACTOR_403000_SOUND_PROWL_TURN_LATE;
             }
             break;
-        case 8:
+        case ACTOR_403000_CUE_CLIP_TURN - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 5 && work->slotCueIndex[1] < 5) {
-                ret = 0x401E0002;
+                soundId = ACTOR_403000_SOUND_PROWL_TURN_EARLY;
             }
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0xA && work->slotCueIndex[1] < 0xA) {
-                ret = 0x401E0001;
+                soundId = ACTOR_403000_SOUND_PROWL_TURN_LATE;
             }
             break;
-        case 13:
+        case ACTOR_403000_CUE_CLIP_KNOCKDOWN - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0xF && work->slotCueIndex[1] < 0xF) {
-                ret = 0x401E000E;
+                soundId = ACTOR_403000_SOUND_KNOCKDOWN;
             }
             break;
-        case 1:
+        case ACTOR_403000_CUE_CLIP_WALK - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x1D && work->slotCueIndex[1] < 0x1D) {
-                ret = 0x401E0003;
+                soundId = ACTOR_403000_SOUND_WALK_LATE;
             }
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x17 && work->slotCueIndex[1] < 0x17) {
-                ret = 0x401E0004;
+                soundId = ACTOR_403000_SOUND_WALK_EARLY;
             }
             break;
-        case 11:
+        case ACTOR_403000_CUE_CLIP12 - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x13 && work->slotCueIndex[1] < 0x13) {
-                ret = 0x401E0008;
+                soundId = ACTOR_403000_SOUND_CLIP12_RECORD19;
             }
-        case 10:
+            // Clip 12 shares the following cue tests with clip 11.
+        case ACTOR_403000_CUE_CLIP_GRAB_RUSH - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x12 && work->slotCueIndex[1] < 0x12) {
-                ret = 0x401E0007;
+                soundId = ACTOR_403000_SOUND_GRAB_RUSH_RECORD18;
             }
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0xF && work->slotCueIndex[1] < 0xF) {
-                ret = 0x401E000C;
+                soundId = ACTOR_403000_SOUND_GRAB_RUSH_RECORD15;
             }
             break;
-        case 6:
+        case ACTOR_403000_CUE_CLIP_LUNGE - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0x15 && work->slotCueIndex[1] < 0x15) {
-                ret = 0x401E0009;
+                soundId = ACTOR_403000_SOUND_LUNGE;
             }
             break;
-        case 16:
+        case ACTOR_403000_CUE_CLIP_LUNGE_CATCH - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 8 && work->slotCueIndex[1] < 8) {
-                ret = 0x401E000B;
+                soundId = ACTOR_403000_SOUND_LUNGE_CATCH;
             }
             break;
-        case 7:
+        case ACTOR_403000_CUE_CLIP_DROP - 1:
             if ((work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= 0xD && work->slotCueIndex[1] < 0xD) {
-                ret = 0x401E000D;
+                soundId = ACTOR_403000_SOUND_DROP;
             }
             break;
     }
     work->slotCueIndex[1] = work->slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    return ret;
+    return soundId;
 }
 
-static inline void _actor403000SeekSlots(Task* arg0)
+/// Blends main slots 1..23 into the requested clip and latches its id.
+///
+/// Both clip ids must index the 45-by-45 signed-byte transition-duration
+/// table; durations count normal-rate frames. Requires the bound main rig,
+/// loaded clips and a live 24-part model. Slot 0 is not driven.
+static inline void _actor403000SeekSlots(Task* task)
 {
     Actor403000Work* work;
-    s32              animation;
-    s32              i;
+    s32              requestedAnimId;
+    s32              slotIndex;
 
-    work = arg0->work;
-    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-        work->slots[i].rate = work->animRate;
-        animation           = work->requestedAnimId;
-        animationSeekSlotWithBlend(&work->anim, i, (s16)animation, 0, D_actor_403000_80158364[work->animId][animation]);
+    work = task->work;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+        work->slots[slotIndex].rate = work->animRate;
+        requestedAnimId             = work->requestedAnimId;
+        animationSeekSlotWithBlend(&work->anim, slotIndex, requestedAnimId, 0, D_actor_403000_80158364[work->animId][requestedAnimId]);
     }
     work->animId = work->requestedAnimId;
 }
 
-static inline void _actor403000RestartSlots(Task* arg0)
+/// Restarts main slots 1..23 on the requested clip and latches its id.
+///
+/// Requires a bound main rig, a loaded clip with all 24 part tracks and a
+/// live model. Resetting each slot replaces its just-written rate with
+/// `ANIMATION_RATE_ONE`; the subsequent tick supplies the requested rate.
+static inline void _actor403000RestartSlots(Task* task)
 {
     Actor403000Work* work;
-    s32              i;
+    s32              slotIndex;
 
-    work = arg0->work;
-    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-        work->slots[i].rate = work->animRate;
-        animationResetSlot(&work->anim, i, work->requestedAnimId);
+    work = task->work;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+        work->slots[slotIndex].rate = work->animRate;
+        animationResetSlot(&work->anim, slotIndex, work->requestedAnimId);
     }
     work->animId = work->requestedAnimId;
 }
 
-static inline void _actor403000RestartOverlaySlots(Task* arg0)
+/// Restarts overlay slots 1..23 with a double-speed, half-weight overlay request.
+///
+/// Requires both bound rigs, a loaded overlay clip and a live 24-part model.
+/// The rate write targets the main slots; the following animation tick
+/// overwrites it. Resetting the overlay slots supplies normal rate until
+/// parts 1..10 are ticked at the requested double rate.
+static inline void _actor403000RestartOverlaySlots(Task* task)
 {
     Actor403000Work* work;
-    s32              i;
+    s32              slotIndex;
 
-    work                = arg0->work;
-    work->overlayRate   = 0x20;
-    work->overlayWeight = 0x800;
-    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-        work->slots[i].rate = work->overlayRate;
-        animationResetSlot(&work->blendAnim, i, work->overlayAnimId);
+    work                = task->work;
+    work->overlayRate   = ANIMATION_RATE_ONE * 2;
+    work->overlayWeight = ONE / 2;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+        work->slots[slotIndex].rate = work->overlayRate;
+        animationResetSlot(&work->blendAnim, slotIndex, work->overlayAnimId);
     }
 }
 
-static inline void _actor403000TickSlots(Task* arg0)
+/// Advances main slots 1..23 at `animRate`, in sixteenths of a frame.
+///
+/// Requires a bound main rig, loaded clip storage and a live 24-part model.
+/// Slot 0 is left to the actor's movement code.
+static inline void _actor403000TickSlots(Task* task)
 {
     Actor403000Work* work;
-    s32              i;
+    s32              slotIndex;
 
-    work = arg0->work;
-    for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-        work->slots[i].rate = work->animRate;
-        animationTickSlot(&work->anim, i);
+    work = task->work;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+        work->slots[slotIndex].rate = work->animRate;
+        animationTickSlot(&work->anim, slotIndex);
     }
 }
 
-/// Clamp the foreleg yaw target to +-0x200, move `forelegYaw` toward it by at
-/// most 0xC and turn joint 10 by the negated result.
-static inline void _actor403000TurnForeleg(Task* arg0)
+/// Eases the foreleg yaw and applies its negation to model part 10.
+///
+/// Angles use 4096 units per turn. The target is limited to +-512 and the
+/// stored yaw moves at most 12 units per call. Requires a live 24-part model
+/// and `Actor403000Work` at `task->work`; the joint retains its parent frame.
+static inline void _actor403000TurnForeleg(Task* task)
 {
-    Actor403000Work* work;
-    s32              updatedTurn;
-    s16              currentTurn;
-    s32              signedTurn;
-    s32              delta;
-    u16              originalTurn;
-    u16              updatedTurnBits;
-    s32              targetTurn;
+    enum {
+        ACTOR_403000_FORELEG_YAW_LIMIT = 0x200,
+        ACTOR_403000_FORELEG_YAW_STEP  = 0xC,
+    };
 
-    work         = arg0->work;
-    targetTurn   = (u16)work->forelegYawTarget;
-    originalTurn = targetTurn;
-    if ((s16)targetTurn >= 0x201) {
-        targetTurn = 0x200;
-    }
-    if ((s16)originalTurn < -0x200) {
-        targetTurn = -0x200;
-    }
-    signedTurn  = (s16)targetTurn;
-    currentTurn = work->forelegYaw;
-    if (currentTurn < signedTurn) {
-        if ((signedTurn - currentTurn) >= 0xD) {
-            work->forelegYaw = (s16)((u16)work->forelegYaw + 0xC);
+    Actor403000Work* work;
+    s16              clampedTarget;
+
+    work          = task->work;
+    clampedTarget = work->forelegYawTarget;
+    ACTOR_403000_EASE_JOINT_ANGLE(work->forelegYaw, clampedTarget, ACTOR_403000_FORELEG_YAW_LIMIT, ACTOR_403000_FORELEG_YAW_STEP);
+    _actorRenderYawJointInWorld(&task->extra.tmd->coords[10], -work->forelegYaw);
+    task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+#undef ACTOR_403000_EASE_JOINT_ANGLE
+
+/// Eases the stored neck yaw toward its target by at most 113 angle units.
+///
+/// Angles use 4096 units per turn. This advances even while neck application
+/// is disabled and does not clamp the stored target or the stored result.
+/// Requires a live writable work block.
+static inline void _actor403000EaseNeckYaw(Actor403000Work* work)
+{
+    enum { ACTOR_403000_NECK_YAW_STEP = 0x71 };
+    s32 neckYaw;
+    s32 neckYawTarget;
+    s32 neckYawBits;
+    s32 neckYawTargetBits;
+
+    // Signed comparisons and halfword-bit updates share the stored angle.
+    neckYawTarget     = work->neckYawTarget;
+    neckYaw           = work->neckYaw;
+    neckYawTargetBits = (u16)work->neckYawTarget;
+    neckYawBits       = (u16)work->neckYaw;
+    if (neckYaw < neckYawTarget) {
+        if ((neckYawTarget - neckYaw) >= (ACTOR_403000_NECK_YAW_STEP + 1)) {
+            work->neckYaw = neckYawBits + ACTOR_403000_NECK_YAW_STEP;
         } else {
-            work->forelegYaw = (s16)targetTurn;
+            work->neckYaw = neckYawTargetBits;
         }
+    } else if ((neckYaw - neckYawTarget) >= (ACTOR_403000_NECK_YAW_STEP + 1)) {
+        work->neckYaw = neckYawBits - ACTOR_403000_NECK_YAW_STEP;
+    } else {
+        work->neckYaw = neckYawTargetBits;
     }
-    updatedTurn     = work->forelegYaw;
-    updatedTurnBits = (u16)work->forelegYaw;
-    if ((s16)targetTurn < updatedTurn) {
-        delta = updatedTurn - (s16)targetTurn;
-        if (delta < 0) {
-            delta = -delta;
-        }
-        if (delta >= 0xD) {
-            work->forelegYaw = (s16)(updatedTurnBits - 0xC);
-        } else {
-            work->forelegYaw = (s16)targetTurn;
-        }
-    }
-    _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[10], (s16)((s32)(u16)work->forelegYaw * -1));
-    arg0->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_actor_403000_80133AF8(Task* arg0)
+/// Drives the actor's clip requests, pose playback, procedural joints and sound cues.
+///
+/// Requires `Actor403000Work` at `task->work`, two bound 24-part rigs and their
+/// loaded clip data. Main clip starts clear all 24 cue-index latches; slot 0
+/// stays undriven. An active overlay slows main playback by three sixteenths
+/// of a frame and mixes parts 1..10 until overlay slot 1 settles.
+/// Neck yaw eases even when its joint application is disabled; the remaining
+/// procedural joints advance only while their individual flags equal one.
+/// `animFrames` wraps as an unsigned halfword.
+static void _actor403000UpdateAnimation(Task* task)
 {
-    Actor403000Work* work;
-    s16              thirdAngle;
-    s16              state;
-    s32              currentAngle;
-    s32              targetAngle;
-    s16              angle;
-    s32              sound;
-    s32              pan;
-    s32              currentAngleBits;
-    s32              targetAngleBits;
-    s16              clampedAngle;
+    enum {
+        ACTOR_403000_NECK_YAW_LIMIT = 0x500,
+    };
 
-    work  = arg0->work;
-    state = work->animStart;
-    if (state == ACTOR_403000_ANIM_BLEND_IN) {
+    Actor403000Work* work;
+    s16              neckThirdYaw;
+    s16              startMode;
+    s16              smoothedNeckYaw;
+    s32              soundId;
+    s32              panOffset;
+    s16              clampedNeckYaw;
+
+    work = task->work;
+    // Consume clip requests before advancing either rig or testing its cues.
+    startMode = work->animStart;
+    if (startMode == ACTOR_403000_ANIM_BLEND_IN) {
         if (work->animId != work->requestedAnimId) {
-            _actor403000SeekSlots(arg0);
+            _actor403000SeekSlots(task);
         }
         work->animStart  = ACTOR_403000_ANIM_PLAYING;
         work->animFrames = 0;
         memFillBytes(work->slotCueIndex, 0U, sizeof(work->slotCueIndex));
-    } else if (state == ACTOR_403000_ANIM_RESTART) {
-        _actor403000RestartSlots(arg0);
+    } else if (startMode == ACTOR_403000_ANIM_RESTART) {
+        _actor403000RestartSlots(task);
         work->animStart  = ACTOR_403000_ANIM_PLAYING;
         work->animFrames = 0U;
         memFillBytes(work->slotCueIndex, 0U, sizeof(work->slotCueIndex));
     }
     if (work->overlayStart == ACTOR_403000_ANIM_RESTART) {
-        _actor403000RestartOverlaySlots(arg0);
+        _actor403000RestartOverlaySlots(task);
         work->overlayStart = ACTOR_403000_ANIM_PLAYING;
     }
     work->animFrames = (u16)(work->animFrames + 1);
     if (work->overlayActive == 0) {
-        _actor403000TickSlots(arg0);
+        _actor403000TickSlots(task);
     } else {
-        func_actor_403000_801336B4(arg0);
+        _actor403000TickBlendedSlots(task);
         if (work->blendSlots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             work->overlayActive = 0;
         }
     }
-    targetAngle      = work->neckYawTarget;
-    currentAngle     = work->neckYaw;
-    targetAngleBits  = (u16)work->neckYawTarget;
-    currentAngleBits = (u16)work->neckYaw;
-    if (currentAngle < targetAngle) {
-        if ((targetAngle - currentAngle) >= 0x72) {
-            work->neckYaw = currentAngleBits + 0x71;
-        } else {
-            work->neckYaw = targetAngleBits;
-        }
-    } else if ((currentAngle - targetAngle) >= 0x72) {
-        work->neckYaw = currentAngleBits - 0x71;
-    } else {
-        work->neckYaw = targetAngleBits;
-    }
+    // Layer the procedural joint angles over this frame's animation pose.
+    _actor403000EaseNeckYaw(work);
     if (work->neckYawEnabled == 1) {
-        angle        = work->neckYaw;
-        clampedAngle = angle;
-        if (angle >= 0x501) {
-            clampedAngle = 0x500;
+        smoothedNeckYaw = work->neckYaw;
+        clampedNeckYaw  = smoothedNeckYaw;
+        if (smoothedNeckYaw >= (ACTOR_403000_NECK_YAW_LIMIT + 1)) {
+            clampedNeckYaw = ACTOR_403000_NECK_YAW_LIMIT;
         }
-        if (angle < -0x500) {
-            clampedAngle = -0x500;
+        if (smoothedNeckYaw < -ACTOR_403000_NECK_YAW_LIMIT) {
+            clampedNeckYaw = -ACTOR_403000_NECK_YAW_LIMIT;
         }
-        thirdAngle = (s16)clampedAngle / 3;
-        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[2], thirdAngle);
-        arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[3], thirdAngle);
-        arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[4], (s16)clampedAngle / 2);
-        arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+        neckThirdYaw = (s16)clampedNeckYaw / 3;
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[2], neckThirdYaw);
+        task->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[3], neckThirdYaw);
+        task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[4], (s16)clampedNeckYaw / 2);
+        task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->headSwayEnabled == 1) {
-        func_actor_403000_80133444(arg0);
+        _actor403000UpdateHeadSway(task);
     }
     if (work->forelegYawEnabled == 1) {
-        _actor403000TurnForeleg(arg0);
+        _actor403000TurnForeleg(task);
     }
     if (work->torsoSwayEnabled == 1) {
-        func_actor_403000_801332E8(arg0);
+        _actor403000UpdateTorsoSway(task);
     }
-    sound = func_actor_403000_801337E0(arg0, work);
-    if (sound != 0) {
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    // Position the one selected cue at the actor's root.
+    soundId = _actor403000PollAnimationSound(task, work);
+    if (soundId != SOUND_SCRIPT_REQUEST_NO_OP) {
+        panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }
 
-static s32 func_actor_403000_80133FC0(Task* arg0, s16 arg1, s16 arg2)
+/// Tests whether the arena cells and player bearing permit a direct chase.
+///
+/// Cells must be ring indices 0..9 from `_actor403000GetRingCell` in the
+/// arena's parent-coordinate frame. Equal cells permit pursuit immediately;
+/// allowed unequal pairs also require a player bearing strictly inside
+/// +-512 angle units (45 degrees). Returns 1 if permitted, otherwise 0.
+/// `task` must own a live model; the live player root supplies the other end.
+static s32 _actor403000CanChasePlayer(Task* task, s16 actorCell, s16 playerCell)
 {
-    ActorTurnScratch* scratch;
-    s16               angle;
-    s32               mag;
+    enum {
+        ACTOR_403000_CHASE_TURN_LIMIT = 0x200,
+    };
 
-    if (arg1 == arg2) {
+    ActorTurnScratch* scratch;
+    s16               playerTurn;
+    s32               signedTurn;
+
+    if (actorCell == playerCell) {
         return 1;
     }
-    switch (arg1) {
+    switch (actorCell) {
         case 0:
-            if (arg2 == 9) {
+            if (playerCell == 9) {
                 break;
             }
-            if (arg2 < 4) {
+            if (playerCell < 4) {
                 break;
             }
             return 0;
         case 1:
         case 2:
         case 3:
-            if (arg2 < 5) {
+            if (playerCell < 5) {
                 break;
             }
             return 0;
         case 4:
-            if (arg2 >= 6) {
+            if (playerCell >= 6) {
                 return 0;
             }
-            if (arg2 != 0) {
+            if (playerCell != 0) {
                 break;
             }
             return 0;
         case 5:
-            if (arg2 < 4) {
+            if (playerCell < 4) {
                 return 0;
             }
-            if (arg2 != 9) {
+            if (playerCell != 9) {
                 break;
             }
             return 0;
         case 6:
         case 7:
         case 8:
-            if (arg2 >= 5) {
+            if (playerCell >= 5) {
                 break;
             }
             return 0;
         case 9:
         default:
-            if (arg2 >= 6) {
+            if (playerCell >= 6) {
                 break;
             }
-            if (arg2 != 0) {
+            if (playerCell != 0) {
                 return 0;
             }
             break;
     }
     scratch        = SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
-    angle          = _actorAngleTurnToPlayer(arg0, &scratch->delta, &gPlayerStatus);
-    scratch->angle = mag = angle;
-    if ((mag < 0 ? -mag : mag) < 0x200) {
+    playerTurn     = _actorAngleTurnToPlayer(task, &scratch->delta, &gPlayerStatus);
+    scratch->angle = signedTurn = playerTurn;
+    if ((signedTurn < 0 ? -signedTurn : signedTurn) < ACTOR_403000_CHASE_TURN_LIMIT) {
         SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
         return 1;
     }
@@ -2505,7 +2597,7 @@ static void func_actor_403000_801343B8(Enemy* arg0, Task* arg1)
     work->forelegYawEnabled = 1;
     work->headSwayEnabled   = 1;
     work->neckYawEnabled    = 1;
-    func_actor_403000_80133AF8(arg1);
+    _actor403000UpdateAnimation(arg1);
     work->rootSphere.body.context.contacts = work->rootSphere.contacts;
     work->rootSphere.body.coord            = coord;
     work->rootSphere.body.pos.vx           = 0;
@@ -3023,7 +3115,7 @@ static void func_actor_403000_80135F08(Task* arg0)
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) {
         seed             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
         gRandomLcgState  = seed;
@@ -3236,7 +3328,7 @@ static void func_actor_403000_80136B14(Task* arg0)
         arg0->extra.tmd->otOffset = 8;
         work->stateFrame          = 0;
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->stateFrame < 0x28) {
         work->stateFrame++;
     }
@@ -3289,7 +3381,7 @@ static void func_actor_403000_80136D68(Task* arg0)
         arg0->extra.tmd->otOffset = 8;
         work->stateFrame          = 0;
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->stateFrame < 300) {
         work->stateFrame++;
         switch (work->stateFrame % 24) {
@@ -3327,62 +3419,88 @@ static void func_actor_403000_80136D68(Task* arg0)
     }
 }
 
-static __inline__ void Actor403000_ScaleVec(SVECTOR* v, u16 k)
+/// Scales a short vector in place by a factor with twelve fractional bits.
+///
+/// `ONE` is unity. For a direction normalized to that length, the multiplier
+/// supplies a distance in coordinate units; quantization can change its magnitude.
+/// Requires a live, aligned writable `SVECTOR`; XYZ use the GTE's signed short
+/// saturation and `pad` is untouched. Clobbers GTE working state and retains
+/// no storage. The low halfword of `scaleQ12` is transferred unchanged to the
+/// signed GTE multiplier.
+static __inline__ void _actor403000ScaleVectorQ12(SVECTOR* vector, u16 scaleQ12)
 {
-    gte_lddp(k);
-    gte_ldsv(v);
+    gte_lddp(scaleQ12);
+    gte_ldsv(vector);
     gte_gpf12();
-    gte_stsv(v);
+    gte_stsv(vector);
 }
 
-static __inline__ SVECTOR* Actor403000_PushVec(void)
+/// Reserves one uninitialized short vector on the shared downward scratch stack.
+///
+/// The cursor must be initialized and have room for an aligned `SVECTOR`.
+/// Release the vector in reverse reservation order with
+/// `SCRATCH_STACK_RELEASE_BLOCK(SVECTOR)`; its lifetime ends at release.
+static __inline__ SVECTOR* _actor403000ReserveScratchVector(void)
 {
-    SVECTOR* head;
+    SVECTOR* scratchEnd;
 
-    head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-    SCRATCH_STACK_CURSOR(SVECTOR) = head - 1;
-    return head - 1;
+    scratchEnd                    = SCRATCH_STACK_CURSOR(SVECTOR);
+    SCRATCH_STACK_CURSOR(SVECTOR) = scratchEnd - 1;
+    return scratchEnd - 1;
 }
 
-static __inline__ void Actor403000_PopVec(void)
+/// Releases the most recently reserved short vector from the scratch stack.
+///
+/// The top reservation must be one `SVECTOR`; release in reverse order.
+/// Its bytes are untouched and become available to the next reservation.
+static __inline__ void _actor403000ReleaseScratchVector(void)
 {
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-static inline s8 Actor403000_Cell(GfxCoord* coord)
+/// Maps an arena position to its waypoint-ring cell, in 0..9.
+///
+/// Reads the local X/Z translation of a live coordinate in the arena's parent
+/// frame. Five X bands split at 3400, 6800, 11000 and 15500; two Z bands split
+/// at 4200. Their ten entries follow the ring around both rows, with the
+/// opposite row reversed. Boundary points belong to the higher coordinate band.
+/// No coordinate composition or Y test is performed.
+static inline s8 _actor403000GetRingCell(GfxCoord* coord)
 {
-    s32 x;
-    s32 z;
-    s8  col;
+    s32 positionX;
+    s32 positionZ;
+    s8  column;
     s8  row;
-    s32 cell;
+    s32 ringCell;
 
-    x = coord->coord.t[0];
-    z = coord->coord.t[2];
-    if (x < 0xD48) {
-        col = 4;
-    } else if (x < 0x1A90) {
-        col = 3;
-    } else if (x < 0x2AF8) {
-        col = 2;
+    positionX = coord->coord.t[0];
+    positionZ = coord->coord.t[2];
+    if (positionX < 0xD48) {
+        column = 4;
+    } else if (positionX < 0x1A90) {
+        column = 3;
+    } else if (positionX < 0x2AF8) {
+        column = 2;
     } else {
-        col = x < 0x3C8C;
+        column = positionX < 0x3C8C;
     }
-    row  = z >= 0x1068;
-    cell = (s8)D_actor_403000_80158D48[col + row * 5];
-    return cell;
+    row      = positionZ >= 0x1068;
+    ringCell = (s8)D_actor_403000_80158D48[column + row * (ACTOR_403000_RING_WAYPOINT_COUNT / 2)];
+    return ringCell;
 }
 
-/// Which way round the ring of cells to go for a cell difference of `diff`
-/// (own cell minus the player's): -1 when the difference is below -5 or in
-/// 0..4, 1 otherwise.
-static inline s8 _actor403000RingSide(s16 diff)
+/// Selects the shorter direction around the ten-cell ring toward the player.
+///
+/// `cellDifference` is own cell minus player cell, in -9..9. Returns -1 for
+/// differences below -5 or in 0..4, otherwise +1. Equal cells choose -1;
+/// half-ring ties choose +1. Negating the result gives the away direction.
+static inline s8 _actor403000RingSide(s16 cellDifference)
 {
-    if (diff < -5) {
+    if (cellDifference < -(ACTOR_403000_RING_WAYPOINT_COUNT / 2)) {
         return -1;
     }
-    if (diff >= 0) {
-        if (diff < 5) {
+    if (cellDifference >= 0) {
+        if (cellDifference < ACTOR_403000_RING_WAYPOINT_COUNT / 2) {
             return -1;
         }
     }
@@ -3433,7 +3551,7 @@ static void func_actor_403000_80137084(Task* arg0)
         work->rootCapsule.shape.ends[1].vz = 0x384;
         work->rootSphere.body.flags       |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->requestedAnimId == 4) {
         t             = &scratch->offset;
         pos           = arg0->extra.tmd->coords;
@@ -3466,15 +3584,15 @@ static void func_actor_403000_80137084(Task* arg0)
         work->neckYawTarget = mag;
         coord               = arg0->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dir = Actor403000_PushVec();
+            dir = _actor403000ReserveScratchVector();
             gfxReadMatrixZAxis(&coord->coord, dir);
             VectorNormalSS(dir, dir);
-            Actor403000_ScaleVec(dir, 300);
+            _actor403000ScaleVectorQ12(dir, 300);
             coord->coord.t[0]  += dir->vx;
             coord->coord.t[1]  += dir->vy;
             coord->coord.t[2]  += dir->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Actor403000_PopVec();
+            _actor403000ReleaseScratchVector();
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         scratch->playerDelta.vx               = wip->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
@@ -3492,8 +3610,8 @@ static void func_actor_403000_80137084(Task* arg0)
             work->state = ACTOR_403000_STATE_GRAB;
         }
         if (ABS(work->neckYawTarget) > 0x300) {
-            scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
-            scratch->cell       = Actor403000_Cell(arg0->extra.tmd->coords);
+            scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
+            scratch->cell       = _actor403000GetRingCell(arg0->extra.tmd->coords);
             work->state         = ACTOR_403000_STATE_TURN;
             diff                = scratch->cell - scratch->playerCell;
             sign                = _actor403000RingSide(diff);
@@ -3673,33 +3791,33 @@ static void func_actor_403000_801377C8(Task* arg0)
     if (work->requestedAnimId == 2) {
         coord = arg0->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dirA = Actor403000_PushVec();
+            dirA = _actor403000ReserveScratchVector();
             gfxReadMatrixZAxis(&coord->coord, dirA);
             VectorNormalSS(dirA, dirA);
-            Actor403000_ScaleVec(dirA, 300);
+            _actor403000ScaleVectorQ12(dirA, 300);
             coord->coord.t[0]  += dirA->vx;
             coord->coord.t[1]  += dirA->vy;
             coord->coord.t[2]  += dirA->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Actor403000_PopVec();
+            _actor403000ReleaseScratchVector();
         }
     }
     if (work->requestedAnimId == 0xB && work->stateFrame < 0xE) {
         coord2 = arg0->extra.tmd->coords;
         step   = work->grabStep;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dirB = Actor403000_PushVec();
+            dirB = _actor403000ReserveScratchVector();
             v    = dirB;
             if (step != 0) {
                 gfxReadMatrixZAxis(&coord2->coord, dirB);
                 VectorNormalSS(dirB, dirB);
-                Actor403000_ScaleVec(v, step);
+                _actor403000ScaleVectorQ12(v, step);
                 coord2->coord.t[0]  += dirB->vx;
                 coord2->coord.t[1]  += dirB->vy;
                 coord2->coord.t[2]  += dirB->vz;
                 coord2->composeStamp = GRAPHICS_COORD_DIRTY;
             }
-            Actor403000_PopVec();
+            _actor403000ReleaseScratchVector();
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3707,11 +3825,11 @@ static void func_actor_403000_801377C8(Task* arg0)
         work->state       = ACTOR_403000_STATE_TURN;
         work->turnRingDir = -work->watchRingDir;
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         if (work->requestedAnimId == 0xB) {
-            scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
-            cell                = Actor403000_Cell(arg0->extra.tmd->coords);
+            scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
+            cell                = _actor403000GetRingCell(arg0->extra.tmd->coords);
             scratch->cell       = cell;
             diff                = scratch->cell - scratch->playerCell;
             sign                = _actor403000RingSide(diff);
@@ -3776,7 +3894,7 @@ static void func_actor_403000_801384E8(Task* arg0)
         work->state        = ACTOR_403000_STATE_TURN;
         work->watchRingDir = work->turnRingDir = work->patrolRingDir = -work->watchRingDir;
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     work->stateFrame++;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
 }
@@ -3828,17 +3946,17 @@ static void func_actor_403000_801386E8(Task* arg0)
         coord = arg0->extra.tmd->coords;
         step  = work->lungeStep;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dir = Actor403000_PushVec();
+            dir = _actor403000ReserveScratchVector();
             if (step != 0) {
                 gfxReadMatrixZAxis(&coord->coord, dir);
                 VectorNormalSS(dir, dir);
-                Actor403000_ScaleVec(dir, step);
+                _actor403000ScaleVectorQ12(dir, step);
                 coord->coord.t[0]  += dir->vx;
                 coord->coord.t[1]  += dir->vy;
                 coord->coord.t[2]  += dir->vz;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
             }
-            Actor403000_PopVec();
+            _actor403000ReleaseScratchVector();
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
@@ -3889,7 +4007,7 @@ static void func_actor_403000_801386E8(Task* arg0)
         work->patrolRingDir = work->watchRingDir;
         work->watchRingDir  = -work->watchRingDir;
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
         _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts));
     }
@@ -3946,7 +4064,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         t1                             = &scratch->offset;
         gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, t1);
         VectorNormalSS(t1, t1);
-        Actor403000_ScaleVec(t1, 0x41A);
+        _actor403000ScaleVectorQ12(t1, 0x41A);
         arg0->extra.tmd->coords->coord.t[0] = player->extra.tmd->coords->coord.t[0] - scratch->offset.vx;
         arg0->extra.tmd->coords->coord.t[1] = player->extra.tmd->coords->coord.t[1] - scratch->offset.vy;
         arg0->extra.tmd->coords->coord.t[2] = player->extra.tmd->coords->coord.t[2] - scratch->offset.vz;
@@ -3961,7 +4079,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         t2                                    = &scratch->offset;
         gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, t2);
         VectorNormalSS(t2, t2);
-        Actor403000_ScaleVec(t2, 0x96);
+        _actor403000ScaleVectorQ12(t2, 0x96);
         D_actor_403000_80158DB0.push.displacement.vx   = scratch->offset.vx;
         D_actor_403000_80158DB0.push.displacement.vy   = 0;
         D_actor_403000_80158DB0.push.displacement.vz   = scratch->offset.vz;
@@ -3976,15 +4094,15 @@ static void func_actor_403000_80138DB0(Task* arg0)
     if (work->stateFrame < 10) {
         coord = arg0->extra.tmd->coords;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-            dir = Actor403000_PushVec();
+            dir = _actor403000ReserveScratchVector();
             gfxReadMatrixZAxis(&coord->coord, dir);
             VectorNormalSS(dir, dir);
-            Actor403000_ScaleVec(dir, 0x78);
+            _actor403000ScaleVectorQ12(dir, 0x78);
             coord->coord.t[0]  += dir->vx;
             coord->coord.t[1]  += dir->vy;
             coord->coord.t[2]  += dir->vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Actor403000_PopVec();
+            _actor403000ReleaseScratchVector();
         }
         v.vz = 0;
         v.vy = 0;
@@ -3992,12 +4110,12 @@ static void func_actor_403000_80138DB0(Task* arg0)
         gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, &v);
         vp = &v;
         VectorNormalSS(vp, vp);
-        Actor403000_ScaleVec(vp, 0x546);
+        _actor403000ScaleVectorQ12(vp, 0x546);
         v.vx = v.vx + arg0->extra.tmd->coords->coord.t[0] - player->extra.tmd->coords->coord.t[0];
         v.vy = 0;
         v.vz = v.vz + arg0->extra.tmd->coords->coord.t[2] - player->extra.tmd->coords->coord.t[2];
         VectorNormalSS(vp, vp);
-        Actor403000_ScaleVec(vp, 0x96);
+        _actor403000ScaleVectorQ12(vp, 0x96);
         D_actor_403000_80158DB0.push.displacement.vy   = 0;
         D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
         D_actor_403000_80158DB0.push.keepControl       = 1;
@@ -4020,13 +4138,13 @@ static void func_actor_403000_80138DB0(Task* arg0)
         t4 = &scratch->offset;
         gfxReadMatrixZAxis(&arg0->extra.tmd->coords->coord, t4);
         VectorNormalSS(t4, t4);
-        Actor403000_ScaleVec(t4, 0x21);
+        _actor403000ScaleVectorQ12(t4, 0x21);
         D_actor_403000_80158DB0.push.displacement.vx = scratch->offset.vx;
         D_actor_403000_80158DB0.push.displacement.vy = 0;
         D_actor_403000_80158DB0.push.displacement.vz = scratch->offset.vz;
         gfxReadMatrixXAxis(&arg0->extra.tmd->coords->coord, t4);
         VectorNormalSS(t4, t4);
-        Actor403000_ScaleVec(t4, 0x7D);
+        _actor403000ScaleVectorQ12(t4, 0x7D);
         D_actor_403000_80158DB0.push.displacement.vx  += scratch->offset.vx;
         D_actor_403000_80158DB0.push.displacement.vz  += scratch->offset.vz;
         D_actor_403000_80158DB0.push.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
@@ -4051,8 +4169,8 @@ static void func_actor_403000_80138DB0(Task* arg0)
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnimation, 0);
     }
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
-        cell                = Actor403000_Cell(arg0->extra.tmd->coords);
+        scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
+        cell                = _actor403000GetRingCell(arg0->extra.tmd->coords);
         scratch->cell       = cell;
         diff                = (s8)cell - scratch->playerCell;
         work->watchRingDir  = _actor403000RingSide(diff);
@@ -4060,7 +4178,7 @@ static void func_actor_403000_80138DB0(Task* arg0)
         work->turnRingDir = work->watchRingDir = -_actor403000RingSide(diff);
         work->state                            = ACTOR_403000_STATE_TURN;
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (++work->stateFrame < 10) {
         _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
         _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->neckSphere.contacts, ARRAY_SIZE(work->neckSphere.contacts));
@@ -4092,7 +4210,7 @@ static void func_actor_403000_801399A0(Task* arg0)
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts)) == 0) {
         _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->torsoSphere.contacts, ARRAY_SIZE(work->torsoSphere.contacts));
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if ((work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && work->requestedAnimId == 0xE) {
         work->torsoSphere.body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         if (enemy->hp > 0) {
@@ -4139,22 +4257,22 @@ static void func_actor_403000_80139AE0(Task* arg0)
         work->requestedAnimId         = 2;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_403000_80133AF8(arg0);
+        _actor403000UpdateAnimation(arg0);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
         work->rootCapsule.shape.ends[1].vz = 0x320;
-        scratch->playerCell                = Actor403000_Cell(player->extra.tmd->coords);
-        scratch->cell                      = Actor403000_Cell(arg0->extra.tmd->coords);
+        scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
+        scratch->cell                      = _actor403000GetRingCell(arg0->extra.tmd->coords);
         diff                               = scratch->cell - scratch->playerCell;
         dir                                = _actor403000RingSide(diff);
         work->seekRingDir                  = dir;
     }
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-    scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
-    base                = Actor403000_Cell(arg0->extra.tmd->coords);
+    scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
+    base                = _actor403000GetRingCell(arg0->extra.tmd->coords);
     scratch->cell       = base;
-    if (func_actor_403000_80133FC0(arg0, base, scratch->playerCell) << 16) {
+    if (_actor403000CanChasePlayer(arg0, base, scratch->playerCell) << 16) {
         work->state = ACTOR_403000_STATE_CHASE;
     }
     scratch->waypoint = scratch->cell + work->seekRingDir;
@@ -4177,7 +4295,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (scratch->turn > 0x30) {
         scratch->turn = 0x30;
     }
@@ -4194,7 +4312,7 @@ static void func_actor_403000_80139AE0(Task* arg0)
 /// Waypoint-ring variant of `func_actor_403000_80139AE0`: on entry pick the
 /// ring direction from the player/model cell difference, then steer (clamped to
 /// 0x40 per frame) toward the next waypoint and step forward 0x12C; switch to 5
-/// once `func_actor_403000_80133FC0` allows it after 60 frames.
+/// once `_actor403000CanChasePlayer` allows it after 60 frames.
 static void func_actor_403000_8013A08C(Task* arg0)
 {
     Actor403000Work*             work;
@@ -4225,13 +4343,13 @@ static void func_actor_403000_8013A08C(Task* arg0)
         work->requestedAnimId         = 2;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_403000_80133AF8(arg0);
+        _actor403000UpdateAnimation(arg0);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
         work->rootCapsule.shape.ends[1].vz = 0x320;
-        scratch->playerCell                = Actor403000_Cell(player->extra.tmd->coords);
-        cell                               = Actor403000_Cell(arg0->extra.tmd->coords);
+        scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
+        cell                               = _actor403000GetRingCell(arg0->extra.tmd->coords);
         scratch->cell                      = cell;
         if (cell != scratch->playerCell) {
             diff = cell - scratch->playerCell;
@@ -4244,10 +4362,10 @@ static void func_actor_403000_8013A08C(Task* arg0)
     }
     work->stateFrame++;
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-    scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
-    base                = Actor403000_Cell(arg0->extra.tmd->coords);
+    scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
+    base                = _actor403000GetRingCell(arg0->extra.tmd->coords);
     scratch->cell       = base;
-    if ((func_actor_403000_80133FC0(arg0, base, scratch->playerCell) << 16) && work->stateFrame > 0x3C) {
+    if ((_actor403000CanChasePlayer(arg0, base, scratch->playerCell) << 16) && work->stateFrame > 0x3C) {
         work->state = ACTOR_403000_STATE_CHASE;
     }
     scratch->waypoint = scratch->cell + work->seekRingDir;
@@ -4270,7 +4388,7 @@ static void func_actor_403000_8013A08C(Task* arg0)
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (scratch->turn > 0x40) {
         scratch->turn = 0x40;
     }
@@ -4319,13 +4437,13 @@ static void func_actor_403000_8013A678(Task* arg0)
         work->requestedAnimId         = 2;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_403000_80133AF8(arg0);
+        _actor403000UpdateAnimation(arg0);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
         work->rootCapsule.shape.ends[1].vz = 0x320;
-        scratch->playerCell                = Actor403000_Cell(player->extra.tmd->coords);
-        scratch->cell                      = Actor403000_Cell(arg0->extra.tmd->coords);
+        scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
+        scratch->cell                      = _actor403000GetRingCell(arg0->extra.tmd->coords);
         switch ((u8)scratch->playerCell) {
             case 0:
             case 1:
@@ -4358,7 +4476,7 @@ static void func_actor_403000_8013A678(Task* arg0)
     }
     work->stateFrame++;
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-    base          = Actor403000_Cell(arg0->extra.tmd->coords);
+    base          = _actor403000GetRingCell(arg0->extra.tmd->coords);
     scratch->cell = base;
     if (base == work->patrolGoalCell) {
         if (work->ambushRequested == 1) {
@@ -4402,7 +4520,7 @@ static void func_actor_403000_8013A678(Task* arg0)
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (scratch->turn > 0x40) {
         scratch->turn = 0x40;
     }
@@ -4419,7 +4537,7 @@ static void func_actor_403000_8013A678(Task* arg0)
 /// Walk the waypoint ring: on the entry frame snap the model onto its cell's
 /// waypoint and face the neighbour in the `watchRingDir` direction; every frame
 /// finish (state 2) on reaching the player's cell, give up (14) after 300
-/// frames, or switch to 5 once `func_actor_403000_80133FC0` allows it.
+/// frames, or switch to 5 once `_actor403000CanChasePlayer` allows it.
 static void func_actor_403000_8013ACBC(Task* arg0)
 {
     Actor403000Work*             work;
@@ -4448,8 +4566,8 @@ static void func_actor_403000_8013ACBC(Task* arg0)
         work->requestedAnimId         = 4;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_403000_80133AF8(arg0);
-        base                                  = Actor403000_Cell(arg0->extra.tmd->coords);
+        _actor403000UpdateAnimation(arg0);
+        base                                  = _actor403000GetRingCell(arg0->extra.tmd->coords);
         scratch->cell                         = base;
         table                                 = D_actor_403000_80158CE0;
         v                                     = &table[base];
@@ -4496,19 +4614,19 @@ static void func_actor_403000_8013ACBC(Task* arg0)
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
         work->rootCapsule.shape.ends[1].vz = 0x320;
-        scratch->playerCell                = Actor403000_Cell(player->extra.tmd->coords);
+        scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
     }
     work->stateFrame++;
-    scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
-    scratch->cell       = Actor403000_Cell(arg0->extra.tmd->coords);
-    func_actor_403000_80133AF8(arg0);
+    scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
+    scratch->cell       = _actor403000GetRingCell(arg0->extra.tmd->coords);
+    _actor403000UpdateAnimation(arg0);
     if (work->stateFrame > 300) {
         work->state = ACTOR_403000_STATE_PROWL;
     } else if (scratch->playerCell == scratch->cell) {
         work->state         = ACTOR_403000_STATE_PATROL;
         work->patrolRingDir = work->watchRingDir;
         work->watchRingDir  = -work->watchRingDir;
-    } else if (func_actor_403000_80133FC0(arg0, scratch->cell, scratch->playerCell) << 16) {
+    } else if (_actor403000CanChasePlayer(arg0, scratch->cell, scratch->playerCell) << 16) {
         if (work->stateFrame > 60) {
             work->state = ACTOR_403000_STATE_CHASE;
         }
@@ -4620,7 +4738,7 @@ static void func_actor_403000_8013B238(Task* arg0)
     arg0->extra.tmd->coords->coord.t[1]  += work->turnDrift.vy;
     arg0->extra.tmd->coords->coord.t[2]  += work->turnDrift.vz;
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_403000_STATE_PATROL;
     }
@@ -4673,7 +4791,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
         work->animRate                      = 0;
         work->lockOnSuspended               = 0;
         scratch                             = SCRATCH_STACK_RESERVE_BLOCK(_Actor403000ChaseScratch);
-        b                                   = Actor403000_Cell(player->extra.tmd->coords);
+        b                                   = _actor403000GetRingCell(player->extra.tmd->coords);
         scratch->playerCell                 = b;
         switch (scratch->playerCell) {
             case 0:
@@ -4742,7 +4860,7 @@ static void func_actor_403000_8013B74C(Task* arg0)
         arg0->extra.tmd->coords->coord.t[2] += (work->attackTarget.vz - arg0->extra.tmd->coords->coord.t[2]) >> 2;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         angle         = _actorAngleTurnToPlayer(arg0, &scratch->offset, &gPlayerStatus);
         scratch->turn = (mag = angle);
@@ -4809,7 +4927,7 @@ static void func_actor_403000_8013BDE0(Task* arg0)
         work->state        = ACTOR_403000_STATE_TURN;
         work->watchRingDir = work->patrolRingDir = work->turnRingDir = -func_actor_403000_80134204(arg0->extra.tmd->coords);
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     work->stateFrame++;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403000ChaseScratch);
 }
@@ -4838,7 +4956,7 @@ static void func_actor_403000_8013C050(Task* arg0)
         work->stateFrame                    = 0;
         work->stillFrames                   = 0;
         work->animRate                      = 0;
-        func_actor_403000_80133AF8(arg0);
+        _actor403000UpdateAnimation(arg0);
     }
     if (work->stateFrame > 0x3C) {
         work->dropDelay = 0x14;
@@ -4901,20 +5019,20 @@ static void func_actor_403000_8013C2D4(Task* arg0)
         work->requestedAnimId         = 1;
         work->forelegYawTarget        = 0;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_403000_80133AF8(arg0);
+        _actor403000UpdateAnimation(arg0);
         work->stateFrame                   = 0;
         work->stillFrames                  = 0;
         work->field_FC2                    = 0;
         work->rootCapsule.shape.ends[1].vz = 0x320;
-        scratch->playerCell                = Actor403000_Cell(player->extra.tmd->coords);
-        scratch->cell                      = Actor403000_Cell(arg0->extra.tmd->coords);
+        scratch->playerCell                = _actor403000GetRingCell(player->extra.tmd->coords);
+        scratch->cell                      = _actor403000GetRingCell(arg0->extra.tmd->coords);
         work->seekRingDir                  = func_actor_403000_80134204(arg0->extra.tmd->coords);
     }
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->rootSphere.contacts, ARRAY_SIZE(work->rootSphere.contacts));
-    scratch->playerCell = Actor403000_Cell(player->extra.tmd->coords);
-    base                = Actor403000_Cell(arg0->extra.tmd->coords);
+    scratch->playerCell = _actor403000GetRingCell(player->extra.tmd->coords);
+    base                = _actor403000GetRingCell(arg0->extra.tmd->coords);
     scratch->cell       = base;
-    if (func_actor_403000_80133FC0(arg0, base, scratch->playerCell) << 16) {
+    if (_actor403000CanChasePlayer(arg0, base, scratch->playerCell) << 16) {
         work->state = ACTOR_403000_STATE_CHASE;
     }
     scratch->waypoint = scratch->cell + work->seekRingDir;
@@ -4955,7 +5073,7 @@ static void func_actor_403000_8013C2D4(Task* arg0)
     mag                 = angle;
     scratch->turn       = mag;
     work->neckYawTarget = mag;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (scratch->turn > 8) {
         scratch->turn = 8;
     }
@@ -5407,7 +5525,7 @@ static void func_actor_403000_8013D648(Task* arg0)
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
     work->stateFrame++;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if ((work->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED)) || work->stateFrame >= 5) {
         if (enemy->hp > 0) {
             if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
@@ -5441,10 +5559,10 @@ static void func_actor_403000_8013D72C(Task* arg0)
         work->forelegYawTarget       = 0;
         work->neckYawTarget          = 0;
         work->rootSphere.body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_403000_80133AF8(arg0);
+        _actor403000UpdateAnimation(arg0);
         return;
     }
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->lastCommandId == 0xA) {
         work->color.t[2]    = 0;
         work->color.t[1]    = 0;
@@ -5482,11 +5600,11 @@ static void func_actor_403000_8013D850(Task* arg0)
         work->overlayActive           = 0;
         work->requestedAnimId         = 0x10;
         work->rootSphere.body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        func_actor_403000_80133AF8(arg0);
+        _actor403000UpdateAnimation(arg0);
         work->stateFrame = 0;
     }
     work->stateFrame++;
-    func_actor_403000_80133AF8(arg0);
+    _actor403000UpdateAnimation(arg0);
     if (work->slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->watchRingDir  = 1;
         work->patrolRingDir = 1;
