@@ -2492,7 +2492,6 @@ void func_shelter_r48_8017E9B8(Task* arg0)
 {
     EffectWork* mem;
     GfxCoord*   coord;
-    MATRIX*     m;
 
     mem   = (EffectWork*)arg0->spawnArg2.pointer;
     coord = arg0->extra.coordBody->coord;
@@ -2504,13 +2503,8 @@ void func_shelter_r48_8017E9B8(Task* arg0)
         return;
     }
     if (arg0->state == 0) {
-        m                                = &coord->coord;
         coord->parent                    = mem->parent;
-        MATRIX_PAIR(&coord->coord, 0, 0) = 0x1000;
-        MATRIX_PAIR(m, 0, 2)             = 0;
-        MATRIX_PAIR(m, 1, 1)             = 0x1000;
-        MATRIX_PAIR(m, 2, 0)             = 0;
-        m->m[2][2]                       = 0x1000;
+        gfxSetRotIdentity(&coord->coord);
         coord->coord.t[2]                = 0;
         coord->coord.t[1]                = 0;
         coord->coord.t[0]                = 0;
