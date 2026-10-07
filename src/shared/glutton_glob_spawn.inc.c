@@ -59,7 +59,7 @@ void gluttonGlobSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->colorMtx = &work->colorMtx;
 
     vec.vx = vec.vy = vec.vz = 0;
-    actorLocalToView(&host->escorts[1]->task->extra.tmd->coords[1], &vec);
+    _actorRenderTransformLocalPointToWorld(&host->escorts[1]->task->extra.tmd->coords[1], &vec);
 
     task->extra.tmd->coords->coord.t[0]   = vec.vx;
     task->extra.tmd->coords->coord.t[1]   = vec.vy;

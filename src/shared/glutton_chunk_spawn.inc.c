@@ -37,7 +37,7 @@ void gluttonChunkSpawn(Enemy* enemy, Task* task)
     task->extra.tmd->flags          = 0;
 
     vec.vx = vec.vy = vec.vz = 0;
-    actorLocalToView(&owner->task->extra.tmd->coords[3], &vec);
+    _actorRenderTransformLocalPointToWorld(&owner->task->extra.tmd->coords[3], &vec);
 
     task->extra.tmd->coords->coord.t[0]   = vec.vx;
     task->extra.tmd->coords->coord.t[1]   = vec.vy;

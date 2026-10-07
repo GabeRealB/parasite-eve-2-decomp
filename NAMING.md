@@ -391,13 +391,17 @@ Handlers reached only by each carrier's own dispatch tables keep static linkage
 and the `_` marker. The resident enemy, animation and collision APIs retain
 their own subsystem identities.
 
-`actorRender` also owns the inline yaw rebuild and joint-rotation composition
-helpers in `include/actors/actor.h`. Each actor translation unit keeps its own static
-instance, with the `_` marker. The yaw rebuild replaces pitch, roll and scale
-with the coordinate's current yaw at a signed 12-fractional-bit uniform scale;
+`actorRender` also owns the inline local-point transform, yaw rebuild and
+joint-rotation composition helpers in `include/actors/actor.h`. Each actor
+translation unit keeps its own static instance, with the `_` marker. The yaw
+rebuild replaces pitch, roll and scale with the coordinate's current yaw at a
+signed 12-fractional-bit uniform scale;
 translation stays intact and composition is marked dirty. Composing up to an
 excluded view node produces a world-space rotation without changing the
-coordinate hierarchy.
+coordinate hierarchy. The inline point transform likewise excludes the view
+matrix and produces world coordinates, narrowing XYZ to signed halfwords at
+each parent. It commits XYZ only on reaching a view node with a non-NULL parent;
+an incomplete chain leaves the caller's point intact.
 The included world-yaw joint update in
 `src/shared/actor_contacts_turn_joint.inc.c` belongs to the same subsystem;
 `src/shared/actor_contacts.h` declares its static per-carrier interface beside

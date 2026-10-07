@@ -2,14 +2,14 @@
 
 /// Spawn state of the enemy dispatched through `D_actor_444000_80131EA8`:
 /// allocate its work block and stand the model up where the host's first
-/// escort is, in view space.
+/// escort is, in world space.
 ///
 /// The model is reparented to `gGfxViewCoord`, so both halves of that escort's
 /// part 1 have to be resolved by hand: `actorAccumulateToView` walks
 /// the part's coordinate chain up to the view coordinate for the rotation and
-/// `actorLocalToView` carries its origin along the same chain for the
-/// translation. The model is then turned a quarter turn, its single display
-/// node is linked with a 0x394 extent, and that node is paired with the owning
+/// `_actorRenderTransformLocalPointToWorld` carries its origin along the same
+/// chain for the translation. The model is then turned a quarter turn, its
+/// single display node is linked with a 0x394 extent, and that node is paired with the owning
 /// enemy so collisions against it reach this task.
 ///
 /// Bails out -- destroying the enemy -- when the overlay is shutting down, the
@@ -40,7 +40,7 @@ void gluttonThrowSpawn(Enemy* enemy, Task* task)
                           &task->extra.tmd->coords->coord);
 
     vec.vx = vec.vy = vec.vz = 0;
-    actorLocalToView(&host->escorts[0]->task->extra.tmd->coords[1], &vec);
+    _actorRenderTransformLocalPointToWorld(&host->escorts[0]->task->extra.tmd->coords[1], &vec);
 
     task->extra.tmd->coords->coord.t[0]   = vec.vx;
     task->extra.tmd->coords->coord.t[1]   = vec.vy;

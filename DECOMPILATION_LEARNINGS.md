@@ -112479,8 +112479,9 @@ Taking the address into a pointer local closes it:
 ```
 
 This is the idiom the matched 444000 sibling already uses
-(`include/actors/actor_444000_view.h` `actorLocalToView` keeps `posp` for
-the same reason), and the fix is not just the argument pair: the extra
+(`func_actor_444000_801404C0` keeps `posp` for the same reason, after
+`_actorRenderTransformLocalPointToWorld` in `include/actors/actor.h` places
+`pos` in world coordinates), and the fix is not just the argument pair: the extra
 call-crossing `&pos` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
 and its `+4` were left as `$s0`/`$s1` against the target's `$s1`/`$s0`. Naming
 the pointer gave `$s0` back and both pairs fell into place. Distinct from the
@@ -143165,18 +143166,19 @@ pins on `v`, `i` and the head matched as a plain indexed loop over
 `quadScratch->vertices[i]`. Loop strength reduction makes the one address giv the pins
 were imitating; the walk form gave an extra giv for `&v->vz` instead.
 
-## Hand-inlined view walks and Y-rescales are the `actor.h` helpers; pick the spelling by setup order (Actor00100_Fn04270, 2026-09-26)
+## Hand-inlined world-point walks and Y-rescales are the `actor.h` helpers; pick the spelling by setup order (Actor00100_Fn04270, 2026-09-26)
 
 Symptom: a body with `goto` parent-chain loops pinned to `s0`/`s2` and two
 cross-jumped copies of the `ActorScaleRotScratch` rescale, each pinning the
-scratch head. Both are inlined helpers: `actorLocalToView` /
+scratch head. Both are inlined helpers: `_actorRenderTransformLocalPointToWorld` /
 `actorTransformToView` for the walk, and one `actorRescaleYawY` call per arm
 of an `if` for the rescale (jump2 merges the shared tail itself).
 
 The two walk helpers differ only in setup scheduling. `actorTransformToView`
 names `svp`/`view`/`vecp` locals, so the stack-address setups issue before
-the `extra.tmd` load; `actorLocalToView` takes `&acc`/`&v` directly and puts
-`view`, `svp` first and `vecp` after that load. When only those three
+the `extra.tmd` load; `_actorRenderTransformLocalPointToWorld` takes
+`&parentPoint`/`&transformedPoint` directly and puts `view`, `svp` first and
+`vecp` after that load. When only those three
 `addiu`s are out of place, swap to the other helper.
 
 ## An inlined helper's early `return` lets its value land in the caller's variable; one `return` keeps a separate pseudo (Actor01100_Fn04DB4, 2026-09-26)

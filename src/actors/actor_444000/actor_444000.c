@@ -3342,8 +3342,8 @@ static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
 /// other three reparent escort 2, 4 and 3's model to `gGfxViewCoord`. That
 /// reparenting is why both halves of the part's placement have to be resolved
 /// by hand -- `actorAccumulateToView` for the rotation it had up the
-/// chain and `actorLocalToView` for its origin -- the same pair
-/// `gluttonThrowSpawn` uses. Past each of those sub-states the body
+/// chain and `_actorRenderTransformLocalPointToWorld` for its origin -- the
+/// same pair `gluttonThrowSpawn` uses. Past each of those sub-states the body
 /// sinks toward the host's own height 0x1E a step, clamped there, and squashes
 /// from 0x1000 to nothing over 0x28 steps, throwing effect 0x60196 at one of
 /// three offsets every fifth step and raising flag 0x80 on the last one.
@@ -3457,7 +3457,7 @@ static void func_actor_444000_80135448(Task* task)
                 pos.vz = 0;
                 pos.vy = 0;
                 pos.vx = 0;
-                actorLocalToView(&task->extra.tmd->coords[4], &pos);
+                _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[4], &pos);
 
                 work->escorts[2]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
                 work->escorts[2]->task->extra.tmd->coords->coord        = mat;
@@ -3473,7 +3473,7 @@ static void func_actor_444000_80135448(Task* task)
                 pos.vz = 0;
                 pos.vy = 0;
                 pos.vx = 0;
-                actorLocalToView(&task->extra.tmd->coords[3], &pos);
+                _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[3], &pos);
 
                 work->escorts[3]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
                 work->escorts[3]->task->extra.tmd->coords->coord        = mat;
@@ -3489,7 +3489,7 @@ static void func_actor_444000_80135448(Task* task)
                 pos.vz = 0;
                 pos.vy = 0;
                 pos.vx = 0;
-                actorLocalToView(&task->extra.tmd->coords[4], &pos);
+                _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[4], &pos);
 
                 work->escorts[4]->task->extra.tmd->coords->parent       = &gGfxViewCoord;
                 work->escorts[4]->task->extra.tmd->coords->coord        = mat;
@@ -4900,7 +4900,7 @@ static void func_actor_444000_8013E058(Task* task)
         posp->vz               = 0;
         posp->vy               = 0;
         posp->vx               = 0;
-        actorLocalToView(&sceneFindPlacedActor(0)->extra.tmd->coords[3], posp);
+        _actorRenderTransformLocalPointToWorld(&sceneFindPlacedActor(0)->extra.tmd->coords[3], posp);
         D_actor_444000_80161888.command.context.loc.stage = 0;
         D_actor_444000_80161888.command.context.loc.area  = 0x2C;
         D_actor_444000_80161888.command.command           = 2;
@@ -4945,7 +4945,7 @@ static void func_actor_444000_8013E058(Task* task)
     sc->offset.vz = 0;
     sc->offset.vy = 0;
     sc->offset.vx = 0;
-    actorLocalToView(&task->extra.tmd->coords[4], &sc->offset);
+    _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[4], &sc->offset);
 
     sc->offset.vx       = (u16)slot3->extra.tmd->coords->coord.t[0] - (u16)sc->offset.vx;
     sc->offset.vy       = (u16)slot3->extra.tmd->coords->coord.t[1] - (u16)sc->offset.vy;
@@ -5123,7 +5123,7 @@ static void func_actor_444000_8013E058(Task* task)
 /// player free they are put back on the host's own position, and sub-state 0x17
 /// re-places them and re-sends the 0x3FF animation.
 /// Places the player in front of the host and points the pair at each other:
-/// the host's fifth part is carried into view space, the yaw from there to the
+/// the host's fifth part is carried into world space, the yaw from there to the
 /// player picks which of the two message-0x3FF animation tables the tick will
 /// send (`..._80161680` past a quarter turn, `..._80161670` within it), and the
 /// opposite yaw is stowed in `neckYawTarget` for the drive step. The normalised
@@ -5138,7 +5138,7 @@ static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* wor
     sc->anchor.vz = 0;
     sc->anchor.vy = 0;
     sc->anchor.vx = 0;
-    actorLocalToView(&task->extra.tmd->coords[4], &sc->anchor);
+    _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[4], &sc->anchor);
 
     sc->offset.vx = sc->anchor.vx - player->extra.tmd->coords->coord.t[0];
     sc->offset.vy = 0;
@@ -5734,7 +5734,7 @@ static void func_actor_444000_801404C0(Task* arg0)
             pos.vz = 0;
             pos.vy = 0;
             pos.vx = 0;
-            actorLocalToView(&work->escorts[0]->task->extra.tmd->coords[1], &pos);
+            _actorRenderTransformLocalPointToWorld(&work->escorts[0]->task->extra.tmd->coords[1], &pos);
 
             D_actor_444000_80161948.coords[D_actor_444000_80161850].coord.t[0] = pos.vx;
             D_actor_444000_80161948.coords[D_actor_444000_80161850].coord.t[1] = pos.vy;
@@ -6736,11 +6736,11 @@ static inline void _actor444000ResetFloorQuads(void)
 /// Most states hand that pair to `_gluttonBuildWall`, which rebuilds
 /// grid quad 6 as a wall in front of the boss. The exception is pattern 1 in state 9: it uses
 /// `func_actor_444000_801371E8` instead, floors the player's own x at 0x2CEC,
-/// and pushes the player back by the boss part's view-space depth less 0x7D0 --
+/// and pushes the player back by the boss part's world-space Z less 0x7D0 --
 /// part 4 of the boss model carried up the coordinate chain by
-/// `actorLocalToView`. Whether the camera distance is then added to x or
-/// subtracted from z is the same split: patterns other than 1-in-state-9 widen
-/// x, the rest pull z in, and pattern 2 additionally floors z at 0x251C.
+/// `_actorRenderTransformLocalPointToWorld`. Whether the camera distance is
+/// then added to x or subtracted from z is the same split: patterns other than
+/// 1-in-state-9 widen x, the rest pull z in, and pattern 2 additionally floors z at 0x251C.
 ///
 /// States 0, 5, 0xC, 0x12 and 0x13 skip all of that. State 0 -- and any state
 /// the calls above dropped back to 0 -- also resets the two floor quads
@@ -6823,7 +6823,7 @@ void func_actor_444000_80142F28(Task* arg0)
                             }
                         }
                         result.vx = result.vy = result.vz = 0;
-                        actorLocalToView(arg0->extra.tmd->coords + 4, &result);
+                        _actorRenderTransformLocalPointToWorld(arg0->extra.tmd->coords + 4, &result);
                         {
                             GfxCoord* playerCoord = player->extra.tmd->coords;
                             s32       z           = result.vz - 0x7D0;

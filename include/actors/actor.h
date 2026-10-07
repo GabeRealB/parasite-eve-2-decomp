@@ -1712,40 +1712,70 @@ static __inline__ void actorUpdateModelColor(Task* arg0)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// `actorTransformToView` spelled as a `for` loop with an early return.
-static __inline__ void actorLocalToView(GfxCoord* coord, SVECTOR* out)
+/// Transforms an actor-local point in place into world space.
+///
+/// `localCoord` and its borrowed ancestors must be live, word-aligned and form
+/// an acyclic chain. `point` supplies readable and writable signed XYZ in game
+/// coordinate units with halfword alignment, separate from that chain. Each
+/// local matrix uses 12-fractional-bit coefficients (`ONE` is 1.0); its GTE
+/// result narrows to signed halfwords before the next parent is visited.
+/// Cached matrices and composition stamps are neither read nor changed.
+///
+/// Only XYZ are replaced when the walk reaches `gGfxViewCoord` with a non-NULL
+/// parent; the view matrix is excluded. A parentless node, including the view
+/// itself, leaves the point unchanged. The fourth halfword is untouched.
+/// Borrows both inputs only for this call, uses no scratch stack, and overwrites
+/// GTE rotation, translation, vector, accumulator, IR and flag state. Captured
+/// overflow flags do not affect the result; no success status is returned.
+static __inline__ void _actorRenderTransformLocalPointToWorld(const GfxCoord* localCoord, SVECTOR* point)
 {
-    SVECTOR acc;
-    VECTOR  v;
-    s32     flag;
+    SVECTOR parentPoint;
+    VECTOR  transformedPoint;
+    s32     gteFlags;
 
-    acc.vx = out->vx;
-    acc.vy = out->vy;
-    acc.vz = out->vz;
+/// Applies a local matrix and narrows XYZ before the next parent is visited.
+///
+/// Arguments must be stable, side-effect-free expressions for disjoint objects.
+/// `localToParent` is a readable word-aligned matrix pointer, evaluated twice.
+/// `localPoint` is a word-aligned SVECTOR lvalue, evaluated four times; its
+/// ignored fourth halfword is loaded but preserved. `longResult` is a writable,
+/// word-aligned VECTOR lvalue, evaluated four times, receiving the GTE's XYZ.
+/// `flags` is a writable word-aligned s32 lvalue, evaluated once, receiving the
+/// GTE FLAG word. Captures no caller identifiers; changes GTE working state.
+/// Coefficients have 12 fractional bits and translation uses game units.
+/// Expands to one compound statement; use as a standalone statement within braces.
+#define ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT(localToParent, localPoint, longResult, flags) \
+    {                                                                                              \
+        gte_SetTransMatrix((localToParent));                                                       \
+        gte_SetRotMatrix((localToParent));                                                         \
+        gte_RotTrans(&(localPoint), &(longResult), &(flags));                                      \
+        (localPoint).vx = (longResult).vx;                                                         \
+        (localPoint).vy = (longResult).vy;                                                         \
+        (localPoint).vz = (longResult).vz;                                                         \
+    }
+
+    // Stage the walk so an incomplete chain cannot partially change the point.
+    parentPoint.vx = point->vx;
+    parentPoint.vy = point->vy;
+    parentPoint.vz = point->vz;
 
     for (;;) {
-        if (coord->parent == NULL) {
+        if (localCoord->parent == NULL) {
             return;
         }
-        if (coord != &gGfxViewCoord) {
-            gte_SetTransMatrix(&coord->coord);
-            gte_SetRotMatrix(&coord->coord);
-            gte_ldv0(&acc);
-            gte_rt();
-            gte_stlvnl(&v);
-            gte_stflg(&flag);
-            acc.vx = v.vx;
-            acc.vy = v.vy;
-            acc.vz = v.vz;
-            coord  = coord->parent;
+        if (localCoord != &gGfxViewCoord) {
+            // Preserve truncation at each parent rather than composing matrices.
+            ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT(&localCoord->coord, parentPoint, transformedPoint, gteFlags);
+            localCoord = localCoord->parent;
         } else {
-            out->vx = acc.vx;
-            out->vy = acc.vy;
-            out->vz = acc.vz;
+            point->vx = parentPoint.vx;
+            point->vy = parentPoint.vy;
+            point->vz = parentPoint.vz;
             return;
         }
     }
 }
+#undef ACTOR_RENDER_TRANSFORM_LOCAL_POINT_TO_PARENT
 
 /// `_actorRenderAccumulateRotation` with the view as its excluded ancestor,
 /// without returning whether that ancestor was reached.

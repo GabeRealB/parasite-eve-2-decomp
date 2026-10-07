@@ -2378,10 +2378,10 @@ static void Actor00100_Fn04270(Task* arg0)
             work->burnPosForeleg.vx = 0;
             work->burnPosForeleg.vy = 0;
             work->burnPosForeleg.vz = 0;
-            actorLocalToView(&arg0->extra.tmd->coords[2], &work->burnPosFront);
+            _actorRenderTransformLocalPointToWorld(&arg0->extra.tmd->coords[2], &work->burnPosFront);
             effectSpawn(EFFECT_CORPSE_BURN, &gGfxViewCoord, 2, &work->burnPosFront);
             work->burnPosFront.vy = arg0->extra.tmd->coords[0].coord.t[1];
-            actorLocalToView(&arg0->extra.tmd->coords[9], &work->burnPosForeleg);
+            _actorRenderTransformLocalPointToWorld(&arg0->extra.tmd->coords[9], &work->burnPosForeleg);
             work->burnPosForeleg.vy = arg0->extra.tmd->coords[0].coord.t[1];
             effectSpawn(EFFECT_CORPSE_BURN, &gGfxViewCoord, 2, &work->burnPosForeleg);
             break;

@@ -4580,7 +4580,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         gGluttonSpinnerTarget.vz = 0;
         gGluttonSpinnerTarget.vy = 0;
         gGluttonSpinnerTarget.vx = 0;
-        actorLocalToView(&arg0->extra.tmd->coords[3], &gGluttonSpinnerTarget);
+        _actorRenderTransformLocalPointToWorld(&arg0->extra.tmd->coords[3], &gGluttonSpinnerTarget);
         D_actor_403200_8015F8F4.context.loc.stage = 0;
         D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
         D_actor_403200_8015F8F4.command           = 2;
@@ -4599,7 +4599,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
     sc->offset.vz = 0;
     sc->offset.vy = 0;
     sc->offset.vx = 0;
-    actorLocalToView(&arg0->extra.tmd->coords[4], &sc->offset);
+    _actorRenderTransformLocalPointToWorld(&arg0->extra.tmd->coords[4], &sc->offset);
 
     sc->offset.vx       = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->offset.vx;
     sc->offset.vy       = (u16)task->extra.tmd->coords->coord.t[1] - (u16)sc->offset.vy;
@@ -4732,7 +4732,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         sc->pullCentre.vz  = 0;
         sc->pullCentre.vy  = 0;
         sc->pullCentre.vx  = 0;
-        actorLocalToView(&arg0->extra.tmd->coords[4], &sc->pullCentre);
+        _actorRenderTransformLocalPointToWorld(&arg0->extra.tmd->coords[4], &sc->pullCentre);
 
         sc->offset.vx       = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->pullCentre.vx;
         sc->offset.vy       = 0;
@@ -4902,7 +4902,7 @@ static void func_actor_403200_8013C84C(Task* arg0)
         view.vz                = 0;
         view.vy                = 0;
         view.vx                = 0;
-        actorLocalToView(&arg0->extra.tmd->coords[4], &view);
+        _actorRenderTransformLocalPointToWorld(&arg0->extra.tmd->coords[4], &view);
         view.vx = task->extra.tmd->coords[0].coord.t[0] - view.vx;
         view.vy = 0;
         view.vz = task->extra.tmd->coords[0].coord.t[2] - view.vz;
@@ -5487,8 +5487,8 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             pos.vz = 0;
             pos.vy = 0;
             pos.vx = 0;
-            actorLocalToView(&work->escorts[0]->task->extra.tmd->coords[1],
-                             &pos);
+            _actorRenderTransformLocalPointToWorld(&work->escorts[0]->task->extra.tmd->coords[1],
+                                                   &pos);
 
             D_actor_403200_8015F920.parent     = &gGfxViewCoord;
             D_actor_403200_8015F920.coord.t[0] = pos.vx;
