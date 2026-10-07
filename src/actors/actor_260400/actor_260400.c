@@ -1163,15 +1163,20 @@ static void _actor260400ExitScriptedWalker(Task* task)
 #include "../../shared/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Attaches a drawable Mongoose model root to a borrowed walker coordinate.
+/// Attaches the one-part Mongoose model to a borrowed walker part.
 ///
-/// The model owns its root; the walker coordinate must remain live while the
-/// attachment uses it. Translation and rotation of the root are retained.
-static __inline__ void _actor260400AttachMongooseModel(TmdObject* model, GfxCoord* root, GfxCoord* walkerPart)
+/// `mongooseRoot` is the preloaded `mongooseModel->coords` of the live model.
+/// The walker part must be live and its parent chain must not reach that root.
+/// The root's local transform is retained in the walker's part space, and its
+/// cached composition is marked stale.
+/// All model flags are cleared, permitting active drawing and automatic buffer
+/// allocation; existing primitive buffers are retained. The parent is borrowed
+/// and must remain live whenever the attached root is composed.
+static __inline__ void _actor260400AttachMongooseModel(TmdObject* mongooseModel, GfxCoord* mongooseRoot, GfxCoord* walkerPart)
 {
-    root->composeStamp = GRAPHICS_COORD_DIRTY;
-    model->flags       = 0;
-    root->parent       = walkerPart;
+    mongooseRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    mongooseModel->flags       = 0;
+    mongooseRoot->parent       = walkerPart;
 }
 
 /// Parents the Mongoose to the scripted walker and updates its room lighting.
