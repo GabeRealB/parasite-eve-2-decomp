@@ -137,6 +137,9 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 /// Key-item-use message answered by this room; the first payload is an item ID.
 enum { ACROPOLIS_BRIDGE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
+/// Message that seeds the arrival scene's dust plane on the room-effect task.
+enum { ACROPOLIS_BRIDGE_EFFECT_MESSAGE_ARRIVAL_DUST = 3104 };
+
 /// Arrival-scene sprite selection, applied to the argument's low byte.
 /// Each frame selects one three-source batch in the tenth view.
 enum {
@@ -371,7 +374,7 @@ static void _acropolisBridgeResumeAfterKeypad(Task* task);
 static void _acropolisBridgeAdvanceCutsceneState(Task* task);
 static void func_acropolis_bridge_8017DD9C(Task* task);
 static void _acropolisBridgeFinishKeypadMovie(Task* task);
-static void func_acropolis_bridge_8017DE94(Task* task);
+static void _acropolisBridgeRestoreAfterKeypadMovie(Task* task);
 static void func_acropolis_bridge_8017E04C(Task* task);
 static void func_acropolis_bridge_8017E1D0(Task* task);
 static void func_acropolis_bridge_8017E3A0(Task* task);
@@ -384,7 +387,7 @@ static void func_acropolis_bridge_8017F4CC(Task* task);
 static void func_acropolis_bridge_8017F544(Task* task);
 static void func_acropolis_bridge_8017F658(Task* task);
 static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize, s16 brightness);
-static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task);
+static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task);
 static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task);
 
 /// Work block of the enemy that lurks below the bridge, allocated into `Task::work`.
@@ -447,9 +450,9 @@ STATIC_ASSERT_SIZEOF(_AcropolisBridgeHitScratch, 0xC);
 
 static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
 
-void        func_acropolis_bridge_8017DEE4(Task*);
+static void _acropolisBridgeKeypadMovieTask(Task* movieTask);
 static void _acropolisBridgeKeypadCursorTask(Task* task);
-s32         func_acropolis_bridge_801820A0(Task*, s32, s32, s32);
+static s32  _acropolisBridgeSpawnArrivalDust(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 extern WorldCollisionGrid    D_acropolis_bridge_8018A89C[1];
 extern WorldCollisionGrid    D_acropolis_bridge_8018B694[1];
@@ -467,13 +470,13 @@ static SVECTOR _gAcropolisBridgeModel0AD9CVerts[171];
 static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1];
 static u32     _gAcropolisBridgeModel0AD9CPartVerts[1];
 static u32     _gAcropolisBridgeModel0AD9CStream[691];
-s32            func_acropolis_bridge_8017D6F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32     _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32     _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 s32            func_acropolis_bridge_8017D7F8(Task*, s32, s32, s32);
 static s32     _acropolisBridgeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32     _acropolisBridgeIgnoreSoundCommand(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
 void           func_acropolis_bridge_8017D878(Task*);
-void           func_acropolis_bridge_8017D8D0(Task*);
+static void    _acropolisBridgeKeypadSequenceTask(Task* task);
 
 /// Storage of the one-entry task descriptor table the bridge enemy spawns from.
 ///
@@ -503,10 +506,10 @@ static void                         _acropolisBridgeEnemyRetreat(Task* task);
 static void                         _acropolisBridgeEnemyFollowMovie(Task* task);
 static void                         _acropolisBridgeEnemyAnimateAtPlacement(Task* task);
 static void                         _acropolisBridgeEnemyDefeatedBob(Task* task);
-void                                func_acropolis_bridge_80187310(Task*);
-void                                func_acropolis_bridge_801874DC(Task*);
+static void                         _acropolisBridgeEnemyCollapse(Task* task);
+static void                         _acropolisBridgeEnemyDeathEffect(Task* task);
 static void                         _acropolisBridgeEnemyInactive(Task* task);
-void                                func_acropolis_bridge_80187D80(Task*);
+static void                         _acropolisBridgeEnemyTask(Task* task);
 
 static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1] = {
 #include "assets/acropolis_bridge_model_0AD9C_skeleton.inc"
@@ -529,7 +532,7 @@ TmdSource D_acropolis_bridge_80188E28[1] = {
 };
 
 TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_bridge_8017D6F4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisBridgeResolveRoomTransition },
     { ROOM_MESSAGE_COMMAND, func_acropolis_bridge_8017D7F8 },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisBridgeIgnoreRoomAction },
     { ACROPOLIS_BRIDGE_MESSAGE_USE_KEY_ITEM, _acropolisBridgeRejectKeyItemUse },
@@ -539,7 +542,7 @@ TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
 
 TaskDesc D_acropolis_bridge_80188E7C[3] = {
     { { { TASK_BODY_TMD, 192 } }, func_acropolis_bridge_8017D878, { .model = D_acropolis_bridge_80188E28 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_bridge_8017D8D0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -561,7 +564,7 @@ EvsCommand D_acropolis_bridge_80188EBC[26] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SHAKE_SCREEN, { .value = 4 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_acropolis_bridge_80190BBC }, { .vibrationSegments = D_acropolis_bridge_80190BD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = 3104 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = ACROPOLIS_BRIDGE_EFFECT_MESSAGE_ARRIVAL_DUST }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisBridgeSelectArrivalSpriteFrame }, { .value = ACROPOLIS_BRIDGE_ARRIVAL_FRAME_THIRD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -590,7 +593,7 @@ EvsCommand D_acropolis_bridge_8018912C[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_acropolis_bridge_80189234 = { { { TASK_BODY_NONE, 192 } }, func_acropolis_bridge_8017DEE4, { .value = 0 } };
+TaskDesc D_acropolis_bridge_80189234 = { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadMovieTask, { .value = 0 } };
 
 SVECTOR D_acropolis_bridge_80189240[190] = {
 #include "assets/acropolis_bridge_path_0BC80.inc"
@@ -620,7 +623,7 @@ u8 D_acropolis_bridge_801898CC[3][16] = {
 };
 
 TaskMessageEntry D_acropolis_bridge_801898FC[2] = {
-    { 3104, func_acropolis_bridge_801820A0 },
+    { ACROPOLIS_BRIDGE_EFFECT_MESSAGE_ARRIVAL_DUST, _acropolisBridgeSpawnArrivalDust },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2577,12 +2580,12 @@ void (*D_acropolis_bridge_8019175C[9])(Task*) = {
     _acropolisBridgeEnemyRetreat,
     _acropolisBridgeEnemyFollowMovie,
     _acropolisBridgeEnemyDefeatedBob,
-    func_acropolis_bridge_80187310,
-    func_acropolis_bridge_801874DC,
+    _acropolisBridgeEnemyCollapse,
+    _acropolisBridgeEnemyDeathEffect,
     _acropolisBridgeEnemyAnimateAtPlacement,
 };
 
-_AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, func_acropolis_bridge_80187D80, { .model = &_gAcropolisBridgeModel13870 } }, { 0 } };
+_AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, _acropolisBridgeEnemyTask, { .model = &_gAcropolisBridgeModel13870 } }, { 0 } };
 
 Task* D_acropolis_bridge_80191794 = NULL;
 
@@ -2610,8 +2613,6 @@ extern u8 D_acropolis_bridge_801916CC[];
 extern u8* D_acropolis_bridge_80191720[];
 
 static void            _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 offsetY);
-static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
-                                  BossStrangerTickScratch* block);
 static __inline__ void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBody* body, const SVECTOR3* position);
 static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker);
 static __inline__ void _acropolisBridgeLightModel(Task* task);
@@ -2648,31 +2649,42 @@ static __inline__ POLY_FT4* _acropolisBridgeReserveGroundGlowQuad(void)
     return quad;
 }
 
-/// Room message handler: answers msg 0xF (first use of the bridge) by running
-/// the cutscene once and marking the area object, and msg 0xB by asking for
-/// response 2 in the outgoing copy.
-s32 func_acropolis_bridge_8017D6F4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves bridge departures and starts the first fire-escape arrival scene.
+///
+/// Borrows a complete request and writable reply; they may be the same record.
+/// Copies all eight bytes before resolving. An unseen fire-escape departure
+/// returns 2, selecting the arrival script instead of a normal transition;
+/// execution marks it seen and clears the sanctuary blocker. Other departures
+/// return 1, with executing promenade departures selecting room 2. Queries
+/// perform no scene, flag or placement changes. Other message words are ignored.
+static s32 _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    GameLocationKey key;
+    enum {
+        ACROPOLIS_BRIDGE_TRANSITION_ALLOWED        = 1,
+        ACROPOLIS_BRIDGE_TRANSITION_ARRIVAL_SCENE  = 2,
+        ACROPOLIS_BRIDGE_SANCTUARY_CLEARED_VARIANT = 3,
+        ACROPOLIS_BRIDGE_PROMENADE_RETURN_ROOM     = 2
+    };
+    GameLocationKey sanctuaryLocation;
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
         if (gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN, 1);
                 evsStartScriptWithSkip(D_acropolis_bridge_80188EBC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_bridge_8018912C);
                 gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
-                key.stage = GAME_STAGE_ACROPOLIS;
-                key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
-                areaSetPlacementVariant(&key, 3, AREA_VARIANT_RESET_ALWAYS);
+                sanctuaryLocation.stage = GAME_STAGE_ACROPOLIS;
+                sanctuaryLocation.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
+                areaSetPlacementVariant(&sanctuaryLocation, ACROPOLIS_BRIDGE_SANCTUARY_CLEARED_VARIANT, AREA_VARIANT_RESET_ALWAYS);
             }
-            return 2;
+            return ACROPOLIS_BRIDGE_TRANSITION_ARRIVAL_SCENE;
         }
     }
-    if ((in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
-        out->room = 2;
+    if ((request->areaId == GAME_AREA_ACROPOLIS_PROMENADE) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
+        reply->room = ACROPOLIS_BRIDGE_PROMENADE_RETURN_ROOM;
     }
-    return 1;
+    return ACROPOLIS_BRIDGE_TRANSITION_ALLOWED;
 }
 
 /// Refuses every key-item-use request with result 0, leaving the room untouched.
@@ -2737,7 +2749,7 @@ static const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
       func_acropolis_bridge_8017DC1C, _acropolisBridgeWaitForKeypadResult, _acropolisBridgeResumeAfterKeypad,
       _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState,
       _acropolisBridgeAdvanceCutsceneState, func_acropolis_bridge_8017DD9C, _acropolisBridgeFinishKeypadMovie,
-      func_acropolis_bridge_8017DE94, taskKill }
+      _acropolisBridgeRestoreAfterKeypadMovie, taskKill }
 };
 
 /// State handlers of the room's prompt script task.
@@ -2747,9 +2759,12 @@ static const TaskFuncTable9 D_acropolis_bridge_8017D614 = {
       func_acropolis_bridge_8017E3A0, func_acropolis_bridge_8017E4FC, func_acropolis_bridge_8017F658 }
 };
 
-/// Fourteen-state dispatcher of the room's cutscene task: copies the handler
-/// table onto the stack and calls the entry named by `Task::state`.
-void func_acropolis_bridge_8017D8D0(Task* task)
+/// Runs the caption, keypad and accepted-code movie sequence.
+///
+/// `task->state` must select one of the fourteen handlers. Cancellation ends
+/// the sequence after restoring player control; acceptance plays the movie and
+/// selects room 2. The final state restores arrival-sprite visibility and HUD.
+static void _acropolisBridgeKeypadSequenceTask(Task* task)
 {
     TaskFuncTable14 states;
 
@@ -2782,14 +2797,12 @@ static void _acropolisBridgeRoomIdle(Task* task)
     char stackReservation[0x10]; // Preserves the target's otherwise unused 16-byte stack frame.
 }
 
-/// Three-state dispatcher of the room's own task: setup, an empty idle state,
-/// then `taskKill`. The table is copied onto the stack before the call.
-void func_acropolis_bridge_8017DA0C(Task* task)
+void acropolisBridgeRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_acropolis_bridge_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_acropolis_bridge_8017D5C4;
+    states.funcs[task->state](task);
 }
 
 #include "../../shared/bridge_model_setup.inc.c"
@@ -2924,51 +2937,68 @@ static void _acropolisBridgeFinishKeypadMovie(Task* task)
     }
 }
 
-static void func_acropolis_bridge_8017DE94(Task* arg0)
+/// Restores arrival-sprite visibility and the HUD after the keypad movie.
+///
+/// Requires the loaded arrival sprite view. Advances the sequence to its
+/// final kill state; player control was resumed by the preceding state.
+static void _acropolisBridgeRestoreAfterKeypadMovie(Task* task)
 {
     _acropolisBridgeSetArrivalSpritesHidden(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
     gGameSession->hideHud = 0;
-    arg0->state           = (s32)(arg0->state + 1);
+    task->state           = task->state + 1;
 }
 
-void func_acropolis_bridge_8017DEE4(Task* arg0)
+/// Plays the accepted-keypad movie and publishes its frame for enemy presentation.
+///
+/// Start at state zero with a zero kill countdown. Enqueues the location's
+/// stream slot, waits for its first frame before attaching the vibration task,
+/// waits for the CD queue to finish, then requests exit after 31 task updates.
+/// The three unused command-argument bytes remain uninitialized. The captured
+/// frame is updated on every non-exiting tick; child teardown follows the task.
+static void _acropolisBridgeKeypadMovieTask(Task* movieTask)
 {
-    u8          slotParam[4];
+    enum {
+        ACROPOLIS_BRIDGE_MOVIE_START             = 0,
+        ACROPOLIS_BRIDGE_MOVIE_WAIT_FIRST_FRAME  = 1,
+        ACROPOLIS_BRIDGE_MOVIE_WAIT_FINISH       = 2,
+        ACROPOLIS_BRIDGE_MOVIE_EXIT_DELAY        = 3,
+        ACROPOLIS_BRIDGE_MOVIE_EXIT_DELAY_FRAMES = 31
+    };
+    u8          streamArgs[4];
     CdCmdQueue* queue;
-    Task*       task;
-    s16         count;
+    s16         exitDelayFrames;
 
-    task  = arg0;
     queue = &gCdCmdQueue;
-    switch (task->state) {
-        case 0:
+    switch (movieTask->state) {
+        case ACROPOLIS_BRIDGE_MOVIE_START:
             queue->movieFrame = 1;
-            slotParam[0]      = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state = task->state + 1;
+            streamArgs[0]     = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
+            movieTask->state = movieTask->state + 1;
             break;
-        case 1:
+        case ACROPOLIS_BRIDGE_MOVIE_WAIT_FIRST_FRAME:
             if (queue->movieReady == 0) {
                 break;
             }
-            taskReparent(task, padScriptSpawn(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
-            task->state = task->state + 1;
+            taskReparent(movieTask, padScriptSpawn(D_acropolis_bridge_80190B8C, D_acropolis_bridge_80190BA4));
+            movieTask->state = movieTask->state + 1;
             break;
-        case 2:
+        case ACROPOLIS_BRIDGE_MOVIE_WAIT_FINISH:
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
-            task->state = task->state + 1;
+            movieTask->state = movieTask->state + 1;
             break;
-        case 3:
-            count               = task->killCountdown + 1;
-            task->killCountdown = count;
-            if (count >= 0x1F) {
-                taskRequestKill(task, 0);
+        case ACROPOLIS_BRIDGE_MOVIE_EXIT_DELAY:
+            exitDelayFrames          = movieTask->killCountdown + 1;
+            movieTask->killCountdown = exitDelayFrames;
+            if (exitDelayFrames >= ACROPOLIS_BRIDGE_MOVIE_EXIT_DELAY_FRAMES) {
+                taskRequestKill(movieTask, 0);
                 return;
             }
             break;
     }
+    // Publish the STR frame for the enemies, including the post-playback delay.
     D_acropolis_bridge_801917A4[0] = queue->movieFrame;
 }
 
@@ -3548,10 +3578,7 @@ static void func_acropolis_bridge_8017F658(Task* task)
 
 #include "../../shared/action_prompt_hit_test.inc.c"
 
-/// Nine-state dispatcher of this room's script task: copies the handler table
-/// out of the overlay's rodata onto the stack and tails into the entry named by
-/// `Task::state`.
-void func_acropolis_bridge_8017F788(Task* task)
+void acropolisBridgeKeypadTask(Task* task)
 {
     TaskFuncTable9 states;
 
@@ -3561,259 +3588,269 @@ void func_acropolis_bridge_8017F788(Task* task)
 
 #include "../../shared/action_prompt_reset.inc.c"
 
-/// Per-frame driver for the bridge's ambient effect field, and the room's
-/// message-table owner. On the first frame it publishes
-/// `D_acropolis_bridge_801898FC` as slot 5's `taskMessageDispatch` table and seeds
-/// `D_acropolis_bridge_80189A34` with the two tracked cable joints' world
-/// positions.
-///
-/// Each frame it re-spawns the effects the current camera can see: the two
-/// per-view bitmask tables (`D_acropolis_bridge_801899EC` /
-/// `D_acropolis_bridge_80189A1C`) say which of the placed emitters are visible
-/// from view `viewGetMappedIndex()`, and each visible entry spawns its dust
-/// (0x600B1 / 0x600B2) or spark (0x600B3) at the matching `SVECTOR`. View 9
-/// lifts the dust 0x240 above the placed point.
-///
-/// On views 2, 5 and 6 (`bit & 0x62`) it also trails debris off the two moving
-/// joints: `field_26` is the Manhattan distance the joint travelled since last
-/// frame, biased by 0x20, and two `gRandomLcgState` rolls against that distance
-/// decide whether this frame emits `gRoomEffectWaterRippleId` / `gRoomEffectWaterSprayId`. The joint's
-/// new position is written back for the next frame's delta.
-///
-/// `D_acropolis_bridge_801899FC` finally maps the view onto one of five
-/// looping ambience effects (0x600B4..0x600B8): entering the view bursts 30
-/// copies at once, and staying in it emits one per frame - one in two while
-/// `gRoomEffectState->battleState` says no battle is engaged, one in three while one
-/// is, so that the ambience thins out during a fight.
-void func_acropolis_bridge_8017F868(Task* task)
+void acropolisBridgeAmbientEffectsTask(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    GfxCoord*   part;
-    Task*       owner;
-    SVECTOR     pos;
-    u8          view;
-    s32         bit;
-    s32         i;
-    s32         delta;
-    s32         axis;
-    s32         dist;
-    s32         prev;
-    s16         lastView;
-    u16         rnd;
+    enum {
+        ACROPOLIS_BRIDGE_AMBIENT_INITIALIZE         = 0,
+        ACROPOLIS_BRIDGE_STREAK_NONE                = 0,
+        ACROPOLIS_BRIDGE_STREAK_FALLING             = 1,
+        ACROPOLIS_BRIDGE_STREAK_MID_DUST            = 2,
+        ACROPOLIS_BRIDGE_STREAK_LOW_DUST            = 3,
+        ACROPOLIS_BRIDGE_STREAK_TALL_DUST           = 5,
+        ACROPOLIS_BRIDGE_STREAK_PARTICLE            = 6,
+        ACROPOLIS_BRIDGE_DISC_RADIUS_SCALE          = 256,
+        ACROPOLIS_BRIDGE_DISC_WARM_COLOR            = 0x5C20,
+        ACROPOLIS_BRIDGE_DISC_COOL_COLOR            = 0x50C2,
+        ACROPOLIS_BRIDGE_WATER_VIEW_MASK            = (1 << (2 - 1)) | (1 << (6 - 1)) | (1 << (7 - 1)),
+        ACROPOLIS_BRIDGE_WATER_MIN_LOCAL_Y          = 513,
+        ACROPOLIS_BRIDGE_WATER_CHANCE_BIAS          = 32,
+        ACROPOLIS_BRIDGE_WATER_RANDOM_MASK          = 511,
+        ACROPOLIS_BRIDGE_WATER_RIPPLE_HALF_SIZE     = 64,
+        ACROPOLIS_BRIDGE_WATER_SPRAY_ARGUMENT       = 0x1202180,
+        ACROPOLIS_BRIDGE_PLAYER_FIRST_WATER_PART    = 14,
+        ACROPOLIS_BRIDGE_PLAYER_WATER_PART_STRIDE   = 3,
+        ACROPOLIS_BRIDGE_VIEW9_STAR_Y_OFFSET        = 576,
+        ACROPOLIS_BRIDGE_STREAK_ENTRY_BURST_COUNT   = 30,
+        ACROPOLIS_BRIDGE_STREAK_FAST_PHASE_BIT      = 0x200,
+        ACROPOLIS_BRIDGE_STREAK_PACKET_BASE_BYTES   = 0xA000,
+        ACROPOLIS_BRIDGE_STREAK_PACKET_BUFFER_BYTES = 0x7000
+    };
+    EffectWork* ambientWork;
+    GfxCoord*   effectCoord;
+    GfxCoord*   playerPart;
+    Task*       playerTask;
+    SVECTOR     glowPosition;
+    u8          mappedView;
+    s32         viewBit;
+    s32         index;
+    s32         axisDistance;
+    s32         axisValue;
+    s32         distanceSum;
+    s32         previousComponent;
+    s16         previousView;
+    u16         randomBits;
 
-    work  = task->spawnArg2.pointer;
-    coord = task->extra.coordBody->coord;
-    owner = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    part  = owner->extra.tmd->coords;
-    view  = viewGetMappedIndex();
+    ambientWork = task->spawnArg2.pointer;
+    effectCoord = task->extra.coordBody->coord;
+    playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerPart  = playerTask->extra.tmd->coords;
+    mappedView  = viewGetMappedIndex();
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         return;
     }
 
-    if (task->state == 0) {
+    if (task->state == ACROPOLIS_BRIDGE_AMBIENT_INITIALIZE) {
         gGameSession->field_80 = 0;
         task->msgTable         = D_acropolis_bridge_801898FC;
         gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
         gRoomEffectWaterRippleId = EFFECT_ACROPOLIS_BRIDGE_WATER_RIPPLE;
         gRoomEffectWaterSprayId  = EFFECT_ACROPOLIS_BRIDGE_WATER_SPRAY;
         task->state              = task->state + 1;
-        for (i = 0; i < 2; i++) {
-            part                              = &owner->extra.tmd->coords[14 + i * 3];
-            D_acropolis_bridge_80189A34[i].vx = part->workm.t[0];
-            D_acropolis_bridge_80189A34[i].vy = part->workm.t[1];
-            D_acropolis_bridge_80189A34[i].vz = part->workm.t[2];
+        for (index = 0; index < ARRAY_SIZE(D_acropolis_bridge_80189A34); index++) {
+            playerPart                            = &playerTask->extra.tmd->coords[ACROPOLIS_BRIDGE_PLAYER_FIRST_WATER_PART + index * ACROPOLIS_BRIDGE_PLAYER_WATER_PART_STRIDE];
+            D_acropolis_bridge_80189A34[index].vx = playerPart->workm.t[0];
+            D_acropolis_bridge_80189A34[index].vy = playerPart->workm.t[1];
+            D_acropolis_bridge_80189A34[index].vz = playerPart->workm.t[2];
         }
     }
 
-    work->age = work->age + 1;
-    switch (view) {
+    ambientWork->age = ambientWork->age + 1;
+    switch (mappedView) {
         case 6:
-            glowDrawTintedDiscNoBias(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
+            glowDrawTintedDiscNoBias(&D_acropolis_bridge_80189A44, ACROPOLIS_BRIDGE_DISC_RADIUS_SCALE, ACROPOLIS_BRIDGE_DISC_WARM_COLOR);
             break;
         case 7:
-            glowDrawTintedDiscNoBias(&D_acropolis_bridge_80189A44, 0x100, 0x5C20);
+            glowDrawTintedDiscNoBias(&D_acropolis_bridge_80189A44, ACROPOLIS_BRIDGE_DISC_RADIUS_SCALE, ACROPOLIS_BRIDGE_DISC_WARM_COLOR);
             break;
         case 3:
         case 4:
         case 9:
-            glowDrawTintedDiscNoBias(&D_acropolis_bridge_80189A4C, 0x100, 0x50C2);
+            glowDrawTintedDiscNoBias(&D_acropolis_bridge_80189A4C, ACROPOLIS_BRIDGE_DISC_RADIUS_SCALE, ACROPOLIS_BRIDGE_DISC_COOL_COLOR);
             break;
     }
 
-    bit = 1 << (view - 1);
-    if (view == 9) {
-        for (i = 0; i < 7; i++) {
-            if (D_acropolis_bridge_801899EC[i] & bit) {
-                pos.vx = 0;
-                pos.vy = -0x240;
-                pos.vz = 0;
-                pos.vx = D_acropolis_bridge_8018991C[i].vx;
-                pos.vy = D_acropolis_bridge_8018991C[i].vy - 0x240;
-                pos.vz = D_acropolis_bridge_8018991C[i].vz;
-                effectSpawn((EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW | EFFECT_SPAWN_UNLIMITED), coord, work->age + i, &pos);
+    // Emit the glow families selected by this mapped camera.
+    viewBit = 1 << (mappedView - 1);
+    if (mappedView == ACROPOLIS_BRIDGE_VIEW_KEYPAD_MOVIE) {
+        for (index = 0; index < ARRAY_SIZE(D_acropolis_bridge_8018991C); index++) {
+            if (D_acropolis_bridge_801899EC[index] & viewBit) {
+                glowPosition.vx = 0;
+                glowPosition.vy = -ACROPOLIS_BRIDGE_VIEW9_STAR_Y_OFFSET;
+                glowPosition.vz = 0;
+                glowPosition.vx = D_acropolis_bridge_8018991C[index].vx;
+                glowPosition.vy = D_acropolis_bridge_8018991C[index].vy - ACROPOLIS_BRIDGE_VIEW9_STAR_Y_OFFSET;
+                glowPosition.vz = D_acropolis_bridge_8018991C[index].vz;
+                effectSpawn((EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW | EFFECT_SPAWN_UNLIMITED), effectCoord, ambientWork->age + index, &glowPosition);
             }
         }
     } else {
-        for (i = 0; i < 7; i++) {
-            if (D_acropolis_bridge_801899EC[i] & bit) {
-                effectSpawn((EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW | EFFECT_SPAWN_UNLIMITED), coord, work->age + i, &D_acropolis_bridge_8018991C[i]);
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_GROUND_GLOW, coord, work->age + i, &D_acropolis_bridge_80189954[i]);
+        for (index = 0; index < ARRAY_SIZE(D_acropolis_bridge_8018991C); index++) {
+            if (D_acropolis_bridge_801899EC[index] & viewBit) {
+                effectSpawn((EFFECT_ACROPOLIS_BRIDGE_STAR_GLOW | EFFECT_SPAWN_UNLIMITED), effectCoord, ambientWork->age + index, &D_acropolis_bridge_8018991C[index]);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_GROUND_GLOW, effectCoord, ambientWork->age + index, &D_acropolis_bridge_80189954[index]);
             }
         }
     }
 
-    for (i = 0; i < 3; i++) {
-        if (D_acropolis_bridge_80189A1C[i] & bit) {
-            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 0, &D_acropolis_bridge_8018998C[i]);
+    for (index = 0; index < 3; index++) {
+        if (D_acropolis_bridge_80189A1C[index] & viewBit) {
+            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, effectCoord, 0, &D_acropolis_bridge_8018998C[index]);
         }
     }
-    for (i = 3; i < 5; i++) {
-        if (D_acropolis_bridge_80189A1C[i] & bit) {
-            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 1, &D_acropolis_bridge_8018998C[i]);
+    for (index = 3; index < 5; index++) {
+        if (D_acropolis_bridge_80189A1C[index] & viewBit) {
+            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, effectCoord, 1, &D_acropolis_bridge_8018998C[index]);
         }
-        if (D_acropolis_bridge_80189A1C[i + 2] & bit) {
-            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 2, &D_acropolis_bridge_8018998C[i + 2]);
+        if (D_acropolis_bridge_80189A1C[index + 2] & viewBit) {
+            effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, effectCoord, 2, &D_acropolis_bridge_8018998C[index + 2]);
         }
     }
-    if (D_acropolis_bridge_80189A1C[11] & bit) {
-        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, coord, 1, &D_acropolis_bridge_8018998C[11]);
+    if (D_acropolis_bridge_80189A1C[11] & viewBit) {
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LAMP_GLOW, effectCoord, 1, &D_acropolis_bridge_8018998C[11]);
     }
 
-    if ((bit & 0x62) && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && part->coord.t[1] >= 0x201) {
-        for (i = 0; i < 2; i++) {
-            part  = &owner->extra.tmd->coords[14 + i * 3];
-            delta = D_acropolis_bridge_80189A34[i].vx - part->workm.t[0];
-            dist  = delta < 0;
-            if (dist) {
-                delta = part->workm.t[0] - D_acropolis_bridge_80189A34[i].vx;
+    // Sample the two player joints; signed-halfword thresholds retain truncation.
+    if ((viewBit & ACROPOLIS_BRIDGE_WATER_VIEW_MASK) && gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && playerPart->coord.t[1] >= ACROPOLIS_BRIDGE_WATER_MIN_LOCAL_Y) {
+        for (index = 0; index < ARRAY_SIZE(D_acropolis_bridge_80189A34); index++) {
+            playerPart   = &playerTask->extra.tmd->coords[ACROPOLIS_BRIDGE_PLAYER_FIRST_WATER_PART + index * ACROPOLIS_BRIDGE_PLAYER_WATER_PART_STRIDE];
+            axisDistance = D_acropolis_bridge_80189A34[index].vx - playerPart->workm.t[0];
+            distanceSum  = axisDistance < 0;
+            if (distanceSum) {
+                axisDistance = playerPart->workm.t[0] - D_acropolis_bridge_80189A34[index].vx;
             }
-            prev = D_acropolis_bridge_80189A34[i].vy;
-            axis = prev - part->workm.t[1];
-            if (axis < 0) {
-                axis = part->workm.t[1] - prev;
+            previousComponent = D_acropolis_bridge_80189A34[index].vy;
+            axisValue         = previousComponent - playerPart->workm.t[1];
+            if (axisValue < 0) {
+                axisValue = playerPart->workm.t[1] - previousComponent;
             }
-            dist        = delta + axis;
-            prev        = D_acropolis_bridge_80189A34[i].vz;
-            axis        = part->workm.t[2];
-            delta       = prev - axis;
-            delta       = ((delta >= 0) ? (dist + delta) : (dist + (axis - prev))) + 0x20;
-            work->angle = delta;
+            distanceSum        = axisDistance + axisValue;
+            previousComponent  = D_acropolis_bridge_80189A34[index].vz;
+            axisValue          = playerPart->workm.t[2];
+            axisDistance       = previousComponent - axisValue;
+            axisDistance       = ((axisDistance >= 0) ? (distanceSum + axisDistance) : (distanceSum + (axisValue - previousComponent))) + ACROPOLIS_BRIDGE_WATER_CHANCE_BIAS;
+            ambientWork->angle = axisDistance;
 
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            if ((rnd & 0x1FF) < work->angle) {
-                effectSpawn(gRoomEffectWaterRippleId, part, 0x40, NULL);
+            randomBits      = gRandomLcgState >> 16;
+            if ((randomBits & ACROPOLIS_BRIDGE_WATER_RANDOM_MASK) < ambientWork->angle) {
+                effectSpawn(gRoomEffectWaterRippleId, playerPart, ACROPOLIS_BRIDGE_WATER_RIPPLE_HALF_SIZE, NULL);
             }
-            work->angle     = work->angle - 0x20;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            if ((rnd & 0x1FF) < work->angle) {
-                effectSpawn(gRoomEffectWaterSprayId, part, 0x1202180, NULL);
+            ambientWork->angle = ambientWork->angle - ACROPOLIS_BRIDGE_WATER_CHANCE_BIAS;
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            randomBits         = gRandomLcgState >> 16;
+            if ((randomBits & ACROPOLIS_BRIDGE_WATER_RANDOM_MASK) < ambientWork->angle) {
+                effectSpawn(gRoomEffectWaterSprayId, playerPart, ACROPOLIS_BRIDGE_WATER_SPRAY_ARGUMENT, NULL);
             }
 
-            D_acropolis_bridge_80189A34[i].vx = part->workm.t[0];
-            D_acropolis_bridge_80189A34[i].vy = part->workm.t[1];
-            D_acropolis_bridge_80189A34[i].vz = part->workm.t[2];
+            D_acropolis_bridge_80189A34[index].vx = playerPart->workm.t[0];
+            D_acropolis_bridge_80189A34[index].vy = playerPart->workm.t[1];
+            D_acropolis_bridge_80189A34[index].vz = playerPart->workm.t[2];
         }
     }
 
+    // Borrow byte-addressed packet storage from the file buffer for this frame.
     D_acropolis_bridge_801917AC =
-        (DR_MOVE*)((u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * 0x7000 + 0xA000));
+        (DR_MOVE*)((u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * ACROPOLIS_BRIDGE_STREAK_PACKET_BUFFER_BYTES + ACROPOLIS_BRIDGE_STREAK_PACKET_BASE_BYTES));
 
-    switch (D_acropolis_bridge_801899FC[view - 1]) {
-        case 0:
+/// Seeds one view's framebuffer streaks with thirty attempted counted spawns.
+///
+/// Captures this function's ACROPOLIS_BRIDGE_STREAK_ENTRY_BURST_COUNT.
+/// All inputs must be side-effect-free; spawnIndex must be a writable s32
+/// lvalue. It is reset and left at the burst count. Other arguments are evaluated
+/// once per spawn. Expands as a compound statement with its own for loop.
+#define ACROPOLIS_BRIDGE_SEED_STREAKS(effectId, parentCoord, viewId, spawnIndex)                           \
+    {                                                                                                      \
+        for ((spawnIndex) = 0; (spawnIndex) < ACROPOLIS_BRIDGE_STREAK_ENTRY_BURST_COUNT; (spawnIndex)++) { \
+            effectSpawn((effectId), (parentCoord), (viewId), NULL);                                        \
+        }                                                                                                  \
+    }
+
+    // Seed streaks on view entry, then thin ongoing emission during battle.
+    switch (D_acropolis_bridge_801899FC[mappedView - 1]) {
+        case ACROPOLIS_BRIDGE_STREAK_NONE:
             break;
-        case 1:
-            lastView = work->scale;
-            if (lastView != view) {
-                for (i = 0; i < 0x1E; i++) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(view), NULL);
-                }
+        case ACROPOLIS_BRIDGE_STREAK_FALLING:
+            previousView = ambientWork->scale;
+            if (previousView != mappedView) {
+                ACROPOLIS_BRIDGE_SEED_STREAKS(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)mappedView, index);
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                if (work->age & 0x200) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
+                if (ambientWork->age & ACROPOLIS_BRIDGE_STREAK_FAST_PHASE_BIT) {
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)(previousView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)(previousView), NULL);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (((gRandomLcgState >> 16) & 1) == 0) {
-                        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
+                        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)(previousView), NULL);
                     }
                 }
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_FALLING_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
             break;
-        case 2:
-            lastView = work->scale;
-            if (lastView != view) {
-                for (i = 0; i < 0x1E; i++) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(view), NULL);
-                }
+        case ACROPOLIS_BRIDGE_STREAK_MID_DUST:
+            previousView = ambientWork->scale;
+            if (previousView != mappedView) {
+                ACROPOLIS_BRIDGE_SEED_STREAKS(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, effectCoord, (s32)mappedView, index);
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_MID_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
             break;
-        case 3:
-            lastView = work->scale;
-            if (lastView != view) {
-                for (i = 0; i < 0x1E; i++) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(view), NULL);
-                }
+        case ACROPOLIS_BRIDGE_STREAK_LOW_DUST:
+            previousView = ambientWork->scale;
+            if (previousView != mappedView) {
+                ACROPOLIS_BRIDGE_SEED_STREAKS(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, effectCoord, (s32)mappedView, index);
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_LOW_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
             break;
-        case 5:
-            lastView = work->scale;
-            if (lastView != view) {
-                for (i = 0; i < 0x1E; i++) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(view), NULL);
-                }
+        case ACROPOLIS_BRIDGE_STREAK_TALL_DUST:
+            previousView = ambientWork->scale;
+            if (previousView != mappedView) {
+                ACROPOLIS_BRIDGE_SEED_STREAKS(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, effectCoord, (s32)mappedView, index);
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_TALL_DUST_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
             break;
-        case 6:
-            lastView = work->scale;
-            if (lastView != view) {
-                for (i = 0; i < 0x1E; i++) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(view), NULL);
-                }
+        case ACROPOLIS_BRIDGE_STREAK_PARTICLE:
+            previousView = ambientWork->scale;
+            if (previousView != mappedView) {
+                ACROPOLIS_BRIDGE_SEED_STREAKS(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, effectCoord, (s32)mappedView, index);
             } else if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
-                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, effectCoord, (s32)(previousView), NULL);
+                effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, effectCoord, (s32)(previousView), NULL);
             } else {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
-                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, coord, (s32)(lastView), NULL);
+                    effectSpawn(EFFECT_ACROPOLIS_BRIDGE_PARTICLE_STREAK, effectCoord, (s32)(previousView), NULL);
                 }
             }
             break;
     }
 
-    work->scale = view;
+#undef ACROPOLIS_BRIDGE_SEED_STREAKS
+
+    ambientWork->scale = mappedView;
 }
 
 /// Seeds a streak's lifetime, pixel width and frames per row, then advances its task state.
@@ -4215,49 +4252,83 @@ void acropolisBridgeGroundGlowTask(Task* task)
 #define GLOW_LAMP_TASK acropolisBridgeGlowLampTask
 #include "../../shared/acropolis_glows_lamp.inc.c"
 
-s32 func_acropolis_bridge_801820A0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Seeds the arrival scene's dust plane with 96 edge motes and eight interior motes.
+///
+/// `ACROPOLIS_BRIDGE_EFFECT_MESSAGE_ARRIVAL_DUST` targets the coordinate body; all payload words
+/// are ignored. Each burst consumes two LCG draws per mote and attempts a counted
+/// spawn at X -15960, Y -2000..-465 and Z -2500..-1530, with edge jitter.
+/// Spawn snapshots the stack-owned offset. Returns 0 even when spawns fail.
+static s32 _acropolisBridgeSpawnArrivalDust(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    GfxCoord* coord;
-    SVECTOR   pos;
-    s32       i;
+    enum {
+        ACROPOLIS_BRIDGE_DUST_EDGE_BURSTS      = 32,
+        ACROPOLIS_BRIDGE_DUST_INTERIOR_COUNT   = 8,
+        ACROPOLIS_BRIDGE_DUST_PLANE_X          = -15960,
+        ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE     = 1536,
+        ACROPOLIS_BRIDGE_DUST_DEPTH_RANGE      = 970,
+        ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK  = 15,
+        ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD = 0xF830,
+        ACROPOLIS_BRIDGE_DUST_EDGE_Z_BASE_WORD = 0xF63C,
+        ACROPOLIS_BRIDGE_DUST_EDGE_Z_FAR_WORD  = 0xFA06,
+        ACROPOLIS_BRIDGE_DUST_INTERIOR_Y_BASE  = -2000,
+        ACROPOLIS_BRIDGE_DUST_INTERIOR_Z_BASE  = -2500
+    };
+    GfxCoord* effectCoord;
+    SVECTOR   position;
+    s32       burstIndex;
 
-    coord = task->extra.tmd->coords;
+    effectCoord = task->extra.coordBody->coord;
 
-    i = 0;
+/// Spawns one mote on each of the arrival dust plane's three emitting edges.
+///
+/// Requires a side-effect-free live coordinate pointer and writable SVECTOR
+/// lvalue, both evaluated repeatedly. Consumes six shared LCG draws and captures
+/// the function's ACROPOLIS_BRIDGE_DUST_* bounds; each spawn snapshots XYZ.
+/// Expands as one compound statement, with no return or loop control.
+#define ACROPOLIS_BRIDGE_SPAWN_EDGE_DUST(parentCoord, offset)                                                                         \
+    {                                                                                                                                 \
+        (offset).vx     = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                              \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
+        (offset).vy     = (gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD;      \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
+        (offset).vz     = ((gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK) + ACROPOLIS_BRIDGE_DUST_EDGE_Z_BASE_WORD; \
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                                  \
+                                                                                                                                      \
+        (offset).vx     = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                              \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
+        (offset).vy     = (gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD;      \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
+        (offset).vz     = ACROPOLIS_BRIDGE_DUST_EDGE_Z_FAR_WORD - ((gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK);  \
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                                  \
+                                                                                                                                      \
+        (offset).vx     = ACROPOLIS_BRIDGE_DUST_PLANE_X;                                                                              \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
+        (offset).vy     = ((gRandomLcgState >> 16) & ACROPOLIS_BRIDGE_DUST_EDGE_WIDTH_MASK) + ACROPOLIS_BRIDGE_DUST_EDGE_Y_BASE_WORD; \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                             \
+        (offset).vz     = (u16)(gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_DEPTH_RANGE + ACROPOLIS_BRIDGE_DUST_EDGE_Z_BASE_WORD;  \
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, (parentCoord), 0, &(offset));                                                  \
+    }
+
+    // Seed both side edges and the bottom edge of the arrival dust plane.
+    burstIndex = 0;
     do {
-        pos.vx          = -0x3E58;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vy          = (gRandomLcgState >> 16) % 1536 + 0xF830;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vz          = ((gRandomLcgState >> 16) & 0xF) + 0xF63C;
-        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
+        ACROPOLIS_BRIDGE_SPAWN_EDGE_DUST(effectCoord, position);
+        burstIndex++;
+    } while (burstIndex < ACROPOLIS_BRIDGE_DUST_EDGE_BURSTS);
 
-        pos.vx          = -0x3E58;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vy          = (gRandomLcgState >> 16) % 1536 + 0xF830;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vz          = 0xFA06 - ((gRandomLcgState >> 16) & 0xF);
-        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
+#undef ACROPOLIS_BRIDGE_SPAWN_EDGE_DUST
 
-        pos.vx          = -0x3E58;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vy          = ((gRandomLcgState >> 16) & 0xF) + 0xF830;
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vz          = (u16)(gRandomLcgState >> 16) % 970 + 0xF63C;
-        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
-        i++;
-    } while (i < 0x20);
-
-    i = 0;
+    // Fill the plane with eight additional motes.
+    burstIndex = 0;
     do {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vx          = -0x3E58;
-        pos.vy          = (gRandomLcgState >> 16) % 1536 - 0x7D0;
+        position.vx     = ACROPOLIS_BRIDGE_DUST_PLANE_X;
+        position.vy     = (gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_HEIGHT_RANGE + ACROPOLIS_BRIDGE_DUST_INTERIOR_Y_BASE;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        pos.vz          = (u16)(gRandomLcgState >> 16) % 970 - 0x9C4;
-        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, coord, 0, &pos);
-        i++;
-    } while (i < 8);
+        position.vz     = (u16)(gRandomLcgState >> 16) % ACROPOLIS_BRIDGE_DUST_DEPTH_RANGE + ACROPOLIS_BRIDGE_DUST_INTERIOR_Z_BASE;
+        effectSpawn(EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE, effectCoord, 0, &position);
+        burstIndex++;
+    } while (burstIndex < ACROPOLIS_BRIDGE_DUST_INTERIOR_COUNT);
 
     return 0;
 }
@@ -4616,7 +4687,7 @@ static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 
 /// The bridge enemy's three state handlers: setup, per-frame tick and teardown.
 static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
-    { func_acropolis_bridge_80185988, func_acropolis_bridge_80187850, enemyDestroy }
+    { _acropolisBridgeEnemySetup, func_acropolis_bridge_80187850, enemyDestroy }
 };
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
@@ -4636,122 +4707,6 @@ static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
 #include "../../shared/boss_stranger_avoid_contacts.inc.c"
 
 #include "../../shared/boss_stranger_turn_toward.inc.c"
-
-/// Runs the walker's per-frame step inside the `BossStrangerTickScratch` frame
-/// `_bossStrangerTick` opened for it. `head` is the scratch cursor as it was
-/// before the frame was reserved, one frame past `block`, so the position the
-/// states steer towards is `head[-1].goal`, the same object as `block->goal`.
-///
-/// State 1 heads straight for the selected player's matrix translation.
-/// State 2 walks `nav`'s `nodeOrder` and re-plans when the state or a node
-/// byte changes, and state 3 follows the patrol route. `speed` then ramps
-/// towards `speedTarget` by at most `speedStep` a frame; while it is non-zero
-/// it scales (`GPF`) the normalised facing column of the model matrix into the
-/// per-frame world step, which is added to the coordinate's translation and
-/// kept in `moveStep`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`
-/// zeroes the step instead.
-static __inline__ void walkerStep(BossStrangerWalker* walker, BossStrangerTickScratch* head,
-                                  BossStrangerTickScratch* block)
-{
-    u8*           head2;
-    SVECTOR3*     pos;
-    PlayerStatus* cfg;
-    SVECTOR*      sv;
-    SVECTOR*      gsv;
-    SVECTOR*      step;
-    GfxCoord*     coord;
-    s16           sdiff;
-    s32           diff;
-    s16           speed;
-    s32           cur;
-    s32           target;
-    s32           result;
-
-    switch (walker->state) {
-        case BOSS_STRANGER_WALKER_IDLE:
-            break;
-        case BOSS_STRANGER_WALKER_CHASE:
-            cfg              = &gPlayerStatus + (walker->playerId - 1);
-            pos              = &head[-1].goal;
-            head[-1].goal.vx = (u16)cfg->coordMtx->t[0];
-            pos->vy          = (u16)cfg->coordMtx->t[1];
-            pos->vz          = (u16)cfg->coordMtx->t[2];
-            break;
-        case BOSS_STRANGER_WALKER_CLOSE:
-            SCRATCH_STACK_RESERVE_BYTES(4);
-            walker->actorNode = _bossStrangerNodeNearestPlayer(walker, 1);
-            walker->selfNode  = _bossStrangerNodeNearestSelf(walker);
-            if (walker->prevState != walker->state || walker->selfNode != walker->prevSelfNode ||
-                walker->actorNode != walker->prevActorNode) {
-                _bossStrangerPlanToward(walker, 1);
-                walker->node = walker->nav->nodeOrder[walker->cursor];
-            }
-            walker->prevState     = walker->state;
-            walker->prevSelfNode  = walker->selfNode;
-            walker->prevActorNode = walker->actorNode;
-            if (_bossStrangerArrived(walker) != 0) {
-                walker->cursor += (u8)walker->orderStep;
-                walker->node    = walker->nav->nodeOrder[walker->cursor];
-                SCRATCH_STACK_RELEASE_BYTES(4);
-            }
-            break;
-        case BOSS_STRANGER_WALKER_PATROL:
-            _bossStrangerFollowRoute(walker, &head[-1].goal);
-            break;
-    }
-    _bossStrangerTurnToward(walker, &block->goal);
-
-    cur    = walker->speedTarget;
-    target = walker->speed;
-    if (cur != target) {
-        diff  = cur - target;
-        sdiff = diff;
-        if (sdiff > walker->speedStep) {
-            result = target + walker->speedStep;
-        } else if (sdiff < -walker->speedStep) {
-            result = target - walker->speedStep;
-        } else {
-            result = target + diff;
-        }
-        walker->speed = result;
-    }
-
-    coord = walker->coord;
-    speed = walker->speed;
-    step  = &walker->moveStep;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
-        step->vz            = 0;
-        step->vy            = 0;
-        walker->moveStep.vx = 0;
-    } else {
-        head2                    = SCRATCH_STACK_CURSOR(u8);
-        sv                       = (SVECTOR*)(head2 - 8);
-        SCRATCH_STACK_CURSOR(u8) = (u8*)sv;
-        /* The ROM keeps a second copy of the block address for the GTE
-           transfers; without it `sv` and the copy share one register. */
-        gsv = sv;
-        if (speed != 0) {
-            gfxReadMatrixZAxis(&coord->coord, sv);
-            VectorNormalSS(sv, sv);
-            gte_lddp(speed);
-            gte_ldsv(gsv);
-            gte_gpf12();
-            gte_stsv(gsv);
-            coord->coord.t[0]  += ((SVECTOR*)(head2 - 8))->vx;
-            coord->coord.t[1]  += sv->vy;
-            coord->coord.t[2]  += sv->vz;
-            walker->moveStep    = *(SVECTOR*)(head2 - 8);
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        }
-        SCRATCH_STACK_RELEASE_BYTES(8);
-    }
-    if (walker->skipGround == 0) {
-        _bossStrangerApplyGroundStep(walker);
-    }
-    if (walker->skipAvoid == 0) {
-        _bossStrangerAvoidContacts(walker);
-    }
-}
 
 #include "../../shared/boss_stranger_inlines.inc.c"
 
@@ -4953,87 +4908,97 @@ static __inline__ void _acropolisBridgeLightModel(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// One-time setup for the bridge enemy: allocates the 0x294-byte work block,
-/// points the model's light and colour matrices at it, hangs the enemy off the
-/// room's stat block, starts the animation context on three slots, and links
-/// the model and hit-box `WorldCollisionBody`s (lists 2 and 3) onto the part coordinates at
-/// `field_8[3]` and `field_8[1]`. The walker half is seeded next: its patrol
-/// tables are the copies embedded in the walker itself, the route is the entry
-/// `D_acropolis_bridge_80191720` holds for this spawn variant, and the scale
-/// matrix is rebuilt from `scale` through a `VECTOR` borrowed from the scratch
-/// arena -- the same block is then reused for the world position handed to
-/// `worldCoordSetModelLighting` before it is released. The model starts sunk 0x5DC
-/// (`sinkDepth`) below the root height it spawned at (`baseHeight`). In the
-/// third visit (`gGameSession->location.loc.room == 2`) the three known variants start
-/// in state 8 at a fixed position instead of state 1.
-static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
+/// Allocates and initializes the bridge enemy's animation, collision and walker.
+///
+/// Requires a live enemy and TMD task with four coordinates. Owns a zeroed work
+/// block until enemy teardown, and destroys the task if allocation fails. Uses
+/// model parts 3 and 1 for body and attack spheres. Seeds live HP to 1 despite
+/// loading the parameter HP first; accepted keypad commands later restore it.
+/// The walker borrows room tables: the first ten nodes/order entries for scans,
+/// and routes whose bytes may select any of the twenty nodes. The placement
+/// index must select one of nine routes; the room's spawn table uses indices 0..5.
+/// Normal entry starts sunk by 1500 coordinate units; room 2 starts placements
+/// 0..2 at their fixed presentation positions and leaves other placements inactive.
+/// The copied one-based player ID must select live player storage (only 1 is established).
+static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task)
 {
-    TmdObject*                 obj;
-    TmdObject*                 obj2;
-    GfxCoord*                  coord;
-    GfxCoord*                  coord2;
+    enum {
+        ACROPOLIS_BRIDGE_ENEMY_BODY_ID              = 0x29,
+        ACROPOLIS_BRIDGE_ENEMY_INITIAL_SPEED_UNITS  = 48,
+        ACROPOLIS_BRIDGE_ENEMY_INITIAL_TURN_LIMIT   = 48,
+        ACROPOLIS_BRIDGE_ENEMY_INITIAL_SPEED_STEP   = 1,
+        ACROPOLIS_BRIDGE_ENEMY_COLLISION_RADIUS     = 256,
+        ACROPOLIS_BRIDGE_ENEMY_INITIAL_SINK_DEPTH   = 1500,
+        ACROPOLIS_BRIDGE_ENEMY_INITIAL_PRESENTATION = 8,
+        ACROPOLIS_BRIDGE_ENEMY_NAV_NODE_COUNT       = 10
+    };
+    TmdObject*                 model;
+    TmdObject*                 lightingModel;
+    GfxCoord*                  rootCoord;
+    GfxCoord*                  walkerCoord;
     _AcropolisBridgeEnemyWork* work;
     BossStrangerWalker*        walker;
-    WorldCollisionBody*        link;
-    WorldCollisionBody*        link2;
-    s32                        variant;
-    s32                        step;
-    u16                        hp;
-    s32                        axisY;
-    SVECTOR3                   pos;
+    WorldCollisionBody*        body;
+    WorldCollisionBody*        attackBody;
+    s32                        placementIndex;
+    s32                        initialWalkerState;
+    u16                        configuredHp;
+    s32                        heightAxis;
+    SVECTOR3                   origin;
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
     work       = memCalloc(sizeof(_AcropolisBridgeEnemyWork), 0);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    obj2            = task->extra.tmd;
-    obj2->lightMtx  = &work->lightMtx;
-    obj2->colorMtx  = &work->colorMtx;
-    enemy->field_4  = &coord->coord;
-    enemy->field_48 = 0;
-    enemy->param    = &D_acropolis_bridge_80190C5C;
-    hp              = D_acropolis_bridge_80190C5C.hpMax;
-    enemy->recs     = work->bodyContacts;
-    enemy->hp       = hp;
-    work->hp        = 1;
-    work->field_10E = 1;
-    enemy->hpMax    = work->hp;
-    enemy->hp       = enemy->hpMax;
-    animationInitContext(&work->rig.anim, D_acropolis_bridge_801915C8, obj, work->rig.poses,
+    lightingModel           = task->extra.tmd;
+    lightingModel->lightMtx = &work->lightMtx;
+    lightingModel->colorMtx = &work->colorMtx;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    enemy->param            = &D_acropolis_bridge_80190C5C;
+    configuredHp            = D_acropolis_bridge_80190C5C.hpMax;
+    enemy->recs             = work->bodyContacts;
+    enemy->hp               = configuredHp;
+    work->hp                = 1;
+    work->field_10E         = 1;
+    enemy->hpMax            = work->hp;
+    enemy->hp               = enemy->hpMax;
+    // Bind the rig and both collision spheres before enabling the walker.
+    animationInitContext(&work->rig.anim, D_acropolis_bridge_801915C8, model, work->rig.poses,
                          work->rig.slots);
     work->animRate         = ANIMATION_RATE_ONE;
-    link                   = &work->body;
-    link->coord            = &task->extra.tmd->coords[3];
-    link->context.contacts = work->bodyContacts;
-    link->pos.vx           = 0;
-    link->pos.vy           = 0;
-    link->pos.vz           = 0;
-    link->key              = 0x30029;
-    link->radius           = 0x100;
-    link->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, link);
-    link->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(link->context.contacts, 3, 0);
-    pos.vx                  = 0;
-    pos.vy                  = 0;
-    pos.vz                  = 0;
-    link2                   = &work->attack;
-    link2->coord            = &task->extra.tmd->coords[1];
-    link2->context.contacts = work->attackContacts;
-    _acropolisBridgeSetCollisionBodyPosition(link2, &pos);
-    link2->radius = 0x100;
-    link2->flags  = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, link2);
-    worldCollisionInitContacts(link2->context.contacts, 1, 0);
+    body                   = &work->body;
+    body->coord            = &task->extra.tmd->coords[3];
+    body->context.contacts = work->bodyContacts;
+    body->pos.vx           = 0;
+    body->pos.vy           = 0;
+    body->pos.vz           = 0;
+    body->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACROPOLIS_BRIDGE_ENEMY_BODY_ID;
+    body->radius           = ACROPOLIS_BRIDGE_ENEMY_COLLISION_RADIUS;
+    body->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
+    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->bodyContacts), 0);
+    origin.vx                    = 0;
+    origin.vy                    = 0;
+    origin.vz                    = 0;
+    attackBody                   = &work->attack;
+    attackBody->coord            = &task->extra.tmd->coords[1];
+    attackBody->context.contacts = work->attackContacts;
+    _acropolisBridgeSetCollisionBodyPosition(attackBody, &origin);
+    attackBody->radius = ACROPOLIS_BRIDGE_ENEMY_COLLISION_RADIUS;
+    attackBody->flags  = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
+    worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attack.key  = damagePackEnemyAttackKey(enemy, 0);
-    coord->parent     = &gGfxViewCoord;
-    work->yaw         = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    work->animRequest = 2;
-    work->animId      = 2;
+    rootCoord->parent = &gGfxViewCoord;
+    work->yaw         = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
+    work->animRequest = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_RESET;
+    work->animId      = ACROPOLIS_BRIDGE_ENEMY_ANIM_CHASE;
     _acropolisBridgeEnemyUpdateAnimation(task);
     enemy->coord      = &task->extra.tmd->coords[3];
     enemy->bodyPos.vx = 0;
@@ -5043,33 +5008,34 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     task->msgTable                = D_acropolis_bridge_80191744;
     work->prevState               = -1;
-    work->state                   = 1;
-    work->sinkDepth               = 0x5DC;
-    work->baseHeight              = coord->coord.t[1];
-    coord->coord.t[1]            += work->sinkDepth;
+    work->state                   = ACROPOLIS_BRIDGE_ENEMY_STATE_PATROL_SUNK;
+    work->sinkDepth               = ACROPOLIS_BRIDGE_ENEMY_INITIAL_SINK_DEPTH;
+    work->baseHeight              = rootCoord->coord.t[1];
+    rootCoord->coord.t[1]        += work->sinkDepth;
 
+    // The embedded navigation and route records borrow the room tables.
     work->walker.navData.nodes         = D_acropolis_bridge_8019162C;
-    work->walker.navData.nodeCount     = 0xA;
+    work->walker.navData.nodeCount     = ACROPOLIS_BRIDGE_ENEMY_NAV_NODE_COUNT;
     work->walker.navData.nodeOrder     = D_acropolis_bridge_801916CC;
-    work->walker.navData.orderCount    = 0xA;
+    work->walker.navData.orderCount    = ACROPOLIS_BRIDGE_ENEMY_NAV_NODE_COUNT;
     work->walker.routeData.nodeIndices = D_acropolis_bridge_80191720[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
     work->walker.nav                   = &work->walker.navData;
     work->walker.routeData.cursor      = 0;
     work->walker.route                 = &work->walker.routeData;
-    coord2                             = task->extra.tmd->coords;
-    work->walker.avoidCount            = 3;
+    walkerCoord                        = task->extra.tmd->coords;
+    work->walker.avoidCount            = ARRAY_SIZE(work->bodyContacts);
     walker                             = &work->walker;
     work->walker.recs                  = 0;
     work->walker.avoidRecs             = work->bodyContacts;
-    work->walker.scale                 = 0x1000;
+    work->walker.scale                 = ONE;
     work->walker.recCount              = 0;
-    work->walker.turnLimit             = 0x30;
-    work->walker.coord                 = coord2;
-    walker->speedTarget                = 0x30;
+    work->walker.turnLimit             = ACROPOLIS_BRIDGE_ENEMY_INITIAL_TURN_LIMIT;
+    work->walker.coord                 = walkerCoord;
+    walker->speedTarget                = ACROPOLIS_BRIDGE_ENEMY_INITIAL_SPEED_UNITS;
     walker->speed                      = 0;
-    walker->speedStep                  = 1;
-    step                               = BOSS_STRANGER_WALKER_PATROL;
-    work->walker.state                 = step;
+    walker->speedStep                  = ACROPOLIS_BRIDGE_ENEMY_INITIAL_SPEED_STEP;
+    initialWalkerState                 = BOSS_STRANGER_WALKER_PATROL;
+    work->walker.state                 = initialWalkerState;
     work->walker.lockHeight            = 1;
     work->walker.skipGround            = 1;
     work->walker.playerId              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
@@ -5077,33 +5043,33 @@ static void func_acropolis_bridge_80185988(Enemy* enemy, Task* task)
     _acropolisBridgeInitWalkerScale(walker);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     _acropolisBridgeLightModel(task);
-    axisY = 1;
+    heightAxis = 1;
     if (gSceneCombatState.battleRefs < 3) {
         sceneAcquireBattleRef(0);
     }
-    if (gGameSession->location.loc.room == 2) {
-        variant = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        switch (variant) {
+    if (gGameSession->location.loc.room == ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE) {
+        placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        switch (placementIndex) {
             case 0:
-                work->state                         = 8;
+                work->state                         = ACROPOLIS_BRIDGE_ENEMY_INITIAL_PRESENTATION;
                 task->extra.tmd->coords->coord.t[0] = -0x22C4;
                 task->extra.tmd->coords->coord.t[1] = -0x3E8;
                 task->extra.tmd->coords->coord.t[2] = -0x640;
                 break;
             case 1:
-                work->state                             = 8;
-                task->extra.tmd->coords->coord.t[0]     = -0x270F;
-                task->extra.tmd->coords->coord.t[axisY] = -0x3E8;
-                task->extra.tmd->coords->coord.t[2]     = -0x7D0;
+                work->state                                  = ACROPOLIS_BRIDGE_ENEMY_INITIAL_PRESENTATION;
+                task->extra.tmd->coords->coord.t[0]          = -0x270F;
+                task->extra.tmd->coords->coord.t[heightAxis] = -0x3E8;
+                task->extra.tmd->coords->coord.t[2]          = -0x7D0;
                 break;
             case 2:
-                work->state                         = 8;
+                work->state                         = ACROPOLIS_BRIDGE_ENEMY_INITIAL_PRESENTATION;
                 task->extra.tmd->coords->coord.t[0] = -0x2EE0;
                 task->extra.tmd->coords->coord.t[1] = -0x3E8;
                 task->extra.tmd->coords->coord.t[2] = -0x5DC;
                 break;
             default:
-                work->state = 0;
+                work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;
                 break;
         }
     }
@@ -5737,27 +5703,34 @@ static void _acropolisBridgeEnemyDefeatedBob(Task* task)
     _acropolisBridgeEnemyUpdateAnimation(task);
 }
 
-/// Runs the bridge enemy's collapse sequence. On the first frame (work block
-/// still live) it allocates the model's aux buffers, clears bit 15 of both
-/// behaviour flag words, tags the link node, seeds the three behaviour
-/// parameters, gives the model root coordinate a random yaw from the shared
-/// LCG, drops the enemy's actor slots, arms the pending `gSceneCombatState` request
-/// and restarts the frame counter. Every frame after that it ticks the counter
-/// up to 100, runs `_acropolisBridgeEnemyUpdateAnimation` and, on frames 10, 22, 28
-/// and 34, steps the light mode and model flags through the fade-out.
-void func_acropolis_bridge_80187310(Task* task)
+/// Plays the defeated enemy's collapse animation and timed burn/fade.
+///
+/// Requires live work, enemy and a model with coordinate 2. Entry allocates
+/// primitive buffers, disables both collision pairs and lock-on, blends clip 5
+/// and randomizes root yaw. Frames 10/22/28/34 start burning, darken, enable
+/// translucency and hide drawing. Animation and the counter stop at frame 101;
+/// this state retains the task and work and does not credit rewards.
+static void _acropolisBridgeEnemyCollapse(Task* task)
 {
-    _AcropolisBridgeEnemyWork* work  = (_AcropolisBridgeEnemyWork*)task->work;
-    Enemy*                     enemy = (Enemy*)task->spawnArg2.pointer;
-    s32                        step;
+    enum {
+        ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_ANIMATION         = 5,
+        ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_BURN_FRAME        = 10,
+        ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_BLACK_FRAME       = 22,
+        ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_TRANSLUCENT_FRAME = 28,
+        ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_HIDE_FRAME        = 34,
+        ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_END_FRAME         = 101
+    };
+    _AcropolisBridgeEnemyWork* work  = task->work;
+    Enemy*                     enemy = task->spawnArg2.pointer;
+    s32                        deathFrame;
 
     if (work->stateEntered != 0) {
         tmdAllocPrimitiveBuffer(task->extra.tmd);
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->animRequest             = 1;
-        work->animId                  = 5;
+        work->animRequest             = ACROPOLIS_BRIDGE_ENEMY_ANIM_REQUEST_BLEND;
+        work->animId                  = ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_ANIMATION;
         work->animRate                = ANIMATION_RATE_ONE;
         gRandomLcgState               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gfxRotMatrixY(&task->extra.tmd->coords->coord, gRandomLcgState >> 16, 1);
@@ -5768,41 +5741,53 @@ void func_acropolis_bridge_80187310(Task* task)
         }
         work->deathFrame = 0;
     }
-    if (work->deathFrame < 0x65) {
+    // Advance the pose and timed burn/fade through frame 101, then hold.
+    if (work->deathFrame < ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_END_FRAME) {
         work->deathFrame++;
         _acropolisBridgeEnemyUpdateAnimation(task);
-        step = work->deathFrame;
-        switch (step) {
-            case 10:
+        deathFrame = work->deathFrame;
+        switch (deathFrame) {
+            case ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_BURN_FRAME:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                 effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[2], 1, NULL);
                 break;
-            case 28:
+            case ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_TRANSLUCENT_FRAME:
                 task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
-            case 22:
+            case ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_BLACK_FRAME:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
-            case 34:
+            case ACROPOLIS_BRIDGE_ENEMY_COLLAPSE_HIDE_FRAME:
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 break;
         }
     }
 }
 
-/// Runs the bridge enemy's death sequence. On the first frame (work block still
-/// live) it clears bit 15 of both behaviour flag words, tags the link node and
-/// drops its actor slots, arms the pending `gSceneCombatState` request, credits the
-/// kill if the enemy still had HP, spawns the death effect on the model's
-/// second part coordinate, switches the model to light mode 1, shakes the pad
-/// and restarts the frame counter. Every frame after that it ticks the counter
-/// up to 100, runs `_acropolisBridgeEnemyUpdateAnimation` and, on frames 2, 30 and
-/// 44, steps the model flags / light mode through the fade-out.
-void func_acropolis_bridge_801874DC(Task* task)
+/// Starts the bridge enemy's hit/burn death effect and timed fade.
+///
+/// Requires live enemy/work and model coordinate 1. Entry disables collision
+/// and lock-on, engages a pending battle and credits rewards only with positive
+/// enemy HP. Spawns the weapon-row-1 hit effect and corpse burn, starts vibration,
+/// then changes model flags at frame 2, darkens at 30 and hides at 44. The frame
+/// counter and animation stop at 101; this state retains the task and work.
+static void _acropolisBridgeEnemyDeathEffect(Task* task)
 {
-    _AcropolisBridgeEnemyWork* work  = (_AcropolisBridgeEnemyWork*)task->work;
-    Enemy*                     enemy = (Enemy*)task->spawnArg2.pointer;
-    s32                        step;
+    enum {
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_MOTOR_FRAMES          = 3,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_MOTOR_START_INTENSITY = 255,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_MOTOR_END_INTENSITY   = 8,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_FLAGS_FRAME           = 2,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_BLACK_FRAME           = 30,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_HIDE_FRAME            = 44,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_END_FRAME             = 101,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_HIT_ATTACK_KEY        = 0x1001,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_HIT_ARGUMENT_LOW      = 160,
+        ACROPOLIS_BRIDGE_ENEMY_DEATH_HIT_EXTRA_PUFF_COUNT  = 2
+    };
+    _AcropolisBridgeEnemyWork* work  = task->work;
+    Enemy*                     enemy = task->spawnArg2.pointer;
+    s32                        deathFrame;
 
     if (work->stateEntered != 0) {
         work->attack.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -5816,28 +5801,31 @@ void func_acropolis_bridge_801874DC(Task* task)
             sceneReleaseBattleRefWithRewards(task, 0x29);
         }
         work->effectArg.coord      = &task->extra.tmd->coords[1];
-        work->effectArg.spawnArgLo = 0xA0;
-        work->effectArg.spawnArgHi = 2;
-        effectSpawnHit(damageGetPlayerAttackEffectId(0x1001), &task->extra.tmd->coords[1], NULL,
+        work->effectArg.spawnArgLo = ACROPOLIS_BRIDGE_ENEMY_DEATH_HIT_ARGUMENT_LOW;
+        work->effectArg.spawnArgHi = ACROPOLIS_BRIDGE_ENEMY_DEATH_HIT_EXTRA_PUFF_COUNT;
+        effectSpawnHit(damageGetPlayerAttackEffectId(ACROPOLIS_BRIDGE_ENEMY_DEATH_HIT_ATTACK_KEY), &task->extra.tmd->coords[1], NULL,
                        &work->effectArg);
         worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
         effectSpawn(EFFECT_CORPSE_BURN, &task->extra.tmd->coords[1], 1, NULL);
         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
         work->deathFrame       = 0;
-        padScriptSpawnVariableMotorRamp(3, 0xFF, 8);
+        padScriptSpawnVariableMotorRamp(ACROPOLIS_BRIDGE_ENEMY_DEATH_MOTOR_FRAMES,
+                                        ACROPOLIS_BRIDGE_ENEMY_DEATH_MOTOR_START_INTENSITY,
+                                        ACROPOLIS_BRIDGE_ENEMY_DEATH_MOTOR_END_INTENSITY);
     }
-    if (work->deathFrame < 0x65) {
+    if (work->deathFrame < ACROPOLIS_BRIDGE_ENEMY_DEATH_END_FRAME) {
         work->deathFrame++;
         _acropolisBridgeEnemyUpdateAnimation(task);
-        step = work->deathFrame;
-        switch (step) {
-            case 2:
-                task->extra.tmd->flags = step;
+        deathFrame = work->deathFrame;
+        switch (deathFrame) {
+            case ACROPOLIS_BRIDGE_ENEMY_DEATH_FLAGS_FRAME:
+                // Frame 2 also supplies TMD_OBJECT_SEMI_TRANS.
+                task->extra.tmd->flags = deathFrame;
                 break;
-            case 30:
+            case ACROPOLIS_BRIDGE_ENEMY_DEATH_BLACK_FRAME:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
-            case 44:
+            case ACROPOLIS_BRIDGE_ENEMY_DEATH_HIDE_FRAME:
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 break;
         }
@@ -6123,12 +6111,14 @@ static void _acropolisBridgeEnemyInactive(Task* task)
     }
 }
 
-/// Runs the bridge enemy's current state handler - setup, per-frame tick or
-/// teardown - copying the table onto the stack before the call.
-void func_acropolis_bridge_80187D80(Task* task)
+/// Dispatches the bridge enemy's setup, frame update or teardown.
+///
+/// `task->state` must be 0..2 and `spawnArg2.pointer` a live `Enemy`. Setup owns
+/// the work allocation and collision links; the final handler destroys them.
+static void _acropolisBridgeEnemyTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 states;
 
-    sp = D_acropolis_bridge_8017D6E8;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    states = D_acropolis_bridge_8017D6E8;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }

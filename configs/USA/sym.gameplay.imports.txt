@@ -525,7 +525,7 @@ D_shelter_b1_control_room_80181B88 = 0x80181B88; // absolute:True owner=shelter_
 D_shelter_r48_80182FAC = 0x80182FAC; // absolute:True owner=shelter_r48 shared=rooms
 
 
-func_acropolis_bridge_8017F868 = 0x8017F868; // type:func absolute:True owner=acropolis_bridge
+acropolisBridgeAmbientEffectsTask = 0x8017F868; // type:func absolute:True owner=acropolis_bridge
 
 acropolisBridgeFallingStreakTask = 0x80180320; // type:func absolute:True owner=acropolis_bridge shared=rooms
 

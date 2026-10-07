@@ -148,7 +148,7 @@ D_acropolis_bridge_801917A4 = 0x801917A4; // size:0x4 defined:True
 D_acropolis_bridge_801917A8 = 0x801917A8; // size:0x4 defined:True
 D_acropolis_bridge_801917AC = 0x801917AC; // size:0x4 defined:True
 
-func_acropolis_bridge_8017F868 = 0x8017F868; // type:func
+acropolisBridgeAmbientEffectsTask = 0x8017F868; // type:func
 
 acropolisBridgeGlowStarTask = 0x801812F4; // type:func
 
@@ -219,3 +219,14 @@ _acropolisBridgeEnemyRetreat = 0x801863a8; // type:func
 _acropolisBridgeEnemyFollowMovie = 0x80186618; // type:func
 _acropolisBridgeEnemyAnimateAtPlacement = 0x80186bbc; // type:func
 _acropolisBridgeEnemyDefeatedBob = 0x80187078; // type:func
+_acropolisBridgeResolveRoomTransition = 0x8017d6f4; // type:func
+_acropolisBridgeRestoreAfterKeypadMovie = 0x8017de94; // type:func
+_acropolisBridgeKeypadMovieTask = 0x8017dee4; // type:func
+_acropolisBridgeKeypadSequenceTask = 0x8017d8d0; // type:func
+acropolisBridgeRoomTask = 0x8017da0c; // type:func
+acropolisBridgeKeypadTask = 0x8017f788; // type:func
+_acropolisBridgeSpawnArrivalDust = 0x801820a0; // type:func
+_acropolisBridgeEnemySetup = 0x80185988; // type:func
+_acropolisBridgeEnemyCollapse = 0x80187310; // type:func
+_acropolisBridgeEnemyDeathEffect = 0x801874dc; // type:func
+_acropolisBridgeEnemyTask = 0x80187d80; // type:func

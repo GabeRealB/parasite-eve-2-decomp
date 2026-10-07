@@ -32,7 +32,22 @@ extern ViewCamera D_acropolis_bridge_80190A24[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_bridge_80190C34[];
 
-void func_acropolis_bridge_8017F868(Task* task);
+/// Emits the bridge's view-dependent glows, player-joint water effects and framebuffer streaks.
+///
+/// Requires a counted effect with owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body, mapped view 1..10 and a live player model through part 17.
+/// State zero installs the room-effect message table and snapshots parts 14/17.
+/// View 9 raises star glows by 576 units and omits ground glows; lamp variants
+/// follow their own emitter masks. In views 2/6/7 while running, joint travel
+/// controls ripple/spray draws. The height gate retains its current part alias:
+/// part 17 on initialization, the player root on later updates.
+/// `age` wraps as the frame counter, `angle` holds a movement threshold and
+/// `scale` stores the previous view. New streak views seed 30 copies; ongoing
+/// emission depends on the view and battle state. Resets the frame's DR_MOVE
+/// cursor in the borrowed 0x18000-byte file buffer; its two 0x7000-byte packet
+/// regions begin at byte 0xA000. Cancellation requests leave the task alive
+/// and emit nothing. Work, player/model, view tables and buffer must stay live.
+void acropolisBridgeAmbientEffectsTask(Task* task);
 
 /// Draws one frame of an animated lamp core and a rotating, flickering flare.
 ///
@@ -161,8 +176,20 @@ void acropolisBridgeEffectSpriteDebrisTask(Task* task);
 /// work and task; this task does not consult the pause/cancel control.
 void acropolisBridgeDustMoteTask(Task* task);
 
-void func_acropolis_bridge_8017F788(Task* task);
+/// Runs the bridge keypad's entry, Examine prompt, code check and result display.
+///
+/// Start at state zero; the nine states allocate work and a cursor task, arm
+/// the cursor, collect keys, open and poll Examine, check a complete code,
+/// blink acceptance or rejection, and close. State must stay in 0..8. Closing
+/// requests exit with result 1 for acceptance or 0 for cancellation/failure.
+/// The keypad sprite view and action-prompt controller must remain loaded.
+void acropolisBridgeKeypadTask(Task* task);
 
-void func_acropolis_bridge_8017DA0C(Task* task);
+/// Runs the bridge room's setup, message-waiting idle state or teardown.
+///
+/// `task->state` must be 0..2. Setup installs room message handlers, publishes
+/// the room task and spawns its bridge model; idle keeps the receiver live.
+/// Called by the Acropolis map's bridge-area descriptor while this room is loaded.
+void acropolisBridgeRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_BRIDGE_H

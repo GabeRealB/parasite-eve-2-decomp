@@ -211,7 +211,7 @@ TaskDesc D_80067828[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0x70 } }, Gp_EffAttachTask37 },
     { { { TASK_BODY_NONE, 0x80 } }, func_800E70AC },
-    { { { TASK_BODY_NONE, 0xC0 } }, func_acropolis_bridge_8017F788 },
+    { { { TASK_BODY_NONE, 0xC0 } }, acropolisBridgeKeypadTask },
     { { { TASK_BODY_NONE, 0xC0 } }, func_acropolis_security_room_8017ED68 },
     { { { TASK_BODY_NONE, 0xC0 } }, func_acropolis_security_room_80180294 },
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptBinaryMotorHoldTask },

@@ -714,7 +714,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainRisingSparkTask, { NULL } },                                               // 0x0AD
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTaskAE, { NULL } },                                                    // 0x0AE
     { { { TASK_BODY_COORD, 0x70 } }, func_lifedrain_8012FAF8, { NULL } },                                                // 0x0AF
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_bridge_8017F868, { NULL } },                                         // 0x0B0
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeAmbientEffectsTask, { NULL } },                                      // 0x0B0
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGlowStarTask, { NULL } },                                            // 0x0B1
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGroundGlowTask, { NULL } },                                          // 0x0B2
     { { { TASK_BODY_COORD, 0x70 } }, acropolisBridgeGlowLampTask, { NULL } },                                            // 0x0B3

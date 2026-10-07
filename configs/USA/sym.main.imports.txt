@@ -216,7 +216,7 @@ D_kyle_800102_801775A8 = 0x801775A8; // absolute:True owner=kyle_800102
 acropolisFountainClimbTask = 0x8017DCD4; // type:func absolute:True owner=acropolis_fountain shared=rooms
 func_acropolis_security_room_8017ED68 = 0x8017ED68; // type:func absolute:True owner=acropolis_security_room shared=rooms
 func_acropolis_helicopter_landing_pad_8017EF8C = 0x8017EF8C; // type:func absolute:True owner=acropolis_helicopter_landing_pad
-func_acropolis_bridge_8017F788 = 0x8017F788; // type:func absolute:True owner=acropolis_bridge
+acropolisBridgeKeypadTask = 0x8017F788; // type:func absolute:True owner=acropolis_bridge
 func_acropolis_security_room_80180294 = 0x80180294; // type:func absolute:True owner=acropolis_security_room
 acropolisCafeteriaLoosePropTask = 0x80181E70; // type:func absolute:True owner=acropolis_cafeteria
 gAcropolisCafeteriaModel07CA8 = 0x801858C4; // absolute:True owner=acropolis_cafeteria shared=rooms

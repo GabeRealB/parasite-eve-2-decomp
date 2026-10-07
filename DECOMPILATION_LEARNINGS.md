@@ -54819,7 +54819,7 @@ sb    $v0, 0x12($sp)
 and never reads those bytes or takes the address of anything on the stack. m2c
 drops them entirely. They are a leftover `GameLocationKey key; key.stage = 1;
 key.area = 4;` — the sibling rooms follow it with
-`areaSetPlacementVariant(&key, …)` (`func_acropolis_bridge_8017D6F4`,
+`areaSetPlacementVariant(&key, …)` (`_acropolisBridgeResolveRoomTransition`,
 `func_acropolis_roof_garden_8017DBEC`), this room does not. GCC 2.8.1 does not
 dead-store-eliminate stores to a stack *aggregate*, so writing the same dead
 struct back reproduces them exactly; the offsets in the asm give the field
@@ -57622,7 +57622,7 @@ TaskFuncTable9 states = D_overlay_8017D614;  /* copy from a named global that
 ```
 
 The assembly cannot tell them apart, but the *address* of the table can.
-`func_acropolis_bridge_8017F788` lives in text unit `acropolis_bridge_7`, and
+`acropolisBridgeKeypadTask` lives in text unit `acropolis_bridge_7`, and
 its table sits at rodata offset `0x54` — ahead of the jump table at `0x7C`
 owned by `acropolis_bridge_6`, an *earlier* text unit. Rodata is emitted in
 object order, so a table belonging to `_7` cannot precede one belonging to
@@ -57746,7 +57746,7 @@ into another `u16` field — the load keeps its HImode type and the switch pays
 for an extra `andi $x, $x, 0xffff` before the comparison chain, shifting every
 branch target by 4.
 
-`func_acropolis_bridge_801874DC` reads a frame counter and echoes it into the
+`_acropolisBridgeEnemyDeathEffect` reads a frame counter and echoes it into the
 model flags on one of the cases. With m2c's `u16` local (`insert=4 delete=2
 branch=6`, 93.8%):
 
@@ -57860,7 +57860,7 @@ emits the case **bodies** in the order they appear in the C source. The two are
 independent, so a target whose bodies run out of numeric order is reproduced by
 writing the cases in that same out-of-order sequence.
 
-`func_acropolis_bridge_80187310` has cases 10, 22, 28, 34. Writing them in
+`_acropolisBridgeEnemyCollapse` has cases 10, 22, 28, 34. Writing them in
 numeric order scored 98.4% with `branch=2 reorder=3`: the case-28 body (a
 `lw`/`li`/`sh` tail shared with case 34 by cross-jumping) landed after the
 case-22 `jal`, so the two `j`-to-common-tail edges pointed at the wrong blocks.
@@ -58056,7 +58056,7 @@ drops the `andi` as redundant via `nonzero_bits`, leaving exactly the target's
 shift pair. Odd divisors need no pre-shift and so never show the problem:
 `% 1536` in the same function matches without the cast.
 
-`func_acropolis_bridge_801820A0` also shows the constant-form tell for a loop
+`_acropolisBridgeSpawnArrivalDust` also shows the constant-form tell for a loop
 body: 63536 and 63036 are materialised with `ori $s4, $zero, 0xF830` /
 `ori $s6, $zero, 0xF63C` in the 0x20-iteration loop but appear as
 `addiu $t2, $t2, -0x7D0` / `addiu $t3, $t3, -0x9C4` in the 8-iteration loop.
@@ -58240,7 +58240,7 @@ h = *(u8**)(h + 0x3FC);
 
 `volatile` is doing two jobs there, and the second one is a liability. It
 blocks CSE, but it is also a scheduling barrier, so nothing may cross it. In
-`func_acropolis_bridge_80185988` the target loads the `actorRenderComposeCoord`
+`_acropolisBridgeEnemySetup` the target loads the `actorRenderComposeCoord`
 argument *before* the `lui`:
 
 ```
@@ -58419,14 +58419,14 @@ The fix is to split at the frame boundary: the outer function opens and closes
 the scratch frame and passes `head` / `block` to the inlined body.
 
 ```c
-static __inline__ void walkerStep(Work* w, u8* head, Scratch* block) { … }
+static __inline__ void _bossStrangerStep(Work* w, u8* head, Scratch* block) { … }
 
 void func_…(Work* w)
 {
     head                  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;   /* lui/ori, 3 refs here */
     *(u8**)SCRATCH_STACK_CURSOR_SLOT = head - 0x28;
     block                 = (Scratch*)*(u8**)SCRATCH_STACK_CURSOR_SLOT;
-    walkerStep(w, head, block);                      /* every ref inside is absolute */
+    _bossStrangerStep(w, head, block);                      /* every ref inside is absolute */
     *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)*(u8**)SCRATCH_STACK_CURSOR_SLOT + 0x28;
 }
 ```
@@ -59601,7 +59601,7 @@ written this?) — they answer different questions.
 
 ## `t = cond; if (t)` is a register-allocation nudge that costs no instruction
 
-`func_acropolis_bridge_8017F868` sat at 99.5% for a long time with `regs` as the
+`acropolisBridgeAmbientEffectsTask` sat at 99.5% for a long time with `regs` as the
 only leftover: one basic block had `$a0` and `$a1` swapped between two
 temporaries, which then flipped `$v0` / `$v1` through the rest of the loop.
 No arrangement of the C statements moved it.

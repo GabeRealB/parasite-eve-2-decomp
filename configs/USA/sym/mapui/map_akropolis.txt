@@ -134,7 +134,7 @@ D_acropolis_roof_garden_80186648 = 0x80186648; // absolute:True owner=acropolis_
 D_acropolis_roof_garden_80186BF4 = 0x80186BF4; // absolute:True owner=acropolis_roof_garden
 D_acropolis_roof_garden_80186DB0 = 0x80186DB0; // absolute:True owner=acropolis_roof_garden
 gAcropolisRoofGardenModel09868 = 0x80186E70; // absolute:True owner=acropolis_roof_garden shared=rooms
-func_acropolis_bridge_8017DA0C = 0x8017DA0C; // type:func absolute:True owner=acropolis_bridge shared=rooms
+acropolisBridgeRoomTask = 0x8017DA0C; // type:func absolute:True owner=acropolis_bridge shared=rooms
 D_acropolis_bridge_80189A54 = 0x80189A54; // absolute:True owner=acropolis_bridge
 D_acropolis_bridge_80189A80 = 0x80189A80; // absolute:True owner=acropolis_bridge shared=rooms
 D_acropolis_bridge_80189A88 = 0x80189A88; // absolute:True owner=acropolis_bridge
