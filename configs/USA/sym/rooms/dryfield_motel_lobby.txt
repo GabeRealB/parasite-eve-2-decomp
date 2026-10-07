@@ -84,3 +84,7 @@ Telephone_Data_8017D610 = 0x8017D610;
 Telephone_Data_8017D61C = 0x8017D61C;
 Telephone_Data_8017D624 = 0x8017D624;
 Telephone_Data_8017D630 = 0x8017D630;
+_dryfieldMotelLobbyRefuseKeyItem = 0x8017f40c; // type:func
+_dryfieldMotelLobbyAcceptRoomTransition = 0x8017f414; // type:func
+_dryfieldMotelLobbyIgnoreRoomCommand = 0x8017f43c; // type:func
+_dryfieldMotelLobbyIgnoreRoomAction = 0x8017f444; // type:func

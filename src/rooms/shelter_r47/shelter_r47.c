@@ -1085,10 +1085,15 @@ static void _shelterR47PlayEntryScene7Task(Task* task)
     }
 }
 
-/// Draws the console's subtractive disc, with RGB at the rim when filling.
+/// Draws the console's subtractive radial wipe as a 32-triangle disc.
 ///
-/// Borrows the wipe work and frame arena under the wipe functions' frame-arena contract.
-static inline void _shelterR47ConsoleDrawWipe(ShelterR47ConsoleWork* work, bool fillFromEdge)
+/// Borrows the work unchanged; each colour component must be in 0..255.
+/// `fillFromEdge` selects a grey centre and RGB rim; false exchanges them.
+/// The disc is centred at the draw origin (0, 0), radius 256 pixels, with 4096
+/// angle units per turn. Requires a word-aligned frame arena with space for
+/// 32 `POLY_G3` and 32 `DR_MODE` reservations; advances `gGpuPrimCursor` and
+/// links them into OT slot 11. Packet storage stays live until GPU completion.
+static inline void _shelterR47ConsoleDrawWipe(const ShelterR47ConsoleWork* work, bool fillFromEdge)
 {
     POLY_G3* triangle;
     DR_MODE* drawMode;
@@ -1118,6 +1123,7 @@ static inline void _shelterR47ConsoleDrawWipe(ShelterR47ConsoleWork* work, bool 
         triangle->x2 = rsin(edgeAngle) >> SHELTER_R47_CONSOLE_WIPE_TRIG_SHIFT;
         triangle->y2 = rcos(edgeAngle) >> SHELTER_R47_CONSOLE_WIPE_TRIG_SHIFT;
         addPrim(&gGpuCurrentOt[SHELTER_R47_CONSOLE_WIPE_OT], triangle);
+        // Prepending the draw mode after its triangle makes subtraction execute first.
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setlen(drawMode, 1);

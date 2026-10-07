@@ -89198,26 +89198,26 @@ symbol, 100%), `base_2.i`
 `f3801cf92aeb90a63f5f009df06866974ac029462cba5db2ea0699ded2f3b751` (folded into
 `.vy`, 99.242%). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A constant store followed by a call taking that constant shares it: the copy is `reload_cse_regs`, not a temp (func_mine_forked_tunnel_8017E1E8, 2026-09-15)
+## A constant store followed by a call taking that constant shares it: the copy is `reload_cse_regs`, not a temp (_mineForkedTunnelInitRoomTask, 2026-09-15)
 
-`func_mine_forked_tunnel_8017E1E8` raises the message flag and then calls the
-reader with the same immediate:
+`_mineForkedTunnelInitRoomTask` selects scene-music entry 1 and then calls the
+oak-board placement-state reader with the same immediate:
 
 ```c
-D_80062735 = 1;
+gStageSceneMusicEntry = 1;
 _mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(1) == 2);
 ```
 
-The target stores the flag through a *copy* of the call's argument register -
-`li a0,1` / `lui v1,%hi(D_80062735)` / `addu v0,a0,zero` / `jal
-areaGetCurrentObjectState` / `sb v0,%lo(D_80062735)(v1)`:
+The target stores the music entry through a *copy* of the call's argument register -
+`li a0,1` / `lui v1,%hi(gStageSceneMusicEntry)` / `addu v0,a0,zero` / `jal
+areaGetCurrentObjectState` / `sb v0,%lo(gStageSceneMusicEntry)(v1)`:
 
 ```
 addiu a0,$zero,1     # the argument of the following call
-lui   v1,%hi(D_80062735)
+lui   v1,%hi(gStageSceneMusicEntry)
 addu  v0,a0,$zero    # the store value, a copy of that same constant
 jal   areaGetCurrentObjectState
-sb    v0,%lo(D_80062735)(v1)
+sb    v0,%lo(gStageSceneMusicEntry)(v1)
 ```
 
 Read `.rtl` and the two constants are separate insns - `(set (reg:QI 85)

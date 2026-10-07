@@ -109,18 +109,18 @@ extern WorldCollisionGrid    D_dryfield_motel_lobby_8017FBE4[1];
 extern WorldCollisionTrigger D_dryfield_motel_lobby_80180AEC[4];
 extern WorldCollisionTrigger D_dryfield_motel_lobby_80180C1C[7];
 extern WorldCoordRoomLights  D_dryfield_motel_lobby_80181010[1];
-s32                          func_dryfield_motel_lobby_8017F40C(Task*, s32, s32, s32);
-s32                          func_dryfield_motel_lobby_8017F414(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                          func_dryfield_motel_lobby_8017F43C(Task*, s32, s32, s32);
-s32                          func_dryfield_motel_lobby_8017F444(Task*, s32, s32, s32);
+static s32                   _dryfieldMotelLobbyRefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+static s32                   _dryfieldMotelLobbyAcceptRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32                   _dryfieldMotelLobbyIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
+static s32                   _dryfieldMotelLobbyIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
 
 #include "../../shared/telephone_data.inc.c"
 
 TaskMessageEntry D_dryfield_motel_lobby_8017F810[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_lobby_8017F414 },
-    { 5105, func_dryfield_motel_lobby_8017F40C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_lobby_8017F444 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_motel_lobby_8017F43C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelLobbyAcceptRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelLobbyRefuseKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelLobbyIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldMotelLobbyIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -546,25 +546,41 @@ void func_dryfield_motel_lobby_8017E9E8(Task* task)
 
 #undef TELEPHONE_TITLE_BYTES
 
-s32 func_dryfield_motel_lobby_8017F40C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request in the motel lobby.
+///
+/// Ignores the collected item ID and other arguments. Returns
+/// `ROOM_KEY_ITEM_USE_REFUSED`, leaving the room and inventory unchanged.
+static s32 _dryfieldMotelLobbyRefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Accepts a room transition from the motel lobby with its destination unchanged.
+///
+/// Borrows a readable eight-byte request and writable reply for synchronous
+/// dispatch; they may be the same record. Copies the complete request for both
+/// query and execution calls, retains neither pointer, and returns 1.
+static s32 _dryfieldMotelLobbyAcceptRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { DRYFIELD_MOTEL_LOBBY_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_MOTEL_LOBBY_TRANSITION_ALLOWED;
+}
+
+/// Ignores room commands in the motel lobby and returns zero.
+///
+/// The command word and other arguments are unused; no room state changes.
+static s32 _dryfieldMotelLobbyIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Location-message handler of the room's message table: copies the requested
-/// location onto the outgoing record and answers 1.
-s32 func_dryfield_motel_lobby_8017F414(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
-{
-    *dst = *src;
-    return 1;
-}
-
-s32 func_dryfield_motel_lobby_8017F43C(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-s32 func_dryfield_motel_lobby_8017F444(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores directed room actions in the motel lobby and returns zero.
+///
+/// The borrowed action request is neither read nor retained; all arguments
+/// are unused and no room state changes.
+static s32 _dryfieldMotelLobbyIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg)
 {
     return 0;
 }

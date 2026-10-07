@@ -132,7 +132,7 @@ static void _mineForkedTunnelBindAreaObjectLighting(Task* task);
 static s32  _mineForkedTunnelSetAreaObjectDrawMode(Task* task, s32 messageId, s32 drawMode, s32 unused);
 static void _mineForkedTunnelAttachAreaObjectChild(Task* task);
 static void _mineForkedTunnelUpdateAreaObjectCollision(s32 switchUsed);
-static void func_mine_forked_tunnel_8017E1E8(Task* arg0);
+static void _mineForkedTunnelInitRoomTask(Task* task);
 static void _mineForkedTunnelIdleRoomTask(Task* unusedTask);
 static void _mineForkedTunnelSetSpriteBatchesHidden(u8 hidden);
 static s32  _mineForkedTunnelHandleSwitchAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unused);
@@ -205,7 +205,7 @@ static const TaskFuncTable3 D_mine_forked_tunnel_8017D5D0 = {
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// set-up, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_mine_forked_tunnel_8017D5DC = {
-    { func_mine_forked_tunnel_8017E1E8, _mineForkedTunnelIdleRoomTask, taskKill },
+    { _mineForkedTunnelInitRoomTask, _mineForkedTunnelIdleRoomTask, taskKill },
 };
 
 static u32     _gMineForkedTunnelModel03340PartVerts[1];
@@ -215,7 +215,7 @@ static TmdBone _gMineForkedTunnelModel03340Skeleton[1];
 static u32     _gMineForkedTunnelModel03340Stream[104];
 
 static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unused);
-s32        func_mine_forked_tunnel_8017E0F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _mineForkedTunnelResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 s32        func_mine_forked_tunnel_8017E134(Task*, s32, s32, s32);
 
 void func_mine_forked_tunnel_8017E2E0(Task*);
@@ -344,7 +344,7 @@ static s16* _gMineForkedTunnelCollision0469CTable[1] = {
 WorldCollisionGrid D_mine_forked_tunnel_80181C5C = { NULL, _gMineForkedTunnelCollision0469CNormals, _gMineForkedTunnelCollision0469CVerts, _gMineForkedTunnelCollision0469CFaces, _gMineForkedTunnelCollision0469CTable, -1747, -7643, 1, 1, 4000, 3 };
 
 TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_forked_tunnel_8017E0F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mineForkedTunnelResolveRoomVariant },
     { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM, _mineForkedTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineForkedTunnelHandleSwitchAction },
     { ROOM_MESSAGE_COMMAND, func_mine_forked_tunnel_8017E134 },
@@ -1061,11 +1061,13 @@ static void _mineForkedTunnelTickAreaObject(Task* task)
     }
 }
 
-/// Copies a placement, rebuilds its ZYX rotation and invalidates composition.
+/// Sets an area-object coordinate's translation and ZYX orientation from a placement.
 ///
 /// Both pointers must refer to live, disjoint storage for the call. Coordinates
 /// use the destination's parent frame and angles use 4096 units per turn.
-/// The placement is borrowed and unchanged.
+/// Borrows the placement's XYZ and Euler components, ignoring fourth components.
+/// Replaces any scale or shear with a rotation at unit scale (4096), stores the
+/// Euler angles and marks composition dirty; the parent and cached matrix remain.
 static inline void _mineForkedTunnelApplyAreaObjectPlacement(GfxCoord* coord, const ActorTransform* placement)
 {
     coord->coord.t[0]   = placement->pos.vx;
@@ -1346,13 +1348,20 @@ static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId
     return MINE_FORKED_TUNNEL_KEY_ITEM_REFUSED;
 }
 
-/// Message handler that copies the incoming record onto the outgoing one and
-/// forwards both to `mapShelterRoomVariantResolve`, returning 1.
-s32 func_mine_forked_tunnel_8017E0F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts a tunnel room transition and resolves its Mine/Shelter destination variant.
+///
+/// The stage map overlay must be loaded. Borrows live eight-byte request and
+/// writable reply records for synchronous dispatch; they may be the same object.
+/// Copies the complete request before resolving the room from game progress.
+/// Queries keep the copied destination unchanged. Retains neither pointer and
+/// returns 1; the receiving task and message ID are ignored.
+static s32 _mineForkedTunnelResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { MINE_FORKED_TUNNEL_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return MINE_FORKED_TUNNEL_TRANSITION_ALLOWED;
 }
 
 s32 func_mine_forked_tunnel_8017E134(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -1387,16 +1396,26 @@ static s32 _mineForkedTunnelHandleSwitchAction(Task* unusedTask, s32 messageId, 
     return 0;
 }
 
-/// State 0 of the room's message-driven task family: park the room's
-/// `TaskMessageEntry` table in `Task::msgTable`, publish the task in pointer slot 7,
-/// arm the message flag, then hand off to `_mineForkedTunnelSetSpriteBatchesHidden`.
-static void func_mine_forked_tunnel_8017E1E8(Task* arg0)
+/// Registers the tunnel room task and initializes scene music and oak-board visibility.
+///
+/// Enter at state 0 with the Mine/Shelter map and room resources loaded. Installs
+/// the room message table, publishes `GAME_TASK_SLOT_ROOM`, selects scene-music
+/// entry 1 and hides the board sprites if its saved placement state is collected.
+/// Advances to the idle state. The registered task and room overlay must remain
+/// live while receiving room messages.
+static void _mineForkedTunnelInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_mine_forked_tunnel_80181C80;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    gStageSceneMusicEntry = 1;
-    _mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(1) == 2);
-    arg0->state = (s32)(arg0->state + 1);
+    enum {
+        MINE_FORKED_TUNNEL_SCENE_MUSIC_ENTRY   = 1,
+        MINE_FORKED_TUNNEL_OAK_BOARD_OBJECT_ID = 1,
+        MINE_FORKED_TUNNEL_OAK_BOARD_COLLECTED = 2,
+    };
+
+    task->msgTable = D_mine_forked_tunnel_80181C80;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    gStageSceneMusicEntry = MINE_FORKED_TUNNEL_SCENE_MUSIC_ENTRY;
+    _mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(MINE_FORKED_TUNNEL_OAK_BOARD_OBJECT_ID) == MINE_FORKED_TUNNEL_OAK_BOARD_COLLECTED);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room task available to receive messages without per-frame work.

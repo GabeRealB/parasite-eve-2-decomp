@@ -128,3 +128,5 @@ mineForkedTunnelAreaObjectTask = 0x8017dbe4; // type:func
 _mineForkedTunnelHandleSwitchAction = 0x8017e19c; // type:func
 mineForkedTunnelRoomTask = 0x8017e25c; // type:func
 _mineForkedTunnelRestoreAreaObjectSoundMix = 0x8017e2b4; // type:func
+_mineForkedTunnelResolveRoomVariant = 0x8017e0f0; // type:func
+_mineForkedTunnelInitRoomTask = 0x8017e1e8; // type:func

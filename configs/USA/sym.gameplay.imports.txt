@@ -998,7 +998,7 @@ shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingOrangeBurstTask = 0x80181
 
 shelterB1ElevatorHallRoomVisualEffectsMoteTask = 0x8017E6F4; // type:func absolute:True owner=shelter_b1_elevator_hall
 
-shelterB1ElevatorHallRoomVisualEffectsHaloTask = 0x8017F43C; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
+shelterB1ElevatorHallRoomVisualEffectsHaloTask = 0x8017F43C; // type:func absolute:True owner=shelter_b1_elevator_hall
 
 func_shelter_b1_elevator_hall_80180BE4 = 0x80180BE4; // type:func absolute:True owner=shelter_b1_elevator_hall
 

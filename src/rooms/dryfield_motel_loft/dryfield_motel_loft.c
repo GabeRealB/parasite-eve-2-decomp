@@ -21,10 +21,10 @@
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_motel_loft_8017D6B4[];
 
-s32 func_dryfield_motel_loft_8017D5D0(Task*, s32, s32, s32);
-s32 func_dryfield_motel_loft_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_motel_loft_8017D600(Task*, s32, s32, s32);
-s32 func_dryfield_motel_loft_8017D608(Task*, s32, s32, s32);
+static s32 _dryfieldMotelLoftRefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+static s32 _dryfieldMotelLoftAcceptRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _dryfieldMotelLoftIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
+static s32 _dryfieldMotelLoftIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
 
 extern WorldCollisionGrid    D_dryfield_motel_loft_8017D9BC[1];
 extern WorldCollisionTrigger D_dryfield_motel_loft_8017DE2C[12];
@@ -32,10 +32,10 @@ extern WorldCollisionTrigger D_dryfield_motel_loft_8017E1BC[2];
 extern WorldCoordRoomLights  D_dryfield_motel_loft_8017E614[1];
 
 TaskMessageEntry D_dryfield_motel_loft_8017D6B4[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_loft_8017D5D8 },
-    { 5105, func_dryfield_motel_loft_8017D5D0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_loft_8017D608 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_motel_loft_8017D600 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelLoftAcceptRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelLoftRefuseKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelLoftIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldMotelLoftIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -387,28 +387,41 @@ WorldCollisionSurfaceProperties* D_dryfield_motel_loft_8017E648[8] = {
 static void func_dryfield_motel_loft_8017D610(Task* task);
 static void func_dryfield_motel_loft_8017D654(Task* task);
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_motel_loft_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item-use request in the motel loft.
+///
+/// Ignores the collected item ID and other arguments. Returns
+/// `ROOM_KEY_ITEM_USE_REFUSED`, leaving the room and inventory unchanged.
+static s32 _dryfieldMotelLoftRefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Accepts a room transition from the motel loft with its destination unchanged.
+///
+/// Borrows a readable eight-byte request and writable reply for synchronous
+/// dispatch; they may be the same record. Copies the complete request for both
+/// query and execution calls, retains neither pointer, and returns 1.
+static s32 _dryfieldMotelLoftAcceptRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { DRYFIELD_MOTEL_LOFT_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_MOTEL_LOFT_TRANSITION_ALLOWED;
+}
+
+/// Ignores room commands in the motel loft and returns zero.
+///
+/// The command word and other arguments are unused; no room state changes.
+static s32 _dryfieldMotelLoftIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Message-table handler for id 0x13EE: echoes the incoming record into the
-/// reply unchanged and returns 1.
-s32 func_dryfield_motel_loft_8017D5D8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    return 1;
-}
-
-/// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_motel_loft_8017D600(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_motel_loft_8017D608(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores directed room actions in the motel loft and returns zero.
+///
+/// The borrowed action request is neither read nor retained; all arguments
+/// are unused and no room state changes.
+static s32 _dryfieldMotelLoftIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg)
 {
     return 0;
 }
