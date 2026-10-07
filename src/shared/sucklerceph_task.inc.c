@@ -1,12 +1,14 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Task handler of the first enemy: runs the entry of `gSucklercephTaskStates` for
-/// the task's state with the enemy and the task, from a copy of the table on
-/// the stack.
-void sucklercephTask(Task* arg0)
+/// Dispatches the standing Sucklerceph's spawn, active or death task state.
+///
+/// `task->state` must be in 0..2, and `spawnArg2.pointer` must hold its owning
+/// enemy. Copies the carrier's three callbacks before dispatch; there is no
+/// bounds check. Spawn or death may destroy either argument during the call.
+static void _sucklercephTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 states;
 
-    sp = gSucklercephTaskStates;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    states = gSucklercephTaskStates;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }

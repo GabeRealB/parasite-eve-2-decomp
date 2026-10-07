@@ -197,7 +197,7 @@ TaskMessageEntry gSucklercephDropMsgTable[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &_gActor07000SucklercephBody } };
+TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, _sucklercephTask, { .model = &_gActor07000SucklercephBody } };
 
 TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &_gActor07000SucklercephBody } };
 
@@ -872,10 +872,10 @@ static __inline__ void rotate_parts(Task* arg0);
 
 #include "../../shared/sucklerceph_spawn_state.inc.c"
 
-/// Task states of the caged specimen as `sucklercephTask` dispatches
+/// Task states of the caged specimen as `_sucklercephTask` dispatches
 /// them: spawn, per-frame update and teardown.
 static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
-    { sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
+    { _sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
 };
 
 /// Task states of the caged specimen as `sucklercephDropTask` dispatches them:
@@ -2016,7 +2016,7 @@ static void Actor07000_Fn04E60(Task* arg0)
 /// `WorldCollisionContact` beside it - the pair `CompanionWork` keeps, and the three constants it
 /// carries are that record's fields rather than an object's. Node 3's `field_8`
 /// is the model's seventh coordinate (`&coord[6]`), which is the value the
-/// sibling `sucklercephSpawnState` computes for its `part`.
+/// sibling `_sucklercephSpawnState` computes for its `bodyCoord`.
 ///
 /// The spawn arg seeds `spawnArgHi`/`spawnArgLo` the same way it does there, and
 /// a high halfword of 1 kills the specimen instead. The tail draws two numbers

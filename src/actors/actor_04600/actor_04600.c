@@ -212,7 +212,7 @@ TaskMessageEntry gSucklercephDropMsgTable[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, sucklercephTask, { .model = &_gActor04600SucklercephBody } };
+TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, _sucklercephTask, { .model = &_gActor04600SucklercephBody } };
 
 TaskDesc Actor04600_D05884 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &_gActor04600SucklercephBody } };
 
@@ -323,10 +323,10 @@ SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
 
 #include "../../shared/sucklerceph_spawn_state.inc.c"
 
-/// Task states of the first enemy as `sucklercephTask` dispatches them:
+/// Task states of the first enemy as `_sucklercephTask` dispatches them:
 /// spawn, per-frame update and death.
 static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
-    { sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
+    { _sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
 };
 
 /// Task states of the dropping first enemy as `sucklercephDropTask` dispatches

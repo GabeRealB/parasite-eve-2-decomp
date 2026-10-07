@@ -20,18 +20,18 @@ void sucklercephUpdateState(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = 1;
             return;
         case 1:
-            sucklercephColour(arg0, arg1);
-            sucklercephDrawShadow(arg1);
+            _sucklercephColour(arg0, arg1);
+            _sucklercephDrawShadow(arg1);
             return;
     }
     sucklercephReactionDispatch(arg1);
     sucklercephReactionFlags(arg1);
     sucklercephContacts(arg1);
-    sucklercephAnimate(arg1);
-    sucklercephScalePart(arg1, &arg1->extra.tmd->coords[1]);
+    _sucklercephAnimate(arg1);
+    _sucklercephScalePart(arg1, &arg1->extra.tmd->coords[1]);
     arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-    sucklercephColour(arg0, arg1);
-    sucklercephDrawShadow(arg1);
+    _sucklercephColour(arg0, arg1);
+    _sucklercephDrawShadow(arg1);
 }

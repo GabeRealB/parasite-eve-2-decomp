@@ -40,8 +40,8 @@ void sucklercephAwakeTick(Task* arg0)
             }
             work->forwardSpeed = 0x14;
             work->animId       = SUCKLERCEPH_ANIM_CRAWL;
-            sucklercephTurnToPlayer(arg0);
-            sucklercephStep(arg0);
+            _sucklercephTurnToPlayer(arg0);
+            _sucklercephStep(arg0);
             if ((s16)work->animFrames >= 0x1D) {
                 work->animFrames = 0;
             }

@@ -41,7 +41,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                     }
                     if (work->state == SUCKLERCEPH_STATE_SLUMP_DEATH) {
                         work->animId = SUCKLERCEPH_ANIM_IDLE;
-                        sucklercephTickAnim(task);
+                        _sucklercephTickAnim(task);
                     }
                     if (task->killCountdown <= 0) {
                         if (work->variant != 0) {
@@ -76,7 +76,7 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                     if (work->deathFrames >= 0x3D) {
                         work->deathPhase = SUCKLERCEPH_DEATH_PHASE_LINGER;
                     }
-                    sucklercephFlatten(task);
+                    _sucklercephFlatten(task);
                     if (work->deathFrames == 0xA) {
                         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     }
@@ -89,8 +89,8 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                     return;
             }
             if (work->state != SUCKLERCEPH_STATE_PUFFING_DEATH && work->state != SUCKLERCEPH_STATE_SLUMP_DEATH) {
-                sucklercephTickAnim(task);
-                sucklercephScalePart(task, &task->extra.tmd->coords[1]);
+                _sucklercephTickAnim(task);
+                _sucklercephScalePart(task, &task->extra.tmd->coords[1]);
                 task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
                 task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&task->extra.tmd->coords[1]);

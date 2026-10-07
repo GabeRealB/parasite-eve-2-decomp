@@ -29,9 +29,9 @@ void sucklercephDropState(Enemy* arg0, Task* arg1)
             if (work->dropArmed == 0) {
                 return;
             }
-            sucklercephFallStep(arg1);
-            sucklercephDropCollide(arg1);
-            sucklercephTickAnim(arg1);
+            _sucklercephFallStep(arg1);
+            _sucklercephDropCollide(arg1);
+            _sucklercephTickAnim(arg1);
             actorUpdateColor(arg0, &arg1->extra.tmd->coords[1]);
             arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(arg1->extra.tmd->coords);

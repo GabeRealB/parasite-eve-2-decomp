@@ -816,9 +816,10 @@ use `DIVER_BURST_`.
 fragment per function. `SucklercephWork` is the task's work block; its
 behaviour, awake stage, death phase and animation values use
 `SUCKLERCEPH_STATE_`, `SUCKLERCEPH_AWAKE_STAGE_`, `SUCKLERCEPH_DEATH_PHASE_` and
-`SUCKLERCEPH_ANIM_`. `SucklercephContactsScratch` is the scratch block of its
-contact pass, private to that interface. The block of its drop's collision
-step is `ActorContactDeltaWideScratch` in `include/actors/actor.h`, public
+`SUCKLERCEPH_ANIM_`. Handlers and helpers reached only within each carrier keep
+static linkage and the `_sucklerceph` prefix. `SucklercephContactsScratch` is the
+scratch block of its contact pass, private to that interface. The block of its
+drop's collision step is `ActorContactDeltaWideScratch` in `include/actors/actor.h`, public
 because `actor_521100` and `actor_403600` reserve the same block.
 
 `viewFigure` owns the included figure parented to the view coordinate, shared

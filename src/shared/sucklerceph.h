@@ -145,33 +145,33 @@ typedef struct {
 } SucklercephContactsScratch;
 STATIC_ASSERT_SIZEOF(SucklercephContactsScratch, 0x4C);
 
-void sucklercephSpawnState(Enemy* arg0, Task* arg1);
-void sucklercephReactionDispatch(Task* arg0);
-void sucklercephDormantTick(Task* arg0);
-void sucklercephAwakeTick(Task* arg0);
-void sucklercephContacts(Task* arg0);
-void sucklercephTakeDamage(Task* arg0, s32 arg1);
-void sucklercephTurnToPlayer(Task* arg0);
-void sucklercephDeathState(Enemy* enemy, Task* task);
-void sucklercephKill(Task* arg0, u8 arg1);
-void sucklercephDropSpawnState(Enemy* arg0, Task* arg1);
-void sucklercephDropState(Enemy* arg0, Task* arg1);
-void sucklercephDropCollide(Task* arg0);
-s32  sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3);
-void sucklercephUpdateState(Enemy* arg0, Task* arg1);
-void sucklercephReactionFlags(Task* arg0);
-void sucklercephStep(Task* task);
-void sucklercephScalePart(Task* arg0, GfxCoord* arg1);
-void sucklercephFlatten(Task* arg0);
-void sucklercephExit(Task* task);
-void sucklercephFallStep(Task* task);
+static void _sucklercephSpawnState(Enemy* enemy, Task* task);
+void        sucklercephReactionDispatch(Task* arg0);
+static void _sucklercephDormantTick(Task* task);
+void        sucklercephAwakeTick(Task* arg0);
+void        sucklercephContacts(Task* arg0);
+void        sucklercephTakeDamage(Task* arg0, s32 arg1);
+static void _sucklercephTurnToPlayer(Task* task);
+void        sucklercephDeathState(Enemy* enemy, Task* task);
+void        sucklercephKill(Task* arg0, u8 arg1);
+void        sucklercephDropSpawnState(Enemy* arg0, Task* arg1);
+void        sucklercephDropState(Enemy* arg0, Task* arg1);
+static void _sucklercephDropCollide(Task* task);
+s32         sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3);
+void        sucklercephUpdateState(Enemy* arg0, Task* arg1);
+void        sucklercephReactionFlags(Task* arg0);
+static void _sucklercephStep(Task* task);
+static void _sucklercephScalePart(Task* task, GfxCoord* coord);
+static void _sucklercephFlatten(Task* task);
+static void _sucklercephExit(Task* task);
+static void _sucklercephFallStep(Task* task);
 
-static __inline__ void sucklercephTickAnim(Task* task);
+static __inline__ void _sucklercephTickAnim(Task* task);
 
-void sucklercephTask(Task* arg0);
-void sucklercephAnimate(Task* arg0);
-void sucklercephColour(Enemy* arg0, Task* task);
-void sucklercephDrawShadow(Task* task);
-void sucklercephDropTask(Task* arg0);
+static void _sucklercephTask(Task* task);
+static void _sucklercephAnimate(Task* task);
+static void _sucklercephColour(Enemy* enemy, Task* task);
+static void _sucklercephDrawShadow(Task* task);
+void        sucklercephDropTask(Task* arg0);
 
 #endif /* SRC_SHARED_SUCKLERCEPH_H */

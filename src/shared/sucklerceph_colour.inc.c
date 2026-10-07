@@ -1,22 +1,21 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Colours the enemy from the world position of its model's second
-/// coordinate, staged in a `VECTOR` taken off the scratch stack.
-void sucklercephColour(Enemy* arg0, Task* task)
+/// Updates the Sucklerceph's lighting and hit colour at model part 1.
+///
+/// `enemy` must belong to `task`, whose model has a freshly composed part 1
+/// and live work-owned light and colour matrices. The sampled translation is
+/// in composition space. Reserves one `VECTOR` across the lighting call and
+/// releases it before return; its fourth word is unused.
+static void _sucklercephColour(Enemy* enemy, Task* task)
 {
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
+    GfxCoord* sampleCoord;
+    VECTOR*   position;
 
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    worldCoordUpdateActorColor(arg0, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    sampleCoord  = &task->extra.tmd->coords[1];
+    position     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    position->vx = sampleCoord->workm.t[0];
+    position->vy = sampleCoord->workm.t[1];
+    position->vz = sampleCoord->workm.t[2];
+    worldCoordUpdateActorColor(enemy, position, 0, 0);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }

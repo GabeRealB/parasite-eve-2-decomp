@@ -1,24 +1,27 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Rebinds the Sucklerceph's animation id to its two helper slots unless
-/// `animFrozen` suppresses it: a changed id is remembered, its frame count
-/// restarts and both slots switch to it; otherwise the count ticks and the
-/// slots advance.
-static __inline__ void sucklercephTickAnim(Task* task)
+/// Applies an animation request or advances the Sucklerceph's two moving parts.
+///
+/// Requires initialized `SucklercephWork` with three model parts, playback slots
+/// and pose buffers and loaded idle/crawl sets. Slot 0 stays unstarted. A changed
+/// request rebinds slots 1 and 2 at record 0 without a timed blend and clears
+/// `animFrames`; an unchanged request increments that u16 counter and ticks both
+/// slots. `animFrozen` holds the request, counter and poses. No pointer is retained.
+static __inline__ void _sucklercephTickAnim(Task* task)
 {
     SucklercephWork* work = task->work;
-    s32              i;
+    s32              slotIndex;
     if (work->animFrozen == 0) {
         if (work->animId != work->appliedAnim) {
             work->appliedAnim = work->animId;
             work->animFrames  = 0;
-            for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-                animationSeekSlotWithBlend(&work->anim, i, work->animId, 0, 0);
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+                animationSeekSlotWithBlend(&work->anim, slotIndex, work->animId, 0, 0);
             }
         } else {
             work->animFrames++;
-            for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-                animationTickSlot(&work->anim, i);
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+                animationTickSlot(&work->anim, slotIndex);
             }
         }
     }

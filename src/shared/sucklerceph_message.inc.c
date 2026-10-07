@@ -34,7 +34,7 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
         if (mode == 4) {
             effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x400, &gSucklercephCollapseFxOffset);
             work->animId = SUCKLERCEPH_ANIM_IDLE;
-            sucklercephTickAnim(arg0);
+            _sucklercephTickAnim(arg0);
             work->animFrames = 0;
             work->state      = SUCKLERCEPH_STATE_PUFFING;
             return 0;
@@ -42,7 +42,7 @@ s32 sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
         if (mode == 5) {
             effectSpawn(EFFECT_ADDITIVE_PUFF, coord, 0x400, &gSucklercephCollapseFxOffset);
             work->animId = SUCKLERCEPH_ANIM_IDLE;
-            sucklercephTickAnim(arg0);
+            _sucklercephTickAnim(arg0);
             work->animFrames  = 0;
             work->swellFrames = 0;
             work->state       = SUCKLERCEPH_STATE_PUFFING;

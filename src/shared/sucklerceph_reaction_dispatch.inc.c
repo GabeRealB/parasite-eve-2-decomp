@@ -1,7 +1,7 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
 /// Per-frame dispatch of the first enemy on its reaction state `state`:
-/// 0 is the dormant arm `sucklercephDormantTick` and 1 the live handler
+/// 0 is the dormant arm `_sucklercephDormantTick` and 1 the live handler
 /// `sucklercephAwakeTick`. State 3 suppresses the rebind until
 /// `damageTickEnemyBuildup` reports the reaction over, then returns the enemy to the
 /// live stage, and ends with a step of the root. States 4 and 5 collapse the
@@ -19,7 +19,7 @@ void sucklercephReactionDispatch(Task* arg0)
     work = arg0->work;
     switch (work->state) {
         case SUCKLERCEPH_STATE_DORMANT:
-            sucklercephDormantTick(arg0);
+            _sucklercephDormantTick(arg0);
             return;
         case SUCKLERCEPH_STATE_AWAKE:
             sucklercephAwakeTick(arg0);
@@ -32,11 +32,11 @@ void sucklercephReactionDispatch(Task* arg0)
                 work->awakeStage   = SUCKLERCEPH_AWAKE_STAGE_CRAWL;
                 work->forwardSpeed = 0;
             }
-            sucklercephStep(arg0);
+            _sucklercephStep(arg0);
             return;
         case SUCKLERCEPH_STATE_PUFFING:
             work->swellScale = ONE;
-            sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
+            _sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
             frames           = work->animFrames + 1;
             work->animFrames = frames;
             if ((s16)frames >= 0x10) {
@@ -49,7 +49,7 @@ void sucklercephReactionDispatch(Task* arg0)
             return;
         case SUCKLERCEPH_STATE_PUFFING_DEATH:
             work->swellScale = ONE;
-            sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
+            _sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
             frames           = work->animFrames + 1;
             work->animFrames = frames;
             if ((s16)frames >= 0x10) {

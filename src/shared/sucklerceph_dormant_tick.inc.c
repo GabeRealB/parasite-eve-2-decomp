@@ -2,24 +2,65 @@
 
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Dormant arm of the first enemy's reaction dispatch. A 0x10000-class contact
-/// on the record at `senseContact` latches `wakeRequested`; a latched enemy moves to the
-/// live stage, drops the 0x8000 bit of its first body and arms state 0xF0. The
-/// record is released either way. While animation 1 plays, `idleSoundFrames` counts
-/// down to an idle sound (re-rolled to 0x50..0xB3 frames, `variant` picking
-/// the sound set), the step length follows the frame count - 0x14 in the first
-/// window, -0x14 in the second - the count wraps at 0x63, and the root takes one
-/// step. Eight bytes of the scratch stack are held across the whole arm.
-void sucklercephDormantTick(Task* arg0)
+/// Schedules the dormant Sucklerceph's next idle sound and advances its countdown.
+///
+/// Requires the task's live work, enemy and root coordinate and a loaded sound
+/// bank. Each request draws the next delay from 80..179 frames and uses the
+/// enemy's placement index as its sound instance tag; request failure is ignored.
+static __inline__ void _sucklercephTickIdleSound(Task* task, GfxCoord* rootCoord, SucklercephWork* work)
 {
-    SucklercephWork* work;
-    GfxCoord*        coord;
-    s32              soundId;
-    u32              rng;
+    enum {
+        SUCKLERCEPH_IDLE_SOUND_MIN_FRAMES    = 80,
+        SUCKLERCEPH_IDLE_SOUND_FRAME_CHOICES = 100,
+        SUCKLERCEPH_IDLE_SOUND               = 0x402E0001,
+        SUCKLERCEPH_VARIANT_IDLE_SOUND       = 0x40460009,
+        SUCKLERCEPH_SOUND_INSTANCE_SHIFT     = 8
+    };
+    s32    soundId;
+    u32    randomState;
+    Enemy* enemy;
+    work->idleSoundFrames--;
+    if (work->idleSoundFrames <= 0) {
+        randomState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState       = randomState;
+        work->idleSoundFrames = (randomState >> 16) % SUCKLERCEPH_IDLE_SOUND_FRAME_CHOICES + SUCKLERCEPH_IDLE_SOUND_MIN_FRAMES;
+        if (work->variant != 0) {
+            enemy   = task->spawnArg2.pointer;
+            soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_SOUND_INSTANCE_SHIFT) | SUCKLERCEPH_VARIANT_IDLE_SOUND;
+            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
+        } else {
+            enemy   = task->spawnArg2.pointer;
+            soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_SOUND_INSTANCE_SHIFT) | SUCKLERCEPH_IDLE_SOUND;
+            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
+        }
+    }
+}
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    SCRATCH_STACK_RESERVE_BYTES(8);
+/// Rocks an idle Sucklerceph until player contact or damage requests waking.
+///
+/// Requires an initialized root, work and owning enemy. Waking selects crawl,
+/// disables the sense sphere's pair tests and engages the scene battle; sense
+/// contacts are consumed on every call. Under the idle animation, sound repeats
+/// after 80..179 frames, the root moves forward during frames 1..41 and backward
+/// during 51..91 at 20 units per frame, and the cycle resets at frame 99.
+/// Holds eight untouched scratch bytes across the whole update; their role
+/// is unproven. Collision correction and animation playback follow in the caller.
+static void _sucklercephDormantTick(Task* task)
+{
+    enum {
+        SUCKLERCEPH_DORMANT_SCRATCH_BYTES = 8,
+        SUCKLERCEPH_ROCK_SPEED            = 20,
+        SUCKLERCEPH_ROCK_WINDOW_FRAMES    = 41,
+        SUCKLERCEPH_ROCK_BACKWARD_START   = 51,
+        SUCKLERCEPH_ROCK_CYCLE_FRAMES     = 99
+    };
+
+    SucklercephWork* work;
+    GfxCoord*        rootCoord;
+
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
+    SCRATCH_STACK_RESERVE_BYTES(SUCKLERCEPH_DORMANT_SCRATCH_BYTES);
     if (worldCollisionCountContactsByKind(&work->senseContact, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
         work->wakeRequested = 1;
     }
@@ -31,31 +72,19 @@ void sucklercephDormantTick(Task* arg0)
     }
     worldCollisionClearContacts(&work->senseContact);
     if (work->animId == SUCKLERCEPH_ANIM_IDLE) {
-        work->idleSoundFrames--;
-        if (work->idleSoundFrames <= 0) {
-            rng                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState       = rng;
-            work->idleSoundFrames = (rng >> 16) % 100 + 0x50;
-            if (work->variant != 0) {
-                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;
-                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            } else {
-                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0001;
-                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            }
-        }
+        _sucklercephTickIdleSound(task, rootCoord, work);
         work->field_2C6    = 1;
         work->forwardSpeed = 0;
-        if ((u32)(work->animFrames - 1) < 0x29) {
-            work->forwardSpeed = 0x14;
+        if ((u32)(work->animFrames - 1) < SUCKLERCEPH_ROCK_WINDOW_FRAMES) {
+            work->forwardSpeed = SUCKLERCEPH_ROCK_SPEED;
         }
-        if ((u32)(work->animFrames - 0x33) < 0x29) {
-            work->forwardSpeed = -0x14;
+        if ((u32)(work->animFrames - SUCKLERCEPH_ROCK_BACKWARD_START) < SUCKLERCEPH_ROCK_WINDOW_FRAMES) {
+            work->forwardSpeed = -SUCKLERCEPH_ROCK_SPEED;
         }
-        if ((s16)work->animFrames >= 0x63) {
+        if ((s16)work->animFrames >= SUCKLERCEPH_ROCK_CYCLE_FRAMES) {
             work->animFrames = 0;
         }
-        sucklercephStep(arg0);
+        _sucklercephStep(task);
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(SUCKLERCEPH_DORMANT_SCRATCH_BYTES);
 }

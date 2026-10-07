@@ -2,7 +2,7 @@
 
 /// Spawn handler of the dropping first enemy, entry 0 of `Actor04600_D00010`.
 /// A spawn arg whose high halfword is 1 destroys the enemy instead. Otherwise
-/// it builds the same work block as `sucklercephSpawnState` with the model hidden
+/// it builds the same work block as `_sucklercephSpawnState` with the model hidden
 /// and the node flag set, keeps the spawn arg's two halves, leaves the first
 /// body's 0x8000 bit and the second's 0xC200 bits clear, parks
 /// `gSucklercephDropMsgTable` as the task's message table and moves the task to state

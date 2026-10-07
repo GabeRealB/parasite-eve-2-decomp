@@ -1,55 +1,62 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Turns the first enemy toward the player by at most 0x20 a frame: the heading
-/// `heading` takes the XZ direction to the player outright when within 0x20,
-/// and otherwise steps 0x20 the short way round the 0x1000 circle. The root's
-/// rotation is then rebuilt from that heading alone, in 0x18 bytes of the
-/// scratch stack.
-void sucklercephTurnToPlayer(Task* arg0)
+/// Turns the crawling Sucklerceph toward the player by up to 32 angle units.
+///
+/// Requires live root/work storage and the player's root in the same parent
+/// frame. Bearing uses the low signed halfwords of the X/Z offset, with 4096
+/// angle units per turn. Deltas of at most 32 snap to the bearing; larger
+/// deltas step the stored signed-halfword heading, retaining its wrap behavior.
+/// Replaces pitch, roll and scale with the resulting yaw while keeping translation.
+/// Releases one `ActorFaceScratch` block; the caller invalidates composition.
+static void _sucklercephTurnToPlayer(Task* task)
 {
-    SucklercephWork*  work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s16               cur;
-    s32               want;
-    s16               diff;
-    s32               adiff;
-    s16               turn;
-    s16               wrap;
-    s32               current;
+    enum { SUCKLERCEPH_TURN_STEP = 32 };
 
-    coord        = arg0->extra.tmd->coords;
-    work         = arg0->work;
-    sc           = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    sc->delta.vy = 0;
-    sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-    cur          = work->heading & 0xFFF;
-    diff         = want - cur;
-    adiff        = diff >= 0 ? diff : -diff;
-    turn         = diff;
-    if (adiff < 0x21) {
-        work->heading = want;
+    SucklercephWork*  work;
+    GfxCoord*         rootCoord;
+    ActorFaceScratch* turnScratch;
+    s16               normalizedHeading;
+    s16               nextHeading;
+    s32               playerHeading;
+    s16               headingDelta;
+    s32               absoluteDelta;
+    s16               turnDelta;
+    s16               wrappedDelta;
+    s32               heading;
+
+    rootCoord             = task->extra.tmd->coords;
+    work                  = task->work;
+    turnScratch           = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    turnScratch->delta.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+    turnScratch->delta.vy = 0;
+    turnScratch->delta.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+    playerHeading         = ratan2((s16)turnScratch->delta.vx, (s16)turnScratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+    normalizedHeading     = work->heading & ACTOR_TRANSFORM_ANGLE_MASK;
+    headingDelta          = playerHeading - normalizedHeading;
+    absoluteDelta         = headingDelta >= 0 ? headingDelta : -headingDelta;
+    turnDelta             = headingDelta;
+    if (absoluteDelta < SUCKLERCEPH_TURN_STEP + 1) {
+        work->heading = playerHeading;
     } else {
-        if (adiff >= 0x801) {
-            wrap = diff - 0x1000;
-            if (diff <= 0) {
-                wrap = 0x1000 - diff;
+        if (absoluteDelta >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+            // Retain the asymmetric negative-delta wrap: turn selection uses its sign.
+            wrappedDelta = headingDelta - ACTOR_TRANSFORM_ANGLE_TURN;
+            if (headingDelta <= 0) {
+                wrappedDelta = ACTOR_TRANSFORM_ANGLE_TURN - headingDelta;
             }
-            turn = wrap;
+            turnDelta = wrappedDelta;
         }
-        current = work->heading;
-        if (turn <= 0) {
-            cur = current - 0x20;
+        heading = work->heading;
+        if (turnDelta <= 0) {
+            nextHeading = heading - SUCKLERCEPH_TURN_STEP;
         } else {
-            cur = current + 0x20;
+            nextHeading = heading + SUCKLERCEPH_TURN_STEP;
         }
-        work->heading = cur;
+        work->heading = nextHeading;
     }
-    sc->rot.vx = 0;
-    sc->rot.vy = work->heading;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    turnScratch->rot.vx = 0;
+    turnScratch->rot.vy = work->heading;
+    turnScratch->rot.vz = 0;
+    RotMatrix(&turnScratch->rot, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }

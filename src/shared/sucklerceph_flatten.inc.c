@@ -1,32 +1,43 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Rebuilds the first enemy's root coordinate from the transform saved in
-/// `savedRootMtx`, scaled along Y by `flattenScaleY`, which decays by 0x50 a frame
-/// while it stays above 0x200. The scale matrix and its `VECTOR` live in an
-/// `ActorScaleScratch` block; the node's `composeStamp` is cleared so the next
-/// `actorRenderComposeCoord` recomputes it.
-void sucklercephFlatten(Task* arg0)
+/// Restores an unscaled root and multiplies a Q12 Y scale into its rotation.
+///
+/// The caller supplies live root, work and scratch storage. Translation is
+/// restored from `savedRootMtx`; the caller then invalidates composition.
+static __inline__ void _sucklercephRescaleRoot(GfxCoord* rootCoord, SucklercephWork* work, ActorScaleScratch* scratch)
 {
-    GfxCoord*          coord;
-    ActorScaleScratch* head;
-    ActorScaleScratch* scratch;
-    SucklercephWork*   work;
-
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    work                                    = arg0->work;
-    scratch                                 = head - 1;
-    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
-    coord                                   = arg0->extra.tmd->coords;
-    if (work->flattenScaleY >= 0x201) {
-        work->flattenScaleY -= 0x50;
-    }
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->flattenScaleY;
     scratch->scale.vz = ONE;
-    coord->coord      = work->savedRootMtx;
+    rootCoord->coord  = work->savedRootMtx;
     gfxSetRotIdentity(&scratch->matrix);
     ScaleMatrix(&scratch->matrix, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    MulMatrix(&rootCoord->coord, &scratch->matrix);
+}
+
+/// Flattens the dying Sucklerceph's root along its local Y axis.
+///
+/// Requires live root/work storage and `savedRootMtx` captured when the death
+/// countdown ended. The Q12 Y scale falls by 80 while above 512, so it may
+/// finish below that threshold; X/Z stay at `ONE`. Rebuilds from the saved
+/// matrix each call to avoid compounding scale and invalidates composition.
+/// Releases its `ActorScaleScratch` block before return.
+static void _sucklercephFlatten(Task* task)
+{
+    enum { SUCKLERCEPH_FLATTEN_SCALE_THRESHOLD = 512,
+           SUCKLERCEPH_FLATTEN_SCALE_STEP      = 80 };
+
+    GfxCoord*          rootCoord;
+    ActorScaleScratch* scratch;
+    SucklercephWork*   work;
+
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleScratch);
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    if (work->flattenScaleY >= SUCKLERCEPH_FLATTEN_SCALE_THRESHOLD + 1) {
+        work->flattenScaleY -= SUCKLERCEPH_FLATTEN_SCALE_STEP;
+    }
+    _sucklercephRescaleRoot(rootCoord, work, scratch);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

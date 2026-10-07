@@ -1,9 +1,12 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Exit callback of the first enemy: detaches the enemy's contact records,
-/// unlinks its node and the work's four bodies, then runs the common enemy
-/// task exit.
-void sucklercephExit(Task* task)
+/// Detaches the Sucklerceph's collision and targeting state before teardown.
+///
+/// Requires the initialized task's live `SucklercephWork` and the owning enemy
+/// in `spawnArg2.pointer`. Unlinking tolerates the bodies and target node already
+/// being detached by the death state. Common enemy teardown releases the enemy
+/// and task work; neither pointer remains live after the call.
+static void _sucklercephExit(Task* task)
 {
     SucklercephWork* work;
     Enemy*           enemy;
@@ -11,7 +14,8 @@ void sucklercephExit(Task* task)
     enemy = task->spawnArg2.pointer;
     work  = task->work;
 
-    enemy->recs = 0;
+    // Detach borrowed storage and list links before either owner is freed.
+    enemy->recs = NULL;
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->senseBody);
     worldCollisionUnlinkBody(&work->body);

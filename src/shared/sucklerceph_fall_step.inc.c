@@ -1,19 +1,25 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Steps the dropping first enemy's root one frame: saves the current
-/// translation in `prevRootPos`, advances X and Z along the rotation's Z column
-/// scaled by the step length `forwardSpeed`, and Y by the fall speed `fallSpeed`.
-void sucklercephFallStep(Task* task)
+/// Advances the Sucklerceph's root for one falling frame.
+///
+/// Requires a live root and `SucklercephWork`. Saves the old translation for
+/// collision rollback, moves X/Z along the local matrix's Q12 forward column
+/// by signed `forwardSpeed`, and adds `fallSpeed` to Y. Both speeds use parent
+/// coordinate units per frame; positive Y falls. The caller applies contacts,
+/// accelerates the fall and invalidates composition.
+static void _sucklercephFallStep(Task* task)
 {
-    GfxCoord*        coord;
+    enum { SUCKLERCEPH_FALL_AXIS_FRACTION_BITS = 12 };
+
+    GfxCoord*        rootCoord;
     SucklercephWork* work;
 
-    coord                = task->extra.tmd->coords;
-    work                 = task->work;
-    work->prevRootPos.vx = coord->coord.t[0];
-    work->prevRootPos.vy = coord->coord.t[1];
-    work->prevRootPos.vz = coord->coord.t[2];
-    coord->coord.t[0]   += (coord->coord.m[0][2] * work->forwardSpeed) >> 12;
-    coord->coord.t[1]   += work->fallSpeed;
-    coord->coord.t[2]   += (coord->coord.m[2][2] * work->forwardSpeed) >> 12;
+    rootCoord              = task->extra.tmd->coords;
+    work                   = task->work;
+    work->prevRootPos.vx   = rootCoord->coord.t[0];
+    work->prevRootPos.vy   = rootCoord->coord.t[1];
+    work->prevRootPos.vz   = rootCoord->coord.t[2];
+    rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * work->forwardSpeed) >> SUCKLERCEPH_FALL_AXIS_FRACTION_BITS;
+    rootCoord->coord.t[1] += work->fallSpeed;
+    rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * work->forwardSpeed) >> SUCKLERCEPH_FALL_AXIS_FRACTION_BITS;
 }
