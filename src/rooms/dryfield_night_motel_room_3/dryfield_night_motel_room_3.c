@@ -16,12 +16,12 @@ extern TaskMessageEntry D_dryfield_night_motel_room_3_8017DA5C[];
 
 static s32 _dryfieldNightMotelRoom3RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightMotelRoom3IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
-s32        func_dryfield_night_motel_room_3_8017D68C(Task*, s32, s32, s32);
+static s32 _dryfieldNightMotelRoom3IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 TaskMessageEntry D_dryfield_night_motel_room_3_8017DA5C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom3RejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_3_8017D68C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom3IgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom3IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -48,8 +48,11 @@ static s32 _dryfieldNightMotelRoom3IgnoreRoomCommand(Task* unusedTask, s32 unuse
     return 0;
 }
 
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_3_8017D68C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-triggered room actions and returns zero.
+///
+/// All arguments are unused. The four-byte request is borrowed only for
+/// synchronous dispatch and is neither read nor retained; the second payload is zero.
+static s32 _dryfieldNightMotelRoom3IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }

@@ -39,6 +39,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_variants.h"
 
 /// The room's message table, which the room task answers messages with.
 extern TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[];
@@ -65,7 +66,7 @@ static const TaskFuncTable4 D_mine_tunnel_entrance_8017D5C4 = {
 };
 
 static s32 _mineTunnelEntranceRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_mine_tunnel_entrance_8017D5F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _mineTunnelEntranceResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _mineTunnelEntranceIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _mineTunnelEntranceIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
@@ -81,7 +82,7 @@ extern WorldCoordRoomLights       D_mine_tunnel_entrance_8017ECD4[1];
 extern TaskDesc Actor00100_D1BA84;
 
 TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_entrance_8017D5F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mineTunnelEntranceResolveRoomTransition },
     { MINE_TUNNEL_ENTRANCE_MESSAGE_USE_KEY_ITEM, _mineTunnelEntranceRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineTunnelEntranceIgnoreAction },
     { ROOM_MESSAGE_COMMAND, _mineTunnelEntranceIgnoreCommand },
@@ -495,13 +496,19 @@ static s32 _mineTunnelEntranceRejectKeyItem(Task* task, s32 messageId, s32 itemI
     return 0;
 }
 
-/// Message handler 0x13EE of the room's message table: copies the incoming
-/// record onto the outgoing one, passes both to `mapShelterRoomVariantResolve`, and returns 1.
-s32 func_mine_tunnel_entrance_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a room-transition destination from Mine/Shelter progress and permits departure.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; the task and message ID are unused.
+/// Request and reply borrow complete eight-byte records and may be the same object.
+/// The full record is copied before the stage resolver updates its room selector;
+/// queries preserve the copied destination. Area and arrival selectors must be
+/// valid in the destination stage. Neither pointer is retained. Always returns
+/// `ROOM_VARIANT_TRANSITION_DIRECT`, even when the destination is unchanged.
+static s32 _mineTunnelEntranceResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
 /// Ignores room commands and returns 0 without changing room state.

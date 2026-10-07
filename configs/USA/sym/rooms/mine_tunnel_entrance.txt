@@ -62,3 +62,4 @@ _mineTunnelEntranceIgnoreCommand = 0x8017d634; // type:func
 _mineTunnelEntranceIgnoreAction = 0x8017d63c; // type:func
 _mineTunnelEntranceAdvanceSceneEvent = 0x8017d690; // type:func
 _mineTunnelEntranceIdle = 0x8017d6b4; // type:func
+_mineTunnelEntranceResolveRoomTransition = 0x8017d5f0; // type:func

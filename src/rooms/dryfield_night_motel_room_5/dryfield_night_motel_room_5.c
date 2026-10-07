@@ -32,37 +32,46 @@ static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEven
 /// The room's message table, published at `Task::msgTable` by the room task.
 extern TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[];
 
-s32 func_dryfield_night_motel_room_5_8017D5F0(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_room_5_8017D674(Task*, s32, s32, s32);
-s32 func_dryfield_night_motel_room_5_8017D67C(Task*, s32, s32, s32);
+static s32 _dryfieldNightMotelRoom5RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _dryfieldNightMotelRoom5IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _dryfieldNightMotelRoom5IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyMsg },
-    { 5105, func_dryfield_night_motel_room_5_8017D5F0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_motel_room_5_8017D67C },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_motel_room_5_8017D674 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom5RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom5IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightMotelRoom5IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_dryfield_night_motel_room_5_8017D684(Task* task);
 static void func_dryfield_night_motel_room_5_8017D6C8(Task* task);
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_5_8017D5F0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request without consuming the selected item.
+///
+/// All arguments are unused. The item menu supplies the collected-item ID
+/// and a zero second payload; the refusal reply selects its unavailable-item notice.
+static s32 _dryfieldNightMotelRoom5RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 #include "../../shared/room_variants_motel_balcony.inc.c"
 
-/// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_5_8017D674(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores room commands from scripts and triggers, returning zero.
+///
+/// The command ID and its integer argument are unused, as are the receiver
+/// and message ID. No room state changes and no payload is retained.
+static s32 _dryfieldNightMotelRoom5IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_dryfield_night_motel_room_5_8017D67C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-triggered room actions and returns zero.
+///
+/// All arguments are unused. The four-byte request is borrowed only for
+/// synchronous dispatch and is neither read nor retained; the second payload is zero.
+static s32 _dryfieldNightMotelRoom5IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }

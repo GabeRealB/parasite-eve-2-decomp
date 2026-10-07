@@ -20,17 +20,19 @@
 
 #include "mapui/map_shelter.h"
 
+#include "../../shared/room_variants.h"
+
 /// The room's message table, handed to its event task in state 0.
 extern TaskMessageEntry D_shelter_1f_heliport_s4_8017D6D0[];
 
-s32        func_shelter_1f_heliport_s4_8017D5D0(Task*, s32, s32, s32);
-s32        func_shelter_1f_heliport_s4_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelter1fHeliportS4RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _shelter1fHeliportS4ResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelter1fHeliportS4IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelter1fHeliportS4IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 TaskMessageEntry D_shelter_1f_heliport_s4_8017D6D0[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_s4_8017D5D8 },
-    { 5105, func_shelter_1f_heliport_s4_8017D5D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fHeliportS4ResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fHeliportS4RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fHeliportS4IgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelter1fHeliportS4IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -161,18 +163,28 @@ WorldCollisionSurfaceProperties* D_shelter_1f_heliport_s4_8017E060[8] = {
 static void _shelter1fHeliportS4InitRoomTask(Task* task);
 static void _shelter1fHeliportS4IdleRoomTask(Task* task);
 
-s32 func_shelter_1f_heliport_s4_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use request without consuming the selected item.
+///
+/// All arguments are unused. The item menu supplies the collected-item ID
+/// and a zero second payload; the refusal reply selects its unavailable-item notice.
+static s32 _shelter1fHeliportS4RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming record onto the
-/// outgoing one, hands both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_shelter_1f_heliport_s4_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a room-transition destination from Mine/Shelter progress and permits departure.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; the task and message ID are unused.
+/// Request and reply borrow complete eight-byte records and may be the same object.
+/// The full record is copied before the stage resolver updates its room selector;
+/// queries preserve the copied destination. Area and arrival selectors must be
+/// valid in the destination stage. Neither pointer is retained. Always returns
+/// `ROOM_VARIANT_TRANSITION_DIRECT`, even when the destination is unchanged.
+static s32 _shelter1fHeliportS4ResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
 /// Ignores room commands from scripts and triggers, returning zero.

@@ -95,14 +95,14 @@ static const char Telephone_Data_8017D638[];
 /// The telephone menu's entry list.
 static UiList Telephone_Data_80181CF4;
 
-/// The room's message table, which `func_dryfield_motel_lobby_8017F44C`
+/// The room's message table, which `_dryfieldMotelLobbyInitRoomTask`
 /// installs on the room task.
 extern TaskMessageEntry D_dryfield_motel_lobby_8017F810[];
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xAD\x1A"
 #include "../../shared/telephone.h"
 
-static void func_dryfield_motel_lobby_8017F44C(Task* task);
+static void _dryfieldMotelLobbyInitRoomTask(Task* task);
 static void func_dryfield_motel_lobby_8017F490(Task* task);
 
 extern WorldCollisionGrid    D_dryfield_motel_lobby_8017FBE4[1];
@@ -585,13 +585,15 @@ static s32 _dryfieldMotelLobbyIgnoreRoomAction(Task* unusedTask, s32 unusedMessa
     return 0;
 }
 
-/// First state of the room task: installs the room's message table, stores the
-/// task in session pointer slot 7 and advances.
-static void func_dryfield_motel_lobby_8017F44C(Task* task)
+/// Registers the motel lobby's room-message receiver and advances to idle state 1.
+///
+/// Runs in room-task state 0. The message table is borrowed from this overlay,
+/// which must stay loaded while the registered task can receive messages.
+static void _dryfieldMotelLobbyInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_motel_lobby_8017F810;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Per-frame state of the room task: the room has nothing to update.
@@ -603,7 +605,7 @@ static void func_dryfield_motel_lobby_8017F490(Task* task)
 /// kill.
 static const TaskFuncTable3 D_dryfield_motel_lobby_8017D644 = {
     {
-        func_dryfield_motel_lobby_8017F44C,
+        _dryfieldMotelLobbyInitRoomTask,
         func_dryfield_motel_lobby_8017F490,
         taskKill,
     },

@@ -36,6 +36,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
+#include "../../shared/room_variants.h"
 
 /// The room's message table, handed to its event task in state 0.
 extern TaskMessageEntry D_shelter_1f_airlock_8017E494[];
@@ -51,7 +52,7 @@ enum {
 
 // Indexed views below share one contiguous table.
 static s32  _shelter1fAirlockRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
-s32         func_shelter_1f_airlock_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _shelter1fAirlockResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelter1fAirlockIgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 static s32  _shelter1fAirlockIgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
 static void _shelter1fAirlockIdle(Task* unusedTask);
@@ -63,7 +64,7 @@ extern WorldCollisionTrigger  D_shelter_1f_airlock_8017F5F8[4];
 extern WorldCoordRoomLights   D_shelter_1f_airlock_8017F418[1];
 
 TaskMessageEntry D_shelter_1f_airlock_8017E494[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_airlock_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fAirlockResolveRoomTransition },
     { SHELTER_1F_AIRLOCK_MESSAGE_USE_KEY_ITEM, _shelter1fAirlockRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fAirlockIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _shelter1fAirlockIgnoreCommandMessage },
@@ -402,13 +403,19 @@ static s32 _shelter1fAirlockRejectKeyItemUse(Task* unusedTask, s32 unusedMessage
     return SHELTER_1F_AIRLOCK_KEY_ITEM_REJECTED;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming save location
-/// onto the outgoing one, passes both to `mapNeoArkResolveRoomVariant` and returns 1.
-s32 func_shelter_1f_airlock_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a room-transition destination from Neo Ark progress and permits departure.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; the task and message ID are unused.
+/// Request and reply borrow complete eight-byte records and may be the same object.
+/// The full record is copied before the stage resolver updates its room selector;
+/// queries preserve the copied destination. Area and arrival selectors must be
+/// valid in the destination stage. Neither pointer is retained. Always returns
+/// `ROOM_VARIANT_TRANSITION_DIRECT`, even when the destination is unchanged.
+static s32 _shelter1fAirlockResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
 /// Ignores `ROOM_MESSAGE_COMMAND` and returns zero without changing room state.

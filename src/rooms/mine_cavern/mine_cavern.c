@@ -420,12 +420,18 @@ void mineCavernRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Credits one event-stage battle release and schedules weapon restoration.
+/// Records one scripted battle-hold release and schedules weapon restoration.
 ///
-/// The placed actor in slot 0 supplies rewards; the delay store keeps its low byte.
+/// A remaining battle hold credits rewards from the live room's placement 0,
+/// whose task must have an Enemy record; no task ownership changes. The signed
+/// frame delay is stored modulo 256 and counts unpaused actor-update frames.
+/// Weapon restoration is requested and the event-release count advances even
+/// when there was no battle hold. The caller gates each event stage once.
 static inline void _mineCavernCreditEventBattleRelease(s32 endDelayFrames)
 {
-    sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x1E);
+    enum { MINE_CAVERN_EVENT_REWARD_PLACEMENT = 0 };
+    // Rewards come from the placed enemy; the retained second argument is unused.
+    sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(MINE_CAVERN_EVENT_REWARD_PLACEMENT), 0x1E);
     gSceneCombatState.signals.bytes.endDelayFrames = endDelayFrames;
     gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     D_mine_cavern_8018EB54                        += 1;

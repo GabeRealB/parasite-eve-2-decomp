@@ -86,3 +86,7 @@ waterRefractionTask = 0x8017D638; // type:func
 _waterDrawSpin = 0x8017F8B4; // type:func
 _waterDrawTile = 0x8017FCA0; // type:func
 _neoArkBridgeDrawPulsingRedStar = 0x8017eb08; // type:func
+_neoArkBridgeRejectKeyItemUse = 0x8017e82c; // type:func
+_neoArkBridgeResolveRoomTransition = 0x8017e834; // type:func
+_neoArkBridgeIgnoreRoomCommand = 0x8017e878; // type:func
+_neoArkBridgeIgnoreRoomAction = 0x8017e880; // type:func

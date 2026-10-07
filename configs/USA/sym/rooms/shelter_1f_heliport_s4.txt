@@ -28,3 +28,5 @@ _shelter1fHeliportS4IgnoreRoomAction = 0x8017d624; // type:func
 _shelter1fHeliportS4InitRoomTask = 0x8017d62c; // type:func
 _shelter1fHeliportS4IdleRoomTask = 0x8017d670; // type:func
 shelter1fHeliportS4RoomTask = 0x8017d678; // type:func
+_shelter1fHeliportS4RejectKeyItemUse = 0x8017d5d0; // type:func
+_shelter1fHeliportS4ResolveRoomTransition = 0x8017d5d8; // type:func

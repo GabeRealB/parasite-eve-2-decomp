@@ -49,3 +49,4 @@ _shelter1fAirlockRejectKeyItemUse = 0x8017d5d0; // type:func
 _shelter1fAirlockIgnoreCommandMessage = 0x8017d61c; // type:func
 _shelter1fAirlockIgnoreActionMessage = 0x8017d624; // type:func
 _shelter1fAirlockIdle = 0x8017d670; // type:func
+_shelter1fAirlockResolveRoomTransition = 0x8017d5d8; // type:func

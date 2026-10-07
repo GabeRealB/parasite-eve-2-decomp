@@ -88,3 +88,4 @@ _dryfieldMotelLobbyRefuseKeyItem = 0x8017f40c; // type:func
 _dryfieldMotelLobbyAcceptRoomTransition = 0x8017f414; // type:func
 _dryfieldMotelLobbyIgnoreRoomCommand = 0x8017f43c; // type:func
 _dryfieldMotelLobbyIgnoreRoomAction = 0x8017f444; // type:func
+_dryfieldMotelLobbyInitRoomTask = 0x8017f44c; // type:func

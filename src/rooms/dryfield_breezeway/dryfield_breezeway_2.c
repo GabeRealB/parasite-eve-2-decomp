@@ -603,14 +603,20 @@ void func_dryfield_breezeway_8017E114(Task* arg0)
     func_dryfield_breezeway_8017DEC0(arg0);
 }
 
-/// Starts the opening encounter's pursuit and places its second chaser at the mark.
+/// Hands the opening encounter from its cutscene chaser to its pursuing combat chaser.
+///
+/// The published first-event task, work, scene and both placed actors must be live.
+/// The scene command hides the cutscene chaser and starts the combat chaser;
+/// placement then sets the latter's room-coordinate position and yaw. Both
+/// requests are consumed synchronously, and neither actor is owned by this helper.
 static inline void _dryfieldBreezewayStartFirstEventPursuit(void)
 {
+    enum { DRYFIELD_BREEZEWAY_FIRST_EVENT_COMBAT_CHASER = 1 };
     _DryfieldBreezewayFirstEventWork* work;
 
     work = D_dryfield_breezeway_801843C0->work;
     _dryfieldBreezewayBroadcastActorCommand(DRYFIELD_BREEZEWAY_ACTOR_COMMAND_START_PURSUIT);
-    TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[1], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[DRYFIELD_BREEZEWAY_FIRST_EVENT_COMBAT_CHASER], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
 }
 
 /// Starts the opening encounter's desert-chaser pursuit and places its second chaser at the mark.

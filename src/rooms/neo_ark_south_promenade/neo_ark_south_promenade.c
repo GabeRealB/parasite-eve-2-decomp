@@ -42,6 +42,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
+#include "../../shared/room_variants.h"
 
 /// The room's message table, which the message-driven task installs.
 extern TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[];
@@ -60,7 +61,7 @@ static const TaskFuncTable3 D_neo_ark_south_promenade_8017D5C4 = {
 };
 
 static s32 _neoArkSouthPromenadeRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_neo_ark_south_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _neoArkSouthPromenadeResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _neoArkSouthPromenadeIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _neoArkSouthPromenadeIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
@@ -74,7 +75,7 @@ extern WorldCollisionTrigger  D_neo_ark_south_promenade_801806B0[6];
 extern WorldCoordRoomLights   D_neo_ark_south_promenade_801804D0[1];
 
 TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_south_promenade_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSouthPromenadeResolveRoomTransition },
     { NEO_ARK_SOUTH_PROMENADE_MESSAGE_USE_KEY_ITEM, _neoArkSouthPromenadeRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSouthPromenadeIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _neoArkSouthPromenadeIgnoreCommandMessage },
@@ -355,14 +356,19 @@ static s32 _neoArkSouthPromenadeRejectKeyItemMessage(Task* task, s32 messageId, 
     return KEY_ITEM_REFUSED;
 }
 
-/// Message handler the room's message table names for one of its entries:
-/// copies the incoming message onto the outgoing one, passes both to
-/// `mapNeoArkResolveRoomVariant` and returns 1.
-s32 func_neo_ark_south_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a room-transition destination from Neo Ark progress and permits departure.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; the task and message ID are unused.
+/// Request and reply borrow complete eight-byte records and may be the same object.
+/// The full record is copied before the stage resolver updates its room selector;
+/// queries preserve the copied destination. Area and arrival selectors must be
+/// valid in the destination stage. Neither pointer is retained. Always returns
+/// `ROOM_VARIANT_TRANSITION_DIRECT`, even when the destination is unchanged.
+static s32 _neoArkSouthPromenadeResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
 /// Ignores room commands from CAP and facing triggers, returning zero.
