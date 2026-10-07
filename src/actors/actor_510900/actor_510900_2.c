@@ -1686,7 +1686,7 @@ static void func_actor_510900_801373B8(Task* arg0)
     work->lapSpeed = 0;
     if (work->animationFrame == 0x14) {
         work->grenadeLive = 1;
-        model             = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 4, roll, enemy)->task->extra.tmd;
+        model             = enemySpawnFromTable(D_actor_510900_80167A18, 4, roll, enemy)->task->extra.tmd;
         idx               = (u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         sessionKey        = &gGameSession->location.loc;
         key.stage         = sessionKey->stage;

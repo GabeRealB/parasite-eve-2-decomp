@@ -3323,7 +3323,7 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
         case 0:
             work->animId      = 0x22;
             enemy->spawnState = 1;
-            Gp_SaveEnemyPose(enemy);
+            areaSaveEnemyPose(enemy);
             break;
         case 1:
             work->animId = 0x23;
@@ -3336,7 +3336,7 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
             break;
         case 4:
             enemy->spawnState = 1;
-            Gp_SaveEnemyPose(enemy);
+            areaSaveEnemyPose(enemy);
             work->animId = 0x28;
             break;
     }
@@ -3346,7 +3346,7 @@ s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
 }
 
 /// Display-object handler: `arg2` selects the mode. `Enemy.spawnState`, the
-/// occupancy tag `Gp_SaveEnemyPose` writes, chooses the flag word in modes 1
+/// occupancy tag `areaSaveEnemyPose` writes, chooses the flag word in modes 1
 /// and 3.
 ///
 /// Mode 0 hides the model with `TMD_OBJECT_SKIP_ACTIVE_DRAW`, allocates its

@@ -4285,7 +4285,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
 
     Actor444000_SeedRootCoord(task, work);
 
-    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 0, 0, task->spawnArg2.pointer);
+    esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 0, 0, task->spawnArg2.pointer);
     work->escorts[0]                                      = esc;
     esc->task->extra.tmd->coords->parent                  = task->extra.tmd->coords;
     work->escorts[0]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4315,7 +4315,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     func_8010C980(&work->escorts[0]->task->extra.tmd->coords[3], &work->hits[5].body, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts),
                   0x20, 0x300);
 
-    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 1, 0, task->spawnArg2.pointer);
+    esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 1, 0, task->spawnArg2.pointer);
     work->escorts[1]                                      = esc;
     esc->task->extra.tmd->coords->parent                  = task->extra.tmd->coords;
     work->escorts[1]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4345,7 +4345,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     func_8010C980(&work->escorts[1]->task->extra.tmd->coords[3], &work->hits[8].body, work->hits[8].contacts, ARRAY_SIZE(work->hits[8].contacts),
                   0x20, 0x300);
 
-    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 2, 0, task->spawnArg2.pointer);
+    esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 2, 0, task->spawnArg2.pointer);
     work->escorts[2]                                      = esc;
     esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[4];
     work->escorts[2]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4353,7 +4353,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->escorts[2]->task->extra.tmd->coords->coord.t[2] = -0x64;
     work->escorts[2]->task->extra.tmd->flags              = 0;
 
-    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 3, 0, task->spawnArg2.pointer);
+    esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 3, 0, task->spawnArg2.pointer);
     work->escorts[3]                                      = esc;
     esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[3];
     work->escorts[3]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4406,7 +4406,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     worldCollisionInitContacts(work->swipeContacts, ARRAY_SIZE(work->swipeContacts), 0);
     work->swipeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 4, 0, task->spawnArg2.pointer);
+    esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 4, 0, task->spawnArg2.pointer);
     work->escorts[4]                                      = esc;
     esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[4];
     work->escorts[4]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4414,7 +4414,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->escorts[4]->task->extra.tmd->coords->coord.t[2] = 0x14;
     work->escorts[4]->task->extra.tmd->flags              = 0;
 
-    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 5, 0, task->spawnArg2.pointer);
+    esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 5, 0, task->spawnArg2.pointer);
     work->escorts[5]                                      = esc;
     esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[2];
     work->escorts[5]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4423,7 +4423,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->escorts[5]->task->extra.tmd->flags              = 0;
 
     if ((task->spawnArg1.value >> 16) == 0) {
-        esc                                                   = Gp_SpawnEnemyFromTable(D_actor_444000_801616B0, 6, 0, task->spawnArg2.pointer);
+        esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 6, 0, task->spawnArg2.pointer);
         work->escorts[6]                                      = esc;
         esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[1];
         work->escorts[6]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -5768,7 +5768,7 @@ static void func_actor_444000_801404C0(Task* arg0)
             effectSpawn(EFFECT_196, &D_actor_444000_80161948.coords[D_actor_444000_80161850], 0x27A0D600, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
-            spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);
+            spawned           = enemySpawnFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
             work->lastSpawned = spawned;
         }
@@ -6159,7 +6159,7 @@ static void func_actor_444000_80141618(Task* task)
         }
         for (sc->slot = 0; sc->slot < 2; sc->slot++) {
             if (work->summons[sc->slot] == NULL && (u8)work->summonsSpawned < 8 && work->phase < 6) {
-                work->summons[sc->slot] = Gp_SpawnEnemyFromTable(&Actor04400_D107E4, 3, 2, NULL);
+                work->summons[sc->slot] = enemySpawnFromTable(&Actor04400_D107E4, 3, 2, NULL);
                 if (work->summons[sc->slot] != NULL) {
                     work->summonsSpawned++;
                     model      = work->summons[sc->slot]->task->extra.tmd;

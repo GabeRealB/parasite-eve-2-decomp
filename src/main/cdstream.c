@@ -1265,7 +1265,7 @@ void CdStream_Stop(void)
 
         p = &CdStream_Runtime.state;
         if ((p->flags2 >> CD_STREAM_HALT_BIT) & 1) {
-            func_800B0118(0, 0);
+            streamSetSceneError(0, 0);
             p->flags2 = p->flags2 & CD_STREAM_CLEAR_HALT;
         }
     }
@@ -1368,7 +1368,7 @@ static void CdStream_CleanupIrq(void)
     }
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 & CD_STREAM_CLEAR_SPU_IRQ;
     CdStream_Runtime.state.flags0 = CdStream_Runtime.state.flags0 & CD_STREAM_CLEAR_STOP;
-    func_800B0118(0, 0);
+    streamSetSceneError(0, 0);
     p                             = &CdStream_Runtime.state;
     temp                          = p->flags2;
     p->flags2                     = temp & 0xF7;
@@ -1437,7 +1437,7 @@ static void CdStream_TickPlayback(void)
                 }
                 CdStream_LastErrorCode         = CdStream_ErrorCode;
                 CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_ACTIVE;
-                func_800B0118((s32)(s16)CdStream_ErrorCode, 0);
+                streamSetSceneError((s32)(s16)CdStream_ErrorCode, 0);
                 CdStream_ErrorCode             = 0;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_HALT;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_REQUEUE;
@@ -1530,7 +1530,7 @@ static void CdStream_CompleteChunkRead(void)
                 }
                 CdStream_LastErrorCode         = CdStream_ErrorCode;
                 CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_ACTIVE;
-                func_800B0118((s32)(s16)CdStream_ErrorCode, 0);
+                streamSetSceneError((s32)(s16)CdStream_ErrorCode, 0);
                 CdStream_ErrorCode             = 0;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_HALT;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_REQUEUE;
@@ -1603,7 +1603,7 @@ void CdStream_Drive(void)
         if (CdStream_Runtime.state.flags0 & CD_STREAM_ACTIVE) {
             if (((u8)CdStream_Runtime.state.flags2 >> CD_STREAM_FAULT_BIT) & 1) {
                 CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_ACTIVE;
-                func_800B0118((s32)(s16)CdStream_ErrorCode, 0);
+                streamSetSceneError((s32)(s16)CdStream_ErrorCode, 0);
                 CdStream_Runtime.state.flags2 |= CD_STREAM_HALT;
                 CdStream_ErrorCode             = 0;
                 CdStream_Runtime.state.flags2 |= CD_STREAM_REQUEUE;
@@ -1664,7 +1664,7 @@ void CdStream_Drive(void)
                         CdStream_Runtime.state.readySlot = 0;
                     }
                     if (((u8)CdStream_Runtime.state.flags2 >> CD_STREAM_HALT_BIT) & 1) {
-                        func_800B0118(0, 0);
+                        streamSetSceneError(0, 0);
                         CdStream_Runtime.state.flags2 &= CD_STREAM_CLEAR_HALT;
                     }
                     CdStream_Runtime.state.flags0 &= CD_STREAM_CLEAR_STOP;
@@ -1727,7 +1727,7 @@ void CdStream_Drive(void)
                             CdStream_Runtime.state.readySlot = 0;
                         }
                         if (((u8)CdStream_Runtime.state.flags2 >> CD_STREAM_HALT_BIT) & 1) {
-                            func_800B0118(0, 0);
+                            streamSetSceneError(0, 0);
                             CdStream_Runtime.state.flags2 &= CD_STREAM_CLEAR_HALT;
                         }
                         if (D_80068B5C != 0) {
@@ -2168,7 +2168,7 @@ static void CdStream_ReadyMts(u8 interrupt, u8* result)
                     skipIndex = D_80068B78++ & 0xFF;
                     skipStamp = skipIndex | ((CdStream_Runtime.state.chunkIndex << 8) & 0xFFFF00);
                     if (D_80068B74 < skipStamp) {
-                        if ((func_800AF590(0, 0) << 0x10) != 0) {
+                        if ((streamReadSceneImageSector(0, 0) << 0x10) != 0) {
                             goto check_status;
                         }
                         *(volatile s32*)&D_80068B74 = skipStamp;

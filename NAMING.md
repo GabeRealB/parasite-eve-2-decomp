@@ -311,9 +311,9 @@ in a row identify different responsibilities in the same source group.
 | `sndVolume` | Combined MIDI/script master-volume policies and their request gates | `sndscript.c`, `sndevt.c` | `src/main/sound.h` |
 | `sndOutput` | Resident mono/stereo output selection shared by MIDI, sound scripts, CD input and streaming voices | `cdvol.c` | `include/main/sound.h`, `src/main/sound.h` |
 | `midi`, `sndEvt` | Music sequencing and sound events | `sndevt.c` | `include/main/sound.h`, `include/main/sound_types.h`, `src/main/sound.h` |
-| `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c` | `include/main/sound.h`, `src/main/sound.h`, `src/main/sound_types.h` |
+| `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c`, gameplay `scene_runtime.c` (PE file requests) | `include/main/sound.h`, `src/main/sound.h`, `src/main/sound_types.h`, `src/gameplay/scene_runtime.h` (PE file requests) |
 | `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `include/main/sound.h`, `src/main/sound.h` |
-| `stream`, `mdec` | Stream slots and MDEC movie/image decoding | `stream.c`, `stage.c` (image decoding) | `include/main/stream.h`, `include/main/stream_types.h`, `src/main/stream.h` |
+| `stream`, `mdec` | Stream slots and MDEC movie/image decoding; scene/audio selection, payload-sector intake, completion and stream halt requests | `stream.c`, `stage.c` (image decoding), gameplay `scene_runtime.c` (scene stream coordination) | `include/main/stream.h`, `include/main/stream_types.h`, `src/main/stream.h`, `include/gameplay/scene_runtime.h` (scene stream coordination) |
 | `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `include/main/tmd.h`, `include/main/tmd_types.h`, `src/main/tmd.h` |
 | `gameFlag` | Packed game flags | `gameflag.c` | `include/main/gameflag.h`, `include/main/gameflag_types.h` |
 | `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `include/main/session.h`, `include/main/session_types.h`, `include/main/wipsys.h`, `include/main/wipsys_types.h` |
@@ -353,7 +353,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `itemPickup`, `itemPlacement` | Pickup dispatch and placed items | `pickup_dispatch.c`, `item_placement.c` | `include/gameplay/item_placement.h`, `src/gameplay/item_placement.h` |
 | `weapon` | Resident weapon/ammunition properties and stat presentation | `weapon_stats.c` | `src/gameplay/weapon_data.h` |
 | `damage` | Damage calculation, attack and hazard properties, enemy hit reactions and combat modifiers | `damage.c`, `object_fields.c` | `include/gameplay/damage.h`, `src/gameplay/damage.h` |
-| `enemy` | Enemy work objects and the shared parameters of one enemy kind | `scene_runtime.c` (`Gp_AllocEnemy`) | `include/gameplay/enemy.h`, `include/gameplay/enemy_params.h` |
+| `enemy` | Enemy work objects and the shared parameters of one enemy kind | `scene_runtime.c` (`_enemyAllocateWork`) | `include/gameplay/enemy.h`, `include/gameplay/enemy_params.h` |
 | `cap` | CAP relocation, dialogue, commands, rendering and playback | `cap_commands.c`, `cap_control.c`, `cap_reloc.c`, `cap_script.c`, `cap_start.c`, `captions.c` | `include/gameplay/cap.h`, `include/gameplay/captions.h`, `src/gameplay/cap.h`, `src/gameplay/captions.h` |
 | `evs` | Event-script dispatch | `evs_scripts.c` | `include/gameplay/evs.h`, `include/gameplay/evs_scripts.h`, `src/gameplay/evs_scripts.h` |
 | `effect` | Gameplay effect tasks and scratch workspace records shared by effect drawers across overlays | `effect_tasks.c`, `effect_attach.c`, `player_actor.c` | `include/gameplay/effect_tasks.h`, `include/gameplay/effects.h` (workspace types), `src/gameplay/effect_tasks.h` |

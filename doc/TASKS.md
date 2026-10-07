@@ -17,7 +17,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 | Bank tables | `asm/USA/main/data/task.data.s` (`gTaskDescBanks`), plus `52E8C` / `578D0` / `57EA8` / `57F34` / `58028` / `59184.data.s` |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`D_8010FC2C`, `0x80114B34`) |
 | Title extras | `src/title/title.c`, `Title_TaskDescs` |
-| Enemies | `src/gameplay/scene_runtime.c` (`Gp_SpawnEnemy`, `Gp_SpawnEnemyFromTable`) |
+| Enemies | `src/gameplay/scene_runtime.c` (`_enemySpawn`, `enemySpawnFromTable`) |
 | UI stack descs | `src/main/ui.c` (`uiSpawnObject`) |
 
 **Coverage.** The scheduler is fully described. Bank 0 (system) and bank 9 (FX)
@@ -393,8 +393,8 @@ then kill the bodyless task (2). The first two states each advance once and
 walk the current attached-model list independently. Models and coordinates stay
 attached; buffer users, including the GPU, must finish before state 1 runs.
 
-`Gp_SpawnEnemy(bank, type, arg, parent)` is `taskSpawn` plus a primary-heap
-`Enemy` allocation in `spawnArg2.pointer` (`Gp_AllocEnemy`). `enemyTaskExit`
+`_enemySpawn(bank, selector, spawnArg, parent)` is `taskSpawn` plus a primary-heap
+`Enemy` allocation in `spawnArg2.pointer` (`_enemyAllocateWork`). `enemyTaskExit`
 releases that allocation before default task teardown.
 
 ### Bank 6 — 667 room actors
@@ -494,7 +494,7 @@ releasing tasks; session reset does this before discarding the list and heap.
 - **Bank 6** (667 room-overlay callbacks) and most of **bank 7** (per-item TMD
   sources). The tables are complete; the functions are not.
 - **`0x807xxxxx`** overlays referenced from banks 0/1/3/4/5/14. No splat tree.
-- **Enemy / room `TaskDesc` tables** (`Gp_SpawnEnemyFromTable`, `func_800B25B0`
+- **Enemy / room `TaskDesc` tables** (`enemySpawnFromTable`, `func_800B25B0`
   save-slot switch). Overlay-local, mostly unnamed.
 - **UI** tasks built from `UiObjectDesc` rather than a bank index.
 - Several bank-0 `func_*` that are matched C but not renamed

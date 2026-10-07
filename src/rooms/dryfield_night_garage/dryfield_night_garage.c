@@ -629,7 +629,7 @@ void func_dryfield_night_garage_80180944(void)
 /// Restores the stream random-number state.
 void func_dryfield_night_garage_80180964(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 /// Cancels the queued overlay replacement and restarts the CD queue.

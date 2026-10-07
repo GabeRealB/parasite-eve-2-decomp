@@ -6,7 +6,7 @@
 /// `gSceneCombatState.actorControl` gates it: 1 only redraws and 2 hides the model and its lock-on
 /// node, both returning; 0 shows them and runs the states. State 0 unlinks the enemy's lock-on
 /// node and collision bodies, releases its state-F0 slot, settles on the idle
-/// `downedPose` selects, files the pose with `Gp_SaveEnemyPose` so the enemy is
+/// `downedPose` selects, files the pose with `areaSaveEnemyPose` so the enemy is
 /// restored in that pose, and raises `gSceneCombatState.golemPawnRookDeathAlert`. State 1 spawns a spark
 /// every fourth frame. Either way the animation slots advance or are reseeded
 /// and the model is drawn with its ground shadow.
@@ -72,7 +72,7 @@ void golemPawnRookDeadState(Enemy* arg0, Task* arg1)
             work->anim       = anim;
             work->step       = 1;
             arg0->spawnState = (u8)work->downedPose;
-            Gp_SaveEnemyPose(arg0);
+            areaSaveEnemyPose(arg0);
             gSceneCombatState.golemPawnRookDeathAlert = 1;
             break;
         case 1:

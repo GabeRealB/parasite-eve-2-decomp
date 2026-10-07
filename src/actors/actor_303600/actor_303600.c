@@ -1972,7 +1972,7 @@ void func_actor_303600_80162678(void)
 /// `CdCmd_CancelReplaceAndActivate`.
 void func_actor_303600_80162698(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
     CdCmd_CancelReplaceAndActivate();
 }
 

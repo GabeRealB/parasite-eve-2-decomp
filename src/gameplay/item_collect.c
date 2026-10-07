@@ -373,7 +373,7 @@ static Enemy* Gp_SpawnAtPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place)
     TmdObject* extra;
     GfxCoord*  coord;
 
-    enemy = Gp_SpawnEnemyFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
+    enemy = enemySpawnFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
     if (enemy != NULL) {
         task = enemy->task;
         if (task->bodyKind != TASK_BODY_NONE) {

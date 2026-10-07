@@ -1002,7 +1002,7 @@ static void Actor02400_Fn01B90(Task* task)
             }
             break;
         case ACTOR_02400_CAST_PHASE_RELEASE:
-            Gp_SpawnEnemyFromTable(Actor02400_D0465C, 1, 0, task->spawnArg2.pointer);
+            enemySpawnFromTable(Actor02400_D0465C, 1, 0, task->spawnArg2.pointer);
             gSceneCombatState.actor02400Alert = 1;
             work->phase                       = ACTOR_02400_CAST_PHASE_SHRINK;
             if (work->chargeEffect != NULL) {

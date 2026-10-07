@@ -25,7 +25,7 @@ void maggotCaterpillarSprayState(Task* arg0)
         sndEvtRequestScriptStart(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
     if ((work->animFrame >= 0x2B) && (work->animFrame < 0x32)) {
-        Gp_SpawnEnemyFromTable(work->taskTable, 1, 0, arg0->spawnArg2.pointer);
+        enemySpawnFromTable(work->taskTable, 1, 0, arg0->spawnArg2.pointer);
         work->puffCount++;
     }
     if (work->animFrame >= (gMaggotCaterpillarSprayTail + 0x3C)) {

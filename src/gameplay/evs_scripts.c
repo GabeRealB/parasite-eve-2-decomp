@@ -304,7 +304,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 arg0->state++;
                 displayReleaseMenuHold();
                 if (D_801156CA != 0) {
-                    Gp_RestoreStreamRng();
+                    streamFinishScene();
                 }
                 D_8011569C = 0;
                 return;
@@ -534,7 +534,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM:
-                Gp_RestoreStreamRng();
+                streamFinishScene();
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE:

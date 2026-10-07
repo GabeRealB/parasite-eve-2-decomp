@@ -71,7 +71,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     work->targetBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->targetBody);
     work->targetBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    spawned                 = Gp_SpawnEnemyFromTable(gGeneratorTasks, 1, 0, arg0);
+    spawned                 = enemySpawnFromTable(gGeneratorTasks, 1, 0, arg0);
     model                   = spawned->task->extra.tmd;
     idx                     = arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     sessionKey              = &gGameSession->location.loc;

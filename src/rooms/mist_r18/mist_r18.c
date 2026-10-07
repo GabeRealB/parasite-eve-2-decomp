@@ -1639,7 +1639,7 @@ void func_mist_r18_8017EC38(void)
 
 void func_mist_r18_8017EC58(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 /// Clear the queued CD command and restart the CD queue.

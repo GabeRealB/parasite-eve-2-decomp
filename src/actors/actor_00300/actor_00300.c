@@ -1370,7 +1370,7 @@ static void Actor00300_Fn00970(Enemy* enemy, Task* task)
     work->savedRootMtx = coord->coord;
     work->timer        = 0xA;
     work->mp           = ACTOR_00300_MP_AT_SPAWN;
-    child              = Gp_SpawnEnemyFromTable(Actor00300_D162F0, 1, 0, enemy);
+    child              = enemySpawnFromTable(Actor00300_D162F0, 1, 0, enemy);
     rawId              = enemy->placeKey;
     model              = child->task->extra.tmd;
     sessionKey         = &gGameSession->location.loc;
@@ -2095,7 +2095,7 @@ static void Actor00300_Fn01F9C(Task* arg0)
                 }
             }
             if (work->animFrame == 0xE) {
-                Gp_SpawnEnemyFromTable(Actor00300_D162F0, 2, 0, arg0->spawnArg2.pointer);
+                enemySpawnFromTable(Actor00300_D162F0, 2, 0, arg0->spawnArg2.pointer);
                 sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40030005;
                 pan2  = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(sound, (s32)pan2,

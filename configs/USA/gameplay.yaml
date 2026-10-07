@@ -85,7 +85,7 @@ segments:
       - [0xAC, .rodata, hud_sprites] # hidden-amount label
       - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from Gp_EnqueueWeaponCd, then the session, load and room-object tables
       - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from Gp_LookupStageFlag
-      - [0x1BC, .rodata, scene_runtime] # jtbls from func_800AF590 and Gp_StepCdAudioCmd, then its strings and state tables
+      - [0x1BC, .rodata, scene_runtime] # jtbls from streamReadSceneImageSector and Gp_StepCdAudioCmd, then its strings and state tables
       - [0x268, .rodata, equipment] # jtbl from func_800B7420, then Gp_StrNotice2
       - [0x4CC, .rodata, item_menu] # jtbls: Gp_ItemMoveChild + strings/tables + _itemMenuHandlePaneChildResult
       - [0x668, .rodata, item_inventory]
@@ -130,7 +130,7 @@ segments:
       - [0x19EBC, c, direction_input] # func_800AD6BC
       - [0x1A9F0, c, direction_facing] # Gp_MsgPlayerDirFacing
       - [0x1AFAC, c, area_transitions] # area flags and transition tasks
-      - [0x1BD90, c, scene_runtime] # func_800AF590
+      - [0x1BD90, c, scene_runtime] # streamReadSceneImageSector
       - [0x22BB8, c, item_publish] # Gp_LookupBit2Item
       - [0x22DB0, c, item_notice] # func_800B65B0
       - [0x23150, c, item_placement] # Gp_SpawnPlaceById

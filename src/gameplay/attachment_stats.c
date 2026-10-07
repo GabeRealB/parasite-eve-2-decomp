@@ -1184,7 +1184,7 @@ static void Gp_UseItemTask(HudState* hud)
             lvl   = getAttachLevel(Gp_StateC08.activeIndex);
             sndId = Gp_StateC08.activeIndex * 3 + lvl;
             if (isStateF0Active_()) {
-                Gp_EnqueueSndCd(sndId);
+                sndLoadEnqueuePeFile(sndId);
             }
             Gp_StateC08.soundStep    = ATTACHMENT_SOUND_PLAYED;
             Gp_StateC08.previewSound = 0;

@@ -276,7 +276,7 @@ void func_dryfield_toilet_8017DC70(void)
 
 void func_dryfield_toilet_8017DC90(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 void func_dryfield_toilet_8017DCB0(void)

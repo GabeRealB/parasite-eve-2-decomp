@@ -3308,7 +3308,7 @@ static Enemy* func_actor_206100_8014EE2C(s32 arg0)
     Enemy*     enemy;
     TmdObject* obj;
 
-    enemy = Gp_SpawnEnemyFromTable(&D_actor_100400_80147E48, 0, 3, NULL);
+    enemy = enemySpawnFromTable(&D_actor_100400_80147E48, 0, 3, NULL);
     if (enemy != NULL) {
         enemy->placeKey        = arg0 << ENEMY_PLACE_INDEX_SHIFT;
         enemy->place           = &D_actor_206100_80155134[(s16)arg0];

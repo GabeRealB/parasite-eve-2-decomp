@@ -421,7 +421,7 @@ void func_actor_150400_80131ECC(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;
         taskSpawn(0, 0x11, 0, 0);
-        Gp_RestoreStreamRng();
+        streamFinishScene();
     }
 }
 
@@ -470,7 +470,7 @@ static void func_actor_150400_80132014(Enemy* enemy, Task* task)
     obj->flags                       = 0;
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
-    spawned                          = Gp_SpawnEnemyFromTable(D_actor_150400_8013C8F4, 1, 0, enemy);
+    spawned                          = enemySpawnFromTable(D_actor_150400_8013C8F4, 1, 0, enemy);
     actorTintModel(spawned->task->extra.tmd, enemy);
     taskReparent(task, spawned->task);
     work->pairTask = spawned->task;

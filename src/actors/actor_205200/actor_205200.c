@@ -326,7 +326,7 @@ static void func_actor_205200_8014A72C(Enemy* enemy, Task* task)
     work->site                    = site;
     D_actor_205200_8015B458.state = SCREEN_WAVE_RAMP_FINISHED;
     for (i = 0; i < D_actor_205200_8014CA1C[work->site]; i++) {
-        Gp_SpawnEnemyFromTable(D_actor_205200_8014CA60, 1, 0, enemy);
+        enemySpawnFromTable(D_actor_205200_8014CA60, 1, 0, enemy);
     }
     timer            = D_actor_205200_8014C9CC[D_actor_205200_8014CA1C[work->site]];
     work->startDelay = ACTOR_205200_START_DELAY;

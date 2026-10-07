@@ -272,7 +272,7 @@ void func_dryfield_night_dilapidated_house_8017DA90(void)
 /// Cutscene script callback: restores the stream random state.
 void func_dryfield_night_dilapidated_house_8017DAB0(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 /// Cutscene script callback: clears the queued CD command and restarts the CD

@@ -90,7 +90,7 @@ Playback uses the CD command queue / CdAudio.
 ### 2.1 Descriptor (type = 2)
 
 These entries can load scene images/resources and a frame-timing prefix alongside
-CD audio. Their common key is matched by `Gp_FindStreamSlot` without a wildcard;
+CD audio. Their common key is matched by `streamSelectScene` without a wildcard;
 group zero selects the stage-zero table, and a nonzero group selects the folder
 table. `data.scene` occupies the same bytes as `data.movie`.
 

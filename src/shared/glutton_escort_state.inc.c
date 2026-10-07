@@ -98,7 +98,7 @@ void gluttonEscortState(Task* arg0)
             break;
         case 0xAF:
         case 0x145:
-            spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 3, 0, arg0->spawnArg2.pointer);
+            spawned           = enemySpawnFromTable(gGluttonEscortTasks, 3, 0, arg0->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
             work->lastSpawned = spawned;
             if (spawned != NULL) {

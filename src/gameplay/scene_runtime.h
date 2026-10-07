@@ -16,7 +16,14 @@ extern TaskDesc D_8010D1FC;
 
 void func_800B25B0(void);
 
-void Gp_EnqueueSndCd(u8 arg0);
+/// Queues a stage-zero PE sound file unless that file was already requested.
+///
+/// `fileIndex` must select a loaded category-5 entry (0..63). On a changed ID,
+/// stops PE script instances, queues a normal file load and requests a seek
+/// back to the current view, then caches the requested ID immediately. The cache
+/// records a request, not successful completion. No idle/full-ring check is
+/// made; the caller must respect the CD request ring's capacity.
+void sndLoadEnqueuePeFile(u8 fileIndex);
 
 /// Ticks a directly supplied player slot into its model coordinate.
 ///

@@ -3244,7 +3244,7 @@ static void _shelterB3DumpingHoleDebrisEventEnqueuePlayback(void)
 
 void func_shelter_b3_dumping_hole_80180034(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
     CdCmd_CancelReplaceAndActivate();
 }
 
@@ -3816,7 +3816,7 @@ static void _shelterB3DumpingHoleCollapseEventEnqueuePlayback(void)
 
 void func_shelter_b3_dumping_hole_801819F0(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
     CdCmd_CancelReplaceAndActivate();
 }
 
@@ -3926,8 +3926,8 @@ static void func_shelter_b3_dumping_hole_80183298(Task* arg0)
         return;
     }
     arg0->work   = work;
-    work->enemy0 = Gp_SpawnEnemyFromTable(&D_actor_207000_80151E60, 1, 1, 0);
-    work->enemy1 = Gp_SpawnEnemyFromTable(&D_actor_207000_80151E60, 1, 1, 0);
+    work->enemy0 = enemySpawnFromTable(&D_actor_207000_80151E60, 1, 1, 0);
+    work->enemy1 = enemySpawnFromTable(&D_actor_207000_80151E60, 1, 1, 0);
     if (work->enemy0 == NULL && work->enemy1 == NULL) {
         taskKill(arg0);
         return;
@@ -4160,7 +4160,7 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
     if (work != NULL) {
         Enemy* enemy;
         arg0->work = work;
-        enemy      = Gp_SpawnEnemyFromTable(&Actor04400_D107E4, 1, 0, NULL);
+        enemy      = enemySpawnFromTable(&Actor04400_D107E4, 1, 0, NULL);
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
@@ -4211,7 +4211,7 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
     if (work != NULL) {
         Enemy* enemy;
         arg0->work = work;
-        enemy      = Gp_SpawnEnemyFromTable(&D_actor_207000_801575F0, 2, 0, NULL);
+        enemy      = enemySpawnFromTable(&D_actor_207000_801575F0, 2, 0, NULL);
         if (enemy != NULL) {
             u16 idx;
             D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;

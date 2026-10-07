@@ -47,7 +47,7 @@ static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place)
     id = spawn->kind;
     while (id != AREA_OBJECT_SPAWN_END) {
         if (id == place->kind) {
-            enemy = Gp_SpawnEnemyFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
+            enemy = enemySpawnFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
             if (enemy != NULL) {
                 task = enemy->task;
                 if (task->bodyKind != TASK_BODY_NONE) {
@@ -273,7 +273,7 @@ void Gp_SpawnPlaces(GameLocationKey* arg0)
         if (id != term) {
             do {
                 if (id == place->kind) {
-                    enemy = Gp_SpawnEnemyFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
+                    enemy = enemySpawnFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
                     if (enemy != NULL) {
                         task = enemy->task;
                         if (task->bodyKind != TASK_BODY_NONE) {

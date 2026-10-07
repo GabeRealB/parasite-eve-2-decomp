@@ -1336,7 +1336,7 @@ static void func_actor_107600_80132DF0(Enemy* arg0, s32 arg1, s32 arg2)
     GfxCoord*  coord;
     TmdObject* obj;
 
-    enemy = Gp_SpawnEnemyFromTable(D_actor_107600_80134F94, arg1 + 1, arg2, arg0);
+    enemy = enemySpawnFromTable(D_actor_107600_80134F94, arg1 + 1, arg2, arg0);
     if (enemy != NULL) {
         taskReparent(arg0->task, enemy->task);
         coord                        = enemy->task->extra.tmd->coords;

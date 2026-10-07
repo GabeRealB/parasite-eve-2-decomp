@@ -3413,7 +3413,7 @@ void func_mist_shooting_gallery_801848B4(void)
     TmdObject* obj;
     GfxCoord*  coord;
 
-    enemy = Gp_SpawnEnemyFromTable(D_actor_107600_80134F94, 0, 0x200D, NULL);
+    enemy = enemySpawnFromTable(D_actor_107600_80134F94, 0, 0x200D, NULL);
     if (enemy != NULL) {
         obj                    = enemy->task->extra.tmd;
         obj->texturePageOffset = 0;
@@ -3577,7 +3577,7 @@ static Enemy* func_mist_shooting_gallery_80184CD0(Task* arg0, _MistShootingGalle
     GfxCoord*                coord;
 
     work  = arg0->work;
-    enemy = Gp_SpawnEnemyFromTable(D_actor_107600_80134F94, 0, arg1->spawnArgLo | (arg1->spawnArgHi << 16), NULL);
+    enemy = enemySpawnFromTable(D_actor_107600_80134F94, 0, arg1->spawnArgLo | (arg1->spawnArgHi << 16), NULL);
     if (enemy != NULL) {
         enemy->task->parent = arg0;
         taskReparent(arg0, enemy->task);

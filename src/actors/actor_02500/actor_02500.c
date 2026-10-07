@@ -1511,7 +1511,7 @@ static void Actor02500_Fn01AC8(Enemy* arg0, Task* arg1)
             }
             if (work->timer == 15) {
                 effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
-                Gp_SpawnEnemyFromTable(Actor02500_D05B88, 1, 0, arg0);
+                enemySpawnFromTable(Actor02500_D05B88, 1, 0, arg0);
             }
             if (work->timer >= 0x3C) {
                 obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;

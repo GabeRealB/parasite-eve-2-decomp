@@ -3147,7 +3147,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     table   = D_actor_511000_80155070;
-    spawned = Gp_SpawnEnemyFromTable(table, 1, 0, enemy);
+    spawned = enemySpawnFromTable(table, 1, 0, enemy);
     session = gGameSession;
     // Child models inherit the texture relocation of the parent's placement.
     // Reusing the spawn result preserves its register preference at the task load.
@@ -3173,7 +3173,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
-    spawned     = Gp_SpawnEnemyFromTable(table, 2, 0, enemy);
+    spawned     = enemySpawnFromTable(table, 2, 0, enemy);
     session     = gGameSession;
     spawned     = (Enemy*)spawned->task;
     sessionKey  = &session->location.loc;
@@ -3195,7 +3195,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
-    Gp_SpawnEnemyFromTable(table, 3, 0, enemy);
+    enemySpawnFromTable(table, 3, 0, enemy);
     task->state = STATE_UPDATE;
 }
 

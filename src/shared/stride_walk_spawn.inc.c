@@ -30,7 +30,7 @@ void strideWalkSpawn(Enemy* enemy, Task* task)
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
     if (task->spawnArg1.value != 0) {
-        spawned = Gp_SpawnEnemyFromTable(gStrideWalkTasks, 1, 0, enemy);
+        spawned = enemySpawnFromTable(gStrideWalkTasks, 1, 0, enemy);
         taskReparent(task, spawned->task);
         work->pairTask  = spawned->task;
         work->st.animId = 2;

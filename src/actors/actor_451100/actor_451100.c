@@ -1670,7 +1670,7 @@ static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
-    spawned                          = Gp_SpawnEnemyFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
+    spawned                          = enemySpawnFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
     taskReparent(task, spawned->task);
     work->pairTask = spawned->task;
     obj->lightMtx  = &work->light;

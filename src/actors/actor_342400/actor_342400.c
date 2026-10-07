@@ -551,7 +551,7 @@ static void func_actor_342400_80162B60(Task* arg0)
     work = memCalloc(8, 0);
     if (work != NULL) {
         arg0->work = work;
-        enemy      = Gp_SpawnEnemyFromTable(D_actor_342400_80173A54, 1, 0, 0);
+        enemy      = enemySpawnFromTable(D_actor_342400_80173A54, 1, 0, 0);
         if (enemy != NULL) {
             gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
             work->enemy                                                    = enemy;
@@ -627,7 +627,7 @@ static void func_actor_342400_80162DA0(Task* arg0)
     work = memCalloc(8, 0);
     if (work != NULL) {
         arg0->work = work;
-        enemy      = Gp_SpawnEnemyFromTable(&D_actor_207000_801575F0, 2, 0, 0);
+        enemy      = enemySpawnFromTable(&D_actor_207000_801575F0, 2, 0, 0);
         if (enemy != NULL) {
             gMadChaserWaveSlots[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
             work->enemy                                                    = enemy;

@@ -5699,7 +5699,7 @@ void func_actor_560800_80135AEC(s32 arg0)
         }
     }
     CdCmd_CancelReplaceAndActivate();
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 static void func_actor_560800_80135BD8(Task* arg0)

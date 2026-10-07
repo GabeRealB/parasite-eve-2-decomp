@@ -2899,9 +2899,9 @@ static void func_mine_cavern_80182CEC(Task* arg0)
     flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
     for (i = 0; i < 4; i++) {
         if (!((flags >> i) & 1)) {
-            Gp_SpawnEnemyFromTable(D_mine_cavern_8018EB38, 0, i, NULL);
+            enemySpawnFromTable(D_mine_cavern_8018EB38, 0, i, NULL);
         }
-        Gp_SpawnEnemyFromTable(D_mine_cavern_8018EB38, 1, i, NULL);
+        enemySpawnFromTable(D_mine_cavern_8018EB38, 1, i, NULL);
     }
     arg0->state++;
 }

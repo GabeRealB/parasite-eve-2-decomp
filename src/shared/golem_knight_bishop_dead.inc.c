@@ -56,7 +56,7 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
             work->anim       = anim;
             work->step       = 1;
             arg0->spawnState = work->downedPose;
-            Gp_SaveEnemyPose(arg0);
+            areaSaveEnemyPose(arg0);
             break;
         case 1:
             if (!(work->animFrame & 3)) {

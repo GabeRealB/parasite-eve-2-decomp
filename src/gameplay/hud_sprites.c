@@ -940,7 +940,7 @@ static s32 _sceneIsBattleEndDelayClear(void)
 
 void Gp_EnqueueAttach7Cd(void)
 {
-    Gp_EnqueueSndCd(Gp_GetAttachLevel(7) + 0x15);
+    sndLoadEnqueuePeFile(Gp_GetAttachLevel(7) + 0x15);
 }
 
 void Gp_DrawItemObtained(Task* arg0)
@@ -1107,7 +1107,7 @@ static void Gp_EnqueueSndCdIfF0(u8 arg0)
         cond = 0;
     }
     if (cond) {
-        Gp_EnqueueSndCd(arg0);
+        sndLoadEnqueuePeFile(arg0);
     }
 }
 

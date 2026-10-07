@@ -2823,7 +2823,7 @@ void func_mine_mesa_8017E074(Task* arg0)
 /// allocates the `AnimationHeadAim` record into `Task::work` and seeds its
 /// clamps to 0x300 yaw and 0x200 pitch; state 1 ramps its `rate` up toward
 /// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
-/// not, then hands the record to `func_800B17D4` between the slot-3 task whose
+/// not, then hands the record to `animationAimHeadAt` between the slot-3 task whose
 /// head turns and the slot-0xA task it turns toward -- the mirror of
 /// `func_mine_mesa_8017E2A4`, which looks from slot 0xA. Every other state
 /// kills the task and clears `D_mine_mesa_80189B54`, and a state-0 NULL
@@ -2868,7 +2868,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
                                 aim->rate = 0;
                             }
                         }
-                        func_800B17D4(turner, looker, aim);
+                        animationAimHeadAt(turner, looker, aim);
                         return;
                 }
                 /* fallthrough */
@@ -2885,7 +2885,7 @@ void func_mine_mesa_8017E15C(Task* arg0)
 /// State 0 allocates the `AnimationHeadAim` record into `Task::work` and seeds
 /// its clamps to 0x300 yaw and 0x100 pitch; state 1 ramps its `rate` up toward
 /// 0x1000 while `Task::spawnArg1` is set and back down toward 0 while it is
-/// not, then hands the record to `func_800B17D4` between the
+/// not, then hands the record to `animationAimHeadAt` between the
 /// `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task whose head turns and the slot-3 task it turns
 /// toward -- the reverse of `func_mine_mesa_8017E15C` and of
 /// `func_actor_450200_80131FA8`, which look from slot 3. Every other state
@@ -2926,7 +2926,7 @@ void func_mine_mesa_8017E2A4(Task* arg0)
                                 aim->rate = 0;
                             }
                         }
-                        func_800B17D4(looker, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);
+                        animationAimHeadAt(looker, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);
                         return;
                 }
                 /* fallthrough */
@@ -3017,7 +3017,7 @@ void func_mine_mesa_8017E5C0(void)
 
 void func_mine_mesa_8017E5E0(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 /// Room script callback: clear the queued CD command and restart the CD queue.
@@ -3452,7 +3452,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         if (D_mine_mesa_80189B74[i] != NULL) {
             continue;
         }
-        enemy                   = Gp_SpawnEnemyFromTable(&Actor00100_D1BA84, 0, 0x30002, NULL);
+        enemy                   = enemySpawnFromTable(&Actor00100_D1BA84, 0, 0x30002, NULL);
         D_mine_mesa_80189B74[i] = enemy;
         if (enemy == NULL) {
             break;

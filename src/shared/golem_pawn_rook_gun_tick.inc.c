@@ -15,7 +15,7 @@ void golemPawnRookGunTick(Enemy* enemy, Task* task)
     task->extra.tmd->flags = task->parent->extra.tmd->flags;
     if (work->fireRequest != 0) {
         work->fireRequest      = 0;
-        spawned                = Gp_SpawnEnemyFromTable(work->taskTable, 2, 0, enemy);
+        spawned                = enemySpawnFromTable(work->taskTable, 2, 0, enemy);
         src                    = task->extra.tmd;
         dst                    = spawned->task->extra.tmd;
         dst->texturePageOffset = src->texturePageOffset;

@@ -19,12 +19,12 @@ Gp_SpawnCurView = 0x800A8DC0; // type:func absolute:True
 spriteLinkViewCachedPackets = 0x800AC688; // type:func absolute:True
 spriteAllocateViewCachedPackets = 0x800ACAA8; // type:func absolute:True
 viewGetMappedIndex = 0x800AD284; // type:func absolute:True
-func_800AF590 = 0x800AF590; // type:func absolute:True
-Gp_FindStreamSlot = 0x800AF89C; // type:func absolute:True
+streamReadSceneImageSector = 0x800AF590; // type:func absolute:True
+streamSelectScene = 0x800AF89C; // type:func absolute:True
 Gp_StepCdAudioCmd = 0x800AFA44; // type:func absolute:True
 Gp_ApplySndBankMasks = 0x800B0034; // type:func absolute:True
-Gp_RestoreStreamRng = 0x800B00C4; // type:func absolute:True
-func_800B0118 = 0x800B0118; // type:func absolute:True
+streamFinishScene = 0x800B00C4; // type:func absolute:True
+streamSetSceneError = 0x800B0118; // type:func absolute:True
 worldCollisionClearContacts = 0x800E1A6C; // type:func absolute:True
 func_801011D0 = 0x801011D0; // type:func absolute:True
 

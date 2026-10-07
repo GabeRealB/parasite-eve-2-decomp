@@ -391,7 +391,7 @@ static void func_actor_503500_80132F64(Task* arg0)
     work->body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
     for (i = 1; i < 12; i++) {
-        child = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, i, i, enemy);
+        child = enemySpawnFromTable(D_actor_503500_8016E924, i, i, enemy);
         if (child != NULL) {
             sessionKey = &gGameSession->location.loc;
             raw        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
@@ -1801,7 +1801,7 @@ Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
        every call rather than rebuilding it at the store. */
     Actor503500Work* work = &D_actor_503500_80176574.work;
 
-    enemy = Gp_SpawnEnemyFromTable(D_actor_503500_8016E924, arg1, arg1, arg0->spawnArg2.pointer);
+    enemy = enemySpawnFromTable(D_actor_503500_8016E924, arg1, arg1, arg0->spawnArg2.pointer);
     if (enemy != NULL) {
         sessionKey = &gGameSession->location.loc;
         raw        = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;

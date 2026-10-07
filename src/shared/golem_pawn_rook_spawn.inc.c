@@ -50,9 +50,9 @@ void golemPawnRookSpawn(Enemy* ctx, Task* actor)
         animationResetSlot(&work->rig.anim, i, 1);
     }
 #if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
-    actorTintModel(Gp_SpawnEnemyFromTable(gGolemPawnRookTasks, 3, 0, ctx)->task->extra.tmd, ctx);
+    actorTintModel(enemySpawnFromTable(gGolemPawnRookTasks, 3, 0, ctx)->task->extra.tmd, ctx);
 #endif
-    eff = Gp_SpawnEnemyFromTable(gGolemPawnRookTasks, 1, 0, ctx);
+    eff = enemySpawnFromTable(gGolemPawnRookTasks, 1, 0, ctx);
     actorTintModel(eff->task->extra.tmd, ctx);
 
     switch (ctx->spawnState) {

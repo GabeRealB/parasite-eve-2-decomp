@@ -874,7 +874,7 @@ void func_actor_450900_8013235C(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gDisplayState.spriteVariant                                = 1;
             taskSpawn(0, 0x11, 0, 0);
-            Gp_RestoreStreamRng();
+            streamFinishScene();
             taskKill(task);
             break;
     }
@@ -898,7 +898,7 @@ void func_actor_450900_80132518(s32 arg0)
 /// spawns. State 0 allocates the head-aim record the capture cursor sweeps with
 /// (an `AnimationHeadAim` in `Task::work`); state 1 ramps its `rate` one
 /// 0x200 step per frame, up or down according to `Task::spawnArg1` (the flag
-/// `func_actor_450900_80132518` arms), and hands the record to `func_800B17D4`
+/// `func_actor_450900_80132518` arms), and hands the record to `animationAimHeadAt`
 /// between the slot-3 task and the ally's own slot-0xA task. Any other state
 /// kills the task and drops the overlay's handle to it.
 void func_actor_450900_80132548(Task* task)
@@ -935,7 +935,7 @@ void func_actor_450900_80132548(Task* task)
                     aim->rate = 0;
                 }
             }
-            func_800B17D4(playerTask, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), aim);
+            animationAimHeadAt(playerTask, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), aim);
             return;
         default:
             taskKill(task);

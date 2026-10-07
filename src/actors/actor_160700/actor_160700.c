@@ -1552,7 +1552,7 @@ static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
     obj->flags                       = 0;
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
-    spawned                          = Gp_SpawnEnemyFromTable(D_actor_160700_801416A8, 1, 0, enemy);
+    spawned                          = enemySpawnFromTable(D_actor_160700_801416A8, 1, 0, enemy);
     actorTintModel(spawned->task->extra.tmd, enemy);
     taskReparent(task, spawned->task);
     work->pairTask  = spawned->task;

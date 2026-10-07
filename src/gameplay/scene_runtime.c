@@ -101,6 +101,11 @@
 /// must be below `ANIMATION_POSE_BANK_COUNT` even for unsupported encodings.
 enum { ANIMATION_RECORD_POSE_ENCODING_MASK = 0x0F };
 
+/// Stage-zero PE sound-file key components and the type-stop request control.
+enum { SND_LOAD_PE_FILE_GROUP       = 5,
+       SND_LOAD_PE_FILE_ID_HUNDREDS = 1,
+       SND_LOAD_PE_STOP_CONTROL     = 8 };
+
 /// Root-to-head chain endpoint used by the model head-aim routines.
 enum { ANIMATION_HEAD_PART_INDEX = 4 };
 
@@ -409,23 +414,15 @@ static s32 _sceneBroadcastToPlacedActors(Task* scene, s32 messageId, s32 payload
 
 static void Gp_ApplySndMasks(u16 arg0);
 
-static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent);
-
-static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent);
+static Enemy* _enemyAllocateWork(Task* task, Enemy* parent);
 
 static void _enemyStartTeardownDelay(Enemy* enemy, Task* task);
 
 static void _enemyWaitTick(Enemy* enemy, Task* task);
 
-static s32 Gp_TryEnqueueSndCd(s32 arg0);
-
 void func_800B06F0(Task* arg0);
 
-static void Gp_StartStageLoad(Task* task);
-
 static void Gp_FinishStageLoad(Task* task);
-
-static void Gp_StageLoadState2(Task* task);
 
 static void _fadeTickPulse(Task* task);
 
@@ -438,8 +435,6 @@ static void _fadeStartPulse(Task* task);
 static void _animationBlendTranslationRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
 
 static void _animationBlendPackedRotation(const _AnimationBlendRequest* request, GfxCoord* coord, AnimationSlot* slot);
-
-static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1);
 
 static inline void _animationSeekSlotWithBlend(AnimationContext* context, s32 slotIndex, u16 setIndex, s32 trackRecordOffset, s32 blendFrames);
 
@@ -463,11 +458,9 @@ static void Gp_SetCurAreaFlag2(s32 useSavedPoses);
 
 static AreaSavedState* Gp_GetAreaObj(GameLocationKey* key);
 
-static void _areaPrepareSpawnState(GameLocationKey* key, AreaSavedState* areaState);
+static void _areaPrepareSpawnState(const GameLocationKey* key, AreaSavedState* areaState);
 
 static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key);
-
-static void Gp_KillSlot4Children(void);
 
 static void func_800B6014(void);
 
@@ -641,73 +634,86 @@ static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs;
         }                                                        \
     } while (0)
 
-s32 func_800AF590(s32 unused0, s32 unused1)
+s32 streamReadSceneImageSector(s32 unused0, s32 unused1)
 {
-    StreamSceneImageHeader header;
-    CdCmdQueue*            p;
+    /// Selects the payload cursor after any actor-buffer VLC/timing prefix.
+    ///
+    /// bufferKind is 0..4, evaluated once. queue must be a stable live pointer:
+    /// it is read repeatedly, and decodeCapacityBytes only for decode storage.
+    /// Updates the shared write cursor and, for kind 0, the next decode capacity.
+    /// Captures no caller locals; borrows preallocated buffers without bounds checks.
+#define STREAM_SELECT_PAYLOAD_DESTINATION(queue, bufferKind, decodeCapacityBytes)                       \
+    switch (bufferKind) {                                                                               \
+        case STREAM_SCENE_BUFFER_DECODE:                                                                \
+            D_80114D10                     = (queue)->decodeBuffer;                                     \
+            (queue)->nextDecodeBufferBytes = (decodeCapacityBytes);                                     \
+        default:                                                                                        \
+            break;                                                                                      \
+        case STREAM_SCENE_BUFFER_ACTOR_0:                                                               \
+            D_80114D10 = (u8*)Fs_ActorLoadBase0;                                                        \
+            if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {          \
+                D_80114D10 = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;                           \
+            }                                                                                           \
+            if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) { \
+                D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \
+            }                                                                                           \
+            break;                                                                                      \
+        case STREAM_SCENE_BUFFER_ACTOR_1:                                                               \
+            D_80114D10 = (u8*)Fs_ActorLoadBase1;                                                        \
+            if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {          \
+                D_80114D10 = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;                           \
+            }                                                                                           \
+            if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) { \
+                D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \
+            }                                                                                           \
+            break;                                                                                      \
+        case STREAM_SCENE_BUFFER_ACTOR_2:                                                               \
+            D_80114D10 = (u8*)Fs_ActorLoadBase2;                                                        \
+            if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {          \
+                D_80114D10 = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;                           \
+            }                                                                                           \
+            if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) { \
+                D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \
+            }                                                                                           \
+            break;                                                                                      \
+        case STREAM_SCENE_BUFFER_EXTERNAL:                                                              \
+            D_80114D10 = (queue)->externalScenePayloadBuffer;                                           \
+            break;                                                                                      \
+    }
 
-    p = &gCdCmdQueue;
+    enum { STREAM_SCENE_READ_HEADER  = 0,
+           STREAM_SCENE_READ_PAYLOAD = 1 };
+
+    StreamSceneImageHeader header;
+    CdCmdQueue*            queue;
+
+    queue = &gCdCmdQueue;
     switch (D_80114D14[0]) {
-        case 0:
+        case STREAM_SCENE_READ_HEADER:
             // Read the serialized header before choosing or reusing its payload buffer.
             CdGetSector(&header, sizeof(header) / sizeof(u_long));
             D_80114D1A = 1;
             D_80114D1C = header.forceReload;
-            if ((D_80114D1C == 0) && ((s16)p->scenePayloadReusable != 0)) {
+            if ((D_80114D1C == 0) && ((s16)queue->scenePayloadReusable != 0)) {
                 D_80114D1A = 0;
             }
             if ((s16)header.sectorCount != 0) {
-                p->scenePayloadLoading = 1;
-                (*(D_80114D14 + 1))    = header.bufferKind;
+                queue->scenePayloadLoading = 1;
+                (*(D_80114D14 + 1))        = header.bufferKind;
                 if (D_80114D1A != 0) {
-                    memCopyBytes(&header, &p->sceneImageHeaders[(*(D_80114D14 + 1))], sizeof(header));
+                    memCopyBytes(&header, &queue->sceneImageHeaders[(*(D_80114D14 + 1))], sizeof(header));
                 }
-                switch ((*(D_80114D14 + 1))) {
-                    case STREAM_SCENE_BUFFER_DECODE:
-                        D_80114D10               = p->decodeBuffer;
-                        p->nextDecodeBufferBytes = header.nextDecodeBufferBytes;
-                    default:
-                        break;
-                    case STREAM_SCENE_BUFFER_ACTOR_0:
-                        D_80114D10 = (u8*)Fs_ActorLoadBase0;
-                        if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
-                            D_80114D10 = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
-                        }
-                        if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) {
-                            D_80114D10 += p->sceneStream->data.scene.timingBufferBytes;
-                        }
-                        break;
-                    case STREAM_SCENE_BUFFER_ACTOR_1:
-                        D_80114D10 = (u8*)Fs_ActorLoadBase1;
-                        if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
-                            D_80114D10 = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
-                        }
-                        if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
-                            D_80114D10 += p->sceneStream->data.scene.timingBufferBytes;
-                        }
-                        break;
-                    case STREAM_SCENE_BUFFER_ACTOR_2:
-                        D_80114D10 = (u8*)Fs_ActorLoadBase2;
-                        if (p->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
-                            D_80114D10 = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
-                        }
-                        if (p->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
-                            D_80114D10 += p->sceneStream->data.scene.timingBufferBytes;
-                        }
-                        break;
-                    case STREAM_SCENE_BUFFER_EXTERNAL:
-                        D_80114D10 = p->externalScenePayloadBuffer;
-                        break;
-                }
+                STREAM_SELECT_PAYLOAD_DESTINATION(queue, (*(D_80114D14 + 1)), header.nextDecodeBufferBytes);
+#undef STREAM_SELECT_PAYLOAD_DESTINATION
                 if (D_80114D1A != 0) {
                     CdGetSector(D_80114D10, SECTOR_SIZE - sizeof(header) / sizeof(u_long));
                 }
                 D_80114D10   += SECTOR_SIZE * sizeof(u_long) - sizeof(header);
-                D_80114D14[0] = 1U;
+                D_80114D14[0] = STREAM_SCENE_READ_PAYLOAD;
                 D_80114D18    = header.sectorCount - 1;
             }
             break;
-        case 1:
+        case STREAM_SCENE_READ_PAYLOAD:
             if (D_80114D18 > 0) {
                 if (D_80114D1A != 0) {
                     CdGetSector(D_80114D10, SECTOR_SIZE);
@@ -724,68 +730,69 @@ s32 func_800AF590(s32 unused0, s32 unused1)
                 if (D_80114D1C == 0) {
                     gCdCmdQueue.scenePayloadReusable = 1;
                 }
-                D_80114D14[0] = 0U;
+                D_80114D14[0] = STREAM_SCENE_READ_HEADER;
             }
             break;
     }
     return 0;
 }
 
-s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
+s16 streamSelectScene(u16 group, u16 id, u16 subId, u16 subId2)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
     StreamSlot* slot;
-    u16         count;
-    u16         i;
-    u16         found;
+    u16         slotCount;
+    u16         slotIndex;
+    u16         slotFound;
     s32         decodeBufferBytes;
     u16         vlcTableMode;
     u32         savedRandomState;
 
-    p = &gCdCmdQueue;
-    if (arg0 == 0) {
-        slot  = Fs_Streams;
-        count = ARRAY_SIZE(Fs_Streams);
+    queue = &gCdCmdQueue;
+    if (group == 0) {
+        slot      = Fs_Streams;
+        slotCount = ARRAY_SIZE(Fs_Streams);
     } else {
-        slot  = Stream_Slots;
-        count = ARRAY_SIZE(Stream_Slots);
+        slot      = Stream_Slots;
+        slotCount = ARRAY_SIZE(Stream_Slots);
     }
 
-    for (i = 0, found = 0; i < count; i++, slot++) {
-        if (slot->kind == STREAM_KIND_SCENE_AUDIO && slot->startSector != 0 && slot->key.parts.group == arg0 && slot->key.parts.id == arg1 &&
-            slot->subId == arg2 && slot->data.scene.subId2 == arg3) {
-            found = 1;
+    for (slotIndex = 0, slotFound = 0; slotIndex < slotCount; slotIndex++, slot++) {
+        if (slot->kind == STREAM_KIND_SCENE_AUDIO && slot->startSector != 0 && slot->key.parts.group == group && slot->key.parts.id == id &&
+            slot->subId == subId && slot->data.scene.subId2 == subId2) {
+            slotFound = 1;
             break;
         }
     }
 
-    if (found == 0) {
-        return -1;
+    if (slotFound == 0) {
+        return CD_COMMAND_NO_SCENE_SLOT;
     }
 
-    memFillBytes(p->sceneImageHeaders, 0, sizeof(p->sceneImageHeaders));
-    p->sceneStream        = slot;
-    p->sceneBuffersNeeded = 1;
-    decodeBufferBytes     = slot->source.decodeBufferBytes;
+    // Borrow the descriptor and retain random values before deterministic playback.
+    memFillBytes(queue->sceneImageHeaders, 0, sizeof(queue->sceneImageHeaders));
+    queue->sceneStream        = slot;
+    queue->sceneBuffersNeeded = 1;
+    decodeBufferBytes         = slot->source.decodeBufferBytes;
     if (decodeBufferBytes != 0) {
-        p->decodeBufferBytes = decodeBufferBytes;
+        queue->decodeBufferBytes = decodeBufferBytes;
     } else {
-        p->decodeBufferBytes = 0;
+        queue->decodeBufferBytes = 0;
     }
-    p->sceneEnded          = 0;
-    p->vlcTableBuilt       = 0;
-    p->scenePayloadLoading = 0;
-    p->imageLayout         = FILE_SYSTEM_IMAGE_CONTIGUOUS;
-    vlcTableMode           = slot->data.scene.vlcTableMode;
-    savedRandomState       = gRandomLcgState;
-    *D_80114D14            = 0;
-    p->sceneVlcTableMode   = vlcTableMode;
-    p->savedLcgState       = savedRandomState;
-    p->savedRandSeed       = rand();
-    gRandomLcgState        = 0;
+    queue->sceneEnded          = 0;
+    queue->vlcTableBuilt       = 0;
+    queue->scenePayloadLoading = 0;
+    queue->imageLayout         = FILE_SYSTEM_IMAGE_CONTIGUOUS;
+    vlcTableMode               = slot->data.scene.vlcTableMode;
+    savedRandomState           = gRandomLcgState;
+    *D_80114D14                = 0;
+    queue->sceneVlcTableMode   = vlcTableMode;
+    queue->savedLcgState       = savedRandomState;
+    queue->savedRandSeed       = rand();
+    gRandomLcgState            = 0;
     srand(1);
     D_80114D20 = 0xFFFF;
-    return i;
+    return slotIndex;
 }
 
 void Gp_StepCdAudioCmd(void)
@@ -1075,31 +1082,33 @@ void Gp_ApplySndBankMasks(u16 arg0)
     }
 }
 
-void Gp_RestoreStreamRng(void)
+void streamFinishScene(void)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    p                        = &gCdCmdQueue;
-    p->imageLoadStatus       = CD_COMMAND_IMAGE_COMPLETE;
-    p->sceneEnded            = 1;
-    p->scenePayloadAvailable = 0;
-    p->sceneAudioStarted     = 0;
-    p->sceneBuffersNeeded    = 0;
-    p->paceToSceneTiming     = 0;
-    gRandomLcgState          = p->savedLcgState;
-    srand(p->savedRandSeed);
+    queue                        = &gCdCmdQueue;
+    queue->imageLoadStatus       = CD_COMMAND_IMAGE_COMPLETE;
+    queue->sceneEnded            = 1;
+    queue->scenePayloadAvailable = 0;
+    queue->sceneAudioStarted     = 0;
+    queue->sceneBuffersNeeded    = 0;
+    queue->paceToSceneTiming     = 0;
+    gRandomLcgState              = queue->savedLcgState;
+    srand(queue->savedRandSeed);
 }
 
-s32 func_800B0118(s32 arg0, s32 arg1)
+s32 streamSetSceneError(s32 errorCode, s32 unusedArgument)
 {
-    s16 temp;
+    enum { STREAM_SCENE_GAME_HALT = 8 };
 
-    temp = arg0;
-    if (temp != 0) {
-        D_80114D20          = temp;
-        GameMain_HaltFlags |= 8;
+    s16 narrowErrorCode;
+
+    narrowErrorCode = errorCode;
+    if (narrowErrorCode != 0) {
+        D_80114D20          = narrowErrorCode;
+        GameMain_HaltFlags |= STREAM_SCENE_GAME_HALT;
     } else {
-        GameMain_HaltFlags &= ~8;
+        GameMain_HaltFlags &= ~STREAM_SCENE_GAME_HALT;
     }
     return 0;
 }
@@ -1109,32 +1118,39 @@ void streamSetExternalScenePayloadBuffer(u8* payloadBuffer)
     gCdCmdQueue.externalScenePayloadBuffer = payloadBuffer;
 }
 
-static Enemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, Enemy* parent)
+/// Spawns a selected task with owned enemy work under its teardown parent.
+///
+/// For bank 0..14, selector is an unchecked signed descriptor index; a negative
+/// bank uses selector as a live descriptor pointer. Neither may select a terminator.
+/// `spawnArg` becomes the callback-defined first task payload. Requires an
+/// initialized selected task list and a live parent or registered scene task.
+/// Work ownership and allocation failure follow `_enemyAllocateWork`.
+static Enemy* _enemySpawn(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg, Enemy* parent)
 {
     Task*  task;
-    Enemy* ret;
+    Enemy* enemy;
 
-    task = taskSpawn(bank, type, arg2, 0);
+    task = taskSpawn(bank, selector, spawnArg, 0);
     if (task != NULL) {
-        ret = Gp_AllocEnemy(task, parent);
+        enemy = _enemyAllocateWork(task, parent);
     } else {
-        ret = NULL;
+        enemy = NULL;
     }
-    return ret;
+    return enemy;
 }
 
-Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent)
+Enemy* enemySpawnFromTable(TaskDesc* table, s32 taskIndex, s32 spawnArg, Enemy* parent)
 {
     Task*  task;
-    Enemy* ret;
+    Enemy* enemy;
 
-    task = taskSpawnFromTable(table, idx, arg2, 0);
+    task = taskSpawnFromTable(table, taskIndex, spawnArg, 0);
     if (task != NULL) {
-        ret = Gp_AllocEnemy(task, parent);
+        enemy = _enemyAllocateWork(task, parent);
     } else {
-        ret = NULL;
+        enemy = NULL;
     }
-    return ret;
+    return enemy;
 }
 
 /// Detaches target tracking and frees a live primary-heap enemy work object.
@@ -1204,17 +1220,25 @@ Task* actorRenderCopyCoordBodyTransform(Task* task, GfxCoord* sourceCoord, const
     return task;
 }
 
-static Enemy* Gp_AllocEnemy(Task* task, Enemy* parent)
+/// Attaches zeroed primary-heap enemy work to a newly spawned live task.
+///
+/// Replaces its exit callback and second payload word, starts its coordinate
+/// at the world frame and links it under the live parent enemy's task, or the
+/// registered scene task when parent is NULL. Those child rings must be stable.
+/// The task owns the returned work until exit. Allocation failure prints a
+/// diagnostic, kills the task and returns NULL; do not use the task afterwards.
+static Enemy* _enemyAllocateWork(Task* task, Enemy* parent)
 {
     Enemy* enemy;
 
-    enemy = memCalloc(sizeof(Enemy), 0);
+    enemy = memCalloc(sizeof(*enemy), false);
     if (enemy == NULL) {
         printf(Gp_StrNewEnemyNull);
         taskKill(task);
         return NULL;
     }
 
+    // The task owns this work; its teardown tree follows the enemy parent or scene root.
     task->exitCallback      = enemyTaskExit;
     task->spawnArg2.pointer = enemy;
     enemy->task             = task;
@@ -1257,45 +1281,54 @@ void enemyTeardownDelayTask(Task* task)
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static s32 Gp_TryEnqueueSndCd(s32 arg0)
+/// Queues a seek-only PE sound-file request when the CD request queue is idle.
+///
+/// The low byte of fileIndex must select a loaded stage-zero category-5 entry
+/// (0..63). Returns 0 after enqueueing and requesting a seek back to the
+/// current view, or 255 when dispatch is not idle. Does not update the requested-file
+/// cache or stop sound scripts. The seek-only policy does not load the file.
+static s32 _sndLoadTryEnqueuePeFile(s32 fileIndex)
 {
-    u8 param1[8];
-    u8 param2[8];
+    enum { SND_LOAD_ENQUEUED   = 0,
+           SND_LOAD_QUEUE_BUSY = 0xFF };
+
+    u8 fileKey[4];
+    u8 commandArgs[sizeof(((CdCmdEntry*)0)->args.bytes)];
 
     if (cdCmdIsIdle() & 0xFFFF) {
-        param1[0] = arg0;
-        param1[3] = 0;
-        param1[2] = 5;
-        param2[0] = 1;
-        param2[1] = 1;
-        param2[3] = 0;
-        param2[2] = 0;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        fileKey[0]     = fileIndex;
+        fileKey[3]     = 0;
+        fileKey[2]     = SND_LOAD_PE_FILE_GROUP;
+        commandArgs[0] = SND_LOAD_PE_FILE_ID_HUNDREDS;
+        commandArgs[1] = CD_COMMAND_LOAD_SEEK_ONLY;
+        commandArgs[3] = 0;
+        commandArgs[2] = 0;
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, commandArgs);
         D_800626E8 = 1;
-        return 0;
+        return SND_LOAD_ENQUEUED;
     }
-    return 0xFF;
+    return SND_LOAD_QUEUE_BUSY;
 }
 
-void Gp_EnqueueSndCd(u8 arg0)
+void sndLoadEnqueuePeFile(u8 fileIndex)
 {
-    u8  param1[8];
-    u8  param2[8];
-    s32 flag;
+    u8  fileKey[4];
+    u8  commandArgs[sizeof(((CdCmdEntry*)0)->args.bytes)];
+    s32 viewSeekRequested;
 
-    if (gGameSession->loadedSndId != arg0) {
-        sndEvtRequestScriptStop(SOUND_BANK_TYPE_PE_ALL, 8);
-        flag      = 1;
-        param1[3] = 0;
-        param1[2] = 5;
-        param1[0] = arg0;
-        param2[0] = flag;
-        param2[3] = 0;
-        param2[2] = 0;
-        param2[1] = 0;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-        D_800626E8                = flag;
-        gGameSession->loadedSndId = arg0;
+    if (gGameSession->loadedSndId != fileIndex) {
+        sndEvtRequestScriptStop(SOUND_BANK_TYPE_PE_ALL, SND_LOAD_PE_STOP_CONTROL);
+        viewSeekRequested = 1;
+        fileKey[3]        = 0;
+        fileKey[2]        = SND_LOAD_PE_FILE_GROUP;
+        fileKey[0]        = fileIndex;
+        commandArgs[0]    = SND_LOAD_PE_FILE_ID_HUNDREDS;
+        commandArgs[3]    = 0;
+        commandArgs[2]    = 0;
+        commandArgs[1]    = CD_COMMAND_LOAD_DEFAULT;
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, commandArgs);
+        D_800626E8                = viewSeekRequested;
+        gGameSession->loadedSndId = fileIndex;
     }
 }
 
@@ -1307,36 +1340,50 @@ void func_800B06F0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-static void Gp_StartStageLoad(Task* task)
+/// Begins restart presentation loading after MIDI sequence 0 becomes idle.
+///
+/// Requires restart-loader state 0. Retires all resident resource-directory
+/// entries and suppresses disconnect pause, then queues the ending display
+/// resource or the normal restart MIDI/display resources. Enables drawing and
+/// advances the task to its load-wait state. Request-ring capacity must remain
+/// available; this state does not wait for queued requests to finish.
+static void _loadingStartRestartResources(Task* task)
 {
-    s32             i;
-    u8              param1[8];
-    u8              param2[8];
+    enum { LOADING_RESTART_DISPLAY_RESOURCE      = 9,
+           LOADING_ENDING_DISPLAY_RESOURCE       = 10,
+           LOADING_RESTART_MIDI_FILE_INDEX       = 0x62,
+           LOADING_RESTART_MIDI_FILE_GROUP       = 4,
+           LOADING_RESTART_MIDI_FILE_ID_HUNDREDS = 1 };
+
+    s32             resourceIndex;
+    u8              fileKey[4];
+    u8              commandArgs[sizeof(((CdCmdEntry*)0)->args.bytes)];
     FsResourceSlot* resourceSlots;
-    s32             fileId;
+    s32             displayResourceId;
 
     if (midiIsSequenceBusy(0) == 0) {
+        // Retire resource-directory entries before queuing the restart presentation.
         gDisplayState.suppressDisconnectPause = 1;
-        i                                     = 0;
+        resourceIndex                         = 0;
         resourceSlots                         = D_8006C338;
         do {
-            resourceSlots[(u8)i].kind = FILE_SYSTEM_RESOURCE_NONE;
-            i++;
-        } while ((u8)i < ARRAY_SIZE(D_8006C338));
+            resourceSlots[(u8)resourceIndex].kind = FILE_SYSTEM_RESOURCE_NONE;
+            resourceIndex++;
+        } while ((u8)resourceIndex < ARRAY_SIZE(D_8006C338));
 
-        fileId = 0xA;
+        displayResourceId = LOADING_ENDING_DISPLAY_RESOURCE;
         if (gGameSession->restartMode != GAME_SESSION_RESTART_ENDING) {
-            param1[2] = 4;
-            param1[0] = 0x62;
-            param1[3] = 0;
-            param2[0] = 1;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-            fileId = 9;
+            fileKey[2]     = LOADING_RESTART_MIDI_FILE_GROUP;
+            fileKey[0]     = LOADING_RESTART_MIDI_FILE_INDEX;
+            fileKey[3]     = 0;
+            commandArgs[0] = LOADING_RESTART_MIDI_FILE_ID_HUNDREDS;
+            commandArgs[3] = 0;
+            commandArgs[2] = 0;
+            commandArgs[1] = CD_COMMAND_LOAD_DEFAULT;
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, commandArgs);
+            displayResourceId = LOADING_RESTART_DISPLAY_RESOURCE;
         }
-        cdCmdEnqueueDisplayResource(fileId, 0, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
+        cdCmdEnqueueDisplayResource(displayResourceId, 0, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
         gDisplayState.skipDraw = 0;
         task->state++;
     }
@@ -1357,16 +1404,23 @@ static void Gp_FinishStageLoad(Task* task)
     }
 }
 
-static void Gp_StageLoadState2(Task* task)
+/// Finishes restart presentation after dispatching its child's requested exit.
+///
+/// Requires restart-loader state 2 and the borrowed child task in the second
+/// payload word from the preceding normal-restart state. Polls that child's
+/// exit request, resets the display mode and disconnect-pause gate, and kills
+/// this loader on successful dispatch. Release may be deferred by the child's
+/// exit handler. Its result value is ignored.
+static void _loadingFinishRestart(Task* task)
 {
-    s32           out;
-    DisplayState* ds;
+    s32           childResult;
+    DisplayState* display;
 
-    if (taskPollKill(task->spawnArg2.pointer, &out) != 0) {
-        ds                          = &gDisplayState;
-        task->killCountdown         = 0;
-        ds->gameMode                = DISPLAY_GAME_RESTART;
-        ds->suppressDisconnectPause = 0;
+    if (taskPollKill(task->spawnArg2.pointer, &childResult) != 0) {
+        display                          = &gDisplayState;
+        task->killCountdown              = 0;
+        display->gameMode                = DISPLAY_GAME_RESTART;
+        display->suppressDisconnectPause = 0;
         taskKill(task);
     }
 }
@@ -1680,149 +1734,168 @@ void gfxBlendOrthonormalRotation(const MATRIX* fromRotation, const MATRIX* toRot
     }
 }
 
-void func_800B17D4(Task* arg0, Task* arg1, AnimationHeadAim* arg2)
+void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim)
 {
-    VECTOR    tmp;
-    VECTOR    acc0;
-    VECTOR    acc1;
-    SVECTOR   delta;
-    SVECTOR   ang;
-    SVECTOR   euler;
-    MATRIX    mtx0;
-    MATRIX    mtx1;
-    MATRIX    tmtx;
-    VECTOR    probe;
-    s32       rate;
+    /// Blends pitch/yaw in Q12 and widens clamps to the existing head pose.
+    ///
+    /// aimAngles is a writable SVECTOR lvalue, distinct from currentAngles.
+    /// Limits are nonnegative angle units; blendWeight is normally 0..ONE.
+    /// Arguments must be stable and side-effect-free; they are read repeatedly.
+    /// Captures the four s32 magnitude temporaries declared below; preserves roll
+    /// and signed division rounding. Limits must be distinct writable s32 lvalues.
+#define ANIMATION_BLEND_HEAD_AIM(aimAngles, currentAngles, blendWeight, pitchLimit, yawLimit)                     \
+    {                                                                                                             \
+        (aimAngles).vx        = (currentAngles).vx + ((aimAngles).vx - (currentAngles).vx) * (blendWeight) / ONE; \
+        (aimAngles).vy        = (currentAngles).vy + ((aimAngles).vy - (currentAngles).vy) * (blendWeight) / ONE; \
+        (aimAngles).vz        = (currentAngles).vz;                                                               \
+        currentPitchMagnitude = (currentAngles).vx >= 0 ? (currentAngles).vx : -(currentAngles).vx;               \
+        if ((pitchLimit) < currentPitchMagnitude) {                                                               \
+            (pitchLimit) = currentPitchMagnitude;                                                                 \
+        }                                                                                                         \
+        currentYawMagnitude = (currentAngles).vy >= 0 ? (currentAngles).vy : -(currentAngles).vy;                 \
+        if ((yawLimit) < currentYawMagnitude) {                                                                   \
+            (yawLimit) = currentYawMagnitude;                                                                     \
+        }                                                                                                         \
+        pitchMagnitude = (aimAngles).vx >= 0 ? (aimAngles).vx : -(aimAngles).vx;                                  \
+        if ((pitchLimit) < pitchMagnitude) {                                                                      \
+            (aimAngles).vx = (aimAngles).vx < 0 ? -(pitchLimit) : (pitchLimit);                                   \
+        }                                                                                                         \
+        yawMagnitude = (aimAngles).vy >= 0 ? (aimAngles).vy : -(aimAngles).vy;                                    \
+        if ((yawLimit) < yawMagnitude) {                                                                          \
+            (aimAngles).vy = (aimAngles).vy < 0 ? -(yawLimit) : (yawLimit);                                       \
+        }                                                                                                         \
+    }
+
+    enum { ANIMATION_HEAD_QUARTER_TURN = ACTOR_TRANSFORM_ANGLE_TURN / 4 };
+
+    VECTOR    transformedTranslation;
+    VECTOR    subjectHeadVector;
+    VECTOR    targetPosition;
+    SVECTOR   targetDelta;
+    SVECTOR   aimAngles;
+    SVECTOR   currentAngles;
+    MATRIX    subjectRotation;
+    MATRIX    targetRotation;
+    MATRIX    inverseSubjectRotation;
+    VECTOR    headOffset;
+    s32       blendWeight;
     s32       lastPitchValid;
-    s32       i;
-    GfxCoord* rec;
-    GfxCoord* rec1;
+    s32       partIndex;
+    GfxCoord* subjectPart;
+    GfxCoord* targetPart;
     s32       pitchLimit;
     s32       yawLimit;
-    s32       curPitch;
-    s32       curYaw;
-    s32       newPitch;
-    s32       newYaw;
-    MATRIX*   m0;
-    MATRIX*   m1;
-    GfxCoord* base;
-    MATRIX*   m;
+    s32       currentPitchMagnitude;
+    s32       currentYawMagnitude;
+    s32       pitchMagnitude;
+    s32       yawMagnitude;
+    MATRIX*   subjectRotationStorage;
+    MATRIX*   targetRotationStorage;
+    GfxCoord* subjectParts;
+    MATRIX*   headRotation;
 
-    i              = 0;
-    m0             = &mtx0;
-    probe          = D_80093A28;
-    yawLimit       = arg2->yawLimit;
-    pitchLimit     = arg2->pitchLimit;
-    rate           = arg2->rate;
-    lastPitchValid = arg2->lastPitchValid;
+    // Accumulate both five-part chains, including the head-local offset.
+    partIndex              = 0;
+    subjectRotationStorage = &subjectRotation;
+    headOffset             = D_80093A28;
+    yawLimit               = aim->yawLimit;
+    pitchLimit             = aim->pitchLimit;
+    blendWeight            = aim->rate;
+    lastPitchValid         = aim->lastPitchValid;
 
-    *(s32*)&mtx0             = ONE;
-    MATRIX_PAIR(&mtx0, 0, 2) = 0;
-    MATRIX_PAIR(m0, 1, 1)    = ONE;
-    MATRIX_PAIR(&mtx0, 2, 0) = 0;
-    m0->m[2][2]              = ONE;
-    acc0.vx                  = 0;
-    acc0.vy                  = 0;
-    acc0.vz                  = 0;
-    for (i = 0; i < 5; i++) {
-        rec = &arg0->extra.tmd->coords[i];
-        ApplyMatrixLV(&mtx0, (VECTOR*)rec->coord.t, &tmp);
-        acc0.vx += tmp.vx;
-        acc0.vy += tmp.vy;
-        acc0.vz += tmp.vz;
-        MulMatrix0(&mtx0, &rec->coord, &mtx0);
+    MATRIX_PAIR(&subjectRotation, 0, 0)       = ONE;
+    MATRIX_PAIR(&subjectRotation, 0, 2)       = 0;
+    MATRIX_PAIR(subjectRotationStorage, 1, 1) = ONE;
+    MATRIX_PAIR(&subjectRotation, 2, 0)       = 0;
+    subjectRotationStorage->m[2][2]           = ONE;
+    subjectHeadVector.vx                      = 0;
+    subjectHeadVector.vy                      = 0;
+    subjectHeadVector.vz                      = 0;
+    for (partIndex = 0; partIndex <= ANIMATION_HEAD_PART_INDEX; partIndex++) {
+        subjectPart = &subject->extra.tmd->coords[partIndex];
+        ApplyMatrixLV(&subjectRotation, (VECTOR*)subjectPart->coord.t, &transformedTranslation);
+        subjectHeadVector.vx += transformedTranslation.vx;
+        subjectHeadVector.vy += transformedTranslation.vy;
+        subjectHeadVector.vz += transformedTranslation.vz;
+        MulMatrix0(&subjectRotation, &subjectPart->coord, &subjectRotation);
     }
-    ApplyMatrixLV(&mtx0, &probe, &tmp);
-    acc0.vx += tmp.vx;
-    acc0.vy += tmp.vy;
-    acc0.vz += tmp.vz;
+    ApplyMatrixLV(&subjectRotation, &headOffset, &transformedTranslation);
+    subjectHeadVector.vx += transformedTranslation.vx;
+    subjectHeadVector.vy += transformedTranslation.vy;
+    subjectHeadVector.vz += transformedTranslation.vz;
 
-    i                        = 0;
-    m1                       = &mtx1;
-    *(s32*)&mtx1             = ONE;
-    MATRIX_PAIR(&mtx1, 0, 2) = 0;
-    MATRIX_PAIR(m1, 1, 1)    = ONE;
-    MATRIX_PAIR(&mtx1, 2, 0) = 0;
-    m1->m[2][2]              = ONE;
-    acc1.vx                  = 0;
-    acc1.vy                  = 0;
-    acc1.vz                  = 0;
-    for (i = 0; i < 5; i++) {
-        rec1 = &arg1->extra.tmd->coords[i];
-        ApplyMatrixLV(&mtx1, (VECTOR*)rec1->coord.t, &tmp);
-        acc1.vx += tmp.vx;
-        acc1.vy += tmp.vy;
-        acc1.vz += tmp.vz;
-        MulMatrix0(&mtx1, &rec1->coord, &mtx1);
+    partIndex                                = 0;
+    targetRotationStorage                    = &targetRotation;
+    MATRIX_PAIR(&targetRotation, 0, 0)       = ONE;
+    MATRIX_PAIR(&targetRotation, 0, 2)       = 0;
+    MATRIX_PAIR(targetRotationStorage, 1, 1) = ONE;
+    MATRIX_PAIR(&targetRotation, 2, 0)       = 0;
+    targetRotationStorage->m[2][2]           = ONE;
+    targetPosition.vx                        = 0;
+    targetPosition.vy                        = 0;
+    targetPosition.vz                        = 0;
+    for (partIndex = 0; partIndex <= ANIMATION_HEAD_PART_INDEX; partIndex++) {
+        targetPart = &targetTask->extra.tmd->coords[partIndex];
+        ApplyMatrixLV(&targetRotation, (VECTOR*)targetPart->coord.t, &transformedTranslation);
+        targetPosition.vx += transformedTranslation.vx;
+        targetPosition.vy += transformedTranslation.vy;
+        targetPosition.vz += transformedTranslation.vz;
+        MulMatrix0(&targetRotation, &targetPart->coord, &targetRotation);
     }
-    ApplyMatrixLV(&mtx1, &probe, &tmp);
-    acc1.vx += tmp.vx;
-    acc1.vy += tmp.vy;
-    acc1.vz += tmp.vz;
+    ApplyMatrixLV(&targetRotation, &headOffset, &transformedTranslation);
+    targetPosition.vx += transformedTranslation.vx;
+    targetPosition.vy += transformedTranslation.vy;
+    targetPosition.vz += transformedTranslation.vz;
 
-    delta.vx = (u16)acc1.vx - (u16)acc0.vx;
-    delta.vy = (u16)acc1.vy - (u16)acc0.vy;
-    delta.vz = (u16)acc1.vz - (u16)acc0.vz;
-    TransposeMatrix(&mtx0, &tmtx);
-    ApplyMatrix(&tmtx, &delta, &acc0);
+    // Narrow the world delta before rotating it into the subject head frame.
+    targetDelta.vx = (u16)targetPosition.vx - (u16)subjectHeadVector.vx;
+    targetDelta.vy = (u16)targetPosition.vy - (u16)subjectHeadVector.vy;
+    targetDelta.vz = (u16)targetPosition.vz - (u16)subjectHeadVector.vz;
+    TransposeMatrix(&subjectRotation, &inverseSubjectRotation);
+    // Reuse the head vector for the target direction in head coordinates.
+    ApplyMatrix(&inverseSubjectRotation, &targetDelta, &subjectHeadVector);
 
-    ang.vx = ratan2(-acc0.vy, acc0.vz);
-    ang.vy = ratan2(acc0.vx, acc0.vz);
-    ang.vz = 0;
-    if (delta.vy < 0) {
-        if (ang.vx < -0x400) {
-            ang.vx = (u16)ang.vx + 0x1000;
+    aimAngles.vx = ratan2(-subjectHeadVector.vy, subjectHeadVector.vz);
+    aimAngles.vy = ratan2(subjectHeadVector.vx, subjectHeadVector.vz);
+    aimAngles.vz = 0;
+    if (targetDelta.vy < 0) {
+        if (aimAngles.vx < -ANIMATION_HEAD_QUARTER_TURN) {
+            aimAngles.vx = (u16)aimAngles.vx + ACTOR_TRANSFORM_ANGLE_TURN;
         }
-    } else if (ang.vx >= 0x400) {
-        ang.vx = (u16)ang.vx - 0x1000;
+    } else if (aimAngles.vx >= ANIMATION_HEAD_QUARTER_TURN) {
+        aimAngles.vx = (u16)aimAngles.vx - ACTOR_TRANSFORM_ANGLE_TURN;
     }
 
+    // Retain pitch-wrap history before blending and widening the clamps.
     if (lastPitchValid != 0) {
-        if (ABS(ang.vx - arg2->lastPitch) > 0x800) {
-            while (ang.vx >= 0x800) {
-                ang.vx -= 0x1000;
+        if (ABS(aimAngles.vx - aim->lastPitch) > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+            while (aimAngles.vx >= ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+                aimAngles.vx -= ACTOR_TRANSFORM_ANGLE_TURN;
             }
-            while (ang.vx < -0x800) {
-                ang.vx += 0x1000;
+            while (aimAngles.vx < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+                aimAngles.vx += ACTOR_TRANSFORM_ANGLE_TURN;
             }
         }
     } else {
-        arg2->lastPitchValid = 1;
+        aim->lastPitchValid = 1;
     }
-    arg2->lastPitch = ang.vx;
+    aim->lastPitch = aimAngles.vx;
 
-    base = arg0->extra.tmd->coords;
-    rec  = base + 4;
-    gfxExtractSmallestEuler(&euler, &base[4].coord);
+    subjectParts = subject->extra.tmd->coords;
+    subjectPart  = subjectParts + ANIMATION_HEAD_PART_INDEX;
+    gfxExtractSmallestEuler(&currentAngles, &subjectParts[ANIMATION_HEAD_PART_INDEX].coord);
 
-    ang.vx   = euler.vx + (ang.vx - euler.vx) * rate / 4096;
-    ang.vy   = euler.vy + (ang.vy - euler.vy) * rate / 4096;
-    ang.vz   = euler.vz;
-    curPitch = euler.vx >= 0 ? euler.vx : -euler.vx;
-    if (pitchLimit < curPitch) {
-        pitchLimit = curPitch;
-    }
-    curYaw = euler.vy >= 0 ? euler.vy : -euler.vy;
-    if (yawLimit < curYaw) {
-        yawLimit = curYaw;
-    }
-    newPitch = ang.vx >= 0 ? ang.vx : -ang.vx;
-    if (pitchLimit < newPitch) {
-        ang.vx = ang.vx < 0 ? -pitchLimit : pitchLimit;
-    }
-    newYaw = ang.vy >= 0 ? ang.vy : -ang.vy;
-    if (yawLimit < newYaw) {
-        ang.vy = ang.vy < 0 ? -yawLimit : yawLimit;
-    }
+    ANIMATION_BLEND_HEAD_AIM(aimAngles, currentAngles, blendWeight, pitchLimit, yawLimit);
+#undef ANIMATION_BLEND_HEAD_AIM
 
-    m                    = &rec->coord;
-    *(s32*)&rec->coord   = ONE;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = ONE;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = ONE;
-    RotMatrix(&ang, m);
-    rec->composeStamp = GRAPHICS_COORD_DIRTY;
+    headRotation                           = &subjectPart->coord;
+    MATRIX_PAIR(&subjectPart->coord, 0, 0) = ONE;
+    MATRIX_PAIR(headRotation, 0, 2)        = 0;
+    MATRIX_PAIR(headRotation, 1, 1)        = ONE;
+    MATRIX_PAIR(headRotation, 2, 0)        = 0;
+    headRotation->m[2][2]                  = ONE;
+    RotMatrix(&aimAngles, headRotation);
+    subjectPart->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Appends a node's local rotation to the parent rotation already loaded in the GTE.
@@ -2485,40 +2558,65 @@ static void _animationBlendPackedRotation(const _AnimationBlendRequest* request,
     }
 }
 
-static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
+/// Skips a playback slot to its next control boundary and ticks that pose.
+///
+/// slotIndex must fit the live context's slots and pose buffers. With unequal
+/// endpoints, promotes the next endpoint and walks forward until a jump, stop
+/// or equal endpoint. Jumps use absolute record indices; a stop retains the
+/// prior next index. Indices narrow to u16 and every visited record must fit
+/// its loaded set; control chains must terminate. The next endpoint must select
+/// a loaded set rather than the buffered-pose sentinel. Installs the resolved
+/// record's duration in sixteenth-frame units before ticking with no optional
+/// outputs. The tick updates the model,
+/// consumes the slot rate and replaces the walk's flags with its own results.
+/// Model, resource, scratch and GTE requirements follow `animationTickSlotPose`.
+static void _animationAdvanceSlotToBoundary(AnimationContext* context, s32 slotIndex)
 {
+    /// Resolves advance-walk control records, accumulating jump/boundary flags.
+    ///
+    /// candidateIndex is a writable u16 lvalue distinct from the slot endpoints.
+    /// Visited records must fit the live array and jump chains must terminate.
+    /// A stop retains the old next index.
+    /// Arguments must be stable and side-effect-free: all are evaluated repeatedly.
+    /// Captures no caller locals and leaves endpoint installation to the caller.
+#define ANIMATION_RESOLVE_ADVANCE_RECORD(playbackSlot, recordArray, candidateIndex)                  \
+    do {                                                                                             \
+        const AnimationRecord* controlRecord;                                                        \
+        while ((s8)(recordArray)[(candidateIndex)].flags < 0) {                                      \
+            controlRecord = (recordArray) - -(s32)(candidateIndex);                                  \
+            if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {                             \
+                (candidateIndex) = controlRecord->wordOffset;                                        \
+                if ((candidateIndex) == (playbackSlot)->nextPose.indices.recordIndex) {              \
+                    (playbackSlot)->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;          \
+                }                                                                                    \
+                (playbackSlot)->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;                 \
+            } else {                                                                                 \
+                (candidateIndex)                     = (playbackSlot)->nextPose.indices.recordIndex; \
+                (playbackSlot)->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;              \
+                break;                                                                               \
+            }                                                                                        \
+        }                                                                                            \
+    } while (0)
+
     AnimationSlot*         slot;
-    AnimationSet**         sets;
-    const AnimationRecord* recs;
-    const AnimationRecord* rec;
+    AnimationSet**         setTable;
+    const AnimationRecord* records;
     u16                    recordIndex;
     s32                    setIndex;
     u16                    segmentTime;
 
-    slot                      = &context->slots[arg1];
+    // Skip segments until a control boundary; the final pose tick recomputes flags.
+    slot                      = &context->slots[slotIndex];
     slot->status.fields.flags = 0;
     if (slot->currentPose.key != slot->nextPose.key) {
-        sets = slot->sets;
+        setTable = slot->sets;
         do {
             slot->currentPose.key = slot->nextPose.key;
             recordIndex           = slot->nextPose.indices.recordIndex + 1;
             setIndex              = slot->nextPose.indices.setIndex;
-            recs                  = sets[setIndex]->records;
-            while ((s8)recs[recordIndex].flags < 0) {
-                // Negated-index subtraction preserves the address-add operand order.
-                rec = recs - -(s32)recordIndex;
-                if (rec->flags < ANIMATION_RECORD_END_THRESHOLD) {
-                    recordIndex = rec->wordOffset;
-                    if (recordIndex == slot->nextPose.indices.recordIndex) {
-                        slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
-                    }
-                    slot->status.fields.flags |= ANIMATION_SLOT_FOLLOWED_JUMP;
-                } else {
-                    recordIndex                = slot->nextPose.indices.recordIndex;
-                    slot->status.fields.flags |= ANIMATION_SLOT_REACHED_BOUNDARY;
-                    break;
-                }
-            }
+            records               = setTable[setIndex]->records;
+            ANIMATION_RESOLVE_ADVANCE_RECORD(slot, records, recordIndex);
+#undef ANIMATION_RESOLVE_ADVANCE_RECORD
             slot->nextPose.indices.recordIndex = recordIndex;
             slot->nextPose.indices.setIndex    = setIndex;
             if (slot->status.fields.flags & ANIMATION_SLOT_BOUNDARY_MASK) {
@@ -2530,7 +2628,7 @@ static void Gp_AnimAdvanceSlot(AnimationContext* context, s32 arg1)
     segmentTime    = slot->sets[slot->nextPose.indices.setIndex]->records[slot->nextPose.indices.recordIndex].durationFrames << ANIMATION_TIME_FRACTION_BITS;
     slot->timeSpan = segmentTime;
     slot->timeLeft = segmentTime;
-    animationTickSlotPose(context, arg1, 0, 0);
+    animationTickSlotPose(context, slotIndex, 0, 0);
 }
 
 void animationTickSlotPose(AnimationContext* context, s32 slotIndex, AnimationPose* unpackedDestination, void* encodedDestination)
@@ -3367,7 +3465,22 @@ void animationPlaySlotWithBlend(AnimationContext* context, s32 slotIndex, Animat
     slot->usesBufferedPose          = 0;
 }
 
-void Gp_SaveEnemyPose(Enemy* enemy)
+/// Stores high-byte Euler angles while retaining their scratch intermediates.
+///
+/// rootRotation is the live world-space root rotation. euler is writable scratch,
+/// and savedPose receives the signed quantized angles, in 16 units per turn.
+static inline void _areaQuantizeSavedPoseAngles(MATRIX* rootRotation, SVECTOR* euler, AreaSavedEnemyPose* savedPose)
+{
+    gfxMatrixToEuler(rootRotation, euler);
+    euler->vx        = euler->vx >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    savedPose->pitch = euler->vx;
+    euler->vy        = euler->vy >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    savedPose->yaw   = euler->vy;
+    euler->vz        = euler->vz >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    savedPose->roll  = euler->vz;
+}
+
+void areaSaveEnemyPose(Enemy* enemy)
 {
     AreaSavedEnemyPose* savedPose;
     GameLocationKey*    savedLocation;
@@ -3420,13 +3533,7 @@ void Gp_SaveEnemyPose(Enemy* enemy)
     savedPose->y           = coord->coord.t[1];
     savedPose->z           = coord->coord.t[2];
     // Quantize the root's Euler angles to their high bytes.
-    gfxMatrixToEuler(&coord->coord, euler);
-    euler->vx        = euler->vx >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-    savedPose->pitch = euler->vx;
-    euler->vy        = euler->vy >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-    savedPose->yaw   = euler->vy;
-    euler->vz        = euler->vz >> AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-    savedPose->roll  = euler->vz;
+    _areaQuantizeSavedPoseAngles(&coord->coord, euler, savedPose);
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
@@ -3488,8 +3595,8 @@ void Gp_SpawnArea(GameLocationKey* location)
                             break;
                         }
                     }
-                    enemy = Gp_SpawnEnemyFromTable(resource->taskTable, resource->taskIndex,
-                                                   (placement->variant << 16) | placement->mode, NULL);
+                    enemy = enemySpawnFromTable(resource->taskTable, resource->taskIndex,
+                                                (placement->variant << 16) | placement->mode, NULL);
                     if (enemy != NULL) {
                         u16 placementKey;
 
@@ -3937,10 +4044,31 @@ static AreaSavedState* Gp_GetAreaObj(GameLocationKey* key)
     return areaState;
 }
 
-/// Initializes the placement selector and applies a requested saved-pose reset.
-static void _areaPrepareSpawnState(GameLocationKey* key, AreaSavedState* areaState)
+/// Removes one saved-pose entry by shifting successors left and freeing the tail.
+///
+/// savedPoses is the complete writable live-save pose array; poseIndex must fit it.
+/// Only the tail key and resume state are cleared, leaving its pose bytes intact.
+static inline void _areaRemoveSavedPose(AreaSavedEnemyPose* savedPoses, s32 poseIndex)
 {
-    s32                 shiftIndex;
+    s32 shiftIndex;
+    if (poseIndex != (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)) {
+        for (shiftIndex = poseIndex; shiftIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); shiftIndex++) {
+            savedPoses[shiftIndex] = savedPoses[shiftIndex + 1];
+        }
+    }
+    savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].resumeState = AREA_SAVED_ENEMY_POSE_FREE;
+    savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].placeKey    = 0;
+}
+
+/// Initializes an area's placement variant and applies a saved-pose reset.
+///
+/// key supplies only a valid stage/area; areaState is its live writable saved
+/// state. A zero variant becomes AREA_DEFAULT_VARIANT and requests a reset.
+/// A reset clears both reset/restore bits, removes every saved pose with that
+/// stage/area, shifts survivors left and marks the vacated tail free. Positions
+/// and angles in free tail entries remain unchanged. The key is not modified.
+static void _areaPrepareSpawnState(const GameLocationKey* key, AreaSavedState* areaState)
+{
     s32                 poseIndex;
     AreaSavedEnemyPose* savedPoses;
 
@@ -3955,13 +4083,7 @@ static void _areaPrepareSpawnState(GameLocationKey* key, AreaSavedState* areaSta
         savedPoses             = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
         do {
             if ((savedPoses[poseIndex].placeKey & AREA_PLACEMENT_STAGE_AREA_MASK) == ((key->stage << AREA_PLACEMENT_STAGE_SHIFT) | key->area)) {
-                if (poseIndex != (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)) {
-                    for (shiftIndex = poseIndex; shiftIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); shiftIndex++) {
-                        savedPoses[shiftIndex] = savedPoses[shiftIndex + 1];
-                    }
-                }
-                savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].resumeState = AREA_SAVED_ENEMY_POSE_FREE;
-                savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].placeKey    = 0;
+                _areaRemoveSavedPose(savedPoses, poseIndex);
             }
             poseIndex--;
         } while (poseIndex >= 0);
@@ -4212,7 +4334,12 @@ static s32 _sceneBroadcastToPlacedActors(Task* scene, s32 messageId, s32 payload
     return 0;
 }
 
-static void Gp_KillSlot4Children(void)
+/// Dispatches exit callbacks for the scene manager's direct children.
+///
+/// Requires a live registered scene task and valid circular child ring.
+/// Exit callbacks own child teardown and may unlink tasks; the resident walker
+/// saves the next child before dispatch. Does not kill the scene manager.
+static void _sceneCallChildExits(void)
 {
     taskCallChildExits(gameGetTaskSlot(GAME_TASK_SLOT_SCENE));
 }
@@ -4342,7 +4469,7 @@ static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place)
     id = spawn->kind;
     while (id != AREA_OBJECT_SPAWN_END) {
         if (id == place->kind) {
-            enemy = Gp_SpawnEnemyFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
+            enemy = enemySpawnFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
             if (enemy != NULL) {
                 task = enemy->task;
                 if (task->bodyKind != TASK_BODY_NONE) {
@@ -4418,9 +4545,9 @@ static const EnemyTaskFuncTable3 Gp_EnemyWaitFuncs = { {
 } };
 
 static const TaskFuncTable3 Gp_StageLoadStates = { {
-    Gp_StartStageLoad,
+    _loadingStartRestartResources,
     Gp_FinishStageLoad,
-    Gp_StageLoadState2,
+    _loadingFinishRestart,
 } };
 
 static const VECTOR D_80093A28 = { 0, -100, 0, 0 };

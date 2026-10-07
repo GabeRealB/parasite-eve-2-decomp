@@ -1478,6 +1478,6 @@ void func_actor_342000_8016449C(void)
 /// pending overlay replacement and activates the loaded one.
 void func_actor_342000_801644BC(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
     CdCmd_CancelReplaceAndActivate();
 }

@@ -1363,7 +1363,7 @@ void func_shelter_b1_pod_access_tunnel_8017E3BC(void)
 /// Restores the stream random-number state.
 void func_shelter_b1_pod_access_tunnel_8017E3DC(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 /// Cancels the queued overlay replacement and restarts the CD queue.

@@ -1281,7 +1281,7 @@ void func_actor_450200_80131E24(Task* task)
 /// `AnimationHeadAim` record into `Task::work` and seeds both clamps to
 /// 0x100, state 1 ramps its `rate` up toward 0x1000 while `Task::spawnArg1` is
 /// set and back down toward 0 while it is not, then hands the record to
-/// `func_800B17D4` between the slot-3 task whose head turns and the
+/// `animationAimHeadAt` between the slot-3 task whose head turns and the
 /// `gameGetTaskSlot(GAME_TASK_SLOT_COMPANION)` task it turns toward. A failed allocation, and every
 /// state past 1, kill the task; only the latter clears
 /// `D_actor_450200_801401E0`, which is why the two `taskKill` calls are
@@ -1320,7 +1320,7 @@ void func_actor_450200_80131FA8(Task* arg0)
                     aim->rate = 0;
                 }
             }
-            func_800B17D4(looker, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), aim);
+            animationAimHeadAt(looker, gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), aim);
             return;
         default:
             taskKill(arg0);

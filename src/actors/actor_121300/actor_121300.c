@@ -2642,6 +2642,6 @@ void func_actor_121300_80134384(void)
 
 void func_actor_121300_801343A4(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
     CdCmd_CancelReplaceAndActivate();
 }

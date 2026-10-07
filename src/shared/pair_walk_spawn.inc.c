@@ -28,7 +28,7 @@ void pairWalkSpawn(Enemy* enemy, Task* task)
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     obj->otOffset                    = 1;
     work->enemy                      = enemy;
-    spawned                          = Gp_SpawnEnemyFromTable(gPairWalkTasks, 1, 0, enemy);
+    spawned                          = enemySpawnFromTable(gPairWalkTasks, 1, 0, enemy);
     actorTintModel(spawned->task->extra.tmd, enemy);
     taskReparent(task, spawned->task);
     work->pairTask = spawned->task;

@@ -876,7 +876,7 @@ extern u16 D_actor_105100_801413A8[16];
 
 /// The enemy descriptor run at 0x80141464 the spawn below draws from. Declared
 /// as a scalar rather than an aggregate on purpose: only its address is taken,
-/// so the two words `Gp_SpawnEnemyFromTable` splits it into are the function's
+/// so the two words `enemySpawnFromTable` splits it into are the function's
 /// addend, not a load this function has to model.
 extern TaskDesc D_actor_105100_80141464[];
 
@@ -1349,7 +1349,7 @@ static void func_actor_105100_8013329C(Task* arg0, Enemy* arg1)
 ///
 /// Step 1 holds until the animation reaches frame `0x58`: from then on every
 /// expiry of `fireballTimer` sends one fireball out through
-/// `Gp_SpawnEnemyFromTable` - up to four, and only while the phase is still
+/// `enemySpawnFromTable` - up to four, and only while the phase is still
 /// gathering - and redraws the interval (`0xF` .. `0x1E`). `timer` steps down
 /// in parallel: at `0xF` the phase becomes launch, and at zero the step moves
 /// on to 2 with the cast-end animation. The single frame `animFrame == 0x58`
@@ -1386,8 +1386,8 @@ static void func_actor_105100_8013345C(Task* arg0, Enemy* arg1)
         case 1:
             if (work->animFrame >= 0x58) {
                 if (--work->fireballTimer <= 0 && work->childCount < 4 && work->summonPhase == ACTOR_105100_SUMMON_FIREBALLS_GATHER) {
-                    Gp_SpawnEnemyFromTable(D_actor_105100_80141464, 1, 0,
-                                           (Enemy*)arg0->spawnArg2.pointer);
+                    enemySpawnFromTable(D_actor_105100_80141464, 1, 0,
+                                        (Enemy*)arg0->spawnArg2.pointer);
                     work->childCount   += 1;
                     spawnRnd            = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     gRandomLcgState     = spawnRnd;
@@ -1436,7 +1436,7 @@ static void func_actor_105100_8013345C(Task* arg0, Enemy* arg1)
 /// ring at the model's coordinate - offset 0/-0x6D6/0x320, life 0x3C - kept
 /// in `ringEffect`, and plays `...0007`. Once the frame reaches `0x5A` it
 /// spawns the pattern's two, three or one beams through
-/// `Gp_SpawnEnemyFromTable`, loads `timer` from `D_actor_105100_80141448`,
+/// `enemySpawnFromTable`, loads `timer` from `D_actor_105100_80141448`,
 /// and starts the looping `...0008`, kept in `beamSound`.
 ///
 /// Step 2 waits `timer` out, or leaves as soon as `childCount` is 0, then
@@ -1487,22 +1487,22 @@ static void func_actor_105100_801336B8(Task* arg0, Enemy* arg1)
             if (work->animFrame >= 0x5A) {
                 switch (work->beamPattern) {
                     case ACTOR_105100_BEAMS_PAIR:
-                        Gp_SpawnEnemyFromTable(D_actor_105100_80141464, 2, 0,
-                                               (Enemy*)arg0->spawnArg2.pointer);
-                        Gp_SpawnEnemyFromTable(D_actor_105100_80141464, 2, 0,
-                                               (Enemy*)arg0->spawnArg2.pointer);
+                        enemySpawnFromTable(D_actor_105100_80141464, 2, 0,
+                                            (Enemy*)arg0->spawnArg2.pointer);
+                        enemySpawnFromTable(D_actor_105100_80141464, 2, 0,
+                                            (Enemy*)arg0->spawnArg2.pointer);
                         break;
                     case ACTOR_105100_BEAMS_TRIPLE:
-                        Gp_SpawnEnemyFromTable(D_actor_105100_80141464, 2, 0,
-                                               (Enemy*)arg0->spawnArg2.pointer);
-                        Gp_SpawnEnemyFromTable(D_actor_105100_80141464, 2, 0,
-                                               (Enemy*)arg0->spawnArg2.pointer);
-                        Gp_SpawnEnemyFromTable(D_actor_105100_80141464, 2, 0,
-                                               (Enemy*)arg0->spawnArg2.pointer);
+                        enemySpawnFromTable(D_actor_105100_80141464, 2, 0,
+                                            (Enemy*)arg0->spawnArg2.pointer);
+                        enemySpawnFromTable(D_actor_105100_80141464, 2, 0,
+                                            (Enemy*)arg0->spawnArg2.pointer);
+                        enemySpawnFromTable(D_actor_105100_80141464, 2, 0,
+                                            (Enemy*)arg0->spawnArg2.pointer);
                         break;
                     case ACTOR_105100_BEAMS_SEEKER:
-                        Gp_SpawnEnemyFromTable(D_actor_105100_80141464, 2, 0,
-                                               (Enemy*)arg0->spawnArg2.pointer);
+                        enemySpawnFromTable(D_actor_105100_80141464, 2, 0,
+                                            (Enemy*)arg0->spawnArg2.pointer);
                         break;
                 }
                 work->timer      = D_actor_105100_80141448[work->beamPattern];

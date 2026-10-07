@@ -294,7 +294,7 @@ Do not pin `$s3`. The copy is the live-length lever in `CODEGEN_MODEL.md` §10.1
 
 ## Unroll identical calls in a count switch; gotos to a shared last call over-share (func_actor_105100_801336B8, 2026-09-21)
 
-A switch whose cases make 2, 3 and 1 copies of the same `Gp_SpawnEnemyFromTable`
+A switch whose cases make 2, 3 and 1 copies of the same `enemySpawnFromTable`
 call looks in the ROM like m2c's reconstruction: case 0 one call then jump to a
 shared last call, case 1 two calls then the same jump, case 2 falling into that
 shared tail (plus a leftover unpaired `lui` of the address). Writing those
@@ -18863,7 +18863,7 @@ Pinning both pairs at function scope collides. Give each pair its own
 block-scope `register … asm("v0")` / `asm("v1")` so the live ranges do
 not overlap. For the `or v1, v0, v1` form, load hi then lo then
 `hi <<= 8; key = hi | key` (a single `(hi << 8) | lo` emits
-`or v1, v1, v0`). `Gp_SaveEnemyPose` is the example.
+`or v1, v1, v0`). `areaSaveEnemyPose` is the example.
 
 ## `s8` stack slots for signed `li` of negative byte constants
 
@@ -66069,7 +66069,7 @@ headers preserved the 100% result.
 
 ## Constant array subscript vs pointer dereference can change a cross-call address
 
-`func_800AF590` (GCC 2.8.1, gameplay) accesses the second halfword of
+`streamReadSceneImageSector` (GCC 2.8.1, gameplay) accesses the second halfword of
 `extern u16 D_80114D14[2]` before and after `memCopyBytes`. Writing
 `D_80114D14[1]` made GCC retain the full array base across the call and emit
 `lui a0,hi(array); addiu s0,a0,lo(array); sh v1,2(s0)`.
@@ -66090,7 +66090,7 @@ the header member again, also let CSE reuse the halfword and retain the target
 ranges to distinguish these effects from register coloring.
 
 Changing the shared state declaration from scalar to array also changed
-`Gp_FindStreamSlot`: its reset could now alias the subsequent slot/RNG reads.
+`streamSelectScene`: its reset could now alias the subsequent slot/RNG reads.
 Explicitly loading `slot->data.scene.vlcTableMode` and `gRandomLcgState` into locals before the
 reset restored that already-matched sibling's scheduling without new pins.
 The scoped rebuild then matched every byte of the gameplay overlay.
@@ -66698,7 +66698,7 @@ it. Ask what makes the *other* entries single-set copies instead.
 
 ## One clamp reads the angle from a register, the next from memory: skip-blocks forwarding stops at a `?:` label
 
-`func_800B17D4`'s give-up seed sat at 99.97% after 178 attempts with nine
+`animationAimHeadAt`'s give-up seed sat at 99.97% after 178 attempts with nine
 register pins and three empty asms, most of them there to reproduce this
 tail, which the sibling `animationAimHeadAtTask` matches with plain C:
 
@@ -76777,7 +76777,7 @@ Example: `func_actor_107600_80132A7C`. Input: `base_1.i`
 
 `Task::work` is overloaded by every actor overlay, so an offset alone (`0xE`
 here) does not name a type, and any same-width struct scores 100% anyway. The
-parent is not arbitrary: `Gp_AllocEnemy(Task* task, Enemy* parent)`
+parent is not arbitrary: `_enemyAllocateWork(Task* task, Enemy* parent)`
 (`src/gameplay/1BC.c`) ends in `taskReparent(parent->task, task)`, so
 `index->parent` is the task of whatever spawned this actor, and its `work` is
 that spawner's work block.
@@ -82179,7 +82179,7 @@ That fixes every type at once. `Task::extra` is the display task's `TmdObject`;
 and `+0x24` is `workm`; and the `0x50` stride is `sizeof(GfxCoord)`.
 Rewriting the seed with those types reached 100.000% with every penalty zero and
 the same allocation. `Task::spawnArg2` here is a *model task* (`Task*`), not the
-`Enemy*` the `Gp_AllocEnemy` path puts in that slot elsewhere — a body that
+`Enemy*` the `_enemyAllocateWork` path puts in that slot elsewhere — a body that
 passes it straight to `taskReparent` and dereferences `+0x2C` is the tell.
 
 Two non-conclusions. The `(TmdObject*)` / `(Task*)` casts exist only because
@@ -83590,7 +83590,7 @@ label. That is two allocnos. `.greg` names which one the target wants:
 ;; Register dispositions: … 86 in 6  87 in 3
 ```
 
-`86` (the reload) carries `preferences: 6` from being `func_800B17D4`'s third
+`86` (the reload) carries `preferences: 6` from being `animationAimHeadAt`'s third
 argument, and takes `$a2`. `87` (the allocation) has no preference line at all,
 is allocated *first* on priority, and simply takes the first free register,
 `$v1`. The original had one variable for both, so one allocno carried the
@@ -85075,7 +85075,7 @@ extern TaskDesc D_80147E48;
 ```
 
 with no header home and no comment on the symbol, immediately before the
-function that passes `&D_80147E48` to `Gp_SpawnEnemyFromTable`. Do not go
+function that passes `&D_80147E48` to `enemySpawnFromTable`. Do not go
 looking for an owner in the two sym maps, and do not rename the symbol: the
 linker resolves the raw name and the target object's relocation carries it
 (`R_MIPS_HI16 D_8017DA00`).
@@ -87336,9 +87336,9 @@ s32 flags;
 flags = gameFlagGetNibble(0xE2);
 for (i = 0; i < 4; i++) {
     if (!((flags >> i) & 1)) {
-        Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 0, i, NULL);
+        enemySpawnFromTable(&D_mine_cavern_8018EB38, 0, i, NULL);
     }
-    Gp_SpawnEnemyFromTable(&D_mine_cavern_8018EB38, 1, i, NULL);
+    enemySpawnFromTable(&D_mine_cavern_8018EB38, 1, i, NULL);
 }
 ```
 
@@ -101706,7 +101706,7 @@ also types `Task::spawnArg2`: the handler's other argument (`$s0` here) gets
 `worldTargetLinkNode($s0 + 0x10)`, `sb` at 0x14, `sw $zero` over the three words at
 0x1C and `sb` at 0x48/0x4C/0x4D - all `Enemy` - so the ctx is `Enemy*`, not
 an overlay-local ctx, and 0x4D is a real field (`pad_4D` renamed to `field_4D`,
-size and offset unchanged). `Gp_AllocEnemy` confirms it from the other side:
+size and offset unchanged). `_enemyAllocateWork` confirms it from the other side:
 `memCalloc(0x60, 0)` stored into `task->spawnArg2`.
 
 The instruction stream is also the check on the idiom: `func_actor_421600_8013E858`
@@ -112649,7 +112649,7 @@ rest away.
 work->stateTicks - 0x39`), and its source comment carries the same conclusion.
 `func_actor_403200_8013B3C8` matched 100% on the first project-style rewrite:
 m2c's `goto block_20` for the eight spawn cases scored 66.734%, and writing each
-case's `Gp_SpawnEnemyFromTable` call out separately — per-case index, no shared
+case's `enemySpawnFromTable` call out separately — per-case index, no shared
 local — reproduced the target's per-case argument setup with the cross-jumped
 `jal` tail (see "Duplicate a shared switch-case tail in the source").
 
@@ -118867,15 +118867,15 @@ branch means the call is duplicated in both arms" above.
 ## Argument-register setup follows source order: swapping two arguments moves one `move`, and a 100% scratch score does not cover the port (func_mine_mesa_8017E2A4, 2026-09-17)
 
 Target tail: `jal gameGetTaskSlot; li a0,3; move a0,s2; move a1,v0; jal
-func_800B17D4`. The two setup instructions are in that order, and the function
+animationAimHeadAt`. The two setup instructions are in that order, and the function
 scored 100.00% in the scratch env. Porting it, the two arguments were renamed
 and written swapped --
 
 ```c
     looker = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);              /* s2 */
     ...
-    func_800B17D4(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), target, aim);  /* WRONG */
-    func_800B17D4(looker, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);  /* matches */
+    animationAimHeadAt(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), target, aim);  /* WRONG */
+    animationAimHeadAt(looker, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), aim);  /* matches */
 ```
 
 -- which emits `move a0,v0; move a1,s2` instead. Same mnemonics, same count,
@@ -118900,7 +118900,7 @@ Two lessons, and the second is the general one:
 
 `func_mine_mesa_8017E15C` keeps an `AnimationHeadAim*` in `$a2` from the moment
 `memCalloc` returns it (`move a2,v0`), through the two clamp stores, until the
-record is handed to `func_800B17D4` as its `arg2`; the case-1 re-read
+record is handed to `animationAimHeadAt` as its `aim`; the case-1 re-read
 `aim = index->work;` is likewise `lw $a2,0x1C($s0)`. m2c wrote
 that one source variable as two -- `temp_v0` for the allocation, `temp_a2` for
 the re-read -- and the object came out `move v1,v0` / `sw v1,0x1C(s0)` /
@@ -133151,7 +133151,7 @@ bytes. Keep the spelling whose operand order the ROM has:
 rec = recs - -(s32)recordIndex;
 ```
 
-`Gp_AnimAdvanceSlot` and its seven siblings are the example - all eight sites
+`_animationAdvanceSlotToBoundary` and its seven siblings are the example - all eight sites
 flip together.
 
 Typed subtraction of the negated signed index preserves the original operand
@@ -146227,7 +146227,7 @@ A spawn table declared `extern TaskDesc tbl;` and indexed as `(&tbl)[4].data.mod
 invariant and the call that also passes the table becomes `addiu $a0,$s4,-0x30`.
 The target kept `tbl` in the register (`move $a0,$s4`, `sw $v0,0x38($s4)`).
 Declaring the object as what it is - `extern TaskDesc tbl[];`, used as
-`tbl[4].data.model` and `Gp_SpawnEnemyFromTable(tbl, 4, ...)` - makes the store a
+`tbl[4].data.model` and `enemySpawnFromTable(tbl, 4, ...)` - makes the store a
 single constant address `tbl+0x38`, so the plain symbol is the shared base. The
 previous source reached the same bytes with a `desc` local, a hand-rolled goto
 loop and a `SOFT_USE_REG`; all three went away with the declaration.

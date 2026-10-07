@@ -2069,7 +2069,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     break;
                 case 8:
                     if ((work->phaseFrame == 1) && (work->childEnemy == 0)) {
-                        work->childEnemy = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 1, worldTargetGetActorLockMask(&temp_s7->node), 0);
+                        work->childEnemy = enemySpawnFromTable(D_actor_403600_80160514, 1, worldTargetGetActorLockMask(&temp_s7->node), 0);
                     }
                     if (work->phaseFrame >= 0x1E) {
                         work->forwardSpeed  = -0xAU;
@@ -4110,7 +4110,7 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->childEnemy        = Gp_SpawnEnemyFromTable(D_actor_403600_80160514, 2, 0, 0);
+            work->childEnemy        = enemySpawnFromTable(D_actor_403600_80160514, 2, 0, 0);
             break;
         case 5:
             D_actor_403600_801606E0.placement.rot.vx = 0;

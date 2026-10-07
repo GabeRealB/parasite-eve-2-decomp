@@ -2203,7 +2203,7 @@ void func_actor_120300_80133DD4(void)
 
 void func_actor_120300_80133DF4(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 void func_actor_120300_80133E14(s16 arg0)

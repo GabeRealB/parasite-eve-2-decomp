@@ -1692,7 +1692,7 @@ static void func_actor_521100_80131E8C(Enemy* enemy, Task* task)
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    spawned    = Gp_SpawnEnemyFromTable(D_actor_521100_8015F6E4, 1, 0, enemy);
+    spawned    = enemySpawnFromTable(D_actor_521100_8015F6E4, 1, 0, enemy);
     model      = spawned->task->extra.tmd;
     raw        = enemy->placeKey;
     sessionKey = &gGameSession->location.loc;

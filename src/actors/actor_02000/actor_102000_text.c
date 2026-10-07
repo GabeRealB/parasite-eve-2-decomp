@@ -1195,7 +1195,7 @@ static void Actor02000_Fn0251C(Enemy* ctx, Task* actor)
     for (i = 1; i < 0x13; i++) {
         animationResetSlot(&work->rig.anim, i, 1);
     }
-    eff = Gp_SpawnEnemyFromTable(Actor02000_D15FD0, 1, 0, ctx);
+    eff = enemySpawnFromTable(Actor02000_D15FD0, 1, 0, ctx);
     actorTintTask(eff->task, ctx);
 
     switch (ctx->spawnState) {

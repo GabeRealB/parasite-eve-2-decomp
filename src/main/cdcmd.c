@@ -645,7 +645,7 @@ static inline void _cdCmdFinishSceneAudio(void)
     p->blockGamePause       = 0;
     p->sceneAudioMode       = CD_COMMAND_SCENE_INACTIVE;
     Gp_ApplySndBankMasks(p->sceneStream->data.scene.soundBankMask);
-    Gp_RestoreStreamRng();
+    streamFinishScene();
     if (p->busy != 0) {
         p->busy              = 0;
         gDisplayState.cdBusy = DISPLAY_CD_IDLE;
@@ -1108,7 +1108,7 @@ void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2)
     p                 = &gCdCmdQueue;
     p->field_1FF      = 1;
     p->field_236      = -1;
-    p->sceneSlotIndex = Gp_FindStreamSlot(arg0, arg1, arg2, 0);
+    p->sceneSlotIndex = streamSelectScene(arg0, arg1, arg2, 0);
 }
 
 void cdCmdSceneControlNoOp(void)
@@ -1119,7 +1119,7 @@ void CdCmd_CancelReplaceAndActivate(void)
 {
     gCdCmdQueue.replacementEntry.cmd = CD_COMMAND_EMPTY;
     cdCmdRequestCancel();
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 /// Empty resident entry point with no callers; its intended role is unproven.

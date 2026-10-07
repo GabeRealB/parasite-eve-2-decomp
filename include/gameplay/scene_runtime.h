@@ -15,19 +15,74 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-s32 func_800AF590(s32 unused0, s32 unused1);
+/// Consumes one scene-image sector from the CD stream's gap-sector path.
+///
+/// Reads a 60-byte header before its payload, then advances the selected byte
+/// cursor one 2048-byte sector per call. A reusable payload with zero
+/// `forceReload` skips transfers while retaining the same cursor/count changes.
+/// Empty headers stay in header state. A one-sector payload is marked available
+/// on the next payload-state call. CD transfer failures are ignored; returns 0.
+/// Both arguments are ignored and have no established original role.
+///
+/// Requires a selected live scene/audio descriptor and initialized sector state.
+/// Nonempty sector counts must be 1..32768, and buffer kinds 0..4. The selected
+/// decode, actor or external buffer must cover the complete payload and any
+/// reserved VLC/timing prefix. Inputs and capacities are trusted, not checked.
+/// Borrowed descriptors and payload storage must remain live through decoding.
+s32 streamReadSceneImageSector(s32 unused0, s32 unused1);
 
-s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3);
+/// Selects an exact scene/audio key and prepares its shared playback state.
+///
+/// All four selectors are exact 16-bit values; group 0 searches the stage-zero
+/// table, otherwise the stage table. Returns its zero-based element index or
+/// `CD_COMMAND_NO_SCENE_SLOT` when no loaded scene/audio descriptor matches.
+/// Failure changes no playback state. Success borrows the selected descriptor,
+/// clears cached image headers, requests buffer setup and resets scene loading
+/// and VLC state. Keep the descriptor table live until playback finishes.
+///
+/// Saves the game LCG state and one SDK rand() result, then sets the LCG to 0
+/// and seeds SDK rand() with 1 for deterministic playback. Finish the selected
+/// scene before selecting another, so its saved RNG values are not overwritten.
+/// Buffer allocation and playback start happen separately.
+s16 streamSelectScene(u16 group, u16 id, u16 subId, u16 subId2);
 
 void Gp_StepCdAudioCmd(void);
 
 void Gp_ApplySndBankMasks(u16 arg0);
 
-void Gp_RestoreStreamRng(void);
+/// Marks scene streaming complete and restores the saved random values.
+///
+/// Marks image loading complete and the scene ended, then clears payload
+/// availability, audio-start, buffer-request and timing-pacing flags. Restores
+/// the saved game LCG word and reseeds SDK rand() with the saved draw.
+/// Requires a prior successful scene selection. Releases no buffers or tasks
+/// and does not cancel resident CD requests; their owners handle teardown.
+void streamFinishScene(void);
 
-s32 func_800B0118(s32 arg0, s32 arg1);
+/// Sets or clears the scene stream's game-halt request from an error code.
+///
+/// Narrows `errorCode` to a signed halfword. Nonzero stores that value as the
+/// latest scene error and sets the stream halt bit; zero clears only that bit,
+/// retaining the previous error. Other halt requests are preserved. Returns 0.
+/// `unusedArgument` is ignored and has no established original role.
+s32 streamSetSceneError(s32 errorCode, s32 unusedArgument);
 
-Enemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, Enemy* parent);
+/// Spawns a descriptor task with newly owned enemy work and a teardown parent.
+///
+/// `table[taskIndex]` must be a live non-terminator descriptor; the signed
+/// element index is unchecked. `spawnArg` is copied unchanged to the task's
+/// first payload word; its meaning belongs to that descriptor's callback.
+/// `spawnArg` is a signed 32-bit value or packed argument bits.
+/// Task-list, callback and borrowed model-resource lifetimes follow
+/// `taskSpawnFromTable`. No callback is invoked during this call.
+///
+/// Allocates zeroed primary-heap `Enemy` work, installs its exit callback and
+/// links the task under `parent->task`, or the live scene manager when parent
+/// is NULL. Parent tasks and their child rings must be live. The new task owns
+/// the returned work through its second payload word; do not free it separately.
+/// Returns NULL on task/body/work allocation failure, tearing down an allocated
+/// task if enemy allocation fails. No descriptor pointer is retained.
+Enemy* enemySpawnFromTable(TaskDesc* table, s32 taskIndex, s32 spawnArg, Enemy* parent);
 
 /// Copies a source frame and local offset into a coordinate-body task's world placement.
 ///
@@ -244,12 +299,19 @@ void animationCaptureSlotWithBlend(AnimationContext* context, s32 slotIndex, Ani
 /// This query changes no playback state. `unusedContext` is ignored and may be NULL.
 const AnimationRecord* animationGetCurrentRecord(const AnimationContext* unusedContext, const AnimationSlot* slot);
 
-/// Records an enemy's state and world pose under its packed placement key.
+/// Retains the first saved pose and resume state for an enemy's placement key.
 ///
-/// Requires the enemy's model and task to remain live. An existing record keeps
-/// its pose. A full list evicts a pose from another saved area, with the final
-/// slot as the fallback; positions and angles retain the save format's widths.
-void Gp_SaveEnemyPose(Enemy* enemy);
+/// Requires a live enemy/task, a TMD model with a root coordinate in world
+/// space and a nonzero packed placement key. Normalizes a zero live spawn
+/// state to the default resume state even when the key is already saved.
+/// An existing key keeps its first pose and state; otherwise the first free
+/// entry receives the root position narrowed to signed halfwords and Euler
+/// angles quantized to their high bytes (16 units per turn).
+///
+/// A full table removes the first entry from another saved stage/area and
+/// shifts later entries left; if all entries share that area, replaces the
+/// final entry. Uses one scratch SVECTOR, released before returning.
+void areaSaveEnemyPose(Enemy* enemy);
 
 /// Spawns the placement/resource layout selected by stage, area and variant.
 void Gp_SpawnArea(GameLocationKey* location);
@@ -384,13 +446,23 @@ void animationAimHeadAtTask(Task* subject, Task* targetTask, s32 maxYaw, s32 max
 /// Borrows its inputs, retains no pointers and changes GTE state.
 void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s32 maxYaw, s32 maxPitch, s32 blendWeight);
 
-/// `animationAimHeadAtTask` with the limits and step taken from `arg2` and the target
-/// being `arg1`'s head: composes the first five `GfxCoord` transforms of
-/// both tasks (plus the `D_80093A28` head offset) to get each head's world
-/// position, takes the offset in `arg0`'s head frame through `ratan2`, unwraps
-/// the pitch against `arg2->lastPitch` when it jumps by more than 0x800, steps
-/// toward it by `arg2->rate / 0x1000`, clamps, and writes the head rotation.
-void func_800B17D4(Task* arg0, Task* arg1, AnimationHeadAim* arg2);
+/// Blends a model's head toward another head, retaining pitch-wrap history.
+///
+/// Both tasks must own live TMD models with at least five coordinates in the
+/// expected root-to-head order. Accumulates transformed translations and
+/// rotations of parts 0..4 as accumulated * local, including a head-local
+/// offset of (0, -100, 0) integer units for each model. The world delta narrows
+/// to signed halfwords before rotation into the subject's current head frame.
+///
+/// `aim` must be writable and retained by the caller across ticks. Angles and
+/// nonnegative pitch/yaw limits use 4096 units per turn; rate is a signed
+/// fraction of ONE, normally 0..ONE. Selects a pitch branch using world-delta
+/// Y, then wraps to [-2048, 2048) when it differs from valid history by more
+/// than half a turn. Stores that aim pitch before interpolation and clamping.
+/// Limits widen to each existing head-angle magnitude; roll is preserved.
+/// Writes part 4's rotation, marks it dirty and changes GTE state. Retains no
+/// task or model pointer and allocates no storage.
+void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim);
 
 /// Runs the bodyless-enemy teardown delay (bank 1, type 0xB).
 ///

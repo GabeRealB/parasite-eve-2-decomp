@@ -489,7 +489,7 @@ void func_replay_bonus_80117A08(Task* arg0)
             }
             break;
         case 21:
-            Gp_RestoreStreamRng();
+            streamFinishScene();
             memFree(D_replay_bonus_801192BC);
             displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
             arg0->state += 1;

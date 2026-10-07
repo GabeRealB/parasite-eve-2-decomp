@@ -2291,8 +2291,8 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
         animationResetSlot(&work->rig.anim, i, 1);
     }
     work->present = 1;
-    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 1, 0, arg0);
-    spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 2, 0, arg0);
+    enemySpawnFromTable(D_actor_510900_80167A18, 1, 0, arg0);
+    spawned     = enemySpawnFromTable(D_actor_510900_80167A18, 2, 0, arg0);
     raw1        = arg0->placeKey;
     model1      = spawned->task->extra.tmd;
     sessionKey1 = &gGameSession->location.loc;
@@ -2319,7 +2319,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     if (work->flameJetTask != NULL) {
         work->flameJetTask->spawnArg1.value = ACTOR_510900_FLAME_OFF;
     }
-    spawned     = Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 3, 0, arg0);
+    spawned     = enemySpawnFromTable(D_actor_510900_80167A18, 3, 0, arg0);
     raw2        = arg0->placeKey;
     model2      = spawned->task->extra.tmd;
     sessionKey2 = &gGameSession->location.loc;
@@ -2338,10 +2338,10 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
         tmdBuildBufferHalf(model2);
     }
     work->chestModelTask = spawned->task;
-    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 0, arg0);
-    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 1, arg0);
-    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 5, 2, arg0);
-    Gp_SpawnEnemyFromTable(D_actor_510900_80167A18, 6, 0, arg0);
+    enemySpawnFromTable(D_actor_510900_80167A18, 5, 0, arg0);
+    enemySpawnFromTable(D_actor_510900_80167A18, 5, 1, arg0);
+    enemySpawnFromTable(D_actor_510900_80167A18, 5, 2, arg0);
+    enemySpawnFromTable(D_actor_510900_80167A18, 6, 0, arg0);
     work->body.coord            = &arg1->extra.tmd->coords[3];
     records1                    = work->bodyContacts;
     work->body.context.contacts = records1;

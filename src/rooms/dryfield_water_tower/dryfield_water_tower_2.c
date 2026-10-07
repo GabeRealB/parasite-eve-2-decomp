@@ -3165,10 +3165,10 @@ void func_dryfield_water_tower_80180134(void)
 }
 
 /// Record handler (opcode 0x0D) of one of the room's script tables: calls
-/// `Gp_RestoreStreamRng`.
+/// `streamFinishScene`.
 void func_dryfield_water_tower_80180154(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 void func_dryfield_water_tower_80180174(s16 arg0)
@@ -3213,7 +3213,7 @@ void func_dryfield_water_tower_80180220(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
     gGameSession->viewDirty                                    = 1;
     CdCmd_CancelReplaceAndActivate();
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 void dryfieldWaterTowerSetMechanismSpriteVisible(u8 visible)

@@ -1821,7 +1821,7 @@ void func_actor_503500_80132B98(void)
 /// stream random-number state.
 void func_actor_503500_80132BB8(void)
 {
-    Gp_RestoreStreamRng();
+    streamFinishScene();
 }
 
 /// Record handler (opcode 0x0D) of the actor's script data: cancels the queued

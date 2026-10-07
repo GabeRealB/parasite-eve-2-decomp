@@ -4013,7 +4013,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
 
     Actor403200_SeedRootCoord(task, work);
 
-    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 0, 0, task->spawnArg2.pointer);
+    esc                                                   = enemySpawnFromTable(D_actor_403200_8015E72C, 0, 0, task->spawnArg2.pointer);
     work->escorts[0]                                      = esc;
     esc->task->extra.tmd->coords->parent                  = task->extra.tmd->coords;
     work->escorts[0]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4043,7 +4043,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     func_8010C980(&work->escorts[0]->task->extra.tmd->coords[3], &work->hits[5].body, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts),
                   0x20, 0x300);
 
-    esc                                                   = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 1, 0, task->spawnArg2.pointer);
+    esc                                                   = enemySpawnFromTable(D_actor_403200_8015E72C, 1, 0, task->spawnArg2.pointer);
     work->escorts[1]                                      = esc;
     esc->task->extra.tmd->coords->parent                  = task->extra.tmd->coords;
     work->escorts[1]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4073,7 +4073,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     func_8010C980(&work->escorts[1]->task->extra.tmd->coords[3], &work->hits[8].body, work->hits[8].contacts, ARRAY_SIZE(work->hits[8].contacts),
                   0x20, 0x300);
 
-    esc              = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 2, 0, task->spawnArg2.pointer);
+    esc              = enemySpawnFromTable(D_actor_403200_8015E72C, 2, 0, task->spawnArg2.pointer);
     work->escorts[2] = esc;
     if (esc != NULL) {
         esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[4];
@@ -4083,7 +4083,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         work->escorts[2]->task->extra.tmd->flags              = 0;
     }
 
-    esc              = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 3, 0, task->spawnArg2.pointer);
+    esc              = enemySpawnFromTable(D_actor_403200_8015E72C, 3, 0, task->spawnArg2.pointer);
     work->escorts[3] = esc;
     if (esc != NULL) {
         esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[3];
@@ -4105,7 +4105,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         work->escorts[3]->recs          = work->hits[1].contacts;
     }
 
-    esc              = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 4, 0, task->spawnArg2.pointer);
+    esc              = enemySpawnFromTable(D_actor_403200_8015E72C, 4, 0, task->spawnArg2.pointer);
     work->escorts[4] = esc;
     if (esc != NULL) {
         esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[4];
@@ -4115,7 +4115,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         work->escorts[4]->task->extra.tmd->flags              = 0;
     }
 
-    esc              = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 5, 0, task->spawnArg2.pointer);
+    esc              = enemySpawnFromTable(D_actor_403200_8015E72C, 5, 0, task->spawnArg2.pointer);
     work->escorts[5] = esc;
     if (esc != NULL) {
         esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[2];
@@ -4125,7 +4125,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
         work->escorts[5]->task->extra.tmd->flags              = 0;
     }
 
-    esc              = Gp_SpawnEnemyFromTable(D_actor_403200_8015E72C, 6, 0, task->spawnArg2.pointer);
+    esc              = enemySpawnFromTable(D_actor_403200_8015E72C, 6, 0, task->spawnArg2.pointer);
     work->escorts[6] = esc;
     if (esc != NULL) {
         esc->task->extra.tmd->coords->parent                  = &task->extra.tmd->coords[1];
@@ -4454,28 +4454,28 @@ static void func_actor_403200_8013B3C8(Task* arg0)
     state = work->stateTicks - 0x13;
     switch (state) {
         case 0:
-            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 0, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(gGluttonEscortTasks, 1, 0, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 7:
-            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 1, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(gGluttonEscortTasks, 1, 1, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 9:
-            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 2, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(gGluttonEscortTasks, 1, 2, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x10:
-            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 3, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(gGluttonEscortTasks, 1, 3, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x1F:
-            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 4, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(gGluttonEscortTasks, 1, 4, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x37:
-            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 5, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(gGluttonEscortTasks, 1, 5, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x3B:
-            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 6, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(gGluttonEscortTasks, 1, 6, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
         case 0x3F:
-            Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 1, 7, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(gGluttonEscortTasks, 1, 7, arg0->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
             break;
     }
     gluttonTickAnim(arg0);
@@ -4515,7 +4515,7 @@ static void func_actor_403200_8013B740(Task* arg0)
 
     for (i = 0; i < 9; i++) {
         gGluttonEscortTasks[4].data.model = D_actor_403200_8015F888[i].model;
-        enemy                             = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 4, D_actor_403200_8015F888[i].chaseDelayClass, NULL);
+        enemy                             = enemySpawnFromTable(gGluttonEscortTasks, 4, D_actor_403200_8015F888[i].chaseDelayClass, NULL);
         work->lastSpawned                 = enemy;
         if (enemy == NULL) {
             break;
@@ -5375,7 +5375,7 @@ static void func_actor_403200_8013D9EC(Task* arg0)
         case 0:
         case 12:
         case 19:
-            spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 0, 0, arg0->spawnArg2.pointer);
+            spawned           = enemySpawnFromTable(gGluttonEscortTasks, 0, 0, arg0->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
             work->lastSpawned = spawned;
             break;
@@ -5514,7 +5514,7 @@ static void func_actor_403200_8013DC3C(Task* arg0)
             effectSpawn(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, &D_actor_403200_8015F920, 0x97A0D680, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
-            spawned           = Gp_SpawnEnemyFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);
+            spawned           = enemySpawnFromTable(gGluttonEscortTasks, 2, 0, arg0->spawnArg2.pointer);
             spawned->workType = ENEMY_WORK_PLAIN;
             work->lastSpawned = spawned;
         }
@@ -6048,7 +6048,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
             work->animRate = 0x10;
             for (sc->slot = 0; sc->slot < 2; sc->slot++) {
                 if (work->summons[sc->slot] == NULL && work->summonsAlive < 2 && (u8)work->summonsSpawned < 8) {
-                    work->summons[sc->slot] = Gp_SpawnEnemyFromTable(&D_actor_341700_80174D58, 3, 2, NULL);
+                    work->summons[sc->slot] = enemySpawnFromTable(&D_actor_341700_80174D58, 3, 2, NULL);
                     if (work->summons[sc->slot] != NULL) {
                         work->summonsSpawned++;
                         model      = work->summons[sc->slot]->task->extra.tmd;
