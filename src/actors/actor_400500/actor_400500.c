@@ -1652,7 +1652,7 @@ static void func_actor_400500_80132000(Task* arg0)
 static void func_actor_400500_8013226C(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
-    GfxMatrix                    rot;
+    MATRIX                       rot;
     GfxCoord*                    parts;
     GfxCoord*                    part7;
     GfxCoord*                    part10;
@@ -1675,9 +1675,9 @@ static void func_actor_400500_8013226C(Task* arg0)
     coord->coord.t[0] = 0x400;
     coord->coord.t[1] = 0;
     coord->coord.t[2] = 0;
-    gfxSetRotIdentity(&rot.mat);
-    RotMatrixY((s16)(-0x180), &rot.mat);
-    _actor400500CopyRotation(&rot.mat, &coord->coord);
+    gfxSetRotIdentity(&rot);
+    RotMatrixY((s16)(-0x180), &rot);
+    _actor400500CopyRotation(&rot, &coord->coord);
     parentTmd              = arg0->extra.tmd;
     tmd                    = child->extra.tmd;
     tmd->texturePageOffset = parentTmd->texturePageOffset;
@@ -1703,9 +1703,9 @@ static void func_actor_400500_8013226C(Task* arg0)
         tmdBuildBufferHalf(tmd);
         tmdBuildBufferHalf(tmd);
     }
-    gfxSetRotIdentity(&rot.mat);
-    RotMatrixY((s16)(0x180), &rot.mat);
-    _actor400500CopyRotation(&rot.mat, &coord->coord);
+    gfxSetRotIdentity(&rot);
+    RotMatrixY((s16)(0x180), &rot);
+    _actor400500CopyRotation(&rot, &coord->coord);
 }
 
 static void func_actor_400500_80132438(Task* arg0)
@@ -1713,7 +1713,7 @@ static void func_actor_400500_80132438(Task* arg0)
     SVECTOR                      dir;
     SVECTOR*                     dirp;
     SVECTOR                      delta;
-    GfxMatrix                    rot;
+    MATRIX                       rot;
     _Actor400500GrayStalkerWork* work;
     GfxCoord*                    coord;
     GfxCoord*                    other;
@@ -1763,10 +1763,10 @@ static void func_actor_400500_80132438(Task* arg0)
         delta.vx            = (u16)other->coord.t[0] - (u16)work->playerPrevPos.vx;
         delta.vy            = (u16)other->coord.t[1] - (u16)work->playerPrevPos.vy;
         delta.vz            = (u16)other->coord.t[2] - (u16)work->playerPrevPos.vz;
-        gfxSetRotIdentity(&rot.mat);
+        gfxSetRotIdentity(&rot);
         heading = work->yaw;
-        RotMatrixY(-heading, &rot.mat);
-        ApplyMatrixSV(&rot.mat, &delta, &work->playerLocalMove);
+        RotMatrixY(-heading, &rot);
+        ApplyMatrixSV(&rot, &delta, &work->playerLocalMove);
     }
 }
 
@@ -1895,7 +1895,7 @@ static void func_actor_400500_80132AB0(Task* arg0, s16 arg1, s32 arg2)
 static void func_actor_400500_80132C54(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
-    GfxMatrix                    rot;
+    MATRIX                       rot;
     GfxCoord*                    coord;
     s32                          tx;
 
@@ -1937,10 +1937,10 @@ static void func_actor_400500_80132C54(Task* arg0)
             coord->coord.t[2] = tx;
             break;
     }
-    gfxSetRotIdentity(&rot.mat);
-    RotMatrixZ(work->roll, &rot.mat);
-    RotMatrixY(work->yaw, &rot.mat);
-    _actor400500CopyRotation(&rot.mat, &coord->coord);
+    gfxSetRotIdentity(&rot);
+    RotMatrixZ(work->roll, &rot);
+    RotMatrixY(work->yaw, &rot);
+    _actor400500CopyRotation(&rot, &coord->coord);
     func_actor_400500_8013DBCC(arg0, 0xB, &work->anchorPos);
 }
 
@@ -3084,7 +3084,7 @@ static void func_actor_400500_80135770(Task* arg0)
     PlayerStatus*                cfg;
     AnimationPlayRequest         msg;
     _Actor400500StateTable       states;
-    GfxMatrix                    rot;
+    MATRIX                       rot;
     s8                           handshake;
     _Actor400500GrayStalkerWork* work_pos;
     _Actor400500GrayStalkerWork* work_dead;
@@ -3174,11 +3174,11 @@ static void func_actor_400500_80135770(Task* arg0)
             ang_z           = work_rot->roll;
             work_rot->yaw   = ang_y & 0xFFF;
             work_rot->roll  = ang_z & 0xFFF;
-            gfxSetRotIdentity(&rot.mat);
-            RotMatrixZ(work_rot->roll, &rot.mat);
-            RotMatrixX(work_rot->pitch, &rot.mat);
-            RotMatrixY(work_rot->yaw, &rot.mat);
-            _actor400500CopyRotation(&rot.mat, &rot_root->coord);
+            gfxSetRotIdentity(&rot);
+            RotMatrixZ(work_rot->roll, &rot);
+            RotMatrixX(work_rot->pitch, &rot);
+            RotMatrixY(work_rot->yaw, &rot);
+            _actor400500CopyRotation(&rot, &rot_root->coord);
             func_actor_400500_80132E94(arg0);
             if (work->attackCooldown > 0) {
                 work->attackCooldown = (u16)work->attackCooldown - 1;
@@ -3353,8 +3353,8 @@ static void func_actor_400500_80135EBC(Task* arg0)
 
 static void func_actor_400500_801361EC(Task* arg0)
 {
-    GfxMatrix                    rot;
-    GfxMatrix*                   src;
+    MATRIX                       rot;
+    MATRIX*                      src;
     MATRIX*                      dst;
     _Actor400500GrayStalkerWork* work;
     _Actor400500GrayStalkerWork* workA;
@@ -3446,19 +3446,19 @@ static void func_actor_400500_801361EC(Task* arg0)
                     src               = &rot;
                     work->pitch       = 0;
                     work->posture     = 0;
-                    gfxSetRotIdentity(&src->mat);
-                    RotMatrixZ(work->roll, &src->mat);
-                    RotMatrixY(work->yaw, &src->mat);
+                    gfxSetRotIdentity(src);
+                    RotMatrixZ(work->roll, src);
+                    RotMatrixY(work->yaw, src);
                     dst          = &coord->coord;
-                    dst->m[0][0] = src->mat.m[0][0];
-                    dst->m[0][1] = src->mat.m[0][1];
-                    dst->m[0][2] = src->mat.m[0][2];
-                    dst->m[1][0] = src->mat.m[1][0];
-                    dst->m[1][1] = src->mat.m[1][1];
-                    dst->m[1][2] = src->mat.m[1][2];
-                    dst->m[2][0] = src->mat.m[2][0];
-                    dst->m[2][1] = src->mat.m[2][1];
-                    dst->m[2][2] = src->mat.m[2][2];
+                    dst->m[0][0] = src->m[0][0];
+                    dst->m[0][1] = src->m[0][1];
+                    dst->m[0][2] = src->m[0][2];
+                    dst->m[1][0] = src->m[1][0];
+                    dst->m[1][1] = src->m[1][1];
+                    dst->m[1][2] = src->m[1][2];
+                    dst->m[2][0] = src->m[2][0];
+                    dst->m[2][1] = src->m[2][1];
+                    dst->m[2][2] = src->m[2][2];
                     _actor400500ReadPartWorldXZ(arg0, 11, &work->anchorPos);
                     work->subState = 1;
                     break;
@@ -4269,7 +4269,7 @@ static void func_actor_400500_8013771C(Task* arg0)
 {
     SVECTOR                      in;
     SVECTOR                      out;
-    GfxMatrix                    rot;
+    MATRIX                       rot;
     _Actor400500GrayStalkerWork* work;
     _Actor400500GrayStalkerWork* hit;
     GameActor*                   player;
@@ -4288,9 +4288,9 @@ static void func_actor_400500_8013771C(Task* arg0)
         in.vy = 0;
         vz    = (u16)work->toTarget.vz;
         in.vz = vz;
-        gfxSetRotIdentity(&rot.mat);
-        RotMatrixY(work->yaw, &rot.mat);
-        ApplyMatrixSV(&rot.mat, &in, &out);
+        gfxSetRotIdentity(&rot);
+        RotMatrixY(work->yaw, &rot);
+        ApplyMatrixSV(&rot, &in, &out);
         r                    = ratan2(out.vx, work->toTarget.vy - 0x6A0);
         work->armReachAngle += ((-r - (u16)work->armReachAngle) << 20) >> 23;
     } else {
@@ -4471,7 +4471,7 @@ static void func_actor_400500_801387E8(Task* arg0)
     _Actor400500GrayStalkerWork* work2;
     _Actor400500GrayStalkerWork* work3;
     _Actor400500GrayStalkerWork* hit;
-    GfxMatrix                    rot;
+    MATRIX                       rot;
     s32                          soundId;
     s32                          pan;
     s32                          cond;
@@ -4557,7 +4557,7 @@ static void func_actor_400500_80138B78(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
     _Actor400500GrayStalkerWork* hit;
-    GfxMatrix                    rot;
+    MATRIX                       rot;
     s32                          soundId;
     s32                          pan;
     s32                          cond;
