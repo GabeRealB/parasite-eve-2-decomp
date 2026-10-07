@@ -1882,7 +1882,7 @@ static void func_actor_510900_801373B8(Task* arg0)
         key.room          = sessionKey->room;
         key.view          = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
-        layout = Gp_GetNestedAreaRec(&key);
+        layout = areaGetVariant(&key);
         /* offset + base, not `&layout->placements[idx]`: the ROM adds the scaled
            index onto the table (`addu s0, s0, v0`). */
         entry                    = gpAreaPlaceAt(layout->placements, idx);

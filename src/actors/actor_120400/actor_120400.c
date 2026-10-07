@@ -925,7 +925,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         areaSyncLocationVariant(&key);
-        layout                   = Gp_GetNestedAreaRec(&key);
+        layout                   = areaGetVariant(&key);
         place                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
@@ -950,7 +950,7 @@ static void func_actor_120400_80131E5C(Task* arg0)
         key.room   = keyAddr->room;
         key.view   = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
-        layout                   = Gp_GetNestedAreaRec(&key);
+        layout                   = areaGetVariant(&key);
         place                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;

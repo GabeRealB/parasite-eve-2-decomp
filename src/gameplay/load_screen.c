@@ -176,7 +176,7 @@ void func_800AA548(s32 arg0)
         taskSpawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, 1, 0, 0);
     }
     Gp_SpawnPlaces(sess);
-    Gp_SpawnArea(sess);
+    areaSpawnPlacements(sess);
     sceneResetCombatState();
     taskSpawn(1, 0xF, 0, 0);
     taskSpawn(1, 0x10, 0, 0);

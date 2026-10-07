@@ -3498,7 +3498,7 @@ static void func_mine_mesa_80181358(Task* arg0)
         key.room                                                     = loc->room;
         key.view                                                     = gGameSession->location.loc.view;
         areaSyncLocationVariant(&key);
-        place                  = Gp_GetNestedAreaRec(&key)->placements;
+        place                  = areaGetVariant(&key)->placements;
         tmd->texturePageOffset = place->texturePageOffset;
         tmd->clutRowOffset     = place->clutRowOffset;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 10) {

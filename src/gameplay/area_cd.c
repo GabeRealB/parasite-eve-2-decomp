@@ -49,7 +49,7 @@ u16 Gp_PollAreaCdLoads(void)
 
     switch (Gp_AreaCdPhase) {
         case LOADING_AREA_INIT:
-            layout      = Gp_GetNestedAreaRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            layout      = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_80114C64  = layout;
             Gp_CdRecCur = layout->placements;
             if (layout == NULL) {
@@ -141,7 +141,7 @@ u16 func_800AA120(void)
 
     switch (D_80114C70) {
         case LOADING_AREA_INIT:
-            layout     = Gp_GetNestedAreaRec(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            layout     = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_80114C64 = layout;
             D_80114C68 = layout->resources;
             if (layout == NULL || layout->resources == NULL) {

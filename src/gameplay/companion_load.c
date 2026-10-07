@@ -302,7 +302,7 @@ void Gp_MarkAreaVisited(GameLocationKey* arg0)
     flags = bank->visitedAreas[which];
     if (((mask << bit) & flags) == 0) {
         bank->visitedAreas[which] = flags | (mask << bit);
-        Gp_SetAreaFlag0(arg0);
+        areaRequestSavedPoseReset(arg0);
     }
 }
 

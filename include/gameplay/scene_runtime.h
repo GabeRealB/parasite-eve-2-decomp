@@ -48,7 +48,13 @@ s16 streamSelectScene(u16 group, u16 id, u16 subId, u16 subId2);
 
 void Gp_StepCdAudioCmd(void);
 
-void Gp_ApplySndBankMasks(u16 arg0);
+/// Reopens the script-sound request gates selected by a scene's bank mask.
+///
+/// Bits 0..5 select common, weapon, type-1, area, character and all bank types;
+/// upper bits are ignored. The all-types selector opens all sixteen gates,
+/// including ambient. Requires the gameplay decode table and initialized sound
+/// state. Does not restart stopped sounds or restore gates to their prior values.
+void cdCmdResumeSceneSoundRequests(u16 soundBankMask);
 
 /// Marks scene streaming complete and restores the saved random values.
 ///
@@ -313,8 +319,32 @@ const AnimationRecord* animationGetCurrentRecord(const AnimationContext* unusedC
 /// final entry. Uses one scratch SVECTOR, released before returning.
 void areaSaveEnemyPose(Enemy* enemy);
 
-/// Spawns the placement/resource layout selected by stage, area and variant.
-void Gp_SpawnArea(GameLocationKey* location);
+/// Spawns actors from the selected area's placement and resource tables.
+///
+/// Reads only stage, area and variant; indexes must fit the loaded tables.
+/// Resets area target tracking even when the stage or variant table is absent.
+/// Previous tracked actors must be gone or off-list before surviving nodes can
+/// be linked again; resetting the target head does not clear node membership.
+/// A published area requires a writable saved state. Initializes its saved
+/// variant and applies pending pose resets without changing `location`.
+/// Missing placement tables and empty lists spawn nothing. Both walked tables
+/// must end at `AREA_PLACEMENT_END`; each matched resource requires a live task
+/// descriptor at `taskIndex`. The registered scene manager must be live.
+///
+/// Spawns the first matching resource for each placement with actor argument
+/// `(variant << 16) | mode`. Successful actors own newly allocated enemy work
+/// and borrow their placement and model resources until exit. Allocation failure
+/// skips that placement. Bodyless actors receive no transform; TMD and coordinate
+/// bodies start in world space. TMD texture offsets refresh both existing buffer
+/// halves. Normal spawning uses the placement position and yaw (4096 units/turn).
+/// Restoration mode spawns only keys present in the 32 live-save poses and
+/// restores their signed positions, high-byte Euler angles and resume state;
+/// occupancy is not tested. Old actors are not torn down by this call.
+///
+/// The placement counter is a signed byte; live indexes must remain nonnegative.
+/// Stored u16 keys retain only four placement-index bits. Restoration filtering
+/// compares the untruncated key, so indexes above 15 cannot match saved poses.
+void areaSpawnPlacements(const GameLocationKey* location);
 
 /// Returns the first scene child's enemy work with the packed placement key, or NULL.
 ///
@@ -342,7 +372,12 @@ Task* sceneFindPlacedActor(s32 placementIndex);
 /// model's offsets change. Storage ownership and lifetime are unchanged.
 void tmdSetTextureOffsets(TmdObject* model, s32 texturePageOffset, s32 clutRowOffset);
 
-s32 Gp_GetAreaFlag2(GameLocationKey* key);
+/// Returns whether an area's saved-pose restoration bit is set, as 0 or 1.
+///
+/// Only stage and area are read and must fit their tables. A missing stage table
+/// or saved state returns 0. Does not compare the key's placement variant, inspect
+/// the pose array or apply a pending reset; other key components are ignored.
+s32 areaIsSavedPoseRestoreEnabled(const GameLocationKey* key);
 
 /// Controls when changing a placement variant discards saved enemy poses.
 enum {
@@ -353,21 +388,39 @@ enum {
 
 /// Sets an area's saved placement variant and updates its saved-pose state.
 ///
-/// `resetMode` is -1 to reset poses only on a variant change, 0 to clear the
-/// reset request, or other nonzero values to force it. A variant of 0 always
-/// initializes layout 1 and resets poses. Only stage and area are read from `key`;
-/// the selected variant must be valid for that area's placement/resource table.
-void areaSetPlacementVariant(GameLocationKey* key, s32 variant, s32 resetMode);
+/// Only stage and area are read from `key`; both indexes must fit their tables.
+/// Missing stage or saved-state tables are a no-op. `variant` narrows to a signed
+/// byte; pass a valid layout selector in 1..127, or zero for the default layout.
+/// The conditional-change comparison uses the full s32 argument before narrowing.
+/// The key is unchanged; synchronize it separately before looking up that layout.
+///
+/// `AREA_VARIANT_RESET_IF_CHANGED` requests a reset only when the saved variant
+/// differs. Equal variants clear the reset request and retain restoration mode.
+/// `AREA_VARIANT_SKIP_POSE_RESET` clears both reset and restoration bits while
+/// storing the variant; other modes request a reset and clear restoration mode.
+/// A stored zero always becomes `AREA_DEFAULT_VARIANT` and requests a reset.
+/// Applies the request immediately, removing this stage/area's live-save poses
+/// and clearing both reset/restore bits. Other area flags remain intact.
+void areaSetPlacementVariant(const GameLocationKey* key, s32 variant, s32 resetMode);
 
-/// Returns the stage/area/variant layout, or NULL when its tables are absent.
-AreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key);
+/// Borrows the area variant selected by stage, area and placement variant.
+///
+/// Those three indexes must fit their loaded tables; room, view and warp are
+/// ignored. Returns NULL for a missing stage or area-variant table. An existing
+/// slot is returned even when both of its tables are NULL, including slot zero.
+/// Does not initialize or synchronize the selector. Keep the loaded room table
+/// live while using the returned writable variant or its borrowed arrays.
+AreaVariant* areaGetVariant(const GameLocationKey* key);
 
 /// Copies the area's saved placement variant into `key->variant`.
 ///
-/// Defaults the key to layout 1 when its tables are absent. A saved selector
-/// of 0 is initialized to 1 and requests removal of that area's saved poses.
-/// Only stage and area need to be initialized before this call.
-/// An existing layout table requires its saved area-state record to exist too.
+/// Only stage and area are read and must fit their tables. Writes
+/// `AREA_DEFAULT_VARIANT` before checking those tables; a missing stage or
+/// area-variant table keeps that default. An existing variant table requires a
+/// live saved-state record. Its signed-byte selector is copied into the key's
+/// unsigned variant byte. A zero selector first becomes the default and sets a
+/// pending saved-pose reset; poses are left intact until spawn preparation.
+/// Does not validate that the selected variant has placement/resource tables.
 void areaSyncLocationVariant(GameLocationKey* key);
 
 /// Draws a subtractive textured ground-shadow square in a model coordinate's local XZ plane.

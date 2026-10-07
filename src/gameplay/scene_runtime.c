@@ -333,7 +333,7 @@ s16 D_80114D1C;
 
 s32 D_80114D20;
 
-/// 0-terminated `_CdCmdSceneSoundBankBit` table walked by `Gp_ApplySndMasks` / `Gp_ApplySndBankMasks`.
+/// 0-terminated `_CdCmdSceneSoundBankBit` table walked by `_cdCmdSuspendSceneSoundRequests` / `cdCmdResumeSceneSoundRequests`.
 extern _CdCmdSceneSoundBankBit Gp_SndMaskTable[];
 
 /// Printed when an enemy's work block cannot be allocated.
@@ -412,8 +412,6 @@ static s32 _sceneExitPlacedActors(Task* scene, s32 messageId, s32 firstArg, s32 
 
 static s32 _sceneBroadcastToPlacedActors(Task* scene, s32 messageId, s32 payload, s32 childMessage);
 
-static void Gp_ApplySndMasks(u16 arg0);
-
 static Enemy* _enemyAllocateWork(Task* task, Enemy* parent);
 
 static void _enemyStartTeardownDelay(Enemy* enemy, Task* task);
@@ -454,20 +452,11 @@ static void _animationSelectCurrentPoseRecord(const AnimationContext* unusedCont
 
 static void _displayRedrawPreviousFrame(Task* task);
 
-static void Gp_SetCurAreaFlag2(s32 useSavedPoses);
-
-static AreaSavedState* Gp_GetAreaObj(GameLocationKey* key);
-
 static void _areaPrepareSpawnState(const GameLocationKey* key, AreaSavedState* areaState);
-
-static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key);
 
 static void func_800B6014(void);
 
 static void _displayStartPreviousFrameRedraw(Task* task);
-
-/// The 2-bit state of entry `arg0` in the current stage's `Gp_Bit2Banks` flags.
-static inline s32 _gpGetCurBit2Flag(s32 arg0);
 
 static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place);
 
@@ -1043,42 +1032,49 @@ void Gp_StepCdAudioCmd(void)
     CdCmd_StepVlcRebuild();
 }
 
-static void Gp_ApplySndMasks(u16 arg0)
+/// Stops script sounds selected by a scene mask and closes their request gates.
+///
+/// Bits 0..5 select common, weapon, type-1, area, character and all bank types;
+/// upper bits are ignored. The all-types stop spares ambient sounds, while its
+/// gate closes all sixteen types. Stops use no fade; the character gate also
+/// queues its normal release stop. Requires the loaded zero-terminated decode
+/// table and initialized sound queues. No stopped sound is retained for restart.
+static void _cdCmdSuspendSceneSoundRequests(u16 soundBankMask)
 {
-    s32                      i;
-    s32                      bits;
-    _CdCmdSceneSoundBankBit* entry;
+    u16                            maskIndex;
+    s32                            promotedMask;
+    const _CdCmdSceneSoundBankBit* entry;
 
-    i = 0;
+    maskIndex = 0;
     if (Gp_SndMaskTable[0].mask != 0) {
-        bits = arg0;
+        promotedMask = soundBankMask;
         do {
-            entry = &Gp_SndMaskTable[(u16)i];
-            if (bits & entry->mask) {
+            entry = &Gp_SndMaskTable[maskIndex];
+            if (promotedMask & entry->mask) {
                 sndEvtRequestScriptStop(entry->bankTypeId, SOUND_SCRIPT_STOP_NO_FADE);
-                sndScriptSetTypeRequestsEnabled(0, entry->bankTypeId);
+                sndScriptSetTypeRequestsEnabled(false, entry->bankTypeId);
             }
-            i++;
-        } while (Gp_SndMaskTable[(u16)i].mask != 0);
+            maskIndex++;
+        } while (Gp_SndMaskTable[maskIndex].mask != 0);
     }
 }
 
-void Gp_ApplySndBankMasks(u16 arg0)
+void cdCmdResumeSceneSoundRequests(u16 soundBankMask)
 {
-    s32                      i;
-    s32                      bits;
-    _CdCmdSceneSoundBankBit* entry;
+    u16                            maskIndex;
+    s32                            promotedMask;
+    const _CdCmdSceneSoundBankBit* entry;
 
-    i = 0;
+    maskIndex = 0;
     if (Gp_SndMaskTable[0].mask != 0) {
-        bits = arg0;
+        promotedMask = soundBankMask;
         do {
-            entry = &Gp_SndMaskTable[(u16)i];
-            if (bits & entry->mask) {
-                sndScriptSetTypeRequestsEnabled(1, entry->bankTypeId);
+            entry = &Gp_SndMaskTable[maskIndex];
+            if (promotedMask & entry->mask) {
+                sndScriptSetTypeRequestsEnabled(true, entry->bankTypeId);
             }
-            i++;
-        } while (Gp_SndMaskTable[(u16)i].mask != 0);
+            maskIndex++;
+        } while (Gp_SndMaskTable[maskIndex].mask != 0);
     }
 }
 
@@ -3411,10 +3407,16 @@ void animationPlaySlotWithBlend(AnimationContext* context, s32 slotIndex, Animat
     slot->usesBufferedPose          = 0;
 }
 
-/// Stores high-byte Euler angles while retaining their scratch intermediates.
+/// Packs a root rotation's XYZ Euler angles into the saved pose's high bytes.
 ///
-/// rootRotation is the live world-space root rotation. euler is writable scratch,
-/// and savedPose receives the signed quantized angles, in 16 units per turn.
+/// `rootRotation` supplies a live Q12 rotation in its parent's frame; translation
+/// is ignored and the matrix is unchanged. `euler` is writable scratch, receiving
+/// signed angles in 4096 units per turn and then their arithmetic shifts by eight.
+/// `savedPose` receives those low bytes, with one packed step per 256 angle units
+/// (16 steps per turn); negative angles retain their two's-complement high byte.
+/// Other pose fields and the scratch vector's fourth halfword are untouched.
+/// Requires disjoint live storage and nested 0x30-byte scratch capacity for the
+/// Euler conversion, which clobbers the GTE and releases its reservation.
 static inline void _areaQuantizeSavedPoseAngles(MATRIX* rootRotation, SVECTOR* euler, AreaSavedEnemyPose* savedPose)
 {
     gfxMatrixToEuler(rootRotation, euler);
@@ -3483,7 +3485,24 @@ void areaSaveEnemyPose(Enemy* enemy)
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-void Gp_SpawnArea(GameLocationKey* location)
+/// Restores a saved root transform and actor-specific resume state.
+///
+/// The live coordinate receives signed translations in its parent's frame and
+/// high-byte Euler angles expanded to signed halfwords, then a rebuilt rotation.
+/// The caller supplies a matching pose and keeps all three objects live.
+static inline void _areaRestoreSavedEnemyPose(Enemy* enemy, GfxCoord* coord, const AreaSavedEnemyPose* savedPose)
+{
+    coord->coord.t[0]   = savedPose->x;
+    coord->coord.t[1]   = savedPose->y;
+    coord->coord.t[2]   = savedPose->z;
+    coord->param.rot.vx = savedPose->pitch << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    coord->param.rot.vy = savedPose->yaw << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    coord->param.rot.vz = savedPose->roll << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
+    RotMatrix_gte(&coord->param.rot, &coord->coord);
+    enemy->spawnState = savedPose->resumeState;
+}
+
+void areaSpawnPlacements(const GameLocationKey* location)
 {
     AreaRecord*     areaRecords;
     AreaVariant*    variants;
@@ -3532,7 +3551,8 @@ void Gp_SpawnArea(GameLocationKey* location)
                         savedPose = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
                         poseFound = 0;
                         for (savedPoseIndex = 0; savedPoseIndex < ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses); savedPoseIndex++, savedPose++) {
-                            if (savedPose->placeKey == ((placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area)) {
+                            // Filtering compares the full index before the stored key narrows to u16.
+                            if (savedPose->placeKey == ((placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (location->stage << ENEMY_PLACE_STAGE_SHIFT) | location->area)) {
                                 poseFound = 1;
                                 break;
                             }
@@ -3546,13 +3566,14 @@ void Gp_SpawnArea(GameLocationKey* location)
                     if (enemy != NULL) {
                         u16 placementKey;
 
-                        placementKey    = (placementIndex << AREA_PLACEMENT_INDEX_SHIFT) | (location->stage << AREA_PLACEMENT_STAGE_SHIFT) | location->area;
+                        placementKey    = (placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (location->stage << ENEMY_PLACE_STAGE_SHIFT) | location->area;
                         enemy->workType = ENEMY_WORK_PLAIN;
                         enemy->place    = placement;
                         enemy->placeKey = placementKey;
                         task            = enemy->task;
                         if (task->bodyKind != TASK_BODY_NONE) {
                             model = task->extra.tmd;
+                            // Both body kinds keep their root pointer in this slot.
                             coord = model->coords;
                             if (task->bodyKind == TASK_BODY_TMD) {
                                 model->texturePageOffset = placement->texturePageOffset;
@@ -3575,16 +3596,7 @@ void Gp_SpawnArea(GameLocationKey* location)
                                 poseIndex = 0;
                                 do {
                                     if (savedPose->placeKey == enemy->placeKey) {
-                                        // Restore the signed translations and expand the packed angles.
-                                        coord->coord.t[0]   = savedPose->x;
-                                        coord->coord.t[1]   = savedPose->y;
-                                        coord->coord.t[2]   = savedPose->z;
-                                        coord->param.rot.vx = savedPose->pitch << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-                                        coord->param.rot.vy = savedPose->yaw << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-                                        coord->param.rot.vz = savedPose->roll << AREA_SAVED_ENEMY_POSE_ANGLE_SHIFT;
-                                        RotMatrix_gte(&coord->param.rot,
-                                                      &coord->coord);
-                                        enemy->spawnState = savedPose->resumeState;
+                                        _areaRestoreSavedEnemyPose(enemy, coord, savedPose);
                                         break;
                                     }
                                     poseIndex++;
@@ -3829,62 +3841,63 @@ static void _displayRedrawPreviousFrame(Task* task)
     addPrim(&gGpuCurrentOt[DISPLAY_FRAME_REDRAW_MASK_OT_TAG], maskCommand);
 }
 
-void Gp_ApplyAreaTmdFlags(void)
+void areaRestoreModelBufferPolicy(void)
 {
-    Task*            head;
-    Task*            iter;
-    GameLocationKey* key;
-    AreaRecord*      rec;
-    AreaVariant*     variants;
-    AreaResource*    table;
-    AreaResource*    entry;
-    Enemy*           enemy;
-    AreaPlacement*   place;
-    TmdObject*       extra;
-    u16              id;
-    u16              flags;
-    u16              limit;
-    u8               idx;
+    Task*                  firstChild;
+    Task*                  child;
+    const GameLocationKey* location;
+    const AreaRecord*      areaRecords;
+    const AreaVariant*     variants;
+    const AreaResource*    resources;
+    const AreaResource*    resource;
+    const Enemy*           enemy;
+    const AreaPlacement*   placement;
+    TmdObject*             model;
+    u16                    resourceId;
+    u16                    descriptorFlags;
+    u16                    resourceEndId;
+    u8                     stage;
 
-    head = (gameGetTaskSlot(GAME_TASK_SLOT_SCENE))->firstChild;
-    if (head != NULL) {
-        iter = head;
+    firstChild = gameGetTaskSlot(GAME_TASK_SLOT_SCENE)->firstChild;
+    if (firstChild != NULL) {
+        child = firstChild;
         do {
-            enemy = iter->spawnArg2.pointer;
-            if (iter->bodyKind == TASK_BODY_TMD) {
-                key   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-                idx   = key->stage;
-                extra = iter->extra.tmd;
-                rec   = Gp_AreaTables[idx];
-                place = enemy->place;
-                table = NULL;
-                if (rec != NULL) {
-                    variants = rec[key->area].variants;
+            enemy = child->spawnArg2.pointer;
+            if (child->bodyKind == TASK_BODY_TMD) {
+                location    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+                stage       = location->stage;
+                model       = child->extra.tmd;
+                areaRecords = Gp_AreaTables[stage];
+                placement   = enemy->place;
+                resources   = NULL;
+                if (areaRecords != NULL) {
+                    variants = areaRecords[location->area].variants;
                     if (variants != NULL) {
-                        table = variants[key->variant].resources;
+                        resources = variants[location->variant].resources;
                     }
                 }
-                entry = table;
-                id    = entry->entryId;
-                if (id != AREA_PLACEMENT_END) {
-                    limit = AREA_PLACEMENT_END;
+                resource   = resources;
+                resourceId = resource->entryId;
+                if (resourceId != AREA_PLACEMENT_END) {
+                    resourceEndId = AREA_PLACEMENT_END;
                     do {
-                        if (id == place->entryId) {
-                            flags = entry->taskTable->header.fields.flags;
-                            if (flags == TASK_BODY_TMD) {
-                                extra->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-                            } else if (flags == (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER)) {
-                                extra->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                        if (resourceId == placement->entryId) {
+                            // Entry zero supplies this policy, independently of the spawn's taskIndex.
+                            descriptorFlags = resource->taskTable->header.fields.flags;
+                            if (descriptorFlags == TASK_BODY_TMD) {
+                                model->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+                            } else if (descriptorFlags == (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER)) {
+                                model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             }
                             break;
                         }
-                        entry++;
-                        id = entry->entryId;
-                    } while (id != limit);
+                        resource++;
+                        resourceId = resource->entryId;
+                    } while (resourceId != resourceEndId);
                 }
             }
-            iter = iter->nextSibling;
-        } while (iter != head);
+            child = child->nextSibling;
+        } while (child != firstChild);
     }
 }
 
@@ -3937,7 +3950,12 @@ void tmdSetTextureOffsets(TmdObject* model, s32 texturePageOffset, s32 clutRowOf
     }
 }
 
-static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
+/// Sets saved-pose restoration for the live save's location when its variant agrees.
+///
+/// Zero `useSavedPoses` clears the bit; any nonzero value sets it. Missing stage
+/// or saved-state tables, or a variant mismatch, leave the state unchanged.
+/// The live save's stage/area indexes must be valid; no key or pose is changed.
+static void _areaSetLiveSavePoseRestoreEnabled(s32 useSavedPoses)
 {
     AreaRecord*      areaRecords;
     AreaSavedState*  areaState;
@@ -3950,7 +3968,7 @@ static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
         if (areaState != NULL) {
             if (areaState->variant == key->variant) {
                 if (useSavedPoses == 0) {
-                    areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESTORE_SAVED_POSES;
+                    areaState->spawnFlags &= (u8)~AREA_SPAWN_RESTORE_SAVED_POSES;
                     return;
                 }
                 areaState->spawnFlags |= AREA_SPAWN_RESTORE_SAVED_POSES;
@@ -3959,7 +3977,7 @@ static void Gp_SetCurAreaFlag2(s32 useSavedPoses)
     }
 }
 
-s32 Gp_GetAreaFlag2(GameLocationKey* key)
+s32 areaIsSavedPoseRestoreEnabled(const GameLocationKey* key)
 {
     AreaRecord*     areaRecords;
     AreaSavedState* areaState;
@@ -3976,7 +3994,11 @@ s32 Gp_GetAreaFlag2(GameLocationKey* key)
     return 0;
 }
 
-static AreaSavedState* Gp_GetAreaObj(GameLocationKey* key)
+/// Borrows an area's saved placement state, or NULL when no state is published.
+///
+/// Only stage and area are read; both indexes must fit their tables. The returned
+/// writable state is resident save-bank storage, whose contents loading may replace.
+static AreaSavedState* _areaGetSavedState(const GameLocationKey* key)
 {
     AreaRecord*     areaRecords;
     AreaSavedState* areaState;
@@ -3992,10 +4014,15 @@ static AreaSavedState* Gp_GetAreaObj(GameLocationKey* key)
 
 /// Removes one saved-pose entry by shifting successors left and freeing the tail.
 ///
-/// savedPoses is the complete writable live-save pose array; poseIndex must fit it.
-/// Only the tail key and resume state are cleared, leaving its pose bytes intact.
+/// `savedPoses` supplies a complete writable array of 32 live-save poses, and
+/// `poseIndex` is 0..31. Copies whole records in ascending order, preserving the
+/// order of survivors. Clears only the tail key and resume state; its transform
+/// bytes remain intact. Existing pointers to shifted records no longer name the
+/// same pose. No bounds are checked and storage is neither acquired nor released.
 static inline void _areaRemoveSavedPose(AreaSavedEnemyPose* savedPoses, s32 poseIndex)
 {
+    enum { AREA_SAVED_ENEMY_POSE_EMPTY_KEY = 0 };
+
     s32 shiftIndex;
     if (poseIndex != (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)) {
         for (shiftIndex = poseIndex; shiftIndex < (ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1); shiftIndex++) {
@@ -4003,7 +4030,7 @@ static inline void _areaRemoveSavedPose(AreaSavedEnemyPose* savedPoses, s32 pose
         }
     }
     savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].resumeState = AREA_SAVED_ENEMY_POSE_FREE;
-    savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].placeKey    = 0;
+    savedPoses[(ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses) - 1)].placeKey    = AREA_SAVED_ENEMY_POSE_EMPTY_KEY;
 }
 
 /// Initializes an area's placement variant and applies a saved-pose reset.
@@ -4036,7 +4063,7 @@ static void _areaPrepareSpawnState(const GameLocationKey* key, AreaSavedState* a
     }
 }
 
-void areaSetPlacementVariant(GameLocationKey* key, s32 variant, s32 resetMode)
+void areaSetPlacementVariant(const GameLocationKey* key, s32 variant, s32 resetMode)
 {
     AreaRecord*     areaRecords;
     AreaSavedState* areaState;
@@ -4048,23 +4075,24 @@ void areaSetPlacementVariant(GameLocationKey* key, s32 variant, s32 resetMode)
             if (resetMode != AREA_VARIANT_RESET_IF_CHANGED) {
                 areaState->variant = variant;
                 if (resetMode == AREA_VARIANT_SKIP_POSE_RESET) {
-                    areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESET_SAVED_POSES;
+                    areaState->spawnFlags &= (u8)~AREA_SPAWN_RESET_SAVED_POSES;
                 } else {
                     areaState->spawnFlags |= AREA_SPAWN_RESET_SAVED_POSES;
                 }
-                areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESTORE_SAVED_POSES;
+                areaState->spawnFlags &= (u8)~AREA_SPAWN_RESTORE_SAVED_POSES;
             } else if (areaState->variant != variant) {
                 areaState->variant    = variant;
-                areaState->spawnFlags = (areaState->spawnFlags | AREA_SPAWN_RESET_SAVED_POSES) & (0xFF ^ AREA_SPAWN_RESTORE_SAVED_POSES);
+                areaState->spawnFlags = (areaState->spawnFlags | AREA_SPAWN_RESET_SAVED_POSES) & (u8)~AREA_SPAWN_RESTORE_SAVED_POSES;
             } else {
-                areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESET_SAVED_POSES;
+                areaState->spawnFlags &= (u8)~AREA_SPAWN_RESET_SAVED_POSES;
             }
+            // Apply the request now; the supplied location key keeps its old variant.
             _areaPrepareSpawnState(key, areaState);
         }
     }
 }
 
-void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
+void areaSetSavedPoseRestoreEnabled(s32 useSavedPoses, const GameLocationKey* key)
 {
     AreaRecord*     areaRecords;
     AreaSavedState* areaState;
@@ -4075,7 +4103,7 @@ void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
         if (areaState != NULL) {
             if (areaState->variant == key->variant) {
                 if (useSavedPoses == 0) {
-                    areaState->spawnFlags &= 0xFF ^ AREA_SPAWN_RESTORE_SAVED_POSES;
+                    areaState->spawnFlags &= (u8)~AREA_SPAWN_RESTORE_SAVED_POSES;
                     return;
                 }
                 areaState->spawnFlags |= AREA_SPAWN_RESTORE_SAVED_POSES;
@@ -4084,7 +4112,12 @@ void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key)
     }
 }
 
-static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key)
+/// Borrows the resource table selected by an area's placement variant.
+///
+/// Reads stage, area and variant only; each index must fit its loaded table.
+/// Returns NULL for a missing stage/variant table or a NULL resource slot.
+/// Keep the loaded room storage live while using the returned table.
+static AreaResource* _areaGetVariantResources(const GameLocationKey* key)
 {
     AreaRecord*   areaRecords;
     AreaVariant*  variants;
@@ -4101,7 +4134,7 @@ static AreaResource* Gp_GetNestedAreaObj(GameLocationKey* key)
     return resources;
 }
 
-AreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key)
+AreaVariant* areaGetVariant(const GameLocationKey* key)
 {
     AreaRecord*  areaRecords;
     AreaVariant* variants;
@@ -4117,7 +4150,7 @@ AreaVariant* Gp_GetNestedAreaRec(GameLocationKey* key)
     return variants;
 }
 
-void Gp_SetAreaFlag0(GameLocationKey* location)
+void areaRequestSavedPoseReset(const GameLocationKey* location)
 {
     u32             stageAreaKey;
     AreaRecord*     areaRecords;
@@ -4125,7 +4158,7 @@ void Gp_SetAreaFlag0(GameLocationKey* location)
 
     stageAreaKey = GAME_LOCATION_WORD(*location) & GAME_LOCATION_STAGE_AREA_MASK;
     areaRecords  = Gp_AreaTables[location->stage];
-    if (stageAreaKey != GAME_LOCATION_KEY(3, 0x26, 0, 0)) {
+    if (stageAreaKey != GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 0, 0)) {
         if (areaRecords != NULL) {
             areaState = areaRecords[location->area].savedState;
             if (areaState != NULL) {
@@ -4388,19 +4421,28 @@ void sceneFreeActorPrimitiveBuffers(void)
     }
 }
 
-/// The 2-bit state of entry `arg0` in the current stage's `Gp_Bit2Banks` flags.
-static inline s32 _gpGetCurBit2Flag(s32 arg0)
+/// Reads one saved two-bit object state from the current session's stage bank.
+///
+/// `flagIndex` is 0..63: sixteen states per u32, low pair first. The session's
+/// stage must index `Gp_Bit2Banks` and publish live object-state words; stage zero
+/// has no bank. Returns 0..3 without interpreting the state's gameplay meaning.
+/// Reads only the saved words, with no ownership or lifetime change.
+static inline s32 _areaGetCurrentObjectState(s32 flagIndex)
 {
-    u32* p;
-    u32  word;
-    s32  shift;
+    enum {
+        AREA_OBJECT_STATE_WORD_INDEX_SHIFT = 4,
+        AREA_OBJECT_STATE_BITS             = 2
+    };
+    const u32* stateWord;
+    u32        stateBits;
+    s32        bitShift;
 
-    p      = &Gp_Bit2Banks[gGameSession->location.loc.stage].objectStates[arg0 >> 4];
-    shift  = (arg0 & 0xF) * 2;
-    word   = *p;
-    word  &= 3 << shift;
-    word >>= shift;
-    return word;
+    stateWord   = &Gp_Bit2Banks[gGameSession->location.loc.stage].objectStates[flagIndex >> AREA_OBJECT_STATE_WORD_INDEX_SHIFT];
+    bitShift    = (flagIndex & ((1 << AREA_OBJECT_STATE_WORD_INDEX_SHIFT) - 1)) * AREA_OBJECT_STATE_BITS;
+    stateBits   = *stateWord;
+    stateBits  &= AREA_OBJECT_PLACE_STATE_MASK << bitShift;
+    stateBits >>= bitShift;
+    return stateBits;
 }
 
 /// Spawns the first `spawn` table entry whose kind equals `place->kind`, at that place.

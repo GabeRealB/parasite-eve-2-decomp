@@ -417,7 +417,7 @@ void Gp_RebuildAreaIdBits(void)
         for (i = 1; i <= count; i++) {
             key.area = i;
             if (_gpGetAreaFlag4(&key) == 1) {
-                if (Gp_GetAreaFlag2(&key) == 1) {
+                if (areaIsSavedPoseRestoreEnabled(&key) == 1) {
                     if (key.area <= 32) {
                         Gp_AreaIdBits[0] &= ~(1 << (key.area - 1));
                     } else {

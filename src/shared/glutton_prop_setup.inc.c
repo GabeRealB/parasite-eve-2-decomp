@@ -25,7 +25,7 @@ void gluttonPropSetup(Enemy* enemy, Task* task)
     idx        = raw >> ENEMY_PLACE_INDEX_SHIFT;
     key.view   = areaByte0;
     areaSyncLocationVariant(&key);
-    layout = Gp_GetNestedAreaRec(&key);
+    layout = areaGetVariant(&key);
     /* offset + base, not `&layout->placements[idx]`: the ROM adds the scaled index
        onto the table (`addu s0, s0, v0`). */
     entry                    = gpAreaPlaceAt(layout->placements, idx);

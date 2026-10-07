@@ -44,7 +44,7 @@ void Gp_ViewBeginLoad(Task* task)
                 q->viewMovieSelected = 1;
             } else {
                 if (q->viewMovieSelected != 0) {
-                    Gp_ApplyAreaTmdFlags();
+                    areaRestoreModelBufferPolicy();
                     q->viewMovieSelected = 0;
                 }
             }

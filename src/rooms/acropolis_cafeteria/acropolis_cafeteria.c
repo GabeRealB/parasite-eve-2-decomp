@@ -1107,7 +1107,7 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             if (cdCmdIsIdle()) {
                 areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
                 areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-                Gp_SpawnArea(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+                areaSpawnPlacements(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
                 D_801156A4  &= ~0x40;
                 task->state += 1;
             }

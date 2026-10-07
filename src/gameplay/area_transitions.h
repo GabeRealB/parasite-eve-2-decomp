@@ -25,7 +25,7 @@ void Gp_SetCurAreaFlag4(void);
 /// For each area id `1..Gp_AreaIdCounts[stage-1]`, set or clear the matching
 /// bit in `Gp_AreaIdBits`. The bit is set only when that area's
 /// `AreaSavedState.spawnFlags` has `AREA_SAVED_MAP_MARK` set and
-/// `Gp_GetAreaFlag2` returns 0.
+/// `areaIsSavedPoseRestoreEnabled` returns 0.
 void Gp_RebuildAreaIdBits(void);
 
 void Gp_ApplyNewGameAreaFlags(void);

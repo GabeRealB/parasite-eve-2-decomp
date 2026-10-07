@@ -1521,7 +1521,7 @@ static __inline__ AreaVariant* actorGetCurrentAreaRec(void)
     key.room   = sessionKey->room;
     key.view   = sessionKey->view;
     areaSyncLocationVariant(&key);
-    return Gp_GetNestedAreaRec(&key);
+    return areaGetVariant(&key);
 }
 
 /// Gives `model` the texture page and palette of the enemy's placement in the
@@ -1561,7 +1561,7 @@ static __inline__ void actorTintTask(Task* spawned, Enemy* enemy)
     key.room   = sessionKey->room;
     key.view   = sessionKey->view;
     areaSyncLocationVariant(&key);
-    layout                   = Gp_GetNestedAreaRec(&key);
+    layout                   = areaGetVariant(&key);
     place                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;

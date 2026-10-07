@@ -4019,7 +4019,7 @@ static inline Enemy* _acropolisPlazaFindPlacedEnemy(u8 entryId)
     key.room    = gGameSession->spriteVariant;
     key.view    = gGameSession->location.loc.view;
     key.variant = sessionKey->variant;
-    placement   = Gp_GetNestedAreaRec(&key)->placements;
+    placement   = areaGetVariant(&key)->placements;
     index       = 0;
     // Count the table entries ahead of the one sought. Spelled with `goto`:
     // the `while`, `do`/`break` and `for`/`break` forms all compile differently.

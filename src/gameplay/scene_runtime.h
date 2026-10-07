@@ -70,7 +70,19 @@ void animationPlaySlotWithBlend(AnimationContext* context, s32 slotIndex, Animat
                                 u16 setIndex, s32 trackRecordOffset, s32 unusedArgument, s32 blendFrames,
                                 AnimationSet** replacementSetTable);
 
-void Gp_ApplyAreaTmdFlags(void);
+/// Restores area actors' automatic model-buffer policy after movie decoding.
+///
+/// Requires a live registered scene task and stable circular child ring. Each
+/// TMD child must own a live model and `Enemy` work with a live placement. The
+/// live save's stage, area and variant must select a non-NULL resource table
+/// ended by `AREA_PLACEMENT_END`; matching entries need a live task table.
+/// Non-TMD children and placements with no resource match are left unchanged.
+///
+/// Uses descriptor entry zero, independently of the resource's spawn index.
+/// Exactly `TASK_BODY_TMD` enables automatic buffer recovery; exactly that kind
+/// with `TASK_DESC_SKIP_AUTO_MODEL_BUFFER` suppresses it. Other flags leave the
+/// policy unchanged. Allocates and frees no buffer and does not change ownership.
+void areaRestoreModelBufferPolicy(void);
 
 /// Changes a coordinate parent while preserving its composed transform.
 ///
@@ -81,9 +93,23 @@ void Gp_ApplyAreaTmdFlags(void);
 /// the borrowed parent pointer and does not allocate or release storage.
 void gfxReparentCoord(GfxCoord* newParent, GfxCoord* coord);
 
-void Gp_SetAreaFlag2(s32 useSavedPoses, GameLocationKey* key);
+/// Sets an area's saved-pose restoration bit when the key's variant agrees.
+///
+/// Reads stage, area and variant only; indexes must fit their tables. Missing
+/// stage/saved-state tables or a variant mismatch are a no-op. Zero
+/// `useSavedPoses` clears the bit and any nonzero value sets it; reset/map bits,
+/// the key and the pose array remain unchanged. A pending reset can later clear
+/// restoration again during spawn preparation.
+void areaSetSavedPoseRestoreEnabled(s32 useSavedPoses, const GameLocationKey* key);
 
-void Gp_SetAreaFlag0(GameLocationKey* location);
+/// Requests an area's saved-pose reset, except for the nighttime Dryfield underpass.
+///
+/// Reads stage/area from a word-aligned live key; both indexes must fit their
+/// tables. Missing stage/saved-state tables and the excluded area are a no-op.
+/// Sets the pending reset bit without changing restoration, other flags, the key
+/// or the pose array. Spawn preparation later applies the request. The visited
+/// area caller issues it only on the first visit.
+void areaRequestSavedPoseReset(const GameLocationKey* location);
 
 /// Releases primitive buffers of the scene manager's direct TMD children for movie decoding.
 ///

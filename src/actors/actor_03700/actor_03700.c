@@ -1744,7 +1744,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     idx        = raw >> 12;
     key.view   = view;
     areaSyncLocationVariant(&key);
-    layout                   = Gp_GetNestedAreaRec(&key);
+    layout                   = areaGetVariant(&key);
     entry                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;

@@ -2844,7 +2844,7 @@ static inline void _actor450800TintModel(Task* spawned, Task* actor)
     key.room   = sessionKey->room;
     key.view   = gGameSession->location.loc.view;
     areaSyncLocationVariant(&key);
-    entry                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, idx);
+    entry                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, idx);
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {

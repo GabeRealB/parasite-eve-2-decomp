@@ -645,7 +645,7 @@ static inline void _cdCmdFinishSceneAudio(void)
     p->replacementEntry.cmd = CD_COMMAND_EMPTY;
     p->blockGamePause       = 0;
     p->sceneAudioMode       = CD_COMMAND_SCENE_INACTIVE;
-    Gp_ApplySndBankMasks(p->sceneStream->data.scene.soundBankMask);
+    cdCmdResumeSceneSoundRequests(p->sceneStream->data.scene.soundBankMask);
     streamFinishScene();
     if (p->busy != 0) {
         p->busy              = 0;

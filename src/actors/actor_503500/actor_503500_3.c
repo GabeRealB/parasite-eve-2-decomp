@@ -402,7 +402,7 @@ static void func_actor_503500_80132F64(Task* arg0)
             idx        = raw >> 12;
             key.view   = areaByte0;
             areaSyncLocationVariant(&key);
-            layout                   = Gp_GetNestedAreaRec(&key);
+            layout                   = areaGetVariant(&key);
             entry                    = gpAreaPlaceAt(layout->placements, idx);
             model->texturePageOffset = entry->texturePageOffset;
             model->clutRowOffset     = entry->clutRowOffset;
@@ -1810,7 +1810,7 @@ Enemy* func_actor_503500_80135D00(Task* arg0, s32 arg1)
         idx        = raw >> 12;
         key.view   = areaByte0;
         areaSyncLocationVariant(&key);
-        layout                   = Gp_GetNestedAreaRec(&key);
+        layout                   = areaGetVariant(&key);
         entry                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = entry->texturePageOffset;
         model->clutRowOffset     = entry->clutRowOffset;

@@ -565,7 +565,7 @@ static void func_actor_341900_80162330(Task* arg0)
     extra->lightMtx = &w->light;
     extra->colorMtx = &w->color;
     arg0->msgTable  = D_actor_341900_80163A78;
-    rec             = (Gp_GetNestedAreaRec(&gGameSession->location.loc))->placements;
+    rec             = (areaGetVariant(&gGameSession->location.loc))->placements;
     for (; rec->entryId != AREA_PLACEMENT_END; rec++) {
         if (rec->entryId == 0x20) {
             break;

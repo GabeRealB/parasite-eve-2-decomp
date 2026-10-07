@@ -550,7 +550,7 @@ static void func_actor_213000_80149E54(Task* task)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         areaSyncLocationVariant(&key);
-        layout                   = Gp_GetNestedAreaRec(&key);
+        layout                   = areaGetVariant(&key);
         place                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;
@@ -574,7 +574,7 @@ static void func_actor_213000_80149E54(Task* task)
         key.room   = sessionKey->room;
         key.view   = sessionKey->view;
         areaSyncLocationVariant(&key);
-        layout                   = Gp_GetNestedAreaRec(&key);
+        layout                   = areaGetVariant(&key);
         place                    = gpAreaPlaceAt(layout->placements, idx);
         model->texturePageOffset = place->texturePageOffset;
         model->clutRowOffset     = place->clutRowOffset;

@@ -84,7 +84,7 @@ void Gp_AreaEnterTask(Task* arg0)
                 // The battle is over: return the HUD to its out-of-battle state.
                 hud->battleStep = HUD_BATTLE_STEP_START;
                 hud->inBattle   = 0;
-                Gp_SetAreaFlag2(1, &gGameSession->location.loc);
+                areaSetSavedPoseRestoreEnabled(1, &gGameSession->location.loc);
                 gGameSession->battleResetPending = 1;
                 if (!((stageAreaKey == GAME_LOCATION_KEY(5, 11, 0, 0) || stageAreaKey == GAME_LOCATION_KEY(5, 29, 0, 0)) &&
                       gGameSession->location.loc.variant - 1 < 3U)) {

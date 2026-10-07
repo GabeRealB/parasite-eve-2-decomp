@@ -1140,7 +1140,7 @@ void func_actor_160900_80132A14(Task* arg0)
         tmd->lightMtx = &work->light;
         tmd->colorMtx = &work->color;
         if (arg0->spawnArg1.value < 2) {
-            place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+            place = areaGetVariant(&gGameSession->location.loc)->placements;
             id    = place->entryId;
             while (id != AREA_PLACEMENT_END) {
                 if (id == 0x65) {
@@ -1218,7 +1218,7 @@ void func_actor_160900_80132C08(Task* task)
             obj->colorMtx  = &work->color;
             obj->flags    |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             task->msgTable = D_actor_160900_8013F200;
-            place          = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+            place          = areaGetVariant(&gGameSession->location.loc)->placements;
             while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x65) {
                 place++;
             }

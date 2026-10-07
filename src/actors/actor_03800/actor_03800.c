@@ -2187,7 +2187,7 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
     idx        = raw >> 12;
     key.view   = areaByte0;
     areaSyncLocationVariant(&key);
-    layout = Gp_GetNestedAreaRec(&key);
+    layout = areaGetVariant(&key);
 
     entry                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = entry->texturePageOffset;

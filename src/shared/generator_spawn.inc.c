@@ -80,7 +80,7 @@ void generatorSpawn(Enemy* arg0, Task* arg1)
     key.room                = sessionKey->room;
     key.view                = sessionKey->view;
     areaSyncLocationVariant(&key);
-    layout                   = Gp_GetNestedAreaRec(&key);
+    layout                   = areaGetVariant(&key);
     place                    = gpAreaPlaceAt(layout->placements, idx);
     model->texturePageOffset = place->texturePageOffset;
     model->clutRowOffset     = place->clutRowOffset;

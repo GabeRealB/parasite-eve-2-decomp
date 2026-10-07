@@ -83,9 +83,9 @@ extern EnemyParams D_actor_206100_80155198;
 extern AnimationSet* D_actor_206100_80158B24[];
 
 /// Placement records `func_actor_206100_8014EE2C` parks at `Enemy::place`
-/// -- the same slot `Gp_SpawnArea` fills from a room's own place list, so this
+/// -- the same slot `areaSpawnPlacements` fills from a room's own place list, so this
 /// is a local six-entry copy of one: `field_0` is 4 on the five live entries
-/// and 0xFF on the sixth, the value `Gp_SpawnArea` stops its walk on.  The
+/// and 0xFF on the sixth, the value `areaSpawnPlacements` stops its walk on.  The
 /// overlay indexes it with the variant it was spawned for rather than walking
 /// it, so the tail entry is reachable.
 extern AreaPlacement D_actor_206100_80155134[];

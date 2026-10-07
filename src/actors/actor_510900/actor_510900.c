@@ -2215,7 +2215,7 @@ STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gActor510900Fireba
 /// The block's rig is bound with `animationInitContext` over its nineteen slots, and
 /// slots 1..18 are reset. Six enemies are spawned from `D_actor_510900_80167A18`; entries 2
 /// and 3 are the two whose models get the current room's texture page and CLUT
-/// row (`Gp_GetNestedAreaRec`, indexed by the context id's top nibble) and whose
+/// row (the `areaGetVariant` placement table, indexed by the context id's top nibble) and whose
 /// tasks are kept in `weaponTask` / `chestModelTask`. Entry 2 also gets the
 /// flame-jet effect, kept in `flameJetTask` and reparented onto this task.
 ///
@@ -2291,7 +2291,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     areaByte0   = gGameSession->location.loc.view;
     key.view    = areaByte0;
     areaSyncLocationVariant(&key);
-    entry1                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, index1);
+    entry1                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index1);
     model1->texturePageOffset = entry1->texturePageOffset;
     model1->clutRowOffset     = entry1->clutRowOffset;
     if (model1->buffer != NULL) {
@@ -2318,7 +2318,7 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     areaByte0   = gGameSession->location.loc.view;
     key.view    = areaByte0;
     areaSyncLocationVariant(&key);
-    entry2                    = gpAreaPlaceAt(Gp_GetNestedAreaRec(&key)->placements, index2);
+    entry2                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index2);
     model2->texturePageOffset = entry2->texturePageOffset;
     model2->clutRowOffset     = entry2->clutRowOffset;
     if (model2->buffer != NULL) {

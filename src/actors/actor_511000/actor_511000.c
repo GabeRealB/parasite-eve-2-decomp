@@ -3165,7 +3165,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     placeIndex = placeIndex >> ENEMY_PLACE_INDEX_SHIFT;
     key.view   = view;
     areaSyncLocationVariant(&key);
-    layout                   = Gp_GetNestedAreaRec(&key);
+    layout                   = areaGetVariant(&key);
     placements               = layout->placements;
     model->texturePageOffset = placements[placeIndex].texturePageOffset;
     model->clutRowOffset     = placements[placeIndex].clutRowOffset;
@@ -3187,7 +3187,7 @@ static void func_actor_511000_80133958(Enemy* enemy, Task* task)
     placeIndex2 = placeIndex2 >> ENEMY_PLACE_INDEX_SHIFT;
     key.view    = view;
     areaSyncLocationVariant(&key);
-    layout                   = Gp_GetNestedAreaRec(&key);
+    layout                   = areaGetVariant(&key);
     placements               = layout->placements;
     model->texturePageOffset = placements[placeIndex2].texturePageOffset;
     model->clutRowOffset     = placements[placeIndex2].clutRowOffset;

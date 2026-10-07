@@ -1058,7 +1058,7 @@ static void func_shelter_r47_801833DC(Task* task, s16 arg1)
 }
 
 /// `AREA_SAVED_MAP_MARK` of the area's saved state, as 0 or 1; 0 when the stage
-/// has no table or the area no saved state. The counterpart of `Gp_GetAreaFlag2`.
+/// has no table or the area no saved state. The counterpart of `areaIsSavedPoseRestoreEnabled`.
 static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key)
 {
     AreaRecord*     rec;
@@ -1091,7 +1091,7 @@ static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area)
     key.room  = 1;
     key.view  = 2;
     key.area  = area;
-    if (_shelterR47GetAreaFlag4(&key) != 1 || Gp_GetAreaFlag2(&key) == 1) {
+    if (_shelterR47GetAreaFlag4(&key) != 1 || areaIsSavedPoseRestoreEnabled(&key) == 1) {
         return 0;
     }
     return 1;

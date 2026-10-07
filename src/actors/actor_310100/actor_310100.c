@@ -807,7 +807,7 @@ void func_actor_310100_801620FC(Task* task)
                 work->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_801798FC, 1, (s32)work->bodyAnimationId, 0);
             }
             modelTask = work->modelTask;
-            place     = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+            place     = areaGetVariant(&gGameSession->location.loc)->placements;
             while (place->entryId != AREA_PLACEMENT_END && place->entryId != mode) {
                 place++;
             }
@@ -868,7 +868,7 @@ void func_actor_310100_80162284(Task* task)
                 work->modelTask = taskSpawnFromTableOnDefaultList(D_actor_310100_801798FC, 2, 7, 0);
             }
             modelTask = work->modelTask;
-            place     = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+            place     = areaGetVariant(&gGameSession->location.loc)->placements;
             while (place->entryId != AREA_PLACEMENT_END && place->entryId != mode) {
                 place++;
             }
@@ -938,7 +938,7 @@ static void func_actor_310100_80162414(Task* task, s32 arg1)
     func_actor_310100_80161F80(task);
     task->msgTable = D_actor_310100_801798B4;
     id             = mode;
-    place          = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+    place          = areaGetVariant(&gGameSession->location.loc)->placements;
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != id) {
         place++;
     }
@@ -999,7 +999,7 @@ static void func_actor_310100_801625E4(Task* task, s32 arg1)
     func_actor_310100_80161F80(task);
     task->msgTable = D_actor_310100_801798B4;
     id             = mode;
-    place          = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+    place          = areaGetVariant(&gGameSession->location.loc)->placements;
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != id) {
         place++;
     }
@@ -1047,7 +1047,7 @@ void func_actor_310100_801627BC(Task* task)
             }
             if (on) {
                 work  = (_Actor310100PoliceOfficerWork*)task->work;
-                place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+                place = areaGetVariant(&gGameSession->location.loc)->placements;
                 while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_310100_PLACEMENT_OFFICER_1) {
                     place++;
                 }
@@ -1125,7 +1125,7 @@ void func_actor_310100_801629FC(Task* task)
                 on = 0;
             }
             if (on) {
-                place = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+                place = areaGetVariant(&gGameSession->location.loc)->placements;
                 while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_310100_PLACEMENT_OFFICER_2) {
                     place++;
                 }

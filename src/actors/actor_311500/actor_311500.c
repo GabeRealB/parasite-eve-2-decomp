@@ -330,7 +330,7 @@ static void func_actor_311500_801629D8(Task* arg0)
     enemy->recs    = &work2->hitContacts[0];
     arg0->msgTable = D_actor_311500_80169330;
     work2->present = 1;
-    place          = Gp_GetNestedAreaRec(&gGameSession->location.loc)->placements;
+    place          = areaGetVariant(&gGameSession->location.loc)->placements;
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0xA) {
         place++;
     }
