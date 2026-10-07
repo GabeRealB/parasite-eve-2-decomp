@@ -2713,20 +2713,20 @@ without its own includes, so adding it directly dies on a wall of parse errors
 anyway.
 ## A temp local for a value re-read across stores collapses the reloads
 
-`func_actor_136100_80134588` steps three `s16` channels by the task's
+`_actor136100FadeOutTask` steps three `s16` channels by the task's
 `spawnArg1`:
 
 ```c
-fade->r = (s16)((u16)fade->r + (u16)arg0->spawnArg1);
-fade->g = (s16)((u16)fade->g + (u16)arg0->spawnArg1);
-fade->b = (s16)((u16)fade->b + (u16)arg0->spawnArg1);
+fade->r = (s16)((u16)fade->r + task->spawnArg1.halves.low);
+fade->g = (s16)((u16)fade->g + task->spawnArg1.halves.low);
+fade->b = (s16)((u16)fade->b + task->spawnArg1.halves.low);
 ```
 
 The target loads `lhu $v1, 0x34($s1)` once per statement — three times over.
 Hoisting the read into a local:
 
 ```c
-step = (u16)arg0->spawnArg1;
+step = task->spawnArg1.halves.low;
 fade->r = (s16)((u16)fade->r + step);
 fade->g = (s16)((u16)fade->g + step);
 fade->b = (s16)((u16)fade->b + step);
@@ -49134,13 +49134,13 @@ the separate count r98 to v0. Preprocessed SHA-256:
 occupies `sp+0x0..0x0F` and the first declared local lands at `sp+0x10`; each
 later one follows at the next offset, and the local area is then rounded up to
 8 before the saved-register block. So when the target's *later* local sits
-higher than the frame needs — `func_actor_136100_80133690` passes an `AnimationPlayRequest`
-at `sp+0x18` where the same record in `func_actor_136100_8013467C` is at
+higher than the frame needs — `_actor136100ResetAfterBurnerScene` passes an `AnimationPlayRequest`
+at `sp+0x18` where the same record in `_actor136100ResetPlayerWeaponAnimation` is at
 `sp+0x10` — the missing 8 bytes are a local declared *before* it, not padding:
 an unused `SVECTOR unused;` ahead of the record reproduces `sw $v0,0x18($sp)`
 and the `0x48` frame exactly. Read the offsets rather than the frame size: two
 functions in the same TU can disagree about where one type lives.
-`func_actor_136100_801347B8` is the same trick without a second local.
+`_actor136100ResetBodyAnimation` is the same trick without a second local.
 
 **Sizing the missing local.** `func_mine_cavern_80183AD4` is the case where the
 reserved local is never touched at all: the target's `stack_accesses` count
@@ -69278,7 +69278,7 @@ base, disjoint offsets), so the kill is invisible in the dump. 100%.
 the value killed is a pointer that a *later* statement still needs, dropping the
 equivalence makes the source load it again while the first value stays live, and
 the register allocator gives the two loads different homes. In
-`func_actor_136100_80133690` three stores through `task->work` separate three
+`_actor136100ResetAfterBurnerScene` three stores through `task->work` separate three
 uses of it, and the target carries `lw $s2,0x1C($s3)` (held across the whole
 animation loop for a later `sw/lw 0x4B4($s2)`), `lw $s1,0x1C($s3)` (the loop
 index base) and, after a `jal`, `lw $a3,0x1C($s3)`. Writing one `work` variable
@@ -81268,7 +81268,7 @@ different basic blocks at the join — the load is only common if the source
 hoists it. Two builds apart: `47.679%` (regs=13 insert=6 delete=8) -> `100.000%`
 (all-zero). Same lesson as m2c's split scalars: the payload is the real struct
 (`AnimationPlayRequest`), so the frame is `0x30` rather than the `0x20` the separate locals
-produce. `func_actor_136100_8013467C` is the worked example; the same ternary
+produce. `_actor136100ResetPlayerWeaponAnimation` is the worked example; the same ternary
 appears inlined in `func_acropolis_plaza_8017F48C` (state 0).
 
 Preprocessed SHA256:
@@ -81390,8 +81390,8 @@ two variables:  work 6 refs / 41 insns -> 2*6/41 = 0.2927   $s1
 (measured from `.greg`; `n_refs` falls 8 -> 6, not 7, because both the store and
 the branch stop naming the pseudo, and it happens to cross the 8 -> 4
 power-of-two step in `floor_log2`, which halves the multiplier as well.) The
-matched sibling `func_actor_136100_80134588` in the same TU has exactly this
-shape (`alloc` short-lived, `fade` long-lived) and is the source pattern to copy:
+matched sibling `_actor136100FadeOutTask` in the same TU has exactly this
+shape (`allocatedFade` short-lived, `fade` long-lived) and is the source pattern to copy:
 
 ```c
 map = memMalloc(0x4F0, 0);
@@ -81457,7 +81457,7 @@ and need no help.
 
 ## A variable re-assigned in a later region can be split into a second local to fix `regs`
 
-`func_actor_136100_80132284` compiled to instruction-for-instruction identical
+`_actor136100RifleTask` compiled to instruction-for-instruction identical
 assembly with `Penalties: regs=39` and nothing else: same 93 instructions, same
 block topology, only the four callee-saved homes differed. The target wanted
 `work -> $s0`, `task -> $s1`, `tmd -> $s2`, `coord -> $s3`; the build produced
@@ -81476,17 +81476,17 @@ block's `coord` has 2 and the `spawnArg1` block's 4 -- so the tail and the
 
 ```c
     if (arg0->state == 0) {
-        TmdObject*     tmd   = arg0->extra;      /* block-scoped */
-        GfxCoord* coord = tmd->field_8;
+        TmdObject*     tmd   = arg0->extra.tmd;      /* block-scoped */
+        GfxCoord* coord = tmd->coords;
         ...
-        if (arg0->spawnArg1 != 0) {
-            GfxCoord* reset = ((TmdObject*)arg0->extra)->coords;
+        if (arg0->spawnArg1.value != 0) {
+            GfxCoord* reset = arg0->extra.tmd->coords;
             ...
         }
     }
     {
-        TmdObject* obj = arg0->extra;            /* NOT `tmd = index->extra;` */
-        actorRenderComposeCoord(obj->field_8);
+        TmdObject* obj = arg0->extra.tmd;            /* NOT `tmd = index->extra;` */
+        actorRenderComposeCoord(obj->coords);
         ...
         worldCoordSetModelLighting(obj, &vec, 0, 3);
     }
@@ -98811,13 +98811,13 @@ masked *variable* gives `move a1,v0` off the first one instead; CSE only fails t
 merge these because the source has two separate `(u16)` casts, so treat a
 recomputed mask in a branch delay slot as evidence the cast is at the use site.
 The same `var_a1` shape appears wherever m2c lifts a cast out of a loop, and the
-sibling `func_actor_136100_8013379C` — matched earlier with this source shape — is
+sibling `_actor136100ResetBeforeBurnerScene` — matched earlier with this source shape — is
 worth reading before rewriting one by hand.
 
 Two further points about this function, both already covered elsewhere: the
 0x40 frame against the target's 0x48 is the unused-`SVECTOR` slot (`An unused
 local still costs frame space`), and the `AnimationPlayRequest` it fills is the same record
-`func_actor_136100_8013379C` fills. The work block is 0x4E4 bytes, which
+`_actor136100ResetBeforeBurnerScene` fills. The work block is 0x4E4 bytes, which
 `memMalloc` in `func_actor_120300_80132004` states outright — read that before
 inferring a block size from its last accessed field.
 ## `cse` forwards a merge-block store into the loads after it; arms that write the field themselves keep their reloads (func_actor_511000_80132390, 2026-09-16)
@@ -100633,7 +100633,7 @@ Inputs: `base.i` (m2c seed, 59.539%), `base_1.i` (100.000%).
 ## A cross-overlay sibling body matches first try; m2c's nesting of the same code does not (_actor121300FadeOutTask, 2026-09-16)
 
 The BRIEF's "similar matched bodies" list is not restricted to this TU, and a
-candidate that tops `calls` *and* `fields` (here `func_actor_136100_80134588`,
+candidate that tops `calls` *and* `fields` (here `_actor136100FadeOutTask`,
 1.00/1.00) is the same function body: clone its statements and its casts
 verbatim and change only the overlay's own literals. The m2c seed scored 60.9%
 because it nested the `case 1` arm inside the allocation-failure test -- the
@@ -124959,9 +124959,9 @@ equivalence is what leaves the `movhi`-sized register-to-register copy in place.
 
 So the copy is not an extra temp in the source: it is a constant store whose
 value `cse` has to reach through a value already in a register. The matched
-`func_actor_136100_801347B8` and `func_actor_136100_80133690` show the identical
+`_actor136100ResetBodyAnimation` and `_actor136100ResetAfterBurnerScene` show the identical
 `addu v0,$s0,$zero` / `sh v0,0x4e0($s1)` pair, both from
-`work->field_4E0 = <the counter's constant>; i = 1;` in that order.
+`work->bodyAnimation = <the counter's constant>; slotIndex = 1;` in that order.
 
 Two smaller order fixes in the same function, both read off the target's
 scheduling rather than guessed: `tmd->field_1C`, `tmd->field_C = 0`,
@@ -137608,12 +137608,12 @@ in `tools/compiler_evidence/2026-09-20-actor207200-a1c4.json`. Hazard weights an
 the origin of the alternate arithmetic preference were not traced; the dump
 swap, conflict and homes are observed. This does not prove a unique original
 source or a general preference for loads over constants.
-## Globalizing a comparison sidesteps the three-quantity sort without a register pin (func_actor_136100_80131EC4, 2026-09-20)
+## Globalizing a comparison sidesteps the three-quantity sort without a register pin (_actor136100AdvancePlayerAnimation, 2026-09-20)
 
 After the matched actor_342100 sibling's labelled COMPILER_BARRIER return fixed
 cross-jumping, base_1 reached 98.629%, with only regs=17. The bounded permuter
 found `id = *sel; if (id < 0)` in place of `if (*sel < 0)`, reusing the local
-later assigned the message id. The minimal header-based port base_2 matched
+later assigned the bank index. The minimal header-based port base_2 matched
 100%; all loads, masks, stores and calls are preserved.
 
 Paired compiler traces explain the swap. Block 6 has three local quantities:
@@ -137637,7 +137637,7 @@ same assembly with and without observation. This provides an unpinned
 alternative to the older three-quantity example's hard-register workaround;
 it is not a claim that all three-quantity permutations are identity sorts.
 
-Evidence is retained under tools/permuter_findings/func_actor_136100_80131EC4/
+Evidence is retained under tools/permuter_findings/*/
 sessions/094ec7357f8141f48f79b1c33f533d65/ (PERMUTER_EVIDENCE run
 2d927ce9384743d8, analysis/trace_base_1, analysis/trace_base_2, controlled
 base_2/base_3 and the plan/conclusion journal). Compiler SHA256:
@@ -150309,7 +150309,7 @@ attempts; left as it was.
 
 - **`if (!p) { ret1: return 1; } if (busy) return 0; if (a) goto ret1; if (b)
   goto ret1; ...send...; goto ret1;`** (`_actor342100AdvanceBlazeAnimation`,
-  `func_actor_136100_80131EC4`; the 2026-09-17 / 09-27 entries for the first
+  `_actor136100AdvancePlayerAnimation`; the 2026-09-17 / 09-27 entries for the first
   kept the gotos) is positive nesting with `return 0` *last*:
   `if (!p) return 1; if (!busy) { if (a') { if (b') { send } } return 1; }
   return 0;`. Why: a `[v0=1; j end]` block is first compared with the code in
@@ -150352,7 +150352,7 @@ attempts; left as it was.
   back to `case 1`'s body). One attempt, with the two bodies as inlines called
   in both places: same length, but the merged body is kept in `case 4`'s
   position, so cases 3/4 are emitted ahead of case 1.
-- Not converted: `func_actor_136100_80131FBC` / `_actor121300TickAnimations`
+- Not converted: `_actor136100TickBodyAnimation` / `_actor121300TickAnimations`
   (`goto fail` out of the settle scan, with `fail: done = 0; goto check;`
   written between the store and the seek loop). `done = 0; break;` is the
   same code, but loop.c moves that block to the first `BARRIER` after the

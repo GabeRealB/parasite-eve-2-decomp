@@ -471,7 +471,7 @@ the original quantity IDs after swapping positions. If q1 outranks q0 and
 q2 does not outrank q1, the first swap is undone by the fall-through comparison:
 allocation proceeds q0, q1, q2 despite their priorities. This also affects the
 suggestion sort. Inspect the actual quantity count and allocation order.
-In `func_actor_136100_80131EC4`, reusing the later message-id local for the
+In `_actor136100AdvancePlayerAnimation`, reusing the later bank-selection local for the
 earlier signed table test makes that test global, reducing three local
 quantities to two. Traces show the unchanged table/index priorities 20000/16875
 then allocate in priority order, swapping v0/v1 and matching without pins.

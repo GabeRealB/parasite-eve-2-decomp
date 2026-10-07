@@ -2818,7 +2818,7 @@ void func_dryfield_water_tower_8017F128(Task* arg0)
 /// at 0x801820E4.
 ///
 /// Republishes the player's weapon to slot 3 (msg 0x3E8) the way
-/// `func_actor_136100_8013467C` does. The bank comes from `gPlayerStatus.weapon`
+/// `_actor136100ResetPlayerWeaponAnimation` does. The bank comes from `gPlayerStatus.weapon`
 /// and the character id. A nonzero script argument selects
 /// `ANIMATION_BLEND_INTERPOLATE` and is also the blend duration in frames;
 /// zero selects `ANIMATION_BLEND_RESET` with no duration.

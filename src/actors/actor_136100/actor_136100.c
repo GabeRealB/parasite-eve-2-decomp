@@ -63,6 +63,72 @@ enum {
     ACTOR_136100_SCENE_BEFORE_BURNER = 1, // `GAME_FLAG_BURNER_DEFEATED` is clear
 };
 
+/// Requests consumed on later ticks; the selected scene determines each code.
+///
+/// Clip numbers identify loaded sets; their individual motions are unproven.
+enum {
+    ACTOR_136100_PLAYER_AFTER_ENTER             = 1,
+    ACTOR_136100_PLAYER_AFTER_PLAY_ANIMATION_50 = 2,
+    ACTOR_136100_PLAYER_AFTER_PLAY_ANIMATION_52 = 3,
+    ACTOR_136100_PLAYER_AFTER_RESET_PLACEMENT   = 4,
+    ACTOR_136100_PLAYER_AFTER_BLEND_WEAPON      = 5,
+    ACTOR_136100_PLAYER_AFTER_RESET_WEAPON      = 6,
+};
+
+enum {
+    ACTOR_136100_PLAYER_BEFORE_HIDE                  = 1,
+    ACTOR_136100_PLAYER_BEFORE_ENTER                 = 2,
+    ACTOR_136100_PLAYER_BEFORE_PLAY_ANIMATION_49     = 3,
+    ACTOR_136100_PLAYER_BEFORE_PLAY_ANIMATION_53     = 4,
+    ACTOR_136100_PLAYER_BEFORE_EXIT                  = 5,
+    ACTOR_136100_PLAYER_BEFORE_RESET_SCENE_ANIMATION = 6,
+    ACTOR_136100_PLAYER_BEFORE_BLEND_WEAPON          = 7,
+};
+
+enum {
+    ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_2          = 1,
+    ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_5          = 2,
+    ACTOR_136100_BODY_AFTER_BLEND_ANIMATION_7         = 3,
+    ACTOR_136100_BODY_AFTER_BLEND_ANIMATION_9         = 4,
+    ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_10_THEN_11 = 5,
+    ACTOR_136100_BODY_AFTER_RESET                     = 6,
+};
+
+enum {
+    ACTOR_136100_BODY_BEFORE_PLACE_FIRST                = 1,
+    ACTOR_136100_BODY_BEFORE_PLACE_SECOND               = 2,
+    ACTOR_136100_BODY_BEFORE_BLEND_ANIMATION_4          = 3,
+    ACTOR_136100_BODY_BEFORE_RESET_AND_PLACE            = 4,
+    ACTOR_136100_BODY_BEFORE_PLAY_ANIMATION_6_AND_SOUND = 5,
+    ACTOR_136100_BODY_BEFORE_TURN_HEAD                  = 6,
+    ACTOR_136100_BODY_BEFORE_RETURN_HEAD                = 7,
+    ACTOR_136100_BODY_BEFORE_RESET                      = 8,
+};
+
+enum {
+    ACTOR_136100_COMPANION_AFTER_RESET_ANIMATION_1             = 1,
+    ACTOR_136100_COMPANION_AFTER_PLAY_REPEATED_CUE             = 2,
+    ACTOR_136100_COMPANION_AFTER_RESET_PLACEMENT_AND_ANIMATION = 3,
+};
+
+enum {
+    ACTOR_136100_COMPANION_BEFORE_PLACE_FIRST     = 1,
+    ACTOR_136100_COMPANION_BEFORE_PLACE_SECOND    = 2,
+    ACTOR_136100_COMPANION_BEFORE_RESET_PLACEMENT = 3,
+};
+
+/// Bank selection and playback defaults of this package's street scenes.
+enum {
+    ACTOR_136100_PRIMARY_CHARACTER          = 1,
+    ACTOR_136100_PRIMARY_WEAPON_BANK_BASE   = 1,
+    ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE = 0x22,
+    ACTOR_136100_PLAYER_WEAPON_ANIMATION    = 1,
+    ACTOR_136100_BODY_AFTER_BURNER_START    = 1,
+    ACTOR_136100_BODY_BEFORE_BURNER_START   = 3,
+    ACTOR_136100_ANIMATION_BLEND_FRAMES     = 10,
+    ACTOR_136100_REQUEST_NONE               = 0,
+};
+
 /// Work block of Gary Douglas on Dryfield's main street at night, allocated at
 /// its full size, zeroed and kept at `Task::work`.
 ///
@@ -109,7 +175,7 @@ typedef struct {
 } _Actor136100Work;
 STATIC_ASSERT_SIZEOF(_Actor136100Work, 0x4F0);
 
-/// Set by `func_actor_136100_801348F8` when the cutscene wants the display
+/// Set by `_actor136100RestoreDisplay` when the cutscene wants the display
 /// back on; while it is non-zero the fade task kills itself instead of fading.
 extern u16 D_actor_136100_8013F17C;
 
@@ -186,23 +252,23 @@ static TmdSource _gActor136100GaryDouglasBody;
 static TmdSource _gActor136100GaryDouglasHeadHat;
 static TmdSource _gActor136100Actor120300Model082F8;
 void             func_actor_136100_801320E0(Task*);
-void             func_actor_136100_80132284(Task*);
-void             func_actor_136100_80133690(void);
-void             func_actor_136100_8013379C(s32);
+static void      _actor136100RifleTask(Task* task);
+static void      _actor136100ResetAfterBurnerScene(void);
+static void      _actor136100ResetBeforeBurnerScene(s32 resetHeadRotation);
 void             func_actor_136100_80133BC8(Task*);
-void             func_actor_136100_80134588(Task*);
-void             func_actor_136100_8013467C(void);
-void             func_actor_136100_801346EC(Task*, s32, s32, s32);
-void             func_actor_136100_801347B8(void);
-void             func_actor_136100_80134838(s16);
-void             func_actor_136100_80134858(s16);
-void             func_actor_136100_80134878(s16);
+static void      _actor136100FadeOutTask(Task* task);
+static void      _actor136100ResetPlayerWeaponAnimation(void);
+static s32       _actor136100SetModelDraw(Task* task, s32 unusedMessageId, s32 visible, s32 unusedSecondArg);
+static void      _actor136100ResetBodyAnimation(void);
+static void      _actor136100PostPlayerRequest(s16 request);
+static void      _actor136100PostBodyRequest(s16 request);
+static void      _actor136100PostCompanionRequest(s16 request);
 void             func_actor_136100_80134898(void);
 void             func_actor_136100_801348C8(void);
-void             func_actor_136100_801348F8(void);
-void             func_actor_136100_80134924(void);
+static void      _actor136100RestoreDisplay(void);
+static void      _actor136100RemovePlayerEquipment(void);
 void             func_actor_136100_80134964(void);
-void             func_actor_136100_801349B4(s32);
+static void      _actor136100FinishOpeningScene(s32 beforeBurner);
 
 static TmdBone _gActor136100GaryDouglasBodySkeleton[20] = {
 #include "assets/gary_douglas_body_skeleton.inc"
@@ -932,7 +998,7 @@ s32 D_actor_136100_8013F244[32] = { -0x12B0BB8, 8400, -0x12B0BB8, 7000, 0xF448, 
 s32 D_actor_136100_8013F2C4[12] = { 0x10000, 0x30002, 0, 0x50004, 0x70006, 1, 0x90008, 0xB000A, 2, 0xD000C, 0xF000E, 3 };
 
 TaskMessageEntry D_actor_136100_8013F2F4[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_136100_801346EC },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor136100SetModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
@@ -972,35 +1038,35 @@ ActorTransform D_actor_136100_8013F454 = { { -5800, -400, -4400, 0 }, { 1843, 0,
 
 EvsCommand D_actor_136100_8013F46C[33] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_8013467C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetPlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134924 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RemovePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134898 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_AFTER_ENTER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_COMPANION_AFTER_PLAY_REPEATED_CUE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_10_THEN_11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_AFTER_PLAY_ANIMATION_50 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_801348C8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_AFTER_RESET_WEAPON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134964 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136100_801349B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136100FinishOpeningScene }, { .value = ACTOR_136100_SCENE_AFTER_BURNER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_801348F8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RestoreDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1009,13 +1075,13 @@ EvsCommand D_actor_136100_8013F46C[33] = {
 EvsCommand D_actor_136100_8013F784[19] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134964 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80133690 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136100_801349B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_801348F8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetAfterBurnerScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136100FinishOpeningScene }, { .value = ACTOR_136100_SCENE_AFTER_BURNER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RestoreDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1030,19 +1096,19 @@ EvsCommand D_actor_136100_8013F784[19] = {
 
 EvsCommand D_actor_136100_8013F94C[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 13 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_8013467C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetPlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134924 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_AFTER_RESET_PLACEMENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RemovePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_10_THEN_11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_AFTER_RESET_WEAPON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134964 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1053,11 +1119,11 @@ EvsCommand D_actor_136100_8013FAE4[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136100_8013F37C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134964 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_8013467C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_801347B8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetPlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetBodyAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1069,14 +1135,14 @@ EvsCommand D_actor_136100_8013FAE4[16] = {
 
 EvsCommand D_actor_136100_8013FC64[12] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_AFTER_BLEND_WEAPON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_10_THEN_11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1084,40 +1150,40 @@ EvsCommand D_actor_136100_8013FC64[12] = {
 
 EvsCommand D_actor_136100_8013FD84[38] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 15 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_8013467C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetPlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134924 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RemovePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134898 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_HIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_PLACE_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_COMPANION_BEFORE_PLACE_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_PLACE_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_COMPANION_BEFORE_PLACE_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_ENTER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_PLAY_ANIMATION_53 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_BLEND_ANIMATION_4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_PLAY_ANIMATION_6_AND_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_PLAY_ANIMATION_49 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_801348C8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_EXIT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_RESET_AND_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_COMPANION_BEFORE_RESET_PLACEMENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134964 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136100_801349B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136100FinishOpeningScene }, { .value = ACTOR_136100_SCENE_BEFORE_BURNER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_801348F8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RestoreDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1126,13 +1192,13 @@ EvsCommand D_actor_136100_8013FD84[38] = {
 EvsCommand D_actor_136100_80140114[18] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134964 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136100_8013379C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136100_801349B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_801348F8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136100ResetBeforeBurnerScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136100FinishOpeningScene }, { .value = ACTOR_136100_SCENE_BEFORE_BURNER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RestoreDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1146,25 +1212,25 @@ EvsCommand D_actor_136100_80140114[18] = {
 
 EvsCommand D_actor_136100_801402C4[23] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 16 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_8013467C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100ResetPlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_136100_8013F334[1] } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134924 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor136100RemovePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_RESET_SCENE_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_TURN_HEAD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_COMPANION_BEFORE_PLACE_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_RETURN_HEAD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_EXIT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_BODY_BEFORE_RESET_AND_PLACE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_COMPANION_BEFORE_RESET_PLACEMENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134964 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1173,11 +1239,11 @@ EvsCommand D_actor_136100_801402C4[23] = {
 EvsCommand D_actor_136100_801404EC[14] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_136100_80134964 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136100_8013379C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136100ResetBeforeBurnerScene }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1189,13 +1255,13 @@ EvsCommand D_actor_136100_801404EC[14] = {
 
 EvsCommand D_actor_136100_8014063C[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 17 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_PLAYER_BEFORE_BLEND_WEAPON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134838 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134858 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_136100_80134878 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostPlayerRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostBodyRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor136100PostCompanionRequest }, { .value = ACTOR_136100_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1205,17 +1271,14 @@ TaskDesc D_actor_136100_80140744[6] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_136100_80133BC8, { .model = &_gActor136100GaryDouglasBody } },
     { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_136100_801320E0, { .model = &_gActor136100GaryDouglasHeadHat } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_136100_80132284, { .model = &_gActor136100Actor120300Model082F8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor136100RifleTask, { .model = &_gActor136100Actor120300Model082F8 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_136100_80134588, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor136100FadeOutTask, { .value = 0 } },
 };
 
 Task* D_actor_136100_8014078C = NULL;
 
-static s32         func_actor_136100_80131EC4(Task* arg0);
-static s32         func_actor_136100_80131FBC(Task* arg0);
 static void        func_actor_136100_801323F8(Task* arg0);
-static inline void func_actor_136100_SetAnim(Task* task, s16 anim);
 static inline void func_actor_136100_ResetSlots(Task* task, s32 count);
 static inline void func_actor_136100_PlayAnim(Task* task, u16 anim, s32 blend, s32 speed);
 static void        func_actor_136100_80132BC0(Task* arg0);
@@ -1226,39 +1289,50 @@ static void        func_actor_136100_80133A88(Task* task);
 static inline s16  func_actor_136100_TakeStartCue(u16* evtId, u8* evtKind, u8* evtSub);
 static inline void func_actor_136100_UpdateShadow(Task* arg0, VECTOR* vec);
 
-static s32 func_actor_136100_80131EC4(Task* arg0)
+/// Polls the player's scene animation and starts its configured successor.
+///
+/// Returns 0 while the player animation is playing, otherwise 1, including
+/// when a successor has just been started or no player is registered. Scene
+/// animations use the installed extension at `ANIMATION_BANK_BASE_SET_COUNT`;
+/// a negative successor ends the chain. Playback blends for ten normal-rate
+/// frames and disables world collision. The controller work, player and
+/// installed clip data must remain live through synchronous dispatch. Scene
+/// animation IDs written by this package span 47 to 53; lower base-bank IDs
+/// have no scene successor, and there is no upper-bound check here.
+static s32 _actor136100AdvancePlayerAnimation(Task* task)
 {
     _Actor136100Work*    work;
-    _Actor136100Work*    msgWork;
-    AnimationPlayRequest rec;
-    s16*                 sel;
-    s32                  i;
-    u16                  idx;
+    _Actor136100Work*    requestWork;
+    AnimationPlayRequest request;
+    const s16*           successorEntry;
+    s32                  chainIndex;
+    u16                  nextAnimationId;
     s32                  weaponId;
-    s32                  id;
+    s32                  selection;
 
-    work = arg0->work;
+    // Poll before choosing a successor from the installed scene clips.
+    work = task->work;
     if (work->playerTask == NULL) {
         return 1;
     }
     if (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        if ((u16)work->playerAnimation >= 0x2FU) {
-            i   = (u16)work->playerAnimation - 0x2FU;
-            sel = &D_actor_136100_8013F1EC[i];
-            id  = *sel;
-            if (id >= 0) {
-                idx = (u16)*sel + 0x2FU;
+        if ((u16)work->playerAnimation >= (u32)ANIMATION_BANK_BASE_SET_COUNT) {
+            chainIndex     = (u16)work->playerAnimation - (u32)ANIMATION_BANK_BASE_SET_COUNT;
+            successorEntry = &D_actor_136100_8013F1EC[chainIndex];
+            selection      = *successorEntry;
+            if (selection >= 0) {
+                nextAnimationId = (u16)*successorEntry + (u32)ANIMATION_BANK_BASE_SET_COUNT;
 
-                msgWork                  = arg0->work;
-                weaponId                 = gPlayerStatus.weapon;
-                id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                rec.source.index         = id;
-                msgWork->playerAnimation = idx;
-                rec.animationId          = idx;
-                rec.blend                = ANIMATION_BLEND_INTERPOLATE;
-                rec.blendFrames          = 0xA;
-                rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
+                requestWork                  = task->work;
+                weaponId                     = gPlayerStatus.weapon;
+                selection                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;
+                request.source.index         = selection;
+                requestWork->playerAnimation = nextAnimationId;
+                request.animationId          = nextAnimationId;
+                request.blend                = ANIMATION_BLEND_INTERPOLATE;
+                request.blendFrames          = ACTOR_136100_ANIMATION_BLEND_FRAMES;
+                request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(requestWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
             }
         }
         return 1;
@@ -1266,38 +1340,46 @@ static s32 func_actor_136100_80131EC4(Task* arg0)
     return 0;
 }
 
-static s32 func_actor_136100_80131FBC(Task* arg0)
+/// Advances body tracks 1 to 19 and blends into their configured successor.
+///
+/// Returns 0 while any track is unsettled, otherwise 1, including when a
+/// successor has just been started. `bodyAnimation` must index the successor
+/// table; nonnegative successors must index the rig's loaded set table. A
+/// negative entry leaves the settled pose. Blends last ten normal-rate frames;
+/// slot 0 is untouched. The initialized rig and its model must remain live.
+static s32 _actor136100TickBodyAnimation(Task* task)
 {
     _Actor136100Work* work;
-    _Actor136100Work* animWork;
-    u16               i;
-    u16               done;
-    u16               anim;
-    u16               id;
+    _Actor136100Work* restartWork;
+    u16               slotIndex;
+    u16               settled;
+    u16               nextSetIndex;
+    u16               setIndex;
 
-    work = arg0->work;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationTickSlot(&work->rig.anim, i);
+    // Tick every driven track before deciding whether the body has settled.
+    work = task->work;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
-    for (done = i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        if (!(work->rig.slots[i].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
-            goto fail;
+    for (settled = slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        if (!(work->rig.slots[slotIndex].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
+            goto unsettled;
         }
     }
-check:
-    if (done) {
-        anim = D_actor_136100_8013F1FC[(u16)work->bodyAnimation];
+checkSettled:
+    if (settled) {
+        nextSetIndex = D_actor_136100_8013F1FC[(u16)work->bodyAnimation];
         if (D_actor_136100_8013F1FC[(u16)work->bodyAnimation] >= 0) {
-            id                      = anim;
-            animWork                = arg0->work;
-            animWork->bodyAnimation = id;
-            goto loop;
-        fail:
-            done = 0;
-            goto check;
-        loop:
-            for (i = 1; i < ARRAY_SIZE(animWork->rig.slots); i++) {
-                animationSeekSlotWithBlend(&animWork->rig.anim, i, id, 0, 0xA);
+            setIndex                   = nextSetIndex;
+            restartWork                = task->work;
+            restartWork->bodyAnimation = setIndex;
+            goto restartSlots;
+        unsettled:
+            settled = 0;
+            goto checkSettled;
+        restartSlots:
+            for (slotIndex = 1; slotIndex < ARRAY_SIZE(restartWork->rig.slots); slotIndex++) {
+                animationSeekSlotWithBlend(&restartWork->rig.anim, slotIndex, setIndex, 0, ACTOR_136100_ANIMATION_BLEND_FRAMES);
             }
         }
         return 1;
@@ -1316,7 +1398,7 @@ check:
 ///
 /// The dead `VECTOR` is read back through `task->extra` rather than the local
 /// `obj`, which is what makes the original reload `Task::extra` for each of the
-/// three coordinate reads (see `func_actor_136100_80132284`).
+/// three coordinate reads (see `_actor136100RifleTask`).
 void func_actor_136100_801320E0(Task* task)
 {
     _Actor136100Work* work;
@@ -1365,46 +1447,63 @@ void func_actor_136100_801320E0(Task* task)
     }
 }
 
-void func_actor_136100_80132284(Task* arg0)
+/// Allocates and attaches the rifle's lighting work and applies its spawn pose.
+static inline void _actor136100InitializeRifle(Task* task)
 {
     _Actor136100Work* work;
-    VECTOR            vec;
 
-    if (arg0->state == 0) {
-        TmdObject* tmd   = arg0->extra.tmd;
-        GfxCoord*  coord = tmd->coords;
+    TmdObject* model     = task->extra.tmd;
+    GfxCoord*  rootCoord = model->coords;
 
-        work       = memMalloc(sizeof(*work), false);
-        arg0->work = work;
-        if (work == NULL) {
-            taskKill(arg0);
-        } else {
-            memFillBytes(work, 0, sizeof(*work));
-            coord->parent          = arg0->spawnArg2.pointer;
-            arg0->extra.tmd->flags = 0;
-            tmdAllocPrimitiveBuffer(tmd);
-            tmd->lightMtx  = &work->light;
-            tmd->colorMtx  = &work->color;
-            arg0->msgTable = D_actor_136100_8013F2F4;
-            taskReparent(D_actor_136100_8014078C, arg0);
-        }
-        arg0->state += 1;
-        if (arg0->spawnArg1.value != 0) {
-            GfxCoord* reset = arg0->extra.tmd->coords;
-
-            gfxRotMatrixX(&reset->coord, 0x400, GRAPHICS_ROTATION_REPLACE);
-            reset->coord.t[1]   = 0xC8;
-            reset->composeStamp = GRAPHICS_COORD_DIRTY;
-        }
+    work       = memMalloc(sizeof(*work), false);
+    task->work = work;
+    if (work == NULL) {
+        taskKill(task);
+    } else {
+        memFillBytes(work, 0, sizeof(*work));
+        rootCoord->parent      = task->spawnArg2.pointer;
+        task->extra.tmd->flags = 0;
+        tmdAllocPrimitiveBuffer(model);
+        model->lightMtx = &work->light;
+        model->colorMtx = &work->color;
+        task->msgTable  = D_actor_136100_8013F2F4;
+        taskReparent(D_actor_136100_8014078C, task);
     }
-    {
-        TmdObject* obj = arg0->extra.tmd;
+    task->state += 1;
+    if (task->spawnArg1.value != 0) {
+        GfxCoord* posedRoot = task->extra.tmd->coords;
 
-        actorRenderComposeCoord(obj->coords);
-        vec.vx = arg0->extra.tmd->coords->workm.t[0];
-        vec.vy = arg0->extra.tmd->coords->workm.t[1];
-        vec.vz = arg0->extra.tmd->coords->workm.t[2];
-        worldCoordSetModelLighting(obj, &vec, 0, 3);
+        gfxRotMatrixX(&posedRoot->coord, ACTOR_TRANSFORM_ANGLE_TURN / 4, GRAPHICS_ROTATION_REPLACE);
+        posedRoot->coord.t[1]   = 0xC8;
+        posedRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    }
+}
+
+/// Initializes and lights Gary Douglas's rifle model for the street scene.
+///
+/// Start at state 0 with a live model and a borrowed parent `GfxCoord` in
+/// `spawnArg2`. The task owns a full `_Actor136100Work` until teardown, using
+/// only its lighting matrices, and joins the scene controller's teardown tree.
+/// Nonzero `spawnArg1` gives the attached rifle a quarter-turn pitch and a
+/// 200-unit local Y offset. Later ticks refresh lighting at the composed root.
+/// Allocation failure kills the task but retains the remaining first-tick
+/// state and pose updates; callers must preserve that behavior.
+static void _actor136100RifleTask(Task* task)
+{
+    VECTOR worldPosition;
+
+    if (task->state == 0) {
+        _actor136100InitializeRifle(task);
+    }
+    // Refresh lighting in world coordinates after composing the model root.
+    {
+        TmdObject* model = task->extra.tmd;
+
+        actorRenderComposeCoord(model->coords);
+        worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+        worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+        worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+        worldCoordSetModelLighting(model, &worldPosition, 0, 3);
     }
 }
 
@@ -1444,12 +1543,12 @@ static void func_actor_136100_801323F8(Task* arg0)
     AnimationPlayRequest rec;
 
     if (gGameSession->eventState != 0) {
-        func_actor_136100_80131EC4(arg0);
+        _actor136100AdvancePlayerAnimation(arg0);
     }
     switch ((u16)work->playerRequest) {
-        case 0:
+        case ACTOR_136100_REQUEST_NONE:
             break;
-        case 1:
+        case ACTOR_136100_PLAYER_AFTER_ENTER:
             switch ((u16)work->playerRequestStep) {
                 case 0:
                     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F304[0], 0);
@@ -1472,20 +1571,20 @@ static void func_actor_136100_801323F8(Task* arg0)
                     return;
             }
             break;
-        case 2:
+        case ACTOR_136100_PLAYER_AFTER_PLAY_ANIMATION_50:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x32, 1, 0xA, rec);
             break;
-        case 3:
+        case ACTOR_136100_PLAYER_AFTER_PLAY_ANIMATION_52:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x34, 1, 0xA, rec);
             break;
-        case 4:
+        case ACTOR_136100_PLAYER_AFTER_RESET_PLACEMENT:
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F37C, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 0, 0, rec);
             break;
-        case 5:
+        case ACTOR_136100_PLAYER_AFTER_BLEND_WEAPON:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, rec);
             break;
-        case 6:
+        case ACTOR_136100_PLAYER_AFTER_RESET_WEAPON:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
     }
@@ -1520,20 +1619,25 @@ static void func_actor_136100_801323F8(Task* arg0)
         (work)->bodyAnimation = (id);   \
     } while (0)
 
-/// Record `anim` as the current animation and start it on rig slots 1..19.
-static inline void func_actor_136100_SetAnim(Task* task, s16 anim)
+/// Blends body tracks 1 to 19 into `setIndex` and records that selection.
+///
+/// `task` must own an initialized `_Actor136100Work` rig. The signed halfword
+/// set index must select loaded animation data for every driven track; current
+/// callers use 2, 4, 5, 6, 7, 9, 10 and 11. Blends last ten normal-rate frames
+/// from record 0. Track 0 and playback rates are untouched.
+static inline void _actor136100BlendBodyAnimation(Task* task, s16 setIndex)
 {
     _Actor136100Work* work = task->work;
-    s32               i;
+    s32               slotIndex;
 
-    _actor136100SetAnimId(work, anim);
-    for (i = 1; (u16)i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationSeekSlotWithBlend(&work->rig.anim, i & 0xFFFF, anim, 0, 0xA);
+    _actor136100SetAnimId(work, setIndex);
+    for (slotIndex = 1; (u16)slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationSeekSlotWithBlend(&work->rig.anim, (u16)slotIndex, setIndex, 0, ACTOR_136100_ANIMATION_BLEND_FRAMES);
     }
 }
 
 /// Re-arm animation slots 1..19 with slot count `count`
-/// (`func_actor_136100_801347B8`'s loop, reaching the work block through `task`).
+/// (`_actor136100ResetBodyAnimation`'s loop, reaching the work block through `task`).
 static inline void func_actor_136100_ResetSlots(Task* task, s32 count)
 {
     _Actor136100Work* work = task->work;
@@ -1553,15 +1657,15 @@ static void func_actor_136100_80132748(Task* arg0)
     _Actor136100Work*    work = arg0->work;
     AnimationPlayRequest rec;
 
-    func_actor_136100_80131FBC(arg0);
+    _actor136100TickBodyAnimation(arg0);
     switch ((u16)work->bodyRequest) {
-        case 0:
+        case ACTOR_136100_REQUEST_NONE:
             break;
-        case 1:
+        case ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_2:
             switch ((u16)work->bodyRequestStep) {
                 case 0:
                     work->bodyRequestFrames = 0;
-                    func_actor_136100_SetAnim(arg0, 2);
+                    _actor136100BlendBodyAnimation(arg0, 2);
                     work->bodyRequestStep++;
                     return;
                 case 1:
@@ -1574,11 +1678,11 @@ static void func_actor_136100_80132748(Task* arg0)
                     return;
             }
             break;
-        case 2:
+        case ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_5:
             switch ((u16)work->bodyRequestStep) {
                 case 0:
                     work->bodyRequestFrames = 0;
-                    func_actor_136100_SetAnim(arg0, 5);
+                    _actor136100BlendBodyAnimation(arg0, 5);
                     work->bodyRequestStep++;
                     return;
                 case 1:
@@ -1611,30 +1715,30 @@ static void func_actor_136100_80132748(Task* arg0)
                     return;
             }
             break;
-        case 3:
-            func_actor_136100_SetAnim(arg0, 7);
+        case ACTOR_136100_BODY_AFTER_BLEND_ANIMATION_7:
+            _actor136100BlendBodyAnimation(arg0, 7);
             break;
-        case 4:
-            func_actor_136100_SetAnim(arg0, 9);
+        case ACTOR_136100_BODY_AFTER_BLEND_ANIMATION_9:
+            _actor136100BlendBodyAnimation(arg0, 9);
             break;
-        case 5:
+        case ACTOR_136100_BODY_AFTER_PLAY_ANIMATION_10_THEN_11:
             switch ((u16)work->bodyRequestStep) {
                 case 0:
                     work->bodyRequestFrames = 0;
-                    func_actor_136100_SetAnim(arg0, 0xA);
+                    _actor136100BlendBodyAnimation(arg0, 0xA);
                     work->bodyRequestStep++;
                     return;
                 case 1:
                     if (++work->bodyRequestFrames < 0x50) {
                         return;
                     }
-                    func_actor_136100_SetAnim(arg0, 0xB);
+                    _actor136100BlendBodyAnimation(arg0, 0xB);
                     break;
                 default:
                     return;
             }
             break;
-        case 6: {
+        case ACTOR_136100_BODY_AFTER_RESET: {
             _Actor136100Work* animWork = arg0->work;
             s32               i;
 
@@ -1685,12 +1789,12 @@ static void func_actor_136100_80132BC0(Task* arg0)
         }
     }
     switch ((u16)work->companionRequest) {
-        case 0:
+        case ACTOR_136100_REQUEST_NONE:
             break;
-        case 1:
+        case ACTOR_136100_COMPANION_AFTER_RESET_ANIMATION_1:
             func_actor_136100_PlayAnim(arg0, 1, 0, 0);
             break;
-        case 2:
+        case ACTOR_136100_COMPANION_AFTER_PLAY_REPEATED_CUE:
             switch ((u16)work->companionRequestStep) {
                 case 0:
                     work->companionRepeatCount = 0;
@@ -1714,7 +1818,7 @@ static void func_actor_136100_80132BC0(Task* arg0)
                     return;
             }
             break;
-        case 3:
+        case ACTOR_136100_COMPANION_AFTER_RESET_PLACEMENT_AND_ANIMATION:
             TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F3F4, 0);
             func_actor_136100_PlayAnim(arg0, 0, 0, 0);
             break;
@@ -1733,16 +1837,16 @@ static void func_actor_136100_80132E78(Task* arg0)
     AnimationPlayRequest rec;
 
     if (gGameSession->eventState != 0) {
-        func_actor_136100_80131EC4(arg0);
+        _actor136100AdvancePlayerAnimation(arg0);
     }
     switch ((u16)work->playerRequest) {
-        case 0:
+        case ACTOR_136100_REQUEST_NONE:
             break;
-        case 1:
+        case ACTOR_136100_PLAYER_BEFORE_HIDE:
             taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
-        case 2:
+        case ACTOR_136100_PLAYER_BEFORE_ENTER:
             switch ((u16)work->playerRequestStep) {
                 case 0:
                     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
@@ -1766,20 +1870,20 @@ static void func_actor_136100_80132E78(Task* arg0)
                     return;
             }
             break;
-        case 3:
+        case ACTOR_136100_PLAYER_BEFORE_PLAY_ANIMATION_49:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x31, 1, 0xA, rec);
             break;
-        case 4:
+        case ACTOR_136100_PLAYER_BEFORE_PLAY_ANIMATION_53:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x35, 1, 0xA, rec);
             break;
-        case 5:
+        case ACTOR_136100_PLAYER_BEFORE_EXIT:
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F364, 0);
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 0, 0, rec);
             break;
-        case 6:
+        case ACTOR_136100_PLAYER_BEFORE_RESET_SCENE_ANIMATION:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 0x2F, 0, 0, rec);
             break;
-        case 7:
+        case ACTOR_136100_PLAYER_BEFORE_BLEND_WEAPON:
             ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(arg0, 1, 1, 0xA, rec);
             break;
     }
@@ -1792,27 +1896,27 @@ static void func_actor_136100_80133238(Task* arg0)
     GfxCoord*         coords;
 
     work = arg0->work;
-    func_actor_136100_80131FBC(arg0);
+    _actor136100TickBodyAnimation(arg0);
     switch ((u16)work->bodyRequest) {
-        case 0:
+        case ACTOR_136100_REQUEST_NONE:
             break;
-        case 1:
+        case ACTOR_136100_BODY_BEFORE_PLACE_FIRST:
             TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3C4, 0);
             break;
-        case 2:
+        case ACTOR_136100_BODY_BEFORE_PLACE_SECOND:
             TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3DC, 0);
             break;
-        case 3:
-            func_actor_136100_SetAnim(arg0, 4);
+        case ACTOR_136100_BODY_BEFORE_BLEND_ANIMATION_4:
+            _actor136100BlendBodyAnimation(arg0, 4);
             break;
-        case 4:
+        case ACTOR_136100_BODY_BEFORE_RESET_AND_PLACE:
             func_actor_136100_ResetSlots(arg0, 3);
             TASK_MESSAGE_DISPATCH_POINTER(arg0, 0x7D4, &D_actor_136100_8013F3AC, 0);
             break;
-        case 5:
+        case ACTOR_136100_BODY_BEFORE_PLAY_ANIMATION_6_AND_SOUND:
             switch ((u16)work->bodyRequestStep) {
                 case 0:
-                    func_actor_136100_SetAnim(arg0, 6);
+                    _actor136100BlendBodyAnimation(arg0, 6);
                     work->bodyRequestFrames = 0;
                     work->bodyRequestStep++;
                     return;
@@ -1824,7 +1928,7 @@ static void func_actor_136100_80133238(Task* arg0)
                     return;
             }
             return;
-        case 6:
+        case ACTOR_136100_BODY_BEFORE_TURN_HEAD:
             // The head turn counts its steps on the player request's step, which
             // the player request the script posts just before it leaves at 0.
             switch ((u16)work->playerRequestStep) {
@@ -1841,7 +1945,7 @@ static void func_actor_136100_80133238(Task* arg0)
                     return;
             }
             return;
-        case 7:
+        case ACTOR_136100_BODY_BEFORE_RETURN_HEAD:
             coords = arg0->extra.tmd->coords;
             if ((work->headYaw += 0x40) > 0x1000) {
                 work->headYaw     = 0;
@@ -1849,7 +1953,7 @@ static void func_actor_136100_80133238(Task* arg0)
             }
             gfxRotMatrixY(&coords[4].coord, work->headYaw, 1);
             return;
-        case 8:
+        case ACTOR_136100_BODY_BEFORE_RESET:
             func_actor_136100_ResetSlots(arg0, 3);
             break;
     }
@@ -1886,132 +1990,105 @@ static void func_actor_136100_80133558(Task* arg0)
         }
     }
     switch ((u16)work->companionRequest) {
-        case 0:
+        case ACTOR_136100_REQUEST_NONE:
             break;
-        case 1:
+        case ACTOR_136100_COMPANION_BEFORE_PLACE_FIRST:
             TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F424, 0);
             break;
-        case 2:
+        case ACTOR_136100_COMPANION_BEFORE_PLACE_SECOND:
             TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F43C, 0);
             break;
-        case 3:
+        case ACTOR_136100_COMPANION_BEFORE_RESET_PLACEMENT:
             TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F40C, 0);
             break;
     }
     work->companionRequest = 0;
 }
 
-/// Reset the cutscene actor's animation state and re-send the weapon record.
+/// Restores the player and body poses used after the Burner encounter.
 ///
-/// Clears the first two value/countdown pairs, re-arms all nineteen animation
-/// slots through `animationResetSlot` with the work block's slot count at 1, then
-/// sends slot 3 the 0x3E9 placement and the 0x3E8 weapon record
-/// (`AnimationPlayRequest`) built from the equip-slot addend (`gPlayerStatus.weapon`), the pair
-/// `func_actor_136100_8013467C` sends on its own.  `playerAnimation` is armed on the
-/// way past.
-///
-/// Three separate `task->work` loads are what the original reaches the block
-/// with -- the stores to `playerRequest` / `bodyRequest` invalidate the first in cse,
-/// and the first is still live for the 0x3E9 send after the loop.  The dead
-/// `SVECTOR` is not read; it reserves the 8-byte local the frame has between
-/// the outgoing-arg area and `rec` (see `func_actor_136100_801347B8`).
-void func_actor_136100_80133690(void)
+/// Requires the live scene controller and player. Cancels their pending
+/// requests without clearing step counters, restarts body tracks 1 to 19 at
+/// normal rate, places the player at the walk's destination and resets the
+/// equipped-weapon animation with world collision disabled. The companion's
+/// request and pose are untouched.
+static void _actor136100ResetAfterBurnerScene(void)
 {
     Task*                task;
     _Actor136100Work*    work;
-    _Actor136100Work*    animWork;
-    _Actor136100Work*    msgWork;
-    SVECTOR              unused;
-    AnimationPlayRequest rec;
-    s32                  i;
+    _Actor136100Work*    requestWork;
+    SVECTOR              unused; // Unreferenced; removing it changes the compiled frame.
+    AnimationPlayRequest request;
     s32                  weaponId;
-    s32                  id;
+    s32                  bankIndex;
 
     task                = D_actor_136100_8014078C;
     work                = task->work;
-    work->playerRequest = 0;
-    work->bodyRequest   = 0;
+    work->playerRequest = ACTOR_136100_REQUEST_NONE;
+    work->bodyRequest   = ACTOR_136100_REQUEST_NONE;
 
-    animWork                = task->work;
-    animWork->bodyAnimation = 1;
-    i                       = 1;
-    do {
-        animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&animWork->rig.anim, (u16)i, 1);
-        i++;
-    } while ((u16)i < ARRAY_SIZE(animWork->rig.slots));
+    func_actor_136100_ResetSlots(task, ACTOR_136100_BODY_AFTER_BURNER_START);
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, &D_actor_136100_8013F304[1], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F304[1], 0);
 
-    msgWork                  = task->work;
-    weaponId                 = gPlayerStatus.weapon;
-    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.source.index         = id;
-    msgWork->playerAnimation = 1;
-    rec.animationId          = 1;
-    rec.blend                = ANIMATION_BLEND_RESET;
-    rec.blendFrames          = 0;
-    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
+    // Re-read work after placement dispatch before caching the player clip.
+    requestWork                  = task->work;
+    weaponId                     = gPlayerStatus.weapon;
+    bankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;
+    request.source.index         = bankIndex;
+    requestWork->playerAnimation = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
+    request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
+    request.blend                = ANIMATION_BLEND_RESET;
+    request.blendFrames          = 0;
+    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(requestWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
 }
 
-/// Second half of the cutscene actor's re-arm: clears the first two
-/// value/countdown pairs, sends the 0x7D4 cue to the host task, re-arms all
-/// nineteen animation slots with the work block's slot count at 3, then re-sends
-/// the two placement cues and the 0x3E8 weapon record (`AnimationPlayRequest`) built from the
-/// equip-slot addend (`gPlayerStatus.weapon`).  `arg0 == 1` additionally resets the
-/// fourth bone's rotation to zero.
+/// Restores the performers' starting placement before the Burner encounter.
 ///
-/// Two `task->work` loads reach the block: the stores to `playerRequest` /
-/// `bodyRequest` invalidate the first in cse, and it is still live for the 0x3E9
-/// and 0x3E9/`companionTask` sends after the loop.  The dead `SVECTOR` is not read;
-/// it reserves the 8-byte local the frame has between the outgoing-arg area and
-/// `rec` (see `func_actor_136100_80133690`).
-void func_actor_136100_8013379C(s32 arg0)
+/// Requires the live scene controller, player and companion. Cancels player
+/// and body requests without clearing step counters, places the body and
+/// companion, restarts body tracks 1 to 19 at normal rate and resets the
+/// equipped-weapon animation with world collision disabled. Exactly 1 in
+/// `resetHeadRotation` also replaces the head's local rotation with identity;
+/// other values preserve its current rotation.
+static void _actor136100ResetBeforeBurnerScene(s32 resetHeadRotation)
 {
     Task*                task;
     _Actor136100Work*    work;
-    _Actor136100Work*    animWork;
-    _Actor136100Work*    msgWork;
-    SVECTOR              unused;
-    AnimationPlayRequest rec;
-    s32                  i;
+    _Actor136100Work*    requestWork;
+    SVECTOR              unused; // Unreferenced; removing it changes the compiled frame.
+    AnimationPlayRequest request;
     s32                  weaponId;
-    s32                  id;
+    s32                  bankIndex;
 
     task                = D_actor_136100_8014078C;
     work                = task->work;
-    work->playerRequest = 0;
-    work->bodyRequest   = 0;
+    work->playerRequest = ACTOR_136100_REQUEST_NONE;
+    work->bodyRequest   = ACTOR_136100_REQUEST_NONE;
 
-    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &D_actor_136100_8013F3AC, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F3AC, 0);
 
-    animWork                = task->work;
-    animWork->bodyAnimation = 3;
-    i                       = 1;
-    do {
-        animWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&animWork->rig.anim, (u16)i, 3);
-        i++;
-    } while ((u16)i < ARRAY_SIZE(animWork->rig.slots));
+    func_actor_136100_ResetSlots(task, ACTOR_136100_BODY_BEFORE_BURNER_START);
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, 0x3E9, D_actor_136100_8013F334, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, D_actor_136100_8013F334, 0);
 
-    msgWork                  = task->work;
-    weaponId                 = gPlayerStatus.weapon;
-    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.source.index         = id;
-    msgWork->playerAnimation = 1;
-    rec.animationId          = 1;
-    rec.blend                = ANIMATION_BLEND_RESET;
-    rec.blendFrames          = 0;
-    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
+    // Re-read work after placement dispatch before caching the player clip.
+    requestWork                  = task->work;
+    weaponId                     = gPlayerStatus.weapon;
+    bankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;
+    request.source.index         = bankIndex;
+    requestWork->playerAnimation = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
+    request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
+    request.blend                = ANIMATION_BLEND_RESET;
+    request.blendFrames          = 0;
+    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(requestWork->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);
 
-    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, 0x3E9, &D_actor_136100_8013F40C, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->companionTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_136100_8013F40C, 0);
 
-    if (arg0 == 1) {
-        gfxRotMatrixY(&task->extra.tmd->coords[4].coord, 0, 1);
+    if (resetHeadRotation == 1) {
+        gfxRotMatrixY(&task->extra.tmd->coords[4].coord, 0, GRAPHICS_ROTATION_REPLACE);
     }
 }
 
@@ -2331,117 +2408,167 @@ void func_actor_136100_80133BC8(Task* arg0)
 
 #include "../../shared/screen_fade_in.inc.c"
 
-/// Display-fade task: on its first tick it allocates the 8-byte `r`/`g`/`b`
-/// block, then every frame draws the fade overlay and steps all three channels
-/// up by `spawnArg1`.  The fade ends once `r` reaches 0x100, at which point the
-/// task blanks the display and kills itself; `D_actor_136100_8013F17C` makes it
-/// kill itself immediately instead (the cutscene wants the display back).
-void func_actor_136100_80134588(Task* arg0)
+/// Adds the task's unsigned intensity increment to the three signed fade channels.
+///
+/// Each channel narrows without clamping, and each addition reads the rate anew.
+static inline void _actor136100StepFadeOut(ScreenFadeWork* fade, const Task* task)
 {
-    ScreenFadeWork* fade;
-    ScreenFadeWork* alloc;
+    fade->r += task->spawnArg1.halves.low;
+    fade->g += task->spawnArg1.halves.low;
+    fade->b += task->spawnArg1.halves.low;
+}
 
-    fade = arg0->work;
-    switch (arg0->state) {
-        case 0:
-            alloc      = memMalloc(sizeof(*alloc), false);
-            arg0->work = alloc;
-            if (alloc == NULL) {
-                taskKill(arg0);
+/// Darkens the street scene and blanks the display when the ramp completes.
+///
+/// Start at state 0 without owned work. Initialization allocates primary-heap
+/// `ScreenFadeWork`, then draws and steps in the same tick; teardown releases
+/// the work and allocation failure kills the task. The unsigned low halfword
+/// of `spawnArg1` is intensity units added per tick (0 holds indefinitely).
+/// Drawing uses the low red/green/red bytes before each step. Channels narrow
+/// to signed halfwords without clamping; red reaching 256 ends the task and
+/// disables display output. The display-restore latch cancels the task after
+/// drawing and stepping, without blanking output. Other states do nothing.
+static void _actor136100FadeOutTask(Task* task)
+{
+    enum { INITIALIZE              = 0,
+           RAMP                    = 1,
+           DISPLAY_BLANK_THRESHOLD = 256 };
+
+    ScreenFadeWork* fade;
+    ScreenFadeWork* allocatedFade;
+
+    fade = task->work;
+    switch (task->state) {
+        case INITIALIZE:
+            allocatedFade = memMalloc(sizeof(*allocatedFade), false);
+            task->work    = allocatedFade;
+            if (allocatedFade == NULL) {
+                taskKill(task);
                 return;
             }
-            fade         = alloc;
+            fade         = allocatedFade;
             fade->b      = 0;
             fade->g      = 0;
             fade->r      = 0;
-            arg0->state += 1;
+            task->state += 1;
+            // The first tick also queues the overlay and advances the ramp.
             /* fallthrough */
-        case 1:
+        case RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            fade->r += (u16)arg0->spawnArg1.value;
-            fade->g += (u16)arg0->spawnArg1.value;
-            fade->b += (u16)arg0->spawnArg1.value;
+            _actor136100StepFadeOut(fade, task);
             if (D_actor_136100_8013F17C != 0) {
-                taskKill(arg0);
+                taskKill(task);
                 return;
             }
-            if (fade->r < 0x100) {
+            if (fade->r < DISPLAY_BLANK_THRESHOLD) {
                 return;
             }
             SetDispMask(0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
 
-void func_actor_136100_8013467C(void)
+/// Restarts the registered player's equipped-weapon animation for a scene.
+///
+/// Requires a live player and loaded weapon bank. Selects the bank from the
+/// equipped weapon and saved character, resets its starting animation without
+/// blending and disables world collision. The stack request is consumed
+/// synchronously; this does not change the controller's animation cache.
+static void _actor136100ResetPlayerWeaponAnimation(void)
 {
-    AnimationPlayRequest rec;
+    AnimationPlayRequest request;
     s32                  weaponId;
-    s32                  id;
+    s32                  bankIndex;
 
-    weaponId                 = gPlayerStatus.weapon;
-    id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-    rec.source.index         = id;
-    rec.animationId          = 1;
-    rec.blend                = ANIMATION_BLEND_RESET;
-    rec.blendFrames          = 0;
-    rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+    weaponId                     = gPlayerStatus.weapon;
+    bankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;
+    request.source.index         = bankIndex;
+    request.animationId          = ACTOR_136100_PLAYER_WEAPON_ANIMATION;
+    request.blend                = ANIMATION_BLEND_RESET;
+    request.blendFrames          = 0;
+    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
 }
 
-/// Shows the task's model when `arg2` is non-zero and hides it (bit 0x80 of
-/// its `TmdObject` flags) otherwise; `arg1` is unused.
-void func_actor_136100_801346EC(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Shows the receiving model for a nonzero first payload and hides it for zero.
+///
+/// Requires a live `TmdObject`; only its active-draw suppression bit changes.
+/// The message id and second payload are ignored. Senders must discard the
+/// unspecified message result.
+static s32 _actor136100SetModelDraw(Task* task, s32 unusedMessageId, s32 visible, s32 unusedSecondArg)
 {
-    TmdObject* obj;
+    TmdObject* model;
 
-    obj = task->extra.tmd;
-    if (arg2 != 0) {
-        obj->flags = obj->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        return;
+    model = task->extra.tmd;
+    if (visible != 0) {
+        model->flags = model->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    } else {
+        model->flags = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    obj->flags = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    // The binary leaves the message result unspecified.
 }
 
 #include "../../shared/actor_messages_place_in_view.inc.c"
 
-void func_actor_136100_801347B8(void)
+/// Restarts the after-Burner body pose on tracks 1 to 19 at normal rate.
+///
+/// Requires the live scene controller and initialized rig. Slot 0, pending
+/// requests and their step counters are untouched; this does not blend.
+static void _actor136100ResetBodyAnimation(void)
 {
     _Actor136100Work* work = D_actor_136100_8014078C->work;
-    SVECTOR           unused;
-    s32               i;
+    SVECTOR           unused; // Unreferenced; removing it changes the compiled frame.
+    s32               slotIndex;
 
-    work->bodyAnimation = 1;
-    i                   = 1;
+    work->bodyAnimation = ACTOR_136100_BODY_AFTER_BURNER_START;
+    slotIndex           = 1;
     do {
-        work->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&work->rig.anim, (u16)i, 1);
-        i++;
-    } while ((u16)i < ARRAY_SIZE(work->rig.slots));
+        work->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&work->rig.anim, (u16)slotIndex, ACTOR_136100_BODY_AFTER_BURNER_START);
+        slotIndex++;
+    } while ((u16)slotIndex < ARRAY_SIZE(work->rig.slots));
 }
 
-void func_actor_136100_80134838(s16 arg0)
+/// Posts a player request for the scene controller's next frame update.
+///
+/// Requires the live controller. Stores the signed halfword request and resets
+/// its step to 0, leaving the frame counter intact. Zero cancels; other codes
+/// are the `ACTOR_136100_PLAYER_AFTER_*` or `ACTOR_136100_PLAYER_BEFORE_*`
+/// commands for the controller's selected scene.
+static void _actor136100PostPlayerRequest(s16 request)
 {
     _Actor136100Work* work = D_actor_136100_8014078C->work;
 
-    work->playerRequest     = arg0;
+    work->playerRequest     = request;
     work->playerRequestStep = 0;
 }
 
-void func_actor_136100_80134858(s16 arg0)
+/// Posts a body request for the scene controller's next frame update.
+///
+/// Requires the live controller. Stores the signed halfword request and resets
+/// its step to 0, leaving the frame counter intact. Zero cancels; other codes
+/// are the `ACTOR_136100_BODY_AFTER_*` or `ACTOR_136100_BODY_BEFORE_*`
+/// commands for the controller's selected scene.
+static void _actor136100PostBodyRequest(s16 request)
 {
     _Actor136100Work* work = D_actor_136100_8014078C->work;
 
-    work->bodyRequest     = arg0;
+    work->bodyRequest     = request;
     work->bodyRequestStep = 0;
 }
 
-void func_actor_136100_80134878(s16 arg0)
+/// Posts a companion request for the scene controller's next frame update.
+///
+/// Requires the live controller. Stores the signed halfword request and resets
+/// its step to 0, leaving repeat count and delay intact. Zero cancels; other
+/// codes are the `ACTOR_136100_COMPANION_AFTER_*` or
+/// `ACTOR_136100_COMPANION_BEFORE_*` commands for the selected scene.
+static void _actor136100PostCompanionRequest(s16 request)
 {
     _Actor136100Work* work = D_actor_136100_8014078C->work;
 
-    work->companionRequest     = arg0;
+    work->companionRequest     = request;
     work->companionRequestStep = 0;
 }
 
@@ -2456,13 +2583,21 @@ void func_actor_136100_801348C8(void)
     taskSpawnFromTable(D_actor_136100_80140744, 5, 9, 0);
 }
 
-void func_actor_136100_801348F8(void)
+/// Enables display output and latches cancellation of the scene's fade-out.
+///
+/// The latch remains set; a fade task observes it after drawing and stepping
+/// its ramp. This does not clear the latch or synchronously destroy that task.
+static void _actor136100RestoreDisplay(void)
 {
     D_actor_136100_8013F17C = 1;
     SetDispMask(1);
 }
 
-void func_actor_136100_80134924(void)
+/// Removes the player's equipment tasks once for the current scene.
+///
+/// Requires the live controller and player. Latches removal before tearing
+/// down equipment; repeated calls do nothing until scene cleanup restores it.
+static void _actor136100RemovePlayerEquipment(void)
 {
     _Actor136100Work* work = D_actor_136100_8014078C->work;
 
@@ -2483,14 +2618,24 @@ void func_actor_136100_80134964(void)
     }
 }
 
-void func_actor_136100_801349B4(s32 arg0)
+/// Applies companion schedules when the opening street scene finishes or skips.
+///
+/// Clears the trailer-coach door restriction and selects companion 1's
+/// post-scene schedule. Zero `beforeBurner` selects companion 2's night
+/// schedule; any nonzero value removes that companion and arms scene event 8
+/// for subsequent music selection. The live save and game flags must exist.
+static void _actor136100FinishOpeningScene(s32 beforeBurner)
 {
+    enum { COMPANION_1_POST_SCENE_SCHEDULE    = 3,
+           COMPANION_2_AFTER_BURNER_SCHEDULE  = 6,
+           BEFORE_BURNER_FINISHED_SCENE_EVENT = 8 };
+
     gameFlagSetNibble(GAME_FLAG_046, 0);
-    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 3);
-    if (arg0 == 0) {
-        gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 6);
+    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_1_POST_SCENE_SCHEDULE);
+    if (beforeBurner == 0) {
+        gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_2_AFTER_BURNER_SCHEDULE);
     } else {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 8;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = BEFORE_BURNER_FINISHED_SCENE_EVENT;
         gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
     }
 }
