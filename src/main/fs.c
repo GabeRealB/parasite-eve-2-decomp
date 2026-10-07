@@ -390,7 +390,7 @@ void gameFlowBeginLoadScreen(const GameLocationKey* destination, s16 alternateCa
 void Fs_EnsureBootLoadStarted(void)
 {
     if (Fs_BootLoadPhase == 0) {
-        Fs_SetupBootLoad();
+        gameFlowStartLoadScreenImage();
         Fs_BootLoadPhase = 1;
     }
 }

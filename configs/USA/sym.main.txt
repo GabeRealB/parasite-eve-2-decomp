@@ -524,11 +524,11 @@ DecDCTBufSize               = 0x8002168C;
 _fadeBootImageToBlack               = 0x8002169C; // type:func
 _fadeBeginBootImageReveal               = 0x80021808; // type:func
 _fadeBootImageFromBlack               = 0x8002191C; // type:func
-Fs_SelectLoadHandlers0               = 0x80021A20; // type:func
-Fs_SelectLoadHandlers1               = 0x80021B28; // type:func
-Fs_SelectLoadHandlers2               = 0x80021C0C; // type:func
-Fs_SelectLoadHandlers3               = 0x80021D8C; // type:func
-Fs_SetupBootLoad               = 0x8002207C; // type:func
+_gameFlowSelectAcropolisLoadScreenAssets               = 0x80021A20; // type:func
+_gameFlowSelectDryfieldLoadScreenAssets               = 0x80021B28; // type:func
+_gameFlowSelectDryfieldNightLoadScreenAssets               = 0x80021C0C; // type:func
+_gameFlowSelectMineShelterLoadScreenAssets               = 0x80021D8C; // type:func
+gameFlowStartLoadScreenImage               = 0x8002207C; // type:func
 Fs_BootImageMachine               = 0x8002226C; // type:func
 
 //--------------------------------------------------------------------

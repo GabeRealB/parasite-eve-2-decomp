@@ -346,8 +346,14 @@ void fsResumeRequestedRead(void);
 /// callbacks and waits for pause completion. Does not increment the error count.
 void fsAbortTimedOutOperation(void);
 
-/// Boot-image / CD load setup (src/main/bootload.c).
-void Fs_SetupBootLoad(void);
+/// Clears the loading display, selects resident captions and queues its image read.
+///
+/// Uses the destination and caption selector retained by `gameFlowBeginLoadScreen`.
+/// Clears the full resident image workspace and both 320x240 framebuffers, then
+/// blanks the display until the image is ready. Requires a free CD request slot;
+/// stores that slot in `Fs_BootLoadSlot` for asynchronous completion polling.
+/// All image files come from category zero of the global stage-zero library.
+void gameFlowStartLoadScreenImage(void);
 
 void Fs_BootImageMachine(void* primaryTim, void* secondaryTim);
 

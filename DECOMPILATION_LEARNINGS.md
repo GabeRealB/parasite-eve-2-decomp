@@ -17388,7 +17388,7 @@ explicit if/goto decision trees (not `switch`) so case *body* order is
 order is `== 0x1B`, then `< 0x1C`, then `!= 0x11`. Keep the switch key in an
 `s32` (not `u8`) so the load is plain `lbu` without `andi`/`sltiu`.
 
-`Fs_SelectLoadHandlers2` is the pure example (FS load-table select by
+`_gameFlowSelectDryfieldNightLoadScreenAssets` is the pure example (load-screen caption/image selection by
 `Fs_LoadParams.area` × `gameFlagGetNibble(0x7A)`).
 
 ## Independent `entry++` + mid-loop `i++`: prefer `goto` over re-index / `do`
@@ -150269,10 +150269,10 @@ attempts; left as it was.
 - **`==4; <5 -> def; ==5; def` on a value, inside each arm of an outer
   dispatch, is `switch { case 3: default: ...; case 4: ...; case 5: ... }`**:
   a case below the range sharing the default makes 4 the pivot
-  (`Fs_SelectLoadHandlers2`/`3`, 27 gotos, first try). `==4; ==5;` falling into
+  (`_gameFlowSelectDryfieldNightLoadScreenAssets`/`_gameFlowSelectMineShelterLoadScreenAssets`, 27 gotos, first try). `==4; ==5;` falling into
   the block of 4 is `case 4: default:` plus `case 5:`. The outer
   `==0x1B; >0x1B -> def; !=0x11 -> def` is the mirror image, a case *above*
-  the range sharing the default (`Fs_SetupBootLoad` has the case below). Which
+  the range sharing the default (`gameFlowStartLoadScreenImage` has the case below). Which
   silent case the source listed is not recoverable; the ones written are
   placeholders.
 - **A list-clearing walk `loop: ...; if (next) { ...; node = next; goto loop; }`
