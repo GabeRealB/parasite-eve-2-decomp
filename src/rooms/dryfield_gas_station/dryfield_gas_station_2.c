@@ -136,7 +136,7 @@ void func_dryfield_gas_station_801802C0(Task* task)
             }
             displaySpawnTaskFromTable(D_dryfield_gas_station_80181E7C, 1, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-            Gp_SpawnViewTasks();
+            viewQueueCurrentCameraAndPackets();
             task->state = task->state + 1;
             break;
         case 1:

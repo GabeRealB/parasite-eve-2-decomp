@@ -677,7 +677,7 @@ void func_actor_120500_8013241C(Task* arg0)
             taskMessageDispatch(screenWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
             displaySpawnTaskFromTable(D_actor_120500_80138418, 0, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-            Gp_SpawnViewTasks();
+            viewQueueCurrentCameraAndPackets();
             break;
         case ACTOR_120500_SCREEN_REQUEST_NONE:
         default:

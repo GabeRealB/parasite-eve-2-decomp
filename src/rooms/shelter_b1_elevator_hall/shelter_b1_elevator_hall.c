@@ -118,7 +118,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             if ((temp_v0 << 0x10) != 0) {
                 break;
             }
-            Gp_TriggerPeIfArmed();
+            sceneQueueBattleEscapeResult();
             arg0->state++;
             break;
         case 4:

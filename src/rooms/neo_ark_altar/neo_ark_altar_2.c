@@ -561,12 +561,12 @@ void func_neo_ark_altar_8017DA40(Task* task)
 /// Entry 0 of `D_neo_ark_altar_8017EFC0`: spawns that table's entry 1 (the
 /// streaming task `func_neo_ark_altar_8017DA40`) with an ordering table,
 /// passing on this task's `spawnArg1`, sets `gDisplayState.control.flags.flipMode`, calls
-/// `Gp_SpawnViewTasks` and ends.
+/// `viewQueueCurrentCameraAndPackets` and ends.
 void func_neo_ark_altar_8017DBF0(Task* arg0)
 {
     displaySpawnTaskFromTable(D_neo_ark_altar_8017EFC0, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }
 

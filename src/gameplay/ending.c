@@ -53,7 +53,7 @@ PadScriptVibrationSegment D_80114A34[3] = {
 const TaskFuncTable6 Gp_PlayClockStates = { {
     Gp_InitPlayClock,
     Gp_TickPlayClock,
-    Gp_PlayClockState2,
+    playClockStartDeathFade,
     playClockWaitDeathFade,
     Gp_RestartSessionTask,
     taskKill,

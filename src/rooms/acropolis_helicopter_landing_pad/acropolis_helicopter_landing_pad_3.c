@@ -680,7 +680,7 @@ void func_acropolis_helicopter_landing_pad_8017ED00(Task* arg0)
 {
     displaySpawnTaskFromTable(D_acropolis_helicopter_landing_pad_80184E68, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }
 

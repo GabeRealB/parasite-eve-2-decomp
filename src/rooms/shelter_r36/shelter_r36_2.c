@@ -29,6 +29,6 @@ void func_shelter_r36_8017DBC0(Task* arg0)
 {
     displaySpawnTaskFromTable(D_shelter_r36_8017E9A4, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }

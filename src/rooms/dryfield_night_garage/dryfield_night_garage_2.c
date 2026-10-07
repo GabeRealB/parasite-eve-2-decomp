@@ -1258,7 +1258,7 @@ void func_dryfield_night_garage_80180D4C(Task* arg0)
 {
     displaySpawnTaskFromTable(D_dryfield_night_garage_80183380, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }
 

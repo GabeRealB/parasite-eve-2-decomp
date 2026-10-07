@@ -1081,7 +1081,7 @@ void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_TriggerPeIfArmed();
+            sceneQueueBattleEscapeResult();
             D_shelter_b4_reservoir_80187500.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_reservoir_80187500.phase      = SCREEN_FADE_RUNNING;
             D_shelter_b4_reservoir_80187500.rampFrames = 0x1E;

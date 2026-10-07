@@ -4836,7 +4836,7 @@ void func_acropolis_plaza_80180270(Task* arg0)
 {
     displaySpawnTaskFromTable(D_acropolis_plaza_80183824, 0xA, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }
 

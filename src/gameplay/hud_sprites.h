@@ -7,7 +7,15 @@
 
 #include "main/task_types.h"
 
-void Gp_PlayClockState2(Task* arg0);
+/// Counts down the death/ending delay, starts its screen fade and advances to the wait phase.
+///
+/// State 2 decrements signed-halfword killCountdown once per task update. At
+/// zero or below it becomes the death-sound completion latch, PE effect state
+/// becomes idle and spawnArg1.value is reset for the next phase. Except for
+/// preserve-display restarts, queues a subtractive fade using deathFadeFrames;
+/// the fade task replaces a nonpositive duration with 32 frames and holds the
+/// covered screen until the area changes. Fade allocation failure is ignored.
+void playClockStartDeathFade(Task* task);
 
 /// Waits 64 task updates for death presentation, then advances to session restart.
 ///

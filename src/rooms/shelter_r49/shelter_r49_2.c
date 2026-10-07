@@ -264,7 +264,7 @@ void func_shelter_r49_8017D8D8(Task* arg0)
         case 0:
             displaySpawnTaskFromTable(D_shelter_r49_8017DA00, 1, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-            Gp_SpawnViewTasks();
+            viewQueueCurrentCameraAndPackets();
             arg0->state = arg0->state + 1;
             break;
         case 1:

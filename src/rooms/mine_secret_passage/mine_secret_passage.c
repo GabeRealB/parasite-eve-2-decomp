@@ -87,7 +87,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             if ((temp_v0 << 0x10) != 0) {
                 break;
             }
-            Gp_TriggerPeIfArmed();
+            sceneQueueBattleEscapeResult();
             arg0->state++;
             break;
         case 4:

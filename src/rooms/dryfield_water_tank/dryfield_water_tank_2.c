@@ -1108,7 +1108,7 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
                 case 0:
                     displaySpawnTaskFromTable(D_dryfield_water_tank_80180764, 1, 0, 0);
                     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-                    Gp_SpawnViewTasks();
+                    viewQueueCurrentCameraAndPackets();
                     work->commandStep++;
                     return;
                 case 1:

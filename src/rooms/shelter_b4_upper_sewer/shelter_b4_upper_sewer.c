@@ -877,7 +877,7 @@ void func_shelter_b4_upper_sewer_8017D80C(Task* arg0)
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_TriggerPeIfArmed();
+            sceneQueueBattleEscapeResult();
             D_shelter_b4_upper_sewer_80188D1C.fade.blend      = SCREEN_FADE_SUBTRACT;
             D_shelter_b4_upper_sewer_80188D1C.fade.phase      = SCREEN_FADE_RUNNING;
             D_shelter_b4_upper_sewer_80188D1C.fade.rampFrames = 0x1E;

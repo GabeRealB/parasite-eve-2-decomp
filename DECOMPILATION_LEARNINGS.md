@@ -26268,12 +26268,12 @@ addiu  a3, a3, -0x24
 Build the address offset-first, then decrement the typed pointer:
 
 ```c
-camera = (ViewCamera*)(idx * sizeof(ViewCamera) + (s32)cameras);
-taskSpawn(0, 0xF, 0, (s32)(camera - 1));
+_viewQueueCameraCursorAndPackets(&cameras[cameraIndex], VIEW_PACKET_LIST_SELECTED);
 ```
 
-Same integer form (`idx * sizeof + (s32)cameras - sizeof`) also matches.
-Pairs with “Index-first cast for `addu rd, index, base`”. `Gp_SpawnViewTasks`
+The inline helper queues `cursor - 1` and the optional packet task. The
+integer form (`cameraIndex * sizeof + (s32)cameras - sizeof`) also matches.
+Pairs with “Index-first cast for `addu rd, index, base`”. `viewQueueCurrentCameraAndPackets`
 is the example; the sibling `viewGetMappedCamera` can keep `&cameras[cameraIndex - 1]`
 because that address is a return value, not a call argument.
 
@@ -30664,12 +30664,12 @@ The view in `GameSession.location.loc.view` must be read unsigned. A signed
 unlike the unsigned field or stub used to match:
 
 ```c
-s32 loc = (u8)gGameSession->location.loc.view;
-task->killCountdown = 2;
-task->spawnArg1 = loc;
+s32 admittedView = gGameSession->location.loc.view;
+task->killCountdown = VIEW_TRANSITION_SETTLE_UPDATES;
+task->spawnArg1.value = admittedView;
 ```
 
-`Gp_ViewGateTask` is the example.
+`viewTransitionGateTask` is the example.
 
 ## OT-link: name the masks and pin the index so `0xFFFFFF` does not steal `$t0`
 

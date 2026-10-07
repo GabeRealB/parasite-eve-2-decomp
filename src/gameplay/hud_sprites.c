@@ -164,18 +164,44 @@ RECT D_80114BD0;
 
 ScreenFade D_80114BD8;
 
-/// Preserves the camera cursor supplied by the area-table accessor.
+/// Starts the persistent death-screen fade using the session's signed frame count.
 ///
-/// The cursor uses a mapped 1-based index; users step back to the selected
-/// record before reading it. The inline boundary preserves scaled-index-first
-/// address evaluation required by the callers' matching instruction order.
-static inline ViewCamera* _viewCameraCursorRef(ViewCamera* cursor)
+/// The fade owns no allocation for its borrowed record. No return is requested,
+/// so it holds the covered screen until the area transition tears down its task.
+static inline void _playClockQueueDeathFade(const GameSession* session)
 {
-    return cursor;
+    enum { PLAY_CLOCK_DEATH_FADE_TASK_BANK = 1,
+           PLAY_CLOCK_DEATH_FADE_TASK_TYPE = 0x31 };
+    ScreenFade* fade;
+
+    fade             = &D_80114BD8;
+    fade->blend      = SCREEN_FADE_SUBTRACT;
+    fade->phase      = SCREEN_FADE_RUNNING;
+    fade->rampFrames = session->deathFadeFrames;
+    taskSpawn(PLAY_CLOCK_DEATH_FADE_TASK_BANK, PLAY_CLOCK_DEATH_FADE_TASK_TYPE, 0, fade);
 }
 
-/// Resolve a camera-record cursor within its loaded room resource.
-#define gpViewAt(rows, index) _viewCameraCursorRef(&(rows)[index])
+enum {
+    VIEW_CAMERA_TASK_BANK         = 0,
+    VIEW_CAMERA_TASK_TYPE         = 0xF,
+    VIEW_CACHED_PACKETS_TASK_TYPE = 0x17
+};
+
+/// Queues the camera preceding a mapped cursor and optional cached sprite packets.
+///
+/// cursor is one record past the selected camera in a live area array.
+/// Camera dispatch borrows it; packet dispatch instead resolves the live view.
+/// Both task allocations may fail independently, and neither result is retained.
+static inline void _viewQueueCameraCursorAndPackets(const ViewCamera* cursor, s32 packetListMode)
+{
+    taskSpawn(VIEW_CAMERA_TASK_BANK, VIEW_CAMERA_TASK_TYPE, 0, cursor - 1);
+    if (packetListMode == VIEW_PACKET_LIST_SELECTED) {
+        taskSpawn(VIEW_CAMERA_TASK_BANK, VIEW_CACHED_PACKETS_TASK_TYPE, 0, 0);
+    }
+    if (packetListMode == VIEW_PACKET_LIST_DEFAULT) {
+        taskSpawnOnDefaultList(VIEW_CAMERA_TASK_BANK, VIEW_CACHED_PACKETS_TASK_TYPE, 0, 0);
+    }
+}
 
 /// Tests whether the live shooting-gallery session uses training ability levels.
 ///
@@ -205,16 +231,18 @@ static s32 _sceneIsBattleEndDelayClear(void);
 /// Tests the engaged-battle holds and the independent battle-end delay.
 ///
 /// Borrows the live combat record and returns 0 or 1 without changing it.
+/// A resumed phase's holds alone do not pass; a nonzero end delay passes in
+/// every phase. Holds count outstanding references, while the delay counts frames.
 static __inline__ s32 _sceneHasBattleHoldOrEndDelay(const SceneCombatState* combat)
 {
-    s32 active;
+    s32 hasHoldOrDelay;
 
     if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
-        active = 1;
+        hasHoldOrDelay = 1;
     } else {
-        active = 0;
+        hasHoldOrDelay = 0;
     }
-    return active;
+    return hasHoldOrDelay;
 }
 
 static s32 _attachmentMakeTextId(s32 abilityIndex, s32 level);
@@ -945,26 +973,22 @@ static void _gameDebugStartInputReplay(void)
     Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
 }
 
-void Gp_PlayClockState2(Task* arg0)
+void playClockStartDeathFade(Task* task)
 {
     GameSession* session;
-    ScreenFade*  fade;
 
-    arg0->killCountdown--;
-    if (arg0->killCountdown <= 0) {
-        arg0->killCountdown = 0;
-        playClockAdvanceDeathSound(&arg0->killCountdown);
+    task->killCountdown--;
+    if (task->killCountdown <= 0) {
+        task->killCountdown = 0;
+        // The expired delay becomes the completion latch used by later phases.
+        playClockAdvanceDeathSound(&task->killCountdown);
         session                 = gGameSession;
         Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
         if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
-            fade             = &D_80114BD8;
-            fade->blend      = SCREEN_FADE_SUBTRACT;
-            fade->phase      = SCREEN_FADE_RUNNING;
-            fade->rampFrames = session->deathFadeFrames;
-            taskSpawn(1, 0x31, 0, fade);
+            _playClockQueueDeathFade(session);
         }
-        arg0->spawnArg1.value = 0;
-        arg0->state++;
+        task->spawnArg1.value = 0;
+        task->state++;
     }
 }
 
@@ -1072,17 +1096,18 @@ void itemPickupTitleTask(Task* task)
     }
 }
 
-void Gp_TriggerPeIfArmed(void)
+void sceneQueueBattleEscapeResult(void)
 {
-    u8 state;
+    enum { SCENE_BATTLE_RESULT_ESCAPE = 1 };
+    u8 battlePhase;
 
-    state = gSceneCombatState.signals.bytes.battlePhase;
-    if ((state == 1) || (state == 3)) {
+    battlePhase = gSceneCombatState.signals.bytes.battlePhase;
+    if ((battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) || (battlePhase == SCENE_COMBAT_BATTLE_RESUMED)) {
         if (gGameSession->battleResetPending == 0) {
             playerStateSetStatusEffects(1, PLAYER_STATUS_ALL_EFFECTS);
             roomEffectRequestCancelPe();
             gDisplayState.suppressDisconnectPause = 0;
-            displayQueueModeTask(&D_8010CABC, 1, 0, STAGE_ENTRY_RELOAD_FORCED);
+            displayQueueModeTask(&D_8010CABC, SCENE_BATTLE_RESULT_ESCAPE, 0, STAGE_ENTRY_RELOAD_FORCED);
         }
     }
 }
@@ -1552,9 +1577,6 @@ void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MAT
 
 s32 viewQueueCamera(const ViewCamera* camera)
 {
-    enum { VIEW_CAMERA_TASK_BANK = 0,
-           VIEW_CAMERA_TASK_TYPE = 0xF };
-
     return taskSpawn(VIEW_CAMERA_TASK_BANK, VIEW_CAMERA_TASK_TYPE, 0, camera) != NULL;
 }
 
@@ -1594,21 +1616,18 @@ static void _viewResetTransform(void)
     viewOrigin->composeStamp   = GRAPHICS_COORD_DIRTY;
 }
 
-void Gp_SpawnViewTasks(void)
+void viewQueueCurrentCameraAndPackets(void)
 {
-    GameLocationKey* sess;
-    ViewCameraTable* cameraTable;
-    ViewCamera*      cameras;
-    ViewCamera*      camera;
-    u8               idx;
+    const GameLocationKey* location;
+    ViewCameraTable*       cameraTable;
+    const ViewCamera*      cameras;
+    u8                     cameraIndex;
 
-    sess        = &gGameSession->location.loc;
-    cameraTable = Gp_ViewTables[sess->stage - 1];
-    cameras     = cameraTable->cameras[sess->area - 1];
-    idx         = viewGetMappedIndex();
-    camera      = gpViewAt(cameras, idx);
-    taskSpawn(0, 0xF, 0, (camera - 1));
-    taskSpawn(0, 0x17, 0, 0);
+    location    = &gGameSession->location.loc;
+    cameraTable = Gp_ViewTables[location->stage - 1];
+    cameras     = cameraTable->cameras[location->area - 1];
+    cameraIndex = viewGetMappedIndex();
+    _viewQueueCameraCursorAndPackets(&cameras[cameraIndex], VIEW_PACKET_LIST_SELECTED);
 }
 
 ViewCamera* viewGetMappedCamera(const GameLocationKey* location)
@@ -1651,70 +1670,73 @@ static void _viewQueueDefaultTransform(void)
     _viewQueueCoord(&cameraCoord, &offset);
 }
 
-void Gp_SpawnCurView(s32 arg0)
+void viewQueueCurrentCamera(s32 packetListMode)
 {
-    GameLocationKey* sess;
-    ViewCameraTable* cameraTable;
-    ViewCamera*      cameras;
-    ViewCamera*      camera;
-    u8               idx;
+    const GameLocationKey* location;
+    ViewCameraTable*       cameraTable;
+    const ViewCamera*      cameras;
+    u8                     cameraIndex;
 
-    sess        = &gGameSession->location.loc;
-    cameraTable = Gp_ViewTables[sess->stage - 1];
-    cameras     = cameraTable->cameras[sess->area - 1];
-    idx         = viewGetMappedIndex();
-    camera      = gpViewAt(cameras, idx);
-    taskSpawn(0, 0xF, 0, (camera - 1));
-    if (arg0 == 0) {
-        taskSpawn(0, 0x17, 0, 0);
-    }
-    if (arg0 == 1) {
-        taskSpawnOnDefaultList(0, 0x17, 0, 0);
-    }
+    location    = &gGameSession->location.loc;
+    cameraTable = Gp_ViewTables[location->stage - 1];
+    cameras     = cameraTable->cameras[location->area - 1];
+    cameraIndex = viewGetMappedIndex();
+    _viewQueueCameraCursorAndPackets(&cameras[cameraIndex], packetListMode);
 }
 
-void Gp_ViewGateTask(Task* task)
+void viewTransitionGateTask(Task* task)
 {
-    GameSession* sess;
-    McSaveData*  save;
-    CdCmdQueue*  q;
-    s32          loc;
+    enum {
+        VIEW_TRANSITION_INITIAL          = 0,
+        VIEW_TRANSITION_ACQUIRE_HOLD     = 1,
+        VIEW_TRANSITION_WAIT_SETTLE      = 2,
+        VIEW_TRANSITION_MONITOR          = 3,
+        VIEW_TRANSITION_SETTLE_UPDATES   = 2,
+        VIEW_TRANSITION_LOADER_TASK_BANK = 0,
+        VIEW_TRANSITION_LOADER_TASK_TYPE = 0x1E
+    };
+    GameSession* session;
+    McSaveData*  liveSave;
+    CdCmdQueue*  cdQueue;
+    s32          admittedView;
 
     gGameSession->viewReady = 0;
-    if (task->state == 0) {
-        task->state = 3;
+    if (task->state == VIEW_TRANSITION_INITIAL) {
+        task->state = VIEW_TRANSITION_MONITOR;
     }
-    save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    if (task->spawnArg1.value != save->state.location.loc.view) {
+    liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    if (task->spawnArg1.value != liveSave->state.location.loc.view) {
         gGameSession->viewDirty = 1;
     }
-    sess = gGameSession;
-    if (sess->viewDirty != 0) {
-        q = &gCdCmdQueue;
-        if ((q->scenePayloadAvailable == 0) || (q->scenePayloadLoading == 0)) {
-            sess->location.loc.view = save->state.location.loc.view;
+    session = gGameSession;
+    if (session->viewDirty != 0) {
+        cdQueue = &gCdCmdQueue;
+        // Keep the current view while its reusable scene payload is incomplete.
+        if ((cdQueue->scenePayloadAvailable == 0) || (cdQueue->scenePayloadLoading == 0)) {
+            session->location.loc.view = liveSave->state.location.loc.view;
             padStartInputBlock(0);
-            Gp_SpawnViewTasks();
-            if (displaySpawnTask(0, 0x1E, 0, 0) != 0) {
-                loc                   = gGameSession->location.loc.view;
-                task->killCountdown   = 2;
-                task->spawnArg1.value = loc;
-                if (task->state == 3) {
-                    task->state = 1;
+            viewQueueCurrentCameraAndPackets();
+            if (displaySpawnTask(VIEW_TRANSITION_LOADER_TASK_BANK, VIEW_TRANSITION_LOADER_TASK_TYPE, 0, 0) != NULL) {
+                admittedView          = gGameSession->location.loc.view;
+                task->killCountdown   = VIEW_TRANSITION_SETTLE_UPDATES;
+                task->spawnArg1.value = admittedView;
+                if (task->state == VIEW_TRANSITION_MONITOR) {
+                    task->state = VIEW_TRANSITION_ACQUIRE_HOLD;
                 }
             }
         }
     }
-    if (task->state == 1) {
+    // These phases may run in the same update that admits the loader.
+    if (task->state == VIEW_TRANSITION_ACQUIRE_HOLD) {
         displayAcquireMenuHold();
         task->state += 1;
     }
-    if (task->state == 2) {
+    if (task->state == VIEW_TRANSITION_WAIT_SETTLE) {
         task->killCountdown--;
         if (task->killCountdown == 0) {
             displayReleaseMenuHold();
             gGameSession->viewReady = 1;
-            task->state             = 3;
+            task->state             = VIEW_TRANSITION_MONITOR;
         }
     }
 }

@@ -116,7 +116,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_TriggerPeIfArmed();
+            sceneQueueBattleEscapeResult();
             arg0->state++;
             break;
         case 3:

@@ -11,7 +11,13 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
-void Gp_TriggerPeIfArmed(void);
+/// Queues battle-escape results for an engaged or resumed battle without a pending reset.
+///
+/// Clears all player ailments, requests PE cancellation, permits disconnect
+/// pausing and queues the escape result with a forced room-resource reload.
+/// Idle/finished battles and a nonzero battleResetPending leave state intact.
+/// Queue rejection is ignored; the cleanup already performed is retained.
+void sceneQueueBattleEscapeResult(void);
 
 /// Expresses a target transform relative to a reference transform.
 ///
@@ -55,7 +61,14 @@ void gfxBuildDirectionRotation(const VECTOR* direction, MATRIX* out, s32 roll);
 /// Returns 0 on task allocation failure and does not apply the camera directly.
 s32 viewQueueCamera(const ViewCamera* camera);
 
-void Gp_SpawnViewTasks(void);
+/// Queues the current mapped camera and cached sprite-packet allocation on the selected list.
+///
+/// Requires valid populated 1-based session stage/area/room/view indices and
+/// a nonzero mapped index within the loaded camera and sprite resources.
+/// Keep those resources loaded until both one-shot tasks run. Camera application
+/// precedes packet allocation at their equal priority. Spawn failures are ignored;
+/// this does not queue image loading or change the selected list.
+void viewQueueCurrentCameraAndPackets(void);
 
 /// Borrows an area's camera selected by the live session's mapped view index.
 ///
@@ -65,9 +78,32 @@ void Gp_SpawnViewTasks(void);
 /// room-owned storage without copying it; keep the owning overlay loaded.
 ViewCamera* viewGetMappedCamera(const GameLocationKey* location);
 
-void Gp_SpawnCurView(s32 arg0);
+/// Destination for the optional cached sprite-packet task in `viewQueueCurrentCamera`.
+enum {
+    VIEW_PACKET_LIST_SELECTED = 0,
+    VIEW_PACKET_LIST_DEFAULT  = 1,
+    VIEW_PACKET_LIST_NONE     = 2
+};
 
-void Gp_ViewGateTask(Task* task);
+/// Queues the current mapped camera, optionally allocating cached sprite packets.
+///
+/// The camera always uses the selected execution list. packetListMode selects
+/// the packet task's selected list (0), default list (1), or omission (2 and
+/// every other value). The default-list option restores the previous selection.
+/// Uses the resource bounds and borrowed lifetimes of `viewQueueCurrentCameraAndPackets`;
+/// both spawn results are ignored. Does not queue image loading.
+void viewQueueCurrentCamera(s32 packetListMode);
+
+/// Monitors the saved logical view and gates readiness while a view transition starts.
+///
+/// Bank-0 slot 0x16 is persistent: spawnArg1.value remembers the last admitted
+/// view. A changed view or viewDirty retries camera/packet setup and display-owned
+/// loading unless an available scene payload is still loading. Successful loader
+/// admission starts or refreshes a two-update counter; a single menu hold spans it.
+/// The update admitting the loader also decrements the counter. Only its final
+/// update publishes viewReady = 1; all other updates clear it, including idle ones.
+/// The loader owns input unblock, viewDirty clearing and presentation handoff.
+void viewTransitionGateTask(Task* task);
 
 void func_800A77B4(Task* arg0);
 

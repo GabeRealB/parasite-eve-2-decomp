@@ -2471,7 +2471,7 @@ void func_dryfield_night_dilapidated_house_8017DCE0(Task* arg0)
 {
     displaySpawnTaskFromTable(D_dryfield_night_dilapidated_house_801872B4, 1, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }
 

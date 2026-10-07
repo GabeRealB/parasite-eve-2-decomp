@@ -320,14 +320,14 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `0C` | `C0` | `func_80036A1C` | Memcard menu dispatcher (`mcmenu.c`) |
 | `0D` | `10` | `Text_BootTask` | Boot: load CLUT, spawn `Title_TaskDescs[0]`, kill self. `Boot` also spawns this |
 | `0E` | `2F` | `viewApplyCoordTask` | Type **2** (coordinate body). Gameplay dispatcher |
-| `0F` | `2F` | `viewApplyCameraTask` | Camera / view. `viewQueueCamera` / `Gp_SpawnViewTasks` |
+| `0F` | `2F` | `viewApplyCameraTask` | Camera / view. `viewQueueCamera` / `viewQueueCurrentCameraAndPackets` |
 | `10` | `40` | `loadingRoomResourcesTask` | Room collision setup, view refresh and clipping; frozen dispatch suppresses the background |
 | `11` | `28` | `func_800AC0F0` | Pad-gated 3-way dispatcher. Gameflow / area code spawn this |
 | `12` | `10` | `mcSaveDialogTask` | Same as `0A` |
 | `13` | `10` | `mcLoadDialogTask` | Same as `0B` |
 | `14` | `1F` | `func_800AEE8C` | Area / dir helper (`1A8.c`, matched) |
 | `15` | `C0` | `taskKill` | Unused |
-| `16` | `30` | `Gp_ViewGateTask` | Gameplay dispatcher |
+| `16` | `30` | `viewTransitionGateTask` | Monitor saved-view changes, admit view loading and gate readiness with a two-update menu hold |
 | `17` | `2F` | `spriteAllocateViewCachedPacketsTask` | Allocate and initialize both cached room-view sprite buffers, then kill self; spawned when view-image loading finishes |
 | `18` | `C0` | `taskExitCallback` | Dispatch the task's current exit handler |
 | `19` | `C0` | `0x807011D8` | Stage overlay — not in this tree |

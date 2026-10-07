@@ -274,7 +274,7 @@ void func_mist_parking_8018397C(Task* arg0)
 {
     displaySpawnTaskFromTable(D_mist_parking_8018FC24, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }
 

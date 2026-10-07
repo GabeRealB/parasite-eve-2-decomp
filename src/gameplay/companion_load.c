@@ -342,7 +342,7 @@ void Gp_ResumeSessionTask(Task* task)
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
             gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_RESUMED;
         }
-        Gp_TriggerPeIfArmed();
+        sceneQueueBattleEscapeResult();
     }
     task->state++;
 }

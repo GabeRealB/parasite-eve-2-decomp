@@ -988,7 +988,7 @@ void func_acropolis_cafeteria_8017E6B8(Task* arg0)
 {
     displaySpawnTaskFromTable(D_acropolis_cafeteria_80184178, 2, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }
 

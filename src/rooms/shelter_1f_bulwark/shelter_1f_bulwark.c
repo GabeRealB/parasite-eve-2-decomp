@@ -388,7 +388,7 @@ void func_shelter_1f_bulwark_8017DA60(Task* arg0)
             if (capIsBusy() != 0) {
                 break;
             }
-            Gp_TriggerPeIfArmed();
+            sceneQueueBattleEscapeResult();
             arg0->state++;
             break;
         case 2:
@@ -533,7 +533,7 @@ void func_shelter_1f_bulwark_8017DE04(Task* arg0)
         case 0:
             displaySpawnTaskFromTable(D_shelter_1f_bulwark_80180360, 1, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-            Gp_SpawnViewTasks();
+            viewQueueCurrentCameraAndPackets();
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             /* fallthrough */
         case 1:

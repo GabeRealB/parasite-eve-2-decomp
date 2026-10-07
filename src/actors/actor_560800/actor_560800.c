@@ -5771,7 +5771,7 @@ void func_actor_560800_80135F50(Task* arg0)
 {
     displaySpawnTaskFromTable(D_actor_560800_8016EA28, 1, arg0->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
     taskKill(arg0);
 }
 
@@ -6180,7 +6180,7 @@ void func_actor_560800_801369A0(void)
 {
     displaySpawnTaskFromTable(D_actor_560800_801718F0, 0xD, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
-    Gp_SpawnViewTasks();
+    viewQueueCurrentCameraAndPackets();
 }
 
 /// Resumes the game display loop after the scene's queued CD work has finished.

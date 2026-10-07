@@ -844,7 +844,7 @@ static void Gp_ReloadFromSave(void)
     gpuClearFrameOrderingTable(1);
     gGameSession->location.loc.view = save->state.location.loc.view;
     padStartInputBlock(0);
-    Gp_SpawnCurView(2);
+    viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
     gGameSession->viewReady = 0;
     taskSpawn(0, 0x1E, 1, 0);
 }
@@ -858,7 +858,7 @@ static void Gp_ReloadAtLoc(s32 arg0)
     gGameSession->location.loc.view                            = arg0;
     slot->spawnArg1.value                                      = (u8)arg0;
     padStartInputBlock(0);
-    Gp_SpawnCurView(1);
+    viewQueueCurrentCamera(VIEW_PACKET_LIST_DEFAULT);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
     taskSpawn(0, 0x1E, 0, 0);
 }

@@ -472,7 +472,7 @@ static void Display_TransitionTask(Task* task)
                     memInitAuxHeap();
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view;
                     padStartInputBlock(0);
-                    Gp_SpawnCurView(2);
+                    viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
                     gGameSession->viewReady = 0;
                     taskSpawn(0, 0x1E, 2, 0);
                 } else {

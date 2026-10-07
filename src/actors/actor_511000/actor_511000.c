@@ -238,7 +238,7 @@ static const EnemyTaskFuncTable3 D_actor_511000_80131E6C = {
 /// rotation and projection plane repeat down the table while the translation
 /// descends, so the spawn of a view task per index pans the camera as the
 /// actor goes down. Handed straight to `viewQueueCamera`, exactly as
-/// `Gp_SpawnViewTasks` hands its own stage record.
+/// `viewQueueCurrentCameraAndPackets` queues the current area's mapped camera.
 extern ViewCamera D_actor_511000_80147EE4[];
 
 /// The three texture upload lists used by the tick state and message handler.

@@ -200,7 +200,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
     { { { TASK_BODY_NONE, 0x1F } }, func_800AEE8C },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0x30 } }, Gp_ViewGateTask },
+    { { { TASK_BODY_NONE, 0x30 } }, viewTransitionGateTask },
     { { { TASK_BODY_NONE, 0x2F } }, spriteAllocateViewCachedPacketsTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskExitCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, func_807011D8 },
