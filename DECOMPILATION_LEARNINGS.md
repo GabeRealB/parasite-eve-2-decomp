@@ -4228,8 +4228,8 @@ the unsigned dest.
 
 ## Cross-block CSE: a load survives a branch, and only a clobber parts it
 
-`func_actor_110600_80133778` opens on `if (work->nav->nodeCount < 2) return;` and
-then reloads `work->nav` for every statement of the body. The candidate managed
+`_actor110600LayPatrolNodes` opens on `if (walker->nav->nodeCount < 2) return;` and
+then reloads `walker->nav` for every statement of the body. The candidate managed
 with one load fewer: CSE carried the entry block's load into the block below it,
 because `cse_end_of_basic_block` had extended the block over the branch, and
 `new_basic_block` clears the table only between `cse_basic_block` calls, never
@@ -4238,12 +4238,12 @@ pointer first, and `invalidate_memory` drops the table for those. Only the
 first statement is close enough to the check for the merge to happen.
 
 The lever is a clobber, not a store. A `QI` store sets `writes_ptr->all`, so
-`work->nav->nodeOrder[0] = 0;` hoisted above the first store does invalidate the
+`walker->nav->nodeOrder[0] = 0;` hoisted above the first store does invalidate the
 table - and scores *worse* (94.1%): sched keeps the `sb` where the source put
 it, so the store order changes and the whole block shifts. A `u16*`-cast access
 is no help either: CSE compares the MEM rtx, and `MEM_IN_STRUCT_P` is not part
-of that comparison (`(*(BossStrangerNav **)work)` merges exactly like
-`work->nav`). What works is a bare `SOFT_COMPILER_BARRIER()` between the check
+of that comparison (`(*(BossStrangerNav **)walker)` merges exactly like
+`walker->nav`). What works is a bare `SOFT_COMPILER_BARRIER()` between the check
 and the body - no instruction, all memory entries invalidated, 99.246% ->
 99.950% with every penalty at zero. Nothing else moves, because it touches
 CSE's table and not the insn stream.
@@ -86309,7 +86309,7 @@ work->enraged = 0;
 return 0;
 ```
 
-100.000%, every penalty zero (`func_actor_110600_80138538`, one build).
+100.000%, every penalty zero (`_actor110600IsPresent`, one build).
 
 This is the rule at "If/else branch polarity" — write the arm you want as
 fall-through as the test's *else* — but the tell is narrower and worth checking
@@ -97950,9 +97950,9 @@ Inputs: `base.i` (m2c statement inside the `if`, 90.53%)
 `29d418658066d0510b3b1c442957e9e900b0b641bc26a6ec299091695763079e`,
 `base_1.i` (hoisted pointer local, 100.000%)
 `d57d6bbb6dc390b9cdef2d10eceed035f95c738412bf321e619b612ebd5210f7`.
-## A scratch rebuild whose tail re-fetches `field_8` and clears `composeStamp` twice is an *inlined* helper (func_actor_110600_80133E48, 2026-09-16)
+## A scratch rebuild whose tail re-fetches `field_8` and clears `composeStamp` twice is an *inlined* helper (_actor110600Place, 2026-09-16)
 
-`func_actor_110600_80133E48` is the placement opcode of `ActorsShared80169f74`
+`_actor110600Place` is the placement opcode of `ActorsShared80169f74`
 with the rescale of `ActorsShared80135a60` folded in behind it. Every scratch
 access in the target is the absolute form (`lui $s4,0x1F80` / `lw $s4,0x3FC($s4)`
 and `lui $at,0x1F80` / `sw $s0,0x3FC($at)`), so the obvious transcription --
@@ -97985,7 +97985,7 @@ the placement half. So the original source called an inline, and the fix is to
 reconstruct one:
 
 ```c
-static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
+static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale)
 {
     head  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
     coord = ((TmdObject*)task->extra)->coords;
@@ -98017,7 +98017,7 @@ duplicated close-out in the target: an inline is usually cheaper than the pin.
 `$s2` and the loop counter in `$s1` where retail has the pointer in `$s1` and the
 counter in `$s2` (`regs=17`), the `index->field_20` pointer loading into `$a0`
 instead of `$a1`, and one load-delay `nop` missing (`0:0` opcode delta -1). The
-whole function is three calls to `func_actor_110600_80134728(index)`, a `beqz`
+whole function is three calls to `_actor110600TickAnimation(index)`, a `beqz`
 guard and a 20-iteration loop.
 
 **Cause: what the first call passes.** m2c had seeded the first call with the
@@ -98053,8 +98053,8 @@ parameter. Passing `index` there is what makes the two derived effects fall out:
 **Fix.** Pass the parameter, not a pointer derived from it:
 
 ```c
-func_actor_110600_80134728(arg0);        /* 100% */
-func_actor_110600_80134728(temp_a1);     /* 96.5%: $a0 taken, rank lost */
+_actor110600TickAnimation(arg0);        /* 100% */
+_actor110600TickAnimation(temp_a1);     /* 96.5%: $a0 taken, rank lost */
 ```
 
 Raising refs 7 -> 8 crosses `floor_log2`, so the numerator gains more than the
@@ -103555,7 +103555,7 @@ target SHA256 `1632576e4d4442ef2977f5eb6ed5e40cda6501761a28a7583fe60bf05acb00e2`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/Actor00100_Fn03340-vacuum`.
 
-## A shape-1.00 sibling that is already matched in `src/`: port its C shape, not m2c's pointer arithmetic (func_actor_110600_80134438, 2026-09-16)
+## A shape-1.00 sibling that is already matched in `src/`: port its C shape, not m2c's pointer arithmetic (_actor110600TickBlendedSlots, 2026-09-16)
 
 The brief's similar list named `_actor403000TickBlendedSlots` at shape 1.00 / calls
 1.00 / cflow 1.00 (starred) - and unlike the case above it is a **matched body
@@ -103601,7 +103601,7 @@ SHA256 `7743540ab0342b3505aef12771dfc512f3eacb546c02fc76f85da469ef6eda17`;
 `base_1.i` SHA256 `c79138b460eaf664b3d5393262a27bf9787332fdf83a37762acc8e30c4d29677`;
 target SHA256 `97611ffb2646484e94ebe85a3446d6bd6e2a81ceed5d6e2d6d93cae298f1d6f6`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80134438-vacuum`.
+Scratch `nonmatchings/_actor110600TickBlendedSlots-vacuum`.
 
 ## A self-assignment is deleted before the first RTL dump; load into a local to reproduce the ROM's dead store (Actor00100_Fn01EEC, 2026-09-16)
 
@@ -114096,7 +114096,7 @@ first, and the move is free.
 Inputs: `base_2.i` (87.527%, helpers present) and `base_9.i` (100%); see the
 hashes above. Scratch `nonmatchings/_actor356100Chase-vacuum`.
 
-## Two equality tests on the same value with *different* targets are duplicate arm bodies, not a compound condition (func_actor_110600_80138448, 2026-09-16)
+## Two equality tests on the same value with *different* targets are duplicate arm bodies, not a compound condition (_actor110600SetModelDraw, 2026-09-16)
 
 **Symptom:** one arm of a `switch` tests the same byte twice, and the two tests branch to different
 labels — the first test's taken target `X` is also where the second test's *untaken* path goes:
@@ -114148,7 +114148,7 @@ carry the same body — write it twice and let cross-jumping merge it. A semanti
 (`v1 == 0` before `v1 == 4`, where `4` already implies `!= 0`) is a normal thing to find in the
 original source, not evidence of a misread; do not "simplify" it away.
 
-## m2c's mid-switch `block_N` label puts a cross-jumped store merge between the cases (func_actor_110600_8013839C, 2026-09-16)
+## m2c's mid-switch `block_N` label puts a cross-jumped store merge between the cases (_actor110600PlayScriptedAnimation, 2026-09-16)
 
 The `0x7D3` display handler: five cases each end by writing a different constant
 into the work block's `animId`, and the target holds ONE `sh v0,0x892(s0)`,
@@ -114174,7 +114174,7 @@ shape. Cross-jumping re-merges them at the end of the last case: case 4 falls
 into it, cases 1-3 get a `j` with their `li v0,N` in the delay slot, and the
 shared tail's `li v0,0x11` sinks into case 0's `j` delay slot. 100.00% on the
 first build, from the same five-store C. This is the store sibling of the
-`goto block_N` rule above; `func_actor_110600_80138448`, the next function in
+`goto block_N` rule above; `_actor110600SetModelDraw`, the next function in
 the same unit, is the same family of merge.
 
 That body also emits the package's jump table, and the table wants `0x18C` —
@@ -114707,7 +114707,7 @@ Scratch `nonmatchings/func_actor_110600_80132654-vacuum`.
 
 ## A switch's shared tail belongs after the *last* case that falls into it
 
-`func_actor_110600_80134040` dispatches on an event kind: five sub-codes repoint
+`_actor110600ApplyCommand` dispatches on an event kind: five sub-codes repoint
 a display slot and then share `work->state = 0x11; work->prevState = -1;
 return 1;` with sub-code 9, which falls into it, while sub-codes 1 and 8 have
 their own tails. The share is a `goto`, and *where the label physically sits in
@@ -114751,7 +114751,7 @@ Inputs: `base_15.i` SHA256
 `44b89c0d218296d79e13f061cffca83ba6baca212bf935974a0a249b6adf49e8`; target.o
 SHA256 `8393ef6319ff70979f7156863e8f337e69f4b7598a4bce5b40f7fdf326fa79c6`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80134040-vacuum`.
+Scratch `nonmatchings/_actor110600ApplyCommand-vacuum`.
 
 ## Two field updates of one block: a store written after a load holds the load's index span open, and that alone picks $v0 vs $v1 (func_actor_110600_80135194, 2026-09-16)
 
@@ -114830,19 +114830,20 @@ width from the `sll`/`sra` pair, not from the missing compare.
 The source idiom that needs it is the "is the first record loaded" helper:
 
 ```c
-static __inline__ s32 Actor110600_HasRec10000(WorldCollisionContact* recs)
+static __inline__ s32 _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts)
 {
-    s16 i;
+    enum { ACTOR_110600_ATTACK_CONTACT_COUNT = 1 };
+    s16 contactIndex;
 
-    for (i = 0; i < 1; i++) {
-        if (!recs[i].key.value) {
+    for (contactIndex = 0; contactIndex < ACTOR_110600_ATTACK_CONTACT_COUNT; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x10000) {
-            return 1;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 ```
 
@@ -114872,7 +114873,7 @@ Scratch `nonmatchings/func_actor_110600_80135B84-vacuum`.
 
 ## A three-case `switch` balances into a tree rooted at the middle value; source-order compares are an if/else-if chain
 
-`func_actor_110600_80134728` dispatches on a stage word with the values 1, 2 and
+`_actor110600TickAnimation` dispatches on a stage word with the values 1, 2 and
 6, and m2c renders the target as a `switch`. Compiling that switch gives a
 *tree*, not the target's linear walk:
 
@@ -114914,11 +114915,11 @@ Inputs: `base_6.i` SHA256
 `a11b1de8332abc22e809b68ee81c6a81776d6ae8566d4eff3667033a75789bc1`; target.o
 SHA256 `b1efe505e4bef7407cc166e1ab99993ef1fb04dd27d30e716fc1b9c9ea027085`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80134728-vacuum`.
+Scratch `nonmatchings/_actor110600TickAnimation-vacuum`.
 
 ## A field tested in two blocks around a join gets one load only if a local holds it; reading it per use is `REG_DEAD` at the first compare
 
-The turn clamp in `func_actor_110600_80134728` reads one halfword, tests it for
+The turn clamp in `_actor110600TickAnimation` reads one halfword, tests it for
 zero, then tests it twice more with an arm in between:
 
 ```c
@@ -114955,7 +114956,7 @@ Inputs: `base_6.i` SHA256
 `a11b1de8332abc22e809b68ee81c6a81776d6ae8566d4eff3667033a75789bc1`; target.o
 SHA256 `b1efe505e4bef7407cc166e1ab99993ef1fb04dd27d30e716fc1b9c9ea027085`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80134728-vacuum`.
+Scratch `nonmatchings/_actor110600TickAnimation-vacuum`.
 
 ## A cross-family twin ports verbatim, but its helper structs must be re-declared and the header must name their module headers (func_actor_110600_801327EC, 2026-09-16)
 
@@ -114990,7 +114991,7 @@ SHA256 `7f463d67729cf193e6a692651ca656a06fe06807ad998540d48b5c9e78eb0f3f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_801327EC-vacuum`.
 
-## A switch that reuses one C variable across its cases fuses them into one cross-block pseudo (func_actor_110600_80134564, 2026-09-16)
+## A switch that reuses one C variable across its cases fuses them into one cross-block pseudo (_actor110600PollAnimationSound, 2026-09-16)
 
 The brief's starred twin, `_actor01900TakeAnimSoundCue`, is this body verbatim with a
 different cue set and writes every case with a single shared `id` / `prev` pair.
@@ -115064,7 +115065,7 @@ Inputs: `base_3.i` SHA256
 SHA256 `2b5bd7766ffcdebd0e3dc5a030d35a45cd2bd41a2d1d78fb613c4363ab3d3e46`;
 target.o SHA256 `b72ed10478bca8eb826ebe81dbfe79a3cee9344fc3a0f9ea77d71eacb7037ce7`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80134564-vacuum`. Builds: 8.
+Scratch `nonmatchings/_actor110600PollAnimationSound-vacuum`. Builds: 8.
 
 ## A sparse switch's case bodies are emitted in source order, so the target's block layout is a transcript of the source
 
@@ -127874,7 +127875,7 @@ Slot 1 is what is watched (`0x3E`), slot 0 is what is remembered (`0x16`, stored
 to `lastCueIndex` as an `s16` but loaded `lhu` before the mask). The `+ 1` on the
 coordinate argument is one `GfxCoord`, i.e. `+ 0x50`; `_oddStrangerDormantScripted`
 is the same guard one actor over (`field_5A` / `field_8B4`, `field_8 + 5` =
-`0x190`) and is the body to read first. `Actor110600_ScaleRotation` in
+`0x190`) and is the body to read first. `_actor110600RescaleRootYaw` in
 `actor_110600.c` already spells the inlined rescale, so the whole function is a
 typed transcription rather than a search: m2c's `void*` locals scaled the
 scratch pointer by `sizeof(MATRIX)` (`addiu s0,s2,-0x680`) and burned an extra
@@ -146020,14 +146021,14 @@ enough while it returns `s32`: the return pseudo coalesces with the flag and
 the copy vanishes (99.0%). Returning `s16` keeps the conversion's pseudo apart
 and restores the `move`. With a single `return ret;` any narrow type works; with
 early returns `u8` does not, so try `s16` first.
-## A barrier after an early-out that forces a pointer reload is a scratch push written before the stores (func_actor_110600_80133778, 2026-09-27)
+## A barrier after an early-out that forces a pointer reload is a scratch push written before the stores (_actor110600LayPatrolNodes, 2026-09-27)
 
-`if (work->nav->nodeCount < 2) return;` is followed by `work->nav->nodes[0].x = …`,
-and the target reloads `work->nav` although nothing sits between the test and
+`if (walker->nav->nodeCount < 2) return;` is followed by `walker->nav->nodes[0].x = …`,
+and the target reloads `walker->nav` although nothing sits between the test and
 the store; the scratch-frame push comes after the three node stores. Without
 the `SOFT_COMPILER_BARRIER()` cse reuses the test's load. The source pushes the
 frame first: the head store is a non-struct store, so cse's `invalidate_memory`
-drops `work->nav`, while sched1's `true_dependence` lets a fixed-address scalar
+drops `walker->nav`, while sched1's `true_dependence` lets a fixed-address scalar
 store pass non-QI struct stores and sinks the push below them (see "The
 scratch-head store separates two reads for cse but not for the scheduler").
 A push the target shows after some stores may have been written before them.
@@ -149842,7 +149843,7 @@ attempts; left as it was.
 
 - **`goto state_11;` from five jump-table cases into the last case's
   `state = K; prevState = -1; return 1;`, in a function with no frame**
-  (`func_actor_110600_80134040`). Writing the three statements in each case
+  (`_actor110600ApplyCommand`). Writing the three statements in each case
   does not merge: sched1 moves each arm's `li v0,1` to the top of the arm, so
   the only common run is `li v1,K` in front of the jump (9 insns longer, and
   `work` moves from `$a0` to `$a1`). The cases `break`, and the tail is written

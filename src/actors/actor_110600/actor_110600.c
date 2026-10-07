@@ -147,6 +147,27 @@ enum {
     ACTOR_110600_ANIM_REQUEST_SETTLE  = 6  // restart the slots on the animation and run them 99 ticks before it shows; never requested
 };
 
+/// Scripted clip slots in this actor's animation-set table.
+///
+/// Slots 34..37 are the four adjacent writable animation-set pointers; the
+/// commands below select their bindings. Slot 40 is play-request selector 4.
+enum {
+    ACTOR_110600_ANIM_SCRIPTED_SLOT0    = 0x22,
+    ACTOR_110600_ANIM_SCRIPTED_SLOT1    = 0x23,
+    ACTOR_110600_ANIM_SCRIPTED_SLOT2    = 0x24,
+    ACTOR_110600_ANIM_SCRIPTED_SLOT3    = 0x25,
+    ACTOR_110600_ANIM_SCRIPTED_REQUEST4 = 0x28,
+};
+
+/// Actor-specific message slots; both payload words are ignored.
+enum {
+    ACTOR_110600_MESSAGE_ALERT  = 2007,
+    ACTOR_110600_MESSAGE_IGNORE = 2015,
+};
+
+/// Forces a message-selected state to run its entry setup on the next tick.
+enum { ACTOR_110600_PREV_STATE_NONE = -1 };
+
 /// Work block of the Boss Stranger task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`; the
@@ -271,26 +292,16 @@ extern AnimationSet* D_actor_110600_80148598;
 extern AnimationSet* D_actor_110600_8014859C;
 extern AnimationSet* D_actor_110600_801485A0;
 
-/// Actor-command handler: records the command's stage, area and low command
-/// byte in the work block's `lastCommand`, then dispatches on its context. The
-/// patio's context (0x301) with command 1 enters state 0x14; the cafeteria's
-/// (0x401) picks a display slot and a `animId` state per command — 1, 8 and
-/// 9 only set the state, and 9 shares its tail with the five commands that
-/// repoint a slot — parking the actor in state 0x11 with `prevState` cleared.
-/// Returns 1 when it applied the command, 0 otherwise. `arg1` is unused; it
-/// exists because the dispatch passes three arguments.
-s32 func_actor_110600_80134040(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg3);
+static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
 
-/// The `0x7D3` display handler: parks the actor in state 0x11 with
-/// `animId` set from the requested state.
-s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
+static s32 _actor110600PlayScriptedAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 secondArg);
 
 /// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
 /// `-m[2][0], m[2][2]`), scaled independently on each axis through a
 /// `ActorScaleRotScratch` block borrowed from the scratchpad. Marks the coordinate dirty.
 static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz);
 
-s32         func_actor_110600_801387C0(Task* arg0, s32 msgId, s32 arg2, s32 arg3);
+static s32  _actor110600Alert(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 static void func_actor_110600_801388A4(Task* arg0);
 
 /// The remaining entries of `D_actor_110600_80131F3C` that are still only
@@ -305,15 +316,9 @@ static void func_actor_110600_80138A70(Task* arg0);
 static void func_actor_110600_80138AFC(Task* arg0);
 static void func_actor_110600_80138BD0(Task* arg0);
 
-/// The actor's per-tick model update, driven from `Task::work` /
-/// `Task::spawnArg2` off the pointer it is handed.
-static void func_actor_110600_80134728(Task* arg0);
+static void _actor110600TickAnimation(Task* task);
 
-/// Reports the sound cue the model is currently owed — 0 while there is none —
-/// which `func_actor_110600_80134728` queues as the id's low byte. Watches the
-/// pose of the animation slot the `animId` state selects, reporting the cue
-/// once per pose and remembering it in `lastCueIndex`.
-static s32 func_actor_110600_80134564(_Actor110600Work* work);
+static s32 _actor110600PollAnimationSound(_Actor110600Work* work);
 
 /// Aiming stage: wraps the yaw from the model's root coordinate to the camera
 /// target `gPlayerStatus.coordMtx` against the coordinate's own yaw into `lookYawTarget`, ticks
@@ -356,9 +361,7 @@ static void func_actor_110600_80138CA4(Task* arg0);
 /// bit 1 of the enemy node's flags and moves the actor to state 3.
 static void func_actor_110600_80138D7C(Task* arg0);
 
-/// Placement opcode: seeds the model's root coordinate from `placement`, then
-/// rebuilds and rescales it from the actor's own heading.
-s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement, s32 arg3);
+static s32 _actor110600Place(Task* task, s32 messageId, const ActorTransform* placement, s32 secondArg);
 
 /// Five-frame shake counter. Incremented each call, wraps at 5, and drives
 /// `displaySetShakeY` with the low bit (0 or 1). Returns 1 on wrap.
@@ -386,10 +389,7 @@ extern _Actor110600ShudderStepStorage D_actor_110600_80148688;
 /// model part 1's coordinate, scale 0x100 and count 3.
 extern EffectSpawnArg D_actor_110600_80148698;
 
-/// `Task::exitCallback` installed by the spawn handler: bump the two helper
-/// tasks' `state` if present, unlink the three display nodes, drop the enemy's
-/// `recs` slot, clear the screen shake, then `enemyDestroy`.
-static void func_actor_110600_801387F4(Task* task);
+static void _actor110600Exit(Task* task);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -400,15 +400,9 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 /// re-plan reaches it by name, the way the original object does.
 static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 
-// Message-table callbacks use the argument views required by this TU.
-
-s32 func_actor_110600_80133E48(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
-s32 func_actor_110600_80134040(Task*, s32, ActorCommand*, s32);
-s32 func_actor_110600_8013839C(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_110600_80138448(Task*, s32, s32, s32);
-s32 func_actor_110600_80138538(Task*, s32, s32, s32);
-s32 func_actor_110600_801387C0(Task*, s32, s32, s32);
-s32 func_actor_110600_80138394(Task*, s32, s32, s32);
+static s32  _actor110600SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 secondArg);
+static s32  _actor110600IsPresent(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
+static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
 static TmdSource _gActor110600StrangerBody;
 void             func_actor_110600_80138EA8(Task*);
@@ -1040,13 +1034,13 @@ SVECTOR D_actor_110600_801485C4[12] = {
 };
 
 TaskMessageEntry D_actor_110600_80148624[7] = {
-    { 2015, func_actor_110600_80138394 },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_110600_8013839C },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_110600_80138448 },
-    { ACTOR_MESSAGE_IS_PRESENT, func_actor_110600_80138538 },
-    { ACTOR_MESSAGE_PLACE, func_actor_110600_80133E48 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_110600_80134040 },
-    { 2007, func_actor_110600_801387C0 },
+    { ACTOR_110600_MESSAGE_IGNORE, _actor110600IgnoreMessage2015 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor110600PlayScriptedAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor110600SetModelDraw },
+    { ACTOR_MESSAGE_IS_PRESENT, _actor110600IsPresent },
+    { ACTOR_MESSAGE_PLACE, _actor110600Place },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor110600ApplyCommand },
+    { ACTOR_110600_MESSAGE_ALERT, _actor110600Alert },
 };
 
 s16 D_actor_110600_8014865C = 0;
@@ -1103,15 +1097,15 @@ extern TaskMessageEntry D_actor_110600_80148624[7];
 /// zero.
 static void func_actor_110600_80136210(Task* arg0);
 
-static void            func_actor_110600_80133778(BossStrangerWalker* work, s16 scale, s16 angle);
-static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale);
-static void            func_actor_110600_80134438(Task* arg0);
-static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled);
-static __inline__ void Actor110600_InitScale(BossStrangerWalker* walker);
+static void            _actor110600LayPatrolNodes(BossStrangerWalker* walker, s16 radius, s16 nodeYawStep);
+static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale);
+static void            _actor110600TickBlendedSlots(Task* task);
+static __inline__ void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags);
+static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker);
 static void            func_actor_110600_80134AB4(Enemy* enemy, Task* task);
 static void            func_actor_110600_80135194(Task* arg0);
 static __inline__ s32  Actor110600_TickShake(void);
-static __inline__ s32  Actor110600_HasRec10000(WorldCollisionContact* recs);
+static __inline__ s32  _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts);
 static void            func_actor_110600_80135B84(Task* arg0);
 static __inline__ s32  Actor110600_FindHit(SVECTOR* point, WorldCollisionContact* recs, s16 count);
 static void            func_actor_110600_80136888(Task* arg0);
@@ -1145,45 +1139,48 @@ static void            func_actor_110600_80137F2C(Enemy* arg0, Task* arg1);
 
 #include "../../shared/boss_stranger_turn_toward.inc.c"
 
-/// Debug rebuild of the walker's patrol table. Node 0 takes the walker's own
-/// coordinate translation; every node above it takes that translation plus the
-/// coordinate's facing column, rotated to `angle` and scaled by `scale` through
-/// the GTE, and each node laid is logged as it is built. Each `nodeOrder`
-/// entry is set to its own index. The route is then re-seeded from `nodeCount`
-/// -- one node index per step with the `OVERLAY_WALKER_ROUTE_END` marker after
-/// the last -- with the route's `field_4` and `cursor` cleared, and the scratch
-/// frame released.
-static void func_actor_110600_80133778(BossStrangerWalker* work, s16 scale, s16 angle)
+/// Lays out the spawn-time patrol around the walker's current position.
+///
+/// Node 0 is the root's translation. Each later node adds the matrix's Q12
+/// facing axis, turned by another `nodeYawStep`, times `radius` in coordinate
+/// units. Angles use 4096 units per turn. Navigation and route storage must
+/// provide `nodeCount` nodes/order entries and `nodeCount + 1` route bytes;
+/// this actor supplies two nodes and a terminated route. Counts below two leave
+/// all storage unchanged. Resets the route cursor, logs each added node and
+/// releases its scratch block before returning.
+static void _actor110600LayPatrolNodes(BossStrangerWalker* walker, s16 radius, s16 nodeYawStep)
 {
     _Actor110600PatrolLayoutScratch* scratch;
 
-    if (work->nav->nodeCount < 2)
+    if (walker->nav->nodeCount < 2)
         return;
-    scratch                 = SCRATCH_STACK_RESERVE_BLOCK(_Actor110600PatrolLayoutScratch);
-    work->nav->nodes[0].x   = (u16)work->coord->coord.t[0];
-    work->nav->nodes[0].y   = (u16)work->coord->coord.t[1];
-    work->nav->nodes[0].z   = (u16)work->coord->coord.t[2];
-    work->nav->nodeOrder[0] = 0;
-    scratch->rotation       = work->coord->coord;
-    for (scratch->nodeIndex = 1; scratch->nodeIndex < work->nav->nodeCount; scratch->nodeIndex++) {
-        gfxRotMatrixY(&scratch->rotation, angle, 0);
+    scratch                   = SCRATCH_STACK_RESERVE_BLOCK(_Actor110600PatrolLayoutScratch);
+    walker->nav->nodes[0].x   = (u16)walker->coord->coord.t[0];
+    walker->nav->nodes[0].y   = (u16)walker->coord->coord.t[1];
+    walker->nav->nodes[0].z   = (u16)walker->coord->coord.t[2];
+    walker->nav->nodeOrder[0] = 0;
+    // Place the remaining nodes by accumulating the turn about Y.
+    scratch->rotation = walker->coord->coord;
+    for (scratch->nodeIndex = 1; scratch->nodeIndex < walker->nav->nodeCount; scratch->nodeIndex++) {
+        gfxRotMatrixY(&scratch->rotation, nodeYawStep, GRAPHICS_ROTATION_COMPOSE);
         gfxReadMatrixZAxis(&scratch->rotation, &scratch->offset);
-        gte_lddp(scale);
+        gte_lddp(radius);
         gte_ldsv(&scratch->offset);
         gte_gpf12();
         gte_stsv(&scratch->offset);
-        work->nav->nodes[scratch->nodeIndex].x   = (u16)work->coord->coord.t[0] + scratch->offset.vx;
-        work->nav->nodes[scratch->nodeIndex].y   = (u16)work->coord->coord.t[1] + scratch->offset.vy;
-        work->nav->nodes[scratch->nodeIndex].z   = (u16)work->coord->coord.t[2] + scratch->offset.vz;
-        work->nav->nodeOrder[scratch->nodeIndex] = scratch->nodeIndex;
-        printf("emc_m->tsv[%d]( %d, %d, %d )\n", scratch->nodeIndex, work->nav->nodes[scratch->nodeIndex].x, work->nav->nodes[scratch->nodeIndex].y, work->nav->nodes[scratch->nodeIndex].z);
+        walker->nav->nodes[scratch->nodeIndex].x   = (u16)walker->coord->coord.t[0] + scratch->offset.vx;
+        walker->nav->nodes[scratch->nodeIndex].y   = (u16)walker->coord->coord.t[1] + scratch->offset.vy;
+        walker->nav->nodes[scratch->nodeIndex].z   = (u16)walker->coord->coord.t[2] + scratch->offset.vz;
+        walker->nav->nodeOrder[scratch->nodeIndex] = scratch->nodeIndex;
+        printf("emc_m->tsv[%d]( %d, %d, %d )\n", scratch->nodeIndex, walker->nav->nodes[scratch->nodeIndex].x, walker->nav->nodes[scratch->nodeIndex].y, walker->nav->nodes[scratch->nodeIndex].z);
     }
-    work->route->field_4 = 0;
-    work->route->cursor  = 0;
-    for (scratch->nodeIndex = 0; scratch->nodeIndex < work->nav->nodeCount; scratch->nodeIndex++) {
-        work->route->nodeIndices[scratch->nodeIndex] = scratch->nodeIndex;
+    // Rebuild the route over all live nodes, followed by its end marker.
+    walker->route->field_4 = 0;
+    walker->route->cursor  = 0;
+    for (scratch->nodeIndex = 0; scratch->nodeIndex < walker->nav->nodeCount; scratch->nodeIndex++) {
+        walker->route->nodeIndices[scratch->nodeIndex] = scratch->nodeIndex;
     }
-    work->route->nodeIndices[scratch->nodeIndex] = OVERLAY_WALKER_ROUTE_END;
+    walker->route->nodeIndices[scratch->nodeIndex] = OVERLAY_WALKER_ROUTE_END;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor110600PatrolLayoutScratch);
 }
 
@@ -1191,56 +1188,26 @@ static void func_actor_110600_80133778(BossStrangerWalker* work, s16 scale, s16 
 
 #include "../../shared/boss_stranger_tick.inc.c"
 
-/// Rebuilds the model's root coordinate around the yaw it already faces and
-/// rescales it uniformly: `ratan2` of the rotation's Z basis gives the yaw,
-/// `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
-/// `scale` on all three axes. The working matrix lives in a frame carved off
-/// the scratch stack, which is handed back once the rotation has been copied
-/// onto the coordinate. Written as an inline so the four scratch-head accesses
-/// stay absolute; see `Actor444000_ShrinkRotation` in `actor_444000_5.c`.
-static __inline__ void Actor110600_ScaleRotation(Task* task, s16 scale)
+/// Rebuilds the actor root from its current yaw at a uniform signed Q12 scale.
+///
+/// Requires a live model root and initialized scratch storage. Discards pitch
+/// and roll, preserves translation and marks composition dirty. `ONE` is full
+/// scale; zero collapses the axes. The task-level stamp refreshes the root after
+/// the rotation copy.
+static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale)
 {
-    ActorScaleRotScratch* blk;
-    GfxCoord*             coord;
-    u8*                   head;
-    s16                   ang;
-    u16                   m22;
-
-    head                                       = SCRATCH_STACK_CURSOR(u8);
-    coord                                      = task->extra.tmd->coords;
-    blk                                        = (ActorScaleRotScratch*)(head - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
-
-    ang      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->yaw = ang;
-    gfxRotMatrixY(&blk->rotation, ang, 1);
-    blk->scale.vz = scale;
-    blk->scale.vy = scale;
-    blk->scale.vx = scale;
-    ScaleMatrix(&blk->rotation, &blk->scale);
-
-    coord->coord.m[0][0]                  = (u16)((ActorScaleRotScratch*)(head - sizeof(ActorScaleRotScratch)))->rotation.m[0][0];
-    coord->coord.m[0][1]                  = (u16)blk->rotation.m[0][1];
-    coord->coord.m[0][2]                  = (u16)blk->rotation.m[0][2];
-    coord->coord.m[1][0]                  = (u16)blk->rotation.m[1][0];
-    coord->coord.m[1][1]                  = (u16)blk->rotation.m[1][1];
-    coord->coord.m[1][2]                  = (u16)blk->rotation.m[1][2];
-    coord->coord.m[2][0]                  = (u16)blk->rotation.m[2][0];
-    coord->coord.m[2][1]                  = (u16)blk->rotation.m[2][1];
-    m22                                   = (u16)blk->rotation.m[2][2];
-    coord->composeStamp                   = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2]                  = m22;
+    _actorRenderRescaleYaw(task->extra.tmd->coords, uniformScale);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
-/// Placement opcode: drops the model's root coordinate onto `placement` (the
-/// three longs become its translation, the Euler angles go through
-/// `gfxRotMatrixX`, `gfxRotMatrixY` and `gfxRotMatrixZ`), then rebuilds and rescales that coordinate
-/// from the actor's own heading and caches the resulting yaw in the work
-/// block's `placedYaw`. The same yaw rebuild as `_actorRenderSetYawScale` is
-/// inlined after the placement.
-s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement, s32 arg3)
+/// Places the actor root and reapplies its walker's uniform scale.
+///
+/// Borrows a readable transform through synchronous dispatch: XYZ are in the
+/// root parent's coordinate frame and rotations use 4096 units per turn.
+/// Applies Rx * Ry * Rz, then keeps only the resulting yaw and records it in
+/// `placedYaw`. Requires live actor work/model and initialized scratch storage.
+/// Ignores the message ID and second payload; returns 1.
+static s32 _actor110600Place(Task* task, s32 messageId, const ActorTransform* placement, s32 secondArg)
 {
     _Actor110600Work* work;
 
@@ -1250,76 +1217,92 @@ s32 func_actor_110600_80133E48(Task* task, s32 arg1, ActorTransform* placement, 
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
     task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
     gfxRotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
-    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, 0);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, GRAPHICS_ROTATION_COMPOSE);
     gfxRotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
-    Actor110600_ScaleRotation(task, work->walker.scale);
+    _actor110600RescaleRootYaw(task, work->walker.scale);
     work->placedYaw = ratan2(-task->extra.tmd->coords->coord.m[2][0],
                              task->extra.tmd->coords->coord.m[2][2]);
     return 1;
 }
 
-/// Actor-command handler: records the command's stage, area and low command
-/// byte in the work block's `lastCommand`, then dispatches on its context. The
-/// patio's context (0x301) with command 1 enters state 0x14; the cafeteria's
-/// (0x401) picks a display slot and a `animId` state per command — 1, 8 and
-/// 9 only set the state, and 9 shares its tail with the five commands that
-/// repoint a slot — parking the actor in state 0x11 with `prevState` cleared.
-/// Written with the share as a `goto` because the commands fall through into
-/// it from case 9. `arg1` is unused; it exists because the dispatch passes
-/// three arguments.
-s32 func_actor_110600_80134040(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg3)
+/// Applies the actor's Acropolis patio or cafeteria command.
+///
+/// Borrows a readable four-byte command through dispatch and records its stage,
+/// area and low command byte even when rejected. Patio command 1 enters LURK.
+/// Cafeteria commands select a scripted clip/binding, ALERT_REWIND or DEATH_BURN;
+/// accepted cafeteria commands reset state entry. The writable animation slots
+/// and referenced clip data must stay loaded through playback. Ignores the ID
+/// and second payload; returns 1 when accepted, 0 otherwise.
+static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg)
 {
-    _Actor110600Work* work = arg0->work;
+    enum {
+        ACTOR_110600_CONTEXT_PATIO                      = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_PATIO << 8),
+        ACTOR_110600_CONTEXT_CAFETERIA                  = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_CAFETERIA << 8),
+        ACTOR_110600_PATIO_COMMAND_LURK                 = 1,
+        ACTOR_110600_CAFETERIA_COMMAND_ALERT_REWIND     = 1,
+        ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1       = 2,
+        ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT2       = 3,
+        ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT3       = 4,
+        ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT0       = 5,
+        ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1_ALT   = 6,
+        ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT3_ALIAS = 7,
+        ACTOR_110600_CAFETERIA_COMMAND_DEATH_BURN       = 8,
+        ACTOR_110600_CAFETERIA_COMMAND_PLAY_CLIP17      = 9,
+        ACTOR_110600_ANIM_COMMAND9                      = 0x11,
+    };
 
-    work->lastCommand.stage   = arg2->context.loc.stage;
-    work->lastCommand.area    = arg2->context.loc.area;
-    work->lastCommand.command = arg2->command;
-    if (arg2->context.key == 0x301) {
-        if (arg2->command == 1) {
+    _Actor110600Work* work = task->work;
+
+    // Cache every received command, including contexts or actions we reject.
+    work->lastCommand.stage   = command->context.loc.stage;
+    work->lastCommand.area    = command->context.loc.area;
+    work->lastCommand.command = command->command;
+    if (command->context.key == ACTOR_110600_CONTEXT_PATIO) {
+        if (command->command == ACTOR_110600_PATIO_COMMAND_LURK) {
             work->state = ACTOR_110600_STATE_LURK;
             return 1;
         }
         return 0;
     }
-    if (arg2->context.key == 0x401) {
-        switch (arg2->command) {
+    if (command->context.key == ACTOR_110600_CONTEXT_CAFETERIA) {
+        switch (command->command) {
             default:
                 return 0;
-            case 1:
+            case ACTOR_110600_CAFETERIA_COMMAND_ALERT_REWIND:
                 work->state     = ACTOR_110600_STATE_ALERT_REWIND;
-                work->prevState = -1;
+                work->prevState = ACTOR_110600_PREV_STATE_NONE;
                 return 1;
-            case 2:
-                work->animId            = 0x23;
+            case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1:
+                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
                 D_actor_110600_80148598 = &gActor210600Animation11F5C;
                 break;
-            case 3:
-                work->animId            = 0x24;
+            case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT2:
+                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT2;
                 D_actor_110600_8014859C = &gActor210600Animation11F5C;
                 break;
-            case 5:
-                work->animId            = 0x22;
+            case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT0:
+                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT0;
                 D_actor_110600_80148594 = &gActor210600Animation12B30;
                 break;
-            case 6:
-                work->animId            = 0x23;
+            case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1_ALT:
+                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
                 D_actor_110600_80148598 = &gActor210600Animation134C8;
                 break;
-            case 4:
-            case 7:
-                work->animId            = 0x25;
+            case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT3:
+            case ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT3_ALIAS:
+                work->animId            = ACTOR_110600_ANIM_SCRIPTED_SLOT3;
                 D_actor_110600_801485A0 = &gActor210600Animation12244;
                 break;
-            case 8:
+            case ACTOR_110600_CAFETERIA_COMMAND_DEATH_BURN:
                 work->state     = ACTOR_110600_STATE_DEATH_BURN;
-                work->prevState = -1;
+                work->prevState = ACTOR_110600_PREV_STATE_NONE;
                 return 1;
-            case 9:
-                work->animId = 0x11;
+            case ACTOR_110600_CAFETERIA_COMMAND_PLAY_CLIP17:
+                work->animId = ACTOR_110600_ANIM_COMMAND9;
                 break;
         }
         work->state     = ACTOR_110600_STATE_SCRIPTED;
-        work->prevState = -1;
+        work->prevState = ACTOR_110600_PREV_STATE_NONE;
         return 1;
     }
     return 0;
@@ -1327,315 +1310,414 @@ s32 func_actor_110600_80134040(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
 
 #include "../../shared/player_detection_reach.inc.c"
 
-/// Per-tick animation pass: for each clip id 1..0x12, the first ten (`i < 0xB`)
-/// seed their slot's `rate` from the two work bytes and tick the primary and
-/// blend contexts through `animationTickSlotPose`, then hand both poses to
-/// `animationApplyPoseWithBlendedRotation` with `blendWeight` and its complement; the rest
-/// only rewrite the primary slot and `animationTickSlot` it. Same body as
-/// `_actor403000TickBlendedSlots`, which walks 24 slots instead of 19.
-static void func_actor_110600_80134438(Task* arg0)
+/// Advances both rigs and blends their rotations over model parts 1..10.
+///
+/// Main slots 1..18 run at `animRate - 3` sixteenths of a frame per tick;
+/// secondary slots 1..10 run at `blendRate`. Translation comes from the main
+/// pose. `blendWeight` weights the main rotation, with `ONE - blendWeight`
+/// weighting the secondary rotation, in Q12 units. Requires initialized rigs,
+/// loaded clips with those tracks, a live nineteen-part model and scratch
+/// storage for pose application. Slot 0 is untouched.
+static void _actor110600TickBlendedSlots(Task* task)
 {
-    AnimationPose     pose;
-    AnimationPose     blendPose;
-    AnimationContext* anim;
-    s16               weight;
-    s16               i;
+    enum { ACTOR_110600_BLEND_PART_END       = 11,
+           ACTOR_110600_BLEND_MAIN_RATE_BIAS = 3 };
+
+    AnimationPose     mainPose;
+    AnimationPose     overlayPose;
+    AnimationContext* mainAnim;
+    s16               mainWeight;
+    s16               slotIndex;
     _Actor110600Work* work;
 
-    work   = arg0->work;
-    weight = work->blendWeight;
-    anim   = &work->rig.anim;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        if (i < 0xB) {
-            work->blendRig.slots[i].rate = work->blendRate;
-            work->rig.slots[i].rate      = (work->animRate - 3);
-            animationTickSlotPose(anim, i, &pose, 0);
-            animationTickSlotPose(&work->blendRig.anim, i, &blendPose, 0);
-            animationApplyPoseWithBlendedRotation(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+    work       = task->work;
+    mainWeight = work->blendWeight;
+    mainAnim   = &work->rig.anim;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        if (slotIndex < ACTOR_110600_BLEND_PART_END) {
+            work->blendRig.slots[slotIndex].rate = work->blendRate;
+            work->rig.slots[slotIndex].rate      = (work->animRate - ACTOR_110600_BLEND_MAIN_RATE_BIAS);
+            animationTickSlotPose(mainAnim, slotIndex, &mainPose, 0);
+            animationTickSlotPose(&work->blendRig.anim, slotIndex, &overlayPose, 0);
+            animationApplyPoseWithBlendedRotation(mainAnim, slotIndex, &mainPose, &overlayPose, mainWeight, ONE - mainWeight);
         } else {
-            work->rig.slots[i].rate = (work->animRate - 3);
-            animationTickSlot(&work->rig.anim, i);
+            work->rig.slots[slotIndex].rate = (work->animRate - ACTOR_110600_BLEND_MAIN_RATE_BIAS);
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }
 
-/// Sound cue the pose the model has reached has earned this tick, 0 for none:
-/// each state watches one clip id of the animation slot `animId` selects and
-/// reports its `0x401D00NN` cue the first time that id is held, remembering it
-/// in `lastCueIndex` so the cue is not repeated. State 3 reads slots 14 and 18
-/// (cues 4 and 3, the second only while `lastCueIndex` is not already 0xFC);
-/// states 2, 21, 4 and 5 read slot 1, with state 2 the only one watching two
-/// ids (cues 2 and 1) and clearing the memory when neither is held. Every other
-/// way out re-reads the slot-1 pose into `lastCueIndex`.
-static s32 func_actor_110600_80134564(_Actor110600Work* work)
+/// Returns the sound script due at the active animation's pose cue, or zero.
+///
+/// Requires live work and initialized slots. Selects cues by `animId`, then
+/// reads low-ten-bit pose record indices, not clip IDs. Patrol and most action
+/// cues suppress a held record using `lastCueIndex`; chase observes parts 14
+/// and 18, with part 18's separate suppression record retained. Returned IDs
+/// name the Stranger bank with a zero instance byte; the driver adds the
+/// enemy's placement index before requesting the sound.
+static s32 _actor110600PollAnimationSound(_Actor110600Work* work)
 {
-    s32 id14;
-    s32 id18;
-    s32 id2;
-    s32 id21;
-    s32 id4;
-    s32 id5;
-    s32 prev;
-    s16 state;
+    enum {
+        ACTOR_110600_CUE_CLIP_PATROL           = 2,
+        ACTOR_110600_CUE_CLIP_CHASE            = 3,
+        ACTOR_110600_CUE_CLIP_ENRAGED_ATTACK   = 4,
+        ACTOR_110600_CUE_CLIP_ATTACK           = 5,
+        ACTOR_110600_CUE_CLIP_ALERT            = 21,
+        ACTOR_110600_CHASE_PART14_CUE          = 0xC5,
+        ACTOR_110600_CHASE_PART18_CUE          = 0xFD,
+        ACTOR_110600_CHASE_PART18_SUPPRESS_CUE = 0xFC,
+        ACTOR_110600_PATROL_CUE_LATE           = 0x33,
+        ACTOR_110600_PATROL_CUE_EARLY          = 0x26,
+        ACTOR_110600_ALERT_CUE                 = 4,
+        ACTOR_110600_ENRAGED_ATTACK_CUE        = 9,
+        ACTOR_110600_ATTACK_CUE                = 11,
+        ACTOR_110600_SOUND_CHASE_PART14        = SOUND_CHARACTER(SOUND_BANK_STRANGER, 4),
+        ACTOR_110600_SOUND_CHASE_PART18        = SOUND_CHARACTER(SOUND_BANK_STRANGER, 3),
+        ACTOR_110600_SOUND_PATROL_LATE         = SOUND_CHARACTER(SOUND_BANK_STRANGER, 2),
+        ACTOR_110600_SOUND_PATROL_EARLY        = SOUND_CHARACTER(SOUND_BANK_STRANGER, 1),
+        ACTOR_110600_SOUND_ALERT               = SOUND_CHARACTER(SOUND_BANK_STRANGER, 6),
+        ACTOR_110600_SOUND_ATTACK              = SOUND_CHARACTER(SOUND_BANK_STRANGER, 12),
+    };
 
-    state = (u16)work->animId - 2;
-    switch (state) {
-        case 1:
-            id14 = work->rig.slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id14 == 0xC5) {
-                prev = work->lastCueIndex;
-                if (prev != id14) {
-                    work->lastCueIndex = id14;
-                    return 0x401D0004;
+    s32 part14CueIndex;
+    s32 part18CueIndex;
+    s32 patrolCueIndex;
+    s32 alertCueIndex;
+    s32 enragedAttackCueIndex;
+    s32 attackCueIndex;
+    s32 previousCueIndex;
+    s16 clipSelector;
+
+    clipSelector = (u16)work->animId - ACTOR_110600_CUE_CLIP_PATROL;
+    switch (clipSelector) {
+        case ACTOR_110600_CUE_CLIP_CHASE - ACTOR_110600_CUE_CLIP_PATROL:
+            part14CueIndex = work->rig.slots[14].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (part14CueIndex == ACTOR_110600_CHASE_PART14_CUE) {
+                previousCueIndex = work->lastCueIndex;
+                if (previousCueIndex != part14CueIndex) {
+                    work->lastCueIndex = part14CueIndex;
+                    return ACTOR_110600_SOUND_CHASE_PART14;
                 }
-                work->lastCueIndex = prev;
-                return 0;
+                work->lastCueIndex = previousCueIndex;
+                return SOUND_SCRIPT_REQUEST_NO_OP;
             }
-            id18 = work->rig.slots[18].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id18 == 0xFD) {
-                if (work->lastCueIndex != 0xFC) {
-                    work->lastCueIndex = id18;
-                    return 0x401D0003;
+            part18CueIndex = work->rig.slots[18].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            // This cue suppresses against 0xFC, while the emitted cue stores 0xFD.
+            if (part18CueIndex == ACTOR_110600_CHASE_PART18_CUE) {
+                if (work->lastCueIndex != ACTOR_110600_CHASE_PART18_SUPPRESS_CUE) {
+                    work->lastCueIndex = part18CueIndex;
+                    return ACTOR_110600_SOUND_CHASE_PART18;
                 }
-                work->lastCueIndex = id18;
+                work->lastCueIndex = part18CueIndex;
                 break;
             }
             work->lastCueIndex = 0;
             break;
-        case 0:
-            id2 = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id2 == 0x33) {
-                if (work->lastCueIndex != id2) {
-                    work->lastCueIndex = id2;
-                    return 0x401D0002;
+        case ACTOR_110600_CUE_CLIP_PATROL - ACTOR_110600_CUE_CLIP_PATROL:
+            patrolCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (patrolCueIndex == ACTOR_110600_PATROL_CUE_LATE) {
+                if (work->lastCueIndex != patrolCueIndex) {
+                    work->lastCueIndex = patrolCueIndex;
+                    return ACTOR_110600_SOUND_PATROL_LATE;
                 }
-                work->lastCueIndex = id2;
-            } else if (id2 == 0x26) {
-                prev = work->lastCueIndex;
-                if (prev != id2) {
-                    work->lastCueIndex = id2;
-                    return 0x401D0001;
+                work->lastCueIndex = patrolCueIndex;
+            } else if (patrolCueIndex == ACTOR_110600_PATROL_CUE_EARLY) {
+                previousCueIndex = work->lastCueIndex;
+                if (previousCueIndex != patrolCueIndex) {
+                    work->lastCueIndex = patrolCueIndex;
+                    return ACTOR_110600_SOUND_PATROL_EARLY;
                 }
-                work->lastCueIndex = prev;
+                work->lastCueIndex = previousCueIndex;
             } else {
                 work->lastCueIndex = 0;
             }
             break;
-        case 19:
-            id21 = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id21 == 4 && work->lastCueIndex != id21) {
-                work->lastCueIndex = id21;
-                return 0x401D0006;
+        case ACTOR_110600_CUE_CLIP_ALERT - ACTOR_110600_CUE_CLIP_PATROL:
+            alertCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (alertCueIndex == ACTOR_110600_ALERT_CUE && work->lastCueIndex != alertCueIndex) {
+                work->lastCueIndex = alertCueIndex;
+                return ACTOR_110600_SOUND_ALERT;
             }
             work->lastCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
-        case 2:
-            id4 = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id4 == 9 && work->lastCueIndex != id4) {
-                work->lastCueIndex = id4;
-                return 0x401D000C;
+        case ACTOR_110600_CUE_CLIP_ENRAGED_ATTACK - ACTOR_110600_CUE_CLIP_PATROL:
+            enragedAttackCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (enragedAttackCueIndex == ACTOR_110600_ENRAGED_ATTACK_CUE && work->lastCueIndex != enragedAttackCueIndex) {
+                work->lastCueIndex = enragedAttackCueIndex;
+                return ACTOR_110600_SOUND_ATTACK;
             }
             work->lastCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
-        case 3:
-            id5 = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            if (id5 == 0xB && work->lastCueIndex != id5) {
-                work->lastCueIndex = id5;
-                return 0x401D000C;
+        case ACTOR_110600_CUE_CLIP_ATTACK - ACTOR_110600_CUE_CLIP_PATROL:
+            attackCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (attackCueIndex == ACTOR_110600_ATTACK_CUE && work->lastCueIndex != attackCueIndex) {
+                work->lastCueIndex = attackCueIndex;
+                return ACTOR_110600_SOUND_ATTACK;
             }
             work->lastCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
     }
-    return 0;
+    return SOUND_SCRIPT_REQUEST_NO_OP;
 }
 
-/// Per-tick animation stage machine driven off the task's work block.
+/// Advances main slots 1..18 at the actor's current sixteenth-frame rate.
 ///
-/// Stages 1, 2 and 6 arm every slot 1..0x12 and then park the stage at 3 with
-/// the frame counter `animFrames` and `lastCueIndex` cleared: stage 1 plays the
-/// clip at `animId` through `animationSeekSlotWithBlend`, taking each slot's reset
-/// argument out of the `appliedAnim` row of `D_actor_110600_80147D20`; stage 2
-/// arms the same clip with `animationResetSlot`; stage 6 arms clip 0x10 and then
-/// ticks the context 99 times so the pose settles before it is shown. A
-/// `blendRequest` of 2 is the blend stage instead — it arms the blend context with
-/// clip `blendAnimId` at weight `blendWeight` and parks `blendRequest` at 3.
-///
-/// Every tick then steps all slots, either directly or — while `blendActive` is
-/// set — through the blend pass `func_actor_110600_80134438`, which ends the
-/// wait once blend slot 1 reports its clamp. `lookYaw` walks towards
-/// `lookYawTarget` in 0x100 steps, and the turn that leaves, clamped to ±0x400, is
-/// handed to joints 5 and 3 of the model root (the second a quarter of it).
-/// Finally the id `func_actor_110600_80134564` reports is queued through
-/// `sndEvtRequestScriptStart` with the model root's pan and depth; the bits 12..15
-/// of the enemy's `field_8` are appended to it.
-static void func_actor_110600_80134728(Task* arg0)
+/// Requires live actor work, an initialized rig and loaded referenced tracks.
+/// Reloads the task's work binding for each full tick; slot 0 is untouched.
+static __inline__ void _actor110600TickMainSlots(Task* task)
 {
     _Actor110600Work* work;
-    _Actor110600Work* seekWork;
-    _Actor110600Work* resetWork;
-    _Actor110600Work* warmWork;
-    _Actor110600Work* blendWork;
-    _Actor110600Work* tickWork;
-    Enemy*            enemy;
-    s32               animation;
-    s32               seekIndex;
-    s32               resetIndex;
-    s32               warmIndex;
-    s32               blendIndex;
-    s32               tickIndex;
-    s32               targetAngle;
-    s32               currentAngle;
-    s32               targetAngleBits;
-    s32               currentAngleBits;
-    s32               turn;
-    s16               turnNow;
-    s32               sound;
-    s32               soundId;
-    s32               pan;
-    s16               state;
+    s32               slotIndex;
 
-    work  = arg0->work;
-    state = work->animRequest;
-    enemy = arg0->spawnArg2.pointer;
-    if (state == ACTOR_110600_ANIM_REQUEST_BLEND) {
-        seekWork  = work;
-        seekIndex = 1;
-        do {
-            work->rig.slots[seekIndex].rate = seekWork->animRate;
-            animation                       = seekWork->animId;
-            animationSeekSlotWithBlend(&seekWork->rig.anim, seekIndex, animation, 0, D_actor_110600_80147D20[seekWork->appliedAnim][animation]);
-            seekIndex += 1;
-        } while (seekIndex < ARRAY_SIZE(work->rig.slots));
-        seekWork->appliedAnim = (u16)seekWork->animId;
-        work->animRequest     = ACTOR_110600_ANIM_REQUEST_PLAYING;
-        work->animFrames      = 0;
-        work->lastCueIndex    = 0;
-    } else if (state == ACTOR_110600_ANIM_REQUEST_RESET) {
-        resetWork  = work;
-        resetIndex = 1;
-        do {
-            work->rig.slots[resetIndex].rate = resetWork->animRate;
-            animationResetSlot(&resetWork->rig.anim, resetIndex, resetWork->animId);
-            resetIndex += 1;
-        } while (resetIndex < ARRAY_SIZE(work->rig.slots));
-        resetWork->appliedAnim = (u16)resetWork->animId;
-        work->animRequest      = ACTOR_110600_ANIM_REQUEST_PLAYING;
-        work->animFrames       = 0;
-        work->lastCueIndex     = 0;
-    } else if (state == ACTOR_110600_ANIM_REQUEST_SETTLE) {
-        warmWork  = work;
-        warmIndex = 1;
-        do {
-            work->rig.slots[warmIndex].rate = ANIMATION_RATE_ONE;
-            animationResetSlot(&warmWork->rig.anim, warmIndex, warmWork->animId);
-            warmIndex += 1;
-        } while (warmIndex < ARRAY_SIZE(work->rig.slots));
-        warmWork->appliedAnim = (u16)warmWork->animId;
-        warmIndex             = 1;
-        do {
-            tickWork  = arg0->work;
-            tickIndex = 1;
-            do {
-                tickWork->rig.slots[tickIndex].rate = tickWork->animRate;
-                animationTickSlot(&tickWork->rig.anim, tickIndex);
-                tickIndex += 1;
-            } while (tickIndex < ARRAY_SIZE(work->rig.slots));
-            warmIndex += 1;
-        } while (warmIndex < 0x64);
+    work      = task->work;
+    slotIndex = 1;
+    do {
+        work->rig.slots[slotIndex].rate = work->animRate;
+        animationTickSlot(&work->rig.anim, slotIndex);
+        slotIndex += 1;
+    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
+}
+
+/// Seeks main slots 1..18 to the requested clip using signed frame durations.
+///
+/// Both clip IDs must be in 0..44 and select loaded tracks and pose storage.
+/// Sets rates before capturing transition poses and records the applied clip.
+static __inline__ void _actor110600SeekRequestedAnimation(_Actor110600Work* work)
+{
+    _Actor110600Work* seekWork;
+    s32               requestedAnimId;
+    s32               seekSlotIndex;
+
+    seekWork      = work;
+    seekSlotIndex = 1;
+    do {
+        work->rig.slots[seekSlotIndex].rate = seekWork->animRate;
+        requestedAnimId                     = seekWork->animId;
+        animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, requestedAnimId, 0, D_actor_110600_80147D20[seekWork->appliedAnim][requestedAnimId]);
+        seekSlotIndex += 1;
+    } while (seekSlotIndex < ARRAY_SIZE(work->rig.slots));
+    seekWork->appliedAnim = seekWork->animId;
+}
+
+/// Restarts main slots 1..18 on the requested loaded clip and records its ID.
+///
+/// Reset replaces each preceding rate write with normal rate; the ordinary
+/// tick following this request reapplies `animRate`. Slot 0 is untouched.
+static __inline__ void _actor110600ResetRequestedAnimation(_Actor110600Work* work)
+{
+    _Actor110600Work* resetWork;
+    s32               resetSlotIndex;
+
+    resetWork      = work;
+    resetSlotIndex = 1;
+    do {
+        work->rig.slots[resetSlotIndex].rate = resetWork->animRate;
+        animationResetSlot(&resetWork->rig.anim, resetSlotIndex, resetWork->animId);
+        resetSlotIndex += 1;
+    } while (resetSlotIndex < ARRAY_SIZE(work->rig.slots));
+    resetWork->appliedAnim = resetWork->animId;
+}
+
+/// Restarts secondary slots 1..18 with the actor's default rotation mix.
+///
+/// Requires loaded `blendAnimId` tracks. The retained rate writes target the
+/// primary rig, while reset gives the secondary rig normal playback rate.
+/// Its next blended tick supplies three frames per tick; weight is Q12 and
+/// belongs to the primary rotation. Does not enable blending by itself.
+static __inline__ void _actor110600ResetBlendAnimation(Task* task)
+{
+    enum {
+        ACTOR_110600_BLEND_RATE        = 3 * ANIMATION_RATE_ONE,
+        ACTOR_110600_BLEND_MAIN_WEIGHT = 0xB78,
+    };
+    _Actor110600Work* blendWork;
+    s32               blendSlotIndex;
+
+    blendWork              = task->work;
+    blendSlotIndex         = 1;
+    blendWork->blendRate   = ACTOR_110600_BLEND_RATE;
+    blendWork->blendWeight = ACTOR_110600_BLEND_MAIN_WEIGHT;
+    do {
+        // The rate goes to the main rig's slot, which the tick below
+        // overwrites; the blend slots take theirs in the blend pass.
+        blendWork->rig.slots[blendSlotIndex].rate = blendWork->blendRate;
+        animationResetSlot(&blendWork->blendRig.anim, blendSlotIndex, blendWork->blendAnimId);
+        blendSlotIndex += 1;
+    } while (blendSlotIndex < ARRAY_SIZE(blendWork->rig.slots));
+}
+
+/// Restarts a requested pose and runs it for 99 hidden ticks.
+///
+/// Requires the requested loaded clip and initialized rigs/work. Resetting
+/// slots 1..18 uses normal rate; each hidden tick reapplies the current rate.
+/// Slot 0 is untouched. The driver performs one ordinary tick afterwards.
+static __inline__ void _actor110600SettleRequestedAnimation(Task* task, _Actor110600Work* work)
+{
+    enum { ACTOR_110600_SETTLE_TICK_END = 100 };
+    _Actor110600Work* settleWork;
+    s32               index;
+
+    settleWork = work;
+    index      = 1;
+    do {
+        work->rig.slots[index].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&settleWork->rig.anim, index, settleWork->animId);
+        index += 1;
+    } while (index < ARRAY_SIZE(work->rig.slots));
+    settleWork->appliedAnim = settleWork->animId;
+
+    // Reuse the reset cursor as the hidden-tick counter.
+    index = 1;
+    do {
+        _actor110600TickMainSlots(task);
+        index += 1;
+    } while (index < ACTOR_110600_SETTLE_TICK_END);
+}
+
+/// Applies animation requests, advances the actor's poses and sounds their cues.
+///
+/// Requires live actor work, enemy and a nineteen-part model with both rigs
+/// bound to loaded clips. Slots 1..18 are driven; slot 0 is untouched. Blend
+/// requests index the signed-byte 45-by-45 duration table by previous/requested
+/// clip, both in 0..44, in normal-rate frames. Reset replaces slot rates before
+/// the tick reapplies `animRate`, in sixteenths of a frame. SETTLE resets the
+/// requested clip and advances it 99 ticks, then this call's ordinary tick.
+///
+/// A secondary RESET supplies three-frame playback and a Q12 main-pose weight
+/// of 0xB78. Its retained rate writes target the primary rig before resetting
+/// the secondary slots, as in actor_01900 and actor_403000. Active blending ends
+/// when secondary slot 1 reaches a boundary. Finally eases `lookYaw` by 0x100,
+/// clamps it to +/-0x400 and applies it to part 5 and one quarter to part 3;
+/// the cue sound receives this enemy's placement instance, pan and depth.
+static void _actor110600TickAnimation(Task* task)
+{
+    enum {
+        ACTOR_110600_LOOK_YAW_STEP  = 0x100,
+        ACTOR_110600_LOOK_YAW_LIMIT = 0x400,
+    };
+
+    _Actor110600Work* work;
+    Enemy*            enemy;
+    s32               targetYaw;
+    s32               currentYaw;
+    s32               targetYawBits;
+    s32               currentYawBits;
+    s32               jointYawBits;
+    s16               jointYaw;
+    s32               cueSoundId;
+    s32               instanceSoundId;
+    s32               audioPan;
+    s16               request;
+
+    work    = task->work;
+    request = work->animRequest;
+    enemy   = task->spawnArg2.pointer;
+    if (request == ACTOR_110600_ANIM_REQUEST_BLEND) {
+        _actor110600SeekRequestedAnimation(work);
+        work->animRequest  = ACTOR_110600_ANIM_REQUEST_PLAYING;
+        work->animFrames   = 0;
+        work->lastCueIndex = 0;
+    } else if (request == ACTOR_110600_ANIM_REQUEST_RESET) {
+        _actor110600ResetRequestedAnimation(work);
+        work->animRequest  = ACTOR_110600_ANIM_REQUEST_PLAYING;
+        work->animFrames   = 0;
+        work->lastCueIndex = 0;
+    } else if (request == ACTOR_110600_ANIM_REQUEST_SETTLE) {
+        _actor110600SettleRequestedAnimation(task, work);
         work->animRequest  = ACTOR_110600_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueIndex = 0;
     }
     if (work->blendRequest == ACTOR_110600_ANIM_REQUEST_RESET) {
-        blendWork              = arg0->work;
-        blendIndex             = 1;
-        blendWork->blendRate   = 0x30;
-        blendWork->blendWeight = 0xB78;
-        do {
-            // The rate goes to the main rig's slot, which the tick below
-            // overwrites; the blend slots take theirs in the blend pass.
-            blendWork->rig.slots[blendIndex].rate = blendWork->blendRate;
-            animationResetSlot(&blendWork->blendRig.anim, blendIndex, blendWork->blendAnimId);
-            blendIndex += 1;
-        } while (blendIndex < ARRAY_SIZE(work->rig.slots));
+        _actor110600ResetBlendAnimation(task);
         work->blendRequest = ACTOR_110600_ANIM_REQUEST_PLAYING;
     }
     work->animFrames = (u16)(work->animFrames + 1);
     if (work->blendActive == 0) {
-        tickWork  = arg0->work;
-        tickIndex = 1;
-        do {
-            tickWork->rig.slots[tickIndex].rate = tickWork->animRate;
-            animationTickSlot(&tickWork->rig.anim, tickIndex);
-            tickIndex += 1;
-        } while (tickIndex < ARRAY_SIZE(work->rig.slots));
+        _actor110600TickMainSlots(task);
     } else {
-        func_actor_110600_80134438(arg0);
+        _actor110600TickBlendedSlots(task);
         if (work->blendRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             work->blendActive = 0;
         }
     }
-    targetAngle      = work->lookYawTarget;
-    currentAngle     = work->lookYaw;
-    targetAngleBits  = (u16)work->lookYawTarget;
-    currentAngleBits = (u16)work->lookYaw;
-    if (currentAngle < targetAngle) {
-        if ((targetAngle - currentAngle) >= 0x101) {
-            work->lookYaw = (s16)(currentAngleBits + 0x100);
+    // Ease the signed yaw in 4096ths of a turn, then limit the joint turn.
+    targetYaw      = work->lookYawTarget;
+    currentYaw     = work->lookYaw;
+    targetYawBits  = (u16)work->lookYawTarget;
+    currentYawBits = (u16)work->lookYaw;
+    if (currentYaw < targetYaw) {
+        if ((targetYaw - currentYaw) >= ACTOR_110600_LOOK_YAW_STEP + 1) {
+            work->lookYaw = (s16)(currentYawBits + ACTOR_110600_LOOK_YAW_STEP);
         } else {
-            work->lookYaw = (s16)targetAngleBits;
+            work->lookYaw = (s16)targetYawBits;
         }
-    } else if ((currentAngle - targetAngle) >= 0x101) {
-        work->lookYaw = (s16)(currentAngleBits - 0x100);
+    } else if ((currentYaw - targetYaw) >= ACTOR_110600_LOOK_YAW_STEP + 1) {
+        work->lookYaw = (s16)(currentYawBits - ACTOR_110600_LOOK_YAW_STEP);
     } else {
-        work->lookYaw = (s16)targetAngleBits;
+        work->lookYaw = (s16)targetYawBits;
     }
-    turnNow = work->lookYaw;
-    turn    = (u16)work->lookYaw;
-    if (turnNow != 0) {
-        if (turnNow >= 0x401) {
-            turn = 0x400;
+    jointYaw     = work->lookYaw;
+    jointYawBits = (u16)work->lookYaw;
+    if (jointYaw != 0) {
+        if (jointYaw >= ACTOR_110600_LOOK_YAW_LIMIT + 1) {
+            jointYawBits = ACTOR_110600_LOOK_YAW_LIMIT;
         }
-        if (turnNow < -0x400) {
-            turn = -0x400;
+        if (jointYaw < -ACTOR_110600_LOOK_YAW_LIMIT) {
+            jointYawBits = -ACTOR_110600_LOOK_YAW_LIMIT;
         }
-        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[5], (s16)turn);
-        _actorRenderYawJointInWorld(&arg0->extra.tmd->coords[3], (s16)((s32)(turn << 0x10) >> 0x12));
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[5], (s16)jointYawBits);
+        _actorRenderYawJointInWorld(&task->extra.tmd->coords[3], (s16)jointYawBits >> 2);
     }
-    sound = func_actor_110600_80134564(work);
-    if (sound != 0) {
-        soundId = sound | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    // Attribute the cue to this placed enemy before applying positional audio.
+    cueSoundId = _actor110600PollAnimationSound(work);
+    if (cueSoundId != SOUND_SCRIPT_REQUEST_NO_OP) {
+        instanceSoundId = cueSoundId | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+        audioPan        = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(instanceSoundId, audioPan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }
 
-static __inline__ void Actor110600_InitBodyObj(WorldCollisionBody* obj, GfxCoord* coord, WorldCollisionContact* recs, SVECTOR* pos, s16 enabled)
+/// Initializes and links the actor's attack sphere on a model part.
+///
+/// The live body borrows `partCoord` and writable contacts until unlinking;
+/// `bodyFlags` must select the direct-contact sphere kind. XYZ of the borrowed
+/// position are copied in the part's local coordinate units, with radius 512.
+/// The caller owns contact initialization and the packed attack key. This
+/// actor supplies one contact and initially leaves pair testing disabled.
+static __inline__ void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags)
 {
-    obj->context.contacts = recs;
-    obj->coord            = coord;
-    obj->pos.vx           = (u16)pos->vx;
-    obj->pos.vy           = (u16)pos->vy;
-    obj->pos.vz           = (u16)pos->vz;
-    obj->radius           = 0x200;
-    obj->flags            = enabled;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
+    enum { ACTOR_110600_ATTACK_RADIUS = 512 };
+
+    body->context.contacts = contacts;
+    body->coord            = partCoord;
+    body->pos.vx           = localPosition->vx;
+    body->pos.vy           = localPosition->vy;
+    body->pos.vz           = localPosition->vz;
+    body->radius           = ACTOR_110600_ATTACK_RADIUS;
+    body->flags            = bodyFlags;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, body);
 }
 
-static __inline__ void Actor110600_InitScale(BossStrangerWalker* walker)
+/// Initializes the walker's saved rotation to its uniform Q12 scale.
+///
+/// Requires live walker storage and initialized scratch space for one VECTOR.
+/// Clears translation and off-diagonal coefficients. Zero and `ONE` both
+/// leave the identity matrix; other signed scales replace its diagonal. The
+/// turning step later uses this matrix as the actor's scale baseline.
+static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker)
 {
-    VECTOR *head, *scale;
-    s32     amount;
-    head                         = SCRATCH_STACK_CURSOR(VECTOR);
-    scale                        = head - 1;
-    SCRATCH_STACK_CURSOR(VECTOR) = scale;
-    walker->scaleMtx.m[0][0] = walker->scaleMtx.m[1][1] = walker->scaleMtx.m[2][2] = 0x1000;
+    VECTOR* scaleVector;
+    s32     uniformScale;
+
+    scaleVector              = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    walker->scaleMtx.m[0][0] = walker->scaleMtx.m[1][1] = walker->scaleMtx.m[2][2] = ONE;
     walker->scaleMtx.m[0][1] = walker->scaleMtx.m[0][2] = walker->scaleMtx.m[1][0] = walker->scaleMtx.m[1][2] = walker->scaleMtx.m[2][0] = walker->scaleMtx.m[2][1] = 0;
     walker->scaleMtx.t[0] = walker->scaleMtx.t[1] = walker->scaleMtx.t[2] = 0;
-    amount                                                                = walker->scale;
-    if (amount != 0 && amount != 0x1000) {
-        scale->vx = scale->vy = scale->vz = amount;
-        ScaleMatrix(&walker->scaleMtx, scale);
+    uniformScale                                                          = walker->scale;
+    if (uniformScale != 0 && uniformScale != ONE) {
+        scaleVector->vx = scaleVector->vy = scaleVector->vz = uniformScale;
+        ScaleMatrix(&walker->scaleMtx, scaleVector);
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
@@ -1669,7 +1751,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback   = func_actor_110600_801387F4;
+    task->exitCallback   = _actor110600Exit;
     boundWork            = task->work;
     boundModel           = task->extra.tmd;
     boundModel->lightMtx = &boundWork->lightMtx;
@@ -1694,7 +1776,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     work->animId        = 2;
     work->lookYaw       = 0;
     work->lookYawTarget = 0;
-    func_actor_110600_80134728(task);
+    _actor110600TickAnimation(task);
     walkRecs                        = work->gridContacts;
     work->enrageTint                = 0;
     work->enraged                   = 0;
@@ -1730,7 +1812,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     pos.vx               = 0;
     pos.vy               = 0;
     pos.vz               = 0;
-    Actor110600_InitBodyObj(bodyObj, task->extra.tmd->coords + 3, work->attackContacts, &pos, enabled);
+    _actor110600LinkAttackBody(bodyObj, task->extra.tmd->coords + 3, work->attackContacts, &pos, enabled);
     worldCollisionInitContacts(bodyObj->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
     task->msgTable      = D_actor_110600_80148624;
     work->childTask0    = 0;
@@ -1822,16 +1904,16 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
     }
     switch (task->spawnArg1.value & 0xF000) {
         case 0:
-            func_actor_110600_80133778(&work->walker, 1500, 0x764);
+            _actor110600LayPatrolNodes(&work->walker, 1500, 0x764);
             break;
         case 0x1000:
-            func_actor_110600_80133778(&work->walker, 3000, 0x764);
+            _actor110600LayPatrolNodes(&work->walker, 3000, 0x764);
             break;
         case 0x2000:
-            func_actor_110600_80133778(&work->walker, 4000, 0x764);
+            _actor110600LayPatrolNodes(&work->walker, 4000, 0x764);
             break;
         default:
-            func_actor_110600_80133778(&work->walker, 5000, 0x764);
+            _actor110600LayPatrolNodes(&work->walker, 5000, 0x764);
             break;
     }
     switch ((task->spawnArg1.value >> 16) & 0xF) {
@@ -1859,7 +1941,7 @@ static void func_actor_110600_80134AB4(Enemy* enemy, Task* task)
             }
             break;
     }
-    Actor110600_InitScale(&work->walker);
+    _actor110600InitWalkerScale(&work->walker);
     work->prevState = -1;
     task->state    += 1;
 }
@@ -1912,7 +1994,7 @@ static void func_actor_110600_80135194(Task* arg0)
     }
     if (actorOutsideRadius(&delta, work->noticeRangeAround) == 0)
         work->state = ACTOR_110600_STATE_ALERT;
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
 }
 
 static __inline__ s32 Actor110600_TickShake(void)
@@ -1995,7 +2077,7 @@ static void func_actor_110600_80135454(Task* arg0)
     if (actorOutsideRadius(&delta, 1000) == 0 && work->stateFrame >= 91)
         work->state = ACTOR_110600_STATE_ATTACK;
     work->lookYawTarget = angle;
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     pose = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     if ((pose == 0x33) && (work->lastFootstepCueIndex != pose)) {
         work->footstepShake = 1;
@@ -2052,27 +2134,30 @@ static void func_actor_110600_80135A18(Task* arg0)
     d->vz               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
     work->lookYawTarget = angle;
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
 }
 
-/// 1 when the first of `recs` carries the kind 0x10000 tag: the walk breaks on
-/// an empty slot and reports 0.
-static __inline__ s32 Actor110600_HasRec10000(WorldCollisionContact* recs)
+/// Reports whether the attack sphere's one contact identifies a player body.
+///
+/// Requires one readable contact; a zero key reports false. The category also
+/// covers companion bodies. Reads no later entry and does not clear the contact.
+static __inline__ s32 _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts)
 {
-    s16 i;
+    enum { ACTOR_110600_ATTACK_CONTACT_COUNT = 1 };
+    s16 contactIndex;
 
-    for (i = 0; i < 1; i++) {
-        if (!recs[i].key.value) {
+    for (contactIndex = 0; contactIndex < ACTOR_110600_ATTACK_CONTACT_COUNT; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x10000) {
-            return 1;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 /// Firing stage. Entering on a live actor re-arms it: clear the model object,
@@ -2132,7 +2217,7 @@ static void func_actor_110600_80135B84(Task* arg0)
     if (work->stateFrame >= 0xB) {
         work->walker.turnLimit = 0;
     }
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->animId == 4) {
         switch (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
             case 0xF:
@@ -2156,7 +2241,7 @@ static void func_actor_110600_80135B84(Task* arg0)
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
-    if (Actor110600_HasRec10000(work->attackContacts)) {
+    if (_actor110600HasPlayerBodyContact(work->attackContacts)) {
         sndEvtRequestScriptStart(SOUND_STRANGER_ATTACK_HIT, (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords),
                                  (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
         work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -2420,7 +2505,7 @@ static void func_actor_110600_80136888(Task* arg0)
         work->lookYawTarget           = 0;
     }
     bossStrangerTick(&work->walker);
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->animId == 0x18) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
             rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2428,14 +2513,14 @@ static void func_actor_110600_80136888(Task* arg0)
             if (!((rng >> 16) & 7)) {
                 work->animId      = 0xE;
                 work->animRequest = ACTOR_110600_ANIM_REQUEST_BLEND;
-                func_actor_110600_80134728(arg0);
+                _actor110600TickAnimation(arg0);
             }
         }
     }
     if ((work->animId == 0xE) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->animId      = 0x18;
         work->animRequest = ACTOR_110600_ANIM_REQUEST_BLEND;
-        func_actor_110600_80134728(arg0);
+        _actor110600TickAnimation(arg0);
     }
 }
 
@@ -2481,7 +2566,7 @@ static void func_actor_110600_801369D8(Task* arg0)
     }
     walker2 = &work->walker;
     bossStrangerTick(walker2);
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->animId == 0x1D) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
             ramp2                = work->walker.speed;
@@ -2854,7 +2939,7 @@ static void func_actor_110600_801372CC(Task* arg0)
         }
     }
     work->blendActive = 0;
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
 
     Actor110600_RescaleRoot(arg0, work->walker.scale);
 
@@ -2911,7 +2996,7 @@ static void func_actor_110600_80137684(Task* arg0)
         work->lookYawTarget           = 0;
         work->animId                  = 0x16;
     }
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->animId == 0x16) {
         rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = rng;
@@ -2956,7 +3041,7 @@ static void func_actor_110600_801377FC(Task* arg0)
         work->animRate                = 0x10;
         work->lookYawTarget           = 0;
     }
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     work->lastCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     coord              = arg0->extra.tmd->coords;
     d                  = &delta;
@@ -3008,7 +3093,7 @@ static void func_actor_110600_80137980(Task* arg0)
     d->vz               = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
     angle               = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
     work->lookYawTarget = angle;
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
@@ -3116,7 +3201,7 @@ static void func_actor_110600_80137DB0(Task* arg0)
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
         work->animRate                = 6;
-        func_actor_110600_80134728(arg0);
+        _actor110600TickAnimation(arg0);
         work->stateFrame  = 0;
         work->enrageStage = 0;
     }
@@ -3124,7 +3209,7 @@ static void func_actor_110600_80137DB0(Task* arg0)
     work->blendActive = 0;
     switch (state) {
         case 0:
-            func_actor_110600_80134728(arg0);
+            _actor110600TickAnimation(arg0);
             if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 4) {
                 work->animRate    = -0x10;
                 work->enrageStage = (s16)((u16)work->enrageStage + 1);
@@ -3141,7 +3226,7 @@ static void func_actor_110600_80137DB0(Task* arg0)
             if (work->animRate == -1) {
                 work->animRate = 8;
             }
-            func_actor_110600_80134728(arg0);
+            _actor110600TickAnimation(arg0);
             if (work->stateFrame >= 0x35) {
                 work->animRate = 0x38;
                 work->baseRate = 0x38;
@@ -3292,7 +3377,11 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
     }
 }
 
-s32 func_actor_110600_80138394(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Receives message 2015 without changing the actor.
+///
+/// Both payload words and the ID are ignored. This handler has no result;
+/// senders must not consume the dispatch result register.
+static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
 }
 
@@ -3304,114 +3393,121 @@ static const EnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
     enemyDestroy,
 };
 
-/// The `0x7D3` handler of the display-opcode table `D_actor_110600_80148624`:
-/// maps the requested state onto the work block's `animId` (0x22..0x28) and
-/// parks the actor in state 0x11 with `prevState` cleared. States 0 and 4 also
-/// stamp the enemy's occupancy tag and re-save its pose; state 0 writes its own
-/// `animId` ahead of those calls, so it skips the store the other four share,
-/// which is the tail the compiler merged out of the four `break`s.
+/// Selects a scripted clip and restarts entry into the SCRIPTED state.
 ///
-/// The table GCC emits for this switch is what pins the package's
-/// `rodata_head`: it lands at 0x18C, 8-aligned only if this unit's `.rodata`
-/// starts at 0x4 rather than 0x0 — the package id ahead of it is prepended, not
-/// compiled — and behind the id it picks up `.align 3`'s 4-byte pad instead.
-s32 func_actor_110600_8013839C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
+/// Borrows a readable request through dispatch. Selectors 0..4 map to clips
+/// 34, 35, 36, 37 and 40; 0 and 4 also save the current enemy pose with resume
+/// state 1. Other selectors keep the clip but still restart SCRIPTED. Only
+/// `animationId` is read; bank/blend fields, ID and second payload are ignored.
+/// Requires live actor work/model, enemy and loaded selected clip; returns 0.
+static s32 _actor110600PlayScriptedAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 secondArg)
 {
+    enum { ACTOR_110600_RESUME_SCRIPTED = 1 };
+
     _Actor110600Work* work;
     Enemy*            enemy;
-    s32               state;
+    s32               animationSelector;
 
-    state = arg2->animationId;
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    switch (state) {
+    animationSelector = request->animationId;
+    work              = task->work;
+    enemy             = task->spawnArg2.pointer;
+    switch (animationSelector) {
         case 0:
-            work->animId      = 0x22;
-            enemy->spawnState = 1;
+            work->animId      = ACTOR_110600_ANIM_SCRIPTED_SLOT0;
+            enemy->spawnState = ACTOR_110600_RESUME_SCRIPTED;
             areaSaveEnemyPose(enemy);
             break;
         case 1:
-            work->animId = 0x23;
+            work->animId = ACTOR_110600_ANIM_SCRIPTED_SLOT1;
             break;
         case 2:
-            work->animId = 0x24;
+            work->animId = ACTOR_110600_ANIM_SCRIPTED_SLOT2;
             break;
         case 3:
-            work->animId = 0x25;
+            work->animId = ACTOR_110600_ANIM_SCRIPTED_SLOT3;
             break;
         case 4:
-            enemy->spawnState = 1;
+            enemy->spawnState = ACTOR_110600_RESUME_SCRIPTED;
             areaSaveEnemyPose(enemy);
-            work->animId = 0x28;
+            work->animId = ACTOR_110600_ANIM_SCRIPTED_REQUEST4;
             break;
     }
     work->state     = ACTOR_110600_STATE_SCRIPTED;
-    work->prevState = -1;
+    work->prevState = ACTOR_110600_PREV_STATE_NONE;
     return 0;
 }
 
-/// Display-object handler: `arg2` selects the mode. `Enemy.spawnState`, the
-/// occupancy tag `areaSaveEnemyPose` writes, chooses the flag word in modes 1
-/// and 3.
+/// Sets draw/buffer handling while respecting the enemy's saved resume state.
 ///
-/// Mode 0 hides the model with `TMD_OBJECT_SKIP_ACTIVE_DRAW`, allocates its
-/// buffers and restarts `state`. Mode 1 shows it and allocates the buffers
-/// unless the tag is 4, in which case it hides the model and restarts
-/// `state`. Mode 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and restarts `state`.
-/// Mode 3 hides the model when the tag is 4 and otherwise clears the flag word,
-/// then restarts `state` and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`. `arg1` is
-/// unused; the dispatch passes three arguments.
-s32 func_actor_110600_80138448(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Requires live actor work/model and enemy. Mode 0 hides, allocates buffers
+/// and enters HIDDEN. Mode 1 shows and allocates unless resume state 4 keeps it
+/// hidden. Mode 2 disables automatic buffering and enters HIDDEN. Mode 3 sets
+/// visibility from resume state 4, enters HIDDEN and disables automatic
+/// buffering. Other modes do nothing. Ignores ID/second payload; returns 0.
+static s32 _actor110600SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 secondArg)
 {
-    TmdObject*        obj;
+    enum {
+        ACTOR_110600_DRAW_HIDE_ALLOCATE           = 0,
+        ACTOR_110600_DRAW_SHOW_ALLOCATE           = 1,
+        ACTOR_110600_DRAW_SKIP_AUTO_BUFFER        = 2,
+        ACTOR_110600_DRAW_RESUME_SKIP_AUTO_BUFFER = 3,
+        ACTOR_110600_RESUME_HIDDEN                = 4,
+    };
+
+    TmdObject*        model;
     _Actor110600Work* work;
     Enemy*            enemy;
 
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    switch (drawMode) {
+        case ACTOR_110600_DRAW_HIDE_ALLOCATE:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
             work->state = ACTOR_110600_STATE_HIDDEN;
             break;
-        case 1:
+        case ACTOR_110600_DRAW_SHOW_ALLOCATE:
             if (enemy->spawnState == 0) {
-                obj->flags = 0;
-                tmdAllocPrimitiveBuffer(obj);
-            } else if (enemy->spawnState == 4) {
-                obj->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                work->state = ACTOR_110600_STATE_HIDDEN;
+                model->flags = 0;
+                tmdAllocPrimitiveBuffer(model);
+            } else if (enemy->spawnState == ACTOR_110600_RESUME_HIDDEN) {
+                model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                work->state  = ACTOR_110600_STATE_HIDDEN;
             } else {
-                obj->flags = 0;
-                tmdAllocPrimitiveBuffer(obj);
+                model->flags = 0;
+                tmdAllocPrimitiveBuffer(model);
             }
             break;
-        case 2:
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->state = ACTOR_110600_STATE_HIDDEN;
+        case ACTOR_110600_DRAW_SKIP_AUTO_BUFFER:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state   = ACTOR_110600_STATE_HIDDEN;
             break;
-        case 3:
-            if (enemy->spawnState == 4) {
-                obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_110600_DRAW_RESUME_SKIP_AUTO_BUFFER:
+            if (enemy->spawnState == ACTOR_110600_RESUME_HIDDEN) {
+                model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {
-                obj->flags = 0;
+                model->flags = 0;
             }
-            work->state = ACTOR_110600_STATE_HIDDEN;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state   = ACTOR_110600_STATE_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
 }
 
-s32 func_actor_110600_80138538(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Returns 1 while the enemy is alive, otherwise clears its enrage effects.
+///
+/// Requires live actor work and enemy. A nonpositive health value clears the
+/// work's enrage tint/latch and the enemy's reaction flags before returning 0.
+/// The ID and both payloads are ignored.
+static s32 _actor110600IsPresent(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     _Actor110600Work* work;
     Enemy*            enemy;
 
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = arg0->work;
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
     if (enemy->hp > 0) {
         return 1;
     }
@@ -3458,38 +3554,51 @@ static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz)
     coord->coord.m[2][2] = m22;
 }
 
-s32 func_actor_110600_801387C0(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Acquires a battle reference and switches the actor to ALERT.
+///
+/// Requires live actor work and scene combat state. Does not reset `prevState`;
+/// the enemy tick detects the state change. Repeated messages acquire another
+/// reference. Ignores the ID and both payloads; returns 1.
+static s32 _actor110600Alert(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 {
     _Actor110600Work* work;
 
-    work = arg0->work;
-    (sceneAcquireBattleRef)(0);
+    work = task->work;
+    sceneAcquireBattleRef(0);
     work->state = ACTOR_110600_STATE_ALERT;
     return 1;
 }
 
-static void func_actor_110600_801387F4(Task* task)
+/// Releases the actor's collision and child-task bindings before destroying it.
+///
+/// Installed as the task exit callback. Requires a live enemy and model task;
+/// work may be NULL after an allocation failure. When work exists, advances
+/// each present child task one state, unlinks the attack/hit/grid bodies and
+/// clears the enemy's borrowed contact table. Then stops screen shake and
+/// lets `enemyDestroy` release the enemy and task resources.
+static void _actor110600Exit(Task* task)
 {
     _Actor110600Work* work;
     Enemy*            enemy;
-    Task*             helper;
-    Task*             helper2;
+    Task*             firstChildTask;
+    Task*             secondChildTask;
 
     work  = task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
+    enemy = task->spawnArg2.pointer;
     if (work != NULL) {
-        helper = work->childTask0;
-        if (helper != NULL) {
-            helper->state++;
+        firstChildTask = work->childTask0;
+        if (firstChildTask != NULL) {
+            firstChildTask->state++;
         }
-        helper2 = work->childTask1;
-        if (helper2 != NULL) {
-            helper2->state++;
+        secondChildTask = work->childTask1;
+        if (secondChildTask != NULL) {
+            secondChildTask->state++;
         }
+        // End all borrowed collision bindings before releasing the work block.
         worldCollisionUnlinkBody(&work->attackBody);
         worldCollisionUnlinkBody(&work->hitBody);
         worldCollisionUnlinkBody(&work->gridBody);
-        enemy->recs = 0;
+        enemy->recs = NULL;
     }
     displaySetShakeY(0);
     enemyDestroy(enemy, task);
@@ -3563,7 +3672,7 @@ static void func_actor_110600_80138980(Task* arg0)
         work->lookYawTarget           = 0;
     }
     bossStrangerTick(&work->walker);
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         if (enemy->hp > 0) {
             work->state = ACTOR_110600_STATE_DOWN;
@@ -3627,7 +3736,7 @@ static void func_actor_110600_80138AFC(Task* arg0)
         work->lookYawTarget           = 0;
     }
     bossStrangerTick(&work->walker);
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
@@ -3661,7 +3770,7 @@ static void func_actor_110600_80138BD0(Task* arg0)
         work->lookYawTarget           = 0;
     }
     bossStrangerTick(&work->walker);
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
@@ -3689,14 +3798,14 @@ static void func_actor_110600_80138CA4(Task* arg0)
         work->lookYaw                 = 0;
         work->animRate                = 0x10;
         work->blendActive             = 0;
-        func_actor_110600_80134728(arg0);
+        _actor110600TickAnimation(arg0);
         work->stateFrame = 0;
         for (i = 0; i < 0x14; i++) {
-            func_actor_110600_80134728(arg0);
+            _actor110600TickAnimation(arg0);
         }
     }
     work->animRate = -8;
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
 }
 
 static void func_actor_110600_80138D7C(Task* arg0)
@@ -3718,8 +3827,8 @@ static void func_actor_110600_80138D7C(Task* arg0)
         work->animRate          = 0x30;
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        func_actor_110600_80134728(arg0);
-        func_actor_110600_80134728(arg0);
+        _actor110600TickAnimation(arg0);
+        _actor110600TickAnimation(arg0);
         return;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3731,7 +3840,7 @@ static void func_actor_110600_80138D7C(Task* arg0)
     if (work->animRate == -1) {
         work->animRate = 0x10;
     }
-    func_actor_110600_80134728(arg0);
+    _actor110600TickAnimation(arg0);
     if (damageTickEnemyBuildup(enemy) == 1) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state           = ACTOR_110600_STATE_CHASE;
