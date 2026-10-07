@@ -60,11 +60,7 @@
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern s8 D_shelter_1f_vehicular_airlock_80182AB0[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern s8 D_shelter_1f_vehicular_airlock_80182AB0_value __asm__("D_shelter_1f_vehicular_airlock_80182AB0");
+extern s8 D_shelter_1f_vehicular_airlock_80182AB0;
 
 extern TaskDesc D_shelter_1f_vehicular_airlock_80182028;
 
@@ -329,12 +325,14 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_1f_vehicular_airlock_80182AB0[4] = {
-    0,
-    2,
-    -16,
-    65,
-};
+s8 D_shelter_1f_vehicular_airlock_80182AB0 = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_1f_vehicular_airlock_80182AB1 = 2;
+
+u8 D_shelter_1f_vehicular_airlock_80182AB2 = 240;
+
+u8 D_shelter_1f_vehicular_airlock_80182AB3 = 65;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
@@ -361,7 +359,7 @@ void func_shelter_1f_vehicular_airlock_8017D5E4(Task* task)
 
 static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_1f_vehicular_airlock_80182AB0_value = 0;
+    D_shelter_1f_vehicular_airlock_80182AB0 = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -370,7 +368,7 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(RoomEventMsg* dst, Ro
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_shelter_1f_vehicular_airlock_80182028, 0, 0, 0);
-            D_shelter_1f_vehicular_airlock_80182AB0_value = 1;
+            D_shelter_1f_vehicular_airlock_80182AB0 = 1;
         }
         return 2;
     }

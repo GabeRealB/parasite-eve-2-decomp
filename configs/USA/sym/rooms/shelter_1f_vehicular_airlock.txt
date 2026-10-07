@@ -41,7 +41,10 @@ _gShelter1fVehicularAirlockModel03A58PartVerts = 0x80180C74; // size:0x4 defined
 _gShelter1fVehicularAirlockModel03A58Verts = 0x80180C78; // size:0x3A0 defined:True
 _gShelter1fVehicularAirlockModel03A58Stream = 0x80181018; // size:0xFEC defined:True
 gRoomEventStagedMsg = 0x80182AA8; // size:0x8 defined:True
-D_shelter_1f_vehicular_airlock_80182AB0 = 0x80182AB0; // size:0x4 defined:True
+D_shelter_1f_vehicular_airlock_80182AB0 = 0x80182AB0; // size:0x1 defined:True
+D_shelter_1f_vehicular_airlock_80182AB1 = 0x80182AB1; // size:0x1 defined:True
+D_shelter_1f_vehicular_airlock_80182AB2 = 0x80182AB2; // size:0x1 defined:True
+D_shelter_1f_vehicular_airlock_80182AB3 = 0x80182AB3; // size:0x1 defined:True
 gRoomEventLatched = 0x80182AB4; // size:0xC defined:True
 
 shelter1fVehicularAirlockRoomVisualEffectsFlashTask = 0x8017ECBC; // type:func
