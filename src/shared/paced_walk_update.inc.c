@@ -4,11 +4,16 @@
 #ifndef SRC_SHARED_PACED_WALK_COMPLETE_TRAVEL_TICK
 #define SRC_SHARED_PACED_WALK_COMPLETE_TRAVEL_TICK
 
-/// Consumes an attempted walk step and records the idle choice at arrival.
+/// Consumes one scheduled travel attempt and records idle when the count expires.
 ///
-/// Borrows writable `work` with nonzero signed-halfword `st.travel`.
-/// Only a decremented result of zero records clip 1 and ten whole normal-rate
-/// frames for a later blend. Leaves the request state and playing tracks intact.
+/// Borrows live, writable `work` with nonzero `st.travel`, after the caller's
+/// movement attempt, including one suppressed by actor freezing. The count
+/// stays signed 16-bit: negative values also decrement, wrapping at -32768
+/// rather than clamping. Expiration measures attempts, not physical arrival.
+///
+/// A stored result of zero selects clip 1 and ten whole normal-rate frames
+/// for a later blend. Playback and `st.state` are unchanged; a later reseed
+/// must apply the selection. No pointer is retained.
 static __inline__ void _pacedWalkCompleteTravelTick(PacedWalkWork* work)
 {
     enum {
