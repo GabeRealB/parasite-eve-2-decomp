@@ -113,7 +113,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor206100BogDiverSlot, 0x8);
 
 /// The two Bog Diver slots, emptied by the spawn state
-/// `func_actor_206100_8014C274`.
+/// `_actor206100Spawn`.
 extern _Actor206100BogDiverSlot D_actor_206100_80158CBC[2];
 
 /// Farthest from the origin, in the XZ plane, that a step of the fight may
@@ -328,24 +328,10 @@ static void func_actor_206100_8014EEC0(Task* task);
 /// `arg1` from a step distance, either a constant (`0x30`, `0x40`) or an
 /// `s16` the caller narrows itself.
 
-/// State-1 body: ticks the actor's per-state frame counter and, once it
-/// reaches 0x22, walks the actor out of the scene -- parks its model coordinate
-/// at y 0x1B58, clears the counter, hands the area record to the light mode,
-/// tells slot 3 (message 0x3E9) to place the player, and advances the sub-state
-/// `subState`.  Before that, the counter passing 3 fires the overlay's sound
-/// event.  Every other frame ramps `goalY` toward 0x1D4C by a quarter of the
-/// remaining distance and steps the actor `0x30` along its heading.
-///
-/// The second argument of `worldCoordSetActorColorMode` is read through a cast rather than
-/// as `task->spawnArg2.pointer` directly: the cast makes the load a *scalar* `MEM`,
-/// which is what keeps its dependence on the fixed-address
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store, so the store is scheduled ahead of it - the same
-/// `MEM_IN_STRUCT_P` mechanism `dryfield_water_tank_4.c` and
-/// `DECOMPILATION_LEARNINGS.md`, "Scalar memory references", describe.
-static void func_actor_206100_8014CD08(Task* task);
+static void _actor206100EntranceDepartureTick(Task* task);
 
 /// State handler 4 of `D_actor_206100_80149E94`, and the one that hands the
-/// actor to `func_actor_206100_8014CD08` above.  It clears the fixed-address
+/// actor to `_actor206100EntranceDepartureTick` above.  It clears the fixed-address
 /// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `stateFrames` and seeds
 /// `D_actor_206100_80158CCC.state` to `SCREEN_WAVE_RAMP_FINISHED` on the first frame; frame 3 retires the
 /// child task `func_actor_206100_8014CB68` spawned into `waveTask`, and if the
@@ -405,14 +391,11 @@ static void func_actor_206100_8014DD3C(Task* task);
 /// coordinate's space.  Returns 1 with `pos` rewritten once the walk reaches
 /// `gGfxViewCoord`, or 0 with `pos` untouched if the chain ends first.
 
-/// Last of the actor's five top-level states (`D_actor_206100_80149E5C`):
-/// hands the task's `Enemy`, parked in `Task::spawnArg2`, back to
-/// `enemyDestroy`.
-static void func_actor_206100_8014F490(Task* task);
+static void _actor206100Despawn(Task* task);
 
 static void _actor206100CopyRotation(const MATRIX* source, MATRIX* destination);
 
-static void func_actor_206100_8014B0AC(Task* task, u8 arg1);
+static void _actor206100UpdateNeckRetraction(Task* task, u8 unusedNeckRetracted);
 static void func_actor_206100_8014E0C0(Task* task);
 static void func_actor_206100_8014EB60(Task* task);
 static void func_actor_206100_8014EC54(Task* task);
@@ -430,7 +413,7 @@ static void func_actor_206100_8014F738(Task* task);
 static void func_actor_206100_8014F770(Task* task);
 static void func_actor_206100_8014F7B4(Task* task);
 static void func_actor_206100_8014F878(Task* task);
-static void func_actor_206100_8014E964(Task* task);
+static void _actor206100DeathPlaybackTick(Task* task);
 static void func_actor_206100_8014FBE4(Task* task);
 static void func_actor_206100_8014FCD4(Task* task);
 static void func_actor_206100_8014FDE8(Task* task);
@@ -453,7 +436,7 @@ extern ScreenWaveOscillator gScreenWaveRows[32];
 
 static void _actor206100WaitRecoilBoundary(Task* task);
 static void _actor206100EnterStatusHold(Task* task);
-static void func_actor_206100_8014FA08(Task* task);
+static void _actor206100StatusHoldTick(Task* task);
 
 static void func_actor_206100_8014B8B4(Task* task);
 
@@ -993,21 +976,21 @@ static void func_actor_206100_8014E7D4(Task* task);
 
 static void func_actor_206100_8014F524(Task* task);
 
-static void func_actor_206100_8014CFF4(Task* task);
+static void _actor206100DispatchAttack(Task* task);
 
 static void func_actor_206100_8014D380(Task* task);
 
 static void func_actor_206100_8014D6F4(Task* task);
 
-static void func_actor_206100_8014F59C(Task* task);
+static void _actor206100FightState4(Task* task);
 
-static void func_actor_206100_8014F5A4(Task* task);
+static void _actor206100FightState5(Task* task);
 
-static void func_actor_206100_8014F5AC(Task* task);
+static void _actor206100FightState6(Task* task);
 
-static void func_actor_206100_8014F5B4(Task* task);
+static void _actor206100DispatchRecoil(Task* task);
 
-static void func_actor_206100_8014F608(Task* task);
+static void _actor206100DispatchStatusHold(Task* task);
 
 static void func_actor_206100_8014F65C(Task* task);
 
@@ -1018,7 +1001,7 @@ extern TaskDesc D_actor_100400_80147E48;
 static void            func_actor_206100_8014B698(Task* task);
 static void            func_actor_206100_8014BAA8(Task* task);
 static inline void     _actor206100AnimUpdate(Task* task);
-static void            func_actor_206100_8014C274(Task* task);
+static void            _actor206100Spawn(Task* task);
 static __inline__ void Actor206100_UpdateColor(Task* task);
 static void            func_actor_206100_8014CB68(Task* task);
 static __inline__ s16  _actor206100ConsumeHitReaction(Task* task);
@@ -1028,10 +1011,10 @@ static __inline__ s16  _actor206100ConsumeHitReaction(Task* task);
 #include "../../shared/diver_impact_burst.inc.c"
 #include "../../shared/diver_draw_spark.inc.c"
 
-/// Copies only the nine halfword rotation coefficients of live matrices.
+/// Copies the nine rotation coefficients without replacing matrix translation.
 ///
-/// Preserves destination translation and alignment bytes; permits identical
-/// source and destination. Used while rebuilding individual body-part bases.
+/// Borrows live source and destination matrices, which may be identical. Leaves
+/// the destination alignment halfword intact; no GTE or coordinate-stamp changes.
 static inline void _actor206100CopyRotationElements(const MATRIX* source, MATRIX* destination)
 {
     destination->m[0][0] = source->m[0][0];
@@ -1094,61 +1077,86 @@ static void _actor206100InitEnemy(Task* task)
     work->targetPart  = 4;
 }
 
-/// Draws the neck in and lets it out again as `neckRetracted` asks: parts 2, 3
-/// and 4 are rebuilt from scratch each frame, the neck's two from an Euler
-/// angle triple each and the head from its angles plus a scale.
+/// Straightens and retracts the neck, or restores its length and target aim.
 ///
-/// `neckRetracted` picks the direction of travel.  While it reads 1 the neck is
-/// drawn in: `neckPhase` 0 latches `lowerNeckAngles` and `upperNeckAngles` out
-/// of the parts' matrices and falls straight into 1, which folds all six
-/// components toward zero by an eighth and arms 2 once every one of them is
-/// within 0x30; 2 then ramps `neckScale` down toward the 0x2AA the retracted
-/// neck shortens to.  Once `neckRetracted` reads 0 the else arm ramps `neckScale`
-/// back up toward 0x1000, and while it is still under 0xF80 it rebuilds the
-/// parts the same way; at 0xF80 the neck is out again and the head is handed to
-/// `_actor206100AimHead`, which aims it at the target.
-///
-/// The head is the one that grows rather than shrinks: `neckScale` shortens
-/// part 2, so `mc` gets its reciprocal, `0x1000000 /
-/// neckScale`.  Note also that the two arms clear `neckPhase` rather than the
-/// join after them: written once after the `if`, the else arm's tail becomes
-/// instruction-for-instruction the case-2 tail and the jump optimiser merges
-/// the two, costing the case-2 copy of the last fifty instructions.
-static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
+/// Requires live work and model parts 0..4. The work block's `neckRetracted`
+/// selects the behavior; `unusedNeckRetracted` is ignored. Retraction eases the
+/// captured neck angles to within 48 units of zero, then shortens the lower
+/// neck's Z basis toward 0x2AA. Release restores Q12 unit scale and resumes
+/// head aim once scale is at least 0xF80. The head keeps its angles and receives
+/// reciprocal Z scale while the neck is shortened. Scale must remain positive; angles
+/// use 4096 units per turn. Retains translations and recomposes the hierarchy.
+static void _actor206100UpdateNeckRetraction(Task* task, u8 unusedNeckRetracted)
 {
-    VECTOR            scale;
-    MATRIX            rot;
-    MATRIX            ma;
-    MATRIX            mb;
-    SVECTOR           euler;
-    MATRIX            mc;
+    enum { ACTOR_206100_NECK_RELEASE_REQUEST          = 0,
+           ACTOR_206100_NECK_RETRACT_REQUEST          = 1,
+           ACTOR_206100_NECK_STRAIGHT_ANGLE_THRESHOLD = 48,
+           ACTOR_206100_NECK_RETRACTED_SCALE          = 0x2AA,
+           ACTOR_206100_NECK_RELEASE_SCALE_THRESHOLD  = 0xF80 };
+    VECTOR            axisScale;
+    MATRIX            rotationMatrix;
+    MATRIX            lowerNeckBasis;
+    MATRIX            upperNeckBasis;
+    SVECTOR           headAngles;
+    MATRIX            headBasis;
     _Actor206100Work* work;
-    GfxCoord*         base;
-    GfxCoord*         c2;
-    GfxCoord*         c3;
-    GfxCoord*         c4;
-    s32               invScale;
+    GfxCoord*         coords;
+    GfxCoord*         lowerNeckCoord;
+    GfxCoord*         upperNeckCoord;
+    GfxCoord*         headCoord;
+    s32               inverseNeckScale;
 
-    base = task->extra.tmd->coords;
-    work = task->work;
-    c2   = &base[2];
-    c3   = &base[3];
-    c4   = &base[4];
+    /// Rebuilds both neck bases and inverse-scales the head, retaining translations.
+    ///
+    /// Captures work, lowerNeckCoord, upperNeckCoord, headCoord, headAngles,
+    /// axisScale, the three basis matrices, rotationMatrix and inverseNeckScale.
+    /// Requires positive Q12 neckScale and initialized headAngles; expands as
+    /// statements at braced call sites, with no arguments or retained pointers.
+#define ACTOR_206100_APPLY_NECK_SCALE()                                \
+    gfxSetRotIdentity(&lowerNeckBasis);                                \
+    axisScale.vx = ONE;                                                \
+    axisScale.vy = ONE;                                                \
+    axisScale.vz = work->neckScale;                                    \
+    ScaleMatrix(&lowerNeckBasis, &axisScale);                          \
+    _actor206100CopyRotation(&lowerNeckBasis, &lowerNeckCoord->coord); \
+    gfxSetRotIdentity(&upperNeckBasis);                                \
+    axisScale.vx = ONE;                                                \
+    axisScale.vy = ONE;                                                \
+    axisScale.vz = ONE;                                                \
+    ScaleMatrix(&upperNeckBasis, &axisScale);                          \
+    _actor206100CopyRotation(&upperNeckBasis, &upperNeckCoord->coord); \
+    gfxSetRotIdentity(&headBasis);                                     \
+    axisScale.vx     = ONE;                                            \
+    axisScale.vy     = ONE;                                            \
+    inverseNeckScale = (ONE * ONE) / work->neckScale;                  \
+    axisScale.vz     = inverseNeckScale;                               \
+    ScaleMatrix(&headBasis, &axisScale);                               \
+    gfxSetRotIdentity(&rotationMatrix);                                \
+    RotMatrix(&headAngles, &rotationMatrix);                           \
+    MulMatrix(&headBasis, &rotationMatrix);                            \
+    _actor206100CopyRotation(&headBasis, &headCoord->coord);
+
+    coords         = task->extra.tmd->coords;
+    work           = task->work;
+    lowerNeckCoord = &coords[2];
+    upperNeckCoord = &coords[3];
+    headCoord      = &coords[4];
 
     switch (work->neckRetracted) {
-        case 1:
+        case ACTOR_206100_NECK_RETRACT_REQUEST:
             switch (work->neckPhase) {
                 case ACTOR_206100_NECK_FREE:
-                    base[0].composeStamp = GRAPHICS_COORD_DIRTY;
-                    base[1].composeStamp = GRAPHICS_COORD_DIRTY;
-                    base[2].composeStamp = GRAPHICS_COORD_DIRTY;
-                    base[3].composeStamp = GRAPHICS_COORD_DIRTY;
-                    base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(c4);
-                    gfxExtractEulerAngles(&c2->coord, &work->lowerNeckAngles);
-                    gfxExtractEulerAngles(&c3->coord, &work->upperNeckAngles);
+                    // Capture the animated neck before straightening it.
+                    coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
+                    coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+                    coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+                    coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+                    coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(headCoord);
+                    gfxExtractEulerAngles(&lowerNeckCoord->coord, &work->lowerNeckAngles);
+                    gfxExtractEulerAngles(&upperNeckCoord->coord, &work->upperNeckAngles);
                     work->neckPhase = ACTOR_206100_NECK_STRAIGHTEN;
-                    work->neckScale = 0x1000;
+                    work->neckScale = ONE;
                     /* fallthrough */
                 case ACTOR_206100_NECK_STRAIGHTEN: {
                     work->lowerNeckAngles.vx = (u16)work->lowerNeckAngles.vx + ((s32) - (work->lowerNeckAngles.vx * 0x10) >> 7);
@@ -1157,91 +1165,51 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
                     work->upperNeckAngles.vx = (u16)work->upperNeckAngles.vx + ((s32) - (work->upperNeckAngles.vx * 0x10) >> 7);
                     work->upperNeckAngles.vy = (u16)work->upperNeckAngles.vy + ((s32) - (work->upperNeckAngles.vy * 0x10) >> 7);
                     work->upperNeckAngles.vz = (u16)work->upperNeckAngles.vz + ((s32) - (work->upperNeckAngles.vz * 0x10) >> 7);
-                    gfxSetRotIdentity(&rot);
-                    RotMatrix(&work->lowerNeckAngles, &rot);
-                    _actor206100CopyRotation(&rot, &c2->coord);
-                    gfxSetRotIdentity(&rot);
-                    RotMatrix(&work->upperNeckAngles, &rot);
-                    _actor206100CopyRotation(&rot, &c3->coord);
-                    if ((abs(work->lowerNeckAngles.vx) < 0x30) && (abs(work->lowerNeckAngles.vy) < 0x30) && (abs(work->lowerNeckAngles.vz) < 0x30) &&
-                        (abs(work->upperNeckAngles.vx) < 0x30) && (abs(work->upperNeckAngles.vy) < 0x30) && (abs(work->upperNeckAngles.vz) < 0x30)) {
+                    gfxSetRotIdentity(&rotationMatrix);
+                    RotMatrix(&work->lowerNeckAngles, &rotationMatrix);
+                    _actor206100CopyRotation(&rotationMatrix, &lowerNeckCoord->coord);
+                    gfxSetRotIdentity(&rotationMatrix);
+                    RotMatrix(&work->upperNeckAngles, &rotationMatrix);
+                    _actor206100CopyRotation(&rotationMatrix, &upperNeckCoord->coord);
+                    if ((abs(work->lowerNeckAngles.vx) < ACTOR_206100_NECK_STRAIGHT_ANGLE_THRESHOLD) && (abs(work->lowerNeckAngles.vy) < ACTOR_206100_NECK_STRAIGHT_ANGLE_THRESHOLD) && (abs(work->lowerNeckAngles.vz) < ACTOR_206100_NECK_STRAIGHT_ANGLE_THRESHOLD) &&
+                        (abs(work->upperNeckAngles.vx) < ACTOR_206100_NECK_STRAIGHT_ANGLE_THRESHOLD) && (abs(work->upperNeckAngles.vy) < ACTOR_206100_NECK_STRAIGHT_ANGLE_THRESHOLD) && (abs(work->upperNeckAngles.vz) < ACTOR_206100_NECK_STRAIGHT_ANGLE_THRESHOLD)) {
                         work->neckPhase = ACTOR_206100_NECK_RETRACTED;
                     }
-                    c2->composeStamp = GRAPHICS_COORD_DIRTY;
-                    c3->composeStamp = GRAPHICS_COORD_DIRTY;
-                    c4->composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(c4);
+                    lowerNeckCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                    upperNeckCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                    headCoord->composeStamp      = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(headCoord);
                     break;
                 }
                 case ACTOR_206100_NECK_RETRACTED: {
-                    gfxExtractEulerAngles(&c4->coord, &euler);
-                    work->neckScale = (u16)work->neckScale + ((0x2AA - work->neckScale) >> 3);
-                    gfxSetRotIdentity(&ma);
-                    scale.vx = 0x1000;
-                    scale.vy = 0x1000;
-                    scale.vz = work->neckScale;
-                    ScaleMatrix(&ma, &scale);
-                    _actor206100CopyRotation(&ma, &c2->coord);
-                    gfxSetRotIdentity(&mb);
-                    scale.vx = 0x1000;
-                    scale.vy = 0x1000;
-                    scale.vz = 0x1000;
-                    ScaleMatrix(&mb, &scale);
-                    _actor206100CopyRotation(&mb, &c3->coord);
-                    gfxSetRotIdentity(&mc);
-                    scale.vx = 0x1000;
-                    scale.vy = 0x1000;
-                    invScale = 0x1000000 / work->neckScale;
-                    scale.vz = invScale;
-                    ScaleMatrix(&mc, &scale);
-                    gfxSetRotIdentity(&rot);
-                    RotMatrix(&euler, &rot);
-                    MulMatrix(&mc, &rot);
-                    _actor206100CopyRotation(&mc, &c4->coord);
-                    base[2].composeStamp = GRAPHICS_COORD_DIRTY;
-                    base[3].composeStamp = GRAPHICS_COORD_DIRTY;
-                    base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(c4);
+                    // Shorten the neck and compensate the head's Z scale.
+                    gfxExtractEulerAngles(&headCoord->coord, &headAngles);
+                    work->neckScale = (u16)work->neckScale + ((ACTOR_206100_NECK_RETRACTED_SCALE - work->neckScale) >> 3);
+                    ACTOR_206100_APPLY_NECK_SCALE();
+                    coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+                    coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+                    coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(headCoord);
                     break;
                 }
             }
             break;
-        case 0:
-            base[0].composeStamp = GRAPHICS_COORD_DIRTY;
-            base[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            base[2].composeStamp = GRAPHICS_COORD_DIRTY;
-            base[3].composeStamp = GRAPHICS_COORD_DIRTY;
-            base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(c4);
-            if (work->neckScale < 0xF80) {
-                gfxExtractEulerAngles(&c4->coord, &euler);
-                work->neckScale = (u16)work->neckScale + ((0x1000 - work->neckScale) >> 2);
-                gfxSetRotIdentity(&ma);
-                scale.vx = 0x1000;
-                scale.vy = 0x1000;
-                scale.vz = work->neckScale;
-                ScaleMatrix(&ma, &scale);
-                _actor206100CopyRotation(&ma, &c2->coord);
-                gfxSetRotIdentity(&mb);
-                scale.vx = 0x1000;
-                scale.vy = 0x1000;
-                scale.vz = 0x1000;
-                ScaleMatrix(&mb, &scale);
-                _actor206100CopyRotation(&mb, &c3->coord);
-                gfxSetRotIdentity(&mc);
-                scale.vx = 0x1000;
-                scale.vy = 0x1000;
-                invScale = 0x1000000 / work->neckScale;
-                scale.vz = invScale;
-                ScaleMatrix(&mc, &scale);
-                gfxSetRotIdentity(&rot);
-                RotMatrix(&euler, &rot);
-                MulMatrix(&mc, &rot);
-                _actor206100CopyRotation(&mc, &c4->coord);
-                base[2].composeStamp = GRAPHICS_COORD_DIRTY;
-                base[3].composeStamp = GRAPHICS_COORD_DIRTY;
-                base[4].composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(c4);
+        case ACTOR_206100_NECK_RELEASE_REQUEST:
+            coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
+            coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+            coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+            coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+            coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(headCoord);
+            // Restore neck length before handing the head back to target aim.
+            if (work->neckScale < ACTOR_206100_NECK_RELEASE_SCALE_THRESHOLD) {
+                gfxExtractEulerAngles(&headCoord->coord, &headAngles);
+                work->neckScale = (u16)work->neckScale + ((ONE - work->neckScale) >> 2);
+                ACTOR_206100_APPLY_NECK_SCALE();
+                coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+                coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+                coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(headCoord);
                 work->neckPhase = ACTOR_206100_NECK_FREE;
             } else {
                 _actor206100AimHead(task);
@@ -1249,6 +1217,7 @@ static void func_actor_206100_8014B0AC(Task* task, u8 arg1)
             }
             break;
     }
+#undef ACTOR_206100_APPLY_NECK_SCALE
 }
 /// Latches the actor's position and picks the nearer of the two `gPlayerActorTasks`
 /// actors as its target: it stores the root position in `prevRootPos`, then
@@ -1578,34 +1547,29 @@ static inline void _actor206100AnimUpdate(Task* task)
     }
 }
 
-/// Spawn state of `D_actor_206100_80149E94`: builds the actor's work block --
-/// a zeroed `_Actor206100Work` parked straight in `Task::work`, the actor destroyed
-/// if that fails -- empties both Bog Diver slots of `D_actor_206100_80158CBC`
-/// through their index (the walked-pointer form gives the cooldown field an
-/// induction variable of its own) and calls the setup `_actor206100InitEnemy`
-/// with the block in place.
+/// Allocates and initializes the Sea Diver before its waypoint-ring phase.
 ///
-/// It then requests the first clip -- kind 2 in `animRequest`, `animClip` as the
-/// clip and `animStep` the step scale -- and services the request at once.
-///
-/// The tail seeds `field_508`, `field_50A`, `modelScale` and `goalY`, asks for
-/// the neck drawn in, places the root coordinate at the goal height, takes the state-0
-/// reference `sceneAcquireBattleRef` and re-arms the actor in state 1 with the state
-/// and sub-state indices cleared -- the two index pairs written through the two
-/// fresh `Task::work` loads, the block-local store shape `func_actor_206100_8014CE60`
-/// uses.
-static void func_actor_206100_8014C274(Task* task)
+/// Requires the loaded model and Enemy in spawnArg2.pointer. Allocates zeroed
+/// work from the primary heap, destroys the enemy/task on failure, and clears
+/// both summoned-diver slots on success. Starts the swim clip, seeds root
+/// height and Q12 model scale, retracts the neck, acquires the battle reference
+/// and selects ring placement. Task teardown owns release of the work block.
+static void _actor206100Spawn(Task* task)
 {
+    enum { ACTOR_206100_SPAWN_SWIM_CLIP     = 3,
+           ACTOR_206100_SPAWN_MODEL_SCALE   = 0x1EAA,
+           ACTOR_206100_SPAWN_ROOT_Y        = 10000,
+           ACTOR_206100_TASK_STATE_CIRCLING = 1,
+           ACTOR_206100_RING_STATE_PLACE    = 0 };
     _Actor206100Work* work;
-    _Actor206100Work* req;
-    _Actor206100Work* state;
-    _Actor206100Work* tail;
+    _Actor206100Work* requestWork;
     Enemy*            enemy;
-    GfxCoord*         coord;
-    s32               i;
+    GfxCoord*         rootCoord;
+    s32               slotIndex;
 
+    // Establish owned work before linking the model and hit bodies.
     enemy      = task->spawnArg2.pointer;
-    coord      = task->extra.tmd->coords;
+    rootCoord  = task->extra.tmd->coords;
     task->work = memCalloc(sizeof(_Actor206100Work), 0);
     work       = task->work;
     if (work == NULL) {
@@ -1614,60 +1578,57 @@ static void func_actor_206100_8014C274(Task* task)
     }
     D_neo_ark_submarine_gallery_801818B8 = 1;
     work->waterLevel                     = D_neo_ark_submarine_gallery_80181A48;
-    for (i = 0; i < ARRAY_SIZE(D_actor_206100_80158CBC); i++) {
-        D_actor_206100_80158CBC[i].enemy          = NULL;
-        D_actor_206100_80158CBC[i].summonCooldown = 0;
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_actor_206100_80158CBC); slotIndex++) {
+        D_actor_206100_80158CBC[slotIndex].enemy          = NULL;
+        D_actor_206100_80158CBC[slotIndex].summonCooldown = 0;
     }
     _actor206100InitEnemy(task);
-    req              = task->work;
-    req->animStep    = 0x10;
-    req->animClip    = 3;
-    req->animRequest = DIVER_ANIM_REQUEST_RESET;
+    // Apply the initial swimming pose before entering the ring phase.
+    requestWork              = task->work;
+    requestWork->animStep    = ANIMATION_RATE_ONE;
+    requestWork->animClip    = ACTOR_206100_SPAWN_SWIM_CLIP;
+    requestWork->animRequest = DIVER_ANIM_REQUEST_RESET;
     _actor206100AnimUpdate(task);
-    work->field_508     = 0x1000;
-    work->field_50A     = 0x1000;
-    work->modelScale    = 0x1EAA;
-    work->neckRetracted = 1;
-    coord->coord.t[0]   = 0;
-    work->goalY         = 0x2710;
-    coord->coord.t[1]   = 0x2710;
-    coord->coord.t[2]   = 0;
-    (sceneAcquireBattleRef)(0);
-    state           = task->work;
-    task->state     = 1;
-    state->state    = 0;
-    state->subState = 0;
-    tail            = task->work;
-    tail->state     = 0;
-    tail->subState  = 0;
+    work->field_508       = 0x1000;
+    work->field_50A       = 0x1000;
+    work->modelScale      = ACTOR_206100_SPAWN_MODEL_SCALE;
+    work->neckRetracted   = 1;
+    rootCoord->coord.t[0] = 0;
+    work->goalY           = ACTOR_206100_SPAWN_ROOT_Y;
+    rootCoord->coord.t[1] = ACTOR_206100_SPAWN_ROOT_Y;
+    rootCoord->coord.t[2] = 0;
+    sceneAcquireBattleRef(0);
+    task->state = ACTOR_206100_TASK_STATE_CIRCLING;
+    _diverSetState(task, ACTOR_206100_RING_STATE_PLACE);
+    // Ring entry repeats the nested-state reset made by the task transition.
+    _diverSetState(task, ACTOR_206100_RING_STATE_PLACE);
 }
-
 /// The actor's five top-level states, dispatched on `Task::state` by its task
-/// callback `func_actor_206100_8014F428`: `func_actor_206100_8014C274` (which
+/// callback `func_actor_206100_8014F428`: `_actor206100Spawn` (which
 /// builds the work block), `func_actor_206100_8014DA28`,
 /// `func_actor_206100_8014C458`, `func_actor_206100_8014E7D4` and the exit
-/// `func_actor_206100_8014F490`.
+/// `_actor206100Despawn`.
 static const TaskFuncTable5 D_actor_206100_80149E5C = {
     {
-        func_actor_206100_8014C274,
+        _actor206100Spawn,
         func_actor_206100_8014DA28,
         func_actor_206100_8014C458,
         func_actor_206100_8014E7D4,
-        func_actor_206100_8014F490,
+        _actor206100Despawn,
     },
 };
 
 static const TaskFuncTable9 D_actor_206100_80149E70 = {
     {
         func_actor_206100_8014F524,
-        func_actor_206100_8014CFF4,
+        _actor206100DispatchAttack,
         func_actor_206100_8014D380,
         func_actor_206100_8014D6F4,
-        func_actor_206100_8014F59C,
-        func_actor_206100_8014F5A4,
-        func_actor_206100_8014F5AC,
-        func_actor_206100_8014F5B4,
-        func_actor_206100_8014F608,
+        _actor206100FightState4,
+        _actor206100FightState5,
+        _actor206100FightState6,
+        _actor206100DispatchRecoil,
+        _actor206100DispatchStatusHold,
     },
 };
 
@@ -1699,8 +1660,11 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 
-/// Multiplies `coord`'s rotation by the scale `factors` holds for each axis,
-/// `ONE` = 1.0.
+/// Applies per-axis local scale to a coordinate's rotation basis.
+///
+/// Borrows a writable coordinate and axis factors in signed Q12 (ONE = 1.0);
+/// the vector's fourth word is unused. Preserves translation and does not dirty
+/// the composition stamp. Changes GTE rotation and arithmetic state.
 static inline void _actor206100ScaleCoord(GfxCoord* coord, VECTOR* factors)
 {
     MATRIX scaling;
@@ -1926,7 +1890,7 @@ static void func_actor_206100_8014C458(Task* task)
                 animationTickSlot(&anim->rig.anim, i);
             }
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            func_actor_206100_8014B0AC(task, work->neckRetracted);
+            _actor206100UpdateNeckRetraction(task, work->neckRetracted);
             func_actor_206100_8014E0C0(task);
             func_actor_206100_8014EC54(task);
             func_actor_206100_8014EB60(task);
@@ -2020,47 +1984,62 @@ static void func_actor_206100_8014CB68(Task* task)
         work->waveTask                                             = taskSpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
     }
 }
-static void func_actor_206100_8014CD08(Task* task)
+/// Moves the Sea Diver out of the entrance view and stages its reappearance.
+///
+/// Requires live work/model and the player task. Active ticks descend toward
+/// Y 7500 and advance 48 parent-coordinate units along the heading. Tick 3
+/// voices departure; tick 34 switches to view 6, places the diver at Y 7000
+/// with goal Y 5000, hides the player model and synchronously places the
+/// player. Queues the arrival clip at normal rate and advances the entrance
+/// substate; playback applies that request later.
+static void _actor206100EntranceDepartureTick(Task* task)
 {
+    enum { ACTOR_206100_ENTRANCE_DEPART_SOUND_FRAME = 3,
+           ACTOR_206100_ENTRANCE_DEPART_FRAMES      = 34,
+           ACTOR_206100_ENTRANCE_DEPART_GOAL_Y      = 7500,
+           ACTOR_206100_ENTRANCE_DEPART_STEP        = 48,
+           ACTOR_206100_ENTRANCE_ARRIVAL_ROOT_Y     = 7000,
+           ACTOR_206100_ENTRANCE_ARRIVAL_GOAL_Y     = 5000,
+           ACTOR_206100_ENTRANCE_ARRIVAL_VIEW       = 6,
+           ACTOR_206100_ENTRANCE_ARRIVAL_CLIP       = 1 };
     _Actor206100Work* work;
-    _Actor206100Work* work2;
-    TmdObject*        tmd;
-    GfxCoord*         coord;
-    ActorTransform    msg;
+    _Actor206100Work* requestWork;
+    GfxCoord*         rootCoord;
+    ActorTransform    playerTransform;
 
     work              = task->work;
-    tmd               = task->extra.tmd;
-    coord             = tmd->coords;
+    rootCoord         = task->extra.tmd->coords;
     work->stateFrames = work->stateFrames + 1;
-    if (work->stateFrames == 3) {
+    if (work->stateFrames == ACTOR_206100_ENTRANCE_DEPART_SOUND_FRAME) {
         sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_DIVER_DEPART, 0, 0);
     }
-    if (work->stateFrames == 0x22) {
-        coord->coord.t[0]                                          = 0;
-        coord->coord.t[2]                                          = 0;
-        work->goalY                                                = 0x1388;
+    // Stage both actors for reappearance in the next entrance view.
+    if (work->stateFrames == ACTOR_206100_ENTRANCE_DEPART_FRAMES) {
+        rootCoord->coord.t[0]                                      = 0;
+        rootCoord->coord.t[2]                                      = 0;
+        work->goalY                                                = ACTOR_206100_ENTRANCE_ARRIVAL_GOAL_Y;
         work->stateFrames                                          = 0U;
-        coord->coord.t[1]                                          = 0x1B58;
+        rootCoord->coord.t[1]                                      = ACTOR_206100_ENTRANCE_ARRIVAL_ROOT_Y;
         work->rotation.vy                                          = 0;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_206100_ENTRANCE_ARRIVAL_VIEW;
         worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-        msg.pos.vx = 0x690;
-        msg.pos.vy = 0x1388;
-        msg.pos.vz = 0x898;
-        msg.rot.vx = 0;
-        msg.rot.vy = 0xA00;
-        msg.rot.vz = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
-        work2              = task->work;
-        work2->animStep    = 0x10;
-        work2->animClip    = 1;
-        work2->animRequest = DIVER_ANIM_REQUEST_RESET;
-        work->subState     = work->subState + 1;
+        playerTransform.pos.vx = 0x690;
+        playerTransform.pos.vy = 0x1388;
+        playerTransform.pos.vz = 0x898;
+        playerTransform.rot.vx = 0;
+        playerTransform.rot.vy = 0xA00;
+        playerTransform.rot.vz = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &playerTransform, 0);
+        requestWork              = task->work;
+        requestWork->animStep    = ANIMATION_RATE_ONE;
+        requestWork->animClip    = ACTOR_206100_ENTRANCE_ARRIVAL_CLIP;
+        requestWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+        work->subState           = work->subState + 1;
         return;
     }
-    work->goalY = work->goalY + ((0x1D4C - work->goalY) >> 2);
-    _diverStepForward(task, 0x30, work->rotation.vy);
+    work->goalY = work->goalY + ((ACTOR_206100_ENTRANCE_DEPART_GOAL_Y - work->goalY) >> 2);
+    _diverStepForward(task, ACTOR_206100_ENTRANCE_DEPART_STEP, work->rotation.vy);
 }
 /// State handler 4 of `D_actor_206100_80149E94`: clears the fixed-address
 /// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `stateFrames` and seeds
@@ -2071,7 +2050,7 @@ static void func_actor_206100_8014CD08(Task* task)
 /// overlay's sound event 0x551E0003.  Frame 0xC splats the 0x01202148 particle
 /// ring -- the same one `func_actor_206100_8014D574` fires, at a radius of
 /// 0x1000 and a constant y of -0x294 -- and frame 0x46 hands the actor to state
-/// 1 (`func_actor_206100_8014CD08`): it clears the model coordinate's x and z,
+/// 1 (`_actor206100EntranceDepartureTick`): it clears the model coordinate's x and z,
 /// plays the weapon and 0x3F3 messages under light mode 2, and zeroes the
 /// sub-state index along with the new state.
 ///
@@ -2171,27 +2150,30 @@ static __inline__ s16 _actor206100ConsumeHitReaction(Task* task)
     return 0;
 }
 
-/// State handler: consumes a pending sub-state request and, when there was
-/// none, runs the current sub-state handler.  The request is handled through
-/// the inlined `_actor206100ConsumeHitReaction`, so a request that moved the actor to another
-/// state skips this frame's handler entirely.
-static void func_actor_206100_8014CFF4(Task* task)
+/// Dispatches the attack's entry or active step after consuming hit reactions.
+///
+/// Requires live work with subState 0 or 1. A status or blast reaction that
+/// selects another fight state skips this tick's attack handler; light and
+/// heavy recoil allow it to run. The fight driver advances animation afterward.
+static void _actor206100DispatchAttack(Task* task)
 {
-    _Actor206100Work* sub                 = task->work;
-    void              (*states[2])(Task*) = {
+    _Actor206100Work* work                = task->work;
+    TaskFunc          substateHandlers[2] = {
         _actor206100EnterAttack,
         _actor206100AttackTick,
     };
 
     if (_actor206100ConsumeHitReaction(task) == 0) {
-        states[sub->subState](task);
+        substateHandlers[work->subState](task);
     }
 }
 /// Turns the root heading toward a point outside a signed yaw deadband.
 ///
-/// Target XZ uses root-parent coordinate units. Angles use 4096 units per turn;
-/// yawStep is a fixed increment and may overshoot. Dirties the root and changes
-/// GTE state while normalizing the direction, without translating the root.
+/// Borrows live task work, a model root and a target in the root's parent frame.
+/// Only XZ is read, narrowed to signed halfwords before normalization. Angles
+/// use 4096 units per turn; the difference wraps to -2048..2047. Positive
+/// yawStep is a fixed increment and may overshoot; deadband is nonnegative.
+/// Dirties the root and changes GTE state without translating it.
 static inline void _actor206100TurnTowardPoint(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband)
 {
     _Actor206100Work* work;
@@ -2282,13 +2264,13 @@ static const TaskFuncTable5 D_actor_206100_80149E94 = {
         func_actor_206100_8014F65C,
         func_actor_206100_8014F69C,
         func_actor_206100_8014CB68,
-        func_actor_206100_8014CD08,
+        _actor206100EntranceDepartureTick,
         func_actor_206100_8014CE60,
     },
 };
 
 /// The state-0 dispatcher's sub-state table, a table in its own right rather
-/// than the local array `func_actor_206100_8014CFF4` builds -- the dispatcher
+/// than the local array `_actor206100DispatchAttack` builds -- the dispatcher
 /// copies it whole, which is why the copy is a three-word block move out of
 /// `.rodata`.  `func_actor_206100_8014D6F4` has the same body over the sibling
 /// table `D_actor_206100_80149EB4`.
@@ -2321,7 +2303,7 @@ static const TaskFuncTable4 D_actor_206100_80149EC0 = {
     {
         func_actor_206100_8014FBE4,
         func_actor_206100_8014FCD4,
-        func_actor_206100_8014E964,
+        _actor206100DeathPlaybackTick,
         func_actor_206100_8014FDE8,
     },
 };
@@ -2528,7 +2510,7 @@ static void func_actor_206100_8014D8E8(Task* task)
 /// drawing. The table's entries are the ring stepper
 /// `func_actor_206100_8014FAE4` and the summon tick
 /// `func_actor_206100_8014DD3C`, which is the `state` index the spawn state
-/// `func_actor_206100_8014C274` leaves at 0.
+/// `_actor206100Spawn` leaves at 0.
 ///
 /// The table is two addresses materialised into `$v0`, not a block move out of
 /// `.rodata` -- the head of the function's four `lui` / `addiu` / `sw` pairs
@@ -2536,9 +2518,9 @@ static void func_actor_206100_8014D8E8(Task* task)
 /// both of those are locals with initialisers as well, and a declaration's
 /// initialiser is emitted where the declaration is.
 ///
-/// From the request kind down the body is `func_actor_206100_8014E964`'s word
-/// for word: the same `animRequest` re-arm / ramp / reset chain over a second
-/// `task->work` load, and the same `for (i = 1; i < 0xF; i++)` slot tick whose
+/// The animation driver is the same `_actor206100AnimUpdate` expansion used
+/// by `_actor206100DeathPlaybackTick`: the `animRequest` re-arm / ramp / reset
+/// chain over a second `task->work` load, and the same `for (i = 1; i < 0xF; i++)` slot tick whose
 /// initialiser sits *after* the chain for the reason
 /// `func_actor_206100_8014FCD4` documents.  The chain is the only reader of
 /// `next`; everything else stays on `work`, which is why the two loads exist.
@@ -2598,7 +2580,7 @@ static void func_actor_206100_8014DA28(Task* task)
                 animationTickSlot(&next->rig.anim, i);
             }
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            func_actor_206100_8014B0AC(task, work->neckRetracted);
+            _actor206100UpdateNeckRetraction(task, work->neckRetracted);
             coord = task->extra.tmd->coords;
             sub   = task->work;
             gfxSetRotIdentity(&matrix);
@@ -2976,54 +2958,24 @@ static void func_actor_206100_8014E7D4(Task* task)
             return;
     }
 }
-/// Teleport-state tick: the same animation request chain
-/// `func_actor_206100_8014FCD4` runs -- re-arm, ramp or reset the clip phase
-/// `animFrames` and tick every slot -- but on its own frame counter, and with the
-/// tail this actor needs instead of that one's: `stateFrames` reaching 0x32
-/// rewinds it and steps the state index `state`, the frame the sub-state
-/// table walks to pick the next handler.
+/// Advances death animation for fifty active ticks before the sinking step.
 ///
-/// `coord` is the actor's root coordinate, cleared so the composition pass rebuilds it --
-/// the same dereference-store local `func_actor_206100_8014FDE8` binds.
-///
-/// The loop initialiser sits after the sub-state chain for the reason
-/// `func_actor_206100_8014FCD4` documents: ahead of it the store that
-/// materialises `i` shares a block with the case-3 increment, post-reload CSE
-/// folds that increment's `+ 1` into `+ $s0`, and the phase is written with
-/// `addu`.  Here the branch targets the initialiser instead.
-static void func_actor_206100_8014E964(Task* task)
+/// Requires live work, model and initialized body slots. Applies pending
+/// animation requests and ticks slots 1..14 without refreshing cached status;
+/// the death driver captures it afterward. Dirties the root each tick, then
+/// clears the state timer and advances the death-state index at tick 50.
+static void _actor206100DeathPlaybackTick(Task* task)
 {
+    enum { ACTOR_206100_DEATH_PLAYBACK_FRAMES = 50 };
     _Actor206100Work* work;
-    _Actor206100Work* next;
-    GfxCoord*         coord;
-    s32               i;
-    s16               state;
+    GfxCoord*         rootCoord;
 
     work              = task->work;
-    coord             = task->extra.tmd->coords;
+    rootCoord         = task->extra.tmd->coords;
     work->stateFrames = work->stateFrames + 1;
-    next              = task->work;
-    state             = next->animRequest;
-    if (state == DIVER_ANIM_REQUEST_BLEND) {
-        if (next->animPlaying != next->animClip) {
-            next->animFrames = 0;
-        } else {
-            next->animFrames = _actor206100ScaleFramesForAnimRate(task, next->animFrames);
-        }
-        _actor206100BlendRequestedClip(task);
-        next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-    } else if (state == DIVER_ANIM_REQUEST_RESET) {
-        _diverRestartClip(task);
-        next->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-        next->animFrames  = 0;
-    } else if (state == DIVER_ANIM_REQUEST_PLAYING) {
-        next->animFrames = next->animFrames + 1;
-    }
-    for (i = 1; i < ARRAY_SIZE(next->rig.slots); i++) {
-        animationTickSlot(&next->rig.anim, i);
-    }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->stateFrames >= 0x32) {
+    _actor206100AnimUpdate(task);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->stateFrames >= ACTOR_206100_DEATH_PLAYBACK_FRAMES) {
         work->stateFrames = 0;
         work->state       = work->state + 1;
     }
@@ -3238,10 +3190,13 @@ static void _actor206100InitHitBodies(Task* task)
 
 #include "../../shared/diver_restart_clip.inc.c"
 
-/// Captures and blends every body slot toward the requested track start.
+/// Captures body-slot poses and blends them toward the requested clip start.
 ///
-/// Takes the live initialized work block; rate narrows to each slot's signed
-/// byte and blend time counts normal-rate frames. Leaves request fields intact.
+/// Requires a live initialized rig and a loaded `animClip` supporting slots 1..14.
+/// `animStep` narrows to each slot's signed-byte rate in sixteenths of a frame.
+/// `animBlend` counts whole normal-rate frames; 0..2047 keeps blend time
+/// nonnegative. Leaves slot 0 and request fields intact. Pose buffers and clip
+/// data must remain live throughout the blend; pose capture changes GTE state.
 static inline void _actor206100SeekBodySlotsWithBlend(_Actor206100Work* work)
 {
     s32 slotIndex;
@@ -3301,7 +3256,11 @@ void func_actor_206100_8014F428(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_actor_206100_8014F490(Task* task)
+/// Destroys the Sea Diver enemy and its task in the final task state.
+///
+/// Requires the live Enemy in spawnArg2.pointer. Death has already unlinked
+/// the hit bodies; enemy destruction tears down the model, task and work.
+static void _actor206100Despawn(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -3330,38 +3289,55 @@ static void func_actor_206100_8014F524(Task* task)
     sp.funcs[work->subState](task);
 }
 
-static void func_actor_206100_8014F59C(Task* task)
+/// Empty handler for unused Sea Diver fight-state slot 4.
+///
+/// No state transition selects this slot; dispatch leaves the task unchanged.
+static void _actor206100FightState4(Task* task)
 {
 }
 
-static void func_actor_206100_8014F5A4(Task* task)
+/// Empty handler for unused Sea Diver fight-state slot 5.
+///
+/// No state transition selects this slot; dispatch leaves the task unchanged.
+static void _actor206100FightState5(Task* task)
 {
 }
 
-static void func_actor_206100_8014F5AC(Task* task)
+/// Empty handler for unused Sea Diver fight-state slot 6.
+///
+/// No state transition selects this slot; dispatch leaves the task unchanged.
+static void _actor206100FightState6(Task* task)
 {
 }
 
-static void func_actor_206100_8014F5B4(Task* task)
+/// Dispatches recoil entry or the wait for a clip boundary or control jump.
+///
+/// Requires live work with subState 0 or 1. Entry queues recoil playback and
+/// voice; the waiting step selects the dive when cached slot status permits it.
+static void _actor206100DispatchRecoil(Task* task)
 {
     _Actor206100Work* work                = task->work;
-    void              (*states[2])(Task*) = {
+    TaskFunc          substateHandlers[2] = {
         _diverEnterRecoil,
         _actor206100WaitRecoilBoundary,
     };
 
-    states[work->subState](task);
+    substateHandlers[work->subState](task);
 }
 
-static void func_actor_206100_8014F608(Task* task)
+/// Dispatches entry or the active wait for the Sea Diver's status buildup.
+///
+/// Requires live work with subState 0 or 1. Entry sets water-level goal Y and
+/// queues playback; the active step selects the attack when buildup expires.
+static void _actor206100DispatchStatusHold(Task* task)
 {
     _Actor206100Work* work                = task->work;
-    void              (*states[2])(Task*) = {
+    TaskFunc          substateHandlers[2] = {
         _actor206100EnterStatusHold,
-        func_actor_206100_8014FA08,
+        _actor206100StatusHoldTick,
     };
 
-    states[work->subState](task);
+    substateHandlers[work->subState](task);
 }
 
 static void func_actor_206100_8014F65C(Task* task)
@@ -3502,30 +3478,38 @@ static void _actor206100EnterStatusHold(Task* task)
     work->subState    = work->subState + 1;
 }
 
-static void func_actor_206100_8014FA08(Task* task)
+/// Keeps the Sea Diver in its status hold until enemy buildup expires.
+///
+/// Requires live work, loaded hold clips and a started Enemy buildup reaction.
+/// From tick 31 targets the trunk. A cached clip boundary or control jump
+/// queues the looping hold clip at half rate with an eight-frame blend.
+/// Buildup completion restores the head target and restarts the attack at
+/// substate zero; animation playback applies any queued request afterward.
+static void _actor206100StatusHoldTick(Task* task)
 {
-    u16               timer;
+    enum { ACTOR_206100_STATUS_HOLD_TRUNK_TARGET_FRAME = 31,
+           ACTOR_206100_STATUS_HOLD_LOOP_CLIP          = 16,
+           ACTOR_206100_STATUS_HOLD_LOOP_BLEND_FRAMES  = 8,
+           ACTOR_206100_TRUNK_PART                     = 1,
+           ACTOR_206100_HEAD_PART                      = 4 };
+    u16               stateFrames;
     _Actor206100Work* work;
-    _Actor206100Work* next;
+    _Actor206100Work* requestWork;
 
     work              = task->work;
-    timer             = work->stateFrames + 1;
-    work->stateFrames = timer;
-    if ((s16)timer >= 0x1F) {
-        work->targetPart = 1;
+    stateFrames       = work->stateFrames + 1;
+    work->stateFrames = stateFrames;
+    if ((s16)stateFrames >= ACTOR_206100_STATUS_HOLD_TRUNK_TARGET_FRAME) {
+        work->targetPart = ACTOR_206100_TRUNK_PART;
     }
     if (_diverClipHasBoundaryOrJump(task)) {
-        next              = task->work;
-        next->animBlend   = 8;
-        next->animStep    = 8;
-        next->animClip    = 0x10;
-        next->animRequest = DIVER_ANIM_REQUEST_BLEND;
+        requestWork = task->work;
+        _diverRequestClipBlend(requestWork, ACTOR_206100_STATUS_HOLD_LOOP_CLIP,
+                               ANIMATION_RATE_ONE / 2, ACTOR_206100_STATUS_HOLD_LOOP_BLEND_FRAMES);
     }
     if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
-        work->targetPart = 4;
-        next             = task->work;
-        next->state      = ACTOR_206100_FIGHT_STATE_ATTACK;
-        next->subState   = 0;
+        work->targetPart = ACTOR_206100_HEAD_PART;
+        _diverSetState(task, ACTOR_206100_FIGHT_STATE_ATTACK);
     }
 }
 /// Ring-spawn state: seeds `waypoints` and `waypointIndex` from the eight-point ring

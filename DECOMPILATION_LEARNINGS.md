@@ -43766,10 +43766,10 @@ is the copy cross-jumping would have deleted.
 ## A duplicated tail is stopped by writing the shared statement into *both* arms
 
 The shippable alternative to the `SOFT_BARRIER` above, and usually the shape the
-original source had. `func_actor_206100_8014B0AC` retires the actor in a
+original source had. `_actor206100UpdateNeckRetraction` retracts the neck in a
 `switch (neckRetracted)` whose case 1 sub-state 2 and whose `case 0` else arm both
 end in the same fifty instructions — ramp `neckScale`, rebuild three part
-matrices, clear three `composeStamp`s, `actorRenderComposeCoord(c4)`. Written the obvious way, with
+matrices, clear three `composeStamp`s, `actorRenderComposeCoord(headCoord)`. Written the obvious way, with
 one `work->neckPhase = 0;` at the join after the if/else, both arms end in a
 `j` to that join and cross-jumping merges them: the sub-state-2 copy disappears
 and the overlay drops from 97.5% to 79.5% (`delete=77`).
@@ -45918,7 +45918,7 @@ only when `T` differs. So the cast has to name a type the field is *not*: here
 the field is `void*` and the cast is `TmdObject**`.
 
 When the field's own type is the only cast that reads naturally, the `&field`
-spelling folds away and there is nothing left to cast. `func_actor_206100_8014CD08`
+spelling folds away and there is nothing left to cast. `_actor206100EntranceDepartureTick`
 needs the *load* of `task->spawnArg2` to stay below the fixed-address
 `D_8007216C = 6` store: spelled as the member it schedules the `lw a0,0x20(s2)`
 above the `sb` and scores 97.907% with `reorder=3`, and `*(void**)&task->spawnArg2`
@@ -77161,7 +77161,7 @@ argument list is the table:
 ```c
 M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x522) * 4)),
           M2C_UNK (**)(void (*)(Task *), M2C_UNK *), 0x10)
-    (_actor206100EnterStatusHold, &func_actor_206100_8014FA08);
+    (_actor206100EnterStatusHold, &_actor206100StatusHoldTick);
 ```
 
 Besides the bogus two-argument signature, `sp` is not even a C identifier, so
@@ -77170,26 +77170,26 @@ front of it (the caller's own `index` is already in `$a0`) and `$a1` never
 written anywhere in the function. Write the array instead:
 
 ```c
-void func_actor_206100_8014F608(Task* task)
+static void _actor206100DispatchStatusHold(Task* task)
 {
     _Actor206100Work* work                = task->work;
-    void             (*states[2])(Task*) = {
+    TaskFunc          substateHandlers[2] = {
         _actor206100EnterStatusHold,
-        func_actor_206100_8014FA08,
+        _actor206100StatusHoldTick,
     };
 
-    states[(s16)work->subState](task);
+    substateHandlers[(s16)work->subState](task);
 }
 ```
 
-`func_actor_206100_8014F608` went 50.238% -> 100% on this one rewrite, and the
+`_actor206100DispatchStatusHold` went 50.238% -> 100% on this one rewrite, and the
 actors family already had the same body matched twice more
 (`func_actor_341700_80168124`, `_madChaserDespawnState`) - check those
 siblings first, since the `(s16)` cast on the index belongs to the load
 (`lh`), not to the source field's declared type.
 
-A near-copy in the *same* unit is the cheapest case: `func_actor_206100_8014F5B4`
-sits six instructions' worth of constants away from `8014F608` above (same
+A near-copy in the *same* unit is the cheapest case: `_actor206100DispatchRecoil`
+sits six instructions' worth of constants away from `_actor206100DispatchStatusHold` above (same
 frame, same `jalr`, only the two table entries differ) and matched 100% on its
 first build by pasting that body and swapping the pointers - no m2c baseline
 worth scoring, since `sp` makes the seed uncompilable either way. When the two
@@ -82824,7 +82824,7 @@ Inputs: `base_1.i`
 ## m2c renders a frame-local function-pointer table as the call's arguments
 
 A two-entry dispatch table built on the frame and indexed by a signed
-`short` is a common actor shape (`func_actor_206100_8014F5B4`,
+`short` is a common actor shape (`_actor206100DispatchRecoil`,
 `Actor00400_Fn0A468`, `_actor323300WomanDispatchTurn`). m2c has no model of
 the frame, so it prints the table's *base* as a bare `sp` symbol, reads the
 slot through it, and then hands the two function addresses to the result as
@@ -93692,7 +93692,7 @@ insn (`type "move"`, on no function unit) and positive for anything on the
 ready list outranks the `lui` every time. The fix has to remove the loads from
 the ready list, and the constructor's clobber is what does it.
 
-The already-matched `func_actor_206100_8014F5B4` / `..._8014F608` are the same
+The already-matched `_actor206100DispatchRecoil` / `_actor206100DispatchStatusHold` are the same
 shape and were written this way; read a stack table built from `lui`/`addiu`
 pairs (rather than copied from a global, as `TaskFuncTable11 fns = D_…;` does)
 as a brace initializer, and keep everything that must stay above it in
@@ -117318,7 +117318,7 @@ later block's store.
 **How it reaches a seed:** an m2c seed of a test-at-the-bottom loop is the
 trigger, because m2c writes the counter's init as `var_s0 = 1;` on the line
 before the `if` and the loop as a `do`/`while` - so the init lands in the block
-the constant-using instruction is in. `func_actor_206100_8014E964` reached
+the constant-using instruction is in. `_actor206100DeathPlaybackTick` reached
 97.297% on that seed with the identical one-instruction mismatch (200 distance,
 `insert=1 delete=1`), and rewriting it in the sibling `func_actor_206100_8014FCD4`'s
 shape - struct fields, `for (i = 1; i < 0xF; i++)`, the init after the chain -
@@ -117425,10 +117425,10 @@ and the whole tail reschedules — 93.3% down to 89.4%. Refs cost
 Inputs: `base_1.i` (93.317%), `base_3.i` (0 differences), target
 `b1c8550e51018e66b9ee84e23aca113baf2a73c2c3de16e13b5e7879df3b4558`.
 
-## An inlined accessor is the lever that shortens a value's span for local-alloc (func_actor_206100_8014CFF4, 2026-09-16)
+## An inlined accessor is the lever that shortens a value's span for local-alloc (_actor206100DispatchAttack, 2026-09-16)
 
-`func_actor_206100_8014CFF4` consumes a pending sub-state request and, when
-there was none, runs the current sub-state handler through a two-entry local
+`_actor206100DispatchAttack` consumes a pending hit reaction and, when
+it did not select another fight state, runs the current attack substate handler through a two-entry local
 jump table.  The two arms that move the actor to a new state share their tail:
 
 ```
@@ -117532,7 +117532,7 @@ Inputs: `base_2.c` (0 differences), `base_3.c` (0 differences, case-0 cast
 removed), `base_4.c` (93.264%, case-2 casts removed).  Target
 `7e68c98a262c54f5c6d2d777de59f31593dd80b4a5e39c4d67e669f8a56bfc34`.
 
-## A boolean materialised in both arms is what keeps m2c's fold to `sltu` out (func_actor_206100_8014FA08, 2026-09-16)
+## A boolean materialised in both arms is what keeps m2c's fold to `sltu` out (_actor206100StatusHoldTick, 2026-09-16)
 
 **Problem.** m2c rendered a two-part flag test as a `var_v0` that the compiler
 then folded away:
@@ -117649,7 +117649,7 @@ loop indexed 100.000%.  Target `fdc808aca8578d4ac0b9cd1864208f170d45eab46a28622b
 
 ## A call result stored straight into a field keeps the store on `$v0`
 
-`func_actor_206100_8014C274` (actors/actor_206100) parks `memCalloc`'s result in
+`_actor206100Spawn` (actors/actor_206100) parks `memCalloc`'s result in
 `Task::work` and keeps using that block after the calls that follow, so the
 value has to survive in a callee-saved register:
 
@@ -117687,7 +117687,7 @@ Inputs: m2c 96.901% `452ec82624fcbddf`; the read-back store 97.851%
 ## An operand-shaped `reload_cse` substitution: the touch goes in the *use's* block
 
 The `regs`-shaped family of `reload_cse` entries above rewrite a constant *set*
-or a copy.  This one is an operand: `func_actor_206100_8014C274` advances a
+or a copy.  This one is an operand: `_actor206100Spawn` advances a
 halfword with `animFrames = (s16)((u16)animFrames + 1);` and the target keeps the
 immediate --
 
@@ -117732,7 +117732,7 @@ in the predecessor), 100.000% `16d0c22ccd3db5de` (touch in the taken block).
 
 ## A write-only walked pointer still needs the indexed spelling -- for the LUID order
 
-"D_actor_206100_80158CBC": the spawn state `func_actor_206100_8014C274` zeroes
+"D_actor_206100_80158CBC": the spawn state `_actor206100Spawn` zeroes
 the same two 8-byte Bog Diver slots the tick above walks, `enemy` at 0 and
 `summonCooldown` at 4.  Both accesses are *writes*, so no `DEST_ADDR` giv pair merges and
 no second induction variable appears -- the pointer form does produce the
@@ -117889,7 +117889,7 @@ the chain existing, not something to arrange separately.
 `_actor206100AttackTick` reads `task->work` three times: for the `animStatus`
 test, for the state change its `true` arm makes, and for the steering tail that
 folds `rotation.vy` toward the walk target. Written through one local, as the
-sibling `func_actor_206100_8014FA08` writes its own two reads:
+sibling `_actor206100StatusHoldTick` writes its own two reads:
 
 ```c
     work = task->work;
@@ -117908,7 +117908,7 @@ across `VectorNormalSS` and `ratan2`; the two short-lived uses that never cross 
 call then get `$s0` as well. The target has `$v1` for both of those and `$s0`
 only for the tail. 99.787%, distance 30, `regs=6`, with the instruction stream
 otherwise identical; splitting the tail's read into its own variable (so the
-flags test and the state change stay one variable, as `func_actor_206100_8014FA08`
+flags test and the state change stay one variable, as `_actor206100StatusHoldTick`
 has them) is 100.000% with every penalty zero.
 
 This is the rule in "One variable is one pseudo: reuse serialises a live range"
