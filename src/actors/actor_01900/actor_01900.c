@@ -107,6 +107,12 @@ enum {
     ACTOR_01900_ANIM_REQUEST_PLAYING = 3  // the request has been applied
 };
 
+/// Local message slot ignored by this actor; its sender-side purpose is unproven.
+enum { ACTOR_01900_MESSAGE_IGNORED = 2015 };
+
+/// Number of active height-clamp rows; the trailing zero row is not scanned.
+enum { ACTOR_01900_HEIGHT_CLAMP_COUNT = 2 };
+
 /// Work block of the Grinning Stranger task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`; the
@@ -216,25 +222,23 @@ extern s16       Actor01900_D172FC;
 
 static void Actor01900_Fn02A50(Task* arg0);
 static void Actor01900_Fn02664(Task* arg0, s16 yaw, s32 id);
-static void Actor01900_Fn01C94(Task* arg0);
+static void _actor01900UpdateAnimation(Task* task);
 static void Actor01900_Fn0AB1C(Task* arg0);
 static void Actor01900_Fn0A6CC(Task* task);
-static s32  Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count);
+static s32  _actor01900ApplyBodyPushback(Task* task, const WorldCollisionContact* contacts, s16 contactCount);
 static void Actor01900_Fn08724(Task* arg0);
 static void Actor01900_Fn0A7C0(Task* arg0);
-static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord);
-s32         Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3);
-s32         Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2, s32 arg3);
+static void _actor01900ClampRootHeight(const GameLocationKey* location, GfxCoord* coord);
+static s32  _actor01900HandleAnimationRequest(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unused);
+static s32  _actor01900ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused);
 
 /* Inline bodies behind `Actor01900_Fn080A8`. Same shapes as
  * `actor_400100_facing.h` and `ActorsShared80135a60`; inlining is what keeps
  * each `SCRATCH_STACK_CURSOR_SLOT` access out of a register CSE would share. */
 
 static TmdSource _gActor01900GrinningStrangerBody;
-s32              Actor01900_Fn0A31C(Task*, s32, AnimationPlayRequest*, s32);
-s32              Actor01900_Fn0A59C(Task*, s32, s32, s32);
-s32              Actor01900_Fn0A5A4(Task*, s32, u16*, s32);
-s32              Actor01900_Fn0A314(Task*, s32, s32, s32);
+static s32       _actor01900AcknowledgeHoldRelease(Task* task, s32 messageId, s32 unusedPayload, s32 unused);
+static s32       _actor01900IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unused);
 void             Actor01900_Fn0ABE4(Task*);
 
 DamageAttack Actor01900_D0AC4C[2] = {
@@ -713,13 +717,13 @@ SVECTOR Actor01900_D1722C[12] = {
 };
 
 TaskMessageEntry Actor01900_D1728C[8] = {
-    { 2015, Actor01900_Fn0A314 },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, Actor01900_Fn0A31C },
+    { ACTOR_01900_MESSAGE_IGNORED, _actor01900IgnoreMessage2015 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor01900HandleAnimationRequest },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRecordYaw },
-    { 2014, Actor01900_Fn0A59C },
-    { ACTOR_COMMAND_MESSAGE_APPLY, Actor01900_Fn0A5A4 },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor01900AcknowledgeHoldRelease },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor01900ApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -748,7 +752,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 }
 
 /// Cross-fade lengths in frames, indexed by the clip being left and the clip
-/// being entered. `Actor01900_Fn01C94` reads one entry per animation change.
+/// being entered. `_actor01900UpdateAnimation` reads one entry per animation change.
 extern s8 Actor01900_D16988[][0x2D];
 
 static SVECTOR ActorContact_ScratchPosition;
@@ -806,17 +810,16 @@ static void Actor01900_Fn0AA78(Task* arg0);
 static void Actor01900_Fn0ABA0(Enemy* enemy, Task* task);
 
 static __inline__ void Actor01900_MoveForward(GfxCoord* coord, s16 amount);
-static __inline__ void Actor01900_StepForward(GfxCoord* coord, s16 amount);
 static __inline__ void Actor01900_StepForwardHead(GfxCoord* coord, s16 amount);
 static __inline__ void Actor01900_ResetYaw(GfxCoord* coord);
 
-static void            Actor01900_Fn01950(Task* arg0);
-static s32             Actor01900_Fn01A7C(_Actor01900Work* work);
+static void            _actor01900TickBlendedAnimSlots(Task* task);
+static s32             _actor01900TakeAnimSoundCue(_Actor01900Work* work);
 static __inline__ void Actor01900_BindMatrices(Task* actor);
 static void            Actor01900_Fn02018(Enemy* enemy, Task* actor);
 static __inline__ s32  Actor01900_FindHit(WorldCollisionContact* records, SVECTOR* pos);
-static __inline__ s32  Actor01900_ArmIfPlayerLevel(Task* arg0);
-static __inline__ s32  Actor01900_HasHeightClamp(GameLocationKey* session);
+static __inline__ s32  _actor01900EngageBattleIfPlayerLevel(Task* task);
+static __inline__ s32  _actor01900HasHeightClamp(const GameLocationKey* location);
 static s32             Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 arg2, s16 arg3);
 static __inline__ s32  Actor01900_HasHit(WorldCollisionContact* records);
 static void            Actor01900_Fn09D3C(Enemy* enemy, Task* actor);
@@ -850,33 +853,7 @@ static __inline__ void Actor01900_MoveForward(GfxCoord* coord, s16 amount)
     }
 }
 
-/// Step `coord` `amount` units along its local Z axis unless movement is
-/// frozen, without `Actor01900_MoveForward`'s zero-amount guard. Same body as
-/// `_actorMovementStepForward`.
-static __inline__ void Actor01900_StepForward(GfxCoord* coord, s16 amount)
-{
-    SVECTOR* head;
-    SVECTOR* vec;
-
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-        head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-        vec                           = head - 1;
-        SCRATCH_STACK_CURSOR(SVECTOR) = vec;
-        gfxReadMatrixZAxis(&coord->coord, vec);
-        VectorNormalSS(vec, vec);
-        gte_lddp(amount);
-        gte_ldsv(vec);
-        gte_gpf12();
-        gte_stsv(vec);
-        coord->coord.t[0]  += vec->vx;
-        coord->coord.t[1]  += vec->vy;
-        coord->coord.t[2]  += vec->vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
-    }
-}
-
-/// `Actor01900_StepForward` with the X component read back through `head`,
+/// `_actorMovementStepForward` with the X component read back through `head`,
 /// as `Actor01900_MoveForward` does.
 static __inline__ void Actor01900_StepForwardHead(GfxCoord* coord, s16 amount)
 {
@@ -943,277 +920,347 @@ static __inline__ void Actor01900_ResetYaw(GfxCoord* coord)
 
 #include "../../shared/player_detection_sight.inc.c"
 
-/// Advances the actor's animation one tick. Joints 1-10 are sampled from both
-/// the main and the blend animation and passed to `animationApplyPoseWithBlendedRotation` with
-/// weights `blendWeight` and 0x1000 - `blendWeight`; joints 11-18 tick the main
-/// animation alone. The per-joint rates come from `animRate` and `blendRate`.
-static void Actor01900_Fn01950(Task* arg0)
+/// Ticks both rigs and mixes rotations for body slots 1..10.
+///
+/// Requires live initialized work, model coordinates and loaded animation sets.
+/// Slots 11..18 tick only the primary rig; slot 0 is untouched. Rates are in
+/// sixteenths of a frame: primary uses `animRate` minus 3, secondary uses `blendRate`.
+/// The primary rotation takes `blendWeight` / `ONE` and the secondary its complement;
+/// translation always comes from the primary pose. Stack poses are borrowed only
+/// through each apply call. Scratch and GTE state must be available.
+static void _actor01900TickBlendedAnimSlots(Task* task)
 {
-    AnimationPose     pose;
+    enum { ACTOR_01900_LAST_BLENDED_SLOT = 10 };
+
+    AnimationPose     primaryPose;
     AnimationPose     blendPose;
-    AnimationContext* anim;
-    s16               weight;
-    s16               i;
+    AnimationContext* primaryContext;
+    s16               primaryWeight;
+    s16               slotIndex;
     _Actor01900Work*  work;
 
-    work   = arg0->work;
-    weight = work->blendWeight;
-    anim   = &work->rig.anim;
-    for (i = 1; i < 0x13; i++) {
-        if (i < 0xB) {
-            work->blend.slots[i].rate = work->blendRate;
-            work->rig.slots[i].rate   = (work->animRate - 3);
-            animationTickSlotPose(anim, i, &pose, 0);
-            animationTickSlotPose(&work->blend.anim, i, &blendPose, 0);
-            animationApplyPoseWithBlendedRotation(anim, i, &pose, &blendPose, weight, 0x1000 - weight);
+    work           = task->work;
+    primaryWeight  = work->blendWeight;
+    primaryContext = &work->rig.anim;
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        if (slotIndex <= ACTOR_01900_LAST_BLENDED_SLOT) {
+            work->blend.slots[slotIndex].rate = work->blendRate;
+            work->rig.slots[slotIndex].rate   = (work->animRate - 3);
+            animationTickSlotPose(primaryContext, slotIndex, &primaryPose, NULL);
+            animationTickSlotPose(&work->blend.anim, slotIndex, &blendPose, NULL);
+            animationApplyPoseWithBlendedRotation(primaryContext, slotIndex, &primaryPose, &blendPose, primaryWeight, ONE - primaryWeight);
         } else {
-            work->rig.slots[i].rate = (work->animRate - 3);
-            animationTickSlot(&work->rig.anim, i);
+            work->rig.slots[slotIndex].rate = (work->animRate - 3);
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }
 
-static s32 Actor01900_Fn01A7C(_Actor01900Work* work)
+/// Returns the newly reached animation sound cue, or zero.
+///
+/// Uses the low ten bits of slot 1's current keyframe record index, not elapsed
+/// frames. The returned bank/entry id leaves its instance byte zero for the caller.
+/// A held cue is latched in `lastCueFrame` and fires once; two-cue clips clear the
+/// latch between cues, while single-cue and other clips remember the current index.
+static s32 _actor01900TakeAnimSoundCue(_Actor01900Work* work)
 {
-    s32 id;
-    s32 prev;
+    enum {
+        ACTOR_01900_CUE_ANIM_WALK        = 2,
+        ACTOR_01900_CUE_ANIM_RUN         = 3,
+        ACTOR_01900_CUE_ANIM_STRIKE      = 4,
+        ACTOR_01900_CUE_ANIM_STEP_BACK   = 7,
+        ACTOR_01900_CUE_ANIM_ALERT       = 9,
+        ACTOR_01900_CUE_ANIM_DOWN        = 11,
+        ACTOR_01900_CUE_ANIM_SIDESTEP_1  = 20,
+        ACTOR_01900_CUE_ANIM_SIDESTEP_2  = 21,
+        ACTOR_01900_SOUND_GAIT_FIRST     = 0x400A0002,
+        ACTOR_01900_SOUND_GAIT_SECOND    = 0x400A0001,
+        ACTOR_01900_SOUND_ALERT          = 0x400A0006,
+        ACTOR_01900_SOUND_STRIKE         = 0x400A000C,
+        ACTOR_01900_SOUND_DOWN           = 0x400A0005,
+        ACTOR_01900_SOUND_EVASION_FIRST  = 0x400A0010,
+        ACTOR_01900_SOUND_EVASION_SECOND = 0x400A0011
+    };
+
+    s32 cueIndex;
+    s32 previousCueIndex;
 
     switch (work->animId) {
-        case 20:
-        case 21:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-            if (id == 7) {
-                if (work->lastCueFrame != id) {
-                    work->lastCueFrame = id;
-                    return 0x400A0010;
+        case ACTOR_01900_CUE_ANIM_SIDESTEP_1:
+        case ACTOR_01900_CUE_ANIM_SIDESTEP_2:
+            cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (cueIndex == 7) {
+                if (work->lastCueFrame != cueIndex) {
+                    work->lastCueFrame = cueIndex;
+                    return ACTOR_01900_SOUND_EVASION_FIRST;
                 }
-                work->lastCueFrame = id;
-            } else if (id == 0x10) {
-                prev = work->lastCueFrame;
-                if (prev != id) {
-                    work->lastCueFrame = id;
-                    return 0x400A0011;
+                work->lastCueFrame = cueIndex;
+            } else if (cueIndex == 0x10) {
+                previousCueIndex = work->lastCueFrame;
+                if (previousCueIndex != cueIndex) {
+                    work->lastCueFrame = cueIndex;
+                    return ACTOR_01900_SOUND_EVASION_SECOND;
                 }
-                work->lastCueFrame = prev;
+                work->lastCueFrame = previousCueIndex;
             } else {
                 work->lastCueFrame = 0;
             }
             break;
-        case 7:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-            if (id == 0xF) {
-                if (work->lastCueFrame != id) {
-                    work->lastCueFrame = id;
-                    return 0x400A0010;
+        case ACTOR_01900_CUE_ANIM_STEP_BACK:
+            cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (cueIndex == 0xF) {
+                if (work->lastCueFrame != cueIndex) {
+                    work->lastCueFrame = cueIndex;
+                    return ACTOR_01900_SOUND_EVASION_FIRST;
                 }
-                work->lastCueFrame = id;
-            } else if (id == 0x14) {
-                prev = work->lastCueFrame;
-                if (prev != id) {
-                    work->lastCueFrame = id;
-                    return 0x400A0011;
+                work->lastCueFrame = cueIndex;
+            } else if (cueIndex == 0x14) {
+                previousCueIndex = work->lastCueFrame;
+                if (previousCueIndex != cueIndex) {
+                    work->lastCueFrame = cueIndex;
+                    return ACTOR_01900_SOUND_EVASION_SECOND;
                 }
-                work->lastCueFrame = prev;
+                work->lastCueFrame = previousCueIndex;
             } else {
                 work->lastCueFrame = 0;
             }
             break;
-        case 2:
-        case 3:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-            if (id == 0x24) {
-                if (work->lastCueFrame != id) {
-                    work->lastCueFrame = id;
-                    return 0x400A0002;
+        case ACTOR_01900_CUE_ANIM_WALK:
+        case ACTOR_01900_CUE_ANIM_RUN:
+            cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (cueIndex == 0x24) {
+                if (work->lastCueFrame != cueIndex) {
+                    work->lastCueFrame = cueIndex;
+                    return ACTOR_01900_SOUND_GAIT_FIRST;
                 }
-                work->lastCueFrame = id;
-            } else if (id == 0x2C) {
-                prev = work->lastCueFrame;
-                if (prev != id) {
-                    work->lastCueFrame = id;
-                    return 0x400A0001;
+                work->lastCueFrame = cueIndex;
+            } else if (cueIndex == 0x2C) {
+                previousCueIndex = work->lastCueFrame;
+                if (previousCueIndex != cueIndex) {
+                    work->lastCueFrame = cueIndex;
+                    return ACTOR_01900_SOUND_GAIT_SECOND;
                 }
-                work->lastCueFrame = prev;
+                work->lastCueFrame = previousCueIndex;
             } else {
                 work->lastCueFrame = 0;
             }
             break;
-        case 9:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-            if (id == 4 && work->lastCueFrame != id) {
-                work->lastCueFrame = id;
-                return 0x400A0006;
+        case ACTOR_01900_CUE_ANIM_ALERT:
+            cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (cueIndex == 4 && work->lastCueFrame != cueIndex) {
+                work->lastCueFrame = cueIndex;
+                return ACTOR_01900_SOUND_ALERT;
             }
-            work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
+            work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
-        case 4:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-            if (id == 0xC && work->lastCueFrame != id) {
-                work->lastCueFrame = id;
-                return 0x400A000C;
+        case ACTOR_01900_CUE_ANIM_STRIKE:
+            cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (cueIndex == 0xC && work->lastCueFrame != cueIndex) {
+                work->lastCueFrame = cueIndex;
+                return ACTOR_01900_SOUND_STRIKE;
             }
-            work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
+            work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
-        case 11:
-            id = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-            if (id == 4 && work->lastCueFrame != id) {
-                work->lastCueFrame = id;
-                return 0x400A0005;
+        case ACTOR_01900_CUE_ANIM_DOWN:
+            cueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            if (cueIndex == 4 && work->lastCueFrame != cueIndex) {
+                work->lastCueFrame = cueIndex;
+                return ACTOR_01900_SOUND_DOWN;
             }
-            work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
+            work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             break;
         default:
-            prev               = work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF;
-            work->lastCueFrame = prev;
+            previousCueIndex   = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            work->lastCueFrame = previousCueIndex;
             break;
     }
     return 0;
 }
 
-/// Cross-fades every slot into `animId` unless it is already applied.
-static inline void _actor01900BlendToRequestedAnim(Task* arg0)
+/// Seeks primary slots 1..18 into the requested clip when its id changes.
+///
+/// Requires initialized work and loaded clips for both `appliedAnim` and `animId`.
+/// The signed transition-table byte is a duration in whole normal-rate frames;
+/// track offset is zero. Sets each slot's rate in sixteenths of a frame before
+/// the seek captures its old pose, then records the new applied id. Slot 0 is untouched.
+static inline void _actor01900BlendToRequestedAnim(Task* task)
 {
     _Actor01900Work* work;
-    s32              i;
+    s32              slotIndex;
 
-    work = arg0->work;
+    work = task->work;
     if (work->appliedAnim != work->animId) {
-        for (i = 1; i < 0x13; i++) {
-            work->rig.slots[i].rate = work->animRate;
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0,
+        for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            work->rig.slots[slotIndex].rate = work->animRate;
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0,
                                        (s32)Actor01900_D16988[work->appliedAnim][work->animId]);
         }
-        work->appliedAnim = (s16)(u16)work->animId;
+        work->appliedAnim = work->animId;
     }
 }
 
-/// Restarts every slot on `animId`.
-static inline void _actor01900ResetToRequestedAnim(Task* arg0)
-{
-    _Actor01900Work* work;
-    s32              i;
-
-    work = arg0->work;
-    for (i = 1; i < 0x13; i++) {
-        work->rig.slots[i].rate = work->animRate;
-        animationResetSlot(&work->rig.anim, i, work->animId);
-    }
-    work->appliedAnim = (s16)(u16)work->animId;
-}
-
-/// Restarts the blend animation on `blendAnimId` at full weight.
-static inline void _actor01900ResetBlendAnim(Task* arg0)
-{
-    _Actor01900Work* work;
-    s32              i;
-
-    work              = arg0->work;
-    work->blendRate   = 0x30;
-    work->blendWeight = 0x800;
-    for (i = 1; i < 0x13; i++) {
-        work->rig.slots[i].rate = work->blendRate;
-        animationResetSlot(&work->blend.anim, i, work->blendAnimId);
-    }
-}
-
-/// Advances every slot of the body animation at `animRate`.
-static inline void _actor01900TickAnimSlots(Task* arg0)
-{
-    _Actor01900Work* work;
-    s32              i;
-
-    work = arg0->work;
-    for (i = 1; i < 0x13; i++) {
-        work->rig.slots[i].rate = work->animRate;
-        animationTickSlot(&work->rig.anim, i);
-    }
-}
-
-/// Per-frame animation driver: services a pending clip change, advances the
-/// body and blend animations, eases the head toward its target yaw and emits
-/// whatever sound event the current clip has reached.
+/// Restarts primary slots 1..18 on the requested loaded clip.
 ///
-/// `animRequest` is the pending-change request: `BLEND` cross-fades into
-/// `animId` over the table's frame count, `RESET` restarts it outright, and
-/// both settle to `PLAYING`. `blendRequest` does the same for the blend
-/// animation and `blendAnimId`, which is only ever restarted.
-static void Actor01900_Fn01C94(Task* arg0)
+/// Requires initialized work, a live model and a loaded `animId`. Records `appliedAnim`
+/// after resetting. The rate writes precede animationResetSlot, which replaces
+/// each slot rate with `ANIMATION_RATE_ONE`; the following tick reapplies `animRate`.
+/// Slot 0 is untouched.
+static inline void _actor01900ResetToRequestedAnim(Task* task)
 {
+    _Actor01900Work* work;
+    s32              slotIndex;
+
+    work = task->work;
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = work->animRate;
+        animationResetSlot(&work->rig.anim, slotIndex, work->animId);
+    }
+    work->appliedAnim = work->animId;
+}
+
+/// Restarts secondary slots 1..18 and restores the half-weight blend defaults.
+///
+/// Requires initialized work and a loaded `blendAnimId`. `blendRate` becomes three
+/// normal frames per tick, `blendWeight` becomes `ONE` / 2. The retained rate writes
+/// target primary slots; secondary reset uses the API's normal rate until its
+/// next blended tick. Does not enable blending and leaves slot 0 untouched.
+static inline void _actor01900ResetBlendAnim(Task* task)
+{
+    _Actor01900Work* work;
+    s32              slotIndex;
+
+    work              = task->work;
+    work->blendRate   = 3 * ANIMATION_RATE_ONE;
+    work->blendWeight = ONE / 2;
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = work->blendRate;
+        animationResetSlot(&work->blend.anim, slotIndex, work->blendAnimId);
+    }
+}
+
+/// Ticks primary body slots 1..18 at `animRate`, leaving slot 0 untouched.
+///
+/// Requires initialized work, live model coordinates and loaded referenced clips.
+/// The rate uses sixteenths of a frame per call; reverse playback requires
+/// bank-backed current endpoints. Writes poses to the primary model coordinates.
+static inline void _actor01900TickAnimSlots(Task* task)
+{
+    _Actor01900Work* work;
+    s32              slotIndex;
+
+    work = task->work;
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = work->animRate;
+        animationTickSlot(&work->rig.anim, slotIndex);
+    }
+}
+
+/// Eases the requested look yaw and applies the two model-joint offsets.
+///
+/// Call after animation has written the live model coordinates. Angles use
+/// 4096 units per turn; the stored yaw advances by at most a sixteenth-turn,
+/// while applied offsets clamp to a quarter-turn and narrow to signed halfwords.
+static inline void _actor01900UpdateLookYaw(Task* task, _Actor01900Work* work)
+{
+    enum {
+        ACTOR_01900_LOOK_YAW_STEP  = ACTOR_TRANSFORM_ANGLE_TURN / 16,
+        ACTOR_01900_LOOK_YAW_LIMIT = ACTOR_TRANSFORM_ANGLE_TURN / 4
+    };
+
+    s16 currentYaw;
+    s16 targetYaw;
+    s16 lookYaw;
+    s32 clampedYaw;
+    u16 currentYawBits;
+    u16 targetYawBits;
+
+    // Ease look direction, then rotate the two joints after animation has written them.
+    targetYaw      = work->lookYawTarget;
+    currentYaw     = work->lookYaw;
+    targetYawBits  = (u16)work->lookYawTarget;
+    currentYawBits = (u16)work->lookYaw;
+    if (targetYaw > currentYaw) {
+        if ((targetYaw - currentYaw) >= (ACTOR_01900_LOOK_YAW_STEP + 1)) {
+            work->lookYaw = currentYawBits + ACTOR_01900_LOOK_YAW_STEP;
+        } else {
+            work->lookYaw = (s16)targetYawBits;
+        }
+    } else if ((currentYaw - targetYaw) >= (ACTOR_01900_LOOK_YAW_STEP + 1)) {
+        work->lookYaw = currentYawBits - ACTOR_01900_LOOK_YAW_STEP;
+    } else {
+        work->lookYaw = (s16)targetYawBits;
+    }
+    lookYaw    = work->lookYaw;
+    clampedYaw = (u16)work->lookYaw;
+    if (lookYaw != 0) {
+        if (lookYaw >= (ACTOR_01900_LOOK_YAW_LIMIT + 1)) {
+            clampedYaw = ACTOR_01900_LOOK_YAW_LIMIT;
+        }
+        if (lookYaw < -ACTOR_01900_LOOK_YAW_LIMIT) {
+            clampedYaw = -ACTOR_01900_LOOK_YAW_LIMIT;
+        }
+        _actorRenderYawJointInWorld(task->extra.tmd->coords + 5, (s16)(((s16)clampedYaw * 2) / 3));
+        _actorRenderYawJointInWorld(task->extra.tmd->coords + 2, (s16)((s16)clampedYaw / 2));
+        task->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+    }
+}
+
+/// Updates clip requests, poses, look direction and spatial animation sounds.
+///
+/// Requires initialized work, both rigs bound to loaded clips, a live model and
+/// an `Enemy` spawn argument. Main requests seek with the transition-table duration
+/// or reset outright, then mark the request playing and restart cue accounting.
+/// Only reset is handled for the secondary rig. A blended tick ends blending when
+/// secondary slot 1 settles. Look yaw uses 4096 units per turn: it approaches the
+/// target by at most 256 per call and joint offsets are limited to a quarter-turn.
+/// The tick counter wraps at 16 bits. Sound instances use the enemy placement index.
+static void _actor01900UpdateAnimation(Task* task)
+{
+    enum { ACTOR_01900_SOUND_INSTANCE_SHIFT = 8 };
+
     _Actor01900Work* work;
     Enemy*           enemy;
-    s16              cur;
-    s16              dst;
-    s16              raw;
-    s32              clamped;
-    s32              snd;
-    s32              id;
-    s32              pan;
-    u16              cur_u;
-    u16              dst_u;
+    s32              soundCue;
+    s32              soundScript;
+    s32              audioPan;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    // Apply pending clip requests before sampling this tick's poses.
     if (work->animRequest == ACTOR_01900_ANIM_REQUEST_BLEND) {
-        _actor01900BlendToRequestedAnim(arg0);
+        _actor01900BlendToRequestedAnim(task);
         work->animRequest  = ACTOR_01900_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
     } else if (work->animRequest == ACTOR_01900_ANIM_REQUEST_RESET) {
-        _actor01900ResetToRequestedAnim(arg0);
+        _actor01900ResetToRequestedAnim(task);
         work->animRequest  = ACTOR_01900_ANIM_REQUEST_PLAYING;
         work->animFrames   = 0;
         work->lastCueFrame = 0;
     }
     if (work->blendRequest == ACTOR_01900_ANIM_REQUEST_RESET) {
-        _actor01900ResetBlendAnim(arg0);
+        _actor01900ResetBlendAnim(task);
         work->blendRequest = ACTOR_01900_ANIM_REQUEST_PLAYING;
     }
     work->animFrames = (u16)(work->animFrames + 1);
     if (work->blendActive == 0) {
-        _actor01900TickAnimSlots(arg0);
+        _actor01900TickAnimSlots(task);
     } else {
-        Actor01900_Fn01950(arg0);
+        _actor01900TickBlendedAnimSlots(task);
         if (work->blend.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             work->blendActive = 0;
         }
     }
-    dst   = work->lookYawTarget;
-    cur   = work->lookYaw;
-    dst_u = (u16)work->lookYawTarget;
-    cur_u = (u16)work->lookYaw;
-    if (dst > cur) {
-        if ((dst - cur) >= 0x101) {
-            work->lookYaw = cur_u + 0x100;
-        } else {
-            work->lookYaw = (s16)dst_u;
-        }
-    } else if ((cur - dst) >= 0x101) {
-        work->lookYaw = cur_u - 0x100;
-    } else {
-        work->lookYaw = (s16)dst_u;
-    }
-    raw     = work->lookYaw;
-    clamped = (u16)work->lookYaw;
-    if (raw != 0) {
-        if (raw >= 0x401) {
-            clamped = 0x400;
-        }
-        if (raw < -0x400) {
-            clamped = -0x400;
-        }
-        _actorRenderYawJointInWorld(arg0->extra.tmd->coords + 5, (s16)(((s16)clamped * 2) / 3));
-        _actorRenderYawJointInWorld(arg0->extra.tmd->coords + 2,
-                                    (s16)((s32)((s16)clamped + ((u32)(clamped << 0x10) >> 0x1F)) >> 1));
-        arg0->extra.tmd->coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-    }
-    snd = Actor01900_Fn01A7C(work);
-    if (snd != 0) {
-        id  = snd | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    _actor01900UpdateLookYaw(task, work);
+    // Tag this placement's sound instance and narrow the spatial offsets to signed bytes.
+    soundCue = _actor01900TakeAnimSoundCue(work);
+    if (soundCue != 0) {
+        soundScript = soundCue | ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_01900_SOUND_INSTANCE_SHIFT);
+        audioPan    = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundScript, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }
 
@@ -1279,7 +1326,7 @@ static void Actor01900_Fn02018(Enemy* enemy, Task* actor)
     work->lookYawTarget = 0;
     work->baseRate      = 0x10;
     work->animRate      = 0x10;
-    Actor01900_Fn01C94(actor);
+    _actor01900UpdateAnimation(actor);
 
     work->gridBody.context.contacts = work->gridContacts;
     work->gridBody.coord            = root;
@@ -1789,7 +1836,7 @@ static void Actor01900_Fn03710(Task* arg0)
         work->animId          = 0x17;
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
         do {
-            Actor01900_Fn01C94(arg0);
+            _actor01900UpdateAnimation(arg0);
         } while ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) < 6U);
         work->animRate = 0x20;
         return;
@@ -1803,7 +1850,7 @@ static void Actor01900_Fn03710(Task* arg0)
     if ((s16)work->animRate == -1) {
         work->animRate = 0x10;
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     if (damageTickEnemyBuildup(enemy) == 1) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state           = ACTOR_01900_STATE_DOWN;
@@ -1813,17 +1860,22 @@ static void Actor01900_Fn03710(Task* arg0)
     }
 }
 
-/// Raises the player's weapon when the player is not already in state 2 and
-/// stands within 0x1F4 of the actor in Y. Nonzero when it armed.
-static __inline__ s32 Actor01900_ArmIfPlayerLevel(Task* arg0)
+/// Engages battle when a non-scripted player is within 500 vertical units.
+///
+/// Both live model roots must share a parent frame and the player task must exist.
+/// The range is strict and ignores X/Z. Returns 1 when the battle-engage request
+/// is made, even if battle was already engaged; otherwise returns 0.
+static __inline__ s32 _actor01900EngageBattleIfPlayerLevel(Task* task)
 {
+    enum { ACTOR_01900_BATTLE_HEIGHT_RANGE = 500 };
+
     Task* player;
-    s32   dy;
+    s32   heightDifference;
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        dy = arg0->extra.tmd->coords->coord.t[1] - player->extra.tmd->coords->coord.t[1];
-        if (ABS(dy) < 0x1F4) {
+        heightDifference = task->extra.tmd->coords->coord.t[1] - player->extra.tmd->coords->coord.t[1];
+        if (ABS(heightDifference) < ACTOR_01900_BATTLE_HEIGHT_RANGE) {
             sceneEngageBattle(1);
             return 1;
         }
@@ -1853,10 +1905,10 @@ static void Actor01900_Fn03854(Task* arg0)
         work->blendActive      = 0;
         work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags   = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         work->hitBody.radius = 0x180;
         if (*(u16*)work->commandBytes != 0x301) {
-            Actor01900_ArmIfPlayerLevel(arg0);
+            _actor01900EngageBattleIfPlayerLevel(arg0);
         }
     } else {
         SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
@@ -1877,26 +1929,31 @@ static void Actor01900_Fn03854(Task* arg0)
         aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
         _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
     }
 }
 
-static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord)
+/// Clamps the root's parent-space Y translation for a configured stage and area.
+///
+/// Scans the two active rows, ignoring view and game mode. The first matching row
+/// sets an inclusive minimum/maximum; no match leaves translation unchanged.
+/// The caller must invalidate composition after a change.
+static void _actor01900ClampRootHeight(const GameLocationKey* location, GfxCoord* coord)
 {
-    ActorHeightClamp* row;
-    s32               offset;
-    s32               lo;
-    s16               i;
+    const ActorHeightClamp* row;
+    s32                     rootY;
+    s32                     minY;
+    s16                     rowIndex;
 
-    for (i = 0; i < 2; i++) {
-        row = &Actor01900_D172CC[i];
-        if (session->stage == row->stage && session->area == row->area) {
-            lo     = row->minY;
-            offset = coord->coord.t[1];
-            if (offset < lo) {
-                coord->coord.t[1] = lo;
-            } else if (row->maxY < offset) {
+    for (rowIndex = 0; rowIndex < ACTOR_01900_HEIGHT_CLAMP_COUNT; rowIndex++) {
+        row = &Actor01900_D172CC[rowIndex];
+        if (location->stage == row->stage && location->area == row->area) {
+            minY  = row->minY;
+            rootY = coord->coord.t[1];
+            if (rootY < minY) {
+                coord->coord.t[1] = minY;
+            } else if (row->maxY < rootY) {
                 coord->coord.t[1] = row->maxY;
             }
             return;
@@ -1904,16 +1961,17 @@ static void Actor01900_Fn03C04(GameLocationKey* session, GfxCoord* coord)
     }
 }
 
-/// `Actor01900_Fn03C04`'s row scan without the clamp: nonzero when the
-/// current room has an `Actor01900_D172CC` row.
-static __inline__ s32 Actor01900_HasHeightClamp(GameLocationKey* session)
+/// Returns 1 when the stage and area have an active height-clamp row, else 0.
+///
+/// View and game mode do not participate; the terminal zero row is not scanned.
+static __inline__ s32 _actor01900HasHeightClamp(const GameLocationKey* location)
 {
-    ActorHeightClamp* row;
-    s16               i;
+    const ActorHeightClamp* row;
+    s16                     rowIndex;
 
-    for (i = 0; i < 2; i++) {
-        row = &Actor01900_D172CC[i];
-        if (session->stage == row->stage && session->area == row->area) {
+    for (rowIndex = 0; rowIndex < ACTOR_01900_HEIGHT_CLAMP_COUNT; rowIndex++) {
+        row = &Actor01900_D172CC[rowIndex];
+        if (location->stage == row->stage && location->area == row->area) {
             return 1;
         }
     }
@@ -1940,7 +1998,7 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
         s->step.vx = head[-1].delta.fixed.vx.word >> 16;
         s->step.vy = s->delta.fixed.vy.word >> 16;
         s->step.vz = s->delta.fixed.vz.word >> 16;
-        if (Actor01900_HasHeightClamp(&gGameSession->location.loc)) {
+        if (_actor01900HasHeightClamp(&gGameSession->location.loc)) {
             vy = s->step.vy;
             if (((vy >= 0) ? vy : -vy) > 0x180) {
                 s->step.vy = (vy <= 0) ? -0x180 : 0x180;
@@ -1978,8 +2036,8 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
             }
         }
     }
-    if (Actor01900_HasHeightClamp(&gGameSession->location.loc)) {
-        Actor01900_Fn03C04(&gGameSession->location.loc, coord);
+    if (_actor01900HasHeightClamp(&gGameSession->location.loc)) {
+        _actor01900ClampRootHeight(&gGameSession->location.loc, coord);
         coord->coord.t[1] += arg3;
     }
     if (s->delta.fixed.vx.word != 0 || s->delta.fixed.vz.word != 0) {
@@ -1989,58 +2047,56 @@ static s32 Actor01900_Fn03C98(GfxCoord* coord, WorldCollisionContact* rec, s16 a
     return s->moved;
 }
 
-/// Pushes the actor's root coordinate by half of each nearby kind 0x10000 /
-/// 0x30000 record's offset, walking `recs` until `count` or a zero `key`.
-/// The duplicated coordinate update is load-bearing: loop.c counts both copies
-/// before cross-jumping merges them, which keeps `count`'s sign extension in the loop.
-static s32 Actor01900_Fn03FF8(Task* arg0, WorldCollisionContact* recs, s16 count)
+/// Pushes the root away from contacted player and enemy bodies.
+///
+/// `contacts` borrows `contactCount` records, with `contactCount` in 0..12. A zero key
+/// ends the scan. Each qualifying record contributes half its X/Z offset, capped
+/// to 192 units before halving; Y translation is untouched. The measurement
+/// origin is model coordinate 1 composed into view space. Root translations must
+/// use those same axes. Returns 1 when a qualifying record was processed, even
+/// for a zero offset, otherwise 0. Freeze or viewReady equal to 1 skips the scan.
+/// The scratch stack needs one `ActorBodyPushScratch` block; no pointer is retained.
+static s32 _actor01900ApplyBodyPushback(Task* task, const WorldCollisionContact* contacts, s16 contactCount)
 {
-    ActorBodyPushScratch* head;
-    ActorBodyPushScratch* s;
-    ActorBodyPushScratch* blk;
+    enum { ACTOR_01900_BODY_PUSH_LIMIT = 192 };
+
+    ActorBodyPushScratch* scratch;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    arg0->extra.tmd->coords[1].composeStamp    = GRAPHICS_COORD_DIRTY;
-    head                                       = SCRATCH_STACK_CURSOR(ActorBodyPushScratch);
-    blk                                        = head - 1;
-    SCRATCH_STACK_CURSOR(ActorBodyPushScratch) = blk;
-    s                                          = blk;
-    actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-    s->position.vx = arg0->extra.tmd->coords[1].workm.t[0];
-    s->position.vy = arg0->extra.tmd->coords[1].workm.t[1];
-    s->position.vz = arg0->extra.tmd->coords[1].workm.t[2];
-    s->hit         = 0;
-    for (s->recordIndex = 0; s->recordIndex < count; s->recordIndex++) {
-        if (recs[s->recordIndex].key.value == 0) {
-            s->marks[s->recordIndex] = ACTOR_BODY_PUSH_MARK_END;
+    task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+    scratch                                 = SCRATCH_STACK_RESERVE_BLOCK(ActorBodyPushScratch);
+    actorRenderComposeCoord(&task->extra.tmd->coords[1]);
+    scratch->position.vx = task->extra.tmd->coords[1].workm.t[0];
+    scratch->position.vy = task->extra.tmd->coords[1].workm.t[1];
+    scratch->position.vz = task->extra.tmd->coords[1].workm.t[2];
+    scratch->hit         = 0;
+    for (scratch->recordIndex = 0; scratch->recordIndex < contactCount; scratch->recordIndex++) {
+        if (contacts[scratch->recordIndex].key.value == 0) {
+            scratch->marks[scratch->recordIndex] = ACTOR_BODY_PUSH_MARK_END;
             break;
         }
-        s->kind = recs[s->recordIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
-        if (s->kind == 0x10000 || s->kind == 0x30000) {
-            s->hit = 1;
-            worldCollisionCalcContactWorldOffset(&s->position, &recs[s->recordIndex], &s->offset);
-            s->offsetLength = s->offset.vx * s->offset.vx + s->offset.vz * s->offset.vz;
-            s->offsetLength = SquareRoot0(s->offsetLength);
-            if (s->offsetLength >= 0xC0) {
-                s->offset.vy = 0;
-                VectorNormalSS(&s->offset, &s->offset);
-                gte_lddp(0xC0);
-                gte_ldsv(&s->offset);
-                gte_gpf12();
-                gte_stsv(&s->offset);
-                arg0->extra.tmd->coords->coord.t[0] += s->offset.vx / 2;
-                arg0->extra.tmd->coords->coord.t[2] += s->offset.vz / 2;
+        scratch->kind = contacts[scratch->recordIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
+        if (scratch->kind == WORLD_COLLISION_CONTACT_PLAYER_BODY || scratch->kind == WORLD_COLLISION_CONTACT_ENEMY_BODY) {
+            scratch->hit = 1;
+            worldCollisionCalcContactWorldOffset(&scratch->position, &contacts[scratch->recordIndex], &scratch->offset);
+            scratch->offsetLength = scratch->offset.vx * scratch->offset.vx + scratch->offset.vz * scratch->offset.vz;
+            scratch->offsetLength = SquareRoot0(scratch->offsetLength);
+            if (scratch->offsetLength >= ACTOR_01900_BODY_PUSH_LIMIT) {
+                scratch->offset.vy = 0;
+                _actorMovementBuildDisplacement(&scratch->offset, ACTOR_01900_BODY_PUSH_LIMIT);
+                task->extra.tmd->coords->coord.t[0] += scratch->offset.vx / 2;
+                task->extra.tmd->coords->coord.t[2] += scratch->offset.vz / 2;
             } else {
-                arg0->extra.tmd->coords->coord.t[0] += s->offset.vx / 2;
-                arg0->extra.tmd->coords->coord.t[2] += s->offset.vz / 2;
+                task->extra.tmd->coords->coord.t[0] += scratch->offset.vx / 2;
+                task->extra.tmd->coords->coord.t[2] += scratch->offset.vz / 2;
             }
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorBodyPushScratch);
-    return s->hit;
+    return scratch->hit;
 }
 
 /// Circling state: turns toward the player at most 0x30 per step while walking,
@@ -2068,10 +2124,10 @@ static void Actor01900_Fn042BC(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         work->circleCount = 0;
         if (*(u16*)work->commandBytes != 0x301) {
-            Actor01900_ArmIfPlayerLevel(arg0);
+            _actor01900EngageBattleIfPlayerLevel(arg0);
         }
         work->stateTimer   = 0;
         work->stateCounter = 0;
@@ -2086,12 +2142,12 @@ static void Actor01900_Fn042BC(Task* arg0)
     chase = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     if (Actor01900_Fn03C98(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), 0x60) != 1) {
         if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 1) {
-            Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+            _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
@@ -2156,9 +2212,9 @@ static void Actor01900_Fn042BC(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 3) {
         if (work->blendActive == 0) {
-            Actor01900_StepForward(arg0->extra.tmd->coords, 0x28);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0x28);
         } else {
-            Actor01900_StepForward(arg0->extra.tmd->coords, 0xA);
+            _actorMovementStepForward(arg0->extra.tmd->coords, 0xA);
         }
     } else if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->animId      = 3;
@@ -2194,7 +2250,7 @@ static void Actor01900_Fn04D14(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         work->circleRateStep = 8;
         work->stateTimer     = 0;
         work->stateCounter   = 0;
@@ -2205,11 +2261,11 @@ static void Actor01900_Fn04D14(Task* arg0)
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     chase                                 = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 0) {
         work->stateCounter++;
     } else {
-        Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->stateCounter >= 7) {
@@ -2312,7 +2368,7 @@ static void Actor01900_Fn0551C(Task* arg0)
         work->lookYawTarget     = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
         coord               = arg0->extra.tmd->coords;
         chase->turn         = _actorAngleNormalizeYaw(ratan2(head[-1].delta.vx, chase->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
@@ -2326,7 +2382,7 @@ static void Actor01900_Fn0551C(Task* arg0)
     head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
     chase                                   = head - 1;
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &chase->delta);
     if (work->turnYaw == work->turnYawTarget) {
         if (work->circleCount < 2 || _actorRangeOutsideRadiusXZ(&chase->delta, 0x384)) {
@@ -2349,12 +2405,12 @@ static void Actor01900_Fn0551C(Task* arg0)
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
-        Actor01900_StepForward(arg0->extra.tmd->coords, 0x28);
+        _actorMovementStepForward(arg0->extra.tmd->coords, 0x28);
     } else {
-        Actor01900_StepForward(arg0->extra.tmd->coords, 0x14);
+        _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
     }
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-        Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
@@ -2415,7 +2471,7 @@ static void Actor01900_Fn05B4C(Task* arg0)
         work->animRequest = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->animRate    = 0xC;
         work->blendActive = 0;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         gfxRotMatrixY(&mat, aim->turn, 1);
         dir = &work->sidestepDir;
         gfxReadMatrixZAxis(&mat, dir);
@@ -2424,7 +2480,7 @@ static void Actor01900_Fn05B4C(Task* arg0)
         work->sidestepCount++;
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
         gte_lddp(work->sidestepStep);
@@ -2467,10 +2523,10 @@ static void Actor01900_Fn05F38(Task* arg0)
         work->animRequest = ACTOR_01900_ANIM_REQUEST_RESET;
         work->stateTimer  = 0;
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     if ((u32)((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) - 0x10) < 7U) {
         coord = arg0->extra.tmd->coords;
-        Actor01900_StepForward(coord, -0x78);
+        _actorMovementStepForward(coord, -0x78);
         _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
@@ -2504,18 +2560,18 @@ static void Actor01900_Fn06100(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         work->circleCount = 0;
         return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-        Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     coord               = arg0->extra.tmd->coords;
     aim->turn           = _actorAngleNormalizeYaw(ratan2(aim->delta.vx, aim->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->lookYawTarget = aim->turn;
@@ -2534,9 +2590,9 @@ static void Actor01900_Fn06100(Task* arg0)
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->blendActive == 0) {
-        Actor01900_StepForward(arg0->extra.tmd->coords, 0x28);
+        _actorMovementStepForward(arg0->extra.tmd->coords, 0x28);
     } else {
-        Actor01900_StepForward(arg0->extra.tmd->coords, 0x14);
+        _actorMovementStepForward(arg0->extra.tmd->coords, 0x14);
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
@@ -2568,7 +2624,7 @@ static void Actor01900_Fn06634(Task* arg0)
     if (work->animId == 0xA) {
         Actor01900_StepForwardHead(arg0->extra.tmd->coords, -0x57);
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -2576,7 +2632,7 @@ static void Actor01900_Fn06634(Task* arg0)
         if (work->animId == 0xA) {
             work->animId      = 0xB;
             work->animRequest = ACTOR_01900_ANIM_REQUEST_RESET;
-            Actor01900_Fn01C94(arg0);
+            _actor01900UpdateAnimation(arg0);
         }
         if ((work->rig.slots[1].status.fields.flags & 0x100) && work->animId == 0xB) {
             work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
@@ -2667,7 +2723,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
         work->stateTimer              = 0;
         work->dormantAnimFrame        = 0;
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0xF && work->dormantAnimFrame != (work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) &&
         (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 9, 0, 0)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2704,7 +2760,7 @@ static void Actor01900_Fn06B4C(Task* arg0)
     d->vz                  = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
     if (!_actorRangeOutsideRadiusXZ(d, work->noticeRange)) {
         sndEvtRequestScriptStop(SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
+        if (_actor01900EngageBattleIfPlayerLevel(arg0) == 1) {
             work->state = ACTOR_01900_STATE_ALERT;
         }
     }
@@ -2738,7 +2794,7 @@ static void Actor01900_Fn06F40(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         work->stateTimer = 0;
         if ((arg0->spawnArg1.value >> 16) == 0x10) {
             work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -2758,7 +2814,7 @@ static void Actor01900_Fn06F40(Task* arg0)
         }
         work->stateTimer = 0;
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     coord               = arg0->extra.tmd->coords;
     turn->angle         = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
     work->lookYawTarget = turn->angle;
@@ -2773,13 +2829,13 @@ static void Actor01900_Fn06F40(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     if (work->blendActive == 0) {
-        Actor01900_StepForward(arg0->extra.tmd->coords, 0xA);
+        _actorMovementStepForward(arg0->extra.tmd->coords, 0xA);
     }
     if ((arg0->spawnArg1.value >> 16) != 0x10) {
         if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 && ABS(work->lookYawTarget) < 0x80) {
             work->stateTimer++;
         } else {
-            Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+            _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     } else {
         if ((_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) == 1 ||
@@ -2787,21 +2843,21 @@ static void Actor01900_Fn06F40(Task* arg0)
             ABS(work->lookYawTarget) < 0x80) {
             work->stateTimer++;
         } else {
-            Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+            _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (_playerDetectionSightBlocked(arg0) != 1) {
         _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &turn->delta);
         if (!_actorRangeOutsideRadiusXZ(&turn->delta, work->noticeRange)) {
-            if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
+            if (_actor01900EngageBattleIfPlayerLevel(arg0) == 1) {
                 work->state = ACTOR_01900_STATE_ALERT;
             }
         } else if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0xFA0)) {
             coord       = arg0->extra.tmd->coords;
             turn->angle = _actorAngleNormalizeYaw(ratan2(turn->delta.vx, turn->delta.vz) - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
             if (ABS(turn->angle) < 0x300) {
-                if (Actor01900_ArmIfPlayerLevel(arg0) == 1) {
+                if (_actor01900EngageBattleIfPlayerLevel(arg0) == 1) {
                     work->state = ACTOR_01900_STATE_ALERT;
                 }
             }
@@ -2851,7 +2907,7 @@ static void Actor01900_Fn07810(Task* arg0)
     turn->angle += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn->angle, 1);
     if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-        Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
     Actor01900_MoveForward(arg0->extra.tmd->coords, work->runStep);
     if (work->runStep > 0) {
@@ -2861,7 +2917,7 @@ static void Actor01900_Fn07810(Task* arg0)
             work->runStep = 0;
         }
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     if ((work->rig.slots[1].status.fields.flags & 0x100) || work->runStep == 0) {
         work->state = ACTOR_01900_STATE_TURN_AROUND;
     }
@@ -2888,10 +2944,10 @@ static void Actor01900_Fn07BA8(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         return;
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     aim                 = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     aim->turn           = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
@@ -2901,7 +2957,7 @@ static void Actor01900_Fn07BA8(Task* arg0)
         work->animId      = 0x11;
         work->animRequest = ACTOR_01900_ANIM_REQUEST_BLEND;
         work->stateTimer  = 0;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
     }
     if (aim->turn > 0x80) {
         aim->turn = 0x80;
@@ -2918,9 +2974,9 @@ static void Actor01900_Fn07BA8(Task* arg0)
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->animId == 0x11) {
         work->stateTimer++;
-        Actor01900_StepForward(arg0->extra.tmd->coords, -0x10);
+        _actorMovementStepForward(arg0->extra.tmd->coords, -0x10);
         if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-            Actor01900_Fn03FF8(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+            _actor01900ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         if (work->stateTimer >= 0x13) {
@@ -2955,7 +3011,7 @@ static void Actor01900_Fn080A8(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         work->stateTimer = 0;
         return;
     }
@@ -2978,7 +3034,7 @@ static void Actor01900_Fn080A8(Task* arg0)
     aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
@@ -3006,8 +3062,8 @@ static void Actor01900_Fn083E8(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        Actor01900_Fn01C94(arg0);
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
+        _actor01900UpdateAnimation(arg0);
         work->stateTimer = 0;
         work->lookYaw    = 0;
         return;
@@ -3031,7 +3087,7 @@ static void Actor01900_Fn083E8(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
     _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_01900_ROOT_SCALE);
     work->animRequest = ACTOR_01900_ANIM_REQUEST_RESET;
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
@@ -3163,7 +3219,7 @@ static void Actor01900_Fn0892C(Task* arg0)
             }
             break;
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     Actor01900_ResetYaw(arg0->extra.tmd->coords + 2);
     Actor01900_ResetYaw(arg0->extra.tmd->coords + 3);
     Actor01900_ResetYaw(arg0->extra.tmd->coords + 4);
@@ -3216,10 +3272,10 @@ static void Actor01900_Fn09694(Task* arg0)
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
         work->circleCount = 0;
         if (*(u16*)work->commandBytes != 0x301) {
-            Actor01900_ArmIfPlayerLevel(arg0);
+            _actor01900EngageBattleIfPlayerLevel(arg0);
         }
         work->stateTimer        = 0;
         work->stateCounter      = 0;
@@ -3241,7 +3297,7 @@ static void Actor01900_Fn09694(Task* arg0)
     aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     if (work->stateTimer < 0xE) {
         coord = arg0->extra.tmd->coords;
         aim->turn =
@@ -3292,7 +3348,7 @@ static void Actor01900_Fn09BE8(Task* arg0)
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3417,7 +3473,11 @@ static void Actor01900_Fn09D3C(Enemy* enemy, Task* actor)
     enemy->coord = &gGfxViewCoord;
 }
 
-s32 Actor01900_Fn0A314(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores message 2015 without accessing the receiver or either argument.
+///
+/// The matched callback falls off its signed-return body without setting a result.
+/// Senders must ignore the result; the message's sender-side purpose is unproven.
+static s32 _actor01900IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unused)
 {
 }
 
@@ -3469,29 +3529,39 @@ static const EnemyTaskFuncTable4 Actor01900_D0023C = { {
     enemyDestroy,
 } };
 
-s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
+/// Maps a requested animation id and forces entry into the down state.
+///
+/// Requires live initialized work and a borrowed request. IDs 0..4 map to local
+/// clips 34, 35, 36, 37 and 39; other IDs leave `animId` unchanged. No animation
+/// request flag is set, and no bank is installed here. All IDs select `ACTOR_01900_STATE_DOWN` and
+/// force its next state entry. Other request fields and argument words are ignored.
+/// Returns 0. The mapped clips' contents are unproven; the static bank leaves them empty.
+static s32 _actor01900HandleAnimationRequest(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unused)
 {
-    _Actor01900Work* work = arg0->work;
+    enum { ACTOR_01900_REQUEST_CLIP_BASE = 0x22,
+           ACTOR_01900_FORCE_STATE_ENTRY = -1 };
 
-    switch (arg2->animationId) {
+    _Actor01900Work* work = task->work;
+
+    switch (request->animationId) {
         case 0:
-            work->animId = 0x22;
+            work->animId = ACTOR_01900_REQUEST_CLIP_BASE;
             break;
         case 1:
-            work->animId = 0x23;
+            work->animId = ACTOR_01900_REQUEST_CLIP_BASE + 1;
             break;
         case 2:
-            work->animId = 0x24;
+            work->animId = ACTOR_01900_REQUEST_CLIP_BASE + 2;
             break;
         case 3:
-            work->animId = 0x25;
+            work->animId = ACTOR_01900_REQUEST_CLIP_BASE + 3;
             break;
         case 4:
-            work->animId = 0x27;
+            work->animId = ACTOR_01900_REQUEST_CLIP_BASE + 5;
             break;
     }
     work->state     = ACTOR_01900_STATE_DOWN;
-    work->prevState = -1;
+    work->prevState = ACTOR_01900_FORCE_STATE_ENTRY;
     return 0;
 }
 
@@ -3501,48 +3571,66 @@ s32 Actor01900_Fn0A31C(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg
 
 #include "../../shared/actor_messages_place_yaw.inc.c"
 
-s32 Actor01900_Fn0A59C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Acknowledges `ACTOR_MESSAGE_RELEASE_HOLD` by returning 1.
+///
+/// Does not access the task or arguments, or change any player-hold state.
+static s32 _actor01900AcknowledgeHoldRelease(Task* task, s32 messageId, s32 unusedPayload, s32 unused)
 {
     return 1;
 }
 
-s32 Actor01900_Fn0A5A4(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
+/// Applies an actor `command` in the Patio or Dryfield Toilet namespace.
+///
+/// Requires live initialized work and a model; `command` borrows a complete four-byte
+/// `ActorCommand` for this call. Caches its context and only the low `command` byte,
+/// including unsupported commands. Command 0 hides in either namespace; Patio
+/// `command` 1 selects scripted dormancy, Toilet `command` 2 places the scripted watch
+/// pose at (-1429, 0, -1457), yaw -1024 in parent space. Returns 1 for these actions,
+/// zero otherwise. Does not force state re-entry. Other argument words are ignored.
+static s32 _actor01900ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused)
 {
-    u16              room;
-    u16              state;
-    u16              state2;
+    enum {
+        ACTOR_01900_COMMAND_HIDE          = 0,
+        ACTOR_01900_COMMAND_PATIO_DORMANT = 1,
+        ACTOR_01900_COMMAND_TOILET_WATCH  = 2
+    };
+
+    u16              contextKey;
+    u16              patioCommand;
+    u16              toiletCommand;
     _Actor01900Work* work;
 
-    work                  = arg0->work;
-    work->commandBytes[0] = ((u8*)arg2)[0];
-    work->commandBytes[1] = ((u8*)arg2)[1];
-    work->commandBytes[2] = ((u8*)arg2)[2];
-    room                  = arg2[0];
-    if (room == 0x301) {
-        state = arg2[1];
-        switch (state) {
-            case 0:
+    work = task->work;
+    // Cache only three bytes; the context and command tests retain their full widths.
+    work->commandBytes[0] = command->context.loc.stage;
+    work->commandBytes[1] = command->context.loc.area;
+    work->commandBytes[2] = (u8)command->command;
+    contextKey            = command->context.key;
+    if (contextKey == ((GAME_AREA_ACROPOLIS_PATIO << 8) | GAME_STAGE_ACROPOLIS)) {
+        patioCommand = command->command;
+        switch (patioCommand) {
+            case ACTOR_01900_COMMAND_HIDE:
                 work->state = ACTOR_01900_STATE_HIDDEN;
                 return 1;
-            case 1:
+            case ACTOR_01900_COMMAND_PATIO_DORMANT:
                 work->state = ACTOR_01900_STATE_DORMANT_SCRIPTED;
                 return 1;
             default:
                 return 0;
         }
-    } else if (room == 0x1002) {
-        state2 = arg2[1];
-        switch (state2) {
-            case 0:
+    } else if (contextKey == ((GAME_AREA_DRYFIELD_TOILET << 8) | GAME_STAGE_DRYFIELD)) {
+        toiletCommand = command->command;
+        switch (toiletCommand) {
+            case ACTOR_01900_COMMAND_HIDE:
                 work->state = ACTOR_01900_STATE_HIDDEN;
                 return 1;
-            case 2:
+            case ACTOR_01900_COMMAND_TOILET_WATCH:
                 work->state                         = ACTOR_01900_STATE_SCRIPTED_WATCH;
-                arg0->extra.tmd->coords->coord.t[0] = -0x595;
-                arg0->extra.tmd->coords->coord.t[1] = 0;
-                arg0->extra.tmd->coords->coord.t[2] = -0x5B1;
-                gfxRotMatrixY(&arg0->extra.tmd->coords->coord, -0x400, 1);
-                arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                task->extra.tmd->coords->coord.t[0] = -0x595;
+                task->extra.tmd->coords->coord.t[1] = 0;
+                task->extra.tmd->coords->coord.t[2] = -0x5B1;
+                gfxRotMatrixY(&task->extra.tmd->coords->coord, -ACTOR_TRANSFORM_ANGLE_TURN / 4, GRAPHICS_ROTATION_REPLACE);
+                task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
                 return 1;
             default:
                 return 0;
@@ -3606,10 +3694,10 @@ static void Actor01900_Fn0A7C0(Task* arg0)
         work->blendActive      = 0;
         work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags   = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
     } else {
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
     }
 }
 
@@ -3630,10 +3718,10 @@ static void Actor01900_Fn0A868(Task* arg0)
         work->blendActive      = 0;
         work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags   = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
     } else {
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
     }
 }
 
@@ -3654,10 +3742,10 @@ static void Actor01900_Fn0A914(Task* arg0)
         work->blendActive      = 0;
         work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags   = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
     } else {
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        Actor01900_Fn01C94(arg0);
+        _actor01900UpdateAnimation(arg0);
     }
 }
 
@@ -3680,7 +3768,7 @@ static void Actor01900_Fn0A9C0(Task* arg0)
         work->gridBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->state = ACTOR_01900_STATE_CHASE;
     }
@@ -3705,7 +3793,7 @@ static void Actor01900_Fn0AA78(Task* arg0)
         work->lookYawTarget           = 0;
         work->animRate                = work->baseRate;
     }
-    Actor01900_Fn01C94(arg0);
+    _actor01900UpdateAnimation(arg0);
     if (work->rig.slots[1].status.fields.flags & 0x100) {
         work->state = ACTOR_01900_STATE_CHASE;
     }

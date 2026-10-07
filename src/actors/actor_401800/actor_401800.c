@@ -1327,7 +1327,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 /// or a zero `key`. Each kind 0x10000 / 0x30000 record contributes half its
 /// offset along X and Z, normalised to length 0x96 first when it is longer than
 /// that; `hit` reports whether one was seen.
-/// Same body as `Actor01900_Fn03FF8` / `func_actor_401300_80132910`, with the
+/// Same body as `_actor01900ApplyBodyPushback` / `func_actor_401300_80132910`, with the
 /// coordinate update written out in both arms of the length test.
 s32 oddStrangerPushContacts(Task* arg0, WorldCollisionContact* recs, s16 count)
 {

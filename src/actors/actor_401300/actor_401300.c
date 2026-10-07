@@ -1449,7 +1449,7 @@ s32 func_actor_401300_80132554(Task* arg0, s32 arg1, ActorCommand* arg2, s32 arg
 /// Pushes the root coordinate by a quarter of each kind 0x10000 / 0x30000 record's
 /// offset (skipping 0x3000D), walking `recs` until `count` or a zero `key`.
 /// The duplicated coordinate update keeps `count`'s sign extension in the loop,
-/// as in `Actor01900_Fn03FF8`.
+/// as in `_actor01900ApplyBodyPushback`.
 static s32 func_actor_401300_80132910(Task* arg0, WorldCollisionContact* recs, s16 count)
 {
     ActorBodyPushScratch* head;

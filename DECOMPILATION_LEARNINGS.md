@@ -44275,7 +44275,7 @@ of 11773 ranked entries, and it was the whole head of the queue: all of the top
 
 Do not filter these structurally instead ("no stack frame and no `jr $ra`").
 That rule reads well and is wrong: it also drops 34 `Fn` symbols, 32 of which
-are real entry points - frameless switch dispatchers like `Actor01900_Fn01A7C`
+are real entry points - frameless switch dispatchers like `_actor01900TakeAnimSoundCue`
 (`lw $v0, 0x0($v1)` / `jr $v0` off `Actor01900_Jt00004`) and three-way branch
 heads like `Actor03800_Fn01150`, whose bodies continue into the L-chunks. Those
 parents are exactly what the vacuum should be picking.
@@ -46894,7 +46894,7 @@ deleted along with the `INCLUDE_ASM` block or the epilogue is emitted twice.
 
 ## An already-matched `void X(void) {}` stub can be the tail of the function you are absorbing
 
-`Actor01900_Fn03C04` is four instructions with no `jr $ra`: it is the head of a
+`_actor01900ClampRootHeight` is four instructions with no `jr $ra`: it is the head of a
 function whose body splat cut into `L03C14` / `L03C70` / `L03C78`, and whose
 shared epilogue is `L03C90` — `jr $ra; nop`, already committed as
 `void Actor01900_L03C90(void) {}`. The empty-function "match" is real in the
@@ -79635,7 +79635,7 @@ keep their own copies.
 
 The same pin is again the whole difference between 98.9% and 100% in
 `Actor00100_Fn00A54`, whose body is byte-identical to the matched
-`Actor01900_Fn00E00` (`src/actors/lib/actor_101900_text.c`) apart from the data
+`Actor01900_Fn00E00` (`src/actors/actor_01900/actor_01900.c`) apart from the data
 symbol it latches into — so its source *states* the pin, and the unpinned port
 is the variant to score first only to see the symptom. Here the un-pinned
 `addiu` writes a callee-saved register and the copy is one register further up
@@ -81531,7 +81531,7 @@ Evidence: tools/permuter_findings/Actor01900_Fn0A7C0/; scratch base_2 controlled
 base_1.i SHA256: b9da53f87bdd617a8ed8a1cd2990269fb345f44896860477b89e7a87b70a6f45
 base_2.i SHA256: a473c47c9e01960ee8585b82f39e6b76f0b85af46ab14a0c9727dbfe1900dd48
 
-## Actor01900_Fn0A5A4: duplicated switch arms replace phony-loop allocation weighting
+## _actor01900ApplyCommand: duplicated switch arms replace phony-loop allocation weighting
 
 The minimally repaired m2c seed used a goto into the other switch's zero-state arm. It scored 99.324% with only regs=10: global work r86 (7 refs/25 insns) lost v1 to selector r90 (3/5), giving work a0. The global ranks are 2*7/25=.56 and 1*3/5=.6; neither value has a hard-register preference and both conflict with v0 and each other.
 
@@ -81539,17 +81539,17 @@ The permuter wrapped state=0x1C and one coordinate store in do/while(0). Loop no
 
 Porting to ordinary duplicated zero-state arms added another work reference surviving through allocation. Planned base_3 removed the wrapper and correctly predicted work 8/26, work=v1 and selector=a0, with identical final instructions. The final C needs no goto, fake loop, pin or asm helper. Prefer reconstructing ordinary separate source arms before retaining a phony-loop discovery. Final tail sharing does not imply those stores were already merged when allocation computed reference counts. This supports the existing global-rank model, not a universal switch recipe.
 
-Evidence: tools/permuter_findings/Actor01900_Fn0A5A4/; paired outputs, plans, flow/lreg/greg and analysis retained by conclude-permuter. Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
+Evidence: tools/permuter_findings/_actor01900ApplyCommand/; paired outputs, plans, flow/lreg/greg and analysis retained by conclude-permuter. Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Normalized parent input: 921d5832ad074d0a17975260d8b3780e1257033c49b90415fa5e334af184c493.
 base_1 input: 3cee4cfe8860940bd527c85409925d9b956974e813871b3e70665a65fc7afb2d.
 base_3 input: 1dfa95e4f3ff6be0ad4d21ebdd4efde847aa6c9bac539ce996291cf99b29b2b9.
 
 
-## Actor01900_Fn01950: sharing a short weight extension across loop uses
+## _actor01900TickBlendedAnimSlots: sharing a short weight extension across loop uses
 
 GCC 2.8.1 can keep two SI conversions of one HI local when one use is before a loop and another is hoisted out of it. Here the preheader `complement = 0x1000 - weight` plus loop call argument `weight` produced local r88 in v1 and loop-hoisted r112 in s5; CSE2 changed the second extension into a surviving copy. Moving the pure complement expression into the call made both uses share the loop conversion. Loop UIDs183/184 hoisted r109, combine folded UID184 to signed lh, and global allocation assigned it s5 directly; complementary r113 stayed in s6. The separately predicted s32-local variant emitted the same object. Both controlled builds reduced distance 127 to 15 with other saved homes intact. This supports shared conversion for this function, not a universal hoisting rule.
 
-Evidence: tools/permuter_findings/Actor01900_Fn01950/, PERMUTER_ANALYSIS.md, controlled base_2 plan/build and dumps. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. base_2 preprocessed SHA256 `3f853fd700369d5f147c82d429679540e0a52d7f345aef13f451c7c71cd3afbf`. Final typed single-index loop matched exactly; commutative address expansion was not separately isolated.
+Evidence: tools/permuter_findings/_actor01900TickBlendedAnimSlots/, PERMUTER_ANALYSIS.md, controlled base_2 plan/build and dumps. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. base_2 preprocessed SHA256 `3f853fd700369d5f147c82d429679540e0a52d7f345aef13f451c7c71cd3afbf`. Final typed single-index loop matched exactly; commutative address expansion was not separately isolated.
 
 ## `build.sh` can print 100% for a candidate whose `.text` differs: compare `readelf -x .text`
 
@@ -88035,15 +88035,15 @@ Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 
 ## A store that reuses the just-compared value wants a variable that outlives the block
 
-`Actor01900_Fn01A7C` has paths of the form `if (work->lastCueFrame != id) {...
-return R; } work->lastCueFrame = id;`. The retail store on the equal path writes the
-*loaded* `lastCueFrame` register (`$v0`), not `id` (`$v1`), so it cross-jumps into
-the `default:` store `sw $v0, 0x8B4($a0)`. Writing `prev = work->lastCueFrame;
-if (prev != id) ...; work->lastCueFrame = prev;` alone changes nothing. On the
-equal edge, cse makes `prev` and `id` equivalent and keeps the older one as the
+`_actor01900TakeAnimSoundCue` has paths of the form `if (work->lastCueFrame != cueIndex) {...
+return R; } work->lastCueFrame = cueIndex;`. The retail store on the equal path writes the
+*loaded* `lastCueFrame` register (`$v0`), not `cueIndex` (`$v1`), so it cross-jumps into
+the `default:` store `sw $v0, 0x8B4($a0)`. Writing `previousCueIndex = work->lastCueFrame;
+if (previousCueIndex != cueIndex) ...; work->lastCueFrame = previousCueIndex;` alone changes nothing. On the
+equal edge, cse makes `previousCueIndex` and `cueIndex` equivalent and keeps the older one as the
 canonical register. `make_regs_eqv` only promotes the newer register when it
-lives past the current cse block. So `prev` also has to be used elsewhere. Here
-`default: prev = work->field_5A & 0x3FF; work->lastCueFrame = prev;` does that, and
+lives past the current cse block. So `previousCueIndex` also has to be used elsewhere. Here
+`default: previousCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK; work->lastCueFrame = previousCueIndex;` does that, and
 the object matches.
 
 ## A jump table spimdisasm misses carries literal addresses into a shared unit
@@ -88462,7 +88462,7 @@ swapped the head/scratch registers (99.86%, `regs=17`); writing
 
 ## A loop-bottom `sra` of an `s16` bound means loop.c hoisted it; a cross-jumped duplicate arm grows the loop past the cut
 
-`Actor01900_Fn03FF8` walks `for (s->i = 0; s->i < count; s->i++)` with an `s16`
+`_actor01900ApplyBodyPushback` walks `for (s->i = 0; s->i < count; s->i++)` with an `s16`
 `count` parameter. Target keeps the bound's sign extension inside the loop, and
 combine folds both sides into a shifted compare:
 
@@ -108102,10 +108102,10 @@ tests the copy; `for (i = 1; i < 0x13; i++)` tests the value the `addiu` produce
 
 So a ~98% m2c seed is not "one edit from a match" when a matched twin exists: the residual
 `insert`/`regs`/`branch` are all the seed's expression spelling. Check the brief's `similar
-matched bodies` list (here `Actor01900_Fn01950`, `1.00` in all four classes) or
+matched bodies` list (here `_actor01900TickBlendedAnimSlots`, `1.00` in all four classes) or
 `overlay_dup_index.py find` first, and transcribe the twin's committed body — 100.000% on the
-first build here. The body's offsets are the twin's (`anim` at `0x1C`, `slots[19]` at `0x30`,
-`blendAnim` at `0x458`, `blendSlots[19]` at `0x46C`, a `0x13E` gap to `animRate`), so only the
+first build here. The body's offsets are the twin's (`rig.anim` at `0x1C`, `rig.slots[19]` at `0x30`,
+`blend.anim` at `0x458`, `blend.slots[19]` at `0x46C`, a `0x13E` gap to `animRate`), so only the
 per-overlay struct names change; `(u8)(work->animRate - 3)` on an `s16` member still emits
 `lbu`, not `lh`+`andi` (combine narrows the subreg-of-MEM load), so the width in the target's
 `.s` is not evidence about the member's declared type. The twin in `actor_401000`
@@ -108632,8 +108632,8 @@ the function in the host file.
 
 `_oddStrangerTakeAnimationSound` is a 20-case switch over `animId` that returns a
 `0x400A00xx` event id when `work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK` reaches a value its state cares
-about, latched by `lastCueFrame`. Its matched sibling `Actor01900_Fn01A7C`
-(`src/actors/lib/actor_101900_text.c`) gives the statement shape, and copying it
+about, latched by `lastCueFrame`. Its matched sibling `_actor01900TakeAnimSoundCue`
+(`src/actors/actor_01900/actor_01900.c`) gives the statement shape, and copying it
 produced 97.067% — every block in place, `regs`/`stack` at zero, and a 2-instruction
 gap: the first of a case's two checks hoisted its `lui` into the `beq` delay slot
 (as the target does), the second left a `nop` there and kept the `lui` after the
@@ -108908,7 +108908,7 @@ target:  lbu  v0,0x0(a2) / sb v0,0xC18(a0)    <- three bytes stored
 Only the *comparisons* are halfword; the stores really are bytes. A `const ActorCommand* command` with its stage and area bytes read directly,
 the command narrowed to its low byte for the cache, and comparisons through
 `command->context.key` / `command->command` reproduces both widths from one parameter —
-the same shape `Actor01900_Fn0A5A4`, the matching sibling, already had.
+the same shape `_actor01900ApplyCommand`, the matching sibling, already had.
 
 **Strides.** `&obj->field_8->coord` came out of m2c as `M2C_FIELD(..., s32 **, 8) + 4`, which in C is
 `+0x10`, and the object dump showed `addiu a0,a0,0x10` against the target's `addiu a0,a0,4`.
@@ -109035,6 +109035,8 @@ Inputs: `base_1.i` SHA256
 row's `field_0` / `field_2`, clamp `coord->coord.t[1]` into [`lo`, `hi`] and
 return. Its twins are `_actor401300ClampRoomHeight` (`USA/actors/actor_401300`)
 and `Actor01900_Fn03C04` (`src/actors/lib/actor_101900_text.c`), and BRIEF's
+return. Its twins are `func_actor_401300_80132BE4` (`USA/actors/actor_401300`)
+and `_actor01900ClampRootHeight` (`src/actors/actor_01900/actor_01900.c`), and BRIEF's
 `shape` / `fields` classes rate both 0.99 — but `overlay_dup_index.py find`
 reports this body as its own only copy, because the twins are *not* equivalent:
 the 401000 one clears `coord->composeStamp` before returning and they do not.
@@ -112748,21 +112750,26 @@ field the original source had.
 **Cause.** Both are `s16` fields; only the *use* narrows. `(u8)work->blendRate` on an
 `s16` member is a `subreg:QI` of a `reg:HI` that was loaded from memory, and on a
 little-endian target GCC 2.8.1 loads that subreg straight from the same address in
-QImode - one `lbu`. The already-matched sibling `Actor01900_Fn01950` spells the same
-read `work->blendSlots[i].rate = (u8)work->field_8AA;` against an `s16 field_8AA`
-(`src/actors/actor_101900.h`) and emits the same `lbu 0x8AA($s1)`.
+QImode - one `lbu`. The already-matched sibling `_actor01900TickBlendedAnimSlots` spells the same
+read `work->blend.slots[slotIndex].rate = work->blendRate;` from an `s16 blendRate`
+in `_Actor01900Work`: assigning to the signed-byte slot rate narrows implicitly
+and emits the same `lbu 0x8AA($s1)`.
 
 So a target load width does not pin the declared width of the field. Before "fixing" a
 struct so an `lbu` appears, check whether the byte is ever read as a whole halfword
 somewhere else; a real `u8` and an `s16` read through `(u8)` diverge only at that other
 use.
 
-**Family.** The body - blend pose slots 1..N, the first eleven from both animation
+**Family.** The body - blend pose slots 1..N, the first ten from both animation
 contexts with `0x1000 - weight`, the rest ticked - now has three matched members, each
 an overlay-local `*AnimWork` view of the task work block: `Actor01900_Fn01950`
 (`anim` +0x1C, weight +0x8AC, bound 0x13), `func_actor_403000_801336B4` (`anim` +0x14,
 weight +0xAD4, bound 0x18) and `_actor356100TickBlendedAnimation` (`anim` +0x1C, weight
 +0x98C, bound 0x15). Because `1BC.h` `AnimationContext` is 0x14 bytes, each view's slot array
+using its actor's task work block: `_actor01900TickBlendedAnimSlots`
+(`rig.anim` +0x1C, weight +0x8AC, bound 0x13), `func_actor_403000_801336B4` (`anim` +0x14,
+weight +0xAD4, bound 0x18) and `func_actor_356100_801633DC` (`anim` +0x1C, weight
++0x98C, bound 0x15). Because `AnimationContext` is 0x14 bytes, each rig's slot array
 starts exactly 0x14 after its context, which fixes `slots[i].rate` at `+9` off that
 base - so the three displacements 0x39 / 0x39 / 0x39 are the same number and only the
 `blendSlots` base moves with the overlay. Transcribing the sibling's C verbatim and
@@ -114982,7 +114989,7 @@ Scratch `nonmatchings/func_actor_110600_801327EC-vacuum`.
 
 ## A switch that reuses one C variable across its cases fuses them into one cross-block pseudo (func_actor_110600_80134564, 2026-09-16)
 
-The brief's starred twin, `Actor01900_Fn01A7C`, is this body verbatim with a
+The brief's starred twin, `_actor01900TakeAnimSoundCue`, is this body verbatim with a
 different cue set and writes every case with a single shared `id` / `prev` pair.
 Copying that shape here scored 89.7%: gcc reuses a variable's pseudo for the next
 assignment once the old value is dead, so all eight `id = slots[n].currentPose.indices.recordIndex & 0x3FF;`
@@ -131808,7 +131815,7 @@ coord)` and a release. The helper stops fitting where the fold differs:
 pointer before folding, and `func_actor_403600_8013E66C` truncates to `s16`
 before the comparisons, so both match the helper only as far as the `ratan2`.
 
-## Between two eligible insns after a branch, reorg picks one you cannot steer: hoist the wanted one above the compare (Actor01900_Fn01C94, 2026-09-18)
+## Between two eligible insns after a branch, reorg picks one you cannot steer: hoist the wanted one above the compare (_actor01900UpdateAnimation, 2026-09-18)
 
 A loop preceded by a pointer copy and a counter init compiled to
 
@@ -149723,7 +149730,7 @@ attempts; left as it was.
   (`Gp_SelectAmmoMenuTask`, `Gp_SelectArmorMenuTask`) are plain `if (item ==
   0) flags = 0x112; else { ... }`.
 - **`w1 = work;` copies and one index local per loop were inlines taking the
-  task.** `Actor01900_Fn01C94` ran four slot loops over `w1`/`w2`/`w3` with
+  task.** `_actor01900UpdateAnimation` ran four slot loops over `w1`/`w2`/`w3` with
   `i`..`i4`; the image has `move s0,s3` for the first two and a real reload of
   `arg0->work` for the last two. Each is `static inline void f(Task* arg0) {
   work = arg0->work; for (i = 1; i < 0x13; i++) ... }`: cse turns the reload
