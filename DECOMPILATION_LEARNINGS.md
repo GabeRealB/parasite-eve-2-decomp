@@ -152448,3 +152448,62 @@ used once after it, print the block's `.sched` trace. `7f000001` on the
 constant means it will sink; ask for a block boundary between it and the call
 before asking for a second set. A load that stays behind a store it does not
 depend on, in the same place, is the same boundary.
+
+### Two barriers that stood for two references: a chained load through a variable that is set again (func_replay_bonus_801183B8, 2026-10-07)
+
+**Was.** `SOFT_USE_REG(gv);` in the glyph loop and `SOFT_USE_REG2(piece, gh);`
+in the sprite loop, each sitting inside a hand-expanded `addPrim` (`glyphOt` /
+`glyphTag` / `drawTag` locals existed only to give the barriers a place).
+Without both, `gh` and `gv` exchange `$t4`/`$t5` (24 differing lines).
+
+**The two sites are two separate constraints** (the 2026-10-05 entry "the two
+barriers of func_replay_bonus_801183B8" has the numbers but treated them as
+one):
+
+- A. `gh` (pseudo 99) has to be allocated before `gv` (95). Barrier-free both
+  have 17 weighted references; `gv` lives 135 insns (5037), `gh` 157 (4331).
+  The sprite-loop barrier alone fixes this: 20 / 158 = 5063.
+- B. `clut` (5 refs / 109) has to stay ahead of the hoisted
+  `%hi(D_replay_bonus_801192AC)` (19 / 832) for `$fp`: 917 against 913. This
+  is true with no barrier at all. The sprite-loop barrier breaks it (its insn
+  costs `clut` 1 and the `%hi` 2: 909.09 against 911), and the glyph-loop
+  barrier existed only to repair that (two more insns for the `%hi`, 836: a
+  tie, lower pseudo wins). So the `gv` barrier never had anything to do with
+  `gv`.
+
+**What cannot move.** The lengths. `gh` runs from its `lbu` to the page-flag
+`srl`, which has to follow the last use of the masked height (they share
+`$a0`); `gv` ends at `gv + height`, which has to precede `y - height`. Both
+are live across the whole sprite loop. Separate glyph-loop locals for any of
+`gh`/`gu`/`gv` change the frame and 118-293 lines, so the sharing is right.
+Every visible reference is an instruction of the image, so `gh` needs 20 or
+more references with nothing added: phantom ones.
+
+**Fix (fitted).** In the sprite's load run:
+
+```c
+gv = gh = D_replay_bonus_8011929C[idx].v;
+gh = D_replay_bonus_8011929C[idx].height;
+```
+
+Flow counts `gh`'s set and the copy's use (2 + 2 at that depth); combine
+merges the load into the copy (`(set gv:HI (zero_extend:HI (mem:QI)))`, the
+image's `lbu t5,9(v1)`), and because `gh` has other sets its count is not
+reset: `Register 99 used 21 times across 157 insns`, 5350. No insn is added,
+so B holds by itself. No statement is needed between the load and the copy
+here, unlike Gp_DrawHpMpStats: the copy is `HI` from `SI`, so cse's copy swap
+does not apply. The same thing through `gu`, or in the glyph loop through
+`width`, gives the right order too but moves one `lbu` (the merged load sits
+where the copy was).
+
+With the barriers gone both links are the plain `addPrim(gGpuCurrentOt + 10,
+p)`; the "redundant `getaddr(ot) & 0xFFFFFF`" of the 2026-09-09 entry was
+only needed beside the barrier. Fitted constructs 2 barriers + 2 hand-expanded
+links -> 1 chained assignment. That `gh` carried `v` first is read off the
+allocation only; which value the original passed through it is not known.
+
+**Use.** When two barriers "compensate each other", print the allocation
+order with each one alone before reading them as one mechanism: one may only
+be paying for the other's extra insn. And a variable that is set in two
+places can pick up references from a load that is copied straight out of it,
+whichever of its sets that is.

@@ -683,9 +683,6 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
     POLY_FT4*            p;
     SPRT*                sprt;
     DR_TPAGE*            dr;
-    u_long*              glyphOt;
-    u_long               glyphTag;
-    u_long               drawTag;
 
     tpageId = 7;
     col     = 0;
@@ -753,11 +750,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
                             p->tpage = 0xF;
                         }
                         x = x1;
-                        setaddr(p, getaddr(gGpuCurrentOt + 10));
-                        glyphOt  = gGpuCurrentOt + 10;
-                        glyphTag = (*glyphOt & 0xFF000000) | ((u_long)p & 0xFFFFFF);
-                        SOFT_USE_REG(gv);
-                        *glyphOt = glyphTag;
+                        addPrim(gGpuCurrentOt + 10, p);
                         j++;
                     }
                     i += j - 1;
@@ -814,10 +807,15 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
                             x = D_replay_bonus_80119294->columns[col].rightX - width;
                             break;
                     }
-                    shift     = 2;
-                    tpageX    = D_replay_bonus_8011929C[idx].tpageX;
-                    gu        = D_replay_bonus_8011929C[idx].u;
-                    gv        = D_replay_bonus_8011929C[idx].v;
+                    shift  = 2;
+                    tpageX = D_replay_bonus_8011929C[idx].tpageX;
+                    gu     = D_replay_bonus_8011929C[idx].u;
+                    /* Fitted: the image needs `gh` ranked above `gv` at global allocation
+                     * ($t4/$t5), which takes two more references to `gh` here than the
+                     * instructions show. Loading the row through it leaves them (combine
+                     * merges the load into the copy). What the original passed through
+                     * `gh` is not known. */
+                    gv = gh   = D_replay_bonus_8011929C[idx].v;
                     gh        = D_replay_bonus_8011929C[idx].height;
                     clut      = getClut(D_replay_bonus_8011929C[idx].clutX, D_replay_bonus_8011929C[idx].clutY);
                     pixelMode = D_replay_bonus_8011929C[idx].pixelMode;
@@ -862,10 +860,7 @@ static void func_replay_bonus_801183B8(s32 y, ReplayBonusStfCommand* cmds)
                         dr->code[0] = ((pageFlags & 3) << 7) | (s16)((s32)((D_replay_bonus_8011929C[idx].tpageY & 0x100) << 16) >> 20) | page | ((s16)(D_replay_bonus_8011929C[idx].tpageY & 0x200) * 4) | 0xE1000200;
                         tpageX     += 0x100 >> shift;
                         x           = x + piece;
-                        drawTag     = (dr->tag & 0xFF000000) | (getaddr(gGpuCurrentOt + 10) & 0xFFFFFF);
-                        SOFT_USE_REG2(piece, gh);
-                        dr->tag = drawTag;
-                        setaddr(gGpuCurrentOt + 10, dr);
+                        addPrim(gGpuCurrentOt + 10, dr);
                     }
                     break;
             }
