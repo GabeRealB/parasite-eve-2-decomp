@@ -12323,17 +12323,17 @@ nor  v0, zero, v0
 andi v0, v0, 0xffff
 ```
 
-Match with a local `u16` and byte stores (a `union { u16 h; u8 b[2]; }` often
-optimizes the stack stores away):
+Match with a volatile word/bytes union and byte stores (an unqualified union
+can optimize the stack stores away):
 
 ```c
-u16 sp;
-GStruct* base;
+volatile PadRawButtons rawButtons;
+const PadRawPort* rawPorts;
 
-base = D_array;
-((u8*)&sp)[1] = base[arg0].field_2; /* high */
-((u8*)&sp)[0] = base[arg0].field_3; /* low */
-return (u16)~sp;
+rawPorts = Pad_RawPorts;
+rawButtons.bytes.high = rawPorts[port].buttonsHigh;
+rawButtons.bytes.low  = rawPorts[port].buttonsLow;
+return (u16)~rawButtons.word;
 ```
 
 ### Array base first for `lui`/`addu v0,v0,v1`
@@ -12350,7 +12350,7 @@ Avoid `p = &D_array[index]` / `p = base + index` if that yields `addu v1, v0, v1
 (pointer in `$v1`) — reusing the base local via `base[index]` twice keeps the
 pointer in `$v0` so the first `lbu` can land in `$v1`.
 
-`Pad_ReadButtonsInv` is the pure example (`Pad_RawPorts`, stride 0x24).
+`padReadRawButtons` is the pure example (`Pad_RawPorts`, stride 0x24).
 
 ## Ordering-table descriptors are libgs `GsOT`
 
@@ -14558,7 +14558,7 @@ s32 mask;
 
 mask = 0x40000000;
 if (!(Stage_Ctx->field_1c & mask)) {
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     temp = Stage_Ctx;
     temp->field_20 = arg0;
     temp->field_24 = 0;

@@ -23,4 +23,17 @@ typedef struct {
 } PadRawPort;
 STATIC_ASSERT_SIZEOF(PadRawPort, 0x24);
 
+/// Active-low controller button word assembled from the two response bytes.
+///
+/// The receive buffer sends the high byte first. The byte view places it after
+/// the low byte in little-endian memory so `word` uses Psy-Q's button bit order.
+typedef union {
+    u16 word;    // Active-low button bits in Psy-Q order
+    struct {
+        u8 low;  // Shoulder and face buttons, from `PadRawPort::buttonsLow`
+        u8 high; // Select, stick clicks, Start and D-pad, from `PadRawPort::buttonsHigh`
+    } bytes;
+} PadRawButtons;
+STATIC_ASSERT_SIZEOF(PadRawButtons, 0x2);
+
 #endif // MAIN_PRIVATE_PAD_TYPES_H

@@ -1726,7 +1726,7 @@ void Gp_ViewGateTask(Task* task)
         q = &gCdCmdQueue;
         if ((q->scenePayloadAvailable == 0) || (q->scenePayloadLoading == 0)) {
             sess->location.loc.view = save->state.location.loc.view;
-            Pad_SetCooldown(0);
+            padStartInputBlock(0);
             Gp_SpawnViewTasks();
             if (displaySpawnTask(0, 0x1E, 0, 0) != 0) {
                 loc                   = gGameSession->location.loc.view;

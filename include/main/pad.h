@@ -106,7 +106,15 @@ enum {
 /// an actuator command; polling currently services only port 0.
 void padPostVibrationRequest(s32 port, s32 motorBank, s32 intensity, s32 durationUnits);
 
-void Pad_SetCooldown(s32 port);
+/// Starts or renews a controller port's 61-update input block.
+///
+/// `port` must be 0 or 1. Replaces the countdown without clearing stored button
+/// masks immediately. Blocked input updates clear held, pressed and released
+/// masks; the expiry update samples raw held buttons without generating edges.
+/// The countdown advances during main-loop input updates, not VSync polls;
+/// currently only port 0 receives those updates. `padReadRawButtons` remains
+/// available during the block.
+void padStartInputBlock(s32 port);
 
 /// Clears the pending input-block countdown for a controller port.
 ///
@@ -115,7 +123,15 @@ void Pad_SetCooldown(s32 port);
 /// held mask. The countdown counts input updates, not VSync vibration polls.
 void padClearInputBlock(s32 port);
 
-s32 Pad_ReadButtonsInv(s32 port);
+/// Returns the raw held buttons as active-high Psy-Q bits, even during an input block.
+///
+/// `port` must be 0 or 1. Returns a zero-extended 16-bit mask in a signed 32-bit
+/// value. Reads the latest receive-buffer bytes without polling or consuming
+/// them; it adds no stick directions, replay override or pressed/released edges.
+/// Does not validate the receive-buffer status. Resident polling currently
+/// services port 0 and supplies all-released bytes while that pad is unusable;
+/// port 1 can retain response bytes from an earlier successful exchange.
+s32 padReadRawButtons(s32 port);
 
 /// Clears every stored vibration request for both motors of one controller port.
 ///

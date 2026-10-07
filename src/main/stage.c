@@ -454,7 +454,7 @@ static void Display_TransitionTask(Task* task)
     // View transition, then file load, the ending request, then a capture.
     flags = Stage_Ctx->requestFlags;
     if (flags & STAGE_REQUEST_TRANSITION) {
-        Pad_SetCooldown(0);
+        padStartInputBlock(0);
         Stage_Ctx->otFlipArmed = 0;
         state                  = Stage_Ctx->transitionStep;
         switch (state) {
@@ -471,7 +471,7 @@ static void Display_TransitionTask(Task* task)
                     gpuClearFrameOrderingTable(1);
                     memInitAuxHeap();
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view;
-                    Pad_SetCooldown(0);
+                    padStartInputBlock(0);
                     Gp_SpawnCurView(2);
                     gGameSession->viewReady = 0;
                     taskSpawn(0, 0x1E, 2, 0);
@@ -688,7 +688,7 @@ s32 Stage_BeginTransition(s32 arg0, s32 arg1)
 
     mask = STAGE_REQUEST_TRANSITION;
     if (!(Stage_Ctx->requestFlags & mask)) {
-        Pad_SetCooldown(0);
+        padStartInputBlock(0);
         stage                  = Stage_Ctx;
         stage->pendingView     = arg0;
         stage->heldFrameBuffer = 0;
@@ -708,7 +708,7 @@ s32 Stage_BeginTransitionKind7(s32 arg0)
     mask = STAGE_REQUEST_TRANSITION;
     ret  = -1;
     if (!(Stage_Ctx->requestFlags & mask)) {
-        Pad_SetCooldown(0);
+        padStartInputBlock(0);
         stage                    = Stage_Ctx;
         stage->pendingView       = arg0;
         stage->heldFrameBuffer   = 0;
@@ -892,7 +892,7 @@ void Stage_ResetFade(void)
 
 static void Stage_WaitCdActivate(Task* task)
 {
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     if (cdCmdRequestSuspend() != 0) {
         task->state += 1;
     } else {
@@ -904,7 +904,7 @@ static void Stage_WaitCdActivate(Task* task)
 
 static void Stage_WaitCdAndSpawn(Task* task)
 {
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     if (cdCmdIsIdleOrSceneAudioPending() != 0) {
         gPadStates[0].inputBlockPolls = 1;
         Display_SpawnFromMode();

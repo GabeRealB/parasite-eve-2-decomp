@@ -352,7 +352,7 @@ void func_800AC0F0(Task* task)
     TaskFuncTable3 sp;
 
     sp = Gp_SessionStates;
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     *(volatile u8*)&gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
     sp.funcs[((volatile Task*)task)->state](task);
 }
@@ -387,10 +387,10 @@ void Gp_LoadStateTask(Task* task)
     DisplayState*  ds;
 
     sp = Gp_LoadStateFns;
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     ds = &gDisplayState;
     if (ds->demoScene != DISPLAY_DEMO_NONE) {
-        if (Pad_ReadButtonsInv(0) & 0x800) {
+        if (padReadRawButtons(0) & PAD_BUTTON_START) {
             if (cdCmdIsIdle() & 0xFFFF) {
                 Wip_SysFlags.skipTitleIntro = 1;
                 ds->gameMode                = DISPLAY_GAME_RESTART;

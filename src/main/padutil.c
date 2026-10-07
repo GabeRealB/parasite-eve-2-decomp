@@ -11,11 +11,6 @@
 
 enum { PAD_VIBRATION_POLLS_PER_DURATION_UNIT = 2 };
 
-enum {
-    PAD_INPUT_BLOCK_UPDATES = 61,
-    PAD_SOFT_RESET_COMBO    = 0x90F,
-};
-
 /// Advances the controller's shared vibration-request cursor past `slot`.
 ///
 /// `pad` must point to writable controller state and `slot` must be in 0..7.
@@ -87,12 +82,13 @@ void padPostVibrationRequest(s32 port, s32 motorBank, s32 intensity, s32 duratio
     _padAdvanceVibrationSlot(pad, pad->nextVibrationSlot);
 }
 
-void Pad_SetCooldown(s32 arg0)
+void padStartInputBlock(s32 port)
 {
-    volatile PadState* p;
+    enum { PAD_INPUT_BLOCK_UPDATES = 61 };
+    PadState* pad;
 
-    p                  = &gPadStates[arg0];
-    p->inputBlockPolls = PAD_INPUT_BLOCK_UPDATES;
+    pad                  = &gPadStates[port];
+    pad->inputBlockPolls = PAD_INPUT_BLOCK_UPDATES;
 }
 
 void padClearInputBlock(s32 port)
@@ -103,15 +99,16 @@ void padClearInputBlock(s32 port)
     pad->inputBlockPolls = 0;
 }
 
-s32 Pad_ReadButtonsInv(s32 arg0)
+s32 padReadRawButtons(s32 port)
 {
-    u16         sp;
-    PadRawPort* base;
+    volatile PadRawButtons rawButtons;
+    const PadRawPort*      rawPorts;
 
-    base          = Pad_RawPorts;
-    ((u8*)&sp)[1] = base[arg0].buttonsHigh;
-    ((u8*)&sp)[0] = base[arg0].buttonsLow;
-    return (u16)~sp;
+    // Keep the ordered byte writes and subsequent halfword read in memory.
+    rawPorts              = Pad_RawPorts;
+    rawButtons.bytes.high = rawPorts[port].buttonsHigh;
+    rawButtons.bytes.low  = rawPorts[port].buttonsLow;
+    return (u16)~rawButtons.word;
 }
 
 void padClearVibrationRequests(s32 port)
@@ -134,23 +131,28 @@ void padClearVibrationRequests(s32 port)
     pad->nextVibrationSlot = 0;
 }
 
-s32 Pad_CheckSpecialCombo(void)
+s32 padCheckSoftResetCombo(void)
 {
-    volatile PadState* p;
-    u16                val;
-    s32                result;
+    enum {
+        PAD_SOFT_RESET_COMBO = PAD_BUTTON_SELECT | PAD_BUTTON_START |
+                               PAD_BUTTON_L1 | PAD_BUTTON_L2 | PAD_BUTTON_R1 | PAD_BUTTON_R2,
+    };
+    const PadState* pad;
+    u16             buttons;
+    s32             resetRequested;
 
-    p   = gPadStates;
-    val = p->buttons;
-    if (val == PAD_SOFT_RESET_COMBO) {
-        result = D_8005ED8A == PAD_SOFT_RESET_COMBO;
+    pad     = gPadStates;
+    buttons = pad->buttons;
+    if (buttons == PAD_SOFT_RESET_COMBO) {
+        resetRequested = D_8005ED8A == PAD_SOFT_RESET_COMBO;
     } else {
-        result = 0;
+        resetRequested = 0;
     }
-    D_8005ED8A = val;
-    if (p->inputBlockPolls != 0) {
-        D_8005ED8A = 0;
-        result     = 0;
+    D_8005ED8A = buttons;
+    // An input block breaks the consecutive-sample reset test.
+    if (pad->inputBlockPolls != 0) {
+        D_8005ED8A     = 0;
+        resetRequested = 0;
     }
-    return result;
+    return resetRequested;
 }

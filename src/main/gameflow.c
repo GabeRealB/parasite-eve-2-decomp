@@ -70,15 +70,9 @@ STATIC_ASSERT_SIZEOF(_PadPollWork, 0x14);
 /// One block serves every port the update visits, and nothing is carried
 /// between updates: each member is rewritten before it is read.
 typedef struct {
-    u16 buttons;     // Buttons held this update, active high; becomes `PadState::buttons`
-    u16 prevButtons; // `PadState::buttons` as the preceding update left it
-    union {
-        u16 word;    // Both bytes as one button word, still active low
-        struct {
-            u8 low;  // `PadRawPort::buttonsLow`
-            u8 high; // `PadRawPort::buttonsHigh`
-        } bytes;
-    } rawButtons;    // Controller's button bytes as received, active low
+    u16           buttons;     // Buttons held this update, active high; becomes `PadState::buttons`
+    u16           prevButtons; // `PadState::buttons` as the preceding update left it
+    PadRawButtons rawButtons;  // Controller's button bytes as received, active low
 } _PadScratch;
 STATIC_ASSERT_SIZEOF(_PadScratch, 0x6);
 
@@ -176,7 +170,7 @@ void GameFlow_StateByField34(Task* task)
     p = &gCdCmdQueue;
     if (task->spawnArg1.value == 2) {
         if (task->state == 0) {
-            Pad_SetCooldown(0);
+            padStartInputBlock(0);
             if (gDisplayState.demoScene == DISPLAY_DEMO_NONE) {
                 gDisplayState.demoScene = 1;
             }
@@ -206,7 +200,7 @@ void GameFlow_StateByField34(Task* task)
         }
     } else {
         gDisplayState.demoScene = DISPLAY_DEMO_NONE;
-        Pad_SetCooldown(0);
+        padStartInputBlock(0);
         if (task->spawnArg1.value == 0) {
             saved = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
             MEM_CLEAR(gGameSession, sizeof(*gGameSession));
@@ -365,7 +359,7 @@ static void GameFlow_CountdownAdvance(Task* task)
     if (task->killCountdown != 0) {
         return;
     }
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     task->state = task->state + 1;
 }
 
@@ -437,7 +431,7 @@ void GameFlow_DispatchTable(Task* task)
     TaskFuncTable3 sp;
 
     sp = GameFlow_States3;
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     sp.funcs[task->state](task);
 }
 

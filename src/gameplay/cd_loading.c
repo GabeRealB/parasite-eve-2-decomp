@@ -823,7 +823,7 @@ void Gp_LoadWaitDispatch(Task* task)
     TaskFuncTable6 sp;
 
     sp = Gp_LoadWaitFns;
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     if (task->state < 0) {
         Gp_FinishLoadWait(task);
     } else {
@@ -843,7 +843,7 @@ static void Gp_ReloadFromSave(void)
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
     gGameSession->location.loc.view = save->state.location.loc.view;
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     Gp_SpawnCurView(2);
     gGameSession->viewReady = 0;
     taskSpawn(0, 0x1E, 1, 0);
@@ -857,7 +857,7 @@ static void Gp_ReloadAtLoc(s32 arg0)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = arg0;
     gGameSession->location.loc.view                            = arg0;
     slot->spawnArg1.value                                      = (u8)arg0;
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     Gp_SpawnCurView(1);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
     taskSpawn(0, 0x1E, 0, 0);

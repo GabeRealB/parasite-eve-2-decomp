@@ -383,7 +383,7 @@ static void GameMain_Loop(void)
     for (;;) {
         if (gDisplayState.gameMode == DISPLAY_GAME_RESTART ||
             (gDisplayState.gameMode == DISPLAY_GAME_ACTIVE && gDisplayState.cdBusy == DISPLAY_CD_IDLE && gDisplayState.gameRunning != 0 &&
-             Pad_CheckSpecialCombo() != 0)) {
+             padCheckSoftResetCombo() != 0)) {
             GameMain_Init();
             GameMain_HaltFlags = 0;
         }

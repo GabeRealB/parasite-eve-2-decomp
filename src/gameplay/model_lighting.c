@@ -3109,7 +3109,7 @@ void Gp_RestartSessionTask(Task* arg0)
     sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x78);
     flag                  = 0xFF;
     arg0->spawnArg1.value = flag;
-    Pad_SetCooldown(0);
+    padStartInputBlock(0);
     gameClearTaskSlots();
     ds               = &gDisplayState;
     ds->stopTaskWalk = 1;
