@@ -1,22 +1,36 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Ticks the animation and, once the hit flags are set, advances the state.
-void madChaserDeathWaitAnim(Task* arg0)
+#ifdef MAD_CHASER_DEATH_WAIT_ANIM_HANDLER
+/// Ticks the settle animation and advances command death on a boundary status.
+///
+/// Requires live task-owned `MadChaserWork` with initialized nine-slot animation
+/// and pose storage, a nine-part model and valid loaded clip tracks. Ticks slots
+/// 1..8, then tests slot 1 for a boundary, control jump or held boundary; a jump
+/// can advance the state even while a looping clip continues. Called at behavior
+/// state 2, advances the 16-bit state to 3 without consuming the slot status or
+/// releasing resources. Playback rate is in sixteenths of a normal-rate frame.
+/// Storage and clip data must stay live through the call; the playback API's
+/// scratch-stack and alignment requirements apply.
+static void MAD_CHASER_DEATH_WAIT_ANIM_HANDLER(Task* task)
+#else
+void madChaserDeathWaitAnim(Task* task)
+#endif
 {
-    MadChaserWork* work;
-    MadChaserWork* work2;
-    s32            cond;
+    enum { MAD_CHASER_DEATH_STATUS_SLOT = 1 };
+    MadChaserWork* stateWork;
+    MadChaserWork* animationWork;
+    s32            hasBoundaryStatus;
 
-    work = (MadChaserWork*)arg0->work;
-    _madChaserTickAnim(arg0);
-    work2 = (MadChaserWork*)arg0->work;
-    if ((work2->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
+    stateWork = task->work;
+    _madChaserTickAnim(task);
+    animationWork = task->work;
+    if ((animationWork->slots[MAD_CHASER_DEATH_STATUS_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
+        (animationWork->slots[MAD_CHASER_DEATH_STATUS_SLOT].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
+        hasBoundaryStatus = 1;
     } else {
-        cond = 0;
+        hasBoundaryStatus = 0;
     }
-    if (cond) {
-        work->state = work->state + 1;
+    if (hasBoundaryStatus) {
+        stateWork->state++;
     }
 }

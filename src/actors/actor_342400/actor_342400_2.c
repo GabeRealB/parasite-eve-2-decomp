@@ -80,7 +80,7 @@ static void func_actor_342400_80169BAC(Task* arg0);
 static void func_actor_342400_8016AE24(Task* arg0);
 static void func_actor_342400_8016AEAC(Task* arg0);
 static void func_actor_342400_8016B038(Task* arg0);
-static void func_actor_342400_8016BAF4(Task* arg0);
+static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void func_actor_342400_8016BBD0(Task* arg0);
 static void func_actor_342400_8016BBD8(Task* arg0);
 static void func_actor_342400_8016BD3C(Task* arg0);
@@ -875,7 +875,7 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
 static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathCryUnlink,
     _madChaserDeathRequestSettle,
-    func_actor_342400_8016BAF4,
+    _madChaserCommandDeathWaitAnimBoundary,
     madChaserDropBodies,
     func_actor_342400_8016BBD0,
 } };
@@ -885,7 +885,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
 static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     func_actor_342400_8016BBD8,
     _madChaserDeathRequestSettle,
-    func_actor_342400_8016BAF4,
+    _madChaserCommandDeathWaitAnimBoundary,
     madChaserBeginShrink,
     func_actor_342400_8016BD3C,
     madChaserShrink,
@@ -1152,10 +1152,14 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_death_settle_quiet.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserDeathWaitAnim func_actor_342400_8016BAF4
+/// Selects the private command-death animation wait instance.
+///
+/// Must name a statically declared void(Task*) callback. The following fragment
+/// include consumes this identifier-only binding; undefine it afterwards so the
+/// ordinary death instance remains `madChaserDeathWaitAnim`.
+#define MAD_CHASER_DEATH_WAIT_ANIM_HANDLER _madChaserCommandDeathWaitAnimBoundary
 #include "../../shared/mad_chaser_death_wait_anim.inc.c"
-#undef madChaserDeathWaitAnim
+#undef MAD_CHASER_DEATH_WAIT_ANIM_HANDLER
 
 #include "../../shared/mad_chaser_drop_bodies.inc.c"
 

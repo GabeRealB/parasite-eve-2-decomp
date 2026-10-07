@@ -252,7 +252,7 @@ static void _madChaserAlertSidestep(Task* task);
 void        madChaserDangleSway(Task* arg0);
 void        madChaserDeathCry(Task* arg0);
 void        madChaserDeathSettle(Task* arg0);
-void        madChaserDeathWaitAnim(Task* arg0);
+void        madChaserDeathWaitAnim(Task* task);
 void        madChaserDeathTurnTranslucent(Task* arg0);
 static void _madChaserDespawn(Task* task);
 void        madChaserRecoilLight(Task* arg0);

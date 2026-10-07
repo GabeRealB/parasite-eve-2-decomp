@@ -214,6 +214,7 @@ madChaserDangleSway = 0x80169254; // type:func
 madChaserDeathCry = 0x80169380; // type:func
 madChaserDeathSettle = 0x80169440; // type:func
 madChaserDeathWaitAnim = 0x80169520; // type:func
+_madChaserCommandDeathWaitAnimBoundary = 0x8016A810; // type:func
 madChaserDeathTurnTranslucent = 0x8016966C; // type:func
 _madChaserDespawn = 0x801697D4; // type:func
 madChaserRecoilLight = 0x80169888; // type:func

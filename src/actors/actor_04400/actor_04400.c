@@ -82,7 +82,7 @@ static void Actor04400_Fn06A78(Task* arg0);
 static void Actor04400_Fn07CF0(Task* arg0);
 static void Actor04400_Fn07D78(Task* arg0);
 static void Actor04400_Fn07F04(Task* arg0);
-static void Actor04400_Fn089C0(Task* arg0);
+static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void _madChaserDropDeathHold(Task* task);
 static void Actor04400_Fn08AA4(Task* arg0);
 static void Actor04400_Fn08C08(Task* arg0);
@@ -1210,7 +1210,7 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
 static const TaskFuncTable5 gMadChaserDropDeathStates = { {
     madChaserDeathCryUnlink,
     _madChaserDeathRequestSettle,
-    Actor04400_Fn089C0,
+    _madChaserCommandDeathWaitAnimBoundary,
     madChaserDropBodies,
     _madChaserDropDeathHold,
 } };
@@ -1219,7 +1219,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
 static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
     Actor04400_Fn08AA4,
     _madChaserDeathRequestSettle,
-    Actor04400_Fn089C0,
+    _madChaserCommandDeathWaitAnimBoundary,
     madChaserBeginShrink,
     Actor04400_Fn08C08,
     madChaserShrink,
@@ -1477,10 +1477,14 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_death_settle_quiet.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserDeathWaitAnim Actor04400_Fn089C0
+/// Selects the private command-death animation wait instance.
+///
+/// Must name a statically declared void(Task*) callback. The following fragment
+/// include consumes this identifier-only binding; undefine it afterwards so the
+/// ordinary death instance remains `madChaserDeathWaitAnim`.
+#define MAD_CHASER_DEATH_WAIT_ANIM_HANDLER _madChaserCommandDeathWaitAnimBoundary
 #include "../../shared/mad_chaser_death_wait_anim.inc.c"
-#undef madChaserDeathWaitAnim
+#undef MAD_CHASER_DEATH_WAIT_ANIM_HANDLER
 
 #include "../../shared/mad_chaser_drop_bodies.inc.c"
 
