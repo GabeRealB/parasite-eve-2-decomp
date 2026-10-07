@@ -81,17 +81,6 @@ enum {
 // Key-item use requests carry an item ID and an unused second argument word.
 enum { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-#define D_mist_shooting_gallery_80185570 (D_mist_shooting_gallery_80185550 + 4)
-#define D_mist_shooting_gallery_801855C0 (D_mist_shooting_gallery_80185550 + 14)
-#define D_mist_shooting_gallery_801855F0 (D_mist_shooting_gallery_80185550 + 20)
-#define D_mist_shooting_gallery_80185610 (D_mist_shooting_gallery_80185550 + 24)
-#define D_mist_shooting_gallery_80185670 (D_mist_shooting_gallery_80185550 + 36)
-#define D_mist_shooting_gallery_80185678 (D_mist_shooting_gallery_80185550 + 37)
-#define D_mist_shooting_gallery_80185680 (D_mist_shooting_gallery_80185550 + 38)
-#define D_mist_shooting_gallery_80185688 (D_mist_shooting_gallery_80185550 + 39)
-#define D_mist_shooting_gallery_80185690 (D_mist_shooting_gallery_80185550 + 40)
-#define D_mist_shooting_gallery_801856B0 (D_mist_shooting_gallery_80185550 + 44)
-
 /// One string for each run mode, in the order of the save's `gameMode`
 /// (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
 ///
@@ -1045,7 +1034,7 @@ void func_mist_shooting_gallery_8017DE7C(UiList* arg0, UiObject* arg1)
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EFA0, item, 1, 1, arg1);
+            uiSpawnObject(&D_8010EAB4[45], item, 1, 1, arg1);
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
@@ -2487,56 +2476,56 @@ void mistShootingGalleryDrawLightGlowsTask(Task* unused)
             _glowDrawCapsule(&D_mist_shooting_gallery_80185550[10], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 3:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[2], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[10], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[12], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185570[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[4], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[6], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[16], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[18], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 7:
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[2], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[4], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855C0[6], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[14], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[16], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[18], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[20], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 8:
-            _glowDrawCapsule(&D_mist_shooting_gallery_80185610[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[24], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
             break;
         case 9:
         case 18:
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[0], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[2], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[6], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            _glowDrawCapsule(&D_mist_shooting_gallery_801855F0[8], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_801855F0[16], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[20], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[22], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[26], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            _glowDrawCapsule(&D_mist_shooting_gallery_80185550[28], MIST_SHOOTING_GALLERY_CAPSULE_RADIUS_SCALE, MIST_SHOOTING_GALLERY_CAPSULE_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[36], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[44], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 10:
-            glowDrawDisc(&D_mist_shooting_gallery_80185678[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185678[2], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185678[4], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185678[6], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[37], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[43], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 11:
-            glowDrawDisc(&D_mist_shooting_gallery_80185680[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185680[1], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185680[3], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185680[4], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[38], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[42], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 12:
-            glowDrawDisc(&D_mist_shooting_gallery_80185690[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185690[1], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[40], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 13:
-            glowDrawDisc(&D_mist_shooting_gallery_80185688[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
         case 14:
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[1], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[3], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[5], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_80185670[7], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
-            glowDrawDisc(&D_mist_shooting_gallery_801856B0[0], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[36], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[37], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[39], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[41], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[43], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
+            glowDrawDisc(&D_mist_shooting_gallery_80185550[44], MIST_SHOOTING_GALLERY_DISC_RADIUS_SCALE, MIST_SHOOTING_GALLERY_DISC_COLOR);
             break;
     }
 }
