@@ -206,14 +206,14 @@ s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 }
 
 /// Answers message `0x13EE`: copies the event message to `out` and passes both
-/// to `func_map_shelter_80179A04`. A message of id 2 arriving while flag nibble `0xB5` is
+/// to `mapShelterRoomVariantResolve`. A message of id 2 arriving while flag nibble `0xB5` is
 /// clear and `queryOnly` is zero sets nibble `flagId` to 2, runs cap command 3
 /// and returns 0; every other case returns 1, except that a set `queryOnly`
 /// returns 0 without acting.
 s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId != GAME_AREA_MINE_CAVERN) {
         return 1;
     }

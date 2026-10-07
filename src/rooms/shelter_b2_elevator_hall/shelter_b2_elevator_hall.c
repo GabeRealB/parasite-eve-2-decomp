@@ -497,7 +497,7 @@ RoomEventReq gRoomEventReq;
 #include "../../shared/shelter_elevator_task.inc.c"
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_shelter_80179A04`. Messages 0x21 and 0x1C build a request for the gate
+/// `mapShelterRoomVariantResolve`. Messages 0x21 and 0x1C build a request for the gate
 /// `roomEventGate` (nibble 0xAB with no collected bit, and
 /// nibble 0xA9 with collected bit 0x21, which also sets item-seen bit 0x121 when the
 /// gate reports the event fired). Message 0x1A
@@ -511,7 +511,7 @@ s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* i
     s32          ret;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
         req.capCmd        = 1;
         req.missingCapCmd = 1;

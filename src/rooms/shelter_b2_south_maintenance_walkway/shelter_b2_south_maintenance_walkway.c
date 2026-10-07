@@ -507,7 +507,7 @@ static __inline__ s32 _shelterB2SouthMaintenanceWalkwayStartEvent(const RoomEven
 #include "../../shared/room_event_staged_task.inc.c"
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_shelter_80179A04`. Message 0x1D goes through the room's event gate on flag
+/// `mapShelterRoomVariantResolve`. Message 0x1D goes through the room's event gate on flag
 /// 0xAA with no prerequisite; message 0x1B starts the room's own event on flag
 /// 0x13C; any other message answers 1.
 s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -516,7 +516,7 @@ s32 func_shelter_b2_south_maintenance_walkway_8017DA7C(Task* arg0, s32 arg1, Roo
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B2_OPERATING_ROOM) {
         req.capCmd        = 1;
         req.missingCapCmd = 1;

@@ -403,6 +403,7 @@ RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 RoomDeparture gRoomDeparture;
 
 #include "../../shared/room_variants_shelter.inc.c"
+#undef ROOM_VARIANT_RESOLVE_SHELTER
 
 #include "../../shared/room_event_departure_task.inc.c"
 

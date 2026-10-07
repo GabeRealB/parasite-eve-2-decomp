@@ -225,7 +225,7 @@ s32 func_shelter_b3_dumping_hole_8017D758(Task* task, s32 msgId, s32 arg2, s32 a
 s32 func_shelter_b3_dumping_hole_8017D760(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
         if (func_shelter_b3_dumping_hole_8017FB70() != 0) {
             if (in->queryOnly == ROOM_EVENT_EXECUTE) {

@@ -38,7 +38,7 @@ RoomEventMsg D_shelter_b1_elevator_hall_801849F8;
 s32 func_shelter_b1_elevator_hall_8017D810(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_map_shelter_80179A04(src, dst);
+    mapShelterRoomVariantResolve(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_B1_MAIN_CORRIDOR && gameFlagGetNibble(GAME_FLAG_B1_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_SetNibbleIf(src->flagId, 2);

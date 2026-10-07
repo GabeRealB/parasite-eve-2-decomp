@@ -78,7 +78,15 @@ extern InventoryBattleReward D_map_shelter_8017BB58[];
 
 extern InventoryBattleReward D_map_shelter_8017BD8C[];
 
-/// Updates the outgoing room marker state for this stage.
-s32 func_map_shelter_80179A04(RoomEventMsg* in, RoomEventMsg* out);
+/// Resolves a Mine/Shelter destination's room variant from game progress.
+///
+/// The `map_shelter` overlay must be loaded. Reads `request->areaId` only when
+/// `request->queryOnly` is `ROOM_EVENT_EXECUTE`; a query leaves `reply` untouched.
+/// Only `reply->room` can change. Initialize the reply's destination selectors
+/// before calling: unhandled areas and unmet progress thresholds keep its room.
+/// Request and reply may be the same record; neither pointer is retained.
+/// Returns 1 even when no room changes. Progress nibbles used as room indices
+/// must select existing rooms; this resolver does not validate their range.
+s32 mapShelterRoomVariantResolve(RoomEventMsg* request, RoomEventMsg* reply);
 
 #endif // INCLUDE_MAPUI_MAP_SHELTER_H

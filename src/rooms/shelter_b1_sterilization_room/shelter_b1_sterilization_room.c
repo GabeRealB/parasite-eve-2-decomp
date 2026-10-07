@@ -761,11 +761,11 @@ s32 func_shelter_b1_sterilization_room_801803E4(Task* task, s32 msgId, s32 arg2,
 }
 
 /// Message handler that copies the incoming record onto the outgoing one,
-/// passes both to `func_map_shelter_80179A04` and returns 1.
+/// passes both to `mapShelterRoomVariantResolve` and returns 1.
 s32 func_shelter_b1_sterilization_room_801803EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

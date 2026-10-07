@@ -2627,7 +2627,7 @@ static __inline__ s32 MineMesa_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
 
 /// Handler id 0x13EE of this room's copy of the `TaskMessageEntry` table
 /// `D_mine_mesa_80181904`: copies the requested location to `dst` and forwards
-/// both to `func_map_shelter_80179A04`. A stage-3 request latches the outgoing location and
+/// both to `mapShelterRoomVariantResolve`. A stage-3 request latches the outgoing location and
 /// the event parameters below into the room's pending event and starts the
 /// controller task; `field_5` set only suppresses that side effect. Answers 0
 /// without side effects while the request is already in flight (`field_9` is 1
@@ -2639,7 +2639,7 @@ s32 func_mine_mesa_8017D8F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg
     u8               field9;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId != GAME_AREA_MINE_TUNNEL_ENTRANCE) {
         return 1;
     }

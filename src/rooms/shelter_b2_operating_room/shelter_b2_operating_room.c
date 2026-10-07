@@ -949,7 +949,7 @@ static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* dest
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_shelter_80179A04`. Message 0x1E goes through the exit gate
+/// `mapShelterRoomVariantResolve`. Message 0x1E goes through the exit gate
 /// `roomEventGate` on flag 0xA8. Message 0x1C, while nibble 0xAA is clear, answers 0 and - unless
 /// `in->queryOnly` asks for a dry run - passes `in->flagId` to `Gp_SetNibbleIf`
 /// and runs cap command 3; once the nibble is set it starts the room event on
@@ -961,7 +961,7 @@ s32 func_shelter_b2_operating_room_8017DA94(Task* arg0, s32 arg1, RoomEventMsg* 
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY) {
         req.capCmd        = 2;
         req.missingCapCmd = 1;

@@ -220,7 +220,7 @@ static void func_mine_cavern_8017DEE4(Task* task);
 s32 func_mine_cavern_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
 
     if (in->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != 1) {

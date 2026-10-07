@@ -167,11 +167,11 @@ s32 func_shelter_1f_heliport_s4_8017D5D0(Task* task, s32 msgId, s32 arg2, s32 ar
 }
 
 /// The room's handler for message 0x13EE: copies the incoming record onto the
-/// outgoing one, hands both to `func_map_shelter_80179A04` and returns 1.
+/// outgoing one, hands both to `mapShelterRoomVariantResolve` and returns 1.
 s32 func_shelter_1f_heliport_s4_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

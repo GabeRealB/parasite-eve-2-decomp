@@ -1631,7 +1631,7 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
     s32               sndId;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL && gameFlagGetNibble(GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED) == 0) {
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;

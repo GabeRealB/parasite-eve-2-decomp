@@ -487,6 +487,14 @@ package prefixes.
 tasks. Its implementation interface is `src/shared/room_events.h`; record types
 used by several room overlays are declared in `include/rooms/room_common.h`.
 
+`roomVariant` owns the included progress-based selection of a destination's
+room within its area. Its implementation interface is `src/shared/room_variants.h`;
+configuration bindings use `ROOM_VARIANT_`. Rooms can carry their own resolver
+instance for departures; a map overlay's instance exported to other packages
+adds its package prefix. `ROOM_VARIANT_RESOLVE_SHELTER` selects the Mine/Shelter
+definition and prototype together, with `map_shelter` supplying the public
+`mapShelterRoomVariantResolve` instance.
+
 `effectSprite` owns the included animated sprite and debris tasks and their
 textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its
 configuration macros use `EFFECT_SPRITE_` and select declarations matching each

@@ -833,14 +833,14 @@ static s32 _shelterB4WaterSupplyRejectKeyItem(Task* task, s32 messageId, s32 ite
     return 0;
 }
 
-/// Copies the location at `src` into `dst` and passes both to `func_map_shelter_80179A04`.
+/// Copies the location at `src` into `dst` and passes both to `mapShelterRoomVariantResolve`.
 /// When the leading halfword of `src` is 0x2C it returns 0, first staging three
 /// bytes of `dst` and spawning from the task table unless `src->queryOnly` is set;
 /// any other location returns 1.
 s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_map_shelter_80179A04(src, dst);
+    mapShelterRoomVariantResolve(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b4_water_supply_80184E3C.warp              = (u8)dst->areaId;

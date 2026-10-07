@@ -1877,11 +1877,11 @@ static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
-/// forwards both to `func_map_shelter_80179A04`, returning 1.
+/// forwards both to `mapShelterRoomVariantResolve`, returning 1.
 s32 func_mine_forked_tunnel_8017E0F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

@@ -726,7 +726,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_shelter_80179A04`. Message 0x1D goes through the room's event gate on flag
+/// `mapShelterRoomVariantResolve`. Message 0x1D goes through the room's event gate on flag
 /// 0xA8 with collected bit 0x22 as prerequisite, answering 2 where the gate answers 0
 /// and marking item 0x122 seen when the gate started the event. Message 0x20
 /// starts the room's own event on flag 0x137; any other message answers 1.
@@ -737,7 +737,7 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
     s32              result;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B2_OPERATING_ROOM) {
         req.capCmd        = 3;
         req.missingCapCmd = 1;

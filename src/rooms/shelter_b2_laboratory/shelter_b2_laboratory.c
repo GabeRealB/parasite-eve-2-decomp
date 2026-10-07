@@ -1198,7 +1198,7 @@ s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     RoomEventReq req;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE) {
             Gp_RunCapCmd1(5);

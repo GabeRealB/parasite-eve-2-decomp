@@ -83,11 +83,11 @@ s32 func_shelter_b4_lower_sewer_8017D608(Task* task, s32 msgId, s32 arg2, s32 ar
 }
 
 /// Message handler that copies the incoming record onto the outgoing one and
-/// passes both on to `func_map_shelter_80179A04`. Always returns 1.
+/// passes both on to `mapShelterRoomVariantResolve`. Always returns 1.
 s32 func_shelter_b4_lower_sewer_8017D610(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

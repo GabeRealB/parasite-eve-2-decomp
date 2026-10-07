@@ -122,7 +122,7 @@ s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 /// Handler id 0x13EE of the room's `TaskMessageEntry` table
 /// `D_mine_secret_passage_80180E8C`: copies the
-/// requested `RoomEventMsg` to `dst` and forwards both to `func_map_shelter_80179A04`. A
+/// requested `RoomEventMsg` to `dst` and forwards both to `mapShelterRoomVariantResolve`. A
 /// area-9 request latches the outgoing location's three bytes into the room's
 /// staging save location and starts the cutscene task; `queryOnly` set only
 /// suppresses that side effect. Returns 2 for a area-9 request and 1 for
@@ -130,7 +130,7 @@ s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
 s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_map_shelter_80179A04(src, dst);
+    mapShelterRoomVariantResolve(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_mine_secret_passage_80183448.warp              = (u8)dst->areaId;

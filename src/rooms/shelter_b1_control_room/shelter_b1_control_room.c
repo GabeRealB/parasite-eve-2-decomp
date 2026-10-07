@@ -671,7 +671,7 @@ s32 func_shelter_b1_control_room_8017ECCC(Task* task, s32 msgId, s32 arg2, s32 a
 s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId != GAME_AREA_SHELTER_B1_ACCESS_TUNNEL) {
         return 1;
     }

@@ -58,7 +58,7 @@ void shelterElevatorTask(Task* task)
             msg.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
             msg.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;
             msg2          = msg;
-            func_map_shelter_80179A04(&msg, &msg2);
+            mapShelterRoomVariantResolve(&msg, &msg2);
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = msg2.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = msg2.room;

@@ -496,11 +496,11 @@ static s32 _mineTunnelEntranceRejectKeyItem(Task* task, s32 messageId, s32 itemI
 }
 
 /// Message handler 0x13EE of the room's message table: copies the incoming
-/// record onto the outgoing one, passes both to `func_map_shelter_80179A04`, and returns 1.
+/// record onto the outgoing one, passes both to `mapShelterRoomVariantResolve`, and returns 1.
 s32 func_mine_tunnel_entrance_8017D5F0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

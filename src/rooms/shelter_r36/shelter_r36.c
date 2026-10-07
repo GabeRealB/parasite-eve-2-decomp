@@ -710,11 +710,11 @@ s32 func_shelter_r36_8017D8C8(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
-/// the outgoing one and passes both to `func_map_shelter_80179A04`. Always returns 1.
+/// the outgoing one and passes both to `mapShelterRoomVariantResolve`. Always returns 1.
 s32 func_shelter_r36_8017D8D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

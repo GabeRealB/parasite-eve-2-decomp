@@ -162,7 +162,7 @@ s32 func_shelter_b3_incinerator_control_room_8017FA84(Task* task, s32 msgId, s32
 s32 func_shelter_b3_incinerator_control_room_8017FA8C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId != GAME_AREA_SHELTER_B3_ELEVATOR_HALL) {
         return 1;
     }

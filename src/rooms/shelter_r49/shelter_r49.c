@@ -48,11 +48,11 @@ s32 func_shelter_r49_8017D5EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
 }
 
 /// The room's handler for message 0x13EE: copies the incoming record onto the
-/// outgoing one, passes both to `func_map_shelter_80179A04` and returns 1.
+/// outgoing one, passes both to `mapShelterRoomVariantResolve` and returns 1.
 s32 func_shelter_r49_8017D5F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

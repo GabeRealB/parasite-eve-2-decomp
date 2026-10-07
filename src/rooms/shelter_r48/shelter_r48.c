@@ -2225,11 +2225,11 @@ static const TaskFuncTable3 D_shelter_r48_8017D608 = {
 };
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
-/// the outgoing one and passes both on to `func_map_shelter_80179A04`. Always answers 1.
+/// the outgoing one and passes both on to `mapShelterRoomVariantResolve`. Always answers 1.
 s32 func_shelter_r48_8017E044(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

@@ -498,7 +498,7 @@ static const TaskFuncTable3 D_shelter_b2_elevator_8017D5C4 = {
 
 /// The exit task. After 21 frames and once the CAP script is idle, it sets the
 /// destination area and warp from the event key the script chose (0xB, 0xC or
-/// 0xD), then resolves the destination through `func_map_shelter_80179A04`, spawns task
+/// 0xD), then resolves the destination through `mapShelterRoomVariantResolve`, spawns task
 /// 0x11 and ends.
 void func_shelter_b2_elevator_8017D888(Task* task)
 {
@@ -545,7 +545,7 @@ void func_shelter_b2_elevator_8017D888(Task* task)
             msg.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;
             msg.room      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room;
             msg2          = msg;
-            func_map_shelter_80179A04(&msg, &msg2);
+            mapShelterRoomVariantResolve(&msg, &msg2);
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = msg2.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = msg2.room;
@@ -564,11 +564,11 @@ static s32 _shelterB2ElevatorRejectKeyItemMessage(Task* task, s32 messageId, s32
 }
 
 /// Message-table handler for message 0x13EE: copies the incoming record onto
-/// the outgoing one and passes both to `func_map_shelter_80179A04`. Always returns 1.
+/// the outgoing one and passes both to `mapShelterRoomVariantResolve`. Always returns 1.
 s32 func_shelter_b2_elevator_8017DA64(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     return 1;
 }
 

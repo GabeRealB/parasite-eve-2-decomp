@@ -920,7 +920,7 @@ static s32 _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s
 s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_map_shelter_80179A04(src, dst);
+    mapShelterRoomVariantResolve(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_B4_RESERVOIR) {
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
             D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;

@@ -555,7 +555,7 @@ static __inline__ s32 _accessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEven
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_shelter_80179A04`. Messages 0x12 and 0x18, while nibble 0x113 is between 1
+/// `mapShelterRoomVariantResolve`. Messages 0x12 and 0x18, while nibble 0x113 is between 1
 /// and 3 and this is not a dry run, apply the room's area records and set the
 /// nibble to 4. Message 0x15, while nibble 0xE5 is clear, answers 0 and -
 /// unless `in->queryOnly` asks for a dry run - passes `in->flagId` to
@@ -568,7 +568,7 @@ s32 func_shelter_b1_access_tunnel_8017DA68(Task* arg0, s32 arg1, RoomEventMsg* i
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM || in->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
         if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) < 4) {
             Gp_ApplyAreaRecs(D_shelter_b1_access_tunnel_8017FF44);

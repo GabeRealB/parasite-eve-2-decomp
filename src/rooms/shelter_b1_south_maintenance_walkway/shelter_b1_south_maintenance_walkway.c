@@ -484,14 +484,14 @@ static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
 #include "../../shared/room_event_staged_task.inc.c"
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_shelter_80179A04`. Messages 9 and 0xB start the room's event, each with its
+/// `mapShelterRoomVariantResolve`. Messages 9 and 0xB start the room's event, each with its
 /// own parameters and flag; any other message answers 1.
 s32 func_shelter_b1_south_maintenance_walkway_8017D790(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         event.capCmd   = 1;
         event.stageSnd = 0x540A0001;

@@ -101,7 +101,7 @@ s32 func_shelter_b1_sleeping_quarters_8017D668(Task* task, s32 msgId, s32 arg2, 
 s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY) {
         return 1;
     }

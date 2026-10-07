@@ -123,6 +123,13 @@
 
 #include "rooms/shelter_r49.h"
 
+/// Binds the shared Mine/Shelter resolver to this overlay's public export.
+///
+/// Keep this s32 (RoomEventMsg*, RoomEventMsg*) identifier binding defined through
+/// the shared header and fragment; it evaluates nothing and is undefined below.
+#define ROOM_VARIANT_RESOLVE_SHELTER mapShelterRoomVariantResolve
+#include "../../shared/room_variants.h"
+
 /* The Mesa, mine and Shelter stage's map UI overlay: a hook the stage's rooms
  * call at this map's slot address, and the per-stage tables gameplay and main
  * index by stage. Most point into the stage's room packages or at the map
@@ -154,10 +161,8 @@ static AreaObjectPlace D_map_shelter_8017BAC8[2];
 static AreaObjectPlace D_map_shelter_8017BAE8[4];
 static AreaObjectPlace D_map_shelter_8017BB28[3];
 
-/// The Shelter resolver, which rooms call by this name.
-#define roomVariantResolveShelter func_map_shelter_80179A04
 #include "../../shared/room_variants_shelter.inc.c"
-#undef roomVariantResolveShelter
+#undef ROOM_VARIANT_RESOLVE_SHELTER
 
 GfxImageSlot D_map_shelter_80179B40[50] = {
     GFX_IMAGE_SLOT(0x3A8E0),

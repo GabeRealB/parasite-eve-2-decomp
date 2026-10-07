@@ -725,7 +725,7 @@ static __inline__ s32 _corridorStartEvent(RoomEventMsg* dst, RoomLatchedEvent* e
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_shelter_80179A04`. Messages 0xD, 0xE, 0x10 and 0x19 start the room's events on
+/// `mapShelterRoomVariantResolve`. Messages 0xD, 0xE, 0x10 and 0x19 start the room's events on
 /// flags 0xEE, 0xEF, 0x12C and 0x12D; 0x18 does the same on flag 0x12E once
 /// nibble 0xAC is set, and before that runs CAP command 1. Message 9 runs CAP
 /// command 5 once nibble 0x7A reaches 6, and otherwise goes through the rooms'
@@ -736,7 +736,7 @@ s32 func_shelter_b1_main_corridor_8017DA8C(Task* task, s32 msgId, RoomEventMsg* 
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY) {
         event.capCmd   = 3;
         event.stageSnd = 0x540F0001;

@@ -1118,7 +1118,7 @@ static s32 _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s3
 s32 func_shelter_b4_reservoir_8017E264(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
 {
     *dst = *src;
-    func_map_shelter_80179A04(src, dst);
+    mapShelterRoomVariantResolve(src, dst);
     if (src->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
         if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 1) {
             if (src->queryOnly == ROOM_EVENT_EXECUTE) {

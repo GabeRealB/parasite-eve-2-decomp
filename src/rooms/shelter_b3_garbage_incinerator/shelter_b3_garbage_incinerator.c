@@ -117,7 +117,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D838(Task* task, s32 msgId, s32 arg2
 s32 func_shelter_b3_garbage_incinerator_8017D840(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM) {
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;

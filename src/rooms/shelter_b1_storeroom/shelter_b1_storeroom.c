@@ -51,7 +51,7 @@ s32 func_shelter_b1_storeroom_8017D5FC(Task* task, s32 msgId, s32 arg2, s32 arg3
 s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY && gameFlagGetNibble(GAME_FLAG_B1_ARMORY_STOREROOM_DOOR_UNLOCKED) == 0) {
         if (in->queryOnly != ROOM_EVENT_EXECUTE) {
             return 0;

@@ -576,4 +576,4 @@ D_mappic_s4_06_8012F0B8 = 0x8012F0B8; // absolute:True owner=mappic_s4_06 shared
 D_mappic_s4_06_8012F198 = 0x8012F198; // absolute:True owner=mappic_s4_06
 D_mappic_s4_06_8012F260 = 0x8012F260; // absolute:True owner=mappic_s4_06
 
-func_map_shelter_80179A04 = 0x80179A04; // type:func
+mapShelterRoomVariantResolve = 0x80179A04; // type:func

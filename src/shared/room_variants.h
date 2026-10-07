@@ -1,15 +1,15 @@
 /* Per-stage resolvers that answer which variant of a room an area is showing,
  * from game-progress nibbles. Each takes an in/out RoomEventMsg pair and,
  * unless the request is a query, writes `room` for the areas whose room
- * changes with the story. The stage's map overlay carries the resolver for its
- * markers, under the public name rooms call it by; a room that settles a
- * departure's destination itself carries its own copy. The Dryfield rooms
+ * changes with the story. The stage's map overlay exports the resolver to its
+ * rooms; a room that settles a departure's destination itself carries its own
+ * copy. The Dryfield rooms
  * answer message 0x13EE for single neighbouring areas with small handlers of
  * the same kind.
  *
  * Include this header in the prologue and each fragment at its function's
- * position. A map overlay defines its resolver under its public name by
- * defining the library name to it around the fragment's include.
+ * position. A map overlay binds the corresponding resolver identifier before
+ * including this header and keeps it defined through the fragment.
  */
 
 #ifndef SRC_SHARED_ROOM_VARIANTS_H
@@ -28,7 +28,17 @@
 /// Both may be the same record. It always returns 1.
 typedef s32 (*RoomVariantResolver)(RoomEventMsg* request, RoomEventMsg* reply);
 
-s32 roomVariantResolveShelter(RoomEventMsg* arg0, RoomEventMsg* arg1);
+/// Selects the Mine/Shelter resolver's identifier for its declaration and body.
+///
+/// Bind to an s32 (RoomEventMsg*, RoomEventMsg*) function before including this
+/// header, retain the binding through room_variants_shelter.inc.c, then undefine
+/// it. map_shelter supplies `mapShelterRoomVariantResolve`; room carriers use the
+/// default `roomVariantResolveShelter`. This object-like binding evaluates nothing.
+#ifndef ROOM_VARIANT_RESOLVE_SHELTER
+#define ROOM_VARIANT_RESOLVE_SHELTER roomVariantResolveShelter
+#endif
+
+s32 ROOM_VARIANT_RESOLVE_SHELTER(RoomEventMsg* request, RoomEventMsg* reply);
 s32 roomVariantResolveNeoArk(RoomEventMsg* arg0, RoomEventMsg* arg1);
 s32 roomVariantMainStreetMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 s32 roomVariantParkingLotMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);

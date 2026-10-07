@@ -631,7 +631,7 @@ gGameFlagNibbleBanks = 0x80073980; // absolute:True size:0x200
 
 func_map_dryfield_full_80179954 = 0x80179954; // type:func absolute:True owner=map_dryfield_full shared=mapui
 
-func_map_shelter_80179A04 = 0x80179A04; // type:func absolute:True owner=map_shelter
+mapShelterRoomVariantResolve = 0x80179A04; // type:func absolute:True owner=map_shelter
 
 func_map_neo_ark_80179B14 = 0x80179B14; // type:func absolute:True owner=map_neo_ark
 

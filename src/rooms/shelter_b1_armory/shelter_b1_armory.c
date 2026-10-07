@@ -337,7 +337,7 @@ s32 func_shelter_b1_armory_801805A8(Task* arg0, s32 arg1, RoomEventMsg* in, Room
     RoomEventReq req;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId == GAME_AREA_SHELTER_B1_STOREROOM) {
         req.capCmd        = 4;
         req.missingCapCmd = 1;

@@ -2129,7 +2129,7 @@ s32 func_shelter_b1_underground_parking_80183284(Task* arg0, s32 arg1, s32 arg2,
 s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (D_shelter_b1_underground_parking_8018D758 == 0) {
         return 1;
     }

@@ -1237,14 +1237,14 @@ static s32 _shelterB2SepticTankRejectKeyItem(Task* task, s32 messageId, s32 item
 }
 
 /// Message handler: copies the incoming message to `out` and forwards both to
-/// `func_map_shelter_80179A04`. Message 0x21 starts the room's event on flag 0x131; any
+/// `mapShelterRoomVariantResolve`. Message 0x21 starts the room's event on flag 0x131; any
 /// other message answers 1.
 s32 func_shelter_b2_septic_tank_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
 {
     RoomLatchedEvent event;
 
     *out = *in;
-    func_map_shelter_80179A04(in, out);
+    mapShelterRoomVariantResolve(in, out);
     if (in->areaId != GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
         return 1;
     }
