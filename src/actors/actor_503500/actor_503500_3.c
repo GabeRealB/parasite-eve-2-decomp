@@ -1490,7 +1490,6 @@ static void func_actor_503500_801353F0(Task* arg0)
     s32              step;
     s32              speed;
     s32              scale;
-    MATRIX*          m;
     long*            px;
     long*            pz;
 
@@ -1535,13 +1534,8 @@ static void func_actor_503500_801353F0(Task* arg0)
         }
     }
     work->walkSpeed      = speed;
-    m                    = &mat;
-    MATRIX_PAIR(m, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1) = 0x1000;
-    MATRIX_PAIR(m, 2, 0) = 0;
-    m->m[2][2]           = 0x1000;
-    RotMatrixY(work->yaw, m);
+    gfxSetRotIdentity(&mat);
+    RotMatrixY(work->yaw, &mat);
     scale              = speed >> 12;
     work->velocity.vx  = mat.m[0][2] * scale;
     work->velocity.vz  = mat.m[2][2] * scale;
