@@ -11243,7 +11243,7 @@ switch (arg0 & SOUND_BANK_TYPE_MASK) { ... }
 
 The `u16` assignment forces the early `sw ra` plus `move v0,a0` / `andi v0,v0,
 0xffff` sequence. A plain `s32 temp = index` tends to land in `$a3` instead of
-`$v0` and breaks the later `li v0,0x2000` delay-slot preload. `SndLoad_AllocBuffer`
+`$v0` and breaks the later `li v0,0x2000` delay-slot preload. `_sndLoadAllocImageBuffer`
 needs the `u16` form.
 
 ## Volatile `u8` for `lbu` + `sll 24` / `sra 24` instead of `lb`
@@ -15704,7 +15704,7 @@ appears, and the default re-mask uses `$a2` (~99.7%).
 Fix: type the first parameter as `s16` (or `short`). The ABI still passes it in
 `$a0`, but the HImode formal forces a second full-width copy into `$a3` for the
 `u16` path while `$a2` holds the value used for wider masks (`& SOUND_BANK_TYPE_MASK`).
-Keep the rest of the `SndLoad_AllocBuffer` pattern:
+Keep the rest of the `_sndLoadAllocImageBuffer` pattern:
 
 ```c
 s32 func_...(s16 arg0, s32 arg1)
@@ -15719,7 +15719,7 @@ s32 func_...(s16 arg0, s32 arg1)
 }
 ```
 
-`SndBank_FreeById` is the pure example. Hard-register pins on the copies swap
+`_sndLoadPrepareBankSlot` is the pure example. Hard-register pins on the copies swap
 `$a2`/`$a3` or destroy `$a2` in-place for the switch key.
 
 ## `if (p != NULL) { if (x == V) return; } else { ... } /* fallthrough */`
@@ -16287,7 +16287,7 @@ for (i = 0; i < 0x12; i++) {
    `andi s4, a1, 0xff`). Use the `u8` directly in both the table index and the
    loop compare.
 
-`Midi_KeyOffChannel` is the pure example (opcode nibble + optional `0x90` skip,
+`_midiHandleNoteOff` is the pure example (opcode nibble + optional `0x90` skip,
 then key-off matching SPU voice slots).
 
 ## Force late independent store with a reloaded temp
@@ -16550,7 +16550,7 @@ The compiler still emits `addiu $s0, $s0, 0x60` for the walk, but no longer
 CSEs `&p->volumeRamp` into a second live pointer. Operand order `index == p->soundId`
 also matters for `beq $s4, $v1` vs the swapped form.
 
-`sndScriptSetMuteMatching` is the pure example. Closely related: `Midi_FadeVolume` avoids the
+`sndScriptSetMuteMatching` is the pure example. Closely related: `_midiSetMuteMatching` avoids the
 trap because its status byte sits at offset 0 (free relative to the base) and
 the interpolator is only `+0x14`.
 
@@ -17348,7 +17348,7 @@ bankLayer = ((volatile SndBank*)bank)->layers;
 Plain `base = bank->spuAddr; bankLayer = bank->layers;` is free to swap the loads
 by schedule/urgency (the pointer used sooner after a following branch often
 loads first). The `volatile` cast forces source order without changing the rest
-of the function. `SndBank_FinalizeLoad` is the pure example (relocate loop setup).
+of the function. `sndLoadInstallSequence` is the pure example (relocate loop setup).
 
 ## Shared `var_v0` + epilogue flips global pointer store register order
 
@@ -18944,7 +18944,7 @@ Signed division by a constant (e.g. `/ 8191` → magic `0x80040021`) expands to
 either:
 
 ```
-# early sign (target for Midi_PitchBend)
+# early sign (target for _midiHandlePitchBend)
 sra  v0, a1, 31
 mfhi v1
 addu v1, v1, a1
@@ -18979,7 +18979,7 @@ the target loads the scale with `lbu a1, …` and keeps the product in `$a1`
 through `mflo a1`. Pair with `register GStruct* note asm("a3")` when the
 target does `move a3, v0` in a `bltz` delay and later `lbu a2,4(a3); lbu a3,5(a3)`.
 
-`Midi_PitchBend` is the pure example.
+`_midiHandlePitchBend` is the pure example.
 
 ## Force `andi` after `lhu` with a non-constant mask temp
 
@@ -19208,7 +19208,7 @@ Pinning `ul asm("a2")` at function scope (or before the `t0/t1/t2` saves are
 decided) shifts the t-regs and steals `$a3` from the addPrim mask — keep the
 `a2` pin inside the block that also pins `f22`/`next`/`ur`.
 
-## `lhu` / `li 0xFFFF` / `andi …,0xFFFF`: a `u16` local assigned inside the test (SndBank_SetupFromLoad, 2026-09-26)
+## `lhu` / `li 0xFFFF` / `andi …,0xFFFF`: a `u16` local assigned inside the test (_sndLoadInstallScriptBank, 2026-09-26)
 
 When the target does:
 
@@ -22237,7 +22237,7 @@ if (func(p->field_20, p->field_22) == -1) { /* still lhu via same load CSE */
 }
 ```
 
-`SndLoad_ProcessSector` is the pure example (store of bank id before `SndBank_FreeById`).
+`sndLoadProcessSector` is the pure example (store of bank id before `_sndLoadPrepareBankSlot`).
 
 ## Call site without short prototype keeps `lhu` while callee stays `s16`
 
@@ -22253,7 +22253,7 @@ the definition and *without* a prior prototype, default argument promotions keep
 the argument as a full word and the load stays `lhu`.
 
 Do not change a matched `s16` definition just to fix a caller — drop or avoid the
-early prototype instead. `SndLoad_ProcessSector` → `SndBank_FreeById` is the pure example.
+early prototype instead. `sndLoadProcessSector` → `_sndLoadPrepareBankSlot` is the pure example.
 
 ## A room's dispatch wrapper forwards the caller's `$a1`-`$a3`, so the callee must stay unprototyped
 
@@ -23124,7 +23124,7 @@ needs `j epilogue; move v0,s1` while the free path after `sndHeapFree` must not
 fall through a `block_ret: v0 = s1` that GCC would merge away. Force the free
 exit with tab-noreorder `j label; move $2,s1`, land with a unique asm label, and
 clear `imageBuffer` via `*(volatile s32*)&p->imageBuffer = 0` so the store is not
-stolen into an earlier delay slot. `SndLoad_Complete` is the pure example.
+stolen into an earlier delay slot. `_sndLoadComplete` is the pure example.
 
 ## spuGetVoiceRef: dual `lhu`/`lh` count + keep `$a0` for `sb`
 
@@ -37516,7 +37516,7 @@ the matched insns and retargets the jump at a label it puts before the tail, and
 because that label is now the next thing in the stream, jump.c's "detect jump to
 following insn" test (`reallabelprev == insn`, `jump.c` ~line 690 —
 `condjump_p` is true for a plain `j` too) deletes the jump and the block just
-falls through. In `SndLoad_Complete` this cost two instructions: the target has
+falls through. In `_sndLoadComplete` this cost two instructions: the target has
 
 ```
     j    .L80053238
@@ -66273,22 +66273,23 @@ stack table has `void (*)(void)` handlers: m2c's apparent extra call
 arguments were stale argument-register values, not parameters.
 
 
-## Midi_Event1: shift the selected bend range after the branch
+## _midiHandleNoteOn: shift the selected bend range after the branch
 
-When two arms select `scale = bankLayer->bendUp << 8` /
-`scale = bankLayer->bendDown << 8`, GCC 2.8.1 allocates the short-lived scale before
-the bend value: the scale takes `$v0`, bend takes `$v1`. The scratch was
-99.778% with `regs=11` and every other penalty zero. Selecting the unshifted
-byte in each arm, then computing `product = (scale << 8) * bend` at the join,
-reverses those assignments and matches. The delay-slot pass still places the
-shift in the first arm's jump slot and duplicates it for the other arm.
+When two arms select `bendRangeSemitones = bankLayer->bendUp << 8` /
+`bendRangeSemitones = bankLayer->bendDown << 8`, GCC 2.8.1 allocates the
+short-lived scale before the bend value: `bendRangeSemitones` takes `$v0`,
+`pitchBend` takes `$v1`. The scratch was 99.778% with `regs=11` and every other
+penalty zero. Selecting the unshifted byte in each arm, then computing
+`pitchProduct = (bendRangeSemitones << 8) * pitchBend` at the join, reverses
+those assignments and matches. The delay-slot pass still places the shift
+in the first arm's jump slot and duplicates it for the other arm.
 
 The `.lreg` / `.greg` dumps exposed the competing live ranges; the final
-change needed no register pins. Reusing `scale` for the product instead had
-changed its allocation to `$v1` but pushed bend to `$a0`, so keep the product
-separate. `Midi_Event1` matched from the minimally typed 73.949% baseline in
-seven numbered attempts, with the permuter started on the 99.778% unpinned
-seed before the final manual change.
+change needed no register pins. Reusing `bendRangeSemitones` for the product
+instead had changed its allocation to `$v1` but pushed `pitchBend` to `$a0`,
+so keep `pitchProduct` separate. `_midiHandleNoteOn` matched from the minimally
+typed 73.949% baseline in seven numbered attempts, with the permuter started
+on the 99.778% unpinned seed before the final manual change.
 
 
 ## effectSpawnHit: a narrowed local moves the incoming argument copy after pointer saves
@@ -143695,7 +143696,7 @@ accessed partly through the pointer and partly directly. That mixture is what
 an inlined helper taking `TextDrawReq*` leaves behind: it is the
 `_gpDrawItemNameUnmarkedAt` body with the request passed in rather than
 declared locally.
-## Two-copy `move a0,v0; move v1,v0` before a clamp is an `s16` local, and a copied helper result is two identical `return`s (Midi_Event1, 2026-09-26)
+## Two-copy `move a0,v0; move v1,v0` before a clamp is an `s16` local, and a copied helper result is two identical `return`s (_midiHandleNoteOn, 2026-09-26)
 
 **Pan clamp.** Target: `addiu v0,v0,-0x40; move a0,v0; move v1,v0`, then
 `slti v1,0x80` / `bltz v1` and `sb a0` in the in-range arm. An `s32 pan` gives
@@ -143708,10 +143709,11 @@ the narrowing leaves a separate HImode pseudo for the store and an SImode one
 for the compares - the two copies. Worth trying `s16`/`u8` locals whenever a
 byte or half store reads a different register from the test on the same value.
 
-**Inlined note-off.** `value = helper(...)` whose helper ends `return ptr + 2;`
-computes straight into `value`'s register; the target computes into `$v0` and
+**Inlined note-off.** `value = helper(...)` whose helper ends
+`return cursor + MIDI_NOTE_OFF_EVENT_BYTES;` computes straight into `value`'s register; the target computes into `$v0` and
 copies (`addiu v0,s2,2; j; move s4,v0`). Writing the helper's guard as an early
-exit - `if (busy) return ptr + 2;` before the loop, `return ptr + 2;` after it -
+exit - `if (busy) return cursor + MIDI_NOTE_OFF_EVENT_BYTES;` before the loop,
+`return cursor + MIDI_NOTE_OFF_EVENT_BYTES;` after it -
 sets the return pseudo twice, so combine cannot fold it into the caller's
 variable, and jump2 cross-jumps the two identical tails back into one (the
 branch's delay slot gets the duplicate). Same mechanism as the `angle` entry
@@ -144847,7 +144849,7 @@ branch also removes the boost, but it makes the pseudo global, which leaves
 two local quantities instead of three and flips the table base from `v0` to
 `v1` (see the three-quantity exception in `CODEGEN_MODEL.md` §10).
 
-## A `j tail+4; move v0,s1` right before the join's own `move v0,s1`: the last case is followed by a `default:` that repeats the preset (SndLoad_Complete, 2026-09-26)
+## A `j tail+4; move v0,s1` right before the join's own `move v0,s1`: the last case is followed by a `default:` that repeats the preset (_sndLoadComplete, 2026-09-26)
 
 **Symptom:** a `switch` whose last arm should fall into the shared
 `field = 0; return ret;` tail instead ends in `j L+4` with the tail's first
@@ -150603,7 +150605,7 @@ constant).
   `state == 1` compare, so a written-out copy reuses that register across a
   call (`li s4,1`, as recorded for `_80163044`); the block after the switch
   reached by `break` gets the registers right and the block order wrong.
-  `SndBank_SetupFromLoad`'s `fail` is the same with -1 (`addu v0,v0,s2`
+  `_sndLoadInstallScriptBank`'s `fail` is the same with -1 (`addu v0,v0,s2`
   against `addiu v0,v0,-1`).
 - **The same test twice with a store between** (`if (active) { if (held)
   request = PENDING; goto tick; } ... tick: if (active) Tick();`) is the tick
@@ -150613,7 +150615,7 @@ constant).
 - **After a `goto success` guard was folded into `if (a != 0 || (id = b) ==
   FREE) { fail }`, the `volatile` casts and the `end = -1` local of the loop
   below it were not needed**: `for (i--; i != -1; i--)` gives the same
-  `li v0,-1; ...; move a3,v0` (`SndBank_FinalizeLoad`).
+  `li v0,-1; ...; move a3,v0` (`sndLoadInstallSequence`).
 - **A jump out of a counted scan with a value** (`var = 2; goto done;` from a
   `do`/`while`, `var = 1` after it, a third value in front) is an inline with
   three `return`s; loop.c moves the `return 2` block in front of the loop as

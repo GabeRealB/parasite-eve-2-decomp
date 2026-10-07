@@ -366,7 +366,24 @@ void midiUnmuteMusic(void);
 /// clears its placement-end marker. No sample data is transferred or freed.
 s32 sndLoadPlaceScriptSamples(s32 waveBytes, s32 bankId);
 
-s32 SndLoad_ProcessSector(u32* arg0);
+/// Feeder failure result, distinct from the loader's nonnegative phase values.
+enum { SOUND_LOAD_RESULT_ERROR = -1 };
+
+/// Consumes one aligned sound-load payload and returns its new `SOUND_LOAD_PHASE_` value.
+///
+/// Uses the resident load's `sectorBytes`, phase and upload policy. The header
+/// payload must contain the five-word header and all declared group/layer tables;
+/// image payloads contain up to `sectorBytes` bytes, and sample payloads contain
+/// the lesser of that count and the remaining wave length. All lengths must fit
+/// their buffers and the assigned SPU region. The sequence image must fit its
+/// resident 10 KiB buffer. No stream bounds are checked. Image lengths retain
+/// 16-bit word-alignment truncation; an exactly full final image sector needs
+/// one more feed to enter the sample phase. Failed early loads drain through
+/// the header's transfer-sector count, retaining the byte arrival counter.
+/// Polling uploads require the previous DMA to be complete. This call borrows
+/// `payloadWords` through the copy or DMA; retain sample bytes until DMA finishes.
+/// Installation is separate; CD-audio feeds start directly in the upload phase.
+s32 sndLoadProcessSector(u32* payloadWords);
 
 /// Starts a whole-sector sound-bank load using a borrowed CD destination buffer.
 ///
@@ -387,13 +404,45 @@ void sndLoadBeginSectorLoad(void* sectorBuffer);
 /// must finish or tear down the previous load before its pointers are reset.
 void sndLoadBeginChunkLoad(u8 syncUpload, void* sectorBuffer);
 
-void SndLoad_Teardown(void);
+/// Restores the saved character-bank selection and releases an interrupted load.
+///
+/// Marks the resident load torn down and releases its held image and bank,
+/// except when an early failure is still draining its sectors. The published
+/// load-bank id is retained. The caller handles CD delivery cancellation and
+/// retains any sample source buffer until DMA ends. Successful installation
+/// has already detached its resources from the load.
+void sndLoadTeardown(void);
 
-s32 SndLoad_FeedSector(void* arg0);
+/// Feeds a file-chunk sector and installs a completed sequence or script bank.
+///
+/// `sector` supplies a word-aligned 2048-byte buffer. Polling uploads omit its
+/// first 16 bytes at each header, image or sample section start; synchronous
+/// uploads consume whole sectors. Returns the new `SOUND_LOAD_PHASE_` value,
+/// `SOUND_LOAD_RESULT_ERROR` while bank initialization is busy or on a hard
+/// transfer failure, or zero for a torn-down polling load. Early failures drain
+/// to DONE without installation. The installation result is deliberately ignored.
+/// Sample bytes must remain live until DMA completes; other bytes are copied.
+/// Stop feeding at DONE, including in synchronous mode.
+s32 sndLoadFeedChunkSector(u8* sector);
 
-s32 SndLoad_FeedSectorOrError(void* arg0);
+/// Feeds a whole-sector stream payload without installing the finished image.
+///
+/// `payload` is word-aligned and sized for the resident load's `sectorBytes`;
+/// sample bytes remain live until DMA completes. Returns its new phase, mapping
+/// the hard ERROR phase to `SOUND_LOAD_RESULT_ERROR`. The CD-ready caller stops
+/// delivery and installs its sequence after DONE; no section prefix is skipped.
+s32 sndLoadFeedSector(u32* payload);
 
-s32 SndBank_FinalizeLoad(SndLoadState* load);
+/// Binds a finished sequence load to the resident song and detaches its resources.
+///
+/// Call once after the final sample payload is submitted. Sample DMA must finish
+/// before playback or source-buffer reuse. The bank and layer table must be live,
+/// with sample offsets still relative to its SPU base. Uses the bank id's low byte as the sequence id,
+/// rebases layer addresses and builds program indices; the song borrows its image
+/// until that resident buffer is reused. Clears the published load id and returns
+/// zero on success or `SOUND_LOAD_RESULT_ERROR` for loader failure/a free bank id.
+/// Failure retains the load's resource pointers for the caller to resolve.
+s32 sndLoadInstallSequence(SndLoadState* load);
 
 void Snd_SetMutedVolumes(s32 arg0);
 

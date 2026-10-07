@@ -928,13 +928,13 @@ static void CdAudio_FeedSector(u8 arg0, u8* unusedResult)
         if (spuIdx != 0) {
             SpuSetTransferStartAddr(D_80068B2C[spuIdx]);
         }
-        if (SndLoad_ProcessSector(&sector->words[SOUND_LOAD_WAVE_LEAD_BYTES / sizeof(u32)]) == SOUND_LOAD_PHASE_ERROR) {
+        if (sndLoadProcessSector(&sector->words[SOUND_LOAD_WAVE_LEAD_BYTES / sizeof(u32)]) == SOUND_LOAD_PHASE_ERROR) {
             driverStatus->waveLoadError = CD_AUDIO_WAVE_LOAD_ERROR_FIRST_SECTOR;
             return;
         }
         state->sectorBytes = SOUND_LOAD_SECTOR_BYTES;
     } else {
-        ret = SndLoad_ProcessSector(sector->words);
+        ret = sndLoadProcessSector(sector->words);
         if (ret == SOUND_LOAD_PHASE_DONE) {
             readState->waveLoadResult = CD_AUDIO_WAVE_LOAD_RESULT_DONE;
             CdReadyCallback(0);

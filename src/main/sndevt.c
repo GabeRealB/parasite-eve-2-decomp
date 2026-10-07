@@ -330,6 +330,20 @@ volatile u8 D_80082136;
 
 #include "sound.h"
 
+// Loader policies shared by sector processing and image installation.
+enum {
+    SOUND_LOAD_IMAGE_LENGTH_MASK         = 0xFFFC, // Word alignment with the serialized 16-bit length retained
+    SOUND_LOAD_SEQUENCE_ID_MASK          = 0xFF,
+    SOUND_LOAD_IMAGE_KIND_BYTE_MASK      = 0xFF,
+    SOUND_LOAD_BANK_ID_MASK              = 0xFFFF,
+    SOUND_BANK_SLOT_UNSUPPORTED          = -1,
+    SOUND_LOAD_FAILURE_NONE              = 0,
+    SOUND_LOAD_FAILURE_INVALID_TYPE      = 1,
+    SOUND_LOAD_FAILURE_NO_SAMPLE_ADDRESS = 4,
+    SOUND_LOAD_FAILURE_TRANSFER_BUSY     = 5,
+    SOUND_LOAD_FAILURE_DRAINED           = 6
+};
+
 extern void (*SndEvt_Handlers[])(SndEvt*);
 
 static _MidiEventHandler Midi_EventFns[];
@@ -380,7 +394,7 @@ static s32 SndEvt_EnqueueType4(s32 arg0);
 
 static void Midi_StartFadeOut(u8 arg0, u16 arg1);
 
-static void Midi_FadeVolume(u8 arg0, s32 arg1);
+static void _midiSetMuteMatching(u8 sequenceSelector, s32 muted);
 
 static void _midiSetSequenceVolume(u8 sequenceSelector, u8 volumeScale);
 
@@ -402,12 +416,7 @@ static void Midi_DriveTrack(_MidiSong* song, _MidiTrack* track);
 
 static void Midi_UpdateVoiceVolumes(_MidiSong* song);
 
-/* Note off: keys off every voice slot playing this channel's key, unless the
- * channel's noteEventsDisabled flag is set. A note on with zero velocity is a note off
- * too, and its event is one byte longer. Returns the cursor past the event. */
-static inline u8* _midiNoteOff(s32 status, u8* data, _MidiSong* song);
-
-static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
+static u8* _midiHandleNoteOn(s32 status, u8* event, _MidiSong* song, _MidiTrack* track);
 
 static u8* Midi_Event3(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* track);
 
@@ -421,25 +430,23 @@ static void _midiResetChannelTable(_MidiChannelTable* channels);
 
 static u8* _midiHandleUnsupportedPressure(s32 status, u8* event, _MidiSong* song, _MidiTrack* track);
 
-static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
+static u8* _midiHandleNoteOff(s32 status, u8* event, _MidiSong* song, _MidiTrack* track);
 
 static u8* _midiHandleProgramChange(s32 status, u8* event, _MidiSong* song, _MidiTrack* track);
 
-static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused);
+static u8* _midiHandlePitchBend(s32 status, u8* event, _MidiSong* song, _MidiTrack* track);
 
-static s32 SndBank_SetupFromLoad(SndLoadState* load);
+static s32 _sndLoadInstallScriptBank(SndLoadState* load);
 
-static inline void _sndBankRebaseLayerWaveAddresses(SndBank* bank, s32 layerCount);
+static s32 _sndLoadComplete(SndLoadState* load);
 
-static s32 SndLoad_Complete(SndLoadState* load);
+static void* _sndLoadAllocImageBuffer(s32 bankId, s32 imageKind, u32 imageBytes);
 
-static void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2);
-
-static s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2);
+static s32 _sndLoadResolveSampleAddress(s32 imageKind, s32 bankId, s32 waveBytes);
 
 static void _sndLoadResetState(s32 feedMode, void* sectorBuffer);
 
-static s32 SndBank_FreeById(u16 arg0, s32 arg1);
+static s32 _sndLoadPrepareBankSlot(u16 bankId, s32 imageKind);
 
 void (*SndEvt_Handlers[])(SndEvt*) = {
     _sndEvtHandleNoOp,            // SOUND_EVENT_NO_OP
@@ -461,13 +468,13 @@ void (*SndEvt_Handlers[])(SndEvt*) = {
 };
 
 static _MidiEventHandler Midi_EventFns[] = {
-    Midi_KeyOffChannel,
-    Midi_Event1,
+    _midiHandleNoteOff,
+    _midiHandleNoteOn,
     _midiHandleUnsupportedPressure,
     Midi_Event3,
     _midiHandleProgramChange,
     _midiHandleUnsupportedPressure,
-    Midi_PitchBend,
+    _midiHandlePitchBend,
     _midiHandleSystemEvent,
 };
 volatile s32        gSndLoadBankId        = SOUND_LOAD_BANK_NONE;
@@ -723,12 +730,12 @@ static void SndEvt_HandleStartFadeOut(SndEvt* event)
 
 static void SndEvt_HandleFadeOn(SndEvt* event)
 {
-    Midi_FadeVolume(event->args.midi.sequenceId, 1);
+    _midiSetMuteMatching(event->args.midi.sequenceId, 1);
 }
 
 static void SndEvt_HandleFadeOff(SndEvt* event)
 {
-    Midi_FadeVolume(event->args.midi.sequenceId, 0);
+    _midiSetMuteMatching(event->args.midi.sequenceId, 0);
 }
 
 static void SndEvt_HandleSetVolume(SndEvt* event)
@@ -1153,23 +1160,30 @@ static void Midi_StartFadeOut(u8 arg0, u16 arg1)
     }
 }
 
-static void Midi_FadeVolume(u8 arg0, s32 arg1)
+/// Starts an eight-audio-update mute or unmute ramp on matching sequences.
+///
+/// Selector zero addresses every sequence; other bytes match the loaded id.
+/// Nonzero `muted` accepts playing or unmuting songs; zero accepts muted songs.
+/// Tracks continue during either ramp, and voices retain their ownership.
+/// The normalized gain step can extend the requested duration by truncation.
+static void _midiSetMuteMatching(u8 sequenceSelector, s32 muted)
 {
-    s32        i;
+    enum { MIDI_MUTE_RAMP_UPDATES = 8 };
+    s32        songIndex;
     _MidiSong* song;
 
-    for (i = 0; i <= 0; i++) {
-        song = &Midi_Song + i;
-        if ((arg0 == song->sequenceId) || (arg0 == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
-            if (arg1 == 0) {
+    for (songIndex = 0; songIndex <= 0; songIndex++) {
+        song = &Midi_Song + songIndex;
+        if ((sequenceSelector == song->sequenceId) || (sequenceSelector == SOUND_EVENT_MIDI_ALL_SEQUENCES)) {
+            if (muted == 0) {
                 if (song->status == MIDI_SONG_MUTED) {
                     song->status = MIDI_SONG_UNMUTING;
-                    linInterpSetup(&song->volumeRamp, 0, D_8007F2F0, 8);
+                    linInterpSetup(&song->volumeRamp, 0, D_8007F2F0, MIDI_MUTE_RAMP_UPDATES);
                 }
             } else {
                 if (song->status & MIDI_SONG_MUTABLE) {
                     song->status = MIDI_SONG_MUTED;
-                    linInterpSetup(&song->volumeRamp, D_8007F2F0, 0, 8);
+                    linInterpSetup(&song->volumeRamp, D_8007F2F0, 0, MIDI_MUTE_RAMP_UPDATES);
                 }
             }
         }
@@ -1535,105 +1549,134 @@ static void Midi_UpdateVoiceVolumes(_MidiSong* song)
     } while (i < ARRAY_SIZE(song->voiceSlots));
 }
 
-/* Note off: keys off every voice slot playing this channel's key, unless the
- * channel's noteEventsDisabled flag is set. A note on with zero velocity is a note off
- * too, and its event is one byte longer. Returns the cursor past the event. */
-static inline u8* _midiNoteOff(s32 status, u8* data, _MidiSong* song)
-{
-    s32 i;
-    u8  channel;
-    u8  key;
-    u8* ptr;
-
-    ptr     = data;
-    channel = status & MIDI_CHANNEL_STATUS_MASK;
-    key     = ptr[1];
-    if ((status & 0xF0) == 0x90) {
-        ptr += 1;
-    }
-    if (song->channels.entries[channel].noteEventsDisabled != 0) {
-        return ptr + 2;
-    }
-    for (i = 0; i < ARRAY_SIZE(song->voiceSlots); i++) {
-        if ((song->voiceSlots[i].key == key) && (song->voiceSlots[i].channel == channel)) {
-            spuKeyOff(song->voiceSlots[i].voice);
-        }
-    }
-    return ptr + 2;
-}
-
-static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
+/// Queues key-off for every note slot playing the event's key on its channel.
+///
+/// `event` borrows the sequence image and provides the key in `event[1]`.
+/// The channel's note-event gate suppresses release. Slots and callbacks remain
+/// live through their release envelopes. Note-off consumes two bytes in this
+/// format; a zero-velocity note-on consumes three. Returns the next delta cursor.
+static inline u8* _midiNoteOff(s32 status, u8* event, _MidiSong* song)
 {
     enum {
-        SOUND_BANK_VOLUME_FRACTION_BITS = 7,
-        SOUND_BANK_PAN_CENTER           = 64,
-        SOUND_BANK_PAN_MAX              = 127
+        MIDI_STATUS_CLASS_MASK    = 0xF0,
+        MIDI_STATUS_NOTE_ON       = 0x90,
+        MIDI_NOTE_OFF_EVENT_BYTES = 2
     };
-    s16            priorities[2];
-    SpuVoiceRef    ref;
+    s32 voiceIndex;
+    u8  channel;
+    u8  key;
+    u8* cursor;
+
+    cursor  = event;
+    channel = status & MIDI_CHANNEL_STATUS_MASK;
+    key     = cursor[1];
+    if ((status & MIDI_STATUS_CLASS_MASK) == MIDI_STATUS_NOTE_ON) {
+        cursor += 1;
+    }
+    if (song->channels.entries[channel].noteEventsDisabled != 0) {
+        return cursor + MIDI_NOTE_OFF_EVENT_BYTES;
+    }
+    for (voiceIndex = 0; voiceIndex < ARRAY_SIZE(song->voiceSlots); voiceIndex++) {
+        if ((song->voiceSlots[voiceIndex].key == key) && (song->voiceSlots[voiceIndex].channel == channel)) {
+            spuKeyOff(song->voiceSlots[voiceIndex].voice);
+        }
+    }
+    return cursor + MIDI_NOTE_OFF_EVENT_BYTES;
+}
+
+/// Stores combined program/layer pan, clamped to the stereo range 0..127.
+static inline void _midiStoreClampedNotePan(_MidiNoteSlot* slot, s16 pan)
+{
+    enum { SOUND_BANK_PAN_MAX = 127 };
+
+    if (pan <= SOUND_BANK_PAN_MAX) {
+        if (pan >= 0) {
+            slot->pan = pan;
+        } else {
+            slot->pan = 0;
+        }
+    } else {
+        slot->pan = SOUND_BANK_PAN_MAX;
+    }
+}
+
+/// Starts one SPU voice per matching bank layer for a channel's note-on event.
+///
+/// `event[1]` is a MIDI key and `event[2]` its velocity, both 0..127; zero
+/// velocity releases that key instead. The channel program must select a live
+/// bank group, and its layers must fit the bank tables. The note-event gate
+/// suppresses both paths. Priority zero tries the shared voice range before
+/// the music range; other priorities reverse that order. Each allocated voice
+/// retains its song slot as callback context until release or reassignment.
+/// The loaded bank must remain valid while those notes play. Returns the next
+/// delta cursor, `event + 3`; `track` is unused.
+static u8* _midiHandleNoteOn(s32 status, u8* event, _MidiSong* song, _MidiTrack* track)
+{
+    enum {
+        SOUND_BANK_VOLUME_FRACTION_BITS  = 7,
+        SOUND_BANK_PAN_CENTER            = 64,
+        MIDI_VOICE_RANGE_MUSIC           = 0,
+        MIDI_VOICE_RANGE_SHARED          = 2,
+        MIDI_VOICE_PRIORITY_SHARED_FIRST = 0,
+        MIDI_NOTE_VELOCITY_RELEASE       = 0,
+        MIDI_NOTE_ON_EVENT_BYTES         = 3
+    };
+    s16            rangeIndices[2];
+    SpuVoiceRef    voiceRef;
     u8             channel;
     u8             program;
     u8             key;
     u8             velocity;
-    u8             layer;
-    s8             voice;
+    u8             layerIndex;
+    s8             voiceIndex;
     u16            priority;
-    s32            i;
     s16            pan;
     s32            reverb;
-    s32            bend;
-    s32            product;
-    s32            scale;
+    s32            pitchBend;
+    s32            pitchProduct;
+    s32            bendRangeSemitones;
     SndBankGroup*  group;
     SndBankLayer*  bankLayer;
     _MidiNoteSlot* slot;
     SpuVoiceAttr*  attr;
 
-    velocity = arg1[2];
-    if (velocity == 0) {
-        arg1 = _midiNoteOff(arg0, arg1, song);
+    velocity = event[2];
+    if (velocity == MIDI_NOTE_VELOCITY_RELEASE) {
+        event = _midiNoteOff(status, event, song);
     } else {
-        channel = arg0 & MIDI_CHANNEL_STATUS_MASK;
+        channel = status & MIDI_CHANNEL_STATUS_MASK;
         if (song->channels.entries[channel].noteEventsDisabled != 0) {
-            return arg1 + 3;
+            return event + MIDI_NOTE_ON_EVENT_BYTES;
         }
         program   = song->channels.entries[channel].program;
         group     = &song->groups[program];
-        key       = arg1[1];
+        key       = event[1];
         bankLayer = sndBankGetLayer(song->bank, program, 0);
-        for (layer = 0; layer < group->layerCount; layer++, bankLayer++) {
+        for (layerIndex = 0; layerIndex < group->layerCount; layerIndex++, bankLayer++) {
             priority = bankLayer->priority;
             if (key >= bankLayer->keyMin && bankLayer->keyMax >= key) {
-                if (priority == 0) {
-                    priorities[0] = 2;
-                    priorities[1] = 0;
+                if (priority == MIDI_VOICE_PRIORITY_SHARED_FIRST) {
+                    rangeIndices[0] = MIDI_VOICE_RANGE_SHARED;
+                    rangeIndices[1] = MIDI_VOICE_RANGE_MUSIC;
                 } else {
-                    priorities[0] = 0;
-                    priorities[1] = 2;
+                    rangeIndices[0] = MIDI_VOICE_RANGE_MUSIC;
+                    rangeIndices[1] = MIDI_VOICE_RANGE_SHARED;
                 }
-                voice = spuAllocVoice(priorities, 2, priority);
-                if (voice >= 0) {
-                    slot                       = &song->voiceSlots[voice];
+                voiceIndex = spuAllocVoice(rangeIndices, ARRAY_SIZE(rangeIndices), priority);
+                if (voiceIndex >= 0) {
+                    slot                       = &song->voiceSlots[voiceIndex];
                     song->volumeDirtyChannels |= 1 << channel;
-                    spuSetVoiceCallback(voice, _midiOnVoiceReleased, slot);
-                    spuGetVoiceRef(voice, &ref);
-                    slot->voice       = voice;
+                    spuSetVoiceCallback(voiceIndex, _midiOnVoiceReleased, slot);
+                    spuGetVoiceRef(voiceIndex, &voiceRef);
+                    slot->voice       = voiceIndex;
                     slot->channel     = channel;
                     slot->velocity    = velocity;
                     slot->key         = key;
                     slot->volumeScale = (group->volume * bankLayer->volume) >> SOUND_BANK_VOLUME_FRACTION_BITS;
                     pan               = group->pan + bankLayer->pan - SOUND_BANK_PAN_CENTER;
-                    if (pan <= SOUND_BANK_PAN_MAX) {
-                        if (pan >= 0) {
-                            slot->pan = pan;
-                        } else {
-                            slot->pan = 0;
-                        }
-                    } else {
-                        slot->pan = SOUND_BANK_PAN_MAX;
-                    }
+                    _midiStoreClampedNotePan(slot, pan);
                     slot->program = program;
-                    slot->layer   = layer;
+                    slot->layer   = layerIndex;
                     reverb        = bankLayer->reverb;
                     if (reverb == SPU_ON) {
                         spuEnableVoiceReverb(slot->voice);
@@ -1642,17 +1685,18 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
                         spuDisableVoiceReverb(slot->voice);
                         slot->reverbEnabled = SPU_OFF;
                     }
-                    bend = song->channels.entries[channel].pitchBend;
-                    if (bend != 0) {
-                        if (bend > 0) {
-                            scale = bankLayer->bendUp;
+                    // Scale the signed wheel by this layer's semitone range into Q8 pitch.
+                    pitchBend = song->channels.entries[channel].pitchBend;
+                    if (pitchBend != 0) {
+                        if (pitchBend > 0) {
+                            bendRangeSemitones = bankLayer->bendUp;
                         } else {
-                            scale = bankLayer->bendDown;
+                            bendRangeSemitones = bankLayer->bendDown;
                         }
-                        product           = (scale << MIDI_PITCH_FRACTION_BITS) * bend;
-                        slot->pitchOffset = product / MIDI_PITCH_BEND_MAX;
+                        pitchProduct      = (bendRangeSemitones << MIDI_PITCH_FRACTION_BITS) * pitchBend;
+                        slot->pitchOffset = pitchProduct / MIDI_PITCH_BEND_MAX;
                     }
-                    attr        = ref.attr;
+                    attr        = voiceRef.attr;
                     attr->addr  = bankLayer->waveAddr;
                     attr->adsr1 = bankLayer->adsr1;
                     attr->adsr2 = bankLayer->adsr2;
@@ -1662,9 +1706,9 @@ static u8* Midi_Event1(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
                 }
             }
         }
-        arg1 += 3;
+        event += MIDI_NOTE_ON_EVENT_BYTES;
     }
-    return arg1;
+    return event;
 }
 
 static u8* Midi_Event3(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* track)
@@ -1946,9 +1990,14 @@ static u8* _midiHandleUnsupportedPressure(s32 status, u8* event, _MidiSong* song
     return event + 1;
 }
 
-static u8* Midi_KeyOffChannel(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
+/// Decodes the sequence format's two-byte note-off event for one channel key.
+///
+/// `event[1]` is the key (0..127); no release-velocity byte is consumed.
+/// Queues release for all matching layers unless the channel gate suppresses
+/// note events. Returns `event + 2`, the next delta cursor; `track` is unused.
+static u8* _midiHandleNoteOff(s32 status, u8* event, _MidiSong* song, _MidiTrack* track)
 {
-    return _midiNoteOff(arg0, arg1, song);
+    return _midiNoteOff(status, event, song);
 }
 
 /// Selects the bank program for subsequent notes on the status byte's channel.
@@ -1963,186 +2012,206 @@ static u8* _midiHandleProgramChange(s32 status, u8* event, _MidiSong* song, _Mid
     return event + 2;
 }
 
-static u8* Midi_PitchBend(s32 arg0, u8* arg1, _MidiSong* song, _MidiTrack* unused)
+/// Saves a channel's pitch wheel and retunes all of its playing sample layers.
+///
+/// `event[1]` and `event[2]` are low/high seven-bit wheel bytes, giving the
+/// signed offset -8192..8191 about centre. Each layer's upward or downward
+/// semitone range scales it into Q8 pitch with denominator 8191 for both signs.
+/// The wheel also applies to later notes. Voice slots retain live bank layers
+/// and valid voice indices 0..17. Returns `event + 3`; `track` is unused.
+static u8* _midiHandlePitchBend(s32 status, u8* event, _MidiSong* song, _MidiTrack* track)
 {
-    enum { MIDI_PITCH_WHEEL_CENTER = 0x2000 };
+    enum {
+        MIDI_PITCH_WHEEL_CENTER     = 0x2000,
+        MIDI_PITCH_WHEEL_DATA_BITS  = 7,
+        MIDI_PITCH_BEND_EVENT_BYTES = 3
+    };
     SpuVoiceRef    voiceRef;
     u8             channel;
-    s32            i;
+    s32            voiceIndex;
     s16            pitchBend;
     _MidiNoteSlot* slot;
     SndBankLayer*  bankLayer;
-    s32            scale;
-    s16            pitch;
+    s32            pitchProduct;
+    s16            pitchOffset;
     SpuVoiceAttr*  attr;
 
-    channel                                   = arg0 & MIDI_CHANNEL_STATUS_MASK;
-    i                                         = 0;
-    pitchBend                                 = (arg1[1] | (arg1[2] << 7)) - MIDI_PITCH_WHEEL_CENTER;
+    channel                                   = status & MIDI_CHANNEL_STATUS_MASK;
+    voiceIndex                                = 0;
+    pitchBend                                 = (event[1] | (event[2] << MIDI_PITCH_WHEEL_DATA_BITS)) - MIDI_PITCH_WHEEL_CENTER;
     song->channels.entries[channel].pitchBend = pitchBend;
     do {
-        slot = &song->voiceSlots[i];
+        slot = &song->voiceSlots[voiceIndex];
         if (slot->channel == channel) {
             spuGetVoiceRef(slot->voice, &voiceRef);
             bankLayer = sndBankGetLayer(song->bank, slot->program, slot->layer);
             if (pitchBend >= 0) {
-                scale   = bankLayer->bendUp;
-                scale <<= MIDI_PITCH_FRACTION_BITS;
+                pitchProduct   = bankLayer->bendUp;
+                pitchProduct <<= MIDI_PITCH_FRACTION_BITS;
             } else {
-                scale   = bankLayer->bendDown;
-                scale <<= MIDI_PITCH_FRACTION_BITS;
+                pitchProduct   = bankLayer->bendDown;
+                pitchProduct <<= MIDI_PITCH_FRACTION_BITS;
             }
-            scale            *= pitchBend;
-            pitch             = scale / MIDI_PITCH_BEND_MAX;
-            slot->pitchOffset = pitch;
+            pitchProduct     *= pitchBend;
+            pitchOffset       = pitchProduct / MIDI_PITCH_BEND_MAX;
+            slot->pitchOffset = pitchOffset;
             attr              = voiceRef.attr;
-            attr->pitch       = spuCalcPitch((u16)slot->key, pitch, bankLayer->rootKey, bankLayer->fineTune);
+            attr->pitch       = spuCalcPitch((u16)slot->key, pitchOffset, bankLayer->rootKey, bankLayer->fineTune);
             attr->mask       |= SPU_VOICE_PITCH;
         }
-        i += 1;
-    } while (i < ARRAY_SIZE(song->voiceSlots));
-    return arg1 + 3;
+        voiceIndex += 1;
+    } while (voiceIndex < ARRAY_SIZE(song->voiceSlots));
+    return event + MIDI_PITCH_BEND_EVENT_BYTES;
 }
 
-s32 SndLoad_ProcessSector(u32* arg0)
+s32 sndLoadProcessSector(u32* payloadWords)
 {
+    enum {
+        SOUND_LOAD_SAMPLE_BLOCK_SHIFT          = 6,
+        SOUND_LOAD_SAMPLE_BLOCK_BYTES          = 1 << SOUND_LOAD_SAMPLE_BLOCK_SHIFT,
+        SOUND_LOAD_COMMON_SAMPLE_BASE          = 0x63810,
+        SOUND_LOAD_FIRST_UNSUPPORTED_BANK_TYPE = 8,
+        SOUND_LOAD_LAST_UNSUPPORTED_BANK_TYPE  = 13
+    };
     SndLoadState* state;
-    u32*          src;
-    u32           i;
-    u32*          dst;
-    s32           nibble;
-    s32           count;
-    s32           aligned;
-    void*         mem;
-    s32           len;
+    u32*          sourceWords;
+    u32           wordIndex;
+    u32*          destinationWords;
+    s32           bankType;
+    s32           tableWordCount;
+    s32           alignedImageBytes;
+    void*         imageBuffer;
+    s32           transferCount; // Image words in COPY_IMAGE; sample bytes in UPLOAD_WAVE
     s32           spuAddr;
 
     state = &SndLoad_State;
     switch (state->phase) {
         case SOUND_LOAD_PHASE_HEADER:
             // Retain the hSPK header. Group and layer tables follow it in this sector.
-            src = arg0;
-            dst = state->payload.words;
-            i   = 0;
+            sourceWords      = payloadWords;
+            destinationWords = state->payload.words;
+            wordIndex        = 0;
             do {
-                *dst = *src;
-                src++;
-                i++;
-                dst++;
-            } while (i < ARRAY_SIZE(state->payload.words));
+                *destinationWords = *sourceWords;
+                sourceWords++;
+                wordIndex++;
+                destinationWords++;
+            } while (wordIndex < ARRAY_SIZE(state->payload.words));
 
-            nibble = state->payload.header.bankId & SOUND_BANK_TYPE_MASK;
-            if ((u32)(nibble - 0x8000) < 0x5001U) {
-                D_800689E8   = 1;
+            bankType = state->payload.header.bankId & SOUND_BANK_TYPE_MASK;
+            // Slot-map types 8 through 13 cannot install a sound bank.
+            if ((u32)(bankType - (SOUND_LOAD_FIRST_UNSUPPORTED_BANK_TYPE << 12)) <
+                (u32)((SOUND_LOAD_LAST_UNSUPPORTED_BANK_TYPE - SOUND_LOAD_FIRST_UNSUPPORTED_BANK_TYPE) * (1 << 12) + 1)) {
+                D_800689E8   = SOUND_LOAD_FAILURE_INVALID_TYPE;
                 state->phase = SOUND_LOAD_PHASE_ERROR;
                 break;
             }
-            if (nibble == SOUND_BANK_TYPE_1) {
+            if (bankType == SOUND_BANK_TYPE_1) {
                 D_80082128 = 0;
             }
             {
                 // Publish the accepted id before the previous bank is released.
                 s32 bankId;
-                bankId           = state->payload.header.bankId;
-                *&gSndLoadBankId = bankId;
-                if (SndBank_FreeById(state->payload.header.bankId, state->payload.header.imageKind) == -1) {
+                bankId         = state->payload.header.bankId;
+                gSndLoadBankId = bankId;
+                if (_sndLoadPrepareBankSlot(state->payload.header.bankId, state->payload.header.imageKind) == SOUND_LOAD_RESULT_ERROR) {
                     state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
                     break;
                 }
             }
             {
-                SndBank* tmp;
-                tmp         = sndBankAllocTables(&state->payload.header);
-                state->bank = tmp;
-                if (tmp == 0) {
+                SndBank* allocatedBank;
+                allocatedBank = sndBankAllocTables(&state->payload.header);
+                state->bank   = allocatedBank;
+                if (allocatedBank == 0) {
                     state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
                     break;
                 }
-                src = arg0 + ARRAY_SIZE(state->payload.words);
-                dst = tmp->heapBlock;
+                sourceWords      = payloadWords + ARRAY_SIZE(state->payload.words);
+                destinationWords = allocatedBank->heapBlock;
             }
-            count = (state->payload.header.layerCount * (s32)(sizeof(*state->bank->layers) / sizeof(*dst))) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*dst));
-            i     = 0;
-            if (count != 0) {
+            tableWordCount = (state->payload.header.layerCount * (s32)(sizeof(*state->bank->layers) / sizeof(*destinationWords))) + state->payload.header.groupCount * (s32)(sizeof(*state->bank->groups) / sizeof(*destinationWords));
+            wordIndex      = 0;
+            if (tableWordCount != 0) {
                 do {
-                    *dst = *src;
-                    src++;
-                    i++;
-                    dst++;
-                } while ((s32)i < count);
+                    *destinationWords = *sourceWords;
+                    sourceWords++;
+                    wordIndex++;
+                    destinationWords++;
+                } while ((s32)wordIndex < tableWordCount);
             }
-            (state->bank)->groupCount = state->payload.header.groupCount;
-            (state->bank)->layerCount = state->payload.header.layerCount;
-            (state->bank)->bankId     = state->payload.header.bankId;
-            (state->bank)->waveBytes  = state->payload.header.waveBytes;
-            state->phase              = SOUND_LOAD_PHASE_ALLOC_IMAGE;
+            state->bank->groupCount = state->payload.header.groupCount;
+            state->bank->layerCount = state->payload.header.layerCount;
+            state->bank->bankId     = state->payload.header.bankId;
+            state->bank->waveBytes  = state->payload.header.waveBytes;
+            state->phase            = SOUND_LOAD_PHASE_ALLOC_IMAGE;
             break;
 
         case SOUND_LOAD_PHASE_ALLOC_IMAGE:
-            aligned               = (state->payload.header.imageBytes + 3) & 0xFFFC;
-            state->bytesRemaining = aligned;
-            mem                   = SndLoad_AllocBuffer(state->payload.header.bankId, state->payload.header.imageKind, aligned);
-            state->imageBuffer    = mem;
-            if (mem == 0) {
+            alignedImageBytes     = (state->payload.header.imageBytes + sizeof(u32) - 1) & SOUND_LOAD_IMAGE_LENGTH_MASK;
+            state->bytesRemaining = alignedImageBytes;
+            imageBuffer           = _sndLoadAllocImageBuffer(state->payload.header.bankId, state->payload.header.imageKind, alignedImageBytes);
+            state->imageBuffer    = imageBuffer;
+            if (imageBuffer == 0) {
                 state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
                 sndBankFree(state->bank);
                 state->bank = 0;
                 break;
             }
-            state->writeCursor = mem;
+            state->writeCursor = imageBuffer;
             state->phase       = SOUND_LOAD_PHASE_COPY_IMAGE;
             /* fallthrough */
         case SOUND_LOAD_PHASE_COPY_IMAGE:
-            len = (u32)state->bytesRemaining >> 2;
+            transferCount = (u32)state->bytesRemaining / sizeof(u32);
             if ((u32)state->bytesRemaining < (u32)state->sectorBytes) {
                 state->phase = SOUND_LOAD_PHASE_BEGIN_WAVE;
             } else {
-                len                    = (u32)state->sectorBytes >> 2;
+                transferCount          = (u32)state->sectorBytes / sizeof(u32);
                 state->bytesRemaining -= state->sectorBytes;
             }
-            src = arg0;
-            dst = (u32*)state->writeCursor;
-            i   = 0;
-            if (len != 0) {
+            sourceWords      = payloadWords;
+            destinationWords = (u32*)state->writeCursor;
+            wordIndex        = 0;
+            if (transferCount != 0) {
                 do {
-                    *dst = *src;
-                    src++;
-                    i++;
-                    dst++;
-                } while (i < (u32)len);
+                    *destinationWords = *sourceWords;
+                    sourceWords++;
+                    wordIndex++;
+                    destinationWords++;
+                } while (wordIndex < (u32)transferCount);
             }
-            state->writeCursor += len * 4;
+            state->writeCursor += transferCount * (s32)sizeof(*destinationWords);
             break;
 
         case SOUND_LOAD_PHASE_BEGIN_WAVE: {
-            s32 size;
-            size                   = state->payload.header.waveBytes;
-            state->bytesRemaining  = size;
-            (state->bank)->spuAddr = SndLoad_LookupMode(
-                state->payload.header.imageKind, (state->bank)->bankId, size);
-            spuAddr = (state->bank)->spuAddr;
+            s32 waveBytes;
+            waveBytes             = state->payload.header.waveBytes;
+            state->bytesRemaining = waveBytes;
+            state->bank->spuAddr  = _sndLoadResolveSampleAddress(
+                state->payload.header.imageKind, state->bank->bankId, waveBytes);
+            spuAddr = state->bank->spuAddr;
         }
             if (spuAddr == 0) {
-                D_800689E8   = 4;
+                D_800689E8   = SOUND_LOAD_FAILURE_NO_SAMPLE_ADDRESS;
                 state->phase = SOUND_LOAD_PHASE_WAIT_FAIL;
                 sndBankFree(state->bank);
                 state->bank = 0;
                 break;
             }
-            SpuSetTransferStartAddr(spuAddr + (state->payload.header.waveBlockOffset << 6));
+            SpuSetTransferStartAddr(spuAddr + (state->payload.header.waveBlockOffset << SOUND_LOAD_SAMPLE_BLOCK_SHIFT));
             state->phase = SOUND_LOAD_PHASE_UPLOAD_WAVE;
             /* fallthrough */
         case SOUND_LOAD_PHASE_UPLOAD_WAVE: {
-            s32 rem;
-            s32 step;
-            rem  = state->bytesRemaining;
-            step = state->sectorBytes;
-            if ((u32)step >= (u32)rem) {
-                len          = rem;
-                state->phase = SOUND_LOAD_PHASE_DONE;
+            s32 remainingBytes;
+            s32 sectorBytes;
+            remainingBytes = state->bytesRemaining;
+            sectorBytes    = state->sectorBytes;
+            if ((u32)sectorBytes >= (u32)remainingBytes) {
+                transferCount = remainingBytes;
+                state->phase  = SOUND_LOAD_PHASE_DONE;
             } else {
-                len                   = step;
-                state->bytesRemaining = rem - step;
+                transferCount         = sectorBytes;
+                state->bytesRemaining = remainingBytes - sectorBytes;
             }
         }
             // A polling feed requires the previous DMA to have finished.
@@ -2153,13 +2222,13 @@ s32 SndLoad_ProcessSector(u32* arg0)
                         sndBankFree(state->bank);
                         state->bank = 0;
                     }
-                    D_800689E8   = 5;
+                    D_800689E8   = SOUND_LOAD_FAILURE_TRANSFER_BUSY;
                     state->phase = SOUND_LOAD_PHASE_ERROR;
                     break;
                 }
-                SpuWritePartly((u8*)arg0, len);
+                SpuWritePartly((u8*)payloadWords, transferCount);
             } else {
-                SpuWritePartly((u8*)arg0, len);
+                SpuWritePartly((u8*)payloadWords, transferCount);
                 SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
             }
             break;
@@ -2170,16 +2239,16 @@ s32 SndLoad_ProcessSector(u32* arg0)
         case SOUND_LOAD_PHASE_WAIT_FAIL:
             // The failure stands until `transferSectors` sectors have arrived.
             if ((state->sectorsArrived + 1) >= (s32)state->payload.header.transferSectors) {
-                D_800689E8 = 6;
-                if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == 0x5000) {
+                D_800689E8 = SOUND_LOAD_FAILURE_DRAINED;
+                if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == (SOUND_BANK_TYPE_AREA << 12)) {
                     if (D_80082128 == 0) {
-                        D_80082124 = 0x63810 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
+                        D_80082124 = SOUND_LOAD_COMMON_SAMPLE_BASE - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
                     } else {
-                        D_80082124 = D_80082128 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
+                        D_80082124 = D_80082128 - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
                     }
                 }
                 if ((state->payload.header.bankId & SOUND_BANK_TYPE_MASK) == SOUND_BANK_TYPE_1) {
-                    D_80082128 = 0x63810 - ((state->payload.header.waveBytes + 0x3F) & ~0x3F);
+                    D_80082128 = SOUND_LOAD_COMMON_SAMPLE_BASE - ((state->payload.header.waveBytes + SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1) & ~(SOUND_LOAD_SAMPLE_BLOCK_BYTES - 1));
                 }
                 state->phase = SOUND_LOAD_PHASE_DONE;
             }
@@ -2188,53 +2257,6 @@ s32 SndLoad_ProcessSector(u32* arg0)
 
     state->sectorsArrived += 1;
     return state->phase;
-}
-
-static s32 SndBank_SetupFromLoad(SndLoadState* load)
-{
-    SndBank*      bank;
-    SndBankSlot*  bankSlot;
-    u16           id;
-    s8            slot;
-    s32           i;
-    u32           spuAddr;
-    SndBankLayer* bankLayer;
-
-    bank = load->bank;
-    if (D_800689E8 != 0 || (id = bank->bankId) == SOUND_BANK_ID_FREE) {
-    fail:
-        gSndLoadBankId = SOUND_LOAD_BANK_NONE;
-        return -1;
-    }
-    slot = Snd_BankSlotsByType[id >> 12];
-    if (slot == -1) {
-        goto fail;
-    }
-    if ((id & SOUND_BANK_TYPE_MASK) == 0x4000) {
-        slot = slot - 1 + D_80082122;
-    }
-    bankSlot = sndBankSlotGet(slot);
-    if (bankSlot == NULL) {
-        goto fail;
-    }
-    bankSlot->bankId  = bank->bankId;
-    bankSlot->bank    = bank;
-    bankSlot->image   = load->imageBuffer;
-    bankSlot->spuAddr = bank->spuAddr;
-    i                 = load->payload.header.layerCount;
-    spuAddr           = bank->spuAddr;
-    bankLayer         = bank->layers;
-    for (i--; i != -1; i--) {
-        bankLayer->waveAddr += spuAddr;
-        bankLayer++;
-    }
-    sndBankBuildLayerIndex(bankSlot->bank);
-    gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
-    load->bank        = 0;
-    load->imageBuffer = 0;
-    D_8008212C        = D_80082122;
-    D_80082121        = D_80082135;
-    return 0;
 }
 
 /// Converts a bank's sample-layer offsets to absolute SPU byte addresses.
@@ -2254,53 +2276,110 @@ static inline void _sndBankRebaseLayerWaveAddresses(SndBank* bank, s32 layerCoun
     }
 }
 
-static s32 SndLoad_Complete(SndLoadState* load)
+/// Binds a submitted script-bank load to its mapped playback slot.
+///
+/// The load must hold a live descriptor and image, with all declared layers
+/// still carrying relative sample addresses. Character-bank placement has
+/// already incremented its ordinal; installation selects the preceding slot.
+/// Success rebases addresses, builds program indices, transfers the held
+/// resources to the slot and checkpoints the placement selectors. Returns zero
+/// on success or `SOUND_LOAD_RESULT_ERROR` on loader/slot failure, clearing the
+/// published load id in either case. Failure retains the resource pointers.
+/// Sample DMA must finish before playback or reuse of its source buffer.
+static s32 _sndLoadInstallScriptBank(SndLoadState* load)
+{
+    SndBank*     bank;
+    SndBankSlot* bankSlot;
+    u16          bankId;
+    s8           slotIndex;
+
+    bank = load->bank;
+    if (D_800689E8 != SOUND_LOAD_FAILURE_NONE || (bankId = bank->bankId) == SOUND_BANK_ID_FREE) {
+    fail:
+        gSndLoadBankId = SOUND_LOAD_BANK_NONE;
+        return SOUND_LOAD_RESULT_ERROR;
+    }
+    slotIndex = Snd_BankSlotsByType[bankId >> 12];
+    if (slotIndex == SOUND_BANK_SLOT_UNSUPPORTED) {
+        goto fail;
+    }
+    if ((bankId & SOUND_BANK_TYPE_MASK) == (SOUND_BANK_TYPE_CHARACTER << 12)) {
+        // Placement already advanced the ordinal; bind the bank it just placed.
+        slotIndex = slotIndex - 1 + D_80082122;
+    }
+    bankSlot = sndBankSlotGet(slotIndex);
+    if (bankSlot == NULL) {
+        goto fail;
+    }
+    bankSlot->bankId  = bank->bankId;
+    bankSlot->bank    = bank;
+    bankSlot->image   = load->imageBuffer;
+    bankSlot->spuAddr = bank->spuAddr;
+    _sndBankRebaseLayerWaveAddresses(bank, load->payload.header.layerCount);
+    sndBankBuildLayerIndex(bankSlot->bank);
+    gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
+    load->bank        = 0;
+    load->imageBuffer = 0;
+    D_8008212C        = D_80082122;
+    D_80082121        = D_80082135;
+    return 0;
+}
+
+/// Installs a completed chunk load or accepts a drained early failure.
+///
+/// Valid loads select a sequence or script image. Success transfers its bank
+/// and image to playback; a drained failure returns zero without installation.
+/// Other failures return `SOUND_LOAD_RESULT_ERROR`; a failed script installation
+/// releases its image. All paths discard the load's held pointers. Apply once
+/// after DONE with live tables on an installable load. The final sample DMA can
+/// still be running; playback and source-buffer reuse must wait for it to finish.
+static s32 _sndLoadComplete(SndLoadState* load)
 {
     SndBank*   bank;
     _MidiSong* song;
-    s32        id;
-    s32        ret;
+    s32        sequenceId;
+    s32        result;
 
-    if (D_800689E8 == 6) {
+    if (D_800689E8 == SOUND_LOAD_FAILURE_DRAINED) {
         gSndLoadBankId = SOUND_LOAD_BANK_NONE;
-        ret            = 0;
+        result         = 0;
     } else {
-        ret = -1;
+        result = SOUND_LOAD_RESULT_ERROR;
         switch (load->payload.header.imageKind) {
             case SOUND_BANK_IMAGE_SEQUENCE:
                 bank = load->bank;
-                if (D_800689E8 != 0 || (id = bank->bankId) == SOUND_BANK_ID_FREE) {
+                if (D_800689E8 != SOUND_LOAD_FAILURE_NONE || (sequenceId = bank->bankId) == SOUND_BANK_ID_FREE) {
                     gSndLoadBankId = SOUND_LOAD_BANK_NONE;
                 } else {
-                    id                 &= 0xFF;
-                    song                = _midiPrepareSongForLoad(id);
-                    song->sequenceId    = id;
-                    song->sequenceBytes = (load->payload.header.imageBytes + 3) & 0xFFFC;
+                    sequenceId         &= SOUND_LOAD_SEQUENCE_ID_MASK;
+                    song                = _midiPrepareSongForLoad(sequenceId);
+                    song->sequenceId    = sequenceId;
+                    song->sequenceBytes = (load->payload.header.imageBytes + sizeof(u32) - 1) & SOUND_LOAD_IMAGE_LENGTH_MASK;
                     song->sequenceData  = load->imageBuffer;
                     song->bank          = bank;
                     song->waveBytes     = load->payload.header.waveBytes;
                     _sndBankRebaseLayerWaveAddresses(bank, load->payload.header.layerCount);
                     sndBankBuildLayerIndex(song->bank);
-                    ret               = 0;
+                    result            = 0;
                     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
                     load->bank        = 0;
                     load->imageBuffer = 0;
                 }
                 break;
             case SOUND_BANK_IMAGE_SCRIPT:
-                ret = SndBank_SetupFromLoad(load);
-                if (ret == -1) {
+                result = _sndLoadInstallScriptBank(load);
+                if (result == SOUND_LOAD_RESULT_ERROR) {
                     sndHeapFree(load->imageBuffer);
                 }
                 break;
             default:
-                ret = -1;
+                result = SOUND_LOAD_RESULT_ERROR;
                 break;
         }
     }
     load->imageBuffer = 0;
     load->bank        = 0;
-    return ret;
+    return result;
 }
 
 void sndLoadBeginSectorLoad(void* sectorBuffer)
@@ -2316,7 +2395,7 @@ void sndLoadBeginChunkLoad(u8 syncUpload, void* sectorBuffer)
     _sndLoadResetState(SOUND_LOAD_FEED_CHUNK, sectorBuffer);
 }
 
-void SndLoad_Teardown(void)
+void sndLoadTeardown(void)
 {
     SndLoadState* state;
 
@@ -2332,13 +2411,13 @@ void SndLoad_Teardown(void)
     }
 }
 
-s32 SndLoad_FeedSector(void* arg0)
+s32 sndLoadFeedChunkSector(u8* sector)
 {
     SndLoadState* state;
-    s32           temp_s0;
+    s32           phase;
 
     if (D_80068A78 != 0) {
-        return -1;
+        return SOUND_LOAD_RESULT_ERROR;
     }
     state = &SndLoad_State;
     if (state->syncUpload != 0) {
@@ -2350,7 +2429,7 @@ s32 SndLoad_FeedSector(void* arg0)
             case SOUND_LOAD_PHASE_ALLOC_IMAGE:
             case SOUND_LOAD_PHASE_BEGIN_WAVE:
                 state->sectorBytes = SOUND_LOAD_SECTION_BYTES;
-                arg0               = (u8*)arg0 + SOUND_LOAD_SECTION_HEADER_BYTES;
+                sector            += SOUND_LOAD_SECTION_HEADER_BYTES;
                 break;
             case SOUND_LOAD_PHASE_COPY_IMAGE:
             case SOUND_LOAD_PHASE_UPLOAD_WAVE:
@@ -2364,57 +2443,48 @@ s32 SndLoad_FeedSector(void* arg0)
                 return 0;
         }
     }
-    temp_s0 = SndLoad_ProcessSector(arg0);
-    if (temp_s0 == SOUND_LOAD_PHASE_ERROR) {
-        return -1;
+    phase = sndLoadProcessSector((u32*)sector);
+    if (phase == SOUND_LOAD_PHASE_ERROR) {
+        return SOUND_LOAD_RESULT_ERROR;
     }
-    if (temp_s0 == SOUND_LOAD_PHASE_DONE) {
-        SndLoad_Complete(state);
+    if (phase == SOUND_LOAD_PHASE_DONE) {
+        _sndLoadComplete(state);
     }
-    return temp_s0;
+    return phase;
 }
 
-s32 SndLoad_FeedSectorOrError(void* arg0)
+s32 sndLoadFeedSector(u32* payload)
 {
-    s32 temp;
+    s32 phase;
 
-    temp = SndLoad_ProcessSector(arg0);
-    if (temp == SOUND_LOAD_PHASE_ERROR) {
-        return -1;
+    phase = sndLoadProcessSector(payload);
+    if (phase == SOUND_LOAD_PHASE_ERROR) {
+        return SOUND_LOAD_RESULT_ERROR;
     }
-    return temp;
+    return phase;
 }
 
-s32 SndBank_FinalizeLoad(SndLoadState* load)
+s32 sndLoadInstallSequence(SndLoadState* load)
 {
-    SndBank*      bank;
-    _MidiSong*    song;
-    u16           index;
-    s32           i;
-    SndBankLayer* bankLayer;
-    s32           base;
-    void*         temp;
+    SndBank*   bank;
+    _MidiSong* song;
+    u16        sequenceId;
+    u8*        sequenceData;
 
     bank = load->bank;
-    if (D_800689E8 != 0 || (index = bank->bankId) == SOUND_BANK_ID_FREE) {
+    if (D_800689E8 != SOUND_LOAD_FAILURE_NONE || (sequenceId = bank->bankId) == SOUND_BANK_ID_FREE) {
         gSndLoadBankId = SOUND_LOAD_BANK_NONE;
-        return -1;
+        return SOUND_LOAD_RESULT_ERROR;
     }
-    index              &= 0xFF;
-    song                = _midiPrepareSongForLoad(index);
-    song->sequenceId    = index;
-    song->sequenceBytes = (load->payload.header.imageBytes + 3) & 0xFFFC;
-    temp                = load->imageBuffer;
+    sequenceId         &= SOUND_LOAD_SEQUENCE_ID_MASK;
+    song                = _midiPrepareSongForLoad(sequenceId);
+    song->sequenceId    = sequenceId;
+    song->sequenceBytes = (load->payload.header.imageBytes + sizeof(u32) - 1) & SOUND_LOAD_IMAGE_LENGTH_MASK;
+    sequenceData        = load->imageBuffer;
     song->bank          = bank;
-    song->sequenceData  = temp;
+    song->sequenceData  = sequenceData;
     song->waveBytes     = load->payload.header.waveBytes;
-    i                   = load->payload.header.layerCount;
-    base                = bank->spuAddr;
-    bankLayer           = bank->layers;
-    for (i--; i != -1; i--) {
-        bankLayer->waveAddr += base;
-        bankLayer++;
-    }
+    _sndBankRebaseLayerWaveAddresses(bank, load->payload.header.layerCount);
     sndBankBuildLayerIndex(song->bank);
     gSndLoadBankId    = SOUND_LOAD_BANK_NONE;
     load->bank        = 0;
@@ -2422,44 +2492,66 @@ s32 SndBank_FinalizeLoad(SndLoadState* load)
     return 0;
 }
 
-static void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2)
+/// Obtains the resident sequence buffer or allocates a bank's script image.
+///
+/// The low byte of `imageKind` selects the sequence path, which borrows a
+/// 10 KiB resident buffer and ignores the requested length. Script loads
+/// require a mapped bank type and reserve at least 528 bytes for weapon banks
+/// or 360 for PE banks. `imageBytes` is a byte count, word-aligned by the caller;
+/// it must fit the resident buffer on the sequence path. Returns NULL on an
+/// unsupported script type or allocation failure. Heap images pass to a bank
+/// slot on success and must be released on failure or interruption.
+static void* _sndLoadAllocImageBuffer(s32 bankId, s32 imageKind, u32 imageBytes)
 {
-    u16 x;
+    enum {
+        SOUND_LOAD_IMAGE_SIZE_MASK        = 0xFFFF,
+        SOUND_LOAD_WEAPON_MIN_IMAGE_BYTES = 0x210,
+        SOUND_LOAD_PE_MIN_IMAGE_BYTES     = 0x168
+    };
+    u16 truncatedBankId;
 
-    x = arg0;
-    if ((arg1 & 0xFF) == SOUND_BANK_IMAGE_SEQUENCE) {
-        return _midiGetSequenceBuffer(0, arg2 & 0xFFFF);
+    truncatedBankId = bankId;
+    if ((imageKind & SOUND_LOAD_IMAGE_KIND_BYTE_MASK) == SOUND_BANK_IMAGE_SEQUENCE) {
+        return _midiGetSequenceBuffer(0, imageBytes & SOUND_LOAD_IMAGE_SIZE_MASK);
     }
-    if (Snd_BankSlotsByType[x >> 12] == -1) {
+    if (Snd_BankSlotsByType[truncatedBankId >> 12] == SOUND_BANK_SLOT_UNSUPPORTED) {
         return 0;
     }
-    switch (arg0 & SOUND_BANK_TYPE_MASK) {
-        case 0x2000:
-            if (arg2 < 0x210U) {
-                arg2 = 0x210;
+    switch (bankId & SOUND_BANK_TYPE_MASK) {
+        case SOUND_BANK_TYPE_WEAPON << 12:
+            if (imageBytes < SOUND_LOAD_WEAPON_MIN_IMAGE_BYTES) {
+                imageBytes = SOUND_LOAD_WEAPON_MIN_IMAGE_BYTES;
             }
             break;
-        case 0xE000:
-            if (arg2 < 0x168U) {
-                arg2 = 0x168;
+        case (u32)SOUND_BANK_TYPE_PE_ALL >> 16:
+            if (imageBytes < SOUND_LOAD_PE_MIN_IMAGE_BYTES) {
+                imageBytes = SOUND_LOAD_PE_MIN_IMAGE_BYTES;
             }
             break;
     }
-    return sndHeapAlloc(arg2);
+    return sndHeapAlloc(imageBytes);
 }
 
-static s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)
+/// Resolves the SPU byte origin of a sequence or script sample pool.
+///
+/// The low two image-kind bits select a fixed sequence origin or script
+/// placement. Script placement uses the bank id's low half and a nonnegative
+/// wave byte count, rounded by the placement policy to 64-byte blocks; it can
+/// advance character-bank selection. Returns zero for an unsupported kind or
+/// failed placement. The caller owns validating capacity and uploading bytes.
+static s32 _sndLoadResolveSampleAddress(s32 imageKind, s32 bankId, s32 waveBytes)
 {
+    enum { SOUND_LOAD_SEQUENCE_SAMPLE_BASE = 0x1010 };
     s32 result;
 
-    arg0  &= SOUND_BANK_IMAGE_KIND_MASK;
-    result = 0;
-    switch (arg0) {
+    imageKind &= SOUND_BANK_IMAGE_KIND_MASK;
+    result     = 0;
+    switch (imageKind) {
         case SOUND_BANK_IMAGE_SEQUENCE:
-            result = 0x1010;
+            result = SOUND_LOAD_SEQUENCE_SAMPLE_BASE;
             break;
         case SOUND_BANK_IMAGE_SCRIPT:
-            result = sndLoadPlaceScriptSamples(arg2, arg1 & 0xFFFF);
+            result = sndLoadPlaceScriptSamples(waveBytes, bankId & SOUND_LOAD_BANK_ID_MASK);
             break;
     }
     return result;
@@ -2498,44 +2590,58 @@ static void _sndLoadResetState(s32 feedMode, void* sectorBuffer)
     state->bytesRemaining = 0;
 }
 
-static s32 SndBank_FreeById(u16 arg0, s32 arg1)
+/// Releases a previous script image unless the requested bank is already resident.
+///
+/// A sequence image kind (low byte zero) returns zero without touching a slot.
+/// Other kinds require a mapped type. Character ids are checked across
+/// descriptors 4..6 before choosing the current upload ordinal's slot; ordinary
+/// types check their mapped descriptor, while sequence-bank types skip that
+/// duplicate check. Returns `SOUND_LOAD_RESULT_ERROR` for duplicates or unmapped
+/// types, otherwise releases the selected slot's image and returns zero. Bank
+/// table release/reallocation is separate. The type-4 ordinal must be in 0..2
+/// for an installable batch; its existing allocation timing is retained.
+static s32 _sndLoadPrepareBankSlot(u16 bankId, s32 imageKind)
 {
-    u16      x;
-    u8       slot;
-    s32      i;
-    SndBank* base;
-    SndBank* ptr;
+    enum {
+        SOUND_LOAD_CHARACTER_FIRST_SLOT = 4,
+        SOUND_LOAD_CHARACTER_SLOT_END   = 7
+    };
+    u16      requestedBankId;
+    u8       slotIndex;
+    s32      descriptorIndex;
+    SndBank* descriptors;
+    SndBank* descriptor;
 
-    x = arg0;
-    if ((arg1 & 0xFF) == SOUND_BANK_IMAGE_SEQUENCE) {
+    requestedBankId = bankId;
+    if ((imageKind & SOUND_LOAD_IMAGE_KIND_BYTE_MASK) == SOUND_BANK_IMAGE_SEQUENCE) {
         return 0;
     }
-    slot = Snd_BankSlotsByType[x >> 12];
-    if ((s8)slot == -1) {
-        return -1;
+    slotIndex = Snd_BankSlotsByType[requestedBankId >> 12];
+    if ((s8)slotIndex == SOUND_BANK_SLOT_UNSUPPORTED) {
+        return SOUND_LOAD_RESULT_ERROR;
     }
-    switch ((u32)(arg0 & SOUND_BANK_TYPE_MASK) >> 12) {
-        case 4:
-            i    = 4;
-            base = Snd_Banks;
-            ptr  = base + 4;
+    switch ((u32)(bankId & SOUND_BANK_TYPE_MASK) >> 12) {
+        case SOUND_BANK_TYPE_CHARACTER:
+            descriptorIndex = SOUND_LOAD_CHARACTER_FIRST_SLOT;
+            descriptors     = Snd_Banks;
+            descriptor      = descriptors + SOUND_LOAD_CHARACTER_FIRST_SLOT;
             do {
-                if (ptr->bankId == x) {
-                    return -1;
+                if (descriptor->bankId == requestedBankId) {
+                    return SOUND_LOAD_RESULT_ERROR;
                 }
-                i++;
-                ptr++;
-            } while (i < 7);
-            slot = D_80082122 + 4;
+                descriptorIndex++;
+                descriptor++;
+            } while (descriptorIndex < SOUND_LOAD_CHARACTER_SLOT_END);
+            slotIndex = D_80082122 + SOUND_LOAD_CHARACTER_FIRST_SLOT;
             break;
-        case 0xF:
+        case SOUND_BANK_TYPE_SEQUENCE >> 12:
             break;
         default:
-            if (Snd_Banks[(s8)slot].bankId == (arg0 & 0xFFFF)) {
-                return -1;
+            if (Snd_Banks[(s8)slotIndex].bankId == (bankId & SOUND_LOAD_BANK_ID_MASK)) {
+                return SOUND_LOAD_RESULT_ERROR;
             }
             break;
     }
-    sndBankSlotReleaseImage((s8)slot);
+    sndBankSlotReleaseImage((s8)slotIndex);
     return 0;
 }

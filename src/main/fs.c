@@ -734,7 +734,7 @@ static u8 Fs_ProcessChunkHeader(void)
                 break;
             }
             sndLoadBeginChunkLoad(0, Fs_CdSector.bytes);
-            status = SndLoad_FeedSector(Fs_CdSector.bytes);
+            status = sndLoadFeedChunkSector(Fs_CdSector.bytes);
             if (status == SOUND_LOAD_PHASE_DONE) {
                 if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
@@ -905,7 +905,7 @@ static u8 Fs_ProcessChunkData(void)
             break;
         case 6:
             CdGetSector(Fs_CdSector.bytes, 0x200);
-            status = SndLoad_FeedSector(Fs_CdSector.bytes);
+            status = sndLoadFeedChunkSector(Fs_CdSector.bytes);
             if (status == SOUND_LOAD_PHASE_DONE) {
                 endFlag = Fs_ChunkEndFlag;
                 if (endFlag == FILE_SYSTEM_CHUNK_LAST) {
@@ -2007,7 +2007,7 @@ static void Fs_OnCdError(u8 arg0)
     if (arg0 == FS_ERROR_HARD) {
         Fs_CdOpStatus = 0x40;
     } else {
-        SndLoad_Teardown();
+        sndLoadTeardown();
         Fs_CdOpStatus = 0x80;
     }
 
@@ -2046,7 +2046,7 @@ void Fs_CheckReadTimeout(void)
     Fs_VBlank     = VSync(-1);
     Fs_CdOpStatus = 0x80;
     CdFlush();
-    SndLoad_Teardown();
+    sndLoadTeardown();
     CdReadyCallback(NULL);
     CdSyncCallback(NULL);
     CdControlB(CdlPause, NULL, ctrlResult);

@@ -68,13 +68,13 @@ void Fs_StreamReadyCb(u8 status, u8* result)
         buf           = state->sectorBuffer;
         Fs_ReqSector += 1;
         CdGetSector(buf, 0x200);
-        ret = SndLoad_FeedSectorOrError(buf);
+        ret = sndLoadFeedSector(buf);
         if (ret != -1) {
             if (ret != SOUND_LOAD_PHASE_DONE) {
                 return;
             }
             CdControlF(CdlPause, NULL);
-            SndBank_FinalizeLoad(state);
+            sndLoadInstallSequence(state);
             Fs_CdOpStatus = 0xFF;
             CdReadyCallback(NULL);
             return;
