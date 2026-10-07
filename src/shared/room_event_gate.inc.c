@@ -13,7 +13,20 @@ enum {
     ROOM_EVENT_GATE_STARTED                = 1,
 };
 
-/// Copies the deferred event's inputs, commits its flag and requests its task.
+/// Latches an eligible room transition and requests its deferred event task.
+///
+/// The caller must have checked the event's flag and collection requirement
+/// and selected execution. Both pointers borrow complete, live records for
+/// this call only; the twenty-byte request and eight-byte message are copied
+/// into the room's shared snapshots. A later start replaces those snapshots,
+/// including the inputs a pending event task will read. Keep the room loaded
+/// until that task finishes its CAP command, sounds and room transition.
+///
+/// The magnitude of `request->flagId` must be in 0..GAME_FLAG_NIBBLE_COUNT-1.
+/// Negative IDs clear the nibble; nonnegative IDs set it to 1, including ID 0.
+/// The flag is committed before spawning, with no rollback on allocation
+/// failure. `ROOM_EVENT_ACTIVE` records this start request even if spawning
+/// fails; it does not track the task's lifetime or successful allocation.
 static inline void _roomEventLatchAndSpawn(const RoomEventReq* request, const RoomEventMsg* message)
 {
     s32 flagId;
