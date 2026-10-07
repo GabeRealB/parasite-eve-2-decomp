@@ -11,7 +11,7 @@ That is the first normal module `.rodata`; PsyQ `.rdata` follows.
 
 | File | Symbol(s) | VRAM | Role |
 |------|-----------|------|------|
-| `Fs_DecompressChunk.s` | `jtbl_Fs_DecompressChunk` + `Fs_DecompressChunk` | `0x80010008` / `0x80010024` | Resume jump table + resumable LZ for FS CD chunks |
+| `fsDecompressStream.s` | `jtbl_Fs_DecompressChunk` + `fsDecompressStream` | `0x80010008` / `0x80010024` | Resume jump table + resumable LZSS into RAM for package payloads and image strips |
 | `fsDecompressImagePayload.s` | `fsDecompressImagePayload` | `0x80010398` | Non-resumable LZSS for a complete image/CLUT payload into RAM |
 | `tmdSkipStreamRecord.s` | `tmdSkipStreamRecord` | `0x800105AC` | Fallback record handler: steps over elements the current pass does not consume |
 | `Tmd_StreamHandler_Prim32.s` | `Prim32` + alabel `tmdDrawStreamPrimG3PreXform` | `0x800105CC` / `0x800105F4` | Pre-transformed untextured gouraud triangles, one entry per prim code (0x32 blended / 0x30 opaque) |
@@ -20,11 +20,11 @@ That is the first normal module `.rodata`; PsyQ `.rdata` follows.
 | `Tmd_DispatchStream.s` | `Tmd_DispatchStream` | `0x80010A20` | Stream walk + `jalr` handlers (callee of Setup) |
 | `Tmd_StreamHandlers_Ops.s` | 20 handlers, one per record family | `0x80010A90`–`0x80012750` | TMD draw: completes and links each record's packet, each named for the command it serves |
 
-## `Fs_DecompressChunk` (jtbl + code in one file)
+## `fsDecompressStream` (jtbl + code in one file)
 
 ```yaml
-- [0x808, .rodata, hasm/Fs_DecompressChunk]   # sibling → same .s
-- { start: 0x824, type: hasm, name: hasm/Fs_DecompressChunk,
+- [0x808, .rodata, hasm/fsDecompressStream]   # sibling → same .s
+- { start: 0x824, type: hasm, name: hasm/fsDecompressStream,
     linker_section_order: .rodata }
 ```
 
@@ -33,17 +33,17 @@ Source layout (same pattern as matched TUs with embedded jtbls):
 ```asm
 .section .rodata, "a"
   dlabel jtbl_Fs_DecompressChunk
-    .word .L800100F4, .L80010148, ...   /* 7 resume labels */
+    .word .LfsStreamResumeTokenFlag, .LfsStreamResumeLiteral, ...   /* 7 resume labels */
 .section .text, "ax"
-  glabel Fs_DecompressChunk
+  glabel fsDecompressStream
   ...
   lw a0, %lo(jtbl_Fs_DecompressChunk + 4*i)(a0)
 ```
 
 Linker pulls **one object** twice into the early-image run:
 
-1. `Fs_DecompressChunk.s.o(.rodata)` — jump table  
-2. `Fs_DecompressChunk.s.o(.text)` — decompressor  
+1. `fsDecompressStream.s.o(.rodata)` — jump table
+2. `fsDecompressStream.s.o(.text)` — decompressor
 
 ### Resume jump table
 
@@ -53,13 +53,13 @@ mid-function labels for cooperative suspend when the CD sector buffer ends
 
 | Index | Offset | Label | Meaning |
 |-------|--------|-------|---------|
-| 0 | +0x00 | `.L800100F4` | After flag-bit refill |
-| 1 | +0x04 | `.L80010148` | After literal path refill |
-| 2 | +0x08 | `.L80010180` | After literal 2nd-byte load |
-| 3 | +0x0C | `.L80010200` | After match-offset refill |
-| 4 | +0x10 | `.L80010238` | After match-offset 2nd byte |
-| 5 | +0x14 | `.L800102A0` | After match-length refill |
-| 6 | +0x18 | `.L800102E0` | After match-length 2nd byte |
+| 0 | +0x00 | `.LfsStreamResumeTokenFlag` | After flag-bit refill |
+| 1 | +0x04 | `.LfsStreamResumeLiteral` | After literal path refill |
+| 2 | +0x08 | `.LfsStreamFinishLiteral` | After literal 2nd-byte load |
+| 3 | +0x0C | `.LfsStreamResumeMatchIndex` | After match-offset refill |
+| 4 | +0x10 | `.LfsStreamFinishMatchIndex` | After match-offset 2nd byte |
+| 5 | +0x14 | `.LfsStreamResumeMatchLength` | After match-length refill |
+| 6 | +0x18 | `.LfsStreamFinishMatchLength` | After match-length 2nd byte |
 
 ## Why handwritten (not C)
 

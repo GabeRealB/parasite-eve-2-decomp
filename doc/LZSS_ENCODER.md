@@ -17,7 +17,7 @@ Runtime decompressors (same bitstream, different I/O):
 
 | Routine | Used for | Difference |
 |---------|----------|------------|
-| `Fs_DecompressChunk` | room packages (CD-fed) | Resumable / sector-fed |
+| `fsDecompressStream` | room packages and image strips | Resumable / sector-fed |
 | `fsDecompressImagePayload` | image/CLUT payloads | Non-resumable, in-memory |
 
 No second on-disc LZSS dialect is known. **Compress was offline** (not in the

@@ -23324,18 +23324,18 @@ Named handwritten helpers (see `src/main/hasm/README.md`):
 
 | Symbol | Role |
 |--------|------|
-| `Fs_DecompressChunk` (+ jtbl in same `.s`) | Resumable LZ for FS CD chunks |
+| `fsDecompressStream` (+ jtbl in same `.s`) | Resumable LZSS into RAM for CD package payloads and image strips |
 | `fsDecompressImagePayload` | Non-resumable LZSS for a complete image/CLUT payload into RAM |
 | `tmdDrawModelStream` | Draw command groups with per-part GTE transforms and light matrices |
 
 ```yaml
 options:
   hasm_in_src_path: True
-- [0x808, .rodata, hasm/Fs_DecompressChunk]  # sibling → same .s as hasm
-- { start: 0x824, type: hasm, name: hasm/Fs_DecompressChunk, linker_section_order: .rodata }
+- [0x808, .rodata, hasm/fsDecompressStream]  # sibling → same .s as hasm
+- { start: 0x824, type: hasm, name: hasm/fsDecompressStream, linker_section_order: .rodata }
 ```
 
-Jump table + code live in **one** `Fs_DecompressChunk.s` (`.rodata` then
+Jump table + code live in **one** `fsDecompressStream.s` (`.rodata` then
 `.text`), same pattern as matched TUs with embedded jtbls. Stay hasm forever:
 signed `sub`/`addi`, fixed resume PCs, early-image order, hand GTE.
 

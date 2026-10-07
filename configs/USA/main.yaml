@@ -80,10 +80,10 @@ segments:
       # (linker_section_order: .rodata). See src/main/hasm/README.md.
       # After Ops hasm: boot.c .rodata (build stamp + jtbl), then PsyQ .rdata.
       - [0x800, rodata, psyq/libsn/snmain] # Seems to only be referenced by snmain.
-      # Fs_DecompressChunk unit: resume jtbl (.rodata) + code (hasm) share one
-      # source file src/main/hasm/Fs_DecompressChunk.s (sibling out_path).
-      - [0x808, .rodata, hasm/Fs_DecompressChunk]
-      - { start: 0x824, type: hasm, name: hasm/Fs_DecompressChunk, linker_section_order: .rodata }
+      # fsDecompressStream unit: resume jtbl (.rodata) + code (hasm) share one
+      # source file src/main/hasm/fsDecompressStream.s (sibling out_path).
+      - [0x808, .rodata, hasm/fsDecompressStream]
+      - { start: 0x824, type: hasm, name: hasm/fsDecompressStream, linker_section_order: .rodata }
       - { start: 0xB98, type: hasm, name: hasm/fsDecompressImagePayload, linker_section_order: .rodata }
       # TMD stream handlers (function pointers from _tmdResolveSourceDrawHandlers), not rodata.
       - { start: 0xDAC, type: hasm, name: hasm/tmdSkipStreamRecord, linker_section_order: .rodata }

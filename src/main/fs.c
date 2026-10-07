@@ -622,14 +622,14 @@ static u8 Fs_ProcessChunkHeader(void)
             D5B498_8006EBB0 = 0;
             D5B498_8006D858 = 1;
             D5B498_8006D850 = 0;
-            D5B498_8006D748 = 0;
+            D5B498_8006D748 = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
             Fs_ChunkReadPtr = Fs_CdSector.chunk.data.bytes;
-            Fs_DecompressChunk();
-            if (D5B498_8006D748 == 0xFFFF) {
+            fsDecompressStream();
+            if (D5B498_8006D748 == FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY) {
                 _fsHandleCdError(FS_ERROR_SOFT);
                 break;
             }
-            if (D5B498_8006D748 != 0) {
+            if (D5B498_8006D748 != FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT) {
                 if (Fs_ChunkEndFlag == FILE_SYSTEM_CHUNK_LAST) {
                     Fs_LoadPhase = 0xFF;
                     return 1;
@@ -805,10 +805,10 @@ static u8 Fs_ProcessChunkData(void)
         case 1:
             CdGetSector(Fs_CdSector.bytes, 0x200);
             Fs_ChunkReadPtr = Fs_CdSector.bytes;
-            Fs_DecompressChunk();
-            if (D5B498_8006D748 == 0xFFFF) {
+            fsDecompressStream();
+            if (D5B498_8006D748 == FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY) {
                 _fsHandleCdError(FS_ERROR_SOFT);
-            } else if (D5B498_8006D748 != 0 || (u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
+            } else if (D5B498_8006D748 != FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT || (u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
                 switch (D5B498_8006ADF4 - 1) {
                     case 0:
                         Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase0;
@@ -1627,7 +1627,7 @@ u8 Fs_LoadImageStrip(s32 mode)
     for (;;) {
         if (D5B498_8006ADE1 != 0) {
             Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
-            D5B498_8006D748  = 0;
+            D5B498_8006D748  = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
             D5B498_8006EA1A  = 0;
             D5B498_8006EBB0  = 0;
             D5B498_8006D850  = 0;
@@ -1635,12 +1635,12 @@ u8 Fs_LoadImageStrip(s32 mode)
             D5B498_8006D858  = 1;
             D5B498_8006ADE1  = 0;
         }
-        Fs_DecompressChunk();
-        if (D5B498_8006D748 == 0xFFFF) {
+        fsDecompressStream();
+        if (D5B498_8006D748 == FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY) {
             _fsResumeDrawing(ot);
             return 0x7F;
         }
-        if (D5B498_8006D748 == 0) {
+        if (D5B498_8006D748 == FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT) {
             _fsResumeDrawing(ot);
             if ((u8)mode == 0) {
                 Fs_ChunkReadPtr = Fs_CdSector.bytes;
@@ -1714,7 +1714,7 @@ u8 Fs_LoadImageStrip(s32 mode)
                 return 0;
             }
         } while (1);
-        D5B498_8006D748 = 0;
+        D5B498_8006D748 = FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT;
     }
 }
 

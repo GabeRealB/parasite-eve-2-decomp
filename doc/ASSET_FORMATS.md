@@ -12,7 +12,7 @@ Implementation references:
 | Binary layout constants | `tools/peassets/format.py` |
 | Extract / pack | `tools/peassets/extract.py`, `pack.py` |
 | Shared inflate/decode | `tools/peassets/asset_decode.py` (extract + viewer) |
-| LZSS decode / format | `tools/peassets/lzss.py`, `src/main/hasm/Fs_DecompressChunk.s` |
+| LZSS decode / format | `tools/peassets/lzss.py`, `src/main/hasm/fsDecompressStream.s` |
 | LZSS encode (policies, identity) | `doc/LZSS_ENCODER.md`, `lzss.py` / `lzss_clut.py` / `lzss_cascading.py` |
 | Images / CLUT | `tools/peassets/image_codec.py`, `src/main/fs.c` |
 | Asset database | `tools/peassets/asset_db.py`, `asset_data.py` |
@@ -212,7 +212,7 @@ python3 tools/peassets/lzss_roundtrip_report.py --log layout_diff.log
 
 | `type` | Name | Extension | Loader (main) | Notes |
 |---|---|---|---|---|
-| `0x0` | Room package | `.pe2pkg` | `Fs_DecompressChunk` | LZSS body; overlays load at `load_addr` |
+| `0x0` | Room package | `.pe2pkg` | `fsDecompressStream` | LZSS body; overlays load at `load_addr` |
 | `0x1` | Image | `.pe2img` | `fsBeginImageColumns` + `Fs_LoadImageStrip` | Sequential LZSS strips → VRAM |
 | `0x2` | Color lookup table | `.pe2clut` | `fsUploadImageChunk` + `fsDecompressImagePayload` | 16-byte image header + LZSS → ABGR1555 |
 | `0x4` | Dialogue / cap2 | `.pe2cap2` | (package-like) | Often has load address |
@@ -245,7 +245,7 @@ Used by:
 - `.pe2img` strips (each strip is its own stream)
 - `.pe2clut` colour data after the 16-byte image-chunk header
 
-Algorithm family (same as `Fs_DecompressChunk` / md_hyena-style):
+Algorithm family (same as `fsDecompressStream` / md_hyena-style):
 
 - 256-byte ring dictionary
 - Flag bit: `1` = literal byte, `0` = back-reference
@@ -255,7 +255,7 @@ Algorithm family (same as `Fs_DecompressChunk` / md_hyena-style):
   offsets by 1; the runtime starts at 1 and uses absolute ring indices.
 
 Implementation: `tools/peassets/lzss.py` (decode / trim / pack / production
-encode). Runtime: `Fs_DecompressChunk.s` (resumable, CD-fed) and
+encode). Runtime: `fsDecompressStream.s` (resumable, package/image-strip payloads) and
 `fsDecompressImagePayload.s` (non-resumable, in-memory). Same bitstream for both.
 
 `fsDecompressImagePayload` decodes into RAM and leaves both global byte

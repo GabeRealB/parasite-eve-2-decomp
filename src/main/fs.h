@@ -86,10 +86,44 @@ s16 CdCmd_RecoverDisk(void);
 
 s32 CdCmd_StopMdec(s32 clearFb);
 
-/// Resumable LZ/bit-stream unpack for CD chunk payloads (handwritten hasm).
-/// Uses globals Fs_ChunkReadPtr / Fs_ChunkWritePtr / D5B498_8006D748; may suspend
-/// mid-stream when the sector buffer ends (resume jtbl in same TU).
-void Fs_DecompressChunk(void);
+/// Status halfwords reported through `D5B498_8006D748` by `fsDecompressStream`.
+enum {
+    FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT  = 0,
+    FILE_SYSTEM_STREAM_DECODE_COMPLETE     = 1,
+    FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY = 0xFFFF,
+};
+
+/// Decodes an LZSS stream into RAM until its input boundary or end token.
+///
+/// Set `Fs_ChunkReadPtr` to readable compressed bytes and `Fs_ChunkWritePtr` to
+/// sufficient output storage. For sector-fed decoding, `D_8006C4D4` is the
+/// exclusive end of the current nonempty input interval. Complete RAM streams
+/// may instead leave that boundary outside the addresses their cursor reaches.
+/// Bits are read MSB first: a 1 flag precedes an eight-bit literal; a 0 flag
+/// precedes an eight-bit absolute history-ring index (0 ends the stream), then
+/// a four-bit length plus 2, giving matches of 2..17 bytes. No output bound is
+/// checked. Byte reads advance the input cursor before testing boundary equality;
+/// reading a literal or match index eagerly fetches the following byte, even
+/// when aligned. Complete RAM input needs one byte of readable lookahead; the
+/// boundary must not cause suspension before the end token is processed.
+///
+/// Before a new stream, clear `D5B498_8006EBB0` (unread-bit mask),
+/// `D5B498_8006EA1A` (input byte), `D5B498_8006D850` (resume address) and
+/// `D5B498_8006D748` (status), and set `D5B498_8006D858` (ring write index) to 1.
+/// Other saved token fields are initialized as decoding reaches them.
+/// Both byte cursors are saved on suspension or completion. On NEEDS_INPUT the
+/// last loaded byte and partial token are saved: supply the next nonempty input
+/// interval without resetting decoder state or moving the output cursor.
+/// Suspension leaves status unchanged, so it must already be NEEDS_INPUT.
+/// COMPLETE marks the zero-index end token. SCRATCH_BUSY changes only status;
+/// clear it before retrying an unfinished stream.
+///
+/// Uses scratchpad bytes [0, 256) as an uncleared history ring. The initialized
+/// scratch-stack cursor's byte offset must be greater than 256 or decoding is
+/// refused. Keep the ring and saved globals intact until completion; decoding
+/// is synchronous, shares state with image-payload decoding, and is not reentrant.
+/// References to unwritten ring slots require valid prior contents.
+void fsDecompressStream(void);
 
 /// Status halfwords produced by `fsDecompressImagePayload`.
 enum {

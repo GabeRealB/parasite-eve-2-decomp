@@ -1,6 +1,6 @@
 """LZSS codec used by Parasite Eve 2 (``.pe2pkg``, image strips, CLUTs).
 
-Format (matches ``Fs_DecompressChunk`` / ``fsDecompressImagePayload``)::
+Format (matches ``fsDecompressStream`` / ``fsDecompressImagePayload``)::
 
     Bitstream is MSB-first within each byte.
 
