@@ -43,11 +43,11 @@ static void _cdCmdHandleMoviePlayback(void);
 
 static void CdCmd_HandleFileLoad(void);
 
-static void CdCmd_HandleMount(void);
+static void _cdCmdHandleStageMount(void);
 
 static void CdCmd_ProcessPhase1(void);
 
-static void CdCmd_ProcessPhase2(void);
+static void _cdCmdHandleRequestSuspension(void);
 
 static inline s32 _cdCmdEnqueue(s32 command, const void* fileKey, const void* commandArgs);
 
@@ -170,13 +170,15 @@ void* cdCmdReservePlaybackBuffers(void)
     return D_8006AC00;
 }
 
-/// Resets movie-request progress and retires the occupied head slot.
+/// Resets request-handler progress and retires the head of a nonempty ring.
 ///
-/// The caller releases busy ownership first; the queue remains borrowed.
-static inline void _cdCmdRetireMovieRequest(CdCmdQueue* completionQueue)
+/// Requires borrowed queue storage with both ring indices in 0..7. An empty
+/// ring still receives the progress resets. The caller releases busy ownership
+/// first; the saved request, replacement and playback storage remain intact.
+static inline void _cdCmdRetireHeadRequest(CdCmdQueue* completionQueue)
 {
-    enum { CD_COMMAND_MOVIE_HANDLER_BEGIN = 0 };
-    completionQueue->step               = CD_COMMAND_MOVIE_HANDLER_BEGIN;
+    enum { CD_COMMAND_HANDLER_BEGIN = 0 };
+    completionQueue->step               = CD_COMMAND_HANDLER_BEGIN;
     completionQueue->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
     completionQueue->pausePlayClock     = 0;
     completionQueue->cdOperationPending = 0;
@@ -255,7 +257,7 @@ static void _cdCmdHandleMoviePlayback(void)
                             completionQueue->busy = 0;
                             gDisplayState.cdBusy  = DISPLAY_CD_IDLE;
                         }
-                        _cdCmdRetireMovieRequest(completionQueue);
+                        _cdCmdRetireHeadRequest(completionQueue);
                         break;
                     }
                     queue->continueMovie = 1;
@@ -276,7 +278,7 @@ static void _cdCmdHandleMoviePlayback(void)
             completionQueue->busy = 0;
             gDisplayState.cdBusy  = DISPLAY_CD_IDLE;
         }
-        _cdCmdRetireMovieRequest(completionQueue);
+        _cdCmdRetireHeadRequest(completionQueue);
     }
 }
 
@@ -471,49 +473,64 @@ end_check:
     }
 }
 
-static void CdCmd_HandleMount(void)
+/// Advances a stage folder-list mount or polls the initial STAGE0.HED read.
+///
+/// A mount's stage byte must select a CDF on the current disc in 1..5. Reads use the shared
+/// sector buffer, so drive access must remain serialized until the folder table
+/// is built. The HED read is already started by ISO scanning; this handler only
+/// restarts or completes it. Completion releases busy ownership and the head.
+static void _cdCmdHandleStageMount(void)
 {
-    CdCmdQueue* state;
-    s32         cmd;
-    s32         status;
+    enum {
+        CD_COMMAND_STAGE_MOUNT_READ    = 0,
+        CD_COMMAND_STAGE_MOUNT_WAIT    = 1,
+        CD_COMMAND_STAGE_MOUNT_BUILD   = 2,
+        CD_COMMAND_STAGE_READ_RESUME   = 0x40,
+        CD_COMMAND_STAGE_READ_RESTART  = 0x80,
+        CD_COMMAND_STAGE_READ_COMPLETE = 0xFF,
+    };
+    CdCmdQueue* queue;
+    s32         command;
+    s32         readStatus;
 
-    state = &gCdCmdQueue;
-    cmd   = state->entries[state->readIdx].cmd;
-    if (cmd < CD_COMMAND_MOUNT_STAGE) {
+    queue   = &gCdCmdQueue;
+    command = queue->entries[queue->readIdx].cmd;
+    if (command < CD_COMMAND_MOUNT_STAGE) {
         return;
     }
-    switch (cmd) {
+    switch (command) {
         case CD_COMMAND_MOUNT_STAGE: {
             CdCmdEntry* entry;
             s32         stageIndex;
-            s32         step;
+            s32         mountStep;
 
-            entry      = &state->entries[state->readIdx];
-            status     = *(volatile u8*)&entry->stage;
-            stageIndex = status;
-            step       = state->step;
+            // Retain the unsigned byte load before the signed stage interpretation.
+            entry      = &queue->entries[queue->readIdx];
+            readStatus = *(volatile u8*)&entry->stage;
+            stageIndex = readStatus;
+            mountStep  = queue->step;
             stageIndex = (s8)stageIndex;
-            switch (step) {
-                case 0:
-                    if (state->busy == 0) {
-                        state->busy          = 1;
+            switch (mountStep) {
+                case CD_COMMAND_STAGE_MOUNT_READ:
+                    if (queue->busy == 0) {
+                        queue->busy          = 1;
                         gDisplayState.cdBusy = DISPLAY_CD_BUSY;
                     }
                     fsStartStageFolderListRead(stageIndex & 0xFF);
-                    state->step = state->step + 1;
+                    queue->step = queue->step + 1;
                     return;
-                case 1:
+                case CD_COMMAND_STAGE_MOUNT_WAIT:
                     if (CdSync(1, NULL) == CdlDiskError) {
                         CdSyncCallback(NULL);
                         CdReadyCallback(NULL);
                         cdSyncWaitForReadableDisc(1);
-                        state->step = 0;
+                        queue->step = CD_COMMAND_STAGE_MOUNT_READ;
                         return;
                     }
                     fsAbortTimedOutOperation();
-                    status = Fs_CdOpStatus;
-                    switch (status) {
-                        case 0x80:
+                    readStatus = Fs_CdOpStatus;
+                    switch (readStatus) {
+                        case CD_COMMAND_STAGE_READ_RESTART:
                             switch (cdSyncPollCommand(0, 0)) {
                                 case CD_SYNC_RETRY:
                                     CdFlush();
@@ -522,20 +539,21 @@ static void CdCmd_HandleMount(void)
                                     if (CdSync(1, NULL) == CdlDiskError) {
                                         cdSyncWaitForReadableDisc(1);
                                     }
-                                    state->step = 0;
+                                    queue->step = CD_COMMAND_STAGE_MOUNT_READ;
                                     return;
                                 case CD_SYNC_PENDING:
                                 default:
                                     return;
                             }
-                        case 0xFF:
+                        case CD_COMMAND_STAGE_READ_COMPLETE:
                             CdSyncCallback(NULL);
                             CdReadyCallback(NULL);
-                            state->step = state->step + 1;
+                            queue->step = queue->step + 1;
                             return;
+                        // The writers of these two additional resumption statuses are unproven.
                         case 0x10:
                         case 0x20:
-                        case 0x40:
+                        case CD_COMMAND_STAGE_READ_RESUME:
                             switch (cdSyncPollCommand(0, 0)) {
                                 case CD_SYNC_RETRY:
                                     CdFlush();
@@ -549,26 +567,19 @@ static void CdCmd_HandleMount(void)
                             }
                     }
                     return;
-                case 2:
+                case CD_COMMAND_STAGE_MOUNT_BUILD:
+                    // Build offsets only after the read callbacks and drive have stopped.
                     switch (cdSyncPollCommand(0, 0)) {
                         case CD_SYNC_RETRY:
                             CdFlush();
                             /* fallthrough */
                         case CD_SYNC_COMPLETE:
                             fsInitFolderTable(stageIndex & 0xFF);
-                            if (state->busy != 0) {
-                                state->busy          = 0;
+                            if (queue->busy != 0) {
+                                queue->busy          = 0;
                                 gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                             }
-                            state->step               = 0;
-                            state->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-                            state->pausePlayClock     = 0;
-                            state->cdOperationPending = 0;
-                            if (state->readIdx != state->writeIdx) {
-                                (state->entries + state->readIdx)->cmd = CD_COMMAND_EMPTY;
-                                state->readIdx                         = state->readIdx + 1;
-                                state->readIdx                         = state->readIdx % ARRAY_SIZE(state->entries);
-                            }
+                            _cdCmdRetireHeadRequest(queue);
                             return;
                         case CD_SYNC_PENDING:
                         default:
@@ -578,24 +589,16 @@ static void CdCmd_HandleMount(void)
             return;
         }
         case CD_COMMAND_READ_STAGE_HEADER:
-            status = Fs_CdOpStatus;
-            if (status == 0xFF) {
-                if (state->busy != 0) {
-                    state->busy          = 0;
+            readStatus = Fs_CdOpStatus;
+            if (readStatus == CD_COMMAND_STAGE_READ_COMPLETE) {
+                if (queue->busy != 0) {
+                    queue->busy          = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                state->step               = 0;
-                state->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-                state->pausePlayClock     = 0;
-                state->cdOperationPending = 0;
-                if (state->readIdx != state->writeIdx) {
-                    (state->entries + state->readIdx)->cmd = CD_COMMAND_EMPTY;
-                    state->readIdx                         = state->readIdx + 1;
-                    state->readIdx                         = state->readIdx % ARRAY_SIZE(state->entries);
-                }
+                _cdCmdRetireHeadRequest(queue);
                 return;
             }
-            if (status != 0x80) {
+            if (readStatus != CD_COMMAND_STAGE_READ_RESTART) {
                 return;
             }
             switch (cdSyncPollCommand(0, 0)) {
@@ -651,30 +654,29 @@ s32 cdCmdRequestCancel(void)
     return 0;
 }
 
+/// Restores scene state and sound-request gates after scene-audio cancellation.
+///
+/// The selected scene descriptor and gameplay scene interface must remain live.
+/// Audio stop and any trailing wave load must have completed before this call.
+/// Clears the saved/replacement requests, releases the pause/busy gates and
+/// retires the head if present; scene buffers remain allocated for reuse.
 static inline void _cdCmdFinishSceneAudio(void)
 {
-    CdCmdQueue* p;
+    CdCmdQueue* queue;
 
-    p = &gCdCmdQueue;
-    memFillBytes(&p->activeRequest, 0, sizeof(p->activeRequest));
-    p->replacementEntry.cmd = CD_COMMAND_EMPTY;
-    p->blockGamePause       = 0;
-    p->sceneAudioMode       = CD_COMMAND_SCENE_INACTIVE;
-    cdCmdResumeSceneSoundRequests(p->sceneStream->data.scene.soundBankMask);
+    queue = &gCdCmdQueue;
+    memFillBytes(&queue->activeRequest, 0, sizeof(queue->activeRequest));
+    queue->replacementEntry.cmd = CD_COMMAND_EMPTY;
+    queue->blockGamePause       = 0;
+    queue->sceneAudioMode       = CD_COMMAND_SCENE_INACTIVE;
+    // Restore sound-request gates and scene state before publishing queue completion.
+    cdCmdResumeSceneSoundRequests(queue->sceneStream->data.scene.soundBankMask);
     streamFinishScene();
-    if (p->busy != 0) {
-        p->busy              = 0;
+    if (queue->busy != 0) {
+        queue->busy          = 0;
         gDisplayState.cdBusy = DISPLAY_CD_IDLE;
     }
-    p->step               = 0;
-    p->cancelStep         = CD_COMMAND_CANCEL_BEGIN;
-    p->pausePlayClock     = 0;
-    p->cdOperationPending = 0;
-    if (p->readIdx != p->writeIdx) {
-        p->entries[p->readIdx].cmd = CD_COMMAND_EMPTY;
-        p->readIdx                 = p->readIdx + 1;
-        p->readIdx                 = p->readIdx % ARRAY_SIZE(p->entries);
-    }
+    _cdCmdRetireHeadRequest(queue);
 }
 
 static void CdCmd_ProcessPhase1(void)
@@ -820,97 +822,123 @@ u16 cdCmdRequestSuspend(void)
     return 1;
 }
 
-static void CdCmd_ProcessPhase2(void)
+/// Advances suspension of the saved head request for an intervening load.
+///
+/// File requests return to dispatch; movie requests finish any pending drive
+/// operation, fade CD audio when selected and stop playback before recording an
+/// absolute resume sector. The saved request and movie buffers survive the ring
+/// clear. Unsupported command families retain suspension without progressing.
+static void _cdCmdHandleRequestSuspension(void)
 {
-    CdCmdQueue* p;
-    CdCmdQueue* p2;
-    u16*        statePtr;
-    u16         ret;
-    u8          result[8];
-    CdlLOC      loc;
-    s32         pos;
+    enum {
+        CD_COMMAND_SUSPEND_BEGIN       = 0,
+        CD_COMMAND_SUSPEND_FADE        = 1,
+        CD_COMMAND_SUSPEND_STOP        = 2,
+        CD_COMMAND_MOVIE_FAMILY        = CD_COMMAND_CONTINUE_STREAM >> 4,
+        CD_COMMAND_OFFSET_MOVIE_FAMILY = CD_COMMAND_RESUME_STREAM_AT_POSITION >> 4,
+        CD_COMMAND_SCENE_AUDIO_FAMILY  = CD_COMMAND_PLAY_SCENE_AUDIO >> 4,
+        CD_COMMAND_HANDLER_BEGIN       = 0,
+    };
+    CdCmdQueue* queue;
+    CdCmdQueue* resetQueue;
+    u16*        suspendStep;
+    u16         movieStopped;
+    u8          positionResult[8];
+    CdlLOC      resumeLocation;
+    s32         absoluteResumeSector;
 
-    p = &gCdCmdQueue;
-    switch (p->activeRequest.entry.cmd >> 4) {
+    /// Polls shutdown, progressing playback while the drive pause is pending.
+    ///
+    /// Requires serialized resident playback state. `stopped` must be a writable
+    /// lvalue; it is evaluated once and assigned 0 or 1. Successful shutdown
+    /// clears display-movie framebuffers and retains playback workspaces.
+#define CD_COMMAND_POLL_SUSPENDED_MOVIE_STOP(stopped) \
+    {                                                 \
+        if (streamPollMovieStop(true)) {              \
+            (stopped) = 1;                            \
+        } else {                                      \
+            _cdCmdHandleMoviePlayback();              \
+            (stopped) = 0;                            \
+        }                                             \
+    }
+
+    queue = &gCdCmdQueue;
+    switch (queue->activeRequest.entry.cmd >> 4) {
         case 0:
         case 1:
         case 2:
-            p->activeRequest.phase = CD_COMMAND_PHASE_DISPATCH;
-            p->sceneAudioStarted   = 0;
+            queue->activeRequest.phase = CD_COMMAND_PHASE_DISPATCH;
+            queue->sceneAudioStarted   = 0;
             break;
         case 4:
-        case 6:
-        case 7:
-            if (p->cdOperationPending != 0) {
-                if ((p->activeRequest.entry.cmd >> 4) == 7) {
+        case CD_COMMAND_MOVIE_FAMILY:
+        case CD_COMMAND_OFFSET_MOVIE_FAMILY:
+            // Keep playback moving until its current seek/read/pause can be stopped.
+            if (queue->cdOperationPending != 0) {
+                if ((queue->activeRequest.entry.cmd >> 4) == CD_COMMAND_OFFSET_MOVIE_FAMILY) {
                     acropolisPlazaPollStreamCommands();
                 } else {
                     _cdCmdHandleMoviePlayback();
                 }
                 break;
             }
-            statePtr = &p->suspendResumeStep;
-            switch (*statePtr) {
-                case 0:
+            suspendStep = &queue->suspendResumeStep;
+            switch (*suspendStep) {
+                case CD_COMMAND_SUSPEND_BEGIN:
                     if (D_8006AC58 != 0) {
                         cdVolBeginFadeOut();
-                        p->suspendResumeStep = p->suspendResumeStep + 1;
+                        queue->suspendResumeStep = queue->suspendResumeStep + 1;
                     } else {
-                        p->suspendResumeStep = 2;
-                        goto case_2;
+                        queue->suspendResumeStep = CD_COMMAND_SUSPEND_STOP;
+                        goto stopMovie;
                     }
                     /* fallthrough */
-                case 1:
+                case CD_COMMAND_SUSPEND_FADE:
                     if (cdVolStepFadeOut() == 0) {
-                        *statePtr = *statePtr + 1;
+                        *suspendStep = *suspendStep + 1;
                     }
                     _cdCmdHandleMoviePlayback();
-                    ret = 0;
+                    movieStopped = 0;
                     break;
-                case 2:
-                case_2:
-                    if (streamPollMovieStop(1)) {
-                        ret = 1;
-                    } else {
-                        _cdCmdHandleMoviePlayback();
-                        ret = 0;
-                    }
+                case CD_COMMAND_SUSPEND_STOP:
+                stopMovie:
+                    CD_COMMAND_POLL_SUSPENDED_MOVIE_STOP(movieStopped);
                     break;
                 default:
-                    ret = 0;
+                    movieStopped = 0;
                     break;
             }
-            if (ret != 0) {
-                CdControlB(CdlGetlocL, NULL, result);
-                loc.minute                    = result[0];
-                loc.second                    = result[1];
-                loc.sector                    = result[2];
-                loc.track                     = 0;
-                pos                           = CdPosToInt(&loc);
-                p2                            = &gCdCmdQueue;
-                p->activeRequest.resumeSector = pos;
-                p->activeRequest.phase        = CD_COMMAND_PHASE_DISPATCH;
-                p->suspendResumeStep          = 0;
-                if (p2->busy != 0) {
-                    p2->busy             = 0;
+            if (movieStopped != 0) {
+                // Preserve the paused sector before clearing requests for intervening loads.
+                CdControlB(CdlGetlocL, NULL, positionResult);
+                resumeLocation.minute             = positionResult[0];
+                resumeLocation.second             = positionResult[1];
+                resumeLocation.sector             = positionResult[2];
+                resumeLocation.track              = 0;
+                absoluteResumeSector              = CdPosToInt(&resumeLocation);
+                resetQueue                        = &gCdCmdQueue;
+                queue->activeRequest.resumeSector = absoluteResumeSector;
+                queue->activeRequest.phase        = CD_COMMAND_PHASE_DISPATCH;
+                queue->suspendResumeStep          = CD_COMMAND_SUSPEND_BEGIN;
+                if (resetQueue->busy != 0) {
+                    resetQueue->busy     = 0;
                     gDisplayState.cdBusy = DISPLAY_CD_IDLE;
                 }
-                memFillBytes(p2->entries, 0, sizeof(p2->entries));
-                p2->writeIdx          = 0;
-                p2->readIdx           = 0;
-                p2->step              = 0;
-                p2->cancelStep        = CD_COMMAND_CANCEL_BEGIN;
-                p2->suspendResumeStep = 0;
+                memFillBytes(resetQueue->entries, 0, sizeof(resetQueue->entries));
+                resetQueue->writeIdx          = 0;
+                resetQueue->readIdx           = 0;
+                resetQueue->step              = CD_COMMAND_HANDLER_BEGIN;
+                resetQueue->cancelStep        = CD_COMMAND_CANCEL_BEGIN;
+                resetQueue->suspendResumeStep = CD_COMMAND_SUSPEND_BEGIN;
             }
             break;
         case 3:
         case 5:
-        case 8:
+        case CD_COMMAND_SCENE_AUDIO_FAMILY:
             break;
     }
+#undef CD_COMMAND_POLL_SUSPENDED_MOVIE_STOP
 }
-
-/* Alignment pad after the 9-entry CdCmd_ProcessPhase2 jump table. */
 
 /// Stores the low command byte, key bytes 3/2/0 and all four argument bytes.
 ///
@@ -1409,7 +1437,7 @@ void CdCmd_Dispatch(void)
                         acropolisPlazaPollStreamCommands();
                         break;
                     case 5:
-                        CdCmd_HandleMount();
+                        _cdCmdHandleStageMount();
                         break;
                     case 8:
                         Gp_StepCdAudioCmd();
@@ -1421,7 +1449,7 @@ void CdCmd_Dispatch(void)
             CdCmd_ProcessPhase1();
             break;
         case CD_COMMAND_PHASE_SUSPEND:
-            CdCmd_ProcessPhase2();
+            _cdCmdHandleRequestSuspension();
             break;
     }
 

@@ -12545,14 +12545,14 @@ j    ...
 write two assignments using **modulo**, not bitwise and:
 
 ```c
-state->field_1ca = state->field_1ca + 1;
-state->field_1ca = state->field_1ca % 8;
+queue->readIdx = queue->readIdx + 1;
+queue->readIdx = queue->readIdx % ARRAY_SIZE(queue->entries);
 ```
 
 `% 8` on a u16 forces the zero-extend `andi 0xffff` before `andi 7`. Writing
 `x & 7` (or `(x + 1) & 7`) combines into a single `andi 7` and drops one store.
 `cdCmdNextQueuedEntry` (`CdCmd_EntryIter = slot + 1; CdCmd_EntryIter = CdCmd_EntryIter % 8;`) is the
-matched precedent; `CdCmd_HandleMount` needs the same form for `field_1ca`.
+matched precedent; `_cdCmdHandleStageMount` needs the same form for `readIdx`.
 
 Same rule applies to **loop indices** that index `entries[slot]` each iteration. A
 u16 walk of the ring:
@@ -12583,14 +12583,14 @@ When `(s8)entry->stage` must live in `$s3` while the constant `1` lives in
 colors:
 
 ```c
-status = *(volatile u8*)&entry->stage; /* existing s32, used later too */
-stageIndex = status;
-step   = state->field_1d0;
+readStatus = *(volatile u8*)&entry->stage; /* existing s32, used later too */
+stageIndex = readStatus;
+mountStep  = queue->step;
 stageIndex = (s8)stageIndex;
 ```
 
 The volatile load still yields `lbu` + `sll 24` / `sra 24` (not `lb`), and
-`stageIndex` lands in `$s3`. `CdCmd_HandleMount` needs this for the case-0x54 prologue.
+`stageIndex` lands in `$s3`. `_cdCmdHandleStageMount` needs this for the case-0x54 prologue.
 
 ## Force `addu v0, v0, s0` (scaled-index + base) for `entries[i]`
 
@@ -12608,12 +12608,12 @@ build the address explicitly so the add folds onto the shifted temp:
 
 ```c
 u32 t;
-t = state->field_1ca << 3;
-t += (u32)state;
+t = queue->readIdx << 3;
+t += (u32)queue;
 ((CdCmdEntry*)t)->cmd = 0;
 ```
 
-`CdCmd_HandleMount` cleanup needs this; prefer struct indexing when the operand
+`_cdCmdHandleStageMount` cleanup needs this; prefer struct indexing when the operand
 order already matches.
 
 ## if/else ret assignment vs pre-set ret for delay-slot returns
@@ -15802,7 +15802,7 @@ const s32 jtbl_80012FCC[9] = {
 ```
 
 Remove the pad and absolute table when the middle function is matched (its
-compiler-generated jtbl will occupy the slot naturally). `CdCmd_ProcessPhase2` is the
+compiler-generated jtbl will occupy the slot naturally). `_cdCmdHandleRequestSuspension` is the
 example (pad for `jtbl_80012FCC` / `cdCmdResumeSuspendedMovie`).
 
 ## Hex digit loop: `asm("")` after the raw-digit store
@@ -150484,7 +150484,7 @@ attempts; left as it was.
   return; goto out; } if (ret != 2) goto out; CdFlush(); } body`** is
   `switch ((s16)poll()) { case 0: return; case 2: CdFlush(); /* fallthrough */
   case 1: body; break; }` with the default falling out of the inner switch
-  (`CdCmd_HandleFileLoad`, `CdCmd_HandleMount`, `_cdCmdHandleMoviePlayback`; 33
+  (`CdCmd_HandleFileLoad`, `_cdCmdHandleStageMount`, `_cdCmdHandleMoviePlayback`; 33
   of 35 gotos in the three went, most of them this way). Where no path tests zero the list still needs
   `case 0:` next to `default:` for the `slti 2` node. A state whose default
   path runs the *next* state's code (`case 3` of the file load) is the inner
@@ -150492,7 +150492,7 @@ attempts; left as it was.
   in state 0 is that body written after the switch, with `case 1: break;
   default: return;` (`_cdCmdHandleMoviePlayback`).
 - **`p = &gCdCmdQueue;` re-assigned at a label two gotos reach** is an inline
-  with its own `p` (`_cdCmdFinishSceneAudio`, called at the three sites of
+  with its own `queue` (`_cdCmdFinishSceneAudio`, called at the three sites of
   `CdCmd_ProcessPhase1`).
 - Not converted, and why:
   - `state->step = 4; goto do_load;` from state 0 of `CdCmd_HandleFileLoad`
@@ -150505,7 +150505,8 @@ attempts; left as it was.
     cannot while it also falls through into state 1; duplicating the end test
     in the `default:` un-merges the shared `ret == 0` test.
   - `cancelStep = FINISH; goto case_2;` in `CdCmd_ProcessPhase1` /
-    `CdCmd_ProcessPhase2` (state 0 jumping over state 1 into state 2). The
+    `suspendResumeStep = CD_COMMAND_SUSPEND_STOP; goto stopMovie;` in
+    `_cdCmdHandleRequestSuspension` (state 0 jumping over state 1 into state 2). The
     stop block written twice merges only its two tails; the leading
     `jal; sll; bnez` stays double because the two tails end at labels
     cross-jumping created itself. Writing the copy's arms the other way round
