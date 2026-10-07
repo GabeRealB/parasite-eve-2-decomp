@@ -129,7 +129,7 @@ s32              func_actor_460200_80133C64(Task*, s32, AnimationPlayRequest*, s
 s32              func_actor_460200_80133CD0(Task*, s32, s32, s32);
 static s32       _pacedWalkPlaceSoldierC(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 s32              func_actor_460200_80133DC4(Task*, s32, s32, s32);
-s32              func_actor_460200_80133DCC(Task* task, s32 msgId, ActorTransform* target, s32 arg3);
+static s32       _pacedWalkSetSoldierCWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
 void             func_actor_460200_8013386C(Task*);
 
 extern AnimationPlayRequest D_actor_460200_80135E1C;
@@ -1299,7 +1299,7 @@ TaskMessageEntry gPacedWalkMsgTable[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, pacedWalkShowPair },
     { ACTOR_MESSAGE_PLACE, PACED_WALK_PLACE },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80132C8C },
-    { ACTOR_MESSAGE_WALK_TO, pacedWalkTo },
+    { ACTOR_MESSAGE_WALK_TO, PACED_WALK_SET_WALK_TARGET },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2121,7 +2121,7 @@ TaskMessageEntry D_actor_460200_801514FC[6] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_460200_80133CD0 },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlaceSoldierC },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_460200_80133DC4 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_460200_80133DCC },
+    { ACTOR_MESSAGE_WALK_TO, _pacedWalkSetSoldierCWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2530,7 +2530,9 @@ s32 func_actor_460200_80133DC4(Task* task, s32 msgId, s32 arg2, s32 arg3)
     return 0;
 }
 
-/// The third walker's copy.
-#define pacedWalkTo func_actor_460200_80133DCC
+// Soldier C records travel in its own PacedWalkWork.
+#undef PACED_WALK_SET_WALK_TARGET
+#define PACED_WALK_SET_WALK_TARGET _pacedWalkSetSoldierCWalkTarget
 #include "../../shared/paced_walk_to.inc.c"
-#undef pacedWalkTo
+#undef PACED_WALK_SET_WALK_TARGET
+#define PACED_WALK_SET_WALK_TARGET pacedWalkTo

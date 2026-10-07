@@ -408,3 +408,4 @@ _pacedWalkPlaceSoldierC = 0x80133D4C; // type:func
 _pacedWalkUpdateSoldierC = 0x801336B4; // type:func
 _actorRenderDrawSecondFixedWalkerGroundShadow = 0x80133254; // type:func
 _actorRenderDrawThirdFixedWalkerGroundShadow = 0x80133ab0; // type:func
+_pacedWalkSetSoldierCWalkTarget = 0x80133DCC; // type:func

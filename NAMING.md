@@ -765,6 +765,12 @@ only selects the reusable animation and placement helpers' work type.
 carrier's prologue before their tables, retain the `pacedWalk` identity and
 are bound to their allocated type through `PACED_WALK_WORK_T` around the
 placement fragment. Restore both bindings after a further instance.
+`PACED_WALK_SET_WALK_TARGET` selects the heading-and-travel message callback,
+defaulting to `pacedWalkTo`. Additional private copies are declared `static`
+in the carrier's prologue before their message tables; actor_460200 selects
+`_pacedWalkSetSoldierCWalkTarget` for its third walker. Each copy requires
+`PacedWalkWork` independently of `PACED_WALK_WORK_T`; rebind around its fragment
+and restore the first binding afterwards.
 
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
 model and turns its head toward the player during talk scenes, carried by

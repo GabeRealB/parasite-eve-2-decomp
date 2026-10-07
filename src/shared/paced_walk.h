@@ -136,7 +136,24 @@ static void PACED_WALK_UPDATE(Task* task);
 static void PACED_WALK_TICK_ANIM(Task* task);
 static void PACED_WALK_RESET_ANIM(Task* task);
 static void PACED_WALK_BLEND_ANIM(Task* task);
-s32         pacedWalkTo(Task* task, s32 arg1, ActorTransform* target, s32 arg3);
+
+#ifndef PACED_WALK_SET_WALK_TARGET
+/// Selects the callback that records a paced walker's heading and travel count.
+///
+/// Defaults to `pacedWalkTo`. Bind to a function identifier with signature
+/// `s32 name(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument)`.
+/// Bind before this header for the first declaration, or undefine and rebind
+/// around an additional walk-target fragment. Declare additional instances
+/// in the carrier's prologue before their message tables; a static declaration
+/// gives the fragment's definition internal linkage. Each instance requires
+/// `PacedWalkWork` at `Task::work`, independent of `PACED_WALK_WORK_T`.
+/// Restore the first binding afterwards. The header guard selects the default
+/// only once. This object-like alias evaluates no arguments, captures no locals
+/// and uses no stringification or token pasting.
+#define PACED_WALK_SET_WALK_TARGET pacedWalkTo
+#endif
+
+s32 PACED_WALK_SET_WALK_TARGET(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
 
 #ifndef PACED_WALK_PLACE
 /// Selects the placement callback defined by a walker's placement fragment.
