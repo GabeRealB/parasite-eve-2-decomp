@@ -2424,6 +2424,16 @@ static inline void _actor400500PlaySound(Task* task, s32 id)
     sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
+/// Replaces the rotation of `coord` with a rotation about Y by `yaw`.
+static inline void _actor400500SetCoordYaw(GfxCoord* coord, s16 yaw)
+{
+    MATRIX rot;
+
+    gfxSetRotIdentity(&rot);
+    RotMatrixY(yaw, &rot);
+    _actor400500CopyRotation(&rot, &coord->coord);
+}
+
 /// Plays animation 2 at rate 0x18, moving the root so that node 0xB holds its
 /// world-space position from frame 0 to 0xB00 / rate / 16 and node 8 from
 /// 0xC00 / rate / 16 to 0x1500 / rate / 16, each with a sound on its first
@@ -4587,26 +4597,15 @@ static void func_actor_400500_80138B78(Task* arg0)
 static void func_actor_400500_80138CE8(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
-    GfxMatrix                    rot;
-    GfxMatrix*                   src;
     Task*                        child;
-    GfxCoord*                    coord;
     s32                          angle;
 
     work                      = (_Actor400500GrayStalkerWork*)arg0->work;
-    src                       = &rot;
     angle                     = work->armSwingAngle - 0x80;
     work->armSwingAngle       = angle;
     child                     = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0];
     child->extra.tmd->flags   = 0;
-    coord                     = child->extra.tmd->coords;
-    rot.rotationWords.m00M01  = ONE;
-    rot.rotationWords.m02M10  = 0;
-    src->rotationWords.m11M12 = ONE;
-    rot.rotationWords.m20M21  = 0;
-    src->rotationWords.m22    = ONE;
-    RotMatrixY((s16)(-angle), &src->mat);
-    _actor400500CopyRotation(&src->mat, &coord->coord);
+    _actor400500SetCoordYaw(child->extra.tmd->coords, -angle);
     if ((s16)work->armSwingAngle <= 0) {
         ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0]->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->subState                                                            = work->subState + 1;
@@ -6323,28 +6322,17 @@ static void func_actor_400500_8013BE50(Task* arg0)
 static void func_actor_400500_8013BEC4(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
-    GfxMatrix                    rot;
-    GfxMatrix*                   src;
     Task*                        child;
-    GfxCoord*                    coord;
     _Actor400500GrayStalkerWork* work2;
     s32                          angle;
 
     work                      = (_Actor400500GrayStalkerWork*)arg0->work;
-    src                       = &rot;
     work->armSwingAngle       = work->armSwingAngle + 0x80;
     work->stateFrames         = work->stateFrames + 1;
     child                     = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[1];
     angle                     = work->armSwingAngle;
     child->extra.tmd->flags   = 0;
-    coord                     = child->extra.tmd->coords;
-    rot.rotationWords.m00M01  = ONE;
-    rot.rotationWords.m02M10  = 0;
-    src->rotationWords.m11M12 = ONE;
-    rot.rotationWords.m20M21  = 0;
-    src->rotationWords.m22    = ONE;
-    RotMatrixY((s16)(angle), &src->mat);
-    _actor400500CopyRotation(&src->mat, &coord->coord);
+    _actor400500SetCoordYaw(child->extra.tmd->coords, angle);
     if ((s16)work->armSwingAngle >= 0x200) {
         work2              = (_Actor400500GrayStalkerWork*)arg0->work;
         work2->animRate    = ANIMATION_RATE_ONE;
@@ -6381,28 +6369,17 @@ static void func_actor_400500_8013BFB0(Task* arg0)
 static void func_actor_400500_8013C018(Task* arg0)
 {
     _Actor400500GrayStalkerWork* work;
-    GfxMatrix                    rot;
-    GfxMatrix*                   src;
     Task*                        child;
-    GfxCoord*                    coord;
     _Actor400500GrayStalkerWork* work2;
     s32                          angle;
 
     work                      = (_Actor400500GrayStalkerWork*)arg0->work;
-    src                       = &rot;
     work->armSwingAngle       = work->armSwingAngle + 0x80;
     work->stateFrames         = work->stateFrames + 1;
     child                     = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0];
     angle                     = work->armSwingAngle;
     child->extra.tmd->flags   = 0;
-    coord                     = child->extra.tmd->coords;
-    rot.rotationWords.m00M01  = ONE;
-    rot.rotationWords.m02M10  = 0;
-    src->rotationWords.m11M12 = ONE;
-    rot.rotationWords.m20M21  = 0;
-    src->rotationWords.m22    = ONE;
-    RotMatrixY((s16)(-angle), &src->mat);
-    _actor400500CopyRotation(&src->mat, &coord->coord);
+    _actor400500SetCoordYaw(child->extra.tmd->coords, -angle);
     if ((s16)work->armSwingAngle >= 0x200) {
         work2              = (_Actor400500GrayStalkerWork*)arg0->work;
         work2->animRate    = ANIMATION_RATE_ONE;
