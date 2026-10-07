@@ -5766,6 +5766,7 @@ EMBEDDED_ASSETS = {
     'dryfield_night_water_tank_model_00FF8': {"source": 'dryfield_night_water_tank.pe2pkg', "vram": 0x8017E5B8, "size": 0x84C, "ext": '.tmd', "type": 'model'},
     'dryfield_dilapidated_house_model_08794': {"source": 'dryfield_dilapidated_house.pe2pkg', "vram": 0x80185D54, "size": 0x2AC, "ext": '.tmd', "type": 'model'},
     'dryfield_dilapidated_house_model_08D0C': {"source": 'dryfield_dilapidated_house.pe2pkg', "vram": 0x801862CC, "size": 0x2AC, "ext": '.tmd', "type": 'model'},
+    'dryfield_dilapidated_house_morph_08FDC': {"source": 'dryfield_dilapidated_house.pe2pkg', "vram": 0x8018659C, "size": 0x100, "ext": '.morph', "type": 'morph_deltas', "include": 'u16'},
     'gameplay_effect_80111fc8_part_vertices': {"source": 'gameplay.pe2pkg', "vram": 0x80111EF4, "size": 0x4, "ext": '.modelpart', "type": 'model', "include": 'u32'},
     'gameplay_effect_801120e4_part_vertices': {"source": 'gameplay.pe2pkg', "vram": 0x80112010, "size": 0x4, "ext": '.modelpart', "type": 'model'},
     'gameplay_effect_80112200_part_vertices': {"source": 'gameplay.pe2pkg', "vram": 0x8011212C, "size": 0x4, "ext": '.modelpart', "type": 'model'},
