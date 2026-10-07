@@ -57,7 +57,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                         obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     work->animId = MAGGOT_CATERPILLAR_ANIM_HURT;
-                    maggotCaterpillarTickAnimInline(arg1);
+                    _maggotCaterpillarTickAnimInline(arg1);
                     colorCoord = arg1->extra.tmd->coords;
                     vec.vx     = colorCoord->workm.t[0];
                     vec.vy     = colorCoord->workm.t[1];
@@ -71,12 +71,12 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                             tmdFreePrimitiveBuffer(obj);
                             obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
                             maggotCaterpillarSpawnHusk(arg1);
-                            maggotCaterpillarShrinkNode2(arg1);
+                            _maggotCaterpillarShrinkNode2(arg1);
                         } else {
                             work->burst++;
                         }
                     }
-                    maggotCaterpillarSquash(arg1);
+                    _maggotCaterpillarSquash(arg1);
                     work->stateCounter++;
                     if (work->stateCounter == 0xA) {
                         obj->flags = TMD_OBJECT_SEMI_TRANS;
@@ -89,7 +89,7 @@ void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
                         work->stateCounter = 0;
                         obj->flags         = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
-                    maggotCaterpillarTickAnimInline(arg1);
+                    _maggotCaterpillarTickAnimInline(arg1);
                     colorCoord = arg1->extra.tmd->coords;
                     vec.vx     = colorCoord->workm.t[0];
                     vec.vy     = colorCoord->workm.t[1];

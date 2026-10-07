@@ -81115,7 +81115,7 @@ work->field_4B8 = spawned->task;          /* everything after the branch */
 The `move` chain is the tell: `move sN, v0` alone means one variable; `addu v1,
 v0` followed by `addu s2, v1` means two. `ActorsShared80131e24Sub0` is the
 example, at 99.01% with one pointer and 100% with two. It is a property of the
-routine and not of the surrounding idiom: the sibling `maggotCaterpillarPuffSetup`
+routine and not of the surrounding idiom: the sibling `_maggotCaterpillarPuffSetup`
 allocates through the same `work` slot and emits the single `move`.
 
 The `lreg` dump of the 99.008% candidate shows the merge directly rather than

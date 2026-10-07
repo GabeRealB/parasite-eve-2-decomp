@@ -1,14 +1,16 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Setup state of the projectile task: allocates its `MaggotCaterpillarPuffWork`,
-/// places its model's coordinate at the spawning model's fifth node (expressed
-/// relative to the view coordinate), and links the work's collision sphere
-/// with its one-entry contact table, noting the parent work's `puffCount`.
-/// The enemy is destroyed when the allocation fails.
-void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
+/// Allocates a puff work block and launches it from its parent actor fifth node.
+///
+/// The task owns a coordinate body, has a live TMD parent with at least five
+/// nodes and uses its own enemy context for teardown. The launch transform is
+/// expressed beneath the view coordinate. Its owned collision sphere is linked
+/// to the enemy-attack list and borrows the work contact array. Allocation
+/// failure destroys the child; success advances to the flying task phase.
+static void _maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
 {
     Task*                      parent;
-    TmdObject*                 parentObj;
+    TmdObject*                 parentModel;
     GfxCoord*                  coord;
     MaggotCaterpillarWork*     parentWork;
     GfxCoord*                  parentCoord;
@@ -16,15 +18,16 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     u16                        sprayOrdinal;
 
     parent      = task->parent;
-    parentObj   = parent->extra.tmd;
-    coord       = task->extra.tmd->coords;
+    parentModel = parent->extra.tmd;
+    coord       = task->extra.coordBody->coord;
     parentWork  = parent->work;
-    parentCoord = &parentObj->coords[4];
+    parentCoord = &parentModel->coords[4];
     work        = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
+    // Detach the launch pose into the view frame before linking collision.
     task->work                 = work;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
@@ -33,7 +36,7 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     coord->parent = &gGfxViewCoord;
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
     coord->composeStamp         = GRAPHICS_COORD_DIRTY;
-    work->forwardSpeed          = 0xC0;
+    work->forwardSpeed          = MAGGOT_CATERPILLAR_PUFF_INITIAL_SPEED;
     sprayOrdinal                = parentWork->puffCount;
     work->body.coord            = coord;
     work->body.pos.vx           = 0;
@@ -41,11 +44,11 @@ void maggotCaterpillarPuffSetup(Enemy* enemy, Task* task)
     work->body.pos.vz           = 0;
     work->body.context.contacts = work->contacts;
     work->sprayOrdinal          = sprayOrdinal;
-    work->body.key              = damagePackAttackKey(gMaggotCaterpillarAttacks, 2);
+    work->body.key              = damagePackAttackKey(gMaggotCaterpillarAttacks, MAGGOT_CATERPILLAR_ATTACK_PUFF);
     work->body.radius           = 0x100;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->state       = 1;
+    task->state       = MAGGOT_CATERPILLAR_PUFF_TASK_FLY;
 }

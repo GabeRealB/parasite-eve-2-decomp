@@ -1,50 +1,48 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Status handling, run when the enemy's `reactionFlags` are non-zero. Buildup
-/// is consumed, unless `reactionMode` is
-/// `MAGGOT_CATERPILLAR_REACTION_COMMITTED`, by switching to
-/// `MAGGOT_CATERPILLAR_BEHAVIOUR_STUN` with `stunned` set. While damage over
-/// time is set, `damageTickEnemyDamageOverTime` yields a per-frame damage that is passed to
-/// `worldTargetAddReadoutAmount` and taken from `hp`; outside that reaction mode the actor
-/// then enters `MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD` when they run out (setting
-/// `field_30` to 2) or `MAGGOT_CATERPILLAR_BEHAVIOUR_HURT` otherwise. The bits
-/// are cleared once `damageIsEnemyDamageOverTimeExpired` returns non-zero.
-void maggotCaterpillarApplyStatus(Task* arg0)
+/// Applies buildup and damage-over-time reactions to the actor.
+///
+/// Committed actions retain their behavior while HP changes; other actions
+/// enter stun, hurt or the dying task phase. Damage is narrowed to a signed
+/// halfword for the readout and zero test, and HP is stored as a halfword.
+/// Expired damage-over-time flags are cleared after the pulse.
+static void _maggotCaterpillarApplyStatus(Task* actor)
 {
     MaggotCaterpillarWork* work;
     s32                    damage;
-    s32                    remaining;
-    u8                     flags;
-    Enemy*                 ctx;
+    s32                    remainingHp;
+    u8                     reactionFlags;
+    Enemy*                 enemy;
 
-    ctx   = arg0->spawnArg2.pointer;
-    flags = ctx->reactionFlags;
-    work  = arg0->work;
-    if ((flags & ENEMY_REACTION_BUILDUP) && (work->reactionMode != MAGGOT_CATERPILLAR_REACTION_COMMITTED)) {
-        ctx->reactionFlags = (u8)(flags & ENEMY_REACTION_BUILDUP_CLEAR);
-        work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_STUN;
-        work->step         = 0;
-        work->stunned      = 1;
+    enemy         = actor->spawnArg2.pointer;
+    reactionFlags = enemy->reactionFlags;
+    work          = actor->work;
+    if ((reactionFlags & ENEMY_REACTION_BUILDUP) && (work->reactionMode != MAGGOT_CATERPILLAR_REACTION_COMMITTED)) {
+        enemy->reactionFlags = (u8)(reactionFlags & ENEMY_REACTION_BUILDUP_CLEAR);
+        work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_STUN;
+        work->step           = 0;
+        work->stunned        = 1;
     }
-    if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage = damageTickEnemyDamageOverTime(ctx);
+    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        damage = damageTickEnemyDamageOverTime(enemy);
         if ((s16)damage != 0) {
-            worldTargetAddReadoutAmount(&ctx->node, (s16)damage, 0);
-            remaining = (u16)ctx->hp - damage;
-            ctx->hp   = remaining;
+            worldTargetAddReadoutAmount(&enemy->node, (s16)damage, 0);
+            // Preserve halfword HP arithmetic, including the unsigned input view.
+            remainingHp = (u16)enemy->hp - damage;
+            enemy->hp   = remainingHp;
             if (work->reactionMode != MAGGOT_CATERPILLAR_REACTION_COMMITTED) {
-                if ((s16)remaining <= 0) {
+                if ((s16)remainingHp <= 0) {
                     work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD;
                     work->step      = 0;
-                    arg0->state     = 2;
+                    actor->state    = MAGGOT_CATERPILLAR_TASK_DYING;
                 } else {
                     work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_HURT;
                     work->step      = 0;
                 }
             }
         }
-        if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
-            ctx->reactionFlags = (u8)(ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
+            enemy->reactionFlags = (u8)(enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR);
         }
     }
 }

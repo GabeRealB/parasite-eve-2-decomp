@@ -2,50 +2,67 @@
 
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// `MAGGOT_CATERPILLAR_BEHAVIOUR_POUNCE`: during the leap it arms the bite collision (a
-/// stronger elemental bite while burning) and steps forward along the stride
-/// table. If the leap is blocked early it switches to the rebound step, backing
-/// off along the recoil table. It dies on landing when out of HP; otherwise it
-/// returns to `MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM` with a random delay.
-void maggotCaterpillarPounceState(Task* arg0)
+/// Runs the bite leap and the recoil of a blocked or struck leap.
+///
+/// The leap enables the attack sphere during ticks 27..39 and defers lethal hit
+/// reactions until landing. Burning selects elemental bite entries. Nine-entry
+/// stride tables provide X/Z displacement in coordinate units, timed against
+/// clip ticks; the pounce thresholds include its blend duration. Recoil can
+/// finish with a half turn and a slot restart. Releases its rotation scratch.
+static void _maggotCaterpillarPounceState(Task* actor)
 {
+    enum {
+        MAGGOT_CATERPILLAR_POUNCE_LEAP            = 0,
+        MAGGOT_CATERPILLAR_POUNCE_REBOUND         = 1,
+        MAGGOT_CATERPILLAR_POUNCE_ATTACK_START    = 27,
+        MAGGOT_CATERPILLAR_POUNCE_LAND_FRAME      = 40,
+        MAGGOT_CATERPILLAR_POUNCE_EARLY_BITE_END  = 34,
+        MAGGOT_CATERPILLAR_POUNCE_REBOUND_CUTOFF  = 35,
+        MAGGOT_CATERPILLAR_POUNCE_STRIDE_COUNT    = 9,
+        MAGGOT_CATERPILLAR_POUNCE_RECOVERY_FRAMES = 70,
+        MAGGOT_CATERPILLAR_REBOUND_SIDE_START     = 31,
+        MAGGOT_CATERPILLAR_REBOUND_SIDE_END       = 46,
+        MAGGOT_CATERPILLAR_REBOUND_LAND_FRAME     = 16,
+        MAGGOT_CATERPILLAR_POUNCE_LAND_SOUND      = 0x401A0002,
+    };
     MaggotCaterpillarWork* work;
     GfxCoord*              coord;
     SVECTOR*               rotation;
-    s16(*motion0)[2];
-    s16(*motion1)[2];
-    s16 state;
-    s32 sound;
-    s32 index;
-    s32 pan;
-    s32 pan1;
+    s16(*pounceStride)[2];
+    s16(*reboundStride)[2];
+    s16 step;
+    s32 soundKey;
+    s32 tableIndex;
+    s32 landingPan;
+    s32 reboundPan;
     u32 random;
 
     rotation = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    work     = arg0->work;
-    state    = work->step;
-    coord    = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
+    work     = actor->work;
+    step     = work->step;
+    coord    = actor->extra.tmd->coords;
+    switch (step) {
+        case MAGGOT_CATERPILLAR_POUNCE_LEAP:
             work->reactionMode = MAGGOT_CATERPILLAR_REACTION_NORMAL;
             work->midLeap      = 0;
             work->forwardSpeed = 0;
             work->turnRate     = 0;
-            if ((work->animFrame >= 0x1B) && (work->animFrame < 0x28)) {
+            // Contacts during the attack window can turn the leap into recoil.
+            if ((work->animFrame >= MAGGOT_CATERPILLAR_POUNCE_ATTACK_START) && (work->animFrame < MAGGOT_CATERPILLAR_POUNCE_LAND_FRAME)) {
                 work->reactionMode      = MAGGOT_CATERPILLAR_REACTION_COMMITTED;
                 work->midLeap           = 1;
                 work->attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (work->burning == 0) {
-                    index = work->animFrame < 0x22;
+                    tableIndex = work->animFrame < MAGGOT_CATERPILLAR_POUNCE_EARLY_BITE_END ? MAGGOT_CATERPILLAR_ATTACK_BITE_EARLY : MAGGOT_CATERPILLAR_ATTACK_BITE_LATE;
                 } else {
-                    index = 3;
-                    if (work->animFrame < 0x22) {
-                        index = 4;
+                    tableIndex = MAGGOT_CATERPILLAR_ATTACK_BURNING_BITE_LATE;
+                    if (work->animFrame < MAGGOT_CATERPILLAR_POUNCE_EARLY_BITE_END) {
+                        tableIndex = MAGGOT_CATERPILLAR_ATTACK_BURNING_BITE_EARLY;
                     }
                 }
-                work->attackBody.key = damagePackAttackKey(gMaggotCaterpillarAttacks, index);
-                if ((work->animFrame < 0x23) && ((work->struck != 0) || (work->blocked != 0))) {
-                    work->step              = 1;
+                work->attackBody.key = damagePackAttackKey(gMaggotCaterpillarAttacks, tableIndex);
+                if ((work->animFrame < MAGGOT_CATERPILLAR_POUNCE_REBOUND_CUTOFF) && ((work->struck != 0) || (work->blocked != 0))) {
+                    work->step              = MAGGOT_CATERPILLAR_POUNCE_REBOUND;
                     work->midLeap           = 0;
                     work->animId            = MAGGOT_CATERPILLAR_ANIM_REBOUND;
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -54,83 +71,76 @@ void maggotCaterpillarPounceState(Task* arg0)
             } else {
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
-            index   = 0;
-            motion0 = gMaggotCaterpillarPounceStride;
-            for (; index < 9; index++, motion0++) {
-                if (work->animFrame <= (motion0[0][0] + gMaggotCaterpillarPounceLead)) {
-                    coord->coord.t[0] += (s32)(motion0[0][1] * rsin(work->yaw)) >> 0xC;
-                    coord->coord.t[2] += (s32)(motion0[0][1] * rcos(work->yaw)) >> 0xC;
+            tableIndex   = 0;
+            pounceStride = gMaggotCaterpillarPounceStride;
+            for (; tableIndex < MAGGOT_CATERPILLAR_POUNCE_STRIDE_COUNT; tableIndex++, pounceStride++) {
+                if (work->animFrame <= (pounceStride[0][0] + gMaggotCaterpillarPounceLead)) {
+                    coord->coord.t[0] += (s32)(pounceStride[0][1] * rsin(work->yaw)) >> 0xC;
+                    coord->coord.t[2] += (s32)(pounceStride[0][1] * rcos(work->yaw)) >> 0xC;
                     break;
                 }
             }
-            if (work->animFrame == 0x28) {
-                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
-                pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->animFrame == MAGGOT_CATERPILLAR_POUNCE_LAND_FRAME) {
+                soundKey   = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAGGOT_CATERPILLAR_POUNCE_LAND_SOUND;
+                landingPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(soundKey, (s32)landingPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->reactionMode = MAGGOT_CATERPILLAR_REACTION_NORMAL;
-                if (((Enemy*)arg0->spawnArg2.pointer)->hp <= 0) {
+                if (((Enemy*)actor->spawnArg2.pointer)->hp <= 0) {
                     work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD;
                     work->step      = 0;
-                    arg0->state     = 2;
+                    actor->state    = MAGGOT_CATERPILLAR_TASK_DYING;
                 }
             }
-            if (work->animFrame >= (gMaggotCaterpillarPounceLead + 0x46)) {
+            if (work->animFrame >= (gMaggotCaterpillarPounceLead + MAGGOT_CATERPILLAR_POUNCE_RECOVERY_FRAMES)) {
                 work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
                 work->step         = 0;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
                 random             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
+                work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
                 gRandomLcgState    = random;
             }
             break;
-        case 1:
-            index              = 0;
-            motion1            = gMaggotCaterpillarReboundStride;
+        case MAGGOT_CATERPILLAR_POUNCE_REBOUND:
+            tableIndex         = 0;
+            reboundStride      = gMaggotCaterpillarReboundStride;
             work->forwardSpeed = 0;
             work->turnRate     = 0;
-            for (; index < 9; index++, motion1++) {
-                if (work->animFrame <= motion1[0][0]) {
-                    coord->coord.t[0] += (s32)(motion1[0][1] * rsin(work->yaw)) >> 0xC;
-                    coord->coord.t[2] += (s32)(motion1[0][1] * rcos(work->yaw)) >> 0xC;
+            for (; tableIndex < MAGGOT_CATERPILLAR_POUNCE_STRIDE_COUNT; tableIndex++, reboundStride++) {
+                if (work->animFrame <= reboundStride[0][0]) {
+                    coord->coord.t[0] += (s32)(reboundStride[0][1] * rsin(work->yaw)) >> 0xC;
+                    coord->coord.t[2] += (s32)(reboundStride[0][1] * rcos(work->yaw)) >> 0xC;
                     break;
                 }
             }
-            if ((work->animFrame >= 0x1F) && (work->animFrame < 0x2E)) {
+            if ((work->animFrame >= MAGGOT_CATERPILLAR_REBOUND_SIDE_START) && (work->animFrame < MAGGOT_CATERPILLAR_REBOUND_SIDE_END)) {
                 coord->coord.t[0] += (s32)(rcos(work->yaw) * 0xB) >> 0xC;
                 coord->coord.t[2] += (s32)(rsin(work->yaw) * 0xB) >> 0xC;
             }
-            if (work->animFrame == 0x10) {
-                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0002;
-                pan1  = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, (s32)pan1, (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->animFrame == MAGGOT_CATERPILLAR_REBOUND_LAND_FRAME) {
+                soundKey   = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAGGOT_CATERPILLAR_POUNCE_LAND_SOUND;
+                reboundPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(soundKey, (s32)reboundPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->reactionMode = MAGGOT_CATERPILLAR_REACTION_REBOUND;
-                if (((Enemy*)arg0->spawnArg2.pointer)->hp <= 0) {
-                    work->yaw    = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
-                    rotation->vx = 0;
-                    rotation->vy = work->yaw + 0x800;
-                    rotation->vz = 0;
-                    RotMatrix(rotation, &coord->coord);
+                if (((Enemy*)actor->spawnArg2.pointer)->hp <= 0) {
+                    MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, rotation);
                     work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_DEAD;
                     work->step      = 0;
-                    arg0->state     = 2;
+                    actor->state    = MAGGOT_CATERPILLAR_TASK_DYING;
                 }
             }
-            if (work->animFrame >= 0x46) {
+            if (work->animFrame >= MAGGOT_CATERPILLAR_POUNCE_RECOVERY_FRAMES) {
                 work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
                 work->step         = 0;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
-                work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
+                work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + (((gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF);
                 work->field_3AA    = 1;
                 if (work->reactionMode == MAGGOT_CATERPILLAR_REACTION_REBOUND) {
-                    work->yaw    = ratan2((s32)coord->coord.m[0][2], (s32)coord->coord.m[2][2]) & 0xFFF;
-                    rotation->vx = 0;
-                    rotation->vy = work->yaw + 0x800;
-                    rotation->vz = 0;
-                    RotMatrix(rotation, &coord->coord);
+                    MAGGOT_CATERPILLAR_TURN_AROUND(work, coord, rotation);
                     work->reactionMode = MAGGOT_CATERPILLAR_REACTION_NORMAL;
                 }
-                for (index = 1; index < 8; index++) {
-                    animationSeekSlotWithBlend(&work->rig.anim, index, work->animId, 0, 0);
+                // Restart all driven parts after restoring the root facing.
+                for (tableIndex = 1; tableIndex < (s32)ARRAY_SIZE(work->rig.slots); tableIndex++) {
+                    animationSeekSlotWithBlend(&work->rig.anim, tableIndex, work->animId, 0, 0);
                 }
             }
             break;

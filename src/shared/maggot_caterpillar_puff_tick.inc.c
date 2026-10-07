@@ -2,63 +2,65 @@
 
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Per-frame tick of the puff projectile: while the scene's actors are paused
-/// the puff is just drawn, while they are hidden nothing happens at all, and
-/// otherwise the work is stepped. A contact with the room's collision grid
-/// ends the puff; any other contact is discarded. The collision sphere is
-/// enabled only on the ticks whose `age` is a multiple of four. The
-/// coordinate is advanced along its own forward axis by `forwardSpeed`, the
-/// puff is drawn, and `age` is counted: at 0xF the sphere is unlinked and the
-/// task moves to state 2, otherwise `forwardSpeed` loses a random 0 to 0x1F
-/// and is held at zero.
-void maggotCaterpillarPuffTick(Enemy* arg0, Task* arg1)
+/// Advances a slowing puff and ends it on a grid contact or after fifteen ticks.
+///
+/// Paused actors draw the current age without advancing; hidden actors do
+/// nothing. Otherwise grid and pair collision tests are enabled every fourth
+/// tick. Non-grid contacts are cleared, and movement follows all three local
+/// forward-axis components with 12 fractional bits. The enemy parameter is
+/// unused by this handler but belongs to its dispatch signature. The caller
+/// keeps the parent model alive for drawing.
+static void _maggotCaterpillarPuffTick(Enemy* enemy, Task* task)
 {
+    enum { MAGGOT_CATERPILLAR_PUFF_CONTACT_PERIOD    = 4,
+           MAGGOT_CATERPILLAR_PUFF_DECELERATION_MASK = 31 };
     MaggotCaterpillarPuffWork* work;
     GfxCoord*                  coord;
-    s32                        contact;
+    s32                        contactKey;
     u16                        flags;
     u32                        random;
 
-    coord = arg1->extra.tmd->coords;
-    work  = arg1->work;
+    coord = task->extra.coordBody->coord;
+    work  = task->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            maggotCaterpillarDrawPuff(arg1, work->age);
+            _maggotCaterpillarDrawPuff(task, work->age);
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-            contact = work->contacts[0].key.value;
-            if (contact != 0) {
-                if ((contact & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {
+            contactKey = work->contacts[0].key.value;
+            if (contactKey != 0) {
+                if ((contactKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_GRID) {
                     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     worldCollisionClearContacts(work->contacts);
                 } else {
                     worldCollisionUnlinkBody(&work->body);
-                    arg1->state = 2;
+                    task->state = MAGGOT_CATERPILLAR_PUFF_TASK_DESTROY;
                     return;
                 }
             }
-            if (!(work->age & 3)) {
+            // Test collision once per four flight ticks.
+            if (!(work->age & (MAGGOT_CATERPILLAR_PUFF_CONTACT_PERIOD - 1))) {
                 flags = work->body.flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             } else {
                 flags = work->body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             }
             work->body.flags    = flags;
-            coord->coord.t[0]  += (s32)(coord->coord.m[0][2] * work->forwardSpeed) >> 0xC;
-            coord->coord.t[1]  += (s32)(coord->coord.m[1][2] * work->forwardSpeed) >> 0xC;
-            coord->coord.t[2]  += (s32)(coord->coord.m[2][2] * work->forwardSpeed) >> 0xC;
+            coord->coord.t[0]  += (s32)(coord->coord.m[0][2] * work->forwardSpeed) >> 12;
+            coord->coord.t[1]  += (s32)(coord->coord.m[1][2] * work->forwardSpeed) >> 12;
+            coord->coord.t[2]  += (s32)(coord->coord.m[2][2] * work->forwardSpeed) >> 12;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            maggotCaterpillarDrawPuff(arg1, work->age);
+            _maggotCaterpillarDrawPuff(task, work->age);
             work->age++;
-            if (work->age >= 0xF) {
+            if (work->age >= MAGGOT_CATERPILLAR_PUFF_LIFETIME) {
                 worldCollisionUnlinkBody(&work->body);
-                arg1->state = 2;
+                task->state = MAGGOT_CATERPILLAR_PUFF_TASK_DESTROY;
                 return;
             }
             random              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState     = random;
-            work->forwardSpeed -= (random >> 0x10) & 0x1F;
+            work->forwardSpeed -= (random >> 0x10) & MAGGOT_CATERPILLAR_PUFF_DECELERATION_MASK;
             if (work->forwardSpeed < 0) {
                 work->forwardSpeed = 0;
             }

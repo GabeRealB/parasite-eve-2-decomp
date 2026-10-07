@@ -17,6 +17,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -621,7 +622,7 @@ s16 gMaggotCaterpillarPuffRadius[14] = {
 
 TaskDesc gMaggotCaterpillarBodyTask = { { { TASK_BODY_TMD, 96 } }, maggotCaterpillarTask, { .model = &_gActor02600CaterpillarMaggotBody } };
 
-TaskDesc Actor02600_D08AC0 = { { { TASK_BODY_COORD, 96 } }, maggotCaterpillarPuffTask, { .value = 0 } };
+TaskDesc Actor02600_D08AC0 = { { { TASK_BODY_COORD, 96 } }, _maggotCaterpillarPuffTask, { .value = 0 } };
 
 AnimationSet* gMaggotCaterpillarAnimSets[15] = {
     NULL,
@@ -643,12 +644,12 @@ AnimationSet* gMaggotCaterpillarAnimSets[15] = {
 
 #include "../../shared/maggot_caterpillar_resolve_contacts.inc.c"
 
-/// State handlers of the projectile task `maggotCaterpillarPuffTask` dispatches,
+/// State handlers of the projectile task `_maggotCaterpillarPuffTask` dispatches,
 /// indexed by `Task::state`: setup, per-frame tick and `enemyDestroy`.
 static const EnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
     {
-        maggotCaterpillarPuffSetup,
-        maggotCaterpillarPuffTick,
+        _maggotCaterpillarPuffSetup,
+        _maggotCaterpillarPuffTick,
         enemyDestroy,
     },
 };

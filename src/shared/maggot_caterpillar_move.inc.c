@@ -1,16 +1,18 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Steps the actor's coordinate, saving the previous translation in
-/// `prevPos` first. The horizontal step follows the coordinate's forward
-/// axis (`coord.m[*][2]`, a 4.12 direction) by `forwardSpeed` world units;
-/// `fallSpeed` is added to the height as it is.
-void maggotCaterpillarMoveStep(Task* arg0)
+/// Saves the root translation and applies the current horizontal and falling steps.
+///
+/// `forwardSpeed` and `fallSpeed` are coordinate units per tick. Horizontal
+/// movement uses the root forward-axis coefficients with 12 fractional bits;
+/// fall speed is added directly to Y. The caller refreshes the composed matrix
+/// after behavior, turning, movement and animation finish.
+static void _maggotCaterpillarMoveStep(Task* actor)
 {
     GfxCoord*              coord;
     MaggotCaterpillarWork* work;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
+    coord = actor->extra.tmd->coords;
+    work  = actor->work;
 
     work->prevPos.vx = coord->coord.t[0];
     work->prevPos.vy = coord->coord.t[1];

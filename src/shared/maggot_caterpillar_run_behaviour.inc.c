@@ -12,25 +12,25 @@ void maggotCaterpillarRunBehaviour(Task* arg0)
             maggotCaterpillarWaitState(arg0);
             break;
         case MAGGOT_CATERPILLAR_BEHAVIOUR_AIM:
-            maggotCaterpillarAimState(arg0);
+            _maggotCaterpillarAimState(arg0);
             break;
         case MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH:
-            maggotCaterpillarAmbushState(arg0);
+            _maggotCaterpillarAmbushState(arg0);
             break;
         case MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM:
-            maggotCaterpillarRoamState(arg0);
+            _maggotCaterpillarRoamState(arg0);
             break;
         case MAGGOT_CATERPILLAR_BEHAVIOUR_SPRAY:
             maggotCaterpillarSprayState(arg0);
             break;
         case MAGGOT_CATERPILLAR_BEHAVIOUR_POUNCE:
-            maggotCaterpillarPounceState(arg0);
+            _maggotCaterpillarPounceState(arg0);
             break;
         case MAGGOT_CATERPILLAR_BEHAVIOUR_HURT:
-            maggotCaterpillarHurtState(arg0);
+            _maggotCaterpillarHurtState(arg0);
             break;
         case MAGGOT_CATERPILLAR_BEHAVIOUR_STUN:
-            maggotCaterpillarStunState(arg0);
+            _maggotCaterpillarStunState(arg0);
             break;
         case MAGGOT_CATERPILLAR_BEHAVIOUR_ENTRANCE:
             maggotCaterpillarEntranceState(arg0);

@@ -34,7 +34,7 @@ void maggotCaterpillarTick(Enemy* arg0, Task* arg1)
             return;
     }
     if (arg0->reactionFlags != 0) {
-        maggotCaterpillarApplyStatus(arg1);
+        _maggotCaterpillarApplyStatus(arg1);
     }
     maggotCaterpillarResolveContacts(arg1);
     maggotCaterpillarRunBehaviour(arg1);
@@ -44,7 +44,7 @@ void maggotCaterpillarTick(Enemy* arg0, Task* arg1)
     if (work->turnRate != 0) {
         maggotCaterpillarTurnStep(arg1);
     }
-    maggotCaterpillarMoveStep(arg1);
+    _maggotCaterpillarMoveStep(arg1);
     maggotCaterpillarTickAnim(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);

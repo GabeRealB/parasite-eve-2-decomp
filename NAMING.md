@@ -862,6 +862,13 @@ turn `actor_02100`, `actor_03800` and `actor_510900` multiply onto a rotation,
 and `ActorHitTakenScratch` that of the hit check `actor_01200` and
 `actor_04000` turn toward a hit with.
 
+`maggotCaterpillar` owns the included Maggot and Caterpillar enemy behavior,
+animation requests, death transforms, thread drawer and puff child tasks. Its
+private implementation interface is `src/shared/maggot_caterpillar.h`, carried
+by `actor_02600` and `actor_05500`; constants use `MAGGOT_CATERPILLAR_`.
+Per-carrier helpers and handlers without imports keep static linkage and the
+`_` marker. Package-owned task descriptors provide external spawn interfaces.
+
 `moth` owns the included Moth enemy shared by `actor_00700` (packages
 `actor_100700` and `actor_200700`) and `actor_300700`. Its implementation
 interface is `src/shared/moth.h`, one fragment per function. `MothWork` is the

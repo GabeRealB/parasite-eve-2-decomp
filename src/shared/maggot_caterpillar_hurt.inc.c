@@ -2,38 +2,43 @@
 
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// `MAGGOT_CATERPILLAR_BEHAVIOUR_HURT`, entered when a hit does damage. On
-/// entry it starts `MAGGOT_CATERPILLAR_ANIM_HURT`, stops the forward and turn
-/// steps and plays sound 0x401A0004 with the top nibble of the context's
-/// `field_8` in bits 8-11, panned to the actor. Once the animation has run 0x15
-/// frames it goes to `MAGGOT_CATERPILLAR_BEHAVIOUR_STUN` when `stunned` is 1,
-/// otherwise to `MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM` with
-/// `MAGGOT_CATERPILLAR_ANIM_IDLE` and a random 0..15 in `stateCounter`.
-void maggotCaterpillarHurtState(Task* arg0)
+/// Plays a stationary hit reaction, then resumes stun or an idle roam phase.
+///
+/// The hurt clip is forced to restart even if it was already selected. Recovery
+/// after 21 ticks retains pending stun; otherwise the idle lasts 0..15 ticks.
+/// The placement index selects the spatial sound instance.
+static void _maggotCaterpillarHurtState(Task* actor)
 {
+    enum {
+        MAGGOT_CATERPILLAR_HURT_START   = 0,
+        MAGGOT_CATERPILLAR_HURT_RECOVER = 1,
+        MAGGOT_CATERPILLAR_HURT_FRAMES  = 21,
+        MAGGOT_CATERPILLAR_HURT_SOUND   = 0x401A0004,
+    };
     MaggotCaterpillarWork* work;
     GfxCoord*              coord;
-    s32                    state;
-    s32                    sound;
-    s32                    pan;
+    s32                    step;
+    s32                    soundKey;
+    s32                    hurtPan;
     u32                    random;
 
-    work  = arg0->work;
-    state = work->step;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            work->animId       = MAGGOT_CATERPILLAR_ANIM_HURT;
-            work->appliedAnim  = 1;
-            work->step         = 1;
+    work  = actor->work;
+    step  = work->step;
+    coord = actor->extra.tmd->coords;
+    switch (step) {
+        case MAGGOT_CATERPILLAR_HURT_START:
+            work->animId = MAGGOT_CATERPILLAR_ANIM_HURT;
+            // Force the hurt request to differ even when the hurt clip repeats.
+            work->appliedAnim  = MAGGOT_CATERPILLAR_ANIM_IDLE;
+            work->step         = MAGGOT_CATERPILLAR_HURT_RECOVER;
             work->forwardSpeed = 0;
             work->turnRate     = 0;
-            sound              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0004;
-            pan                = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            soundKey           = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAGGOT_CATERPILLAR_HURT_SOUND;
+            hurtPan            = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(soundKey, hurtPan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
-        case 1:
-            if (work->animFrame >= 0x15) {
+        case MAGGOT_CATERPILLAR_HURT_RECOVER:
+            if (work->animFrame >= MAGGOT_CATERPILLAR_HURT_FRAMES) {
                 if (work->stunned == 1) {
                     work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_STUN;
                     work->step      = 0;

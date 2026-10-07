@@ -1,27 +1,29 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Shrinks the model's third coordinate node to 1/16 through an
-/// `ActorScaleScratch` block taken from the scratch stack and released again:
-/// an identity rotation is written word-wise, `ScaleMatrix` scales its
-/// diagonal to 0x100 and `MulMatrix` multiplies it into `field_8[2].coord`.
-void maggotCaterpillarShrinkNode2(Task* actor)
+/// Shrinks the corpse model third coordinate node uniformly to one sixteenth.
+///
+/// The task must own a model with at least three coordinates. The scale
+/// multiplies its existing local rotation and leaves translation unchanged.
+/// One scale scratch block is reserved and released. The caller controls
+/// recomposition; this routine leaves the compose stamp intact.
+static void _maggotCaterpillarShrinkNode2(Task* actor)
 {
-    void**             scratch;
-    ActorScaleScratch* head;
-    ActorScaleScratch* blk;
-    GfxCoord*          coord;
+    void**             cursorSlot;
+    ActorScaleScratch* scratchEnd;
+    ActorScaleScratch* scratch;
+    GfxCoord*          coords;
 
-    scratch                                     = SCRATCH_HEAD_ADDR;
-    head                                        = SCRATCH_HEAD_AT(scratch, ActorScaleScratch);
-    blk                                         = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleScratch) = blk;
-    coord                                       = actor->extra.tmd->coords;
+    cursorSlot                                     = SCRATCH_HEAD_ADDR;
+    scratchEnd                                     = SCRATCH_HEAD_AT(cursorSlot, ActorScaleScratch);
+    scratch                                        = scratchEnd - 1;
+    SCRATCH_HEAD_AT(cursorSlot, ActorScaleScratch) = scratch;
+    coords                                         = actor->extra.tmd->coords;
 
-    blk->scale.vx = ONE / 16;
-    blk->scale.vy = ONE / 16;
-    blk->scale.vz = ONE / 16;
-    gfxSetRotIdentity(&blk->matrix);
-    ScaleMatrix(&blk->matrix, &blk->scale);
-    MulMatrix(&coord[2].coord, &blk->matrix);
-    SCRATCH_POP_AT(scratch, ActorScaleScratch);
+    scratch->scale.vx = ONE / 16;
+    scratch->scale.vy = ONE / 16;
+    scratch->scale.vz = ONE / 16;
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&coords[2].coord, &scratch->matrix);
+    SCRATCH_POP_AT(cursorSlot, ActorScaleScratch);
 }
