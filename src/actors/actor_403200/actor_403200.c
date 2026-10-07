@@ -4153,7 +4153,7 @@ static void func_actor_403200_80138AFC(Enemy* enemy, Task* task)
     work->swipeCoord.parent = task->extra.tmd->coords;
     gfxSetRotIdentity(&work->swipeCoord.coord);
     work->swipeCoord.coord.t[0] = work->swipeCoord.coord.t[1] = work->swipeCoord.coord.t[2] = 0;
-    work->swipeCoord.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
+    work->swipeCoord.composeStamp                                                           = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(freeCoord);
 
     work->swipeCapsule.ends[1].vz   = 0x1B58;

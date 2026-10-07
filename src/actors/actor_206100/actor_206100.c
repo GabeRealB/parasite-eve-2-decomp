@@ -1717,7 +1717,7 @@ static __inline__ void Actor206100_UpdateColor(Task* task)
 /// `ONE` = 1.0.
 static inline void _actor206100ScaleCoord(GfxCoord* coord, VECTOR* factors)
 {
-    MATRIX    scaling;
+    MATRIX scaling;
 
     gfxSetRotIdentity(&scaling);
     ScaleMatrix(&scaling, factors);

@@ -3323,8 +3323,8 @@ static s32 func_actor_405800_801373E0(Task* arg0)
 /// identity matrix for `angle`.
 static inline void _actor405800SetCoordRotation(GfxCoord* coord, s16 angle)
 {
-    MATRIX    rot;
-    MATRIX*   dst;
+    MATRIX  rot;
+    MATRIX* dst;
 
     gfxSetRotIdentity(&rot);
     RotMatrixY(angle, &rot);

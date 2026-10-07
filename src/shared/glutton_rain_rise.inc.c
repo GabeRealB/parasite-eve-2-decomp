@@ -40,9 +40,9 @@ static void _gluttonRainRise(Enemy* enemy, Task* task)
     }
 
     task->extra.coordBody->coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    work->bodyCoord.coord.t[0]            = task->extra.coordBody->coord->coord.t[0];
-    work->bodyCoord.coord.t[1]            = task->extra.coordBody->coord->coord.t[1];
-    work->bodyCoord.coord.t[2]            = task->extra.coordBody->coord->coord.t[2];
-    work->bodyCoord.composeStamp          = GRAPHICS_COORD_DIRTY;
+    work->bodyCoord.coord.t[0]                 = task->extra.coordBody->coord->coord.t[0];
+    work->bodyCoord.coord.t[1]                 = task->extra.coordBody->coord->coord.t[1];
+    work->bodyCoord.coord.t[2]                 = task->extra.coordBody->coord->coord.t[2];
+    work->bodyCoord.composeStamp               = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&work->bodyCoord);
 }

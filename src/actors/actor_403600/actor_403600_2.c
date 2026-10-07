@@ -120,9 +120,9 @@ STATIC_ASSERT_SIZEOF(_Actor403600AimTurnScratch, 0x30);
 /// opposite one for the odd pass after it, which needs only the arm. The
 /// block is released before the step returns.
 typedef struct {
-    SVECTOR   offset;   // Player's offset from the room's centre on X and Z, the bearing's operands; then the arm: the radius along Z, turned by `rotation` into the boss's offset from the centre
-    MATRIX    rotation; // Identity turned about Y by the pass's bearing
-    s32       bearing;  // Even pass only: bearing of the player from the room's centre, 4096 to a turn, negated while the player stands in the room's middle
+    SVECTOR offset;   // Player's offset from the room's centre on X and Z, the bearing's operands; then the arm: the radius along Z, turned by `rotation` into the boss's offset from the centre
+    MATRIX  rotation; // Identity turned about Y by the pass's bearing
+    s32     bearing;  // Even pass only: bearing of the player from the room's centre, 4096 to a turn, negated while the player stands in the room's middle
 } _Actor403600RushPassScratch;
 STATIC_ASSERT_SIZEOF(_Actor403600RushPassScratch, 0x2C);
 

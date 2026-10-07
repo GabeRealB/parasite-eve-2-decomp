@@ -129,10 +129,10 @@ STATIC_ASSERT_SIZEOF(_Actor444000EventWork, 0x34);
 /// by a slightly shorter step, so it swings round a point ahead of it. Yaws are
 /// 4096 units per turn.
 typedef struct {
-    SVECTOR   offset;        // Offset from the host's root to the player, whose yaw against the host's facing becomes the neck's yaw target; in the turn, the facing axis of `rootMatrix` scaled to the step forward, then that of the turned matrix scaled to the step back
-    MATRIX    rootMatrix;    // Working copy of the host's root matrix for one tick of the turn; a state change seeds its rotation with identity, which the copy replaces before anything reads it
-    byte      unknown_28[2]; // Never accessed; role unproven
-    s16       yaw;           // Host's heading advanced by this tick's 0xD, the yaw the rotation is rebuilt about; set to 0x800 on the tick the half turn completes
+    SVECTOR offset;        // Offset from the host's root to the player, whose yaw against the host's facing becomes the neck's yaw target; in the turn, the facing axis of `rootMatrix` scaled to the step forward, then that of the turned matrix scaled to the step back
+    MATRIX  rootMatrix;    // Working copy of the host's root matrix for one tick of the turn; a state change seeds its rotation with identity, which the copy replaces before anything reads it
+    byte    unknown_28[2]; // Never accessed; role unproven
+    s16     yaw;           // Host's heading advanced by this tick's 0xD, the yaw the rotation is rebuilt about; set to 0x800 on the tick the half turn completes
 } _Actor444000RunScratch;
 STATIC_ASSERT_SIZEOF(_Actor444000RunScratch, 0x2C);
 
@@ -3184,7 +3184,7 @@ static void func_actor_444000_8013482C(Task* task)
                     Actor444000_StepForward(coord);
                 }
             } else {
-                sc->yaw            = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0xD;
+                sc->yaw        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0xD;
                 sc->rootMatrix = task->extra.tmd->coords->coord;
 
                 gfxReadMatrixZAxis(&sc->rootMatrix, &sc->offset);
@@ -4371,11 +4371,11 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
     work->escorts[3]->param         = &D_actor_444000_80144A58;
     work->escorts[3]->recs          = work->hits[1].contacts;
 
-    freeCoord                    = &work->swipeCoord;
+    freeCoord               = &work->swipeCoord;
     work->swipeCoord.parent = task->extra.tmd->coords;
     gfxSetRotIdentity(&work->swipeCoord.coord);
     work->swipeCoord.coord.t[0] = work->swipeCoord.coord.t[1] = work->swipeCoord.coord.t[2] = 0;
-    work->swipeCoord.composeStamp                                                                     = GRAPHICS_COORD_DIRTY;
+    work->swipeCoord.composeStamp                                                           = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(freeCoord);
 
     work->swipeCapsule.ends[1].vz   = 0x1B58;
@@ -5487,7 +5487,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
                                  (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
 
-    coord                              = &work->swipeCoord;
+    coord                         = &work->swipeCoord;
     work->swipeCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
 

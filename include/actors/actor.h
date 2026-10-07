@@ -111,8 +111,8 @@ STATIC_ASSERT_SIZEOF(ActorLimbShadowScratch, 0x8C);
 /// rotation only. A routine that rescales every frame first sets the
 /// coordinate from an unscaled matrix, so the scale does not compound.
 typedef struct {
-    MATRIX    matrix; // Identity rotation, written word-wise, then scaled in place; its translation is never set or read
-    VECTOR    scale;  // Factor for each axis, 4096 = 1.0
+    MATRIX matrix; // Identity rotation, written word-wise, then scaled in place; its translation is never set or read
+    VECTOR scale;  // Factor for each axis, 4096 = 1.0
 } ActorScaleScratch;
 STATIC_ASSERT_SIZEOF(ActorScaleScratch, 0x30);
 

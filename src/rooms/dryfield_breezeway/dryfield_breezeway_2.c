@@ -121,19 +121,19 @@ enum {
 ///
 /// The block also owns the two matrices the task's model is lit with.
 typedef struct {
-    MATRIX    lightMatrix;      // Light-direction matrix of the task's model
-    MATRIX    colorMatrix;      // Light-colour matrix of the task's model; its translation is the background colour
-    s32       keyItemAccepted;  // Answer to the last key-item query (0 refused, 1 the room's item was offered)
-    byte      field_44[8];      // Never accessed; role unproven
-    s16       hotspotId;        // `id` of the hotspot the player confirmed on the model; never read
-    s16       lineEndX;         // Free end of the line, pixels right of the screen centre
-    s16       lineEndY;         // Free end of the line, pixels below the screen centre
-    s16       fallSpeed;        // Pixels the released end drops per frame; grows by one a frame and clears at the rest height
-    s16       swingSpeed;       // Horizontal speed of the released end, before the `swingDamping` shift
-    s16       swingDamping;     // Right shift applied to `swingSpeed` (`DRYFIELD_BREEZEWAY_LINE_SWING_DAMPING_*`); one more each time the end crosses the centre
-    s16       previousLineEndX; // `lineEndX` before this frame's move
-    s16       previousLineEndY; // `lineEndY` before this frame's move; kept only while the cursor leads the end
-    s8        promptKind;       // `promptKind` of the confirmed hotspot, forwarded when the prompt opens
+    MATRIX lightMatrix;      // Light-direction matrix of the task's model
+    MATRIX colorMatrix;      // Light-colour matrix of the task's model; its translation is the background colour
+    s32    keyItemAccepted;  // Answer to the last key-item query (0 refused, 1 the room's item was offered)
+    byte   field_44[8];      // Never accessed; role unproven
+    s16    hotspotId;        // `id` of the hotspot the player confirmed on the model; never read
+    s16    lineEndX;         // Free end of the line, pixels right of the screen centre
+    s16    lineEndY;         // Free end of the line, pixels below the screen centre
+    s16    fallSpeed;        // Pixels the released end drops per frame; grows by one a frame and clears at the rest height
+    s16    swingSpeed;       // Horizontal speed of the released end, before the `swingDamping` shift
+    s16    swingDamping;     // Right shift applied to `swingSpeed` (`DRYFIELD_BREEZEWAY_LINE_SWING_DAMPING_*`); one more each time the end crosses the centre
+    s16    previousLineEndX; // `lineEndX` before this frame's move
+    s16    previousLineEndY; // `lineEndY` before this frame's move; kept only while the cursor leads the end
+    s8     promptKind;       // `promptKind` of the confirmed hotspot, forwarded when the prompt opens
 } _DryfieldBreezewayKeyItemEventWork;
 STATIC_ASSERT_SIZEOF(_DryfieldBreezewayKeyItemEventWork, 0x60);
 

@@ -324,9 +324,9 @@ STATIC_ASSERT_SIZEOF(_Actor01600ContactScratch, 0x4C);
 /// capsule, and it is released. Both vectors are offsets in the frame of the
 /// model's root, which the probe rides, in world coordinate units.
 typedef struct {
-    SVECTOR   reach;    // (0, 0, length) of the probe before the turn; `pad` is never written
-    SVECTOR   farEnd;   // `reach` turned by `rotation`. Its `vx` and `vz` become the capsule's far end; `vy` stays 0 and is not read, and `pad` is never written
-    MATRIX    rotation; // Identity, written word-wise, then turned about Y by the probe's yaw, 4096 to the turn; its translation is never set or read
+    SVECTOR reach;    // (0, 0, length) of the probe before the turn; `pad` is never written
+    SVECTOR farEnd;   // `reach` turned by `rotation`. Its `vx` and `vz` become the capsule's far end; `vy` stays 0 and is not read, and `pad` is never written
+    MATRIX  rotation; // Identity, written word-wise, then turned about Y by the probe's yaw, 4096 to the turn; its translation is never set or read
 } _Actor01600PathProbeAimScratch;
 STATIC_ASSERT_SIZEOF(_Actor01600PathProbeAimScratch, 0x30);
 
@@ -384,10 +384,10 @@ STATIC_ASSERT_SIZEOF(_Actor01600GroundShadowScratch, 0x18);
 /// reserved, used and released. The step is written into the block before
 /// the cursor is moved down to cover it.
 typedef struct {
-    VECTOR    step;     // (distance, 0, 0) with the distance cut to 16 bits, then turned by `rotation`: the offset added to the root's translation, world units; `pad` is never written
-    SVECTOR   facing;   // The root's local Z axis, 4096 = 1.0; `vy` is not read and `pad` is never written
-    MATRIX    rotation; // Identity, written word-wise, then turned about Y by `yaw`; its translation is never set or read
-    s16       yaw;      // Yaw of `facing`, 4096 to the turn
+    VECTOR  step;     // (distance, 0, 0) with the distance cut to 16 bits, then turned by `rotation`: the offset added to the root's translation, world units; `pad` is never written
+    SVECTOR facing;   // The root's local Z axis, 4096 = 1.0; `vy` is not read and `pad` is never written
+    MATRIX  rotation; // Identity, written word-wise, then turned about Y by `yaw`; its translation is never set or read
+    s16     yaw;      // Yaw of `facing`, 4096 to the turn
 } _Actor01600SidestepScratch;
 STATIC_ASSERT_SIZEOF(_Actor01600SidestepScratch, 0x3C);
 
