@@ -11268,7 +11268,7 @@ then emits the shift pair. Related stores that must keep program order around
 that load (e.g. a `vol_a = 0; vol_b = vol_a;` chain just before the cast)
 should also be `volatile`, or the load will sink into the middle of them.
 
-`Snd_InitFromStage` needs this on `D_80082135` and the surrounding
+`sndScriptResetForArea` needs this on `D_80082135` and the surrounding
 `D_80082128` / `D_80082124` / `D_80082130` stores.
 
 A `volatile s8` reads the same way with no cast at all, so a volatile byte whose
@@ -11898,12 +11898,12 @@ bar(idx, ...);
 
 A plain `s8 idx = foo(...);` keeps a copy of the raw return (`move v1,v0`)
 and stores/`sb`s that copy instead of the sign-extended register, adding an
-instruction and shifting every later label. `SndVoice_Alloc` only matches with
+instruction and shifting every later label. `_sndVoiceAlloc` only matches with
 the `s32` + `(s8)` form.
 
 `_gSndBankSlots` is a `SndBankSlot[16]` array (stride `0x10`, via
-`sndBankSlotGet` / `sndBankSlotReleaseImage`). `SndVoice_Alloc` indexes the separate
-`SndScript_Voices[8]` array (stride `0x40`) by `voiceIdx - 16`: SPU voices
+`sndBankSlotGet` / `sndBankSlotReleaseImage`). `_sndVoiceAlloc` indexes the separate
+`SndScript_Voices[8]` array (stride `0x40`) by `spuVoiceIndex - SOUND_SCRIPT_FIRST_SPU_VOICE`: SPU voices
 `0..15` belong to the MIDI sequencer, and scripts allocate voices `16..23`.
 The current declaration and access express those separate arrays directly;
 no `SndVoice*` cast of `_gSndBankSlots` remains. Preserve each array's own
@@ -13034,7 +13034,7 @@ by its `_SndScript`:
 Insert-at-head: if head exists, rewire `new->next = old`, `old->prev = new`,
 `new->prev = NULL`, `script->voices = new`, `new->script = script`. If the script is
 NULL, only clear the voice's three link fields. Pair with `_sndVoiceDetach`
-(unlink/release the record, retaining its script pointer) and `SndScript_TickVoices` (walk via `next`).
+(unlink/release the record, retaining its script pointer) and `_sndScriptReleaseVoices` (walk via `next`).
 
 ## Local jump table via struct assignment of function pointers
 
@@ -13694,7 +13694,7 @@ if (flag == 1) {
 }
 ```
 
-`SndVoice_Tick` is the pure example (`gateClock += 0xFFFF6667` vs `0xFFFF0000`
+`_sndVoiceTick` is the pure example (`gateClock += 0xFFFF6667` vs `0xFFFF0000`
 gated on `gDisplayState.region == 1`).
 
 ## `s16` accumulator forces `sll/sra 16` on each add
@@ -13732,13 +13732,13 @@ if (delta > 0) {
 }
 ```
 
-`SndVoice_StepMasterLevel` is the pure example. `s32 level` with an explicit `(s16)` cast
+`_sndScriptStepDucking` is the pure example. `s32 level` with an explicit `(s16)` cast
 in the compare still scored only ~81% — the cast was deleted.
 
 ## Same global, `lb` in one function and `lbu` in another
 
 `D_80082749` is loaded with `lb` by `SndVoice_TickRefCount` (`if (D_80082749 != 0)`)
-and with `lbu` (+ `sll/sra 24` sign-extend) by `SndVoice_StepMasterLevel`. Declaring the
+and with `lbu` (+ `sll/sra 24` sign-extend) by `_sndScriptStepDucking`. Declaring the
 symbol `s8` matches the first; the second needs an unsigned load:
 
 ```c
@@ -16899,8 +16899,8 @@ p->attenuation = arg2;
 p->loopDepth = 0;
 ```
 
-`SndScript_Play` is the pure example. Pair with a second live copy of a later
-pointer arg (`desc = arg5; … p->cursor = arg5; flags = desc->flags`) when
+`_sndScriptStartSlot` is the pure example. Pair with a second live copy of a later
+pointer arg (`controls = entryControls; … flags = controls->flags; script->cursor = (u8*)entryControls`) when
 the target holds the same pointer in two callee-saved regs for interleaved
 `lhu` / `sw`.
 
@@ -18090,7 +18090,7 @@ node->scaledVolume = (master * params->volumeScale * node->baseVolume) / 16129;
 ```
 
 Do not hand-write the magic constant. `sndScriptSetMasterVolume` (and the same sequence in
-`SndScript_Exec`) is the reference. Related layout notes:
+`_sndScriptExecCommand`) is the reference. Related layout notes:
 
 - `_SndScript::entryControls` is a `SndScriptEntryControls*` entry-control block (`volumeScale` gain).
 - `_SndVoice::baseVolume` is the per-voice `u8` scale; `scaledVolume` stores the result.
@@ -21984,7 +21984,7 @@ tmp = 2;
 p->state = tmp; /* QI store of SI temp — no hoist */
 ```
 
-`SndVoice_DriveSlots` is the pure example (`SndScript_Slots` state machine, `state` values
+`_sndScriptTickSlots` is the pure example (`SndScript_Slots` state machine, `state` values
 `SOUND_SCRIPT_STARTING`, `RUNNING`, `STOPPING`, `MUTING`, `UNMUTING`, `RELEASING` and `FADING_OUT`).
 
 ## `*(volatile u8*)&field` forces lbu+sll24+sra24 sign-extend
@@ -22016,7 +22016,7 @@ if (step > 0) {
 }
 ```
 
-`SndVoice_DriveSlots` attenuation / attenuationStep ramp uses this with `register s32 temp asm("v0")`.
+`_sndScriptTickSlots` attenuation / attenuationStep ramp uses this with `register s32 temp asm("v0")`.
 
 ## Force both ALU ops before either store with `+r` barriers
 
@@ -22618,7 +22618,7 @@ register _SndScript* p asm("v1");
 }
 ```
 
-`SndScript_StopMatching` is the pure example. Pair with unpinned locals for the mask /
+`sndScriptStopMatching` is the pure example. Pair with unpinned locals for the mask /
 status constants so the case-2 `beq` can still put `lui %hi(D_80082748)` in its
 delay slot.
 
@@ -22835,9 +22835,9 @@ Two codegen details that stall at ~98% without them:
 Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 `gte_ldsv` / `gte_rtir()` / `gte_stclmv` pipeline gap pattern as B960.
 
-## SndScript script interpreter layout (SndScript_Exec)
+## SndScript script interpreter layout (_sndScriptExecCommand)
 
-`SndScript_Exec` is a fourCC-dispatched music/script stepper over
+`_sndScriptExecCommand` is a fourCC-dispatched sound-script stepper over
 `_SndScript::cursor`. Layout notes that unblocked progress toward a match:
 
 - `loopDepth` / `loopCounts[8]` / `loopCursors[8]` are a loop stack (depth, remaining
@@ -22957,7 +22957,7 @@ lui   s0, %hi(Fs_CdSector)
 addiu s0, s0, %lo(Fs_CdSector)
 ```
 
-The target rematerialises through `$v0` (same shape as `SndScript_StopMatching`):
+The target rematerialises through `$v0` (same shape as `sndScriptStopMatching`):
 
 ```
 lui   v0, %hi(Fs_CdSector)
@@ -66435,7 +66435,7 @@ RTL result from the later geometry product. That fixed both `mflo` ordering
 and the green-result register, making the entire second loop exact.
 
 
-## SndScript_Exec: switch pivots, shared timer tails, and a close allocator priority (GCC 2.8.1)
+## _sndScriptExecCommand: switch pivots, shared timer tails, and a close allocator priority (GCC 2.8.1)
 
 Matched the 384-instruction main function without register pins. An explicit
 `oneA` case sharing the default return changes the sparse-switch decision tree:
@@ -143764,7 +143764,7 @@ sets the return pseudo twice, so combine cannot fold it into the caller's
 variable, and jump2 cross-jumps the two identical tails back into one (the
 branch's delay slot gets the duplicate). Same mechanism as the `angle` entry
 above: the result pseudo survives only when two paths set it.
-## Which copy of a repeated case tail survives cross-jumping depends on how each case leaves the switch (SndScript_Exec, 2026-09-26)
+## Which copy of a repeated case tail survives cross-jumping depends on how each case leaves the switch (_sndScriptExecCommand, 2026-09-26)
 
 Three switch cases each advanced a tick clock and left. The target kept all
 three region tests but only the *first* case's `addu/sw` tail, which the other
@@ -145553,7 +145553,7 @@ len;` based the register at 0x2C (`sw ...,0xc(s0)`); swapping the two statements
 based it at 0x38 and matched. When a walking pointer comes out at the wrong
 offset, sweep the order of the loop's final field accesses before anything else.
 
-## A loop's "last index" result keeps `addiu i,ret,1` only when it is initialised before the loop (SndScript_StopMatching, 2026-09-26)
+## A loop's "last index" result keeps `addiu i,ret,1` only when it is initialised before the loop (sndScriptStopMatching, 2026-09-26)
 
 Target loop tail: `move v1,s1; addiu s1,v1,1; slti v0,s1,8`, then `move v0,v1`
 after the loop - a result holding the last index visited, with the increment
@@ -145612,7 +145612,7 @@ targetAttenuation = attenuationDelta; /* u8: what the stores write */
 attenuationDelta -= (s8)script->attenuation; /* s16: in place, lbu + sll/sra for the byte */
 if (ABS(attenuationDelta) > SOUND_SCRIPT_MIX_RAMP_THRESHOLD) {
 ```
-## A `x / 4` duplicated in two arms stops cross-jumping when cse rewrites the first copy's bias test to the dividend (SndVoice_DriveSlots, 2026-09-26)
+## A `x / 4` duplicated in two arms stops cross-jumping when cse rewrites the first copy's bias test to the dividend (_sndScriptTickSlots, 2026-09-26)
 
 Two arms of `if (step > 0)` each end in `field = level / 4`, and the target
 has one shared `move v0,a0; bgez v0; addiu v0,v0,3; sra v0,v0,2` that both
@@ -150625,7 +150625,7 @@ constant).
 
 - **`result = K; goto done;` in most cases, `break` to a `result = 0; done:`
   after the switch in the rest** is `result = K; break;` in every case and
-  `return result;` after the switch (`SndScript_Exec`, 10 gotos, second try).
+  `return result;` after the switch (`_sndScriptExecCommand`, 10 gotos, second try).
   `return K;` in each case does not match: the image keeps the value in a
   register of its own (`move a1,zero` in the delay slots of the dispatch tree,
   `move v0,a1` once at the end), and with `return` it is `$v0` directly. The
@@ -150635,7 +150635,7 @@ constant).
 - **A shared block that contains a loop cannot be written twice.**
   Cross-jumping compares two insn runs backward from a common end and a
   backward branch never compares equal (each copy branches to its own loop
-  head), so only the part after the loop merges. `SndVoice_DriveSlots` (`run`,
+  head), so only the part after the loop merges. `_sndScriptTickSlots` (`run`,
   `update`, `release` all hold or lead into a voice loop) and `Midi_Tick`'s
   `play` keep their gotos for that reason. Writing out `Midi_Tick`'s loop-free
   `stop` tail inside the per-song loop changed that loop's strength reduction
@@ -150658,7 +150658,7 @@ constant).
 - **The same test twice with a store between** (`if (active) { if (held)
   request = PENDING; goto tick; } ... tick: if (active) Tick();`) is the tick
   test written in both arms; the first arm's copy is deleted and jumps to the
-  second (`SndVoice_Tick`). An early `return 0;` in the first arm instead puts
+  second (`_sndVoiceTick`). An early `return 0;` in the first arm instead puts
   `move v0,zero` in its delay slot.
 - **After a `goto success` guard was folded into `if (a != 0 || (id = b) ==
   FREE) { fail }`, the `volatile` casts and the `end = -1` local of the loop
@@ -150667,8 +150667,8 @@ constant).
 - **A jump out of a counted scan with a value** (`var = 2; goto done;` from a
   `do`/`while`, `var = 1` after it, a third value in front) is an inline with
   three `return`s; loop.c moves the `return 2` block in front of the loop as
-  the image has it (`Snd_InitFromStage`, first try).
-- Not converted: `SndVoice_SelectStealCandidate` reads one of three slots and
+  the image has it (`sndScriptResetForArea`, first try).
+- Not converted: `_sndScriptSelectReplacementSlot` reads one of three slots and
   jumps *back* to a shared `== -1` test from the last one. `if/else` with the
   test after it puts the third read before the test; written-out tails merge
   into the later copy; either way the comparison constant needs the `none`

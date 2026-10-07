@@ -2176,7 +2176,7 @@ static s32 func_dryfield_water_tower_8017E428(Task* arg0)
 /// `extra->field_8` the cap's own coordinate, and it reports arrival the same
 /// way the cap-arrival test does, by returning 1.
 ///
-/// State 0 is the lowering tick: it queues `SndEvt_EnqueueTypeB(0x5214000C,
+/// State 0 is the lowering tick: it queues `sndEvtRequestScriptVolume(0x5214000C,
 /// 0x7F)` once, sinks the cap's Z by 0x14 a frame and snaps its Y to the
 /// placement record's `pos.vy`, nudged by 5 while the `gDisplayState.gameTick` flag bit 2 is
 /// raised; once the cap's Z has sunk past that record's `pos.vz` it queues the
@@ -2204,7 +2204,7 @@ static s32 func_dryfield_water_tower_8017E5B0(Task* arg0)
 
     switch (state->phase) {
         case DRYFIELD_WATER_TOWER_PROP_SLIDE_MOVING:
-            SndEvt_EnqueueTypeB(SOUND_WATER_TOWER_CAP_RUNNING, 0x7F);
+            sndEvtRequestScriptVolume(SOUND_WATER_TOWER_CAP_RUNNING, 0x7F);
             coord->coord.t[2] -= 0x14;
             coord->coord.t[1]  = D_dryfield_water_tower_80181A40[0].pos.vy;
             if (gDisplayState.gameTick & 4) {
@@ -2570,7 +2570,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 state->runResult = DRYFIELD_WATER_TOWER_RUN_TIMED_OUT;
                 state->phase++;
             }
-            SndEvt_EnqueueTypeB(SOUND_WATER_TOWER_CAP_RUNNING, _dryfieldWaterTowerViewVolume(arg0) & 0xFF);
+            sndEvtRequestScriptVolume(SOUND_WATER_TOWER_CAP_RUNNING, _dryfieldWaterTowerViewVolume(arg0) & 0xFF);
             return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
 
         case DRYFIELD_WATER_TOWER_RUN_PHASE_ENDING_SCRIPT:

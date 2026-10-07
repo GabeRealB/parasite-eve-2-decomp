@@ -424,6 +424,12 @@ enum {
     SOUND_SCRIPT_RETRIGGER_DISABLED  = -1
 };
 
+// A stable first duck request saves the master gain and ramps toward 48.
+enum {
+    SOUND_SCRIPT_DUCK_LEVEL = 48,
+    SOUND_SCRIPT_DUCK_STEP  = 8
+};
+
 // Mix changes above 32 ramp by 8 per voice visit; pan uses quarter-offset units.
 enum {
     SOUND_SCRIPT_MIX_RAMP_THRESHOLD = 32,
@@ -501,9 +507,9 @@ static void _sndScriptSetReverb(s8 reverbLevel);
 
 static void _sndEvtRequestScriptKeyOff(void);
 
-static void SndVoice_StepMasterLevel(void);
+static void _sndScriptStepDucking(void);
 
-static s32 SndVoice_DriveSlots(s32* unused);
+static s32 _sndScriptTickSlots(s32* unused);
 
 static void _sndScriptScanSlotCandidates(_SndScriptSlotPick* candidates, u16 requestPriority, s32 soundId, u16 requestFlags);
 
@@ -511,30 +517,29 @@ static inline void _sndScriptAdvanceClock(_SndScript* script);
 
 static inline u8 _sndScriptUseReverb(const _SndScriptNote* note);
 
-static s32 SndScript_Exec(_SndScript* script);
+static s32 _sndScriptExecCommand(_SndScript* script);
 
-static void SndVoice_TickEnvelope(_SndVoice* voice);
+static void _sndVoiceTickPitchEnvelope(_SndVoice* voice);
 
-static void SndVoice_Init(void);
+static void _sndScriptInit(void);
 
 static void _sndScriptSetReverbLevel(s8 reverbLevel);
 
-/// Selects an eligible voice candidate, respecting the retrigger-age limit.
-static s8 SndVoice_SelectStealCandidate(_SndScriptSlotPick* candidates, s32 retriggerTicks);
+static s8 _sndScriptSelectReplacementSlot(_SndScriptSlotPick* candidates, s32 retriggerTicks);
 
-static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndScriptEntryControls* entryControls);
+static void _sndScriptStartSlot(s32 scriptSlotIndex, s8 panOffset, s8 attenuation, s32 soundId, SndBankSlot* bankSlot, SndScriptEntryControls* entryControls);
 
 static void _sndVoiceDetach(void* context);
 
 static SndBankSlot* _sndBankSlotFind(u16 bankId, s32 matchMode);
 
-static _SndVoice* SndVoice_Alloc(s32 arg0);
+static _SndVoice* _sndVoiceAlloc(s32 voicePriority);
 
 static void _sndVoiceAttach(_SndScript* script, _SndVoice* voice);
 
-static s32 SndVoice_Tick(_SndVoice* voice);
+static s32 _sndVoiceTick(_SndVoice* voice);
 
-static s32 SndScript_TickVoices(_SndScript* script);
+static s32 _sndScriptReleaseVoices(_SndScript* script);
 
 static void _sndVoiceCalcMixVolumes(s8 panOffset, s8 attenuation, _SndVoice* voice, LinInterp* volumeRamp, SpuVolume* panVolumes);
 
@@ -573,57 +578,74 @@ static inline s32 _sndScriptSelectStageReverbLevel(s32 stage, s32 area)
     return SOUND_SCRIPT_REVERB_DEFAULT_LEVEL;
 }
 
-void Snd_InitFromStage(s32 arg0, s32 arg1)
+void sndScriptResetForArea(s32 stage, s32 area)
 {
-    SndBank* var_s0;
-    s32      temp_v1;
+    enum {
+        SOUND_LOAD_CHARACTER_SAMPLE_BASE     = 0x3D010,
+        SOUND_SCRIPT_LOCATION_BYTE_MASK      = 0xFF,
+        SOUND_SCRIPT_RESET_COMMON_ENTRY      = 13,
+        SOUND_BANK_SLOT_TYPE_1               = 1,
+        SOUND_BANK_SLOT_TYPE_3               = 3,
+        SOUND_BANK_SLOT_CHARACTER_FIRST      = 4,
+        SOUND_BANK_SLOT_CHARACTER_SECOND     = 5,
+        SOUND_BANK_SLOT_CHARACTER_THIRD      = 6,
+        SOUND_BANK_SLOT_AREA                 = 7,
+        SOUND_LOAD_CHARACTER_RESTART_NONE    = 0,
+        SOUND_LOAD_CHARACTER_RESTART_PENDING = 1,
+        SOUND_LOAD_CHARACTER_RESTARTED       = 2
+    };
+    SndBank* bankBase;
+    s32      loadMode;
 
+    // Retain voice lists for deferred key-off before releasing transient images.
     D_8008274C = 0;
     _sndScriptResetStageSlots();
-    arg0 = arg0 & 0xFF;
+    stage = stage & SOUND_SCRIPT_LOCATION_BYTE_MASK;
     _sndEvtRequestScriptKeyOff();
     sndEvtRequestScriptStop(SOUND_AREA_BANK_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_SCRIPT_REQUEST_TYPE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    sndEvtRequestScriptStop(SOUND_COMMON(SOUND_SCRIPT_RESET_COMMON_ENTRY) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_PE_ALL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    arg1       = arg1 & 0xFF;
-    D_80082120 = arg0;
-    D_80082136 = arg1;
-    sndBankSlotReleaseImage(1);
-    sndBankSlotReleaseImage(7);
+    area       = area & SOUND_SCRIPT_LOCATION_BYTE_MASK;
+    D_80082120 = stage;
+    D_80082136 = area;
+    sndBankSlotReleaseImage(SOUND_BANK_SLOT_TYPE_1);
+    sndBankSlotReleaseImage(SOUND_BANK_SLOT_AREA);
 
-    _sndScriptSetReverb(_sndScriptSelectStageReverbLevel(arg0, arg1));
-    D_80082130 = 0x3D010;
+    _sndScriptSetReverb(_sndScriptSelectStageReverbLevel(stage, area));
+    D_80082130 = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
     D_80082128 = 0;
     D_80082124 = D_80082128;
 
-    temp_v1 = (s8)D_80082135;
-    switch (temp_v1) {
-        case 0:
-            sndBankFree(&Snd_Banks[4]);
-            sndBankSlotReleaseImage(4);
-        case 1:
+    // The character-load mode decides whether slot 4 survives the area change.
+    loadMode = (s8)D_80082135;
+    switch (loadMode) {
+        case SOUND_LOAD_CHARACTER_RESTART_NONE:
+            sndBankFree(&Snd_Banks[SOUND_BANK_SLOT_CHARACTER_FIRST]);
+            sndBankSlotReleaseImage(SOUND_BANK_SLOT_CHARACTER_FIRST);
+        case SOUND_LOAD_CHARACTER_RESTART_PENDING:
             D_80082122 = 0;
             break;
-        case 2:
+        case SOUND_LOAD_CHARACTER_RESTARTED:
             D_80082122 = 1;
             break;
     }
-    var_s0 = &Snd_Banks[1];
+    bankBase = &Snd_Banks[SOUND_BANK_SLOT_TYPE_1];
 
-    SndLoad_State.imageBuffer = 0;
-    SndLoad_State.bank        = 0;
+    // Reset the in-flight loader and discard the transient sample descriptors.
+    SndLoad_State.imageBuffer = NULL;
+    SndLoad_State.bank        = NULL;
     D_8008212C                = D_80082122;
     D_80082121                = D_80082135;
-    sndBankFree(var_s0);
-    sndBankFree(var_s0 + 6);
-    sndBankFree(var_s0 + 4);
-    sndBankSlotReleaseImage(5);
-    sndBankFree(var_s0 + 5);
-    sndBankSlotReleaseImage(6);
-    sndBankFree(var_s0 + 2);
-    sndBankSlotReleaseImage(3);
+    sndBankFree(bankBase);
+    sndBankFree(bankBase + (SOUND_BANK_SLOT_AREA - SOUND_BANK_SLOT_TYPE_1));
+    sndBankFree(bankBase + (SOUND_BANK_SLOT_CHARACTER_SECOND - SOUND_BANK_SLOT_TYPE_1));
+    sndBankSlotReleaseImage(SOUND_BANK_SLOT_CHARACTER_SECOND);
+    sndBankFree(bankBase + (SOUND_BANK_SLOT_CHARACTER_THIRD - SOUND_BANK_SLOT_TYPE_1));
+    sndBankSlotReleaseImage(SOUND_BANK_SLOT_CHARACTER_THIRD);
+    sndBankFree(bankBase + (SOUND_BANK_SLOT_TYPE_3 - SOUND_BANK_SLOT_TYPE_1));
+    sndBankSlotReleaseImage(SOUND_BANK_SLOT_TYPE_3);
     sndScriptSetTypeRequestsEnabled(1, SOUND_BANK_TYPE_CHARACTER_ALL);
 }
 
@@ -842,7 +864,7 @@ void Snd_PollAsync(s32 unused)
 void Snd_RegisterTickCallbacks(void)
 {
     audioTickInsert(Midi_Tick, NULL, AUDIO_TICK_ID_MIDI, NULL);
-    audioTickInsert(SndVoice_DriveSlots, NULL, AUDIO_TICK_ID_SOUND_SCRIPTS, NULL);
+    audioTickInsert(_sndScriptTickSlots, NULL, AUDIO_TICK_ID_SOUND_SCRIPTS, NULL);
     D_80082130 = 0x3D010;
     D_80082128 = 0x63810;
     D_80082124 = D_80082128;
@@ -924,7 +946,7 @@ s32 Snd_InitBanks(u32 unused)
 
     *(volatile s32*)&D_80068A78 = 0xFF;
     spuSetVoiceRange(SPU_VOICE_RANGE_SOUND_SCRIPTS, 18, 6);
-    SndVoice_Init();
+    _sndScriptInit();
     _sndScriptSetReverb(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
     sndScriptSetTypeRequestsEnabled(1, SOUND_BANK_TYPE_ALL_NON_AMBIENT);
 
@@ -1109,19 +1131,20 @@ void sndEvtRequestScriptMix(s32 soundId, s32 panOffset, s32 attenuation)
     }
 }
 
-void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
+void sndEvtRequestScriptVolume(s32 soundId, s32 volumeScale)
 {
+    enum { SOUND_SCRIPT_REQUEST_TYPE_SHIFT = 28 };
     SndEvt*           event;
     SndEvtScriptArgs* args;
 
-    if (D_80082138[(u32)arg0 >> 28] != 0) {
+    if (D_80082138[(u32)soundId >> SOUND_SCRIPT_REQUEST_TYPE_SHIFT] != 0) {
         event = sndEvtAlloc();
         if (event != NULL) {
             event->command          = SOUND_EVENT_SCRIPT_SET_VOLUME;
             args                    = &event->args.script;
-            args->soundId           = _sndScriptRemapType1Id(arg0);
-            args->level.volumeScale = arg1;
-            if ((s8)arg1 < 0) {
+            args->soundId           = _sndScriptRemapType1Id(soundId);
+            args->level.volumeScale = volumeScale;
+            if ((s8)volumeScale < 0) {
                 args->level.volumeScale = SOUND_SCRIPT_VOLUME_UNITY;
             }
             sndEvtEnqueue(event);
@@ -1210,251 +1233,277 @@ static void _sndEvtRequestScriptKeyOff(void)
     }
 }
 
-s32 SndScript_StopMatching(s32 arg0, s32 arg1)
+s32 sndScriptStopMatching(s32 soundSelector, s32 stopControl)
 {
-    _SndScript* p;
-    s32         i;
-    s32         group;
-    s32         ret;
+    enum {
+        SOUND_SCRIPT_REQUEST_ENTRY_MASK = 0xFF,
+        SOUND_SCRIPT_REQUEST_TYPE_MASK  = 0xF0000000,
+        SOUND_SCRIPT_STOP_TYPE_RESULT   = -2
+    };
+    _SndScript* script;
+    s32         slotIndex;
+    s32         bankType;
+    s32         lastSlotIndex;
 
-    if (!(arg0 & 0xFF)) {
-        for (i = 0; i < 8; i++) {
-            p     = &SndScript_Slots[i];
-            group = p->soundId & 0xF0000000;
-            if ((group == arg0) || ((arg0 == 0x80000000) && (group != 0x60000000))) {
-                if ((p->state != SOUND_SCRIPT_STOPPING) && (p->state != SOUND_SCRIPT_IDLE)) {
-                    p->keepRelease = (arg1 == SOUND_SCRIPT_KEEP_RELEASE);
-                    p->state       = SOUND_SCRIPT_STOPPING;
+    // Type-only stops bypass the entry fade and replace the release policy.
+    if (!(soundSelector & SOUND_SCRIPT_REQUEST_ENTRY_MASK)) {
+        for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
+            script   = &SndScript_Slots[slotIndex];
+            bankType = script->soundId & SOUND_SCRIPT_REQUEST_TYPE_MASK;
+            if ((bankType == soundSelector) || ((soundSelector == SOUND_BANK_TYPE_ALL_NON_AMBIENT) && (bankType != (SOUND_STAGE_AMBIENT & SOUND_SCRIPT_REQUEST_TYPE_MASK)))) {
+                if ((script->state != SOUND_SCRIPT_STOPPING) && (script->state != SOUND_SCRIPT_IDLE)) {
+                    script->keepRelease = (stopControl == SOUND_SCRIPT_KEEP_RELEASE);
+                    script->state       = SOUND_SCRIPT_STOPPING;
                 }
             }
         }
-        return -2;
+        return SOUND_SCRIPT_STOP_TYPE_RESULT;
     }
 
-    ret = 0;
-    for (i = 0; i < 8; i++) {
-        p = &SndScript_Slots[i];
-        if ((p->soundId == arg0) || ((p->soundId | 0xFF00) == arg0)) {
-            switch (p->state) {
+    lastSlotIndex = 0;
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
+        script = &SndScript_Slots[slotIndex];
+        if ((script->soundId == soundSelector) || ((script->soundId | SOUND_SCRIPT_STOP_ALL_INSTANCES) == soundSelector)) {
+            switch (script->state) {
                 case SOUND_SCRIPT_RUNNING:
-                    if (arg1 != 0) {
-                        if (arg1 != SOUND_SCRIPT_KEEP_RELEASE) {
-                            linInterpSetup(&p->volumeRamp, (u8)D_80082748, 0, arg1);
-                            p->state = SOUND_SCRIPT_FADING_OUT;
+                    if (stopControl != SOUND_SCRIPT_STOP_NO_FADE) {
+                        if (stopControl != SOUND_SCRIPT_KEEP_RELEASE) {
+                            linInterpSetup(&script->volumeRamp, (u8)D_80082748, 0, stopControl);
+                            script->state = SOUND_SCRIPT_FADING_OUT;
                             break;
                         }
-                        p->keepRelease = arg1;
+                        script->keepRelease = stopControl;
                     }
                     /* fallthrough */
                 case SOUND_SCRIPT_STOPPING:
                 case SOUND_SCRIPT_MUTING:
                 case SOUND_SCRIPT_UNMUTING:
-                    p->state = SOUND_SCRIPT_STOPPING;
+                    script->state = SOUND_SCRIPT_STOPPING;
                     break;
                 case SOUND_SCRIPT_STARTING:
-                    p->state = SOUND_SCRIPT_IDLE;
+                    script->state = SOUND_SCRIPT_IDLE;
                     break;
             }
         }
-        ret = i;
+        lastSlotIndex = slotIndex;
     }
-    return ret;
+    return lastSlotIndex;
 }
 
-static void SndVoice_StepMasterLevel(void)
+/// Advances the sound-script master duck or restore ramp by one audio update.
+///
+/// The signed step moves toward 48 when ducking and toward the saved master
+/// gain when restoring. Strict endpoint comparisons keep the step active for
+/// one more update at exact equality. Restoration clears the saved level only
+/// after crossing a nonzero target; mixing then uses the restored master gain.
+static void _sndScriptStepDucking(void)
 {
-    s16 var_a0;
-    s8  bound;
+    s16 masterVolume;
+    s8  unduckedVolume;
 
-    var_a0 = sndScriptGetMasterVolume();
+    masterVolume = sndScriptGetMasterVolume();
     if (D_8008274A > 0) {
-        var_a0 = var_a0 + D_8008274A;
-        bound  = (u8)D_80082749;
-        if (bound < var_a0) {
-            if (bound != 0) {
-                var_a0     = bound;
-                D_80082749 = 0;
+        masterVolume   = masterVolume + D_8008274A;
+        unduckedVolume = (u8)D_80082749;
+        if (unduckedVolume < masterVolume) {
+            if (unduckedVolume != 0) {
+                masterVolume = unduckedVolume;
+                D_80082749   = 0;
             }
             D_8008274A = 0;
         }
     } else if (D_8008274A < 0) {
-        var_a0 = var_a0 + D_8008274A;
-        if (var_a0 < 0x30) {
-            var_a0     = 0x30;
-            D_8008274A = 0;
+        masterVolume = masterVolume + D_8008274A;
+        if (masterVolume < SOUND_SCRIPT_DUCK_LEVEL) {
+            masterVolume = SOUND_SCRIPT_DUCK_LEVEL;
+            D_8008274A   = 0;
         }
     }
-    sndScriptSetMasterVolume(var_a0);
+    sndScriptSetMasterVolume(masterVolume);
 }
 
-static s32 SndVoice_DriveSlots(s32* unused)
+/// Runs every sound-script instance and its attached voices for one audio update.
+///
+/// This permanent `AudioTickPoll` ignores its argument and returns 0. Starting
+/// slots reset their clocks and mix state before executing commands; runnable
+/// slots execute until a command waits, ends or declines to advance. Muting
+/// pauses commands while voice gates and ramps continue; unmuting resumes them
+/// on reaching its target. A completed fade enters the stop path next update.
+///
+/// Stops key voices off and retain the slot while pitch envelopes remain on
+/// its list. Other ADSR releases can outlive the slot: clearing it removes the
+/// script association, while the SPU callback later releases the voice record.
+/// All borrowed images, controls and voice-list links must remain valid during
+/// the update. Pan and attenuation each step once per visited voice.
+static s32 _sndScriptTickSlots(s32* unused)
 {
     SpuVoiceRef   ref;
     SpuVolume     panVolumes;
     SpuVoiceAttr* attr;
-    _SndScript*   p;
-    _SndVoice*    node;
+    _SndScript*   script;
     _SndVoice*    voice;
-    s32           i;
-    s32           count;
-    s32           level;
-    s32           temp;
-    s8            step;
-    s16           atten;
+    _SndVoice*    orphanVoice;
+    s32           slotIndex;
+    s32           remainingVoices;
+    s32           panQuarterOffset;
+    s32           roundedPanQuarterOffset;
+    s8            mixStep;
+    s16           nextAttenuation;
 
     if (D_8008274A != 0) {
-        SndVoice_StepMasterLevel();
+        _sndScriptStepDucking();
     }
 
-    for (i = 0; i < 8; i++) {
-        p = &SndScript_Slots[i];
-        switch (p->state) {
+    for (slotIndex = 0; slotIndex < ARRAY_SIZE(SndScript_Slots); slotIndex++) {
+        script = &SndScript_Slots[slotIndex];
+        switch (script->state) {
             case SOUND_SCRIPT_IDLE:
                 break;
 
             case SOUND_SCRIPT_STARTING:
-                p->keepRelease        = 0;
-                p->ended              = 0;
-                p->tickClock          = 0;
-                p->runningTicks       = 0;
-                p->voices             = NULL;
-                p->state              = SOUND_SCRIPT_RUNNING;
-                p->volumeRamp.enabled = LINEAR_INTERPOLATOR_BYPASS;
-                p->panStep            = 0;
-                p->attenuationStep    = 0;
-                p->mixDirty           = 0;
+                script->keepRelease        = 0;
+                script->ended              = 0;
+                script->tickClock          = 0;
+                script->runningTicks       = 0;
+                script->voices             = NULL;
+                script->state              = SOUND_SCRIPT_RUNNING;
+                script->volumeRamp.enabled = LINEAR_INTERPOLATOR_BYPASS;
+                script->panStep            = 0;
+                script->attenuationStep    = 0;
+                script->mixDirty           = 0;
                 goto run;
 
             case SOUND_SCRIPT_FADING_OUT:
-                if (p->volumeRamp.gain == p->volumeRamp.targetGain) {
-                    p->state = SOUND_SCRIPT_STOPPING;
+                if (script->volumeRamp.gain == script->volumeRamp.targetGain) {
+                    script->state = SOUND_SCRIPT_STOPPING;
                     goto stop;
                 }
-                linInterpStep(&p->volumeRamp);
-                p->mixDirty = 1;
+                linInterpStep(&script->volumeRamp);
+                script->mixDirty = 1;
                 /* fallthrough */
             case SOUND_SCRIPT_RUNNING:
             run:
-                p->runningTicks++;
-                while (SndScript_Exec(p) != 0) {
+                script->runningTicks++;
+                while (_sndScriptExecCommand(script) != 0) {
                 }
             update:
-                count = 0;
-                if (p->voices != NULL) {
-                    node = p->voices;
+                remainingVoices = 0;
+                if (script->voices != NULL) {
+                    voice = script->voices;
                     do {
-                        SndVoice_Tick(node);
-                        // Pan and attenuation advance once per voice, not once per update.
-                        step = p->panStep;
-                        count++;
-                        if (step != 0) {
-                            level = step + (s8)p->panOffset * 4;
-                            if (step > 0) {
-                                if ((s8)p->panTarget * 4 < level) {
-                                    p->panOffset = p->panTarget;
-                                    p->panStep   = 0;
+                        _sndVoiceTick(voice);
+                        // Each visited voice advances the instance's shared mix ramps.
+                        mixStep = script->panStep;
+                        remainingVoices++;
+                        if (mixStep != 0) {
+                            panQuarterOffset = mixStep + (s8)script->panOffset * SOUND_SCRIPT_PAN_FRACTION_SCALE;
+                            if (mixStep > 0) {
+                                if ((s8)script->panTarget * SOUND_SCRIPT_PAN_FRACTION_SCALE < panQuarterOffset) {
+                                    script->panOffset = script->panTarget;
+                                    script->panStep   = 0;
                                 } else {
-                                    /* level / 4, rounded toward zero */
-                                    temp = level;
-                                    if (temp < 0) {
-                                        temp += 3;
+                                    /* panQuarterOffset / 4, rounded toward zero */
+                                    roundedPanQuarterOffset = panQuarterOffset;
+                                    if (roundedPanQuarterOffset < 0) {
+                                        roundedPanQuarterOffset += 3;
                                     }
-                                    p->panOffset = temp >> 2;
+                                    script->panOffset = roundedPanQuarterOffset >> 2;
                                 }
-                            } else if (level < (s8)p->panTarget * 4) {
-                                p->panOffset = p->panTarget;
-                                p->panStep   = 0;
+                            } else if (panQuarterOffset < (s8)script->panTarget * SOUND_SCRIPT_PAN_FRACTION_SCALE) {
+                                script->panOffset = script->panTarget;
+                                script->panStep   = 0;
                             } else {
-                                temp = level;
-                                if (temp < 0) {
-                                    temp += 3;
+                                roundedPanQuarterOffset = panQuarterOffset;
+                                if (roundedPanQuarterOffset < 0) {
+                                    roundedPanQuarterOffset += 3;
                                 }
-                                p->panOffset = temp >> 2;
+                                script->panOffset = roundedPanQuarterOffset >> 2;
                             }
-                            p->mixDirty = 1;
+                            script->mixDirty = 1;
                         }
-                        step = p->attenuationStep;
-                        if (step != 0) {
-                            atten = (s8)p->attenuation + step;
-                            if (step > 0) {
-                                if ((s8)p->attenuationTarget < atten) {
-                                    p->attenuation     = p->attenuationTarget;
-                                    p->attenuationStep = 0;
+                        mixStep = script->attenuationStep;
+                        if (mixStep != 0) {
+                            nextAttenuation = (s8)script->attenuation + mixStep;
+                            if (mixStep > 0) {
+                                if ((s8)script->attenuationTarget < nextAttenuation) {
+                                    script->attenuation     = script->attenuationTarget;
+                                    script->attenuationStep = 0;
                                 } else {
-                                    p->attenuation = atten;
+                                    script->attenuation = nextAttenuation;
                                 }
-                            } else if (atten < (s8)p->attenuationTarget) {
-                                p->attenuation     = p->attenuationTarget;
-                                p->attenuationStep = 0;
+                            } else if (nextAttenuation < (s8)script->attenuationTarget) {
+                                script->attenuation     = script->attenuationTarget;
+                                script->attenuationStep = 0;
                             } else {
-                                p->attenuation = atten;
+                                script->attenuation = nextAttenuation;
                             }
-                            p->mixDirty = 1;
+                            script->mixDirty = 1;
                         }
-                        if (p->mixDirty == 1) {
-                            spuGetVoiceRef(node->spuVoice, &ref);
+                        if (script->mixDirty == 1) {
+                            spuGetVoiceRef(voice->spuVoice, &ref);
                             attr = ref.attr;
-                            _sndVoiceCalcMixVolumes(p->panOffset, p->attenuation, node, &p->volumeRamp, &panVolumes);
+                            _sndVoiceCalcMixVolumes(script->panOffset, script->attenuation, voice, &script->volumeRamp, &panVolumes);
                             attr->volume.left   = panVolumes.left;
                             attr->volume.right  = panVolumes.right;
-                            attr->volmode.left  = 0;
-                            attr->volmode.right = 0;
-                            attr->mask         |= 0xF;
+                            attr->volmode.left  = SPU_VOICE_DIRECT;
+                            attr->volmode.right = SPU_VOICE_DIRECT;
+                            attr->mask         |= SPU_VOICE_VOLL | SPU_VOICE_VOLR | SPU_VOICE_VOLMODEL | SPU_VOICE_VOLMODER;
                         }
-                        node = node->next;
-                    } while (node != NULL);
-                    p->mixDirty = 0;
+                        voice = voice->next;
+                    } while (voice != NULL);
+                    script->mixDirty = 0;
                 }
-                if (count == 0 && p->ended == 1) {
+                if (remainingVoices == 0 && script->ended == 1) {
                     goto release;
                 }
                 break;
 
             case SOUND_SCRIPT_MUTING:
-                linInterpStep(&p->volumeRamp);
-                p->mixDirty = 1;
+                linInterpStep(&script->volumeRamp);
+                script->mixDirty = 1;
                 goto update;
 
             case SOUND_SCRIPT_UNMUTING:
-                p->mixDirty = 1;
-                linInterpStep(&p->volumeRamp);
-                if (p->volumeRamp.gain == p->volumeRamp.targetGain) {
-                    p->state = SOUND_SCRIPT_RUNNING;
+                script->mixDirty = 1;
+                linInterpStep(&script->volumeRamp);
+                if (script->volumeRamp.gain == script->volumeRamp.targetGain) {
+                    script->state = SOUND_SCRIPT_RUNNING;
                     goto run;
                 }
                 goto update;
 
             case SOUND_SCRIPT_STOPPING:
             stop:
-                p->ended = 1;
-                if (SndScript_TickVoices(p) != 0) {
-                    p->state = SOUND_SCRIPT_RELEASING;
+                script->ended = 1;
+                if (_sndScriptReleaseVoices(script) != 0) {
+                    script->state = SOUND_SCRIPT_RELEASING;
                     break;
                 }
                 goto release;
 
             case SOUND_SCRIPT_RELEASING:
-                count = 0;
-                if (p->voices != NULL) {
-                    node = p->voices;
+                // Only pitch-envelope voices keep a stopped instance alive.
+                remainingVoices = 0;
+                if (script->voices != NULL) {
+                    voice = script->voices;
                     do {
-                        if (node->envelope.active != 0) {
-                            count++;
-                            SndVoice_TickEnvelope(node);
+                        if (voice->envelope.active != 0) {
+                            remainingVoices++;
+                            _sndVoiceTickPitchEnvelope(voice);
                         }
-                        node = node->next;
-                    } while (node != NULL);
+                        voice = voice->next;
+                    } while (voice != NULL);
                 }
-                if (count == 0 && p->ended == 1) {
+                if (remainingVoices == 0 && script->ended == 1) {
                 release:
-                    p->ended   = 0;
-                    p->soundId = -1;
-                    p->state   = SOUND_SCRIPT_IDLE;
-                    for (voice = p->voices; voice != NULL; voice = voice->next) {
-                        voice->script = 0;
+                    script->ended   = 0;
+                    script->soundId = -1;
+                    script->state   = SOUND_SCRIPT_IDLE;
+                    for (orphanVoice = script->voices; orphanVoice != NULL; orphanVoice = orphanVoice->next) {
+                        orphanVoice->script = 0;
                     }
-                    p->voices             = NULL;
-                    p->volumeRamp.enabled = LINEAR_INTERPOLATOR_BYPASS;
+                    script->voices             = NULL;
+                    script->volumeRamp.enabled = LINEAR_INTERPOLATOR_BYPASS;
                 }
                 break;
         }
@@ -1464,11 +1513,13 @@ static s32 SndVoice_DriveSlots(s32* unused)
 
 /// Clears a script-slot survey for a request with the given entry priority.
 ///
-/// No-member age is above every nonnegative signed-halfword retrigger limit.
+/// `candidates` must hold one writable `_SndScriptSlotPick`; no instance is
+/// changed. Slot and oldest-age sentinels are -1, group count starts at zero,
+/// and the lowest priority starts at `requestPriority`. No-member newest age
+/// is 65535, above every nonnegative signed-halfword retrigger limit.
 static inline void _sndScriptInitSlotPick(_SndScriptSlotPick* candidates, u16 requestPriority)
 {
     enum {
-        SOUND_SCRIPT_SLOT_NONE               = -1,
         SOUND_SCRIPT_RETRIGGER_AGE_NO_MEMBER = 0xFFFF
     };
 
@@ -1620,16 +1671,31 @@ static inline u8 _sndScriptUseReverb(const _SndScriptNote* note)
     return reverbEnabled;
 }
 
-static s32 SndScript_Exec(_SndScript* script)
+/// Executes the command at one live sound-script instance's byte cursor.
+///
+/// Returns 1 when the driver should immediately dispatch again and 0 when it
+/// should tick voices instead. Delays consume 16.16 script ticks; a waiting
+/// command adds one tick per update, or 39321/65536 on PAL. Nested loops use
+/// the slot's eight-entry stack; excess depth or an unmatched endL ends it.
+///
+/// The bank image must contain aligned, complete commands and every addressed
+/// ADSR/envelope chunk. Offsets are bytes from that image's start, and no image
+/// bounds are checked here. oneC reloads controls using the sound id's low byte
+/// and falls through to read the next 24 bytes as a note without a tag check.
+/// A missing note bank retries the same command after releasing its allocation;
+/// failure to allocate a voice consumes the note's delay and skips that note.
+static s32 _sndScriptExecCommand(_SndScript* script)
 {
     enum {
-        SOUND_BANK_PAN_CENTER        = 64,
-        SOUND_BANK_PAN_MAX           = 127,
-        SOUND_BANK_KEY_FRACTION_BITS = 7
+        SOUND_BANK_PAN_CENTER            = 64,
+        SOUND_BANK_PAN_MAX               = 127,
+        SOUND_BANK_KEY_FRACTION_BITS     = 7,
+        SOUND_BANK_KEY_FRACTION_MASK     = (1 << SOUND_BANK_KEY_FRACTION_BITS) - 1,
+        SOUND_SCRIPT_CLOCK_FRACTION_BITS = 16
     };
     SpuVoiceRef     voiceRef;
     SpuVolume       panVolumes;
-    _SndScriptCmd*  cmd;
+    _SndScriptCmd*  command;
     _SndScriptNote* note;
     _SndVoice*      voice;
     SndBankLayer*   bankLayer;
@@ -1638,21 +1704,21 @@ static s32 SndScript_Exec(_SndScript* script)
     SndBank*        bank;
     SndBankHdr*     header;
     s32             result;
-    s32             ticks;
-    s32             wait;
-    s32             index;
+    s32             tickClock;
+    s32             waitTicks;
+    s32             loopIndex;
     s32             masterVolume;
     u8              layerVolume;
-    s32             panSum;
-    s16             pan;
-    s16             voicePan;
-    s32             pitchValue;
-    u16             pitch;
-    s32             countdown;
-    s16             envelopeOffset;
+    s32             biasedPan;
+    s16             entryPanBias;
+    s16             narrowedPan;
+    s32             keyedPitch;
+    u16             keyedPitch16;
+    s32             gateClock;
+    s16             pitchEnvelopeOffset;
 
-    cmd = (_SndScriptCmd*)script->cursor;
-    switch ((u32)cmd->magic) {
+    command = (_SndScriptCmd*)script->cursor;
+    switch ((u32)command->magic) {
         case SOUND_SCRIPT_PITCH_ENVELOPE_TAG:
             // Envelope data is not a command; halt without advancing the cursor.
             result = 0;
@@ -1662,18 +1728,18 @@ static s32 SndScript_Exec(_SndScript* script)
             result        = 0;
             break;
         case SOUND_SCRIPT_LOOP_TAG:
-            if (script->loopDepth >= 8U) {
+            if (script->loopDepth >= ARRAY_SIZE(script->loopCounts)) {
                 script->ended = 1;
                 result        = 0;
                 break;
             }
-            ticks = script->tickClock;
-            if ((ticks >> 16) >= cmd->data.loop.delayTicks) {
-                script->loopCounts[script->loopDepth]  = cmd->data.loop.repeatCount;
+            tickClock = script->tickClock;
+            if ((tickClock >> SOUND_SCRIPT_CLOCK_FRACTION_BITS) >= command->data.loop.delayTicks) {
+                script->loopCounts[script->loopDepth]  = command->data.loop.repeatCount;
                 script->cursor                         = script->cursor + sizeof(_SndScriptCmd);
                 script->loopCursors[script->loopDepth] = script->cursor;
                 script->loopDepth++;
-                script->tickClock -= cmd->data.loop.delayTicks << 16;
+                script->tickClock -= command->data.loop.delayTicks << SOUND_SCRIPT_CLOCK_FRACTION_BITS;
                 result             = 1;
             } else {
                 _sndScriptAdvanceClock(script);
@@ -1686,12 +1752,12 @@ static s32 SndScript_Exec(_SndScript* script)
                 result        = 0;
                 break;
             }
-            index = script->loopDepth - 1;
-            if (script->loopCounts[index] == 1) {
-                script->cursor = (u8*)cmd + sizeof(cmd->magic);
+            loopIndex = script->loopDepth - 1;
+            if (script->loopCounts[loopIndex] == 1) {
+                script->cursor = script->cursor + sizeof(command->magic);
                 script->loopDepth--;
             } else {
-                script->cursor = script->loopCursors[index];
+                script->cursor = script->loopCursors[loopIndex];
                 if (script->loopCounts[script->loopDepth - 1] != 0) {
                     script->loopCounts[script->loopDepth - 1]--;
                 }
@@ -1705,14 +1771,14 @@ static s32 SndScript_Exec(_SndScript* script)
             script->entryControls = (SndScriptEntryControls*)((u8*)header + *(header->entryOffsets + (u8)script->soundId));
             script->cursor        = script->cursor + sizeof(SndScriptEntryControls);
         case SOUND_SCRIPT_NOTE_TAG:
-            note  = (_SndScriptNote*)script->cursor;
-            ticks = script->tickClock;
-            if ((ticks >> 16) < note->delayTicks) {
+            note      = (_SndScriptNote*)script->cursor;
+            tickClock = script->tickClock;
+            if ((tickClock >> SOUND_SCRIPT_CLOCK_FRACTION_BITS) < note->delayTicks) {
                 _sndScriptAdvanceClock(script);
                 result = 0;
                 break;
             }
-            voice  = SndVoice_Alloc(note->voicePriority);
+            voice  = _sndVoiceAlloc(note->voicePriority);
             result = 1;
             if (voice != NULL) {
                 bankSlot = script->bankSlot;
@@ -1730,30 +1796,30 @@ static s32 SndScript_Exec(_SndScript* script)
                     bank = bankSlot->bank;
                 }
                 spuGetVoiceRef(voice->spuVoice, &voiceRef);
-                bankLayer    = sndBankGetLayer(bank, (u8)note->program, note->layer);
+                bankLayer    = sndBankGetLayer(bank, note->program, note->layer);
                 attr         = voiceRef.attr;
                 masterVolume = D_80082748;
                 attr->addr   = bankLayer->waveAddr;
                 if ((D_80082749 != 0) && (script->entryControls->flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME)) {
                     masterVolume = D_80082749;
                 }
-                // A negative override keeps the layer value. Entry pan bias is applied after.
+                // Choose the layer value or override before applying the entry pan bias.
                 layerVolume = (u8)note->volumeOverride;
                 if (note->volumeOverride < 0) {
                     layerVolume = bankLayer->volume;
                 }
                 voice->baseVolume   = layerVolume;
                 voice->scaledVolume = (s8)((masterVolume * script->entryControls->volumeScale * voice->baseVolume) / (SOUND_SCRIPT_VOLUME_UNITY * SOUND_SCRIPT_VOLUME_UNITY));
-                pan                 = script->entryControls->panBias;
-                panSum              = note->panOverride;
-                if (panSum < 0) {
-                    panSum = bankLayer->pan;
+                entryPanBias        = script->entryControls->panBias;
+                biasedPan           = note->panOverride;
+                if (biasedPan < 0) {
+                    biasedPan = bankLayer->pan;
                 }
-                panSum  += (s16)(pan - SOUND_BANK_PAN_CENTER);
-                voicePan = panSum;
-                if (voicePan <= SOUND_BANK_PAN_MAX) {
-                    if (voicePan >= 0) {
-                        voice->basePan = panSum;
+                biasedPan  += (s16)(entryPanBias - SOUND_BANK_PAN_CENTER);
+                narrowedPan = biasedPan;
+                if (narrowedPan <= SOUND_BANK_PAN_MAX) {
+                    if (narrowedPan >= 0) {
+                        voice->basePan = biasedPan;
                     } else {
                         voice->basePan = 0;
                     }
@@ -1764,9 +1830,9 @@ static s32 SndScript_Exec(_SndScript* script)
                     attr->adsr1 = bankLayer->adsr1;
                     attr->adsr2 = bankLayer->adsr2;
                 }
-                // Script pitch is a Q7 offset from the layer's minimum key.
-                pitchValue = pitch = note->pitchOffset + (bankLayer->keyMin << SOUND_BANK_KEY_FRACTION_BITS);
-                attr->pitch        = spuCalcPitch((u32)(pitch & 0xFFFF) >> SOUND_BANK_KEY_FRACTION_BITS, (pitchValue & 0x7F) * 2, bankLayer->rootKey, bankLayer->fineTune);
+                // Narrow the keyed pitch to Q7 before splitting its key and fraction.
+                keyedPitch = keyedPitch16 = note->pitchOffset + (bankLayer->keyMin << SOUND_BANK_KEY_FRACTION_BITS);
+                attr->pitch               = spuCalcPitch((u32)(keyedPitch16 & 0xFFFF) >> SOUND_BANK_KEY_FRACTION_BITS, (keyedPitch & SOUND_BANK_KEY_FRACTION_MASK) * 2, bankLayer->rootKey, bankLayer->fineTune);
                 if (_sndScriptUseReverb(note) == 0) {
                     spuDisableVoiceReverb(voice->spuVoice);
                     voice->field_1 = 1;
@@ -1777,35 +1843,35 @@ static s32 SndScript_Exec(_SndScript* script)
                 _sndVoiceCalcMixVolumes(script->panOffset, script->attenuation, voice, &script->volumeRamp, &panVolumes);
                 attr->volume.left   = panVolumes.left;
                 attr->volume.right  = panVolumes.right;
-                attr->volmode.left  = 0;
-                attr->volmode.right = 0;
-                attr->mask          = 0x6009F;
+                attr->volmode.left  = SPU_VOICE_DIRECT;
+                attr->volmode.right = SPU_VOICE_DIRECT;
+                attr->mask          = SPU_VOICE_VOLL | SPU_VOICE_VOLR | SPU_VOICE_VOLMODEL | SPU_VOICE_VOLMODER | SPU_VOICE_PITCH | SPU_VOICE_WDSA | SPU_VOICE_ADSR_ADSR1 | SPU_VOICE_ADSR_ADSR2;
                 spuKeyOn(voice->spuVoice);
                 voice->note      = note;
-                countdown        = note->gateTicks == 0 ? SOUND_SCRIPT_NOTE_HELD : note->gateTicks << 16;
-                voice->gateClock = countdown;
+                gateClock        = note->gateTicks == 0 ? SOUND_SCRIPT_NOTE_HELD : note->gateTicks << SOUND_SCRIPT_CLOCK_FRACTION_BITS;
+                voice->gateClock = gateClock;
                 _sndVoiceAttach(script, voice);
-                envelopeOffset = note->pitchEnvelopeOffset;
-                if (envelopeOffset != SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
-                    _sndVoiceSetupPitchEnvelope(voice, envelopeOffset, pitch & 0xFFFF, bankLayer);
+                pitchEnvelopeOffset = note->pitchEnvelopeOffset;
+                if (pitchEnvelopeOffset != SOUND_SCRIPT_NOTE_NO_ENVELOPE) {
+                    _sndVoiceSetupPitchEnvelope(voice, pitchEnvelopeOffset, keyedPitch16 & 0xFFFF, bankLayer);
                     result = 1;
                 } else {
                     voice->envelope.active = 0;
                     result                 = 1;
                 }
             }
-            script->tickClock = (s32)(script->tickClock - (note->delayTicks << 0x10));
+            script->tickClock = (s32)(script->tickClock - (note->delayTicks << SOUND_SCRIPT_CLOCK_FRACTION_BITS));
             script->cursor    = script->cursor + sizeof(_SndScriptNote);
             break;
         case SOUND_SCRIPT_WAIT_TAG:
-            ticks = script->tickClock;
-            wait  = cmd->data.waitTicks;
-            if ((ticks >> 16) < wait) {
+            tickClock = script->tickClock;
+            waitTicks = command->data.waitTicks;
+            if ((tickClock >> SOUND_SCRIPT_CLOCK_FRACTION_BITS) < waitTicks) {
                 _sndScriptAdvanceClock(script);
                 result = 0;
                 break;
             }
-            script->tickClock = ticks - (wait << 16);
+            script->tickClock = tickClock - (waitTicks << SOUND_SCRIPT_CLOCK_FRACTION_BITS);
             script->cursor    = script->cursor + sizeof(_SndScriptCmd);
             result            = 1;
             break;
@@ -1817,26 +1883,38 @@ static s32 SndScript_Exec(_SndScript* script)
     return result;
 }
 
-static void SndVoice_TickEnvelope(_SndVoice* voice)
+/// Plays one audio update of a scripted voice's active pitch envelope.
+///
+/// The caller must supply an active player with a live oneE chunk and hardware
+/// voice. Keyed pitch is Q7; stage offsets and the resulting pitch are Q8
+/// semitones. Pending release recaptures its step from the last ramp offset,
+/// even if a prior release already began. Exhausted stages fall through within
+/// this update. Delay leaves hardware pitch untouched; all sounding stages
+/// queue pitch using the cached root key and Q7 fine tune.
+static void _sndVoiceTickPitchEnvelope(_SndVoice* voice)
 {
+    enum {
+        SOUND_VOICE_PITCH_FRACTION_BITS = 8,
+        SOUND_VOICE_PITCH_FRACTION_MASK = 0xFF
+    };
     SpuVoiceRef        voiceRef;
     _SndVoiceEnvelope* player;
     _SndPitchEnvelope* envelope;
-    s32                pitch;
-    s32                temp;
-    s32                level;
+    s32                pitchQ8;
+    s32                releaseDirection;
+    s32                decayStartOffset;
     SpuVoiceAttr*      attr;
 
     player   = &voice->envelope;
     envelope = player->envelope;
 
     // A pending release replaces the current stage and starts from the last
-    // ramp offset, not the level being played. An exhausted stage falls
+    // ramp offset, not the decayStartOffset being played. An exhausted stage falls
     // through and plays the next stage on this update.
     if (player->releaseRequest == SOUND_VOICE_ENVELOPE_RELEASE_PENDING) {
-        player->stage = SOUND_VOICE_ENVELOPE_RELEASE;
-        temp          = (player->rampOffset - envelope->releaseLevel) * envelope->releaseSlope;
-        if (temp > 0) {
+        player->stage    = SOUND_VOICE_ENVELOPE_RELEASE;
+        releaseDirection = (player->rampOffset - envelope->releaseLevel) * envelope->releaseSlope;
+        if (releaseDirection > 0) {
             player->releaseStep = -envelope->releaseSlope;
         } else {
             player->releaseStep = envelope->releaseSlope;
@@ -1858,7 +1936,7 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
             player->attackOffset = 0;
             player->rampOffset   = 0;
         case SOUND_VOICE_ENVELOPE_ATTACK:
-            pitch = (player->keyedPitch << 1) + player->attackOffset;
+            pitchQ8 = (player->keyedPitch << 1) + player->attackOffset;
             if (player->stageUpdates < envelope->attackUpdates) {
                 player->stageUpdates++;
                 player->rampOffset = player->attackOffset += envelope->attackSlope;
@@ -1867,18 +1945,18 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
             player->stage        = SOUND_VOICE_ENVELOPE_HOLD;
             player->stageUpdates = 0;
         case SOUND_VOICE_ENVELOPE_HOLD:
-            pitch = (player->keyedPitch << 1) + envelope->attackLevel;
+            pitchQ8 = (player->keyedPitch << 1) + envelope->attackLevel;
             if (player->stageUpdates < envelope->holdUpdates) {
                 player->stageUpdates++;
                 break;
             }
             player->stage        = SOUND_VOICE_ENVELOPE_DECAY;
             player->decayOffset  = envelope->attackLevel;
-            level                = envelope->attackLevel;
+            decayStartOffset     = envelope->attackLevel;
             player->stageUpdates = 0;
-            player->rampOffset   = level;
+            player->rampOffset   = decayStartOffset;
         case SOUND_VOICE_ENVELOPE_DECAY:
-            pitch = (player->keyedPitch << 1) + player->decayOffset;
+            pitchQ8 = (player->keyedPitch << 1) + player->decayOffset;
             if (player->stageUpdates < envelope->decayUpdates) {
                 player->stageUpdates++;
                 player->rampOffset = player->decayOffset += envelope->decaySlope;
@@ -1886,19 +1964,19 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
             }
             player->stage = SOUND_VOICE_ENVELOPE_SUSTAIN;
         case SOUND_VOICE_ENVELOPE_SUSTAIN:
-            pitch = (player->keyedPitch << 1) + envelope->sustainLevel;
+            pitchQ8 = (player->keyedPitch << 1) + envelope->sustainLevel;
             break;
         case SOUND_VOICE_ENVELOPE_RELEASE:
-            temp = (player->rampOffset - envelope->releaseLevel) * envelope->releaseSlope;
-            if (temp >= 0) {
+            releaseDirection = (player->rampOffset - envelope->releaseLevel) * envelope->releaseSlope;
+            if (releaseDirection >= 0) {
                 player->stage = SOUND_VOICE_ENVELOPE_RELEASE_HOLD;
             } else {
                 player->rampOffset = player->releaseOffset += player->releaseStep;
             }
-            pitch = (player->keyedPitch << 1) + player->releaseOffset;
+            pitchQ8 = (player->keyedPitch << 1) + player->releaseOffset;
             break;
         case SOUND_VOICE_ENVELOPE_RELEASE_HOLD:
-            pitch = (player->keyedPitch << 1) + envelope->releaseLevel;
+            pitchQ8 = (player->keyedPitch << 1) + envelope->releaseLevel;
             break;
         default:
             return;
@@ -1906,24 +1984,25 @@ static void SndVoice_TickEnvelope(_SndVoice* voice)
     spuGetVoiceRef(voice->spuVoice, &voiceRef);
     attr = voiceRef.attr;
     attr->pitch =
-        spuCalcPitch((pitch >> 8) & 0xFFFF, pitch & 0xFF, player->rootKey, player->fineTune);
+        spuCalcPitch((pitchQ8 >> SOUND_VOICE_PITCH_FRACTION_BITS) & 0xFFFF, pitchQ8 & SOUND_VOICE_PITCH_FRACTION_MASK, player->rootKey, player->fineTune);
     attr->mask |= SPU_VOICE_PITCH;
 }
 
-s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndScriptEntryControls* entryControls)
+s32 sndScriptTryStart(s32 soundId, s8 panOffset, s8 attenuation, SndBankSlot* bankSlot, SndScriptEntryControls* entryControls)
 {
-    _SndScriptSlotPick pick;
+    _SndScriptSlotPick slotPick;
 
-    _sndScriptScanSlotCandidates(&pick, entryControls->priority, arg0, entryControls->flags);
-    if ((pick.groupCount < entryControls->maxInstances) && (pick.idleSlot != -1)) {
-        pick.slot = pick.idleSlot;
+    // Survey before changing ownership; replacement applies only without a usable idle slot.
+    _sndScriptScanSlotCandidates(&slotPick, entryControls->priority, soundId, entryControls->flags);
+    if ((slotPick.groupCount < entryControls->maxInstances) && (slotPick.idleSlot != SOUND_SCRIPT_SLOT_NONE)) {
+        slotPick.slot = slotPick.idleSlot;
     } else {
-        pick.slot = SndVoice_SelectStealCandidate(&pick, entryControls->retriggerTicks);
+        slotPick.slot = _sndScriptSelectReplacementSlot(&slotPick, entryControls->retriggerTicks);
     }
-    if (pick.slot >= 0) {
-        SndScript_Play(pick.slot, arg1, arg2, arg0, slot, entryControls);
+    if (slotPick.slot >= 0) {
+        _sndScriptStartSlot(slotPick.slot, panOffset, attenuation, soundId, bankSlot, entryControls);
     }
-    return pick.slot;
+    return slotPick.slot;
 }
 
 void sndScriptSetMuteMatching(s32 soundSelector, s32 muted)
@@ -2029,18 +2108,18 @@ void sndScriptRampVolume(s32 scriptSlotIndex, s32 volumeScale)
     script->mixDirty = 1;
 }
 
-void SndVoice_IncRefCount(void)
+void sndScriptAcquireDuck(void)
 {
-    s8 temp;
+    s8 masterVolume;
 
     D_8008274C += 1;
     if (D_8008274C == 1) {
         if (D_8008274A == 0) {
             if (D_80082749 == 0) {
-                temp = sndScriptGetMasterVolume();
-                if (temp >= 0x30) {
-                    D_80082749 = temp;
-                    D_8008274A = -8;
+                masterVolume = sndScriptGetMasterVolume();
+                if (masterVolume >= SOUND_SCRIPT_DUCK_LEVEL) {
+                    D_80082749 = masterVolume;
+                    D_8008274A = -SOUND_SCRIPT_DUCK_STEP;
                 }
             }
         }
@@ -2059,40 +2138,38 @@ void SndVoice_TickRefCount(void)
     }
 }
 
-static void SndVoice_Init(void)
+/// Clears a nonempty, word-aligned representation without releasing its resources.
+///
+/// `wordCount` counts writable s32 words, and must be positive. Call only on
+/// the complete inactive script, bank-slot or voice arrays during sound boot.
+static inline void _sndScriptClearWords(void* storage, u32 wordCount)
 {
-    u32  i;
-    s32* ptr;
-    s32* bankSlotWords;
+    u32  wordIndex;
+    s32* words = storage;
 
-    ptr = (s32*)SndScript_Slots;
-    i   = 0;
+    wordIndex = 0;
     do {
-        *ptr = 0;
-        i++;
-        ptr++;
-    } while (i < sizeof(SndScript_Slots) / sizeof(*ptr));
+        *words = 0;
+        wordIndex++;
+        words++;
+    } while (wordIndex < wordCount);
+}
 
-    // Reset image ownership and descriptor references before boot reservations.
-    bankSlotWords = (s32*)_gSndBankSlots;
-    i             = 0;
-    do {
-        *bankSlotWords = 0;
-        i++;
-        bankSlotWords++;
-    } while (i < sizeof(_gSndBankSlots) / sizeof(*bankSlotWords));
-
-    ptr = (s32*)SndScript_Voices;
-    i   = 0;
-    do {
-        *ptr = 0;
-        i++;
-        ptr++;
-    } while (i < sizeof(SndScript_Voices) / sizeof(*ptr));
+/// Clears sound-script slots, bank-slot bindings and voice records at sound boot.
+///
+/// Call before bank reservations and playback, with audio updates quiescent.
+/// These full-array word clears discard ownership without freeing images or
+/// notifying the SPU. Restores master gain 127, no duck ramp or saved gain,
+/// and reverb level 1. Duck-request nesting is initialized separately.
+static void _sndScriptInit(void)
+{
+    _sndScriptClearWords(SndScript_Slots, sizeof(SndScript_Slots) / sizeof(s32));
+    _sndScriptClearWords(_gSndBankSlots, sizeof(_gSndBankSlots) / sizeof(s32));
+    _sndScriptClearWords(SndScript_Voices, sizeof(SndScript_Voices) / sizeof(s32));
 
     D_8008274A = 0;
     D_80082749 = 0;
-    sndScriptSetMasterVolume(0x7F);
+    sndScriptSetMasterVolume(SOUND_SCRIPT_VOLUME_UNITY);
     _sndScriptSetReverbLevel(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
 }
 
@@ -2181,75 +2258,98 @@ s8 sndScriptGetMasterVolume(void)
     return D_80082748;
 }
 
-static s8 SndVoice_SelectStealCandidate(_SndScriptSlotPick* candidates, s32 retriggerTicks)
+/// Selects a script-slot replacement from a completed start-request survey.
+///
+/// `retriggerTicks` is the entry's signed-halfword age limit in running audio
+/// updates, passed as a word; -1 refuses every replacement. A newest group
+/// member below the limit also refuses it. Otherwise choose the oldest group
+/// member, then a lower-priority slot, then an equal-priority slot. Returns a
+/// slot 0..7 or a SOUND_SCRIPT_SLOT_ refusal; only success writes `slot`.
+static s8 _sndScriptSelectReplacementSlot(_SndScriptSlotPick* candidates, s32 retriggerTicks)
 {
-    s32 v;
-    u8  u;
-    s32 none;
+    s32 slotIndex;
+    u8  slotByte;
+    s32 noSlot;
 
-    none = -1;
+    noSlot = SOUND_SCRIPT_SLOT_NONE;
     if (retriggerTicks == SOUND_SCRIPT_RETRIGGER_DISABLED) {
-        return -9;
+        return SOUND_SCRIPT_SLOT_REPLACEMENT_DISABLED;
     }
     if (candidates->newestGroupTicks < retriggerTicks) {
-        return -5;
+        return SOUND_SCRIPT_SLOT_RETRIGGER_TOO_SOON;
     }
-    if (candidates->newestGroupSlot != none) {
-        goto field6;
+    if (candidates->newestGroupSlot != noSlot) {
+        goto replaceGroup;
     }
-    v = candidates->lowerPrioritySlot;
-    u = candidates->lowerPrioritySlot;
-    if (v != none) {
-        goto store;
+    slotIndex = candidates->lowerPrioritySlot;
+    slotByte  = candidates->lowerPrioritySlot;
+    if (slotIndex != noSlot) {
+        goto selectSlot;
     }
-    v = candidates->equalPrioritySlot;
-    u = candidates->equalPrioritySlot;
-join:
-    if (v == none) {
-        goto ret_m6;
+    slotIndex = candidates->equalPrioritySlot;
+    slotByte  = candidates->equalPrioritySlot;
+checkCandidate:
+    if (slotIndex == noSlot) {
+        goto noReplacement;
     }
-store:
-    candidates->slot = u;
-    return v;
-field6:
-    v = candidates->oldestGroupSlot;
-    u = candidates->oldestGroupSlot;
-    goto join;
-ret_m6:
-    return -6;
+selectSlot:
+    candidates->slot = slotByte;
+    return slotIndex;
+replaceGroup:
+    slotIndex = candidates->oldestGroupSlot;
+    slotByte  = candidates->oldestGroupSlot;
+    goto checkCandidate;
+noReplacement:
+    return SOUND_SCRIPT_SLOT_NO_REPLACEMENT;
 }
 
-static void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndBankSlot* slot, SndScriptEntryControls* entryControls)
+/// Discards every hardware allocation on a script's old voice chain before reuse.
+///
+/// The chain must stay live for the walk. Clears callbacks before releasing
+/// slots so completion cannot unlink a record while its next link is needed.
+static inline void _sndScriptDiscardVoices(_SndVoice* voice)
 {
-    _SndScript*             p;
-    _SndVoice*              node;
+    if (voice != NULL) {
+        do {
+            spuKeyOff(voice->spuVoice);
+            voice->allocated = 0;
+            spuClearVoiceCallback(voice->spuVoice);
+            spuReleaseVoiceSlot(voice->spuVoice);
+            voice->spuVoice = 0;
+            voice           = voice->next;
+        } while (voice != NULL);
+    }
+}
+
+/// Replaces one chosen script slot and schedules its new entry for the next update.
+///
+/// `scriptSlotIndex` must be 0..7. Existing voices are keyed off, unregistered
+/// and released before the slot borrows the new bank and its oneC byte cursor.
+/// `soundId` is already resolved; pan and attenuation retain signed-byte mix
+/// units. The bank image and sample tables must stay loaded through playback.
+/// This stores the new cursor and unducked-volume policy; the interpreter
+/// reloads `entryControls` when oneC executes, rather than on this call.
+static void _sndScriptStartSlot(s32 scriptSlotIndex, s8 panOffset, s8 attenuation, s32 soundId, SndBankSlot* bankSlot, SndScriptEntryControls* entryControls)
+{
+    _SndScript*             script;
     SndScriptEntryControls* controls;
     u16                     flags;
 
+    // Release the previous hardware allocations before publishing the new instance.
     controls = entryControls;
-    p        = &SndScript_Slots[arg0];
-    node     = p->voices;
-    if (node != NULL) {
-        do {
-            spuKeyOff(node->spuVoice);
-            node->allocated = 0;
-            spuClearVoiceCallback(node->spuVoice);
-            spuReleaseVoiceSlot(node->spuVoice);
-            node->spuVoice = 0;
-            node           = node->next;
-        } while (node != NULL);
-    }
-    p->state             = SOUND_SCRIPT_STARTING;
-    p->voices            = NULL;
-    p->bankSlot          = slot;
-    p->soundId           = arg3;
-    p->runningTicks      = 0;
-    p->panOffset         = arg1;
-    p->attenuation       = arg2;
-    p->loopDepth         = 0;
-    flags                = controls->flags;
-    p->cursor            = (u8*)entryControls;
-    p->useUnduckedVolume = (flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME) != 0;
+    script   = &SndScript_Slots[scriptSlotIndex];
+    _sndScriptDiscardVoices(script->voices);
+    script->state             = SOUND_SCRIPT_STARTING;
+    script->voices            = NULL;
+    script->bankSlot          = bankSlot;
+    script->soundId           = soundId;
+    script->runningTicks      = 0;
+    script->panOffset         = panOffset;
+    script->attenuation       = attenuation;
+    script->loopDepth         = 0;
+    flags                     = controls->flags;
+    script->cursor            = (u8*)entryControls;
+    script->useUnduckedVolume = (flags & SOUND_SCRIPT_USE_UNDUCKED_VOLUME) != 0;
 }
 
 /// Releases and unlinks a script voice when the SPU voice ends or is stolen.
@@ -2386,21 +2486,30 @@ void sndBankSlotReleaseImage(s32 slotIndex)
     }
 }
 
-static _SndVoice* SndVoice_Alloc(s32 arg0)
+/// Takes an SPU voice from the script/shared ranges and binds its resident record.
+///
+/// Only the low unsigned halfword of `voicePriority` participates. The ranges
+/// must remain within hardware voices 16..23: script voices 18..23 are tried
+/// before shared voices 16..17. Returns the corresponding live record or NULL
+/// on refusal. Reassignment detaches its prior owner through the SPU callback;
+/// the caller must key on and attach it, or release and clear the registration.
+static _SndVoice* _sndVoiceAlloc(s32 voicePriority)
 {
-    s32        voiceIdx;
-    _SndVoice* ptr;
+    enum { SOUND_SCRIPT_FIRST_SPU_VOICE     = 16,
+           SOUND_SCRIPT_VOICE_PRIORITY_MASK = 0xFFFF };
+    s32        spuVoiceIndex;
+    _SndVoice* voice;
 
-    voiceIdx = (s8)spuAllocVoice(SndScript_VoiceRanges, 2, arg0 & 0xFFFF);
-    if (voiceIdx < 0) {
+    spuVoiceIndex = (s8)spuAllocVoice(SndScript_VoiceRanges, ARRAY_SIZE(SndScript_VoiceRanges), voicePriority & SOUND_SCRIPT_VOICE_PRIORITY_MASK);
+    if (spuVoiceIndex < 0) {
         return NULL;
     }
     /* Ranges 1 and 2 cover hardware voices 16..23. */
-    ptr           = &SndScript_Voices[voiceIdx - 16];
-    ptr->spuVoice = voiceIdx;
-    spuSetVoiceCallback(voiceIdx, _sndVoiceDetach, ptr);
-    ptr->allocated = 1;
-    return ptr;
+    voice           = &SndScript_Voices[spuVoiceIndex - SOUND_SCRIPT_FIRST_SPU_VOICE];
+    voice->spuVoice = spuVoiceIndex;
+    spuSetVoiceCallback(spuVoiceIndex, _sndVoiceDetach, voice);
+    voice->allocated = 1;
+    return voice;
 }
 
 /// Links a script voice at the head of its owner's doubly linked voice list.
@@ -2433,12 +2542,23 @@ static void _sndVoiceAttach(_SndScript* script, _SndVoice* voice)
     voice->script = NULL;
 }
 
-static s32 SndVoice_Tick(_SndVoice* voice)
+/// Advances a scripted voice's gate and active pitch envelope for one audio update.
+///
+/// Gate time is 16.16 script ticks; each update subtracts one tick, or
+/// 39321/65536 on PAL. `SOUND_SCRIPT_NOTE_HELD` never counts down. Key-off is
+/// requested on the update after the clock reaches or crosses zero and on
+/// later expired-gate updates. Only a held envelope is armed for release here;
+/// active envelope playback continues on both sides of gate expiry. Returns 0.
+static s32 _sndVoiceTick(_SndVoice* voice)
 {
-    s32 temp;
+    enum {
+        SOUND_SCRIPT_GATE_STEP_PAL   = 0xFFFF6667,
+        SOUND_SCRIPT_GATE_STEP_WHOLE = 0xFFFF0000
+    };
+    s32 remainingGateTicks;
 
-    temp = voice->gateClock;
-    if (temp <= 0) {
+    remainingGateTicks = voice->gateClock;
+    if (remainingGateTicks <= 0) {
         voice->gateClock = 0;
         spuKeyOff(voice->spuVoice);
         if (voice->envelope.active != 0) {
@@ -2446,65 +2566,90 @@ static s32 SndVoice_Tick(_SndVoice* voice)
                 voice->envelope.releaseRequest = SOUND_VOICE_ENVELOPE_RELEASE_PENDING;
             }
             if (voice->envelope.active != 0) {
-                SndVoice_TickEnvelope(voice);
+                _sndVoiceTickPitchEnvelope(voice);
             }
         }
     } else {
-        if (temp <= 0x7FFFFFFE) {
+        if (remainingGateTicks <= SOUND_SCRIPT_NOTE_HELD - 1) {
             if (gDisplayState.region == MODE_PAL) {
-                voice->gateClock = temp + 0xFFFF6667;
+                voice->gateClock = remainingGateTicks + SOUND_SCRIPT_GATE_STEP_PAL;
             } else {
-                voice->gateClock = temp + 0xFFFF0000;
+                voice->gateClock = remainingGateTicks + SOUND_SCRIPT_GATE_STEP_WHOLE;
             }
         }
         if (voice->envelope.active != 0) {
-            SndVoice_TickEnvelope(voice);
+            _sndVoiceTickPitchEnvelope(voice);
         }
     }
     return 0;
 }
 
-static s32 SndScript_TickVoices(_SndScript* script)
+/// Requests key-off and pitch-envelope release for the voices of a stopped script.
+///
+/// Keep-release stops key off directly. Other stops set ADSR release rate 5
+/// while preserving the exponential-mode bit, unless cached key status is
+/// already off; an off key with an active ADSR envelope needs no second key-off.
+/// Every active pitch player is armed for release again, including an already
+/// releasing one, so its next update recaptures the step from its ramp offset.
+/// Returns the number of active pitch-envelope voices, which keep the script
+/// slot alive. The script and attached voice list must remain valid throughout.
+static s32 _sndScriptReleaseVoices(_SndScript* script)
 {
+    enum {
+        SOUND_SCRIPT_ADSR_RELEASE_RATE_MASK = 0x1F,
+        SOUND_SCRIPT_ADSR_FAST_RELEASE_RATE = 5
+    };
     SpuVoiceRef voiceRef;
-    _SndVoice*  node;
+    _SndVoice*  voice;
     _SndVoice*  head;
-    s32         count;
-    u8          status;
-    u16         temp;
+    s32         activeEnvelopeCount;
+    u8          keyStatus;
+    u16         adsr2;
 
-    head  = script->voices;
-    count = 0;
+    /// Queues fast release using the caller's halfword scratch variable.
+    ///
+    /// `ref` must be a side-effect-free SpuVoiceRef lvalue and `releaseBits` a
+    /// u16 lvalue; both are evaluated repeatedly. Uses this function's release
+    /// constants and preserves every ADSR bit outside the five-bit rate.
+#define SOUND_SCRIPT_SET_FAST_RELEASE(ref, releaseBits)                          \
+    do {                                                                         \
+        (releaseBits) = (ref).attr->adsr2;                                       \
+        (releaseBits) = ((releaseBits) & ~SOUND_SCRIPT_ADSR_RELEASE_RATE_MASK) | \
+                        SOUND_SCRIPT_ADSR_FAST_RELEASE_RATE;                     \
+        (ref).attr->adsr2 = (releaseBits);                                       \
+        (ref).attr->mask |= SPU_VOICE_ADSR_ADSR2;                                \
+    } while (0)
+
+    head                = script->voices;
+    activeEnvelopeCount = 0;
     if (head != NULL) {
-        node = head;
+        voice = head;
         do {
-            if (node->spuVoice >= 0) {
+            if (voice->spuVoice >= 0) {
                 // Keep the voice's ADSR only for an explicit keep-release stop.
                 if (script->keepRelease != SOUND_SCRIPT_KEEP_RELEASE) {
-                    status = spuGetVoiceKeyStatus(node->spuVoice);
-                    if (status != SPU_OFF) {
-                        spuGetVoiceRef(node->spuVoice, &voiceRef);
-                        temp                 = voiceRef.attr->adsr2;
-                        temp                 = (temp & 0xFFE0) | 5;
-                        voiceRef.attr->adsr2 = temp;
-                        voiceRef.attr->mask |= SPU_VOICE_ADSR_ADSR2;
-                        if (status != SPU_OFF_ENV_ON) {
-                            spuKeyOff(node->spuVoice);
+                    keyStatus = spuGetVoiceKeyStatus(voice->spuVoice);
+                    if (keyStatus != SPU_OFF) {
+                        spuGetVoiceRef(voice->spuVoice, &voiceRef);
+                        SOUND_SCRIPT_SET_FAST_RELEASE(voiceRef, adsr2);
+                        if (keyStatus != SPU_OFF_ENV_ON) {
+                            spuKeyOff(voice->spuVoice);
                         }
                     }
                 } else {
-                    spuKeyOff(node->spuVoice);
+                    spuKeyOff(voice->spuVoice);
                 }
-                if (node->envelope.active != 0) {
-                    count                        += 1;
-                    node->envelope.releaseRequest = SOUND_VOICE_ENVELOPE_RELEASE_PENDING;
+                if (voice->envelope.active != 0) {
+                    activeEnvelopeCount           += 1;
+                    voice->envelope.releaseRequest = SOUND_VOICE_ENVELOPE_RELEASE_PENDING;
                 }
             }
-            node = node->next;
-        } while (node != NULL);
+            voice = voice->next;
+        } while (voice != NULL);
     }
-    return count;
+    return activeEnvelopeCount;
 }
+#undef SOUND_SCRIPT_SET_FAST_RELEASE
 
 /// Calculates the current stereo SPU volumes for one scripted voice.
 ///

@@ -484,9 +484,47 @@ void Snd_SetMutedVolumes(s32 arg0);
 
 void SndVoice_KeyOffMatching(void);
 
-s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, SndBankSlot* slot, SndScriptEntryControls* entryControls);
+/// Script-slot sentinel and start refusals; successful `sndScriptTryStart` results are 0..7.
+enum {
+    SOUND_SCRIPT_SLOT_NONE                 = -1,
+    SOUND_SCRIPT_SLOT_RETRIGGER_TOO_SOON   = -5,
+    SOUND_SCRIPT_SLOT_NO_REPLACEMENT       = -6,
+    SOUND_SCRIPT_SLOT_REPLACEMENT_DISABLED = -9
+};
 
-s32 SndScript_StopMatching(s32 arg0, s32 arg1);
+/// Starts a sound-script instance in a free or replaceable resident slot.
+///
+/// `soundId` is the resolved bank/instance/entry id. `panOffset` and
+/// `attenuation` are signed-byte mix controls as for `sndEvtRequestScriptStart`.
+/// A free slot is preferred only below `entryControls->maxInstances`.
+/// Otherwise replacement requires a retrigger limit other than -1 and a newest
+/// group age at least that limit, in running audio updates. Selection then
+/// prefers the oldest group member, a lower priority, or an equal priority.
+/// Returns the selected slot 0..7 or a SOUND_SCRIPT_SLOT_ refusal above.
+///
+/// Existing non-idle, non-stopping slots must have valid entry controls for
+/// the survey. The selected slot's old voices are released immediately; its
+/// commands begin on the next script update. `bankSlot`, its image and sample
+/// tables are borrowed and must remain loaded until playback finishes.
+s32 sndScriptTryStart(s32 soundId, s8 panOffset, s8 attenuation, SndBankSlot* bankSlot, SndScriptEntryControls* entryControls);
+
+/// Applies a stop to matching resident script instances without remapping the selector.
+///
+/// A zero entry byte compares the entire selector with each id's top nibble;
+/// `SOUND_BANK_TYPE_ALL_NON_AMBIENT` selects every type except ambient type 6.
+/// This path stops every non-idle, non-stopping match immediately and replaces
+/// its release policy: only control 1 keeps the ADSR. A concrete type-1 bank id
+/// with a zero entry byte cannot equal the top nibble, including one produced
+/// by queue-time type-1 remapping.
+///
+/// A nonzero entry selects an exact id, or every instance when bits 8..15 are
+/// all set. Running slots fade for controls other than 0 and 1; control 1
+/// preserves ADSR, while 0 retains the slot's previous release policy. Starting
+/// slots become idle; stopping, muting and unmuting slots stop without a fade
+/// or release-policy change. Other states are left alone. Fade duration is in
+/// audio updates; the event producer limits it to an unsigned halfword.
+/// Returns -2 for a type scan and 7 for an entry scan, even with no match.
+s32 sndScriptStopMatching(s32 soundSelector, s32 stopControl);
 
 /// Starts a mute or unmute ramp on every matching sound-script instance.
 ///
@@ -523,7 +561,16 @@ void sndScriptRampMix(s32 scriptSlotIndex, s32 panOffset, s32 attenuation);
 /// voice visited during audio updates. Hardware mixing is deferred to that update.
 void sndScriptRampVolume(s32 scriptSlotIndex, s32 volumeScale);
 
-void SndVoice_IncRefCount(void);
+/// Acquires one nested request to duck the sound-script master gain toward 48.
+///
+/// The first request, when no ramp or saved level is active and the current
+/// gain is at least 48, saves it and starts an eight-level downward step per
+/// audio update. Further requests only increment the volatile count, which
+/// callers must keep within signed-word range. `SndVoice_TickRefCount` releases
+/// a request; its last release starts restoration of a saved gain. Entries
+/// with the unducked-volume flag retain that saved gain. An acquisition during
+/// an existing ramp does not restart ducking.
+void sndScriptAcquireDuck(void);
 
 void SndVoice_TickRefCount(void);
 

@@ -387,7 +387,7 @@ void Gp_LoadState2(Task* task)
         }
         memInitAuxHeap();
         Gp_ApplyNpcRoomSnd();
-        Snd_InitFromStage(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+        sndScriptResetForArea(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
             gStageSceneMusicEntry = 1;
         } else {
@@ -500,7 +500,7 @@ void Gp_LoadWaitSave(Task* task)
         session = gGameSession;
         if ((GAME_LOCATION_WORD(session->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 1, 0, 0)) {
             if (session->location.loc.room >= 4) {
-                Snd_InitFromStage(session->location.loc.stage, session->location.loc.area);
+                sndScriptResetForArea(session->location.loc.stage, session->location.loc.area);
                 param1[3] = gGameSession->location.loc.stage;
                 param1[2] = gGameSession->location.loc.area;
                 param1[0] = 0x16;

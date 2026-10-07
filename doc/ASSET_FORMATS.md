@@ -1018,20 +1018,20 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
 
 All retail SPK program regions use Square’s **`hONE` SndScript**, not SMF
 MIDI (`MThd` never appears in SPK blobs). The game’s `Midi_InitSequence` path
-expects SMF; SPK playback goes through **`SndScript_Exec`** (`one*` opcodes).
+expects SMF; SPK playback goes through **`_sndScriptExecCommand`** (`one*` opcodes).
 
 | Gap | Notes |
 |-----|--------|
 | **`hONE` header** | Layout known from the loader: 4-byte magic, `u16` bank id, `u16` entry count, then that many `u16` offsets of entry blocks relative to the header |
 | **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — the command structs are typed beside the interpreter in `src/main/sndscript.c` (`oneC` in `src/main/sound_types.h`); still need a stream walker |
-| **`SndScript_Exec`** | Decompiled in `src/main/sndscript.c` — authoritative interpreter for timing and opcodes |
+| **`_sndScriptExecCommand`** | Decompiled in `src/main/sndscript.c` — authoritative interpreter for timing and opcodes |
 | **Timed event list** | Needs Wait/Loop stack + timebase (script ticks vs frame rate) |
 | **Audio mix / “play the song”** | Needs timed events + pitch (root/fine/`oneV`, `oneE` envelope) + vol/pan + ADSR (`oneA`) + polyphony; samples alone are not enough |
 | **WAV → SPK encoder** | Not planned; matching packs use raw |
 | **SMF export** | Optional convenience only — not native format |
 
 Suggested roadmap: (1) structural `hONE` → JSON events, (2) timed events after
-`SndScript_Exec` reverse, (3) naive mixer to a single WAV, (4) closer SPU model.
+`_sndScriptExecCommand` reverse, (3) naive mixer to a single WAV, (4) closer SPU model.
 
 ### 10.2 Other types
 

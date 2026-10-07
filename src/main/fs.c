@@ -536,7 +536,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                 _fsSeekToSector(sector);
                 return sector & 0xFFFF;
             case 2:
-                Snd_InitFromStage(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+                sndScriptResetForArea(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 Fs_ChunkMode = 1;
                 break;
             case 3:

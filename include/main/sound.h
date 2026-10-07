@@ -126,7 +126,22 @@ enum {
 /// release the music mute gate. Both arguments are copied into the event.
 s32 sndEvtRequestMidiVolume(s32 sequenceSelector, s32 volumeScale);
 
-void Snd_InitFromStage(s32 arg0, s32 arg1);
+/// Resets transient sound banks and script playback for an area's load.
+///
+/// Only the low bytes of `stage` and `area` are used; stage must be 0..5.
+/// Selects the area's script reverb level, resets duck-request nesting and
+/// character sample allocation, and enables character requests. Type-1 and
+/// area slots are marked idle before deferred key-off; stops are queued for
+/// those types, the common entry 13, weapons and PE scripts, preserving ADSR.
+/// A loaded type-1 bank stamps its concrete id onto the type-only stop, which
+/// then cannot match the stop handler's type comparison.
+///
+/// Releases type-1, area, type-3 and transient character bank resources while
+/// retaining boot-reserved banks and character slot 4 under the load-mode
+/// policy. Call as part of serialized area loading; this resets live loader
+/// pointers rather than completing an in-flight load. A full event pool drops
+/// the deferred commands independently of the immediate cleanup.
+void sndScriptResetForArea(s32 stage, s32 area);
 
 /// Script-start selectors that return unchanged without queuing an event.
 enum {
@@ -183,7 +198,19 @@ s32 sndEvtRequestScriptStart(s32 soundId, s32 panOffset, s32 attenuation);
 /// ramps advance during audio updates, including extra PAL updates.
 void sndEvtRequestScriptMix(s32 soundId, s32 panOffset, s32 attenuation);
 
-void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1);
+/// Queues a volume-scale change for the first qualifying instance of a sound-script id.
+///
+/// The requested bank type must be enabled; a disabled type or full event pool
+/// silently drops the request. Type-1 ids resolve against the currently loaded
+/// type-1 bank, whose matching slot must hold a completed image during this
+/// call. Dispatch selects the first exact-id starting, running, releasing or
+/// fading-out instance; no match is ignored, and muting/unmuting are excluded.
+///
+/// Only the low byte of `volumeScale` is stored. A byte with bit 7 set becomes
+/// 127; otherwise 0 is silent and 127 full scale. Dispatch targets the complement
+/// as attenuation, snapping differences through 32 and stepping larger ones
+/// by 8 per voice visit. Hardware mixing is deferred to audio updates.
+void sndEvtRequestScriptVolume(s32 soundId, s32 volumeScale);
 
 /// Sets admission gates for sound-script starts, mute/unmute and mix requests.
 ///

@@ -3193,7 +3193,7 @@ void func_acropolis_plaza_8017ECF8(Task* task)
                 memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 memSelectAuxHeapRegion(true);
                 tmdResetAuxHeapAndRestoreBuffers();
-                SndEvt_EnqueueTypeB(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), 0x26);
+                sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), 0x26);
                 task->state = task->state + 1;
                 return;
             }
@@ -3368,7 +3368,7 @@ void func_acropolis_plaza_8017F620(Task* task)
     do {                                                \
         if (*(state) == 0) {                            \
             sndEvtRequestScriptStart((sndId), 0, 0x7F); \
-            SndEvt_EnqueueTypeB((sndId), 0);            \
+            sndEvtRequestScriptVolume((sndId), 0);      \
             *(state) = 1;                               \
             return;                                     \
         }                                               \
@@ -3403,7 +3403,7 @@ static void func_acropolis_plaza_8017F770(u16 fadeIn, u16 fadeOut, u16 hold, u16
         } else {
             vol = ((0x82 - q->sceneFrame) * 0x17D) / 184;
         }
-        SndEvt_EnqueueTypeB(sndId, vol);
+        sndEvtRequestScriptVolume(sndId, vol);
         return;
     }
     if (*state != 0) {
@@ -3446,7 +3446,7 @@ static void func_acropolis_plaza_8017F9EC(Task* task)
             } else {
                 vol = (((0x73 - *frame) * 0x7F) / 120) + 0x5F;
             }
-            SndEvt_EnqueueTypeB(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 1), vol & 0xFF);
+            sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 1), vol & 0xFF);
             break;
     }
 }

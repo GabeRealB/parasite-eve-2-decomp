@@ -748,7 +748,7 @@ static void SndEvt_HandleAllocVoice(SndEvt* event)
     SndEvtScriptArgs* args;
 
     args = &event->args.script;
-    SndVoice_AllocSlot(args->soundId, args->panOffset, args->level.attenuation, args->bankSlot, args->entryControls);
+    sndScriptTryStart(args->soundId, args->panOffset, args->level.attenuation, args->bankSlot, args->entryControls);
 }
 
 static void SndEvt_HandleType7(SndEvt* event)
@@ -756,7 +756,7 @@ static void SndEvt_HandleType7(SndEvt* event)
     SndEvtScriptArgs* args;
 
     args = &event->args.script;
-    SndScript_StopMatching(args->soundId, args->stopControl);
+    sndScriptStopMatching(args->soundId, args->stopControl);
 }
 
 static void SndEvt_HandleFadeMatchingOn(SndEvt* event)
@@ -795,7 +795,7 @@ static void SndEvt_HandleVolumeRamp(SndEvt* event)
 
 static void SndEvt_HandleRefCountInc(SndEvt* unused)
 {
-    SndVoice_IncRefCount();
+    sndScriptAcquireDuck();
 }
 
 static void SndEvt_HandleRefCountDec(SndEvt* unused)

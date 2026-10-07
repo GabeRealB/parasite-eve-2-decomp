@@ -701,7 +701,7 @@ enum {
 
 /// stage-relative.
 enum {
-    /// Not a single sound: a type-5 wildcard that SndScript_StopMatching /
+    /// Not a single sound: a type-5 wildcard that sndScriptStopMatching /
     /// sndScriptSetMuteMatching match against every playing area-bank sound (high nibble
     /// compare), used to stop all area sounds on stage init and before the companion-
     /// death sting, and to mute/unmute them while the game menu is open.
