@@ -9241,7 +9241,7 @@ if (rnd != one) {          /* beq a0, a2, case1; slti delay */
 goto case1;
 ```
 
-`Actor01600_Fn01420` is the example. `TOUCH_REG(bits)` after
+`_actor01600StepBehavior` is the example. `TOUCH_REG(bits)` after
 `bits = 0x40100000` keeps `lui 0x4010` above an independent `lw` of the
 spawn pointer; without it the scheduler emits `lw` then `lui`. After the
 following `jal`, copy the first two `sndEvtRequestScriptStart` args into temps
@@ -44787,20 +44787,20 @@ shape the target usually does not have.
 
 Moving the whole alloc/use/free sequence into a `static __inline__` helper
 restores the per-access macro form, because the inliner re-expands the body and
-each constant ends up with a single use again. `Actor01600_Fn04054` went from
+each constant ends up with a single use again. `_actor01600StepDeath` went from
 96.8% to 99.4% on this change alone:
 
 ```c
-static __inline__ void update_actor_color(Actor01600Ctx* ctx, GfxCoord* attach)
+static __inline__ void _actor01600SampleColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord)
 {
-    u8*     head  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
-    VECTOR* block = (VECTOR*)(head - 0x10);
+    VECTOR* scratchCursor = SCRATCH_STACK_CURSOR(VECTOR);
+    VECTOR* position      = scratchCursor - 1;
 
-    *(VECTOR**)SCRATCH_STACK_CURSOR_SLOT = block;
-    block->vx = attach->workm.t[0];
+    SCRATCH_STACK_CURSOR(VECTOR) = position;
+    position->vx = sampleCoord->workm.t[0];
     /* … */
-    worldCoordUpdateActorColor(ctx, block, 0, 0);
-    *(u8**)SCRATCH_STACK_CURSOR_SLOT = (u8*)*SCRATCH_STACK_CURSOR_SLOT + 0x10;
+    worldCoordUpdateActorColor(enemy, position, 0, 0);
+    SCRATCH_STACK_CURSOR(u8) = SCRATCH_STACK_CURSOR(u8) + sizeof(*position);
 }
 ```
 
@@ -44845,7 +44845,7 @@ register Actor01600* task asm("a0");
 
 task = arg1;
 if (state->field_1C >= 3) {
-    if (Actor01600_Fn06F78(task) == 1) { … }
+    if (_actor01600CheckSceneChildrenHidden() == 1) { … }
 } else {
     sceneReleaseBattleRefWithRewards(task, 0x10);
 }
@@ -44860,7 +44860,7 @@ uses `a0` normally for the rest.
 `Actor01600_L041BC` is 0x7C bytes with no prologue, saved registers set up by
 somebody else, and a `j` to a sibling label as its last instruction. Splat named
 it because it is a branch target, not because it is callable. Match the enclosing
-`Fn` symbol instead — here `Actor01600_Fn04054`, 0x4054..0x45A8, 341 instructions
+`Fn` symbol instead — here `_actor01600StepDeath`, 0x4054..0x45A8, 341 instructions
 split across 25 labels — then mark every interior label `// type:label` in each
 sharer's `configs/USA/sym/<family>/<overlay>.txt` and delete the whole run of
 `INCLUDE_ASM` lines. `Actor02100_L03334` is the earlier worked example.
@@ -45255,7 +45255,7 @@ rest duplicated. Read that boundary backwards: whatever is still duplicated in
 every arm was written inside the case body in the source, and the merged block
 is what came after the `switch`.
 
-`Actor01600_Fn01420` picks one of three sound ids and plays it:
+`_actor01600StepBehavior` picks one of three sound ids and plays it:
 
 ```
 L01730: lui v1,0x4010 ; lw v0,0x20(s0) ; j L0175C ; ori v1,v1,0x6
@@ -45916,7 +45916,7 @@ lw   a1,8(v0)
 *after* the `sw` to the bare scalar `D_80062730`, and reaches that scalar
 through `%lo(D_80062730)` - so the aggregate and owning-struct forms are both
 excluded by the bytes (`D_80062730` is `D_800626EC[5].data.model`, and the sibling
-`Actor01600_Fn0646C` in the same build compiles `D_800626EC[5].data.model = x` to
+`_actor01600SpawnBurstParts` in the same build compiles `D_800626EC[5].data.model = x` to
 `lui $v0,%hi(D_800626EC); addiu $s1,$v0,%lo(D_800626EC); … sw $v0,0x44($s1)`).
 Writing the field as a typed member - `index->field_2C->field_8 + 3` - scores
 93.291%, with those loads floated above the `sw`; `SOFT_BARRIER()` after the
@@ -64210,7 +64210,7 @@ src/<family>/lib defines it` and stops. The tempting reading is "define it
 there first, then re-run" — but if that owner is a whole-overlay text unit,
 re-running is exactly the oversized-span mistake the previous entry describes.
 
-`func_actor_104600_80134690` hit this: its `lib` copy is `Actor01600_Fn06810`
+`func_actor_104600_80134690` hit this: its `lib` copy is `_actor01600RefreshBodyColor`
 inside `actor_101600_text`, which spans `0x1F4..0x7114` for a 0x70-byte body.
 The fix is the same `--unit actors_shared_<addr>`, which serves the carriers
 that hold the body once. Filling the oversized unit's own stub is then a
@@ -75380,7 +75380,7 @@ The successful controlled prediction used an SI flag assigned **after** the half
 
 Evidence: `tools/permuter_findings/_actor01600TryBeginLunge/` retained session notes, inputs, and `PERMUTER_EVIDENCE/manual-resolution/` dumps. base_5 preprocessed SHA256 `690942890b29b21da96b4dd7879f4c6e2973c5abcb214cc02989b6230b37d03e`; compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. The bounded permuter found no discovery; this gain came from the subsequent manual prediction.
 
-### Actor01600_Fn0646C: address-of-member indirection changes scheduler alias metadata
+### _actor01600SpawnBurstParts: address-of-member indirection changes scheduler alias metadata
 
 A fixed scalar global store followed by `index->field_2C` has no store/load
 dependence under GCC 2.8.1's fixed-scalar/varying-structure exemption. The
@@ -75400,12 +75400,12 @@ CODEGEN_MODEL.md §11, not a rule that all pointer temporaries affect codegen.
 
 Input SHA256: base_6 `3f68f5dabcc97dfa30e6e66efbfeeb4f74e0e160e85077b2b5db1c9357dc34aa`;
 base_7 `2985b974131a42e931fbc8db03baa8cceab4718b24b9da1b91b75ac911c1b588`.
-Retained notes/dumps: `tools/permuter_findings/Actor01600_Fn0646C/`, session
+Retained notes/dumps: `tools/permuter_findings/_actor01600SpawnBurstParts/`, session
 `9b0a89d1eb814282a3934dec1258159a`, search `ca5c0aa1f03c4bba`.
 
 ## Actor01600 ground quad: loop boundaries preserve store/setup dependencies
 
-A controlled `Actor01600_Fn03EEC` experiment added only a single-iteration
+A controlled `_actor01600DrawGroundShadow` experiment added only a single-iteration
 `do/while (0)` around the scratch calculation (`base_2` -> `base_3`). Distance
 fell 413 -> 193. In `base_3.i.sched`, final z store UID128 precedes argument
 copy UID141 through REG_DEP_ANTI; argument constants UID143/145 depend on that
@@ -75422,7 +75422,7 @@ the mode; `.greg` places pointer r88 in v1, mode r87 in v0, body r82 in a0, and
 ordering survived, as predicted. No pins. Other z-arithmetic register differences
 required separate work; the final touched-z quantity mechanism remains untraced.
 
-Evidence: `tools/permuter_findings/Actor01600_Fn03EEC/` retained session
+Evidence: `tools/permuter_findings/_actor01600DrawGroundShadow/` retained session
 `ae23862a361a4d4aa32c2c20c8af1929`, including plans, sources, dumps and paired
 router inputs. Patched bundled GCC 2.8.1, ordinary scratch flags.
 
@@ -103928,7 +103928,7 @@ so where the free sits in C picks which of the two equal-length chains (the
 scratch-pointer update vs the last `coord->t[]` add) is released first. The
 seed had m2c's statement order, with the free *between* the `t[1]` and `t[2]`
 updates because that is where the asm's instructions sit; moving it after all
-three updates — as the sibling `Actor01600_Fn06810` writes it — is the 100%
+three updates — as the sibling `_actor01600RefreshBodyColor` writes it — is the 100%
 move (`base_3.i` 96.84% → `base_4.i` 100%). Do not read the asm's instruction
 order back into statement order for an independent chain like this.
 
@@ -104002,10 +104002,10 @@ Inputs: `base.i`
 `f13eb9f96bb853f83bf88657dd9c32831bfac4205939bf37fe97745dc143695a` (one vector, 100.000%).
 Scratch `nonmatchings/_actor01600SelectNearestPlayer-vacuum`.
 
-## A 16-bit temporary is an HImode pseudo, and a store of it costs a second load (Actor01600_Fn05F80, 2026-09-16)
+## A 16-bit temporary is an HImode pseudo, and a store of it costs a second load (_actor01600StepStagedMotion, 2026-09-16)
 
 A halfword field read into a *short* local and then both compared and stored
-loads twice where the target loads once. `Actor01600_Fn05F80` switches on
+loads twice where the target loads once. `_actor01600StepStagedMotion` switches on
 `work->scriptedAnim` and stores that same value into `work->animRequest` in each
 case arm:
 
@@ -104061,11 +104061,11 @@ Inputs: `base_4.i`
 `9fe16cea7d762765f8a36d4f98555a42526d3e0a505c5fb96419e263c671bdb0` (98.556%,
 `regs=3`), `base_5.i`
 `20eeafbc1153139decd8dad0a59e29eb12d5cc70084a7023fd4b0fee89458f95`
-(100.000%). Scratch `nonmatchings/Actor01600_Fn05F80-vacuum`.
+(100.000%). Scratch `nonmatchings/_actor01600StepStagedMotion-vacuum`.
 
-## A load and a store are a dependence to sched1, so the C statement order fixes their order (Actor01600_Fn05F80, 2026-09-16)
+## A load and a store are a dependence to sched1, so the C statement order fixes their order (_actor01600StepStagedMotion, 2026-09-16)
 
-`Actor01600_Fn05F80` builds a rotation `SVECTOR` in a local and hands
+`_actor01600StepStagedMotion` builds a rotation `SVECTOR` in a local and hands
 `RotMatrix` a pointer into the actor's coordinate array. The target schedules the
 two argument loads for `index->field_2C->field_8` *above* the three `sh` stores
 that build the vector; the seed had them below, for `reorder=4` on an otherwise
@@ -104115,7 +104115,7 @@ Inputs: `base_4.i`
 `9fe16cea7d762765f8a36d4f98555a42526d3e0a505c5fb96419e263c671bdb0` (98.556%,
 `reorder=4`), `base_5.i`
 `20eeafbc1153139decd8dad0a59e29eb12d5cc70084a7023fd4b0fee89458f95`
-(100.000%). Scratch `nonmatchings/Actor01600_Fn05F80-vacuum`.
+(100.000%). Scratch `nonmatchings/_actor01600StepStagedMotion-vacuum`.
 
 ## Writing a subexpression out again shifts every later INSN_LUID, and that is the reorder lever (_actor01600StepRecoil, 2026-09-16)
 
@@ -107115,7 +107115,7 @@ m2c read the blend length the walk is seeded with as `s16 blendFrames`, so `blen
 an HImode pseudo (`movhi_internal2/2`); global alloc gave that pseudo `$a1`,
 leaving no register for the cse copy and pushing the zero through
 `lhu`/`sll 16`/`sra 16` on the way. Declaring the local `s32` - the width of the
-value, per `Actor01600_Fn05F80` above - puts `move s2,zero` straight into the
+value, per `_actor01600StepStagedMotion` above - puts `move s2,zero` straight into the
 delay slot and frees `$a1`. The table the length is read from is `s16[]`; an
 untyped extern scales the index by 8 and drops an `lhu`.
 
@@ -145869,7 +145869,7 @@ tail, which cross-jumping merges). When a callee ignores trailing parameters,
 check whether the caller only "passes" them because they are already in the
 registers.
 
-## A `register asm("a0")` pin that makes both arms share one `move a0` means one arm's callee takes no argument (Actor01600_Fn04054, 2026-09-27)
+## A `register asm("a0")` pin that makes both arms share one `move a0` means one arm's callee takes no argument (_actor01600StepDeath, 2026-09-27)
 Target: `bnez v0,else` with `move a0,s2` in its delay slot, then
 `jal f / nop` on the fall-through and `jal g / li a1,0x10` at `else`. Passing the
 task to both calls gives a `move a0,s2` in *each* arm (dbr fills the `jal`'s
@@ -150248,7 +150248,7 @@ attempts; left as it was.
   alone folds to an unsigned range test.
 - **`goto block_156;` from the end of an `if (hp <= 0) { if (idx == 0) { ...;
   return; } goto block_156; }` into the `else` arm of the following `if (idx
-  == 0)`** (`Actor01600_Fn020F8`) is nothing at all: fall out of the `if` and
+  == 0)`** (`_actor01600StepAttack`) is nothing at all: fall out of the `if` and
   jump threading sends the path to the `else` arm. The `goto block_150;` next
   to it was the plain fall-through. Five gotos of that 776-line function went
   on the first build, among them `if (a) { ...; if (!f()) { stores; goto
@@ -150256,7 +150256,7 @@ attempts; left as it was.
   body`.
 - **A `dead:` block sitting between the two arms of the function's last `if`,
   entered from a case of a switch inside a loop far above**
-  (`Actor01600_Fn00BAC`) is the block written at its site, ending in
+  (`_actor01600ProcessContacts`) is the block written at its site, ending in
   `return;`. The compiler places it there on its own; eight gotos, first try.
   The mode ladder in front of it is the `case 1: case 2: case 0: default:`
   switch.
@@ -150264,7 +150264,7 @@ attempts; left as it was.
   1` and `state` locals are not needed (cse keeps the dispatch's 1 and the
   step value in saved registers for the later stores, `RAT_ANIM_IDLE` and
   `RAT_ANIM_RUN`).
-- Not converted: `Actor01600_Fn05558` (seven `goto running` to a `return 1`
+- Not converted: `_actor01600StepActivation` (seven `goto skipLiveUpdate` to a `return 1`
   label that sits after a call in the middle of case 3). Three facts from the
   attempts. (1) An `if (c) return 1;` whose following code runs without a label
   to the end of the function (the last case, ending `return 0;`) is taken by
