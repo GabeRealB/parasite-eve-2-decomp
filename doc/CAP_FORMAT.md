@@ -231,6 +231,15 @@ Variant is how many of a run of current-stage two-bit flags have value 0, 1 or
 3. With `CAP_COMMAND_BRANCH`, a zero tally continues at `nextIndex` instead of
 playing.
 
+Playback uses the caller's mode passed through `Gp_StartCapSlot` to
+`capStartSequence`: 0 spawns in the current display, and nonzero modes queue
+a display transition. Mode 2 additionally brackets playback with room-effect
+messages and delays frame capture for placed-object actions. Mode 3 also spawns
+`capClearUnstartedSequenceTask`, which releases the selection if playback has
+not begun after one task dispatch; the stored mode then becomes 1. Startup
+always returns 0, including an empty variant and an unsuccessful spawn or queue
+request. These modes share the same initial text placement and reveal settings.
+
 ## 6. Checked against a real file
 
 `assets/USA/raw/pe2cap2/pe2cap2_4.pe2cap2`. `.pe2cap2` payloads are stored
@@ -272,7 +281,7 @@ index 6 is zero, and the other entries are file-relative offsets `0xB34`,
 
 Each sequence starts with a **command header in slot zero**, followed by
 `CapSequenceRecord` playback records from slot one. `Gp_RunCapCmd` reads the
-header as `CapCommand`; `Gp_StartCap` stores the same base pointer as
+header as `CapCommand`; `capStartSequence` stores the same base pointer as
 `Gp_CapTable` but initializes its record index to one. The command and playback
 records have different meanings. Relocation starts at `sequences + 0x10`
 (`records`), after the first command, and its extra step after a terminator
@@ -310,8 +319,6 @@ uses a text code's low ten bits as its glyph-cell index after handling controls.
 - **`CapFile.field_4`** is `8` in all 213 retail CAP payloads. No loader reads
   it, and the role is unproven.
 - **Message `0x13F0`** (opcode 3) - the payload contract with slot 7's task.
-- **What `mode` selects.** `Gp_StartCap` sets a text-box geometry
-  (`0x30`, `0xC0`, `0x140`, `7`) but the per-mode differences are untraced.
 
 ## 8. Why this matters beyond extraction
 

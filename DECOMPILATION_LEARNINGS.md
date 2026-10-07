@@ -34776,7 +34776,7 @@ before `other = 0` *and* again inside `if (mode != 0)`) hoists that
 `%hi` into the previous `lui`/`sh` gap so the real `sh` can fill `beqz`
 (which forces `sll v0, s3, 16` instead of clobbering `$s3`).
 
-`Gp_StartCap` is the example.
+`capStartSequence` is the example.
 
 ## Double `asm volatile("" : "+r"(off))` so `<< 4` then `+ 4` stays `addiu`
 

@@ -1147,7 +1147,7 @@ s32 Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2)
     if (entry == 0) {
         return 1;
     }
-    return (s16)Gp_StartCap(entry, arg1, arg2);
+    return (s16)capStartSequence(entry, arg1, arg2);
 }
 
 s32 capIsBusy(void)

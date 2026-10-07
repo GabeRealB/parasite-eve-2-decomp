@@ -44,7 +44,7 @@ extern TaskMessageEntry D_neo_ark_shrine_80181E34[];
 
 extern TaskDesc D_neo_ark_shrine_80181E5C[];
 
-/// Cap event key (`Gp_StartCap`'s third argument) handed to the slot-7 event
+/// Cap event key (`capStartSequence`'s third argument) handed to the slot-7 event
 /// this room starts, so the event's exit can tell which one it was.
 extern s32 D_neo_ark_shrine_80181E74;
 

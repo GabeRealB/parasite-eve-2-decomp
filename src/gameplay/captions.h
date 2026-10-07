@@ -148,7 +148,29 @@ extern s16 D_801155BE;
 
 extern s16 D_801155C0;
 
-s32 Gp_StartCap(CapSequenceRecord* sequence, s16 arg1, s16 arg2);
+/// Starts playback of a relocated CAP sequence for the supplied variant key.
+///
+/// `sequence` borrows the command header in slot zero; the first matching record
+/// or terminator must be reachable from slot one inside the live CAP file, at
+/// an index in 1..32767. Text and the active glyph table must satisfy
+/// `capGetTextFirstBaselineY` and `capGetTextBlockHeight`'s bounds. Keep the file
+/// and glyph table loaded through playback, including any queued transition.
+/// The caller must have stopped any previous playback; no busy check is made.
+///
+/// `playbackMode` 0 spawns in the current display; 1 queues a display transition;
+/// 2 also brackets playback with room-effect messages and delays capture for
+/// placed-object actions;
+/// 3 queues the transition with an unstarted-sequence guard, then becomes mode 1.
+/// Other nonzero values queue the transition and are retained without validation.
+/// `variantKey` is signed-16 storage matched against each record's unsigned byte;
+/// keys outside 0..255 scan to the terminator. Choices and declined actions can
+/// replace it later, and completion retains the last key.
+///
+/// Always returns 0, including NULL input, no matching record and spawn failure.
+/// NULL input leaves state intact; a terminal first match clears the selection
+/// after initializing playback state. A queued request stores NULL as the task
+/// pointer even if accepted; task allocation and queue rejection are unchecked.
+s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantKey);
 
 /// Pointer to the loaded `.pe2cap2` blob (folder slot type 3).
 extern u8 D_80115688;
