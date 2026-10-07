@@ -23,9 +23,9 @@ void maggotCaterpillarSquash(Task* arg0)
     scratch->scale.vy = work->vertical.squashScale;
     scratch->scale.vz = ONE;
     coord->coord      = work->baseMatrix;
-    gfxSetRotIdentity(&scratch->matrix.mat);
-    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix.mat);
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

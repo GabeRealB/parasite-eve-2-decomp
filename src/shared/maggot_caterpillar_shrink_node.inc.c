@@ -20,8 +20,8 @@ void maggotCaterpillarShrinkNode2(Task* actor)
     blk->scale.vx = ONE / 16;
     blk->scale.vy = ONE / 16;
     blk->scale.vz = ONE / 16;
-    gfxSetRotIdentity(&blk->matrix.mat);
-    ScaleMatrix(&blk->matrix.mat, &blk->scale);
-    MulMatrix(&coord[2].coord, &blk->matrix.mat);
+    gfxSetRotIdentity(&blk->matrix);
+    ScaleMatrix(&blk->matrix, &blk->scale);
+    MulMatrix(&coord[2].coord, &blk->matrix);
     SCRATCH_POP_AT(scratch, ActorScaleScratch);
 }

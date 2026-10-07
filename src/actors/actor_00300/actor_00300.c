@@ -3107,9 +3107,9 @@ static void Actor00300_Fn03B70(Enemy* arg0, Task* arg1)
 static inline void _actor00300ApplyDrainScale(GfxCoord* coord, const MATRIX* restMatrix, ActorScaleScratch* scratch)
 {
     coord->coord = *restMatrix;
-    gfxSetRotIdentity(&scratch->matrix.mat);
-    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix.mat);
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -3751,9 +3751,9 @@ static void Actor00300_Fn0505C(Task* arg0, MATRIX* arg1, s16 arg2)
     scratch->scale.vy                       = arg2;
     scratch->scale.vz                       = ONE;
     coord->coord                            = *arg1;
-    gfxSetRotIdentity(&scratch->matrix.mat);
-    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix.mat);
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

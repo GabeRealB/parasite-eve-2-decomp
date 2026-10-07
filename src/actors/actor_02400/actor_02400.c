@@ -1092,9 +1092,9 @@ static void Actor02400_Fn0208C(Task* task)
     scratch->translation.vy                       = coord->coord.t[1];
     scratch->translation.vz                       = coord->coord.t[2];
     coord->coord                                  = work->baseMatrix;
-    gfxSetRotIdentity(&scratch->rescale.matrix.mat);
-    ScaleMatrix(&scratch->rescale.matrix.mat, &scratch->rescale.scale);
-    MulMatrix(&coord->coord, &scratch->rescale.matrix.mat);
+    gfxSetRotIdentity(&scratch->rescale.matrix);
+    ScaleMatrix(&scratch->rescale.matrix, &scratch->rescale.scale);
+    MulMatrix(&coord->coord, &scratch->rescale.matrix);
     coord->coord.t[0] = scratch->translation.vx;
     coord->coord.t[1] = scratch->translation.vy;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02400ScaleScratch);
@@ -1649,9 +1649,9 @@ static void Actor02400_Fn03278(Task* task)
     blk->scale.vy = work->scale.vy;
     blk->scale.vz = ONE;
     coord->coord  = work->baseMatrix;
-    gfxSetRotIdentity(&blk->matrix.mat);
-    ScaleMatrix(&blk->matrix.mat, &blk->scale);
-    MulMatrix(&coord->coord, &blk->matrix.mat);
+    gfxSetRotIdentity(&blk->matrix);
+    ScaleMatrix(&blk->matrix, &blk->scale);
+    MulMatrix(&coord->coord, &blk->matrix);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_POP_AT(scratch, ActorScaleScratch);
 }

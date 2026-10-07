@@ -9,10 +9,10 @@ static inline void _modelPlacementApplyRootScale(GfxCoord* rootCoord, const MATR
 {
     rootCoord->coord = *unscaledMatrix;
 
-    gfxSetRotIdentity(&scratch->matrix.mat);
+    gfxSetRotIdentity(&scratch->matrix);
 
-    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-    MulMatrix(&rootCoord->coord, &scratch->matrix.mat);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&rootCoord->coord, &scratch->matrix);
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 

@@ -2439,9 +2439,9 @@ static void Actor03800_Fn037E0(Task* arg0)
     scratch->scale.vy = work->deathScaleY;
     scratch->scale.vz = ONE;
     coord->coord      = work->savedRootMtx;
-    gfxSetRotIdentity(&scratch->matrix.mat);
-    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix.mat);
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

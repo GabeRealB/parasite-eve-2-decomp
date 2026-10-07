@@ -22,9 +22,9 @@ void mothSquash(Task* arg0)
     scratch->scale.vy = work->squashScale;
     scratch->scale.vz = ONE;
     coord->coord      = work->savedRootMtx;
-    gfxSetRotIdentity(&scratch->matrix.mat);
-    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix.mat);
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);

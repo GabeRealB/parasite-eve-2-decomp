@@ -842,9 +842,9 @@ static void func_actor_521100_801368B0(Task* task)
     scratch->scale.vy = work->st.flattenScaleY;
     scratch->scale.vz = ONE;
     coord->coord      = work->st.savedRootMtx;
-    gfxSetRotIdentity(&scratch->matrix.mat);
-    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix.mat);
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

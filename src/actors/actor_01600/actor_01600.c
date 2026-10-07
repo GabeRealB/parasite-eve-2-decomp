@@ -326,7 +326,7 @@ STATIC_ASSERT_SIZEOF(_Actor01600ContactScratch, 0x4C);
 typedef struct {
     SVECTOR   reach;    // (0, 0, length) of the probe before the turn; `pad` is never written
     SVECTOR   farEnd;   // `reach` turned by `rotation`. Its `vx` and `vz` become the capsule's far end; `vy` stays 0 and is not read, and `pad` is never written
-    GfxMatrix rotation; // Identity, written word-wise, then turned about Y by the probe's yaw, 4096 to the turn; its translation is never set or read
+    MATRIX    rotation; // Identity, written word-wise, then turned about Y by the probe's yaw, 4096 to the turn; its translation is never set or read
 } _Actor01600PathProbeAimScratch;
 STATIC_ASSERT_SIZEOF(_Actor01600PathProbeAimScratch, 0x30);
 
@@ -386,7 +386,7 @@ STATIC_ASSERT_SIZEOF(_Actor01600GroundShadowScratch, 0x18);
 typedef struct {
     VECTOR    step;     // (distance, 0, 0) with the distance cut to 16 bits, then turned by `rotation`: the offset added to the root's translation, world units; `pad` is never written
     SVECTOR   facing;   // The root's local Z axis, 4096 = 1.0; `vy` is not read and `pad` is never written
-    GfxMatrix rotation; // Identity, written word-wise, then turned about Y by `yaw`; its translation is never set or read
+    MATRIX    rotation; // Identity, written word-wise, then turned about Y by `yaw`; its translation is never set or read
     s16       yaw;      // Yaw of `facing`, 4096 to the turn
 } _Actor01600SidestepScratch;
 STATIC_ASSERT_SIZEOF(_Actor01600SidestepScratch, 0x3C);
@@ -3765,7 +3765,7 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
 {
     _Actor01600PathProbeAimScratch* scratch;
     _Actor01600Work*                work;
-    GfxMatrix*                      rotation;
+    MATRIX*                         rotation;
     SVECTOR*                        farEnd;
     s16                             temp_v0_3;
     s16                             temp_v0_4;
@@ -3797,10 +3797,10 @@ static s32 Actor01600_Fn04C64(Task* arg0, s32 distance, s32 angle)
     }
     // Turn the probe's length about Y to its yaw; the turned length is the capsule's far end.
     rotation = &scratch->rotation;
-    gfxSetRotIdentity(&rotation->mat);
-    RotMatrixY(work->probeYaw, &rotation->mat);
+    gfxSetRotIdentity(rotation);
+    RotMatrixY(work->probeYaw, rotation);
     farEnd = &scratch->farEnd;
-    gte_SetRotMatrix(&rotation->mat);
+    gte_SetRotMatrix(rotation);
     gte_ldv0(&scratch->reach);
     gte_rtv0();
     gte_stsv(farEnd);
@@ -4689,9 +4689,9 @@ static void Actor01600_Fn06880(Task* arg0)
     scratch->scale.vy = (s32)work->deathScaleY;
     scratch->scale.vz = ONE;
     coord->coord      = work->deathMatrix;
-    gfxSetRotIdentity(&scratch->matrix.mat);
-    ScaleMatrix(&scratch->matrix.mat, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix.mat);
+    gfxSetRotIdentity(&scratch->matrix);
+    ScaleMatrix(&scratch->matrix, &scratch->scale);
+    MulMatrix(&coord->coord, &scratch->matrix);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
@@ -4703,7 +4703,7 @@ static void Actor01600_Fn06880(Task* arg0)
 /// result is added to `coord.t`.
 static void Actor01600_Fn06974(Task* actor, s32 distance)
 {
-    GfxMatrix*                  rotation;
+    MATRIX*                     rotation;
     _Actor01600SidestepScratch* block;
     GfxCoord*                   coord;
 
@@ -4716,9 +4716,9 @@ static void Actor01600_Fn06974(Task* actor, s32 distance)
     gfxReadMatrixZAxis(&actor->extra.tmd->coords->coord, &block->facing);
     rotation   = &block->rotation;
     block->yaw = ratan2(block->facing.vx, block->facing.vz);
-    gfxSetRotIdentity(&rotation->mat);
-    RotMatrixY(block->yaw, &rotation->mat);
-    ApplyMatrixLV(&rotation->mat, &block->step, &block->step);
+    gfxSetRotIdentity(rotation);
+    RotMatrixY(block->yaw, rotation);
+    ApplyMatrixLV(rotation, &block->step, &block->step);
     coord->coord.t[0] += block->step.vx;
     coord->coord.t[1] += block->step.vy;
     coord->coord.t[2] += block->step.vz;
