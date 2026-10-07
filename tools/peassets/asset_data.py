@@ -5688,6 +5688,7 @@ EMBEDDED_ASSETS = {
     'desert_chaser_burst_leg_right': {"source": 'actor_400100.pe2pkg', "vram": 0x801427DC, "size": 0x3A4, "ext": '.tmd', "type": 'model'},
     'dryfield_breezeway_clut_05984': {"source": 'dryfield_breezeway.pe2pkg', "vram": 0x80182F44, "size": 0x200, "ext": '.clut', "type": 'clut', "include": 'u32'},
     'zebra_stalker_burst_foot_left': {"source": 'actor_400600.pe2pkg', "vram": 0x80144208, "size": 0x2F0, "ext": '.tmd', "type": 'model'},
+    'acropolis_promenade_path_03BC4': {"source": 'acropolis_promenade.pe2pkg', "vram": 0x80181184, "size": 0x960, "ext": '.path', "type": 'movie_path', "include": 'u16'},
     'dryfield_breezeway_image_05864': {"source": 'dryfield_breezeway.pe2pkg', "vram": 0x80182E24, "size": 0x100, "ext": '.img', "type": 'image', "include": 'u32'},
     'dryfield_breezeway_model_04E8C': {"source": 'dryfield_breezeway.pe2pkg', "vram": 0x8018244C, "size": 0x950, "ext": '.tmd', "type": 'model'},
     'dryfield_junk_yard_model_01378': {"source": 'dryfield_junk_yard.pe2pkg', "vram": 0x8017E938, "size": 0x3A8, "ext": '.tmd', "type": 'model'},
