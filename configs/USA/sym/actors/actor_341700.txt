@@ -276,3 +276,4 @@ _actor341700PropUpdate = 0x8016cc9c; // type:func
 _actor341700PropSetModelDrawMessage = 0x8016ce28; // type:func
 _actor341700PropCommandMessage = 0x8016ceb4; // type:func
 _actor341700PropTask = 0x8016d32c; // type:func
+_madChaserShrinkDeathStart = 0x8016a8f4; // type:func

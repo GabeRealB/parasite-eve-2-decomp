@@ -80,7 +80,7 @@ static void _madChaserLurkLookState(Task* task);
 static void func_actor_341700_80169D54(Task* arg0);
 static void _madChaserCommandDeathWaitAnimBoundary(Task* task);
 static void func_actor_341700_8016A8EC(Task* arg0);
-static void func_actor_341700_8016A8F4(Task* arg0);
+static void _madChaserShrinkDeathStart(Task* task);
 static void func_actor_341700_8016AA58(Task* arg0);
 static void func_actor_341700_8016ABF4(Task* arg0);
 
@@ -980,7 +980,7 @@ static const TaskFuncTable5 gMadChaserDropDeathStates = { {
 /// Seven state handlers, indexed by `MadChaserWork::state`; copied to
 /// the stack before dispatch.
 static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
-    func_actor_341700_8016A8F4,
+    _madChaserShrinkDeathStart,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
     madChaserBeginShrink,
@@ -1273,10 +1273,13 @@ static void func_actor_341700_8016A8EC(Task* arg0)
 {
 }
 
-/// A further copy, under this file's own name.
-#define madChaserDeathCryUnlink func_actor_341700_8016A8F4
+/// Selects the private first state of scripted shrink death.
+///
+/// Names a statically declared void(Task*) callback for the following fragment;
+/// undefine it afterwards. The unbound fragment supplies the drop-death entry.
+#define MAD_CHASER_SHRINK_DEATH_START_HANDLER _madChaserShrinkDeathStart
 #include "../../shared/mad_chaser_death_cry_unlink.inc.c"
-#undef madChaserDeathCryUnlink
+#undef MAD_CHASER_SHRINK_DEATH_START_HANDLER
 
 #include "../../shared/mad_chaser_begin_shrink.inc.c"
 

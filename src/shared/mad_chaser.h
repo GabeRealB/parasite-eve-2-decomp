@@ -306,7 +306,7 @@ static void _madChaserPullReact(Task* task);
 static void _madChaserVanish(Task* task);
 static void _madChaserVanishFree(Task* task);
 static void _madChaserDeathRequestSettle(Task* task);
-void        madChaserDeathCryUnlink(Task* arg0);
+void        madChaserDeathCryUnlink(Task* task);
 void        madChaserShrink(Task* arg0);
 s32         madChaserTakeKnockdownRequest(Task* arg0);
 

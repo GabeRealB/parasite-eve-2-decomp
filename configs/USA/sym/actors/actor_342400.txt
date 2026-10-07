@@ -283,3 +283,4 @@ _actor342400WaveSpawnSlouch = 0x80162da0; // type:func
 _actor342400WaveBeginSlouchWatch = 0x80162f08; // type:func
 _actor342400WaveWatchSlouch = 0x80162f1c; // type:func
 _actor342400WaveBeginPairReveal = 0x80162ffc; // type:func
+_madChaserShrinkDeathStart = 0x8016bbd8; // type:func

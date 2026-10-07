@@ -1,19 +1,35 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Plays sound 2, releases its alert hold, unlinks the target node and
-/// advances. Both command-death tables use it; the second entry includes the
-/// fragment again under its own name.
-void madChaserDeathCryUnlink(Task* arg0)
+#ifdef MAD_CHASER_SHRINK_DEATH_START_HANDLER
+/// Starts scripted shrink death by fading the alert cry and detaching targeting.
+///
+/// Requires a live `Enemy` spawn argument and task-owned `MadChaserWork` at behavior
+/// state 0. The sound selector tags the alert cry with the placement index
+/// (0..15); fade control 15 is a nominal duration in audio updates. Clears
+/// the shared alert when its owner nibble matches, even if the claim bit is clear.
+/// Releases target locks and tracking, then advances the 16-bit behavior state
+/// to 1. The task, model, collision bodies and their storage remain live.
+static void MAD_CHASER_SHRINK_DEATH_START_HANDLER(Task* task)
+#else
+void madChaserDeathCryUnlink(Task* task)
+#endif
 {
+    enum {
+        MAD_CHASER_COMMAND_DEATH_FADE_UPDATES         = 15,
+        MAD_CHASER_COMMAND_DEATH_SOUND_INSTANCE_SHIFT = 8
+    };
     MadChaserWork* work;
     Enemy*         enemy;
+    Enemy*         alertEnemy;
 
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (MadChaserWork*)arg0->work;
-    sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 2), 0xF);
-    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MAD_CHASER_COMMAND_DEATH_SOUND_INSTANCE_SHIFT) | SOUND_MAD_CHASER_ALERT_CRY,
+                            MAD_CHASER_COMMAND_DEATH_FADE_UPDATES);
+    alertEnemy = task->spawnArg2.pointer;
+    if ((gSceneCombatState.madChaserAlertOwner & SCENE_COMBAT_MAD_CHASER_OWNER_MASK) == (alertEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT)) {
         gSceneCombatState.madChaserAlertOwner = 0;
     }
     worldTargetUnlinkNode(&enemy->node);
-    work->state = work->state + 1;
+    work->state++;
 }
