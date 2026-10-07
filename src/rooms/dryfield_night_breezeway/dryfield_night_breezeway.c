@@ -39,9 +39,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-#define D_dryfield_night_breezeway_8017E6AC (D_dryfield_night_breezeway_8017E6A4 + 1)
-#define D_dryfield_night_breezeway_8017E6C4 (D_dryfield_night_breezeway_8017E6A4[4])
-
 static void func_dryfield_night_breezeway_8017D634(Task* task);
 static void _dryfieldNightBreezewayIdleRoomTask(Task* task);
 
@@ -737,11 +734,11 @@ void dryfieldNightBreezewayDrawGlowsTask(Task* task)
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case DRYFIELD_NIGHT_BREEZEWAY_VIEW_FLARE_AND_SHAFT:
-            _glowDrawFlare(&D_dryfield_night_breezeway_8017E6AC[0], DRYFIELD_NIGHT_BREEZEWAY_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_BREEZEWAY_FLARE_RADIUS_SCALE);
-            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6AC[5], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
+            _glowDrawFlare(&D_dryfield_night_breezeway_8017E6A4[1], DRYFIELD_NIGHT_BREEZEWAY_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_BREEZEWAY_FLARE_RADIUS_SCALE);
+            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[6], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
             break;
         case DRYFIELD_NIGHT_BREEZEWAY_VIEW_STAR_AND_TWO_SHAFTS:
-            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6C4, DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[4], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
             // This view also shows the star and shaft drawn by view 4.
             /* fallthrough */
         case DRYFIELD_NIGHT_BREEZEWAY_VIEW_STAR_AND_SHAFT:
