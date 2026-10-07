@@ -72,7 +72,6 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          slot;
     GfxCoord*                      light;
-    GfxRotationWords*              rot;
     EffectWork*                    eff;
     u32                            ang;
 
@@ -90,13 +89,8 @@ void func_m4a1_pyke_8011D1F8(Task* task)
     work->age++;
     switch (task->state) {
         case 0:
-            rot                 = (GfxRotationWords*)&coord->coord;
             coord->parent       = work->parent;
-            rot->m00M01         = ONE;
-            rot->m02M10         = 0;
-            rot->m11M12         = ONE;
-            rot->m20M21         = 0;
-            rot->m22            = ONE;
+            gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = D_m4a1_pyke_8011E90C.vx;
             coord->coord.t[1]   = D_m4a1_pyke_8011E90C.vy;
             coord->coord.t[2]   = D_m4a1_pyke_8011E90C.vz;
