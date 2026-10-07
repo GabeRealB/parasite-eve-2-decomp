@@ -103,10 +103,10 @@ static TmdSource    _gActor05700RookGolemBody;
 static TmdSource    _gActor05700GolemGrenadeLauncher;
 static TmdSource    _gActor05700RookGolemShield;
 static TmdSource    _gActor05700GolemGrenade;
-void                Actor05700_Fn05040(Task*);
-void                Actor05700_Fn0517C(Task*);
-void                Actor05700_Fn05270(Task*);
-void                Actor05700_Fn05470(Task*);
+static void         _actor05700GrenadeLauncherTask(Task* launcher);
+static void         _actor05700GrenadeTask(Task* grenade);
+static void         _actor05700ShieldTask(Task* shield);
+static void         _actor05700RookGolemTask(Task* golem);
 
 s16 gGolemPawnRookAnimBlendFrames[32] = {
     0,
@@ -1189,10 +1189,10 @@ s16 gGolemPawnRookBeamRibbonCorners[2][4] = {
 };
 
 TaskDesc gGolemPawnRookTasks[4] = {
-    { { { TASK_BODY_TMD, 96 } }, Actor05700_Fn05470, { .model = &_gActor05700RookGolemBody } },
-    { { { TASK_BODY_TMD, 96 } }, Actor05700_Fn05040, { .model = &_gActor05700GolemGrenadeLauncher } },
-    { { { TASK_BODY_TMD, 96 } }, Actor05700_Fn0517C, { .model = &_gActor05700GolemGrenade } },
-    { { { TASK_BODY_TMD, 96 } }, Actor05700_Fn05270, { .model = &_gActor05700RookGolemShield } },
+    { { { TASK_BODY_TMD, 96 } }, _actor05700RookGolemTask, { .model = &_gActor05700RookGolemBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor05700GrenadeLauncherTask, { .model = &_gActor05700GolemGrenadeLauncher } },
+    { { { TASK_BODY_TMD, 96 } }, _actor05700GrenadeTask, { .model = &_gActor05700GolemGrenade } },
+    { { { TASK_BODY_TMD, 96 } }, _actor05700ShieldTask, { .model = &_gActor05700RookGolemShield } },
 };
 
 AnimationSet* gGolemPawnRookAnimSets[31] = {
@@ -1299,7 +1299,7 @@ extern s32 gGolemPawnRookBurstCue;
 #include "../../shared/golem_pawn_rook_companion_cycle.inc.c"
 
 /// State handlers of the model child hung off the actor's part 7 - spawn,
-/// per-frame tick and teardown - dispatched through by `Actor05700_Fn05040`.
+/// per-frame tick and teardown - dispatched through by `_actor05700GrenadeLauncherTask`.
 static const EnemyTaskFuncTable3 Actor05700_D00080 = {
     _golemPawnRookLauncherSpawn,
     _golemPawnRookLauncherTick,
@@ -1341,12 +1341,18 @@ static const EnemyTaskFuncTable3 Actor05700_D00080 = {
 
 #include "../../shared/golem_pawn_rook_nop.inc.c"
 
-void Actor05700_Fn05040(Task* arg0)
+/// Dispatches the Rook's attached grenade-launcher task.
+///
+/// `launcher` is a live TMD task with its owned `Enemy` in `spawnArg2.pointer`.
+/// Its unchecked `state` is 0 to attach to body part 7, 1 to mirror the body's
+/// visibility and consume a fire request, or 2 to destroy the child. The body
+/// must remain alive while its child borrows the body's work and lighting.
+/// Destruction may release the task and enemy before returning.
+static void _actor05700GrenadeLauncherTask(Task* launcher)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 lifecycleHandlers = Actor05700_D00080;
 
-    sp = Actor05700_D00080;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    lifecycleHandlers.funcs[launcher->state](launcher->spawnArg2.pointer, launcher);
 }
 
 #include "../../shared/golem_pawn_rook_launcher_spawn.inc.c"
@@ -1354,43 +1360,55 @@ void Actor05700_Fn05040(Task* arg0)
 #include "../../shared/golem_pawn_rook_launcher_tick.inc.c"
 
 /// State handlers of the effect child - spawn/setup, per-frame tick and
-/// teardown - dispatched through by `Actor05700_Fn0517C`.
+/// teardown - dispatched through by `_actor05700GrenadeTask`.
 static const EnemyTaskFuncTable3 Actor05700_D0008C = {
     _golemPawnRookGrenadeSpawn,
     golemPawnRookBulletFly,
     _golemPawnRookGrenadeDestroy,
 };
 
-void Actor05700_Fn0517C(Task* arg0)
+/// Dispatches a grenade fired by the Rook's launcher.
+///
+/// `grenade` is a live TMD task with its owned `Enemy` in `spawnArg2.pointer`.
+/// Its unchecked `state` is 0 to launch and detach from the launcher, 1 to fly
+/// until impact or timeout, or 2 to unlink collision and wait 61 frames before
+/// destruction. State 0 requires a live launcher parent; later states use the
+/// grenade's own work and lighting. Destruction may release the task and enemy.
+static void _actor05700GrenadeTask(Task* grenade)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 lifecycleHandlers = Actor05700_D0008C;
 
-    sp = Actor05700_D0008C;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    lifecycleHandlers.funcs[grenade->state](grenade->spawnArg2.pointer, grenade);
 }
 
 #include "../../shared/golem_pawn_rook_grenade_destroy.inc.c"
 
 /// State handlers of the burst child parented to the actor's part 11 - spawn,
-/// per-frame tick and teardown - dispatched through by `Actor05700_Fn05270`.
+/// per-frame tick and teardown - dispatched through by `_actor05700ShieldTask`.
 static const EnemyTaskFuncTable3 Actor05700_D00098 = {
     _golemPawnRookShieldSpawn,
     golemPawnRookBurstPartTick,
     enemyDestroy,
 };
 
-void Actor05700_Fn05270(Task* arg0)
+/// Dispatches the Rook's attached shield task through its break and destruction.
+///
+/// `shield` is a live TMD task with its owned `Enemy` in `spawnArg2.pointer`.
+/// Its unchecked `state` is 0 to attach to body part 11, 1 to mirror the body's
+/// visibility and service its shield-break request, or 2 to destroy the child.
+/// The body must remain alive while the shield borrows its work and lighting.
+/// Destruction may release the task and enemy before returning.
+static void _actor05700ShieldTask(Task* shield)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 lifecycleHandlers = Actor05700_D00098;
 
-    sp = Actor05700_D00098;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    lifecycleHandlers.funcs[shield->state](shield->spawnArg2.pointer, shield);
 }
 
 #include "../../shared/golem_pawn_rook_shield_spawn.inc.c"
 
 /// The actor's own state handlers - spawn/setup, per-frame tick and
-/// teardown - dispatched through by `Actor05700_Fn05470`. The tick and
+/// teardown - dispatched through by `_actor05700RookGolemTask`. The tick and
 /// teardown take the task as the actor view it is.
 static const EnemyTaskFuncTable3 Actor05700_D000A4 = {
     golemPawnRookSpawn,
@@ -1400,10 +1418,16 @@ static const EnemyTaskFuncTable3 Actor05700_D000A4 = {
 
 #include "../../shared/golem_pawn_rook_burst_part.inc.c"
 
-void Actor05700_Fn05470(Task* arg0)
+/// Dispatches the grenade-launcher Rook GOLEM's body task.
+///
+/// `golem` is a live nineteen-part TMD task with its owned `Enemy` in
+/// `spawnArg2.pointer`. Its unchecked `state` is 0 to initialize the body and
+/// attached launcher and shield, 1 to run combat behaviour, or 2 to retain and
+/// draw its dead body after ending collision and target tracking. Spawn failure
+/// may release the task and enemy before returning.
+static void _actor05700RookGolemTask(Task* golem)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 lifecycleHandlers = Actor05700_D000A4;
 
-    sp = Actor05700_D000A4;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    lifecycleHandlers.funcs[golem->state](golem->spawnArg2.pointer, golem);
 }
