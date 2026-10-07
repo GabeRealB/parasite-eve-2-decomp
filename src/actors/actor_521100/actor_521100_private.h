@@ -225,12 +225,38 @@ extern s16 D_actor_521100_8015F8CC[4];
 
 extern Actor521100ThrowSpan D_actor_521100_8015F80C[2][17];
 
-s32 func_actor_521100_80135D10(Task*, s32, s32, s32);
+/// Activation message of the Dryfield No. 9 GOLEM; both payload words are ignored.
+enum { ACTOR_521100_MESSAGE_ACTIVATE = 2007 };
 
-s32 func_actor_521100_80135D58(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
+/// Replaces the GOLEM body's draw flags and records the request for its gunblade.
+///
+/// Requires a live model task with `Actor521100Work`. Bit 0 shows the model;
+/// bit 1 suppresses automatic primitive-buffer recovery. Other model flags are
+/// cleared. The request is narrowed to a signed halfword in the work block;
+/// the gunblade follows it during events. Allocates and frees no buffers.
+/// Ignores the message ID and second payload; returns zero.
+s32 actor521100SetModelDrawFlags(Task* task, s32 messageId, s32 flags, s32 unusedArgument);
 
-s32 func_actor_521100_80135D9C(Task*, s32, s32, s32);
+/// Applies the GOLEM's event commands: 0 restarts its fire, 1 hides its gunblade.
+///
+/// Requires live `Actor521100Work` and a borrowed command through dispatch.
+/// Starting fire clears both event counters; hiding the weapon latches a
+/// halfword that is never cleared. Other commands have no effect. The context,
+/// message ID and second payload are ignored; no pointer is retained. Returns zero.
+s32 actor521100ApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArgument);
 
-s32 func_actor_521100_80135DC8(Task*, s32, s32, s32);
+/// Enables the GOLEM's combat updates and acquires one scene battle reference.
+///
+/// Requires live `Actor521100Work`. Each dispatch acquires another reference,
+/// even if already activated; callers must balance the acquired battle holds.
+/// Ignores the message ID and both payload words; returns zero.
+s32 actor521100Activate(Task* task, s32 messageId, s32 unusedFirstArgument, s32 unusedArgument);
+
+/// Returns the GOLEM's presence latch from its live `Actor521100Work`.
+///
+/// The latch is one after spawn and becomes zero when the GOLEM dies while
+/// the player lives. This query ignores drawing flags, the message ID and both
+/// payload words.
+s32 actor521100IsPresent(Task* task, s32 messageId, s32 unusedFirstArgument, s32 unusedArgument);
 
 #endif // SRC_ACTORS_ACTOR_521100_ACTOR_521100_PRIVATE_H

@@ -1031,6 +1031,12 @@ borrowed pointer, its signed-halfword `_gFootstepWalkMode`, and its whole-frame
 publishes the live work for singleton message and animation handlers; task
 teardown releases the block without clearing the published pointer.
 
+The footstep walk's yaw-placement fragment is reusable without the rest of its
+walker. `FOOTSTEP_WALK_PLACE_WORK` selects the live published work pointer whose
+`st.yaw` it records; the default is `_gFootstepWalkWork`. Bind it around that
+fragment and restore it afterwards. Each carrier declares the private
+`_footstepWalkPlace` instance in its prologue.
+
 `playerDetection` owns the included enemy facing, distance and sight tests,
 with `src/shared/player_detection.h` as their private implementation interface.
 Each carrier keeps static instances marked `_`. Sight tests scan enabled

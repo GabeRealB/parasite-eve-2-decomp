@@ -88,6 +88,16 @@ enum { FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES = 8 };
 /// Preliminary rate in sixteenths of a frame, overwritten by slot reset's normal rate.
 enum { FOOTSTEP_WALK_PRE_RESET_RATE = 1 };
 
+/// Published work pointer used by the reusable yaw-placement fragment.
+///
+/// Bind to a stable pointer expression whose live work has writable `st.yaw`.
+/// The expression is evaluated once; the heading store does not retain it.
+/// Other walker operations retain their own work bindings. A carrier borrowing
+/// only placement binds this around that fragment, then restores the default.
+#ifndef FOOTSTEP_WALK_PLACE_WORK
+#define FOOTSTEP_WALK_PLACE_WORK _gFootstepWalkWork
+#endif
+
 /// Work block of a footstep walker that plays no step sounds, allocated
 /// zeroed at its full size by the walker's spawn state and kept both at
 /// `Task::work` and in the walker's `_gFootstepWalkWork`.

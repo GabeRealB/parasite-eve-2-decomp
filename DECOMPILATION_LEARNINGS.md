@@ -64259,7 +64259,7 @@ undefined reference to `D_actor_521100_80131E68'
 ```
 
 while the very symbol is right there in the function's own
-`asm/.../actor_521100_3/func_actor_521100_80136604.s`, under a
+`asm/.../actor_521100_3/_actor521100AnmcWomanTask.s`, under a
 `.section .rodata` block that `migrate_rodata_to_functions` put there. Re-running
 `build-and-verify.sh` reproduces the error byte for byte.
 
@@ -85907,7 +85907,7 @@ slot is rounded up to 8 bytes (the 4-byte `struct` entry below), so the 12-byte
 table occupies `0x10`-`0x1F` and the next aggregate starts at `0x20` whatever
 its own alignment: the word at `0x1C` is the table's slot padding, not a member
 of anything, and the second local is 1-8 bytes, not 5-12. `actor_521100`'s
-dispatcher (`func_actor_521100_80136604`: 3 words at `0x10`-`0x18`, bytes at
+dispatcher (`_actor521100AnmcWomanTask`: 3 words at `0x10`-`0x18`, bytes at
 `0x20`/`0x21`, a halfword at `0x22`) shows it, because it does store into its
 second local. Declaring that local as an 8-byte record with a leading unused
 word put the stores at `0x24`-`0x26`; a 4-byte `{ u8; u8; u16 }` beside a bare
@@ -98235,7 +98235,7 @@ body it is, not to extend by hand.
 
 ## A loop-hoisted constant's `reload_cse` copy borrows the loop counter's register
 
-`func_actor_521100_8013677C` seeds animation slots with `slots[i].rate = 1;`
+`_actor521100AnmcWomanResetAnim` seeds animation slots with `slots[slotIndex].rate = FOOTSTEP_WALK_PRE_RESET_RATE;`
 inside a single-index `do`/`while`. The target's preheader holds `li $s0,1` (the
 counter) and then `move $s4,$s0`, and the loop stores `sb $s4,0x5D(...)` — which
 reads like a source local copied from `i` before the loop. It is not: with the
@@ -101013,7 +101013,7 @@ natural 122 subu; 124 sw ra; 126 sw s3; 128 sw s2; 130 sw s1; 132 sw s0;
         ready 102 96 94 9 124    -> emitted pairs, in target order
 ```
 
-Writing the loop the way the sibling `func_actor_521100_80136820` does —
+Writing the loop the way the sibling `_actor521100AnmcWomanBlendAnim` does —
 `&work->rig.slots[slotIndex]` with `slotIndex` itself as the call's third argument — is what removes
 the extra leaf: `loop.c` then creates the walking offset biv and the argument
 copy itself, and both land where the target has them (the biv at the end of the
@@ -102272,7 +102272,7 @@ m2c renders a one-counter loop as **two variables** - `var_s0 = 1; var_a1 = 1;`
 them separately (`$s0` and `$a1`), which makes the copy a free-standing insn in
 the entry block whose position sched1 may choose, and it chose the prologue.
 Writing the loop with a single counter instead - the form the matched sibling
-`func_actor_521100_80136820` uses:
+`_actor521100AnmcWomanBlendAnim` uses:
 ## m2c's two-variable loop split schedules the preheader copy wrong - use one induction variable
 
 A `do`/`while` whose counter is also passed to the callee forces the counter into
@@ -107050,7 +107050,7 @@ source named the base. `_actor521100StaggerState` is the worked example
 single change) — and the sibling `_actor521100TickEventFire` in the same
 overlay already carried the pointer-local form, which is what suggested it.
 
-## A scratch-head pointer taken by a chained assignment keeps a `move $sN,$vN` the two-statement form folds away (func_actor_521100_801368B0, 2026-09-16)
+## A scratch-head pointer taken by a chained assignment keeps a `move $sN,$vN` the two-statement form folds away (_actor521100AnmcWomanFlatten, 2026-09-16)
 
 **Symptom:** the target's head is `lw $v0,0($v1)` / `nop` / `addiu $v0,$v0,-0x30` /
 `move $s0,$v0` / `sw $v0,0($v1)` - four instructions and a delay-slot `nop` - while
@@ -107294,7 +107294,7 @@ source `base_1.c` `b710ee457e74265ef28a6713a757d7338a6e2560d6683f1fc2b112d3594dd
 
 ## A constant `SCRATCH_STACK_CURSOR_SLOT` address folds into the memory operand only inside an inlined body
 
-`func_actor_521100_80135F2C` (the actor_521100 step body) stalled at 84.892%
+`_actor521100AnmcWomanUpdate` (the actor_521100 step body) stalled at 84.892%
 with `regs=35`: the target reaches `SCRATCH_STACK_CURSOR_SLOT` as `lui $s1,%hi` +
 `lw $s1,%lo($s1)` and `lui $at,%hi` + `sw $s0,%lo($at)`, where the build emitted
 `lui $s1,0x1F80` / `ori $s1,$s1,0x3FC` and loaded through that register - which
@@ -107329,7 +107329,7 @@ source `base_2.c` `926d1d5e177295b8fb24e19513f5d9a133f0f5e8117685fa45e18332bd3db
 `base_4.i` `4f7808d4c8bd902769ab74396d8972bb07e907aea2ec8660ae8ab413cc8968ed`
 (100.000%), source `base_4.c`
 `a378392ff26b61997d626d349a3850a655f836e05113f3eff35e156de528c821`. Scratch
-`nonmatchings/func_actor_521100_80135F2C-vacuum`.
+`nonmatchings/_actor521100AnmcWomanUpdate-vacuum`.
 
 ## An `s16` table index is scaled by 2 and combine folds that scale into the mask *and* the shift: write `(X >> 16) & 7`, not `(X >> 15) & 7`
 
@@ -107702,8 +107702,8 @@ Evidence: `nonmatchings/ActorsShared80131e24Sub0-vacuum/PERMUTER_EVIDENCE/score-
 
 ## `(a - C) - b` never reaches RTL: fold() moves the constant to the other side of the sum
 
-`func_actor_521100_80136404` (actors/actor_521100, scratch
-`nonmatchings/func_actor_521100_80136404-vacuum`) had one instruction in the
+`_actor521100AnmcWomanEffectTask` (actors/actor_521100, scratch
+`nonmatchings/_actor521100AnmcWomanEffectTask-vacuum`) had one instruction in the
 wrong place: the target subtracts a game constant from a field and then
 subtracts a random draw from the result, as two separate `addiu`/`subu`:
 
