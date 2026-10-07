@@ -2537,7 +2537,6 @@ void func_shelter_r48_8017EC18(Task* task)
 {
     EffectWork*       work;
     GfxCoord*         coord;
-    GfxRotationWords* rot;
     u8                rgb[3];
 
     work  = task->spawnArg2.pointer;
@@ -2546,13 +2545,8 @@ void func_shelter_r48_8017EC18(Task* task)
         work->age++;
         switch (task->state) {
             case 0:
-                rot                 = (GfxRotationWords*)&coord->coord;
                 coord->parent       = work->parent;
-                rot->m00M01         = ONE;
-                rot->m02M10         = 0;
-                rot->m11M12         = ONE;
-                rot->m20M21         = 0;
-                rot->m22            = ONE;
+                gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;
                 coord->coord.t[0]   = 0;
