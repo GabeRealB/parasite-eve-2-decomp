@@ -1510,8 +1510,6 @@ void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s3
     SVECTOR   currentAngles;
     MATRIX    subjectRotation;
     MATRIX    inverseSubjectRotation;
-    MATRIX*   subjectRotationStorage;
-    MATRIX*   headRotation;
     GfxCoord* headPart;
     s32       partIndex;
     s32       pitchMagnitude;
@@ -1520,12 +1518,7 @@ void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s3
     s32       currentYawMagnitude;
 
     // Compose the complete five-part chain without the view transform.
-    subjectRotationStorage                    = &subjectRotation;
-    MATRIX_PAIR(&subjectRotation, 0, 0)       = ONE;
-    MATRIX_PAIR(&subjectRotation, 0, 2)       = 0;
-    MATRIX_PAIR(subjectRotationStorage, 1, 1) = ONE;
-    MATRIX_PAIR(&subjectRotation, 2, 0)       = 0;
-    subjectRotationStorage->m[2][2]           = ONE;
+    gfxSetRotIdentity(&subjectRotation);
     headPosition.vx                           = 0;
     headPosition.vy                           = 0;
     headPosition.vz                           = 0;
@@ -1553,13 +1546,8 @@ void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s3
     gfxExtractEulerAngles(&headPart->coord, &currentAngles);
     ANIMATION_BLEND_LIMITED_HEAD_ANGLES(aimAngles, currentAngles, maxYaw, maxPitch, blendWeight);
 
-    headRotation                        = &headPart->coord;
-    MATRIX_PAIR(&headPart->coord, 0, 0) = ONE;
-    MATRIX_PAIR(headRotation, 0, 2)     = 0;
-    MATRIX_PAIR(headRotation, 1, 1)     = ONE;
-    MATRIX_PAIR(headRotation, 2, 0)     = 0;
-    headRotation->m[2][2]               = ONE;
-    RotMatrix(&aimAngles, headRotation);
+    gfxSetRotIdentity(&headPart->coord);
+    RotMatrix(&aimAngles, &headPart->coord);
 }
 
 void gfxExtractEulerAngles(const MATRIX* matrix, SVECTOR* angles)
