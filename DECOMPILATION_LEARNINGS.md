@@ -152297,3 +152297,68 @@ after the join changes the frame.
 form. Its copy goes straight to the call-saved register and its problem is
 the mask's width, which this function does not have; the common part is only
 that a label stood before the conversion.
+
+### Unresolved, with the mechanism measured: a pinned load that sched1 must not boost, and a second set there is no register for (func_actor_403600_8013EA04, 2026-10-07)
+
+Dated note on "A pin that holds an argument register through a run of constant
+stores is store order; a pinned load's destination is not" (2026-09-26): that
+entry says the unpinned load "is queued for its load-delay slot and boosted".
+The `.sched` trace (`-dS`) says exactly which rule, and that fixes what a
+pin-free source would have to contain.
+
+**Target.** `sh v0,1906(s2)` / `lh a0,64(t0)` (`hp = enemy->hp`) / the LCG
+chain `sll, addu, addu a1, srl v1` / `lh v0,1944(s2)` / `andi v1` / `slt
+v0,v0,a0`. Every register of the LCG step is one further along than in the
+function's other three arms (`a3/a2/a1` for the constant, `%hi` and the new
+state, against `a2/a1/a0`): `$a0` was taken before global-alloc ran.
+
+**Mechanism.** In this block every insn has priority 1 or 2.
+`adjust_priority` raises an insn to `0x7f000001` when it is released if
+`birthing_insn_p`: a `SET` of a register that is live below and has
+`REG_N_SETS == 1`. (The `REG_DEAD` half of that function is dead code - the
+notes are removed before it runs.) With `s32 hp` the load is released when
+the `slt` is placed, boosted, and placed two insns later, straight above the
+threshold load: `srl a0` / `lh v1,64(t0)` / `lh v0,1944(s2)`. In the pinned
+build `REG_N_SETS ($a0)` is large, the load keeps priority 1 and waits in the
+ready list until nothing boosted is left (`T-10`, after the `sll`), which is
+its source position. Local-alloc then sees it overlap the chain's `v0`
+temporaries and the old state in `v1`, and `$a0` is the lowest free register.
+
+The trace also shows why nothing else can hold it back: at the step where the
+boosted load would be chosen its only competitor is the `srl`, which is not
+boosted because `roll` is set twice (`roll = rand(); roll &= 0xF;` - needed,
+or cse answers `roll & 1` from the unmasked value in another register).
+Statement order, declaration order and a compare computed early do not
+change who is boosted.
+
+**So the pin stands for `REG_N_SETS (hp) != 1` at sched1, with `hp` in `$a0`.**
+What was measured for each way of getting there:
+
+- A second assignment elsewhere makes `hp` a global allocno. It then needs
+  `floor_log2(refs) * refs / len` above the new LCG state's (5 refs / 13 =
+  0.769). `hp` also assigned at one of the two later re-reads
+  (`(hp = enemy->hp) <= work->hpAt60Percent`): 4 / 12 = 0.667, the state
+  takes `$a0` and `hp` `$a1`. At both re-reads: 6 / 15 = 0.800, and the
+  whole function matches **except** that those two re-reads are then
+  `lh a0,64(t0)` where the target has `lh v1`. One pseudo, one register: the
+  re-reads are not `hp`.
+- A second set that combine merges into its use does not count
+  (`try_combine` decrements `REG_N_SETS`): `hp = lo + d * d;
+  SquareRoot0(hp)` is the unpinned build exactly.
+- No other `s32` in the function lives in `$a0` except the expression
+  temporaries of the corner distances (`lh a0,8(s1)`); routing one of those
+  through `hp` moves `hp` to `$a2`.
+- `s16 hp` is `lhu` + `sll`/`sra` at the compare (the store of the LCG state
+  stops combine moving the load).
+- Equal-armed `if (playerY < 0) hp = …; else hp = …;` splits the block; the
+  load stays before the chain but the state and `hp` take `v0`/`a1`.
+- An empty `do { } while (0);` straight after `hp = enemy->hp;` keeps `$a0`
+  (the loop note is a scheduling barrier) but sched2 then cannot lift the
+  constant and state loads above the store; 10 lines differ. Not committed.
+
+**Use.** For a pinned block-local load, print the block's `.sched` trace and
+look at the priority the load is released with. `7f000001` on the unpinned
+build and `1` on the pinned one means the pin is a set count, not a register
+preference; the questions are then "where is this variable's other surviving
+assignment" and "is that other life in the same register in the target". If
+no value in the target can be the other life, plain C does not reach it.
