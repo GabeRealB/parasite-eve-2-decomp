@@ -69,6 +69,7 @@
 #include "gameplay/room_effects.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag_types.h"
 #include "main/random.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -227,19 +228,34 @@ static void _hudDrawTargetHpReadout(Enemy* enemy, HudTargetHpReadout* readout);
 
 static inline void _worldTargetRotatePosition(const MATRIX* rotation, SVECTOR* position);
 
-static void Gp_StartPadReplay(void);
+static void _gameDebugStartInputReplay(void);
 
 static s32 _sceneIsBattleEndDelayClear(void);
 
+/// Tests the engaged-battle holds and the independent battle-end delay.
+///
+/// Borrows the live combat record and returns 0 or 1 without changing it.
+static __inline__ s32 _sceneHasBattleHoldOrEndDelay(const SceneCombatState* combat)
+{
+    s32 active;
+
+    if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
+        active = 1;
+    } else {
+        active = 0;
+    }
+    return active;
+}
+
 static s32 _attachmentMakeTextId(s32 abilityIndex, s32 level);
 
-static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1);
+static s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps);
 
-static void Gp_EnqueueSndCdIfF0(u8 arg0);
+static void _attachmentEnqueueBattleSoundLoad(u8 fileIndex);
 
-static s32 Gp_CdIdleIfF0Active(void);
+static s32 _attachmentIsBattleSoundLoadReady(void);
 
-static s32 func_800A7E5C(s32 arg0);
+static s32 _hudCanSwitchCategory(s32 ignoreSwapLock);
 
 static s32 func_800A7F2C(s32 value);
 
@@ -272,14 +288,11 @@ static __inline__ void _gfxWriteRelativeTranslation(const MATRIX* reference, con
 
 static void _viewSetFromCoord(GfxCoord* cameraCoord, const VECTOR* offset);
 
-/// Spawns the type-0xE view task and points its coordinate at the inverse of
-/// `arg0` (transposed rotation, negated translation). `arg1` is the optional
-/// world offset stored in the task's 0x10-byte payload.
-static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1);
+static s32 _viewQueueCoord(GfxCoord* cameraCoord, const VECTOR* offset);
 
 static void _viewResetTransform(void);
 
-static void func_800A8D5C(void);
+static void _viewQueueDefaultTransform(void);
 
 /// Installs a camera record in the active view chain and resets projection.
 ///
@@ -324,9 +337,13 @@ static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
 /// Destination component views belong to the initialized active view nodes.
 /// The cursor must follow a readable camera in the loaded area array; the
 /// record and the destination storage must be disjoint. Resets projection and
-/// invalidates all three caches, retaining no pointers.
+/// invalidates all three caches, retaining no pointers. Rotation coefficients
+/// have 12 fractional bits; origin XYZ uses signed game units. The destination
+/// views must be `gGfxViewRotCoord.coord`, `gGfxViewCoord.coord.t` and
+/// `Gfx_ViewOffsetCoord` respectively. Projection distance retains its low 16 bits.
 static __inline__ void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* rotation, VECTOR3* translation, GfxCoord* offset)
 {
+    // Copy the 18-byte coefficient and 12-byte origin views, excluding alignment bytes.
     *(_ViewRotation*)rotation->m = *(const _ViewRotation*)(cursor - 1)->transform.m;
     *translation                 = *MATRIX_TRANS(&(cursor - 1)->transform);
     cursor--;
@@ -336,7 +353,7 @@ static __inline__ void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* 
     gDisplayState.screenDistance = cursor->screenDistance;
     gte_SetGeomScreen(cursor->screenDistance);
     gte_SetGeomOffset(0, 0);
-    Gfx_ViewOffsetCoord.composeStamp                        = GRAPHICS_COORD_DIRTY;
+    offset->composeStamp                                    = GRAPHICS_COORD_DIRTY;
     PARENT_OF(rotation, GfxCoord, coord)->composeStamp      = GRAPHICS_COORD_DIRTY;
     PARENT_OF(translation, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
@@ -756,41 +773,55 @@ static inline void _worldTargetRotatePosition(const MATRIX* rotation, SVECTOR* p
     gte_ApplyMatrixSV(rotation, &inputPosition, position);
 }
 
-void Gp_UpdateLinkXforms(void)
+void worldTargetUpdatePlayerRelativePositions(void)
 {
+    /// Places a live embedded enemy's body anchor in its composed cache frame.
+    ///
+    /// Requires a current coordinate cache and separate halfword-aligned SVECTOR.
+    /// Narrows local XYZ, saturates rotation, then wraps translation to signed
+    /// halfwords. Preserves the pad and cache stamp. Arguments are evaluated
+    /// repeatedly and must have no side effects; captures no local identifiers.
+#define WORLD_TARGET_WRITE_BODY_IN_COMPOSED_FRAME(targetNode, position)                   \
+    {                                                                                     \
+        (position)->vx = GP_NODE_ENEMY(targetNode)->bodyPos.vx;                           \
+        (position)->vy = GP_NODE_ENEMY(targetNode)->bodyPos.vy;                           \
+        (position)->vz = GP_NODE_ENEMY(targetNode)->bodyPos.vz;                           \
+        _worldTargetRotatePosition(&GP_NODE_ENEMY(targetNode)->coord->workm, (position)); \
+        (position)->vx += GP_NODE_ENEMY(targetNode)->coord->workm.t[0];                   \
+        (position)->vy += GP_NODE_ENEMY(targetNode)->coord->workm.t[1];                   \
+        (position)->vz += GP_NODE_ENEMY(targetNode)->coord->workm.t[2];                   \
+    }
     WorldTargetNode*                node;
-    Task*                           slot;
-    GfxCoord*                       player;
-    _WorldTargetPlayerFrameScratch* block;
+    Task*                           playerTask;
+    GfxCoord*                       playerCoord;
+    _WorldTargetPlayerFrameScratch* scratch;
 
-    node = gWorldTargetListHead;
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (slot == NULL) {
+    node       = gWorldTargetListHead;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (playerTask == NULL) {
         return;
     }
-    player = slot->extra.tmd->coords;
-    block  = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
-    TransposeMatrix(&player->workm, &block->playerInverseRotation);
+    playerCoord = playerTask->extra.tmd->coords;
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
+    TransposeMatrix(&playerCoord->workm, &scratch->playerInverseRotation);
     for (; node != NULL; node = node->next) {
         if ((node->state.word & WORLD_TARGET_SCAN_MASK) == WORLD_TARGET_NOT_LOCKABLE) {
             continue;
         }
-        block->position.vx = GP_NODE_ENEMY(node)->bodyPos.vx;
-        block->position.vy = GP_NODE_ENEMY(node)->bodyPos.vy;
-        block->position.vz = GP_NODE_ENEMY(node)->bodyPos.vz;
-        _worldTargetRotatePosition(&GP_NODE_ENEMY(node)->coord->workm, &block->position);
-        block->position.vx += GP_NODE_ENEMY(node)->coord->workm.t[0];
-        block->position.vy += GP_NODE_ENEMY(node)->coord->workm.t[1];
-        block->position.vz += GP_NODE_ENEMY(node)->coord->workm.t[2];
-        block->position.vx -= player->workm.t[0];
-        block->position.vy -= player->workm.t[1];
-        block->position.vz -= player->workm.t[2];
-        _worldTargetRotatePosition(&block->playerInverseRotation, &block->position);
-        GP_NODE_ENEMY(node)->playerRelPos.vx = block->position.vx;
-        GP_NODE_ENEMY(node)->playerRelPos.vy = block->position.vy;
-        GP_NODE_ENEMY(node)->playerRelPos.vz = block->position.vz;
+        // Move the local anchor through the common composed frame.
+        WORLD_TARGET_WRITE_BODY_IN_COMPOSED_FRAME(node, &scratch->position);
+
+        // Subtract the player origin before rotating into the player's axes.
+        scratch->position.vx -= playerCoord->workm.t[0];
+        scratch->position.vy -= playerCoord->workm.t[1];
+        scratch->position.vz -= playerCoord->workm.t[2];
+        _worldTargetRotatePosition(&scratch->playerInverseRotation, &scratch->position);
+        GP_NODE_ENEMY(node)->playerRelPos.vx = scratch->position.vx;
+        GP_NODE_ENEMY(node)->playerRelPos.vy = scratch->position.vy;
+        GP_NODE_ENEMY(node)->playerRelPos.vz = scratch->position.vz;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPlayerFrameScratch);
+#undef WORLD_TARGET_WRITE_BODY_IN_COMPOSED_FRAME
 }
 
 void playClockAdvanceDeathSound(s16* completed)
@@ -908,25 +939,41 @@ void hudReset(HudState* hud)
     attachment->flags                    &= ~ATTACHMENT_FLAG_SWAP_LOCK;
 }
 
-static void Gp_StartPadReplay(void)
+/// Starts deterministic demo input replay from the loaded save-and-input resource.
+///
+/// Resets both random sequences and display timing counters. The stream follows
+/// the serialized save, live player record and flag banks; its halfwords are
+/// button/duration pairs. Requires the selected buffer to remain loaded and
+/// halfword-aligned throughout replay. The fixed replay uses extended RAM.
+static void _gameDebugStartInputReplay(void)
 {
-    DisplayState* ds;
+    enum {
+        GAME_DEBUG_REPLAY_RANDOM_SEED         = 1,
+        GAME_DEBUG_REPLAY_BUTTONS_INVALID     = 0xFFFF,
+        GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES = sizeof(McSaveData) + PLAYER_STATUS_SAVE_RECORD_BYTES +
+                                                GAME_FLAG_ACROPOLIS_BANK_BYTES + GAME_FLAG_DRYFIELD_BANK_BYTES + GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES +
+                                                GAME_FLAG_MINE_SHELTER_BANK_BYTES + GAME_FLAG_NEO_ARK_BANK_BYTES + sizeof(GameFlagNibbleBank)
+    };
+    DisplayState* display;
 
-    srand(1);
+    srand(GAME_DEBUG_REPLAY_RANDOM_SEED);
     gRandomLcgState          = 0;
-    ds                       = &gDisplayState;
-    ds->animFrame            = 0;
+    display                  = &gDisplayState;
+    display->animFrame       = 0;
     gDisplayState.frameCount = 0;
-    ds->gameTick             = 0;
-    ds->loopCount            = 0;
-    ds->vsyncCount           = 0;
-    ds->loopTicks            = 0;
-    if (ds->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
-        Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + 0xD4C);
+    display->gameTick        = 0;
+    display->loopCount       = 0;
+    display->vsyncCount      = 0;
+    display->loopTicks       = 0;
+
+    // The resource prefix is serialized bytes; only the input stream is u16 data.
+    if (display->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
+        Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     } else {
-        Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + 0xD4C);
+        Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }
-    Gp_ReplayButtons                  = 0xFFFF;
+    // Force the first record to install its duration before the countdown steps.
+    Gp_ReplayButtons                  = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
     Gp_ReplayFramesLeft               = 1;
     Pad_RemapState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_REPLAY;
 }
@@ -1115,120 +1162,122 @@ s32 attachmentGetEffectiveLevel(s32 abilityIndex)
     return level;
 }
 
-static s32 Gp_StepAttachSlot(s32 arg0, s32 arg1)
+/// Moves through the twelve wheel spells, skipping unlearned entries unless cheats are enabled.
+///
+/// `abilityIndex` is 0..11; signed `steps` counts eligible positions forward or
+/// backward, wrapping within the wheel. Uses training levels in the shooting
+/// gallery. A nonzero step requires at least one learned spell or cheat mode;
+/// otherwise the search does not terminate. Zero steps retains the input index.
+static s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps)
 {
-    PlayerStatus* p;
-    McSaveData*   save;
-    s32           cond;
-    u8*           table;
+    PlayerStatus* player;
+    McSaveData*   liveSave;
+    s32           training;
+    const u8*     levels;
 
-    p = &gPlayerStatus;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-        cond = 0;
+    player   = &gPlayerStatus;
+    training = _attachmentUsesTrainingLevels(player);
+    if (training == 0) {
+        levels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
-        cond = p->resourceVariant == 4;
+        levels = Gp_DebugAttachLevels;
     }
-    if (cond == 0) {
-        table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-    } else {
-        table = Gp_DebugAttachLevels;
-    }
-    if (arg1 != 0) {
-        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    if (steps != 0) {
+        liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         do {
-            if (arg1 > 0) {
+            if (steps > 0) {
                 do {
-                    arg0++;
-                    if (arg0 >= 0xC) {
-                        arg0 = 0;
+                    abilityIndex++;
+                    if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
+                        abilityIndex = 0;
                     }
-                } while (table[arg0] == 0 && save->state.cheatMode == 0);
-                arg1--;
+                } while (levels[abilityIndex] == 0 && liveSave->state.cheatMode == 0);
+                steps--;
             } else {
                 do {
-                    arg0--;
-                    if (arg0 < 0) {
-                        arg0 += 0xC;
+                    abilityIndex--;
+                    if (abilityIndex < 0) {
+                        abilityIndex += ATTACHMENT_SPELL_COUNT;
                     }
-                } while (table[arg0] == 0 && save->state.cheatMode == 0);
-                arg1++;
+                } while (levels[abilityIndex] == 0 && liveSave->state.cheatMode == 0);
+                steps++;
             }
-        } while (arg1 != 0);
+        } while (steps != 0);
     }
-    return arg0;
+    return abilityIndex;
 }
 
-s32 func_800A7CB0(s32 unused)
+s32 attachmentSoundLoadStub(s32 unusedFileIndex)
 {
     SceneCombatState* combat;
-    s32               cond;
+    s32               battleActive;
 
-    combat = &gSceneCombatState;
-    if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    combat       = &gSceneCombatState;
+    battleActive = _sceneHasBattleHoldOrEndDelay(combat);
+    // Both outcomes return zero; the binary still evaluates the battle gate.
+    if (battleActive) {
         return 0;
     }
     return 0;
 }
 
-static void Gp_EnqueueSndCdIfF0(u8 arg0)
+/// Queues a PE sound file only during an engaged battle hold or the battle-end delay.
+///
+/// `fileIndex` selects category-5 stage-zero files 0..63. Reuses an already
+/// requested file; otherwise the caller must leave room in the CD request ring.
+static void _attachmentEnqueueBattleSoundLoad(u8 fileIndex)
 {
     SceneCombatState* combat;
-    s32               cond;
+    s32               battleActive;
 
-    combat = &gSceneCombatState;
-    if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        sndLoadEnqueuePeFile(arg0);
+    combat       = &gSceneCombatState;
+    battleActive = _sceneHasBattleHoldOrEndDelay(combat);
+    if (battleActive) {
+        sndLoadEnqueuePeFile(fileIndex);
     }
 }
 
-static s32 Gp_CdIdleIfF0Active(void)
+/// Allows attachment use once battle sound loading has finished, or immediately outside battle.
+///
+/// Engaged battle holds and the battle-end delay require normal CD dispatch
+/// with an empty request ring. Returns 0 or 1; no request or state is changed.
+static s32 _attachmentIsBattleSoundLoadReady(void)
 {
     SceneCombatState* combat;
-    s32               cond;
+    s32               battleActive;
 
-    combat = &gSceneCombatState;
-    if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        return cdCmdIsIdle() & 0xFFFF;
+    combat       = &gSceneCombatState;
+    battleActive = _sceneHasBattleHoldOrEndDelay(combat);
+    if (battleActive) {
+        return (u16)cdCmdIsIdle();
     }
     return 1;
 }
 
-void func_800A7DB8(s32 arg0)
+void attachmentQueueIndex(s32 abilityIndex)
 {
     if (!(Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
-        Gp_StateC08.queuedIndex = arg0;
+        Gp_StateC08.queuedIndex = abilityIndex;
     }
 }
 
-void func_800A7DE0(void)
+void attachmentCancel(void)
 {
+    enum { ATTACHMENT_NO_QUEUED_INDEX  = 0,
+           ATTACHMENT_NO_PREVIEW_SOUND = 0 };
     AttachmentState* attachment;
 
+    // Return CD positioning and actor updates to ordinary play before the next HUD tick.
     cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
     attachment = &Gp_StateC08;
     if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
         attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
     }
-    attachment->queuedIndex        = 0;
+    attachment->queuedIndex        = ATTACHMENT_NO_QUEUED_INDEX;
     attachment->mode               = ATTACHMENT_MODE_IDLE;
     D_80115768                     = 0;
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-    attachment->previewSound       = 0;
+    attachment->previewSound       = ATTACHMENT_NO_PREVIEW_SOUND;
     attachment->soundStep          = ATTACHMENT_SOUND_IDLE;
 }
 
@@ -1239,34 +1288,42 @@ void hudDelayInputAfterMenu(void)
     Gp_ItemGrantCooldown = HUD_MENU_EXIT_INPUT_DELAY_UPDATES;
 }
 
-static s32 func_800A7E5C(s32 arg0)
+/// Tests whether HUD category switching is allowed by the player and attachment gates.
+///
+/// Requires a live player task's work when the slot is occupied. Normal or aimed
+/// locomotion is eligible, including movement; direction actions and interaction
+/// presses block it. The HUD input delay and battle-end delay must have expired.
+/// Nonzero `ignoreSwapLock` bypasses only the attachment swap lock. Returns 0 or 1.
+static s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
 {
-    Task*         work;
+    enum { HUD_SWITCH_PLAYER_LOCOMOTION_STATE     = 0,
+           HUD_SWITCH_PLAYER_AIM_LOCOMOTION_STATE = 2 };
+    Task*         playerTask;
     GameActor*    actor;
-    PlayerStatus* p;
-    s32           flag;
+    PlayerStatus* player;
+    s32           eligible;
 
-    flag = 0;
-    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    if (work != NULL) {
-        actor = work->work;
-        p     = &gPlayerStatus;
+    eligible   = 0;
+    playerTask = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    if (playerTask != NULL) {
+        actor  = playerTask->work;
+        player = &gPlayerStatus;
         if (actor->mode == GAME_ACTOR_MODE_NORMAL) {
-            if (actor->state == 0 || actor->state == 2) {
+            if (actor->state == HUD_SWITCH_PLAYER_LOCOMOTION_STATE || actor->state == HUD_SWITCH_PLAYER_AIM_LOCOMOTION_STATE) {
                 if (gGameSession->dirActionBusy == 0) {
-                    if (p->interactionPressed == 0) {
-                        flag = 1;
+                    if (player->interactionPressed == 0) {
+                        eligible = 1;
                     }
                 }
             }
         }
     }
-    if (arg0 == 0) {
+    if (ignoreSwapLock == 0) {
         if (Gp_StateC08.flags & ATTACHMENT_FLAG_SWAP_LOCK) {
-            flag = 0;
+            eligible = 0;
         }
     }
-    if (flag != 0) {
+    if (eligible != 0) {
         if (Gp_ItemGrantCooldown <= 0) {
             if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
                 return 1;
@@ -1385,54 +1442,72 @@ static void _viewSetFromCoord(GfxCoord* cameraCoord, const VECTOR* offset)
     gGfxViewCoord.composeStamp       = GRAPHICS_COORD_DIRTY;
 }
 
-/// Spawns the type-0xE view task and points its coordinate at the inverse of
-/// `arg0` (transposed rotation, negated translation). `arg1` is the optional
-/// world offset stored in the task's 0x10-byte payload.
-static s32 Gp_SpawnViewCoordTask(GfxCoord* arg0, VECTOR* arg1)
+/// Queues a camera coordinate pose and optional outer offset for one view update.
+///
+/// Bank-0 slot 0x0E owns a coordinate body and a separately allocated VECTOR.
+/// Copies offset XYZ in game units (NULL means zero); retains neither input.
+/// Transposes the pose rotation and negates its origin for the view chain,
+/// expressing non-direct children relative to `gGfxViewCoord` first. Rotations
+/// use ONE-scaled coefficients; inversion requires an orthonormal camera frame.
+/// Non-direct children require live acyclic chains and 48 free scratch bytes.
+/// Returns 1 on success; allocation failure returns 0 and releases any task.
+/// The task applies the snapshot without changing projection, then frees it.
+static s32 _viewQueueCoord(GfxCoord* cameraCoord, const VECTOR* offset)
 {
-    GfxCoord* coord;
+    /// Writes the pose components used by the translation-before-rotation view chain.
+    ///
+    /// Requires disjoint word-aligned matrices. Transposes ONE-scaled rotation
+    /// and negates origin XYZ, preserving alignment bytes. An orthonormal pose
+    /// gives the inverse view. Arguments are evaluated repeatedly and must have
+    /// no side effects; captures no locals and does not invalidate either cache.
+#define VIEW_WRITE_INVERSE_POSE(cameraPose, viewPose)  \
+    {                                                  \
+        gte_TransposeMatrix((cameraPose), (viewPose)); \
+        (viewPose)->t[0] = -(cameraPose)->t[0];        \
+        (viewPose)->t[1] = -(cameraPose)->t[1];        \
+        (viewPose)->t[2] = -(cameraPose)->t[2];        \
+    }
+    enum { VIEW_COORD_TASK_BANK = 0,
+           VIEW_COORD_TASK_TYPE = 0xE };
+    GfxCoord* inverseCamera;
     Task*     task;
-    VECTOR*   pos;
-    GfxCoord* root;
-    GfxCoord* parent;
-    GfxCoord  rel;
+    VECTOR*   ownedOffset;
+    GfxCoord* viewOrigin;
+    GfxCoord* cameraParent;
+    GfxCoord  relative;
 
-    task = taskSpawn(0, 0xE, 0, 0);
+    task = taskSpawn(VIEW_COORD_TASK_BANK, VIEW_COORD_TASK_TYPE, 0, 0);
     if (task == NULL) {
         return 0;
     }
-    pos = memCalloc(sizeof(VECTOR), 0);
-    if (pos == NULL) {
+    ownedOffset = memCalloc(sizeof(*ownedOffset), 0);
+    if (ownedOffset == NULL) {
         taskKill(task);
         return 0;
     }
-    task->work = pos;
-    coord      = task->extra.tmd->coords;
-    if (arg1 != NULL) {
-        pos->vx = arg1->vx;
-        pos->vy = arg1->vy;
-        pos->vz = arg1->vz;
+    task->work    = ownedOffset;
+    inverseCamera = task->extra.coordBody->coord;
+    if (offset != NULL) {
+        ownedOffset->vx = offset->vx;
+        ownedOffset->vy = offset->vy;
+        ownedOffset->vz = offset->vz;
     } else {
-        pos->vx = 0;
-        pos->vy = 0;
-        pos->vz = 0;
+        ownedOffset->vx = 0;
+        ownedOffset->vy = 0;
+        ownedOffset->vz = 0;
     }
 
-    parent = arg0->parent;
-    root   = &gGfxViewCoord;
-    if (parent == root) {
-        gte_TransposeMatrix(&arg0->coord, &coord->coord);
-        coord->coord.t[0] = -arg0->coord.t[0];
-        coord->coord.t[1] = -arg0->coord.t[1];
-        coord->coord.t[2] = -arg0->coord.t[2];
+    // A direct child supplies its pose without touching its composition cache.
+    cameraParent = cameraCoord->parent;
+    viewOrigin   = &gGfxViewCoord;
+    if (cameraParent == viewOrigin) {
+        VIEW_WRITE_INVERSE_POSE(&cameraCoord->coord, &inverseCamera->coord);
     } else {
-        _gfxCoordToReference(arg0, root, &rel);
-        gte_TransposeMatrix(&rel.coord, &coord->coord);
-        coord->coord.t[0] = -rel.coord.t[0];
-        coord->coord.t[1] = -rel.coord.t[1];
-        coord->coord.t[2] = -rel.coord.t[2];
+        _gfxCoordToReference(cameraCoord, viewOrigin, &relative);
+        VIEW_WRITE_INVERSE_POSE(&relative.coord, &inverseCamera->coord);
     }
     return 1;
+#undef VIEW_WRITE_INVERSE_POSE
 }
 
 void viewApplyCoordTask(Task* task)
@@ -1590,28 +1665,23 @@ void viewApplyCameraTask(Task* task)
     taskKill(task);
 }
 
-static void func_800A8D5C(void)
+/// Queues identity view rotation, zero origin and an outer Z offset of ONE game units.
+///
+/// Keeps projection settings and discards the queue operation's success status.
+static void _viewQueueDefaultTransform(void)
 {
-    VECTOR   vec;
-    GfxCoord coord;
-    s32      one;
-    MATRIX*  m;
+    VECTOR   offset;
+    GfxCoord cameraCoord;
 
-    vec.vx                          = 0;
-    vec.vy                          = 0;
-    vec.vz                          = ONE;
-    one                             = ONE;
-    m                               = &coord.coord;
-    coord.parent                    = &gGfxViewCoord;
-    *(s32*)&coord.coord             = one;
-    MATRIX_PAIR(&coord.coord, 0, 2) = 0;
-    MATRIX_PAIR(m, 1, 1)            = one;
-    MATRIX_PAIR(&coord.coord, 2, 0) = 0;
-    m->m[2][2]                      = one;
-    coord.coord.t[0]                = 0;
-    coord.coord.t[1]                = 0;
-    coord.coord.t[2]                = 0;
-    Gp_SpawnViewCoordTask(&coord, &vec);
+    offset.vx          = 0;
+    offset.vy          = 0;
+    offset.vz          = ONE;
+    cameraCoord.parent = &gGfxViewCoord;
+    gfxSetRotIdentity(&cameraCoord.coord);
+    cameraCoord.coord.t[0] = 0;
+    cameraCoord.coord.t[1] = 0;
+    cameraCoord.coord.t[2] = 0;
+    _viewQueueCoord(&cameraCoord, &offset);
 }
 
 void Gp_SpawnCurView(s32 arg0)

@@ -3036,7 +3036,7 @@ void Gp_TickPlayClock(Task* task)
                 return;
             }
             Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
-            func_800A7DE0();
+            attachmentCancel();
             roomEffectRequestCancelPe();
             session = gGameSession;
             if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
@@ -3055,7 +3055,7 @@ void Gp_TickPlayClock(Task* task)
                 return;
             }
             Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
-            func_800A7DE0();
+            attachmentCancel();
             roomEffectRequestCancelPe();
             companion = p->state.companionType;
             if (companion == 1) {

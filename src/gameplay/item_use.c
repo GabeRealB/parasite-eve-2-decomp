@@ -98,6 +98,14 @@ WorldCollisionFaceEdge Gp_FaceEdgePairs[5] = {
 
 static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
 {
+    // Catalogue ids and level-one sound files supplied to the attachment hooks.
+    enum {
+        INVENTORY_ITEM_FLARE                     = 0x3A,
+        INVENTORY_ITEM_PEPPER_SPRAY              = 0x3B,
+        INVENTORY_ITEM_COMBAT_LIGHT              = 0x41,
+        ATTACHMENT_FLARE_SOUND_FILE_INDEX        = ATTACHMENT_INDEX_FLARE * ATTACHMENT_AREA_LEVEL_COUNT + 1,
+        ATTACHMENT_COMBAT_LIGHT_SOUND_FILE_INDEX = ATTACHMENT_INDEX_COMBAT_LIGHT * ATTACHMENT_AREA_LEVEL_COUNT + 1
+    };
     PlayerStatus*        cfg;
     GameActor*           actor;
     InventoryItemRange*  scanEquip;
@@ -317,17 +325,17 @@ static s32 Gp_ApplyItemUse(InventoryItemRow* arg0)
                             ret            = 1;
                         }
                         break;
-                    case 0x3A:
-                    case 0x3B:
-                        func_800A7CB0((u8)((id - 0x3A) * 3 + 0x2E));
-                        func_800A7DB8(id - 0x2B);
+                    case INVENTORY_ITEM_FLARE:
+                    case INVENTORY_ITEM_PEPPER_SPRAY:
+                        attachmentSoundLoadStub((u8)((id - INVENTORY_ITEM_FLARE) * ATTACHMENT_AREA_LEVEL_COUNT + ATTACHMENT_FLARE_SOUND_FILE_INDEX));
+                        attachmentQueueIndex(id - (INVENTORY_ITEM_FLARE - ATTACHMENT_INDEX_FLARE));
                         Gp_SelItemRec = arg0;
                         flag          = 0;
                         ret           = 1;
                         break;
-                    case 0x41:
-                        func_800A7CB0(0x34);
-                        func_800A7DB8(0x11);
+                    case INVENTORY_ITEM_COMBAT_LIGHT:
+                        attachmentSoundLoadStub(ATTACHMENT_COMBAT_LIGHT_SOUND_FILE_INDEX);
+                        attachmentQueueIndex(ATTACHMENT_INDEX_COMBAT_LIGHT);
                         Gp_SelItemRec = arg0;
                         flag          = 0;
                         ret           = 1;

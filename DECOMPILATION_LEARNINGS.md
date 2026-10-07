@@ -6601,7 +6601,7 @@ asm volatile("" : "+r"(block));
 TransposeMatrix(&player->workm, &block->playerInverseRotation);
 ```
 
-`Gp_UpdateLinkXforms` is the example.
+`worldTargetUpdatePlayerRelativePositions` is the example.
 
 ## Scope a `| k` temp so the OR reuses the load dest
 
@@ -24510,7 +24510,7 @@ return 0;
 
 The equivalent `if (A) cond = 1; else if (B) cond = 1; else cond = 0;` lets
 combine turn the last arm into `sltu v1, zero, v0`. Dropping the `if (cond)`
-lets DCE delete the whole predicate. `func_800A7CB0` is the example.
+lets DCE delete the whole predicate. `attachmentSoundLoadStub` is the example.
 
 The same rule holds when the boolean is *live*. In
 `func_actor_341700_80169520` the flag guards a real store, and the target is
@@ -25516,29 +25516,29 @@ A stack `GfxCoord` whose `coord` is an identity matrix (same shape as
 (`sw one, 8(v1)` / `sh one, 0x10(v1)`). The rest stay SP-relative.
 
 `one = ONE` as the first statement is scheduled too late: the parent address
-steals `$v0` and `m = &coord.coord` reuses it. A first *store* of `ONE` that
+steals `$v0` and `rotation = &cameraCoord.coord` reuses it. A first *store* of `ONE` that
 belongs in the later store block hoists the `li` without emitting that store
 early:
 
 ```c
-vec.vx = 0;
-vec.vy = 0;
-vec.vz = ONE; /* first use of ONE — li v0, then the store waits */
-one    = ONE;
-m      = &coord.coord;
-coord.parent = &gGfxViewCoord;
-*(s32*)&coord.coord         = one; /* sw one, 0x24(sp) */
-*(s32*)&coord.coord.m[0][2] = 0;   /* sw zero, 0x28(sp) */
-*(s32*)&m->m[1][1]          = one; /* sw one, 8(v1) */
-*(s32*)&coord.coord.m[2][0] = 0;   /* sw zero, 0x30(sp) */
-m->m[2][2]                  = one; /* sh one, 0x10(v1) */
+offset.vx          = 0;
+offset.vy          = 0;
+offset.vz          = ONE; /* first use of ONE — li v0, then the store waits */
+one                = ONE;
+rotation           = &cameraCoord.coord;
+cameraCoord.parent = &gGfxViewCoord;
+*(s32*)&cameraCoord.coord         = one; /* sw one, 0x24(sp) */
+*(s32*)&cameraCoord.coord.m[0][2] = 0;   /* sw zero, 0x28(sp) */
+*(s32*)&rotation->m[1][1]         = one; /* sw one, 8(v1) */
+*(s32*)&cameraCoord.coord.m[2][0] = 0;   /* sw zero, 0x30(sp) */
+rotation->m[2][2]                = one; /* sh one, 0x10(v1) */
 ```
 
-Writing every matrix word through `m` turns the zero stores into
-`sw zero, 4/0xC(v1)`. Writing them all through `coord.coord` drops
+Writing every matrix word through `rotation` turns the zero stores into
+`sw zero, 4/0xC(v1)`. Writing them all through `cameraCoord.coord` drops
 `addiu v1, sp, 0x24` and uses `0x2C(sp)` / `0x34(sp)` instead.
 
-`func_800A8D5C` is the example.
+`_viewQueueDefaultTransform` is the example.
 
 ## Initialized local jump table keeps `sw ra` first
 
@@ -29659,10 +29659,10 @@ through `$v1` after `gGameSession` occupies `$v0`.
 ## Wrap-around skip is `do { idx++; wrap; } while (empty && !flag)`
 
 A circular walk that steps once, wraps, then skips empty table slots
-needs increment-first do-while. `arg0++; while (1) { wrap; if (ok)
-break; arg0++; }` dropped the continue increment (infinite loop in the
-object) and left nops in the `blez` / `beqz` delay slots. `for (arg0++;
-; arg0++)` did the same.
+needs increment-first do-while. `abilityIndex++; while (1) { wrap; if (ok)
+break; abilityIndex++; }` dropped the continue increment (infinite loop in the
+object) and left nops in the `blez` / `beqz` delay slots. `for (abilityIndex++;
+; abilityIndex++)` did the same.
 
 The target speculatively decrements in the `blez` delay slot, undoes it,
 then increments, and puts `addiu ±1` / undo on the inner `beqz`:
@@ -29682,14 +29682,14 @@ Increment, then wrap, then the combined empty test:
 
 ```c
 do {
-    arg0++;
-    if (arg0 >= 0xC) {
-        arg0 = 0;
+    abilityIndex++;
+    if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
+        abilityIndex = 0;
     }
-} while (table[arg0] == 0 && save->field_5C2 == 0);
+} while (levels[abilityIndex] == 0 && liveSave->state.cheatMode == 0);
 ```
 
-`Gp_StepAttachSlot` is the example. The increment-outside / `while (1)`
+`_attachmentStepLearnedSpell` is the example. The increment-outside / `while (1)`
 shape stuck at 83.3%.
 
 ## Reuse the `$v1` temp for `(lo - abs)` so the LCG load can overwrite it
@@ -37343,11 +37343,11 @@ casts if the types differ, rather than adding a second pin.
 
 ## A 0x50-byte "dead" local area is a `GfxCoord` whose `.coord` is the MATRIX
 
-`Gp_SpawnViewCoordTask` uses a stack MATRIX at `sp+0x14` but reserves `0x50` bytes of
+`_viewQueueCoord` uses a stack MATRIX at `sp+0x14` but reserves `0x50` bytes of
 locals (frame `0x78` with five saved registers). `MATRIX mtx;` alone lands the
 matrix at `sp+0x10` and shrinks the frame to `0x48`. The extra four bytes in
 front plus `0x2C` behind are `GfxCoord`'s `composeStamp` and everything after
-`coord`: declare `GfxCoord rel;` and use `&rel.coord` as the working
+`coord`: declare `GfxCoord relative;` and use `&relative.coord` as the working
 matrix. Whenever the target's only visible local sits at `+4` inside a local
 area whose size matches a known struct, look for a struct whose interesting
 member is at offset 4 rather than padding the frame by hand.
@@ -37356,7 +37356,7 @@ member is at offset 4 rather than padding the frame by hand.
 
 The `_gfxSetDefaultFlatLight` note above (inline helper → `lui 0x1F80` /
 `lw|sw 0x3FC` per access, instead of CSE into an `$sN`) is not specific to
-being called several times. `Gp_SpawnViewCoordTask` calls its helper once and still
+being called several times. `_viewQueueCoord` calls its helper once and still
 gets the rematerialised form. Writing the same body straight into the caller —
 with a plain constant, a `volatile` cast, an intervening `memory` barrier, or a
 `void** scratch = SCRATCH_STACK_CURSOR_SLOT` local — always CSEs the address into a
@@ -37368,15 +37368,15 @@ reproduces it.
 
 GCC 2.8.1's global allocator sorts pseudos by references divided by live
 length, so a short-lived second argument can outrank a long-lived first
-argument and grab the lower-numbered callee-saved register. `Gp_SpawnViewCoordTask`
-wants `index` in `$s2` and `value` in `$s3`; naturally `arg1` (dead after three
+argument and grab the lower-numbered callee-saved register. `_viewQueueCoord`
+wants `index` in `$s2` and `value` in `$s3`; naturally `offset` (dead after three
 loads near the top) took `$s2` and its `sw`/`move` pair was emitted first.
 An empty asm that merely reads the argument at the very end of the function
 extends its live range, drops its priority below `index`, and fixes both the
 register choice and the prologue ordering without emitting an instruction:
 
 ```c
-    __asm__ volatile("" ::"r"(arg1));
+    __asm__ volatile("" ::"r"(offset));
     return 1;
 ```
 
@@ -37932,13 +37932,13 @@ falls through and is consumed as the function name.
 ## A barrier inside a shared `static __inline__` changes the *caller's* register allocation
 
 `_gfxCoordToReference` in `src/gameplay/gameplay.c` ended with an
-`__asm__ volatile("" ::"r"(index));` that a previous match (`Gp_SpawnViewCoordTask`)
+`__asm__ volatile("" ::"r"(index));` that a previous match (`_viewQueueCoord`)
 needed. When `_viewSetFromCoord` was written against the same helper, the inlined
 copy of that barrier counted as one extra reference to *its* `index`, which
 pushed the parameter ahead of the `root = &gGfxViewCoord;` local in
 `global_alloc`'s priority order. Every instruction matched, but `index` landed
 in `$s1` and `root` in `$s2` — exactly the reverse of the target. Deleting the
-barrier (still a 100% match for `Gp_SpawnViewCoordTask`) dropped `index` by one
+barrier (still a 100% match for `_viewQueueCoord`) dropped `index` by one
 reference and flipped the pair, taking the score from 99.4% to 100%.
 
 The lesson is that scheduling barriers baked into a shared inline helper are
@@ -39155,7 +39155,7 @@ The `+=` form goes through the `s16` field's own mode, which gives the RMW a
 distinct pseudo per component that the scheduler is free to interleave; the
 all-`u16` form makes load, add and store one dependency chain. This was worth
 95.9% -> 97.7% in `_worldTargetScanLockNodes`. Note the neighbouring, already-matched
-`Gp_UpdateLinkXforms` wants the `+=` form — check which schedule the target has
+`worldTargetUpdatePlayerRelativePositions` wants the `+=` form — check which schedule the target has
 before copying either idiom.
 
 ## Chain compound assignments to make a multi-step expression reuse one register
@@ -52421,7 +52421,7 @@ therefore mean two different source shapes in the *same* function:
   the register form, and
 - a `static __inline__` helper containing the rest of the alloc/use/free, whose
   accesses rematerialise (same effect as the `_gfxSetDefaultFlatLight` /
-  `Gp_SpawnViewCoordTask` notes above, applied to only part of a function).
+  `_viewQueueCoord` notes above, applied to only part of a function).
 
 The inline helper also breaks the store-to-load forwarding that otherwise
 collapses `*scratch = block;` followed by `head = *SCRATCH_STACK_CURSOR_SLOT;`
@@ -143963,7 +143963,7 @@ keeps one more insn in the loop through sched1 (gone by final), making it 26 vs
 pin it replaced. Where a hoisted constant address and a loop-spanning local swap
 callee-saved registers, try the other exit spelling before anything else.
 
-## Two hoisted GTE pointers swapping `a0`/`a1` are a copy-and-rotate helper inlined twice (Gp_UpdateLinkXforms, 2026-09-26)
+## Two hoisted GTE pointers swapping `a0`/`a1` are a copy-and-rotate helper inlined twice (worldTargetUpdatePlayerRelativePositions, 2026-09-26)
 
 A loop rotates one scratch `SVECTOR` twice, each time as `tmp = *v;
 gte_SetRotMatrix(m); gte_ldv0(&tmp); gte_rtv0(); gte_stsv(v);`. Written out
@@ -149886,7 +149886,7 @@ attempts; left as it was.
 - **A hand-inlined copy of a function with one argument constant.**
   `Gp_HudTask` carried `hit = ...; if (hit) { if (cooldown > 0) { ok = 0; goto
   have; } if (endDelay == 0) { ok = 1; goto have; } } ok = 0; have:`, the body
-  of `func_800A7E5C` without its `arg0 == 0` swap-lock test. It is the file's
+  of `_hudCanSwitchCategory` without its `ignoreSwapLock == 0` swap-lock test. It is the file's
   `hudSwapReady` inline given that parameter and called as `hudSwapReady(1)`;
   the test folds away. The inline's ending has to be `if (cooldown > 0) return
   0; if (endDelay == 0) return 1; ... return 0;`. Nested as `if (cooldown <= 0)

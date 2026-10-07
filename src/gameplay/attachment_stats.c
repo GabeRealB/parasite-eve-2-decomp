@@ -116,16 +116,16 @@ static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2);
 /// Inline copy of `attachmentGetLearnedLevels`.
 static __inline__ u8* getAttachLevels(void);
 
-/// Inline copy of `func_800A7E5C`: the HUD category can be swapped only
-/// while the player actor is idle, no CD request is pending and the
-/// `Gp_ItemGrantCooldown` cooldown has expired. `ignoreSwapLock` skips the
-/// `ATTACHMENT_FLAG_SWAP_LOCK` test, as `Gp_HudTask` does for START in battle.
+/// Inline copy of `_hudCanSwitchCategory`: normal or aimed locomotion permits
+/// a HUD category switch after input and battle-end delays expire, provided no
+/// direction action or interaction press is active. `ignoreSwapLock` bypasses
+/// `ATTACHMENT_FLAG_SWAP_LOCK`, as `Gp_HudTask` does for START in battle.
 static __inline__ s32 hudSwapReady(s32 ignoreSwapLock);
 
-/// Inline copy of `Gp_CdIdleIfF0Active`.
+/// Inline copy of `_attachmentIsBattleSoundLoadReady`.
 static __inline__ s32 cdIdleIfF0Active_(void);
 
-/// Inline copy of `func_800A7CB0`, which evaluates the same gate as
+/// Inline copy of `attachmentSoundLoadStub`, which evaluates the same gate as
 /// `sceneIsBattleActive` but always returns 0.
 static __inline__ u8 stateF0Gate_(void);
 
@@ -1077,10 +1077,10 @@ static __inline__ u8* getAttachLevels(void)
     return Gp_DebugAttachLevels;
 }
 
-/// Inline copy of `func_800A7E5C`: the HUD category can be swapped only
-/// while the player actor is idle, no CD request is pending and the
-/// `Gp_ItemGrantCooldown` cooldown has expired. `ignoreSwapLock` skips the
-/// `ATTACHMENT_FLAG_SWAP_LOCK` test, as `Gp_HudTask` does for START in battle.
+/// Inline copy of `_hudCanSwitchCategory`: normal or aimed locomotion permits
+/// a HUD category switch after input and battle-end delays expire, provided no
+/// direction action or interaction press is active. `ignoreSwapLock` bypasses
+/// `ATTACHMENT_FLAG_SWAP_LOCK`, as `Gp_HudTask` does for START in battle.
 static __inline__ s32 hudSwapReady(s32 ignoreSwapLock)
 {
     Task*         work;
@@ -1119,7 +1119,7 @@ static __inline__ s32 hudSwapReady(s32 ignoreSwapLock)
     return 0;
 }
 
-/// Inline copy of `Gp_CdIdleIfF0Active`.
+/// Inline copy of `_attachmentIsBattleSoundLoadReady`.
 static __inline__ s32 cdIdleIfF0Active_(void)
 {
     SceneCombatState* combat;
@@ -1140,7 +1140,7 @@ static __inline__ s32 cdIdleIfF0Active_(void)
     return ret;
 }
 
-/// Inline copy of `func_800A7CB0`, which evaluates the same gate as
+/// Inline copy of `attachmentSoundLoadStub`, which evaluates the same gate as
 /// `sceneIsBattleActive` but always returns 0.
 static __inline__ u8 stateF0Gate_(void)
 {
@@ -1555,7 +1555,7 @@ void Gp_HudTask(HudState* hud)
         }
     }
 
-    Gp_UpdateLinkXforms();
+    worldTargetUpdatePlayerRelativePositions();
     {
         DisplayState* d3;
 

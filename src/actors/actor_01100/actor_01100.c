@@ -3797,7 +3797,7 @@ static void Actor01100_Fn06B6C(GfxCoord* arg0, _Actor01100Scratch* arg1, s32 arg
 }
 
 /// Points the enemy's body at the model's fourth part coordinate - the same
-/// `TmdObject::coords[3]` that `Gp_UpdateLinkXforms` reads back through
+/// `TmdObject::coords[3]` that `worldTargetUpdatePlayerRelativePositions` reads back through
 /// `Enemy.coord` - and sets the body position the actor spawns inside, and
 /// clears the lock-on node's flags.
 ///

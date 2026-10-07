@@ -46,12 +46,32 @@ void hudReset(HudState* hud);
 /// Queues the Healing sound bank for its effective level, reusing an already loaded bank.
 void attachmentEnqueueHealingSoundLoad(void);
 
-/// State-F0 gate stub; callers supply an unused action code.
-s32 func_800A7CB0(s32 unused);
+/// Inert attachment sound-load hook that always returns zero.
+///
+/// Item-use callers supply a PE sound file index, which is ignored. The binary
+/// evaluates the battle hold/end-delay gate but queues no load or playback.
+s32 attachmentSoundLoadStub(s32 unusedFileIndex);
 
-void func_800A7DB8(s32 arg0);
+/// Item-backed slots accepted by the pending attachment queue.
+enum {
+    ATTACHMENT_INDEX_FLARE        = 15,
+    ATTACHMENT_INDEX_PEPPER_SPRAY = 16,
+    ATTACHMENT_INDEX_COMBAT_LIGHT = 17
+};
 
-void func_800A7DE0(void);
+/// Replaces the pending attachment slot unless the event lock is set.
+///
+/// `abilityIndex` is a spell/item slot 0..17; zero clears the queue. Stored as
+/// a signed byte without validation. The HUD consumes a nonzero slot when
+/// input permits, and scripted actor mode or event locking can discard it.
+void attachmentQueueIndex(s32 abilityIndex);
+
+/// Cancels the active attachment and releases wheel-controlled actor suspension.
+///
+/// Armed/casting effects are marked cancelled; earlier modes retain `effectPhase`.
+/// Clears the pending slot and preview sound state, restores actor updates and
+/// queues a seek to the current view. The caller must leave CD-ring capacity.
+void attachmentCancel(void);
 
 /// Applies the live session's mapped area camera and resets view projection.
 ///
@@ -93,7 +113,20 @@ enum {
 /// packets survive until GPU completion. The debug hide-HUD flag skips drawing.
 void hudDrawHpReadout(s32 x, s32 y, s32 hp, s32 hpMax, s32 layout);
 
-void Gp_UpdateLinkXforms(void);
+/// Refreshes tracked enemy body anchors in the player's coordinate frame.
+///
+/// A missing player slot leaves stored positions unchanged. Otherwise requires
+/// its first model coordinate and each eligible enemy coordinate to have live,
+/// current work matrices composed into the same frame, plus an acyclic target
+/// list of embedded `Enemy` nodes. Entries marked only `WORLD_TARGET_NOT_LOCKABLE`
+/// by the scan mask are skipped; `WORLD_TARGET_KEEP_SCANNED` permits them.
+/// No coordinate cache is refreshed.
+/// Local XYZ narrows to signed halfwords, each GTE rotation saturates to signed
+/// halfwords, and translation/subtraction narrows after each step. The player's
+/// transposed rotation inverts an orthonormal frame (ONE-scaled coefficients).
+/// Results are widened into `Enemy::playerRelPos` in game-coordinate units.
+/// Requires 72 free scratch-stack bytes, released before return; changes GTE state.
+void worldTargetUpdatePlayerRelativePositions(void);
 
 s32 func_800A7550(void);
 

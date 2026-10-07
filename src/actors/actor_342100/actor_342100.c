@@ -583,7 +583,7 @@ void func_actor_342100_80162C88(void)
 /// State 0 counts the live entries of the overlay's message-table list and
 /// hands slot 3 that list with message 0x3F7, lets the player's weapon into
 /// the message stream (`Gp_MsgPlayerWeapon`), raises the `Gp_StateC08` flag
-/// `func_800A7DB8` gates on, installs the model set and hands slot 6 the
+/// `attachmentQueueIndex` gates on, installs the model set and hands slot 6 the
 /// 0xFA4 that starts the encounter, then starts spawn entry 2 with the task
 /// itself and steps to state 1. State 1 ticks the child and reports 1 to keep
 /// the task alive until `gGameSession->eventState` is set.
