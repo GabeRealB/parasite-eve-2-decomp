@@ -112737,7 +112737,7 @@ when the flag/constant statements came *after* the third computed store in C (`t
 `|= 0xC000`); written before it, sched interleaved them with the second store. And the scratch carve
 needed `*head_ptr = head - N; sc = head - N;` (two pseudos) to get `addiu v0,s2,-N; move s0,v0; sw v0`.
 
-## A `(u8)` cast on an `s16` struct field is a byte load: `lbu`, not `lh` + `andi` (func_actor_356100_801633DC, 2026-09-16)
+## A `(u8)` cast on an `s16` struct field is a byte load: `lbu`, not `lh` + `andi` (_actor356100TickBlendedAnimation, 2026-09-16)
 
 **Symptom.** The target loads the two animation clip ids with `lbu $v1, 0x98A($s1)` /
 `lbu $v1, 0x982($s1)` (then `addiu v1,v1,-3`) and the blend weight with
@@ -112761,7 +112761,7 @@ use.
 contexts with `0x1000 - weight`, the rest ticked - now has three matched members, each
 an overlay-local `*AnimWork` view of the task work block: `Actor01900_Fn01950`
 (`anim` +0x1C, weight +0x8AC, bound 0x13), `func_actor_403000_801336B4` (`anim` +0x14,
-weight +0xAD4, bound 0x18) and `func_actor_356100_801633DC` (`anim` +0x1C, weight
+weight +0xAD4, bound 0x18) and `_actor356100TickBlendedAnimation` (`anim` +0x1C, weight
 +0x98C, bound 0x15). Because `1BC.h` `AnimationContext` is 0x14 bytes, each view's slot array
 starts exactly 0x14 after its context, which fixes `slots[i].rate` at `+9` off that
 base - so the three displacements 0x39 / 0x39 / 0x39 are the same number and only the
@@ -112845,7 +112845,7 @@ Two `code_label`s with nothing between them land on the same address, so the
 involved. Written apart, or as two separate bodies, the case-2 body sits somewhere else
 and the test stops inverting.
 
-**Two returns, not one.** `func_actor_356100_8016A0B8` ends in two `jr ra` - one reached
+**Two returns, not one.** `_actor356100ApplyCommand` ends in two `jr ra` - one reached
 only by the right subtree's `bne`, the other by the `if`'s exit *and* the root's "do not
 fall into the right subtree" jump (`emit_case_nodes`'s `emit_jump_if_reachable
 (default_label)` between the left and right subtrees, which is the `j` that separates
@@ -112969,7 +112969,7 @@ computation and is unaffected. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`, input
 `base_2.i` SHA256 `ad7ce0d6090259e109fccc803c116b05d2196a55abcc798364ac2546b6958751`.
 
-## A loop's comparison constants want a local before the loop when the target keeps them in `$s` registers (func_actor_356100_80163CD4, 2026-09-16)
+## A loop's comparison constants want a local before the loop when the target keeps them in `$s` registers (_actor356100StatusHold, 2026-09-16)
 
 **Symptom.** A `do`/`goto` loop whose exit test compares a work field against two
 clip ids — `(work->animId != 0xB || (work->field_5A & 0x3FF) < 6)` … — with
@@ -113014,7 +113014,7 @@ callee-saved home:
         work->animRequest = 2;
         work->animRate = 0x10;
     loop_2:
-        func_actor_356100_80163508(arg0);
+        _actor356100UpdateAnimation(arg0);
         if ((work->animId != animA) || ((u32)(work->field_5A & 0x3FF) < 6U)) {
             if ((work->animId != animB) || ((u32)(work->field_5A & 0x3FF) < 9U)) {
                 goto loop_2;
@@ -113334,7 +113334,7 @@ what forces `lh`; the `(u16)` cast only makes the read unsigned explicitly.
 
 ## Two independent `li`s keep their source order while their stores do not
 
-`func_actor_356100_8016382C` writes seven animation slots in a row and the
+`_actor356100Initialize` writes seven animation slots in a row and the
 target's store order is `0x97E`, `0x978`, `0x97A`, `0x990`, `0x98E`, `0x984`,
 `0x982`. Writing the C in exactly that order scores 99.93%: everything matches
 except that the two `li`s are emitted the other way round.
@@ -113377,13 +113377,13 @@ Inputs: `base_5.i` (100%) SHA256
 SHA256 `7956b8a717eae7d8486bc4db20a453720d701360f33e8d4ec30601b001c87c7a`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_356100_8016382C-vacuum`.
+Scratch `nonmatchings/_actor356100Initialize-vacuum`.
 
 ## `SCRATCH_STACK_CURSOR_SLOT` wants the address expanded at every use, not cached in a register (func_actor_356100_801668FC, 2026-09-16)
 
 **Superseded for this function (2026-10-04).** `func_actor_356100_801668FC`
 no longer carries the per-access copies described below: its two scratch
-blocks are `Actor356100_StepForwardSave` and `Actor356100_PushRecordsSave`,
+blocks are `_actorMovementStepLocalZFromSave` and `_actorContactPushRootFromSave`,
 which expand to the same instructions once they are defined above it. See "A
 hand-expanded scratch walk can be an inline helper defined below its caller".
 The mechanism recorded here is still how the per-use address form arises.
@@ -113481,7 +113481,7 @@ compiler SHA256
 Scratch `nonmatchings/func_actor_356100_801668FC-vacuum`; retry seed archived at
 `tools/giveups/func_actor_356100_801668FC/`.
 
-## Sibling slot-loops need per-block locals, and dbr picks a delay slot by the candidate's register home (func_actor_356100_80163508, 2026-09-16)
+## Sibling slot-loops need per-block locals, and dbr picks a delay slot by the candidate's register home (_actor356100UpdateAnimation, 2026-09-16)
 
 A tick with four near-identical `for (i = 1; i < 0x15; i++)` slot loops (blend
 reseed, reset, blend restart, tick) reaches 99.701% only when each loop owns its
@@ -113538,7 +113538,7 @@ Both spellings of the pair produce the same object (a fresh
 `$s0` being (conservatively) live at the branch target is. Reproducing the
 target needs that liveness resolved, not another rearrangement - the timings
 and the full experiment log are in
-`nonmatchings/func_actor_356100_80163508-vacuum/LEARNINGS.md`.
+`nonmatchings/_actor356100UpdateAnimation-vacuum/LEARNINGS.md`.
 
 Unrelated but worth repeating: an implicit-declaration call site
 (`ActorsShared80132808` with no prototype in scope) silently drops the `(s16)`
@@ -113590,7 +113590,7 @@ permuter pair `base_perm_2f8eba3e02704e9e_parent.i`
 SHA256 `142cec22db15f0eafa4ed7de40e958d654f35109a90bf9e508c0f9324cd88c96`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
-`nonmatchings/func_actor_356100_80163508-vacuum`; best unpinned candidate
+`nonmatchings/_actor356100UpdateAnimation-vacuum`; best unpinned candidate
 `base_4.c` / `base_6.c` / `base_10.c` / `base_11.c`.
 
 ## A ternary assigned to a global struct field materializes the destination address; the if/else arms keep the folded `%lo(sym)(reg)` store
@@ -113651,8 +113651,8 @@ blocks written out by hand: short-lived `scratchBase = PLAYSTATION_SCRATCHPAD_BA
 copies killed after each access, a separate set of head/block locals per block,
 and a `collisionScratch`/`resolvedStep` pointer pair. Its sibling tick further
 down the file does the same two steps as
-`Actor356100_StepForwardSave(save, coord, n)` and
-`Actor356100_PushRecordsSave(save, root, recs, 3, 0x10)` with no scaffolding.
+`_actorMovementStepLocalZFromSave(save, coord, n)` and
+`_actorContactPushRootFromSave(save, root, recs, 3, 0x10)` with no scaffolding.
 
 **Cause.** Both helpers were *defined* after `func_actor_356100_801668FC`,
 with only prototypes above it. GCC 2.8.1 expands a `static __inline__` only
@@ -114065,7 +114065,7 @@ GCC 2.8.1 sets `DECL_SAVED_INSNS` when a function's own `rest_of_compilation`
 runs, i.e. when its definition is reached; a call above that point cannot
 inline and is emitted as a real `jal`. A scratch `base.c` holds one function and
 the headers, so helpers that live in the `.c` — here `_actorAngleTurnToOffset`,
-`actorStepForward` and `Actor356100_PushRecords` — are not visible at all
+`actorStepForward` and `_actorContactPushRoot` — are not visible at all
 and become implicit declarations. Nothing warns under `-w`, the build passes,
 and the score is merely low: 60.998% with 491 instructions against the target's
 605, `delete=164`, because three inlined bodies (most of `PushRecords`) were
@@ -124850,7 +124850,7 @@ keep the C order. **The `li` sequence is the reliable read of the original
 statement order; the store sequence is not** -- which matters because the
 disassembly shows only the stores.
 
-The matched sibling `func_actor_356100_8016382C` writes the same eight halfwords
+The matched sibling `_actor356100Initialize` writes the same eight halfwords
 (`0x978`..`0x982` there, `0x828`..`0x832` here) in exactly this order, and its
 assembly has `li $s1,2` ahead of `li $v0,1` with the same swapped stores, so a
 matched twin settles an otherwise ambiguous block. This is the distinct-constant
@@ -131851,7 +131851,7 @@ here the refusal is not explained, but the remedy is the same, and it is the
 remedy to reach for whenever the target shows a specific insn in a conditional
 branch's delay slot.
 
-Confirmed again for `func_actor_356100_80163508` (2026-09-20): the archived
+Confirmed again for `_actor356100UpdateAnimation` (2026-09-20): the archived
 99.701% seed had only `reorder=1`. Moving its first loop's pointer assignment
 above the clip guard reached 100% without pins or barriers. The preplanned
 prediction preserved the pointer/counter homes (`s0`/`s1`): `.sched2` places
@@ -131863,7 +131863,7 @@ The normal-header port also matched, and unscoped build verification passed.
 Input SHA256s: baseline `b36c7a7cd6af4418328531168b287b25b8d1fbc3eca435f9b3502955bf1c96b7`,
 controlled hoist `3e0d77ca009e3738aa119783efa92a2e0978fcb28b0cc0f1365a65e3ff0db5a2`.
 Sources, predictions and dumps are retained under
-`tools/permuter_findings/func_actor_356100_80163508/`.
+`tools/permuter_findings/_actor356100UpdateAnimation/`.
 
 ## A leaf use blocks combine's copy merge; a read-write touch does the same but moves the whole chain (Actor01900_Fn083E8, 2026-09-18)
 
