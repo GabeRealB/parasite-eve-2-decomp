@@ -5,7 +5,7 @@
 /// 16-pixel strips from the shown buffer (`gScreenNegativeStripRect`), or the
 /// whole of `gScreenNegativeFrameRect` at once while `gDisplayState.debugMode`
 /// is negative - and stops drawing; state 1 waits for the transfer and runs
-/// `screenNegativeFilter`; state 2 holds the frozen negative until the
+/// `SCREEN_NEGATIVE_FILTER`; state 2 holds the frozen negative until the
 /// countdown runs out or `done` is set, then resumes drawing and ends.
 static inline void screenNegativeCaptureTask(Task* task)
 {
@@ -39,7 +39,7 @@ static inline void screenNegativeCaptureTask(Task* task)
                 break;
             case 1:
                 DrawSync(0);
-                screenNegativeFilter();
+                SCREEN_NEGATIVE_FILTER();
                 task->state++;
                 break;
             case 2:

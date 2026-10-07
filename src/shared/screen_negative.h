@@ -5,7 +5,7 @@
  * Include this header in the prologue and screen_negative_filter.inc.c at the
  * filter's position. The filter is static; a file that needs it under another
  * name as well, as actor_460200 does for its cutscene script, includes the
- * fragment a second time with screenNegativeFilter defined to that name.
+ * fragment a second time with SCREEN_NEGATIVE_FILTER bound to that name.
  *
  * screen_negative_capture.inc.c is the task that freezes the picture: it
  * captures the frame, filters it and holds it. The task is spawned from each
@@ -35,7 +35,20 @@ typedef struct {
 } ScreenNegativeCaptureArgs;
 STATIC_ASSERT_SIZEOF(ScreenNegativeCaptureArgs, 0x4);
 
-static void screenNegativeFilter(void);
+#ifndef SCREEN_NEGATIVE_FILTER
+/// Selects the private `void (void)` filter declared here and defined by the fragment.
+///
+/// The value must be a bare function identifier. The default capture-task copy
+/// is `screenNegativeFilter`. For a further copy, declare its static prototype
+/// in the carrier's prologue, undefine this binding and rebind it around the
+/// fragment inclusion, then restore the default. The guarded header does not
+/// declare further copies. This alias has no arguments, captures no values and
+/// constructs no tokens. The fragment requires `main/fs.h`, `main/fs_types.h`
+/// and `common.h`; capture callers must use the same binding as their filter.
+#define SCREEN_NEGATIVE_FILTER screenNegativeFilter
+#endif
+
+static void SCREEN_NEGATIVE_FILTER(void);
 
 extern RECT gScreenNegativeFrameRect; /* the whole 320x240 frame */
 extern RECT gScreenNegativeStripRect; /* one 16x240 strip of the shown buffer */

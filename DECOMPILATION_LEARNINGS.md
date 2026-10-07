@@ -120813,7 +120813,7 @@ matched in their own overlay, so each overlay owns its body and nothing moves.
 
 **Transcribe the sibling's register pins too.** `=`, not `~`:
 `func_dryfield_dilapidated_house_8017E48C` is byte-identical to
-`func_actor_460200_80131FB0` and `func_actor_460200_80132124`, and the sibling's
+`func_actor_460200_80131FB0` and `_screenNegativeFilterCutscene`, and the sibling's
 C opens `register u32 v0 asm("v0"); register u32 v1 asm("v1");`. Dropping them -
 the pin policy's "unpin and rescore" default, and the honest first move - gives
 96.273% with `regs=41`, and the object diff is a clean mirror image: `.greg`
@@ -120824,9 +120824,10 @@ what proves the leftover is a home swap rather than something structural - but
 treat the pins in a matched sibling as evidence of an allocation `global_alloc`
 does not reach unaided, not as residue to clean up.
 
-The sibling's `p0 = Fs_ImgBuffers->strips[0]` needs no editing for a carrier
+The sibling's `firstWord = *frameWords`, after viewing `Fs_ImgBuffers` as
+a pointer to the complete GPU-word array, needs no editing for a carrier
 that reads the pointer directly: `strips` sits at offset 0 of `FsImgBuffers`
-(`include/main/fs_types.h`), so the expression is the struct's own address and
+(`include/main/fs_types.h`), so the view uses the struct's own address and
 compiles to the single `lw $t1,%lo(Fs_ImgBuffers)($v0)` the carrier wants. Only
 the include differs - the carrier's TU has to add `#include "main/fs.h"`.
 `promote` refuses this shape for the same family-scoped reason as above ("only
@@ -145187,19 +145188,22 @@ store, and the helper order that satisfies both is the answer: here
 `742, 756=8, 778, …, 73A, 776=0xA, 76E, …`, not the order the rest of the TU
 spells the same reset in.
 
-## `v0`/`v1` pins on a chain temp: one reused local that dies several times (func_actor_460200_80132124, 2026-09-26)
+## `v0`/`v1` pins on a chain temp: one reused local that dies several times (_screenNegativeFilterCutscene, 2026-09-26)
 
 A packed-pixel loop built three colour-channel words, each in `$v1`
 (`and v1; sll v1; or v1,v1,v0`), with the side operands in `$v0`; the seed
 pinned two locals to `v0`/`v1`. Unpinned, one expression per channel gave
 each channel its own single-death pseudo, which local-alloc ranks above the
-side temps, so the channel landed in `$v0`. The original reuses one local `t`
-for all three and builds it a step per statement (`t = hi & M; t <<= 8;
-t |= lo & M;`): dying three times makes `t` a global allocno, so the local
-side temps take `$v0` first and `t` gets `$v1`. Each separate statement
-matters - `t = (hi & M) << 8` computes the AND into a local temp instead.
-Likewise `x = (x >> 3) & M; x = M - x;` as two statements adds refs to `x`
-and changes its global rank relative to its neighbours.
+side temps, so the channel landed in `$v0`. The original reuses one local
+`packedChannel` for all three and builds it a step per statement
+(`packedChannel = secondPixelPair & M; packedChannel <<= 8;
+packedChannel |= firstPixelPair & M;`): dying three times makes `packedChannel`
+a global allocno, so the local side temps take `$v0` first and `packedChannel`
+gets `$v1`. Each separate statement matters -
+`packedChannel = (secondPixelPair & M) << 8` computes the AND into a local temp
+instead. Likewise `packedLuminance = (packedLuminance >> 3) & M;
+packedLuminance = M - packedLuminance;` as two statements adds refs to
+`packedLuminance` and changes its global rank relative to its neighbours.
 
 ## `p = gPtr++` adds a copy that `p = gPtr; gPtr = p + 1;` does not (func_replay_bonus_80118B6C, 2026-09-26)
 

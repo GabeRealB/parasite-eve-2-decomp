@@ -157,7 +157,7 @@ extern ActorTransform       D_actor_460200_80136204;
 extern ActorTransform       D_actor_460200_8013621C;
 static void                 _actor460200ModeExitCountdownTask(Task* task);
 static void                 _actor460200SelectCaptionFile(s32 dataResourceOrdinal);
-static void                 func_actor_460200_80132124(void);
+static void                 _screenNegativeFilterCutscene(void);
 static void                 _actor460200SetSceneEvent(s8 sceneEvent);
 
 void func_actor_460200_80131E24(Task*);
@@ -717,7 +717,7 @@ EvsCommand D_actor_460200_801362B8[233] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_460200_80132124 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _screenNegativeFilterCutscene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_80114A24 }, { .vibrationSegments = D_80114A34 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2204,10 +2204,12 @@ static void _actor460200SelectCaptionFile(s32 dataResourceOrdinal)
     capReset();
 }
 
-/// The same filter under the name the cutscene script's command 13 calls.
-#define screenNegativeFilter func_actor_460200_80132124
+// Select the cutscene callback's separate private filter instance.
+#undef SCREEN_NEGATIVE_FILTER
+#define SCREEN_NEGATIVE_FILTER _screenNegativeFilterCutscene
 #include "../../shared/screen_negative_filter.inc.c"
-#undef screenNegativeFilter
+#undef SCREEN_NEGATIVE_FILTER
+#define SCREEN_NEGATIVE_FILTER screenNegativeFilter
 
 /// Sets the live save's signed-byte scene-event key for subsequent music selection.
 static void _actor460200SetSceneEvent(s8 sceneEvent)

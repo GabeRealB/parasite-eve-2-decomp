@@ -386,6 +386,7 @@ _pacedWalkResetAnim = 0x80132A50; // type:func
 _pacedWalkBlendAnim = 0x80132AC8; // type:func
 _pacedWalkSetWalkTarget = 0x80132CAC; // type:func
 screenNegativeFilter = 0x80131FB0; // type:func
+_screenNegativeFilterCutscene = 0x80132124; // type:func
 _actorRenderDrawFixedWalkerGroundShadow = 0x80132978; // type:func
 _pacedWalkPlace = 0x80132C14; // type:func
 pacedWalkFrame = 0x80132468; // type:func

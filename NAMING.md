@@ -561,6 +561,16 @@ state and lifetime. Configuration bindings and task constants use
 `SCREEN_FADE_IN_TASK` to that instance's identifier; TU-local instances keep
 the subsystem prefix and the `_` marker.
 
+`screenNegative` owns the included grayscale-negative conversion of the
+resident RGB555 image workspace and the capture task that holds that frame.
+Its private implementation interface is `src/shared/screen_negative.h`;
+configuration bindings and packed-channel masks use `SCREEN_NEGATIVE_`.
+`SCREEN_NEGATIVE_FILTER` selects each static `void (void)` filter instance.
+Carriers bind a further instance around its fragment inclusion after declaring
+its static prototype in their prologue, then restore the capture-task binding.
+The filter borrows the complete frame after capture or decoding has finished;
+the caller controls capture, upload and workspace reuse.
+
 `crossfade` owns the included redraw of a frozen backdrop and the current draw
 buffer at complementary RGB modulation levels. Its private implementation
 interface is `src/shared/backdrop_crossfade.h`; rendering constants use

@@ -1,51 +1,79 @@
 /* Part of the screen negative library; see screen_negative.h. */
 
-/// Walks the frame two GPU words (four 15-bit pixels) at a time, covering
-/// every pixel. For each pixel it forms the luma
-/// (3R + 4G + B) / 8, inverts it (31 - l) and writes it back to all three
-/// channels.
-static void screenNegativeFilter(void)
+#ifndef SCREEN_NEGATIVE_WORD_PAIR_HELPER_DEFINED
+#define SCREEN_NEGATIVE_WORD_PAIR_HELPER_DEFINED
+
+/// Converts two adjacent writable GPU words from RGB555 to a grayscale negative.
+static inline void _screenNegativeConvertWordPair(u_long* firstWord, u_long* secondWord)
 {
-    s32     i;
-    u_long* p0;
-    u_long* p1;
-    u32     hi;
-    u32     lo;
-    u32     gray;
-    u32     t;
+    enum {
+        SCREEN_NEGATIVE_PAIR_CHANNEL_MASK = 0x001F001F,
+        SCREEN_NEGATIVE_PAIR_GREEN_MASK   = 0x03E003E0,
+        SCREEN_NEGATIVE_ODD_LANE_MASK     = 0x1F001F00,
+        SCREEN_NEGATIVE_LANE_MAXIMA       = 0x1F1F1F1F,
+    };
+    u32 secondPixelPair;
+    u32 firstPixelPair;
+    u32 packedLuminance;
+    u32 packedChannel;
 
-    p0 = Fs_ImgBuffers->strips[0];
-    i  = 0;
-    p1 = p0 + 1;
+    secondPixelPair = *secondWord;
+    firstPixelPair  = *firstWord;
+
+    // Four byte lanes hold pixels in order 0, 2, 1, 3. Weighted sums
+    // fit in one byte (at most 248), so they cannot carry between lanes.
+    packedChannel     = secondPixelPair & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
+    packedChannel   <<= 8;
+    packedChannel    |= firstPixelPair & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
+    packedLuminance   = packedChannel * 3;
+    packedChannel     = secondPixelPair & SCREEN_NEGATIVE_PAIR_GREEN_MASK;
+    packedChannel   <<= 3;
+    firstPixelPair  >>= 5;
+    packedChannel    |= firstPixelPair & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
+    packedLuminance  += packedChannel * 4;
+    secondPixelPair >>= 2;
+    packedChannel     = secondPixelPair & SCREEN_NEGATIVE_ODD_LANE_MASK;
+    firstPixelPair  >>= 5;
+    packedChannel    |= firstPixelPair & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
+    packedLuminance  += packedChannel;
+    packedLuminance   = (packedLuminance >> 3) & SCREEN_NEGATIVE_LANE_MAXIMA;
+    packedLuminance   = SCREEN_NEGATIVE_LANE_MAXIMA - packedLuminance;
+
+    // Repack the alternating lanes as two RGB555 pixel pairs.
+    firstPixelPair    = packedLuminance & SCREEN_NEGATIVE_PAIR_CHANNEL_MASK;
+    firstPixelPair   |= (firstPixelPair << 10) | (firstPixelPair << 5);
+    secondPixelPair   = packedLuminance & SCREEN_NEGATIVE_ODD_LANE_MASK;
+    secondPixelPair >>= 8;
+    secondPixelPair  |= (secondPixelPair << 10) | (secondPixelPair << 5);
+    *firstWord        = firstPixelPair;
+    *secondWord       = secondPixelPair;
+}
+#endif
+
+/// Replaces the resident image workspace with its grayscale photographic negative.
+///
+/// `Fs_ImgBuffers` must hold a complete writable, word-aligned 320x240 RGB555
+/// frame. Finish GPU capture or image decoding before calling, and keep other
+/// users out of the workspace during the conversion. Each output channel is
+/// 31 - floor((3R + 4G + B) / 8), in five-bit channel units; pixel bit 15 is
+/// cleared. All 0x25800 frame bytes are rewritten in place, preserving pixel
+/// order. The caller owns capture, upload and the workspace's lifetime.
+static void SCREEN_NEGATIVE_FILTER(void)
+{
+    u_long(*frameWords)[FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS];
+    s32     wordPairsProcessed;
+    u_long* firstWord;
+    u_long* secondWord;
+
+    // View the whole frame as GPU words, including every adjacent strip.
+    frameWords         = (u_long(*)[FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS]) Fs_ImgBuffers;
+    firstWord          = *frameWords;
+    wordPairsProcessed = 0;
+    secondWord         = firstWord + 1;
     do {
-        i++;
-        hi    = *p1;
-        lo    = *p0;
-        t     = hi & 0x001F001F;
-        t   <<= 8;
-        t    |= lo & 0x001F001F;
-        gray  = t * 3;
-        t     = hi & 0x03E003E0;
-        t   <<= 3;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t * 4;
-        hi  >>= 2;
-        t     = hi & 0x1F001F00;
-        lo  >>= 5;
-        t    |= lo & 0x001F001F;
-        gray += t;
-        gray  = (gray >> 3) & 0x1F1F1F1F;
-        gray  = 0x1F1F1F1F - gray;
-
-        lo   = gray & 0x001F001F;
-        lo  |= (lo << 10) | (lo << 5);
-        hi   = gray & 0x1F001F00;
-        hi >>= 8;
-        hi  |= (hi << 10) | (hi << 5);
-        *p0  = lo;
-        *p1  = hi;
-        p1  += 2;
-        p0  += 2;
-    } while (i < (FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS) / 2);
+        wordPairsProcessed++;
+        _screenNegativeConvertWordPair(firstWord, secondWord);
+        secondWord += 2;
+        firstWord  += 2;
+    } while (wordPairsProcessed < ARRAY_SIZE(*frameWords) / 2);
 }
