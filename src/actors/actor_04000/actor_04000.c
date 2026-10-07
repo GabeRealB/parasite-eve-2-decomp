@@ -1926,7 +1926,7 @@ static void Actor04000_Fn028F0(Enemy* arg0, Task* arg1)
     } else {
         work->chaseFarFrames = 0;
     }
-    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &turn->delta);
+    _actorContactApplyAvoidancePushback(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta);
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     turn->delta.vx                        = work->spawnPos.vx - arg1->extra.tmd->coords->coord.t[0];
     turn->delta.vy                        = 0;
@@ -2390,7 +2390,7 @@ static void Actor04000_Fn0432C(Enemy* arg0, Task* arg1)
         }
         work->stateFrame = 0;
     }
-    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &turn->delta);
+    _actorContactApplyAvoidancePushback(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta);
     target         = arg1->extra.tmd->coords;
     turn->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
     turn->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];
@@ -2467,7 +2467,7 @@ static void Actor04000_Fn049C0(Enemy* arg0, Task* arg1)
     if (!_actorRangeOutsideRadiusXZ(&turn->delta, 80)) {
         work->state = ACTOR_04000_STATE_SETTLE;
     }
-    ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, 8, &turn->delta);
+    _actorContactApplyAvoidancePushback(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta);
     target         = arg1->extra.tmd->coords;
     turn->delta.vx = gPlayerStatus.coordMtx->t[0] - target->coord.t[0];
     turn->delta.vy = gPlayerStatus.coordMtx->t[1] - target->coord.t[1];

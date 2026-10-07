@@ -78,7 +78,7 @@ STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
 
 /* Interface for the including source. */
 
-/// Return type of `ActorContact_Steer`.
+/// Return type of `_actorContactApplyAvoidancePushback`.
 ///
 /// The body returns 0, or 1 when it saw a contact of kind 0x10000. Both
 /// values fit either integer width; the type selects how a caller promotes
@@ -92,7 +92,7 @@ STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
 
 static void                       _actorRenderYawJointInWorld(GfxCoord* joint, s16 yawDelta);
 static s32                        ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
-static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
+static ACTOR_CONTACT_STEER_RESULT _actorContactApplyAvoidancePushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, SVECTOR* pushDelta);
 static s32                        _actorContactApplyGridPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount);
 static s32                        ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
 

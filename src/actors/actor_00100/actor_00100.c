@@ -1466,7 +1466,7 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
 
 /// Collects bearings from the obstacles in `recs` into a
 /// `DesertChaserAvoidScratch` and steps `coord` along each survivor. Same walk
-/// as `ActorContact_Steer`, but `blocked` is raised only for a kind 0x10000
+/// as `_actorContactApplyAvoidancePushback`, but `blocked` is raised only for a kind 0x10000
 /// record whose `key` bit 0x80 is clear. The scratch is carved before the
 /// early-out, so that path leaks it.
 static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)

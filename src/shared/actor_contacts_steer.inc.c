@@ -1,94 +1,125 @@
 /* Part of the actor contacts library; see actor_contacts.h. */
 
-/// Steers `coord` away from the obstacles among the first `count` contact
-/// records: collects the bearing of up to eight records of kind 0x10000 or
-/// 0x30000 (in the XZ plane, or XY when the facing column is near vertical),
-/// discards any pair more than 0x400 apart, and for each remaining bearing
-/// nudges both `coord`'s translation and `*pos` a short step away from it. `*pos`
-/// accumulates the total nudge. Returns whether any record was of kind
-/// 0x10000; returns 0 at once when `gGameSession->viewReady` or `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen`
-/// is 1.
-static ACTOR_CONTACT_STEER_RESULT ActorContact_Steer(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
+/// Adds a signed distance along a parent-frame yaw to the coordinate and total.
+///
+/// Yaw uses 4096 units per turn; distance uses game-coordinate units. The
+/// normalized direction is scaled through the GTE, then only XZ is accumulated.
+/// Borrows the caller's live steering block without reserving scratch itself.
+static inline void _actorContactAccumulateAvoidanceStep(GfxCoord* coord, ActorContactSteerScratch* scratch, s16 yaw, s32 distance, SVECTOR* pushDelta)
 {
-    ActorContactSteerScratch* s;
-    s16                       diff;
+    gfxRotMatrixY(&scratch->rot, yaw, GRAPHICS_ROTATION_REPLACE);
+    gfxReadMatrixZAxis(&scratch->rot, &scratch->dir);
+    VectorNormalSS(&scratch->dir, &scratch->dir);
+    gte_lddp(distance);
+    gte_ldsv(&scratch->dir);
+    gte_gpf12();
+    gte_stsv(&scratch->dir);
+    pushDelta->vx     += scratch->dir.vx;
+    pushDelta->vz     += scratch->dir.vz;
+    coord->coord.t[0] += scratch->dir.vx;
+    coord->coord.t[2] += scratch->dir.vz;
+}
+
+/// Applies short avoidance pushes away from player and enemy body contacts.
+///
+/// Reads at most `contactCount` records (0..255), stopping at the first zero
+/// key or after eight eligible body contacts. Contact flags are not tested.
+/// Returns 1 if a player or companion body was encountered during this scan,
+/// even when its bearing is rejected and no push is applied; otherwise 0.
+///
+/// Each bearing within a quarter turn of every other collected bearing adds
+/// a nominal ten-unit step away from that body to the coordinate's parent-space
+/// XZ translation. `pushDelta` receives the summed signed-halfword correction,
+/// with Y zero and pad untouched. When viewReady or actorsFrozen equals 1,
+/// returns 0 without changing the coordinate or output.
+///
+/// `coord->workm` must already be composed in the same frame as the contact
+/// points. Bearings use XZ, or XY when the normalized cached Y axis has a Z
+/// magnitude of at least 2072 (4096 is unit length). The local yaw converts each
+/// bearing to the parent frame; callers must mark changed coordinates dirty.
+/// Borrows the inputs and an initialized scratch stack only for this call.
+static ACTOR_CONTACT_STEER_RESULT _actorContactApplyAvoidancePushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, SVECTOR* pushDelta)
+{
+    enum {
+        ACTOR_CONTACT_AVOIDANCE_NO_KEY                 = 0,     // First keyless record ends this scan
+        ACTOR_CONTACT_AVOIDANCE_XY_AXIS_Z_THRESHOLD    = 0x818, // Normalized Y-axis Z magnitude; ONE (4096) is unit length
+        ACTOR_CONTACT_AVOIDANCE_MAX_BEARING_SEPARATION = 0x400, // Quarter turn in 4096-unit angles
+        ACTOR_CONTACT_AVOIDANCE_PUSH_DISTANCE          = 10     // Game-coordinate units per surviving bearing
+    };
+    ActorContactSteerScratch* scratch;
+    s16                       pushYaw;
 
     if (gGameSession->viewReady == 1 || gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1) {
         return 0;
     }
 
-    s          = SCRATCH_STACK_RESERVE_BLOCK(ActorContactSteerScratch);
-    s->blocked = 0;
-    pos->vz    = 0;
-    pos->vy    = 0;
-    pos->vx    = 0;
+    scratch          = SCRATCH_STACK_RESERVE_BLOCK(ActorContactSteerScratch);
+    scratch->blocked = 0;
+    pushDelta->vz    = 0;
+    pushDelta->vy    = 0;
+    pushDelta->vx    = 0;
 
-    gfxReadMatrixYAxis(&coord->workm, &s->dir);
-    VectorNormalSS(&s->dir, &s->dir);
+    // Choose a bearing plane from the cached basis and retain its heading.
+    gfxReadMatrixYAxis(&coord->workm, &scratch->dir);
+    VectorNormalSS(&scratch->dir, &scratch->dir);
 
-    if (ABS(s->dir.vz) < 0x818) {
-        s->heading = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
+    if (ABS(scratch->dir.vz) < ACTOR_CONTACT_AVOIDANCE_XY_AXIS_Z_THRESHOLD) {
+        scratch->heading = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
     } else {
-        s->heading = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
+        scratch->heading = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
     }
 
-    s->origin.vx = (u16)coord->workm.t[0];
-    s->origin.vy = (u16)coord->workm.t[1];
-    s->origin.vz = (u16)coord->workm.t[2];
-    s->count     = 0;
+    scratch->origin.vx = coord->workm.t[0];
+    scratch->origin.vy = coord->workm.t[1];
+    scratch->origin.vz = coord->workm.t[2];
+    scratch->count     = 0;
 
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
+    // Collect body bearings; the player-contact result is independent of pushing.
+    for (scratch->i = 0; scratch->i < contactCount; scratch->i++) {
+        if (contacts[scratch->i].key.value == ACTOR_CONTACT_AVOIDANCE_NO_KEY) {
             break;
         }
-        s->kind = recs[s->i].key.value & 0xFFFF0000;
-        switch (s->kind) {
-            case 0x10000:
-                s->blocked = 1;
-            case 0x30000:
+        scratch->kind = contacts[scratch->i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
+        switch (scratch->kind) {
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY:
+                scratch->blocked = 1;
+                // Player bodies participate in the same avoidance as enemy bodies.
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY:
                 break;
             default:
                 continue;
         }
 
-        if (ABS(s->dir.vz) < 0x818) {
-            s->bearing[s->count] = _actorAngleBearingXZ(&recs[s->i].point, &s->origin);
+        if (ABS(scratch->dir.vz) < ACTOR_CONTACT_AVOIDANCE_XY_AXIS_Z_THRESHOLD) {
+            scratch->bearing[scratch->count] = _actorAngleBearingXZ(&contacts[scratch->i].point, &scratch->origin);
         } else {
-            s->bearing[s->count] = _actorAngleBearingXY(&recs[s->i].point, &s->origin);
+            scratch->bearing[scratch->count] = _actorAngleBearingXY(&contacts[scratch->i].point, &scratch->origin);
         }
-        s->kept[s->count] = 1;
-        s->count++;
-        if (s->count >= ARRAY_SIZE(s->bearing)) {
+        scratch->kept[scratch->count] = 1;
+        scratch->count++;
+        if (scratch->count >= ARRAY_SIZE(scratch->bearing)) {
             break;
         }
     }
 
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = _actorAngleNormalizeYaw(s->bearing[s->i] - s->bearing[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->kept[s->i] = 0;
-                s->kept[s->j] = 0;
+    // Reject conflicting bearings, then push away in the coordinate's parent frame.
+    for (scratch->i = 0; scratch->i < scratch->count; scratch->i++) {
+        for (scratch->j = scratch->i + 1; scratch->j < scratch->count; scratch->j++) {
+            scratch->diff = _actorAngleNormalizeYaw(scratch->bearing[scratch->i] - scratch->bearing[scratch->j]);
+            if (abs(scratch->diff) > ACTOR_CONTACT_AVOIDANCE_MAX_BEARING_SEPARATION) {
+                scratch->kept[scratch->i] = 0;
+                scratch->kept[scratch->j] = 0;
             }
         }
-        if (s->kept[s->i] != 0) {
-            diff = ((u16)s->bearing[s->i] - (u16)s->heading) +
-                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            s->diff = diff;
-            gfxRotMatrixY(&s->rot, diff, 1);
-            gfxReadMatrixZAxis(&s->rot, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            pos->vx           += s->dir.vx;
-            pos->vz           += s->dir.vz;
-            coord->coord.t[0] += s->dir.vx;
-            coord->coord.t[2] += s->dir.vz;
+        if (scratch->kept[scratch->i] != 0) {
+            pushYaw = (scratch->bearing[scratch->i] - scratch->heading) +
+                      ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+            scratch->diff = pushYaw;
+            _actorContactAccumulateAvoidanceStep(coord, scratch, pushYaw, -ACTOR_CONTACT_AVOIDANCE_PUSH_DISTANCE, pushDelta);
         }
     }
 
+    // The release leaves the result byte intact until the next reservation.
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactSteerScratch);
-    return s->blocked != 0;
+    return scratch->blocked != 0;
 }

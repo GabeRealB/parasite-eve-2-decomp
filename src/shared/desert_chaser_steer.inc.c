@@ -31,8 +31,8 @@ void desertChaserSteer(Task* arg0)
         _desertChaserAnimTick(arg0);
     }
     _desertChaserAnimTick(arg0);
-    if (((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &delta) != 0) ||
-        ((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts), &delta) != 0)) {
+    if (((s16)_actorContactApplyAvoidancePushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &delta) != 0) ||
+        ((s16)_actorContactApplyAvoidancePushback(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts), &delta) != 0)) {
         work->state = 0x22;
     }
     _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &delta);

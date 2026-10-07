@@ -48,7 +48,7 @@
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/anim_driver.h"
-/// This file's `ActorContact_Steer` returns `s16`.
+/// This file's `_actorContactApplyAvoidancePushback` returns `s16`.
 ///
 /// Defined before `actor_contacts.h`, which otherwise declares the return as
 /// `s32`. Callers here compare the return with 1, and that comparison
@@ -936,7 +936,7 @@ static void Actor01200_Fn01234(Enemy* arg0, Task* arg1)
     if (work->chaseNearFrames >= 0x15) {
         work->state = ACTOR_01200_STATE_SELF_BURST;
     }
-    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
+    if (_actorContactApplyAvoidancePushback(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
         work->state = ACTOR_01200_STATE_DEATH_BURST;
     }
     arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1362,7 +1362,7 @@ static void Actor01200_Fn02918(Enemy* arg0, Task* arg1)
 
 /// `ACTOR_01200_STATE_PATROL`: walk between the two `patrolPoints`: turn at most
 /// 0x20 toward the current one, step 5 units, and swap points within 400 units
-/// or after 0x60 blocked frames; `DEATH_BURST` when `ActorContact_Steer` reports
+/// or after 0x60 blocked frames; `DEATH_BURST` when `_actorContactApplyAvoidancePushback` reports
 /// 1, `CHASE` when the player is within 2000 units and inside a quarter turn or
 /// 1000 units, `SETTLE` at random once the walk has looped more than 20 times.
 static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
@@ -1421,7 +1421,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
         }
         work->stateFrame = 0;
     }
-    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
+    if (_actorContactApplyAvoidancePushback(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
         work->state = ACTOR_01200_STATE_DEATH_BURST;
     }
     target         = arg1->extra.tmd->coords;
@@ -1448,7 +1448,7 @@ static void Actor01200_Fn02BE8(Enemy* arg0, Task* arg1)
 
 /// `ACTOR_01200_STATE_RETURN`: walk back toward `spawnPos`: turn at most 0x10
 /// toward it, step 8 units, and hand over to `PATROL` once within 0x50 or after
-/// 0xDD frames (`DEATH_BURST` when `ActorContact_Steer` reports 1).
+/// 0xDD frames (`DEATH_BURST` when `_actorContactApplyAvoidancePushback` reports 1).
 static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
 {
     _Actor01200Work*  work;
@@ -1500,7 +1500,7 @@ static void Actor01200_Fn03294(Enemy* arg0, Task* arg1)
     if (!_actorRangeOutsideRadiusXZ(&turn->delta, 0x50) || work->stateFrame >= 0xDD) {
         work->state = ACTOR_01200_STATE_PATROL;
     }
-    if (ActorContact_Steer(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
+    if (_actorContactApplyAvoidancePushback(arg1->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts), &turn->delta) == 1) {
         work->state = ACTOR_01200_STATE_DEATH_BURST;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
