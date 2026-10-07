@@ -225,7 +225,13 @@ void func_shelter_r47_80181568(Task* task);
 /// frame completion; the row and previous-row indices must be 0..4.
 void shelterR47ConsoleUpdateAndDraw(Task* task, s16 changingView);
 
-void func_shelter_r47_80182AA0(Task* task);
+/// Loads the console's five working switches from their saved game-flag nibbles.
+///
+/// Requires live `ShelterR47ConsoleWork`. Copies the full 0..15 nibble values
+/// into the five signed-halfword slots in row order. The low bit of switch 2
+/// selects its off/on room image, view 18/36, for later row changes. This does
+/// not change the current view or commit any saved flags.
+void shelterR47ConsoleLoadSwitches(Task* task);
 
 /// Marks every console hotspot containing a display-centred pixel position.
 ///
@@ -236,7 +242,12 @@ void func_shelter_r47_80182AA0(Task* task);
 /// otherwise 0; the sentinel is neither read as a rectangle nor modified.
 s32 shelterR47ConsoleHitTestHotspots(Task* task, ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 
-void func_shelter_r47_80183210(void);
+/// Rearms the console and map terminal's four first-use CAP events.
+///
+/// Called on room entry. Clears the switch-button, row-selection, previous-page
+/// and next-page event latches for subsequent terminal use; saved progress and
+/// guided-tour state are retained.
+void shelterR47ResetTerminalFirstUseEvents(void);
 
 void func_shelter_r47_80183B84(Task* task);
 
@@ -269,8 +280,14 @@ void shelterR47MapTerminalDrawPageTitle(Task* task, s16 page);
 /// Uses its arena and texture lifetime contract, reserving two packets.
 void shelterR47MapTerminalDrawPageCaptions(Task* task, s16 page);
 
-// Callbacks referenced by the overlay's shared data tables.
-void func_shelter_r47_80183234(Task*);
+/// Runs the control console's action-cursor task.
+///
+/// `task->state` must be 0 (reset both ports' prompts and advance to 1) or
+/// 1 (move, classify presses and draw the selected ports' cursors).
+/// Spawn argument 1 selects port 0 with 1, port 1 with 2, and both otherwise.
+/// Borrows the gameplay-owned prompts, pad samples, cursor textures and current
+/// frame arena/OT. The task needs no work allocation; its console owner kills it.
+void shelterR47ConsolePromptTask(Task* task);
 
 void func_shelter_r47_80182B18(Task*);
 

@@ -351,7 +351,7 @@ static _ShelterR47SpritePart* D_shelter_r47_8018729C[21] = {
     D_shelter_r47_80187284,
 };
 
-static TaskDesc D_shelter_r47_801872F0 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80183234, { .value = 0 } };
+static TaskDesc D_shelter_r47_801872F0 = { { { TASK_BODY_NONE, 192 } }, shelterR47ConsolePromptTask, { .value = 0 } };
 
 u8 D_shelter_r47_801872FC[8] = {
     0,
@@ -579,7 +579,7 @@ static void func_shelter_r47_8017FB94(Task* task)
         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
     }
     D_shelter_r47_8018A690 = NULL;
-    func_shelter_r47_80183210();
+    shelterR47ResetTerminalFirstUseEvents();
     taskSpawnFromTable(D_shelter_r47_80186F70, 1, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_083) == 1 || gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 1) {
         (D_shelter_r47_8018787C + 3)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
@@ -1285,7 +1285,7 @@ void func_shelter_r47_8018138C(Task* task)
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
-    func_shelter_r47_80182AA0(task);
+    shelterR47ConsoleLoadSwitches(task);
     if (work->toggles[3] == 0) {
         work->backdropToggle = 0;
         work->backdropScroll = 0x140;

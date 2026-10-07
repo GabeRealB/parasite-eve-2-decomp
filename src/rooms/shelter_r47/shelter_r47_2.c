@@ -110,15 +110,15 @@ static void _shelterR47ConsoleFadeOutTask(Task* task);
 static s16  func_shelter_r47_801829B8(Task* task, s16 arg1);
 static void _shelterR47ConsoleResetPromptTask(Task* task);
 static void func_shelter_r47_80182CA4(Task* task);
-static void func_shelter_r47_80182DAC(Task* task);
+static void _shelterR47ConsoleOpenCommandsTask(Task* task);
 static void _shelterR47ConsoleDismissTask(Task* task);
 static void func_shelter_r47_80182F18(Task* task);
 static void _shelterR47ConsoleChangeViewTask(Task* task);
 static void _shelterR47ConsoleBeginButtonPressTask(Task* task);
 static void _shelterR47ConsoleApplyButtonPressTask(Task* task);
-static void func_shelter_r47_80183170(Task* task);
-static void func_shelter_r47_801831C8(Task* task);
-static void func_shelter_r47_801832E4(s16 step);
+static void _shelterR47ConsoleWaitButtonFlashTask(Task* task);
+static void _shelterR47ConsoleBeginFadeOutTask(Task* task);
+static void func_shelter_r47_801832E4(s16 status);
 static void func_shelter_r47_801832EC(Task* task);
 static void _shelterR47ConsoleSaveSwitches(Task* task);
 static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row);
@@ -132,15 +132,15 @@ static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
         _shelterR47ConsoleResetPromptTask,
         func_shelter_r47_80182CA4,
         func_shelter_r47_80181568,
-        func_shelter_r47_80182DAC,
+        _shelterR47ConsoleOpenCommandsTask,
         func_shelter_r47_801816CC,
         _shelterR47ConsoleDismissTask,
         _shelterR47ConsoleChangeViewTask,
         func_shelter_r47_80182F18,
         _shelterR47ConsoleBeginButtonPressTask,
         _shelterR47ConsoleApplyButtonPressTask,
-        func_shelter_r47_80183170,
-        func_shelter_r47_801831C8,
+        _shelterR47ConsoleWaitButtonFlashTask,
+        _shelterR47ConsoleBeginFadeOutTask,
         _shelterR47ConsoleFadeOutTask,
     },
 };
@@ -255,23 +255,26 @@ s16 D_shelter_r47_801875F8[5][2] = {
 static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key);
 static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area);
 
-/// Initializes and merges a contiguous draw-mode/SPRT packet, preserving RGB.
+/// Prepares one draw-mode/sprite packet for texture and geometry setup.
 ///
-/// `sprite` must be `&packet->sprite.sprt` in a word-aligned writable packet.
-/// `drawModeCommand` is a complete E1 GPU command. Texture flags and geometry
-/// are supplied afterwards; the merge zeroes the sprite tag's no-op word.
-static inline void _shelterR47InitDrawModeSprite(SpriteDrawModePacket* packet, SPRT* sprite, u32 drawModeCommand)
+/// Requires a word-aligned writable `packet` and a complete E1 GPU command.
+/// RGB is retained. Merging the adjacent primitives clears the sprite tag to
+/// a no-op and makes six words follow the draw-mode tag. The caller supplies
+/// texture flags, CLUT, UVs and geometry before linking the packet into an OT.
+static inline void _shelterR47InitDrawModeSprite(SpriteDrawModePacket* packet, u32 drawModeCommand)
 {
     setlen(&packet->drawMode, ARRAY_SIZE(packet->drawMode.code));
     setlen(&packet->sprite.sprt, SHELTER_R47_SPRITE_GPU_WORDS);
     packet->drawMode.code[0] = drawModeCommand;
     setcode(&packet->sprite.sprt, SHELTER_R47_SPRITE_COMMAND);
-    MargePrim(packet, sprite);
+    MargePrim(packet, &packet->sprite.sprt);
 }
 
-/// Sets all components of the live console's circular wipe to one byte level.
+/// Sets the console's circular wipe to a uniform clear-to-black level.
 ///
-/// Requires live console work and a level in 0..255.
+/// Requires live `ShelterR47ConsoleWork` and `level` in 0..255 (clear to black).
+/// Reloads the task's work and stores all four signed-halfword components;
+/// it does not step or draw the wipe, or change the task state.
 static inline void _shelterR47ConsoleSetWipe(Task* task, s16 level)
 {
     ShelterR47ConsoleWork* wipeWork = task->work;
@@ -282,19 +285,21 @@ static inline void _shelterR47ConsoleSetWipe(Task* task, s16 level)
     wipeWork->wipeGrey  = level;
 }
 
-/// Selects a status and queues its message at the current console position.
+/// Publishes a console status and queues its corresponding message sprite.
 ///
-/// `work` supplies the pixel coordinates, read before publishing `status` in
-/// the task's live console work. Requires status 0..9 and its sprite id 3..12;
-/// the room textures and current frame arena/OT must be available.
-static inline void _shelterR47ConsoleDrawStatus(Task* task, ShelterR47ConsoleWork* work, s16 spriteId, s16 status)
+/// Requires `status` in 0..9 and live `ShelterR47ConsoleWork`. Coordinates are
+/// read from `work` in display-centred pixels before reloading the task's work
+/// and publishing its status. Statuses select sprites 3..12 in the room's
+/// catalogue. Requires the textures, frame arena and OT of
+/// `shelterR47ConsoleDrawSprite`; this does not advance the status reveal.
+static inline void _shelterR47ConsoleDrawStatus(Task* task, ShelterR47ConsoleWork* work, s16 status)
 {
     s16                    messageX    = work->messageX;
     s16                    messageY    = work->messageY;
     ShelterR47ConsoleWork* currentWork = task->work;
 
     currentWork->status = status;
-    shelterR47ConsoleDrawSprite(messageX, messageY, spriteId);
+    shelterR47ConsoleDrawSprite(messageX, messageY, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + status);
 }
 
 /// Acts on `selection`, the hotspot id stored by `func_shelter_r47_80181568`,
@@ -484,37 +489,37 @@ void shelterR47ConsoleUpdateAndDraw(Task* task, s16 changingView)
         switch (work->row) {
             case SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR:
                 if (work->toggles[0] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON);
                 }
                 break;
             case SHELTER_R47_CONSOLE_ROW_SWITCH_2:
                 if (work->toggles[1] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON);
                 }
                 break;
             case SHELTER_R47_CONSOLE_ROW_OBSERVATORY:
                 if (work->toggles[2] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON);
                 }
                 break;
             case SHELTER_R47_CONSOLE_ROW_SWITCH_4:
                 if (work->toggles[3] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON);
                 }
                 break;
             case SHELTER_R47_CONSOLE_ROW_WATCHERS:
                 if (work->toggles[4] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF, SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON, SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON);
                 }
                 break;
         }
@@ -526,37 +531,37 @@ void shelterR47ConsoleUpdateAndDraw(Task* task, s16 changingView)
         switch (work->previousRow) {
             case SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR:
                 if (work->toggles[0] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON);
                 }
                 break;
             case SHELTER_R47_CONSOLE_ROW_SWITCH_2:
                 if (work->toggles[1] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON);
                 }
                 break;
             case SHELTER_R47_CONSOLE_ROW_OBSERVATORY:
                 if (work->toggles[2] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON);
                 }
                 break;
             case SHELTER_R47_CONSOLE_ROW_SWITCH_4:
                 if (work->toggles[3] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON);
                 }
                 break;
             case SHELTER_R47_CONSOLE_ROW_WATCHERS:
                 if (work->toggles[4] == 0) {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF, SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF);
                 } else {
-                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON, SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON);
+                    _shelterR47ConsoleDrawStatus(task, work, SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON);
                 }
                 break;
         }
@@ -684,7 +689,7 @@ static void _shelterR47ConsoleDrawScrollingBackdrop(s16 scrollPixels)
     packet         = gGpuPrimCursor;
     sprite         = &packet->sprite.sprt;
     gGpuPrimCursor = packet + 1;
-    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 384, 256)));
+    _shelterR47InitDrawModeSprite(packet, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 384, 256)));
     sprite->clut  = getClut(0, 256);
     sprite->x0    = -0xA0 - scrollPixels;
     sprite->y0    = -0x78;
@@ -698,7 +703,7 @@ static void _shelterR47ConsoleDrawScrollingBackdrop(s16 scrollPixels)
     packet         = gGpuPrimCursor;
     sprite         = &packet->sprite.sprt;
     gGpuPrimCursor = packet + 1;
-    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 512, 256)));
+    _shelterR47InitDrawModeSprite(packet, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 512, 256)));
     sprite->x0    = 0x60 - scrollPixels;
     sprite->clut  = getClut(0, 256);
     sprite->y0    = -0x78;
@@ -712,7 +717,7 @@ static void _shelterR47ConsoleDrawScrollingBackdrop(s16 scrollPixels)
     packet         = gGpuPrimCursor;
     sprite         = &packet->sprite.sprt;
     gGpuPrimCursor = packet + 1;
-    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 896, 0)));
+    _shelterR47InitDrawModeSprite(packet, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(1, GPU_BLEND_AVERAGE, 896, 0)));
     sprite->clut  = getClut(0, 257);
     sprite->x0    = 0xE0 - scrollPixels;
     sprite->y0    = -0x78;
@@ -805,22 +810,25 @@ static s16 func_shelter_r47_801829B8(Task* task, s16 arg1)
     return 0;
 }
 
-/// Loads the script's working copies of game flags 0xAC, 0xD5, 0xAE, 0xD6 and
-/// 0xD2, and sets `D_shelter_r47_80186FAC[1]` from the low bit of flag 0xD5.
-void func_shelter_r47_80182AA0(Task* task)
+void shelterR47ConsoleLoadSwitches(Task* task)
 {
-    ShelterR47ConsoleWork* state = task->work;
+    enum {
+        SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW = 18,
+        SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW  = 36,
+    };
+    ShelterR47ConsoleWork* work = task->work;
 
-    state->toggles[0] = gameFlagGetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED);
-    state->toggles[1] = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2);
-    if (!(state->toggles[1] & 1)) {
-        D_shelter_r47_80186FAC[1] = 0x12;
+    work->toggles[SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR] = gameFlagGetNibble(GAME_FLAG_B1_TRANSFER_TUNNEL_DOOR_UNLOCKED);
+    work->toggles[SHELTER_R47_CONSOLE_ROW_SWITCH_2]      = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2);
+    // Switch 2 has distinct room images for its off and on states.
+    if (!(work->toggles[SHELTER_R47_CONSOLE_ROW_SWITCH_2] & 1)) {
+        D_shelter_r47_80186FAC[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
     } else {
-        D_shelter_r47_80186FAC[1] = 0x24;
+        D_shelter_r47_80186FAC[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
     }
-    state->toggles[2] = gameFlagGetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS);
-    state->toggles[3] = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4);
-    state->toggles[4] = gameFlagGetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED);
+    work->toggles[SHELTER_R47_CONSOLE_ROW_OBSERVATORY] = gameFlagGetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS);
+    work->toggles[SHELTER_R47_CONSOLE_ROW_SWITCH_4]    = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4);
+    work->toggles[SHELTER_R47_CONSOLE_ROW_WATCHERS]    = gameFlagGetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED);
 }
 
 void func_shelter_r47_80182B18(Task* task)
@@ -910,25 +918,40 @@ static void func_shelter_r47_80182CA4(Task* task)
     }
 }
 
-/// Clears the action prompt's mode and target, drops the prompt kind to 0 when
-/// its gating flags are clear, shows the prompt, and moves the script to state 5.
-static void func_shelter_r47_80182DAC(Task* task)
+/// Opens the console hotspot's command menu after hiding and stopping its cursor.
+///
+/// Console state 4; requires live console work and the first port's prompt.
+/// Free-use row selection and switch-button commands offer Examine until
+/// their first-use CAP event has run, retaining the hotspot's command kind
+/// otherwise. Menu coordinates are display-centred pixels. Advances to
+/// state 5 without checking queue acceptance.
+static void _shelterR47ConsoleOpenCommandsTask(Task* task)
 {
-    ShelterR47ConsoleWork* state;
+    enum {
+        SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT    = 8,
+        SHELTER_R47_CONSOLE_HOTSPOT_ROW           = 0,
+        SHELTER_R47_CONSOLE_HOTSPOT_SWITCH_BUTTON = 1,
+        SHELTER_R47_CONSOLE_GUIDE_FREE_USE        = 0,
+        SHELTER_R47_CONSOLE_COMMAND_EXAMINE       = 0,
+        SHELTER_R47_CONSOLE_STATE_HANDLE_COMMAND  = 5,
+    };
+    ShelterR47ConsoleWork* work;
     ActionPrompt*          prompt = D_80114D28;
 
-    state = task->work;
+    work = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-    if (state->guideStep == 0 && ((u16)state->selection >> 8) == 0 && D_shelter_r47_8018A695 == 0) {
-        state->promptKind = 0;
+    // An unplayed first-use event takes precedence over the hotspot's command kind.
+    if (work->guideStep == SHELTER_R47_CONSOLE_GUIDE_FREE_USE &&
+        ((u16)work->selection >> SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT) == SHELTER_R47_CONSOLE_HOTSPOT_ROW && D_shelter_r47_8018A695 == 0) {
+        work->promptKind = SHELTER_R47_CONSOLE_COMMAND_EXAMINE;
     }
-    if ((state->selection >> 8) == 1 && D_shelter_r47_8018A694 == 0) {
-        state->promptKind = 0;
+    if ((work->selection >> SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT) == SHELTER_R47_CONSOLE_HOTSPOT_SWITCH_BUTTON && D_shelter_r47_8018A694 == 0) {
+        work->promptKind = SHELTER_R47_CONSOLE_COMMAND_EXAMINE;
     }
-    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, state->promptKind);
-    task->state = 5;
+    itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
+    task->state = SHELTER_R47_CONSOLE_STATE_HANDLE_COMMAND;
 }
 
 /// Saves console switches, restores the entry view and ends player use.
@@ -1067,51 +1090,64 @@ static void _shelterR47ConsoleApplyButtonPressTask(Task* task)
     task->state++;
 }
 
-static void func_shelter_r47_80183170(Task* task)
+/// Keeps drawing the pressed console button until its flash and CAP playback end.
+///
+/// Console state 11; requires live console work. The redraw decrements the
+/// remaining flash frames; state 3 resumes hotspot input only once both the
+/// flash and global CAP playback are idle.
+static void _shelterR47ConsoleWaitButtonFlashTask(Task* task)
 {
-    ShelterR47ConsoleWork* state;
+    enum {
+        SHELTER_R47_CONSOLE_STATE_IDLE = 3,
+    };
+    ShelterR47ConsoleWork* work;
 
-    state = task->work;
+    work = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
-    if ((state->buttonFlash == 0) && (capIsBusy() == 0)) {
-        task->state = 3;
+    if ((work->buttonFlash == 0) && (capIsBusy() == 0)) {
+        task->state = SHELTER_R47_CONSOLE_STATE_IDLE;
     }
 }
 
-static void func_shelter_r47_801831C8(Task* task)
+/// Draws the console once and starts its closing fade from clear.
+///
+/// Console state 12; requires live console work. Resets the fade after drawing
+/// and advances to state 13; switch saving and task teardown happen there.
+static void _shelterR47ConsoleBeginFadeOutTask(Task* task)
 {
-    ShelterR47ConsoleWork* state;
+    enum {
+        SHELTER_R47_CONSOLE_FADE_CLEAR = 0,
+    };
+    ShelterR47ConsoleWork* work;
 
-    state = task->work;
+    work = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
-    state->fade = 0;
+    work->fade = SHELTER_R47_CONSOLE_FADE_CLEAR;
     task->state++;
 }
 
-void func_shelter_r47_80183210(void)
+void shelterR47ResetTerminalFirstUseEvents(void)
 {
-    D_shelter_r47_8018A694 = 0;
-    D_shelter_r47_8018A695 = 0;
-    D_shelter_r47_8018A696 = 0;
-    D_shelter_r47_8018A697 = 0;
+    D_shelter_r47_8018A694 = false;
+    D_shelter_r47_8018A695 = false;
+    D_shelter_r47_8018A696 = false;
+    D_shelter_r47_8018A697 = false;
 }
 
-/// Two-state dispatcher of the action prompt, with its handler table built on
-/// the stack: state 0 runs `_actionPromptResetDefault` and state 1 runs
-/// `_actionPromptMoveCursorsDefault`.
-void func_shelter_r47_80183234(Task* task)
+void shelterR47ConsolePromptTask(Task* task)
 {
-    TaskFunc funcs[2] = {
+    TaskFunc states[] = {
         _actionPromptResetDefault,
         _actionPromptMoveCursorsDefault,
     };
 
-    funcs[task->state](task);
+    states[task->state](task);
 }
 
 #include "../../shared/action_prompt_reset.inc.c"
 
-static void func_shelter_r47_801832E4(s16 step)
+/// Empty callback receiving the console's free-use status; its intended role is unproven.
+static void func_shelter_r47_801832E4(s16 status)
 {
 }
 
@@ -1378,7 +1414,7 @@ void shelterR47MapTerminalDrawPreviousButton(void)
     packet         = gGpuPrimCursor;
     gGpuPrimCursor = packet + 1;
     sprite         = &packet->sprite.sprt;
-    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
+    _shelterR47InitDrawModeSprite(packet, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
     sprite->clut  = getClut(64, 255);
     sprite->x0    = -0x96;
     sprite->y0    = 0x3F;
@@ -1398,7 +1434,7 @@ void shelterR47MapTerminalDrawNextButton(void)
     packet         = gGpuPrimCursor;
     gGpuPrimCursor = packet + 1;
     sprite         = &packet->sprite.sprt;
-    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
+    _shelterR47InitDrawModeSprite(packet, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
     sprite->clut  = getClut(80, 255);
     sprite->x0    = -0x90;
     sprite->y0    = 0x50;
@@ -1421,7 +1457,7 @@ void shelterR47MapTerminalDrawPageTitle(Task* task, s16 page)
     sprite         = &packet->sprite.sprt;
     gGpuPrimCursor = packet + 1;
     work->labelX  += (work->labelTargetX - work->labelX) >> 2;
-    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
+    _shelterR47InitDrawModeSprite(packet, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
     sprite->clut  = getClut(32, 255);
     sprite->code |= SPRITE_SOURCE_RAW_TEXTURE | SPRITE_SOURCE_SEMI_TRANSPARENT;
     sprite->x0    = work->labelX;
@@ -1443,7 +1479,7 @@ void shelterR47MapTerminalDrawPageCaptions(Task* task, s16 page)
     work           = task->work;
     sprite         = &packet->sprite.sprt;
     gGpuPrimCursor = packet + 1;
-    _shelterR47InitDrawModeSprite(packet, sprite, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
+    _shelterR47InitDrawModeSprite(packet, (SHELTER_R47_DRAW_MODE_COMMAND | getTPage(0, GPU_BLEND_ADD, 960, 0)));
     sprite->clut  = getClut(48, 255);
     sprite->code |= SPRITE_SOURCE_RAW_TEXTURE | SPRITE_SOURCE_SEMI_TRANSPARENT;
     sprite->x0    = work->labelX;
