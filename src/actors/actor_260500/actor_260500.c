@@ -1599,12 +1599,18 @@ void actor260500StartHeliportConversation(void)
     }
 }
 
-/// Binds this package's quiet-walker rig and queues startup clip 4 for reset.
+/// Binds the quiet walker's playback storage and requests this package's startup clip.
 ///
-/// The published work must be live and writable; `model` must have nineteen
-/// parts. The clip table, model coordinates, slots and poses are borrowed
-/// throughout playback. The caller processes the reset before ticking slots
-/// 1..18. Travel and turn-update counts start at zero.
+/// The published `_gFootstepWalkWork` must be a live, writable task-owned block.
+/// `model` must be a `tmdCreateModel` allocation with nineteen part coordinates.
+/// The context borrows that allocation's coordinate tail, the work block's slots
+/// and encoded-pose buffer, and the package's native clip table. All borrowed
+/// storage and clip data must stay live and unmoved throughout playback.
+///
+/// Requests clip 4 in `ACTOR_ENEMY_ANIM_RESET`; the caller must process that
+/// request before ticking parts 1 through 18. Binding neither initializes slots
+/// nor clears poses or writes model coordinates. Remaining travel and turn
+/// updates start at zero.
 static __inline__ void _actor260500PrepareWalkerAnimation(TmdObject* model)
 {
     enum { ACTOR_260500_STARTUP_ANIM_ID = 4 };
