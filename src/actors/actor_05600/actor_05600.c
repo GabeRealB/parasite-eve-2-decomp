@@ -116,9 +116,9 @@ static AnimationSet _gActor05600Actor105600Animation16194;
 static TmdSource    _gActor05600PawnGolemBody;
 static TmdSource    _gActor05600GolemGrenadeLauncher;
 static TmdSource    _gActor05600GolemGrenade;
-void                Actor05600_Fn04A70(Task*);
+static void         _actor05600GrenadeLauncherTask(Task* launcher);
 void                Actor05600_Fn04BAC(Task*);
-void                Actor05600_Fn04CA0(Task*);
+static void         _actor05600BodyTask(Task* actor);
 
 s16 gGolemPawnRookAnimBlendFrames[32] = {
     0,
@@ -1128,8 +1128,8 @@ s16 gGolemPawnRookBeamRibbonCorners[2][4] = {
 };
 
 TaskDesc gGolemPawnRookTasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, Actor05600_Fn04CA0, { .model = &_gActor05600PawnGolemBody } },
-    { { { TASK_BODY_TMD, 96 } }, Actor05600_Fn04A70, { .model = &_gActor05600GolemGrenadeLauncher } },
+    { { { TASK_BODY_TMD, 96 } }, _actor05600BodyTask, { .model = &_gActor05600PawnGolemBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor05600GrenadeLauncherTask, { .model = &_gActor05600GolemGrenadeLauncher } },
 };
 
 TaskDesc Actor05600_D164B8 = { { { TASK_BODY_TMD, 96 } }, Actor05600_Fn04BAC, { .model = &_gActor05600GolemGrenade } };
@@ -1247,19 +1247,25 @@ extern s16 gGolemPawnRookBeamRibbonCorners[][4];
 #include "../../shared/golem_pawn_rook_nop.inc.c"
 
 /// State handlers of the model child hung off the actor's part 7 - spawn,
-/// per-frame tick and teardown - dispatched through by `Actor05600_Fn04A70`.
+/// per-frame tick and teardown - dispatched through by `_actor05600GrenadeLauncherTask`.
 static const EnemyTaskFuncTable3 Actor05600_D00080 = {
     _golemPawnRookLauncherSpawn,
     _golemPawnRookLauncherTick,
     enemyDestroy,
 };
 
-void Actor05600_Fn04A70(Task* arg0)
+/// Runs the Pawn GOLEM's attached grenade launcher task.
+///
+/// `launcher` owns a live `Enemy` in `spawnArg2.pointer` and a TMD body;
+/// its parent must have an initialized GOLEM model and `GolemPawnRookWork`.
+/// `state` selects 0 attachment to part 7, 1 draw-flag mirroring and pending
+/// grenade firing, or 2 destruction. The selector is unchecked. Destruction
+/// invalidates the enemy and starts task teardown; nothing is read afterwards.
+static void _actor05600GrenadeLauncherTask(Task* launcher)
 {
-    EnemyTaskFuncTable3 sp;
+    const EnemyTaskFuncTable3 stateHandlers = Actor05600_D00080;
 
-    sp = Actor05600_D00080;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers.funcs[launcher->state](launcher->spawnArg2.pointer, launcher);
 }
 
 #include "../../shared/golem_pawn_rook_launcher_spawn.inc.c"
@@ -1292,10 +1298,18 @@ static const EnemyTaskFuncTable3 Actor05600_D00098 = {
     golemPawnRookDeadState,
 };
 
-void Actor05600_Fn04CA0(Task* arg0)
+/// Runs the grenade-launcher Pawn GOLEM's body task.
+///
+/// `actor` owns a live `Enemy` in `spawnArg2.pointer` and the body TMD model.
+/// `state` selects 0 initialization, 1 combat updates, or 2 the persistent
+/// dead pose; the selector is unchecked. Initialization allocates
+/// `GolemPawnRookWork` and spawns the launcher child, or destroys the enemy
+/// and starts task teardown on work-allocation failure. States 1 and 2
+/// require initialized work. State 2 saves and draws the corpse without
+/// releasing it; the task's exit callback handles eventual removal.
+static void _actor05600BodyTask(Task* actor)
 {
-    EnemyTaskFuncTable3 sp;
+    const EnemyTaskFuncTable3 stateHandlers = Actor05600_D00098;
 
-    sp = Actor05600_D00098;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers.funcs[actor->state](actor->spawnArg2.pointer, actor);
 }
