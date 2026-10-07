@@ -127,10 +127,10 @@ STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerTimeLimit, 0x4);
 /// sound.
 ///
 /// While a run is being timed the sound is replayed every frame at the volume
-/// of the entry `Gp_FindViewIndex` selects for the view the driver last
+/// of the entry `viewFindLogicalIndex` selects for the view the driver last
 /// recorded. A view with no entry plays at full volume.
 typedef struct {
-    u16 viewIndex; // `Gp_FindViewIndex` result the entry applies to (DRYFIELD_WATER_TOWER_VIEW_VOLUME_END ends the table)
+    u16 viewIndex; // Logical room-view index (DRYFIELD_WATER_TOWER_VIEW_VOLUME_END ends the table)
     u16 percent;   // Volume in that view, as a percentage of full volume
 } _DryfieldWaterTowerViewVolume;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerViewVolume, 0x4);
@@ -2479,7 +2479,7 @@ static inline s32 _dryfieldWaterTowerViewVolume(Task* arg0)
     u16                               i;
 
     for (i = 0; D_dryfield_water_tower_80182350[i].viewIndex != DRYFIELD_WATER_TOWER_VIEW_VOLUME_END; i++) {
-        if (D_dryfield_water_tower_80182350[i].viewIndex == Gp_FindViewIndex((u8)work->currentView)) {
+        if (D_dryfield_water_tower_80182350[i].viewIndex == viewFindLogicalIndex((u8)work->currentView)) {
             return D_dryfield_water_tower_80182350[i].percent * 127 / 100;
         }
     }
@@ -2505,7 +2505,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 msg0.context.loc.area  = gGameSession->location.loc.area;
                 msg0.command           = 9;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg0, ACTOR_COMMAND_MESSAGE_APPLY);
-                state->nextView            = Gp_FindViewIndex(7);
+                state->nextView            = viewFindLogicalIndex(7);
                 state->runningSoundStarted = 0;
                 evsStartScriptWithSkip(D_dryfield_water_tower_80181C78, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tower_80181DC8);
                 state->phase++;
@@ -2513,7 +2513,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
                 TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);
                 taskMessageDispatch(state->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
                 taskMessageDispatch(state->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(7);
                 session                                                    = gGameSession;
                 session->viewDirty                                         = 1;
                 session->hideHud                                           = 0;
@@ -2553,7 +2553,7 @@ static u16 func_dryfield_water_tower_8017EB7C(Task* arg0)
             if (worldCollisionReadActionHit(&objId, &objA, &objB) != 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
                 (objId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (reason = (s8)objA) == 2) {
                 worldCollisionUnlinkTrigger(0, (D_dryfield_water_tower_80186A84 + 6));
-                state->nextView = Gp_FindViewIndex(9);
+                state->nextView = viewFindLogicalIndex(9);
                 evsStartScriptWithSkip(D_dryfield_water_tower_80181E88, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tower_80181FF0);
                 state->runResult = reason;
                 state->phase++;
@@ -2923,7 +2923,7 @@ void func_dryfield_water_tower_8017F908(void)
     if (state->runningSoundStarted == 0) {
         sndEvtRequestScriptStart(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(7);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(7);
     gGameSession->viewDirty                                    = 1;
     TASK_MESSAGE_DISPATCH_POINTER(state->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);
     state->slidingPropTask->state = 1;
@@ -2968,7 +2968,7 @@ void func_dryfield_water_tower_8017FA5C(void)
 {
     _DryfieldWaterTowerPropSceneWork* state = D_dryfield_water_tower_801876A4->work;
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(9);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(9);
     TASK_MESSAGE_DISPATCH_POINTER(state->fallingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A70[2], 0);
     state->fallingPropTask->state = 1;
     TASK_MESSAGE_DISPATCH_POINTER(state->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181AD0[0], 0);
@@ -3210,7 +3210,7 @@ void func_dryfield_water_tower_80180220(void)
     TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLACE, &(D_dryfield_water_tower_801823C0 + 1)[1], 0);
     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_801823A8, 0);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(4);
     gGameSession->viewDirty                                    = 1;
     cdCmdCancelScene();
     streamFinishScene();

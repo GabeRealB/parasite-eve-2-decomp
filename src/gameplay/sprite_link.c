@@ -39,7 +39,7 @@ static void _spriteEmitBatch(const SpriteSource* sourceElements, const SpriteBat
 
 static void _spriteSetViewRawTexture(s32 rawTexture);
 
-static void Gp_LinkRoomObjects(Task* task);
+static void _worldCollisionBindCurrentRoomResources(Task* unusedTask);
 
 static s32 _spriteViewUsesImageStrips(void);
 
@@ -55,6 +55,24 @@ SpriteDrawModePacket* Gp_SprtLists[2] = {
     NULL,
     NULL,
 };
+
+/// Binds and enables a borrowed trigger array, including its LAST-marked record.
+///
+/// The non-NULL array must be writable and terminated; `listIndex` selects the
+/// action or view-boundary list. Records remain live until the list is cleared.
+static inline void _worldCollisionBindViewTriggerArray(WorldCollisionTrigger* triggers, s32 listIndex)
+{
+    s32 triggerIndex;
+
+    for (triggerIndex = 0;; triggerIndex++) {
+        triggers[triggerIndex].coord = &gGfxViewCoord;
+        worldCollisionLinkTrigger(listIndex, &triggers[triggerIndex]);
+        triggers[triggerIndex].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+        if (triggers[triggerIndex].flags & WORLD_COLLISION_TRIGGER_LAST) {
+            break;
+        }
+    }
+}
 
 /// Initializes the headers of one merged draw-mode and sprite packet.
 ///
@@ -354,58 +372,57 @@ void spriteAllocateViewCachedPackets(void)
     }
 }
 
-static void Gp_LinkRoomObjects(Task* task)
+/// Replaces the active collision resources with those of the current room.
+///
+/// Applies the current mapped camera, clears the old trigger/occluder lists and
+/// grid, then borrows and enables each available room resource. Non-NULL arrays
+/// include their LAST-marked record. The stage/area/room directories and camera
+/// must be loaded and valid; old list storage must stay live until cleared, and
+/// new resource storage must remain live until it is cleared or replaced.
+/// Rebuilds the view coordinate's composition cache and changes GTE state.
+/// `unusedTask` is not inspected.
+static void _worldCollisionBindCurrentRoomResources(Task* unusedTask)
 {
-    GameLocationKey*                   sess;
-    const WorldCollisionRoomResources* roomResources;
+    enum { WORLD_COLLISION_OCCLUDER_LIST_ACTIVE = 0 };
+
+    const GameLocationKey*             location;
+    const WorldCollisionRoomResources* areaRooms;
     WorldCollisionGrid*                grid;
     WorldCollisionTrigger*             viewBoundaryTriggers;
     WorldCollisionTrigger*             actionTriggers;
     WorldCollisionOccluder*            occluders;
-    s32                                i;
+    s32                                occluderIndex;
 
-    sess = &gGameSession->location.loc;
+    location = &gGameSession->location.loc;
+    // Retire borrowed list links before binding resources to the current camera.
     viewApplyCurrentCamera();
     Gp_GridParams = NULL;
     worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES);
     worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_ACTION);
-    worldCollisionClearOccluderList(0);
-    roomResources = Gp_RoomObjTables[sess->stage - 1]->areaRooms[sess->area - 1];
-    if (roomResources != NULL) {
-        grid                 = roomResources[sess->room - 1].grid;
-        viewBoundaryTriggers = roomResources[sess->room - 1].viewBoundaryTriggers;
-        actionTriggers       = roomResources[sess->room - 1].actionTriggers;
-        occluders            = roomResources[sess->room - 1].occluders;
+    worldCollisionClearOccluderList(WORLD_COLLISION_OCCLUDER_LIST_ACTIVE);
+    areaRooms = Gp_RoomObjTables[location->stage - 1]->areaRooms[location->area - 1];
+    if (areaRooms != NULL) {
+        grid                 = areaRooms[location->room - 1].grid;
+        viewBoundaryTriggers = areaRooms[location->room - 1].viewBoundaryTriggers;
+        actionTriggers       = areaRooms[location->room - 1].actionTriggers;
+        occluders            = areaRooms[location->room - 1].occluders;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
             grid->viewCoord = &gGfxViewCoord;
             Gp_GridParams   = grid;
         }
         if (viewBoundaryTriggers != NULL) {
-            for (i = 0;; i++) {
-                viewBoundaryTriggers[i].coord = &gGfxViewCoord;
-                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES, &viewBoundaryTriggers[i]);
-                viewBoundaryTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
-                if (viewBoundaryTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
-                    break;
-                }
-            }
+            // The LAST record is part of each array and is linked before stopping.
+            _worldCollisionBindViewTriggerArray(viewBoundaryTriggers, WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES);
         }
         if (actionTriggers != NULL) {
-            for (i = 0;; i++) {
-                actionTriggers[i].coord = &gGfxViewCoord;
-                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &actionTriggers[i]);
-                actionTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
-                if (actionTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
-                    break;
-                }
-            }
+            _worldCollisionBindViewTriggerArray(actionTriggers, WORLD_COLLISION_TRIGGER_LIST_ACTION);
         }
         if (occluders != NULL) {
-            for (i = 0;; i++) {
-                worldCollisionLinkOccluder(0, &occluders[i]);
-                occluders[i].flags |= WORLD_COLLISION_OCCLUDER_ENABLED;
-                if (occluders[i].flags & WORLD_COLLISION_OCCLUDER_LAST) {
+            for (occluderIndex = 0;; occluderIndex++) {
+                worldCollisionLinkOccluder(WORLD_COLLISION_OCCLUDER_LIST_ACTIVE, &occluders[occluderIndex]);
+                occluders[occluderIndex].flags |= WORLD_COLLISION_OCCLUDER_ENABLED;
+                if (occluders[occluderIndex].flags & WORLD_COLLISION_OCCLUDER_LAST) {
                     break;
                 }
             }
@@ -415,26 +432,29 @@ static void Gp_LinkRoomObjects(Task* task)
     actorRenderComposeCoord(&gGfxViewCoord);
 }
 
-s8 Gp_FindViewIndex(s32 arg0)
+s8 viewFindLogicalIndex(s32 mappedViewIndex)
 {
-    s16              idx;
-    GameLocationKey* sess;
-    ViewCount        viewCount;
-    u8*              viewMap;
+    enum { VIEW_LOGICAL_INDEX_NOT_FOUND = 0 };
 
-    idx       = 0;
-    sess      = &gGameSession->location.loc;
-    viewCount = Gp_ViewCountTables[sess->stage - 1]->viewCounts[sess->area - 1][sess->room - 1];
-    viewMap   = Gp_ViewIndexTables[sess->stage - 1]->viewMaps[sess->area - 1][sess->room - 1];
+    s16                    logicalViewOffset;
+    const GameLocationKey* location;
+    ViewCount              viewCount;
+    const u8*              viewMap;
+
+    logicalViewOffset = 0;
+    location          = &gGameSession->location.loc;
+    viewCount         = Gp_ViewCountTables[location->stage - 1]->viewCounts[location->area - 1][location->room - 1];
+    viewMap           = Gp_ViewIndexTables[location->stage - 1]->viewMaps[location->area - 1][location->room - 1];
+    // Search logical slots in order: duplicate mapped indices select the first.
     if (viewCount > 0) {
         do {
-            if (viewMap[idx] == (u8)arg0) {
-                return idx + 1;
+            if (viewMap[logicalViewOffset] == (u8)mappedViewIndex) {
+                return logicalViewOffset + 1;
             }
-            idx++;
-        } while (idx < viewCount);
+            logicalViewOffset++;
+        } while (logicalViewOffset < viewCount);
     }
-    return 0;
+    return VIEW_LOGICAL_INDEX_NOT_FOUND;
 }
 
 /// Returns 1 to select decoded-image strips, or 0 to suppress that background.
@@ -537,15 +557,16 @@ SpriteDrawArea* spriteGetViewDrawAreas(void)
     return _spriteGetCurrentView()->drawAreas;
 }
 
-void Gp_RoomObjState1(Task* task)
+void loadingUpdateRoomResourcesTask(Task* task)
 {
+    // The spawn argument becomes a cache of the last logical view composed.
     if (task->spawnArg1.value != gGameSession->location.loc.view) {
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&gGfxViewCoord);
         task->spawnArg1.value = gGameSession->location.loc.view;
     }
     if (gGameSession->roomObjsDirty != 0) {
-        Gp_LinkRoomObjects(task);
+        _worldCollisionBindCurrentRoomResources(task);
         gGameSession->roomObjsDirty = 0;
     }
     _spriteQueueViewDrawAreas();
@@ -577,13 +598,14 @@ static void _spriteLinkCachedBatch(const SpriteSource* sources, const SpriteBatc
     Gp_SprtCursor = packet;
 }
 
-void func_800AD50C(Task* task)
+void loadingRoomResourcesTask(Task* task)
 {
-    TaskFuncTable3 funcs;
+    TaskFuncTable3 stateHandlers;
 
-    funcs = Gp_RoomObjStates;
+    // Snapshot all three handlers before testing whether room updates are frozen.
+    stateHandlers = Gp_RoomObjStates;
     if (gGameSession->freezeRoomObjs == 0) {
-        funcs.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     } else {
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }

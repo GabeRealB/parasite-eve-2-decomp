@@ -106,7 +106,7 @@ actor403600XformStreamVertsPlaneClamp = 0x801386EC; // type:func absolute:True o
 // Overlay task entry points and descriptor banks named by main's descriptor tables.
 viewApplyCoordTask = 0x800A8654; // type:func absolute:True
 viewApplyCameraTask = 0x800A8C74; // type:func absolute:True
-func_800AD50C = 0x800AD50C; // type:func absolute:True
+loadingRoomResourcesTask = 0x800AD50C; // type:func absolute:True
 func_800AC0F0 = 0x800AC0F0; // type:func absolute:True
 func_800AEE8C = 0x800AEE8C; // type:func absolute:True
 Gp_ViewGateTask = 0x800A8E8C; // type:func absolute:True

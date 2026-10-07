@@ -19,11 +19,11 @@
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
+#include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
@@ -6482,7 +6482,7 @@ void func_actor_560800_80137820(Task* arg0)
             arg0->state++;
             return;
         case 1:
-            if (Gp_FindViewIndex(gGameSession->location.loc.view) == 0x16) {
+            if (viewFindLogicalIndex(gGameSession->location.loc.view) == 0x16) {
                 switch (work->chainNumber) {
                     case 1:
                     case 3:
@@ -6564,7 +6564,7 @@ done:
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         func_shelter_b1_pod_service_gantry_8017F450(&arg0->extra.tmd->coords[6], work->chainNumber, 0x100, 0x3C36);
-        if (Gp_FindViewIndex(gGameSession->location.loc.view) != 0x16) {
+        if (viewFindLogicalIndex(gGameSession->location.loc.view) != 0x16) {
             tick = D_actor_560800_801752E8 + 1;
             if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->chainNumber) {
                 effectSpawn(EFFECT_SHELTER_B1_GANTRY_RISING_SPRITE, &arg0->extra.tmd->coords[2], 0x800, NULL);

@@ -25,7 +25,6 @@
 #include "gameplay/evs.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/light.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
@@ -1398,7 +1397,7 @@ void func_acropolis_forked_road_8017DD60(Task* task)
         case 3:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(5);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(5);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

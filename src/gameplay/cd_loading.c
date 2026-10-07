@@ -1063,6 +1063,6 @@ const TaskFuncTable8 Gp_LoadStateFns  = { {
 } };
 const TaskFuncTable3 Gp_RoomObjStates = { {
     Gp_LinkRoomObjectsSpawn,
-    Gp_RoomObjState1,
+    loadingUpdateRoomResourcesTask,
     taskKill,
 } };

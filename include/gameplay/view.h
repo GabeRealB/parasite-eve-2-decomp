@@ -85,6 +85,21 @@ STATIC_ASSERT_SIZEOF(ViewIndexTable, 4);
 /// result describes the current mapping rather than a permanent view ID.
 s32 viewGetMappedIndex(void);
 
+/// Finds the first logical room-view index for a mapped camera/image/sprite index.
+///
+/// Compares only the low unsigned byte of `mappedViewIndex` with the current
+/// room's map, in logical-slot order. The signed `ViewCount` limits the search;
+/// a nonpositive count or no match returns zero. A match returns its 1-based
+/// logical index narrowed to `s8`, retaining the low signed byte even when
+/// the index exceeds 127. This lookup does not validate mapped indices.
+///
+/// Requires a live session, stage 1..5 and valid 1-based area and room indices
+/// in both the count and mapping directories. Directory pointers and owning
+/// overlays must be live; a positive count requires that many readable map
+/// bytes, while a nonpositive count never reads map bytes. The count is
+/// independent of map capacity and mapped resource extents.
+s8 viewFindLogicalIndex(s32 mappedViewIndex);
+
 /// Camera orientation, origin and perspective distance for a gameplay view.
 ///
 /// `transform.m` rotates world axes into camera axes, with `ONE` (4096) for

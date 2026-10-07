@@ -7,11 +7,11 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/view.h"
 
 #include "main/fs.h"
 #include "main/fs_types.h"
@@ -766,7 +766,7 @@ void func_acropolis_observatory_8017D9A8(Task* task)
         case 3:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(2);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(2);
                 task->state                                                = task->state + 1;
             }
             break;
@@ -871,7 +871,7 @@ void func_acropolis_observatory_8017DD3C(Task* task)
         case 3:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(4);
                 task->state                                                = task->state + 1;
             }
             break;

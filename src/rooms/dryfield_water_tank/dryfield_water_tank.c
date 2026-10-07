@@ -34,7 +34,6 @@ Task* D_dryfield_water_tank_80188D4C;
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -1298,7 +1297,7 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
             break;
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(3);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(3);
             gGameSession->viewDirty                                    = 1;
             /* Through a pointer rather than as `work->playerTask`: a member load
              * is struct memory, which lets the store to the view index sink into
@@ -1374,7 +1373,7 @@ void func_dryfield_water_tank_8017E1B4(void)
     Task**                           playerTask;
 
     work                                                       = D_dryfield_water_tank_80188D4C->work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(3);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(3);
     /* Through a pointer rather than as `work->playerTask`: a member load is
      * struct memory, which lets the store to the view index sink into the
      * call's delay slot, and the original keeps it ahead of the load. */

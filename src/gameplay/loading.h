@@ -102,7 +102,15 @@ void Gp_LoadWaitAreaCd(Task* task);
 
 void Gp_FadeGrayHold(Task* task);
 
-void Gp_RoomObjState1(Task* task);
+/// Refreshes room collision/view state and queues the current view's clipping packets.
+///
+/// State 1 of `loadingRoomResourcesTask`. A live `task` caches the last logical
+/// view in `spawnArg1.value`; a change invalidates and rebuilds the view cache.
+/// A nonzero `roomObjsDirty` reapplies the camera and replaces borrowed collision
+/// resources before clearing the request. Clipping commands are queued on every
+/// call. Requires valid loaded view/room resources, live old lists until clearing,
+/// sufficient current-frame packet storage and a 1024-tag depth-sorted OT.
+void loadingUpdateRoomResourcesTask(Task* task);
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern ViewCameraTable* Gp_ViewTables[];

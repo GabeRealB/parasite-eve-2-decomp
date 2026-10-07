@@ -27,7 +27,6 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/gpu_image_upload.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -36,6 +35,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/view.h"
 
 #include "main/coord.h"
 #include "main/display.h"
@@ -495,7 +495,7 @@ static void func_dryfield_breezeway_8017DEC0(Task* arg0)
             TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[0], ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E28, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_breezeway_80181E40[0], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &D_dryfield_breezeway_80181E40[1], 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = Gp_FindViewIndex(4);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(4);
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9:
             _dryfieldBreezewayPlayPlayerAnimation(9, ANIMATION_BLEND_INTERPOLATE, 10);

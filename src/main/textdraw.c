@@ -194,7 +194,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0x10 } }, Text_BootTask },
     { { { TASK_BODY_COORD, 0x2F } }, viewApplyCoordTask },
     { { { TASK_BODY_NONE, 0x2F } }, viewApplyCameraTask },
-    { { { TASK_BODY_NONE, 0x40 } }, func_800AD50C },
+    { { { TASK_BODY_NONE, 0x40 } }, loadingRoomResourcesTask },
     { { { TASK_BODY_NONE, 0x28 } }, func_800AC0F0 },
     { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
     { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },

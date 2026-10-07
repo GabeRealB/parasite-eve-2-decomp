@@ -85,10 +85,6 @@ void spriteLinkViewCachedPackets(void);
 /// the new packets stay live until that storage is released or repurposed.
 void spriteAllocateViewCachedPackets(void);
 
-/// 1-based index of `(u8)arg0` in the current room's `Gp_ViewIndexTables` byte
-/// list. Length is the `Gp_ViewCountTables` cell as an s16. Returns 0 if absent.
-s8 Gp_FindViewIndex(s32 arg0);
-
 /// Borrows the current mapped view's draw-area list, or returns NULL if absent.
 ///
 /// Requires valid loaded stage, area, room and logical-view indices. The list
@@ -102,7 +98,18 @@ SpriteDrawArea* spriteGetViewDrawAreas(void);
 /// of `spriteAllocateViewCachedPackets` and ends even if allocation fails.
 void spriteAllocateViewCachedPacketsTask(Task* task);
 
-void func_800AD50C(Task* task);
+/// Dispatches room collision setup and per-frame view-resource maintenance.
+///
+/// Bank-0 task 0x10. A live `task` has state 0 (bind collision resources and
+/// spawn a child `spriteViewTask`), 1 (refresh collision/view state and queue
+/// clipping packets), or 2 (tear down the task and its children). Nonzero
+/// `freezeRoomObjs` holds dispatch and suppresses background images instead.
+/// `spawnArg1.value` becomes the last logical view seen by state 1.
+///
+/// Requires valid loaded stage/area/room/view resources and live collision
+/// records until unlinked. State 1 also needs a composed view and sufficient
+/// current-frame GPU packet storage and a 1024-tag depth-sorted ordering table.
+void loadingRoomResourcesTask(Task* task);
 
 /// Dispatches background selection and cached-sprite drawing for the current view.
 ///

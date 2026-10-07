@@ -20,7 +20,6 @@
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
 #include "gameplay/light.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
@@ -1736,7 +1735,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
             break;
 
         case 1:
-            view = Gp_FindViewIndex(gGameSession->location.loc.view);
+            view = viewFindLogicalIndex(gGameSession->location.loc.view);
             func_acropolis_fountain_8017E15C(task, (u16)view);
             switch ((u16)view) {
                 case 3:
@@ -1782,7 +1781,7 @@ void func_acropolis_fountain_8017E3D4(Task* task)
                     if (gDisplayState.animFrame & 1) {
                         queue2             = &gCdCmdQueue;
                         key2               = gGameSession->location;
-                        key2.loc.view      = Gp_FindViewIndex(4);
+                        key2.loc.view      = viewFindLogicalIndex(4);
                         loopStream         = streamGetSlot(streamFindMovieSlot(&key2.loc, 0, 1));
                         count              = queue2->movieFrame + 1;
                         queue2->movieFrame = count;

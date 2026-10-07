@@ -7443,7 +7443,7 @@ if (limit > 0) {
 }
 ```
 
-`Gp_FindViewIndex` is the example. `register s16 idx asm("t0")` got the
+`viewFindLogicalIndex` is the example. `register s16 idx asm("t0")` got the
 register but rewrote the increment in place and stuck at 96%.
 
 ## 18-byte MATRIX rotation copy: a halfword-aligned wrapper, not `u8[18]`
@@ -30528,7 +30528,7 @@ a    = arr->viewBoundaryTriggers;  /* lw 4(v1) */
 
 `arr + idx` / `&arr[idx]` emits `addu v0, v1, v0` (base + index). The
 `(s32)arr` addend after the scaled index is what swaps the operands.
-`Gp_LinkRoomObjects` is the example.
+`_worldCollisionBindCurrentRoomResources` is the example.
 
 ## Pin jal return + empty `asm("")` so `sb` / `andi` / delay-slot `sb` stay in order
 
@@ -30687,7 +30687,7 @@ addiu a2, a0, 0xC
 
 `addPrim(...)` alone hoists the masks *after* `&source->depth` and gives
 the `0xFFFFFF` constant `$t0`. Zeroing the loop index at entry (the
-`Gp_FindViewIndex` trick) is not enough: the constant is referenced more
+`viewFindLogicalIndex` trick) is not enough: the constant is referenced more
 often than the index, so it still wins `$t0`.
 
 Assign named `mask = 0xFFFFFF` / `maskHi = 0xFF000000` *before* taking
@@ -30705,7 +30705,7 @@ maskHi = 0xFF000000;
 /* then z = &source->depth, then the loop */
 ```
 
-`register ... asm("t0")` is required here — unlike `Gp_FindViewIndex` the
+`register ... asm("t0")` is required here — unlike `viewFindLogicalIndex` the
 target increment is in-place `addiu t0, t0, 1`, so the pin does not
 rewrite it. `_spriteLinkCachedBatch` is the example.
 
@@ -46996,12 +46996,12 @@ the sym files carry both names for that one address. Writing the access the way
 the save data actually is
 
 ```c
-gMcSaveData.location.loc.view = Gp_FindViewIndex(9);
+gMcSaveData.location.loc.view = viewFindLogicalIndex(9);
 ```
 
 restores the order with no barrier and no shape claim, because both sides are
 now `MEM_IN_STRUCT_P` and *both* suppressing clauses in `true_dependence` go
-false. In `func_dryfield_water_tower_8017FA5C` -- a `Gp_FindViewIndex` result
+false. In `func_dryfield_water_tower_8017FA5C` -- a `viewFindLogicalIndex` result
 stored beside a `_DryfieldWaterTowerPropSceneWork*` load of `fallingPropTask` -- the schedule
 then matches the target instruction for instruction.
 
@@ -53209,7 +53209,7 @@ differ only in where `sched1` puts the argument setup. In
 ```c
 s16 view;                                        /* s32 scores 99.72% */
 
-view = Gp_FindViewIndex((u8)gGameSession->location.loc.view);
+view = viewFindLogicalIndex((u8)gGameSession->location.loc.view);
 func_acropolis_fountain_8017E15C(task, (u16)view);
 switch ((u16)view) { … }
 ```
@@ -53859,13 +53859,13 @@ so two tails only merge when they are identical *including their hard
 registers*. The odd arm out was
 
 ```c
-D_8007216C = Gp_FindViewIndex(4);   /* extern s8 */
+D_8007216C = viewFindLogicalIndex(4);   /* extern s8 */
 task->state = task->state + 1;
 ```
 
 where the first scheduling pass (which runs *before* register allocation)
 hoisted the `lw` of `task->state` above the `sb`. That kept `$v0` — the
-`Gp_FindViewIndex` return value — live across the load, so the state temp was
+`viewFindLogicalIndex` return value — live across the load, so the state temp was
 allocated `$v1` instead of `$v0`, and the block no longer matched its three
 siblings byte for byte.
 
@@ -89491,7 +89491,7 @@ The `neo_ark_altar` entry above is the store side of this clause. This is the lo
 side, in the call-argument position:
 
 ```c
-    D_8007216C = Gp_FindViewIndex(3);
+    D_8007216C = viewFindLogicalIndex(3);
     taskMessageDispatch(work->playerTask, 0x3F3, 1, 0);     /* 95.556%, reorder=2 */
 ```
 
@@ -143986,7 +143986,7 @@ that giv's 2, and `2 - add_cost` is 0.
 (e.g. `addPrim(ot, &(*packetPair)[1])`). The
 representative no longer mentions a single-set register, the benefits sum, and the giv is
 reduced to the retail separate register.
-## A walk to a terminator flag: index it, and exit with `break` from `for (;;)` (Gp_LinkRoomObjects, 2026-09-26)
+## A walk to a terminator flag: index it, and exit with `break` from `for (;;)` (_worldCollisionBindCurrentRoomResources, 2026-09-26)
 
 Retail walks an array of records until one has bit `0x80` set, keeping a
 single `s0` for the element (`sw ..,8(s0)`, `lbu/sb 0x4A(s0)`, `addiu s0,s0,0x4C`

@@ -11,9 +11,9 @@
 #include "gameplay/evs_scripts.h"
 #include "evs_scripts.h"
 #include "gameplay/items.h"
-#include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
+#include "gameplay/view.h"
 
 #include "main/display.h"
 #include "main/fs.h"
@@ -253,7 +253,7 @@ void func_800E44A0(Task* task)
             view   = Gp_CapTable[(s16)D_801155AE].control.scene.view;
             viewId = view & 0xFF;
             if (viewId != 0) {
-                view = Gp_FindViewIndex(viewId);
+                view = viewFindLogicalIndex(viewId);
             }
         } else {
             view = Gp_CapTable[(s16)D_801155AE].control.scene.view;
@@ -706,7 +706,7 @@ u16 func_800E5578(const u16* arg0, s32 arg1, u8 arg2, u16 arg3)
                 if (code & 0x2000) {
                     sel = code & 0xFF;
                 } else {
-                    sel = Gp_FindViewIndex(code & 0xFF);
+                    sel = viewFindLogicalIndex(code & 0xFF);
                 }
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != sel) {
                     if (D_80115666 != 0) {
