@@ -1,10 +1,12 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/// The enemy task's per-frame entry: runs the handler for the task's current
-/// state from a stack copy of the state table. The states are spawn, tick and
-/// teardown; the regular build runs a fourth between tick and teardown, which
-/// settles a pending release before advancing.
-void desertChaserTask(Task* task)
+/// Dispatches the enemy task's lifecycle state through its carrier's table.
+///
+/// Requires a Task::state within the table and a live attached Enemy. Cutscene
+/// and Water Tower builds have spawn, frame update and teardown states. The
+/// regular build inserts a wait for a pending player/battle release before
+/// teardown. The stack copy retains each table's Enemy/Task callback contract.
+static void _desertChaserTask(Task* task)
 {
     DesertChaserTaskStates states;
 

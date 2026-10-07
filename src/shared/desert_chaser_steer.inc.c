@@ -28,9 +28,9 @@ void desertChaserSteer(Task* arg0)
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
-        desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(arg0);
     }
-    desertChaserAnimTick(arg0);
+    _desertChaserAnimTick(arg0);
     if (((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &delta) != 0) ||
         ((s16)ActorContact_Steer(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts), &delta) != 0)) {
         work->state = 0x22;

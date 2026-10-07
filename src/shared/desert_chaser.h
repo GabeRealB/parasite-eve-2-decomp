@@ -226,6 +226,37 @@ enum {
     DESERT_CHASER_ANIM_REQUEST_PLAYING = 3  // the request has been applied
 };
 
+/// Behavior state selectors and the sentinel that forces state entry.
+///
+/// The scripted-animation state exists in the cutscene and Water Tower builds;
+/// show animation belongs only to the cutscene table. Armed state selectors below
+/// share values unless explicitly limited to the Water Tower build.
+enum {
+    DESERT_CHASER_STATE_HIDDEN    = 0,
+    DESERT_CHASER_PREV_STATE_NONE = -1,
+#if DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR
+    DESERT_CHASER_STATE_SCRIPT_ANIMATION = 1,
+#endif
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
+    DESERT_CHASER_STATE_SHOW_ANIMATION = 2,
+#else
+    DESERT_CHASER_STATE_STUNNED   = 4,
+    DESERT_CHASER_STATE_DOWNED    = 0x11,
+    DESERT_CHASER_STATE_DEATH     = 0x15,
+    DESERT_CHASER_STATE_LEAP_BACK = 0x1F,
+    DESERT_CHASER_STATE_RISE      = 0x24,
+    DESERT_CHASER_STATE_ROAM      = 0x26,
+#if DESERT_CHASER_BUILD == DESERT_CHASER_WATER_TOWER
+    DESERT_CHASER_STATE_FLEE = 5,
+#endif
+#endif
+};
+
+#if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
+/// Front collision sphere radius in its model part's coordinate units.
+enum { DESERT_CHASER_FRONT_RADIUS = 0x19C };
+#endif
+
 /// Work block of the Desert Chaser task, in all three builds.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
@@ -362,19 +393,21 @@ STATIC_ASSERT_SIZEOF(DesertChaserWork, 0xEB0);
 #endif
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
-/// Whether any of the capsule's contacts, up to the first empty one, is a
-/// room-grid contact (kind 0x10).
-static __inline__ s16 desertChaserCapsuleTouchesGrid(Task* arg0)
+/// Returns 1 if the armed chaser's wall probe has a room-grid contact, else 0.
+///
+/// Scans the bounded contact array up to its first empty key. This capsule
+/// participates only in the grid pass, so occupied entries describe walls.
+static __inline__ s16 _desertChaserCapsuleTouchesGrid(Task* task)
 {
-    DesertChaserWork* work  = arg0->work;
+    DesertChaserWork* work  = task->work;
     s16               found = 0;
-    s16               i;
+    s16               contactIndex;
 
-    for (i = 0; i < DESERT_CHASER_CONTACTS; i++) {
-        if (!work->wallProbe.contacts[i].key.value) {
+    for (contactIndex = 0; contactIndex < DESERT_CHASER_CONTACTS; contactIndex++) {
+        if (!work->wallProbe.contacts[contactIndex].key.value) {
             break;
         }
-        if ((work->wallProbe.contacts[i].key.value & 0xFFFF0000) == 0x100000) {
+        if ((work->wallProbe.contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
             found = 1;
         }
     }
@@ -577,34 +610,42 @@ enum {
 };
 
 static void _desertChaserBlendTick(Task* task);
-void        desertChaserAnimTick(Task* task);
+static void _desertChaserAnimTick(Task* task);
 void        desertChaserSpawn(Enemy* enemy, Task* task);
-s32         desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3);
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
+static s32 _desertChaserSetVisibility(Task* task, s32 msgId, s32 mode, s32 unusedArg);
+#endif
+
+static void _desertChaserTask(Task* task);
 
 /* Defined by each package. */
 static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work);
 
-void desertChaserFrameState(Enemy* enemy, Task* task);
-void desertChaserPartEffect(Task* arg0, s16 part, s16 flags);
-void desertChaserTask(Task* task);
-void desertChaserHideState(Enemy* arg0, Task* arg1);
-s32  desertChaserMsgPlayAnim(Task* task, s32 arg1, AnimationPlayRequest* msg, s32 arg3);
-void desertChaserExit(Task* task);
+#if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
+static void _desertChaserFrameState(Enemy* enemy, Task* task);
+static void _desertChaserHideState(Enemy* enemy, Task* task);
+#endif
+#if DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR
+static s32 _desertChaserMsgPlayAnim(Task* task, s32 msgId, const AnimationPlayRequest* request, s32 unusedArg);
+#endif
+#if DESERT_CHASER_BUILD != DESERT_CHASER_WATER_TOWER
+static void _desertChaserExit(Task* task);
+#endif
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
-void desertChaserPursue(Task* arg0);
-void desertChaserRoam(Task* arg0);
-void desertChaserApproach(Task* arg0);
-void desertChaserStrike(Task* arg0);
-void desertChaserTurnStep(Task* arg0);
-void desertChaserTurnStepProbe(Task* arg0);
-void desertChaserHitEffect(Task* arg0, s16 arg1, s32 arg2);
-void desertChaserSpawnAim(Task* arg0);
-void desertChaserSteer(Task* arg0);
-void desertChaserStunned(Task* arg0);
-void desertChaserFlinch(Task* arg0);
-void desertChaserStagger(Task* arg0);
-void desertChaserCollapse(Task* arg0);
+void        desertChaserPursue(Task* arg0);
+void        desertChaserRoam(Task* arg0);
+void        desertChaserApproach(Task* arg0);
+void        desertChaserStrike(Task* arg0);
+void        desertChaserTurnStep(Task* arg0);
+void        desertChaserTurnStepProbe(Task* arg0);
+static void _desertChaserHitEffect(Task* task, s16 hitYaw, s32 hitKey);
+static void _desertChaserThrowPlayer(Task* task);
+void        desertChaserSteer(Task* arg0);
+static void _desertChaserStunned(Task* task);
+static void _desertChaserKnockDown(Task* task);
+static void _desertChaserStagger(Task* task);
+static void _desertChaserCollapse(Task* task);
 #endif
 
 #endif /* SRC_SHARED_DESERT_CHASER_H */

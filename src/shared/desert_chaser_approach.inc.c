@@ -48,8 +48,8 @@ void desertChaserApproach(Task* arg0)
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
-        desertChaserAnimTick(arg0);
-        desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(arg0);
         work->stateTimer                 = 0;
         work->wallProbe.shape.ends[1].vz = 0x26C;
         return;
@@ -67,7 +67,7 @@ void desertChaserApproach(Task* arg0)
             move->patrolTarget = 0;
         work->stateTimer = 0;
     }
-    desertChaserAnimTick(arg0);
+    _desertChaserAnimTick(arg0);
     coord               = arg0->extra.tmd->coords;
     angle               = ratan2(scratch->delta.vx, scratch->delta.vz);
     delta               = angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
@@ -85,7 +85,7 @@ void desertChaserApproach(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, yaw, 1);
     records = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     if (work->blendActive == 0) {
-        if (desertChaserCapsuleTouchesGrid(arg0)) {
+        if (_desertChaserCapsuleTouchesGrid(arg0)) {
             _actorMovementStepForward(arg0->extra.tmd->coords, 20);
         } else {
             _actorMovementStepForward(arg0->extra.tmd->coords, 20);

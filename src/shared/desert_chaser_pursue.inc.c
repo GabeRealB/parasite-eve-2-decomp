@@ -70,7 +70,7 @@ void desertChaserPursue(Task* arg0)
         work->waistYawTarget                                  = 0;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->animRate                                        = work->baseRate;
-        desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(arg0);
         work->wallProbe.shape.ends[1].vz  = 0x320;
         work->stateTimer                  = 0;
         work->stateCounter                = 0;
@@ -221,7 +221,7 @@ void desertChaserPursue(Task* arg0)
     }
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     scratch->turn                         = actorYawTo(arg0->extra.tmd->coords, work->playerDelta.vx, work->playerDelta.vz);
-    desertChaserAnimTick(arg0);
+    _desertChaserAnimTick(arg0);
     if (work->animId == 2) {
         if (scratch->turn >= 0x41) {
             scratch->turn = 0x40;
@@ -235,7 +235,7 @@ void desertChaserPursue(Task* arg0)
         gfxRotMatrixY(&arg0->extra.tmd->coords->coord, turn, 1);
         arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     } else {
-        if (desertChaserCapsuleTouchesGrid(arg0) != 0) {
+        if (_desertChaserCapsuleTouchesGrid(arg0) != 0) {
             _actorMovementStepForward(arg0->extra.tmd->coords, 0x55);
             distance = (u16)work->lungeDistance + 0x55;
         } else {

@@ -1,45 +1,48 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/// The light hit reaction: plays clip 0xA once at the chaser's speed, then
-/// returns to the chase (0x11), to the buildup reaction (4) if a buildup is
-/// pending, or dies (0x15).
-void desertChaserFlinch(Task* arg0)
+/// Knocks the armed chaser down, then waits down, holds buildup, or starts death.
+///
+/// Entry restores collision and targeting and plays the knock-down clip at
+/// the build's reaction rate. Once slot 1 settles on that clip, a living enemy
+/// enters the downed wait unless buildup is active; an empty HP pool starts death.
+static void _desertChaserKnockDown(Task* task)
 {
-    Enemy*            ctx;
+    enum { DESERT_CHASER_CLIP_KNOCK_DOWN = 0xA };
+    Enemy*            enemy;
     DesertChaserWork* work;
-    TmdObject*        obj;
+    TmdObject*        model;
 
-    work = arg0->work;
-    ctx  = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj = arg0->extra.tmd;
+        model = task->extra.tmd;
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->hitFlag = 0;
 #endif
-        obj->flags                                            = 0;
-        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = 0x19C;
+        model->flags                                          = 0;
+        work->spheres[DESERT_CHASER_SPHERE_FRONT].body.radius = DESERT_CHASER_FRONT_RADIUS;
         work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        ctx->node.state.parts.flags                           = 0;
+        enemy->node.state.parts.flags                         = 0;
         work->animRequest                                     = DESERT_CHASER_ANIM_REQUEST_BLEND;
-        work->animId                                          = 0xA;
+        work->animId                                          = DESERT_CHASER_CLIP_KNOCK_DOWN;
         work->animRate                                        = DESERT_CHASER_SLOT_RATE(work);
         work->lookYaw                                         = 0;
         work->lookYawTarget                                   = 0;
         work->waistYawTarget                                  = 0;
-        if (ctx->hp <= 0) {
+        if (enemy->hp <= 0) {
             sceneSetEnemyAlert(1);
         }
     }
-    desertChaserAnimTick(arg0);
-    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && (work->animId == 0xA)) {
-        if (ctx->hp > 0) {
-            if (ctx->reactionFlags & ENEMY_REACTION_BUILDUP) {
-                work->state = 4;
+    _desertChaserAnimTick(task);
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) && (work->animId == DESERT_CHASER_CLIP_KNOCK_DOWN)) {
+        if (enemy->hp > 0) {
+            if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+                work->state = DESERT_CHASER_STATE_STUNNED;
             } else {
-                work->state = 0x11;
+                work->state = DESERT_CHASER_STATE_DOWNED;
             }
         } else {
-            work->state = 0x15;
+            work->state = DESERT_CHASER_STATE_DEATH;
         }
     }
 }

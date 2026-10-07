@@ -48,7 +48,7 @@
 /// Whole-unit step `_actorContactApplyGridPushback` last applied to its coordinate.
 static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
-/// Per-state animation table `desertChaserAnimTick` reads when it
+/// Per-state animation table `_desertChaserAnimTick` reads when it
 /// re-seeds the slots: 0x2D bytes per `appliedAnim`, indexed by `animId`.
 extern s8 gDesertChaserClipStartFrames[45][45];
 
@@ -72,21 +72,21 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task);
 static void func_actor_323400_80164BD0(Enemy* enemy, Task* task);
 static void func_actor_323400_80164C4C(Enemy* enemy, Task* task);
 
-/// State handlers `desertChaserFrameState` runs by `DesertChaserWork::state`.
+/// State handlers `_desertChaserFrameState` runs by `DesertChaserWork::state`.
 #include "../../shared/actor_contacts.h"
 
 static const EnemyTaskFuncTable4 gDesertChaserStates = {
-    desertChaserHideState,
+    _desertChaserHideState,
     func_actor_323400_80164BD0,
     func_actor_323400_801641C4,
     func_actor_323400_80164C4C,
 };
 
-/// Task states `desertChaserTask` runs by `Task::state`: the spawn
+/// Task states `_desertChaserTask` runs by `Task::state`: the spawn
 /// handler, the per-frame driver, then `enemyDestroy`.
 static const DesertChaserTaskStates gDesertChaserTaskStates = {
     desertChaserSpawn,
-    desertChaserFrameState,
+    _desertChaserFrameState,
     enemyDestroy,
 };
 
@@ -988,15 +988,15 @@ u8 gRigAnimSource[340] = {
 
 TaskMessageEntry gRigMessages[7] = {
     { 2015, func_actor_323400_8016475C },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, desertChaserSetVisibility },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _desertChaserSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawFirst },
     { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_323400_80164974 },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, desertChaserMsgPlayAnim },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _desertChaserMsgPlayAnim },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_323400_8017120C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, desertChaserTask, { .model = &_gActor323400DesertChaserBody } };
+TaskDesc D_actor_323400_8017120C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gActor323400DesertChaserBody } };
 
 static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
@@ -1319,7 +1319,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
         work->waistYawTarget = 0;
         work->lookYawTarget  = 0;
         work->stateTimer     = 0;
-        desertChaserAnimTick(task);
+        _desertChaserAnimTick(task);
         return;
     }
     switch (++work->stateTimer) {
@@ -1377,7 +1377,7 @@ static void func_actor_323400_801641C4(Enemy* enemy, Task* task)
             break;
         }
     }
-    desertChaserAnimTick(task);
+    _desertChaserAnimTick(task);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -1455,9 +1455,9 @@ static void func_actor_323400_80164BD0(Enemy* enemy, Task* task)
         work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
         work->waistYawTarget = 0;
         work->lookYawTarget  = 0;
-        desertChaserAnimTick(task);
+        _desertChaserAnimTick(task);
     } else {
-        desertChaserAnimTick(task);
+        _desertChaserAnimTick(task);
     }
 }
 
@@ -1482,9 +1482,9 @@ static void func_actor_323400_80164C4C(Enemy* enemy, Task* task)
         work->animRequest    = DESERT_CHASER_ANIM_REQUEST_BLEND;
         work->waistYawTarget = 0;
         work->lookYawTarget  = 0;
-        desertChaserAnimTick(task);
+        _desertChaserAnimTick(task);
     } else {
-        desertChaserAnimTick(task);
+        _desertChaserAnimTick(task);
         task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }

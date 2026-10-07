@@ -27,7 +27,7 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback = desertChaserExit;
+    task->exitCallback = _desertChaserExit;
     work2              = task->work;
     tmd                = task->extra.tmd;
     tmd->lightMtx      = &work2->lightMtx;
@@ -53,7 +53,7 @@ void desertChaserSpawn(Enemy* enemy, Task* task)
     work->lookYawTarget = 0;
     work->baseRate      = 0x10;
     work->animRate      = 0x10;
-    desertChaserAnimTick(task);
+    _desertChaserAnimTick(task);
     task->msgTable      = gRigMessages;
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

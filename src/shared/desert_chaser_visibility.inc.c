@@ -1,36 +1,38 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
-/// Handler for message 0x7D5: sets the model's display flags for the mode in
-/// `arg2` and picks the state that follows. 0 hides the model (flag 0x80
-/// alone), rebuilds the buffers and restarts state 0; 1 clears the flags,
-/// showing it, rebuilds and starts state 2; 2 raises `TMD_OBJECT_SKIP_AUTO_BUFFER` over the current
-/// flags and 3 replaces them with it, both restarting state 0.
-s32 desertChaserSetVisibility(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Applies a model visibility mode and selects hidden or the cutscene show animation.
+///
+/// Handles ACTOR_MESSAGE_SET_MODEL_DRAW. HIDE replaces the model flags with
+/// draw exclusion; SHOW clears them and selects clip 13 with per-carrier cues. Both ensure a
+/// primitive buffer exists. The two SKIP_AUTO_BUFFER modes select hidden,
+/// retaining or clearing the other flags without allocating a buffer. Unknown
+/// modes change nothing. msgId and unusedArg are ignored. Returns 0.
+static s32 _desertChaserSetVisibility(Task* task, s32 msgId, s32 mode, s32 unusedArg)
 {
-    TmdObject*        obj;
+    TmdObject*        model;
     DesertChaserWork* work;
 
-    obj  = task->extra.tmd;
-    work = task->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            work->state = 0;
+    model = task->extra.tmd;
+    work  = task->work;
+    switch (mode) {
+        case ACTOR_MESSAGE_VISIBILITY_HIDE:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            work->state = DESERT_CHASER_STATE_HIDDEN;
             break;
-        case 1:
-            obj->flags = 0;
-            tmdAllocPrimitiveBuffer(obj);
-            work->state = 2;
+        case ACTOR_MESSAGE_VISIBILITY_SHOW:
+            model->flags = 0;
+            tmdAllocPrimitiveBuffer(model);
+            work->state = DESERT_CHASER_STATE_SHOW_ANIMATION;
             break;
-        case 2:
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            work->state = 0;
+        case ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            work->state   = DESERT_CHASER_STATE_HIDDEN;
             break;
-        case 3:
-            obj->flags  = 0;
-            work->state = 0;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_VISIBILITY_CLEAR_FLAGS_SKIP_AUTO_BUFFER:
+            model->flags  = 0;
+            work->state   = DESERT_CHASER_STATE_HIDDEN;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;

@@ -147830,12 +147830,12 @@ set, past conditional exits - and one saved register disappeared); and
 order, where `indices[spriteSlot + (frame - 120) * 4]` through a flat pointer local
 distributed the `- 480` into the displacement (`lbu v0, -480(a2)`).
 
-Related, from three animation ticks (`_oddStrangerDriveAnimation`, `desertChaserAnimTick`,
+Related, from three animation ticks (`_oddStrangerDriveAnimation`, `_desertChaserAnimTick`,
 `func_actor_403000_80133AF8`): `(s8*)((to + from * 45) + (u32)table)` is
 `table[from][to]` on `s8 table[45][45]` named directly - `addu v0, a2, v0` /
 `addu v0, v0, s5`. A slot pointer local walked beside it (`seekSlot += 1`) put
 its initialiser after the hoisted table address; subscripting
-`work->slots[seekIndex]` instead leaves that pointer to strength reduction,
+`work->rig.slots[seekIndex]` instead leaves that pointer to strength reduction,
 which emits it after the hoists as the target does.
 ### Ordering-table slot held in a local flips the `addu`; pass it to `addPrim` inline (Actor02100_Fn02924, 2026-10-05)
 

@@ -66,8 +66,8 @@ void desertChaserRoam(Task* arg0)
 #if !DESERT_CHASER_RUN_SEQUENCE
         work->animRate = DESERT_CHASER_SLOT_RATE(work);
 #endif
-        desertChaserAnimTick(arg0);
-        desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(arg0);
+        _desertChaserAnimTick(arg0);
         work->stateTimer          = 0;
         work->stateCounter        = 0;
         coord                     = arg0->extra.tmd->coords;
@@ -122,7 +122,7 @@ void desertChaserRoam(Task* arg0)
         work->patrolPoints[work->patrolTarget].z = (s16)((u16)scratch->toPlayer.vz + arg0->extra.tmd->coords->coord.t[2]);
         work->stateTimer                         = 0;
     }
-    desertChaserAnimTick(arg0);
+    _desertChaserAnimTick(arg0);
     work->lookYawTarget = actorYawTo(arg0->extra.tmd->coords, scratch->toPlayer.vx, scratch->toPlayer.vz);
     turnDelta           = actorYawTo(arg0->extra.tmd->coords, scratch->toPatrolPoint.vx, scratch->toPatrolPoint.vz);
     scratch->fullTurn   = (scratch->turn = (s16)turnDelta);
@@ -153,7 +153,7 @@ void desertChaserRoam(Task* arg0)
     gfxRotMatrixY(&arg0->extra.tmd->coords->coord, (s32)yaw, 1);
     record = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     if (work->blendActive == 0) {
-        if (desertChaserCapsuleTouchesGrid(arg0)) {
+        if (_desertChaserCapsuleTouchesGrid(arg0)) {
             _actorMovementStepForward(arg0->extra.tmd->coords, 20);
         } else {
             _actorMovementStepForward(arg0->extra.tmd->coords, 20);

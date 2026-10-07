@@ -55,7 +55,7 @@ void desertChaserStrike(Task* arg0)
 #endif
     }
     work->stateTimer += 1;
-    desertChaserAnimTick(arg0);
+    _desertChaserAnimTick(arg0);
     state = work->animId;
     switch (state) {
         case 5:
@@ -72,7 +72,7 @@ void desertChaserStrike(Task* arg0)
         case 3:
             yaw       = actorPositionYaw(arg0, vec, &gPlayerStatus);
             vec[1].vz = yaw;
-            if (desertChaserCapsuleTouchesGrid(arg0)) {
+            if (_desertChaserCapsuleTouchesGrid(arg0)) {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 85);
             } else {
                 _actorMovementStepForward(arg0->extra.tmd->coords, 200);
