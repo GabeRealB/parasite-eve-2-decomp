@@ -88,6 +88,7 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task);
 static void func_dryfield_night_motel_lobby_80180FA4(Task* task);
 static void func_dryfield_night_motel_lobby_80180FD8(Task* task);
 static void func_dryfield_night_motel_lobby_8018103C(Task* task);
+static void _actionPromptEventEnd(Task* eventTask);
 static void func_dryfield_night_motel_lobby_80181138(Task* arg0);
 static void func_dryfield_night_motel_lobby_8018119C(Task* arg0);
 static void func_dryfield_night_motel_lobby_801811E0(Task* arg0);
@@ -103,7 +104,7 @@ static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
         func_dryfield_night_motel_lobby_8017FE90,
         func_dryfield_night_motel_lobby_80180FD8,
         func_dryfield_night_motel_lobby_8018103C,
-        actionPromptEventEnd,
+        _actionPromptEventEnd,
         func_dryfield_night_motel_lobby_80181138,
         func_dryfield_night_motel_lobby_8018119C,
         func_dryfield_night_motel_lobby_801811E0,

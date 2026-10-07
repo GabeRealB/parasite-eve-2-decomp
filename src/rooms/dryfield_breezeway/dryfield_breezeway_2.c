@@ -203,6 +203,7 @@ static s16  func_dryfield_breezeway_8017FBEC(s16 arg0, s16 arg1, s16 arg2, s16 a
 static void func_dryfield_breezeway_8017FD68(Task* task);
 static void func_dryfield_breezeway_8017FD9C(Task* task);
 static void func_dryfield_breezeway_8017FE08(Task* task);
+static void _actionPromptEventEnd(Task* eventTask);
 static void func_dryfield_breezeway_8018034C(GfxCoord* coord, SVECTOR* data, s32 arg2, s32 arg3);
 static void func_dryfield_breezeway_80181938(Task* task, u8* color);
 
@@ -217,7 +218,7 @@ static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
         func_dryfield_breezeway_8017E65C,
         func_dryfield_breezeway_8017FD9C,
         func_dryfield_breezeway_8017FE08,
-        actionPromptEventEnd,
+        _actionPromptEventEnd,
         func_dryfield_breezeway_8017E81C,
     }
 };

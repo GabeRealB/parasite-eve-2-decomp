@@ -3,7 +3,12 @@
 #ifndef ACTION_PROMPT_CURSOR_MOTION_HELPERS_DEFINED
 #define ACTION_PROMPT_CURSOR_MOTION_HELPERS_DEFINED
 
-/// Clamps a writable cursor's subpixel position to its drawable screen bounds.
+/// Constrains an action-prompt cursor to its allowed screen region.
+///
+/// `prompt` must be non-NULL and writable. Clamps its signed 1/512-pixel
+/// coordinates to inclusive X [-160, 159] and Y [-110, 110] pixel limits,
+/// measured from the screen center with Y increasing downward. The caller
+/// publishes `screen` afterward; this helper changes only `fixedX` and `fixedY`.
 static inline void _actionPromptClampCursor(ActionPrompt* prompt)
 {
     if (prompt->fixedX < ACTION_PROMPT_FIXED_X_MIN) {
