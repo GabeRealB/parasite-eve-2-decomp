@@ -12,7 +12,7 @@ void reverseWalkUpdate(Task* arg0)
 {
     TmdObject*       ext      = arg0->extra.tmd;
     ReverseWalkWork* work     = arg0->work;
-    TaskFunc         funcs[2] = { reverseWalkIdle, reverseWalkRunStep };
+    TaskFunc         funcs[2] = { _reverseWalkIdle, _reverseWalkRunStep };
     VECTOR3          pos;
     GfxCoord*        coord;
     s32              i;

@@ -57,10 +57,10 @@ static void _reverseWalkBeginMove(Task* task);
 static void _reverseWalkTurnToYaw(Task* task);
 static s32  _reverseWalkSetDrawModeMsg(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 
-/* Defined by each package. */
-void reverseWalkIdle(Task* arg0);
-void reverseWalkRunStep(Task* arg0);
-void reverseWalkBindLighting(Task* arg0);
-void reverseWalkExit(Task* arg0);
+/* Private callbacks defined by each carrier. */
+static void _reverseWalkIdle(Task* task);
+static void _reverseWalkRunStep(Task* task);
+static void _reverseWalkBindLighting(Task* task);
+static void _reverseWalkExit(Task* task);
 
 #endif /* SRC_SHARED_REVERSING_WALKER_H */

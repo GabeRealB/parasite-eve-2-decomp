@@ -24,9 +24,9 @@ void reverseWalkSpawn(Task* arg0)
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    reverseWalkBindLighting(arg0);
+    _reverseWalkBindLighting(arg0);
 
     arg0->msgTable     = gReverseWalkMessages;
-    arg0->exitCallback = reverseWalkExit;
+    arg0->exitCallback = _reverseWalkExit;
     arg0->state       += 1;
 }

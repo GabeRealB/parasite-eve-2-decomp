@@ -85945,7 +85945,7 @@ Inputs: `base.i` (m2c seed, 81.361%, `delete=4 insert=2`)
 The brief's "Similar matched bodies" is labelled *candidates to read, not
 equalities*, and `overlay_dup_index.py similar` only does generate candidates.
 But `shape: 1.00` on a short function is not a resemblance: it means the opcode
-order with operands dropped is identical. `func_actor_350500_80162ABC` is 15
+order with operands dropped is identical. `_actor350500ReverseWalkCommandMsg` is 15
 instructions, and its `shape: 1.00` entry `_actor141000SetAyaBreaWalkPace` turned
 out to be the *same 15 instructions in the same order*, differing in exactly one
 displacement — the latched store, `sb $zero, 0x4C4($a0)` against
@@ -101249,7 +101249,7 @@ Lone:
 
 So when a switch's index is a narrow struct field and a case body stores that
 same field, read it into an `int`-typed local once and use the local for both.
-The family's sibling `func_actor_350500_80162ABC` switches on the field directly
+The family's sibling `_actor350500ReverseWalkCommandMsg` switches on the field directly
 and gets the right index that way -- because its case bodies store *constants*,
 the store takes the constant's register (`sb $a1`) and the narrowing never
 arises; the two forms are the same mechanism seen from either side. Evidence:

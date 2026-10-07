@@ -68,7 +68,7 @@ static void _actor350700KyleMadiganWalkerBeginMove(Task* task);
 static const TaskFuncTable3 D_actor_350700_80161E24 = { {
     reverseWalkSpawn,
     reverseWalkUpdate,
-    reverseWalkExit,
+    _reverseWalkExit,
 } };
 
 /// Tick handlers of the enemy actor, indexed by `ReverseWalkWork::walk.motionStep`:
@@ -558,41 +558,51 @@ void func_actor_350700_80162398(Task* task)
 
 #include "../../shared/reversing_walker_spawn.inc.c"
 
-/// Exit callback `reverseWalkSpawn` installs; tears the task down.
-void reverseWalkExit(Task* arg0)
+/// Releases the walker's enemy record and begins task and model teardown.
+///
+/// Requires a live task with its owned primary-heap `Enemy` in
+/// `spawnArg2.pointer`. Target tracking and actor locks are released before
+/// children, work and model storage. Do not access the task or enemy afterwards.
+static void _reverseWalkExit(Task* task)
 {
-    enemyTaskExit(arg0);
+    enemyTaskExit(task);
 }
 
-/// Republishes the enemy work block's two matrices onto
-/// `TmdObject::lightMtx` / `colorMtx`, so the actor draws with its own
-/// lighting.
-void reverseWalkBindLighting(Task* arg0)
+/// Lends the walker's lighting matrices to its model for lighting and drawing.
+///
+/// Requires a live TMD task with allocated `ReverseWalkWork`. The model borrows
+/// writable matrices in that work; keep it live until model use ends.
+/// This binds storage without calculating or initializing either matrix.
+static void _reverseWalkBindLighting(Task* task)
 {
-    TmdObject*       ext;
+    TmdObject*       model;
     ReverseWalkWork* work;
 
-    ext           = arg0->extra.tmd;
-    work          = arg0->work;
-    ext->lightMtx = &work->model.light;
-    ext->colorMtx = &work->model.color;
+    model           = task->extra.tmd;
+    work            = task->work;
+    model->lightMtx = &work->model.light;
+    model->colorMtx = &work->model.color;
 }
 
-/// Tick handler 0 of the enemy actor, selected by `walk.motion`: idle.
-void reverseWalkIdle(Task* arg0)
+/// Leaves walk state unchanged while no scripted walk is in progress.
+///
+/// The frame update still integrates velocity, ticks animation and draws.
+/// The task parameter is unused but retains the `TaskFunc` callback signature.
+static void _reverseWalkIdle(Task* task)
 {
 }
 
-/// Tick handler 1 of the enemy actor: runs the state handler of
-/// `D_actor_350700_80161E30` that `walk.motionStep` selects.
-void reverseWalkRunStep(Task* arg0)
+/// Runs the current phase of a scripted forward or backward walk.
+///
+/// Requires initialized `ReverseWalkWork` and `walk.motionStep` in 0..3:
+/// face the target, begin movement, approach until arrival, then turn to the
+/// destination yaw. Runs one phase per tick without checking the index.
+static void _reverseWalkRunStep(Task* task)
 {
-    TaskFuncTable4   handlers;
-    ReverseWalkWork* work;
+    ReverseWalkWork*     work     = task->work;
+    const TaskFuncTable4 handlers = D_actor_350700_80161E30;
 
-    work     = arg0->work;
-    handlers = D_actor_350700_80161E30;
-    handlers.funcs[work->walk.motionStep](arg0);
+    handlers.funcs[work->walk.motionStep](task);
 }
 
 #include "../../shared/reversing_walker_face.inc.c"
