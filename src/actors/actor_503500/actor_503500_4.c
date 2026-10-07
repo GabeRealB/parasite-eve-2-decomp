@@ -5155,11 +5155,10 @@ static void func_actor_503500_801448E8(Task* arg0)
     WorldCollisionContact*         contacts;
     EffectWork*                    eff;
     Task*                          child;
-    GfxRotationWords*              m;
     s32                            pan;
     s32                            pan2;
-
     coord = arg0->extra.tmd->coords;
+
     work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(arg0);
@@ -5178,12 +5177,7 @@ static void func_actor_503500_801448E8(Task* arg0)
     if (arg0->spawnArg2.pointer != NULL) {
         work->speed = arg0->spawnArg2.value;
     } else {
-        m           = (GfxRotationWords*)&coord->coord;
-        m->m00M01   = ONE;
-        m->m02M10   = 0;
-        m->m11M12   = ONE;
-        m->m20M21   = 0;
-        m->m22      = ONE;
+        gfxSetRotIdentity(&coord->coord);
         work->speed = 0x100000;
     }
     contacts = work->contacts;
