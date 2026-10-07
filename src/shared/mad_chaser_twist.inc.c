@@ -7,7 +7,6 @@ void madChaserTwistSpine(Task* arg0)
 {
     SVECTOR           rot;
     GfxMatrix         mtx;
-    GfxRotationWords* ident;
     MadChaserWork*    work;
     GfxCoord*         coords;
     MATRIX*           m5;
@@ -15,14 +14,9 @@ void madChaserTwistSpine(Task* arg0)
     MATRIX*           m3;
 
     work   = (MadChaserWork*)arg0->work;
-    ident  = &mtx.rotationWords;
     coords = arg0->extra.tmd->coords;
 
-    mtx.rotationWords.m00M01 = ONE;
-    mtx.rotationWords.m02M10 = 0;
-    ident->m11M12            = ONE;
-    mtx.rotationWords.m20M21 = 0;
-    ident->m22               = ONE;
+    gfxSetRotIdentity(&mtx.mat);
     m5                       = &coords[5].coord;
     gfxExtractEulerAngles(m5, &rot);
     rot.vy = (u16)rot.vy + work->spineYaw / 3;
@@ -38,11 +32,7 @@ void madChaserTwistSpine(Task* arg0)
     m5->m[2][2]            = (u16)mtx.mat.m[2][2];
     coords[5].composeStamp = GRAPHICS_COORD_DIRTY;
 
-    mtx.rotationWords.m00M01 = ONE;
-    mtx.rotationWords.m02M10 = 0;
-    ident->m11M12            = ONE;
-    mtx.rotationWords.m20M21 = 0;
-    ident->m22               = ONE;
+    gfxSetRotIdentity(&mtx.mat);
     m4                       = &coords[4].coord;
     gfxExtractEulerAngles(m4, &rot);
     rot.vy = (u16)rot.vy + work->spineYaw / 3;
@@ -58,11 +48,7 @@ void madChaserTwistSpine(Task* arg0)
     m4->m[2][2]            = (u16)mtx.mat.m[2][2];
     coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
 
-    mtx.rotationWords.m00M01 = ONE;
-    mtx.rotationWords.m02M10 = 0;
-    ident->m11M12            = ONE;
-    mtx.rotationWords.m20M21 = 0;
-    ident->m22               = ONE;
+    gfxSetRotIdentity(&mtx.mat);
     m3                       = &coords[3].coord;
     gfxExtractEulerAngles(m3, &rot);
     rot.vy = (u16)rot.vy + work->spineYaw / 3;
