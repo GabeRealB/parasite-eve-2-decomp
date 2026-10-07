@@ -1752,7 +1752,6 @@ static void func_actor_403000_801327B0(GfxCoord* coord, SVECTOR* pos, s32 arg2)
 static void func_actor_403000_80132AE0(GfxCoord* parent)
 {
     _Actor403000TrailScratch* scratch;
-    MATRIX*                   m;
     GfxCoord*                 walker;
     SVECTOR*                  pos;
     s16                       i;
@@ -1763,12 +1762,7 @@ static void func_actor_403000_80132AE0(GfxCoord* parent)
     for (i = 0; i < 17; i++) {
         D_actor_403000_80158DF0[17 - i] = D_actor_403000_80158DF0[16 - i];
     }
-    m                                          = &scratch->emitter.coord;
-    MATRIX_PAIR(&scratch->emitter.coord, 0, 0) = 0x1000;
-    MATRIX_PAIR(m, 0, 2)                       = 0;
-    MATRIX_PAIR(m, 1, 1)                       = 0x1000;
-    MATRIX_PAIR(m, 2, 0)                       = 0;
-    m->m[2][2]                                 = 0x1000;
+    gfxSetRotIdentity(&scratch->emitter.coord);
     scratch->emitter.coord.t[0]                = -0x3C;
     scratch->emitter.coord.t[1]                = -0x28;
     scratch->emitter.coord.t[2]                = 0x12C;
