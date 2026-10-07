@@ -4646,23 +4646,12 @@ void effectSpriteTaskE1(Task* task)
 /// state or the cached matrix; refresh is deferred to the task.
 static inline void _effectInitSparkBurstCoord(GfxCoord* coord, const EffectWork* work)
 {
-    GfxCoord* parent;
-    MATRIX*   localMatrix;
-    s32       fixedOne;
-
-    parent                           = work->parent;
-    fixedOne                         = ONE;
-    MATRIX_PAIR(&coord->coord, 0, 0) = fixedOne;
-    coord->parent                    = parent;
-    localMatrix                      = &coord->coord;
-    MATRIX_PAIR(localMatrix, 0, 2)   = 0;
-    MATRIX_PAIR(localMatrix, 1, 1)   = fixedOne;
-    MATRIX_PAIR(localMatrix, 2, 0)   = 0;
-    localMatrix->m[2][2]             = fixedOne;
-    coord->coord.t[0]                = work->pos.vx;
-    coord->coord.t[1]                = work->pos.vy;
-    coord->coord.t[2]                = work->pos.vz;
-    coord->composeStamp              = GRAPHICS_COORD_DIRTY;
+    coord->parent = work->parent;
+    gfxSetRotIdentity(&coord->coord);
+    coord->coord.t[0]   = work->pos.vx;
+    coord->coord.t[1]   = work->pos.vy;
+    coord->coord.t[2]   = work->pos.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 void effectSpriteTaskE2(Task* task)
