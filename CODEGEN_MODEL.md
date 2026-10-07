@@ -359,7 +359,7 @@ flow → combine → sched1 → regclass → local_alloc → .lreg
 A dead definition that survives because another output of the same instruction
 is useful also increments `REG_N_DEATHS` (`flow.c:mark_set_1`). It can therefore
 exclude a single-block pseudo from local allocation without adding another live
-value. In `Actor02100_Fn00048`, a parallel empty asm discards a new definition of
+value. In `_actor02100Initialize`, a parallel empty asm discards a new definition of
 the contact key while passing its table pointer through. The key has two deaths
 and becomes global; its reduced reference count lets the multiplier allocate
 first. A standalone unused output is normally deleted, so it does not provide

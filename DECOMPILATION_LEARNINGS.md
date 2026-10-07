@@ -575,7 +575,7 @@ a *short-lived* local to function scope hands it to `global-alloc`, which
 displaces the work pointer and reschedules every call block. Hoist the value
 whose quantity is too long, not the one whose register is wrong.
 
-`Actor02100_Fn00ADC` 99.574% -> 100%. Input hash
+`_actor02100TickPatrol` 99.574% -> 100%. Input hash
 `3e6700e2b57496a4d2622f576088737ac45ab69aaa49fdf753c4518e08c319cc` (`base_4.i`).
 
 ## Ordering independent negate-and-store statements by ascending field offset picks which of two values gets `$v0`
@@ -45159,7 +45159,7 @@ sw    $v0, 0($v1)
 Nothing else reproduces the second form: `head -= 0x20;`, splitting `head` and
 `scratch` into separate variables, and casting through a third local all collapse
 back to the one-instruction version, because copy propagation merges the two
-pseudos as soon as the copy's source dies at the copy. `Actor02100_Fn00DCC`
+pseudos as soon as the copy's source dies at the copy. `_actor02100AcquireTarget`
 went from 99.5% to 100% on this reorder alone — the extra `move` shifted every
 later branch offset, so the leftover read as `branch=10` rather than as the
 single missing instruction it was.
@@ -45175,7 +45175,7 @@ register, where `s16` gives `lh` and `u16` gives `lhu`.
 
 That makes the type of such a field decidable, and the change safe to make.
 `_Actor02100Work.velocity.vx` was `u16` because the already-matched
-`Actor02100_Fn00DCC` copies it to `resumeVelocity.vx` with `lhu`; `Actor02100_Fn031C4`
+`_actor02100AcquireTarget` copies it to `resumeVelocity.vx` with `lhu`; `Actor02100_Fn031C4`
 adds it into `GfxCoord.coord.t[0]` with `lh`. The widening site is the
 evidence, so the field is `s16` — and flipping it left `Fn00DCC` matching.
 
@@ -63421,7 +63421,7 @@ are needed: dropping either costs about 0.9%.
 A store-then-reload (`*scratch = head - 0x1C; block = (X*)*scratch;`) is the
 one *unpinned* way to keep the copy — CSE forwards the stored register and
 `p` no longer dies at the copy — and it is what
-`Actor02100_Fn00DCC` matches with, written there as
+`_actor02100AcquireTarget` matches with, written there as
 `SCRATCH_STACK_RESERVE_BLOCK`, whose result is the stored value. It only works when the target writes the
 scratch head back *before* the first field store; here the write-back comes
 after, and moving it earlier costs more than the copy is worth.
@@ -132168,7 +132168,7 @@ one path and `or s1,s2,v0` on the other — the fix is in the C, not the allocat
 ROM's register assignment is evidence about how many variables the original source
 had. Splitting the two uses into two locals reproduced both forms.
 
-## A run of stores that is copied elsewhere tells you how many C variables held it (Actor02100_Fn00048, 2026-09-18)
+## A run of stores that is copied elsewhere tells you how many C variables held it (_actor02100Initialize, 2026-09-18)
 
 When code computes several values, stores them to consecutive struct fields, and
 later copies that whole run to another field group, the *copies* say how the
@@ -132288,7 +132288,7 @@ Symptom to recognise: the overlay is exactly one padded jump table too long, the
 function itself diffs clean, and `RODATA_SIZE` in the `.elf.map` exceeds the offset
 where `.text` starts in the manifest's `shared` span.
 
-## `&arr[i].m[j]` and `arr[i].m[j].f` build the same address in different orders (Actor02100_Fn02924, 2026-09-18)
+## `&arr[i].m[j]` and `arr[i].m[j].f` build the same address in different orders (_actor02100DrawBeam, 2026-09-18)
 
 Two index steps into a nested array give one `addu` per index. Which of the two
 index terms is `rs` is decided by *how the reference is spelled*, not by the
@@ -132312,7 +132312,7 @@ index the element in place rather than taking its address - and check for an
 `&…->field` spelling left over from m2c, which is the same thing written
 backwards. 12 register penalties on this function were nothing but that.
 
-## An insn reaches a branch's delay slot only from the same block or the fall-through's first block (Actor02100_Fn02924, 2026-09-18)
+## An insn reaches a branch's delay slot only from the same block or the fall-through's first block (_actor02100DrawBeam, 2026-09-18)
 
 `reorg`'s `fill_slots_from_thread` walks the fall-through insns from the branch and
 stops at the first `JUMP_INSN` (`stop_search_p`), so a loop-counter initialisation
@@ -132337,7 +132337,7 @@ R times across L insns` in the `.lreg` dump gives both numbers; compute the rati
 for the pseudo and its neighbours before concluding that an allocation is
 unreachable.
 
-## `TOUCH_REG_MEM` costs a copy when the value is not already in the operand's register (Actor02100_Fn02924, 2026-09-18)
+## `TOUCH_REG_MEM` costs a copy when the value is not already in the operand's register (_actor02100DrawBeam, 2026-09-18)
 
 `TOUCH_REG_MEM(x)` is a `"+r"` operand *and* a memory clobber. The clobber is what
 keeps later reads of a just-stored field from being hoisted above the store; the
@@ -132350,7 +132350,7 @@ If the barrier was added to order memory, use `COMPILER_BARRIER()` instead - sam
 ordering, no operand, no copy. Here it was worth 0.8% on its own, and the register
 operand was never needed.
 
-## Two variables, not one, when a computed pointer is both stored and passed (Actor02100_Fn02924, 2026-09-18)
+## Two variables, not one, when a computed pointer is both stored and passed (_actor02100DrawBeam, 2026-09-18)
 
 A scratch-block prologue that keeps one variable
 
@@ -132872,7 +132872,7 @@ not just on one instruction. Such a reload's pseudo is necessarily the field's
 width, so it cannot double as a variable holding a wider value. Where the target
 shows a reload folded to a `move` sharing a register with a 32-bit value, those
 two cannot be one C variable, and the register they share has to come from
-allocation rather than from a shared pseudo. `Actor02100_Fn00048` is stuck on
+allocation rather than from a shared pseudo. `_actor02100Initialize` is stuck on
 exactly that: the fold needs a HImode pseudo, the allocation needs the same
 pseudo to carry a 32-bit constant, and the two cannot be reconciled.
 ## A field rename takes the other types' prose with it, and its prefilter parses the tree
@@ -133680,7 +133680,7 @@ had — and read what each hit is: where it cites this symbol, rewrite it to the
 current name, and where the sentence is *about* the split itself, name both
 spellings so the narrative still reads true.
 
-## A retained unused output counts as a second death and changes allocation (Actor02100_Fn00048, 2026-09-19)
+## A retained unused output counts as a second death and changes allocation (_actor02100Initialize, 2026-09-19)
 
 The archived source was at 99.774%, with exact instruction order but 13 register
 penalties: local quantities took v1 before the global multiplier could claim it.
@@ -133708,7 +133708,7 @@ before its asm consumer, losing the call delay slot (99.512%). The output-only
 prediction removed both failures. A standalone unused output may simply die;
 the useful table output is what retains this instruction.
 
-Evidence: `tools/permuter_findings/Actor02100_Fn00048/` archives session notes,
+Evidence: `tools/permuter_findings/_actor02100Initialize/` archives session notes,
 planned experiments, and `PERMUTER_EVIDENCE/manual-allocation/analysis/` dumps.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Matched base_9 input SHA256:
@@ -145881,7 +145881,7 @@ because `$a0` is dead on the fall-through, and `f`'s slot stays `nop`. When a
 shared argument copy sits before a branch, check whether every callee in the
 arms actually reads it.
 
-## Identical arms cross-jumped only from a `gte_*` macro onward: that tail was a shared inline helper (Actor02100_BuildVectors, 2026-09-27)
+## Identical arms cross-jumped only from a `gte_*` macro onward: that tail was a shared inline helper (_actor02100BuildLockedBeamAndStrikePoints, 2026-09-27)
 
 Cross-jumping compares `asm` insns including the source file and line their
 `ASM_OPERANDS` carry, so two arms that write the same `gte_ldv0`/`gte_rtv0` on
@@ -145904,7 +145904,7 @@ The tail also moved the scratch pop *before* the join, so CSE, which restarts
 at the join label, no longer forwarded the popped head into the next
 `SCRATCH_STACK_RESERVE_BLOCK`'s reload. The tree had faked that with a memory barrier after a
 single post-join pop.
-## A `SOFT_TOUCH_REG` on a sibling-ring head buys one `REG_N_REFS`; the only natural source found, a reload of `firstChild`, also keeps the parent live (Actor02100_Fn011C4, 2026-09-27)
+## A `SOFT_TOUCH_REG` on a sibling-ring head buys one `REG_N_REFS`; the only natural source found, a reload of `firstChild`, also keeps the parent live (_actor02100ScanEnemyTargets, 2026-09-27)
 
 **Corrected 2026-10-05:** the touch is not needed. See "A local reused for the
 value loaded through it keeps both reference counts" - `head = gameGetTaskSlot(...);
@@ -145922,7 +145922,7 @@ but it keeps `list` alive into the next block, costing a `move a1,v0`. Helpers
 extra `first`/`start` copies and statement orders did not change the count, and
 the permuter found nothing. When the swapped pair is a ring head against a
 hoisted address, count refs before trying scheduling changes.
-## An `s16` variable assigned in if/else arms hands its later uses to a block-local copy, which local-alloc colours first (Actor02100_Fn00048, 2026-09-27)
+## An `s16` variable assigned in if/else arms hands its later uses to a block-local copy, which local-alloc colours first (_actor02100Initialize, 2026-09-27)
 
 **Symptom.** A factor set in both arms of an `if` (`scale = 0x19;` / `scale = 0;`)
 and then used by three multiplies after the join sat in `$a2` instead of
@@ -145961,7 +145961,7 @@ tails into the shared `sw` / `lhu` / `sh` the target shows.
 delay slot at the head of a join, with a movable instruction just below it, is
 the tell for a duplicated tail.
 
-## A lone load/store serialisation mid-block can be sched1's 32-reference flush: re-read the field instead of caching it (Actor02100_Fn02924, 2026-09-27)
+## A lone load/store serialisation mid-block can be sched1's 32-reference flush: re-read the field instead of caching it (_actor02100DrawBeam, 2026-09-27)
 
 `sched_analyze_1` flushes the pending memory lists at the first store that
 finds **more than 32** loads and stores pending in its block: that store then
@@ -147572,9 +147572,9 @@ The helper has to be defined above every site (GCC 2.8.1 inlines only a body it
 has already seen), so its include position in each carrier is part of the
 change.
 
-## A constant inside a loop-invariant subscript is hoisted with it; a member offset stays a displacement (Actor02100_Fn02924, 2026-10-04)
+## A constant inside a loop-invariant subscript is hoisted with it; a member offset stays a displacement (_actor02100DrawBeam, 2026-10-04)
 
-`Actor02100_Fn02924` reads three colour components of a per-weapon record
+`_actor02100DrawBeam` reads three colour components of a per-weapon record
 inside its segment loop. The target sets up three registers before the loop and
 loads every component with a zero displacement:
 
@@ -147922,7 +147922,7 @@ Related, from three animation ticks (`_oddStrangerDriveAnimation`, `_desertChase
 its initialiser after the hoisted table address; subscripting
 `work->rig.slots[seekIndex]` instead leaves that pointer to strength reduction,
 which emits it after the hoists as the target does.
-### Ordering-table slot held in a local flips the `addu`; pass it to `addPrim` inline (Actor02100_Fn02924, 2026-10-05)
+### Ordering-table slot held in a local flips the `addu`; pass it to `addPrim` inline (_actor02100DrawBeam, 2026-10-05)
 
 Problem: the link was written as `slot = (u_long*)(((u32)(depth << shift) >> 2 & 0xFFC) + (u32)gGpuCurrentOt); setaddr(slot, prim);`
 to get the target's offset-first `addu v0,v0,a1`.
@@ -148745,7 +148745,7 @@ set in the same block as the compare and after the `lh`, yet unknown to cse2.
 **2026-10-07, `Gp_DrawAmmoRow` resolved without pins or barriers.** The table row above is right about the list pointer but treats it as a two-way contest, and the inlined colour pseudo (937) has to rank below both: with the parameter used directly the list has 13 references over about 400 insns, not 396 against a 190-insn `spawnArg`, and what `spawnArg` needs is 8 references instead of 6 so that it outranks both the list and the inlined colour (937). See "A parameter's entry copy below a chained load" at the end of this file.
 
 **2026-10-07, `itemMenuDrawPlayerStats` resolved without the pin.** The table row above has the contest right (`x` 10 / 180 against `y2` 7 / 71) but looked for the answer on `y2`'s side. sched1 recounts live lengths, so `y2`'s 71 is fixed by the target's layout; what moves is `x`, which needs 12 references. See "A value loaded into one variable and copied to another" at the end of this file.
-## A local reused for the value loaded through it keeps both reference counts (Actor02100_Fn011C4, 2026-10-05)
+## A local reused for the value loaded through it keeps both reference counts (_actor02100ScanEnemyTargets, 2026-10-05)
 
 **Problem.** Two call-crossing pseudos swap `$s5`/`$s6`: a ring head with 5
 weighted refs over 119 insns loses to a loop-hoisted address with 5 over 104.

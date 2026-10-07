@@ -352,15 +352,15 @@ extern s16                        Actor02100_D03E2C[];
 static void Actor02100_Fn03168(Task* arg0);
 static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1);
 static void Actor02100_Fn032E4(Task* arg0);
-static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1);
-static s32  Actor02100_Fn014E4(Task* arg0);
+static void _actor02100DestroyState(Enemy* enemy, Task* task);
+static s32  _actor02100UpdateTargetPosition(Task* task);
 
-static void Actor02100_Fn00048(Enemy* arg0, Task* arg1);
+static void _actor02100Initialize(Enemy* enemy, Task* task);
 
 static const EnemyTaskFuncTable3 Actor02100_D00004 = { {
-    Actor02100_Fn00048,
+    _actor02100Initialize,
     Actor02100_Fn031C4,
-    Actor02100_Fn035D4,
+    _actor02100DestroyState,
 } };
 
 static TmdBone _gActor02100WatcherBodySkeleton[3] = {
@@ -513,135 +513,158 @@ s16 Actor02100_D03E2C[80] = {
     0,
 };
 
-static s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1);
+static s32 _actor02100SegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* segmentEnd);
 
-static void Actor02100_Fn011C4(Task* arg0);
+static void _actor02100ScanEnemyTargets(Task* task);
 
-static void Actor02100_Fn02924(Task* arg0, s32 arg1);
+static void _actor02100DrawBeam(Task* task, s32 beamStyle);
 
-static void Actor02100_Fn034E0(Task* arg0);
+static void _actor02100ProjectBeamPoints(Task* task);
 
 static void Actor02100_Fn004C4(Task* arg0);
 
 static void Actor02100_Fn03488(Task* arg0);
 
-static void Actor02100_Fn00ADC(Task* arg0);
+static void _actor02100TickPatrol(Task* task);
 
 static void Actor02100_Fn016EC(Task* arg0);
 
 static void Actor02100_Fn01FF0(Task* arg0);
 
-static void            Actor02100_Fn00DCC(Task* arg0);
-static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0);
-static __inline__ void Actor02100_SetVector(Task* arg0);
-static __inline__ void _actor02100StoreNearVector(_Actor02100Work* work);
-static __inline__ void Actor02100_BuildVectors(Task* arg0, _Actor02100Work* currentWork);
-static __inline__ void Actor02100_OrientScratch(Task* arg0);
-static __inline__ void Actor02100_UpdateVectors(Task* arg0);
-static __inline__ void Actor02100_ReleaseScratch28(void);
+static void _actor02100AcquireTarget(Task* task);
 
-static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
+/// Allocates and initializes a Watcher, then enters its active task state.
+///
+/// The placement variant selects patrol range (tens digit, 0..4) and weapon
+/// (units digit, 0..4); invalid values or allocation failure destroy the enemy.
+/// Applies the placement roll in 4096 units per turn, binds model lighting and
+/// target tracking, and links one receiving sphere and two inactive strike
+/// capsules. The task owns the zeroed work block until enemy teardown. Requires
+/// the model and enemy placement to be live and an initialized scratch stack.
+static void _actor02100Initialize(Enemy* enemy, Task* task)
 {
-    WorldCollisionContact* table;
-    WorldCollisionContact* contacts;
-    SVECTOR*               rotation;
-    ActorEulerTurnScratch* head;
-    s16                    variant;
-    s16                    scale;
-    TmdObject*             extra;
+    enum {
+        ACTOR_02100_PATROL_SPEED           = 25,
+        ACTOR_02100_BODY_TARGET_OFFSET     = 150,
+        ACTOR_02100_BODY_RADIUS            = 400,
+        ACTOR_02100_STRIKE_RADIUS          = 20,
+        ACTOR_02100_HIT_EFFECT_MAGNITUDE   = 512,
+        ACTOR_02100_BODY_ID                = 0x15,
+        ACTOR_02100_TASK_ACTIVE            = 1,
+        ACTOR_02100_ROTATION_FRACTION_BITS = 12
+    };
+    WorldCollisionContact* hitContacts;
+    WorldCollisionContact* strikeContacts;
+    SVECTOR*               placementAngles;
+    ActorEulerTurnScratch* rotationCursor;
+    s16                    weaponVariant;
+    s16                    patrolSpeed;
+    TmdObject*             model;
     GfxCoord*              coord;
     _Actor02100Work*       work;
-    s16*                   column1;
-    s16*                   column2;
-    MATRIX*                matrix;
+    s16*                   localColumn1;
+    s16*                   localColumn2;
+    MATRIX*                localMatrix;
 
-    extra = arg1->extra.tmd;
-    coord = extra->coords;
+    model = task->extra.tmd;
+    coord = model->coords;
     work  = memCalloc(sizeof(_Actor02100Work), false);
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->work        = work;
-    work->patrolRange = (s16)((arg0->place->variant / 10) & 0xFF);
-    variant           = (arg0->place->variant % 10) & 0xFF;
-    work->weapon      = variant;
-    if ((work->patrolRange >= ACTOR_02100_PATROL_RANGE_COUNT) || (variant >= ACTOR_02100_WEAPON_COUNT)) {
-        enemyDestroy(arg0, arg1);
+    task->work        = work;
+    work->patrolRange = (s16)((enemy->place->variant / 10) & 0xFF);
+    weaponVariant     = (enemy->place->variant % 10) & 0xFF;
+    work->weapon      = weaponVariant;
+    if ((work->patrolRange >= ACTOR_02100_PATROL_RANGE_COUNT) || (weaponVariant >= ACTOR_02100_WEAPON_COUNT)) {
+        enemyDestroy(enemy, task);
         return;
     }
-    extra->flags                  = 0;
+    // Compose the placement roll before deriving the patrol track.
+    model->flags                  = 0;
     coord->composeStamp           = GRAPHICS_COORD_DIRTY;
-    head                          = SCRATCH_STACK_CURSOR(ActorEulerTurnScratch);
-    extra->lightMtx               = &work->light;
-    extra->colorMtx               = &work->color;
-    rotation                      = &head[-1].angles;
-    rotation->vx                  = 0;
-    rotation->vy                  = 0;
-    SCRATCH_STACK_CURSOR(SVECTOR) = rotation;
-    rotation->vz                  = arg0->place->mode;
-    RotMatrix(rotation, &head[-1].rotation);
-    matrix = &coord->coord;
-    gte_SetRotMatrix(matrix);
-    gte_ldclmv(&head[-1].rotation);
+    rotationCursor                = SCRATCH_STACK_CURSOR(ActorEulerTurnScratch);
+    model->lightMtx               = &work->light;
+    model->colorMtx               = &work->color;
+    placementAngles               = &rotationCursor[-1].angles;
+    placementAngles->vx           = 0;
+    placementAngles->vy           = 0;
+    SCRATCH_STACK_CURSOR(SVECTOR) = placementAngles;
+    placementAngles->vz           = enemy->place->mode;
+    RotMatrix(placementAngles, &rotationCursor[-1].rotation);
+    localMatrix = &coord->coord;
+    gte_SetRotMatrix(localMatrix);
+    gte_ldclmv(&rotationCursor[-1].rotation);
     gte_rtir();
-    gte_stclmv(matrix);
-    gte_ldclmv(&head[-1].rotation.m[0][1]);
+    gte_stclmv(localMatrix);
+    gte_ldclmv(&rotationCursor[-1].rotation.m[0][1]);
     gte_rtir();
-    column1 = &coord->coord.m[0][1];
-    gte_stclmv(column1);
-    gte_ldclmv(&head[-1].rotation.m[0][2]);
+    localColumn1 = &coord->coord.m[0][1];
+    gte_stclmv(localColumn1);
+    gte_ldclmv(&rotationCursor[-1].rotation.m[0][2]);
     gte_rtir();
-    column2 = &coord->coord.m[0][2];
-    gte_stclmv(column2);
-    arg0->field_4  = matrix;
-    arg0->field_48 = 0;
-    worldTargetLinkNode(&arg0->node);
-    arg0->bodyPos.vz           = 0x96;
-    arg0->coord                = coord;
-    arg0->bodyPos.vx           = 0;
-    arg0->bodyPos.vy           = 0;
-    arg0->param                = &Actor02100_D03D78;
-    arg0->recs                 = work->hitContacts;
-    arg0->hp                   = (u16)Actor02100_D03D78.hpMax;
+    localColumn2 = &coord->coord.m[0][2];
+    gte_stclmv(localColumn2);
+    enemy->field_4  = localMatrix;
+    enemy->field_48 = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->bodyPos.vz          = ACTOR_02100_BODY_TARGET_OFFSET;
+    enemy->coord               = coord;
+    enemy->bodyPos.vx          = 0;
+    enemy->bodyPos.vy          = 0;
+    enemy->param               = &Actor02100_D03D78;
+    enemy->recs                = work->hitContacts;
+    enemy->hp                  = (u16)Actor02100_D03D78.hpMax;
     work->hitEffect.coord      = coord;
-    work->hitEffect.spawnArgLo = 0x200;
+    work->hitEffect.spawnArgLo = ACTOR_02100_HIT_EFFECT_MAGNITUDE;
     work->hitEffect.spawnArgHi = 1;
     sceneAcquireBattleRef(0);
-    scale = 0x19;
+    patrolSpeed = ACTOR_02100_PATROL_SPEED;
     if (work->patrolRange == 0) {
-        work->mode = ACTOR_02100_MODE_WATCH;
-        scale      = 0;
+        work->mode  = ACTOR_02100_MODE_WATCH;
+        patrolSpeed = 0;
     } else {
         work->mode = ACTOR_02100_MODE_PATROL;
     }
-    work->velocity.vx              = (coord->coord.m[0][0] * scale) >> 12;
-    work->velocity.vy              = (coord->coord.m[1][0] * scale) >> 12;
-    work->velocity.vz              = (coord->coord.m[2][0] * scale) >> 12;
-    work->patrolVelocity.vx        = work->velocity.vx;
-    work->patrolVelocity.vy        = work->velocity.vy;
-    work->patrolVelocity.vz        = work->velocity.vz;
-    table                          = work->hitContacts;
+    work->velocity.vx       = (coord->coord.m[0][0] * patrolSpeed) >> ACTOR_02100_ROTATION_FRACTION_BITS;
+    work->velocity.vy       = (coord->coord.m[1][0] * patrolSpeed) >> ACTOR_02100_ROTATION_FRACTION_BITS;
+    work->velocity.vz       = (coord->coord.m[2][0] * patrolSpeed) >> ACTOR_02100_ROTATION_FRACTION_BITS;
+    work->patrolVelocity.vx = work->velocity.vx;
+    work->patrolVelocity.vy = work->velocity.vy;
+    work->patrolVelocity.vz = work->velocity.vz;
+    // The receiving sphere and two strike capsules keep their storage in work.
+    hitContacts                    = work->hitContacts;
     work->hitBody.coord            = coord;
-    work->hitBody.context.contacts = table;
+    work->hitBody.context.contacts = hitContacts;
     work->hitBody.pos.vx           = 0;
     work->hitBody.pos.vy           = 0;
     work->hitBody.pos.vz           = 0;
-    work->hitBody.key              = 0x30015;
-    work->hitBody.radius           = 0x190;
+    work->hitBody.key              = (WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_02100_BODY_ID);
+    work->hitBody.radius           = ACTOR_02100_BODY_RADIUS;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
-    worldCollisionInitContacts(table, 1, 0);
-    contacts                               = work->strikeContacts;
-    work->playerStrikeShape.ends[0].vx     = 0;
-    work->playerStrikeShape.ends[0].vy     = 0;
-    work->playerStrikeShape.ends[0].vz     = ACTOR_02100_STRIKE_REACH;
-    work->playerStrikeShape.ends[1].vx     = 0;
-    work->playerStrikeShape.ends[1].vy     = 0;
-    work->playerStrikeShape.ends[1].vz     = ACTOR_02100_MUZZLE_OFFSET;
-    work->playerStrikeShape.end0Radius     = 0x14;
-    work->playerStrikeShape.end1Radius     = 0x14;
-    work->playerStrikeShape.contacts       = contacts;
+    worldCollisionInitContacts(hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    strikeContacts = work->strikeContacts;
+    /// Initializes a strike capsule's local line of fire and borrowed contacts.
+    ///
+    /// `shape` is a side-effect-free capsule lvalue, evaluated once per member;
+    /// `contactTable` is evaluated once. Invoke only as a standalone statement.
+    /// Uses this function's strike-radius constant and the package's muzzle
+    /// offset and strike reach; captures no caller variables.
+#define ACTOR_02100_INIT_STRIKE_SHAPE(shape, contactTable) \
+    {                                                      \
+        (shape).ends[0].vx = 0;                            \
+        (shape).ends[0].vy = 0;                            \
+        (shape).ends[0].vz = ACTOR_02100_STRIKE_REACH;     \
+        (shape).ends[1].vx = 0;                            \
+        (shape).ends[1].vy = 0;                            \
+        (shape).ends[1].vz = ACTOR_02100_MUZZLE_OFFSET;    \
+        (shape).end0Radius = ACTOR_02100_STRIKE_RADIUS;    \
+        (shape).end1Radius = ACTOR_02100_STRIKE_RADIUS;    \
+        (shape).contacts   = (contactTable);               \
+    }
+    ACTOR_02100_INIT_STRIKE_SHAPE(work->playerStrikeShape, strikeContacts);
     work->playerStrikeBody.context.capsule = &work->playerStrikeShape;
     work->playerStrikeBody.coord           = coord;
     work->playerStrikeBody.pos.vx          = 0;
@@ -649,19 +672,12 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->playerStrikeBody.pos.vz          = 0;
     work->playerStrikeBody.key             = 0;
     work->playerStrikeBody.radius          = 0;
-    work->playerStrikeBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
+    work->playerStrikeBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->hitBody.flags                    = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);
-    worldCollisionInitContacts(contacts, 1, 0);
-    work->enemyStrikeShape.ends[0].vx     = 0;
-    work->enemyStrikeShape.ends[0].vy     = 0;
-    work->enemyStrikeShape.ends[0].vz     = ACTOR_02100_STRIKE_REACH;
-    work->enemyStrikeShape.ends[1].vx     = 0;
-    work->enemyStrikeShape.ends[1].vy     = 0;
-    work->enemyStrikeShape.ends[1].vz     = ACTOR_02100_MUZZLE_OFFSET;
-    work->enemyStrikeShape.end0Radius     = 0x14;
-    work->enemyStrikeShape.end1Radius     = 0x14;
-    work->enemyStrikeShape.contacts       = contacts;
+    worldCollisionInitContacts(strikeContacts, ARRAY_SIZE(work->strikeContacts), 0);
+    ACTOR_02100_INIT_STRIKE_SHAPE(work->enemyStrikeShape, strikeContacts);
+#undef ACTOR_02100_INIT_STRIKE_SHAPE
     work->enemyStrikeBody.coord           = coord;
     work->enemyStrikeBody.context.capsule = &work->enemyStrikeShape;
     work->enemyStrikeBody.pos.vx          = 0;
@@ -669,11 +685,11 @@ static void Actor02100_Fn00048(Enemy* arg0, Task* arg1)
     work->enemyStrikeBody.pos.vz          = 0;
     work->enemyStrikeBody.key             = 0;
     work->enemyStrikeBody.radius          = 0;
-    work->enemyStrikeBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
+    work->enemyStrikeBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->playerStrikeBody.flags          = (u16)((work->playerStrikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT));
     worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->enemyStrikeBody);
     work->enemyStrikeBody.flags                 = (u16)((work->enemyStrikeBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED))) | WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT);
-    arg1->state                                 = 1;
+    task->state                                 = ACTOR_02100_TASK_ACTIVE;
     SCRATCH_STACK_CURSOR(ActorEulerTurnScratch) = SCRATCH_STACK_CURSOR(ActorEulerTurnScratch) + 1;
 }
 
@@ -819,7 +835,7 @@ static void Actor02100_Fn004C4(Task* arg0)
 
 /// Stops the looping effect, clears the offset vector and starts the tail
 /// sound. Expanded at the end of both active steps, which the compiler emits
-/// as one shared tail; `sound` is deliberately a caller-scope variable, since
+/// as one shared tail; `tailSound` is deliberately a caller-scope variable, since
 /// both expansions must name the same object.
 #define STOP_SOUND                                                                                                        \
     work->velocity.vx = 0;                                                                                                \
@@ -827,44 +843,46 @@ static void Actor02100_Fn004C4(Task* arg0)
     work->velocity.vz = 0;                                                                                                \
     sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);                                             \
     work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;                                                                    \
-    sound               = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150008); \
+    tailSound           = (((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150008); \
     {                                                                                                                     \
         s32 pan;                                                                                                          \
         s32 depth;                                                                                                        \
                                                                                                                           \
         pan   = (s8)worldCoordGetOriginAudioPan(coord);                                                                   \
         depth = (s8)worldCoordGetOriginAudioDepth(coord);                                                                 \
-        sndEvtRequestScriptStart(sound, pan, depth);                                                                      \
+        sndEvtRequestScriptStart(tailSound, pan, depth);                                                                  \
     }
 
-/// Per-frame handler for the four-step patrol cycle at `patrolStep`: two active
-/// steps that keep a looping effect playing while `velocity` moves the actor,
-/// separated by 60-frame gaps. Steps 0 and 2 start the effect on their
-/// first frame, retrigger it each frame, and run for `patrolRange * 40` frames;
-/// each then stops the effect, clears `velocity` and starts the tail sound.
-/// Step 1 installs the negated `patrolVelocity`, step 3 restores it and returns
-/// to 0.
-static void Actor02100_Fn00ADC(Task* arg0)
+/// Advances the Watcher's out-and-back patrol and its movement sound.
+///
+/// Each leg lasts 40 ticks per patrol-range unit, followed by a 60-tick pause.
+/// This updates velocity; the active task applies the translation separately.
+/// The return leg negates the stored outward velocity. A zeroed patrol timer
+/// starts the instance-specific looping sound on the next tick.
+static void _actor02100TickPatrol(Task* task)
 {
+    enum {
+        ACTOR_02100_PATROL_TICKS_PER_RANGE = 40,
+        ACTOR_02100_PATROL_PAUSE_TICKS     = 60,
+        ACTOR_02100_PATROL_LOOP_SOUND      = 0x40150007
+    };
     _Actor02100Work* work;
     GfxCoord*        coord;
     s32              negX;
     s32              negY;
     s32              negZ;
-    s16              state;
-    s32              one;
-    s32              sound;
+    s16              patrolStep;
+    s32              tailSound;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    one   = 1;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
     work->patrolFrames++;
-    state = work->patrolStep;
+    patrolStep = work->patrolStep;
 
-    switch (state) {
+    switch (patrolStep) {
         case ACTOR_02100_PATROL_STEP_OUT:
-            if (work->patrolFrames == one) {
-                work->loopSound = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150007);
+            if (work->patrolFrames == 1) {
+                work->loopSound = (((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02100_PATROL_LOOP_SOUND);
                 {
                     s32 pan;
                     s32 depth;
@@ -873,7 +891,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     sndEvtRequestScriptStart(work->loopSound, pan, depth);
                 }
-                work->loopSoundKind = one;
+                work->loopSoundKind = ACTOR_02100_LOOP_SOUND_PATROL;
             }
             {
                 s32 pan;
@@ -883,19 +901,19 @@ static void Actor02100_Fn00ADC(Task* arg0)
                 depth = (s8)worldCoordGetOriginAudioDepth(coord);
                 sndEvtRequestScriptMix(work->loopSound, pan, depth);
             }
-            if (work->patrolFrames < (work->patrolRange * 40)) {
+            if (work->patrolFrames < (work->patrolRange * ACTOR_02100_PATROL_TICKS_PER_RANGE)) {
                 break;
             }
             work->patrolFrames = 0;
-            work->patrolStep   = one;
+            work->patrolStep   = ACTOR_02100_PATROL_STEP_OUT_PAUSE;
             STOP_SOUND;
             break;
 
         case ACTOR_02100_PATROL_STEP_OUT_PAUSE:
-            if (work->patrolFrames < 60) {
+            if (work->patrolFrames < ACTOR_02100_PATROL_PAUSE_TICKS) {
                 break;
             }
-            work->patrolStep   = (state = 2);
+            work->patrolStep   = (patrolStep = ACTOR_02100_PATROL_STEP_BACK);
             work->patrolFrames = 0;
             work->velocity.vx  = (negX = -work->patrolVelocity.vx);
             work->velocity.vy  = (negY = -work->patrolVelocity.vy);
@@ -903,11 +921,11 @@ static void Actor02100_Fn00ADC(Task* arg0)
             break;
 
         case ACTOR_02100_PATROL_STEP_BACK: {
-            s32 timer;
+            s32 patrolTicks;
 
-            timer = work->patrolFrames;
-            if (timer == one) {
-                work->loopSound = (((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150007);
+            patrolTicks = work->patrolFrames;
+            if (patrolTicks == 1) {
+                work->loopSound = (((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02100_PATROL_LOOP_SOUND);
                 {
                     s32 pan;
                     s32 depth;
@@ -916,7 +934,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
                     depth = (s8)worldCoordGetOriginAudioDepth(coord);
                     sndEvtRequestScriptStart(work->loopSound, pan, depth);
                 }
-                work->loopSoundKind = timer;
+                work->loopSoundKind = ACTOR_02100_LOOP_SOUND_PATROL;
             }
         }
             {
@@ -927,7 +945,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
                 depth = (s8)worldCoordGetOriginAudioDepth(coord);
                 sndEvtRequestScriptMix(work->loopSound, pan, depth);
             }
-            if (work->patrolFrames < (work->patrolRange * 40)) {
+            if (work->patrolFrames < (work->patrolRange * ACTOR_02100_PATROL_TICKS_PER_RANGE)) {
                 break;
             }
             work->patrolFrames = 0;
@@ -936,7 +954,7 @@ static void Actor02100_Fn00ADC(Task* arg0)
             break;
 
         case ACTOR_02100_PATROL_STEP_BACK_PAUSE:
-            if (work->patrolFrames < 60) {
+            if (work->patrolFrames < ACTOR_02100_PATROL_PAUSE_TICKS) {
                 break;
             }
             work->patrolFrames = 0;
@@ -950,29 +968,30 @@ static void Actor02100_Fn00ADC(Task* arg0)
 
 #undef STOP_SOUND
 
-/// Line-of-sight scan. Takes a `_Actor02100PlayerScanScratch` from the scratch
-/// stack, builds the view-space delta from this actor's coordinate to the
-/// player's (entry 0 of the player's coordinate array for the gun, entry 3
-/// otherwise) and, when the player is in front of the actor, checks the
-/// distance against the sight range in `Actor02100_D03E00` and asks
-/// `Actor02100_Fn0337C` whether the segment is clear. A hit latches the player
-/// onto `target` and switches `mode` to the beam attack (or the gun attack for
-/// weapon 4). `scanDelay` holds the scan off while the session's view state is
-/// 1, and for 5 frames after.
-static void Actor02100_Fn00DCC(Task* arg0)
+/// Acquires a visible target and stops movement to begin the weapon's attack.
+///
+/// Tests the player in front of the Watcher and within the placement's sight
+/// range, then allows a nearer eligible enemy to replace it. A hit this tick
+/// restricts the scan to the player and bypasses range, retaining facing and
+/// visibility tests. Player coordinates 0 (gun) or 3 (beam) must be live.
+/// A view-ready value of 1 reloads the five-tick scan delay. Uses composed view
+/// coordinates and an initialized scratch stack with 240 bytes for nested
+/// scans; no target task is owned or retained beyond its existing lifetime.
+static void _actor02100AcquireTarget(Task* task)
 {
+    enum { ACTOR_02100_SCAN_DELAY_TICKS = 5 };
     _Actor02100Work*              work;
     _Actor02100PlayerScanScratch* scratch;
-    GfxCoord*                     self;
-    GfxCoord*                     target;
-    u32                           dist;
-    s32                           mode;
+    GfxCoord*                     coord;
+    GfxCoord*                     playerCoord;
+    u32                           distance;
+    s32                           attackMode;
 
-    self = arg0->extra.tmd->coords;
-    work = arg0->work;
+    coord = task->extra.tmd->coords;
+    work  = task->work;
 
     if (gGameSession->viewReady == 1) {
-        work->scanDelay = 5;
+        work->scanDelay = ACTOR_02100_SCAN_DELAY_TICKS;
     }
     if (work->scanDelay != 0) {
         work->scanDelay--;
@@ -982,56 +1001,57 @@ static void Actor02100_Fn00DCC(Task* arg0)
     work->target         = NULL;
     work->targetDistance = 0;
     work->targetKind     = ACTOR_02100_TARGET_NONE;
-    self->composeStamp   = GRAPHICS_COORD_DIRTY;
+    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100PlayerScanScratch);
 
     if (work->weapon == ACTOR_02100_WEAPON_GUN) {
-        target = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[0];
+        playerCoord = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[0];
     } else {
-        target = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[3];
+        playerCoord = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[3];
     }
-    target->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(target);
+    playerCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(playerCoord);
 
+    // A received hit reveals the player at any range, but not through occluders.
     if (work->hitThisTick == 0) {
-        scratch->delta.vx = target->workm.t[0] - self->workm.t[0];
-        scratch->delta.vy = target->workm.t[1] - self->workm.t[1];
-        scratch->delta.vz = target->workm.t[2] - self->workm.t[2];
+        scratch->delta.vx = playerCoord->workm.t[0] - coord->workm.t[0];
+        scratch->delta.vy = playerCoord->workm.t[1] - coord->workm.t[1];
+        scratch->delta.vz = playerCoord->workm.t[2] - coord->workm.t[2];
 
-        if (((scratch->delta.vx * self->workm.m[0][2]) + (scratch->delta.vy * self->workm.m[1][2]) +
-             (scratch->delta.vz * self->workm.m[2][2])) > 0) {
-            dist = SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vy * scratch->delta.vy) +
-                               (scratch->delta.vz * scratch->delta.vz));
-            if (dist < Actor02100_D03E00[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex & 7]) {
-                scratch->from.vx = target->workm.t[0];
-                scratch->from.vy = target->workm.t[1];
-                scratch->from.vz = target->workm.t[2];
-                scratch->to.vx   = self->workm.t[0];
-                scratch->to.vy   = self->workm.t[1];
-                scratch->to.vz   = self->workm.t[2];
-                if (Actor02100_Fn0337C(&scratch->from, &scratch->to) == 0) {
+        if (((scratch->delta.vx * coord->workm.m[0][2]) + (scratch->delta.vy * coord->workm.m[1][2]) +
+             (scratch->delta.vz * coord->workm.m[2][2])) > 0) {
+            distance = SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vy * scratch->delta.vy) +
+                                   (scratch->delta.vz * scratch->delta.vz));
+            if (distance < Actor02100_D03E00[((Enemy*)task->spawnArg2.pointer)->place->rowIndex & (ARRAY_SIZE(Actor02100_D03E00) - 1)]) {
+                scratch->from.vx = playerCoord->workm.t[0];
+                scratch->from.vy = playerCoord->workm.t[1];
+                scratch->from.vz = playerCoord->workm.t[2];
+                scratch->to.vx   = coord->workm.t[0];
+                scratch->to.vy   = coord->workm.t[1];
+                scratch->to.vz   = coord->workm.t[2];
+                if (_actor02100SegmentOccluded(&scratch->from, &scratch->to) == 0) {
                     work->target         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    work->targetDistance = dist;
+                    work->targetDistance = distance;
                     work->targetKind     = ACTOR_02100_TARGET_PLAYER;
                 }
             }
         }
-        Actor02100_Fn011C4(arg0);
+        _actor02100ScanEnemyTargets(task);
     } else {
-        scratch->delta.vx = target->workm.t[0] - self->workm.t[0];
-        scratch->delta.vy = target->workm.t[1] - self->workm.t[1];
-        scratch->delta.vz = target->workm.t[2] - self->workm.t[2];
+        scratch->delta.vx = playerCoord->workm.t[0] - coord->workm.t[0];
+        scratch->delta.vy = playerCoord->workm.t[1] - coord->workm.t[1];
+        scratch->delta.vz = playerCoord->workm.t[2] - coord->workm.t[2];
 
-        if (((scratch->delta.vx * self->workm.m[0][2]) + (scratch->delta.vy * self->workm.m[1][2]) +
-             (scratch->delta.vz * self->workm.m[2][2])) > 0) {
-            scratch->from.vx = target->workm.t[0];
-            scratch->from.vy = target->workm.t[1];
-            scratch->from.vz = target->workm.t[2];
-            scratch->to.vx   = self->workm.t[0];
-            scratch->to.vy   = self->workm.t[1];
-            scratch->to.vz   = self->workm.t[2];
-            if (Actor02100_Fn0337C(&scratch->from, &scratch->to) == 0) {
+        if (((scratch->delta.vx * coord->workm.m[0][2]) + (scratch->delta.vy * coord->workm.m[1][2]) +
+             (scratch->delta.vz * coord->workm.m[2][2])) > 0) {
+            scratch->from.vx = playerCoord->workm.t[0];
+            scratch->from.vy = playerCoord->workm.t[1];
+            scratch->from.vz = playerCoord->workm.t[2];
+            scratch->to.vx   = coord->workm.t[0];
+            scratch->to.vy   = coord->workm.t[1];
+            scratch->to.vz   = coord->workm.t[2];
+            if (_actor02100SegmentOccluded(&scratch->from, &scratch->to) == 0) {
                 work->target         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 work->targetDistance = 1;
                 work->targetKind     = ACTOR_02100_TARGET_PLAYER;
@@ -1042,15 +1062,15 @@ static void Actor02100_Fn00DCC(Task* arg0)
     if (work->targetKind != ACTOR_02100_TARGET_NONE) {
         sceneEngageBattle(1);
         if (work->weapon == ACTOR_02100_WEAPON_GUN) {
-            mode = ACTOR_02100_MODE_GUN;
+            attackMode = ACTOR_02100_MODE_GUN;
         } else {
-            mode = ACTOR_02100_MODE_BEAM;
+            attackMode = ACTOR_02100_MODE_BEAM;
         }
         work->resumeVelocity.vx = work->velocity.vx;
         work->resumeVelocity.vy = work->velocity.vy;
         work->resumeVelocity.vz = work->velocity.vz;
         // Either attack opens with its aim step; the two share the value.
-        work->mode        = mode;
+        work->mode        = attackMode;
         work->step        = ACTOR_02100_BEAM_STEP_AIM;
         work->stepFrames  = 0;
         work->shotsFired  = 0;
@@ -1066,31 +1086,54 @@ static void Actor02100_Fn00DCC(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100PlayerScanScratch);
 }
 
-static void Actor02100_Fn011C4(Task* arg0)
+/// Transforms a signed-halfword world point into the current view frame.
+///
+/// Uses the composed view rotation, then adds its translation in game units.
+/// Input and output are borrowed, word-aligned storage; changes GTE state.
+static __inline__ void _actor02100TransformTargetToView(const SVECTOR* worldPoint, VECTOR* viewPosition)
+{
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_ldv0(worldPoint);
+    gte_rtv0();
+    gte_stlvnl(viewPosition);
+    viewPosition->vx += gGfxViewCoord.workm.t[0];
+    viewPosition->vy += gGfxViewCoord.workm.t[1];
+    viewPosition->vz += gGfxViewCoord.workm.t[2];
+}
+
+/// Selects the nearest eligible visible enemy closer than the current target.
+///
+/// Walks the scene task's circular child ring, excluding dead enemies and
+/// placement entry IDs marked in the exclusion table. Out-of-table IDs use
+/// entry zero. Range and forward-facing tests use world coordinates; occlusion
+/// uses the current composed view. The scene ring and all enemy placements
+/// must be live. Borrows target tasks and releases its 64-byte scratch block;
+/// nested visibility queries require 208 bytes of available scratch in total.
+static void _actor02100ScanEnemyTargets(Task* task)
 {
     _Actor02100EnemyScanScratch* scratch;
-    Task*                        head;
-    Task*                        current;
+    Task*                        firstEnemyTask;
+    Task*                        enemyTask;
     Enemy*                       enemy;
     _Actor02100Work*             work;
     GfxCoord*                    coord;
-    u32                          index;
-    u32                          dist;
+    u32                          entryId;
+    u32                          distance;
 
-    head  = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
-    coord = arg0->extra.tmd->coords;
-    head  = head->firstChild;
-    work  = arg0->work;
-    if (head != NULL) {
-        scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100EnemyScanScratch);
-        current = head;
+    firstEnemyTask = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
+    coord          = task->extra.tmd->coords;
+    firstEnemyTask = firstEnemyTask->firstChild;
+    work           = task->work;
+    if (firstEnemyTask != NULL) {
+        scratch   = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100EnemyScanScratch);
+        enemyTask = firstEnemyTask;
         do {
-            enemy = current->spawnArg2.pointer;
-            index = enemy->place->entryId;
-            if (index >= 0x50) {
-                index = 0;
+            enemy   = enemyTask->spawnArg2.pointer;
+            entryId = enemy->place->entryId;
+            if (entryId >= ARRAY_SIZE(Actor02100_D03E2C)) {
+                entryId = 0;
             }
-            if (Actor02100_D03E2C[index] == 0 && enemy->hp > 0) {
+            if (Actor02100_D03E2C[entryId] == 0 && enemy->hp > 0) {
                 worldTargetGetBodyPosition(&enemy->node, &scratch->lockPos);
                 scratch->delta.vx = scratch->lockPos.vx - coord->coord.t[0];
                 scratch->delta.vy = scratch->lockPos.vy - coord->coord.t[1];
@@ -1099,60 +1142,63 @@ static void Actor02100_Fn011C4(Task* arg0)
                         (scratch->delta.vy * coord->coord.m[1][2]) +
                         (scratch->delta.vz * coord->coord.m[2][2]) >
                     0) {
-                    dist = SquareRoot0((scratch->delta.vx * scratch->delta.vx) +
-                                       (scratch->delta.vy * scratch->delta.vy) +
-                                       (scratch->delta.vz * scratch->delta.vz));
-                    if ((work->targetDistance == 0 || dist < work->targetDistance) &&
-                        dist < Actor02100_D03E00[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex & 7]) {
+                    distance = SquareRoot0((scratch->delta.vx * scratch->delta.vx) +
+                                           (scratch->delta.vy * scratch->delta.vy) +
+                                           (scratch->delta.vz * scratch->delta.vz));
+                    if ((work->targetDistance == 0 || distance < work->targetDistance) &&
+                        distance < Actor02100_D03E00[((Enemy*)task->spawnArg2.pointer)->place->rowIndex & (ARRAY_SIZE(Actor02100_D03E00) - 1)]) {
+                        // Bring the world-space lock point into the occluders' view frame.
                         scratch->from.vx = scratch->lockPos.vx;
                         scratch->from.vy = scratch->lockPos.vy;
                         scratch->from.vz = scratch->lockPos.vz;
-                        gte_SetRotMatrix(&gGfxViewCoord.workm);
-                        gte_ldv0(&scratch->from);
-                        gte_rtv0();
-                        gte_stlvnl(&scratch->viewPos);
-                        scratch->viewPos.vx += gGfxViewCoord.workm.t[0];
-                        scratch->viewPos.vy += gGfxViewCoord.workm.t[1];
-                        scratch->viewPos.vz += gGfxViewCoord.workm.t[2];
-                        scratch->from.vx     = scratch->viewPos.vx;
-                        scratch->from.vy     = scratch->viewPos.vy;
-                        scratch->from.vz     = scratch->viewPos.vz;
-                        scratch->to.vx       = coord->workm.t[0];
-                        scratch->to.vy       = coord->workm.t[1];
-                        scratch->to.vz       = coord->workm.t[2];
-                        if (Actor02100_Fn0337C(&scratch->from, &scratch->to) == 0) {
-                            work->target         = current;
-                            work->targetDistance = dist;
+                        _actor02100TransformTargetToView(&scratch->from, &scratch->viewPos);
+                        scratch->from.vx = scratch->viewPos.vx;
+                        scratch->from.vy = scratch->viewPos.vy;
+                        scratch->from.vz = scratch->viewPos.vz;
+                        scratch->to.vx   = coord->workm.t[0];
+                        scratch->to.vy   = coord->workm.t[1];
+                        scratch->to.vz   = coord->workm.t[2];
+                        if (_actor02100SegmentOccluded(&scratch->from, &scratch->to) == 0) {
+                            work->target         = enemyTask;
+                            work->targetDistance = distance;
                             work->targetKind     = ACTOR_02100_TARGET_ENEMY;
                         }
                     }
                 }
             }
-            current = current->nextSibling;
-        } while (current != head);
+            enemyTask = enemyTask->nextSibling;
+        } while (enemyTask != firstEnemyTask);
         SCRATCH_STACK_RELEASE_BLOCK(_Actor02100EnemyScanScratch);
     }
 }
 
-static s32 Actor02100_Fn014E4(Task* arg0)
+/// Refreshes the tracked target position in the Watcher's rotated view axes.
+///
+/// Returns 1 for the player or a living enemy and 0 for no supported target
+/// or a dead enemy; failure leaves the previous position and task reference.
+/// Uses player coordinate 0 for the gun and 3 for a beam. The target and
+/// composed view matrices must remain live. The transpose removes rotation,
+/// without subtracting the Watcher's translation. Borrows and releases scratch
+/// storage, and changes GTE state.
+static s32 _actor02100UpdateTargetPosition(Task* task)
 {
     _Actor02100VectorScratch* scratch;
     _Actor02100Work*          work;
     GfxCoord*                 coord;
     GfxCoord*                 targetCoord;
-    VECTOR*                   vec;
-    WorldTargetNode*          lock;
-    s32                       result;
+    VECTOR*                   viewPosition;
+    WorldTargetNode*          targetNode;
+    s32                       targetValid;
 
-    work   = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    result = 0;
+    work        = task->work;
+    coord       = task->extra.tmd->coords;
+    targetValid = 0;
     if (work->target == NULL) {
-        return result;
+        return targetValid;
     }
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
-    vec     = &scratch->vec;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
+    viewPosition = &scratch->vec;
     switch (work->targetKind) {
         case ACTOR_02100_TARGET_PLAYER:
             if (work->weapon == ACTOR_02100_WEAPON_GUN) {
@@ -1160,33 +1206,33 @@ static s32 Actor02100_Fn014E4(Task* arg0)
             } else {
                 targetCoord = &work->target->extra.tmd->coords[3];
             }
-            vec->vx = targetCoord->workm.t[0];
-            vec->vy = targetCoord->workm.t[1];
-            vec->vz = targetCoord->workm.t[2];
-            ApplyTransposeMatrixLV(&coord->workm, vec, &work->targetPos);
-            result = 1;
+            viewPosition->vx = targetCoord->workm.t[0];
+            viewPosition->vy = targetCoord->workm.t[1];
+            viewPosition->vz = targetCoord->workm.t[2];
+            ApplyTransposeMatrixLV(&coord->workm, viewPosition, &work->targetPos);
+            targetValid = 1;
             break;
 
         case ACTOR_02100_TARGET_ENEMY:
             if (((Enemy*)work->target->spawnArg2.pointer)->hp <= 0) {
                 break;
             }
-            lock = &((Enemy*)work->target->spawnArg2.pointer)->node;
-            // The lock position is written over the three components of `vec`, then
-            // narrowed for the GTE and rotated back into `vec` in view space.
-            worldTargetGetBodyPosition(lock, (VECTOR3*)&scratch->vec);
+            targetNode = &((Enemy*)work->target->spawnArg2.pointer)->node;
+            // The targetNode position is written over the three components of `viewPosition`, then
+            // narrowed for the GTE and rotated back into `viewPosition` in view space.
+            worldTargetGetBodyPosition(targetNode, (VECTOR3*)&scratch->vec);
             scratch->shortVec.vx = scratch->vec.vx;
             scratch->shortVec.vy = scratch->vec.vy;
             scratch->shortVec.vz = scratch->vec.vz;
             gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&scratch->shortVec);
             gte_rtv0();
-            gte_stlvnl(vec);
+            gte_stlvnl(viewPosition);
             scratch->vec.vx += gGfxViewCoord.workm.t[0];
             scratch->vec.vy += gGfxViewCoord.workm.t[1];
             scratch->vec.vz += gGfxViewCoord.workm.t[2];
             ApplyTransposeMatrixLV(&coord->workm, &scratch->vec, &work->targetPos);
-            result = 1;
+            targetValid = 1;
             break;
 
         case ACTOR_02100_TARGET_NONE:
@@ -1195,36 +1241,47 @@ static s32 Actor02100_Fn014E4(Task* arg0)
     }
 
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
-    return result;
+    return targetValid;
 }
 
-/// Aims the actor at its stored target and rebuilds both direction vectors from
-/// the new facing. A fixed forward offset is rotated by the coordinate's matrix,
-/// translated into the coordinate's own frame and subtracted from the target
-/// position; `gfxBuildDirectionRotation` turns the vector that remains into the facing
-/// matrix at `aim`. The near vector at `beamPoints[1]` and the far vector
-/// at `playerStrikeShape.ends[0]`, mirrored into `enemyStrikeShape.ends[0]`,
-/// are then rotated through that matrix. Each step borrows scratch from the scratch stack and releases it.
+/// Rebuilds the two strike capsules' far endpoints along the current aim.
 ///
-/// `Actor02100_OrientScratch`, `Actor02100_UpdateVectors` and
-/// `Actor02100_SetVector` do the same three steps for their own callers. This
-/// copy is not interchangeable with them: the statement order here is what
-/// reproduces this function's schedule and register allocation.
-static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
+/// Rotates a local +Z offset of `ACTOR_02100_STRIKE_REACH` game units and copies
+/// the signed-halfword result to both capsules. Borrows and releases one
+/// `SVECTOR` on the initialized scratch stack and changes GTE state.
+static __inline__ void _actor02100BuildStrikeEndpoints(Task* task)
 {
-    _Actor02100AimScratch*    scratch;
-    _Actor02100VectorScratch* shortScratch;
-    _Actor02100Work*          work;
-    _Actor02100Work*          nextWork;
-    _Actor02100Work*          nextWork2;
-    GfxCoord*                 coord;
-    SVECTOR*                  shortVec;
-    u8*                       head1;
-    u8*                       head2;
+    _Actor02100Work* work;
+    SVECTOR*         strikeOffset;
 
-    coord   = arg0->extra.tmd->coords;
+    work             = task->work;
+    strikeOffset     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    strikeOffset->vx = 0;
+    strikeOffset->vy = 0;
+    strikeOffset->vz = ACTOR_02100_STRIKE_REACH;
+    gte_SetRotMatrix(&work->aim);
+    gte_ldv0(strikeOffset);
+    gte_rtv0();
+    gte_stsv(&work->playerStrikeShape.ends[0]);
+    work->enemyStrikeShape.ends[0] = work->playerStrikeShape.ends[0];
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+}
+
+/// Builds the aim rotation from the muzzle towards the stored target position.
+///
+/// Both positions use the Watcher's rotated view axes, including translation
+/// in those axes. Requires live model/work and a nonzero direction suitable
+/// for SDK normalization. Borrows and releases an `_Actor02100AimScratch` on
+/// the initialized scratch stack. Changes GTE state.
+static __inline__ void _actor02100AimAtTarget(Task* task)
+{
+    _Actor02100AimScratch* scratch;
+    _Actor02100Work*       work;
+    GfxCoord*              coord;
+
+    coord   = task->extra.tmd->coords;
+    work    = task->work;
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100AimScratch);
-    work    = arg0->work;
 
     scratch->muzzleOffset.vx = 0;
     scratch->muzzleOffset.vy = 0;
@@ -1241,128 +1298,115 @@ static __inline__ void Actor02100_AimAndBuildVectors(Task* arg0)
     scratch->aimVector.vy = work->targetPos.vy - scratch->muzzle.vy;
     scratch->aimVector.vz = work->targetPos.vz - scratch->muzzle.vz;
     gfxBuildDirectionRotation(&scratch->aimVector, &work->aim, 0);
-
-    // Release the aim block and reserve a vector block in its place for the
-    // beam's end point.
-    head1                      = SCRATCH_STACK_CURSOR(u8);
-    nextWork                   = arg0->work;
-    shortScratch               = (_Actor02100VectorScratch*)(head1 + sizeof(_Actor02100AimScratch) - sizeof(_Actor02100VectorScratch));
-    nextWork->beamPoints[0].vx = 0;
-    nextWork->beamPoints[0].vy = 0;
-    nextWork->beamPoints[0].vz = ACTOR_02100_MUZZLE_OFFSET;
-    shortScratch->shortVec.vx  = 0;
-    shortScratch->shortVec.vy  = 0;
-    SCRATCH_STACK_CURSOR(u8)   = head1 + sizeof(_Actor02100AimScratch);
-    shortScratch->shortVec.vz  = nextWork->beamLength;
-    SCRATCH_STACK_CURSOR(u8)   = (u8*)shortScratch;
-    gte_SetRotMatrix(&nextWork->aim);
-    gte_ldv0(&shortScratch->shortVec);
-    gte_rtv0();
-    gte_stsv(&nextWork->beamPoints[1]);
-    nextWork->beamPoints[1].vz += ACTOR_02100_MUZZLE_OFFSET;
-
-    // Release the vector block and reserve the far point's input in its place.
-    head2                    = SCRATCH_STACK_CURSOR(u8);
-    shortVec                 = (SVECTOR*)(head2 + sizeof(_Actor02100VectorScratch) - sizeof(SVECTOR));
-    SCRATCH_STACK_CURSOR(u8) = head2 + sizeof(_Actor02100VectorScratch);
-    nextWork2                = arg0->work;
-    SCRATCH_STACK_CURSOR(u8) = (u8*)shortVec;
-    shortVec->vx             = 0;
-    shortVec->vy             = 0;
-    shortVec->vz             = ACTOR_02100_STRIKE_REACH;
-    gte_SetRotMatrix(&nextWork2->aim);
-    gte_ldv0(shortVec);
-    gte_rtv0();
-    gte_stsv(&nextWork2->playerStrikeShape.ends[0]);
-    nextWork2->enemyStrikeShape.ends[0] = nextWork2->playerStrikeShape.ends[0];
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100AimScratch);
 }
 
-/// Rewrites the far vector: the `ACTOR_02100_STRIKE_REACH` offset rotated by
-/// the facing matrix into `playerStrikeShape.ends[0]`, mirrored into
-/// `enemyStrikeShape.ends[0]`. The offset is built in an `SVECTOR` borrowed
-/// from the scratch stack for the rotation.
-static __inline__ void Actor02100_SetVector(Task* arg0)
+/// Rebuilds the muzzle, visible beam endpoint and both strike endpoints.
+///
+/// Uses the existing aim rotation and beam length in game units. Results are
+/// Watcher-local signed-halfword offsets. Borrows and releases a vector block
+/// and a strike input on the initialized scratch stack; changes GTE state.
+static __inline__ void _actor02100BuildBeamAndStrikePoints(Task* task)
 {
-    _Actor02100Work* work;
-    SVECTOR*         shortVec;
+    _Actor02100VectorScratch* scratch;
+    _Actor02100Work*          work;
 
-    work         = arg0->work;
-    shortVec     = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    shortVec->vx = 0;
-    shortVec->vy = 0;
-    shortVec->vz = ACTOR_02100_STRIKE_REACH;
+    work                   = task->work;
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
+    work->beamPoints[0].vx = 0;
+    work->beamPoints[0].vy = 0;
+    work->beamPoints[0].vz = ACTOR_02100_MUZZLE_OFFSET;
+    scratch->shortVec.vx   = 0;
+    scratch->shortVec.vy   = 0;
+    scratch->shortVec.vz   = work->beamLength;
     gte_SetRotMatrix(&work->aim);
-    gte_ldv0(shortVec);
+    gte_ldv0(&scratch->shortVec);
     gte_rtv0();
-    gte_stsv(&work->playerStrikeShape.ends[0]);
-    work->enemyStrikeShape.ends[0] = work->playerStrikeShape.ends[0];
-    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
+    gte_stsv(&work->beamPoints[1]);
+    work->beamPoints[1].vz += ACTOR_02100_MUZZLE_OFFSET;
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
+    _actor02100BuildStrikeEndpoints(task);
 }
 
-/// Stores the near vector the GTE has just rotated into `beamPoints[1]`,
-/// advances it by `ACTOR_02100_MUZZLE_OFFSET` and releases the input block the
-/// rotation borrowed from the scratch stack.
-static __inline__ void _actor02100StoreNearVector(_Actor02100Work* work)
+/// Aims at the tracked target and rebuilds the beam and both strike endpoints.
+///
+/// The muzzle and stored target position are compared in the Watcher's rotated
+/// view axes. The resulting rotation sends local +Z towards the target. Beam
+/// and strike points are local offsets in game units, narrowed to signed
+/// halfwords by the GTE. Requires live model/work and an initialized scratch
+/// stack; all reservations are released before returning.
+static __inline__ void _actor02100AimBeamAndStrikePoints(Task* task)
+{
+    _actor02100AimAtTarget(task);
+    _actor02100BuildBeamAndStrikePoints(task);
+}
+
+/// Stores the rotated beam endpoint, adds the muzzle offset and releases its input block.
+///
+/// Requires the GTE to hold the current beam-length rotation and the top
+/// scratch reservation to be an `_Actor02100VectorScratch`. The signed-halfword
+/// endpoint stays in the Watcher's local frame; adding the muzzle offset narrows
+/// without clamping.
+static __inline__ void _actor02100StoreBeamEndpoint(_Actor02100Work* work)
 {
     gte_stsv(&work->beamPoints[1]);
     work->beamPoints[1].vz += ACTOR_02100_MUZZLE_OFFSET;
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
 }
 
-/// Rebuilds the same two direction vectors as `Actor02100_AimAndBuildVectors`
-/// from the facing matrix the actor already holds, without re-aiming. The two
-/// arms of the frame test hold the same code, each rotating the near vector's
-/// input and finishing through `_actor02100StoreNearVector`; the branch has no
-/// effect on what is written. The far vector follows through
-/// `Actor02100_SetVector`.
-static __inline__ void Actor02100_BuildVectors(Task* arg0, _Actor02100Work* currentWork)
+/// Rebuilds the locked beam and strike points without changing aim.
+///
+/// `currentWork` is the task's existing work block. The retained timer branch
+/// performs identical operations in both arms. Beam length is in game units;
+/// GTE outputs narrow to local signed-halfword offsets. Releases all scratch
+/// reservations and changes GTE state.
+static __inline__ void _actor02100BuildLockedBeamAndStrikePoints(Task* task, _Actor02100Work* currentWork)
 {
+    // The lock lasts fifteen ticks; this distinguishes its final zero-based tick.
+    enum { ACTOR_02100_BEAM_LOCK_LAST_TICK = 14 };
     _Actor02100VectorScratch* scratch;
-    _Actor02100VectorScratch* scratch2;
+    _Actor02100VectorScratch* lockedScratch;
     _Actor02100Work*          work;
-    u8*                       head;
+    SVECTOR*                  inputCursor;
 
-    if (currentWork->stepFrames == 0xE) {
-        work                     = arg0->work;
-        work->beamPoints[0].vz   = ACTOR_02100_MUZZLE_OFFSET;
-        head                     = SCRATCH_STACK_CURSOR(u8);
-        scratch                  = (_Actor02100VectorScratch*)(head - sizeof(_Actor02100VectorScratch));
-        work->beamPoints[0].vx   = 0;
-        work->beamPoints[0].vy   = 0;
-        scratch->shortVec.vx     = 0;
-        scratch->shortVec.vy     = 0;
-        SCRATCH_STACK_CURSOR(u8) = (u8*)scratch;
-        scratch->shortVec.vz     = work->beamLength;
+    if (currentWork->stepFrames == ACTOR_02100_BEAM_LOCK_LAST_TICK) {
+        work                       = task->work;
+        work->beamPoints[0].vz     = ACTOR_02100_MUZZLE_OFFSET;
+        inputCursor                = SCRATCH_STACK_CURSOR(SVECTOR);
+        scratch                    = (_Actor02100VectorScratch*)((u8*)inputCursor - sizeof(_Actor02100VectorScratch));
+        work->beamPoints[0].vx     = 0;
+        work->beamPoints[0].vy     = 0;
+        scratch->shortVec.vx       = 0;
+        scratch->shortVec.vy       = 0;
+        SCRATCH_STACK_CURSOR(void) = scratch;
+        scratch->shortVec.vz       = work->beamLength;
         gte_SetRotMatrix(&work->aim);
-        // The input is addressed through `head`: reusing that variable is what
-        // keeps the address in the cursor's register.
-        head = (u8*)&scratch->shortVec;
-        gte_ldv0((SVECTOR*)head);
+        inputCursor = &scratch->shortVec;
+        gte_ldv0(inputCursor);
         gte_rtv0();
-        _actor02100StoreNearVector(work);
+        _actor02100StoreBeamEndpoint(work);
     } else {
-        work                     = arg0->work;
-        work->beamPoints[0].vz   = ACTOR_02100_MUZZLE_OFFSET;
-        head                     = SCRATCH_STACK_CURSOR(u8);
-        scratch2                 = (_Actor02100VectorScratch*)(head - sizeof(_Actor02100VectorScratch));
-        work->beamPoints[0].vx   = 0;
-        work->beamPoints[0].vy   = 0;
-        scratch2->shortVec.vx    = 0;
-        scratch2->shortVec.vy    = 0;
-        SCRATCH_STACK_CURSOR(u8) = (u8*)scratch2;
-        scratch2->shortVec.vz    = work->beamLength;
+        work                       = task->work;
+        work->beamPoints[0].vz     = ACTOR_02100_MUZZLE_OFFSET;
+        inputCursor                = SCRATCH_STACK_CURSOR(SVECTOR);
+        lockedScratch              = (_Actor02100VectorScratch*)((u8*)inputCursor - sizeof(_Actor02100VectorScratch));
+        work->beamPoints[0].vx     = 0;
+        work->beamPoints[0].vy     = 0;
+        lockedScratch->shortVec.vx = 0;
+        lockedScratch->shortVec.vy = 0;
+        SCRATCH_STACK_CURSOR(void) = lockedScratch;
+        lockedScratch->shortVec.vz = work->beamLength;
         gte_SetRotMatrix(&work->aim);
-        head = (u8*)&scratch2->shortVec;
-        gte_ldv0((SVECTOR*)head);
+        inputCursor = &lockedScratch->shortVec;
+        gte_ldv0(inputCursor);
         gte_rtv0();
-        _actor02100StoreNearVector(work);
+        _actor02100StoreBeamEndpoint(work);
     }
-    Actor02100_SetVector(arg0);
+    _actor02100BuildStrikeEndpoints(task);
 }
 
 /// Four-state sweep with a charge-up, a strike and a recovery wait. State 0 aims
-/// at the target every frame until `Actor02100_Fn014E4` loses it - which drops
+/// at the target every frame until `_actor02100UpdateTargetPosition` loses it - which drops
 /// straight to the recovery state - starts the loop sound on the first frame and
 /// draws the beam from the second, and advances to state 1 once the frame count
 /// reaches the per-variant limit in `Actor02100_D03D88`. State 1 stops the loop
@@ -1393,7 +1437,7 @@ static void Actor02100_Fn016EC(Task* arg0)
     switch (state) {
         case ACTOR_02100_BEAM_STEP_AIM:
             if (work->stepFrames != 0) {
-                if (Actor02100_Fn014E4(arg0) == 0) {
+                if (_actor02100UpdateTargetPosition(arg0) == 0) {
                     work->step       = ACTOR_02100_BEAM_STEP_RECOVER;
                     work->stepFrames = 0;
                     if (work->loopSoundKind == ACTOR_02100_LOOP_SOUND_CHARGE) {
@@ -1403,7 +1447,7 @@ static void Actor02100_Fn016EC(Task* arg0)
                     break;
                 }
 
-                Actor02100_AimAndBuildVectors(arg0);
+                _actor02100AimBeamAndStrikePoints(arg0);
             }
 
             if (work->stepFrames == 1) {
@@ -1413,8 +1457,8 @@ static void Actor02100_Fn016EC(Task* arg0)
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_CHARGE;
             }
             if (work->stepFrames >= 2) {
-                Actor02100_Fn034E0(arg0);
-                Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
+                _actor02100ProjectBeamPoints(arg0);
+                _actor02100DrawBeam(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
             }
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             frame                         = (u16)work->stepFrames + 1;
@@ -1433,9 +1477,9 @@ static void Actor02100_Fn016EC(Task* arg0)
                 sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;
             }
-            Actor02100_BuildVectors(arg0, work);
-            Actor02100_Fn034E0(arg0);
-            Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
+            _actor02100BuildLockedBeamAndStrikePoints(arg0, work);
+            _actor02100ProjectBeamPoints(arg0);
+            _actor02100DrawBeam(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
             frame            = (u16)work->stepFrames + 1;
             work->stepFrames = frame;
             if (frame >= 0xF) {
@@ -1448,8 +1492,8 @@ static void Actor02100_Fn016EC(Task* arg0)
             break;
 
         case ACTOR_02100_BEAM_STEP_FIRE:
-            Actor02100_Fn034E0(arg0);
-            Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_FIRE);
+            _actor02100ProjectBeamPoints(arg0);
+            _actor02100DrawBeam(arg0, ACTOR_02100_BEAM_STYLE_FIRE);
             frame = work->stepFrames;
             if (frame == 1) {
                 work->playerStrikeBody.key = damagePackAttackKey(Actor02100_D03D64, work->weapon);
@@ -1506,71 +1550,6 @@ static void Actor02100_Fn016EC(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x48);
 }
 
-/// Points the actor at its stored target. Rotates a fixed forward offset by the
-/// coordinate's matrix, maps it back into the coordinate's own frame, and hands
-/// the vector from there to the target position to `gfxBuildDirectionRotation`, which
-/// writes the facing matrix at `aim`.
-static __inline__ void Actor02100_OrientScratch(Task* arg0)
-{
-    _Actor02100AimScratch* scratch;
-    _Actor02100Work*       work;
-    GfxCoord*              coord;
-
-    coord   = arg0->extra.tmd->coords;
-    work    = arg0->work;
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100AimScratch);
-
-    scratch->muzzleOffset.vx = 0;
-    scratch->muzzleOffset.vy = 0;
-    scratch->muzzleOffset.vz = ACTOR_02100_MUZZLE_OFFSET;
-    gte_SetRotMatrix(&coord->workm);
-    gte_ldv0(&scratch->muzzleOffset);
-    gte_rtv0();
-    gte_stlvnl(&scratch->aimVector);
-    scratch->aimVector.vx += coord->workm.t[0];
-    scratch->aimVector.vy += coord->workm.t[1];
-    scratch->aimVector.vz += coord->workm.t[2];
-    ApplyTransposeMatrixLV(&coord->workm, &scratch->aimVector, &scratch->muzzle);
-    scratch->aimVector.vx = work->targetPos.vx - scratch->muzzle.vx;
-    scratch->aimVector.vy = work->targetPos.vy - scratch->muzzle.vy;
-    scratch->aimVector.vz = work->targetPos.vz - scratch->muzzle.vz;
-    gfxBuildDirectionRotation(&scratch->aimVector, &work->aim, 0);
-}
-
-/// Refreshes the two vectors the actor's facing matrix defines: the near one at
-/// `beamPoints[1]`, rotated from the length in `beamLength` and advanced by
-/// `ACTOR_02100_MUZZLE_OFFSET`, and then the far one through
-/// `Actor02100_SetVector`. The near rotation's input is built in a block
-/// borrowed from the scratch stack, and `beamPoints[0]` is reset to the muzzle
-/// offset it starts from.
-static __inline__ void Actor02100_UpdateVectors(Task* arg0)
-{
-    _Actor02100VectorScratch* scratch;
-    _Actor02100Work*          work;
-
-    work                   = arg0->work;
-    scratch                = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100VectorScratch);
-    work->beamPoints[0].vx = 0;
-    work->beamPoints[0].vy = 0;
-    work->beamPoints[0].vz = ACTOR_02100_MUZZLE_OFFSET;
-    scratch->shortVec.vx   = 0;
-    scratch->shortVec.vy   = 0;
-    scratch->shortVec.vz   = work->beamLength;
-    gte_SetRotMatrix(&work->aim);
-    gte_ldv0(&scratch->shortVec);
-    gte_rtv0();
-    gte_stsv(&work->beamPoints[1]);
-    work->beamPoints[1].vz += ACTOR_02100_MUZZLE_OFFSET;
-    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
-    Actor02100_SetVector(arg0);
-}
-
-/// Releases the block `Actor02100_OrientScratch` leaves on the scratch stack.
-static __inline__ void Actor02100_ReleaseScratch28(void)
-{
-    SCRATCH_STACK_RELEASE_BLOCK(_Actor02100AimScratch);
-}
-
 /// Seven-state attack cycle, run from `Actor02100_Fn031C4`. State 0 holds the
 /// wind-up: it re-aims each frame, refreshes both direction vectors, starts the
 /// looping sound on the second frame and shows the two objects, until the
@@ -1580,7 +1559,7 @@ static __inline__ void Actor02100_ReleaseScratch28(void)
 /// clear the pair table entry and the colour word that make the strike hit,
 /// counting one hit in `shotsFired`; state 5 loops back to state 2 until ten
 /// hits, then hides both objects; state 6 waits out the recovery frame count
-/// and returns to state 0. `Actor02100_Fn014E4` failing at any aim point drops
+/// and returns to state 0. `_actor02100UpdateTargetPosition` failing at any aim point drops
 /// straight to state 6.
 static void Actor02100_Fn01FF0(Task* arg0)
 {
@@ -1602,7 +1581,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
     switch (state) {
         case ACTOR_02100_GUN_STEP_AIM:
             if (work->stepFrames != 0) {
-                if (Actor02100_Fn014E4(arg0) == 0) {
+                if (_actor02100UpdateTargetPosition(arg0) == 0) {
                     work->step       = ACTOR_02100_GUN_STEP_RECOVER;
                     work->stepFrames = 0;
                     if (work->loopSoundKind == ACTOR_02100_LOOP_SOUND_CHARGE) {
@@ -1612,9 +1591,8 @@ static void Actor02100_Fn01FF0(Task* arg0)
                     break;
                 }
 
-                Actor02100_OrientScratch(arg0);
-                Actor02100_ReleaseScratch28();
-                Actor02100_UpdateVectors(arg0);
+                _actor02100AimAtTarget(arg0);
+                _actor02100BuildBeamAndStrikePoints(arg0);
             }
 
             if (work->stepFrames == 1) {
@@ -1624,8 +1602,8 @@ static void Actor02100_Fn01FF0(Task* arg0)
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_CHARGE;
             }
             if (work->stepFrames >= 2) {
-                Actor02100_Fn034E0(arg0);
-                Actor02100_Fn02924(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
+                _actor02100ProjectBeamPoints(arg0);
+                _actor02100DrawBeam(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
             }
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1644,7 +1622,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
             }
             if (++work->stepFrames >= 4) {
                 work->stepFrames = 0;
-                Actor02100_SetVector(arg0);
+                _actor02100BuildStrikeEndpoints(arg0);
                 work->step = ACTOR_02100_GUN_STEP_SHOT;
             }
             break;
@@ -1662,12 +1640,11 @@ static void Actor02100_Fn01FF0(Task* arg0)
             pan2   = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
             work->step = ACTOR_02100_GUN_STEP_ARM;
-            if (Actor02100_Fn014E4(arg0) == 0) {
+            if (_actor02100UpdateTargetPosition(arg0) == 0) {
                 work->step       = ACTOR_02100_GUN_STEP_RECOVER;
                 work->stepFrames = 0;
             } else {
-                Actor02100_OrientScratch(arg0);
-                Actor02100_ReleaseScratch28();
+                _actor02100AimAtTarget(arg0);
             }
             break;
 
@@ -1687,7 +1664,7 @@ static void Actor02100_Fn01FF0(Task* arg0)
         case ACTOR_02100_GUN_STEP_NEXT:
             if (work->shotsFired < 10) {
                 work->step = ACTOR_02100_GUN_STEP_SHOT;
-                Actor02100_SetVector(arg0);
+                _actor02100BuildStrikeEndpoints(arg0);
                 break;
             }
             work->step                    = ACTOR_02100_GUN_STEP_RECOVER;
@@ -1713,39 +1690,69 @@ static void Actor02100_Fn01FF0(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100GunAttackScratch);
 }
 
-/// Draws one beam between the two screen points held in `_Actor02100Work`
-/// (`beamScreenX`/`beamScreenY` and their depths in `beamScreenDepth`). The span is
-/// normalised once, its y component negated, and the beam then emitted as eight
-/// segments of rising depth; a segment nearer than 30 is dropped. Each segment
-/// is a bright centre line plus two gouraud quads that fade from the beam
-/// colour on that line to black at the edges, all linked into the ordering
-/// table at the segment's own depth and followed by a draw-mode packet. `arg1`
-/// selects the style: it picks the edge offsets out of `Actor02100_D03DD8` and
-/// the colour triplet out of `Actor02100_D03D88`, and style 1 draws its centre
-/// line in flat grey instead of the table colour.
-static void Actor02100_Fn02924(Task* arg0, s32 arg1)
+/// Fades a beam quad from its selected centre colour to black on its edge.
+///
+/// Requires a validated weapon and beam-style index. Colour values narrow to
+/// bytes; the packet's command byte is retained and no storage is owned.
+static __inline__ void _actor02100ShadeBeamQuad(POLY_G4* quad, _Actor02100Work* work, s32 beamStyle)
 {
+    enum { ACTOR_02100_COLOR_COMPONENT_COUNT = 3 };
+    u8 blue;
+    quad->r0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
+    quad->g0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
+    quad->b0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
+    quad->r1 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
+    quad->g1 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
+    blue     = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
+    quad->r2 = 0;
+    quad->g2 = 0;
+    quad->b2 = 0;
+    quad->r3 = 0;
+    quad->g3 = 0;
+    quad->b3 = 0;
+    quad->b1 = blue;
+}
+
+/// Queues an eight-segment additive beam between the projected beam points.
+///
+/// `beamStyle` is `ACTOR_02100_BEAM_STYLE_SIGHT` or `ACTOR_02100_BEAM_STYLE_FIRE`;
+/// work must hold a validated weapon index. Each segment uses two Gouraud
+/// quads fading to black at the edges and one centre line. Fire uses a grey
+/// centre line. Segments with SZ3/4 depth below 30 are skipped. Screen endpoints
+/// must have a nonzero delta suitable for SDK normalization. Requires the
+/// current 1024-tag ordering table and primitive space for up to 24 packets
+/// plus eight draw-mode packets. Releases its 60-byte scratch reservation;
+/// the queued GPU packets live until the current draw buffer is consumed.
+static void _actor02100DrawBeam(Task* task, s32 beamStyle)
+{
+    enum {
+        ACTOR_02100_BEAM_SEGMENT_SHIFT      = 3,
+        ACTOR_02100_BEAM_SEGMENT_COUNT      = 1 << ACTOR_02100_BEAM_SEGMENT_SHIFT,
+        ACTOR_02100_BEAM_MIN_DEPTH          = 30,
+        ACTOR_02100_BEAM_EDGE_DEPTH_SCALE   = 0x300,
+        ACTOR_02100_DIRECTION_FRACTION_BITS = 12,
+        ACTOR_02100_COLOR_COMPONENT_COUNT   = 3
+    };
     _Actor02100BeamQuadCorners* corners;
     POLY_G4*                    quad;
-    DR_TPAGE*                   mode;
+    DR_TPAGE*                   drawMode;
     LINE_F2*                    line;
     _Actor02100BeamDrawScratch* scratch;
-    s32                         next;
+    s32                         nextSegment;
     s32                         offsetX0;
     s32                         offsetX1;
     s32                         negatedY;
-    u8                          blue;
     s32                         offsetY0;
     s32                         offsetY1;
     s32                         depth;
-    s32                         corner;
+    s32                         edge;
     s32                         segment;
     s32                         spanX;
     s32                         spanY;
-    s32                         spanZ;
+    s32                         depthSpan;
     _Actor02100Work*            work;
 
-    work    = arg0->work;
+    work    = task->work;
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100BeamDrawScratch);
 
     scratch->span.vx = work->beamScreenX[1] - work->beamScreenX[0];
@@ -1755,64 +1762,66 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
     negatedY              = -scratch->direction.vy;
     scratch->direction.vy = negatedY;
 
+    // Signed division by eight truncates towards zero, including negative spans.
     spanX = work->beamScreenX[1] - work->beamScreenX[0];
     if (spanX < 0) {
-        spanX += 7;
+        spanX += ACTOR_02100_BEAM_SEGMENT_COUNT - 1;
     }
-    scratch->stepX = (s16)(spanX >> 3);
+    scratch->stepX = (s16)(spanX >> ACTOR_02100_BEAM_SEGMENT_SHIFT);
     spanY          = work->beamScreenY[1] - work->beamScreenY[0];
     if (spanY < 0) {
-        spanY += 7;
+        spanY += ACTOR_02100_BEAM_SEGMENT_COUNT - 1;
     }
-    scratch->stepY = (s16)(spanY >> 3);
-    spanZ          = work->beamScreenDepth[1] - work->beamScreenDepth[0];
-    if (spanZ < 0) {
-        spanZ += 7;
+    scratch->stepY = (s16)(spanY >> ACTOR_02100_BEAM_SEGMENT_SHIFT);
+    depthSpan      = work->beamScreenDepth[1] - work->beamScreenDepth[0];
+    if (depthSpan < 0) {
+        depthSpan += ACTOR_02100_BEAM_SEGMENT_COUNT - 1;
     }
-    scratch->depthStep = spanZ >> 3;
+    scratch->depthStep = depthSpan >> ACTOR_02100_BEAM_SEGMENT_SHIFT;
     segment            = 0;
 
     do {
-        next           = segment + 1;
-        depth          = (scratch->depthStep * next) + work->beamScreenDepth[0];
+        nextSegment    = segment + 1;
+        depth          = (scratch->depthStep * nextSegment) + work->beamScreenDepth[0];
         scratch->depth = depth;
-        if (depth >= 0x1E) {
+        if (depth >= ACTOR_02100_BEAM_MIN_DEPTH) {
             scratch->x[0] = (u16)((u16)work->beamScreenX[0] + (scratch->stepX * segment));
-            scratch->x[1] = (u16)((u16)work->beamScreenX[0] + (scratch->stepX * next));
-            corner        = 0;
+            scratch->x[1] = (u16)((u16)work->beamScreenX[0] + (scratch->stepX * nextSegment));
+            edge          = 0;
             offsetX0 =
-                (s32)((s32)(scratch->direction.vy * Actor02100_D03DD8[work->weapon][arg1].first * 0x300) >>
-                      0xC) /
+                (s32)((s32)(scratch->direction.vy * Actor02100_D03DD8[work->weapon][beamStyle].first * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
+                      ACTOR_02100_DIRECTION_FRACTION_BITS) /
                 (s32)scratch->depth;
             scratch->x[2] = (s16)(scratch->x[0] + offsetX0);
             scratch->x[3] = (s16)(scratch->x[1] + offsetX0);
             offsetX1 =
-                (s32)((s32)(scratch->direction.vy * Actor02100_D03DD8[work->weapon][arg1].second * 0x300) >>
-                      0xC) /
+                (s32)((s32)(scratch->direction.vy * Actor02100_D03DD8[work->weapon][beamStyle].second * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
+                      ACTOR_02100_DIRECTION_FRACTION_BITS) /
                 (s32)scratch->depth;
             scratch->x[4] = (s16)(scratch->x[0] + offsetX1);
             scratch->x[5] = (s16)(scratch->x[1] + offsetX1);
             scratch->y[0] = (u16)((u16)work->beamScreenY[0] + (scratch->stepY * segment));
-            scratch->y[1] = (u16)((u16)work->beamScreenY[0] + (scratch->stepY * next));
+            scratch->y[1] = (u16)((u16)work->beamScreenY[0] + (scratch->stepY * nextSegment));
             offsetY0 =
-                (s32)((s32)(scratch->direction.vx * Actor02100_D03DD8[work->weapon][arg1].first * 0x300) >>
-                      0xC) /
+                (s32)((s32)(scratch->direction.vx * Actor02100_D03DD8[work->weapon][beamStyle].first * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
+                      ACTOR_02100_DIRECTION_FRACTION_BITS) /
                 (s32)scratch->depth;
             scratch->y[2] = (s16)(scratch->y[0] + offsetY0);
             scratch->y[3] = (s16)(scratch->y[1] + offsetY0);
             offsetY1 =
-                (s32)((s32)(scratch->direction.vx * Actor02100_D03DD8[work->weapon][arg1].second * 0x300) >>
-                      0xC) /
+                (s32)((s32)(scratch->direction.vx * Actor02100_D03DD8[work->weapon][beamStyle].second * ACTOR_02100_BEAM_EDGE_DEPTH_SCALE) >>
+                      ACTOR_02100_DIRECTION_FRACTION_BITS) /
                 (s32)scratch->depth;
             scratch->y[4] = (s16)(scratch->y[0] + offsetY1);
             scratch->y[5] = (s16)(scratch->y[1] + offsetY1);
 
+            // Fade each edge quad from the centre colour to black.
             do {
                 quad           = gGpuPrimCursor;
                 gGpuPrimCursor = quad + 1;
-                setlen(quad, 8);
-                setcode(quad, 0x3A);
-                corners  = &Actor02100_D03E1C[corner];
+                setPolyG4(quad);
+                setSemiTrans(quad, 1);
+                corners  = &Actor02100_D03E1C[edge];
                 quad->x0 = (u16)scratch->x[corners->index[0]];
                 quad->y0 = (u16)scratch->y[corners->index[0]];
                 quad->x1 = (u16)scratch->x[corners->index[1]];
@@ -1821,50 +1830,39 @@ static void Actor02100_Fn02924(Task* arg0, s32 arg1)
                 quad->y2 = (u16)scratch->y[corners->index[2]];
                 quad->x3 = (u16)scratch->x[corners->index[3]];
                 quad->y3 = (u16)scratch->y[corners->index[3]];
-                quad->r0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_RED];
-                quad->g0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_GREEN];
-                quad->b0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_BLUE];
-                quad->r1 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_RED];
-                quad->g1 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_GREEN];
-                blue     = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_BLUE];
-                quad->r2 = 0;
-                quad->g2 = 0;
-                quad->b2 = 0;
-                quad->r3 = 0;
-                quad->g3 = 0;
-                quad->b3 = 0;
-                quad->b1 = blue;
-                corner  += 1;
-                addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF], quad);
-            } while (corner < 2);
+                _actor02100ShadeBeamQuad(quad, work, beamStyle);
+                edge += 1;
+                addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))], quad);
+            } while (edge < ARRAY_SIZE(Actor02100_D03E1C));
 
             line           = gGpuPrimCursor;
             gGpuPrimCursor = line + 1;
-            setlen(line, 3);
-            setcode(line, 0x42);
+            setLineF2(line);
+            setSemiTrans(line, 1);
             line->x0 = (u16)scratch->x[0];
             line->y0 = (u16)scratch->y[0];
             line->x1 = (u16)scratch->x[1];
             line->y1 = (u16)scratch->y[1];
-            if (arg1 == ACTOR_02100_BEAM_STYLE_FIRE) {
+            if (beamStyle == ACTOR_02100_BEAM_STYLE_FIRE) {
                 line->r0 = 0x80U;
                 line->g0 = 0x80U;
                 line->b0 = 0x80U;
             } else {
-                line->r0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_RED];
-                line->g0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_GREEN];
-                line->b0 = (u8)Actor02100_D03D88[work->weapon].values[(arg1 * 3) + ACTOR_02100_WEAPON_PARAM_BLUE];
+                line->r0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_RED];
+                line->g0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_GREEN];
+                line->b0 = (u8)Actor02100_D03D88[work->weapon].values[(beamStyle * ACTOR_02100_COLOR_COMPONENT_COUNT) + ACTOR_02100_WEAPON_PARAM_BLUE];
             }
-            setaddr(line, getaddr(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF]));
-            mode           = gGpuPrimCursor;
-            gGpuPrimCursor = mode + 1;
-            setaddr(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF], line);
-            setlen(mode, 1);
-            mode->code[0] = 0xE1000620;
-            addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & 0x3FF], mode);
+            setaddr(line, getaddr(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))]));
+            drawMode       = gGpuPrimCursor;
+            gGpuPrimCursor = drawMode + 1;
+            setaddr(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))], line);
+            // Additive blending, with dithering and drawing into the display area.
+            setlen(drawMode, 1);
+            drawMode->code[0] = _get_mode(1, 1, getTPage(0, GPU_BLEND_ADD, 0, 0));
+            addPrim(&gGpuCurrentOt[((u32)(scratch->depth << gDisplayState.otDepthShift) >> 4) & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt))], drawMode);
         }
         segment += 1;
-    } while (segment < 8);
+    } while (segment < ACTOR_02100_BEAM_SEGMENT_COUNT);
 
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100BeamDrawScratch);
 }
@@ -1883,7 +1881,7 @@ static void Actor02100_Fn03168(Task* arg0)
 /// (`field_C` 0, node HP hidden) before falling into the normal body. The body
 /// adds the per-tick translation at `velocity` to the actor's
 /// coordinate, runs the state machine, and switches to state 4 - handing the
-/// task over to `Actor02100_Fn035D4` - once `gSceneCombatState.generatorDeathStarted` reports the kill.
+/// task over to `_actor02100DestroyState` - once `gSceneCombatState.generatorDeathStarted` reports the kill.
 static void Actor02100_Fn031C4(Enemy* arg0, Task* arg1)
 {
     TmdObject*       obj;
@@ -1932,10 +1930,10 @@ static void Actor02100_Fn032E4(Task* arg0)
     state = work->mode;
     switch (state) {
         case ACTOR_02100_MODE_PATROL:
-            Actor02100_Fn00ADC(arg0);
+            _actor02100TickPatrol(arg0);
         case ACTOR_02100_MODE_WATCH:
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED) == 0) {
-                Actor02100_Fn00DCC(arg0);
+                _actor02100AcquireTarget(arg0);
             }
             break;
         case ACTOR_02100_MODE_BEAM:
@@ -1949,29 +1947,50 @@ static void Actor02100_Fn032E4(Task* arg0)
     }
 }
 
-static s32 Actor02100_Fn0337C(SVECTOR* arg0, SVECTOR* arg1)
+/// Writes the end-minus-start sight direction with twelve fractional bits.
+///
+/// The delta must fit signed halfwords with squared length in 1..0x7FFFFFFF.
+/// Endpoints share a frame; their storage is borrowed and remains unchanged.
+/// The output's fourth word is untouched. Changes GTE arithmetic state.
+static __inline__ void _actor02100NormalizeSightSegment(const SVECTOR* segmentStart, const SVECTOR* segmentEnd, VECTOR* direction)
 {
-    VECTOR*                 vec;
-    WorldCollisionOccluder* node;
-    s32                     ret;
+    direction->vx = segmentEnd->vx - segmentStart->vx;
+    direction->vy = segmentEnd->vy - segmentStart->vy;
+    direction->vz = segmentEnd->vz - segmentStart->vz;
+    VectorNormal(direction, direction);
+}
 
-    ret     = 0;
-    node    = D_80115550;
-    vec     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
-    vec->vx = arg1->vx - arg0->vx;
-    vec->vy = arg1->vy - arg0->vy;
-    vec->vz = arg1->vz - arg0->vz;
-    VectorNormal(vec, vec);
-    for (; node != NULL; node = node->next) {
-        if (node->flags & WORLD_COLLISION_OCCLUDER_ENABLED) {
-            ret = worldCollisionTestOccluderSegment(node, arg0, arg1, vec);
-            if (ret == 1) {
+/// Returns 1 when an enabled room sight occluder crosses the segment, else 0.
+///
+/// Endpoints share the current composed view frame and use game units. Quad
+/// edges and crossings in either direction count; endpoints and parallel
+/// intersections do not. Stops at the first enabled hit. End minus start must
+/// fit signed halfwords and have squared length in 1..0x7FFFFFFF for SDK
+/// normalization to 4096 per unit. Inputs are unchanged and not retained.
+/// Requires a live occluder list and an initialized scratch stack with 144
+/// bytes available for nested queries, clear of the inputs. Releases scratch
+/// before return and changes GTE state.
+static s32 _actor02100SegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* segmentEnd)
+{
+    VECTOR*                 direction;
+    WorldCollisionOccluder* occluder;
+    s32                     occluded;
+
+    occluded  = 0;
+    occluder  = D_80115550;
+    direction = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    // Normalize once for the complete enabled-occluder scan.
+    _actor02100NormalizeSightSegment(segmentStart, segmentEnd, direction);
+    for (; occluder != NULL; occluder = occluder->next) {
+        if (occluder->flags & WORLD_COLLISION_OCCLUDER_ENABLED) {
+            occluded = worldCollisionTestOccluderSegment(occluder, segmentStart, segmentEnd, direction);
+            if (occluded == 1) {
                 break;
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
-    return ret;
+    return occluded;
 }
 
 static void Actor02100_Fn03488(Task* arg0)
@@ -1986,57 +2005,67 @@ static void Actor02100_Fn03488(Task* arg0)
     worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
-/// Projects the two `beamPoints` through the actor's own coordinate, storing
-/// screen x/y in `beamScreenX`/`beamScreenY` and depth in `beamScreenDepth`.
-static void Actor02100_Fn034E0(Task* arg0)
+/// Projects the local beam endpoints to screen pixels and SZ3/4 sorting depths.
+///
+/// The model's composed view matrix and both local beam points must be current.
+/// Stores signed screen halfwords and the GTE depth without testing projection
+/// flags. Borrows and releases an eight-byte scratch block and changes GTE state.
+static void _actor02100ProjectBeamPoints(Task* task)
 {
     _Actor02100BeamProjectScratch* scratch;
     GfxCoord*                      coord;
     _Actor02100Work*               work;
-    s32                            i;
-    s32                            y;
+    s32                            pointIndex;
+    s32                            screenY;
 
-    work    = arg0->work;
+    work    = task->work;
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100BeamProjectScratch);
-    coord   = arg0->extra.tmd->coords;
-    for (i = 0; i < 2; i++) {
+    coord   = task->extra.tmd->coords;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(work->beamPoints); pointIndex++) {
         gte_SetRotMatrix(&coord->workm);
         gte_SetTransMatrix(&coord->workm);
-        gte_ldv0(&work->beamPoints[i]);
+        gte_ldv0(&work->beamPoints[pointIndex]);
         gte_rtps();
         gte_stsxy(&scratch->sxy);
         gte_stszotz(&scratch->depth);
-        work->beamScreenX[i]     = scratch->sxy.vx;
-        y                        = scratch->sxy.vy;
-        work->beamScreenY[i]     = y;
-        work->beamScreenDepth[i] = scratch->depth;
+        work->beamScreenX[pointIndex]     = scratch->sxy.vx;
+        screenY                           = scratch->sxy.vy;
+        work->beamScreenY[pointIndex]     = screenY;
+        work->beamScreenDepth[pointIndex] = scratch->depth;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100BeamProjectScratch);
 }
 
-static void Actor02100_Fn035D4(Enemy* arg0, Task* arg1)
+/// Unlinks a destroyed Watcher, awards its rewards and waits before enemy teardown.
+///
+/// The release step hides the model, removes target tracking and all three
+/// collision bodies, clears contact ownership, balances the battle reference
+/// and stops any loop sound. The wait step destroys the enemy after 60 ticks.
+/// The enemy, task and work remain live until that final call.
+static void _actor02100DestroyState(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_02100_DEATH_WAIT_TICKS = 60 };
     _Actor02100Work* work;
 
-    work = arg1->work;
+    work = task->work;
     switch (work->step) {
         case ACTOR_02100_DEATH_STEP_RELEASE:
-            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            worldTargetUnlinkNode(&arg0->node);
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            worldTargetUnlinkNode(&enemy->node);
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->playerStrikeBody);
             worldCollisionUnlinkBody(&work->enemyStrikeBody);
-            arg0->recs = 0;
-            sceneReleaseBattleRefWithRewards(arg1, 0x15);
+            enemy->recs = NULL;
+            sceneReleaseBattleRefWithRewards(task, 0x15);
             work->step       = ACTOR_02100_DEATH_STEP_WAIT;
-            work->stepFrames = 0x3C;
+            work->stepFrames = ACTOR_02100_DEATH_WAIT_TICKS;
             if (work->loopSoundKind != ACTOR_02100_LOOP_SOUND_NONE) {
                 sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             }
             break;
         case ACTOR_02100_DEATH_STEP_WAIT:
             if (--work->stepFrames <= 0) {
-                enemyDestroy(arg0, arg1);
+                enemyDestroy(enemy, task);
             }
             break;
     }
