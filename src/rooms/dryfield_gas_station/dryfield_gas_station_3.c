@@ -66,9 +66,6 @@ Task* D_dryfield_gas_station_80184BD4;
 #include "rooms/room_common.h"
 #include "../../shared/screen_fade.h"
 
-#define D_dryfield_gas_station_80182E5C (D_dryfield_gas_station_80182E44[1])
-#define D_dryfield_gas_station_80182E74 (D_dryfield_gas_station_80182E44[2])
-
 /// Commands the gas-station cutscene script leaves for the cutscene task.
 ///
 /// Each one is stored over the previous command and restarts `commandStep`.
@@ -664,7 +661,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x13), 0, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E5C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[1], 0);
             cur = task->work;
             if (cur->player != NULL) {
                 msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
@@ -730,7 +727,7 @@ static void func_dryfield_gas_station_801803C0(Task* task)
                 sharedWork->playerEffectsSuppressed = 0;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
-            TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E74, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[2], 0);
             cur = shared->work;
             if (cur->player != NULL) {
                 msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
@@ -850,7 +847,7 @@ void func_dryfield_gas_station_80180A60(void)
         work->playerEffectsSuppressed = 0;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }
-    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E74, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[2], 0);
     work2 = task->work;
     if (work2->player != NULL) {
         script.source.sets          = D_dryfield_gas_station_80182E30;
