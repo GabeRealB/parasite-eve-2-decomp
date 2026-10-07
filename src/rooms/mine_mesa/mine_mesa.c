@@ -97,7 +97,7 @@ enum {
 
 enum {
     MINE_MESA_FADE_CANCEL             = -1,
-    MINE_MESA_SCENE_MUSIC_ENTRY       = 2,
+    MINE_MESA_COUNTDOWN_MUSIC_ENTRY   = 2,
     MINE_MESA_SCENE_COLLISION_NORMAL  = 0,
     MINE_MESA_SCENE_COLLISION_LOWERED = 1,
 };
@@ -249,7 +249,7 @@ void                             func_mine_mesa_8017E6D8(void);
 static void                      _mineMesaSetCompanionHeadAimMode(s32 mode);
 void                             func_mine_mesa_8017E760(void);
 void                             func_mine_mesa_8017E91C(void);
-static void                      _mineMesaSetSceneMusicEntry(u8 musicEntry);
+static void                      _mineMesaSelectCountdownMusicEntry(u8 countdownEntry);
 void                             func_mine_mesa_8017E948(void);
 void                             func_mine_mesa_8017EA24(void);
 void                             func_mine_mesa_8017EA78(void);
@@ -827,7 +827,7 @@ EvsCommand D_mine_mesa_8018515C[17] = {
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_mine_mesa_80189A80 }, { .vibrationSegments = D_mine_mesa_80189A90 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineMesaFinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSetSceneMusicEntry }, { .value = MINE_MESA_SCENE_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSelectCountdownMusicEntry }, { .value = MINE_MESA_COUNTDOWN_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
@@ -848,7 +848,7 @@ EvsCommand D_mine_mesa_801852F4[19] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSetSceneMusicEntry }, { .value = MINE_MESA_SCENE_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSelectCountdownMusicEntry }, { .value = MINE_MESA_COUNTDOWN_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineMesaSetSceneCollisionLowered }, { .value = MINE_MESA_SCENE_COLLISION_NORMAL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -998,7 +998,7 @@ EvsCommand D_mine_mesa_8018578C[110] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSetSceneMusicEntry }, { .value = MINE_MESA_SCENE_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSelectCountdownMusicEntry }, { .value = MINE_MESA_COUNTDOWN_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1025,7 +1025,7 @@ EvsCommand D_mine_mesa_801861DC[24] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSetSceneMusicEntry }, { .value = MINE_MESA_SCENE_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineMesaSelectCountdownMusicEntry }, { .value = MINE_MESA_COUNTDOWN_MUSIC_ENTRY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -3159,13 +3159,13 @@ void func_mine_mesa_8017E91C(void)
     gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
 }
 
-/// Selects the room script's scene-music table entry for a later music request.
+/// Selects the room script's countdown-music entry for a later music request.
 ///
-/// `musicEntry` must fit the active stage's scene-music table. This byte setter
+/// `countdownEntry` must fit the active stage's countdown-music table. This byte setter
 /// neither loads nor starts music; the room scripts select entry 2.
-static void _mineMesaSetSceneMusicEntry(u8 musicEntry)
+static void _mineMesaSelectCountdownMusicEntry(u8 countdownEntry)
 {
-    gStageSceneMusicEntry = musicEntry;
+    gStageSceneMusicEntry = countdownEntry;
 }
 
 void func_mine_mesa_8017E948(void)

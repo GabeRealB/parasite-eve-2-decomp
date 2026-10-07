@@ -241,6 +241,6 @@ _mineMesaSetPlayerHeadAimMode = 0x8017e684; // type:func
 _mineMesaSetCompanionHeadAimMode = 0x8017e70c; // type:func
 _mineMesaPlayerHeadBlendTask = 0x8017e7b0; // type:func
 _mineMesaSetFadeFromBlackState = 0x8017e8fc; // type:func
-_mineMesaSetSceneMusicEntry = 0x8017e93c; // type:func
+_mineMesaSelectCountdownMusicEntry = 0x8017e93c; // type:func
 _mineMesaSetSceneCollisionLowered = 0x8017eb54; // type:func
 _mineMesaEnemyWaveActorEventMsg = 0x80181800; // type:func

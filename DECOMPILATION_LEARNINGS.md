@@ -89199,7 +89199,7 @@ symbol, 100%), `base_2.i`
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 ## A constant store followed by a call taking that constant shares it: the copy is `reload_cse_regs`, not a temp (_mineForkedTunnelInitRoomTask, 2026-09-15)
 
-`_mineForkedTunnelInitRoomTask` selects scene-music entry 1 and then calls the
+`_mineForkedTunnelInitRoomTask` selects countdown-music entry 1 and then calls the
 oak-board placement-state reader with the same immediate:
 
 ```c

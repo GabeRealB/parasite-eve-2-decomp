@@ -1396,24 +1396,24 @@ static s32 _mineForkedTunnelHandleSwitchAction(Task* unusedTask, s32 messageId, 
     return 0;
 }
 
-/// Registers the tunnel room task and initializes scene music and oak-board visibility.
+/// Registers the tunnel room task and initializes countdown music and oak-board visibility.
 ///
 /// Enter at state 0 with the Mine/Shelter map and room resources loaded. Installs
-/// the room message table, publishes `GAME_TASK_SLOT_ROOM`, selects scene-music
+/// the room message table, publishes `GAME_TASK_SLOT_ROOM`, selects countdown-music
 /// entry 1 and hides the board sprites if its saved placement state is collected.
 /// Advances to the idle state. The registered task and room overlay must remain
 /// live while receiving room messages.
 static void _mineForkedTunnelInitRoomTask(Task* task)
 {
     enum {
-        MINE_FORKED_TUNNEL_SCENE_MUSIC_ENTRY   = 1,
-        MINE_FORKED_TUNNEL_OAK_BOARD_OBJECT_ID = 1,
-        MINE_FORKED_TUNNEL_OAK_BOARD_COLLECTED = 2,
+        MINE_FORKED_TUNNEL_COUNTDOWN_MUSIC_ENTRY = 1,
+        MINE_FORKED_TUNNEL_OAK_BOARD_OBJECT_ID   = 1,
+        MINE_FORKED_TUNNEL_OAK_BOARD_COLLECTED   = 2,
     };
 
     task->msgTable = D_mine_forked_tunnel_80181C80;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    gStageSceneMusicEntry = MINE_FORKED_TUNNEL_SCENE_MUSIC_ENTRY;
+    gStageSceneMusicEntry = MINE_FORKED_TUNNEL_COUNTDOWN_MUSIC_ENTRY;
     _mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(MINE_FORKED_TUNNEL_OAK_BOARD_OBJECT_ID) == MINE_FORKED_TUNNEL_OAK_BOARD_COLLECTED);
     task->state = task->state + 1;
 }
