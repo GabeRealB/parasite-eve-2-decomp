@@ -68,6 +68,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 extern UiObjectDesc D_800611E4;
 extern TaskDesc     D_actor_120500_8013843C;
 
@@ -137,7 +139,7 @@ static u8 Reflection_Data_8017FC8C[];
 
 /// Task table of the room's cutscene: entry 0 is the cutscene task
 /// `roomCutsceneTask`, entry 1 the sound task
-/// `roomCutsceneSoundTask` it runs alongside the scene.
+/// `_roomCutsceneSoundTask` it runs alongside the scene.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
 /// The room's message table, installed on the room entry task.
@@ -217,7 +219,7 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

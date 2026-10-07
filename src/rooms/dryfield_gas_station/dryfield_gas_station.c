@@ -48,6 +48,8 @@
 #include "../../shared/room_variants.h"
 #include "../../shared/gas_station_sounds.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 extern UiObjectDesc D_800611E4;
 
 /// Saved `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` (area id), restored when the cutscene ends.
@@ -119,7 +121,7 @@ void func_dryfield_gas_station_8017FE20(Task*);
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

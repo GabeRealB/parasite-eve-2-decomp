@@ -62,6 +62,8 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 // Preserve the following nonzero bytes with this scalar's storage.
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_mine_refuge_80182ADC[4];
@@ -178,7 +180,7 @@ void                              func_mine_refuge_8017FDBC(Task*);
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

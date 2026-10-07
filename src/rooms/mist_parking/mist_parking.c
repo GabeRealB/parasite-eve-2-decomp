@@ -56,6 +56,8 @@
 #include "rooms/shop_tier.h"
 #include "../../shared/room_cutscene.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 /// Task descriptor tables the room spawns its tasks from.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
@@ -158,7 +160,7 @@ TaskDesc D_mist_parking_8018668C = { { { TASK_BODY_NONE, 192 } }, Shop_SessionTa
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

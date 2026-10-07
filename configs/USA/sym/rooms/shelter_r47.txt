@@ -221,5 +221,5 @@ _actionPromptMoveCursors = 0x80184AE0; // type:func
 _actionPromptDrawCursor = 0x80184F40; // type:func
 _actionPromptResetDefault = 0x80183284; // type:func
 _actionPromptReset = 0x8018585C; // type:func
-roomCutsceneSoundTask = 0x80180540; // type:func
+_roomCutsceneSoundTask = 0x80180540; // type:func
 _actionPromptHitTest = 0x801852A0; // type:func

@@ -66,6 +66,8 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/action_prompt.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 extern UiObjectDesc D_800611E4;
 
 extern EvsCommand D_actor_143400_801350BC[];
@@ -137,7 +139,7 @@ static void func_shelter_r47_8017FCC0(Task* task);
 
 static TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

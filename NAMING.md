@@ -577,6 +577,13 @@ package prefixes.
 tasks. Its implementation interface is `src/shared/room_events.h`; record types
 used by several room overlays are declared in `include/rooms/room_common.h`.
 
+`roomCutscene` owns the included room cutscene runner and its timed sound task.
+Its implementation interface is `src/shared/room_cutscene.h`; rooms supply the
+cutscene record, task descriptors and running sound-task handle. The sound
+callback is private to each carrier, declared in its source prologue and
+marked `_roomCutscene`. Its counter measures callback ticks; completion hands
+teardown back to the runner. Timing constants use `ROOM_CUTSCENE_SOUND_`.
+
 `roomVariant` owns the included progress-dependent destination-room selection.
 Its implementation interface is `src/shared/room_variants.h`. Resolvers borrow
 a `RoomEventMsg` request and update the initialized reply's room selector;

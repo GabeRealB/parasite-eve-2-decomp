@@ -549,6 +549,6 @@ _glowDrawCapsule = 0x80185814; // type:func
 _glowDrawPulsingDisc = 0x80184E8C; // type:func
 _glowDrawDiamond = 0x80184A18; // type:func
 roomCutsceneTask = 0x80181E8C; // type:func
-roomCutsceneSoundTask = 0x80182628; // type:func
+_roomCutsceneSoundTask = 0x80182628; // type:func
 _modelPlacementAttachPartTask = 0x8018307C; // type:func
 actorMsgPlaceEulerZyx = 0x80183AC4; // type:func

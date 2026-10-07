@@ -61,6 +61,8 @@
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/trailer_coach.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 /// The "%" suffix the room's percentage formatters append.
 static u8 Telephone_Data_80181A78[];
 
@@ -214,7 +216,7 @@ TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 = {
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

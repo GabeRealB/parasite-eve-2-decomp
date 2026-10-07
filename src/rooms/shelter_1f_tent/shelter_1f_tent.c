@@ -50,6 +50,8 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_cutscene.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 extern UiObjectDesc D_800611E4;
 
 extern EvsCommand D_actor_460200_801362B8[];
@@ -127,7 +129,7 @@ s32 func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, s32);
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

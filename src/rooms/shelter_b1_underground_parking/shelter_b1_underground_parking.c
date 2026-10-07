@@ -85,6 +85,8 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 static void _actionPromptResetDefault(Task* task);
 static s32  _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
 
@@ -463,7 +465,7 @@ TaskDesc D_shelter_b1_underground_parking_80187200 = { { { TASK_BODY_NONE, 32 } 
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

@@ -81,6 +81,8 @@
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/trailer_coach.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 /// The clips the room adds to the player's animation bank, with the records
 /// stored after them.
 ///
@@ -338,7 +340,7 @@ static AnimationSet _gDryfieldTrailerCoachAnimation07994 = {
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

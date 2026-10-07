@@ -63,6 +63,8 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/backdrop_crossfade.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 /// The "%" suffix appended to a formatted percentage.
 static u8 Telephone_Data_80181A78[];
 
@@ -216,7 +218,7 @@ TmdSource gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 = {
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

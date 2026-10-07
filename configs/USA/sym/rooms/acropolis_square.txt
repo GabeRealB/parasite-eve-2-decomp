@@ -138,6 +138,6 @@ _planarReflectionUpdatePlayer = 0x8017D8C8; // type:func
 _planarReflectionAttachmentTask = 0x8017F24C; // type:func
 Reflection_Data_8017D5C4 = 0x8017D5C4;
 roomCutsceneTask = 0x80181228; // type:func
-roomCutsceneSoundTask = 0x80182048; // type:func
+_roomCutsceneSoundTask = 0x80182048; // type:func
 _acropolisSquareRejectKeyItemUse = 0x80182108; // type:func
 _acropolisSquareNoOp = 0x8018345c; // type:func

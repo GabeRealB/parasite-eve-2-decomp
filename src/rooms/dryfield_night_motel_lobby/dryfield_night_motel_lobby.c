@@ -50,6 +50,8 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/room_variants.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 void func_dryfield_night_motel_lobby_8017FD10(Task* task);
 
 extern UiObjectDesc D_800611E4;
@@ -133,7 +135,7 @@ static UiObjectDesc Telephone_Data_80181C90;
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

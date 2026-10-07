@@ -70,6 +70,8 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/glow_draw.h"
 
+static void _roomCutsceneSoundTask(Task* task);
+
 extern WorldCollisionTrigger D_acropolis_fire_escape_8018252C[12];
 
 extern UiObjectDesc D_800611E4;
@@ -209,7 +211,7 @@ extern SpriteSource   D_acropolis_fire_escape_80182D58[5];
 
 TaskDesc gRoomCutsceneTaskDescs[3] = {
     { { { TASK_BODY_NONE, 32 } }, roomCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, roomCutsceneSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

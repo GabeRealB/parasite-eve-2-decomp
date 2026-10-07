@@ -40,6 +40,5 @@
 #endif
 
 void roomCutsceneTask(Task* task);
-void roomCutsceneSoundTask(Task* task);
 
 #endif /* SRC_SHARED_ROOM_CUTSCENE_H */

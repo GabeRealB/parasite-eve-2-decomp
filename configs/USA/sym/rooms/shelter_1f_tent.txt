@@ -117,4 +117,4 @@ glowDrawDisc = 0x801807F0; // type:func
 _glowDrawPulsingDisc = 0x80181010; // type:func
 _glowDrawWideDiamond = 0x80180B90; // type:func
 roomCutsceneTask = 0x8017F484; // type:func
-roomCutsceneSoundTask = 0x8017FBC4; // type:func
+_roomCutsceneSoundTask = 0x8017FBC4; // type:func
