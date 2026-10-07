@@ -5652,6 +5652,8 @@ EMBEDDED_ASSETS = {
     'no9_golem_akropolis_prop': {"source": 'actor_510900.pe2pkg', "vram": 0x80141F5C, "size": 0x1C8, "ext": '.tmd', "type": 'model'},
     'stalker_burst_foot_right': {"source": 'actor_400600.pe2pkg', "vram": 0x801446A4, "size": 0x2F0, "ext": '.tmd', "type": 'model'},
     'zebra_stalker_burst_head': {"source": 'actor_400600.pe2pkg', "vram": 0x80141C70, "size": 0x59C, "ext": '.tmd', "type": 'model'},
+    'actor_503500_motion_15F70': {"source": 'actor_503500.pe2pkg', "vram": 0x80147D90, "size": 0x5A0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
+    'actor_503500_motion_16510': {"source": 'actor_503500.pe2pkg', "vram": 0x80148330, "size": 0x5A0, "ext": '.motion', "type": 'motion_curve', "include": 'u16'},
     'anmc_woman_cafeteria_body': {"source": 'actor_202900.pe2pkg', "vram": 0x80151A54, "size": 0x3F54, "ext": '.tmd', "type": 'model'},
     'brute_mossback_burst_head': {"source": 'actor_101100.pe2pkg', "vram": 0x8013FB48, "size": 0x7B4, "ext": '.tmd', "type": 'model'},
     'desert_chaser_burst_torso': {"source": 'actor_400100.pe2pkg', "vram": 0x80143F8C, "size": 0x304, "ext": '.tmd', "type": 'model'},
