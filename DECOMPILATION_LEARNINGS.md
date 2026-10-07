@@ -10056,7 +10056,7 @@ second slot in that overlay would stay unfilled; `promote` drops such an overlay
 from the candidate set and then reports "every overlay carrying it contains it
 twice; cannot share". The vacuum's port brief counts *copies*, not overlays, so
 it still lists the body as shared and asks for a promotion —
-`func_actor_451100_80132CAC` reads as "7 other overlays" but is really three
+`_actor451100PairWalkExit` reads as "7 other overlays" but is really three
 overlays holding it two or three times each, plus the already-promoted
 `ActorsShared801366fc`. Run `promote` before believing the brief; when it
 refuses, land the body in the overlay's own `.c`.
@@ -86235,7 +86235,7 @@ accesses do not have that shape - `sw $ra, 0x3C($sp)`, `sw s0,0x28(sp)`,
 `sh v0,0x4B4(v1)` and `lw v1,0x1C(a0)` all return no match - so the penalty meant
 to measure the frame is fired almost only by `aN` register names.
 
-`func_actor_451100_8013268C` scored 99.778% with `stack=2` on an object diff
+`_actor451100QuietWalkApplyCommand` scored 99.778% with `stack=2` on an object diff
 whose one changed line was `$a2` vs `$a0`. `.diagnosis.json` reported
 `stack_accesses: 0`, and that is the tell: the m2c seed had dropped the handler's
 two unused leading parameters, so its third argument - the payload the body
@@ -86244,18 +86244,19 @@ actually reads - was allocated `$a0`. Declaring the full arity was the whole fix
 
 ```c
 /* m2c seed: func(void *arg2)                     -> lhu v0,2(a0) */
-s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg)
+s32 _actor451100QuietWalkApplyCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
-    if (msg->command == 0) {
-        ActorsShared80131f9cWork->field_4B4 = 0x14;
+    if (command->command == 0) {
+        _gFootstepWalkWork->turnFrames = 0x14;
     }
     return 0;
 }
 ```
 
-The message handlers in this family all have type
-`s32 (*)(Task*, s32, TaskMessageArg, TaskMessageArg)` (`TaskMessageHandler`, `include/gameplay/message.h`), so the
-payload is argument 3 and the unused `index`/`value` still have to be declared.
+The message dispatcher in this family passes
+`(Task*, s32, <first payload>, <second payload>)` through the unprototyped
+`TaskMessageHandler` (`include/gameplay/message.h`), so the payload is argument
+3 and the unused receiver/message-ID positions still have to be declared.
 Read a small `stack` as "check the argument registers" whenever
 `stack_accesses` is 0; splitting locals is the wrong move.
 

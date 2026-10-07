@@ -29,6 +29,8 @@
 #include "../../shared/footstep_walk.h"
 #include "../../shared/pair_walk.h"
 
+static void _actor451100QuietWalkSpawn(Enemy* enemy, Task* task);
+static void _actor451100PairWalkSpawn(Enemy* enemy, Task* task);
 static void _footstepWalkQuietUpdate(Task* task);
 static void _footstepWalkQuietResetAnim(void);
 static void _footstepWalkQuietBlendAnim(void);
@@ -83,25 +85,25 @@ extern u8               D_actor_451100_8014E6FC[];
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
-static void func_actor_451100_801323B4(Task* task);
+static void _actor451100QuietWalkExit(Task* task);
 static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
-static void func_actor_451100_80132CAC(Task* task);
+static void _actor451100PairWalkExit(Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor451100No9GolemDryfieldBody;
 static TmdSource _gActor451100Model1436C;
-void             func_actor_451100_80132BD4(Task*);
-void             func_actor_451100_801330B0(Task*);
+static void      _actor451100PairWalkTask(Task* task);
+static void      _actor451100CarriedModelTask(Task* task);
 
-s32 func_actor_451100_80132E98(Task*, s32, AnimationPlayRequest*, s32);
-s32 func_actor_451100_80132FE0(Task*, s32, s32, s32);
-s32 func_actor_451100_80132FE8(Task*, s32, VECTOR*, s32);
+static s32 _actor451100PairWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32 _actor451100PairWalkIgnoreCommand(Task* unusedTask, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument);
+static s32 _actor451100PairWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 unusedArgument);
 
-s32  func_actor_451100_80132538(Task*, s32, AnimationPlayRequest*, s32);
-s32  func_actor_451100_801325C8(Task*, s32, s32, s32);
-s32  func_actor_451100_8013268C(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-void func_actor_451100_801322D4(Task*);
+static s32  _actor451100QuietWalkPlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static s32  _actor451100QuietWalkSetModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument);
+static s32  _actor451100QuietWalkApplyCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument);
+static void _actor451100QuietWalkTask(Task* task);
 
 extern AnimationPlayRequest D_actor_451100_80134D98;
 extern AnimationPlayRequest D_actor_451100_80134DAC;
@@ -913,15 +915,15 @@ static AnimationSet _gActor451100Animation0D8B8 = {
 static s16 _gFootstepWalkBlendFrames = FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES;
 
 TaskMessageEntry D_actor_451100_8013F704[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_451100_80132538 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_451100_801325C8 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor451100QuietWalkPlayAnimation },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor451100QuietWalkSetModelDraw },
     { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_451100_8013268C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor451100QuietWalkApplyCommand },
     { ACTOR_MESSAGE_WALK_TO, _footstepWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_451100_8013F734 = { { { TASK_BODY_TMD, 192 } }, func_actor_451100_801322D4, { .model = &_gActor451100AyaBreaBody } };
+TaskDesc D_actor_451100_8013F734 = { { { TASK_BODY_TMD, 192 } }, _actor451100QuietWalkTask, { .model = &_gActor451100AyaBreaBody } };
 
 AnimationSet* D_actor_451100_8013F740[37] = {
     NULL,
@@ -1380,17 +1382,17 @@ static AnimationSet _gActor451100Animation1C86C = {
 };
 
 TaskMessageEntry D_actor_451100_8014E6B4[6] = {
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_451100_80132E98 },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor451100PairWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pairWalkSetVisibility },
     { ACTOR_MESSAGE_PLACE, _pairWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_451100_80132FE0 },
-    { ACTOR_MESSAGE_WALK_TO, func_actor_451100_80132FE8 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor451100PairWalkIgnoreCommand },
+    { ACTOR_MESSAGE_WALK_TO, _actor451100PairWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_451100_8014E6E4[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_451100_80132BD4, { .model = &_gActor451100No9GolemDryfieldBody } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_451100_801330B0, { .model = &_gActor451100Model1436C } },
+    { { { TASK_BODY_TMD, 96 } }, _actor451100PairWalkTask, { .model = &_gActor451100No9GolemDryfieldBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor451100CarriedModelTask, { .model = &_gActor451100Model1436C } },
 };
 
 u8 D_actor_451100_8014E6FC[72] = {
@@ -1488,79 +1490,99 @@ Task* D_actor_451100_8014E748;
 /// of the animation clip; request values narrow to 16 bits without checking.
 static s16 _gFootstepWalkMode;
 
-static void func_actor_451100_80131E24(Enemy* enemy, Task* task);
-static void func_actor_451100_801328A8(Enemy* enemy, Task* task);
-
-/// State 0 of the `func_actor_451100_801322D4` dispatcher: allocates the work
-/// block, publishes it in `_gFootstepWalkWork` and on the task's work
-/// slot, points the model's light and color matrices and its animation context
-/// at it, then runs the per-frame update once and advances the task to state 1.
+/// Binds the quiet walker's borrowed nineteen-part rig and queues startup clip 20.
 ///
-/// Every access to the block after the null check goes through
-/// `_gFootstepWalkWork` rather than the `memCalloc` result, which is why
-/// the pointer is reloaded at each use.
-static void func_actor_451100_80131E24(Enemy* enemy, Task* task)
+/// The published work, model, native clip table and loaded tracks 1 to 18 must
+/// remain live through playback. Clears travel and turning; the caller applies
+/// the reset before ticking any driven slot.
+static inline void _actor451100QuietWalkPrepareAnimation(TmdObject* model)
 {
-    VECTOR                 vec;
-    FootstepWalkQuietWork* work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
+    enum { ACTOR_451100_QUIET_WALK_STARTUP_CLIP = 20 };
 
-    obj                = task->extra.tmd;
-    coord              = obj->coords;
-    work               = memCalloc(sizeof(FootstepWalkQuietWork), 0);
-    _gFootstepWalkWork = work;
-    task->work         = work;
-    if (work == NULL) {
-        enemyDestroy(enemy, task);
-        return;
-    }
-    task->exitCallback               = func_actor_451100_801323B4;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
-    enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
-    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->lightMtx                    = &_gFootstepWalkWork->light;
-    obj->colorMtx                    = &_gFootstepWalkWork->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
-    D_actor_451100_8014E748          = task;
-    vec.vz                           = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&_gFootstepWalkWork->rig.anim, D_actor_451100_8013F740, obj,
+    animationInitContext(&_gFootstepWalkWork->rig.anim, D_actor_451100_8013F740, model,
                          _gFootstepWalkWork->rig.poses, _gFootstepWalkWork->rig.slots);
-    _gFootstepWalkWork->st.animId  = 0x14;
+    _gFootstepWalkWork->st.animId  = ACTOR_451100_QUIET_WALK_STARTUP_CLIP;
     _gFootstepWalkWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
     _gFootstepWalkWork->st.travel  = 0;
     _gFootstepWalkWork->turnFrames = 0;
-    task->msgTable                 = D_actor_451100_8013F704;
+}
+
+/// Initializes the package's quiet nineteen-part scene walker in task state 0.
+///
+/// Requires a live TMD task with its `Enemy` in `spawnArg2` and no work allocation.
+/// The primary heap, view, lighting query and animation scratch/GTE state must be
+/// ready; startup clip 20 and tracks 1 to 18 must be loaded. The task owns the
+/// zeroed `FootstepWalkQuietWork`; its model borrows the matrices and rig storage.
+/// Publishes the work and task for singleton handlers, resets the startup clip
+/// without a pose tick, and advances to state 1 with travel and turning cleared.
+/// Allocation failure destroys the enemy and begins task teardown immediately.
+/// The exit callback releases the enemy and starts task/work/model teardown;
+/// the published pointers must not be used afterwards.
+static void _actor451100QuietWalkSpawn(Enemy* enemy, Task* task)
+{
+    enum { ACTOR_451100_QUIET_WALK_OT_OFFSET             = 1,
+           ACTOR_451100_QUIET_WALK_LIGHT_SAMPLE_Y_OFFSET = 800 };
+
+    VECTOR3                lightingSample;
+    FootstepWalkQuietWork* allocatedWork;
+    TmdObject*             model;
+    GfxCoord*              rootCoord;
+
+    model              = task->extra.tmd;
+    rootCoord          = model->coords;
+    allocatedWork      = memCalloc(sizeof(*allocatedWork), false);
+    _gFootstepWalkWork = allocatedWork;
+    task->work         = allocatedWork;
+    if (allocatedWork == NULL) {
+        enemyDestroy(enemy, task);
+        return;
+    }
+    // The task owns the block; the model borrows its lighting matrices.
+    task->exitCallback               = _actor451100QuietWalkExit;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
+    enemy->field_48                  = 0;
+    enemy->node.state.parts.targeted = false;
+    enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
+    model->otOffset                  = ACTOR_451100_QUIET_WALK_OT_OFFSET;
+    model->lightMtx                  = &_gFootstepWalkWork->light;
+    model->colorMtx                  = &_gFootstepWalkWork->color;
+    // Preserve the existing cached position and its composition frame.
+    lightingSample.vx       = rootCoord->workm.t[0];
+    lightingSample.vy       = rootCoord->workm.t[1] - ACTOR_451100_QUIET_WALK_LIGHT_SAMPLE_Y_OFFSET;
+    D_actor_451100_8014E748 = task;
+    lightingSample.vz       = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingSample, 0, ARRAY_SIZE(model->lightMtx->m));
+    // Reset driven slots now; the first frame writes their poses.
+    _actor451100QuietWalkPrepareAnimation(model);
+    task->msgTable = D_actor_451100_8013F704;
     _footstepWalkQuietUpdate(task);
     task->state += 1;
 }
 
 #include "../../shared/footstep_walk_quiet_update.inc.c"
 
-/// Task handler of the actor whose work block this overlay publishes: runs
-/// the handler for the task's state from a two-entry table built on the stack
-/// (0 spawns, 1 runs a frame), refreshing `_gFootstepWalkWork` from the
-/// task's work slot first so the handlers can reach the block without the
-/// task.
-void func_actor_451100_801322D4(Task* task)
+/// Dispatches initialization and frames for the package's quiet scene walker.
+///
+/// Task state must be 0 (spawn) or 1 (lighting, movement/animation and shadow).
+/// Requires a live nineteen-part TMD model and `Enemy` in `spawnArg2`. Refreshes the
+/// published work before every state call; after spawning, the model, work,
+/// message table and clips must stay live. Only one published walker can receive
+/// singleton messages at a time. A failed spawn may tear the task down.
+static void _actor451100QuietWalkTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        func_actor_451100_80131E24,
+    EnemyTaskFunc stateHandlers[] = {
+        _actor451100QuietWalkSpawn,
         _actorRenderWalkerFrame,
     };
 
     _gFootstepWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
 ///
-/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// Bind to a static void(`Enemy`*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
 #define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrame
 /// Selects this frame instance's motion and animation update.
@@ -1577,9 +1599,12 @@ void func_actor_451100_801322D4(Task* task)
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Exit callback the `func_actor_451100_801322D4` spawn handler installs on the
-/// actor's task: tears down the enemy the task was spawned for.
-static void func_actor_451100_801323B4(Task* task)
+/// Releases the quiet scene walker's enemy and begins task teardown.
+///
+/// Requires a live task with its owned `Enemy` in `spawnArg2`. The task releases
+/// its work and model through default teardown; the published work and task
+/// pointers remain dangling and must not be used after this call.
+static void _actor451100QuietWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -1590,17 +1615,26 @@ static void func_actor_451100_801323B4(Task* task)
 
 #include "../../shared/footstep_walk_quiet_blend_anim.inc.c"
 
-/// Starts the actor's scripted animation selected by the request.
+/// Applies an animation request synchronously to the published quiet walker.
 ///
-/// Rejects ids 0x25 and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 func_actor_451100_80132538(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` with live published task/work and a
+/// borrowed, word-aligned request. Returns -1 for IDs 37 and above without
+/// changing playback; accepted IDs must still select loaded clips (1 or 20..35)
+/// with tracks 1 to 18. Negative IDs and empty entries are not checked.
+/// Nonzero blend captures initialized poses and narrows `blendFrames` to a signed
+/// halfword in whole normal-rate frames (0..2047 avoids blend-time overflow).
+/// Reset ignores that duration. Source-bank and collision options are ignored.
+/// Returns 0 after applying the reset/blend; retains no request pointer.
+/// The receiver, message ID and second payload are ignored.
+static s32 _actor451100QuietWalkPlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
-    if (args->animationId < 0x25) {
-        _gFootstepWalkWork->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
+    enum { ACTOR_451100_QUIET_WALK_CLIP_LIMIT = ARRAY_SIZE(D_actor_451100_8013F740) };
+
+    if (request->animationId < ACTOR_451100_QUIET_WALK_CLIP_LIMIT) {
+        _gFootstepWalkWork->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_BLEND;
-            _gFootstepWalkBlendFrames    = args->blendFrames;
+            _gFootstepWalkBlendFrames    = request->blendFrames;
         } else {
             _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
@@ -1611,35 +1645,46 @@ s32 func_actor_451100_80132538(Task* task, s32 arg1, AnimationPlayRequest* args,
     return -1;
 }
 
-/// Message 0x7D5 handler of `D_actor_451100_8013F704`: bit 0 of `arg2` clears
-/// `TmdObject::flags` on the model of the task in `D_actor_451100_8014E748`,
-/// showing it, and its absence sets 0x80, hiding it; bit 1 additionally ORs in
-/// 0x4.
-s32 func_actor_451100_801325C8(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Replaces the published quiet walker's model flags from visibility bits.
+///
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` with a live published TMD task.
+/// `ACTOR_MESSAGE_PAIR_SHOW` clears all flags; without it, only active-draw
+/// exclusion remains. `ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER` adds automatic-buffer
+/// exclusion. Other bits are ignored, and no buffer is allocated or released.
+/// The receiver, message ID and second payload are ignored. Returns 0.
+static s32 _actor451100QuietWalkSetModelDraw(Task* unusedTask, s32 messageId, s32 drawFlags, s32 unusedArgument)
 {
-    TmdObject* obj;
+    TmdObject* model;
 
-    obj = D_actor_451100_8014E748->extra.tmd;
-    if (arg2 & 1) {
-        obj->flags = 0;
+    model = D_actor_451100_8014E748->extra.tmd;
+    if (drawFlags & ACTOR_MESSAGE_PAIR_SHOW) {
+        model->flags = 0;
     } else {
-        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (arg2 & 2) {
-        obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (drawFlags & ACTOR_MESSAGE_PAIR_SKIP_AUTO_BUFFER) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     }
     return 0;
 }
 
 #include "../../shared/footstep_walk_place.inc.c"
 
-/// Message 0x7DB handler of `D_actor_451100_8013F704`: a zero payload
-/// halfword sets the published block's `turnFrames` to 0x14, the count of frames
-/// the step routine turns the model while clip 3 plays.
-s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Schedules twenty turning updates for command 0 on the published quiet walker.
+///
+/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` with live published work and a borrowed,
+/// two-byte-aligned `ActorCommand`. Context tags are ignored. Command 0 replaces
+/// the remaining turn count; other commands do nothing. Turning consumes one
+/// count and adds 51/4096 turns only while the turn clip plays in tick state;
+/// this request neither selects that clip nor updates the model immediately.
+/// The receiver, message ID and second payload are ignored. Always returns 0.
+static s32 _actor451100QuietWalkApplyCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
-    if (msg->command == 0) {
-        _gFootstepWalkWork->turnFrames = 0x14;
+    enum { ACTOR_451100_QUIET_WALK_COMMAND_TURN = 0,
+           ACTOR_451100_QUIET_WALK_TURN_UPDATES = 20 };
+
+    if (command->command == ACTOR_451100_QUIET_WALK_COMMAND_TURN) {
+        _gFootstepWalkWork->turnFrames = ACTOR_451100_QUIET_WALK_TURN_UPDATES;
     }
     return 0;
 }
@@ -1654,82 +1699,98 @@ s32 func_actor_451100_8013268C(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
 #include "../../shared/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-/// State 0 of the `func_actor_451100_80132BD4` dispatcher: allocates the
-/// actor's 0x4C0-byte `PairWalkWork` block and hangs it off the task, spawns
-/// entry 1 of `D_actor_451100_8014E6E4` (the sub-model task
-/// `func_actor_451100_801330B0`), hands it to `taskReparent` with this task
-/// and keeps it in `pairTask`, then seeds the animation and runs the step
-/// routine once.
+/// Binds a pair walker's borrowed rig and queues its idle clip for a reset.
 ///
-/// `memCalloc`'s result goes through an untyped `block` that `work` is copied
-/// from: the raw pointer is what the `Task::work` store and the null test read,
-/// so it stays a short-lived `$v0` quantity while the typed copy takes the
-/// callee-saved home it needs across the calls below. Assigning the call result
-/// straight to `work` collapses the two into one pseudo and puts `$s1` in all
-/// three places.
-static void func_actor_451100_801328A8(Enemy* enemy, Task* task)
+/// Requires a live zeroed work block, nineteen-part model and loaded clip 1
+/// with tracks 1 to 18. Model coordinates, clip data, slots and poses remain
+/// borrowed through playback; the caller applies the reset before slot ticks.
+static inline void _actor451100PairWalkPrepareAnimation(PairWalkWork* work, TmdObject* model)
 {
-    VECTOR        vec;
-    PairWalkWork* work;
-    GfxCoord*     coord;
-    TmdObject*    obj;
-    Enemy*        spawned;
-    void*         block;
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_451100_8014E6FC, model, work->rig.poses,
+                         work->rig.slots);
+    work->st.animId = PAIR_WALK_ANIM_IDLE;
+    work->st.state  = ACTOR_ENEMY_ANIM_RESET;
+}
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    block      = memCalloc(sizeof(PairWalkWork), false);
-    work       = block;
-    task->work = block;
-    if (block == NULL) {
+/// Initializes the package's paired scene walker and its carried model.
+///
+/// Requires a live nineteen-part TMD task with its `Enemy` in `spawnArg2` and no
+/// work allocation. The primary heap, view, lighting query and animation
+/// scratch/GTE state must be ready, with idle clip 1 and tracks 1 to 18 loaded.
+/// The task owns its zeroed `PairWalkWork`. Descriptor 1 supplies a carried-model
+/// task parented under this task; child spawning is assumed to succeed.
+/// Both models borrow the parent's light/color matrices. Resets the idle clip
+/// without a pose tick and advances to state 1. Work-allocation failure destroys
+/// the enemy and begins task teardown. Default teardown exits the child before
+/// releasing the parent work; model and clip storage must remain live meanwhile.
+static void _actor451100PairWalkSpawn(Enemy* enemy, Task* task)
+{
+    enum { ACTOR_451100_PAIR_WALK_OT_OFFSET             = 1,
+           ACTOR_451100_PAIR_WALK_LIGHT_SAMPLE_Y_OFFSET = 800,
+           ACTOR_451100_CARRIED_MODEL_DESCRIPTOR        = 1 };
+
+    VECTOR3       lightingSample;
+    PairWalkWork* work;
+    GfxCoord*     rootCoord;
+    TmdObject*    model;
+    Enemy*        carriedEnemy;
+    PairWalkWork* allocatedWork;
+
+    model         = task->extra.tmd;
+    rootCoord     = model->coords;
+    allocatedWork = memCalloc(sizeof(*allocatedWork), false);
+    work          = allocatedWork;
+    task->work    = allocatedWork;
+    if (allocatedWork == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_451100_80132CAC;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    // The task owns the work and the carried model belongs to its teardown tree.
+    task->exitCallback               = _actor451100PairWalkExit;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
-    enemy->node.state.parts.targeted = 0;
+    enemy->node.state.parts.targeted = false;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
+    model->otOffset                  = ACTOR_451100_PAIR_WALK_OT_OFFSET;
     work->enemy                      = enemy;
-    spawned                          = enemySpawnFromTable(D_actor_451100_8014E6E4, 1, 0, enemy);
-    taskReparent(task, spawned->task);
-    work->pairTask = spawned->task;
-    obj->lightMtx  = &work->light;
-    obj->colorMtx  = &work->color;
-    vec.vx         = coord->workm.t[0];
-    vec.vy         = coord->workm.t[1] - 0x320;
-    vec.vz         = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_451100_8014E6FC, obj, work->rig.poses,
-                         work->rig.slots);
-    work->st.animId = 1;
-    work->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable  = D_actor_451100_8014E6B4;
+    carriedEnemy                     = enemySpawnFromTable(D_actor_451100_8014E6E4, ACTOR_451100_CARRIED_MODEL_DESCRIPTOR, 0, enemy);
+    taskReparent(task, carriedEnemy->task);
+    work->pairTask  = carriedEnemy->task;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    // Sample the cached root position before the first animation update.
+    lightingSample.vx = rootCoord->workm.t[0];
+    lightingSample.vy = rootCoord->workm.t[1] - ACTOR_451100_PAIR_WALK_LIGHT_SAMPLE_Y_OFFSET;
+    lightingSample.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingSample, 0, ARRAY_SIZE(model->lightMtx->m));
+    _actor451100PairWalkPrepareAnimation(work, model);
+    task->msgTable = D_actor_451100_8014E6B4;
     _pairWalkUpdate(task);
     task->state += 1;
 }
 
 #include "../../shared/pair_walk_update.inc.c"
 
-/// Task handler of the actor whose work block lives only on its task, entry 0
-/// of `D_actor_451100_8014E6E4`: runs the handler for the task's state from a
-/// two-entry table built on the stack (0 spawns, 1 runs a frame), passing the
-/// task's `Enemy` as well as the task.
-void func_actor_451100_80132BD4(Task* task)
+/// Dispatches initialization and frames for the package's paired scene walker.
+///
+/// Task state must be 0 (spawn) or 1 (lighting, movement/animation and shadow).
+/// Requires a live nineteen-part TMD task and its `Enemy` in `spawnArg2`; after
+/// spawning, `PairWalkWork` and the carried model must remain live. Frame updates
+/// use this task's work directly. A failed work allocation may tear the task down.
+static void _actor451100PairWalkTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        func_actor_451100_801328A8,
+    EnemyTaskFunc stateHandlers[] = {
+        _actor451100PairWalkSpawn,
         _actorRenderWalkerFrameSecond,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
 ///
-/// Bind to a static void(Enemy*, Task*) function declared in the prologue.
+/// Bind to a static void(`Enemy`*, Task*) function declared in the prologue.
 /// This identifier alias evaluates no arguments; undefine after the fragment.
 #define ACTOR_RENDER_WALKER_FRAME _actorRenderWalkerFrameSecond
 /// Selects this frame instance's motion and animation update.
@@ -1745,9 +1806,12 @@ void func_actor_451100_80132BD4(Task* task)
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Exit callback the `func_actor_451100_80132BD4` spawn handler installs on the
-/// actor's task: tears down the enemy the task was spawned for.
-static void func_actor_451100_80132CAC(Task* task)
+/// Releases the paired scene walker's enemy and begins task teardown.
+///
+/// Requires a live task with its owned `Enemy` in `spawnArg2`. Default teardown
+/// exits the carried model before releasing the parent's work, then arranges
+/// model release. Neither the task nor enemy may be accessed afterwards.
+static void _actor451100PairWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }
@@ -1766,20 +1830,28 @@ static void func_actor_451100_80132CAC(Task* task)
 
 #include "../../shared/pair_walk_reseed_anim.inc.c"
 
-/// Starts the actor's scripted animation selected by the request.
+/// Applies an animation request synchronously to the paired scene walker.
 ///
-/// Rejects ids 0x12 and above before changing playback state.
-/// The blend path carries the requested duration in whole frames.
-s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args, s32 arg3)
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` on a live TMD task with `PairWalkWork` and
+/// its rig bound to loaded tracks 1 to 18. Borrows the word-aligned request only
+/// during dispatch. Returns -1 for IDs 18 and above without changing playback;
+/// accepted IDs must select loaded clips 1..16. Negative IDs and empty entries
+/// are not checked. Source-bank and collision options are ignored.
+/// Nonzero blend captures initialized poses and narrows `blendFrames` to a signed
+/// halfword in whole normal-rate frames (0..2047 avoids blend-time overflow).
+/// Reset ignores that duration. Returns 0 after applying the reset/blend.
+/// The message ID and second payload are ignored.
+static s32 _actor451100PairWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument)
 {
+    enum { ACTOR_451100_PAIR_WALK_CLIP_LIMIT = 18 };
     PairWalkWork* work;
 
     work = task->work;
-    if (args->animationId < 0x12) {
-        work->st.animId = args->animationId;
-        if (args->blend != ANIMATION_BLEND_RESET) {
+    if (request->animationId < ACTOR_451100_PAIR_WALK_CLIP_LIMIT) {
+        work->st.animId = request->animationId;
+        if (request->blend != ANIMATION_BLEND_RESET) {
             work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-            work->blendFrames = args->blendFrames;
+            work->blendFrames = request->blendFrames;
         } else {
             work->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
@@ -1794,61 +1866,76 @@ s32 func_actor_451100_80132E98(Task* task, s32 arg1, AnimationPlayRequest* args,
 
 #include "../../shared/pair_walk_place.inc.c"
 
-/// Message 0x7DB handler of `D_actor_451100_8014E6B4`: accepts the message and
-/// does nothing.
-s32 func_actor_451100_80132FE0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Accepts paired-walker actor commands without taking any action.
+///
+/// Handles `ACTOR_COMMAND_MESSAGE_APPLY` and returns 0. All arguments are ignored,
+/// including the borrowed command pointer; no payload storage is read or retained.
+static s32 _actor451100PairWalkIgnoreCommand(Task* unusedTask, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument)
 {
     return 0;
 }
 
-/// Message 0x7DD handler of `D_actor_451100_8014E6B4`, the "walk to" opcode:
-/// turns the actor's root coordinate to face `target`, caching the yaw in the
-/// work block, and leaves the horizontal distance to it, in seventeenths, in
-/// `travel` for the step routine to count down.
-s32 func_actor_451100_80132FE8(Task* task, s32 arg1, VECTOR* target, s32 arg3)
+/// Faces the paired walker toward a destination and records its travel ticks.
+///
+/// Handles ACTOR_MESSAGE_WALK_TO on a live TMD task with `PairWalkWork`. Borrows a
+/// word-aligned target through dispatch, reading only X/Z in the root parent's
+/// coordinate frame. Y is ignored. Replaces the rotation with a unit-scale yaw
+/// and records the signed-halfword heading in 4096 units per turn.
+/// Stores floor(horizontal distance / 17) in signed-halfword travel, without
+/// clamping. Differences and their squared sum must fit signed 32 bits; the tick
+/// count must fit 0..32767. Does not invalidate composition or select a walk
+/// clip; a separate animation request starts movement. The target pointer is not
+/// retained. The message ID and second payload are ignored. Returns 0.
+static s32 _actor451100PairWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 unusedArgument)
 {
-    GfxCoord*     coord;
+    enum { ACTOR_451100_PAIR_WALK_DISTANCE_PER_TICK = 17 };
+    GfxCoord*     rootCoord;
     PairWalkWork* work;
-    s32           dx;
-    s32           dz;
-    u16           yaw;
+    s32           deltaX;
+    s32           deltaZ;
+    s16           yaw;
 
-    coord        = task->extra.tmd->coords;
+    rootCoord    = task->extra.tmd->coords;
     work         = task->work;
-    dx           = target->vx - coord->coord.t[0];
-    dz           = target->vz - coord->coord.t[2];
-    yaw          = ratan2(dx, dz);
+    deltaX       = target->vx - rootCoord->coord.t[0];
+    deltaZ       = target->vz - rootCoord->coord.t[2];
+    yaw          = ratan2(deltaX, deltaZ);
     work->st.yaw = yaw;
-    gfxRotMatrixY(&coord->coord, (s16)yaw, 1);
-    work->st.travel = SquareRoot0(dx * dx + dz * dz) / 17;
+    gfxRotMatrixY(&rootCoord->coord, yaw, GRAPHICS_ROTATION_REPLACE);
+    work->st.travel = SquareRoot0(deltaX * deltaX + deltaZ * deltaZ) / ACTOR_451100_PAIR_WALK_DISTANCE_PER_TICK;
     return 0;
 }
 
-/// Per-frame handler of the sub-model task, entry 1 of
-/// `D_actor_451100_8014E6E4`, reached with the sub-model's own `TmdObject` in
-/// `Task::extra` and the actor holding it as `Task::parent`. On its first tick
-/// it lights the sub-model with the parent's two leading work matrices and
-/// hangs its root coordinate off coordinate 8 of the parent's model; after that
-/// it only marks the coordinate dirty each frame so it follows that part.
-void func_actor_451100_801330B0(Task* task)
+/// Attaches the paired walker's carried model to part 8 and keeps it following.
+///
+/// Requires a live TMD child task whose parent has a nineteen-part TMD model and
+/// `PairWalkWork`; both outlive the child. State 0 borrows the parent's light/color
+/// matrices, links the child's root to part 8 and enters state 1. Both states
+/// invalidate the root composition each frame. The child owns no animation work
+/// or lighting matrices; the parent's teardown tree controls its lifetime.
+static void _actor451100CarriedModelTask(Task* task)
 {
-    char       pad[0x10];
-    Task*      parent = task->parent;
-    TmdObject* obj    = task->extra.tmd;
-    GfxCoord*  coord  = obj->coords;
-    GfxCoord*  sub    = &parent->extra.tmd->coords[8];
-    MATRIX*    work   = (MATRIX*)parent->work;
+    enum { ACTOR_451100_CARRIED_MODEL_ATTACH = 0,
+           ACTOR_451100_CARRIED_MODEL_FOLLOW = 1,
+           ACTOR_451100_CARRIED_MODEL_PART   = 8 };
+
+    char          unusedStack[0x10]; // Retains the otherwise unused 16-byte stack frame.
+    Task*         parentTask      = task->parent;
+    TmdObject*    model           = task->extra.tmd;
+    GfxCoord*     rootCoord       = model->coords;
+    GfxCoord*     attachmentCoord = &parentTask->extra.tmd->coords[ACTOR_451100_CARRIED_MODEL_PART];
+    PairWalkWork* parentWork      = parentTask->work;
 
     switch (task->state) {
-        case 0:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            obj->lightMtx       = work;
-            obj->colorMtx       = work + 1;
-            coord->parent       = sub;
+        case ACTOR_451100_CARRIED_MODEL_ATTACH:
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            model->lightMtx         = &parentWork->light;
+            model->colorMtx         = &parentWork->color;
+            rootCoord->parent       = attachmentCoord;
             task->state++;
             break;
-        case 1:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        case ACTOR_451100_CARRIED_MODEL_FOLLOW:
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
     }
 }
