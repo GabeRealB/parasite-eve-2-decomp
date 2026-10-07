@@ -1464,6 +1464,7 @@ void actor510900FlameSpriteTask45(Task* task)
     s16                 riseSpeed;
     u8                  glowBrightness;
     u16                 worldZ;
+    s32                 framesLeft;
     s32                 fadeBrightness;
 
     /// Draws the flame's ground glow in its coordinate's parent frame.
@@ -1524,11 +1525,21 @@ void actor510900FlameSpriteTask45(Task* task)
             }
             // Raw texture colour gives way to modulation for the last eight frames.
             if (effect->angle - ACTOR_510900_FLAME_FADE_FRAMES < effect->age) {
-                fadeBrightness = (effect->angle - effect->age + 1) * ACTOR_510900_FLAME_FADE_STEP;
-                __asm__ volatile("" : "=r"(glowBrightness) : "0"(fadeBrightness));
-                sprite->r0 = fadeBrightness;
-                sprite->g0 = fadeBrightness;
-                sprite->b0 = fadeBrightness;
+                framesLeft = effect->angle - effect->age + 1;
+                // Fitted: the image masks the glow argument with 0xFF, so the
+                // product reached glowBrightness through a join of two
+                // assignments, and whatever chose between them left no
+                // instruction. What was tested, and whether the two sides
+                // differed in the source, is unknown; this test is a stand-in.
+                if (framesLeft > 0) {
+                    fadeBrightness = framesLeft * ACTOR_510900_FLAME_FADE_STEP;
+                } else {
+                    fadeBrightness = framesLeft * ACTOR_510900_FLAME_FADE_STEP;
+                }
+                glowBrightness = fadeBrightness;
+                sprite->r0     = fadeBrightness;
+                sprite->g0     = fadeBrightness;
+                sprite->b0     = fadeBrightness;
             } else {
                 glowBrightness = ACTOR_510900_FLAME_FULL_BRIGHTNESS;
                 setShadeTex(sprite, 1);
