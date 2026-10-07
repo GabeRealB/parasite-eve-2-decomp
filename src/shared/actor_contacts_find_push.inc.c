@@ -70,7 +70,7 @@ static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s
         s->kind = recs[s->recordIndex].key.value & 0xFFFF0000;
         if (s->kind == 0x10000 || s->kind == 0x30000) {
             s->hit = 1;
-            actorCalcPush(&s->position, &recs[s->recordIndex], &s->push);
+            _actorContactCalcHorizontalPushback(&s->position, &recs[s->recordIndex], &s->push);
             s->uncappedPush.vx = s->push.vx;
             s->uncappedPush.vz = s->push.vz;
         }

@@ -1012,37 +1012,6 @@ static __inline__ s32 _actorAngleBearingInFrame(ActorBearingScratch* scratch, co
     return angle;
 }
 
-/// The push that moves `pos` out of the contact record `rec`: how deep `pos`
-/// sits inside the record's radius, along the direction from the record's
-/// centre carried into grid space. Only X and Z are written.
-static __inline__ void actorCalcPush(SVECTOR* pos, WorldCollisionContact* rec, SVECTOR* out)
-{
-    VECTOR d;
-    VECTOR n;
-    s32    t;
-    s32    pen;
-
-    d.vx = pos->vx - rec->point.vx;
-    d.vy = 0;
-    d.vz = pos->vz - rec->point.vz;
-    pen  = SquareRoot0(d.vx * d.vx + d.vz * d.vz);
-    pen  = rec->distance - pen;
-    if (pen <= 0) {
-        t = 0;
-    } else {
-        t = pen;
-    }
-    pen  = t;
-    d.vx = pos->vx - rec->point.vx;
-    d.vy = pos->vy - rec->point.vy;
-    d.vz = pos->vz - rec->point.vz;
-    VectorNormal(&d, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &n, &d);
-    out->vx = (pen * d.vx) >> 12;
-    out->vy = 0;
-    out->vz = (pen * d.vz) >> 12;
-}
-
 /// Pre-multiplies a rotation by a parent's basis and normalizes the product.
 ///
 /// Inputs use 12-fractional-bit coefficients. Only the resulting 3x3 is valid;

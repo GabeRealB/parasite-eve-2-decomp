@@ -533,6 +533,10 @@ the one fragment that uses it; its end marker is
 `ACTOR_CONTACT_FIND_PUSH_MARK_END`. `ActorContactPushScratch` in
 `include/actors/actor.h` is a different block, that of the push resolved from
 the contact records' own correction.
+The static inline contact-depth helper also lives in `src/shared/actor_contacts.h`.
+It measures overlap in composed view X/Z, rotates the normalized XYZ separation
+by the active grid view basis's transpose and produces a room-axis horizontal
+push. Each carrier keeps its own private instance marked `_`.
 
 `incinerator_blaze.h` uses the prefix `blaze`. It is the fade-to-white and
 body-fire tasks included by the incinerator room and `actor_342100`.

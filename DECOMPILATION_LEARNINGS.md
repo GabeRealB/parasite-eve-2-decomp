@@ -9164,7 +9164,7 @@ field offsets (here `_ActorContactFindPushScratch` was already `0x88` with `push
 `uncappedPush` / `position` / `kind` / `pushLength` / `marks` / `recordIndex` /
 `hit` in the same places), and
 any inlined helper the sibling calls must be reproduced rather than called —
-the twin inlined `actorCalcPush`, so a local `actorCalcPush` had to
+the twin inlined `_actorContactCalcHorizontalPushback`, so a local `_actorContactCalcHorizontalPushback` had to
 be written out. A sibling in `src/<family>/lib/` is also *already promoted*;
 porting does not license a second promotion, and the retry brief can forbid one
 outright while the other carriers are leased.
@@ -145099,7 +145099,7 @@ Global alloc gave a clamped depth `s32 distance` the second callee-saved slot
 it lost to a pointer by a hair (`4*18/159` against `4*28/237`), and the seed
 bought the difference with `SOFT_TOUCH_REG_USE(boundedDepth, distance)`, one
 fake in-loop use (+2 weighted refs). The source spelled the value in two steps,
-like `actorCalcPush` in `include/actors/actor.h`:
+like `_actorContactCalcHorizontalPushback` in `src/shared/actor_contacts.h`:
 
 ```c
 distance = SquareRoot0(dx * dx + dz * dz);

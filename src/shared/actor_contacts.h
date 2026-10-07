@@ -78,6 +78,50 @@ STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
 
 /* Interface for the including source. */
 
+/// Computes a horizontal room-axis push away from a body contact's centre.
+///
+/// `position` and `contact->point` use signed integer coordinates in the same
+/// composed view frame. For a sphere pair, `contact->distance` is the sum of
+/// the radii. The push depth is that distance less the SDK's X/Z length,
+/// clamped to zero; its direction comes from the full XYZ separation, normalized
+/// with 4096 for one unit and multiplied by the transpose of the active grid's
+/// view basis. Translation is ignored; basis scale is retained. Dropping the
+/// resulting Y component can make the horizontal push shorter than the depth.
+///
+/// Requires live inputs, writable output XYZ and an active `Gp_GridParams` with
+/// an initialized `viewCoord->workm`. Coordinate differences must fit the SDK's
+/// signed-halfword normalization inputs, and intermediate sums/products must fit
+/// signed 32 bits; no range checks are made. X/Z products are shifted right by
+/// 12 and narrowed to signed halfwords without saturation; Y is written as zero
+/// and `pad` is untouched. All input reads precede output writes. Borrows the
+/// pointers only for the call, reserves no scratch-stack storage and changes
+/// GTE working registers even when the depth is zero.
+static __inline__ void _actorContactCalcHorizontalPushback(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* pushDelta)
+{
+    enum { ACTOR_CONTACT_DIRECTION_FRACTION_BITS = 12 };
+    VECTOR delta;
+    VECTOR normalizedDirection;
+    s32    penetrationDepth;
+
+    // Measure horizontal overlap before including height in the push direction.
+    delta.vx         = position->vx - contact->point.vx;
+    delta.vy         = 0;
+    delta.vz         = position->vz - contact->point.vz;
+    penetrationDepth = SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz);
+    penetrationDepth = contact->distance - penetrationDepth;
+    penetrationDepth = (penetrationDepth <= 0) ? 0 : penetrationDepth;
+
+    // Remove the view basis from the full separation, then keep only room X/Z.
+    delta.vx = position->vx - contact->point.vx;
+    delta.vy = position->vy - contact->point.vy;
+    delta.vz = position->vz - contact->point.vz;
+    VectorNormal(&delta, &normalizedDirection);
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &normalizedDirection, &delta);
+    pushDelta->vx = (penetrationDepth * delta.vx) >> ACTOR_CONTACT_DIRECTION_FRACTION_BITS;
+    pushDelta->vy = 0;
+    pushDelta->vz = (penetrationDepth * delta.vz) >> ACTOR_CONTACT_DIRECTION_FRACTION_BITS;
+}
+
 /// Return type of `_actorContactApplyAvoidancePushback`.
 ///
 /// The body returns 0, or 1 when it saw a contact of kind 0x10000. Both
