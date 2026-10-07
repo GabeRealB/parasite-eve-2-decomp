@@ -1266,19 +1266,27 @@ void capClearUnstartedSequenceTask(Task* task)
     task->state++;
 }
 
-/// Sends a CAP texture-sequence or eye-mode request to its selected actor.
+/// Sends a CAP texture-mode request using the selected actor's message protocol.
 ///
-/// Recipient 0 requires the player, 1 skips an absent companion, and 2..17
-/// select placed actors 0..15 in the initialized scene. Missing actors are
-/// skipped. `textureMode` is the zero-extended low byte of the CAP request;
-/// its interpretation belongs to the receiver.
+/// `recipient` and `textureMode` are zero-extended CAP bytes carried as message
+/// words. Recipient 0 requires a live player; 1 selects the optional companion;
+/// 2..17 select placed actors 0..15 in the current stage and area. Every other
+/// recipient byte also reaches the placed-actor lookup after subtracting 2,
+/// without range validation. That path requires an initialized scene manager.
+/// An absent companion or placed actor drops the request.
+///
+/// Player and companion modes select texture-upload sequences. Placed actors
+/// interpret the mode themselves: image selection, blinking or queued texture
+/// uploads. The mode must be valid for the receiver's loaded resources. Dispatch
+/// is synchronous, sends zero as the second payload and discards the result;
+/// receiver tasks, work and handler code must remain live through the call.
 static inline void _capDispatchTextureMessage(s32 recipient, s32 textureMode)
 {
     enum {
-        CAP_TEXTURE_RECIPIENT_PLAYER            = 0,
-        CAP_TEXTURE_RECIPIENT_COMPANION         = 1,
-        CAP_TEXTURE_RECIPIENT_PLACED_ACTOR_BASE = 2,
-        CAP_TEXTURE_MESSAGE_SET_ACTOR_EYES      = 0x7E0
+        CAP_TEXTURE_RECIPIENT_PLAYER              = 0,
+        CAP_TEXTURE_RECIPIENT_COMPANION           = 1,
+        CAP_TEXTURE_RECIPIENT_PLACED_ACTOR_BASE   = 2,
+        CAP_TEXTURE_MESSAGE_SET_PLACED_ACTOR_MODE = 0x7E0
     };
     Task* targetTask;
 
@@ -1292,7 +1300,7 @@ static inline void _capDispatchTextureMessage(s32 recipient, s32 textureMode)
     } else {
         targetTask = sceneFindPlacedActor(recipient - CAP_TEXTURE_RECIPIENT_PLACED_ACTOR_BASE);
         if (targetTask != NULL) {
-            taskMessageDispatch(targetTask, CAP_TEXTURE_MESSAGE_SET_ACTOR_EYES, textureMode, 0);
+            taskMessageDispatch(targetTask, CAP_TEXTURE_MESSAGE_SET_PLACED_ACTOR_MODE, textureMode, 0);
         }
     }
 }
