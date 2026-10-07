@@ -60,11 +60,7 @@
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_1f_parking_garage_80181984[4];
-// Scalar symbol view preserves the original byte/halfword address formation.
-extern u8 D_shelter_1f_parking_garage_80181984_value __asm__("D_shelter_1f_parking_garage_80181984");
+extern u8 D_shelter_1f_parking_garage_80181984;
 
 extern TaskDesc         D_shelter_1f_parking_garage_80180BA0;
 extern TaskDesc         D_shelter_1f_parking_garage_80180BAC;
@@ -352,12 +348,14 @@ ScreenFade D_shelter_1f_parking_garage_80181978 = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_1f_parking_garage_80181984[4] = {
-    0,
-    25,
-    36,
-    75,
-};
+u8 D_shelter_1f_parking_garage_80181984 = 0;
+
+/// Three bytes stored after the flag; nothing references them.
+u8 D_shelter_1f_parking_garage_80181985 = 25;
+
+u8 D_shelter_1f_parking_garage_80181986 = 36;
+
+u8 D_shelter_1f_parking_garage_80181987 = 75;
 
 RoomDeparture gRoomDeparture;
 
@@ -373,7 +371,7 @@ static void _glowDrawAngledCapsule(const SVECTOR worldPoints[2], s32 radiusScale
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_1f_parking_garage_80181984_value = 0;
+    D_shelter_1f_parking_garage_80181984 = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *dst;
@@ -382,7 +380,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomL
                 gameFlagSetNibble(event->flagId, 1);
             }
             taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BAC, 0, 0, 0);
-            D_shelter_1f_parking_garage_80181984_value = 1;
+            D_shelter_1f_parking_garage_80181984 = 1;
         }
         return 2;
     }
