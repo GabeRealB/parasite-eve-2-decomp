@@ -98,7 +98,7 @@ static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor151000AyaBreaBody;
-void             func_actor_151000_801323F4(Task*);
+static void      _actor151000WalkerTask(Task* task);
 
 static s32 _actor151000SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 flags, s32 unusedArgument);
 static s32 _actor151000ApplyWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument);
@@ -675,7 +675,7 @@ TaskMessageEntry gFootstepWalkMsgTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_151000_8013D2E0 = { { { TASK_BODY_TMD, 192 } }, func_actor_151000_801323F4, { .model = &_gActor151000AyaBreaBody } };
+TaskDesc D_actor_151000_8013D2E0 = { { { TASK_BODY_TMD, 192 } }, _actor151000WalkerTask, { .model = &_gActor151000AyaBreaBody } };
 
 u8 gFootstepWalkAnims[140] = {
     0,
@@ -842,11 +842,12 @@ Task* gFootstepWalkTask;
 /// of the animation clip; request values narrow to 16 bits without checking.
 static s16 _gFootstepWalkMode;
 
-/// Queues the scene's opaque black cover in the current frame's packet arena.
+/// Queues a centered opaque black rectangle over the scene.
 ///
-/// Requires space for one aligned `TILE` and a live ordering table with tag 10.
-/// Coordinates and extent are pixels relative to the draw origin; the packet
-/// belongs to the frame until GPU drawing completes.
+/// Covers 320 by 256 pixels starting at (-160, -128) relative to the draw origin.
+/// Reserves `sizeof(TILE)` bytes without checking capacity; the current packet
+/// arena must be word-aligned and have that space free. Ordering-table entry 10
+/// must be writable. The frame owns the linked packet until GPU drawing finishes.
 static __inline__ void _actor151000DrawBlackoutTile(void)
 {
     enum {
@@ -901,19 +902,32 @@ static void _actor151000SetBlackout(s32 enabled)
 
 #include "../../shared/footstep_walk_update.inc.c"
 
-/// The enemy's task body: publishes the task's work block in
-/// `_gFootstepWalkWork`, then runs the handler for the task's state from a
-/// table built on the stack - the spawn handler `_footstepWalkSpawn`,
-/// then the per-frame `_actorRenderWalkerFrame`.
-void func_actor_151000_801323F4(Task* task)
+/// Initializes or advances this package's sound-enabled scripted walker.
+///
+/// `task` must own a nineteen-part TMD model and a live `Enemy` in
+/// `spawnArg2.pointer`. Task state 0 allocates and binds its work and enters
+/// state 1; state 1 refreshes lighting, updates motion/animation and draws
+/// the ground shadow. No other state is valid for this unchecked dispatch.
+/// Publishes `task->work` for the singleton animation and message handlers;
+/// state 0 replaces the initially NULL pointer before using those handlers.
+/// The package, model, clip data and required scratch/GTE state must be live.
+/// Initialization failure can release the enemy and begin task teardown, so
+/// the task, enemy and published work must not be used after that failure.
+static void _actor151000WalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        _footstepWalkSpawn,
-        _actorRenderWalkerFrame,
+    enum {
+        ACTOR_151000_WALKER_STATE_SPAWN = 0,
+        ACTOR_151000_WALKER_STATE_FRAME = 1
     };
 
+    EnemyTaskFunc stateHandlers[] = {
+        [ACTOR_151000_WALKER_STATE_SPAWN] = _footstepWalkSpawn,
+        [ACTOR_151000_WALKER_STATE_FRAME] = _actorRenderWalkerFrame,
+    };
+
+    // Singleton helpers must see this task's work before its state runs.
     _gFootstepWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.

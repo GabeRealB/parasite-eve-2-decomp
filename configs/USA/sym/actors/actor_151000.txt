@@ -140,3 +140,4 @@ _actor151000SetBlackout = 0x80131ee0; // type:func
 _actor151000SetWalkerModelDraw = 0x801327c8; // type:func
 _actor151000ApplyWalkerCommand = 0x8013288c; // type:func
 _actorRenderWalkerFrame = 0x80132450; // type:func
+_actor151000WalkerTask = 0x801323f4; // type:func
