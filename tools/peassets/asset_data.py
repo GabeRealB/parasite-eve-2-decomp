@@ -5708,6 +5708,8 @@ EMBEDDED_ASSETS = {
     'dryfield_water_tank_model_020D4': {"source": 'dryfield_water_tank.pe2pkg', "vram": 0x8017F694, "size": 0x6A8, "ext": '.tmd', "type": 'model'},
     'shelter_b2_elevator_model_00688': {"source": 'shelter_b2_elevator.pe2pkg', "vram": 0x8017DC48, "size": 0x108, "ext": '.tmd', "type": 'model'},
     'shelter_b2_elevator_model_00884': {"source": 'shelter_b2_elevator.pe2pkg', "vram": 0x8017DE44, "size": 0x108, "ext": '.tmd', "type": 'model'},
+    'acropolis_observatory_path_0124C': {"source": 'acropolis_observatory.pe2pkg', "vram": 0x8017E80C, "size": 0x960, "ext": '.path', "type": 'movie_path', "include": 'u16'},
+    'acropolis_observatory_path_01BAC': {"source": 'acropolis_observatory.pe2pkg', "vram": 0x8017F16C, "size": 0x960, "ext": '.path', "type": 'movie_path', "include": 'u16'},
     'dryfield_water_tower_model_03D14': {"source": 'dryfield_water_tower.pe2pkg', "vram": 0x801812D4, "size": 0x748, "ext": '.tmd', "type": 'model'},
     'gameplay_effect_80111fc8_normals': {"source": 'gameplay.pe2pkg', "vram": 0x80111F28, "size": 0x20, "ext": '.modelpart', "type": 'model', "include": 'u16'},
     'gameplay_effect_80111fc8_packets': {"source": 'gameplay.pe2pkg', "vram": 0x80111F48, "size": 0x80, "ext": '.modelpart', "type": 'model', "include": 'u32'},
